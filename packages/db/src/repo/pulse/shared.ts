@@ -17,6 +17,7 @@ import {
   type PulseStatus,
 } from '../../schema/pulse'
 import { OPEN_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
+import { listRuleSources } from '@duedatehq/core/rules'
 import { taxAreasForAlert, type TaxArea } from '@duedatehq/core/tax-area'
 export const OPEN_STATUSES = [...OPEN_OBLIGATION_STATUSES] satisfies ObligationStatus[]
 export const APPLICATION_BATCH_SIZE = Math.floor(100 / 9)
@@ -249,6 +250,8 @@ export type PulsePriorityReasonKey =
   | 'low_confidence'
   | 'high_impact'
   | 'source_attention'
+  | 'protective_claim_deadline'
+  | 'rights_window_source'
 export type PulsePriorityLevel = 'normal' | 'high' | 'urgent'
 
 export interface PulsePriorityReasonRow {
@@ -739,18 +742,45 @@ export function priorityReasonLabel(key: PulsePriorityReasonKey): string {
       return 'This Pulse affects multiple clients.'
     case 'source_attention':
       return 'The source watcher has an internal diagnostics signal.'
+    case 'protective_claim_deadline':
+      return 'Protective claim action window closes within 60 days.'
+    case 'rights_window_source':
+      return 'Rights-window source needs CPA review.'
   }
   return key
 }
 
-export function sourceWatcherPrioritySignal(_sourceId: string): boolean {
-  return false
+const RIGHTS_WINDOW_SOURCE_IDS = new Set(
+  listRuleSources()
+    .filter((source) => source.alertCoverageRoles?.includes('rights_window_signal'))
+    .map((source) => source.id),
+)
+
+const PROTECTIVE_CLAIM_PRIORITY_WINDOW_MS = 60 * 24 * 60 * 60 * 1000
+
+function dateFromIsoDateOnly(value: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
+  return new Date(`${value}T00:00:00.000Z`)
+}
+
+function protectiveActionDeadline(structuredChange: unknown): Date | null {
+  if (!isRecord(structuredChange)) return null
+  const deadline = structuredChange.actionDeadline
+  return typeof deadline === 'string' ? dateFromIsoDateOnly(deadline) : null
+}
+
+function utcStartOfDay(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
 }
 
 export function scorePulsePriority(input: {
   matchedCount: number
   needsReviewCount: number
   confidence: number
+  changeKind?: PulseChangeKind
+  structuredChange?: unknown
+  sourceId?: string
+  now?: Date
   preparerRequested?: boolean
   sourceNeedsAttention?: boolean
 }): { score: number; level: PulsePriorityLevel; reasons: PulsePriorityReasonRow[] } {
@@ -804,6 +834,37 @@ export function scorePulsePriority(input: {
       label: priorityReasonLabel('source_attention'),
     })
   }
+  // Rights-window sources are flagged for CPA review on their own axis, detected
+  // from sourceId and independent of the source-diagnostics `sourceNeedsAttention`
+  // signal. Gate on a credible extraction so quarantined (<0.5) items do not earn
+  // the bonus — those already score via `low_confidence`, and routing them through
+  // `sourceNeedsAttention` previously mislabeled them as a source-diagnostics signal.
+  const isRightsWindowSource =
+    input.sourceId !== undefined &&
+    input.confidence >= 0.5 &&
+    RIGHTS_WINDOW_SOURCE_IDS.has(input.sourceId)
+  if (isRightsWindowSource) {
+    reasons.push({
+      key: 'rights_window_source',
+      points: 10,
+      label: priorityReasonLabel('rights_window_source'),
+    })
+  }
+  if (input.changeKind === 'protective_claim_window') {
+    const deadline = protectiveActionDeadline(input.structuredChange)
+    const now = utcStartOfDay(input.now ?? new Date())
+    if (
+      deadline &&
+      deadline.getTime() >= now.getTime() &&
+      deadline.getTime() - now.getTime() <= PROTECTIVE_CLAIM_PRIORITY_WINDOW_MS
+    ) {
+      reasons.push({
+        key: 'protective_claim_deadline',
+        points: 45,
+        label: priorityReasonLabel('protective_claim_deadline'),
+      })
+    }
+  }
 
   const score = reasons.reduce((sum, reason) => sum + reason.points, 0)
   return { score, level: priorityLevel(score), reasons }
@@ -815,7 +876,9 @@ export function isPriorityReasonKey(value: unknown): value is PulsePriorityReaso
     value === 'needs_review_matches' ||
     value === 'low_confidence' ||
     value === 'high_impact' ||
-    value === 'source_attention'
+    value === 'source_attention' ||
+    value === 'protective_claim_deadline' ||
+    value === 'rights_window_source'
   )
 }
 
@@ -973,6 +1036,8 @@ export function pulseChangeKindFamily(changeKind: PulseChangeKind | undefined): 
       return 'scope'
     case 'new_obligation':
       return 'new_obligation'
+    case 'protective_claim_window':
+      return 'protective_claim'
     case 'rule_source_drift':
       return 'drift'
     default:
@@ -991,6 +1056,7 @@ export interface PulseDedupeKeyInput {
   parsedNewDueDate: Date | null
   parsedForms: readonly string[]
   parsedCounties: readonly string[]
+  structuredChange?: unknown
   publishedAt: Date
 }
 
@@ -1006,6 +1072,9 @@ export interface PulseDedupeKeyInput {
  *  • Undated change (rate / scope / conformity): no date axis, so keyed on
  *    jurisdiction + family + normalized forms + counties, bounded to the
  *    publication year so unrelated future changes do not collide.
+ *  • Protective claim window: keyed like an undated review-only event, but adds
+ *    the source-backed action deadline when present so separate rights windows
+ *    in the same year do not collapse.
  *
  * The `v1` prefix lets the scheme evolve without colliding with backfilled keys.
  */
@@ -1020,6 +1089,10 @@ export function computePulseDedupeKey(input: PulseDedupeKeyInput): string {
   const forms = normalizePulseDuplicateList(input.parsedForms, 'plain')
   const counties = normalizePulseDuplicateList(input.parsedCounties, 'county')
   const year = String(input.publishedAt.getUTCFullYear())
+  if (input.changeKind === 'protective_claim_window') {
+    const actionDeadline = isoDateUtcDay(protectiveActionDeadline(input.structuredChange))
+    return ['v1', jurisdiction, family, actionDeadline, year, forms, counties].join('::')
+  }
   return ['v1', jurisdiction, family, year, forms, counties].join('::')
 }
 

@@ -433,6 +433,7 @@ function toCoveragePublic(
     guidanceNoticeSourceIds: [...row.guidanceNoticeSourceIds],
     taxTypeSourceIds: [...row.taxTypeSourceIds],
     reliefOrDisasterSourceIds: [...row.reliefOrDisasterSourceIds],
+    rightsWindowSourceIds: [...row.rightsWindowSourceIds],
     multiAgencySourceIds: [...row.multiAgencySourceIds],
     sourceIds: publicSourceIds,
     lastCheckedAt: toIsoOrNull(lastCheckedAt),

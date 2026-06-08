@@ -77,6 +77,27 @@ function latestPolicyDate(values: ReadonlyArray<string | null>): Date | null {
   return times.length > 0 ? new Date(Math.max(...times)) : null
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function protectiveActionDeadlineFromStructuredChange(structuredChange: unknown): Date | null {
+  if (!isRecord(structuredChange)) return null
+  const deadline = structuredChange.actionDeadline
+  if (typeof deadline !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(deadline)) return null
+  return dateFromIsoDate(deadline)
+}
+
+function utcStartOfDay(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+}
+
+function hasCurrentProtectiveActionDeadline(structuredChange: unknown, now = new Date()): boolean {
+  const deadline = protectiveActionDeadlineFromStructuredChange(structuredChange)
+  if (!deadline) return false
+  return deadline.getTime() >= utcStartOfDay(now).getTime()
+}
+
 /**
  * Coerce the AI-extracted jurisdiction into a value the output contract accepts
  * (`FED` or a 2-letter state/DC code — PulseJurisdictionSchema). The model
@@ -437,7 +458,14 @@ async function runPulseExtractionAfterMark(
     result.result.effectiveFrom,
     result.result.effectiveUntil,
   ])
-  if (latestRelevant && latestRelevant.getTime() < PULSE_ALERT_MIN_RELEVANT_AT.getTime()) {
+  const keepHistoricalProtectiveWindow =
+    result.result.changeKind === 'protective_claim_window' &&
+    hasCurrentProtectiveActionDeadline(result.result.structuredChange)
+  if (
+    latestRelevant &&
+    latestRelevant.getTime() < PULSE_ALERT_MIN_RELEVANT_AT.getTime() &&
+    !keepHistoricalProtectiveWindow
+  ) {
     await repo.updateSourceSnapshotStatus(snapshotId, {
       parseStatus: 'ignored',
       aiOutputId,

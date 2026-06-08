@@ -54,6 +54,7 @@ export type AlertSourceCoverageRole =
   | 'rule_source_watch'
   | 'tax_type_sources'
   | 'relief_or_disaster_signal'
+  | 'rights_window_signal'
   | 'multi_agency_sources'
 
 export interface AlertSourceCoverageRoleDetail {
@@ -89,6 +90,7 @@ export interface AlertSourceCoverage {
   guidanceNoticeSourceIds: readonly string[]
   taxTypeSourceIds: readonly string[]
   reliefOrDisasterSourceIds: readonly string[]
+  rightsWindowSourceIds: readonly string[]
   multiAgencySourceIds: readonly string[]
   hiddenPolicyWatchSourceIds: readonly string[]
   sourceIds: readonly string[]
@@ -418,6 +420,12 @@ function idsForReliefOrDisasterSources(input: {
   return uniqueStrings([...explicitReliefSourceIds, ...federalReliefIds])
 }
 
+function idsForRightsWindowSources(sources: readonly RuleSource[]): string[] {
+  return sources
+    .filter((source) => sourceHasCoverageRole(source, 'rights_window_signal'))
+    .map((source) => source.id)
+}
+
 function idsForMultiAgencySources(
   sources: readonly RuleSource[],
   explicitLiveSourceIds: readonly string[],
@@ -441,6 +449,7 @@ function coveredComprehensiveRoles(input: {
   guidanceNoticeSourceIds: readonly string[]
   taxTypeSourceIds: readonly string[]
   reliefOrDisasterSourceIds: readonly string[]
+  rightsWindowSourceIds: readonly string[]
   multiAgencySourceIds: readonly string[]
 }): AlertSourceCoverageRole[] {
   const roles: AlertSourceCoverageRole[] = []
@@ -450,12 +459,16 @@ function coveredComprehensiveRoles(input: {
   if (input.ruleSourceWatchIds.length > 0) roles.push('rule_source_watch')
   if (input.taxTypeSourceIds.length > 0) roles.push('tax_type_sources')
   if (input.reliefOrDisasterSourceIds.length > 0) roles.push('relief_or_disaster_signal')
+  if (input.rightsWindowSourceIds.length > 0) roles.push('rights_window_signal')
   if (input.multiAgencySourceIds.length > 0) roles.push('multi_agency_sources')
   return roles
 }
 
 function requiredRolesForJurisdiction(jurisdiction: RuleJurisdiction): AlertSourceCoverageRole[] {
   const roles: AlertSourceCoverageRole[] = [...BASE_COMPREHENSIVE_ALERT_SOURCE_ROLES]
+  if (jurisdiction === 'FED') {
+    roles.push('rights_window_signal')
+  }
   if (MULTI_AGENCY_REQUIRED_JURISDICTIONS.has(jurisdiction)) {
     roles.push('multi_agency_sources')
   }
@@ -471,6 +484,7 @@ function roleSourceIds(
     guidanceNoticeSourceIds: readonly string[]
     taxTypeSourceIds: readonly string[]
     reliefOrDisasterSourceIds: readonly string[]
+    rightsWindowSourceIds: readonly string[]
     multiAgencySourceIds: readonly string[]
   },
 ): readonly string[] {
@@ -487,6 +501,8 @@ function roleSourceIds(
       return input.taxTypeSourceIds
     case 'relief_or_disaster_signal':
       return input.reliefOrDisasterSourceIds
+    case 'rights_window_signal':
+      return input.rightsWindowSourceIds
     case 'multi_agency_sources':
       return input.multiAgencySourceIds
   }
@@ -507,6 +523,8 @@ function missingRoleReason(role: AlertSourceCoverageRole): string {
       return 'No official tax-type basis sources are registered for covered entity/tax domains.'
     case 'relief_or_disaster_signal':
       return 'No verified official tax relief, emergency relief, or disaster relief source is registered.'
+    case 'rights_window_signal':
+      return 'No verified official rights/protective-claim signal source is registered.'
     case 'multi_agency_sources':
       return 'Required multi-agency coverage is missing; CA/TX/WA/NY/FL/MA must have sources from different agency hosts.'
   }
@@ -522,6 +540,7 @@ function roleDetailsForCoverage(
     guidanceNoticeSourceIds: readonly string[]
     taxTypeSourceIds: readonly string[]
     reliefOrDisasterSourceIds: readonly string[]
+    rightsWindowSourceIds: readonly string[]
     multiAgencySourceIds: readonly string[]
   },
 ): AlertSourceCoverageRoleDetail[] {
@@ -1112,6 +1131,7 @@ export function listAlertSourceCoverage(
       sources: jurisdictionSources,
       explicitLiveSourceIds,
     })
+    const rightsWindowSourceIds = idsForRightsWindowSources(jurisdictionSources)
     const multiAgencySourceIds = idsForMultiAgencySources(
       jurisdictionSources,
       explicitLiveSourceIds,
@@ -1128,6 +1148,7 @@ export function listAlertSourceCoverage(
       ...guidanceNoticeSourceIds,
       ...taxTypeSourceIds,
       ...reliefOrDisasterSourceIds,
+      ...rightsWindowSourceIds,
       ...multiAgencySourceIds,
       ...hiddenPolicyWatchIds,
     ])
@@ -1140,6 +1161,7 @@ export function listAlertSourceCoverage(
       guidanceNoticeSourceIds,
       taxTypeSourceIds,
       reliefOrDisasterSourceIds,
+      rightsWindowSourceIds,
       multiAgencySourceIds,
     })
     const missingRoles = requiredRoles.filter((role) => !coveredRoles.includes(role))
@@ -1150,6 +1172,7 @@ export function listAlertSourceCoverage(
       guidanceNoticeSourceIds,
       taxTypeSourceIds,
       reliefOrDisasterSourceIds,
+      rightsWindowSourceIds,
       multiAgencySourceIds,
     })
     const coverageLevel =
@@ -1180,6 +1203,7 @@ export function listAlertSourceCoverage(
       guidanceNoticeSourceIds,
       taxTypeSourceIds,
       reliefOrDisasterSourceIds,
+      rightsWindowSourceIds,
       multiAgencySourceIds,
       hiddenPolicyWatchSourceIds: hiddenPolicyWatchIds,
       sourceIds,

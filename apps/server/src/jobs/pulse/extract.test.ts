@@ -364,6 +364,94 @@ describe('extractPulseSnapshot', () => {
     )
   })
 
+  it('keeps historical protective-claim windows when the action deadline is still open', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-06-08T12:00:00.000Z'))
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      id: 'snapshot-kwong',
+      sourceId: 'fed.taxpayer_advocate_blog',
+      title: 'Protective refund claims before July 10',
+      officialSourceUrl: 'https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/',
+      publishedAt: new Date('2026-06-08T00:00:00.000Z'),
+      rawR2Key: 'raw/kwong.txt',
+      pulseId: null,
+      parseStatus: 'pending_extract',
+    })
+    aiMocks.extractPulse.mockResolvedValue({
+      result: {
+        classification: 'regulatory_change',
+        changeKind: 'protective_claim_window',
+        actionMode: 'review_only',
+        summary: 'Review whether protective refund claims are needed before July 10, 2026.',
+        sourceExcerpt: 'protective claims before July 10, 2026',
+        jurisdiction: 'FED',
+        counties: [],
+        forms: ['federal_1040'],
+        entityTypes: ['individual'],
+        originalDueDate: null,
+        newDueDate: null,
+        effectiveFrom: '2020-03-13',
+        effectiveUntil: '2022-04-10',
+        affectedRuleIds: [],
+        structuredChange: {
+          kind: 'protective_claim_window',
+          actionDeadline: '2026-07-10',
+          claimTaxYears: ['2019', '2020', '2021', '2022'],
+          affectedTaxActs: ['COVID disaster period refund claims'],
+          evidenceNeeded: ['filed return dates', 'claim support'],
+          legalUncertainty: 'CPA must review whether action is needed.',
+          authorityRefs: ['Taxpayer Advocate Service'],
+        },
+        confidence: 0.9,
+      },
+      trace: {
+        promptVersion: 'pulse-extract@v3',
+        model: 'test-model',
+        inputHash: 'hash',
+        guardResult: 'pass',
+        latencyMs: 1,
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+
+    try {
+      const result = await extractPulseSnapshot(
+        env('review protective claims before July 10, 2026'),
+        'snapshot-kwong',
+      )
+
+      expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
+      expect(repoMocks.updateSourceSnapshotStatus).not.toHaveBeenCalledWith(
+        'snapshot-kwong',
+        expect.objectContaining({ failureReason: 'historical_pre_2026' }),
+      )
+      expect(repoMocks.findDuplicatePulseForExtract).toHaveBeenCalledWith(
+        expect.objectContaining({
+          changeKind: 'protective_claim_window',
+          actionMode: 'review_only',
+          parsedJurisdiction: 'FED',
+        }),
+      )
+      expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+        expect.objectContaining({
+          changeKind: 'protective_claim_window',
+          actionMode: 'review_only',
+          parsedEffectiveUntil: new Date('2022-04-10T00:00:00.000Z'),
+          structuredChange: expect.objectContaining({
+            kind: 'protective_claim_window',
+            actionDeadline: '2026-07-10',
+          }),
+          dedupe: true,
+        }),
+      )
+      expect(repoMocks.apply).not.toHaveBeenCalled()
+      expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('keeps official email subscription sources eligible for Apply-readiness candidates', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue({
       id: 'snapshot-ny-email',

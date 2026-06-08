@@ -136,4 +136,37 @@ describe('AlertStructuredFields', () => {
     )
     expect(document.body.textContent).not.toContain('policy-watch')
   })
+
+  it('renders protective claim window facts without exposing raw structured JSON', () => {
+    render(
+      <AlertStructuredFields
+        detail={reviewOnlyDetail({
+          alert: {
+            ...reviewOnlyDetail().alert,
+            changeKind: 'protective_claim_window',
+            source: 'Taxpayer Advocate Service Blog',
+            sourceUrl: 'https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/',
+          },
+          structuredChange: {
+            kind: 'protective_claim_window',
+            actionDeadline: '2026-07-10',
+            claimTaxYears: ['2019', '2020', '2021', '2022'],
+            affectedTaxActs: ['COVID disaster period refund claims'],
+            evidenceNeeded: ['filed return dates', 'claim support'],
+            legalUncertainty: 'CPA must review whether action is needed.',
+            authorityRefs: ['Taxpayer Advocate Service'],
+          },
+          sourceExcerpt: 'taxpayers should review protective claims before July 10, 2026.',
+        })}
+      />,
+    )
+
+    expect(document.body.textContent).toContain('Protective claim window')
+    expect(document.body.textContent).toContain('Action deadline')
+    expect(document.body.textContent).toContain('Jul 10, 2026')
+    expect(document.body.textContent).toContain('2019 · 2020 · 2021 · 2022')
+    expect(document.body.textContent).toContain('filed return dates · claim support')
+    expect(document.body.textContent).toContain('CPA must review whether action is needed.')
+    expect(document.body.textContent).not.toContain('"actionDeadline"')
+  })
 })

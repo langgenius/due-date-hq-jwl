@@ -66,10 +66,15 @@ GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` ca
   subscription / GovDelivery / list signal 才计入覆盖。
 - Coverage report 现在按 strict comprehensive roles 输出：`primary_web_news`、
   `guidance_notice`、`email_signal`、`rule_source_watch`、`tax_type_sources`、
-  `relief_or_disaster_signal`，并且只对 CA/TX/WA/NY/FL/MA 要求 `multi_agency_sources`。
+  `relief_or_disaster_signal`，FED 另要求 `rights_window_signal`，并且只对
+  CA/TX/WA/NY/FL/MA 要求 `multi_agency_sources`。
   `relief_or_disaster_signal` 必须是真实 tax relief / emergency relief / disaster relief
   source；普通 newsroom 不再算 relief。找不到真实官方源时保留 `missingRoles`，不再把 52/52
   jurisdiction 展示为全面 `comprehensive`。
+- `rights_window_signal` 是权利保护 / protective-claim / legal-development signal role，不和
+  `relief_or_disaster_signal` 混用。FED 首批来源为 Taxpayer Advocate Service Blog、IRS Actions
+  on Decisions、IRS Internal Revenue Bulletins；它们只能创建 CPA review evidence，不能自动判断
+  客户是否 qualify。
 - Source catalog 由代码生成结构化 inventory：`id`、`jurisdiction`、roles、agency、title、
   URL、source type、acquisition method、adapter kind、verification status、verified date、
   notes、inbound email verification metadata。该 catalog 是 backend/dev-log/future internal
@@ -105,12 +110,15 @@ GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` ca
 
 ### 3.1 Federal（IRS · T1）
 
-| ID             | 名称                | URL                                                              | 协议             | 频率    | 结构稳定性 | 备注                                                                    |
-| -------------- | ------------------- | ---------------------------------------------------------------- | ---------------- | ------- | ---------- | ----------------------------------------------------------------------- |
-| `irs.disaster` | IRS Disaster Relief | `https://www.irs.gov/newsroom/tax-relief-in-disaster-situations` | HTML detail diff | 60 min  | 高         | 联邦灾害延期的 T1 主源；抓 "Recent Tax Relief" 表格 + detail page       |
-| `irs.newsroom` | IRS Newsroom        | `https://www.irs.gov/newsroom`                                   | HTML list/detail | 120 min | 中         | 广谱新闻信号，噪声高；不作为灾害延期主源；不得依赖未复核的 RSS endpoint |
-| `irs.guidance` | IRS Guidance        | `https://www.irs.gov/newsroom/irs-guidance`                      | HTML list/detail | 120 min | 中         | Revenue Ruling / Procedure / Notice；比新闻稿更硬，但不进 Demo Sprint   |
-| `irs.tips`     | IRS Tax Tips        | `https://www.irs.gov/newsroom/irs-tax-tips`                      | HTML list/detail | 120 min | 中         | 补充线索，命中 Pulse 匹配的概率低，默认 review-only（T2）               |
+| ID                             | 名称                           | URL                                                                   | 协议             | 频率    | 结构稳定性 | 备注                                                                     |
+| ------------------------------ | ------------------------------ | --------------------------------------------------------------------- | ---------------- | ------- | ---------- | ------------------------------------------------------------------------ |
+| `irs.disaster`                 | IRS Disaster Relief            | `https://www.irs.gov/newsroom/tax-relief-in-disaster-situations`      | HTML detail diff | 60 min  | 高         | 联邦灾害延期的 T1 主源；抓 "Recent Tax Relief" 表格 + detail page        |
+| `irs.newsroom`                 | IRS Newsroom                   | `https://www.irs.gov/newsroom`                                        | HTML list/detail | 120 min | 中         | 广谱新闻信号，噪声高；不作为灾害延期主源；不得依赖未复核的 RSS endpoint  |
+| `irs.guidance`                 | IRS Guidance                   | `https://www.irs.gov/newsroom/irs-guidance`                           | HTML list/detail | 120 min | 中         | Revenue Ruling / Procedure / Notice；比新闻稿更硬，但不进 Demo Sprint    |
+| `irs.tips`                     | IRS Tax Tips                   | `https://www.irs.gov/newsroom/irs-tax-tips`                           | HTML list/detail | 120 min | 中         | 补充线索，命中 Pulse 匹配的概率低，默认 review-only（T2）                |
+| `fed.taxpayer_advocate_blog`   | Taxpayer Advocate Service Blog | `https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/` | HTML watch       | daily   | 中         | `rights_window_signal`；protective-claim / taxpayer-rights review signal |
+| `fed.irs_actions_on_decisions` | IRS Actions on Decisions       | `https://www.irs.gov/actions-on-decisions`                            | HTML watch       | weekly  | 中         | `rights_window_signal`；legal-development review signal                  |
+| `fed.irs_irb`                  | IRS Internal Revenue Bulletins | `https://www.irs.gov/irb`                                             | HTML watch       | weekly  | 中         | `rights_window_signal`；official bulletin / notice review signal         |
 
 ### 3.2 State Primary（DOR · T1，全辖区 source-backed 模型）
 

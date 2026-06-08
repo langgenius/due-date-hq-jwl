@@ -41,6 +41,7 @@ export const PulseChangeKindSchema = z.enum([
   'source_status',
   'rule_source_drift',
   'new_obligation',
+  'protective_claim_window',
   // Deterministic-only (no AI) — annual IRS inflation Rev. Proc. pointer
   // advisory (review_only, no asserted dollar amounts). Mirrors the DB
   // enum in @duedatehq/db PULSE_CHANGE_KINDS.
@@ -104,6 +105,8 @@ export const PulsePriorityReasonKeySchema = z.enum([
   'low_confidence',
   'high_impact',
   'source_attention',
+  'protective_claim_deadline',
+  'rights_window_source',
 ])
 export type PulsePriorityReasonKey = z.infer<typeof PulsePriorityReasonKeySchema>
 
@@ -295,6 +298,7 @@ export const PulseAlertSourceCoverageRoleSchema = z.enum([
   'rule_source_watch',
   'tax_type_sources',
   'relief_or_disaster_signal',
+  'rights_window_signal',
   'multi_agency_sources',
 ])
 export type PulseAlertSourceCoverageRole = z.infer<typeof PulseAlertSourceCoverageRoleSchema>
@@ -334,6 +338,7 @@ export const PulseAlertSourceCoverageSchema = z.object({
   guidanceNoticeSourceIds: z.array(z.string().min(1)),
   taxTypeSourceIds: z.array(z.string().min(1)),
   reliefOrDisasterSourceIds: z.array(z.string().min(1)),
+  rightsWindowSourceIds: z.array(z.string().min(1)),
   multiAgencySourceIds: z.array(z.string().min(1)),
   sourceIds: z.array(z.string().min(1)),
   lastCheckedAt: z.iso.datetime().nullable(),

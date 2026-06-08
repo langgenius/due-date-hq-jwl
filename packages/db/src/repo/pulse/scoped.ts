@@ -74,7 +74,6 @@ import {
   rowMatchesCounty,
   sameTimestamp,
   scorePulsePriority,
-  sourceWatcherPrioritySignal,
   toAlert,
   toClientEntityTypes,
   toDateOnly,
@@ -843,7 +842,6 @@ export function makePulseRepo(db: Db, firmId: string) {
       reviewedBy?: string | null
       reviewedAt?: Date | null
       preparerRequested?: boolean
-      sourceNeedsAttention?: boolean
       now?: Date
     },
   ): Promise<PulsePriorityReviewRow> {
@@ -852,11 +850,12 @@ export function makePulseRepo(db: Db, firmId: string) {
       matchedCount: alert.matchedCount,
       needsReviewCount: alert.needsReviewCount,
       confidence: alert.confidence,
+      changeKind: alert.changeKind,
+      structuredChange: alert.structuredChange,
+      sourceId: alert.source,
+      now,
       ...(input.preparerRequested !== undefined
         ? { preparerRequested: input.preparerRequested }
-        : {}),
-      ...(input.sourceNeedsAttention !== undefined
-        ? { sourceNeedsAttention: input.sourceNeedsAttention }
         : {}),
     })
     const row: NewPulsePriorityReview = {
@@ -1439,7 +1438,9 @@ export function makePulseRepo(db: Db, firmId: string) {
             needsReviewCount: row.needsReviewCount,
             confidence: row.confidence,
             preparerRequested: review?.requestedBy !== null && review?.requestedBy !== undefined,
-            sourceNeedsAttention: false,
+            changeKind: row.changeKind,
+            structuredChange: row.structuredChange,
+            sourceId: row.source,
           })
           if (score.score <= 0 && !review) return null
           return {
@@ -1466,7 +1467,6 @@ export function makePulseRepo(db: Db, firmId: string) {
     }): Promise<PulsePriorityReviewRow> {
       const alert = await getAlert(input.alertId)
       assertPriorityReviewableAlert(alert)
-      const sourceNeedsAttention = sourceWatcherPrioritySignal(alert.source)
       const current = await getPriorityReview(input.alertId)
       return upsertPriorityReview(alert, {
         status: 'open',
@@ -1474,7 +1474,6 @@ export function makePulseRepo(db: Db, firmId: string) {
         reviewedBy: null,
         reviewedAt: null,
         preparerRequested: true,
-        sourceNeedsAttention,
         ...(current
           ? {
               selectedObligationIds: current.selectedObligationIds,
@@ -1500,7 +1499,6 @@ export function makePulseRepo(db: Db, firmId: string) {
       assertPriorityReviewableAlert(alert)
       const detail = await buildDetail(alert)
       const selection = validatePrioritySelection(detail, input)
-      const sourceNeedsAttention = sourceWatcherPrioritySignal(alert.source)
       const current = await getPriorityReview(input.alertId)
       return upsertPriorityReview(alert, {
         status: 'reviewed',
@@ -1508,7 +1506,6 @@ export function makePulseRepo(db: Db, firmId: string) {
         reviewedBy: input.userId,
         reviewedAt: input.now ?? new Date(),
         preparerRequested: current?.requestedBy !== null && current?.requestedBy !== undefined,
-        sourceNeedsAttention,
         ...(input.note !== undefined ? { note: input.note } : {}),
         ...(input.now !== undefined ? { now: input.now } : {}),
       })

@@ -107,6 +107,7 @@ function fakeDb(selectResponses: unknown[][]) {
   const directStatements: unknown[] = []
   const db = {
     select: vi.fn(() => selectChain(selectResponses.shift() ?? [])),
+    selectDistinct: vi.fn(() => selectChain(selectResponses.shift() ?? [])),
     insert: vi.fn((table: unknown) => ({
       values: (value: unknown) => {
         const statement = {
@@ -170,6 +171,58 @@ describe('scorePulsePriority', () => {
     })
 
     expect(result).toMatchObject({ score: 3, level: 'normal' })
+  })
+
+  it('prioritizes rights-window protective claim alerts with near action deadlines', () => {
+    const result = scorePulsePriority({
+      matchedCount: 0,
+      needsReviewCount: 0,
+      confidence: 0.86,
+      sourceId: 'fed.taxpayer_advocate_blog',
+      changeKind: 'protective_claim_window',
+      structuredChange: {
+        kind: 'protective_claim_window',
+        actionDeadline: '2026-07-10',
+      },
+      now: new Date('2026-06-08T00:00:00.000Z'),
+    })
+
+    expect(result.level).toBe('high')
+    expect(result.reasons.map((reason) => [reason.key, reason.points])).toEqual([
+      ['low_confidence', 10],
+      ['rights_window_source', 10],
+      ['protective_claim_deadline', 45],
+    ])
+  })
+
+  it('does not earn the rights-window bonus or a source-diagnostics signal below the confidence floor', () => {
+    const result = scorePulsePriority({
+      matchedCount: 0,
+      needsReviewCount: 0,
+      confidence: 0.4,
+      sourceId: 'fed.taxpayer_advocate_blog',
+      changeKind: 'applicability_scope',
+    })
+
+    const keys = result.reasons.map((reason) => reason.key)
+    expect(keys).not.toContain('rights_window_source')
+    expect(keys).not.toContain('source_attention')
+    expect(keys).toEqual(['low_confidence'])
+  })
+
+  it('keeps the source-diagnostics signal independent of rights-window sources', () => {
+    const result = scorePulsePriority({
+      matchedCount: 0,
+      needsReviewCount: 0,
+      confidence: 0.92,
+      sourceId: 'fed.taxpayer_advocate_blog',
+      changeKind: 'applicability_scope',
+      sourceNeedsAttention: true,
+    })
+
+    const reasons = result.reasons.map((reason) => [reason.key, reason.points])
+    expect(reasons).toContainEqual(['rights_window_source', 10])
+    expect(reasons).toContainEqual(['source_attention', 20])
   })
 })
 
@@ -1511,6 +1564,95 @@ describe('makePulseOpsRepo', () => {
     ).toBe(true)
   })
 
+  it('rough-counts protective claim review clients without matched due-date overlays', async () => {
+    const protectivePulse = {
+      id: 'pulse-protective',
+      source: 'fed.taxpayer_advocate_blog',
+      sourceUrl: 'https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/',
+      status: 'approved' as const,
+      changeKind: 'protective_claim_window' as const,
+      actionMode: 'review_only' as const,
+      aiSummary: 'Review whether protective refund claims are needed before July 10, 2026.',
+      parsedJurisdiction: 'FED',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      reverifyRuleIdsJson: [],
+    }
+    const { db, directStatements } = fakeDb([
+      [protectivePulse],
+      [protectivePulse],
+      [{ id: 'firm-hit' }, { id: 'firm-empty' }],
+      [
+        { firmId: 'firm-hit', clientId: 'client-a', taxType: 'federal_1040' },
+        { firmId: 'firm-hit', clientId: 'client-a', taxType: 'federal_941' },
+        { firmId: 'firm-hit', clientId: 'client-b', taxType: 'federal_1099_misc' },
+        { firmId: 'firm-empty', clientId: 'client-c', taxType: 'ca_sales_use' },
+      ],
+      [
+        { id: 'alert-hit', firmId: 'firm-hit', matchedCount: 0, needsReviewCount: 2 },
+        { id: 'alert-empty', firmId: 'firm-empty', matchedCount: 0, needsReviewCount: 0 },
+      ],
+      [{ email: 'owner@example.com' }],
+      [],
+      [
+        {
+          userId: 'owner-1',
+          email: 'owner@example.com',
+          inAppEnabled: true,
+          pulseEnabled: true,
+        },
+      ],
+    ])
+
+    const result = await makePulseOpsRepo(db).createPulseForFirmReviewFromExtract({
+      snapshotId: 'snapshot-protective',
+      source: 'fed.taxpayer_advocate_blog',
+      sourceUrl: 'https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/',
+      publishedAt: new Date('2026-06-08T00:00:00.000Z'),
+      aiSummary: 'Review whether protective refund claims are needed before July 10, 2026.',
+      verbatimQuote: 'protective claims before July 10, 2026',
+      parsedJurisdiction: 'FED',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      parsedEffectiveFrom: new Date('2020-03-13T00:00:00.000Z'),
+      parsedEffectiveUntil: new Date('2022-04-10T00:00:00.000Z'),
+      confidence: 0.9,
+      actionMode: 'review_only',
+      changeKind: 'protective_claim_window',
+      structuredChange: {
+        kind: 'protective_claim_window',
+        actionDeadline: '2026-07-10',
+      },
+      requiresHumanReview: true,
+    })
+
+    expect(result.alertCount).toBe(2)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, {
+          firmId: 'firm-hit',
+          matchedCount: 0,
+          needsReviewCount: 2,
+        }),
+      ),
+    ).toBe(true)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, {
+          firmId: 'firm-empty',
+          matchedCount: 0,
+          needsReviewCount: 0,
+        }),
+      ),
+    ).toBe(true)
+  })
+
   it('finds duplicate extracted pulses by normalized policy scope', async () => {
     const { db } = fakeDb([
       [
@@ -1815,6 +1957,45 @@ describe('computePulseDedupeKey', () => {
       computePulseDedupeKey({ ...base, parsedForms: ['Income Tax'] }),
     )
   })
+
+  it('keys protective claim windows by action deadline', () => {
+    const base = {
+      parsedJurisdiction: 'FED',
+      changeKind: 'protective_claim_window' as const,
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      parsedForms: [],
+      parsedCounties: [],
+      publishedAt: new Date('2026-06-08T00:00:00.000Z'),
+    }
+
+    expect(
+      computePulseDedupeKey({
+        ...base,
+        structuredChange: {
+          kind: 'protective_claim_window',
+          actionDeadline: '2026-07-10',
+        },
+      }),
+    ).toBe('v1::FED::protective_claim::2026-07-10::2026::::')
+    expect(
+      computePulseDedupeKey({
+        ...base,
+        structuredChange: {
+          kind: 'protective_claim_window',
+          actionDeadline: '2026-08-01',
+        },
+      }),
+    ).not.toBe(
+      computePulseDedupeKey({
+        ...base,
+        structuredChange: {
+          kind: 'protective_claim_window',
+          actionDeadline: '2026-07-10',
+        },
+      }),
+    )
+  })
 })
 
 describe('pulseChangeKindFamily', () => {
@@ -1831,6 +2012,7 @@ describe('pulseChangeKindFamily', () => {
       expect(pulseChangeKindFamily(kind)).toBe('scope')
     }
     expect(pulseChangeKindFamily('new_obligation')).toBe('new_obligation')
+    expect(pulseChangeKindFamily('protective_claim_window')).toBe('protective_claim')
     expect(pulseChangeKindFamily('rule_source_drift')).toBe('drift')
     expect(pulseChangeKindFamily(undefined)).toBe('deadline')
   })

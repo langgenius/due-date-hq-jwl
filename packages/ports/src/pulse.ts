@@ -20,6 +20,7 @@ export interface PulseAlertRow {
     | 'source_status'
     | 'rule_source_drift'
     | 'new_obligation'
+    | 'protective_claim_window'
     | 'threshold_advisory'
     | 'other'
   actionMode: 'due_date_overlay' | 'review_only'
@@ -153,6 +154,8 @@ export type PulsePriorityReasonKey =
   | 'low_confidence'
   | 'high_impact'
   | 'source_attention'
+  | 'protective_claim_deadline'
+  | 'rights_window_source'
 
 export interface PulsePriorityReasonRow {
   key: PulsePriorityReasonKey
@@ -209,6 +212,7 @@ export interface PulseSeedInput {
     | 'source_status'
     | 'rule_source_drift'
     | 'new_obligation'
+    | 'protective_claim_window'
     | 'threshold_advisory'
     | 'other'
   actionMode?: 'due_date_overlay' | 'review_only'

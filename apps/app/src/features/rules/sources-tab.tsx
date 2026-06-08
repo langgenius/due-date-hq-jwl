@@ -432,6 +432,7 @@ function SourceCoverageSection() {
       rule_source_watch: t`Rule watch`,
       tax_type_sources: t`Tax-type sources`,
       relief_or_disaster_signal: t`Relief / disaster`,
+      rights_window_signal: t`Rights window`,
       multi_agency_sources: t`Multi-agency`,
     }),
     [t],

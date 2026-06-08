@@ -456,6 +456,7 @@ describe('rule source adapters', () => {
         'rule_source_watch',
         'tax_type_sources',
         'relief_or_disaster_signal',
+        'rights_window_signal',
         'multi_agency_sources',
       ]),
       explicitLiveSourceIds: expect.arrayContaining([
@@ -466,6 +467,11 @@ describe('rule source adapters', () => {
         'fema.declarations',
       ]),
       emailSignalSourceIds: expect.arrayContaining(['fed.irs_newswire']),
+      rightsWindowSourceIds: expect.arrayContaining([
+        'fed.taxpayer_advocate_blog',
+        'fed.irs_actions_on_decisions',
+        'fed.irs_irb',
+      ]),
     })
     expect(byJurisdiction.get('CA')).toMatchObject({
       coverageLevel: 'comprehensive',
@@ -522,6 +528,7 @@ describe('rule source adapters', () => {
       missingRoles: expect.arrayContaining(['email_signal', 'relief_or_disaster_signal']),
     })
     expect(byJurisdiction.get('AL')?.requiredRoles).not.toContain('multi_agency_sources')
+    expect(byJurisdiction.get('AL')?.requiredRoles).not.toContain('rights_window_signal')
     expect(byJurisdiction.get('NY')?.requiredRoles).toContain('multi_agency_sources')
 
     const alAnnouncement = listRuleSources('AL').find(
@@ -552,6 +559,18 @@ describe('rule source adapters', () => {
       inboundEmail: expect.objectContaining({
         verificationStatus: 'verified_official',
       }),
+    })
+    expect(byId.get('fed.taxpayer_advocate_blog')).toMatchObject({
+      agency: 'IRS',
+      roles: expect.arrayContaining(['rights_window_signal']),
+    })
+    expect(byId.get('fed.irs_actions_on_decisions')).toMatchObject({
+      agency: 'IRS',
+      roles: expect.arrayContaining(['rights_window_signal']),
+    })
+    expect(byId.get('fed.irs_irb')).toMatchObject({
+      agency: 'IRS',
+      roles: expect.arrayContaining(['rights_window_signal']),
     })
     expect(byId.get('tx.ui_wage_report_due_dates')).toMatchObject({
       agency: 'Texas Workforce Commission',

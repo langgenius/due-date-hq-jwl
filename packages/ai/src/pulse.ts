@@ -18,6 +18,7 @@ export const PulseExtractOutputSchema = z.object({
       'form_instruction',
       'source_status',
       'new_obligation',
+      'protective_claim_window',
       'other',
     ])
     .nullable(),

@@ -280,7 +280,7 @@ tax regulatory change. Output strict JSON only.
 Return:
 {
   "classification": "regulatory_change" | "no_regulatory_change",
-  "changeKind": "deadline_shift" | "filing_requirement" | "applicability_scope" | "form_instruction" | "source_status" | "new_obligation" | "other" | null,
+  "changeKind": "deadline_shift" | "filing_requirement" | "applicability_scope" | "form_instruction" | "source_status" | "new_obligation" | "protective_claim_window" | "other" | null,
   "actionMode": "due_date_overlay" | "review_only" | null,
   "summary": "<one plain-English sentence>",
   "sourceExcerpt": "<verbatim excerpt copied from rawText>",
@@ -301,10 +301,12 @@ Rules:
 - The sourceExcerpt must be copied verbatim from rawText.
 - Use no_regulatory_change for navigation, formatting, contact details, generic instructions, or freshness-only changes.
 - Use no_regulatory_change for non-tax agency news, staffing, awards, auctions, fraud warnings, unclaimed property, portal availability, office hours, and generic taxpayer education unless the text changes a filing/payment requirement or due date.
-- Use no_regulatory_change for program or grant application windows (e.g. Low Income Taxpayer Clinic / LITC matching grants), advisory council, board, or committee membership recruitment (e.g. IRSAC), job postings, and revenue collection or distribution statistics. A date is only a regulatory deadline when it is the date for a taxpayer to file a return, pay a tax, or make an election — not an application window for a program, grant, council, or job.
+- Use no_regulatory_change for program or grant application windows (e.g. Low Income Taxpayer Clinic / LITC matching grants), advisory council, board, or committee membership recruitment (e.g. IRSAC), job postings, and revenue collection or distribution statistics. A date is only a regulatory deadline when it is the date for a taxpayer to file a return, pay a tax, make an election, file a refund/protective claim, file an abatement claim, or preserve taxpayer rights — not an application window for a program, grant, council, or job.
 - Use no_regulatory_change when the source announces no change: it merely restates an existing or standard due date, or states that no relief, extension, or deadline change is provided.
 - RSS or news-list items are already narrowed to one candidate item. Classify only that item; do not infer a broader regulatory change from surrounding feed/list boilerplate.
 - Use deadline_shift with actionMode due_date_overlay when the source appears to discuss a due-date change.
+- Use protective_claim_window with actionMode review_only when the source describes a refund claim, protective claim, abatement claim, rights-preservation deadline, or legal-uncertainty window that a CPA may need to review. Never use due_date_overlay for protective_claim_window.
+- For protective_claim_window, structuredChange must include kind: "protective_claim_window" plus source-backed fields when stated: actionDeadline, claimTaxYears, affectedTaxActs, evidenceNeeded, legalUncertainty, and authorityRefs. actionDeadline must be a single ISO calendar date in YYYY-MM-DD form (the date the protective claim, refund claim, or election must be filed by); omit it when the source states no date — never put a date range or prose there. claimTaxYears must be 4-digit calendar years. Do not say any client qualifies for relief; the summary must say to review whether action is needed. Put legal uncertainty in structuredChange.legalUncertainty, not in an eligibility conclusion.
 - Leave originalDueDate, newDueDate, forms, counties, entityTypes, or affectedRuleIds null/[] when the source does not state them; never infer missing due-date scope.
 - Use review_only for filing requirement, applicability, form/instruction, source status, new obligation, and other non-date changes.
 - Do not infer deadlines, forms, jurisdictions, or eligibility that are not stated.

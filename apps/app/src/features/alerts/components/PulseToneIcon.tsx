@@ -47,6 +47,7 @@ const ICON_BY_CHANGE_KIND: Record<PulseAlertPublic['changeKind'], LucideIcon> = 
   source_status: SatelliteDishIcon,
   rule_source_drift: SatelliteDishIcon,
   new_obligation: PlusCircleIcon,
+  protective_claim_window: AlertTriangleIcon,
   threshold_advisory: AlertTriangleIcon,
   other: BellIcon,
 }

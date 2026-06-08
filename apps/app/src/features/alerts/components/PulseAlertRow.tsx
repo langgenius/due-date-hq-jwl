@@ -133,6 +133,8 @@ function deriveActionText(kind: PulseAlertPublic['changeKind']): string {
       return 'Re-verify source against rule'
     case 'new_obligation':
       return 'Register new obligation'
+    case 'protective_claim_window':
+      return 'Review protective claim window'
     case 'threshold_advisory':
       return 'Review adjusted thresholds'
     case 'other':

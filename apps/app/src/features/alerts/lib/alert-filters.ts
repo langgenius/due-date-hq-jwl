@@ -31,8 +31,9 @@ export type AlertStatusFilter =
 // (`PulseChangeKindChip` / `PulseToneIcon`); this collapse is filter-only, so
 // no DB enum or AI classification changes.
 export const CHANGE_KIND_FILTER_GROUP_MEMBERS = {
-  // Timing — an existing due date moved, or a brand-new obligation appeared.
-  deadlines: ['deadline_shift', 'new_obligation'],
+  // Timing — an existing due date moved, a brand-new obligation appeared, or a
+  // taxpayer-rights action window is open for CPA review.
+  deadlines: ['deadline_shift', 'new_obligation', 'protective_claim_window'],
   // Substance — what you must file, who it applies to, and the forms.
   rules: ['filing_requirement', 'applicability_scope', 'form_instruction'],
   // Provenance — the source moved or its health changed; may need re-verify.

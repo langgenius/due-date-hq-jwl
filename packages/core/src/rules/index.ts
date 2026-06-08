@@ -132,6 +132,7 @@ export type AlertSourceCoverageRole =
   | 'rule_source_watch'
   | 'tax_type_sources'
   | 'relief_or_disaster_signal'
+  | 'rights_window_signal'
   | 'multi_agency_sources'
 
 export type SourceVerificationStatus =
@@ -5024,6 +5025,51 @@ export const RULE_SOURCES = hydrateRuleSources([
       subscriptionUrl: 'https://www.irs.gov/newsroom/e-news-subscriptions',
       verificationNotes: 'Official IRS Newswire e-News subscription / USIRS GovDelivery channel.',
     },
+  },
+  {
+    id: 'fed.taxpayer_advocate_blog',
+    jurisdiction: 'FED',
+    title: 'Taxpayer Advocate Service Blog',
+    url: 'https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    cadence: 'daily',
+    priority: 'high',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    notificationChannels: ['source_change', 'practice_rule_review'],
+    lastReviewedOn: VERIFIED_AT,
+    alertCoverageRoles: ['rights_window_signal'],
+  },
+  {
+    id: 'fed.irs_actions_on_decisions',
+    jurisdiction: 'FED',
+    title: 'IRS Actions on Decisions',
+    url: 'https://www.irs.gov/actions-on-decisions',
+    sourceType: 'publication',
+    acquisitionMethod: 'html_watch',
+    cadence: 'weekly',
+    priority: 'high',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    notificationChannels: ['source_change', 'practice_rule_review'],
+    lastReviewedOn: VERIFIED_AT,
+    alertCoverageRoles: ['rights_window_signal'],
+  },
+  {
+    id: 'fed.irs_irb',
+    jurisdiction: 'FED',
+    title: 'IRS Internal Revenue Bulletins',
+    url: 'https://www.irs.gov/irb',
+    sourceType: 'publication',
+    acquisitionMethod: 'html_watch',
+    cadence: 'weekly',
+    priority: 'high',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    notificationChannels: ['source_change', 'practice_rule_review'],
+    lastReviewedOn: VERIFIED_AT,
+    alertCoverageRoles: ['rights_window_signal'],
   },
   {
     id: 'fed.fema_disaster_declarations',

@@ -33,6 +33,7 @@ export const PULSE_CHANGE_KINDS = [
   'source_status',
   'rule_source_drift',
   'new_obligation',
+  'protective_claim_window',
   // Deterministic-only (no AI): annual IRS inflation Revenue Procedure
   // "pointer" advisory — review_only, asserts no dollar figures. Never
   // produced by AI extraction; packages/ai/src/pulse.ts deliberately

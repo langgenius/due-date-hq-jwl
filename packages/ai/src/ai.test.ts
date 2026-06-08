@@ -399,6 +399,57 @@ describe('@duedatehq/ai', () => {
     expect(result.refusal).toBeNull()
   })
 
+  it('accepts protective claim window Pulse extracts as review-only', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        classification: 'regulatory_change',
+        changeKind: 'protective_claim_window',
+        actionMode: 'review_only',
+        summary: 'Review whether protective refund claims are needed before July 10, 2026.',
+        sourceExcerpt: 'taxpayers should review protective claims before July 10, 2026',
+        jurisdiction: 'FED',
+        counties: [],
+        forms: ['federal_1040'],
+        entityTypes: ['individual'],
+        originalDueDate: null,
+        newDueDate: null,
+        effectiveFrom: '2020-03-13',
+        effectiveUntil: '2022-04-10',
+        affectedRuleIds: [],
+        structuredChange: {
+          kind: 'protective_claim_window',
+          actionDeadline: '2026-07-10',
+          claimTaxYears: ['2019', '2020', '2021', '2022'],
+          affectedTaxActs: ['COVID disaster period refund claims'],
+          evidenceNeeded: ['filed return dates', 'refund claim support'],
+          legalUncertainty: 'Eligibility depends on how the legal issue is resolved.',
+          authorityRefs: ['Taxpayer Advocate Service'],
+        },
+        confidence: 0.86,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.extractPulse({
+      sourceId: 'fed.taxpayer_advocate_blog',
+      title: 'Protective claims before July 10',
+      officialSourceUrl: 'https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/',
+      rawText: 'taxpayers should review protective claims before July 10, 2026',
+    })
+
+    expect(result.result).toMatchObject({
+      changeKind: 'protective_claim_window',
+      actionMode: 'review_only',
+      structuredChange: expect.objectContaining({
+        kind: 'protective_claim_window',
+        actionDeadline: '2026-07-10',
+        legalUncertainty: expect.stringContaining('Eligibility depends'),
+      }),
+    })
+    expect(result.refusal).toBeNull()
+  })
+
   it('rejects Pulse extract output when the excerpt is not in the source', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {

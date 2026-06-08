@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import type { TaxArea } from '@duedatehq/contracts'
-import { isTaxAreaFilter, matchesTaxAreaFilter, TAX_AREA_FILTER_OPTIONS } from './alert-filters'
+import {
+  isTaxAreaFilter,
+  matchesChangeKindFilter,
+  matchesTaxAreaFilter,
+  TAX_AREA_FILTER_OPTIONS,
+} from './alert-filters'
+
+describe('matchesChangeKindFilter', () => {
+  it('groups protective claim windows with timing filters', () => {
+    expect(matchesChangeKindFilter('protective_claim_window', 'deadlines')).toBe(true)
+    expect(matchesChangeKindFilter('protective_claim_window', 'rules')).toBe(false)
+  })
+})
 
 describe('matchesTaxAreaFilter', () => {
   it('keeps everything under "all", including uncategorized alerts', () => {

@@ -1,5 +1,7 @@
 import { and, asc, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
+import { CLOSED_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
+import { taxAreaForTaxType } from '@duedatehq/core/tax-area'
 import type { Db } from '../../client'
 import { auditEvent, type NewAuditEvent } from '../../schema/audit'
 import { member, user } from '../../schema/auth'
@@ -62,6 +64,51 @@ import type {
   PulseSourceStateInput,
   PulseSourceStateRow,
 } from './shared'
+
+// Fallback claim years when the extract carries no source-backed `claimTaxYears`
+// — the COVID disaster-period refund window (2019-2022 returns).
+const PROTECTIVE_CLAIM_DEFAULT_TAX_YEARS = [2019, 2020, 2021, 2022]
+const PROTECTIVE_CLAIM_TAX_AREAS = new Set([
+  'income_individual',
+  'income_business',
+  'payroll_withholding',
+  'info_compliance',
+])
+// A backward-looking protective/refund claim concerns returns already filed as
+// much as ones still open, so the review scan spans open and closed obligations.
+// `not_applicable` is excluded — that obligation explicitly does not apply.
+const PROTECTIVE_CLAIM_REVIEW_STATUSES = [
+  ...OPEN_STATUSES,
+  ...CLOSED_OBLIGATION_STATUSES.filter((status) => status !== 'not_applicable'),
+]
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+// Source-backed claim years from the extract's structuredChange, falling back to
+// the COVID default window. Accepts number or numeric-string years (the AI emits
+// either) and bounds them to plausible tax years.
+function protectiveClaimTaxYears(structuredChange: unknown): number[] {
+  if (!isPlainRecord(structuredChange)) return PROTECTIVE_CLAIM_DEFAULT_TAX_YEARS
+  const raw = structuredChange.claimTaxYears
+  if (!Array.isArray(raw)) return PROTECTIVE_CLAIM_DEFAULT_TAX_YEARS
+  const years = Array.from(
+    new Set(
+      raw
+        .map((value) =>
+          typeof value === 'number'
+            ? value
+            : typeof value === 'string'
+              ? Number.parseInt(value, 10)
+              : Number.NaN,
+        )
+        .filter((year) => Number.isInteger(year) && year >= 2000 && year <= 2100),
+    ),
+  )
+  return years.length > 0 ? years : PROTECTIVE_CLAIM_DEFAULT_TAX_YEARS
+}
+
 export function makePulseOpsRepo(db: Db) {
   async function getPulse(pulseId: string) {
     const rows = await db.select().from(pulse).where(eq(pulse.id, pulseId)).limit(1)
@@ -184,6 +231,45 @@ export function makePulseOpsRepo(db: Db) {
       }
       for (const firm of firms) {
         counts.set(firm.id, { matchedCount: 0, needsReviewCount: perFirm.get(firm.id) ?? 0 })
+      }
+    }
+
+    if (
+      row.actionMode !== 'due_date_overlay' &&
+      row.changeKind === 'protective_claim_window' &&
+      firms.length > 0
+    ) {
+      const taxYears = protectiveClaimTaxYears(row.structuredChangeJson)
+      const distinctRows = await db
+        .selectDistinct({
+          firmId: obligationInstance.firmId,
+          clientId: obligationInstance.clientId,
+          taxType: obligationInstance.taxType,
+        })
+        .from(obligationInstance)
+        .innerJoin(client, eq(obligationInstance.clientId, client.id))
+        .where(
+          and(
+            eq(obligationInstance.jurisdiction, 'FED'),
+            inArray(obligationInstance.taxYear, taxYears),
+            inArray(obligationInstance.status, PROTECTIVE_CLAIM_REVIEW_STATUSES),
+            isNull(client.deletedAt),
+            isNull(obligationInstance.supersededAt),
+          ),
+        )
+      const perFirmClients = new Map<string, Set<string>>()
+      for (const distinct of distinctRows) {
+        const taxArea = taxAreaForTaxType(distinct.taxType)
+        if (!taxArea || !PROTECTIVE_CLAIM_TAX_AREAS.has(taxArea)) continue
+        const clientIds = perFirmClients.get(distinct.firmId) ?? new Set<string>()
+        clientIds.add(distinct.clientId)
+        perFirmClients.set(distinct.firmId, clientIds)
+      }
+      for (const firm of firms) {
+        counts.set(firm.id, {
+          matchedCount: 0,
+          needsReviewCount: perFirmClients.get(firm.id)?.size ?? 0,
+        })
       }
     }
 
@@ -1040,6 +1126,7 @@ export function makePulseOpsRepo(db: Db) {
             parsedNewDueDate: input.parsedNewDueDate,
             parsedForms: input.parsedForms,
             parsedCounties: input.parsedCounties,
+            structuredChange: input.structuredChange,
             publishedAt: input.publishedAt,
           })
         : null

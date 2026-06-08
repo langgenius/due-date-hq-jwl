@@ -32,6 +32,8 @@ function changeKindLabel(kind: PulseAlertPublic['changeKind']) {
       return <Trans>Source status</Trans>
     case 'new_obligation':
       return <Trans>New rule added</Trans>
+    case 'protective_claim_window':
+      return <Trans>Protective claim window</Trans>
     case 'other':
       return <Trans>Other change</Trans>
   }

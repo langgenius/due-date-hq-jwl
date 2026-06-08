@@ -165,6 +165,26 @@ describe('@duedatehq/core/rules', () => {
     }
   })
 
+  it('registers federal rights-window sources without mixing relief semantics', () => {
+    const fedSources = listRuleSources('FED')
+    const rightsWindowSources = fedSources.filter((source) =>
+      source.alertCoverageRoles?.includes('rights_window_signal'),
+    )
+
+    expect(rightsWindowSources.map((source) => source.id).toSorted()).toEqual([
+      'fed.irs_actions_on_decisions',
+      'fed.irs_irb',
+      'fed.taxpayer_advocate_blog',
+    ])
+    for (const source of rightsWindowSources) {
+      expect(source.alertCoverageRoles, source.id).not.toContain('relief_or_disaster_signal')
+    }
+    expect(
+      fedSources.find((source) => source.id === 'fed.irs_disaster_relief')?.alertCoverageRoles ??
+        [],
+    ).not.toContain('rights_window_signal')
+  })
+
   it('keeps internal temporary announcement source coverage complete and machine-watchable', () => {
     const coverage = listTemporaryAnnouncementSourceCoverage()
     expect(coverage).toHaveLength(52)

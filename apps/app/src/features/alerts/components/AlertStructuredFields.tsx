@@ -8,7 +8,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatDatePretty } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 
@@ -16,6 +16,63 @@ import { changeKindLabel } from './PulseChangeKindChip'
 
 interface AlertStructuredFieldsProps {
   detail: PulseDetail
+}
+
+interface ProtectiveClaimFacts {
+  actionDeadline: string | null
+  claimTaxYears: string[]
+  affectedTaxActs: string[]
+  evidenceNeeded: string[]
+  legalUncertainty: string | null
+  authorityRefs: string[]
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function compactText(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const text = value.trim()
+    return text.length > 0 ? text : null
+  }
+  if (typeof value === 'number') return String(value)
+  if (!isRecord(value)) return null
+  const title = compactText(value.title)
+  const section = compactText(value.section)
+  const url = compactText(value.url)
+  return [title, section, url].filter(Boolean).join(' · ') || null
+}
+
+function textList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.map(compactText).filter((item): item is string => item !== null)
+  }
+  const text = compactText(value)
+  return text ? [text] : []
+}
+
+function protectiveClaimFacts(detail: PulseDetail): ProtectiveClaimFacts | null {
+  if (detail.alert.changeKind !== 'protective_claim_window') return null
+  if (!isRecord(detail.structuredChange)) return null
+  const actionDeadline = compactText(detail.structuredChange.actionDeadline)
+  const legalUncertainty = compactText(detail.structuredChange.legalUncertainty)
+  const facts = {
+    actionDeadline,
+    claimTaxYears: textList(detail.structuredChange.claimTaxYears),
+    affectedTaxActs: textList(detail.structuredChange.affectedTaxActs),
+    evidenceNeeded: textList(detail.structuredChange.evidenceNeeded),
+    legalUncertainty,
+    authorityRefs: textList(detail.structuredChange.authorityRefs),
+  }
+  const hasAnyFact =
+    facts.actionDeadline ||
+    facts.claimTaxYears.length > 0 ||
+    facts.affectedTaxActs.length > 0 ||
+    facts.evidenceNeeded.length > 0 ||
+    facts.legalUncertainty ||
+    facts.authorityRefs.length > 0
+  return hasAnyFact ? facts : null
 }
 
 /**
@@ -56,6 +113,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
     detail.entityTypes.length > 0 ? detail.entityTypes.join(' · ') : t`All entity types`
   const applyModeValue =
     detail.alert.actionMode === 'due_date_overlay' ? t`Auto-applied` : t`Review only`
+  const protectiveFacts = protectiveClaimFacts(detail)
 
   const cells: Array<{ key: string; label: ReactNode; value: ReactNode }> = [
     { key: 'authority', label: <Trans>Authority</Trans>, value: detail.alert.source },
@@ -67,7 +125,11 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
       value: changeKindLabel(detail.alert.changeKind),
     },
     { key: 'jurisdiction', label: <Trans>Jurisdiction</Trans>, value: jurisdictionValue },
-    { key: 'published', label: <Trans>Published</Trans>, value: formatDate(detail.alert.publishedAt) },
+    {
+      key: 'published',
+      label: <Trans>Published</Trans>,
+      value: formatDate(detail.alert.publishedAt),
+    },
     { key: 'entities', label: <Trans>Entity types</Trans>, value: entityValue },
     { key: 'apply', label: <Trans>Apply mode</Trans>, value: applyModeValue },
   ]
@@ -115,6 +177,84 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           </div>
         ))}
       </div>
+
+      {detail.alert.changeKind === 'threshold_advisory' ? (
+        <div className="rounded-md border border-divider-subtle bg-background-soft px-4 py-3">
+          <p className="text-sm leading-relaxed text-text-secondary">
+            <Trans>
+              This alert points to the official IRS Revenue Procedure and asserts no specific
+              threshold figures. Review the source before advising clients.
+            </Trans>
+          </p>
+        </div>
+      ) : null}
+
+      {protectiveFacts ? (
+        <div className="rounded-md border border-divider-subtle bg-background-soft px-4 py-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {protectiveFacts.actionDeadline ? (
+              <div className="flex flex-col gap-1">
+                <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                  <Trans>Action deadline</Trans>
+                </span>
+                <span className="text-sm font-semibold text-text-primary">
+                  {formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}
+                </span>
+              </div>
+            ) : null}
+            {protectiveFacts.claimTaxYears.length > 0 ? (
+              <div className="flex flex-col gap-1">
+                <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                  <Trans>Affected years</Trans>
+                </span>
+                <span className="break-words text-sm font-semibold text-text-primary">
+                  {protectiveFacts.claimTaxYears.join(' · ')}
+                </span>
+              </div>
+            ) : null}
+            {protectiveFacts.affectedTaxActs.length > 0 ? (
+              <div className="flex flex-col gap-1">
+                <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                  <Trans>Affected tax acts</Trans>
+                </span>
+                <span className="break-words text-sm font-semibold text-text-primary">
+                  {protectiveFacts.affectedTaxActs.join(' · ')}
+                </span>
+              </div>
+            ) : null}
+            {protectiveFacts.evidenceNeeded.length > 0 ? (
+              <div className="flex flex-col gap-1">
+                <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                  <Trans>Evidence to gather</Trans>
+                </span>
+                <span className="break-words text-sm font-semibold text-text-primary">
+                  {protectiveFacts.evidenceNeeded.join(' · ')}
+                </span>
+              </div>
+            ) : null}
+          </div>
+          {protectiveFacts.legalUncertainty ? (
+            <div className="mt-3 flex flex-col gap-1">
+              <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                <Trans>Legal uncertainty</Trans>
+              </span>
+              <p className="text-sm leading-relaxed text-text-secondary">
+                {protectiveFacts.legalUncertainty}
+              </p>
+            </div>
+          ) : null}
+          {protectiveFacts.authorityRefs.length > 0 ? (
+            <div className="mt-3 flex flex-col gap-1">
+              <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                <Trans>Authority refs</Trans>
+              </span>
+              <p className="break-words text-sm leading-relaxed text-text-secondary">
+                {protectiveFacts.authorityRefs.join(' · ')}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Source excerpt — flush bordered blockquote with copy affordance. */}
       <div className="group/excerpt relative rounded-md border border-divider-subtle bg-background-soft px-4 py-3">
