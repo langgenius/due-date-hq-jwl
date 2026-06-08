@@ -229,6 +229,45 @@ tabs; entity chips; table rows; detail Accept (confirm-impact) / Reject (reason
 dialog); evidence links; bulk-review bar + batch modal. KPI strip and
 status-coverage breakdown are display-only (no dead buttons).
 
+## Round 9 — full cohesion audit vs Today/Alerts/Alert-detail
+
+Ran an exhaustive element-by-element audit against the canonical house style.
+Fixes applied (token/structure/component — non-contentious):
+
+- **Card radii** unified to `rounded-[14px]` (was `rounded-md` 6px on the
+  per-jurisdiction / grouped / search / loading table cards, and `rounded-xl`
+  on the overview cards + KPI strip) — matches the Today actions table / Alerts
+  list card.
+- **Status badge color**: per-jurisdiction "Needs review" badge was blue
+  (`info`) while the header chip + KPI + rail dot are amber — flipped
+  `STATUS_BADGE_VARIANT.review` → `warning`.
+- **Eyebrow tokens**: KPI labels + rail eyebrow + `RailSectionLabel` were
+  `font-bold text-text-muted`; aligned to the canonical eyebrow
+  `font-semibold text-text-tertiary`. Overview eyebrow `text-[13px]` →
+  `text-xs`. Rail "Jurisdictions" title gained `tracking-tight`.
+- **Components over hand-rolled spans**: Recent-changes change-kind pill →
+  `Badge variant`; "Sources all working" → `Badge variant="secondary"`.
+- **Impact pill geometry** matched the Alert "High impact" chip
+  (`rounded-[4px] px-2 py-[3px] text-[11px] font-semibold tracking-[0.4px]`,
+  was `rounded-full text-[10px] font-bold`).
+- **Deprecated tokens** swapped: `text-severity-medium` → `text-text-warning`;
+  `bg-accent-tint` / `bg-severity-medium-tint` → `state-accent-hover` /
+  `state-warning-hover` on the authority-role badge.
+- **Focus rings** added to the recent-changes + per-jurisdiction rows
+  (`focus-visible:ring-2 ring-state-accent-active-alt`).
+- **Banned left-stripe** removed from the coverage-gap row (signal now via the
+  destructive ring-dot + tint fill); gap "Add rule" button → `size="xs"`.
+- **Stray `shadow-xs`** dropped from the evidence card (no-shadow house rule).
+
+Deferred (deliberate decisions / different register — flagged, not changed):
+
+- The brown "needs review" tint (`REVIEW_*` util-colors) on the progress bar +
+  status-group headers — Yuqi chose brown over amber on purpose (amber "read as
+  alarm", 2026-05-27). Needs a call to flip to the house amber for full unity.
+- Rule **detail modal** section headings stay sentence-case (modal register) vs
+  the Alert **drawer**'s mono eyebrows — defensible as a distinct surface.
+- Per-jurisdiction empty row stays an inline table cell (vs shared EmptyState).
+
 ## Responsive
 
 Verified at 1440 / 768 / 375 (overview cards) and 1280 (rail flush + both

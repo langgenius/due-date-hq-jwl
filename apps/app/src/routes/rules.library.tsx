@@ -36,6 +36,7 @@ import type {
 // `RuleTier` isn't re-exported from the contracts package today —
 // infer it from the same union literal the schema uses.
 type RuleTier = ObligationRule['ruleTier']
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
@@ -944,7 +945,7 @@ function OverviewStatusCoverageCard({
   return (
     <div
       className={cn(
-        'flex shrink-0 flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default px-[22px] py-5',
+        'flex shrink-0 flex-col gap-4 rounded-[14px] border border-divider-subtle bg-background-default px-[22px] py-5',
         className,
       )}
     >
@@ -1011,7 +1012,7 @@ function OverviewRecentChangesCard({
   return (
     <div
       className={cn(
-        'flex shrink-0 flex-col gap-3.5 rounded-xl border border-divider-subtle bg-background-default px-[22px] py-5',
+        'flex shrink-0 flex-col gap-3.5 rounded-[14px] border border-divider-subtle bg-background-default px-[22px] py-5',
         className,
       )}
     >
@@ -1045,7 +1046,7 @@ function OverviewRecentChangesCard({
                 type="button"
                 onClick={() => onRuleClick(rule)}
                 className={cn(
-                  'flex w-full items-center gap-3 py-3.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover',
+                  'flex w-full items-center gap-3 py-3.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                   index > 0 && 'border-t border-divider-subtle',
                 )}
               >
@@ -1067,16 +1068,12 @@ function OverviewRecentChangesCard({
                     </span>
                   ) : null}
                 </span>
-                <span
-                  className={cn(
-                    'shrink-0 rounded-full px-2 py-[3px] text-[10px] font-bold tracking-eyebrow uppercase',
-                    kind === 'new' && 'bg-state-success-hover text-text-success',
-                    kind === 'updated' && 'bg-state-accent-hover text-text-accent',
-                    kind === 'effective' && 'bg-state-warning-hover text-text-warning',
-                  )}
+                <Badge
+                  variant={kind === 'new' ? 'success' : kind === 'updated' ? 'info' : 'warning'}
+                  className="shrink-0"
                 >
                   {changeKindLabels[kind]}
-                </span>
+                </Badge>
                 {relative ? (
                   <span className="shrink-0 text-xs font-medium text-text-muted tabular-nums">
                     {relative}
@@ -2224,13 +2221,13 @@ export function RulesLibraryRoute() {
                   !statsLoading ? (
                     <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 tracking-normal normal-case">
                       <PulsingDot tone="success" label={t`Library in sync`} />
-                      <span className="text-[13px] font-medium text-text-tertiary">
+                      <span className="text-xs font-medium text-text-tertiary">
                         <Trans>Federal + {stateCount} states</Trans>
                       </span>
                       <span aria-hidden className="text-text-muted">
                         ·
                       </span>
-                      <span className="text-[13px] font-medium text-text-tertiary">
+                      <span className="text-xs font-medium text-text-tertiary">
                         <Plural
                           value={activeSources}
                           one="# source active"
@@ -2986,7 +2983,7 @@ function RuleSearchControl({
 
 function LoadingState() {
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-divider-subtle p-4">
+    <div className="flex flex-col gap-2 rounded-[14px] border border-divider-subtle p-4">
       <Skeleton className="h-4 w-32" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-full" />
@@ -3250,7 +3247,7 @@ function GroupedRulesTable({
           selectors; now the chrome lives on this outer div so the
           card wraps the table AND the pagination footer below as
           one cohesive rounded surface. */}
-      <div className="flex flex-col overflow-hidden rounded-md border border-divider-subtle">
+      <div className="flex flex-col overflow-hidden rounded-[14px] border border-divider-subtle">
         <Table>
           {/* 2026-05-26 (Yuqi follow-up — "table-header和别的页面上的
             table header一样颜色"): override the primitive's default
@@ -4131,7 +4128,7 @@ function SearchResultsTable({
   const { t } = useLingui()
   const tierLabels = useRuleTierLabels()
   return (
-    <div className="rounded-md border border-divider-subtle bg-background-default">
+    <div className="rounded-[14px] border border-divider-subtle bg-background-default">
       <div className="flex items-center justify-between border-b border-divider-subtle px-3 py-1.5 text-xs">
         <span className="text-text-secondary">
           <Plural
@@ -4515,20 +4512,20 @@ function RuleStatusKicker({ status }: { status: ObligationRule['status'] }) {
 function RuleImpactPill({ riskLevel }: { riskLevel: ObligationRule['riskLevel'] }) {
   if (riskLevel === 'high') {
     return (
-      <span className="inline-flex items-center rounded-full bg-state-destructive-hover px-2.5 py-0.5 text-[10px] font-bold tracking-eyebrow text-text-destructive uppercase">
+      <span className="inline-flex items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-[11px] font-semibold tracking-[0.4px] text-text-destructive uppercase">
         <Trans>High impact</Trans>
       </span>
     )
   }
   if (riskLevel === 'med') {
     return (
-      <span className="inline-flex items-center rounded-full bg-state-warning-hover px-2.5 py-0.5 text-[10px] font-bold tracking-eyebrow text-text-warning uppercase">
+      <span className="inline-flex items-center rounded-[4px] bg-state-warning-hover px-2 py-[3px] text-[11px] font-semibold tracking-[0.4px] text-text-warning uppercase">
         <Trans>Medium impact</Trans>
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-background-subtle px-2.5 py-0.5 text-[10px] font-bold tracking-eyebrow text-text-tertiary uppercase">
+    <span className="inline-flex items-center rounded-[4px] bg-background-subtle px-2 py-[3px] text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
       <Trans>Low impact</Trans>
     </span>
   )

@@ -1325,7 +1325,7 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
                 <Trans>Filing and payment.</Trans>
               </span>
             ) : (
-              <span className="inline-flex items-start gap-1.5 font-medium text-severity-medium">
+              <span className="inline-flex items-start gap-1.5 font-medium text-text-warning">
                 <TriangleAlertIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
                 <span>
                   <Trans>Filing only. Payment is not extended.</Trans>
@@ -1481,7 +1481,7 @@ function RuleEvidenceCard({
         rel="noopener noreferrer"
         aria-label={`Open official source: ${source.title}`}
         onClick={(event) => openEvidenceSource(event, url)}
-        className="group/card flex flex-col items-stretch gap-1.5 rounded-md border border-components-card-border bg-components-card-bg px-3 py-2.5 text-left text-sm text-text-primary no-underline shadow-xs outline-none transition-colors hover:border-state-accent-active-alt hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="group/card flex flex-col items-stretch gap-1.5 rounded-md border border-components-card-border bg-components-card-bg px-3 py-2.5 text-left text-sm text-text-primary no-underline outline-none transition-colors hover:border-state-accent-active-alt hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         {inner}
       </a>
@@ -1510,10 +1510,10 @@ function evidenceKey(evidence: RuleEvidence): string {
 
 function AuthorityRoleBadge({ role }: { role: RuleEvidenceAuthorityRole }) {
   const className = {
-    basis: 'bg-accent-tint text-text-accent',
+    basis: 'bg-state-accent-hover text-text-accent',
     cross_check: 'bg-background-subtle text-text-secondary',
-    watch: 'bg-severity-medium-tint text-severity-medium',
-    early_warning: 'bg-severity-medium-tint text-severity-medium',
+    watch: 'bg-state-warning-hover text-text-warning',
+    early_warning: 'bg-state-warning-hover text-text-warning',
   }[role]
   // 2026-05-26 (Yuqi /critique — P1-4): WATCH / BASIS / CROSS-CHECK
   // / EARLY-WARN were opaque to first-timers. Tooltip via `title`

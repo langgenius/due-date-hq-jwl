@@ -60,10 +60,13 @@ import { formatTaxCode } from '@/lib/tax-codes'
 // neutral gray `secondary`.
 const STATUS_BADGE_VARIANT: Record<
   (typeof STATUS_TONE)[RuleStatus],
-  'success' | 'info' | 'destructive' | 'secondary'
+  'success' | 'warning' | 'destructive' | 'secondary'
 > = {
   success: 'success',
-  review: 'info',
+  // "needs review" is amber across the surface (header status chips, KPI
+  // pending, rail dot) — the status badge was blue (`info`), the lone
+  // outlier; align it to `warning`.
+  review: 'warning',
   destructive: 'destructive',
   muted: 'secondary',
 }
@@ -113,7 +116,7 @@ export function JurisdictionRuleTable({
   const isEmpty = rules.length === 0 && !(showGaps && gapEntities.length > 0)
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-md border border-divider-subtle">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-[14px] border border-divider-subtle">
       {/* table-fixed so long Form / Due-logic text clamps inside its
           column instead of blowing the table wider than the pane (which
           pushed Status + ⋯ off-screen). Only this instance is fixed; the
@@ -234,7 +237,7 @@ function JurisdictionRuleRow({
   return (
     <TableRow
       className={cn(
-        'group/row cursor-pointer hover:bg-state-base-hover',
+        'group/row cursor-pointer hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onClick(rule)}
@@ -424,8 +427,10 @@ function GapRow({
   return (
     <TableRow
       className={cn(
-        'border-l-2 border-l-state-destructive-solid bg-state-destructive-subtle/40 hover:bg-state-destructive-subtle/70',
-        focused && 'border-l-state-accent-solid bg-state-destructive-subtle/70',
+        // No left-stripe (banned per design system) — the destructive
+        // ring-dot + tint fill carry the gap signal.
+        'bg-state-destructive-subtle/40 hover:bg-state-destructive-subtle/70',
+        focused && 'bg-state-destructive-subtle/70',
       )}
     >
       <TableCell className="pl-4" />
@@ -444,8 +449,7 @@ function GapRow({
       <TableCell className="py-2.5 text-right">
         <Button
           variant="outline"
-          size="sm"
-          className="h-7 text-xs text-text-accent"
+          size="xs"
           onClick={(event) => {
             event.stopPropagation()
             onAddRule(entity)
@@ -497,7 +501,7 @@ export function KpiStrip({
   return (
     <div
       className={cn(
-        'grid shrink-0 grid-cols-2 gap-y-4 rounded-xl border border-divider-subtle bg-background-default px-2 sm:flex sm:items-center sm:gap-y-0',
+        'grid shrink-0 grid-cols-2 gap-y-4 rounded-[14px] border border-divider-subtle bg-background-default px-2 sm:flex sm:items-center sm:gap-y-0',
         lg ? 'py-6' : 'py-[18px]',
       )}
     >
@@ -513,7 +517,7 @@ export function KpiStrip({
             />
           ) : null}
           <div className="flex min-w-0 flex-1 flex-col gap-1 px-4">
-            <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
+            <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               {stat.label}
             </span>
             <span
@@ -625,7 +629,7 @@ export function JurisdictionStatusChips({
           <Trans>{activeCount} Active</Trans>
         </Badge>
       ) : null}
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-background-subtle px-2 py-0.5 text-xs font-medium text-text-tertiary">
+      <Badge variant="secondary">
         <span
           className={cn(
             'size-1.5 rounded-full',
@@ -638,7 +642,7 @@ export function JurisdictionStatusChips({
         ) : (
           <Trans>Sources need attention</Trans>
         )}
-      </span>
+      </Badge>
     </span>
   )
 }

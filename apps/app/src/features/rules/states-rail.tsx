@@ -114,11 +114,11 @@ export function JurisdictionRail({
           the page eyebrow instead of sitting jammed against the top. */}
       <div className="shrink-0 px-3.5 pt-6 md:pt-8">
         <div className="flex flex-col gap-2.5 pb-4">
-          <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
+          <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
             <Trans>Rule library</Trans>
           </span>
           <div className="flex items-center gap-2">
-            <span className="text-base font-semibold text-text-primary">
+            <span className="text-base font-semibold tracking-tight text-text-primary">
               <Trans>Jurisdictions</Trans>
             </span>
             <span className="flex-1" />
@@ -250,7 +250,7 @@ export function JurisdictionRail({
 
       {/* Footer hint strip — "Showing N of M states". */}
       <div className="shrink-0 px-3.5 py-3">
-        <div className="rounded-lg bg-background-subtle px-3 py-2.5 text-center text-[11px] font-medium text-text-muted tabular-nums">
+        <div className="rounded-lg bg-background-subtle px-3 py-2.5 text-center text-xs font-medium text-text-tertiary tabular-nums">
           {t`Showing ${shownStateCount} of ${states.length} states`}
         </div>
       </div>
@@ -261,7 +261,7 @@ export function JurisdictionRail({
 function RailSectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="px-3 pt-3 pb-1">
-      <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
+      <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
         {children}
       </span>
     </div>
