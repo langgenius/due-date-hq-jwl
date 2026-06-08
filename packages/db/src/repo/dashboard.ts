@@ -531,6 +531,36 @@ export function makeDashboardRepo(db: Db, firmId: string) {
     return row ? normalizeBrief(row, input.now) : null
   }
 
+  // Display-oriented lookup for the dashboard's Daily Brief card. Unlike
+  // `findLatestBrief` (which exact-matches `asOfDate` — the refresh path
+  // wants *today's* brief, pending or ready), this returns the most recent
+  // brief generated on or before `asOfDate`. A daily brief should persist
+  // and surface its own staleness via the freshness chip, not blink out the
+  // moment the date rolls past the day it was generated. Without this the
+  // card vanishes between an overnight roll-over and the next refresh.
+  async function findBriefForDisplay(input: {
+    scope: DashboardBriefScope
+    asOfDate: string
+    userId?: string | null
+    now?: Date
+  }): Promise<DashboardBriefRow | null> {
+    const [row] = await db
+      .select()
+      .from(dashboardBrief)
+      .where(
+        and(
+          eq(dashboardBrief.firmId, firmId),
+          eq(dashboardBrief.scope, input.scope),
+          lte(dashboardBrief.asOfDate, input.asOfDate),
+          briefScopePredicate(input.scope, input.userId),
+        ),
+      )
+      .orderBy(desc(dashboardBrief.asOfDate), desc(dashboardBrief.updatedAt))
+      .limit(1)
+
+    return row ? normalizeBrief(row, input.now) : null
+  }
+
   async function findBriefByHash(input: {
     scope: DashboardBriefScope
     asOfDate: string
@@ -777,7 +807,7 @@ export function makeDashboardRepo(db: Db, firmId: string) {
       const result = composeDashboardLoad(overlayRows, evidenceRows, input, smartPriorityProfile)
       return {
         ...result,
-        brief: await findLatestBrief({
+        brief: await findBriefForDisplay({
           scope: input.briefScope ?? 'firm',
           asOfDate: input.asOfDate,
           userId: input.briefUserId ?? null,
@@ -786,6 +816,7 @@ export function makeDashboardRepo(db: Db, firmId: string) {
     },
 
     findLatestBrief,
+    findBriefForDisplay,
     findBriefByHash,
 
     async createBriefPending(input: DashboardBriefCreatePendingInput): Promise<DashboardBriefRow> {

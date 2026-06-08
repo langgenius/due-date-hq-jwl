@@ -78,8 +78,11 @@ function ReadinessIndicator({
     >
       {/* Pencil VJbaH readiness dots: one dot per expected doc, filled =
           attached, hollow = outstanding. The dots are the state signal
-          (replacing the louder check/alert icons), keeping the row calm. */}
-      <span className="inline-flex shrink-0 items-center gap-1" aria-hidden>
+          (replacing the louder check/alert icons), keeping the row calm.
+          Fixed-width box (3 dots @ 6px + 2 gaps @ 4px = 26px — the column's
+          max denominator) left-aligns the dots so the "Docs N/M" count
+          starts at the same x on every row, regardless of doc count. */}
+      <span className="inline-flex w-[1.625rem] shrink-0 items-center gap-1" aria-hidden>
         {Array.from({ length: total }).map((_, index) => (
           <span
             // eslint-disable-next-line react/no-array-index-key
