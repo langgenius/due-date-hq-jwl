@@ -416,7 +416,7 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           clip, any momentary overflow is hidden inside the sidebar
           rather than spilling into the page content area. */}
       <div
-        className="absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-divider-regular bg-background-canvas-warm transition-[width] duration-300 ease-apple motion-reduce:transition-none"
+        className="absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-divider-regular bg-background-canvas-warm transition-[width] duration-300 ease-apple motion-reduce:transition-none group-data-[collapsed=true]/sidebar:border-r-0"
         style={{ width: targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
       >
         {children}
@@ -639,7 +639,12 @@ const sidebarMenuButtonVariants = cva(
     // eyebrows `text-xs uppercase` (faint section markers). Matches
     // Linear / Notion / Cloudflare sidebar density. Item height
     // stays h-8 (32px); icon size unchanged at size-4 (16px).
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-sm font-normal text-text-secondary outline-none transition-colors',
+    // 2026-06-08 (Yuqi product-wide unification — "1px or 2px bigger text
+    // for the menu item"): nav label text-sm (14px) → text-[15px]. Item
+    // height stays h-8 (32px); icon stays size-4 (16px). Restores a touch
+    // more presence to the nav without returning to the text-base (16px)
+    // that previously competed with the firm-switcher anchor.
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
     // Hover uses a neutral surface token; selected state below uses the
     // explicit accent tint so route wayfinding stays distinct from row hover.
     'hover:bg-background-default-hover hover:text-text-primary',
