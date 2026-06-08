@@ -19,12 +19,12 @@ export class ObligationQueuePage {
     // no expand button and no dedicated "Clear search" button anymore.
     this.searchInput = page.getByRole('searchbox', { name: 'Search deadlines' })
     // The sortable header renders a button with aria-label `Sort ${columnLabel}`
-    // (ObligationQueueSortableHeader in queue/components/toolbar.tsx). The
-    // internal-due column's label is t`Internal due date`
-    // (use-obligation-queue-columns.tsx), so the accessible name is the full
-    // "Sort Internal due date" — not the shorter "Internal Due" an earlier
-    // spec assumed.
-    this.dueSortButton = page.getByRole('button', { name: 'Sort Internal due date' })
+    // (ObligationQueueSortableHeader). The active /deadlines queue (obligations
+    // .tsx) labels the internal-due column t`Internal due` — verified against
+    // the live a11y snapshot (`button "Sort Internal due"`). exact:true so it
+    // can't loosely substring-match a longer "…due date" label from the other
+    // (lifecycle-v2) column code path.
+    this.dueSortButton = page.getByRole('button', { name: 'Sort Internal due', exact: true })
     this.calendarSyncButton = page.getByRole('button', { name: 'Calendar sync' })
     this.columnsButton = page.getByRole('button', { name: 'Columns' })
   }
