@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, or } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, ne, or } from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
 import { CLOSED_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
 import { taxAreaForTaxType } from '@duedatehq/core/tax-area'
@@ -115,29 +115,47 @@ function protectiveClaimTaxYears(structuredChange: unknown): number[] {
 // the publish-time live fan-out misses for firms that join or import clients later.
 const STILL_OPEN_CATCHUP_CHANGE_KINDS = ['protective_claim_window', 'deadline_shift'] as const
 
-// "Still actionable today" = no known deadline on the alert has already passed.
-// Each change kind only populates the date axes it uses — review_only protective
-// windows carry `protectiveActionDeadline`; due-date overlays carry
-// `parsedNewDueDate` / `parsedEffectiveUntil` — so the unused axes are NULL and
-// pass. An expired protective window (deadline < now) now correctly drops out,
-// where before its NULL parsed dates made it look perpetually active.
+// "Still actionable today", split by change kind. A review_only
+// protective-claim window's actionability is governed ONLY by its
+// `protectiveActionDeadline` — its underlying policy period
+// (`parsedEffectiveUntil`, frequently historical, e.g. a 2020-2022 COVID period)
+// must NOT expire it. Every other kind uses its due / effective dates and never
+// carries an action deadline. Returned as a one-element array so callers keep
+// spreading it into `and(...)`.
 export function pulseNotExpiredConditions(now: Date) {
   return [
-    or(isNull(pulse.parsedNewDueDate), gte(pulse.parsedNewDueDate, now)),
-    or(isNull(pulse.parsedEffectiveUntil), gte(pulse.parsedEffectiveUntil, now)),
-    or(isNull(pulse.protectiveActionDeadline), gte(pulse.protectiveActionDeadline, now)),
+    or(
+      and(
+        eq(pulse.changeKind, 'protective_claim_window'),
+        or(isNull(pulse.protectiveActionDeadline), gte(pulse.protectiveActionDeadline, now)),
+      ),
+      and(
+        ne(pulse.changeKind, 'protective_claim_window'),
+        or(isNull(pulse.parsedNewDueDate), gte(pulse.parsedNewDueDate, now)),
+        or(isNull(pulse.parsedEffectiveUntil), gte(pulse.parsedEffectiveUntil, now)),
+      ),
+    ),
   ]
 }
 
-// Inverse of pulseNotExpiredConditions: at least one populated deadline axis has
-// already passed. listHistory uses it so a `matched` alert that aged out of the
-// active queue (e.g. a protective window past its actionDeadline) still surfaces
-// in Alert history instead of vanishing — it is neither active nor "handled".
+// Inverse of pulseNotExpiredConditions, same kind-aware split: the alert's
+// governing deadline has already passed. listHistory uses it so a `matched`
+// protective window past its actionDeadline still surfaces under "Expired"
+// instead of vanishing — it is neither active nor "handled".
 export function pulseExpiredCondition(now: Date) {
   return or(
-    and(isNotNull(pulse.parsedNewDueDate), lt(pulse.parsedNewDueDate, now)),
-    and(isNotNull(pulse.parsedEffectiveUntil), lt(pulse.parsedEffectiveUntil, now)),
-    and(isNotNull(pulse.protectiveActionDeadline), lt(pulse.protectiveActionDeadline, now)),
+    and(
+      eq(pulse.changeKind, 'protective_claim_window'),
+      isNotNull(pulse.protectiveActionDeadline),
+      lt(pulse.protectiveActionDeadline, now),
+    ),
+    and(
+      ne(pulse.changeKind, 'protective_claim_window'),
+      or(
+        and(isNotNull(pulse.parsedNewDueDate), lt(pulse.parsedNewDueDate, now)),
+        and(isNotNull(pulse.parsedEffectiveUntil), lt(pulse.parsedEffectiveUntil, now)),
+      ),
+    ),
   )
 }
 
