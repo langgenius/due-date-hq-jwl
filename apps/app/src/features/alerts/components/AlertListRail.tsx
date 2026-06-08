@@ -8,6 +8,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CountPill } from '@/components/primitives/count-pill'
 import { StateBadge } from '@/components/primitives/state-badge'
+import { useActiveAlertCount } from '@/features/alerts/api'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
@@ -44,12 +45,12 @@ export function AlertListRail({
   const [tab, setTab] = useState<RailTab>('all')
   const [search, setSearch] = useState('')
 
-  // "N active" = alerts still needing action (matched). Unresolved tab
-  // narrows to the same set; All shows everything in the column.
-  const activeCount = useMemo(
-    () => alerts.reduce((n, a) => n + (a.status === 'matched' ? 1 : 0), 0),
-    [alerts],
-  )
+  // "N active" head count uses the SAME authoritative source as the sidebar
+  // badge and the page-header pill (`pulse.activeCount` = matched +
+  // partially_applied, approved, not expired) — NOT a count of the rows handed
+  // to this rail (which are capped at the list limit and miss partially_applied).
+  // The Unresolved tab below still filters the visible rows by `matched`.
+  const activeCount = useActiveAlertCount()
 
   const query = search.trim().toLowerCase()
   const visible = useMemo(

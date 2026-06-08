@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ChevronRightIcon, CoffeeIcon, DatabaseIcon, HistoryIcon } from 'lucide-react'
@@ -11,7 +10,11 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CountPill } from '@/components/primitives/count-pill'
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
-import { useAlertsListQueryOptions, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
+import {
+  useActiveAlertCount,
+  useAlertsListQueryOptions,
+  useAlertSourceHealthQueryOptions,
+} from '@/features/alerts/api'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { MorningSweepProvider, useMorningSweep } from '@/features/alerts/MorningSweepContext'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
@@ -27,16 +30,12 @@ export function AlertsRoute() {
   // the embedded list uses, so React Query dedupes (one network
   // request, count rendered in both places).
   const alertsQuery = useQuery(useAlertsListQueryOptions(TOP_ALERTS_LIMIT))
-  // The header count chip reads the SAME metric the rail head shows — alerts
-  // still needing action (status === 'matched') — so the page header and the
-  // detail rail head display an identical "N active" pill (Yuqi 2026-06-08:
-  // "ensure Alert and Alert detail use the same style"). Previously the header
-  // counted ALL alerts and labeled them "urgent", so it read 8/urgent next to
-  // the rail's 7/active.
-  const alertCount = useMemo(
-    () => alertsQuery.data?.alerts.filter((a) => a.status === 'matched').length ?? 0,
-    [alertsQuery.data],
-  )
+  // The header count chip reads the SAME authoritative count as the sidebar nav
+  // badge and the detail rail head — `pulse.activeCount` (matched +
+  // partially_applied, approved, not expired). Earlier this filtered
+  // `status === 'matched'` on listAlerts(50), which undercounted (missed
+  // partially_applied / expiry scoping) and disagreed with the sidebar's 8.
+  const alertCount = useActiveAlertCount()
   // 2026-06-08 (Yuqi /alerts #1 "where is it showing it is all working?"):
   // the Sources selector chip carries a live health dot so the CPA can SEE
   // monitoring is healthy at a glance. Same `listSourceHealth` query the

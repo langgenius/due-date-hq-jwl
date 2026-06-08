@@ -64,6 +64,7 @@ import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { useActiveAlertCount } from '@/features/alerts/api'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
@@ -575,10 +576,10 @@ function AddFirmDialog({
 // the active queue. Alert history is now CPA-handled alerts and can
 // include applied / dismissed rows that should not inflate
 // the sidebar's needs-attention count.
-function useActiveAlertCount(): number {
-  const query = useQuery(orpc.pulse.activeCount.queryOptions({ input: undefined }))
-  return query.data?.count ?? 0
-}
+//
+// 2026-06-08 (Yuqi "wire them correctly"): `useActiveAlertCount` now lives in
+// `features/alerts/api` and is shared by the sidebar badge, the /alerts header
+// pill, and the detail rail head — one authoritative count, so all three agree.
 
 function useRuleLibraryPendingCount(): number {
   // Aggregate pending-review rule count across all jurisdictions for the

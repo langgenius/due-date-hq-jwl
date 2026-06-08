@@ -69,6 +69,21 @@ export function useAlertsMorningSweepQueryOptions() {
   }
 }
 
+/**
+ * The single authoritative "alerts needing action" count — `matched` +
+ * `partially_applied`, approved, not expired (see
+ * `packages/db/src/repo/pulse/scoped.ts` `countActiveAlerts`). This is the
+ * number every "N active" surface must show: the sidebar nav badge, the
+ * /alerts page-header pill, and the detail rail head. They previously
+ * disagreed (sidebar read this endpoint = 8; the header/rail filtered
+ * `status === 'matched'` on `listAlerts(50)` = 7, missing `partially_applied`
+ * and the expiry/approval scoping). One hook, one number, no truncation.
+ */
+export function useActiveAlertCount(): number {
+  const query = useQuery(orpc.pulse.activeCount.queryOptions({ input: undefined }))
+  return query.data?.count ?? 0
+}
+
 export function useAlertsListQueryOptions(limit?: number) {
   const normalizedLimit = normalizeAlertsListLimit(limit)
   return {
