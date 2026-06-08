@@ -866,7 +866,6 @@ function PulseAlertList({
   selectedIds,
   onToggleSelected,
   onSelectAll,
-  onMarkAllRead,
   priorityById,
 }: {
   alerts: readonly PulseAlertPublic[]
@@ -877,14 +876,13 @@ function PulseAlertList({
   /**
    * 2026-06-07 (Pencil g5kKJQ): bulk-selection wiring. When
    * `selectable`, every row grows a leading checkbox and the list
-   * renders the "Select all · N dispatches · Mark all read"
-   * BulkSelectStrip (`TAamJ`) above the day groups.
+   * renders the "Select all · N dispatches" BulkSelectStrip
+   * (`TAamJ`) above the day groups.
    */
   selectable?: boolean
   selectedIds?: ReadonlySet<string>
   onToggleSelected?: (alertId: string, next: boolean) => void
   onSelectAll?: (next: boolean) => void
-  onMarkAllRead?: () => void
   /** Smart-priority inset data keyed by alert id (Pencil `IciLB`). */
   priorityById?: ReadonlyMap<string, AlertPriorityInfo>
 }) {
@@ -939,9 +937,9 @@ function PulseAlertList({
     // boundary on their own; the clip wasn't earning its keep.
     <div className="flex flex-col rounded-[12px] border border-divider-regular bg-background-default">
       {/* BulkSelectStrip (Pencil g5kKJQ `TAamJ`) — "Select all"
-          tri-state checkbox + dispatch count + "Mark all read".
-          Only renders in selectable (active) mode; history rows
-          aren't bulk-actionable. */}
+          tri-state checkbox + dispatch count. Only renders in
+          selectable (active) mode; history rows aren't
+          bulk-actionable. */}
       {selectable ? (
         <div className="flex items-center gap-3 border-b border-divider-subtle bg-background-subtle px-6 py-3">
           <Checkbox
@@ -960,17 +958,6 @@ function PulseAlertList({
           <span className="text-[13px] font-medium text-text-muted tabular-nums">
             <Plural value={alerts.length} one="# dispatch" other="# dispatches" />
           </span>
-          <span className="flex-1" aria-hidden />
-          {onMarkAllRead ? (
-            <button
-              type="button"
-              onClick={onMarkAllRead}
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-            >
-              <CheckCheckIcon className="size-3" aria-hidden />
-              <Trans>Mark all read</Trans>
-            </button>
-          ) : null}
         </div>
       ) : null}
 

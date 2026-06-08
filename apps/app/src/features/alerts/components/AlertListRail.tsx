@@ -3,6 +3,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { SearchIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
@@ -78,24 +79,16 @@ export function AlertListRail({
 
       {/* FilterRow — All / Unresolved segmented control + search. */}
       <div className="flex shrink-0 items-center gap-2 border-b border-divider-subtle px-4 py-2.5">
-        <div className="inline-flex items-center rounded-lg bg-background-subtle p-0.5">
-          {(['all', 'unresolved'] as const).map((id) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTab(id)}
-              aria-pressed={tab === id}
-              className={cn(
-                'inline-flex h-7 items-center rounded-md px-3 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                tab === id
-                  ? 'bg-background-default text-text-primary shadow-subtle'
-                  : 'text-text-tertiary hover:text-text-secondary',
-              )}
-            >
-              {id === 'all' ? <Trans>All</Trans> : <Trans>Unresolved</Trans>}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          size="sm"
+          ariaLabel={t`Alert filter`}
+          value={tab}
+          onValueChange={setTab}
+          options={[
+            { value: 'all', label: <Trans>All</Trans> },
+            { value: 'unresolved', label: <Trans>Unresolved</Trans> },
+          ]}
+        />
         <span className="flex-1" aria-hidden />
         <label className="inline-flex size-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-state-base-hover focus-within:bg-state-base-hover">
           <SearchIcon className="size-3.5 shrink-0" aria-hidden />
@@ -188,13 +181,13 @@ function RailItem({
       {/* Content — badge meta row + 2-line title. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          <span className="inline-flex h-[20px] shrink-0 items-center rounded-[6px] border border-divider-regular px-1.5 font-mono text-[11px] font-semibold text-text-secondary uppercase">
+          <span className="inline-flex h-[20px] shrink-0 items-center rounded-[6px] border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
             {alert.jurisdiction}
           </span>
           {form ? <TaxCodeBadge code={form} /> : null}
           {/* 2026-06-08 (Yuqi rail feedback): change-kind reads GRAY in
               the quiet rail (not accent-blue like the main list). */}
-          <span className="font-mono text-[10px] font-bold tracking-[0.5px] text-text-muted uppercase">
+          <span className="text-[10px] font-bold tracking-[0.5px] text-text-muted uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>

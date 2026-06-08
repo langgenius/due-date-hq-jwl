@@ -1399,7 +1399,7 @@ export function AlertDetailDrawer({
             {detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
               <section className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                  <span className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
                     <Trans>Source extract</Trans>
                   </span>
                   {detail.alert.sourceUrl ? (
@@ -1457,14 +1457,14 @@ export function AlertDetailDrawer({
               return (
                 <section className="flex flex-col gap-3">
                   <header className="flex items-baseline justify-between">
-                    <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                    <span className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
                       <Trans>Provenance &amp; confidence</Trans>
                     </span>
                   </header>
                   <div className="grid grid-cols-[1fr_1fr] gap-3">
                     {/* Confidence cell */}
                     <div className="flex flex-col gap-1.5 border-r border-divider-subtle pr-6">
-                      <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                      <span className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
                         <Trans>AI confidence</Trans>
                       </span>
                       <div className="flex items-baseline gap-2">
@@ -1494,7 +1494,7 @@ export function AlertDetailDrawer({
                     </div>
                     {/* Source / tags cell */}
                     <div className="flex flex-col gap-1.5 pl-2">
-                      <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                      <span className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
                         <Trans>Source &amp; audit</Trans>
                       </span>
                       <div className="flex flex-col gap-1 text-xs">

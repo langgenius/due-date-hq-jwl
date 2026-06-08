@@ -16,7 +16,6 @@ import {
   CheckIcon,
   CircleCheckIcon,
   Clock3Icon,
-  DownloadIcon,
   HistoryIcon,
   ListIcon,
   MapIcon,
@@ -25,7 +24,6 @@ import {
   SearchIcon,
   Settings2Icon,
   Undo2Icon,
-  UserPlusIcon,
   XIcon,
   type LucideIcon,
 } from 'lucide-react'
@@ -35,6 +33,7 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import {
@@ -250,10 +249,34 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // (24h snooze / no-reason dismiss); the drawer carries the full
   // reason-prompt flow if a CPA wants it.
   const invalidateAlerts = useAlertsInvalidation()
+  // 2026-06-08 (design audit task 6 — destructive parity): single-row
+  // Dismiss is reversible from History, so the success toast now offers
+  // an inline Undo that re-activates the alert via `orpc.pulse.reactivate`
+  // — lightweight, non-blocking (no confirm modal, unlike bulk dismiss).
+  const reactivateAlertMutation = useMutation(
+    orpc.pulse.reactivate.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Alert restored`)
+        invalidateAlerts()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't restore alert`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
   const dismissAlertMutation = useMutation(
     orpc.pulse.dismiss.mutationOptions({
-      onSuccess: () => {
-        toast.success(t`Alert dismissed`)
+      onSuccess: (_data, variables) => {
+        toast.success(t`Alert dismissed`, {
+          action: {
+            label: t`Undo`,
+            onClick: () => reactivateAlertMutation.mutate({ alertId: variables.alertId }),
+          },
+        })
         invalidateAlerts()
       },
       onError: (err) => {
@@ -505,6 +528,19 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     [sortedAlerts, selectedIds],
   )
 
+  // Single reset handler reused by the toolbar Reset button and the
+  // filtered-empty state's "Clear filters" escape hatch — so the empty
+  // state always has a way out, not just a dead end.
+  const resetFilters = () => {
+    setImpactFilter('all')
+    setStatusFilter('all')
+    setChangeKindFilter('all')
+    setTaxAreaFilter('all')
+    setJurisdictionFilter(null)
+    setTimeRangeFilter('all_time')
+    setSearchQuery('')
+  }
+
   const isEmpty = !alertsQuery.isLoading && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
   const filtersActive =
@@ -616,45 +652,19 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   undiscoverable. */}
               <ShortcutHintChip className="hidden md:inline-flex" />
               {/* 2026-06-04 round 3 (Yuqi feedback "tackle map
-                  view"): two-button group toggling between List
-                  and Map. Map shows `<PulseAlertsMap>` above the
-                  list (Pencil RMS9y body split). */}
-              <div
-                role="group"
-                aria-label={t`View mode`}
-                className="inline-flex rounded-xl border border-divider-subtle bg-background-default p-0.5"
-              >
-                <button
-                  type="button"
-                  onClick={() => setViewMode('list')}
-                  aria-pressed={viewMode === 'list'}
-                  className={cn(
-                    'inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
-                    'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                    viewMode === 'list'
-                      ? 'bg-state-accent-hover text-text-accent'
-                      : 'text-text-secondary hover:text-text-primary',
-                  )}
-                >
-                  <ListIcon className="size-3" aria-hidden />
-                  <Trans>List</Trans>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('map')}
-                  aria-pressed={viewMode === 'map'}
-                  className={cn(
-                    'inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
-                    'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                    viewMode === 'map'
-                      ? 'bg-state-accent-hover text-text-accent'
-                      : 'text-text-secondary hover:text-text-primary',
-                  )}
-                >
-                  <MapIcon className="size-3" aria-hidden />
-                  <Trans>Map</Trans>
-                </button>
-              </div>
+                  view"): toggle between List and Map. Map shows
+                  `<PulseAlertsMap>` above the list (Pencil RMS9y body
+                  split). 2026-06-08: consolidated onto the shared
+                  flat <Segmented> primitive. */}
+              <Segmented
+                ariaLabel={t`View mode`}
+                value={viewMode}
+                onValueChange={setViewMode}
+                options={[
+                  { value: 'list', label: <Trans>List</Trans>, icon: ListIcon },
+                  { value: 'map', label: <Trans>Map</Trans>, icon: MapIcon },
+                ]}
+              />
               {/* 2026-06-04 (Yuqi feedback #4 "missing Sources
                   button"): Sources management entry-point added to
                   the actions cluster. */}
@@ -797,7 +807,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
               alert content. Now the filters live inline with the
               page's outer padding, same rhythm as the header
               above and the list below. */}
-              {jurisdictionCounts.length === 0 ? null : null}
 
               {/* 2026-05-25 (Yuqi panel polish — minimal filters):
                   when the panel is open the filter row collapses
@@ -957,43 +966,18 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     referenced — the canonical layout is now
                     Search + ViewToggle (left cluster) ‖ Time +
                     Severity + ChangeType + Status + State + Sort
-                    (right cluster). */}
-                    <div
-                      role="group"
-                      aria-label={t`View mode`}
-                      className="inline-flex h-9 shrink-0 items-center rounded-xl border border-divider-regular bg-transparent p-0.5"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setViewMode('list')}
-                        aria-pressed={viewMode === 'list'}
-                        className={cn(
-                          'inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
-                          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                          viewMode === 'list'
-                            ? 'bg-state-accent-hover text-text-accent'
-                            : 'text-text-secondary hover:text-text-primary',
-                        )}
-                      >
-                        <ListIcon className="size-3.5" aria-hidden />
-                        <Trans>List</Trans>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setViewMode('map')}
-                        aria-pressed={viewMode === 'map'}
-                        className={cn(
-                          'inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
-                          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                          viewMode === 'map'
-                            ? 'bg-state-accent-hover text-text-accent'
-                            : 'text-text-secondary hover:text-text-primary',
-                        )}
-                      >
-                        <MapIcon className="size-3.5" aria-hidden />
-                        <Trans>Map</Trans>
-                      </button>
-                    </div>
+                    (right cluster). 2026-06-08: consolidated onto the
+                    shared flat <Segmented> primitive. */}
+                    <Segmented
+                      className="shrink-0"
+                      ariaLabel={t`View mode`}
+                      value={viewMode}
+                      onValueChange={setViewMode}
+                      options={[
+                        { value: 'list', label: <Trans>List</Trans>, icon: ListIcon },
+                        { value: 'map', label: <Trans>Map</Trans>, icon: MapIcon },
+                      ]}
+                    />
 
                     {/* 2026-06-08 (Yuqi /alerts #2 "Sort … in the same row
                     as other filters"): the greedy `flex-1` spacer was
@@ -1280,19 +1264,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     besides sort by. if nothing is selected, reset
                     not shown"). Only mounts when `filtersActive`. */}
                     {filtersActive ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setImpactFilter('all')
-                          setStatusFilter('all')
-                          setChangeKindFilter('all')
-                          setTaxAreaFilter('all')
-                          setJurisdictionFilter(null)
-                          setTimeRangeFilter('all_time')
-                          setSearchQuery('')
-                        }}
-                      >
+                      <Button variant="ghost" size="sm" onClick={resetFilters}>
                         <Trans>Reset</Trans>
                       </Button>
                     ) : null}
@@ -1421,13 +1393,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   {/* RIGHT: active alerts panel (compact rows) */}
                   <div className="flex w-[420px] shrink-0 flex-col gap-2 overflow-y-auto">
                     <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
-                      <span className="font-mono text-[11px] font-bold tracking-[0.8px] text-text-muted uppercase">
+                      <span className="text-[11px] font-bold tracking-[0.8px] text-text-muted uppercase">
                         <Trans>Active alerts</Trans>
                         <span className="ml-2 tabular-nums">{sortedAlerts.length}</span>
                       </span>
                     </div>
                     {isFilteredEmpty ? (
-                      <FilteredEmptyState />
+                      <FilteredEmptyState onClearFilters={resetFilters} />
                     ) : (
                       <div className="flex flex-col gap-2">
                         {sortedAlerts.map((alert) => {
@@ -1462,7 +1434,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 // its own copy + "what gets recorded" legend.
                 <AlertsEmptyState historyMode={historyMode} sources={sourceHealth} />
               ) : isFilteredEmpty ? (
-                <FilteredEmptyState />
+                <FilteredEmptyState onClearFilters={resetFilters} />
               ) : (
                 /* 2026-06-04 round 42 (Yuqi consistency audit
                    follow-up #2 — "the gap between alert card should
@@ -1614,10 +1586,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
           anchored to the bottom-center of the viewport while one or
           more alerts are selected. "N selected / of M dispatches"
           read-out, then the action cluster. Snooze + Dismiss are
-          wired to the looped per-alert mutations; Apply all / Mark
-          read / Assign / Export are present per the design but
-          disabled with a TODO(data) flag (no bulk RPC + Apply needs
-          per-alert verification). */}
+          wired to the looped per-alert mutations; Apply all stays
+          present-but-disabled (bulk apply needs per-alert
+          verification). Assign + Export were removed — they had no
+          backend and no explanation, so they read as dead UI. */}
       {selectionEnabled && selectedCount > 0 ? (
         <BulkActionBar
           selectedCount={selectedCount}
@@ -1659,8 +1631,8 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
 // Floating dark action bar shown while alerts are selected (Pencil
 // g5kKJQ `saDv7`). Fixed to the bottom-center of the viewport with a
 // slide-up entrance. Snooze + Dismiss fire the looped per-alert
-// mutations passed from the page; the remaining design actions are
-// rendered disabled because no bulk RPC backs them yet.
+// mutations passed from the page; Apply all is rendered disabled
+// because no bulk RPC backs it yet.
 function BulkActionBar({
   selectedCount,
   totalCount,
@@ -1746,25 +1718,6 @@ function BulkActionBar({
         >
           <ArchiveIcon className="size-3.5" aria-hidden />
           <Trans>Dismiss</Trans>
-        </button>
-
-        {/* Assign + Export — present per design, unwired (no contract
-            surface yet). */}
-        <button
-          type="button"
-          disabled
-          className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-white/40 outline-none"
-        >
-          <UserPlusIcon className="size-3.5" aria-hidden />
-          <Trans>Assign</Trans>
-        </button>
-        <button
-          type="button"
-          disabled
-          className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-white/40 outline-none"
-        >
-          <DownloadIcon className="size-3.5" aria-hidden />
-          <Trans>Export</Trans>
         </button>
       </div>
 
@@ -1868,10 +1821,17 @@ function StateFilterPopover({
   )
 }
 
-function FilteredEmptyState() {
+function FilteredEmptyState({ onClearFilters }: { onClearFilters: () => void }) {
   return (
     <StatusBanner indicator={<PulsingDot tone="disabled" />}>
-      <Trans>No alerts match these filters.</Trans>
+      {/* Give the dead-end empty state a way out — reuse the toolbar's
+          reset handler so filtered-to-nothing isn't a trap. */}
+      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <Trans>No alerts match these filters.</Trans>
+        <Button variant="ghost" size="sm" onClick={onClearFilters}>
+          <Trans>Clear filters</Trans>
+        </Button>
+      </span>
     </StatusBanner>
   )
 }

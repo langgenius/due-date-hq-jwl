@@ -6,6 +6,7 @@ import { SearchIcon } from 'lucide-react'
 import type { PulseAlertPublic, PulseFirmAlertStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { getJurisdictionName } from '@/components/primitives/state-badge'
@@ -39,13 +40,22 @@ const HISTORY_LIMIT = 50
 
 type HistoryTab = 'all' | 'applied' | 'dismissed' | 'snoozed' | 'reverted' | 'expired'
 
-const TABS: { id: HistoryTab; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'applied', label: 'Applied' },
-  { id: 'dismissed', label: 'Dismissed' },
-  { id: 'snoozed', label: 'Snoozed' },
-  { id: 'reverted', label: 'Reverted' },
-  { id: 'expired', label: 'Expired' },
+// Single source of truth for the tab ladder — the label travels with
+// the id so the rendered control can never desync from the tab it
+// selects (the prior hand-rolled if/else ladder had no `expired`
+// branch, so both 'reverted' and 'expired' fell through to "Reverted").
+//
+// 2026-06-08 (Pencil hFOEo `rgWeB FilterRow`): the design's segmented
+// control carries exactly FIVE tabs — All / Applied / Dismissed /
+// Snoozed / Reverted. There is no "Expired" tab; expired (aged-out
+// `matched`) rows still surface under "All" with their Expired status
+// badge, and the Expired STAT card above keeps the standalone count.
+const TABS: { id: HistoryTab; label: React.ReactNode }[] = [
+  { id: 'all', label: <Trans>All</Trans> },
+  { id: 'applied', label: <Trans>Applied</Trans> },
+  { id: 'dismissed', label: <Trans>Dismissed</Trans> },
+  { id: 'snoozed', label: <Trans>Snoozed</Trans> },
+  { id: 'reverted', label: <Trans>Reverted</Trans> },
 ]
 
 const STATUS_META: Record<
@@ -56,7 +66,11 @@ const STATUS_META: Record<
   partially_applied: { label: 'Partly applied', variant: 'success' },
   dismissed: { label: 'Dismissed', variant: 'secondary' },
   snoozed: { label: 'Snoozed', variant: 'warning' },
-  reverted: { label: 'Reverted', variant: 'destructive' },
+  // 2026-06-08 (design audit task 9 — red restraint): a handled
+  // archive is calm; nothing here is urgent. A revert is a normal
+  // logged outcome, not an alarm, so it reads as a neutral chip
+  // rather than destructive-red.
+  reverted: { label: 'Reverted', variant: 'secondary' },
   reviewed: { label: 'Reviewed', variant: 'info' },
   // In the history archive, a `matched` alert is only ever one that aged out of
   // the active queue — listHistory gates matched rows on a passed deadline — so
@@ -221,37 +235,21 @@ export function AlertHistoryView() {
           ))}
         </div>
 
-        {/* TABS + SEARCH — wraps instead of scrolling on small screens. */}
+        {/* TABS + SEARCH — wraps instead of scrolling on small screens.
+            2026-06-08: tabs render off the shared flat <Segmented>
+            primitive driven by the TABS array, so labels can't desync
+            from ids. */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex flex-wrap items-center gap-1">
-            {TABS.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                onClick={() => setTab(entry.id)}
-                aria-pressed={tab === entry.id}
-                className={cn(
-                  'inline-flex h-8 items-center rounded-lg px-3 text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                  tab === entry.id
-                    ? 'bg-state-accent-hover text-text-accent'
-                    : 'text-text-secondary hover:bg-state-base-hover',
-                )}
-              >
-                {entry.id === 'all' ? (
-                  <Trans>All</Trans>
-                ) : entry.id === 'applied' ? (
-                  <Trans>Applied</Trans>
-                ) : entry.id === 'dismissed' ? (
-                  <Trans>Dismissed</Trans>
-                ) : entry.id === 'snoozed' ? (
-                  <Trans>Snoozed</Trans>
-                ) : (
-                  <Trans>Reverted</Trans>
-                )}
-              </button>
-            ))}
-          </div>
-          <label className="inline-flex h-9 min-w-0 flex-1 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-3 sm:max-w-[280px]">
+          <Segmented
+            ariaLabel={t`Filter handled alerts`}
+            value={tab}
+            onValueChange={setTab}
+            options={TABS.map((entry) => ({ value: entry.id, label: entry.label }))}
+          />
+          {/* Pencil rgWeB `search`: rounded-12, white fill, hairline
+              divider-subtle border, ~240px wide (kept flex-1 on small
+              screens so it never overflows). */}
+          <label className="inline-flex h-9 min-w-0 flex-1 items-center gap-2 rounded-xl border border-divider-subtle bg-background-default px-3 sm:max-w-[240px]">
             <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
             <input
               type="search"
@@ -380,7 +378,13 @@ function HistoryRow({
     day: 'numeric',
     timeZone: firmTimezone,
   }).format(new Date(alert.publishedAt))
+  // 2026-06-08 (bug: "May 17 / May 17"): `formatRelativeTime` switches to an
+  // absolute "Mon D" string once an item is older than a week — which, in
+  // this archive of mostly weeks-old alerts, is byte-identical to `dateLabel`
+  // and rendered as a duplicate second line. Only show the relative sub-line
+  // when it's an actual relative phrase (i.e. differs from the date label).
   const relative = formatRelativeTime(alert.publishedAt)
+  const relativeSub = relative && relative !== dateLabel ? relative : null
   const impacted = alert.matchedCount + alert.needsReviewCount
 
   return (
@@ -413,12 +417,14 @@ function HistoryRow({
       {/* DATE */}
       <div className="flex w-[84px] shrink-0 flex-col">
         <span className="text-[12px] font-semibold text-text-primary">{dateLabel}</span>
-        <span className="text-[10px] font-medium text-text-muted">{relative}</span>
+        {relativeSub ? (
+          <span className="text-[10px] font-medium text-text-muted">{relativeSub}</span>
+        ) : null}
       </div>
 
       {/* JURIS */}
       <span className="w-[52px] shrink-0">
-        <span className="inline-flex h-[20px] items-center rounded-md bg-background-subtle px-2 font-mono text-[11px] font-semibold text-text-secondary uppercase">
+        <span className="inline-flex h-[20px] items-center rounded-md bg-background-subtle px-2 text-[11px] font-semibold text-text-secondary uppercase">
           {alert.jurisdiction}
         </span>
       </span>
@@ -429,7 +435,7 @@ function HistoryRow({
           {alert.title}
         </span>
         <span className="flex min-w-0 items-center gap-2 truncate text-[11px] text-text-tertiary">
-          <span className="shrink-0 font-mono font-semibold tracking-[0.3px] text-text-muted uppercase">
+          <span className="shrink-0 font-semibold tracking-[0.3px] text-text-muted uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
           <span aria-hidden className="text-divider-regular">
