@@ -318,14 +318,17 @@ function NeedsAttentionCard({
         //                      doesn't match any client
         // Hover unifies to `bg-background-subtle` either way so
         // the affordance still reads in both cases.
-        // 2026-06-07 (Yuqi audit "cards blend into the background"): added
-        // a hairline border so the alert card has a visible edge on the
-        // lighter page wash — at rest the white/section fill alone sat too
-        // close to the body tone. Border, not shadow, per the standing
-        // "no shadows" preference.
-        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-xl px-5 py-4 text-left',
-        impacted > 0 ? 'bg-background-section' : 'bg-background-default',
-        'transition-colors duration-200 hover:bg-background-subtle',
+        // 2026-06-08 (Yuqi "还是很粗糙，没有重点"): the card is now a
+        // single, uniform surface that LIFTS off the page. Pencil VxRyF
+        // geometry exactly — radius 14, padding 18, gap 16. In the app's
+        // tinted-page / white-card model a clean white fill + one 8%
+        // hairline (border-divider-subtle, the design's #10182814) gives
+        // the crisp edge the low page-to-card contrast can't. The earlier
+        // `impacted ? gray : white` split made the *important* cards
+        // recede into the wash — removed; impact is carried by the High-
+        // impact pill + "Affects N clients", not by a receding fill.
+        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-[14px] border border-divider-subtle bg-background-default p-[18px] text-left',
+        'transition-colors duration-200 hover:border-divider-regular hover:bg-background-section',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}
@@ -470,7 +473,7 @@ function NeedsAttentionCard({
                   // Single neutral tone (Yuqi: "reduce the colour variety
                   // here to two"). The rainbow per-client tones were pure
                   // decoration; the initials carry the identity.
-                  'inline-flex size-5 items-center justify-center rounded-full bg-background-subtle font-mono text-[8px] font-semibold text-text-secondary ring-[1.5px] ring-background-section',
+                  'inline-flex size-5 items-center justify-center rounded-full bg-background-subtle font-mono text-[8px] font-semibold text-text-secondary ring-[1.5px] ring-background-default',
                   index > 0 && '-ml-1.5',
                 )}
               >

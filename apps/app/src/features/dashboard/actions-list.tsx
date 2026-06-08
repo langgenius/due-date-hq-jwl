@@ -267,7 +267,11 @@ function ActionsTable({
     // back to regular.
     <div
       className={cn(
-        'overflow-hidden rounded-[12px] border border-divider-regular bg-background-default',
+        // 2026-06-08 (Yuqi "粗糙/没有重点"): match Pencil ErW76 Table —
+        // radius 14, white fill, one 8% hairline (#10182814 ->
+        // border-divider-subtle). Softer + larger radius reads as a
+        // single calm surface rather than a boxed-in outline.
+        'overflow-hidden rounded-[14px] border border-divider-subtle bg-background-default',
         showTierAccent && TIER_ACCENT_BORDER_CLASS[tier],
       )}
     >

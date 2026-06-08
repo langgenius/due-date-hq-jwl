@@ -258,7 +258,7 @@ export function DashboardRoute() {
        the fold, but Yuqi found the three sections reading too close
        together. 32px gives a clearer "three distinct sections"
        hierarchy without losing too much vertical real estate. */
-    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-6 pb-12 md:px-8 md:pt-6 md:pb-12">
+    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-6 pb-12 md:px-8 md:pt-6 md:pb-12">
       {/* 2026-05-26 (Yuqi seventy-fourth pass — Today joins the
           page-header family): the hand-rolled <header> is gone.
           /today now routes through the same `<PageHeader>`
