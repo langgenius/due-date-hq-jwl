@@ -297,11 +297,11 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {rows.map((row, index) => {
+                    {rows.map((row) => {
                       const ruleChange = ruleChangeText(row)
                       const form = row.preview?.formName ?? row.taxType
                       return (
-                        <TableRow key={`${row.clientId}:${row.taxType}:${index}`}>
+                        <TableRow key={`${row.clientId}:${row.taxType}`}>
                           <TableCell className="font-semibold text-text-primary">
                             {row.clientName} · {form}
                           </TableCell>

@@ -50,6 +50,8 @@ import { JurisdictionCode } from './rules-console-primitives'
 import { MatchedPulseBlock } from './matched-pulse-block'
 import { useSourceLookup } from './use-source-lookup'
 
+const isEntityKey = (key: string): key is EntityKey => key in ENTITY_LABELS
+
 const ACCEPT_RULE_LOADING_TOAST_STYLE: CSSProperties = {
   background: 'var(--state-accent-hover)',
   borderColor: 'var(--state-accent-hover-alt)',
@@ -875,7 +877,7 @@ function ConfirmImpactDialog({
                     )}
                   >
                     <span className="text-sm text-text-secondary">
-                      {ENTITY_LABELS[row.key as EntityKey] ?? row.key}
+                      {isEntityKey(row.key) ? ENTITY_LABELS[row.key] : row.key}
                     </span>
                     <span className="text-sm font-semibold text-text-primary tabular-nums">
                       {row.count}

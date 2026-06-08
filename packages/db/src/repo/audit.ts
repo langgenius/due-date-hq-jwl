@@ -153,10 +153,23 @@ function categoryFilter(category: AuditActionCategory): SQL | null {
  * matches. (The `ai` category is an actorType axis, not an action prefix, so it
  * is intentionally not derivable here.)
  */
+// Mirrors the keys of CATEGORY_PREFIXES as a typed list so the lookup below
+// iterates real category literals without an unsafe `Object.keys(...) as` cast.
+const DERIVABLE_AUDIT_CATEGORIES = [
+  'client',
+  'obligation',
+  'migration',
+  'rules',
+  'auth',
+  'team',
+  'pulse',
+  'export',
+  'calendar',
+  'reminder',
+] as const satisfies ReadonlyArray<keyof typeof CATEGORY_PREFIXES>
+
 export function categoryForAction(action: string): Exclude<AuditActionCategory, 'ai'> {
-  for (const category of Object.keys(CATEGORY_PREFIXES) as Array<
-    Exclude<AuditActionCategory, 'system' | 'ai'>
-  >) {
+  for (const category of DERIVABLE_AUDIT_CATEGORIES) {
     if (CATEGORY_PREFIXES[category].some((prefix) => action.startsWith(prefix))) {
       return category
     }

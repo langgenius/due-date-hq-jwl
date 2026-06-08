@@ -188,6 +188,27 @@ export default defineConfig({
           ],
         },
       },
+      {
+        // Sequential awaits in these IO subsystems are intentional: chunked D1
+        // batches (bound-param safety), ordered side-effects, and audit trails.
+        // Parallelizing would break correctness, so no-await-in-loop is off here.
+        files: [
+          'apps/server/src/jobs/**',
+          'apps/server/src/procedures/**',
+          'apps/server/src/webhooks/**',
+          'packages/db/src/repo/**',
+        ],
+        rules: { 'no-await-in-loop': 'off' },
+      },
+      {
+        // Test stubs legitimately use `as unknown as X` casts and locally
+        // scoped helpers; relax the rules that only fire on those patterns.
+        files: ['**/*.test.ts', '**/*.test.tsx'],
+        rules: {
+          'typescript/no-unsafe-type-assertion': 'off',
+          'unicorn/consistent-function-scoping': 'off',
+        },
+      },
     ],
     ignorePatterns: [
       '**/dist/**',

@@ -202,8 +202,8 @@ export function WorkloadPage() {
               aria-live="polite"
               aria-label={t`Loading workload metrics`}
             >
-              {Array.from({ length: 6 }).map((_, index) => (
-                <Skeleton key={index} className="h-12 w-full" />
+              {['r1', 'r2', 'r3', 'r4', 'r5', 'r6'].map((key) => (
+                <Skeleton key={key} className="h-12 w-full" />
               ))}
             </div>
           ) : data && data.rows.length > 0 ? (

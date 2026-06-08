@@ -47,7 +47,6 @@ const NOTIFICATION_TYPE_FILTERS = [
   'internal_request',
   'system',
 ] as const
-type NotificationTypeFilter = (typeof NOTIFICATION_TYPE_FILTERS)[number]
 const NOTIFICATIONS_PAGE_SIZE = 50
 
 export function NotificationsPage() {
@@ -177,7 +176,10 @@ export function NotificationsPage() {
             (deadline reminder, overdue, alert, …) before the client search. */}
         <Select
           value={typeFilter}
-          onValueChange={(value) => void setTypeFilter(value as NotificationTypeFilter)}
+          onValueChange={(value) => {
+            const next = NOTIFICATION_TYPE_FILTERS.find((filter) => filter === value)
+            if (next) void setTypeFilter(next)
+          }}
         >
           <SelectTrigger className="w-full md:w-52" aria-label={t`Filter by type`}>
             <SelectValue />
@@ -224,8 +226,8 @@ export function NotificationsPage() {
               aria-live="polite"
               aria-label={t`Loading inbox`}
             >
-              {Array.from({ length: 4 }).map((_, index) => (
-                <Skeleton key={index} className="h-20 w-full" />
+              {['r1', 'r2', 'r3', 'r4'].map((key) => (
+                <Skeleton key={key} className="h-20 w-full" />
               ))}
             </div>
           ) : null}

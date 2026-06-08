@@ -751,9 +751,8 @@ export function ClientClassificationPanel({
             <Select
               value={reasonEvent}
               onValueChange={(value) => {
-                if (CLASSIFICATION_REASON_EVENTS.some((event) => event === value)) {
-                  setReasonEvent(value as ClassificationReasonEvent)
-                }
+                const event = CLASSIFICATION_REASON_EVENTS.find((option) => option === value)
+                if (event) setReasonEvent(event)
               }}
             >
               <SelectTrigger className="w-full">

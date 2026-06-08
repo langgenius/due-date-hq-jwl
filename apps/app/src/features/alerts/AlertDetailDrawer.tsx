@@ -137,17 +137,19 @@ interface AlertDetailDrawerProps {
  * vocabulary. Every value is real `PulseDetail` data; it renders only
  * for due-date-overlay alerts that carry both dates.
  */
+function formatDeadlineDate(iso: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${iso}T00:00:00.000Z`))
+}
+
 function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
   const oldIso = detail.originalDueDate
   const newIso = detail.newDueDate
   if (detail.alert.actionMode !== 'due_date_overlay' || !oldIso || !newIso) return null
-  const fmt = (iso: string) =>
-    new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(`${iso}T00:00:00.000Z`))
   const days = Math.round(
     (new Date(`${newIso}T00:00:00.000Z`).getTime() -
       new Date(`${oldIso}T00:00:00.000Z`).getTime()) /
@@ -171,11 +173,11 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
       </span>
       <div className="flex flex-wrap items-center gap-2.5">
         <span className="font-mono text-[13px] font-medium text-text-muted line-through tabular-nums">
-          {fmt(oldIso)}
+          {formatDeadlineDate(oldIso)}
         </span>
         <ArrowRightIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
         <span className="font-mono text-[18px] font-bold tracking-[-0.2px] text-text-primary tabular-nums">
-          {fmt(newIso)}
+          {formatDeadlineDate(newIso)}
         </span>
         <span className="text-[12px] font-semibold text-text-destructive tabular-nums">
           {days >= 0 ? `+${days}` : `${days}`} <Trans>days</Trans>

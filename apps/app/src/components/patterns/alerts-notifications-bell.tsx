@@ -210,7 +210,12 @@ function AlertsNotificationsBell() {
             share the same value/onValueChange contract; selected
             state comes from the primitive's `data-active` chrome. */}
         <div className="border-b border-divider-subtle px-3 py-2">
-          <Tabs value={filter} onValueChange={(next) => setFilter(next as FilterKind)}>
+          <Tabs
+            value={filter}
+            onValueChange={(next) => {
+              if (next === 'unread' || next === 'all') setFilter(next)
+            }}
+          >
             <TabsList>
               {(['unread', 'all'] as FilterKind[]).map((f) => (
                 <TabsTrigger key={f} value={f}>

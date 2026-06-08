@@ -231,17 +231,22 @@ function BriefProse({
   onOpenObligation: (obligationId: string) => void
 }) {
   const segments = text.split(/(\[\d+\])/g)
+  // Key each split part by its running character offset — unique and stable for a
+  // given text, so repeated text/marker segments never collide on an index key.
+  let charOffset = 0
   return (
     <>
-      {segments.map((segment, index) => {
+      {segments.map((segment) => {
+        const key = `${charOffset}:${segment}`
+        charOffset += segment.length
         const match = /^\[(\d+)\]$/.exec(segment)
-        if (!match) return <Fragment key={index}>{segment}</Fragment>
+        if (!match) return <Fragment key={key}>{segment}</Fragment>
         const ref = Number(match[1])
         const citation = citations?.find((entry) => entry.ref === ref)
-        if (!citation) return <Fragment key={index}>{segment}</Fragment>
+        if (!citation) return <Fragment key={key}>{segment}</Fragment>
         return (
           <CitationChip
-            key={index}
+            key={key}
             n={ref}
             citation={citation}
             onOpen={() => onOpenObligation(citation.obligationId)}

@@ -1308,8 +1308,12 @@ const rejectTemplate = os.rules.rejectTemplate.handler(async ({ input, context }
 // reviewer cares about — due-date logic, extension/payment rules, evidence
 // requirements, jurisdiction, effective date — instead of only {status,
 // version} (which never told you WHAT changed in the rule). See gap P0-4.
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
 function ruleBodyForAudit(ruleJson: unknown): Record<string, unknown> | null {
-  if (!ruleJson || typeof ruleJson !== 'object') return null
+  if (!isRecord(ruleJson)) return null
   const {
     status: _status,
     verifiedBy: _verifiedBy,
@@ -1317,7 +1321,7 @@ function ruleBodyForAudit(ruleJson: unknown): Record<string, unknown> | null {
     reviewedByName: _reviewedByName,
     reviewedAt: _reviewedAt,
     ...body
-  } = ruleJson as Record<string, unknown>
+  } = ruleJson
   return body
 }
 

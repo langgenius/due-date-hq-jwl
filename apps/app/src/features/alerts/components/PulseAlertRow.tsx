@@ -140,6 +140,7 @@ function deriveActionText(kind: PulseAlertPublic['changeKind']): string {
     case 'other':
       return 'Review change'
   }
+  return 'Review change'
 }
 
 function formatMonthDay(iso: string | null): string | null {

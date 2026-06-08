@@ -2899,7 +2899,7 @@ export function ObligationQueueRoute() {
     data: orderedRows,
     columns,
     state: {
-      columnOrder: DEFAULT_COLUMN_ORDER as unknown as string[],
+      columnOrder: [...DEFAULT_COLUMN_ORDER],
       columnVisibility,
       rowSelection,
       sorting,
