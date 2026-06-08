@@ -263,16 +263,17 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               className override since AssigneeAvatar has no
               sidebar-context size hook. */}
           {/* 2026-06-08 (Yuqi product-wide unification — "smaller company
-              avatar"): firm tile size-10 (40px) → size-8 (32px), name
+              avatar"): firm tile size-10 (40px) → size-7 (28px), name
               text-base (16px) → text-[15px] to match. The 40px tile read
-              as oversized chrome; 32px sits as a tidy brand anchor next to
-              the now-+1px nav items. Collapsed mode stays size-7 (28px). */}
+              as oversized chrome; 28px sits as a tidy brand anchor next to
+              the +1px nav items, and matches the collapsed-rail size so the
+              tile never resizes between expanded/collapsed. */}
           <AssigneeAvatar
             name={firm.name}
             title={firm.name}
             type="firm"
             shape="square"
-            size="md"
+            size="sm"
             className="shrink-0 group-data-[collapsed=true]/sidebar:size-7 group-data-[collapsed=true]/sidebar:text-xs"
           />
           <span
