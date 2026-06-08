@@ -809,6 +809,10 @@ function PulseAlertRow({
                 type="button"
                 variant="outline"
                 size="xs"
+                // 2026-06-08 (Yuqi /alerts "wrong rounded corners"): override the
+                // Button base's squircle corner to a plain circular rounded-[6px]
+                // so these row buttons match the row's chips (state/form/etc.).
+                className="rounded-[6px] [corner-shape:round]"
                 onClick={(event) => {
                   event.stopPropagation()
                   onDismiss()
@@ -828,6 +832,7 @@ function PulseAlertRow({
             <Button
               type="button"
               size="xs"
+              className="rounded-[6px] [corner-shape:round]"
               onClick={(event) => {
                 event.stopPropagation()
                 onReview()
