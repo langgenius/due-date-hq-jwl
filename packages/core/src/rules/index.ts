@@ -4265,7 +4265,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'id.temporary_announcements',
     jurisdiction: 'ID',
     title: 'Idaho Tax Commission Newsroom',
-    url: 'https://tax.idaho.gov/newsroom/',
+    url: 'https://tax.idaho.gov/pressrelease/',
   },
   {
     id: 'il.temporary_announcements',
@@ -4325,7 +4325,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'md.temporary_announcements',
     jurisdiction: 'MD',
     title: 'Comptroller of Maryland Newsroom',
-    url: 'https://www.marylandcomptroller.gov/about/newsroom.html',
+    url: 'https://www.marylandcomptroller.gov/about/newsroom/media.html',
     // MD has no standing dedicated disaster-relief page; relief is posted here
     // (e.g. the 2024 Key Bridge business-tax relief), so this newsroom doubles
     // as MD's index-level relief signal.
