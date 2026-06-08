@@ -1,170 +1,69 @@
 import { type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { Trans, useLingui } from '@lingui/react/macro'
-import {
-  AlarmClockIcon,
-  BellIcon,
-  Building2Icon,
-  CalendarDaysIcon,
-  ChevronRightIcon,
-  ClipboardListIcon,
-  CreditCardIcon,
-  ScaleIcon,
-  UsersIcon,
-  type LucideIcon,
-} from 'lucide-react'
+import { Trans } from '@lingui/react/macro'
+import { ChevronRightIcon, type LucideIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { PageHeader } from '@/components/patterns/page-header'
+import { SettingsShell, useSettingsNavSections } from '@/features/settings/settings-sub-nav'
 
 /**
- * Workspace settings hub. Replaces the previous "Practice" sidebar group —
- * the routes underneath still exist at their original paths (`/practice`,
- * `/members`, `/workload`, `/billing`, `/audit`, `/reminders`,
- * `/notifications`, `/deadlines/calendar`), they're just no longer
- * surfaced in the primary nav. This page is the discovery surface for
- * those config destinations.
+ * Workspace settings hub — the /settings index.
  *
- * Personal account settings (`/account/security`, sign-out) stay in the
- * sidebar's `UserMenuTrigger` dropdown — different conceptual level.
+ * 2026-06-08 (IA audit — "unify the two divergent Settings navs"): this
+ * page now renders inside `SettingsShell`, the same sticky-rail scaffold
+ * used by /settings/profile and /settings/permissions. Previously this
+ * was a standalone card-hub whose destination set did NOT overlap with
+ * the rail, so a user here could not reach Profile or Permissions, and a
+ * user on a rail page could not reach Practice/Workload/Audit/Calendar.
+ *
+ * Both surfaces now consume one registry — `useSettingsNavSections` — so:
+ *   • the rail (left) lists every settings destination, including Profile
+ *     and Permissions, and
+ *   • this overview (right) lists the same destinations grouped as cards.
+ *
+ * The routes underneath still live at their original paths (`/practice`,
+ * `/members`, `/workload`, `/billing`, `/audit`, `/reminders`,
+ * `/notifications/preferences`, `/deadlines/calendar`, `/settings/profile`,
+ * `/settings/permissions`). Personal account settings (`/account/security`,
+ * sign-out) stay in the sidebar's `UserMenuTrigger` dropdown.
  */
 export function SettingsRoute() {
-  const { t } = useLingui()
+  const sections = useSettingsNavSections()
 
-  const sections: Array<{
-    label: string
-    description: string
-    items: Array<{
-      href: string
-      label: string
-      description: string
-      icon: LucideIcon
-    }>
-  }> = [
-    {
-      label: t`Practice`,
-      description: t`Identity, team, and capacity for this practice workspace.`,
-      items: [
-        {
-          href: '/practice',
-          label: t`Practice profile`,
-          description: t`Practice name, timezone, internal deadline policy, smart priority weighting.`,
-          icon: Building2Icon,
-        },
-        {
-          href: '/members',
-          label: t`Members`,
-          description: t`Invite teammates and manage roles.`,
-          icon: UsersIcon,
-        },
-        {
-          href: '/workload',
-          label: t`Team workload`,
-          description: t`Distribution of prep work across the team.`,
-          icon: ClipboardListIcon,
-        },
-      ],
-    },
-    {
-      label: t`Billing`,
-      description: t`Plan, seats, and invoices.`,
-      items: [
-        {
-          href: '/billing',
-          label: t`Billing`,
-          description: t`Active plan, seat usage, and subscription portal.`,
-          icon: CreditCardIcon,
-        },
-      ],
-    },
-    {
-      label: t`Compliance`,
-      description: t`Audit trail for client, rule, status, and team changes.`,
-      items: [
-        {
-          href: '/audit',
-          label: t`Audit log`,
-          description: t`Timestamped event log across the workspace.`,
-          icon: ScaleIcon,
-        },
-      ],
-    },
-    {
-      label: t`Automation`,
-      description: t`How DueDateHQ reaches your team, your clients, and your calendars.`,
-      items: [
-        {
-          href: '/reminders',
-          label: t`Reminders`,
-          description: t`Outbound deadline reminders to clients and team.`,
-          icon: AlarmClockIcon,
-        },
-        {
-          href: '/notifications/preferences',
-          label: t`Notification preferences`,
-          description: t`Personal morning digest preferences and types.`,
-          icon: BellIcon,
-        },
-        {
-          href: '/deadlines/calendar',
-          label: t`Calendar sync`,
-          description: t`Subscribe to deadlines from Apple / Google calendars.`,
-          icon: CalendarDaysIcon,
-        },
-      ],
-    },
-  ]
-
-  // 2026-05-26 (86th pass, audit §16.1 P1 + §16.16):
-  //   • Custom `<header><h1>` block migrated to canonical `<PageHeader>` —
-  //     was a P1 in design-system-drift-audit-2026-05-26.md (settings
-  //     root was the lone holdout in the otherwise-canonical settings
-  //     family).
-  //   • `gap-8` page-shell gap normalized to `gap-6` per §16.16 canonical
-  //     spacing scale (audit P2 spacing item).
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-6 md:px-6">
-          <PageHeader
-            title={<Trans>Settings</Trans>}
-            description={
-              /* 2026-05-24 (critique P2 — clarify): dropped the
-                 trailing "Personal account settings live in the user
-                 menu in the sidebar footer" line. It pointed first-
-                 timers at a second settings home before they'd
-                 explored the first one; the user menu is already a
-                 discoverable surface on its own. The page subtitle
-                 should describe what's on this page, not where
-                 other settings live. */
-              <Trans>
-                Workspace configuration for this practice — identity, team, billing, compliance, and
-                automation.
-              </Trans>
-            }
-          />
+    <SettingsShell>
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title={<Trans>Settings</Trans>}
+          description={
+            <Trans>
+              Workspace configuration for this practice — account, identity, team, billing,
+              compliance, and automation.
+            </Trans>
+          }
+        />
 
-          {sections.map((section) => (
-            <SettingsSection
-              key={section.label}
-              label={section.label}
-              description={section.description}
-            >
-              {section.items.map((item) => (
-                <SettingsRow
-                  key={item.href}
-                  href={item.href}
-                  label={item.label}
-                  description={item.description}
-                  Icon={item.icon}
-                />
-              ))}
-            </SettingsSection>
-          ))}
-        </div>
+        {sections.map((section) => (
+          <SettingsSection
+            key={section.label}
+            label={section.label}
+            description={section.description}
+          >
+            {section.items.map((item) => (
+              <SettingsRow
+                key={item.to}
+                href={item.to}
+                label={item.label}
+                description={item.description}
+                Icon={item.Icon}
+              />
+            ))}
+          </SettingsSection>
+        ))}
       </div>
-    </div>
+    </SettingsShell>
   )
 }
 

@@ -1,9 +1,13 @@
 import { NavLink } from 'react-router'
 import { useLingui } from '@lingui/react/macro'
 import {
+  AlarmClockIcon,
   BellIcon,
-  CalendarClockIcon,
+  Building2Icon,
+  CalendarDaysIcon,
+  ClipboardListIcon,
   CreditCardIcon,
+  ScaleIcon,
   ShieldCheckIcon,
   UserRoundIcon,
   UsersIcon,
@@ -13,33 +17,170 @@ import {
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
- * SettingsSubNav — the in-page settings rail shared by the account /
- * workspace settings family (Pencil `fuEMm` / `o8zYZ`). It mirrors the
- * design's left column: Profile, Team, Permissions, Reminders,
- * Notifications, Billing.
+ * Settings IA — single source of truth.
  *
- * Each entry points at the route that already owns that surface:
- *   Profile       → /settings/profile     (this family)
- *   Team          → /members              (existing MembersRoute)
- *   Permissions   → /settings/permissions (this family)
- *   Reminders     → /reminders            (existing)
- *   Notifications → /notifications/preferences (existing)
- *   Billing       → /billing              (existing)
+ * 2026-06-08 (IA audit — "unify the two divergent Settings navs"):
+ * Previously `/settings` (settings.tsx) was a card-hub linking to
+ * Practice/Members/Workload/Billing/Audit/Reminders/Notifications/Calendar,
+ * while this sticky rail listed a DIFFERENT, non-overlapping set
+ * (Profile/Team/Permissions/Reminders/Notifications/Billing) used only by
+ * /settings/profile and /settings/permissions. The two never referenced
+ * each other, so a user on /settings could not reach Profile or
+ * Permissions, and a user on /settings/profile could not reach Practice,
+ * Workload, Audit, or Calendar.
  *
- * The active item is derived from the current path via NavLink so the
- * rail stays in sync regardless of which route renders it.
+ * The fix: this module now owns the complete, grouped list of every real
+ * settings destination. Both surfaces consume `SETTINGS_NAV_SECTIONS`:
+ *   • the in-page rail (SettingsSubNav) renders the flat link list,
+ *   • the /settings index hub (settings.tsx) renders the grouped cards.
+ * They are now guaranteed to list the same destinations.
+ *
+ * Every `to` below is verified against router.tsx:
+ *   Profile        → /settings/profile          (settings family)
+ *   Permissions    → /settings/permissions      (settings family)
+ *   Practice       → /practice
+ *   Team / Members → /members
+ *   Workload       → /workload
+ *   Billing        → /billing
+ *   Audit log      → /audit
+ *   Reminders      → /reminders
+ *   Notifications  → /notifications/preferences
+ *   Calendar sync  → /deadlines/calendar
+ *
+ * Personal account settings (/account/security, sign-out) stay in the
+ * sidebar's UserMenuTrigger dropdown — a different conceptual level.
+ */
+
+export type SettingsNavItem = {
+  to: string
+  label: string
+  description: string
+  Icon: LucideIcon
+  /** NavLink `end` — only true for paths that prefix-match a sibling. */
+  end?: boolean
+}
+
+export type SettingsNavSection = {
+  label: string
+  description: string
+  items: SettingsNavItem[]
+}
+
+/**
+ * The grouped settings destination registry. Consumed by both the rail
+ * (flattened) and the /settings overview hub (grouped). Built inside a
+ * hook so the lingui `t` macro can localize labels/descriptions.
+ */
+export function useSettingsNavSections(): SettingsNavSection[] {
+  const { t } = useLingui()
+  return [
+    {
+      label: t`Account`,
+      description: t`Your personal profile and access for this practice.`,
+      items: [
+        {
+          to: '/settings/profile',
+          label: t`Profile`,
+          description: t`Your name, contact details, and display preferences.`,
+          Icon: UserRoundIcon,
+        },
+        {
+          to: '/settings/permissions',
+          label: t`Permissions`,
+          description: t`What your role can see and do in this workspace.`,
+          Icon: ShieldCheckIcon,
+        },
+      ],
+    },
+    {
+      label: t`Practice`,
+      description: t`Identity, team, and capacity for this practice workspace.`,
+      items: [
+        {
+          to: '/practice',
+          label: t`Practice profile`,
+          description: t`Practice name, timezone, internal deadline policy, smart priority weighting.`,
+          Icon: Building2Icon,
+        },
+        {
+          to: '/members',
+          label: t`Team`,
+          description: t`Invite teammates and manage roles.`,
+          Icon: UsersIcon,
+        },
+        {
+          to: '/workload',
+          label: t`Team workload`,
+          description: t`Distribution of prep work across the team.`,
+          Icon: ClipboardListIcon,
+        },
+      ],
+    },
+    {
+      label: t`Billing`,
+      description: t`Plan, seats, and invoices.`,
+      items: [
+        {
+          to: '/billing',
+          label: t`Billing`,
+          description: t`Active plan, seat usage, and subscription portal.`,
+          Icon: CreditCardIcon,
+        },
+      ],
+    },
+    {
+      label: t`Compliance`,
+      description: t`Audit trail for client, rule, status, and team changes.`,
+      items: [
+        {
+          to: '/audit',
+          label: t`Audit log`,
+          description: t`Timestamped event log across the workspace.`,
+          Icon: ScaleIcon,
+        },
+      ],
+    },
+    {
+      label: t`Automation`,
+      description: t`How DueDateHQ reaches your team, your clients, and your calendars.`,
+      items: [
+        {
+          to: '/reminders',
+          label: t`Reminders`,
+          description: t`Outbound deadline reminders to clients and team.`,
+          Icon: AlarmClockIcon,
+        },
+        {
+          to: '/notifications/preferences',
+          label: t`Notifications`,
+          description: t`Personal morning digest preferences and types.`,
+          Icon: BellIcon,
+        },
+        {
+          to: '/deadlines/calendar',
+          label: t`Calendar sync`,
+          description: t`Subscribe to deadlines from Apple / Google calendars.`,
+          Icon: CalendarDaysIcon,
+          // /deadlines/calendar is a prefix of nothing the rail links to,
+          // but mark `end` so it never reads as active for a deeper path.
+          end: true,
+        },
+      ],
+    },
+  ]
+}
+
+/**
+ * SettingsSubNav — the in-page settings rail shared by the settings
+ * family. Renders every destination in `useSettingsNavSections` as a flat
+ * link list (group labels collapse into the rail). The active item is
+ * derived from the current path via NavLink so the rail stays in sync
+ * regardless of which route renders it.
  */
 export function SettingsSubNav({ className }: { className?: string }) {
   const { t } = useLingui()
-
-  const items: Array<{ to: string; label: string; Icon: LucideIcon; end?: boolean }> = [
-    { to: '/settings/profile', label: t`Profile`, Icon: UserRoundIcon },
-    { to: '/members', label: t`Team`, Icon: UsersIcon },
-    { to: '/settings/permissions', label: t`Permissions`, Icon: ShieldCheckIcon },
-    { to: '/reminders', label: t`Reminders`, Icon: CalendarClockIcon },
-    { to: '/notifications/preferences', label: t`Notifications`, Icon: BellIcon },
-    { to: '/billing', label: t`Billing`, Icon: CreditCardIcon, end: true },
-  ]
+  const sections = useSettingsNavSections()
+  const items = sections.flatMap((section) => section.items)
 
   return (
     <nav aria-label={t`Settings sections`} className={cn('flex flex-col gap-0.5', className)}>
@@ -78,7 +219,7 @@ export function SettingsSubNav({ className }: { className?: string }) {
 
 /**
  * SettingsShell — two-column scaffold (sticky rail + scrolling content)
- * used by both settings-family routes. The rail collapses above the
+ * used by the settings-family routes. The rail collapses above the
  * content at mobile widths.
  */
 export function SettingsShell({ children }: { children: React.ReactNode }) {

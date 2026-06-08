@@ -12,6 +12,7 @@ import {
   MapIcon,
   MegaphoneIcon,
   PlusIcon,
+  SatelliteDishIcon,
   ScrollTextIcon,
   SettingsIcon,
   SquareChartGanttIcon,
@@ -693,6 +694,19 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
               ? { badge: ruleReviewBadge, badgeTooltip: t`${ruleReviewCount} rules pending review` }
               : {}),
           },
+          // 2026-06-08 (IA audit — "Sources in the sidebar"): the
+          // monitored-source health page (/rules/sources) was only
+          // reachable via a button on the Alerts page. Surface it in the
+          // rail next to Rule library — both belong to alert monitoring
+          // (the system watches these sources and raises alerts when a
+          // rule drifts). SatelliteDishIcon matches the Alerts feature's
+          // existing Sources iconography (AlertsListPage, PulseToneIcon).
+          {
+            href: '/rules/sources',
+            label: t`Sources`,
+            icon: SatelliteDishIcon,
+            end: false,
+          },
         ],
         coverage: [],
         // Team / Workload / Practice profile / Billing / Audit log live
@@ -840,7 +854,12 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
             ))}
           </NavGroupSection>
         ) : null}
-        <NavGroupSection label={t`Clients`}>
+        {/* 2026-06-08 (IA audit — redundant group label): the "Clients"
+            section label wrapped a single item also named "Clients" —
+            duplicate eyebrow chrome. Dropped the label so the Clients
+            item sits standalone, matching how the `primary` group places
+            single items without an orientation hint. */}
+        <NavGroupSection>
           {items.practice.map((item) => (
             <NavMenuItem key={item.href} item={item} />
           ))}
