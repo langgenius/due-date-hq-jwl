@@ -7,13 +7,13 @@ import {
   ListFilterIcon,
   MapPinIcon,
   RssIcon,
-  SearchIcon,
   TimerIcon,
 } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { SearchInput } from '@/components/primitives/search-input'
 import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 
 /**
@@ -133,7 +133,7 @@ export function JurisdictionRail({
                 reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
               }
               className={cn(
-                'inline-flex size-[22px] shrink-0 items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex size-6 shrink-0 items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 reviewOnly
                   ? 'bg-state-accent-hover text-text-accent'
                   : 'text-text-secondary hover:bg-state-base-hover',
@@ -144,17 +144,12 @@ export function JurisdictionRail({
           </div>
         </div>
         <div className="pb-3">
-          <div className="flex h-8 items-center gap-2 rounded-lg bg-background-subtle px-3 focus-within:ring-2 focus-within:ring-state-accent-active-alt">
-            <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder={t`Search jurisdictions`}
-              aria-label={t`Search jurisdictions`}
-              className="min-w-0 flex-1 bg-transparent text-xs font-medium text-text-primary outline-none placeholder:text-text-muted"
-            />
-          </div>
+          <SearchInput
+            value={search}
+            onChange={onSearchChange}
+            placeholder={t`Search jurisdictions`}
+            ariaLabel={t`Search jurisdictions`}
+          />
         </div>
       </div>
 
@@ -189,7 +184,7 @@ export function JurisdictionRail({
                           sources.healthy ? t`All sources healthy` : t`Some sources need attention`
                         }
                       />
-                      <span className="font-mono text-[11px] font-semibold text-text-muted tabular-nums">
+                      <span className="text-[11px] font-semibold text-text-muted tabular-nums">
                         {sources.count}
                       </span>
                     </span>
@@ -384,7 +379,7 @@ function RailRow({
       ) : null}
       <span
         className={cn(
-          'shrink-0 font-mono text-[11px] font-semibold tabular-nums',
+          'shrink-0 text-[11px] font-semibold tabular-nums',
           accentSelected ? 'text-text-accent' : 'text-text-muted',
         )}
       >

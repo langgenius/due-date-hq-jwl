@@ -5,6 +5,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import type { RuleSource } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -136,7 +137,7 @@ export function SectionFrame({ className, children }: { className?: string; chil
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-md border border-divider-regular bg-background-default',
+        'overflow-hidden rounded-xl border border-divider-regular bg-background-default',
         className,
       )}
     >
@@ -162,34 +163,25 @@ export function FilterChips<T extends string>({
   value: T
   onValueChange: (value: T) => void
 }) {
-  // Active chip is neutral (`bg-text-primary` + `text-text-inverted`), NOT the
-  // Dify UI blue — Figma 219:254 uses `text/primary` to keep the
-  // wayfinding accent reserved for tab underline + sub-route
-  // highlights only. Inactive chips are flat white pills with a 1 px hairline.
+  // 2026-06-08 (Yuqi button rework — FLAT language): these single-select
+  // chips were hand-rolled on `Button variant=secondary`. Replaced with
+  // the shared <Segmented> primitive so every single-select toggle in the
+  // product reads the same. Counts ride inside each option's label.
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-      {options.map((option) => {
-        const active = option.value === value
-        return (
-          <Button
-            key={option.value}
-            type="button"
-            size="xs"
-            variant="secondary"
-            className={cn(
-              'h-[26px] rounded px-2.5 text-xs shadow-none',
-              active
-                ? 'border-transparent bg-text-primary text-text-inverted hover:bg-text-primary'
-                : 'bg-background-default text-text-secondary',
-            )}
-            onClick={() => onValueChange(option.value)}
-          >
+    <Segmented<T>
+      value={value}
+      onValueChange={onValueChange}
+      size="sm"
+      options={options.map((option) => ({
+        value: option.value,
+        label: (
+          <span className="flex items-center gap-1">
             <span>{option.label}</span>
             <span className="tabular-nums">{option.count}</span>
-          </Button>
-        )
-      })}
-    </div>
+          </span>
+        ),
+      }))}
+    />
   )
 }
 

@@ -1,7 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router'
+import { Link, Navigate, useLocation } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
 import {
@@ -51,6 +50,7 @@ import {
 } from '@duedatehq/ui/components/ui/dialog'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import {
@@ -850,7 +850,7 @@ function OverviewActionHero({
     riskBreakdown.low > 0 ? t`${riskBreakdown.low} low` : null,
   ].filter(Boolean)
   return (
-    <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-state-accent-solid bg-state-accent-hover p-[18px] xl:flex-row xl:items-center xl:gap-[18px] xl:px-[22px]">
+    <div className="flex shrink-0 flex-col gap-3 rounded-xl border border-state-accent-solid bg-state-accent-hover p-[18px] xl:flex-row xl:items-center xl:gap-[18px] xl:px-[22px]">
       <span
         aria-hidden
         className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-state-accent-solid text-xl font-bold tracking-tight text-background-default tabular-nums"
@@ -1117,7 +1117,6 @@ function nextFridayTs(now: number): number {
 export function RulesLibraryRoute() {
   const { t } = useLingui()
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
   const location = useLocation()
   // Legacy deep-link redirect — see normalizeRulesLibrarySearch.
   // Calculated before any hooks that depend on URL state so the
@@ -1800,11 +1799,37 @@ export function RulesLibraryRoute() {
     setNewRuleSeed(null)
   }, [])
 
+  // Export — CSV of the loaded rules. Real download (no dead control):
+  // one row per rule with the catalog's columns (jurisdiction, form,
+  // status tier, applicable entities, version). Mirrors the pattern on
+  // /alerts history (Blob + object URL + temp <a download>).
   const handleExport = useCallback(() => {
-    // Placeholder — real impl calls orpc.rules.coverage.export which
-    // streams CSV. For prototype, just toast (no backend procedure).
-    void navigate('#export-coverage')
-  }, [navigate])
+    if (rules.length === 0) return
+    const escape = (value: string) => `"${value.replace(/"/g, '""')}"`
+    const header = ['Jurisdiction', 'Rule / Form', 'Status', 'Tier', 'Entities', 'Version']
+    const rows = rules.map((rule) =>
+      [
+        jurisdictionLabel(rule.jurisdiction),
+        rule.title,
+        STATUS_LABEL_SHORT[rule.status],
+        tierLabels[rule.ruleTier],
+        rule.entityApplicability.join('; '),
+        String(rule.version),
+      ]
+        .map((cell) => escape(String(cell)))
+        .join(','),
+    )
+    const csv = [header.map(escape).join(','), ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `rules-coverage-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }, [rules, tierLabels])
 
   // Start the batch review queue with everything that's pending. The
   // header button is the "I just want to clear my review queue" path
@@ -1885,7 +1910,13 @@ export function RulesLibraryRoute() {
   // set still drives the per-jurisdiction detail header.
   const overviewHeaderActions = (
     <>
-      <Button variant="outline" size="sm" onClick={handleExport}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleExport}
+        disabled={rules.length === 0}
+        aria-label={t`Export rules as CSV`}
+      >
         <ArrowDownToLineIcon data-icon="inline-start" />
         <Trans>Export</Trans>
       </Button>
@@ -2524,60 +2555,26 @@ function ScopeTabBand({
     { key: 'archived', label: t`Archive`, count: totalArchived },
     { key: 'missing', label: t`Missing`, count: totalMissing },
   ]
-  // 2026-05-26 (Yuqi follow-up — "Deadlines's Status scopes
-  // animation and interaction, same style + interaction + design"):
-  // adopted the canonical /deadlines ObligationQueueScopeTab pattern
-  // 1:1.
-  //   - Outer hairline (`border-b border-divider-regular`) wraps the
-  //     row; tabs sit on a `-mb-px` lifted nav so the active
-  //     underline overlaps the hairline rather than fighting it.
-  //   - `text-base` labels (was `text-sm`), `px-3 py-1.5` padding.
-  //   - Active = `font-medium text-text-primary` (was accent-purple
-  //     semibold). The neutral active style + animated underline
-  //     reads less aggressive than the static rule-library treatment.
-  //   - Inactive = transparent 2px bottom border that turns
-  //     `divider-deep` on hover — gives the row symmetry on hover
-  //     instead of the cold "I just sit here" look that prompted
-  //     the "too ugly" callout.
-  //   - Active underline is a single `<motion.span layoutId>` that
-  //     smoothly slides between tabs on click — same spring tuning
-  //     the canonical Deadlines pattern uses.
+  // 2026-06-08 (Yuqi button rework — FLAT language): the scope band
+  // was a hand-rolled `aria-pressed` row with a `<motion.span>` sliding
+  // underline. Replaced 1:1 with the shared <Segmented> primitive so
+  // every single-select toggle in the product reads the same. Counts
+  // ride inside each option's label as a dimmed tabular-nums span.
   return (
-    <div className="flex flex-col gap-1.5 border-b border-divider-regular">
-      <nav
-        className="-mb-px flex flex-1 flex-wrap items-center gap-1"
-        aria-label={t`Filter by scope`}
-      >
-        {tabs.map((tab) => {
-          const active = tab.key === activeScope
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onChange(tab.key)}
-              className={cn(
-                'relative -mb-px flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-base whitespace-nowrap transition-colors',
-                active
-                  ? 'font-medium text-text-primary'
-                  : 'border-b-2 border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary',
-              )}
-            >
-              <span>{tab.label}</span>
-              <span className="text-sm tabular-nums text-text-tertiary">{tab.count}</span>
-              {active ? (
-                <motion.span
-                  layoutId="rule-library-scope-tab-underline"
-                  aria-hidden
-                  className="absolute inset-x-0 -bottom-0.5 h-0.5 bg-accent-default"
-                  transition={{ type: 'spring', stiffness: 500, damping: 38 }}
-                />
-              ) : null}
-            </button>
-          )
-        })}
-      </nav>
-    </div>
+    <Segmented<ScopeKey>
+      value={activeScope}
+      onValueChange={onChange}
+      ariaLabel={t`Filter by scope`}
+      options={tabs.map((tab) => ({
+        value: tab.key,
+        label: (
+          <span className="flex items-center gap-1.5">
+            <span>{tab.label}</span>
+            <span className="tabular-nums text-text-tertiary">{tab.count}</span>
+          </span>
+        ),
+      }))}
+    />
   )
 }
 
