@@ -4280,10 +4280,14 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'il.temporary_announcements',
     jurisdiction: 'IL',
     title: 'Illinois DOR News',
-    // research/news.html ("News From the Past Year") is the real dated list; the
-    // old aboutidor/news.html was the wrong page. The list is client-rendered, so
-    // a non-JS fetch sees "No recent news" — the adapter must render JS to read it.
-    url: 'https://tax.illinois.gov/research/news.html',
+    // research/news.html is client-rendered (a non-JS fetch sees "No recent
+    // news"). research/publications/bulletins.html is the server-rendered <table>
+    // of the same FY-2026-NN bulletins, newest first — readable by the default
+    // direct fetch with no JS/browserless. (Per-item pub dates, if ever needed,
+    // live on the individual .../research/news/fy-2026-NN-news.html pages.)
+    url: 'https://tax.illinois.gov/research/publications/bulletins.html',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
   {
     id: 'in.temporary_announcements',
