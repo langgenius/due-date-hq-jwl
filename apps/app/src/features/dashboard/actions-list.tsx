@@ -235,7 +235,9 @@ function ActionsTable({
           stays as the leading anchor — `#01 / ✦#02 …` reads
           as "item number" in a list, not as a sortable table
           column. */}
-      <Table>
+      {/* 2026-06-08 (Yuqi "高度更矮"): shorten rows — drop the canonical
+          TableCell py-4 (16px) to py-2.5 (10px) on every cell. */}
+      <Table className="[&_td]:py-2.5">
         <TableBody>
           {rows.map((row) => {
             const currentStatusGroup = classifyStatusGroup(row.status)
