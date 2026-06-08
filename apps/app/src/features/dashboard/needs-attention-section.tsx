@@ -242,9 +242,9 @@ function NeedsAttentionSection() {
               <TooltipTrigger
                 render={(props) => (
                   <Badge
-                    variant="secondary"
+                    variant="ghost"
                     size="sm"
-                    className="cursor-help text-text-secondary"
+                    className="cursor-help px-0 text-text-secondary"
                     {...props}
                   >
                     <PulsingDot tone="success" active />

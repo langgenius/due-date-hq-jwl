@@ -514,7 +514,7 @@ function ActionsTableRow({
           dropping it lets the action prompt own the eye and the
           client name reads as the "for which client?" context
           rather than competing for primary attention. */}
-      <TableCell className="text-[13px] font-medium text-text-tertiary">{row.clientName}</TableCell>
+      <TableCell className="text-xs text-text-tertiary">{row.clientName}</TableCell>
       <TableCell>
         {/* 2026-06-04 round 16 (Yuqi page-feedback "should allow
             hover on each row to show more information"): the
@@ -529,7 +529,7 @@ function ActionsTableRow({
             is reserved when factors exist (opacity-0 keeps layout
             in place) so hover doesn't jitter the table. */}
         <div className="flex flex-col gap-0.5">
-          <span className="text-[13px] font-medium text-text-primary">{prompt}</span>
+          <span className="text-sm font-medium text-text-primary">{prompt}</span>
           {allRowFactors.length > 0 ? (
             <span
               className={cn(
@@ -551,8 +551,16 @@ function ActionsTableRow({
       <TableCell>
         <ReadinessIndicator obligationType={row.obligationType} attached={row.evidenceCount} />
       </TableCell>
-      {/* DUE cell stacks: relative countdown + absolute internal
-          due date (Yuqi feedback round 3 #10). */}
+      {/* 2026-06-08 (Yuqi #12 "status 向前移一个 column"): the status cell
+          now sits BEFORE the due cell. The status pill stays neutral — red
+          is carried once by the DUE cell's payment-late branch. */}
+      <TableCell>
+        <div className="flex flex-wrap items-center gap-2">
+          <ObligationStatusReadBadge status={row.status} className="h-6 text-xs" />
+          {row.status === 'extended' ? <ExtensionChip /> : null}
+        </div>
+      </TableCell>
+      {/* DUE cell stacks: relative countdown + absolute internal due date. */}
       <TableCell>
         <div className="flex flex-col gap-0.5">
           <DueDateLabel
@@ -561,21 +569,9 @@ function ActionsTableRow({
             paymentDueDate={row.paymentDueDate}
             asOfDate={asOfDate}
           />
-          <span className="text-[11px] font-medium tabular-nums text-text-tertiary">
+          <span className="text-xs font-medium tabular-nums text-text-tertiary">
             {formatDatePretty(row.currentDueDate)}
           </span>
-        </div>
-      </TableCell>
-      {/* 2026-06-07 (Yuqi audit "be aware of red"): the status cell's
-          duplicate red "Pay #d late" caption was removed. Payment-overdue
-          is already carried (once, in red) by the DUE cell via
-          DueDateLabel's payment-late branch; repeating it here in red
-          double-counted the row's red weight. The status pill stays
-          neutral, matching the Pencil VJbaH status column. */}
-      <TableCell>
-        <div className="flex flex-wrap items-center gap-2">
-          <ObligationStatusReadBadge status={row.status} className="h-6 text-xs" />
-          {row.status === 'extended' ? <ExtensionChip /> : null}
         </div>
       </TableCell>
       {/* Chevron cell dropped (Yuqi round 4): hover-to-expand isn't
@@ -950,10 +946,10 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
                 <button
                   type="button"
                   aria-label={t`About Actions this week`}
-                  className="inline-flex size-5 cursor-help items-center justify-center rounded text-text-accent outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-accent outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   {...props}
                 >
-                  <SparklesIcon className="size-4" aria-hidden />
+                  <SparklesIcon className="size-3.5" aria-hidden />
                 </button>
               )}
             />

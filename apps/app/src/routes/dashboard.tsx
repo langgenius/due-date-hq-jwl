@@ -355,11 +355,14 @@ export function DashboardRoute() {
           <span className="inline-flex items-baseline gap-2">
             <Trans>Today</Trans>
             {dashboardQuery.isLoading ? (
-              <span className="text-2xl font-normal text-text-tertiary italic">
+              <span className="text-2xl font-medium text-text-muted italic">
                 <Trans>loading…</Trans>
               </span>
             ) : data?.asOfDate ? (
-              <span className="text-2xl font-normal tabular-nums text-text-tertiary">
+              // 2026-06-08 (Yuqi #4 "medium 更浅的颜色"): date weight
+              // font-medium, color stepped to the lighter text-text-muted
+              // so it sits clearly behind the bold "Today" anchor.
+              <span className="text-2xl font-medium tabular-nums text-text-muted">
                 {formatTodayHeader(data.asOfDate)}
               </span>
             ) : null}
@@ -387,6 +390,7 @@ export function DashboardRoute() {
             <Button
               variant="primary"
               size="icon-sm"
+              className="rounded-full"
               onClick={() => {
                 if (!canRunMigration) {
                   toast.error(

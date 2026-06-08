@@ -1,6 +1,6 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Building2, ExternalLinkIcon, Plus } from 'lucide-react'
+import { ArrowUpRight, Building2, MapPin, Plus } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -366,21 +366,22 @@ function NeedsAttentionCard({
                 text → destructive tokens). Full words "High impact", not
                 the abbreviated "HIGH". Only renders for high-impact alerts. */}
             {severity.id === 'high' ? (
-              <span className="inline-flex shrink-0 items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-[10px] font-bold tracking-[0.7px] text-text-destructive uppercase">
+              <span className="inline-flex shrink-0 items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-[11px] font-semibold tracking-[0.4px] text-text-destructive uppercase">
                 <Trans>High impact</Trans>
               </span>
             ) : null}
 
-            {/* STATE — Pencil VxRyF: a bordered mono code pill (no fill,
-                no motif), consistent with the Form badge beside it.
-                Tooltip preserves the full jurisdiction on hover. */}
+            {/* STATE — jurisdiction pill. Yuqi: add a tiny state/location
+                graphic (#9) and use the card's one font family (#11, no
+                mono). Tooltip preserves the full jurisdiction on hover. */}
             <Tooltip>
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="inline-flex shrink-0 cursor-help items-center rounded-md border border-divider-subtle px-2 py-[2px] font-mono text-[11px] font-semibold text-text-secondary outline-none"
+                    className="inline-flex shrink-0 cursor-help items-center gap-1 rounded-md border border-divider-subtle px-2 py-[2px] text-[11px] font-semibold text-text-secondary outline-none"
                     {...props}
                   >
+                    <MapPin className="size-2.5 shrink-0 text-text-muted" aria-hidden />
                     {alert.jurisdiction}
                   </span>
                 )}
@@ -388,23 +389,19 @@ function NeedsAttentionCard({
               <TooltipContent>{alert.jurisdiction}</TooltipContent>
             </Tooltip>
 
-            {/* FORM badge — Pencil VxRyF: the form pill is the *same*
-                pill as the jurisdiction one (radius 6, px-2 py-[2px], mono
-                11/600, hairline) — it only adds a gray fill. Override the
-                shared TaxCodeBadge chrome so the two badges read as one
-                unified system, not two near-misses. */}
+            {/* FORM badge — same pill as the jurisdiction one; only adds a
+                gray fill. Override the shared TaxCodeBadge to the card's
+                font (#11, sans) + scale so the two badges read as one. */}
             {alertForm ? (
               <TaxCodeBadge
                 code={alertForm}
-                className="rounded-md border-divider-subtle px-2 py-[2px] text-[11px] font-semibold tracking-normal"
+                className="rounded-md border-divider-subtle px-2 py-[2px] font-sans text-[11px] font-semibold tracking-normal"
               />
             ) : null}
 
-            {/* CHANGE KIND — e.g. "DEADLINE SHIFTED", mono, plain text.
-                Neutral (Yuqi "reduce the colour variety here to two"): this
-                is a category label, not a signal — red is reserved for the
-                one urgent cue (High impact). */}
-            <span className="shrink-0 font-mono text-[10px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+            {/* CHANGE KIND — e.g. "DEADLINE SHIFTED", plain label. Neutral
+                (two-color rule) + card font (#11). */}
+            <span className="shrink-0 text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
               {changeKindLabel(alert.changeKind)}
             </span>
           </div>
@@ -418,7 +415,7 @@ function NeedsAttentionCard({
             <TooltipTrigger
               render={(props) => (
                 <span
-                  className="shrink-0 cursor-help whitespace-nowrap text-[12px] font-medium text-text-muted tabular-nums outline-none"
+                  className="shrink-0 cursor-help whitespace-nowrap text-xs font-medium text-text-muted tabular-nums outline-none"
                   {...props}
                 >
                   {formatRelativeTime(alert.publishedAt)}
@@ -449,7 +446,7 @@ function NeedsAttentionCard({
               card"): the summary body line was removed — the title is the
               card's signal; the full summary lives in the alert drawer. */}
           <h3
-            className="line-clamp-2 min-w-0 text-[15px] font-semibold leading-[1.3] text-text-primary"
+            className="line-clamp-2 min-w-0 text-sm font-semibold leading-[1.3] text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}
@@ -460,9 +457,17 @@ function NeedsAttentionCard({
       {/* Bottom meta — Pencil VxRyF `skQVb`: top hairline divider, then
           "Affects N client" + overlapping client-initial avatars · conf%
           — spacer — source link. Wraps on narrow screens (no overflow). */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-t border-divider-subtle pt-3 text-[12px]">
-        <span className="inline-flex items-center gap-1 text-text-secondary">
-          <Building2 className="size-3 shrink-0 text-text-muted" aria-hidden />
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-t border-divider-subtle pt-3 text-xs">
+        {/* Affects-clients line. Yuqi #5: icon + label share ONE color.
+            #6: when nothing matched, both step to the lighter muted tone so
+            noise alerts recede. */}
+        <span
+          className={cn(
+            'inline-flex items-center gap-1',
+            impacted > 0 ? 'text-text-secondary' : 'text-text-muted',
+          )}
+        >
+          <Building2 className="size-3 shrink-0" aria-hidden />
           {impacted > 0 ? (
             <Plural value={impacted} one="Affects # client" other="Affects # clients" />
           ) : (
@@ -473,39 +478,54 @@ function NeedsAttentionCard({
         {avatars.length > 0 ? (
           <span className="flex items-center pl-0.5">
             {avatars.map((avatar, index) => (
-              <span
-                key={avatar.name}
-                title={avatar.name}
-                className={cn(
-                  // Single neutral tone (Yuqi: "reduce the colour variety
-                  // here to two"). The rainbow per-client tones were pure
-                  // decoration; the initials carry the identity.
-                  'inline-flex size-5 items-center justify-center rounded-full bg-background-subtle font-mono text-[8px] font-semibold text-text-secondary ring-[1.5px] ring-background-default',
-                  index > 0 && '-ml-1.5',
-                )}
-              >
-                {avatar.initials}
-              </span>
+              <Tooltip key={avatar.name}>
+                <TooltipTrigger
+                  render={(props) => (
+                    <span
+                      className={cn(
+                        // One neutral tone + the card's font (#11). Initials
+                        // carry identity; the full name is on hover (#10).
+                        'inline-flex size-5 cursor-help items-center justify-center rounded-full bg-background-subtle text-[10px] font-semibold text-text-secondary ring-[1.5px] ring-background-default outline-none',
+                        index > 0 && '-ml-1.5',
+                      )}
+                      {...props}
+                    >
+                      {avatar.initials}
+                    </span>
+                  )}
+                />
+                <TooltipContent>{avatar.name}</TooltipContent>
+              </Tooltip>
             ))}
+            {/* Overflow counter — Yuqi #10: "Affects 2 clients" but only one
+                avatar showed. The named avatars are capped at 3 (and the
+                batched load may carry fewer names than the count), so any
+                remainder renders as a "+N" chip to reconcile with the count. */}
+            {impacted > avatars.length ? (
+              <span className="-ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-background-subtle px-1 text-[10px] font-semibold text-text-tertiary ring-[1.5px] ring-background-default">
+                +{impacted - avatars.length}
+              </span>
+            ) : null}
           </span>
         ) : null}
 
         <span aria-hidden className="text-text-muted">
           ·
         </span>
-        <span className="font-mono text-[12px] font-medium tabular-nums text-text-secondary">
+        <span className="text-xs font-medium tabular-nums text-text-secondary">
           <Trans>conf {confidencePct}%</Trans>
         </span>
 
         <span className="flex-1" />
 
-        {/* Source link — Pencil VxRyF bottom-right. Opens the authority
-            page; URL on tooltip hover. */}
+        {/* Source link — opens the authority page; URL on tooltip hover.
+            Yuqi #8: a simple arrow (ArrowUpRight) instead of the external-
+            link glyph. */}
         <Tooltip>
           <TooltipTrigger
             render={(props) => (
               <span
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-[11px] font-medium text-text-secondary outline-none transition-colors hover:text-text-primary hover:underline"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary hover:underline"
                 onClick={(event) => {
                   event.stopPropagation()
                   window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
@@ -513,7 +533,7 @@ function NeedsAttentionCard({
                 {...props}
               >
                 <span className="max-w-[160px] truncate">{alert.source}</span>
-                <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+                <ArrowUpRight className="size-3 shrink-0" aria-hidden />
               </span>
             )}
           />

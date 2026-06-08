@@ -76,24 +76,10 @@ function ReadinessIndicator({
         className,
       )}
     >
-      {/* Pencil VJbaH readiness dots: one dot per expected doc, filled =
-          attached, hollow = outstanding. The dots are the state signal
-          (replacing the louder check/alert icons), keeping the row calm.
-          Fixed-width box (3 dots @ 6px + 2 gaps @ 4px = 26px — the column's
-          max denominator) left-aligns the dots so the "Docs N/M" count
-          starts at the same x on every row, regardless of doc count. */}
-      <span className="inline-flex w-[1.625rem] shrink-0 items-center gap-1" aria-hidden>
-        {Array.from({ length: total }).map((_, index) => (
-          <span
-            // eslint-disable-next-line react/no-array-index-key
-            key={index}
-            className={cn(
-              'size-1.5 rounded-full',
-              index < attached ? 'bg-text-secondary' : 'border border-divider-regular',
-            )}
-          />
-        ))}
-      </span>
+      {/* 2026-06-08 (Yuqi "docs 前面不要圆圈表示了"): the per-doc dots
+          were removed — the "Docs N/M" count already names the gap, and the
+          dots added visual texture the row didn't need. The count tone
+          (success when complete, else tertiary) carries the state. */}
       <span className={cn('inline-flex items-center', toneClass)}>
         <Trans>
           Docs {attached}/{total}
