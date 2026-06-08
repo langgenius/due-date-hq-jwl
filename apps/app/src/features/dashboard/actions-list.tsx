@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
@@ -291,7 +291,7 @@ function ActionsTable({
                       label to text-primary so it reads as a real header
                       dividing the lifecycle groups, not a faint whisper. */}
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className="bg-[#e9ebf0] px-[18px] py-2 text-[12px] font-semibold tracking-[0.5px] text-text-primary uppercase"
                   >
                     <StatusGroupLabel kind={currentStatusGroup} />
@@ -299,15 +299,14 @@ function ActionsTable({
                 </TableRow>
               ) : null
             return (
-              <>
+              <Fragment key={row.obligationId}>
                 {statusHeader}
                 <ActionsTableRow
-                  key={row.obligationId}
                   row={row}
                   asOfDate={asOfDate}
                   onClick={() => onOpenObligation(row)}
                 />
-              </>
+              </Fragment>
             )
           })}
         </TableBody>
@@ -499,7 +498,7 @@ function ActionsTableRow({
             is reserved when factors exist (opacity-0 keeps layout
             in place) so hover doesn't jitter the table. */}
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium text-text-primary">{prompt}</span>
+          <span className="text-sm font-medium text-text-secondary">{prompt}</span>
           {allRowFactors.length > 0 ? (
             <span
               className={cn(

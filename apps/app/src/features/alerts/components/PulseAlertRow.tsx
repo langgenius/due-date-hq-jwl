@@ -995,8 +995,8 @@ function PulseAlertList({
                     count keeps the quieter `text-text-muted` so
                     the count reads as supporting context, not the
                     lede. */}
-            <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-5 py-2">
-              <div className="flex items-center gap-1.5 text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
+            <div className="flex items-center justify-between border-b border-divider-subtle px-5 py-2">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium tracking-[0.4px] text-text-tertiary uppercase">
                 {isToday ? (
                   <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
                 ) : null}

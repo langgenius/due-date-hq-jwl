@@ -55,7 +55,7 @@ export function DailyBriefCard({
       // 2026-06-08 (Yuqi /today #1 "top padding reduce"): the section's
       // top padding is trimmed (pt-3 vs the 18px on the other sides) so the
       // title row sits closer to the top edge and the card reads tighter.
-      className="group flex flex-col gap-1 rounded-[14px] border border-state-accent-border bg-state-accent-hover px-[18px] pt-3 pb-[18px]"
+      className="group flex flex-col gap-1 rounded-[14px] border border-divider-subtle bg-background-default px-[18px] pt-3 pb-[18px]"
     >
       {/* TopRow — Pencil qYrr3 `LfcWh` */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -74,7 +74,7 @@ export function DailyBriefCard({
         {/* Right — scope toggle + icon-only refresh + dismiss */}
         <div className="flex shrink-0 items-center gap-2.5">
           <BriefScopeToggle value={scope} onChange={onScopeChange} />
-          {canRefresh ? (
+          {canRefresh && brief.status !== 'failed' ? (
             <button
               type="button"
               onClick={onRefresh}
@@ -156,58 +156,44 @@ function BriefFreshness({
     )
   }
   if (brief.status === 'failed') {
-    const label = (
-      <span className="inline-flex shrink-0 items-center gap-1.5">
-        <span className="size-1.5 rounded-full bg-text-destructive" aria-hidden />
-        <span className="font-mono text-[11px] font-medium tracking-[0.4px] text-text-destructive uppercase">
-          <Trans>Failed</Trans>
-        </span>
+    // 2026-06-08 (Yuqi: "move to FAILED icon, remove the left dot"): the
+    // failed state drops the red status dot and carries an inline retry
+    // icon right after the label, so recovery lives on the FAILED chip
+    // itself (the separate right-side regenerate button hides while failed).
+    const failedText = (
+      <span className="text-[11px] font-medium tracking-[0.4px] text-text-destructive uppercase">
+        <Trans>Failed</Trans>
       </span>
     )
-    if (!brief.errorCode) return label
     return (
-      <Tooltip>
-        <TooltipTrigger render={label} />
-        <TooltipContent>{brief.errorCode}</TooltipContent>
-      </Tooltip>
+      <span className="inline-flex shrink-0 items-center gap-1">
+        {brief.errorCode ? (
+          <Tooltip>
+            <TooltipTrigger render={failedText} />
+            <TooltipContent>{brief.errorCode}</TooltipContent>
+          </Tooltip>
+        ) : (
+          failedText
+        )}
+        {onRefresh ? (
+          <button
+            type="button"
+            onClick={onRefresh}
+            aria-label={t`Regenerate brief`}
+            className="inline-flex size-5 items-center justify-center rounded-md text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+          >
+            <RotateCwIcon className="size-3" aria-hidden />
+          </button>
+        ) : null}
+      </span>
     )
   }
   const stale = brief.status === 'stale'
   const age = brief.generatedAt ? formatRelativeTime(brief.generatedAt) : null
 
-  // 2026-06-08 (Yuqi /today #2 "what do you do when it's outdated"): the
-  // stale state is no longer a dead label — it's the affordance. When the
-  // brief is outdated it renders as an amber "Outdated · Refresh" button
-  // that regenerates on click, so the next step is obvious from the chip
-  // itself rather than relying on the separate icon-only refresh control.
-  if (stale && onRefresh) {
-    return (
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <button
-              type="button"
-              onClick={onRefresh}
-              className="group/stale inline-flex shrink-0 items-center gap-1.5 rounded-full text-text-warning outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-            >
-              <span className="size-1.5 rounded-full bg-text-warning" aria-hidden />
-              <span className="font-mono text-[11px] font-medium tracking-[0.4px] uppercase">
-                <Trans>Outdated</Trans>
-              </span>
-              <span className="inline-flex items-center gap-0.5 font-mono text-[11px] font-medium tracking-[0.4px] text-text-warning/70 uppercase transition-colors group-hover/stale:text-text-warning">
-                <RotateCwIcon className="size-2.5" aria-hidden />
-                <Trans>Refresh</Trans>
-              </span>
-            </button>
-          }
-        />
-        <TooltipContent>
-          <Trans>This brief is out of date — regenerate it</Trans>
-        </TooltipContent>
-      </Tooltip>
-    )
-  }
-
+  // 2026-06-08 (Yuqi "remove the REFRESH"): the outdated state is a plain
+  // amber "Outdated" label again — the inline "· Refresh" affordance is
+  // gone; the icon-only regenerate button on the right handles refresh.
   return (
     <span className="inline-flex shrink-0 items-center gap-1.5">
       <span

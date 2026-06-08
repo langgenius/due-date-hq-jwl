@@ -610,7 +610,7 @@ export function SidebarMenu({ className, ...props }: React.ComponentProps<'ul'>)
   return (
     <ul
       data-slot="sidebar-menu"
-      className={cn('flex w-full min-w-0 flex-col gap-0.5', className)}
+      className={cn('flex w-full min-w-0 flex-col gap-1', className)}
       {...props}
     />
   )
@@ -644,7 +644,7 @@ const sidebarMenuButtonVariants = cva(
     // height stays h-8 (32px); icon stays size-4 (16px). Restores a touch
     // more presence to the nav without returning to the text-base (16px)
     // that previously competed with the firm-switcher anchor.
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-md px-3 text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
     // Hover uses a neutral surface token; selected state below uses the
     // explicit accent tint so route wayfinding stays distinct from row hover.
     'hover:bg-background-default-hover hover:text-text-primary',

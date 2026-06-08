@@ -941,7 +941,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     screens, stepping up to 220 / 260 at sm / lg — so the
                     filter cluster keeps more room to stay on one line on
                     narrower viewports instead of holding a fixed 260px. */}
-                <label className="inline-flex h-9 w-[180px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt sm:w-[220px] lg:w-[260px]">
+                <label className="inline-flex h-9 w-[180px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt sm:w-[200px]">
                   <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
                   <input
                     type="search"
