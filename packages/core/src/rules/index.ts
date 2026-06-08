@@ -4326,6 +4326,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'MD',
     title: 'Comptroller of Maryland Newsroom',
     url: 'https://www.marylandcomptroller.gov/about/newsroom.html',
+    // MD has no standing dedicated disaster-relief page; relief is posted here
+    // (e.g. the 2024 Key Bridge business-tax relief), so this newsroom doubles
+    // as MD's index-level relief signal.
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'me.temporary_announcements',
@@ -5494,11 +5498,14 @@ export const RULE_SOURCES = hydrateRuleSources([
   // official state tax authority's disaster/emergency relief page; coverage
   // detection keys on sourceType: 'emergency_relief' (idsForReliefOrDisasterSources).
   //
-  // Tier A — durable, canonical relief landing pages. Most return HTTP 200 to the
-  // source checker; MI and RI return 403 (host WAF) and MD and ND block the
-  // automated probe (TLS / user-agent). Those four are confirmed-real official
-  // pages (search-corroborated) the checker just can't reach — a known tolerated
-  // condition; confirm them by hand once.
+  // Tier A — official relief pages, verified live unless noted:
+  //  - MI, ND return 403 / block the automated probe (host WAF / TLS) but are
+  //    confirmed-real official pages — a known tolerated condition.
+  //  - RI has no standing dedicated page; it is registered below at the official
+  //    Advisories index (ri.tax_disaster_advisories), where RI publishes its
+  //    disaster advisories. Index-level signal, not a dedicated page.
+  // (MD likewise has no dedicated page — its prior URL went dead; MD is now
+  //  covered via the Comptroller Newsroom index on md.temporary_announcements.)
   {
     id: 'co.dor_disaster_relief',
     jurisdiction: 'CO',
@@ -5574,20 +5581,6 @@ export const RULE_SOURCES = hydrateRuleSources([
     jurisdiction: 'MA',
     title: 'Massachusetts DOR Disaster Tax Relief (TIR 24-8)',
     url: 'https://www.mass.gov/technical-information-release/tir-24-8-tax-relief-for-taxpayers-affected-by-a-presidentially-declared-disaster',
-    sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
-    cadence: 'weekly',
-    priority: 'high',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
-  },
-  {
-    id: 'md.comptroller_disaster_relief',
-    jurisdiction: 'MD',
-    title: 'Maryland Comptroller Hurricane and Disaster Tax Relief',
-    url: 'https://taxes.marylandtaxes.gov/Individual_Taxes/Individual_Tax_Types/Income_Tax/Filing_Information/Determine_Tax_Credits_and_Deductions/Hurricane_Tax_Relief.shtml',
     sourceType: 'emergency_relief',
     acquisitionMethod: 'html_watch',
     cadence: 'weekly',

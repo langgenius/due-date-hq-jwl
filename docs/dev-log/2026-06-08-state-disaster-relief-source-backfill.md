@@ -50,3 +50,20 @@ as `missingRoles: ['relief_or_disaster_signal']` per jurisdiction.
 - Refresh Tier B event URLs when a state supersedes them for a new disaster.
 - Optional: author `SOURCE_EXCERPTS` entries for the new relief sources (they
   currently fall back to the generated summary).
+
+## Correction (same day, after manual URL confirmation)
+
+A manual check of the four checker-unreachable pages found:
+
+- **MI, ND** — pages are correct; they only block automated probes (WAF / TLS). Kept as-is.
+- **RI** — `tax.ri.gov/guidance/advisories` is RI's general **Advisories index**, not a
+  dedicated disaster page. RI has no standing dedicated relief page; disaster relief is
+  published as periodic advisories there, so the index is kept as RI's index-level relief
+  signal (re-labelled in code).
+- **MD** — the registered `Hurricane_Tax_Relief.shtml` URL is dead and MD has no standing
+  dedicated relief page. Removed `md.comptroller_disaster_relief`; MD is now covered at the
+  index level via the **Comptroller Newsroom** (`md.temporary_announcements` gains
+  `alertCoverageRoles: ['relief_or_disaster_signal']`), a verified-200 official page.
+
+Net relief coverage is unchanged in count (MD still covered, now index-level). Dedicated
+Tier A relief pages: 23; index-level (RI, MD): 2; Tier B event pages: 10.
