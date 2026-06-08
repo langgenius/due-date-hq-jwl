@@ -2063,7 +2063,7 @@ export function ObligationQueueDetailDrawer({
                       tab that owns the source of truth instead of
                       duplicating the editor. */}
                   {checklist.length > 0 && row.status !== 'done' && row.status !== 'completed' ? (
-                    <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-default p-4">
+                    <section className="flex flex-col gap-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
                           <Trans>What's left to do</Trans>
@@ -2135,7 +2135,7 @@ export function ObligationQueueDetailDrawer({
                       rows).
                       // TODO(data): expected-refund total + per-component
                       // withholding breakdown on the obligation detail. */}
-                  <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-default p-4">
+                  <section className="flex flex-col gap-2.5">
                     <div className="flex items-end justify-between gap-2">
                       <div className="grid gap-0.5">
                         <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
@@ -2180,7 +2180,7 @@ export function ObligationQueueDetailDrawer({
                       upload/ingest pipeline lands.
                       // TODO(data): source-document attachments (filename,
                       // size, uploadedAt) on the obligation detail. */}
-                  <section className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle bg-background-default p-4">
+                  <section className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2 pb-1">
                       <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
                         <Trans>Source docs</Trans>
@@ -2972,10 +2972,10 @@ export function ObligationQueueDetailDrawer({
                     one-time setup that rarely needs revisiting. */}
                   {taxYearProfileEditable ? (
                     <details
-                      className="mt-2 rounded-lg border border-divider-subtle bg-background-default"
+                      className="mt-2 border-t border-divider-subtle"
                       open={taxYearFiscalMissing || taxYearFiscalInvalid}
                     >
-                      <summary className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
+                      <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
                         <span>
                           <Trans>Tax year profile</Trans>
                         </span>
@@ -2986,7 +2986,7 @@ export function ObligationQueueDetailDrawer({
                           {taxYearProfileSummary}
                         </Badge>
                       </summary>
-                      <div className="grid gap-2 border-t border-divider-subtle px-3 py-3">
+                      <div className="grid gap-2 border-t border-divider-subtle py-3">
                         <div className="grid gap-2 sm:grid-cols-[180px_1fr_auto]">
                           {/* 2026-05-26 (Yuqi sixty-ninth pass #4):
                               Tax year type binary toggle converted
@@ -3162,8 +3162,8 @@ export function ObligationQueueDetailDrawer({
                       },
                     ]
                     return (
-                      <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
-                        <div className="flex items-start justify-between gap-3 px-4 pt-3.5">
+                      <section className="flex flex-col">
+                        <div className="flex items-start justify-between gap-3 pt-3.5">
                           <div className="flex items-start gap-2">
                             <BookOpenIcon
                               className="mt-0.5 size-4 shrink-0 text-text-accent"
@@ -3195,7 +3195,7 @@ export function ObligationQueueDetailDrawer({
                           ) : null}
                         </div>
                         {estimatedTaxCents && estimatedTaxCents > 0 ? (
-                          <p className="flex items-start gap-1.5 px-4 pb-1 pt-2 text-caption text-text-warning">
+                          <p className="flex items-start gap-1.5 pb-1 pt-2 text-caption text-text-warning">
                             <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
                             <Trans>
                               Extension defers filing, not payment. Estimated tax of{' '}
@@ -3207,7 +3207,7 @@ export function ObligationQueueDetailDrawer({
                           {facts.map((cell) => (
                             <div
                               key={cell.label}
-                              className="flex flex-col gap-0.5 border-b border-divider-subtle px-4 py-2.5 sm:[&:nth-child(odd)]:border-r"
+                              className="flex flex-col gap-0.5 border-b border-divider-subtle py-2.5 sm:px-4 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:pl-0 sm:[&:nth-child(even)]:pr-0"
                             >
                               <dt className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
                                 {cell.label}
@@ -3223,7 +3223,7 @@ export function ObligationQueueDetailDrawer({
                             </div>
                           ))}
                         </dl>
-                        <div className="flex flex-col gap-0.5 px-4 py-2.5">
+                        <div className="flex flex-col gap-0.5 border-b border-divider-subtle py-2.5">
                           <dt className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
                             <Trans>Rule notes</Trans>
                           </dt>
@@ -3239,7 +3239,7 @@ export function ObligationQueueDetailDrawer({
                       target + decision memo are required by the mutation;
                       the payment callout repeats the "defers filing, not
                       payment" warning next to the action. */}
-                  <section className="flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-4">
+                  <section className="flex flex-col gap-3">
                     <header className="flex flex-col gap-0.5">
                       <h3 className="text-sm font-semibold text-text-primary">
                         <Trans>Apply extension</Trans>
@@ -3378,8 +3378,8 @@ export function ObligationQueueDetailDrawer({
                         <Trans>View all client extensions →</Trans>
                       </Link>
                     </header>
-                    <div className="overflow-hidden rounded-lg border border-divider-subtle bg-background-default">
-                      <div className="hidden grid-cols-[64px_72px_64px_110px_110px_1fr_auto] gap-3 border-b border-divider-subtle bg-background-section px-4 py-2.5 sm:grid">
+                    <div>
+                      <div className="hidden grid-cols-[64px_72px_64px_110px_110px_1fr_auto] gap-3 border-b border-divider-subtle px-4 py-2.5 sm:grid">
                         {[
                           t`Year`,
                           t`Form`,
@@ -3692,8 +3692,8 @@ export function ObligationQueueDetailDrawer({
                     />
                   ) : null}
 
-                  <details className="group rounded-lg border border-divider-subtle bg-background-default">
-                    <summary className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
+                  <details className="group border-t border-divider-subtle">
+                    <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
                       <span>
                         <Trans>Authority citation</Trans>
                       </span>
@@ -3731,7 +3731,7 @@ export function ObligationQueueDetailDrawer({
                         </Badge>
                       )}
                     </summary>
-                    <div className="grid gap-2 border-t border-divider-subtle px-3 py-3">
+                    <div className="grid gap-2 border-t border-divider-subtle py-3">
                       {detail.matchedRule ? (
                         <div className="grid gap-1">
                           <p className="text-sm font-medium text-text-primary">

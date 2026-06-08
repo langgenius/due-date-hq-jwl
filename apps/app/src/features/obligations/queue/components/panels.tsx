@@ -448,7 +448,17 @@ export function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   const formatDaysOverdue = (d: number) =>
     i18n._(plural(d, { one: '# day overdue', other: '# days overdue' }))
   return (
-    <div aria-label={t`Key deadlines`} className="grid grid-cols-3 gap-2">
+    <div
+      aria-label={t`Key deadlines`}
+      // 2026-06-08 (flat-document rework): tiles are frameless cells now —
+      // separate them with hairline vertical dividers (divide-x) instead of
+      // each being its own bordered card, mirroring the alerts EXTRACTED
+      // FACTS grid. `gap-2` is dropped so the dividers read as clean column
+      // rules; each cell gets `px-3` for breathing room around the rule,
+      // and the first cell drops its left pad so the strip aligns flush
+      // with the body's `px-12` rhythm.
+      className="grid grid-cols-3 divide-x divide-divider-subtle [&>*]:px-3 [&>*:first-child]:pl-0"
+    >
       <DeadlineTile
         label={t`Filing deadline`}
         date={filingIso}
@@ -510,22 +520,21 @@ export function DeadlineTile({
   // its real estate with red on top of those, stacking the alarm. A
   // neutral surface with the date value in red (via `valueTone`) +
   // the destructive border keeps the cue without flooding.
-  // 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #2): tile chrome aligned
-  // to the alerts detail's fact/section cards — `rounded-lg border
-  // border-divider-subtle` with a `text-[11px]` uppercase eyebrow
-  // (font-semibold, text-text-tertiary) + value. The success tile keeps
-  // its tinted surface as the terminal state cue; destructive/primary
-  // tiles sit on the same neutral subtle-bordered card as the alerts
-  // facts, with urgency carried by the red value + the restrained inline
-  // "N days overdue" note (no filled pill — mirrors the alerts red delta).
-  const surfaceClass =
-    tone === 'success'
-      ? 'border-state-success-border bg-state-success-hover'
-      : 'border-divider-subtle bg-background-default'
+  // 2026-06-08 (Yuqi /deadlines flat-document rework): the boxed-card tile
+  // chrome is gone — modeled on the alerts EXTRACTED FACTS grid where each
+  // fact is a frameless cell (uppercase eyebrow + value) on the bare
+  // surface, separated by subtle dividers rather than per-tile borders.
+  // No `rounded-lg border` and no white `bg-background-default`; the three
+  // dates now read as a flat divided strip on the warm pane (dividers are
+  // applied by the parent grid). The success tile keeps a soft tinted
+  // surface as its terminal-state tone cue, but frameless. Urgency on the
+  // other tiles is carried by the red value + the restrained inline "N
+  // days overdue" note (no pill — mirrors the alerts red delta).
+  const surfaceClass = tone === 'success' ? 'bg-state-success-hover' : ''
   const labelToneClass = tone === 'success' ? 'text-text-success' : 'text-text-tertiary'
   const valueClass = valueTone === 'tertiary' ? 'text-text-tertiary' : 'text-text-primary'
   return (
-    <div className={cn('flex flex-col gap-1 rounded-lg border px-3 py-2.5', surfaceClass)}>
+    <div className={cn('flex flex-col gap-1 py-2.5', surfaceClass)}>
       <span
         className={cn(
           'text-[11px] leading-tight font-semibold uppercase tracking-wide',
