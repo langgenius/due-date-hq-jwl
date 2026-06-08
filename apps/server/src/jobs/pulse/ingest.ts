@@ -214,6 +214,7 @@ async function ingestAdapter(
     tier: adapter.tier,
     jurisdiction: adapter.jurisdiction,
     cadenceMs: adapter.cronIntervalMs,
+    ...(adapter.initialBaselineMode ? { baselineMode: adapter.initialBaselineMode } : {}),
     now: checkedAt,
   })
   if (!state.enabled || (!opts.force && !sourceIsDue(state, checkedAt))) {
@@ -443,6 +444,7 @@ export async function enqueuePulseIngestScans(
       tier: adapter.tier,
       jurisdiction: adapter.jurisdiction,
       cadenceMs: adapter.cronIntervalMs,
+      ...(adapter.initialBaselineMode ? { baselineMode: adapter.initialBaselineMode } : {}),
       now,
     })),
     now,

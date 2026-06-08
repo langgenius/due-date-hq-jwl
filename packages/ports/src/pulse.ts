@@ -333,6 +333,10 @@ export interface PulseRepo {
   }): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }>
   listSourceStates(): Promise<PulseSourceStateRow[]>
   getLatestSourceSnapshotBySourceId(sourceId: string): Promise<PulseSourceSnapshotRow | null>
+  // Opt-in catch-up: materialize the still-open, high-value regulatory windows
+  // this firm missed by joining / importing clients after approval. Returns the
+  // number of firm alerts (re)materialized.
+  catchUpStillOpenWindows(now?: Date): Promise<number>
   getDetail(alertId: string): Promise<PulseDetailRow>
   listPriorityQueue(opts?: { limit?: number }): Promise<PulsePriorityQueueItemRow[]>
   requestPriorityReview(input: {

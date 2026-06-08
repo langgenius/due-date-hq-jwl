@@ -84,7 +84,7 @@ import {
   uniqueStrings,
   withDeadlineSelectionReview,
 } from './shared'
-import { makePulseOpsRepo } from './ops'
+import { makePulseOpsRepo, pulseNotExpiredConditions } from './ops'
 import type {
   AlertJoinedRow,
   AlertRecipientRow,
@@ -1048,6 +1048,13 @@ export function makePulseRepo(db: Db, firmId: string) {
               inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
               and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
             ),
+            // Hide alerts whose actionable deadline has already passed (review_only
+            // protective windows by actionDeadline; deadline shifts by new-due /
+            // effective date), matching catch-up/sweep relevance so the active queue
+            // no longer shows stale, no-longer-actionable windows. review_only alerts
+            // left parsedNewDueDate/parsedEffectiveUntil NULL, so before the
+            // protectiveActionDeadline column they were treated as never-expiring.
+            ...pulseNotExpiredConditions(now),
             // Keyset: rows strictly "after" the cursor in (publishedAt DESC,
             // id DESC) order. `and(...)` drops the `undefined` when no cursor.
             cursor
@@ -1222,6 +1229,9 @@ export function makePulseRepo(db: Db, firmId: string) {
               inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
               and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
             ),
+            // Mirror listAlerts: the sidebar badge must not count expired windows
+            // the active list hides.
+            ...pulseNotExpiredConditions(now),
           ),
         )
       return row?.value ?? 0
@@ -1309,6 +1319,14 @@ export function makePulseRepo(db: Db, firmId: string) {
     ): Promise<PulseSourceSnapshotRow | null> {
       const ops = makePulseOpsRepo(db)
       return ops.getLatestSourceSnapshotBySourceId(sourceId)
+    },
+
+    // Opt-in catch-up for THIS firm: materialize the still-open, high-value
+    // regulatory windows (protective-claim windows + unexpired deadline shifts)
+    // it missed by joining — or importing clients — after a change was approved.
+    // Delegates to the unscoped ops fan-out, pinned to this firm; dismiss-safe.
+    async catchUpStillOpenWindows(now: Date = new Date()): Promise<number> {
+      return makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(firmId, now)
     },
 
     async getDetail(alertId: string): Promise<PulseDetailRow> {

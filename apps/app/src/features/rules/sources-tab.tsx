@@ -9,6 +9,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import type { PulseAlertSourceCoverage, PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Table,
   TableBody,
@@ -421,8 +422,29 @@ function SourcesKpiStrip({
  */
 function SourceCoverageSection() {
   const { t } = useLingui()
+  const queryClient = useQueryClient()
   const coverageQuery = useQuery(
     orpc.pulse.listAlertSourceCoverage.queryOptions({ input: undefined }),
+  )
+  // Opt-in catch-up: pull this firm up to the still-open, high-value windows it
+  // missed by joining / importing clients after approval (the live fan-out only
+  // reaches firms that exist at approval time). Refreshes the alerts list so any
+  // newly-surfaced alerts appear without a reload.
+  const catchUpMutation = useMutation(
+    orpc.pulse.catchUpStillOpenWindows.mutationOptions({
+      onSuccess: ({ materializedCount }) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.pulse.listAlerts.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.pulse.activeCount.key() })
+        toast.success(
+          materializedCount > 0
+            ? t`Surfaced ${materializedCount} still-open alert(s) for your firm.`
+            : t`You're already caught up — no still-open windows to add.`,
+        )
+      },
+      onError: () => {
+        toast.error(t`Couldn't run catch-up. Please try again.`)
+      },
+    }),
   )
   const roleLabels = useMemo<Record<PulseAlertSourceCoverage['requiredRoles'][number], string>>(
     () => ({
@@ -449,15 +471,31 @@ function SourceCoverageSection() {
 
   return (
     <SectionFrame>
-      <div className="flex flex-col gap-1 px-4 py-3">
-        <h2 className="text-sm font-semibold text-text-primary">
-          <Trans>Coverage by jurisdiction</Trans>
-        </h2>
-        <p className="text-xs text-text-tertiary">
-          <Trans>
-            Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed.
-          </Trans>
-        </p>
+      <div className="flex items-start justify-between gap-3 px-4 py-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-semibold text-text-primary">
+            <Trans>Coverage by jurisdiction</Trans>
+          </h2>
+          <p className="text-xs text-text-tertiary">
+            <Trans>
+              Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed.
+            </Trans>
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0"
+          onClick={() => catchUpMutation.mutate(undefined)}
+          disabled={catchUpMutation.isPending}
+          title={t`Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed.`}
+        >
+          {catchUpMutation.isPending ? (
+            <Trans>Catching up…</Trans>
+          ) : (
+            <Trans>Catch up still-open windows</Trans>
+          )}
+        </Button>
       </div>
       <Table>
         <TableHeader>

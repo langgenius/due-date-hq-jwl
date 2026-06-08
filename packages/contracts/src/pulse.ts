@@ -616,6 +616,17 @@ export const pulseContract = oc.router({
   reactivate: oc.input(PulseAlertIdInputSchema).output(PulseReactivateOutputSchema),
   requestReview: oc.input(PulseRequestReviewInputSchema).output(PulseRequestReviewOutputSchema),
   /**
+   * Opt-in catch-up: materialize the still-open, high-value regulatory windows
+   * (protective-claim windows + unexpired deadline shifts) the caller's firm
+   * missed by joining — or importing clients — after a change was approved. The
+   * live fan-out only reaches firms that exist at approval time. Empty input —
+   * the server pins it to the caller's firm. Returns how many firm alerts were
+   * (re)materialized.
+   */
+  catchUpStillOpenWindows: oc
+    .input(z.undefined())
+    .output(z.object({ materializedCount: z.number().int().min(0) })),
+  /**
    * Daily-briefing AI summary for the /rules/pulse Morning sweep
    * surface. Empty input — the server window is fixed to "last 24h
    * for the caller's firm". See Phase 2 design in

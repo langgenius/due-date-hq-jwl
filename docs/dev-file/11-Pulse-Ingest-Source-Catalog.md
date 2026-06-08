@@ -85,6 +85,12 @@ GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` ca
   `ignored: monitoring_baseline_established`；baseline 之后的新 item/content diff/email signal
   才进入 `pulse.extract` 和 CPA-facing Alert review。默认不做历史 Alert backfill；历史导入必须走
   单独 admin/import job 并显式标记 `backfill=true`。
+- 2026-06-08：source 目录可声明 `initialBaselineMode: 'backfill'`（`RuleSource` → `SourceAdapter` →
+  `ensureSourceState`，仅在首次建行时写入 `pulse_source_state.baselineMode`，conflict 时不覆盖）。设为
+  `backfill` 的源首扫即把当前页面上的 item 入队（不再标 `monitoring_baseline_established`），用于已发布、
+  action deadline 仍在未来的低频权利窗口（`rights_window`：TAS Blog / AoD / IRB）能进入 ingest；snapshot
+  去重保证后续扫描只处理新 item。**局限**：backfill 只能看到当前页面可抓到的内容；已滚出列表的历史条目仍需
+  指向归档 URL 或手动 seed。
 - Rule Library source 继续进入 Alert pipeline，但非 `deadline_shift` 的 source/rule 变化会被
   强制为 `review_only`。只有 `deadline_shift` 才能保留 `due_date_overlay`，且仍必须经 CPA 在
   Alert 中 review/apply 后才影响 obligations。

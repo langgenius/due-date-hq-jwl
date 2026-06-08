@@ -50,6 +50,11 @@ export interface SourceAdapter {
   readonly tier: SourceTier
   readonly cronIntervalMs: number
   readonly jurisdiction: SourceJurisdiction
+  // Override the default 'establish_on_first_seen' baseline so a freshly-onboarded
+  // source backfills the items already on its page instead of skipping them — used
+  // for low-frequency rights-window sources whose open window predates onboarding.
+  // Snapshot dedup then keeps later scans to genuinely new items.
+  readonly initialBaselineMode?: 'backfill'
   readonly allowEmptyParse?: boolean
   readonly fetcher?: 'cloudflare' | 'browserless' | 'govdelivery'
   fetch(ctx: IngestCtx): Promise<RawSnapshot[]>

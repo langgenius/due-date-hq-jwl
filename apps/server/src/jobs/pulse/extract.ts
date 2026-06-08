@@ -562,6 +562,14 @@ async function runPulseExtractionAfterMark(
     parsedNewDueDate: nullableDateFromIsoDate(result.result.newDueDate),
     parsedEffectiveFrom: nullableDateFromIsoDate(result.result.effectiveFrom),
     parsedEffectiveUntil: nullableDateFromIsoDate(result.result.effectiveUntil),
+    // Promote the protective-claim action deadline into its own column so the
+    // still-actionable predicate and deadline sorting see it (review_only alerts
+    // leave parsedNewDueDate / parsedEffectiveUntil NULL). Only this change kind
+    // emits actionDeadline, but gate explicitly to match the column's semantics.
+    protectiveActionDeadline:
+      result.result.changeKind === 'protective_claim_window'
+        ? protectiveActionDeadlineFromStructuredChange(result.result.structuredChange)
+        : null,
     affectedRuleIds: result.result.affectedRuleIds,
     reverifyRuleIds,
     structuredChange: result.result.structuredChange,

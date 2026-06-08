@@ -151,6 +151,7 @@ export const router = os.router({
     revert: pulseHandlers.revert,
     reactivate: pulseHandlers.reactivate,
     requestReview: pulseHandlers.requestReview,
+    catchUpStillOpenWindows: pulseHandlers.catchUpStillOpenWindows,
     // 2026-06-05 (pre-CI green-up): `morningSweepSummary` was defined
     // on pulseContract + implemented in the handlers module but never
     // registered here, so the router-vs-contract parity check failed.

@@ -1219,6 +1219,7 @@ describe('@duedatehq/contracts', () => {
       'revert',
       'reactivate',
       'requestReview',
+      'catchUpStillOpenWindows',
       'morningSweepSummary',
     ])
     expect(PulseFirmAlertStatusSchema.options).toEqual([

@@ -683,6 +683,9 @@ function buildScopedRepo(
     async reactivate() {
       return unexpectedRepoCall('pulse.reactivate')
     },
+    async catchUpStillOpenWindows() {
+      return unexpectedRepoCall('pulse.catchUpStillOpenWindows')
+    },
   }
 
   const repo: ScopedRepo = {

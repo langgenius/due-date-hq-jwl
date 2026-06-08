@@ -222,6 +222,11 @@ export interface PulseSourceStateInput {
   jurisdiction: string
   cadenceMs: number
   enabled?: boolean
+  // Initial baseline mode, applied only when the row is first created (never
+  // overwritten on conflict). 'backfill' makes a source's first scan enqueue the
+  // items already on its page instead of skipping them. Omit for the default
+  // 'establish_on_first_seen'.
+  baselineMode?: PulseSourceBaselineMode
   now?: Date
 }
 
@@ -325,6 +330,10 @@ export interface PulseExtractInput {
   parsedNewDueDate: Date | null
   parsedEffectiveFrom?: Date | null
   parsedEffectiveUntil?: Date | null
+  // Action deadline for review_only protective_claim_window alerts, derived from
+  // structuredChange.actionDeadline. Promoted to a column so the
+  // still-actionable / expiry predicate and deadline sorting can query it.
+  protectiveActionDeadline?: Date | null
   changeKind?: PulseChangeKind
   actionMode?: PulseActionMode
   affectedRuleIds?: string[]

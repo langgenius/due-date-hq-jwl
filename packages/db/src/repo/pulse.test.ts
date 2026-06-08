@@ -1211,9 +1211,28 @@ describe('makePulseOpsRepo', () => {
     ).toBe(true)
   })
 
-  it('catches a new firm up to the not-expired approved landscape', async () => {
-    const { db, batchStatements } = fakeDb([
-      [{ id: 'pulse-current' }, { id: 'pulse-also-current' }],
+  it('catches a new firm up to the still-open landscape with real review counts', async () => {
+    // Reworked catch-up reuses the live fan-out (scoped to one firm) so a
+    // protective-claim window materializes with a REAL needsReviewCount from the
+    // firm's 2019-2022 clients — not the old count-0 firm-wide noise row.
+    const protectivePulse = {
+      id: 'pulse-protective',
+      status: 'approved' as const,
+      actionMode: 'review_only' as const,
+      changeKind: 'protective_claim_window' as const,
+      parsedJurisdiction: 'FED',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      reverifyRuleIdsJson: [],
+      structuredChangeJson: { kind: 'protective_claim_window', actionDeadline: '2026-07-10' },
+    }
+    const { db, directStatements } = fakeDb([
+      [{ id: 'pulse-protective', changeKind: 'protective_claim_window' }], // still-open candidates
+      [protectivePulse], // getPulse inside the fan-out
+      [{ id: 'firm-new' }], // active firms
+      [{ firmId: 'firm-new', clientId: 'client-a', taxType: 'federal_1040' }], // protective scan
     ])
 
     const count = await makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(
@@ -1221,32 +1240,66 @@ describe('makePulseOpsRepo', () => {
       new Date('2026-06-01T00:00:00.000Z'),
     )
 
-    expect(count).toBe(2)
-    const inserted = (
-      batchStatements.filter((s) => isKind(s, 'insert')) as Array<{ value: unknown }>
-    )
-      .flatMap((s) => (Array.isArray(s.value) ? s.value : [s.value]))
-      .map((row) => row as Record<string, unknown>)
-    expect(inserted).toHaveLength(2)
-    expect(inserted).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ pulseId: 'pulse-current', firmId: 'firm-new', matchedCount: 0 }),
-        expect.objectContaining({
-          pulseId: 'pulse-also-current',
+    expect(count).toBe(1)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, {
+          pulseId: 'pulse-protective',
           firmId: 'firm-new',
           matchedCount: 0,
+          needsReviewCount: 1,
         }),
-      ]),
-    )
+      ),
+    ).toBe(true)
   })
 
-  it('writes no alerts when the active landscape is empty', async () => {
-    const { db, batchStatements } = fakeDb([[]])
+  it('writes no alerts when the still-open landscape is empty', async () => {
+    const { db, directStatements } = fakeDb([[]])
 
     const count = await makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape('firm-new')
 
     expect(count).toBe(0)
-    expect(batchStatements).toHaveLength(0)
+    expect(directStatements).toHaveLength(0)
+  })
+
+  it('sweeps still-open windows to all active firms without resurrecting dismissals', async () => {
+    // Periodic sweep fans out to ALL firms; preserveStatus means the conflict
+    // update refreshes counts but does not flip a dismissed alert to 'matched'.
+    const protectivePulse = {
+      id: 'pulse-protective',
+      status: 'approved' as const,
+      actionMode: 'review_only' as const,
+      changeKind: 'protective_claim_window' as const,
+      parsedJurisdiction: 'FED',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      reverifyRuleIdsJson: [],
+      structuredChangeJson: { kind: 'protective_claim_window', actionDeadline: '2026-07-10' },
+    }
+    const { db, directStatements } = fakeDb([
+      [{ id: 'pulse-protective', changeKind: 'protective_claim_window' }], // still-open candidates
+      [protectivePulse], // getPulse inside the fan-out
+      [{ id: 'firm-a' }, { id: 'firm-b' }], // all active firms
+      [{ firmId: 'firm-a', clientId: 'client-a', taxType: 'federal_1040' }], // protective scan
+    ])
+
+    const count = await makePulseOpsRepo(db).refreshStillOpenWindowsForAllFirms(
+      new Date('2026-06-01T00:00:00.000Z'),
+    )
+
+    expect(count).toBe(2)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { firmId: 'firm-a', needsReviewCount: 1 }),
+      ),
+    ).toBe(true)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { firmId: 'firm-b', needsReviewCount: 0 }),
+      ),
+    ).toBe(true)
   })
 
   it('records source failures without changing CPA-facing health', async () => {

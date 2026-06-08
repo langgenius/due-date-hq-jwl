@@ -547,6 +547,16 @@ const retrySourceHealth = os.pulse.retrySourceHealth.handler(async ({ input, con
   return listSourceHealthForScopedRepo(scoped)
 })
 
+// Opt-in catch-up: re-materialize the still-open, high-value regulatory windows
+// the firm missed by joining / importing clients after approval. Reuses the live
+// fan-out (real counts, dismiss-safe). Empty input — pinned to the caller's firm.
+const catchUpStillOpenWindows = os.pulse.catchUpStillOpenWindows.handler(async ({ context }) => {
+  await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
+  const { scoped } = requireTenant(context)
+  const materializedCount = await scoped.pulse.catchUpStillOpenWindows()
+  return { materializedCount }
+})
+
 const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
   try {
@@ -1325,6 +1335,7 @@ export const pulseHandlers = {
   listSourceHealth,
   listAlertSourceCoverage: listAlertSourceCoverageHandler,
   retrySourceHealth,
+  catchUpStillOpenWindows,
   getDetail,
   listAlertsForRule,
   getDetailsBatch,

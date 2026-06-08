@@ -716,6 +716,7 @@ export function createRuleSourceAdapter(source: RuleSource): SourceAdapter {
     tier: tierForPriority(source.priority),
     cronIntervalMs: intervalForCadence(source.cadence),
     jurisdiction: source.jurisdiction,
+    ...(source.initialBaselineMode ? { initialBaselineMode: source.initialBaselineMode } : {}),
     ...(fetcher ? { fetcher } : {}),
     async fetch(ctx) {
       return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: sourceFetchUrl(source) })]
@@ -739,6 +740,7 @@ export function createTemporaryAnnouncementAdapter(source: RuleSource): SourceAd
     tier: tierForPriority(source.priority),
     cronIntervalMs: intervalForCadence(source.cadence),
     jurisdiction: source.jurisdiction,
+    ...(source.initialBaselineMode ? { initialBaselineMode: source.initialBaselineMode } : {}),
     allowEmptyParse: true,
     async fetch(ctx) {
       return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: sourceFetchUrl(source) })]

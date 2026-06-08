@@ -459,6 +459,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     async reactivate() {
       return unused('pulse.reactivate')
     },
+    async catchUpStillOpenWindows() {
+      return unused('pulse.catchUpStillOpenWindows')
+    },
   }
 
   const repo: ScopedRepo = {

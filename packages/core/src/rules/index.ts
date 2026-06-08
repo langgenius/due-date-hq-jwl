@@ -220,6 +220,10 @@ export interface RuleSource {
   notificationChannels: readonly RuleNotificationChannel[]
   lastReviewedOn: string
   adapterKind?: SourceAdapterKind
+  // Initial pulse-source baseline override. 'backfill' makes the first scan
+  // enqueue items already on the page (instead of baselining them out) so an
+  // already-published, still-open window can enter ingest. Omit for the default.
+  initialBaselineMode?: 'backfill'
   feedUrl?: string
   inboundEmail?: InboundEmailRuleSourceConfig
   sourceAgency?: string
@@ -5040,6 +5044,10 @@ export const RULE_SOURCES = hydrateRuleSources([
     notificationChannels: ['source_change', 'practice_rule_review'],
     lastReviewedOn: VERIFIED_AT,
     alertCoverageRoles: ['rights_window_signal'],
+    // Backfill on first scan so an already-published, still-open window (e.g. the
+    // COVID disaster-period refund window) enters ingest instead of being
+    // baselined out. Snapshot dedup keeps later scans to genuinely new items.
+    initialBaselineMode: 'backfill',
   },
   {
     id: 'fed.irs_actions_on_decisions',
@@ -5055,6 +5063,10 @@ export const RULE_SOURCES = hydrateRuleSources([
     notificationChannels: ['source_change', 'practice_rule_review'],
     lastReviewedOn: VERIFIED_AT,
     alertCoverageRoles: ['rights_window_signal'],
+    // Backfill on first scan so an already-published, still-open window (e.g. the
+    // COVID disaster-period refund window) enters ingest instead of being
+    // baselined out. Snapshot dedup keeps later scans to genuinely new items.
+    initialBaselineMode: 'backfill',
   },
   {
     id: 'fed.irs_irb',
@@ -5070,6 +5082,10 @@ export const RULE_SOURCES = hydrateRuleSources([
     notificationChannels: ['source_change', 'practice_rule_review'],
     lastReviewedOn: VERIFIED_AT,
     alertCoverageRoles: ['rights_window_signal'],
+    // Backfill on first scan so an already-published, still-open window (e.g. the
+    // COVID disaster-period refund window) enters ingest instead of being
+    // baselined out. Snapshot dedup keeps later scans to genuinely new items.
+    initialBaselineMode: 'backfill',
   },
   {
     id: 'fed.fema_disaster_declarations',

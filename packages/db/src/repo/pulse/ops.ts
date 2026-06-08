@@ -109,6 +109,26 @@ function protectiveClaimTaxYears(structuredChange: unknown): number[] {
   return years.length > 0 ? years : PROTECTIVE_CLAIM_DEFAULT_TAX_YEARS
 }
 
+// Change kinds the opt-in catch-up and periodic sweep re-materialize: review_only
+// protective-claim windows and unexpired due-date shifts. Both stay relevant to a
+// firm long after approval (a future action deadline / postponed due date), which
+// the publish-time live fan-out misses for firms that join or import clients later.
+const STILL_OPEN_CATCHUP_CHANGE_KINDS = ['protective_claim_window', 'deadline_shift'] as const
+
+// "Still actionable today" = no known deadline on the alert has already passed.
+// Each change kind only populates the date axes it uses — review_only protective
+// windows carry `protectiveActionDeadline`; due-date overlays carry
+// `parsedNewDueDate` / `parsedEffectiveUntil` — so the unused axes are NULL and
+// pass. An expired protective window (deadline < now) now correctly drops out,
+// where before its NULL parsed dates made it look perpetually active.
+export function pulseNotExpiredConditions(now: Date) {
+  return [
+    or(isNull(pulse.parsedNewDueDate), gte(pulse.parsedNewDueDate, now)),
+    or(isNull(pulse.parsedEffectiveUntil), gte(pulse.parsedEffectiveUntil, now)),
+    or(isNull(pulse.protectiveActionDeadline), gte(pulse.protectiveActionDeadline, now)),
+  ]
+}
+
 export function makePulseOpsRepo(db: Db) {
   async function getPulse(pulseId: string) {
     const rows = await db.select().from(pulse).where(eq(pulse.id, pulseId)).limit(1)
@@ -123,7 +143,7 @@ export function makePulseOpsRepo(db: Db) {
 
   async function refreshFirmAlertsForPulse(
     pulseId: string,
-    opts?: { firmIds?: string[] },
+    opts?: { firmIds?: string[]; preserveStatus?: boolean; skipZeroImpact?: boolean },
   ): Promise<number> {
     const row = await getPulse(pulseId)
     if (!row || row.status !== 'approved') throw new PulseRepoError('not_found')
@@ -277,6 +297,11 @@ export function makePulseOpsRepo(db: Db) {
     const alertWrites = []
     for (const firm of firms) {
       const count = counts.get(firm.id) ?? { matchedCount: 0, needsReviewCount: 0 }
+      // skipZeroImpact (catch-up / sweep over deadline shifts): only materialize
+      // where the firm actually has a matching obligation, so an opt-in/scheduled
+      // refresh never floods a firm with count-0 firm-wide rows. The default
+      // (live approval fan-out) keeps firm-wide visibility regardless of count.
+      if (opts?.skipZeroImpact && count.matchedCount + count.needsReviewCount === 0) continue
       alertCount += 1
       const alertRow: NewPulseFirmAlert = {
         id: crypto.randomUUID(),
@@ -292,16 +317,52 @@ export function makePulseOpsRepo(db: Db) {
           .values(alertRow)
           .onConflictDoUpdate({
             target: [pulseFirmAlert.firmId, pulseFirmAlert.pulseId],
-            set: {
-              status: 'matched',
-              matchedCount: count.matchedCount,
-              needsReviewCount: count.needsReviewCount,
-            },
+            // preserveStatus (catch-up / sweep): refresh the counts but never
+            // reset a firm's dismissed/snoozed alert back to 'matched'.
+            set: opts?.preserveStatus
+              ? {
+                  matchedCount: count.matchedCount,
+                  needsReviewCount: count.needsReviewCount,
+                }
+              : {
+                  status: 'matched',
+                  matchedCount: count.matchedCount,
+                  needsReviewCount: count.needsReviewCount,
+                },
           }),
       )
     }
     await Promise.all(alertWrites)
     return alertCount
+  }
+
+  // Re-materialize firm alerts for the still-open, high-value regulatory landscape
+  // (protective-claim windows + unexpired deadline shifts), reusing the live
+  // fan-out so counts are real instead of zero. Scope to one firm (opt-in
+  // catch-up) or all active firms (periodic sweep). `preserveStatus` keeps a
+  // firm's dismissed/snoozed alert from being resurrected; deadline shifts only
+  // materialize where the firm has a matching obligation (`skipZeroImpact`).
+  async function refreshStillOpenWindows(opts: { firmId?: string; now: Date }): Promise<number> {
+    const candidates = await db
+      .select({ id: pulse.id, changeKind: pulse.changeKind })
+      .from(pulse)
+      .where(
+        and(
+          eq(pulse.status, 'approved'),
+          inArray(pulse.changeKind, [...STILL_OPEN_CATCHUP_CHANGE_KINDS]),
+          ...pulseNotExpiredConditions(opts.now),
+        ),
+      )
+    if (candidates.length === 0) return 0
+    let materialized = 0
+    for (const candidate of candidates) {
+      materialized += await refreshFirmAlertsForPulse(candidate.id, {
+        ...(opts.firmId ? { firmIds: [opts.firmId] } : {}),
+        preserveStatus: true,
+        skipZeroImpact: candidate.changeKind === 'deadline_shift',
+      })
+    }
+    return materialized
   }
 
   // Shared tail for both pulse-creation paths: load the inserted row, fan out per-active-firm
@@ -665,6 +726,9 @@ export function makePulseOpsRepo(db: Db) {
         jurisdiction: input.jurisdiction,
         enabled: input.enabled ?? true,
         cadenceMs: input.cadenceMs,
+        // Set on first insert only; onConflictDoUpdate below deliberately omits it
+        // so a source's baseline mode is never reset mid-life.
+        ...(input.baselineMode ? { baselineMode: input.baselineMode } : {}),
         healthStatus: 'healthy',
         nextCheckAt: now,
       }
@@ -723,15 +787,22 @@ export function makePulseOpsRepo(db: Db) {
 
       const newRows: NewPulseSourceState[] = inputs
         .filter((input) => !byId.has(input.sourceId))
-        .map((input) => ({
-          sourceId: input.sourceId,
-          tier: input.tier,
-          jurisdiction: input.jurisdiction,
-          enabled: input.enabled ?? true,
-          cadenceMs: input.cadenceMs,
-          healthStatus: 'healthy' as const,
-          nextCheckAt: now,
-        }))
+        .map((input) =>
+          Object.assign(
+            {
+              sourceId: input.sourceId,
+              tier: input.tier,
+              jurisdiction: input.jurisdiction,
+              enabled: input.enabled ?? true,
+              cadenceMs: input.cadenceMs,
+            },
+            input.baselineMode ? { baselineMode: input.baselineMode } : {},
+            {
+              healthStatus: 'healthy' as const,
+              nextCheckAt: now,
+            },
+          ),
+        )
 
       if (newRows.length > 0) {
         // 7 columns per row; stay well under D1's bound-parameter ceiling.
@@ -1061,52 +1132,30 @@ export function makePulseOpsRepo(db: Db) {
     },
 
     /**
-     * Catch a newly-registered firm up to the *currently-actionable* regulatory
-     * landscape, so it does not silently miss policy changes published before it
-     * joined. The live fan-out only reaches firms that exist at approval time;
-     * this materializes the same firm-wide alerts for a firm that arrives later.
+     * Opt-in catch-up: bring ONE firm up to the still-open, high-value regulatory
+     * landscape it missed by joining (or importing clients) after a change was
+     * approved — the live fan-out only reaches firms that exist at approval time.
      *
-     * Relevance = approved AND not expired (the deadline has not passed and the
-     * effective window has not ended). The extract-time pre-2026 date floor
-     * already strips the historical backlog, so this stays bounded to the live
-     * landscape. `matchedCount` starts at 0 — a brand-new firm has no obligations
-     * yet, and (exactly like the live fan-out) the count is point-in-time;
-     * firm-wide visibility surfaces the change regardless of count, and the count
-     * naturally respects `monitoringStartDate` via the obligations it later
-     * generates. `onConflictDoNothing` so an existing alert's real count is never
-     * clobbered, making the call idempotent.
+     * Scoped to protective-claim windows + unexpired deadline shifts and routed
+     * through the live fan-out (`refreshStillOpenWindows`) so counts are real, not
+     * zero. This replaces the old unscoped, count-0 backfill that surfaced ~30
+     * firm-wide noise alerts on day one. Idempotent and dismiss-safe.
      */
     async backfillFirmAlertsForActiveLandscape(
       firmId: string,
       now: Date = new Date(),
     ): Promise<number> {
-      const candidates = await db
-        .select({ id: pulse.id })
-        .from(pulse)
-        .where(
-          and(
-            eq(pulse.status, 'approved'),
-            or(isNull(pulse.parsedNewDueDate), gte(pulse.parsedNewDueDate, now)),
-            or(isNull(pulse.parsedEffectiveUntil), gte(pulse.parsedEffectiveUntil, now)),
-          ),
-        )
-      if (candidates.length === 0) return 0
-      const rows: NewPulseFirmAlert[] = candidates.map((candidate) => ({
-        id: crypto.randomUUID(),
-        pulseId: candidate.id,
-        firmId,
-        status: 'matched',
-        matchedCount: 0,
-        needsReviewCount: 0,
-      }))
-      const inserts = chunkRows(rows, 16).map((chunk) =>
-        db
-          .insert(pulseFirmAlert)
-          .values(chunk)
-          .onConflictDoNothing({ target: [pulseFirmAlert.firmId, pulseFirmAlert.pulseId] }),
-      )
-      await db.batch(toNonEmptyBatch(inserts))
-      return candidates.length
+      return refreshStillOpenWindows({ firmId, now })
+    },
+
+    /**
+     * Periodic sweep: re-fan-out every still-open, high-value window to ALL active
+     * firms. Reaches firms that joined after approval and refreshes counts as
+     * clients are added, without resurrecting dismissed/snoozed alerts. Driven
+     * daily from the cron tick.
+     */
+    async refreshStillOpenWindowsForAllFirms(now: Date = new Date()): Promise<number> {
+      return refreshStillOpenWindows({ now })
     },
 
     async createPulseForFirmReviewFromExtract(
@@ -1148,6 +1197,7 @@ export function makePulseOpsRepo(db: Db) {
         parsedNewDueDate: input.parsedNewDueDate,
         parsedEffectiveFrom: input.parsedEffectiveFrom ?? null,
         parsedEffectiveUntil: input.parsedEffectiveUntil ?? null,
+        protectiveActionDeadline: input.protectiveActionDeadline ?? null,
         affectedRuleIdsJson: input.affectedRuleIds ?? [],
         reverifyRuleIdsJson: input.reverifyRuleIds ?? [],
         structuredChangeJson: input.structuredChange ?? null,

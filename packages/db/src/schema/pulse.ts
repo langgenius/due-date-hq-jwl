@@ -104,6 +104,14 @@ export const pulse = sqliteTable(
     parsedNewDueDate: integer('parsed_new_due_date', { mode: 'timestamp_ms' }),
     parsedEffectiveFrom: integer('parsed_effective_from', { mode: 'timestamp_ms' }),
     parsedEffectiveUntil: integer('parsed_effective_until', { mode: 'timestamp_ms' }),
+    // Action deadline for review_only `protective_claim_window` alerts (e.g. the
+    // COVID disaster-period refund-claim cutoff). It also lives in
+    // structuredChangeJson.actionDeadline, but is promoted here so the
+    // still-actionable / expiry predicate and deadline-based sorting can query it
+    // in SQL. review_only alerts leave parsedNewDueDate / parsedEffectiveUntil
+    // NULL, so without this column the expiry predicate treated them as
+    // never-expiring. NULL for every other change kind.
+    protectiveActionDeadline: integer('protective_action_deadline', { mode: 'timestamp_ms' }),
     affectedRuleIdsJson: text('affected_rule_ids_json', { mode: 'json' })
       .$type<string[]>()
       .notNull()

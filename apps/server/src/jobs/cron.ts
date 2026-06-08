@@ -1,4 +1,4 @@
-import { createDb, firmSchema, scoped } from '@duedatehq/db'
+import { createDb, firmSchema, makePulseOpsRepo, scoped } from '@duedatehq/db'
 import { eq } from 'drizzle-orm'
 import type { Env } from '../env'
 import { enqueueDashboardBriefRefresh } from './dashboard-brief/enqueue'
@@ -106,6 +106,23 @@ async function enqueueScheduledDashboardBriefs(env: Env, now: Date): Promise<voi
   )
 }
 
+export function shouldRunStillOpenWindowSweep(now: Date): boolean {
+  // Cron fires every 30 min (see wrangler.toml); run the daily still-open-window
+  // sweep in a single UTC slot so it does not re-fan-out 48× a day.
+  return now.getUTCHours() === 9 && now.getUTCMinutes() < 30
+}
+
+// Re-fan-out still-open, high-value alert windows (protective-claim windows +
+// unexpired deadline shifts) to all active firms once a day. This reaches firms
+// that joined — or imported clients — after a change was approved, since the
+// live fan-out only touches firms that exist at approval time. Dismiss-safe and
+// count-refreshing via the repo's preserveStatus path.
+async function refreshStillOpenAlertWindows(env: Env, now: Date): Promise<number> {
+  if (!shouldRunStillOpenWindowSweep(now)) return 0
+  const db = createDb(env.DB)
+  return makePulseOpsRepo(db).refreshStillOpenWindowsForAllFirms(now)
+}
+
 // Cron Trigger entry — fan out by cron expression in Phase 0.
 // Current schedule: */30 * * * * (see wrangler.toml). Drives Pulse ingest + reminders.
 //
@@ -127,6 +144,7 @@ export async function scheduled(
     ['rule_date_reconciliation', enqueueRuleDateReconciliation(env, now)],
     ['scheduled_dashboard_briefs', enqueueScheduledDashboardBriefs(env, now)],
     ['pulse_ingest_scans', enqueuePulseIngestScans(env, undefined, now)],
+    ['still_open_alert_windows', refreshStillOpenAlertWindows(env, now)],
     ['deadline_reminders', dispatchDeadlineReminders(env, now)],
     ['morning_digests', dispatchMorningDigests(env, now)],
     ['annual_rollover_auto', dispatchAutoRollover(env, now)],

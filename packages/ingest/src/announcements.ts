@@ -29,10 +29,14 @@ export interface PdfAnnouncementLinkParseOptions extends Pick<
   publishedAtForLink?: (link: AnnouncementLink) => Date | null
 }
 
+// `refund` … `revenue procedure` added 2026-06-08 for the FED rights-window
+// sources (Taxpayer Advocate blog, Actions on Decisions, Internal Revenue
+// Bulletins): protective-claim / refund-window link text was being dropped by the
+// state-DOR-tuned vocabulary above, so those sources parsed to zero items.
 const TAX_ANNOUNCEMENT_RE =
-  /deadline|due date|relief|disaster|storm|wildfire|flood|filing|payment|extension|franchise|return|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|tax notice|technical bulletin|technical information release|administrative notice|technical assistance|policy statement|withholding|sales tax|estimated tax/i
+  /deadline|due date|relief|disaster|storm|wildfire|flood|filing|payment|extension|franchise|return|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|tax notice|technical bulletin|technical information release|administrative notice|technical assistance|policy statement|withholding|sales tax|estimated tax|refund|protective claim|abatement|actions on decision|action on decision|acquiescence|internal revenue bulletin|revenue ruling|revenue procedure/i
 const HIGH_SIGNAL_TAX_CHANGE_RE =
-  /deadline|due date|relief|disaster|extension|filing|payment|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|technical bulletin|technical information release|administrative notice|technical assistance/i
+  /deadline|due date|relief|disaster|extension|filing|payment|rules and regulations|chapter|effective date|tax alert|tax update|tax bulletin|technical bulletin|technical information release|administrative notice|technical assistance|refund|protective claim|abatement|actions on decision|action on decision|acquiescence|internal revenue bulletin|revenue ruling|revenue procedure/i
 const ANNOUNCEMENT_NOISE_RE =
   /award|auction|career|hiring|job opening|staff|appointment|webinar|seminar|office hour|office closure|holiday schedule|unclaimed property|scam|fraud|phishing|identity theft|password|login|portal maintenance|system maintenance|newsletter/i
 

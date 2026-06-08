@@ -3440,6 +3440,14 @@ msgstr "Capture context, sensitivities, or history…"
 msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "Card numbers and invoice payment details never enter the app database."
 
+#: src/features/rules/sources-tab.tsx
+msgid "Catch up still-open windows"
+msgstr "Catch up still-open windows"
+
+#: src/features/rules/sources-tab.tsx
+msgid "Catching up…"
+msgstr "Catching up…"
+
 #: src/features/clients/EmailComposeDialog.tsx
 msgid "Cc · Bcc"
 msgstr "Cc · Bcc"
@@ -4813,6 +4821,10 @@ msgstr "Couldn't roll over deadlines"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Couldn't run annual rollover preview"
 msgstr "Couldn't run annual rollover preview"
+
+#: src/features/rules/sources-tab.tsx
+msgid "Couldn't run catch-up. Please try again."
+msgstr "Couldn't run catch-up. Please try again."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Couldn't run deadline preview"
@@ -14744,6 +14756,14 @@ msgstr "supported"
 msgid "Suppressed"
 msgstr "Suppressed"
 
+#: src/features/rules/sources-tab.tsx
+msgid "Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed."
+msgstr "Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed."
+
+#: src/features/rules/sources-tab.tsx
+msgid "Surfaced {materializedCount} still-open alert(s) for your firm."
+msgstr "Surfaced {materializedCount} still-open alert(s) for your firm."
+
 #: src/features/members/members-page.tsx
 msgid "Suspend access"
 msgstr "Suspend access"
@@ -16743,6 +16763,10 @@ msgstr "You'll be redirected to Stripe to enter payment details."
 #: src/features/migration/Step4Preview.tsx
 msgid "You're about to create:"
 msgstr "You're about to create:"
+
+#: src/features/rules/sources-tab.tsx
+msgid "You're already caught up — no still-open windows to add."
+msgstr "You're already caught up — no still-open windows to add."
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "You're rolling over {totalCount} obligations from tax year {headerFrom} into {headerTo}."

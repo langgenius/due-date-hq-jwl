@@ -280,6 +280,61 @@ describe('@duedatehq/ingest', () => {
     })
   })
 
+  // 2026-06-08 — FED rights-window sources. The generic list parser must detect
+  // their link text (refund/protective-claim, IRB, AoD vocabulary); production
+  // pulls full bodies for IRB/AoD via the PDF-follow path on top of these items.
+  it('extracts rights-window posts from the Taxpayer Advocate Service blog list', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'fed.taxpayer_advocate_blog',
+        title: 'Taxpayer Advocate Service Blog',
+        url: 'https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/',
+        jurisdiction: 'FED',
+      },
+      {
+        fetchedAt: new Date('2026-06-08T00:00:00.000Z'),
+        body: '<main><a href="/news/protective-refund-claims-covid">Protective refund claims: preserve taxpayer rights to a COVID-era refund</a><a href="/about-tas">About TAS</a></main>',
+      },
+    )
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      sourceId: 'fed.taxpayer_advocate_blog',
+      title: 'Protective refund claims: preserve taxpayer rights to a COVID-era refund',
+    })
+  })
+
+  it('detects Internal Revenue Bulletin index links', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'fed.irs_irb',
+        title: 'IRS Internal Revenue Bulletins',
+        url: 'https://www.irs.gov/irb',
+        jurisdiction: 'FED',
+      },
+      {
+        fetchedAt: new Date('2026-06-08T00:00:00.000Z'),
+        body: '<main><a href="/irb/2026-23_IRB">Internal Revenue Bulletin: 2026-23</a><a href="/help/telephone-assistance">Get help</a></main>',
+      },
+    )
+    expect(items.map((item) => item.title)).toContain('Internal Revenue Bulletin: 2026-23')
+  })
+
+  it('detects Actions on Decisions index links', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'fed.irs_actions_on_decisions',
+        title: 'IRS Actions on Decisions',
+        url: 'https://www.irs.gov/actions-on-decisions',
+        jurisdiction: 'FED',
+      },
+      {
+        fetchedAt: new Date('2026-06-08T00:00:00.000Z'),
+        body: '<main><a href="/pub/irs-aod/aod-2026-01.pdf">Action on Decision 2026-01: acquiescence in result only</a><a href="/privacy">Privacy</a></main>',
+      },
+    )
+    expect(items.some((item) => item.title.startsWith('Action on Decision 2026-01'))).toBe(true)
+  })
+
   it('filters noisy agency news links before Pulse extraction', () => {
     const items = announcementItemsFromSnapshot(
       {
