@@ -4280,7 +4280,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'il.temporary_announcements',
     jurisdiction: 'IL',
     title: 'Illinois DOR News',
-    url: 'https://tax.illinois.gov/aboutidor/news.html',
+    // research/news.html ("News From the Past Year") is the real dated list; the
+    // old aboutidor/news.html was the wrong page. The list is client-rendered, so
+    // a non-JS fetch sees "No recent news" — the adapter must render JS to read it.
+    url: 'https://tax.illinois.gov/research/news.html',
   },
   {
     id: 'in.temporary_announcements',
@@ -4345,7 +4348,22 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'me.temporary_announcements',
     jurisdiction: 'ME',
     title: 'Maine Revenue Services Tax Alerts',
+    // MRS publishes Tax Alerts only as monthly PDFs indexed here; pdf_watch so the
+    // adapter follows + parses the PDFs rather than scraping the index link text.
     url: 'https://www.maine.gov/revenue/publications/maine-tax-alerts',
+    acquisitionMethod: 'pdf_watch',
+    adapterKind: 'pdf_index',
+  },
+  {
+    id: 'me.revenue_important_updates',
+    jurisdiction: 'ME',
+    title: 'Maine Revenue Services Important Updates',
+    // Secondary ME signal: the MRS homepage "Important Updates" panel surfaces
+    // current alerts/notices (Maine Tax Portal changes, OBBBA conformity, phishing
+    // warnings) as HTML links. Overlap with the Tax Alerts PDFs above is deduped.
+    url: 'https://www.maine.gov/revenue/',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
   {
     id: 'mi.temporary_announcements',
