@@ -227,13 +227,29 @@ function NarrativeTile({
   ariaLabel: string
 }) {
   return (
+    // 2026-06-08 (Yuqi /deadlines tile ↔ /today alert-card parity): every
+    // element + text token below is matched to the /today alert card
+    // (needs-attention-card.tsx) so the two surfaces read as one system —
+    //   • card chrome → `rounded-[14px] bg-background-section p-[18px]` +
+    //     `hover:bg-background-subtle transition-colors duration-200`
+    //     (was `rounded-xl … px-5 py-4 hover:bg-background-section-burn`)
+    //   • eyebrow label → `text-[11px] font-semibold tracking-[0.4px]
+    //     text-text-tertiary uppercase` (matches the card's change-kind /
+    //     meta eyebrow; was `font-bold tracking-[0.8px] text-text-muted`)
+    //   • headline → `text-[14px] font-semibold leading-[1.3]
+    //     text-text-primary` (matches the card's title h3; was `text-sm …
+    //     leading-snug`)
+    //   • sub line → `text-xs text-text-secondary` (matches the card's
+    //     affects-clients line; was `text-text-tertiary leading-snug`)
+    // The tone icon-chip keeps the `bg-state-{tone}-hover text-text-{tone}`
+    // token pair the card's High-impact pill already uses.
     <button
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
       className={cn(
-        'flex items-start gap-3 rounded-xl bg-background-section px-5 py-4 text-left',
-        'outline-none transition-colors hover:bg-background-section-burn',
+        'flex items-start gap-3 rounded-[14px] bg-background-section p-[18px] text-left',
+        'outline-none transition-colors duration-200 hover:bg-background-subtle',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
     >
@@ -245,8 +261,8 @@ function NarrativeTile({
       >
         <Icon className="size-3.5" aria-hidden />
       </span>
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-[11px] font-bold tracking-[0.8px] text-text-muted uppercase">
+      <span className="flex min-w-0 flex-col gap-1">
+        <span className="text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
           {label}
         </span>
         {loading ? (
@@ -256,8 +272,10 @@ function NarrativeTile({
           </>
         ) : (
           <>
-            <span className="text-sm font-semibold leading-snug text-text-primary">{headline}</span>
-            <span className="text-xs leading-snug text-text-tertiary">{sub}</span>
+            <span className="text-[14px] font-semibold leading-[1.3] text-text-primary">
+              {headline}
+            </span>
+            <span className="text-xs leading-snug text-text-secondary">{sub}</span>
           </>
         )}
       </span>

@@ -1592,6 +1592,16 @@ export function ObligationQueueRoute() {
     [t],
   )
   const statusQuery = useMemo(() => [...statusFilter], [statusFilter])
+  // 2026-06-08 (Yuqi /deadlines STATUS column): when a single status is
+  // active via the top scope tabs (the scope is not "All"), every visible
+  // row carries that same status, so the STATUS cell's text label is pure
+  // redundancy. In that case the cell renders the status ICON only (the
+  // `compact` mode of ObligationQueueStatusControl already drops the
+  // label). When the scope is "All" the full status label stays. Mirrors
+  // `activeScope` (computed later for the scope-tab bar) but is needed
+  // earlier here, inside the column definitions.
+  const singleStatusScopeActive =
+    statusQuery.length === 1 && isObligationStatus(statusQuery[0]!)
   const obligationQuery = useMemo(
     () => cleanEntityIdFilters(obligation ? [obligation] : []),
     [obligation],
@@ -1947,6 +1957,33 @@ export function ObligationQueueRoute() {
     () => listQuery.data?.pages.flatMap((page) => page.rows) ?? EMPTY_OBLIGATION_QUEUE_ROWS,
     [listQuery.data?.pages],
   )
+  // 2026-06-08 (Yuqi /deadlines glance always-global): the AT A GLANCE
+  // tiles must summarize ALL deadlines regardless of the active status
+  // scope tab or any filter. Feeding them the filtered `rows` flipped
+  // the tiles to "Nothing overdue — you're clear" the moment the user
+  // switched to e.g. the "Waiting on client" scope. This SECOND query
+  // re-uses the same `obligations.list` endpoint with NO status / due /
+  // evidence / signature / taxType / client / state filters applied —
+  // only the always-on scoping (tenant + the `asOfDate` clock, kept so
+  // the daysUntilDue math matches the queue's). It shares React Query's
+  // cache via the standard query key, and the default `due_asc` sort
+  // surfaces the most-overdue + due-this-week rows in the first page, so
+  // a single PAGE_SIZE slice carries every headline name the tiles render.
+  const glanceQueryInput = useMemo<ObligationQueueListInputWithoutCursor>(
+    () => ({
+      ...(asOf ? { asOfDate: asOf } : {}),
+      sort: DEFAULT_SORT,
+      limit: PAGE_SIZE,
+    }),
+    [asOf],
+  )
+  const glanceQuery = useQuery({
+    ...orpc.obligations.list.queryOptions({
+      input: { ...glanceQueryInput, cursor: INITIAL_CURSOR },
+    }),
+    placeholderData: (previous) => previous,
+  })
+  const glanceRows = glanceQuery.data?.rows ?? EMPTY_OBLIGATION_QUEUE_ROWS
   const isInitialLoading = listQuery.isLoading
   const isError = listQuery.isError
   const keyboardEnabled = rows.length > 0 && !shortcutsBlocked
@@ -2808,7 +2845,11 @@ export function ObligationQueueRoute() {
                 statuses={statusDropdownOptions}
                 disabled={statusUpdatePending}
                 onChange={(id, status) => updateStatus({ id, status }, obligationQueueRow.status)}
-                compact={panelOpenIntent}
+                // 2026-06-08 (Yuqi /deadlines STATUS column): icon-only when
+                // the detail panel is open (space) OR when a single status
+                // scope is active (the label is redundant — every row shares
+                // it). Full label only in the "All" scope, panel closed.
+                compact={panelOpenIntent || singleStatusScopeActive}
                 readOnly={!canUpdateObligationStatus}
               />
               {/* Projected (rolled-forward / auto-generated) deadline awaiting CPA
@@ -2919,6 +2960,7 @@ export function ObligationQueueRoute() {
       panelOpenIntent,
       rowsById,
       setObligationQueueQuery,
+      singleStatusScopeActive,
       sort,
       statusDropdownOptions,
       statusLabels,
@@ -3582,9 +3624,9 @@ export function ObligationQueueRoute() {
           drills into the matching filtered scope. */}
       {!panelOpenIntent ? (
         <DeadlinesAtAGlance
-          rows={rows}
+          rows={glanceRows}
           reviewCount={statusFacetCounts.get('review') ?? 0}
-          isLoading={isInitialLoading}
+          isLoading={glanceQuery.isLoading}
           onOpenScope={(scope) => {
             if (scope === 'overdue') {
               void setObligationQueueQuery({ due: 'overdue', daysMin: null, daysMax: null })
@@ -4436,8 +4478,14 @@ export function ObligationQueueRoute() {
               // and the header can pin to the page below the filter bar.
               className={cn(
                 'flex flex-col',
+                // 2026-06-08 (Yuqi /deadlines ↔ /today table parity): the
+                // split-view card frame radius `rounded-xl` (12px) →
+                // `rounded-[14px]` to match /today's ActionsTable wrapper
+                // (`rounded-[14px] border border-divider-subtle bg-
+                // background-default`). Same hairline border + bg so the two
+                // tables share one card-frame language.
                 panelOpenIntent &&
-                  'min-h-0 flex-1 overflow-hidden rounded-xl border border-divider-subtle',
+                  'min-h-0 flex-1 overflow-hidden rounded-[14px] border border-divider-subtle bg-background-default',
               )}
             >
               {/* 2026-05-26 (Yuqi feedback — pagination position +
@@ -4785,7 +4833,16 @@ export function ObligationQueueRoute() {
                                   // share the same row pitch — scanning the
                                   // queue feels identical to scanning the
                                   // clients directory or the rules catalog.
-                                  'h-14 group cursor-pointer border-l-2 border-l-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
+                                  // 2026-06-08 (Yuqi /deadlines ↔ /today
+                                  // table parity): row hover unified with
+                                  // /today's ActionsTable — `hover:!bg-
+                                  // background-subtle` (was the canonical
+                                  // `bg-state-base-hover` from the TableRow
+                                  // primitive). The `!` beats the primitive's
+                                  // hover so the two queues share one hover
+                                  // tone; the active-row accent fill still
+                                  // wins where set below.
+                                  'h-14 group cursor-pointer border-l-2 border-l-transparent hover:!bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
                                   tableRow.original.id === explicitActiveRowId &&
                                     'bg-state-accent-hover-alt',
                                   // Within-group rows lose their bottom border so
@@ -4867,7 +4924,13 @@ export function ObligationQueueRoute() {
                                         // the cell padding is hardcoded rather
                                         // than gated on the (retired) `density`
                                         // control.
-                                        'px-2 py-1.5',
+                                        // 2026-06-08 (Yuqi /deadlines ↔ /today
+                                        // table parity): vertical cell pad
+                                        // `py-1.5` → `py-3` to match /today's
+                                        // ActionsTableRow `[&_td]:py-3` row
+                                        // height. The two queues now read at
+                                        // the same row pitch.
+                                        'px-2 py-3',
                                         meta?.cellClassName,
                                         indentContinuationCell && 'pl-4',
                                       )}
