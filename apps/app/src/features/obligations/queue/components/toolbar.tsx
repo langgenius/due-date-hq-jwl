@@ -1,24 +1,11 @@
 // Toolbar / chrome components for the obligation queue route (/deadlines).
 // Extracted from routes/obligations.tsx.
 import { nextHeaderSort } from '../helpers'
-import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { SearchInput } from '@/components/primitives/search-input'
 import { initialsFromName } from '@/lib/auth'
-import { orpc } from '@/lib/rpc'
-import { rpcErrorMessage } from '@/lib/rpc-error'
 import { cn } from '@/lib/utils'
 import { type MemberAssigneeOption, type ObligationQueueSort } from '@duedatehq/contracts'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@duedatehq/ui/components/ui/alert-dialog'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   DropdownMenu,
@@ -30,32 +17,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
-import { Input } from '@duedatehq/ui/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
-} from '@duedatehq/ui/components/ui/popover'
-import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CalendarDaysIcon,
   ChevronDown,
   ChevronsUpDown,
   ChevronUp,
-  CopyIcon,
-  Loader2,
-  RefreshCwIcon,
   SearchIcon,
   UserRoundIcon,
   XIcon,
 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { type ReactNode, useState } from 'react'
-import { toast } from 'sonner'
+import { type ReactNode } from 'react'
 
 export function ObligationQueueSortableHeader({
   label,
@@ -477,123 +450,6 @@ export function ObligationQueueActionChip({
   )
 }
 
-// Annual rollover, simplified to one button + a confirm dialog. Rolls the firm's
-// book forward to next filing year — generating *projected* (confirmed=false)
-// deadlines that stay out of the reminder pipeline until a CPA confirms them via
-// the Projected lens. Gated on migration.run (matches the server handler).
-
-export function RollForwardAction({ canRun }: { canRun: boolean }) {
-  const { t } = useLingui()
-  const queryClient = useQueryClient()
-  const [open, setOpen] = useState(false)
-  const targetFilingYear = new Date().getFullYear() + 1
-  const sourceFilingYear = targetFilingYear - 1
-  // Copy speaks Tax Year (the canonical identifier): a return filed in FY{n} is
-  // for tax year {n-1}. The engine stays filing-year driven (source/target
-  // FilingYear above feed the rollover); only the user-facing labels change.
-  const targetTaxYear = targetFilingYear - 1
-  const sourceTaxYear = sourceFilingYear - 1
-  const previewQuery = useQuery({
-    ...orpc.obligations.previewAnnualRollover.queryOptions({
-      input: { sourceFilingYear, targetFilingYear },
-    }),
-    enabled: open,
-  })
-  const createMutation = useMutation(
-    orpc.obligations.createAnnualRollover.mutationOptions({
-      onSuccess: (result) => {
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
-        setOpen(false)
-        toast.success(t`${result.summary.createdCount} projected deadlines created`, {
-          description: t`Review and confirm them with the Projected filter.`,
-        })
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't roll deadlines forward`, {
-          description: rpcErrorMessage(err) ?? t`Try again in a moment.`,
-        })
-      },
-    }),
-  )
-  const summary = previewQuery.data?.summary
-  const willCreate = summary ? summary.willCreateCount + summary.reviewCount : 0
-  const clientCount = summary?.clientCount ?? 0
-  // Surfaced so a "0 to create" result explains itself: already-rolled returns
-  // (target exists) vs returns with no verified target-year rule yet.
-  const duplicateCount = summary?.duplicateCount ?? 0
-  const skippedCount = summary?.skippedCount ?? 0
-  return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={!canRun}
-        title={
-          canRun
-            ? undefined
-            : t`Rolling deadlines forward requires owner, partner, manager, or preparer access.`
-        }
-        onClick={() => setOpen(true)}
-      >
-        <Trans>Generate Tax Year {targetTaxYear} deadlines</Trans>
-      </Button>
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              <Trans>Generate Tax Year {targetTaxYear} deadlines?</Trans>
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {previewQuery.isLoading ? (
-                <Trans>Calculating what will be created…</Trans>
-              ) : willCreate > 0 ? (
-                <Trans>
-                  Creates {willCreate} projected Tax Year {targetTaxYear} deadlines for{' '}
-                  {clientCount} clients from their completed Tax Year {sourceTaxYear} returns.
-                  Projected deadlines stay hidden from client reminders until you confirm them with
-                  the Projected filter.
-                </Trans>
-              ) : (
-                <Trans>
-                  No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year{' '}
-                  {sourceTaxYear} returns.
-                </Trans>
-              )}
-              {duplicateCount > 0 || skippedCount > 0 ? (
-                <span className="mt-2 block text-xs text-text-tertiary">
-                  <Trans>
-                    {duplicateCount} already rolled forward · {skippedCount} skipped (no verified
-                    Tax Year {targetTaxYear} rule)
-                  </Trans>
-                </span>
-              ) : null}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              <Trans>Cancel</Trans>
-            </AlertDialogCancel>
-            <Button
-              variant="accent"
-              disabled={createMutation.isPending || previewQuery.isLoading || willCreate === 0}
-              onClick={() => createMutation.mutate({ sourceFilingYear, targetFilingYear })}
-            >
-              {createMutation.isPending ? (
-                <Trans>Rolling forward…</Trans>
-              ) : (
-                <Trans>Roll forward</Trans>
-              )}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  )
-}
-
 // K-1 dependency wiring (PDF anti-pattern #4 + §6.4). Lives in the
 // Readiness tab because "what's upstream of us" is part of the
 // readiness picture — if a partner's 1040 is waiting on a
@@ -662,218 +518,3 @@ export function ObligationQueueEmptyState({
   )
 }
 
-export function CalendarSyncPopover() {
-  const { t } = useLingui()
-  const [open, setOpen] = useState(false)
-  // 2026-05-27 (Step 6 cont Q8.2 — P0): Regenerate previously fired
-  // immediately on click, silently invalidating the user's iCal
-  // subscription on every device that had the old URL. Gate behind
-  // an AlertDialog mirroring the canonical /calendar pattern at
-  // `features/calendar/calendar-page.tsx:215-286` so the user sees
-  // the consequence before committing.
-  const [regenerateConfirmOpen, setRegenerateConfirmOpen] = useState(false)
-  const queryClient = useQueryClient()
-  const subscriptionsQuery = useQuery({
-    ...orpc.calendar.listSubscriptions.queryOptions({ input: undefined }),
-    enabled: open,
-  })
-  const subscription =
-    subscriptionsQuery.data?.find((entry) => entry.scope === 'my' && entry.feedUrl) ?? null
-  const feedUrl = subscription?.feedUrl ?? null
-
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: orpc.calendar.key() })
-
-  const upsertMutation = useMutation(
-    orpc.calendar.upsertSubscription.mutationOptions({
-      onSuccess: () => {
-        toast.success(t`Calendar subscription enabled`)
-        void invalidate()
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't enable calendar subscription`, {
-          description:
-            rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
-        })
-      },
-    }),
-  )
-  const regenerateMutation = useMutation(
-    orpc.calendar.regenerateSubscription.mutationOptions({
-      onSuccess: () => {
-        toast.success(t`Calendar URL regenerated`)
-        void invalidate()
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't regenerate calendar URL`, {
-          description:
-            rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
-        })
-      },
-    }),
-  )
-
-  async function copyFeedUrl() {
-    if (!feedUrl) return
-    try {
-      await navigator.clipboard.writeText(feedUrl)
-      toast.success(t`Calendar URL copied`)
-    } catch {
-      toast.error(t`Couldn't copy calendar URL`)
-    }
-  }
-
-  return (
-    <>
-      {open ? (
-        <div
-          aria-hidden
-          className="fixed inset-0 z-40 bg-background-overlay-backdrop"
-          onClick={() => setOpen(false)}
-        />
-      ) : null}
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger
-          render={
-            <Button variant="outline" size="sm">
-              <CalendarDaysIcon data-icon="inline-start" />
-              <Trans>Calendar sync</Trans>
-            </Button>
-          }
-        />
-        <PopoverContent align="end" className="w-80 gap-3">
-          <PopoverHeader>
-            <PopoverTitle>
-              <Trans>My deadlines</Trans>
-            </PopoverTitle>
-            <p className="text-xs text-text-tertiary">
-              <Trans>
-                Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the
-                source of truth.
-              </Trans>
-            </p>
-          </PopoverHeader>
-          {subscriptionsQuery.isLoading ? (
-            <div className="grid gap-2">
-              <Skeleton className="h-9 w-full" />
-              <Skeleton className="h-9 w-full" />
-            </div>
-          ) : feedUrl ? (
-            <div className="grid gap-2">
-              <Input
-                readOnly
-                value={feedUrl}
-                className="font-mono text-xs"
-                aria-label={t`Calendar URL`}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" onClick={() => void copyFeedUrl()} className="flex-1">
-                  <CopyIcon data-icon="inline-start" />
-                  <Trans>Copy URL</Trans>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRegenerateConfirmOpen(true)}
-                  disabled={regenerateMutation.isPending || !subscription}
-                >
-                  <RefreshCwIcon
-                    data-icon="inline-start"
-                    className={cn(regenerateMutation.isPending && 'animate-spin')}
-                  />
-                  <Trans>Regenerate</Trans>
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="grid gap-2">
-              <p className="text-xs text-text-secondary">
-                <Trans>
-                  Generate a private subscription URL so deadlines assigned to you appear in your
-                  personal calendar.
-                </Trans>
-              </p>
-              <Button
-                size="sm"
-                onClick={() => upsertMutation.mutate({ scope: 'my', privacyMode: 'full' })}
-                disabled={upsertMutation.isPending}
-                aria-busy={upsertMutation.isPending}
-              >
-                {upsertMutation.isPending ? (
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
-                ) : null}
-                <Trans>Enable subscription</Trans>
-              </Button>
-            </div>
-          )}
-        </PopoverContent>
-      </Popover>
-      <AlertDialog
-        open={regenerateConfirmOpen}
-        onOpenChange={(next) => {
-          if (!next) setRegenerateConfirmOpen(false)
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              <Trans>Regenerate calendar URL?</Trans>
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              <Trans>
-                Every device subscribed to the current URL will silently stop syncing. You'll need
-                to share the new URL with everyone who had the old one.
-              </Trans>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <DestructiveChangePreview
-            title={<Trans>Regenerating commits these changes</Trans>}
-            lines={[
-              {
-                tone: 'remove',
-                label: <Trans>Invalidates</Trans>,
-                detail: <Trans>The current URL on every subscribed device</Trans>,
-              },
-              {
-                tone: 'add',
-                label: <Trans>Issues</Trans>,
-                detail: <Trans>A fresh URL — same scope, same privacy mode</Trans>,
-              },
-              {
-                tone: 'keep',
-                label: <Trans>Keeps</Trans>,
-                detail: <Trans>The events themselves — nothing scheduled is removed</Trans>,
-              },
-            ]}
-          />
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              <Trans>Cancel</Trans>
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive-primary"
-              disabled={regenerateMutation.isPending || !subscription}
-              onClick={() => {
-                if (!subscription) return
-                regenerateMutation.mutate(
-                  { id: subscription.id },
-                  { onSettled: () => setRegenerateConfirmOpen(false) },
-                )
-              }}
-            >
-              {regenerateMutation.isPending ? (
-                <>
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
-                  <Trans>Regenerating…</Trans>
-                </>
-              ) : (
-                <Trans>Regenerate URL</Trans>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  )
-}

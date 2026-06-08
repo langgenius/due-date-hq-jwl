@@ -434,7 +434,7 @@ export function useObligationQueueColumns(
           // consistency with /clients. The SVG flag glyph is gone;
           // the code itself sits in the unified outline pill.
           return (
-            <Badge variant="outline" className="text-xs font-normal tabular-nums">
+            <Badge variant="outline" className="text-xs font-normal">
               {state}
             </Badge>
           )
@@ -731,7 +731,7 @@ export function useObligationQueueColumns(
                 ) : (
                   <Badge
                     variant="destructive"
-                    className="h-5 px-1.5 text-caption-xs uppercase tracking-wide"
+                    className="h-5 px-1.5 text-caption-xs"
                     title={t`Filing submitted but the authority payment due ${formatDate(obligationQueueRow.paymentDueDate ?? '')} hasn't been confirmed. Penalty interest accrues until the wire lands.`}
                   >
                     <Trans>Payment {paymentLateDays}d late</Trans>

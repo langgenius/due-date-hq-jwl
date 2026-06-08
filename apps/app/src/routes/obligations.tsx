@@ -152,6 +152,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@duedatehq/ui/components/ui/popover'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
@@ -3932,7 +3933,6 @@ export function ObligationQueueRoute() {
                 inside the obligation drawer. */}
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <RollForwardAction canRun={canRunMigration} />
                 {/* "Applied · <chip> · Clear filters" strip removed
                 2026-05-21 — the row chips above are already the
                 authoritative active-filter display, and each carries
@@ -4014,6 +4014,20 @@ export function ObligationQueueRoute() {
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                {/* 2026-06-08 (density control): the `density` URL param
+                  was threaded to cell padding but had no UI. Shared
+                  <Segmented> wires it up so users can switch row
+                  density without hand-editing the URL. */}
+                <Segmented
+                  size="sm"
+                  ariaLabel={t`Row density`}
+                  value={density}
+                  onValueChange={(next) => void setObligationQueueQuery({ density: next })}
+                  options={[
+                    { value: 'comfortable', label: t`Comfortable` },
+                    { value: 'compact', label: t`Compact` },
+                  ]}
+                />
                 {/* 2026-05-26 (Yuqi feedback — "14 rows is misleading on
                   top right. should say the number of deadlines in
                   total"): label switched from `totalShown` (current
@@ -4257,7 +4271,7 @@ export function ObligationQueueRoute() {
                   bar is ugly, ... too long"): secondary actions
                   collapsed under a single "More" overflow menu so the
                   bar reads as ~5 affordances instead of 8. Order
-                  preserved (Snooze → Export → Remind to sign → Decide
+                  preserved (Export → Remind to sign → Decide
                   extension) so muscle memory survives the move. */}
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -4269,14 +4283,6 @@ export function ObligationQueueRoute() {
                   }
                 />
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem
-                    disabled
-                    title={t`Snooze (coming soon)`}
-                    aria-label={t`Snooze selected deadlines (coming soon)`}
-                  >
-                    <Clock className="mr-2 size-4" aria-hidden />
-                    <Trans>Snooze</Trans>
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => openExportDialog('selected')}>
                     <ArrowUpRightIcon className="mr-2 size-4" aria-hidden />
                     <Trans>Export selected</Trans>
@@ -13180,122 +13186,6 @@ function ObligationQueueActionChip({
       <span>{children}</span>
       {active ? <XIcon aria-hidden className="size-3.5" /> : null}
     </button>
-  )
-}
-
-// Annual rollover, simplified to one button + a confirm dialog. Rolls the firm's
-// book forward to next filing year — generating *projected* (confirmed=false)
-// deadlines that stay out of the reminder pipeline until a CPA confirms them via
-// the Projected lens. Gated on migration.run (matches the server handler).
-function RollForwardAction({ canRun }: { canRun: boolean }) {
-  const { t } = useLingui()
-  const queryClient = useQueryClient()
-  const [open, setOpen] = useState(false)
-  const targetFilingYear = new Date().getFullYear() + 1
-  const sourceFilingYear = targetFilingYear - 1
-  // Copy speaks Tax Year (the canonical identifier): a return filed in FY{n} is
-  // for tax year {n-1}. The engine stays filing-year driven (source/target
-  // FilingYear above feed the rollover); only the user-facing labels change.
-  const targetTaxYear = targetFilingYear - 1
-  const sourceTaxYear = sourceFilingYear - 1
-  const previewQuery = useQuery({
-    ...orpc.obligations.previewAnnualRollover.queryOptions({
-      input: { sourceFilingYear, targetFilingYear },
-    }),
-    enabled: open,
-  })
-  const createMutation = useMutation(
-    orpc.obligations.createAnnualRollover.mutationOptions({
-      onSuccess: (result) => {
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
-        setOpen(false)
-        toast.success(t`${result.summary.createdCount} projected deadlines created`, {
-          description: t`Review and confirm them with the Projected filter.`,
-        })
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't roll deadlines forward`, {
-          description: rpcErrorMessage(err) ?? t`Try again in a moment.`,
-        })
-      },
-    }),
-  )
-  const summary = previewQuery.data?.summary
-  const willCreate = summary ? summary.willCreateCount + summary.reviewCount : 0
-  const clientCount = summary?.clientCount ?? 0
-  // Surfaced so a "0 to create" result explains itself: already-rolled returns
-  // (target exists) vs returns with no verified target-year rule yet.
-  const duplicateCount = summary?.duplicateCount ?? 0
-  const skippedCount = summary?.skippedCount ?? 0
-  return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={!canRun}
-        title={
-          canRun
-            ? undefined
-            : t`Rolling deadlines forward requires owner, partner, manager, or preparer access.`
-        }
-        onClick={() => setOpen(true)}
-      >
-        <Trans>Generate Tax Year {targetTaxYear} deadlines</Trans>
-      </Button>
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              <Trans>Generate Tax Year {targetTaxYear} deadlines?</Trans>
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {previewQuery.isLoading ? (
-                <Trans>Calculating what will be created…</Trans>
-              ) : willCreate > 0 ? (
-                <Trans>
-                  Creates {willCreate} projected Tax Year {targetTaxYear} deadlines for{' '}
-                  {clientCount} clients from their completed Tax Year {sourceTaxYear} returns.
-                  Projected deadlines stay hidden from client reminders until you confirm them with
-                  the Projected filter.
-                </Trans>
-              ) : (
-                <Trans>
-                  No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year{' '}
-                  {sourceTaxYear} returns.
-                </Trans>
-              )}
-              {duplicateCount > 0 || skippedCount > 0 ? (
-                <span className="mt-2 block text-xs text-text-tertiary">
-                  <Trans>
-                    {duplicateCount} already rolled forward · {skippedCount} skipped (no verified
-                    Tax Year {targetTaxYear} rule)
-                  </Trans>
-                </span>
-              ) : null}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              <Trans>Cancel</Trans>
-            </AlertDialogCancel>
-            <Button
-              variant="accent"
-              disabled={createMutation.isPending || previewQuery.isLoading || willCreate === 0}
-              onClick={() => createMutation.mutate({ sourceFilingYear, targetFilingYear })}
-            >
-              {createMutation.isPending ? (
-                <Trans>Rolling forward…</Trans>
-              ) : (
-                <Trans>Roll forward</Trans>
-              )}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
   )
 }
 
