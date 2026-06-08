@@ -1,6 +1,6 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRight, Building2, Plus } from 'lucide-react'
+import { Plus, UsersIcon } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -333,8 +333,8 @@ function NeedsAttentionCard({
         // (#f9fafb = bg-background-section) while the Actions table stays
         // white. Different surface colors split the two regions and let
         // the white table — your work — read as the focal point.
-        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-[14px] border border-divider-subtle bg-background-section p-[18px] text-left',
-        'transition-colors duration-200 hover:border-divider-regular hover:bg-background-subtle',
+        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-[14px] bg-background-section p-[18px] text-left',
+        'transition-colors duration-200 hover:bg-background-subtle',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}
@@ -384,14 +384,14 @@ function NeedsAttentionCard({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="inline-flex shrink-0 cursor-help items-center gap-1 rounded-md border border-divider-subtle px-2 py-[2px] text-[11px] font-semibold text-text-secondary outline-none"
+                    className="inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold tracking-[0.2px] text-text-secondary outline-none"
                     {...props}
                   >
                     <StateBadge
                       code={alert.jurisdiction}
                       size="xs"
                       preview={false}
-                      style={{ width: 13, height: 13 }}
+                      style={{ width: 14, height: 14 }}
                     />
                     {alert.jurisdiction}
                   </span>
@@ -426,7 +426,7 @@ function NeedsAttentionCard({
             <TooltipTrigger
               render={(props) => (
                 <span
-                  className="shrink-0 cursor-help whitespace-nowrap text-xs font-medium text-text-muted tabular-nums outline-none"
+                  className="shrink-0 whitespace-nowrap text-xs font-medium text-text-muted tabular-nums outline-none"
                   {...props}
                 >
                   {formatRelativeTime(alert.publishedAt)}
@@ -459,7 +459,7 @@ function NeedsAttentionCard({
           {/* 2026-06-08 (Yuqi /today #5 "1px or 2px bigger"): title bumped
               14px → 15px so it reads as the card's clear anchor line. */}
           <h3
-            className="line-clamp-2 min-w-0 text-[15px] font-semibold leading-[1.3] text-text-primary"
+            className="line-clamp-2 min-w-0 text-[14px] font-semibold leading-[1.3] text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}
@@ -480,7 +480,10 @@ function NeedsAttentionCard({
             impacted > 0 ? 'text-text-secondary' : 'text-text-muted',
           )}
         >
-          <Building2 className="size-3 shrink-0" aria-hidden />
+          {/* 2026-06-08 (Yuqi /alerts #4 "love this icon, apply to all"):
+              Users icon for the affected-clients line, unified with the
+              /alerts AlertCard + PulseAlertRow. */}
+          <UsersIcon className="size-3 shrink-0" aria-hidden />
           {impacted > 0 ? (
             <Plural value={impacted} one="Affects # client" other="Affects # clients" />
           ) : (
@@ -502,7 +505,7 @@ function NeedsAttentionCard({
                         // colour"): fill stepped gray-100 → gray-200 and the
                         // initials to text-primary so the avatars read against
                         // the card's gray-50 surface instead of dissolving in.
-                        'inline-flex size-5 cursor-help items-center justify-center rounded-full bg-[#e9ebf0] text-[10px] font-semibold text-text-primary ring-[1.5px] ring-background-section outline-none',
+                        'inline-flex size-5 items-center justify-center rounded-full bg-[#e9ebf0] text-[10px] font-semibold text-text-primary ring-[1.5px] ring-background-section outline-none',
                         index > 0 && '-ml-1.5',
                       )}
                       {...props}
@@ -541,7 +544,7 @@ function NeedsAttentionCard({
           <TooltipTrigger
             render={(props) => (
               <span
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary hover:underline"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-xs font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary"
                 onClick={(event) => {
                   event.stopPropagation()
                   window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
@@ -549,7 +552,6 @@ function NeedsAttentionCard({
                 {...props}
               >
                 <span className="max-w-[160px] truncate">{alert.source}</span>
-                <ArrowUpRight className="size-3 shrink-0" aria-hidden />
               </span>
             )}
           />
