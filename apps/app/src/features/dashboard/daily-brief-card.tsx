@@ -59,7 +59,7 @@ export function DailyBriefCard({
         <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-primary">
           <Trans>Daily Brief</Trans>
         </h2>
-        <span className="text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
+        <span className="text-[11px] font-medium tracking-[0.4px] text-text-tertiary uppercase">
           <Trans>Failed</Trans>
         </span>
         <span className="min-w-0 flex-1 truncate text-xs text-text-tertiary">
