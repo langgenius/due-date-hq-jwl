@@ -6,7 +6,7 @@ import { describeTaxCode } from '@/lib/tax-codes'
 
 /**
  * Inline human-readable tax-code label. By default it includes a
- * tooltip exposing the raw code, jurisdiction, and a plain-English
+ * tooltip with the human label, jurisdiction, and a plain-English
  * description; set `tooltip={false}` when the surrounding row already
  * owns the interaction affordance.
  *
@@ -53,7 +53,7 @@ function TaxCodeLabel({
       </TooltipTrigger>
       <TooltipContent>
         <TaxCodeTooltipBody
-          code={meta.code}
+          label={meta.label}
           jurisdiction={meta.jurisdiction}
           description={meta.description}
         />
@@ -113,7 +113,7 @@ function TaxCodeBadge({
       />
       <TooltipContent>
         <TaxCodeTooltipBody
-          code={meta.code}
+          label={meta.label}
           jurisdiction={meta.jurisdiction}
           description={meta.description}
         />
@@ -123,17 +123,17 @@ function TaxCodeBadge({
 }
 
 function TaxCodeTooltipBody({
-  code,
+  label,
   jurisdiction,
   description,
 }: {
-  code: string
+  label: string
   jurisdiction: string
   description: string
 }) {
   return (
     <div className="flex max-w-[240px] flex-col gap-0.5 text-left">
-      <span className="font-mono text-caption text-components-tooltip-text">{code}</span>
+      <span className="text-caption font-semibold text-components-tooltip-text">{label}</span>
       <span className="text-caption-xs uppercase tracking-eyebrow-tight opacity-70">
         {jurisdiction}
       </span>
