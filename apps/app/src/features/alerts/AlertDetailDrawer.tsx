@@ -51,7 +51,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { describeTaxCode } from '@/lib/tax-codes'
-import { formatDate, formatRelativeTime } from '@/lib/utils'
+import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 // 2026-06-05 (pre-CI green-up): `EntityAuditActivityPanel` import
@@ -144,6 +144,39 @@ function formatDeadlineDate(iso: string): string {
   }).format(new Date(`${iso}T00:00:00.000Z`))
 }
 
+/**
+ * 2026-06-08 (Yuqi alert-detail feedback #7/#9 "make AI signals consistent"):
+ * one canonical AI affordance shared by every AI-read surface in the detail
+ * (the DeadlineChangeCard date diff + the Extracted-facts header). Same
+ * Astroid glyph, same size-3.5, same text-text-tertiary, same "AI-extracted"
+ * wording + tooltip — so the two surfaces read as one vocabulary.
+ */
+function AiExtractedSignal() {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={(props) => (
+          <span
+            className="inline-flex cursor-help items-center gap-1 text-[11px] font-medium text-text-tertiary outline-none"
+            {...props}
+          >
+            <Astroid className="size-3.5" aria-hidden />
+            <Trans>AI-extracted</Trans>
+          </span>
+        )}
+      />
+      <TooltipContent>
+        <div className="max-w-[260px] text-left">
+          <Trans>
+            The fields below are an AI extraction of the source bulletin. Open the official source
+            to verify before applying changes to clients.
+          </Trans>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
 function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
   const oldIso = detail.originalDueDate
   const newIso = detail.newDueDate
@@ -162,23 +195,17 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
     .filter(Boolean)
     .join(', ')
   return (
-    <section
-      className="flex flex-col gap-2.5 pl-3"
-      style={{ borderLeftWidth: 3, borderLeftColor: '#f25f4c' }}
-    >
+    <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-default p-4">
       {/* 2026-06-08 (Yuqi alert-detail feedback #10 "indicate AI-extracted"):
           the date diff below is read by the model from the source bulletin, so
           the eyebrow carries the same restrained AI affordance as the
-          EXTRACTED FACTS header — the <Astroid> glyph + a short label. Reuses
-          that treatment so the two AI-read surfaces read as one vocabulary. */}
+          EXTRACTED FACTS header — the shared <AiExtractedSignal>. Reuses that
+          treatment so the two AI-read surfaces read as one vocabulary. */}
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[10px] font-bold tracking-[0.8px] text-text-muted uppercase">
+        <span className="text-[12px] font-semibold text-text-secondary">
           <Trans>Deadline change</Trans>
         </span>
-        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-text-tertiary">
-          <Astroid className="size-3" aria-hidden />
-          <Trans>AI-read from the alert</Trans>
-        </span>
+        <AiExtractedSignal />
       </div>
       {/* 2026-06-08 (Yuqi alert-detail feedback #11 "ugly" + #15 "smaller"):
           the new date drops 18px → 15px so the old→new pair reads as one
@@ -289,7 +316,7 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
   return (
     <section className="flex flex-col gap-3">
       <header className="flex items-baseline gap-2">
-        <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+        <span className="text-[12px] font-semibold text-text-secondary">
           <Trans>Activity</Trans>
         </span>
         <span className="text-[11px] font-medium text-text-muted tabular-nums">
@@ -1004,10 +1031,25 @@ export function AlertDetailDrawer({
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
                   <span className="ml-auto flex shrink-0 items-center gap-2 text-[12px] font-medium text-text-tertiary">
-                    <span className="truncate">{detail.alert.source}</span>
+                    {detail.alert.sourceUrl ? (
+                      <a
+                        href={detail.alert.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(event) => event.stopPropagation()}
+                        className="inline-flex items-center gap-1 text-text-tertiary underline-offset-2 hover:text-text-secondary hover:underline"
+                      >
+                        <span className="truncate">{detail.alert.source}</span>
+                        <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+                      </a>
+                    ) : (
+                      <span className="truncate underline-offset-2 hover:underline">
+                        {detail.alert.source}
+                      </span>
+                    )}
                     <span aria-hidden>·</span>
                     <span className="tabular-nums">
-                      {formatRelativeTime(detail.alert.publishedAt)}
+                      {formatDatePretty(detail.alert.publishedAt, { alwaysShowYear: true })}
                     </span>
                     {actionPill && actionLabel ? (
                       <span
@@ -1148,7 +1190,7 @@ export function AlertDetailDrawer({
                       `getByRole('heading', { name: /Affected clients/ })`.
                       Switched to `<h3>` so screen readers + Playwright
                       see this as a heading. Typography unchanged. */}
-                  <h3 className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                  <h3 className="text-[12px] font-semibold text-text-secondary">
                     <Trans>Affected clients</Trans>
                     {detail.affectedClients.length > 0 ? (
                       <span className="ml-2 tabular-nums">{detail.affectedClients.length}</span>
@@ -1283,30 +1325,11 @@ export function AlertDetailDrawer({
                 icon carries the entire "this is AI, verify it"
                 semantic without claiming a row + chrome. */}
             <section className="flex flex-col gap-3">
-              <header className="flex items-center gap-1.5">
-                <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+              <header className="flex items-center gap-2">
+                <span className="text-[12px] font-semibold text-text-secondary">
                   <Trans>Extracted facts</Trans>
                 </span>
-                <Tooltip>
-                  <TooltipTrigger
-                    render={(props) => (
-                      <span
-                        className="inline-flex cursor-help items-center text-text-tertiary outline-none"
-                        {...props}
-                      >
-                        <Astroid className="size-3.5" aria-hidden />
-                      </span>
-                    )}
-                  />
-                  <TooltipContent>
-                    <div className="max-w-[260px] text-left">
-                      <Trans>
-                        The fields below are an AI extraction of the source bulletin. Open the
-                        official source to verify before applying changes to clients.
-                      </Trans>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
+                <AiExtractedSignal />
               </header>
               <AlertStructuredFields detail={detail} />
             </section>
@@ -1407,7 +1430,7 @@ export function AlertDetailDrawer({
             {detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
               <section className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                  <span className="text-[12px] font-semibold text-text-secondary">
                     <Trans>Source extract</Trans>
                   </span>
                   {detail.alert.sourceUrl ? (
@@ -1423,7 +1446,7 @@ export function AlertDetailDrawer({
                 </div>
                 <blockquote className="rounded-lg bg-background-subtle px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
                   &ldquo;{detail.alert.summary}&rdquo;
-                  <footer className="mt-2 font-sans text-[11px] font-medium text-text-tertiary">
+                  <footer className="mt-2 font-sans text-[11px] font-medium text-text-muted">
                     {detail.alert.source}
                     {detail.alert.publishedAt ? (
                       <>
@@ -1465,18 +1488,18 @@ export function AlertDetailDrawer({
               return (
                 <section className="flex flex-col gap-3">
                   <header className="flex items-baseline justify-between">
-                    <span className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                    <span className="text-[12px] font-semibold text-text-secondary">
                       <Trans>Provenance &amp; confidence</Trans>
                     </span>
                   </header>
                   <div className="grid grid-cols-[1fr_1fr] gap-3">
                     {/* Confidence cell */}
                     <div className="flex flex-col gap-1.5 border-r border-divider-subtle pr-6">
-                      <span className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                      <span className="text-[12px] font-semibold text-text-secondary">
                         <Trans>AI confidence</Trans>
                       </span>
                       <div className="flex items-baseline gap-2">
-                        <span className={cn('text-2xl font-semibold tabular-nums', confToneClass)}>
+                        <span className={cn('text-sm font-semibold tabular-nums', confToneClass)}>
                           {confPct}%
                         </span>
                         <span
@@ -1502,7 +1525,7 @@ export function AlertDetailDrawer({
                     </div>
                     {/* Source / tags cell */}
                     <div className="flex flex-col gap-1.5 pl-2">
-                      <span className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                      <span className="text-[12px] font-semibold text-text-secondary">
                         <Trans>Source &amp; audit</Trans>
                       </span>
                       <div className="flex flex-col gap-1 text-xs">

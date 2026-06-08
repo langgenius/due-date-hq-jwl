@@ -33,10 +33,12 @@ export function AlertListRail({
   alerts,
   activeId,
   onSelect,
+  onCloseDetail,
 }: {
   alerts: readonly PulseAlertPublic[]
   activeId: string | null
   onSelect: (alertId: string) => void
+  onCloseDetail?: () => void
 }) {
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
@@ -69,9 +71,23 @@ export function AlertListRail({
     <div className="flex h-full w-[380px] shrink-0 flex-col border-r border-divider-subtle bg-background-default">
       {/* ListHead — "Alerts · N active". */}
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
-        <span className="text-[15px] font-semibold text-text-primary">
-          <Trans>Alerts</Trans>
-        </span>
+        {/* 2026-06-08 (Yuqi /alerts G "make the Alerts title navigate back to
+            the list"): the head title closes the open detail and returns to the
+            /alerts list. Rendered as a button when a close handler is wired;
+            falls back to a plain label otherwise. */}
+        {onCloseDetail ? (
+          <button
+            type="button"
+            onClick={onCloseDetail}
+            className="-mx-1 rounded-md px-1 text-[15px] font-semibold text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <Trans>Alerts</Trans>
+          </button>
+        ) : (
+          <span className="text-[15px] font-semibold text-text-primary">
+            <Trans>Alerts</Trans>
+          </span>
+        )}
         {activeCount > 0 ? (
           <CountPill>
             <Plural value={activeCount} one="# active" other="# active" />
@@ -164,11 +180,15 @@ function RailItem({
         // override the left accent below.
         // 2026-06-08 (Yuqi "左边 list 太密密麻麻"): roomier item padding
         // (py-4) + a touch more column gap so the rail breathes.
-        'flex w-full gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
+        'flex w-full gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-[background-color,opacity]',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
+        // 2026-06-08 (Yuqi /alerts F "non-active items dimmed more so the open
+        // one stands out"): the whole inactive row drops to opacity-60 (badges
+        // included) and lifts back to full strength on hover; the active row
+        // stays opacity-100 with its 2px left accent.
         active
-          ? 'border-l-2 border-l-state-accent-solid bg-[#fafbfc]'
-          : 'border-l-2 border-l-transparent hover:bg-state-base-hover',
+          ? 'border-l-2 border-l-state-accent-solid bg-[#fafbfc] opacity-100'
+          : 'border-l-2 border-l-transparent opacity-60 hover:bg-state-base-hover hover:opacity-100',
       )}
     >
       {/* Time column (60px). */}

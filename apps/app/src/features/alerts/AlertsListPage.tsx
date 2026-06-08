@@ -737,7 +737,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
             The card list stays mounted-but-hidden so its filter and
             scroll state survive closing the detail. */}
         {panelOpen ? (
-          <AlertListRail alerts={sortedAlerts} activeId={openAlertId} onSelect={openDrawer} />
+          <AlertListRail
+            alerts={sortedAlerts}
+            activeId={openAlertId}
+            onSelect={openDrawer}
+            onCloseDetail={closeDrawer}
+          />
         ) : null}
         {/* List column vertical rhythm — 2026-06-04 round 40 (Yuqi
             "更紧一点" / "tighter"): gap between filter row → status
