@@ -38,6 +38,7 @@ import {
   PreviewCardContent,
   PreviewCardTrigger,
 } from '@duedatehq/ui/components/ui/preview-card'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import seal_AK from './state-seals/AK.png?url'
 import seal_AL from './state-seals/AL.png?url'
@@ -339,4 +340,27 @@ StateBadge.displayName = 'StateBadge'
 export function getJurisdictionName(code: string): string {
   const upper = code.toUpperCase()
   return NAMES[upper] ?? upper
+}
+
+/**
+ * JurisdictionLabel — the canonical inline jurisdiction treatment for DETAIL
+ * headers: the seal (16px) + bold mono code + full jurisdiction name. One
+ * component so the alert and deadline detail panels (and any future header)
+ * read identically instead of each hand-rolling the same StateBadge + code +
+ * name markup. (The compact bordered seal+code chip used in list ROWS / rails
+ * is a different, denser treatment and stays inline.)
+ */
+export function JurisdictionLabel({ code, className }: { code: string; className?: string }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex h-[22px] shrink-0 items-center gap-1.5 text-text-secondary',
+        className,
+      )}
+    >
+      <StateBadge code={code} size="xs" style={{ width: 16, height: 16 }} />
+      <span className="font-mono text-[12px] font-bold tracking-[0.7px] uppercase">{code}</span>
+      <span className="text-[13px] font-medium">{getJurisdictionName(code)}</span>
+    </span>
+  )
 }

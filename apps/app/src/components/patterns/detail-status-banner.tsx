@@ -1,0 +1,91 @@
+import type { ReactNode } from 'react'
+import type { LucideIcon } from 'lucide-react'
+
+import { cn } from '@duedatehq/ui/lib/utils'
+
+/**
+ * DetailStatusBanner — the colored top-of-panel status band shared by the alert
+ * detail (DecisionBanners) and the deadline detail. One band, picked from real
+ * state, sitting flush at the top of the panel under the page header.
+ *
+ * 2026-06-08 (Yuqi "ensure all elements are sustainable and reusing
+ * components"): both panels had hand-rolled their own copies of this band — the
+ * deadline detail's overdue/done/pending banner and the alert detail's
+ * error/applied/pending banners were four near-identical inline divs. This is
+ * the single implementation they share.
+ *
+ * Two layouts:
+ *   • compact — the h-7 single-line form (title left, optional `note` right),
+ *     pinned to the rail segmented-control height. Used for the steady-state
+ *     "pending review" / "past deadline" bands.
+ *   • stacked (default) — icon + title + `description`, with an optional
+ *     right-side `action` (e.g. Retry / Undo). Used for the richer error /
+ *     applied states.
+ */
+export type DetailBannerTone = 'danger' | 'success' | 'warning'
+
+const TONE: Record<DetailBannerTone, { band: string; text: string }> = {
+  danger: { band: 'bg-[#fee4e2]', text: 'text-text-destructive' },
+  success: { band: 'bg-components-badge-bg-green-soft', text: 'text-text-success' },
+  warning: { band: 'bg-[#fffbeb]', text: 'text-text-warning' },
+}
+
+export function DetailStatusBanner({
+  tone,
+  icon: Icon,
+  title,
+  description,
+  action,
+  note,
+  compact = false,
+}: {
+  tone: DetailBannerTone
+  icon: LucideIcon
+  title: ReactNode
+  /** Second line in the stacked layout (ignored when `compact`). */
+  description?: ReactNode
+  /** Right-side control in the stacked layout, e.g. a Retry/Undo button. */
+  action?: ReactNode
+  /** Right-side meta in the compact layout, e.g. "conf 94% · due in 8 days". */
+  note?: ReactNode
+  compact?: boolean
+}) {
+  const c = TONE[tone]
+
+  if (compact) {
+    return (
+      <div
+        className={cn(
+          'flex h-7 w-full items-center gap-2.5 border-b border-divider-subtle px-12',
+          c.band,
+        )}
+      >
+        <Icon className={cn('size-4 shrink-0', c.text)} aria-hidden />
+        <span className={cn('text-[13px] font-semibold', c.text)}>{title}</span>
+        {note ? (
+          <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-text-tertiary tabular-nums">
+            {note}
+          </span>
+        ) : null}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className={cn(
+        'flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle px-12 py-3',
+        c.band,
+      )}
+    >
+      <Icon className={cn('mt-0.5 size-4 shrink-0', c.text)} aria-hidden />
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className={cn('text-[13px] font-semibold', c.text)}>{title}</span>
+        {description ? (
+          <span className="text-[12px] leading-[1.5] text-text-tertiary">{description}</span>
+        ) : null}
+      </div>
+      {action ? <div className="shrink-0">{action}</div> : null}
+    </div>
+  )
+}

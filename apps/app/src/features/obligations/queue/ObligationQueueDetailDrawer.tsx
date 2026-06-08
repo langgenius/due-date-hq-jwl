@@ -49,7 +49,8 @@ import {
 } from './helpers'
 import type { AuthorityRejectionDraft, DeadlineInputRequestDraft } from './types'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
-import { getJurisdictionName, StateBadge } from '@/components/primitives/state-badge'
+import { JurisdictionLabel } from '@/components/primitives/state-badge'
+import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
 import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
@@ -1412,67 +1413,55 @@ export function ObligationQueueDetailDrawer({
               row.status === 'done' || row.status === 'completed' || row.status === 'paid'
             const isOverdue = row.daysUntilDue < 0 && !isDone
             const officialIso = row.filingDueDate ?? row.baseDueDate ?? row.currentDueDate
-            const tone = isOverdue ? 'overdue' : isDone ? 'done' : 'pending'
-            const bandClass =
-              tone === 'overdue'
-                ? 'bg-[#fee4e2]'
-                : tone === 'done'
-                  ? 'bg-components-badge-bg-green-soft'
-                  : 'bg-[#fffbeb]'
-            const textClass =
-              tone === 'overdue'
-                ? 'text-text-destructive'
-                : tone === 'done'
-                  ? 'text-text-success'
-                  : 'text-text-warning'
-            const Icon =
-              tone === 'overdue'
-                ? AlertTriangleIcon
-                : tone === 'done'
-                  ? CheckCircle2Icon
-                  : AlarmClockIcon
             // Count strings use the <Plural>/<Trans> COMPONENTS (not the
             // `plural()`/`i18n._` macro pair) — the macro expands to reference an
             // `i18n` binding that isn't in this component's scope, which tsgo
             // can't see (build-time expansion) but crashes at runtime.
-            const label =
-              tone === 'overdue' ? (
-                <Trans>
-                  Past deadline ·{' '}
-                  <Plural
-                    value={Math.abs(row.daysUntilDue)}
-                    one="# day overdue"
-                    other="# days overdue"
-                  />
-                </Trans>
-              ) : tone === 'done' ? (
-                row.status === 'completed' ? <Trans>Completed</Trans> : <Trans>Filed</Trans>
-              ) : (
-                statusLabels[row.status]
-              )
             const timingNote =
-              tone === 'done' ? (
+              isDone || isOverdue ? (
                 officialIso ? t`Due ${formatDate(officialIso)}` : null
               ) : row.daysUntilDue >= 0 ? (
                 <Plural value={row.daysUntilDue} one="due in # day" other="due in # days" />
-              ) : officialIso ? (
-                t`Due ${formatDate(officialIso)}`
               ) : null
+            if (isOverdue) {
+              return (
+                <DetailStatusBanner
+                  compact
+                  tone="danger"
+                  icon={AlertTriangleIcon}
+                  title={
+                    <Trans>
+                      Past deadline ·{' '}
+                      <Plural
+                        value={Math.abs(row.daysUntilDue)}
+                        one="# day overdue"
+                        other="# days overdue"
+                      />
+                    </Trans>
+                  }
+                  note={timingNote}
+                />
+              )
+            }
+            if (isDone) {
+              return (
+                <DetailStatusBanner
+                  compact
+                  tone="success"
+                  icon={CheckCircle2Icon}
+                  title={row.status === 'completed' ? <Trans>Completed</Trans> : <Trans>Filed</Trans>}
+                  note={timingNote}
+                />
+              )
+            }
             return (
-              <div
-                className={cn(
-                  'flex h-7 w-full items-center gap-2.5 border-b border-divider-subtle px-12',
-                  bandClass,
-                )}
-              >
-                <Icon className={cn('size-4 shrink-0', textClass)} aria-hidden />
-                <span className={cn('text-[13px] font-semibold', textClass)}>{label}</span>
-                {timingNote ? (
-                  <span className="ml-auto shrink-0 text-[12px] font-medium text-text-tertiary tabular-nums">
-                    {timingNote}
-                  </span>
-                ) : null}
-              </div>
+              <DetailStatusBanner
+                compact
+                tone="warning"
+                icon={AlarmClockIcon}
+                title={statusLabels[row.status]}
+                note={timingNote}
+              />
             )
           })()
         : null}
@@ -1628,25 +1617,10 @@ export function ObligationQueueDetailDrawer({
             ) : null}
             {row.jurisdiction || row.taxYear || (row.taxPeriodStart && row.taxPeriodEnd) ? (
               <span className="inline-flex flex-wrap items-baseline gap-x-2 text-text-tertiary">
-                {/* 2026-06-08 (Yuqi "still very different to the alerts
-                    detail"): jurisdiction matches the alerts detail header —
-                    the canonical StateBadge seal + code + full name, inline
-                    (was a plain bordered text chip with no seal). */}
-                {row.jurisdiction ? (
-                  <span className="inline-flex h-[22px] shrink-0 items-center gap-1.5 text-text-secondary">
-                    <StateBadge
-                      code={row.jurisdiction}
-                      size="xs"
-                      style={{ width: 16, height: 16 }}
-                    />
-                    <span className="font-mono text-[12px] font-bold tracking-[0.7px] uppercase">
-                      {row.jurisdiction}
-                    </span>
-                    <span className="text-[13px] font-medium">
-                      {getJurisdictionName(row.jurisdiction)}
-                    </span>
-                  </span>
-                ) : null}
+                {/* 2026-06-08 (Yuqi parity + "reuse components"): the shared
+                    JurisdictionLabel primitive — the same seal + code + full
+                    name the alerts detail header uses. */}
+                {row.jurisdiction ? <JurisdictionLabel code={row.jurisdiction} /> : null}
                 {row.taxYear ? (
                   <span className="tabular-nums font-semibold text-text-primary">
                     <Trans>Tax Year {row.taxYear}</Trans>

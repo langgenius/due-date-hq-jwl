@@ -58,7 +58,8 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 // retired with the AlertActivitySection deletion above. Restore if
 // the per-alert audit timeline is ever re-mounted in the drawer.
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
-import { getJurisdictionName, StateBadge } from '@/components/primitives/state-badge'
+import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/state-badge'
+import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { impactBadgeFromAlert, actionPillFromAlert } from './components/pulse-alert-chrome'
@@ -345,60 +346,60 @@ function DecisionBanners({
 
   if (applyError) {
     return (
-      <div className="flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle bg-[#fee4e2] px-12 py-3">
-        <CircleAlertIcon className="mt-0.5 size-4 shrink-0 text-text-destructive" aria-hidden />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[13px] font-semibold text-text-destructive">
-            <Trans>Couldn&rsquo;t apply to clients</Trans>
-          </span>
-          <span className="text-[12px] leading-[1.5] text-text-tertiary">
-            <Trans>
-              The change couldn&rsquo;t be written. Your selection was kept — retry, or open the
-              source to re-verify before applying.
-            </Trans>
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="shrink-0 text-[12px] font-semibold text-text-destructive underline-offset-2 hover:underline"
-        >
-          <Trans>Retry now</Trans>
-        </button>
-      </div>
+      <DetailStatusBanner
+        tone="danger"
+        icon={CircleAlertIcon}
+        title={<Trans>Couldn&rsquo;t apply to clients</Trans>}
+        description={
+          <Trans>
+            The change couldn&rsquo;t be written. Your selection was kept — retry, or open the
+            source to re-verify before applying.
+          </Trans>
+        }
+        action={
+          <button
+            type="button"
+            onClick={onRetry}
+            className="text-[12px] font-semibold text-text-destructive underline-offset-2 hover:underline"
+          >
+            <Trans>Retry now</Trans>
+          </button>
+        }
+      />
     )
   }
 
   if (alert.status === 'applied' || alert.status === 'partially_applied') {
     return (
-      <div className="flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle bg-components-badge-bg-green-soft px-12 py-3">
-        <ShieldCheckIcon className="mt-0.5 size-4 shrink-0 text-text-success" aria-hidden />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[13px] font-semibold text-text-success">
-            {alert.matchedCount > 0 ? (
-              <Plural
-                value={alert.matchedCount}
-                one="Applied to # client · logged to audit ledger"
-                other="Applied to # clients · logged to audit ledger"
-              />
-            ) : (
-              <Trans>Applied · logged to audit ledger</Trans>
-            )}
-          </span>
-          <span className="text-[12px] leading-[1.5] text-text-tertiary">
-            <Trans>You can undo for the next 24 hours. After that, the change is committed.</Trans>
-          </span>
-        </div>
-        {REVERTABLE_STATUSES.has(alert.status) ? (
-          <button
-            type="button"
-            onClick={onUndo}
-            className="shrink-0 text-[12px] font-semibold text-text-success underline-offset-2 hover:underline"
-          >
-            <Trans>Undo</Trans>
-          </button>
-        ) : null}
-      </div>
+      <DetailStatusBanner
+        tone="success"
+        icon={ShieldCheckIcon}
+        title={
+          alert.matchedCount > 0 ? (
+            <Plural
+              value={alert.matchedCount}
+              one="Applied to # client · logged to audit ledger"
+              other="Applied to # clients · logged to audit ledger"
+            />
+          ) : (
+            <Trans>Applied · logged to audit ledger</Trans>
+          )
+        }
+        description={
+          <Trans>You can undo for the next 24 hours. After that, the change is committed.</Trans>
+        }
+        action={
+          REVERTABLE_STATUSES.has(alert.status) ? (
+            <button
+              type="button"
+              onClick={onUndo}
+              className="text-[12px] font-semibold text-text-success underline-offset-2 hover:underline"
+            >
+              <Trans>Undo</Trans>
+            </button>
+          ) : undefined
+        }
+      />
     )
   }
 
@@ -415,27 +416,27 @@ function DecisionBanners({
     alert.firmImpact !== 'no_current_match' &&
     detail.applyReadiness.status !== 'ready'
   ) {
+    // 2026-06-08 (Yuqi /alerts D3 "banner height matches the All/Unresolved
+    // segmented control in the rail"): the compact single-line band is pinned to
+    // the Segmented size="sm" track height (h-7) via DetailStatusBanner.
     return (
-      // 2026-06-08 (Yuqi /alerts D3 "banner height matches the
-      // All/Unresolved segmented control in the rail"): the single-line
-      // pending band is pinned to the Segmented size="sm" track height
-      // (h-7 / 28px) — `h-7` + vertical-centered content replaces the
-      // free `py-2.5` so the two horizontal controls read at one height.
-      <div className="flex h-7 w-full items-center gap-2.5 border-b border-divider-subtle bg-[#fffbeb] px-12">
-        <CircleAlertIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
-        <span className="text-[13px] font-semibold text-text-warning">
-          <Trans>Pending your review</Trans>
-        </span>
-        <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-text-tertiary tabular-nums">
-          <span>{t`conf ${confPct}%`}</span>
-          {dueInDays !== null && dueInDays >= 0 ? (
-            <>
-              <span aria-hidden>·</span>
-              <span>{t`due in ${dueInDays} days`}</span>
-            </>
-          ) : null}
-        </span>
-      </div>
+      <DetailStatusBanner
+        compact
+        tone="warning"
+        icon={CircleAlertIcon}
+        title={<Trans>Pending your review</Trans>}
+        note={
+          <>
+            <span>{t`conf ${confPct}%`}</span>
+            {dueInDays !== null && dueInDays >= 0 ? (
+              <>
+                <span aria-hidden>·</span>
+                <span>{t`due in ${dueInDays} days`}</span>
+              </>
+            ) : null}
+          </>
+        }
+      />
     )
   }
 
@@ -986,27 +987,10 @@ export function AlertDetailDrawer({
                       {t`HIGH IMPACT`}
                     </span>
                   ) : null}
-                  {/* 2026-06-08 (Pencil ibEoz header `flag CA California`):
-                      jurisdiction reads as a flag glyph + code + full
-                      state name, inline (no chip). */}
-                  {/* 2026-06-08 (Yuqi alert-detail feedback #10 "wrong badge
-                      style"): the jurisdiction uses the canonical circular
-                      StateBadge motif + mono code + full name (same as the
-                      /today card + /alerts row), replacing the generic flag
-                      glyph. */}
-                  <span className="inline-flex h-[22px] shrink-0 items-center gap-1.5 text-text-secondary">
-                    <StateBadge
-                      code={detail.alert.jurisdiction}
-                      size="xs"
-                      style={{ width: 16, height: 16 }}
-                    />
-                    <span className="font-mono text-[12px] font-bold tracking-[0.7px] uppercase">
-                      {detail.alert.jurisdiction}
-                    </span>
-                    <span className="text-[13px] font-medium">
-                      {getJurisdictionName(detail.alert.jurisdiction)}
-                    </span>
-                  </span>
+                  {/* 2026-06-08 (Yuqi "reuse components"): the shared
+                      JurisdictionLabel primitive — seal + mono code + full name,
+                      identical to the deadline detail header. */}
+                  <JurisdictionLabel code={detail.alert.jurisdiction} />
                   <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-[11px] font-bold tracking-[0.7px] text-text-accent uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
