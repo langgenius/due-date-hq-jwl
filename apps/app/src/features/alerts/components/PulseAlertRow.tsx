@@ -1013,7 +1013,12 @@ function PulseAlertList({
     // bounds (tooltips, popovers, sticky child shadows). The
     // rounded radius + inner row borders carry the visual
     // boundary on their own; the clip wasn't earning its keep.
-    <div className="flex flex-col rounded-[12px] border border-divider-regular bg-background-default">
+    // 2026-06-08 (Yuqi "add overflow to clip"): restored
+    // `overflow-hidden` — the full-bleed gray day-group bands have
+    // square corners that poked past the rounded-12 frame at the
+    // top/bottom. Tooltips/popovers inside rows portal to <body>, so
+    // the clip no longer truncates them.
+    <div className="flex flex-col overflow-hidden rounded-[12px] border border-divider-regular bg-background-default">
       {/* 2026-06-08 (Yuqi "remove"): the BulkSelectStrip ("Select all · N
           dispatches", Pencil `TAamJ`) is removed. Per-row checkboxes still
           drive bulk selection in selectable mode, and the floating
