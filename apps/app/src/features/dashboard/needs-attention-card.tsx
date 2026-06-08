@@ -1,6 +1,6 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRight, Building2, MapPin, Plus } from 'lucide-react'
+import { ArrowUpRight, Building2, Plus } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -15,6 +15,7 @@ import { alertTone } from '@/features/alerts/alert-tone'
 // truncated label with the URL on tooltip hover.
 import { impactBadgeFromAlert } from '@/features/alerts/components/pulse-alert-chrome'
 import { changeKindLabel } from '@/features/alerts/components/PulseChangeKindChip'
+import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -376,9 +377,9 @@ function NeedsAttentionCard({
               </span>
             ) : null}
 
-            {/* STATE — jurisdiction pill. Yuqi: add a tiny state/location
-                graphic (#9) and use the card's one font family (#11, no
-                mono). Tooltip preserves the full jurisdiction on hover. */}
+            {/* STATE — jurisdiction pill. Yuqi: the actual state badge (the
+                seal graphic used on /alerts), not a generic pin. Tooltip
+                preserves the full jurisdiction on hover. */}
             <Tooltip>
               <TooltipTrigger
                 render={(props) => (
@@ -386,7 +387,12 @@ function NeedsAttentionCard({
                     className="inline-flex shrink-0 cursor-help items-center gap-1 rounded-md border border-divider-subtle px-2 py-[2px] text-[11px] font-semibold text-text-secondary outline-none"
                     {...props}
                   >
-                    <MapPin className="size-2.5 shrink-0 text-text-muted" aria-hidden />
+                    <StateBadge
+                      code={alert.jurisdiction}
+                      size="xs"
+                      preview={false}
+                      style={{ width: 13, height: 13 }}
+                    />
                     {alert.jurisdiction}
                   </span>
                 )}
@@ -502,12 +508,11 @@ function NeedsAttentionCard({
                 <TooltipContent>{avatar.name}</TooltipContent>
               </Tooltip>
             ))}
-            {/* Overflow counter — Yuqi #10: "Affects 2 clients" but only one
-                avatar showed. The named avatars are capped at 3 (and the
-                batched load may carry fewer names than the count), so any
-                remainder renders as a "+N" chip to reconcile with the count. */}
+            {/* Overflow counter — Yuqi: "+1 in a circle is hard to read."
+                Now plain text after the stack so it reads as "and N more"
+                rather than a mystery avatar. */}
             {impacted > avatars.length ? (
-              <span className="-ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-background-subtle px-1 text-[10px] font-semibold text-text-tertiary ring-[1.5px] ring-background-section">
+              <span className="ml-1.5 text-xs font-medium text-text-tertiary tabular-nums">
                 +{impacted - avatars.length}
               </span>
             ) : null}

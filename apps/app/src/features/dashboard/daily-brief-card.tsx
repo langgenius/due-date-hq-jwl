@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { Astroid, ExternalLinkIcon, RotateCwIcon } from 'lucide-react'
+import { ExternalLinkIcon, RotateCwIcon } from 'lucide-react'
 
 import type { DashboardBriefPublic, DashboardBriefScope } from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
@@ -50,14 +50,14 @@ export function DailyBriefCard({
   return (
     <section
       aria-label={t`Daily brief`}
-      className="flex flex-col gap-2 rounded-[14px] border border-state-accent-border bg-state-accent-hover px-[18px] py-4"
+      className="group flex flex-col gap-1 rounded-[14px] border border-state-accent-border bg-state-accent-hover px-[18px] py-4"
     >
       {/* TopRow — Pencil qYrr3 `LfcWh` */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Left — sparkles + title + freshness (dot + mono age) */}
+        {/* Left — title + freshness (dot + mono age). Yuqi: icon removed;
+            the title takes the dark brand color on hover. */}
         <div className="flex min-w-0 items-center gap-2.5">
-          <Astroid className="size-3.5 shrink-0 text-text-accent" aria-hidden />
-          <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+          <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-primary transition-colors group-hover:text-text-accent">
             <Trans>Daily Brief</Trans>
           </h2>
           <BriefFreshness brief={brief} pending={isPending} />
