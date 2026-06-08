@@ -37,6 +37,7 @@ import type {
 // infer it from the same union literal the schema uses.
 type RuleTier = ObligationRule['ruleTier']
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
   SearchableCombobox,
@@ -850,7 +851,7 @@ function OverviewActionHero({
     riskBreakdown.low > 0 ? t`${riskBreakdown.low} low` : null,
   ].filter(Boolean)
   return (
-    <div className="flex shrink-0 flex-col gap-3 rounded-xl border border-state-accent-solid bg-state-accent-hover p-[18px] xl:flex-row xl:items-center xl:gap-[18px] xl:px-[22px]">
+    <div className="flex shrink-0 flex-col gap-3 rounded-[14px] border border-state-accent-border bg-state-accent-hover p-[18px] xl:flex-row xl:items-center xl:gap-[18px] xl:px-[22px]">
       <span
         aria-hidden
         className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-state-accent-solid text-xl font-bold tracking-tight text-background-default tabular-nums"
@@ -948,7 +949,7 @@ function OverviewStatusCoverageCard({
       )}
     >
       <div className="flex flex-col gap-0.5">
-        <span className="text-base font-semibold text-text-primary">
+        <span className="text-base font-semibold tracking-tight text-text-primary">
           <Trans>Status coverage</Trans>
         </span>
         <span className="text-xs font-medium text-text-tertiary">
@@ -1014,23 +1015,18 @@ function OverviewRecentChangesCard({
         className,
       )}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-base font-semibold text-text-primary">
+          <span className="text-base font-semibold tracking-tight text-text-primary">
             <Trans>Recent changes</Trans>
           </span>
           <span className="text-xs font-medium text-text-tertiary">
             <Trans>Last 30 days</Trans>
           </span>
         </div>
-        <button
-          type="button"
-          onClick={onViewAll}
-          className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-md text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
+        <TextLink className="shrink-0" onClick={onViewAll}>
           <Trans>View all</Trans>
-          <ArrowUpRightIcon aria-hidden className="size-3" />
-        </button>
+        </TextLink>
       </div>
       <ul className="flex flex-col">
         {rules.map((rule, index) => {
