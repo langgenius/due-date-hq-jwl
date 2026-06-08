@@ -31,7 +31,7 @@ import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-stat
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { ExtensionChip } from './extension-chip'
 import { LifecycleStripCell } from './lifecycle-strip-cell'
-import { severityToTier, type SeverityTier } from './severity-section'
+import { severityToTier } from './severity-section'
 // 2026-05-31 (Yuqi Pencil FpHtM — owner-avatar slot): Pencil also
 // shows a per-row owner-initials avatar on the right cluster.
 // `DashboardTopRow` (packages/contracts/src/dashboard.ts) does not
@@ -131,31 +131,39 @@ function useActionPrompt(row: DashboardTopRow, asOfDate: string | null): string 
 //   • STATUS fill — status pill + `<ExtensionChip>` when applicable +
 //     payment-late caption
 //   • chevron-down end column — neutral text-tertiary, no tone color
-const TIER_ORDER_LOCAL: readonly SeverityTier[] = ['critical', 'high', 'upcoming']
 
-// 2D triage subgroup classification.
-//   • "ready"   — work can move forward today
-//   • "waiting" — paused waiting on client-supplied docs / signoff
-//   • "blocked" — explicit blocker (K-1 cascade, missing rule, etc.)
-type Subgroup = 'ready' | 'waiting' | 'blocked'
-function classifySubgroup(status: DashboardTopRow['status']): Subgroup {
-  if (status === 'blocked') return 'blocked'
-  if (status === 'waiting_on_client') return 'waiting'
-  return 'ready'
-}
-const SUBGROUP_ORDER: readonly Subgroup[] = ['ready', 'waiting', 'blocked']
-
-// Tier resolution WITH extension downscaling. An extended row is no
-// longer "today on fire" — demote one notch (Critical → High, High
-// → Upcoming). The payment side stays separate; payment-overdue
-// rows still surface the "Pay Nd late" caption regardless of tier.
-function resolveTier(row: DashboardTopRow): SeverityTier {
-  const baseTier = severityToTier(row.severity)
-  if (row.status === 'extended') {
-    if (baseTier === 'critical') return 'high'
-    if (baseTier === 'high') return 'upcoming'
+// 2026-06-08 (Yuqi "Actions 分组表头 有六个status"): rows group by the
+// 6-state lifecycle status, each with its own divider header. The raw
+// 10-value status enum folds into the 6 canonical buckets (in_progress →
+// review, paid / not_applicable → completed, extended → pending).
+type StatusGroup = 'pending' | 'waiting_on_client' | 'blocked' | 'review' | 'done' | 'completed'
+const STATUS_GROUP_ORDER: readonly StatusGroup[] = [
+  'pending',
+  'waiting_on_client',
+  'blocked',
+  'review',
+  'done',
+  'completed',
+]
+function classifyStatusGroup(status: DashboardTopRow['status']): StatusGroup {
+  switch (status) {
+    case 'waiting_on_client':
+      return 'waiting_on_client'
+    case 'blocked':
+      return 'blocked'
+    case 'in_progress':
+    case 'review':
+      return 'review'
+    case 'done':
+      return 'done'
+    case 'paid':
+    case 'not_applicable':
+    case 'completed':
+      return 'completed'
+    default:
+      // pending + extended (still to-be-started)
+      return 'pending'
   }
-  return baseTier
 }
 
 function ActionsTieredSections({
@@ -167,69 +175,22 @@ function ActionsTieredSections({
   asOfDate: string | null
   onOpenObligation: (row: DashboardTopRow) => void
 }) {
-  // Single pass: bucket rows by tier (with extension demotion) and
-  // sort each tier's rows by subgroup order (ready first).
-  const byTier = useMemo(() => {
-    const buckets: Record<SeverityTier, DashboardTopRow[]> = {
-      critical: [],
-      high: [],
-      upcoming: [],
-    }
-    for (const row of rows) {
-      buckets[resolveTier(row)].push(row)
-    }
-    for (const tier of TIER_ORDER_LOCAL) {
-      buckets[tier].sort(
+  // 2026-06-08 (Yuqi "Actions 分组表头 有六个status"): rows are now a
+  // single table grouped by lifecycle status (severity tiers dropped as
+  // the grouping axis — per-row urgency still reads from the red due
+  // countdown + the Smart-Priority rank order). JS sort is stable, so the
+  // incoming priority order is preserved within each status group.
+  const ordered = useMemo(
+    () =>
+      rows.toSorted(
         (a, b) =>
-          SUBGROUP_ORDER.indexOf(classifySubgroup(a.status)) -
-          SUBGROUP_ORDER.indexOf(classifySubgroup(b.status)),
-      )
-    }
-    return buckets
-  }, [rows])
-  // 2026-06-04 round 5 (Yuqi feedback "there is nothing else than
-  // critical, so there is no use of saying Critical 10 / Act today
-  // …"): when ONLY ONE tier has rows, suppress the tier header
-  // entirely. The "Actions this week" h2 + the Smart Priority
-  // subtitle already establish the section's framing; a tier
-  // header in a single-tier render is redundant chrome that adds
-  // a wasted line of vertical real estate.
-  //
-  // Also (Yuqi follow-up "otherway to show it is critical?"): when
-  // a tier header DOES render (multi-tier case), the row table
-  // gains a left accent border whose tone tracks the tier
-  // (destructive / warning / outline) — same color signal as the
-  // tier chip — so the critical-ness reads from the table edge
-  // without leaning on the explainer copy.
-  // 2026-06-04 round 6 (Yuqi "SeveritySectionHeader seems to be
-  // useless"): tier section headers DROPPED. The left accent
-  // border on each tier's table now carries the entire severity
-  // signal — destructive red for Critical, warning amber for
-  // High, none for Upcoming. The h2 + "Curated by Smart Priority"
-  // subtitle frame the section; severity reads from the table
-  // edge tone.
-  const tiersWithRows = TIER_ORDER_LOCAL.filter((tier) => byTier[tier].length > 0)
-  const isMultiTier = tiersWithRows.length > 1
-  return (
-    <div className="flex flex-col gap-4">
-      {tiersWithRows.map((tier) => (
-        <ActionsTable
-          key={tier}
-          rows={byTier[tier]}
-          tier={tier}
-          asOfDate={asOfDate}
-          onOpenObligation={onOpenObligation}
-          showTierAccent={isMultiTier}
-        />
-      ))}
-    </div>
+          STATUS_GROUP_ORDER.indexOf(classifyStatusGroup(a.status)) -
+          STATUS_GROUP_ORDER.indexOf(classifyStatusGroup(b.status)),
+      ),
+    [rows],
   )
-}
-
-const TIER_ACCENT_BORDER_CLASS: Record<SeverityTier, string> = {
-  critical: 'border-l-4 border-l-state-destructive-solid',
-  high: 'border-l-4 border-l-state-warning-solid',
-  upcoming: '',
+  if (ordered.length === 0) return null
+  return <ActionsTable rows={ordered} asOfDate={asOfDate} onOpenObligation={onOpenObligation} />
 }
 
 // 2026-06-04 round 11: PriorityScoreDots removed (Yuqi
@@ -239,23 +200,17 @@ const TIER_ACCENT_BORDER_CLASS: Record<SeverityTier, string> = {
 
 function ActionsTable({
   rows,
-  tier,
   asOfDate,
   onOpenObligation,
-  showTierAccent = false,
 }: {
   rows: DashboardTopRow[]
-  tier: SeverityTier
   asOfDate: string | null
   onOpenObligation: (row: DashboardTopRow) => void
-  showTierAccent?: boolean
 }) {
   if (rows.length === 0) return null
-  // Track subgroup boundaries so the table body can interleave
-  // subgroup-divider rows between the workable and blocked buckets.
-  // First-row in each subgroup gets a top divider with the
-  // subgroup name; subsequent rows render plainly.
-  let lastSubgroup: Subgroup | null = null
+  // Track status-group boundaries so the body interleaves a status
+  // divider header above the first row of each group.
+  let lastStatusGroup: StatusGroup | null = null
   return (
     // 2026-06-04 round 7: rounded-[12px] perimeter + bg-background-default
     // give the table a real card identity.
@@ -265,16 +220,10 @@ function ActionsTable({
     // visible-but-quiet sweet spot; deep was reading as too heavy
     // an outline against the white card. Updated canonical doc
     // back to regular.
-    <div
-      className={cn(
-        // 2026-06-08 (Yuqi "粗糙/没有重点"): match Pencil ErW76 Table —
-        // radius 14, white fill, one 8% hairline (#10182814 ->
-        // border-divider-subtle). Softer + larger radius reads as a
-        // single calm surface rather than a boxed-in outline.
-        'overflow-hidden rounded-[14px] border border-divider-subtle bg-background-default',
-        showTierAccent && TIER_ACCENT_BORDER_CLASS[tier],
-      )}
-    >
+    <div className="overflow-hidden rounded-[14px] border border-divider-subtle bg-background-default">
+      {/* Pencil ErW76 Table — radius 14, white fill, one 8% hairline
+          (#10182814 -> border-divider-subtle). The white fill keeps the
+          Actions table the brightest (focal) surface on /today. */}
       {/* 2026-06-04 round 13 (Yuqi "remove the table header row.
           make it more like ACTIONS"): `<TableHeader>` dropped
           entirely. Column labels were reading the rows as a
@@ -289,15 +238,14 @@ function ActionsTable({
       <Table>
         <TableBody>
           {rows.map((row) => {
-            const currentSubgroup = classifySubgroup(row.status)
-            const isNewSubgroup = currentSubgroup !== lastSubgroup
-            lastSubgroup = currentSubgroup
-            const subgroupHeader =
-              isNewSubgroup &&
-              // Only render subgroup dividers when the tier contains
-              // MORE THAN ONE subgroup — single-subgroup tiers don't
-              // need the extra row.
-              hasMultipleSubgroups(rows) ? (
+            const currentStatusGroup = classifyStatusGroup(row.status)
+            const isNewStatusGroup = currentStatusGroup !== lastStatusGroup
+            lastStatusGroup = currentStatusGroup
+            const statusHeader =
+              isNewStatusGroup &&
+              // Only render status dividers when the table spans MORE THAN
+              // ONE status group — a single-status list doesn't need them.
+              hasMultipleStatusGroups(rows) ? (
                 // 2026-06-04 round 10 (Yuqi "ensure everything
                 // clickable is really clickable"): subgroup
                 // divider rows are NOT clickable — they're
@@ -318,7 +266,7 @@ function ActionsTable({
                 // canonical zebra (otherwise the subgroup label
                 // would alternate tint with row position).
                 <TableRow
-                  key={`${currentSubgroup}-divider`}
+                  key={`${currentStatusGroup}-divider`}
                   className="cursor-default even:bg-transparent hover:!bg-background-subtle"
                   aria-hidden="false"
                 >
@@ -336,17 +284,16 @@ function ActionsTable({
                     colSpan={7}
                     className="bg-background-subtle px-5 py-2 text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
                   >
-                    <SubgroupLabel kind={currentSubgroup} />
+                    <StatusGroupLabel kind={currentStatusGroup} />
                   </TableCell>
                 </TableRow>
               ) : null
             return (
               <>
-                {subgroupHeader}
+                {statusHeader}
                 <ActionsTableRow
                   key={row.obligationId}
                   row={row}
-                  tier={tier}
                   asOfDate={asOfDate}
                   onClick={() => onOpenObligation(row)}
                 />
@@ -359,35 +306,48 @@ function ActionsTable({
   )
 }
 
-function hasMultipleSubgroups(rows: DashboardTopRow[]): boolean {
-  const seen = new Set<Subgroup>()
+function hasMultipleStatusGroups(rows: DashboardTopRow[]): boolean {
+  const seen = new Set<StatusGroup>()
   for (const row of rows) {
-    seen.add(classifySubgroup(row.status))
+    seen.add(classifyStatusGroup(row.status))
     if (seen.size > 1) return true
   }
   return false
 }
 
-function SubgroupLabel({ kind }: { kind: Subgroup }) {
-  if (kind === 'ready') return <Trans>Ready to work</Trans>
-  if (kind === 'waiting') return <Trans>Waiting on client</Trans>
-  return <Trans>Blocked</Trans>
+function StatusGroupLabel({ kind }: { kind: StatusGroup }) {
+  switch (kind) {
+    case 'waiting_on_client':
+      return <Trans>Waiting on client</Trans>
+    case 'blocked':
+      return <Trans>Blocked</Trans>
+    case 'review':
+      return <Trans>In review</Trans>
+    case 'done':
+      return <Trans>Filed</Trans>
+    case 'completed':
+      return <Trans>Completed</Trans>
+    default:
+      return <Trans>Not started</Trans>
+  }
 }
 
 function ActionsTableRow({
   row,
-  tier,
   asOfDate,
   onClick,
 }: {
   row: DashboardTopRow
-  tier: SeverityTier
   asOfDate: string | null
   onClick: () => void
 }) {
   const { t } = useLingui()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = useActionPrompt(row, asOfDate)
+  // The Why-now line stays open at rest for the most urgent rows; the
+  // rest reveal it on hover. Urgency comes straight from severity now
+  // that rows are grouped by status, not tier.
+  const isUrgent = severityToTier(row.severity) === 'critical'
   // 2026-06-04 round 8 (Yuqi "tooltip to show why this matter"):
   // ALL rows compute factors for the rank-cell tooltip — even
   // High / Upcoming rows surface their Smart Priority rationale
@@ -534,7 +494,7 @@ function ActionsTableRow({
             <span
               className={cn(
                 'truncate text-xs text-text-tertiary transition-opacity duration-200',
-                tier === 'critical'
+                isUrgent
                   ? 'opacity-100'
                   : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100',
               )}
