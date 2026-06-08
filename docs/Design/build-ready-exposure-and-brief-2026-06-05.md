@@ -212,3 +212,26 @@ Use `RelativeTime` primitive for `generatedAt`. Respect `expiresAt`: once past, 
 2. **Brief refresh + scope** (wire `requestBriefRefresh`, poll, toggle).
 3. **Exposure panel P1** (accrued readout in Summary tab) — no contract touch.
 4. **Exposure P2** (`[contract]` un-omit 3 fields → estimate hero + kill fake queue placeholder).
+
+---
+
+# 2026-06-08 amendment — Daily Brief shipped to Pencil qYrr3
+
+The Brief card (step 1–2 above) shipped, then was rebuilt 1:1 to Pencil
+`qYrr3` after Yuqi flagged the first cut as "so random":
+
+- **Shell**: white with a single hairline border (`border-divider-subtle`),
+  **no shadow**, `rounded-2xl`, padding `py-4 px-[18px]`.
+- **Title row**: sparkles (accent) + "Daily Brief" 18/600 + a single **status
+  dot** (green fresh / amber outdated / red failed) + a mono uppercase **age
+  label**. The dot is the only freshness cue.
+- **Toggle**: Firm/Me pill track (`bg-background-section`); active = white pill +
+  hairline border + 600, inactive = borderless 500.
+- **Refresh**: icon-only ghost (`refresh-cw`), no text label.
+- **Body**: 14/normal in primary ink; `[n]` citations render as tight accent
+  pills (`bg-state-accent-hover`, mono 11/600).
+
+Display sourcing fix (same date): the brief now loads via `findBriefForDisplay`
+(most recent brief on-or-before today) rather than an exact `asOfDate` match, so
+it persists and shows its own staleness instead of vanishing at the date
+roll-over. Exact-match `findLatestBrief` is retained for the refresh path.

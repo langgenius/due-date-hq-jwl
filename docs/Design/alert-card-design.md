@@ -183,3 +183,20 @@ When changing any of these, change BOTH cards together.
   impact + time + state + Open/Snoozed only (no severity pill, no
   source, no facts panel, no actions row).
 - **Pencil n9m9B** — right-side detail panel exact recreation.
+
+## 7. 2026-06-08 amendment — two-color discipline (Yuqi /today)
+
+Feedback on the dashboard `NeedsAttentionCard`: "reduce the colour variety
+here to two." The card had drifted to red + accent-blue + success-green + a
+3-tone client-avatar rainbow. Reduced to **neutral + red**:
+
+- **Red** is the card's single signal color, reserved for the **High impact**
+  pill (and only renders on high-impact alerts). A typical card therefore reads
+  fully neutral and recedes in the scan — color appears only when it matters.
+- Client avatars collapse to one neutral tone (`bg-background-subtle` /
+  `text-text-secondary`); the overlapping initials carry identity, not hue.
+- Change-kind label ("DEADLINE SHIFTED") and confidence ("conf 94%") go neutral
+  (tertiary / secondary). Change-kind is a category, not an alarm.
+
+This mirrors the app-wide red discipline (red = urgency/lateness only) already
+applied to the /today Actions table due-countdown.
