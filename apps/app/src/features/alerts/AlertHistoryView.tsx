@@ -37,7 +37,7 @@ import { changeKindLabel } from './components/PulseChangeKindChip'
 
 const HISTORY_LIMIT = 50
 
-type HistoryTab = 'all' | 'applied' | 'dismissed' | 'snoozed' | 'reverted'
+type HistoryTab = 'all' | 'applied' | 'dismissed' | 'snoozed' | 'reverted' | 'expired'
 
 const TABS: { id: HistoryTab; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -45,6 +45,7 @@ const TABS: { id: HistoryTab; label: string }[] = [
   { id: 'dismissed', label: 'Dismissed' },
   { id: 'snoozed', label: 'Snoozed' },
   { id: 'reverted', label: 'Reverted' },
+  { id: 'expired', label: 'Expired' },
 ]
 
 const STATUS_META: Record<
@@ -66,6 +67,9 @@ const STATUS_META: Record<
 function matchesTab(status: PulseFirmAlertStatus, tab: HistoryTab): boolean {
   if (tab === 'all') return true
   if (tab === 'applied') return status === 'applied' || status === 'partially_applied'
+  // In history a 'matched' row is one that aged out of the active queue, so the
+  // Expired tab maps to it (listHistory only returns expired matched rows).
+  if (tab === 'expired') return status === 'matched'
   return status === tab
 }
 
@@ -91,8 +95,9 @@ export function AlertHistoryView() {
     const dismissed = by((s) => s === 'dismissed')
     const snoozed = by((s) => s === 'snoozed')
     const reverted = by((s) => s === 'reverted')
+    const expired = by((s) => s === 'matched')
     const pct = (n: number) => (handled > 0 ? Math.round((n / handled) * 100) : 0)
-    return { handled, applied, dismissed, snoozed, reverted, pct }
+    return { handled, applied, dismissed, snoozed, reverted, expired, pct }
   }, [alerts])
 
   const query = search.trim().toLowerCase()
@@ -182,14 +187,20 @@ export function AlertHistoryView() {
       sub: t`all with reason`,
       subTone: 'text-text-warning',
     },
+    {
+      label: t`Expired`,
+      value: stats.expired,
+      sub: t`deadline passed`,
+      subTone: 'text-text-tertiary',
+    },
   ]
 
   return (
     <>
       <div className="flex flex-col gap-6">
         {/* STATS — derived from real loaded data. Responsive grid wraps
-          on narrow viewports (2 → 3 → 5 cols) so it never scrolls. */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          on narrow viewports (2 → 3 → 6 cols) so it never scrolls. */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {statCards.map((card) => (
             <div
               key={card.label}

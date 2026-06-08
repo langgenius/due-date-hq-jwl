@@ -5414,6 +5414,10 @@ msgstr "已生成截止日"
 msgid "Deadline needs-input update"
 msgstr "截止事项需要补充信息"
 
+#: src/features/alerts/AlertHistoryView.tsx
+msgid "deadline passed"
+msgstr "截止日已过"
+
 #: src/routes/route-summary.ts
 #: src/routes/rules.preview.tsx
 msgid "Deadline preview"
@@ -6588,6 +6592,7 @@ msgstr "预期"
 msgid "Expected refund"
 msgstr "预计退款"
 
+#: src/features/alerts/AlertHistoryView.tsx
 #: src/features/members/members-page.tsx
 msgid "Expired"
 msgstr "已过期"

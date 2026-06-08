@@ -1610,6 +1610,117 @@ emit(
   ],
 )
 
+// Protective-claim / rights-window samples (review_only). These carry their
+// cutoff in `protective_action_deadline` (the column the still-actionable /
+// expiry predicate queries) plus the structured-change detail facts the alert
+// card renders. One is still open (future deadline → active list) and one has
+// lapsed (past deadline → drops out of active and shows as "Expired" in history).
+// Separate INSERT so the base rows above need not carry the extra columns.
+emit(
+  'pulse',
+  [
+    'id',
+    'source',
+    'source_url',
+    'published_at',
+    'change_kind',
+    'action_mode',
+    'ai_summary',
+    'verbatim_quote',
+    'parsed_jurisdiction',
+    'parsed_counties',
+    'parsed_forms',
+    'parsed_entity_types',
+    'parsed_original_due_date',
+    'parsed_new_due_date',
+    'parsed_effective_from',
+    'structured_change_json',
+    'confidence',
+    'status',
+    'reviewed_by',
+    'reviewed_at',
+    'requires_human_review',
+    'is_sample',
+    'created_at',
+    'updated_at',
+    'parsed_effective_until',
+    'protective_action_deadline',
+  ],
+  [
+    // 020 — still-open COVID disaster-period refund window (deadline 2026-07-10).
+    row(
+      s(uuid('40', 20)),
+      s('Taxpayer Advocate Service Blog'),
+      s('https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/'),
+      ts('2026-05-20 09:00:00'),
+      s('protective_claim_window'),
+      s('review_only'),
+      s(
+        'Review whether clients should file protective refund claims for the COVID disaster period before the July 10, 2026 deadline.',
+      ),
+      s(
+        'Taxpayers may preserve their right to a refund for the COVID disaster period by filing a protective claim on or before July 10, 2026.',
+      ),
+      s('FED'),
+      s('[]'),
+      s('[]'),
+      s('[]'),
+      'NULL',
+      'NULL',
+      ts('2020-03-13'),
+      s(
+        '{"kind":"protective_claim_window","actionDeadline":"2026-07-10","claimTaxYears":[2020,2021],"affectedTaxActs":["COVID disaster relief postponements"],"evidenceNeeded":["original filed return","proof of COVID-period postponement eligibility"],"legalUncertainty":"Whether the section 6511 refund lookback is extended by the disregarded COVID postponement periods (Notice 2023-21).","authorityRefs":["IRC 6511","Notice 2023-21"]}',
+      ),
+      0.9,
+      s('approved'),
+      s('mock_user_owner_sarah'),
+      ts('2026-05-20 10:00:00'),
+      1,
+      1,
+      ts('2026-05-20 09:05:00'),
+      ts('2026-05-20 10:00:00'),
+      ts('2022-04-18'),
+      ts('2026-07-10'),
+    ),
+    // 021 — lapsed 2019 protective window (deadline 2026-03-15, already past) —
+    // exercises the "Expired" history tab/badge.
+    row(
+      s(uuid('40', 21)),
+      s('IRS Internal Revenue Bulletins'),
+      s('https://www.irs.gov/irb'),
+      ts('2026-01-10 09:00:00'),
+      s('protective_claim_window'),
+      s('review_only'),
+      s(
+        'Protective refund-claim window for the 2019 tax year closed on March 15, 2026 — retained in history for the record.',
+      ),
+      s(
+        'Protective claims for the 2019 tax year must have been filed on or before March 15, 2026.',
+      ),
+      s('FED'),
+      s('[]'),
+      s('[]'),
+      s('[]'),
+      'NULL',
+      'NULL',
+      ts('2019-01-01'),
+      s(
+        '{"kind":"protective_claim_window","actionDeadline":"2026-03-15","claimTaxYears":[2019],"affectedTaxActs":["COVID disaster relief postponements"],"legalUncertainty":"Lookback extension for the 2019 tax year under the disregarded COVID postponement periods."}',
+      ),
+      0.88,
+      s('approved'),
+      s('mock_user_owner_sarah'),
+      ts('2026-01-10 10:00:00'),
+      1,
+      1,
+      ts('2026-01-10 09:05:00'),
+      ts('2026-01-10 10:00:00'),
+      ts('2019-12-31'),
+      ts('2026-03-15'),
+    ),
+  ],
+)
+
 // Source-health watchers (firm-agnostic) — power the Rules → Sources view and
 // the source_status alert above. Idempotent: pulse_source_state isn't covered
 // by the firm-scoped DELETE cleanup, so upsert on conflict.
@@ -2278,6 +2389,12 @@ for (const f of FIRMS) {
       dismissed: true,
       at: '2026-05-13 18:00:00',
     },
+    // 020 — still-open protective window: shows in the active list with review
+    // clients (matchedCount stays 0; needs-review carries the impact).
+    { n: 20, status: 'matched', matched: 0, needsReview: 3, at: '2026-05-20 10:05:00' },
+    // 021 — lapsed protective window: its deadline has passed, so listAlerts hides
+    // it and listHistory surfaces it under the "Expired" tab.
+    { n: 21, status: 'matched', matched: 0, needsReview: 2, at: '2026-01-10 10:05:00' },
   ]
   add(
     'pulse_firm_alert',

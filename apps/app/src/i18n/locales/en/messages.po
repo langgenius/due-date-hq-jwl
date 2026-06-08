@@ -5373,6 +5373,10 @@ msgstr "deadline generated"
 msgid "Deadline needs-input update"
 msgstr "Deadline needs-input update"
 
+#: src/features/alerts/AlertHistoryView.tsx
+msgid "deadline passed"
+msgstr "deadline passed"
+
 #: src/routes/route-summary.ts
 #: src/routes/rules.preview.tsx
 msgid "Deadline preview"
@@ -6543,6 +6547,7 @@ msgstr "Expected"
 msgid "Expected refund"
 msgstr "Expected refund"
 
+#: src/features/alerts/AlertHistoryView.tsx
 #: src/features/members/members-page.tsx
 msgid "Expired"
 msgstr "Expired"
