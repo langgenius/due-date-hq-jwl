@@ -4524,18 +4524,15 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'pa.temporary_announcements',
     jurisdiction: 'PA',
     title: 'Pennsylvania DOR Newsroom',
-    // 2026-06-08: `url` was omitted when this source switched to the DOR
-    // Newsroom — it's required by the source type, and its absence crashed the
-    // worker at boot (resolveAnnouncementYearUrl reads `url.includes`). Added
-    // the canonical pa.gov/revenue newsroom URL (same path scheme as the other
-    // pa.gov revenue sources + the sibling `newsroom.html` convention).
-    url: 'https://www.pa.gov/agencies/revenue/newsroom.html',
-    // Switched from the PA Tax Update newsletter (quarterly PDFs) to the DOR
-    // Newsroom, which renders a reverse-chron dated press-release list as HTML
-    // (sorted by effective date) — a better change-detection signal than the
-    // newsletter PDF index, hence html_watch instead of pdf_watch.
+    // DOR Newsroom (replaced the PA Tax Update newsletter PDF index): a
+    // reverse-chron dated press-release list rendered as HTML, hence html_watch
+    // not pdf_watch. The list is JS-rendered (routed via browserless), and the
+    // #sortCriteria effective-date-desc fragment makes that JS sort newest-first.
+    // NOTE: `url` is required — omitting it crashes the worker at boot
+    // (resolveAnnouncementYearUrl reads `url.includes`).
     // Index-level relief signal: PA surfaces disaster relief via DOR newsroom
     // releases; relief is otherwise federal/PEMA-driven.
+    url: 'https://www.pa.gov/agencies/revenue/newsroom#sortCriteria=%40copapwpeffectivedate%20descending',
     alertCoverageRoles: ['relief_or_disaster_signal'],
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
