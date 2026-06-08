@@ -1170,11 +1170,21 @@ emit(
       s(
         'Affected taxpayers in Los Angeles County have until June 16, 2026 to file selected federal business returns.',
       ),
-      s('CA'),
+      // IRS disaster relief postpones FEDERAL business-return deadlines — the
+      // county scopes WHICH clients are covered (those located in LA County),
+      // not the form's jurisdiction. The forms are federal_1065/1120s (FED), so
+      // the alert must be FED to match any real obligation; a 'CA' jurisdiction
+      // matched nothing, which is why the live detail came up empty while the
+      // hand-set card count below still read 2. Entity types include
+      // `partnership` (the 1065 filer) so the LA-County partnership return is in
+      // scope, and the original due date tracks that return's actual deadline
+      // (DUE.today, 2026-06-02 → extended to 6/16) so exactly one obligation
+      // matches and the count agrees with the drawer.
+      s('FED'),
       s('["Los Angeles"]'),
       s('["federal_1065","federal_1120s"]'),
-      s('["llc","s_corp"]'),
-      ts('2026-03-15'),
+      s('["partnership","llc","s_corp"]'),
+      ts(DUE.today),
       ts('2026-06-16'),
       ts('2026-05-18'),
       'NULL',
@@ -2367,7 +2377,11 @@ for (const f of FIRMS) {
     dismissed?: boolean
     at: string
   }> = [
-    { n: 1, status: 'matched', matched: 2, needsReview: 0, at: '2026-05-18 08:31:00' },
+    // n=1 hero (Apply path): exactly one LA-County partnership 1065 (Arbor &
+    // Vale, due today) matches the FED overlay above, so matched=1. Keep this in
+    // step with the live detail — getDetail self-heals it on view, but the seed
+    // should be correct on its own (digest email + first paint read it).
+    { n: 1, status: 'matched', matched: 1, needsReview: 0, at: '2026-05-18 08:31:00' },
     { n: 2, status: 'applied', matched: 1, needsReview: 0, at: '2026-05-17 08:31:00' },
     { n: 3, status: 'matched', matched: 0, needsReview: 0, at: '2026-05-16 16:31:00' },
     { n: 4, status: 'matched', matched: 0, needsReview: 0, at: '2026-05-15 17:31:00' },

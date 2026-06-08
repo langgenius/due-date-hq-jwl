@@ -833,27 +833,45 @@ export function makePulseRepo(db: Db, firmId: string) {
     }
   }
 
+  // The denormalized card counts as a pure function of a freshly-built detail:
+  // matched = applyable eligible rows, needs-review = rows pending county
+  // confirmation — gated on apply-readiness so a not-yet-scoped overlay reads 0,
+  // matching the drawer (which can't apply yet). Extracted so the mutation-time
+  // refresh and the read-time reconcile (getDetail) share ONE definition and
+  // can't diverge. review_only / protective alerts are never apply-ready, so
+  // this returns 0 for them — only call it for due_date_overlay alerts.
+  function liveAlertCounts(
+    detail: PulseDetailRow,
+    alert: AlertJoinedRow,
+  ): { matchedCount: number; needsReviewCount: number } {
+    const countable = detail.applyReadiness.status === 'ready' || alert.alertStatus === 'applied'
+    return {
+      matchedCount: countable
+        ? detail.affectedClients.filter((row) => row.matchStatus === 'eligible').length
+        : 0,
+      needsReviewCount: countable
+        ? detail.affectedClients.filter((row) => row.matchStatus === 'needs_review').length
+        : 0,
+    }
+  }
+
+  async function persistAlertCounts(
+    alertId: string,
+    counts: { matchedCount: number; needsReviewCount: number },
+  ): Promise<void> {
+    await db
+      .update(pulseFirmAlert)
+      .set(counts)
+      .where(and(eq(pulseFirmAlert.firmId, firmId), eq(pulseFirmAlert.id, alertId)))
+  }
+
   async function refreshAlertCounts(
     alertId: string,
     alert: AlertJoinedRow,
-  ): Promise<{
-    matchedCount: number
-    needsReviewCount: number
-  }> {
-    const detail = await buildDetail(alert)
-    const countable = detail.applyReadiness.status === 'ready' || alert.alertStatus === 'applied'
-    const matchedCount = countable
-      ? detail.affectedClients.filter((row) => row.matchStatus === 'eligible').length
-      : 0
-    const needsReviewCount = countable
-      ? detail.affectedClients.filter((row) => row.matchStatus === 'needs_review').length
-      : 0
-
-    await db
-      .update(pulseFirmAlert)
-      .set({ matchedCount, needsReviewCount })
-      .where(and(eq(pulseFirmAlert.firmId, firmId), eq(pulseFirmAlert.id, alertId)))
-    return { matchedCount, needsReviewCount }
+  ): Promise<{ matchedCount: number; needsReviewCount: number }> {
+    const counts = liveAlertCounts(await buildDetail(alert), alert)
+    await persistAlertCounts(alertId, counts)
+    return counts
   }
 
   async function listPulseDigestRecipients(): Promise<string[]> {
@@ -1404,7 +1422,29 @@ export function makePulseRepo(db: Db, firmId: string) {
 
     async getDetail(alertId: string): Promise<PulseDetailRow> {
       const alert = await getAlert(alertId, { includeSourceRevoked: true })
-      return buildDetail(alert)
+      const detail = await buildDetail(alert)
+      // Self-heal the denormalized card counts against this live detail. The
+      // alerts-list card reads pulseFirmAlert.matchedCount/needsReviewCount — a
+      // point-in-time tally written at fan-out that silently drifts as
+      // obligations, clients, counties, or applied overlays change beneath it
+      // (nothing re-tallies on those edits, which is how the card ended up
+      // claiming "2 affected" while the drawer resolved 1). Both the drawer and
+      // the list reach this method (getDetailsBatch fans out to getDetail), so
+      // reconciling at this one read point keeps the card from disagreeing with
+      // the drawer; the list's poll/mutation refetch re-reads the fixed count.
+      // Overlay-only: review_only / protective counts use a different
+      // (affected-client) definition the apply-readiness gate would wrongly zero.
+      if (alert.actionMode === 'due_date_overlay') {
+        const counts = liveAlertCounts(detail, alert)
+        if (
+          counts.matchedCount !== alert.matchedCount ||
+          counts.needsReviewCount !== alert.needsReviewCount
+        ) {
+          await persistAlertCounts(alertId, counts)
+          return { ...detail, alert: { ...detail.alert, ...counts } }
+        }
+      }
+      return detail
     },
 
     async listPriorityQueue(opts: { limit?: number } = {}): Promise<PulsePriorityQueueItemRow[]> {
