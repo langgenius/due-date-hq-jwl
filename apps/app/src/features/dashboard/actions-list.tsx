@@ -386,7 +386,7 @@ function ActionsTableRow({
       // but rows can now contain a 2-line stacked cell (action +
       // why-now, due-date + relative date) without feeling
       // suffocated.
-      className="group cursor-pointer hover:!bg-state-base-hover-alt focus-visible:bg-state-base-hover-alt focus-visible:outline-none [&_td]:py-3"
+      className="group cursor-pointer hover:!bg-background-subtle focus-visible:bg-background-subtle focus-visible:outline-none [&_td]:py-3"
     >
       {/* 2026-06-04 round 11 (Yuqi "don't like the dedicated Smart
           Priority chip - too complicated and useless"): chip
