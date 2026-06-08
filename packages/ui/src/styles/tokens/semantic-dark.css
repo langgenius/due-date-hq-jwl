@@ -28,9 +28,13 @@
   --text-inverted: #0d0e11;
 
   /* ===== Background ===================================================== */
-  --background-body: #1d1d20;
+  --background-body: #1b1a19;
   /* SidebarInset surface tone (dark variant). See semantic-light.css. */
   --background-inset: #1a1a1d;
+  /* Warm dark counterpart of --background-canvas-warm — sidebar rail +
+     detail/master-detail surfaces. Sits just warm-of-neutral so the rail
+     reads as its own column against the inset work surface. */
+  --background-canvas-warm: #1f1d1b;
   --background-default: #222225;
   --background-default-subtle: #222225;
   --background-default-hover: #27272b;

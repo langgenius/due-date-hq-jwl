@@ -34,33 +34,24 @@
   --text-inverted: #ffffff;
 
   /* ===== Background ===================================================== */
-  /* 2026-06-07 (Yuqi "lighter background"): page canvas lightened a clear
-     step from gray-100 (#f2f4f7) → #f7f9fc, kept in sync with the inset
-     work-surface below. Held short of near-white (#f9fafb/#fafafa) on
-     purpose — that range previously collapsed the contrast against white
-     cards (see the inset note below). ~3% off white preserves the
-     surface-vs-card layering, especially with bordered cards. */
-  --background-body: #f7f9fc;
-  /*
-   * 2026-05-26 (Yuqi twenty-first pass): canonical SidebarInset
-   * surface tone. Set once here; consumed by `bg-background-inset`
-   * everywhere. Change here to retone the entire work-surface
-   * across every route.
-   * 2026-05-26 (Yuqi twenty-eighth pass): toned lighter from
-   * #f4f4f4 → #fafafa so white cards pop more clearly on the
-   * inset and the page reads as "paper on a desk" instead of
-   * "two shades of gray sandwiched together".
-   * 2026-05-26 (Yuqi forty-sixth pass): rolled back lighter →
-   * #f4f4f4. At #fafafa the inset was almost indistinguishable
-   * from the white cards (#ffffff vs #fafafa = ~2% lightness
-   * difference) — sections on /today blended into the work
-   * surface and Yuqi flagged "看不出" (can't see them). #f4f4f4
-   * gives roughly 4% contrast against white — enough that the
-   * cards read as a separate layer "on top of" the inset, which
-   * was the whole point of the inset-surface pattern. The lighter
-   * shade was an overcorrection.
-   */
-  --background-inset: #f7f9fc;
+  /* 2026-06-08 (Yuqi product-wide unification — surface model):
+     SURFACE MODEL. Primary/list pages = WHITE work surface; the sidebar
+     and detail/secondary surfaces = a very-light WARM gray
+     (`--background-canvas-warm`). Restraint on colored-bg-with-border:
+     content delineates via hairline borders on white, not gray fills.
+       • --background-body       — warm gray behind the rail (rarely seen).
+       • --background-inset      — the route work surface: now WHITE.
+       • --background-canvas-warm — warm gray for the sidebar rail and
+                                    detail/master-detail surfaces.
+     Earlier the body + inset were a cool #f7f9fc with white cards layered
+     on top ("paper on a desk"). The model is now inverted: white content,
+     warm-gray chrome. */
+  --background-body: #f6f5f3;
+  --background-inset: #ffffff;
+  /* Warm very-light gray (~3.5% off white, red>green>blue) — the sidebar
+     rail surface and the wash behind detail/master-detail layouts. Set
+     once here; consumed by `bg-background-canvas-warm`. */
+  --background-canvas-warm: #f6f5f3;
   --background-default: #ffffff;
   --background-default-subtle: var(--color-util-colors-gray-25);
   --background-default-hover: var(--color-util-colors-gray-50);

@@ -299,7 +299,7 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           data-slot="sidebar"
           data-mobile="true"
           side="left"
-          className="flex flex-col bg-components-panel-bg p-0 [&>button]:hidden"
+          className="flex flex-col bg-background-canvas-warm p-0 [&>button]:hidden"
           style={
             {
               '--sidebar-width-mobile': SIDEBAR_WIDTH_MOBILE,
@@ -416,7 +416,7 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           clip, any momentary overflow is hidden inside the sidebar
           rather than spilling into the page content area. */}
       <div
-        className="absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-divider-regular bg-components-panel-bg transition-[width] duration-300 ease-apple motion-reduce:transition-none"
+        className="absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-divider-regular bg-background-canvas-warm transition-[width] duration-300 ease-apple motion-reduce:transition-none"
         style={{ width: targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
       >
         {children}
