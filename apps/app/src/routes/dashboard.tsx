@@ -398,17 +398,16 @@ export function DashboardRoute() {
                 square affordance, not a row of outline buttons. The
                 permission guard + tooltip-via-aria-label are preserved,
                 so clicks still always produce feedback. */}
-            <Button
-              variant="primary"
-              // 2026-06-08 (Yuqi /today #3 "slightly smaller"): icon-sm (32px)
-              // → icon-xs (28px) so the lone "+" affordance sits quieter in
-              // the header cluster next to the synced stamp + shortcut chip.
-              size="icon-xs"
-              // The Button base sets `[corner-shape:squircle]`, which keeps the
-              // corners a superellipse even at rounded-full — so it read as a
-              // rounded square, not a circle. Force `corner-shape:round` for a
-              // true circle.
-              className="rounded-full [corner-shape:round]"
+            {/* 2026-06-08 (Yuqi /today): the lone "+" affordance becomes an
+                expand-on-hover pill — at rest a 28px filled circle showing only
+                the "+", on hover its WIDTH grows to reveal the "Import clients"
+                label while the height stays fixed (h-7 / 28px), so the header
+                cluster never jumps. Hand-rolled (not <Button/>) so the label can
+                animate from max-w-0; the filled primary colors mirror the
+                `variant="primary"` tokens. */}
+            <button
+              type="button"
+              className="group/import inline-flex h-7 items-center rounded-full border border-components-button-primary-border bg-components-button-primary-bg px-1.5 text-components-button-primary-text transition-all [corner-shape:round] hover:border-components-button-primary-border-hover hover:bg-components-button-primary-bg-hover hover:px-3 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default focus-visible:outline-none"
               onClick={() => {
                 if (!canRunMigration) {
                   toast.error(
@@ -424,8 +423,11 @@ export function DashboardRoute() {
                   : t`Import clients (requires ${requiredRolesLabel('migration.run')} access)`
               }
             >
-              <PlusIcon />
-            </Button>
+              <PlusIcon className="size-3.5 shrink-0" />
+              <span className="max-w-0 overflow-hidden text-[13px] font-medium whitespace-nowrap opacity-0 transition-all group-hover/import:ml-1.5 group-hover/import:max-w-[120px] group-hover/import:opacity-100">
+                <Trans>Import clients</Trans>
+              </span>
+            </button>
           </>
         }
       />

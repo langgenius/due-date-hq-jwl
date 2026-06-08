@@ -504,14 +504,30 @@ function ActionsTableRow({
           {allRowFactors.length > 0 ? (
             <span
               className={cn(
-                'truncate text-xs text-text-tertiary transition-opacity duration-200',
+                'inline-flex items-center gap-1.5 text-xs text-text-tertiary transition-opacity duration-200',
                 isUrgent
                   ? 'opacity-100'
                   : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100',
               )}
               title={allRowFactors.join(' · ')}
             >
-              <Trans>Why now:</Trans> {allRowFactors.join(' · ')}
+              {/* Leading elbow/"L" glyph mirrors the alert row's action elbow,
+                  signalling this is a follow-on reason for the prompt above. */}
+              <svg
+                viewBox="0 0 12 12"
+                className="size-3 shrink-0 text-text-muted"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="M4 2.5v3a1.5 1.5 0 0 0 1.5 1.5H9" />
+              </svg>
+              <span className="truncate">
+                <Trans>Why now:</Trans> {allRowFactors.join(' · ')}
+              </span>
             </span>
           ) : null}
         </div>
@@ -931,7 +947,7 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
           subtitle reads as a direct continuation of the h2, not
           as a separate caption line. */}
       <div className="flex flex-col">
-        <h2 className="flex items-center gap-1.5 text-[14px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
+        <h2 className="flex items-center gap-1.5 text-[14px] font-semibold tracking-[0.4px] text-text-muted uppercase">
           <Trans>Actions this week</Trans>
           <Tooltip>
             <TooltipTrigger
@@ -984,7 +1000,7 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
           />
         }
       >
-        <Trans>View all</Trans>
+        <Trans>View all deadlines</Trans>
       </TextLink>
     </div>
   )

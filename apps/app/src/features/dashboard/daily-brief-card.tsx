@@ -59,21 +59,21 @@ export function DailyBriefCard({
         <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
           <Trans>Daily Brief</Trans>
         </h2>
-        <span className="min-w-0 flex-1 truncate text-xs text-text-tertiary">
+        <span className="min-w-0 truncate text-xs text-text-tertiary">
           <Trans>We couldn't generate today's brief.</Trans>
         </span>
-        <div className="flex shrink-0 items-center gap-1">
-          <span className="text-[11px] font-medium tracking-[0.4px] text-text-tertiary uppercase">
-            <Trans>Failed</Trans>
-          </span>
-          <button
-            type="button"
-            onClick={onRefresh}
-            aria-label={t`Regenerate brief`}
-            className="inline-flex size-7 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
-          >
-            <RotateCwIcon className="size-3.5" aria-hidden />
-          </button>
+        {/* 2026-06-08 (Yuqi /today): the "Failed" label is dropped (the message
+            already says it failed) and the icon-only retry becomes a quiet
+            "Regenerate brief" TEXT button sitting right after the message. */}
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+        >
+          <RotateCwIcon className="size-3.5" aria-hidden />
+          <Trans>Regenerate brief</Trans>
+        </button>
+        <div className="flex flex-1 shrink-0 items-center justify-end gap-1">
           {onClose ? (
             <button
               type="button"
