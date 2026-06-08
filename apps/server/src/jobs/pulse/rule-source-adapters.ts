@@ -143,13 +143,7 @@ const MULTI_AGENCY_REQUIRED_JURISDICTIONS = new Set<RuleJurisdiction>([
 // the federal FEMA/IRS process (already covered by the FED sources), and they
 // publish no standing state relief page. relief_or_disaster_signal is therefore
 // not required for their comprehensive coverage rather than reported as missing.
-const RELIEF_FEDERAL_ONLY_JURISDICTIONS = new Set<RuleJurisdiction>([
-  'AK',
-  'NV',
-  'NH',
-  'SD',
-  'WY',
-])
+const RELIEF_FEDERAL_ONLY_JURISDICTIONS = new Set<RuleJurisdiction>(['AK', 'NV', 'NH', 'SD', 'WY'])
 
 const TAX_TYPE_COVERAGE_DOMAINS = new Set([
   'business_income_return',
