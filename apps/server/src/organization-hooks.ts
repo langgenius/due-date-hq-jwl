@@ -1,7 +1,7 @@
 import { APIError } from 'better-auth/api'
 import { and, count, eq, gt, isNull } from 'drizzle-orm'
 import { planHasFeature } from '@duedatehq/core/plan-entitlements'
-import { authSchema, firmSchema, makePulseOpsRepo, type Db } from '@duedatehq/db'
+import { authSchema, firmSchema, type Db } from '@duedatehq/db'
 import { createAuditWriter } from '@duedatehq/db/audit-writer'
 import type { OrganizationHooks } from '@duedatehq/auth'
 
@@ -59,18 +59,13 @@ export function buildOrganizationHooks(db: Db): OrganizationHooks {
         })
         return
       }
-      // Catch the new firm up to the currently-actionable regulatory landscape so
-      // it does not silently miss policy changes published before it registered —
-      // the live alert fan-out only reaches firms that exist when a change is
-      // approved. Best effort, same swallow-and-log semantics as the insert above.
-      try {
-        await makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(organization.id, now)
-      } catch (err) {
-        console.error('[firm_profile.afterCreateOrganization] alert backfill failed', {
-          orgId: organization.id,
-          message: err instanceof Error ? err.message : String(err),
-        })
-      }
+      // Onboarding is intentionally forward-only: a new firm starts with a clean
+      // alerts page and accrues alerts as regulatory changes are approved *after*
+      // it joins (the live fan-out reaches every firm that exists at approval
+      // time). We deliberately do NOT backfill the active landscape here — it
+      // surfaced ~30 firm-wide, matchedCount-0 alerts on day one that read as
+      // noise. makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(firmId)
+      // stays available for an explicit, opt-in catch-up if a firm ever needs one.
     },
     beforeAddMember: async ({ member }) => {
       if (member.role === 'owner') {
