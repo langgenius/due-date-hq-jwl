@@ -37,6 +37,9 @@ the alert list as a secondary sidebar**, not a list page with a slide-over panel
   — replacing the prior set of individually-rounded floating cards. The inner
   facts **grid** and clients **table** keep their own `radius-8` 1px border (per
   `noWOa`/`fphOa`); the sections themselves are borderless.
+- Fixed the history sheet scroll trap: the unified panel is now `shrink-0`, so
+  the drawer body keeps the scroll height and the Provenance/Activity tail is not
+  clipped by the panel's `overflow-hidden` or the sticky action shelf.
 - Removed the stray **`DeadlineDetailsPanel`** ("Confirm deadline change") form —
   it isn't in the design and read as an empty box; the affected-clients table is
   the confirmation surface, so it always renders for due-date alerts now. Deleted

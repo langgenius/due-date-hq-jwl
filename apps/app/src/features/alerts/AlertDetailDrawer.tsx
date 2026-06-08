@@ -1103,7 +1103,11 @@ export function AlertDetailDrawer({
           // padding — replacing the prior set of individually-rounded
           // floating cards ("乱七八糟的圆角"). Only the green
           // Ready-to-apply callout stays a separate rounded card above.
-          <div className="flex flex-col divide-y divide-divider-subtle overflow-hidden rounded-[12px] border border-divider-subtle bg-background-default [&>*]:px-6 [&>*]:py-4">
+          // 2026-06-08 (Yuqi Browser #1): keep this wrapper out of
+          // flex-shrink. The body owns `overflow-y-auto`; if this panel
+          // shrinks, its own `overflow-hidden` clips Provenance/Activity
+          // instead of giving the body scroll height.
+          <div className="flex shrink-0 flex-col divide-y divide-divider-subtle overflow-hidden rounded-[12px] border border-divider-subtle bg-background-default [&>*]:px-6 [&>*]:py-4">
             {/* 2026-06-08 (Pencil ibEoz/BbQAK `Qla5h KeyChange`): the
                 prominent left-border DEADLINE CHANGE card — the single
                 most scannable fact on the panel. Old → new date with the
