@@ -57,7 +57,7 @@ function IntegrationStrip() {
         <div
           key={logo.label}
           title={logo.label}
-          className="flex size-11 shrink-0 items-center justify-center rounded-[10px] border border-divider-regular bg-background-section"
+          className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-divider-regular bg-background-section"
         >
           <img src={logo.src} alt="" aria-hidden className="max-h-6 max-w-7 object-contain" />
         </div>
@@ -111,7 +111,7 @@ export function ClientsEmptyState({
       <div
         className={cn(
           'flex w-full max-w-[920px] flex-col items-center gap-6 text-center',
-          'rounded-2xl border border-divider-regular bg-background-default px-6 py-12 md:px-14 md:py-14',
+          'rounded-xl border border-divider-regular bg-background-default px-6 py-12 md:px-14 md:py-14',
         )}
       >
         <IntegrationStrip />

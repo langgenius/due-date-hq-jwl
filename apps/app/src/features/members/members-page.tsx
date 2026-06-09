@@ -701,7 +701,7 @@ function SeatStat({ data }: { data: MembersListOutput }) {
 
 function SeatLimitBanner() {
   return (
-    <section className="flex min-h-14 items-center gap-3 rounded-md border border-state-warning-border bg-state-warning-hover px-4 py-3">
+    <section className="flex min-h-14 items-center gap-3 rounded-lg border border-state-warning-border bg-state-warning-hover px-4 py-3">
       <span className="grid size-8 shrink-0 place-items-center text-text-warning">
         <AlertTriangleIcon className="size-4" aria-hidden />
       </span>
@@ -775,7 +775,7 @@ function ActiveMembersTable({
   busy: boolean
 }) {
   return (
-    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+    <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
       <Table>
         <TableHeader>
           <TableRow className="h-9 hover:bg-transparent">
@@ -860,7 +860,7 @@ function PendingInvitationsTable({
   busy: boolean
 }) {
   return (
-    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+    <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
       <Table>
         <TableHeader>
           <TableRow className="h-9 hover:bg-transparent">
@@ -1070,7 +1070,7 @@ function MemberActionsMenu({
     <DropdownMenu>
       {/* 2026-06-01: RowActionsMenu doesn't yet support nested submenu
           items (the "Change role" sub-trigger), so the canonical ellipsis
-          chrome stays inline — but the hand-rolled `size-7 rounded-md
+          chrome stays inline — but the hand-rolled `size-7 rounded-lg
           ...hover:bg-state-base-hover` recipe migrates onto the shared
           Button primitive at `variant='ghost' size='icon-xs'`. */}
       <DropdownMenuTrigger
@@ -1160,7 +1160,7 @@ function InviteMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[420px] rounded-md p-5" showCloseButton={false}>
+      <DialogContent className="w-[420px] rounded-lg p-5" showCloseButton={false}>
         <DialogHeader className="gap-1">
           <DialogTitle className="text-base">
             <Trans>Invite member</Trans>

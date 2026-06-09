@@ -246,8 +246,8 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
             <SheetDescription className="sr-only">
               <Trans>Fetching client detail.</Trans>
             </SheetDescription>
-            <Skeleton className="h-4 w-1/2 rounded-md" />
-            <Skeleton className="h-12 w-full rounded-md" />
+            <Skeleton className="h-4 w-1/2 rounded-lg" />
+            <Skeleton className="h-12 w-full rounded-lg" />
           </SheetHeader>
         )}
       </SheetContent>
@@ -287,7 +287,7 @@ function NextDueLine({
   const daysAbs = Math.abs(days)
   const daysLabel = isLate ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`
   return (
-    <div className="flex flex-col gap-1 rounded-md border border-divider-subtle bg-background-subtle px-3 py-2">
+    <div className="flex flex-col gap-1 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
       <span className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-muted">
         <Trans>Next due</Trans>
       </span>

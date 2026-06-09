@@ -91,7 +91,7 @@ export function ExportAxisOption({
       aria-checked={selected}
       disabled={disabled}
       className={cn(
-        'flex min-h-12 w-full cursor-pointer items-start gap-2 rounded-md border border-divider-regular bg-background-default px-3 py-2 text-left outline-none transition-colors',
+        'flex min-h-12 w-full cursor-pointer items-start gap-2 rounded-lg border border-divider-regular bg-background-default px-3 py-2 text-left outline-none transition-colors',
         'hover:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
         selected && 'border-divider-deep bg-state-base-active',
         disabled && 'cursor-not-allowed opacity-50',
@@ -259,7 +259,7 @@ export function SignatureReminderDialog({
             ) : null}
             {/* P1 throttle: single "you just reminded them" warning. */}
             {recentlyReminded ? (
-              <p className="rounded-md bg-background-subtle px-3 py-2 text-sm text-text-secondary">
+              <p className="rounded-lg bg-background-subtle px-3 py-2 text-sm text-text-secondary">
                 <Trans>
                   You reminded this client{' '}
                   <Plural value={daysSinceReminded} _0="today" one="# day ago" other="# days ago" />
@@ -301,7 +301,7 @@ export function SignatureReminderDialog({
               </p>
             ) : null}
             {sample ? (
-              <div className="grid gap-1 rounded-md bg-background-subtle p-3">
+              <div className="grid gap-1 rounded-lg bg-background-subtle p-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
                     <Trans>Preview for {sample.clientName}</Trans>
@@ -814,7 +814,7 @@ export function AuthorityRejectionDialog({
                     role="radio"
                     aria-checked={selected}
                     className={cn(
-                      'grid cursor-pointer gap-1 rounded-md border px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                      'grid cursor-pointer gap-1 rounded-lg border px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                       selected
                         ? 'border-accent-default bg-state-accent-hover-alt'
                         : 'border-divider-subtle hover:bg-state-base-hover',
@@ -906,7 +906,7 @@ export function MaterialsRequestPreviewDialog({
           ) : errorMessage ? (
             <p
               role="alert"
-              className="rounded-md border border-state-danger-border bg-state-danger-hover p-3 text-sm text-text-danger"
+              className="rounded-lg border border-state-danger-border bg-state-danger-hover p-3 text-sm text-text-danger"
             >
               {errorMessage}
             </p>
@@ -919,7 +919,7 @@ export function MaterialsRequestPreviewDialog({
                   </span>
                   {emailStatus}
                 </div>
-                <p className="rounded-md border border-divider-subtle bg-background-subtle p-3 font-mono text-sm text-text-primary">
+                <p className="rounded-lg border border-divider-subtle bg-background-subtle p-3 font-mono text-sm text-text-primary">
                   {preview.recipientEmail ?? <Trans>A materials link will be created only.</Trans>}
                 </p>
                 {!preview.emailWillBeQueued ? (
@@ -940,7 +940,7 @@ export function MaterialsRequestPreviewDialog({
                 <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
                   <Trans>Subject</Trans>
                 </span>
-                <p className="rounded-md border border-divider-subtle p-3 text-sm font-medium text-text-primary">
+                <p className="rounded-lg border border-divider-subtle p-3 text-sm font-medium text-text-primary">
                   {preview.subject}
                 </p>
               </section>
@@ -948,7 +948,7 @@ export function MaterialsRequestPreviewDialog({
                 <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
                   <Trans>Email body</Trans>
                 </span>
-                <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-md border border-divider-subtle bg-background-subtle p-3 font-mono text-xs leading-relaxed text-text-primary">
+                <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-lg border border-divider-subtle bg-background-subtle p-3 font-mono text-xs leading-relaxed text-text-primary">
                   {preview.bodyText}
                 </pre>
               </section>
@@ -1003,7 +1003,7 @@ export function MaterialsRequestPreviewChecklist({
   items: readonly ReadinessDocumentChecklistItemPublic[]
 }) {
   return (
-    <section className="grid content-start gap-2 rounded-md border border-divider-subtle p-3">
+    <section className="grid content-start gap-2 rounded-lg border border-divider-subtle p-3">
       <header className="flex items-center gap-2">
         <h3 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
           {title}

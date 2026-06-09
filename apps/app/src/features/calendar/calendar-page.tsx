@@ -429,7 +429,7 @@ function CalendarSubscriptionCard({
         <CardTitle className="flex items-center gap-2">
           <span
             aria-hidden
-            className="grid size-8 place-items-center rounded-md border border-state-accent-active bg-state-accent-hover-alt text-text-accent"
+            className="grid size-8 place-items-center rounded-lg border border-state-accent-active bg-state-accent-hover-alt text-text-accent"
           >
             {config.scope === 'firm' ? (
               <ShieldIcon className="size-4" />
@@ -508,7 +508,7 @@ function CalendarSubscriptionCard({
                 file. Created / Last accessed stay always-visible —
                 "Not enabled" / "Never" carry the right signal for
                 them. */}
-            <div className="grid gap-1 rounded-md border border-divider-regular bg-background-subtle p-3">
+            <div className="grid gap-1 rounded-lg border border-divider-regular bg-background-subtle p-3">
               {subscription ? (
                 <IntegrationKeyValueRow
                   label={t`Privacy mode`}
@@ -616,7 +616,7 @@ function CalendarSubscriptionRedactedContent() {
         <Skeleton className="h-4 w-20" />
         <Skeleton className="h-9 w-full" />
       </div>
-      <div className="grid gap-2 rounded-md border border-divider-regular bg-background-subtle p-3">
+      <div className="grid gap-2 rounded-lg border border-divider-regular bg-background-subtle p-3">
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-5/6" />
         <Skeleton className="h-4 w-2/3" />

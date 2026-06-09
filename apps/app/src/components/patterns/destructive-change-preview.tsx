@@ -48,7 +48,7 @@ export function DestructiveChangePreview({
   lines: readonly DestructiveChangePreviewLine[]
 }) {
   return (
-    <div className="grid gap-3 rounded-md border border-divider-regular bg-background-subtle p-3">
+    <div className="grid gap-3 rounded-lg border border-divider-regular bg-background-subtle p-3">
       {title ? <p className="text-sm font-medium text-text-primary">{title}</p> : null}
       <div className="grid gap-2">
         {lines.map((line) => (

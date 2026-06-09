@@ -106,7 +106,7 @@ export function SplashRoute() {
               aria-hidden
               width={24}
               height={24}
-              className="size-6 rounded-md"
+              className="size-6 rounded-lg"
             />
             <span className="text-sm font-semibold tracking-tight text-text-primary">
               DueDateHQ
@@ -128,7 +128,7 @@ export function SplashRoute() {
           {/* "While you were away" recap card */}
           <section
             aria-label={t`While you were away`}
-            className="flex w-full flex-col gap-3.5 rounded-2xl border border-divider-regular bg-background-default px-7 py-6"
+            className="flex w-full flex-col gap-3.5 rounded-xl border border-divider-regular bg-background-default px-7 py-6"
           >
             <div className="flex items-center gap-2">
               <span aria-hidden className="block size-1.5 rounded-full bg-state-success-solid" />
@@ -170,7 +170,7 @@ export function SplashRoute() {
 
           {/* Warning strip — real due-this-week count (only when > 0) */}
           {data && data.dueThisWeekCount > 0 ? (
-            <div className="flex w-full items-center gap-2.5 rounded-[10px] bg-state-warning-hover px-3.5 py-2.5">
+            <div className="flex w-full items-center gap-2.5 rounded-xl bg-state-warning-hover px-3.5 py-2.5">
               <span aria-hidden className="block size-2 rounded-full bg-state-warning-solid" />
               <span className="text-sm font-semibold text-text-warning">
                 <Plural

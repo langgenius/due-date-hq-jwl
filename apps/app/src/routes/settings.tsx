@@ -84,7 +84,7 @@ function SettingsSection({
         </h2>
         <p className="text-xs text-text-tertiary">{description}</p>
       </div>
-      <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+      <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
         {children}
       </div>
     </section>

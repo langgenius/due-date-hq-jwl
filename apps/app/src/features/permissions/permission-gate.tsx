@@ -160,7 +160,7 @@ function PermissionRequiredPanel({
           <div className="flex items-start gap-3">
             <span
               aria-hidden
-              className="grid size-10 shrink-0 place-items-center rounded-md border border-divider-regular bg-background-subtle text-text-accent"
+              className="grid size-10 shrink-0 place-items-center rounded-lg border border-divider-regular bg-background-subtle text-text-accent"
             >
               <LockKeyholeIcon className="size-4" />
             </span>

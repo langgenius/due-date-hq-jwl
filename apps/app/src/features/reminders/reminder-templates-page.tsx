@@ -155,7 +155,7 @@ function Chip({ tone, children }: { tone: 'accent' | 'muted'; children: ReactNod
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-md border border-divider-regular px-2 py-[3px] text-[11px] font-semibold',
+        'inline-flex items-center rounded-lg border border-divider-regular px-2 py-[3px] text-[11px] font-semibold',
         tone === 'accent'
           ? 'bg-state-accent-hover text-text-accent'
           : 'bg-background-section text-text-secondary',

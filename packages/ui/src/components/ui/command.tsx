@@ -138,7 +138,7 @@ function CommandItem({ className, ...props }: React.ComponentProps<typeof Comman
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        'group/command-item grid cursor-default grid-cols-[32px_1fr_auto] items-center gap-3 rounded-md p-2 text-left text-sm outline-none transition-colors select-none hover:bg-background-subtle data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-60 data-[selected=true]:bg-state-base-hover data-[selected=true]:text-text-primary data-[selected=true]:hover:bg-state-base-hover [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4',
+        'group/command-item grid cursor-default grid-cols-[32px_1fr_auto] items-center gap-3 rounded-lg p-2 text-left text-sm outline-none transition-colors select-none hover:bg-background-subtle data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-60 data-[selected=true]:bg-state-base-hover data-[selected=true]:text-text-primary data-[selected=true]:hover:bg-state-base-hover [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4',
         className,
       )}
       {...props}

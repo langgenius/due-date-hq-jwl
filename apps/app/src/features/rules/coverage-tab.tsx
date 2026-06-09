@@ -834,7 +834,7 @@ export function CoverageTab({
               as a single workspace surface. */
             <div
               className={cn(
-                'flex flex-1 min-w-0 overflow-hidden rounded-md bg-background-default',
+                'flex flex-1 min-w-0 overflow-hidden rounded-lg bg-background-default',
                 fitViewport
                   ? 'min-h-0 self-stretch'
                   : 'sticky top-4 min-h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] self-start',
@@ -1122,7 +1122,7 @@ function ActiveFilterChip({
       ? t`Showing jurisdictions with pending rules`
       : t`Showing jurisdictions with active rules`
   return (
-    <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-state-accent-active-alt/40 bg-state-accent-tint/40 pr-1 pl-2.5 text-xs text-text-secondary">
+    <div className="inline-flex h-8 w-fit items-center gap-2 rounded-lg border border-state-accent-active-alt/40 bg-state-accent-tint/40 pr-1 pl-2.5 text-xs text-text-secondary">
       <span>{label}</span>
       <button
         type="button"
@@ -2203,7 +2203,7 @@ function BulkReviewDrawer({
               <BulkSectionLabel>
                 <Trans>SELECTED RULES</Trans>
               </BulkSectionLabel>
-              <div className="overflow-hidden rounded-md border border-divider-regular bg-background-subtle">
+              <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-subtle">
                 {selectedRules.length > 0 ? (
                   selectedRules.slice(0, 8).map((rule) => (
                     <div
@@ -2295,7 +2295,7 @@ function BulkConcreteDraftSummary({
 }) {
   const hiddenDraftCount = Math.max(0, selectedDrafts.length - 5)
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-divider-regular bg-background-subtle px-3 py-3 text-xs">
+    <div className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-subtle px-3 py-3 text-xs">
       {selectedDrafts.slice(0, 5).map(({ rule, draft }) => (
         <div
           key={ruleRowKey(rule)}
@@ -2333,7 +2333,7 @@ function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null
 
   if (!preview) {
     return (
-      <div className="rounded-md border border-divider-regular bg-background-subtle px-3 py-3 text-xs text-text-tertiary">
+      <div className="rounded-lg border border-divider-regular bg-background-subtle px-3 py-3 text-xs text-text-tertiary">
         <Trans>Preview selected rules before accepting them into production.</Trans>
       </div>
     )
@@ -2353,7 +2353,7 @@ function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-md border border-divider-regular bg-background-subtle px-3 py-3 text-xs">
+    <div className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-subtle px-3 py-3 text-xs">
       <div className="grid gap-2 text-text-secondary">
         <span>
           <Trans>

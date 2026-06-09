@@ -543,7 +543,7 @@ function BatchClients({
   if (clientsQuery.isLoading) return <Skeleton className="h-16 w-full" />
   if (clients.length === 0) return null
   // 2026-06-01: Card size="xs" tone="muted" radius="md" replaces the
-  // hand-rolled rounded-md + divider-subtle + p-3 container. Card xs
+  // hand-rolled rounded-lg + divider-subtle + p-3 container. Card xs
   // already sets py-3; CardContent supplies px-3. gap-2 stays for the
   // dense row rhythm (Card xs default gap is gap-2, applied via the
   // card flex column).

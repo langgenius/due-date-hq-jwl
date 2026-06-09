@@ -247,7 +247,7 @@ function tableHeaderFilterTrigger({
       // render at a slightly different letter-spacing than the
       // sibling SortableHeader columns. Now the trigger inherits,
       // every column header reads at the same typographic spec.
-      className="-mx-2 inline-flex h-7 max-w-40 cursor-pointer items-center gap-1 rounded-md px-2 whitespace-nowrap outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-50 data-[active=true]:text-text-accent"
+      className="-mx-2 inline-flex h-7 max-w-40 cursor-pointer items-center gap-1 rounded-lg px-2 whitespace-nowrap outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-50 data-[active=true]:text-text-accent"
     >
       <span className="truncate">{label}</span>
       {activeCount > 0 ? (

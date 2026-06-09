@@ -244,7 +244,7 @@ export function OnboardingRoute() {
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="contents">
-        <div className="flex flex-col gap-4 rounded-[14px] border border-divider-subtle bg-background-default p-5 sm:px-7 sm:py-[22px]">
+        <div className="flex flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default p-5 sm:px-7 sm:py-[22px]">
           <Field>
             <FieldHeaderRow
               htmlFor="practice-name"

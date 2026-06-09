@@ -189,7 +189,7 @@ function EvidenceCard({ item, focused }: { item: EvidencePublic; focused: boolea
     <Card size="sm" radius="md" tone={focused ? 'accent-active' : 'default'}>
       <CardContent className="grid gap-3">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-state-base-hover text-text-secondary">
+          <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-state-base-hover text-text-secondary">
             <EvidenceSourceIcon sourceType={item.sourceType} />
           </div>
           <div className="min-w-0 flex-1">
@@ -676,7 +676,7 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
             const changeView = buildAuditChangeView(event, changeLabels, practiceTimezone)
             return (
               // 2026-06-01: audit timeline row swapped to Card primitive
-              // (size='sm' radius='md'). The bordered, rounded-md chrome
+              // (size='sm' radius='md'). The bordered, rounded-lg chrome
               // matches the canonical dense in-drawer surface; <article>
               // semantic is intentionally dropped — Card renders a <div>.
               <Card key={event.id} size="sm" radius="md">

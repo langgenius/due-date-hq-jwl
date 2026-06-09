@@ -73,7 +73,7 @@ export function ObligationListRail({
 
       {/* FilterRow — search. */}
       <div className="flex shrink-0 items-center gap-2 border-b border-divider-subtle px-4 py-2.5">
-        <label className="inline-flex h-7 w-full items-center gap-2 rounded-md px-2 text-text-muted transition-colors focus-within:bg-state-base-hover hover:bg-state-base-hover">
+        <label className="inline-flex h-7 w-full items-center gap-2 rounded-lg px-2 text-text-muted transition-colors focus-within:bg-state-base-hover hover:bg-state-base-hover">
           <SearchIcon className="size-3.5 shrink-0" aria-hidden />
           <input
             type="search"
@@ -172,7 +172,7 @@ function RailItem({
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           {row.clientState ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-[6px] border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
               <StateBadge code={row.clientState} size="xs" style={{ width: 12, height: 12 }} />
               {row.clientState}
             </span>

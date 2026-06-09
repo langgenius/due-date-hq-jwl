@@ -570,7 +570,7 @@ export function SettingsProfileRoute() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           {pendingSessionRevoke ? (
-            <div className="grid gap-1 rounded-md border border-divider-regular bg-background-subtle p-3 text-sm">
+            <div className="grid gap-1 rounded-lg border border-divider-regular bg-background-subtle p-3 text-sm">
               <p className="font-medium text-text-primary">
                 {pendingSessionRevoke.userAgent || <Trans>Unknown browser</Trans>}
               </p>
@@ -620,7 +620,7 @@ function SettingsCard({
   return (
     <section
       className={cn(
-        'overflow-hidden rounded-2xl border bg-background-default',
+        'overflow-hidden rounded-xl border bg-background-default',
         tone === 'danger' ? 'border-state-destructive-hover-alt' : 'border-divider-regular',
       )}
     >
@@ -699,7 +699,7 @@ function SegmentedControl({ options, value }: { options: [string, string]; value
         <span
           key={opt}
           className={cn(
-            'rounded-md px-4 py-1.5 text-xs',
+            'rounded-lg px-4 py-1.5 text-xs',
             opt === value
               ? 'bg-background-default font-semibold text-text-primary shadow-sm'
               : 'font-medium text-text-secondary',

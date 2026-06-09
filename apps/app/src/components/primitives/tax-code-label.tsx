@@ -71,7 +71,7 @@ function TaxCodeLabel({
  * a true code-chip:
  *   • `bg-background-subtle` (soft surface, not white)
  *   • `font-mono` (JetBrains Mono) + `font-bold` (700) at `text-xs`
- *   • `rounded-[5px]` — between pill and square — matches Pencil's
+ *   • `rounded-sm` — between pill and square — matches Pencil's
  *     5px corner radius on form-code chips
  *   • `px-3 py-1` (Pencil's [4, 12])
  *   • `border-divider-subtle` hairline border (subtle, not regular)
@@ -102,7 +102,7 @@ function TaxCodeBadge({
             // identity; bold made it shout next to the row's
             // body text.
             className={cn(
-              'cursor-help border-divider-subtle bg-background-subtle px-3 py-1 font-mono font-medium tracking-tight rounded-[5px]',
+              'cursor-help border-divider-subtle bg-background-subtle px-3 py-1 font-mono font-medium tracking-tight rounded-sm',
               className,
             )}
             {...props}

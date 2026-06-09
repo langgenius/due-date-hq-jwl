@@ -220,13 +220,13 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
               <Trans>Looking up next year's rules…</Trans>
             </div>
           ) : previewQuery.isError ? (
-            <div className="rounded-[10px] bg-background-default p-4 text-sm text-text-destructive">
+            <div className="rounded-xl bg-background-default p-4 text-sm text-text-destructive">
               {rpcErrorMessage(previewQuery.error) ?? (
                 <Trans>Couldn't build the rollover preview.</Trans>
               )}
             </div>
           ) : totalCount === 0 ? (
-            <div className="rounded-[10px] bg-background-default p-8 text-center text-sm text-text-secondary">
+            <div className="rounded-xl bg-background-default p-8 text-center text-sm text-text-secondary">
               <Trans>
                 No filed {headerFrom} deadlines are eligible to roll into {headerTo} yet.
               </Trans>
@@ -234,7 +234,7 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
           ) : (
             <>
               {/* Intro */}
-              <div className="flex items-start gap-2.5 rounded-[10px] bg-background-default p-4">
+              <div className="flex items-start gap-2.5 rounded-xl bg-background-default p-4">
                 <InfoIcon className="mt-0.5 size-3.5 shrink-0 text-text-secondary" aria-hidden />
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <p className="text-description font-semibold text-text-primary">

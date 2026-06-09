@@ -229,7 +229,7 @@ function UserMenuTrigger({
               // avatar at 16px). No collapsed size override — only the
               // name span hides, the avatar stays put and centers in the
               // narrow card via the symmetric padding.
-              'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2.5 rounded-md px-1.5 py-2.5 outline-none transition-[background-color,color]',
+              'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2.5 rounded-lg px-1.5 py-2.5 outline-none transition-[background-color,color]',
               'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             )}
           />

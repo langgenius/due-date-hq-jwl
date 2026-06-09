@@ -232,7 +232,7 @@ export function ConceptHelp({
             type="button"
             aria-label={t`Explain ${label}`}
             className={cn(
-              'inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors',
+              'inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors',
               'hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               className,
             )}

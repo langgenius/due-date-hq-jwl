@@ -24,7 +24,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *    framing; this primitive targets frameless body surfaces.
  *
  * Visual contract (per DESIGN.md §3.2 Tile value role):
- *  - Frame: `rounded-md border border-divider-subtle bg-background-default px-4 py-3`
+ *  - Frame: `rounded-lg border border-divider-subtle bg-background-default px-4 py-3`
  *  - Value: `text-xl font-semibold leading-tight tabular-nums tracking-tight`,
  *    tone-coded
  *  - Label: `text-sm text-text-secondary` below the value
@@ -121,7 +121,7 @@ export function StatTile({
   )
 
   const baseClass = cn(
-    'flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3',
+    'flex min-w-[160px] flex-col gap-1 rounded-lg border border-divider-subtle bg-background-default px-4 py-3',
     className,
   )
 

@@ -51,7 +51,7 @@ export function Stepper({ current }: { current: StepIndex }) {
       // same left edge — see feedback #5 ("alignment between the
       // title, the progress bar, and the drop zone").
       // 2026-06-07 (Cluster 3 — pill stepper, design SLw8Q/dCUv7): the
-      // bordered rounded-md chips + flex connector rail were restyled
+      // bordered rounded-lg chips + flex connector rail were restyled
       // to rounded-full pills with numbered circles + ChevronRight
       // separators, matching the canvas. Active = filled accent pill;
       // completed = green-tint pill with a check; pending = quiet

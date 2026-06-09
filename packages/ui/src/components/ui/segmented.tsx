@@ -63,7 +63,7 @@ export function Segmented<T extends string>({
             aria-pressed={active}
             aria-label={option.ariaLabel}
             className={cn(
-              'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 rounded-md font-medium whitespace-nowrap transition-colors outline-none',
+              'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 rounded-lg font-medium whitespace-nowrap transition-colors outline-none',
               'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               size === 'sm' ? 'h-6 px-2 text-xs' : 'h-7 px-2.5 text-xs',
               active

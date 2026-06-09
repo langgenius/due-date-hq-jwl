@@ -237,7 +237,7 @@ export function IsoDatePicker({
                 aria-pressed={selected}
                 disabled={dateDisabled}
                 className={cn(
-                  'h-8 rounded-md px-0 font-mono text-xs tabular-nums',
+                  'h-8 rounded-lg px-0 font-mono text-xs tabular-nums',
                   !currentMonth && !selected ? 'text-text-muted' : undefined,
                   dateDisabled ? 'opacity-40' : undefined,
                   isoDate === todayIsoDate && !selected ? 'border-divider-regular' : undefined,

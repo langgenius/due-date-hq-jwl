@@ -69,11 +69,11 @@ export function TwoFactorSetupPanel({
   }
 
   return (
-    <form onSubmit={onVerify} className="grid gap-4 rounded-md border border-border-default p-4">
+    <form onSubmit={onVerify} className="grid gap-4 rounded-lg border border-border-default p-4">
       <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
-        <div className="grid place-items-center rounded-md border border-border-default bg-background-default p-4">
+        <div className="grid place-items-center rounded-lg border border-border-default bg-background-default p-4">
           <div
-            className="rounded-md bg-background-surface-white p-3 shadow-sm"
+            className="rounded-lg bg-background-surface-white p-3 shadow-sm"
             aria-label={t`Authenticator setup QR code`}
           >
             <QRCodeSVG
@@ -171,7 +171,7 @@ export function TwoFactorSetupPanel({
             )}
           </Button>
         </div>
-        <div className="grid gap-1 rounded-md bg-bg-panel p-3 font-mono text-xs text-text-secondary sm:grid-cols-2">
+        <div className="grid gap-1 rounded-lg bg-bg-panel p-3 font-mono text-xs text-text-secondary sm:grid-cols-2">
           {pendingSetup.backupCodes.map((backupCode) => (
             <span key={backupCode}>{backupCode}</span>
           ))}

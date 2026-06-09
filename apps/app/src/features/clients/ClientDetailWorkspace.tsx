@@ -940,11 +940,7 @@ export function ClientDetailWorkspace({
               extensionPaymentMismatches={extensionPaymentMismatches}
             />
 
-            <ClientSummaryStrip
-              clientId={client.id}
-              obligations={obligations}
-              compact={panelOpen}
-            />
+            <ClientSummaryStrip clientId={client.id} obligations={obligations} />
 
             {/* 4-tab body (2026-05-22). Replaces the V14 stacked-
                 sections shape. Reasoning in
@@ -1144,7 +1140,7 @@ export function ClientDetailWorkspace({
                   title={t`Tax classification`}
                   summary={t`Changing this recomputes which forms this client owes`}
                 >
-                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
+                  <div className="rounded-lg border border-divider-regular bg-background-default p-4">
                     <ClientClassificationPanel
                       key={`${client.id}:classification`}
                       client={client}
@@ -1160,7 +1156,7 @@ export function ClientDetailWorkspace({
                   <div
                     id="client-filing-jurisdictions"
                     className={cn(
-                      'scroll-mt-20 rounded-md border bg-background-default p-4',
+                      'scroll-mt-20 rounded-lg border bg-background-default p-4',
                       missingFilingState
                         ? 'border-components-badge-bg-warning-soft'
                         : 'border-divider-regular',
@@ -1180,7 +1176,7 @@ export function ClientDetailWorkspace({
                   titleAccessory={<RiskProfileSmartPriorityHelp />}
                   summary={t`Penalty exposure and tax-attribute flags`}
                 >
-                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
+                  <div className="rounded-lg border border-divider-regular bg-background-default p-4">
                     <ClientRiskInputsPanel
                       key={`${client.id}:risk`}
                       client={client}
@@ -1194,7 +1190,7 @@ export function ClientDetailWorkspace({
                   title={showSourceFields ? t`Import source` : t`Contact details`}
                   summary={formatImportSourceSummary(client)}
                 >
-                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
+                  <div className="rounded-lg border border-divider-regular bg-background-default p-4">
                     <ClientSourceDetailsPanel
                       key={`${client.id}:source-details`}
                       client={client}
@@ -1269,7 +1265,7 @@ export function ClientDetailWorkspace({
                     </>
                   }
                 >
-                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
+                  <div className="rounded-lg border border-divider-regular bg-background-default p-4">
                     <ClientRiskSummaryPanel
                       insight={riskSummaryQuery.data ?? null}
                       isLoading={riskSummaryQuery.isLoading}
@@ -1484,7 +1480,7 @@ function ClientDetailRail({ client, openCount }: { client: ClientPublic; openCou
           removed because no contract field backs them — showing
           invented compliance figures is a trust bug. Restore those
           rows once the underlying fields ship. */}
-      <section className="flex flex-col gap-[14px] rounded-2xl border border-divider-regular bg-background-default p-[18px]">
+      <section className="flex flex-col gap-[14px] rounded-xl border border-divider-regular bg-background-default p-[18px]">
         <RailSectionLabel>{t`SNAPSHOT`}</RailSectionLabel>
         <div className="flex flex-col gap-0.5">
           <span className="text-4xl font-semibold leading-none tracking-tight text-text-primary tabular-nums">
@@ -1497,7 +1493,7 @@ function ClientDetailRail({ client, openCount }: { client: ClientPublic; openCou
       </section>
 
       {/* Contacts card */}
-      <section className="flex flex-col gap-[14px] rounded-2xl border border-divider-regular bg-background-default p-[18px]">
+      <section className="flex flex-col gap-[14px] rounded-xl border border-divider-regular bg-background-default p-[18px]">
         <RailSectionLabel>{t`CONTACTS`}</RailSectionLabel>
         {contacts.length > 0 ? (
           <div className="flex flex-col gap-3">
@@ -1574,7 +1570,7 @@ function ClientDetailTabTrigger({
       // 2026-05-26 (Yuqi /clients/[id] feedback — "still having this
       // double line"): the underlying TabsTrigger primitive carries
       // pill-segmented defaults (`data-active:bg-…`,
-      // `data-active:shadow-xs`, `rounded-md border border-transparent`,
+      // `data-active:shadow-xs`, `rounded-lg border border-transparent`,
       // plus an `::after` pseudo-element underline at `bottom-[-5px]`
       // gated on `variant=line`). Even though this consumer wants a
       // pure underline-style tab, those defaults kept painting — the
@@ -1592,7 +1588,7 @@ function ClientDetailTabTrigger({
       // workbench's gray-tinted page background. The active state stays
       // chrome-free (bold text + the motion underline carry it).
       className={cn(
-        'relative -mb-px !flex-none shrink-0 items-center gap-1.5 !rounded-md !border-0 !bg-transparent px-3 py-1.5 text-base whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
+        'relative -mb-px !flex-none shrink-0 items-center gap-1.5 !rounded-lg !border-0 !bg-transparent px-3 py-1.5 text-base whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
         active
           ? 'font-medium text-text-primary'
           : 'cursor-pointer border-b-2 border-transparent text-text-secondary hover:bg-state-base-hover-alt hover:text-text-primary',
@@ -1645,7 +1641,7 @@ function ClientActiveAlertsSection({
   return (
     <section
       aria-label="Active alerts for this client"
-      className="rounded-md border border-divider-regular bg-background-default p-4"
+      className="rounded-lg border border-divider-regular bg-background-default p-4"
     >
       <header className="flex items-baseline justify-between gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft/40 px-4 py-2.5">
         {/* 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3): retired
@@ -1834,16 +1830,16 @@ function ClientActivityPanel({
   }
   // 2026-05-26 (Yuqi tab-body follow-ups, Task 3 — Activity tab
   // section-frame unification): rows used to be individual
-  // `rounded-md border bg-background-section` cards inside a grid
+  // `rounded-lg border bg-background-section` cards inside a grid
   // gap. That gave the Activity log a third visual dialect on the
   // Activity tab (vs AI summary's outer-frame + Notes' outer-frame).
   // Snapped to the canonical pattern: ONE outer canonical frame
-  // (`rounded-md border-divider-regular bg-background-default`)
+  // (`rounded-lg border-divider-regular bg-background-default`)
   // with `divide-y` between rows. Now matches the AI summary +
   // Notes treatment on the same tab, and the page-family-canonical
   // §9 rule (one section, one frame).
   return (
-    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+    <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
       <ul className="divide-y divide-divider-subtle">
         {events.map((event) => (
           <li key={event.id} className="grid gap-1 px-4 py-3">

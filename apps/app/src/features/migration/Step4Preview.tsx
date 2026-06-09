@@ -314,7 +314,7 @@ export function Step4Preview({
                   Federal deadlines and state deadlines with active rules will still be generated.
                 </Trans>
               </p>
-              <ul className="divide-y divide-divider-subtle rounded-md border border-divider-regular text-sm text-text-primary">
+              <ul className="divide-y divide-divider-subtle rounded-lg border border-divider-regular text-sm text-text-primary">
                 {ruleReviewStateSummaries.map((stateSummary) => (
                   <li
                     key={stateSummary.state}

@@ -150,7 +150,7 @@ export function StateRuleActivationSelector({
         </span>
       </div>
 
-      <div className="rounded-md border border-divider-regular bg-background-default p-3">
+      <div className="rounded-lg border border-divider-regular bg-background-default p-3">
         <TooltipProvider delay={100}>
           <div className="grid grid-cols-11 grid-rows-9 justify-center gap-1">
             {STATE_TILES.map(({ code, row, column }) => {
@@ -223,7 +223,7 @@ export function StateRuleActivationSelector({
         // the source ("state's own calendar") and uses the concrete
         // verb "approve" instead of abstract "review". Size kept
         // at text-sm (Step 7's text-[12px] arbitrary not canonical).
-        <div className="rounded-md border border-state-warning-hover-alt bg-state-warning-hover px-3 py-2 text-sm leading-relaxed text-text-secondary">
+        <div className="rounded-lg border border-state-warning-hover-alt bg-state-warning-hover px-3 py-2 text-sm leading-relaxed text-text-secondary">
           <span className="font-medium text-text-primary">
             <Trans>Rule Library review required.</Trans>
           </span>{' '}

@@ -158,7 +158,7 @@ function Editor({ template }: { template: ReminderTemplatePublic }) {
         actions={
           <span
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold',
+              'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold',
               template.active
                 ? 'bg-state-success-hover text-text-success'
                 : 'bg-background-section text-text-secondary',
@@ -209,7 +209,7 @@ function Editor({ template }: { template: ReminderTemplatePublic }) {
                 <ToolbarButton icon={ListIcon} label={t`Bulleted list`} />
                 <ToolbarButton icon={ListOrderedIcon} label={t`Numbered list`} />
                 <span className="flex-1" />
-                <span className="inline-flex items-center gap-1.5 rounded-md border border-divider-regular px-2.5 py-1.5 text-xs font-semibold text-text-muted">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular px-2.5 py-1.5 text-xs font-semibold text-text-muted">
                   <BracesIcon className="size-3" aria-hidden />
                   <Trans>Insert variable</Trans>
                 </span>
@@ -372,7 +372,7 @@ function ToolbarButton({ icon: Icon, label }: { icon: typeof BoldIcon; label: st
       type="button"
       aria-label={label}
       disabled
-      className="inline-flex size-7 cursor-not-allowed items-center justify-center rounded-md text-text-secondary disabled:opacity-60"
+      className="inline-flex size-7 cursor-not-allowed items-center justify-center rounded-lg text-text-secondary disabled:opacity-60"
     >
       <Icon className="size-3.5" aria-hidden />
     </button>
@@ -399,7 +399,7 @@ function Segmented({
             disabled={disabled}
             aria-pressed={selected}
             className={cn(
-              'rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors disabled:cursor-default',
+              'rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors disabled:cursor-default',
               selected
                 ? 'border border-divider-regular bg-background-default font-semibold text-text-primary shadow-xs'
                 : 'text-text-secondary',

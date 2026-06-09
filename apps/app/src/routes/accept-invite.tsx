@@ -270,7 +270,7 @@ export function AcceptInviteRoute() {
                   the invitation preview to render the canvas's
                   "Hudson Wells · Brightline LLC · …" sub-line. */}
               {inviteQuery.data ? (
-                <div className="flex items-center gap-2.5 rounded-[10px] border border-divider-subtle bg-background-section px-3.5 py-3">
+                <div className="flex items-center gap-2.5 rounded-xl border border-divider-subtle bg-background-section px-3.5 py-3">
                   <span
                     aria-hidden
                     className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent-default font-mono text-[11px] font-semibold text-white"

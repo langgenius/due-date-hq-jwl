@@ -664,7 +664,7 @@ function ControlRow({
 }) {
   return (
     <div className="flex gap-3">
-      <span className="grid size-8 shrink-0 place-items-center rounded-md bg-background-subtle text-text-accent">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-background-subtle text-text-accent">
         {icon}
       </span>
       <div className="min-w-0">
@@ -695,7 +695,7 @@ function BillingIntervalToggle({
         aria-pressed={value === 'monthly'}
         onClick={() => onChange('monthly')}
         className={cn(
-          'inline-flex h-9 min-w-24 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium text-text-secondary transition-colors',
+          'inline-flex h-9 min-w-24 cursor-pointer items-center justify-center rounded-lg px-3 text-sm font-medium text-text-secondary transition-colors',
           value === 'monthly'
             ? 'bg-accent-default text-primary-foreground shadow-sm'
             : 'hover:bg-state-base-hover hover:text-text-primary',
@@ -708,7 +708,7 @@ function BillingIntervalToggle({
         aria-pressed={value === 'yearly'}
         onClick={() => onChange('yearly')}
         className={cn(
-          'inline-flex h-9 min-w-40 cursor-pointer items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-text-secondary transition-colors',
+          'inline-flex h-9 min-w-40 cursor-pointer items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-text-secondary transition-colors',
           value === 'yearly'
             ? 'bg-accent-default text-primary-foreground shadow-sm'
             : 'hover:bg-state-base-hover hover:text-text-primary',
@@ -824,7 +824,7 @@ function PlanOption({
         </div>
         <div className="grid h-[180px] grid-rows-[1fr_auto] gap-3 overflow-hidden rounded-lg border border-state-accent-active-alt bg-components-panel-bg p-3 shadow-xs">
           <div className="flex min-w-0 items-start gap-2.5">
-            <span className="grid size-8 shrink-0 place-items-center rounded-md bg-state-accent-hover-alt text-text-accent">
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-state-accent-hover-alt text-text-accent">
               <SparklesIcon className="size-4" aria-hidden />
             </span>
             <div className="min-w-0">

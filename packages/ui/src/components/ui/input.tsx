@@ -4,7 +4,7 @@ import { Input as InputPrimitive } from '@base-ui/react/input'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
- * Base input. Visual baseline matches DESIGN.md: h-9, rounded-md,
+ * Base input. Visual baseline matches DESIGN.md: h-9, rounded-lg,
  * subtle filled surface, and a 1px **inset** focus-visible ring.
  *
  * 2026-05-28 (Yuqi /today polish — "高度不要改变"): the prior
@@ -24,7 +24,7 @@ function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
       type={type}
       data-slot="input"
       className={cn(
-        'flex h-9 w-full min-w-0 items-center rounded-md border border-divider-regular bg-components-input-bg-normal px-3 py-1 text-sm text-components-input-text-filled outline-none transition-colors',
+        'flex h-9 w-full min-w-0 items-center rounded-lg border border-divider-regular bg-components-input-bg-normal px-3 py-1 text-sm text-components-input-text-filled outline-none transition-colors',
         'placeholder:text-components-input-text-placeholder',
         'hover:bg-components-input-bg-hover',
         'focus-visible:border-components-input-border-active focus-visible:bg-components-input-bg-active focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',

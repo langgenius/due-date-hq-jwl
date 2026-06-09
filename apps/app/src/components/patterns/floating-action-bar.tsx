@@ -21,7 +21,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *  - 40px above the viewport bottom (`bottom-10`) — reads as a
  *    discrete floating control surface, not a sticky footer.
  *  - `rounded-xl` (12px) — softer than `rounded-full` so it can host
- *    multi-button clusters; tighter than `rounded-2xl` so single-line
+ *    multi-button clusters; tighter than `rounded-xl` so single-line
  *    text still reads as a pill.
  *  - Ambient lifted shadow + 8px y-offset + backdrop blur — looks
  *    lifted from the page underneath without competing with toasts
@@ -96,7 +96,7 @@ export function FloatingActionBar({
         // overflow dropdown (see /deadlines) — wrapping to two lines
         // reads as "the bar is broken" rather than "the bar has many
         // actions."
-        'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-nowrap items-center gap-2 rounded-2xl px-4 py-2.5 shadow-overlay',
+        'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-nowrap items-center gap-2 rounded-xl px-4 py-2.5 shadow-overlay',
         tone === 'elevated'
           ? [
               // Dark inverted surface — matches the `bg-text-primary +

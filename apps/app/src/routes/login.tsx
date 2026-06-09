@@ -192,7 +192,7 @@ export function LoginRoute() {
     <div className="flex h-dvh flex-col overflow-hidden bg-bg-canvas text-text-primary">
       <a
         href="#sign-in"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:border focus:border-divider-regular focus:bg-background-default focus:px-3 focus:py-1.5 focus:text-sm focus:text-text-primary focus:shadow-overlay"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:border focus:border-divider-regular focus:bg-background-default focus:px-3 focus:py-1.5 focus:text-sm focus:text-text-primary focus:shadow-overlay"
       >
         <Trans>Skip to sign-in</Trans>
       </a>
@@ -202,7 +202,7 @@ export function LoginRoute() {
 
         <main
           id="sign-in"
-          className="mx-auto flex max-h-full w-full max-w-[584px] flex-col self-center overflow-y-auto rounded-[20px] border border-divider-subtle bg-background-default px-6 py-10 shadow-[0_8px_32px_-4px_rgba(16,24,40,0.08)] lg:mx-0 lg:px-[72px] lg:py-16"
+          className="mx-auto flex max-h-full w-full max-w-[584px] flex-col self-center overflow-y-auto rounded-xl border border-divider-subtle bg-background-default px-6 py-10 shadow-[0_8px_32px_-4px_rgba(16,24,40,0.08)] lg:mx-0 lg:px-[72px] lg:py-16"
         >
           <div className="mx-auto flex w-full max-w-[440px] flex-col gap-7">
             {/* Frame 21 — brand, heading, form, reassurance, and foot share the
@@ -236,7 +236,7 @@ export function LoginRoute() {
                   onClick={handleGoogleSignIn}
                   disabled={socialDisabled}
                   aria-busy={submittingProvider === 'google'}
-                  className="flex h-12 w-full items-center justify-center gap-3 rounded-[10px] border border-divider-regular bg-background-default px-3.5 text-sm font-semibold tracking-[-0.1px] text-text-primary shadow-[0_1px_2px_rgba(16,24,40,0.06)] transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-divider-regular bg-background-default px-3.5 text-sm font-semibold tracking-[-0.1px] text-text-primary shadow-[0_1px_2px_rgba(16,24,40,0.06)] transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-60"
                 >
                   {submittingProvider === 'google' ? (
                     <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -258,7 +258,7 @@ export function LoginRoute() {
                     onClick={handleMicrosoftSignIn}
                     disabled={socialDisabled}
                     aria-busy={submittingProvider === 'microsoft'}
-                    className="flex h-12 w-full items-center justify-center gap-3 rounded-[10px] border border-divider-regular bg-background-default px-3.5 text-sm font-semibold tracking-[-0.1px] text-text-primary shadow-[0_1px_2px_rgba(16,24,40,0.06)] transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-60"
+                    className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-divider-regular bg-background-default px-3.5 text-sm font-semibold tracking-[-0.1px] text-text-primary shadow-[0_1px_2px_rgba(16,24,40,0.06)] transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-60"
                   >
                     {submittingProvider === 'microsoft' ? (
                       <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -298,7 +298,7 @@ export function LoginRoute() {
               </div>
 
               {/* Reassurance */}
-              <div className="flex items-center gap-2.5 rounded-[10px] bg-bg-subtle px-3.5 py-3">
+              <div className="flex items-center gap-2.5 rounded-xl bg-bg-subtle px-3.5 py-3">
                 <LockIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
                 <div className="flex flex-col gap-0.5">
                   <p className="text-xs font-semibold text-text-secondary">
@@ -469,7 +469,7 @@ function ProductStory() {
           {['/today', '/deadlines', '/alerts'].map((path) => (
             <span
               key={path}
-              className="rounded-md bg-bg-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-[0.2px] text-text-secondary"
+              className="rounded-lg bg-bg-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-[0.2px] text-text-secondary"
             >
               {path}
             </span>
@@ -663,7 +663,7 @@ function LoginEmailForm({
   if (codeSent) {
     return (
       <form onSubmit={handleVerifySubmit} noValidate className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-3 rounded-[10px] bg-bg-subtle px-3.5 py-2.5">
+        <div className="flex items-center justify-between gap-3 rounded-xl bg-bg-subtle px-3.5 py-2.5">
           <div className="min-w-0">
             <p className="text-[11px] font-medium text-text-muted">
               <Trans>Code sent to</Trans>
@@ -713,7 +713,7 @@ function LoginEmailForm({
         <div className="grid grid-cols-[1fr_auto] gap-2.5">
           <Button
             type="submit"
-            className="h-12 justify-center gap-2 rounded-[10px] font-semibold"
+            className="h-12 justify-center gap-2 rounded-xl font-semibold"
             disabled={formDisabled || normalizeCode(code).length !== 6}
             aria-busy={pendingAction === 'verify'}
           >
@@ -725,7 +725,7 @@ function LoginEmailForm({
           <Button
             type="button"
             variant="outline"
-            className="h-12 rounded-[10px] px-4"
+            className="h-12 rounded-xl px-4"
             disabled={formDisabled}
             onClick={() => void sendCode('resend')}
             aria-busy={pendingAction === 'resend'}
@@ -782,7 +782,7 @@ function LoginEmailForm({
 
       <Button
         type="submit"
-        className="h-12 w-full justify-center gap-2 rounded-[10px] font-semibold"
+        className="h-12 w-full justify-center gap-2 rounded-xl font-semibold"
         disabled={formDisabled}
         aria-busy={pendingAction === 'send'}
       >
@@ -796,13 +796,13 @@ function LoginEmailForm({
   )
 }
 
-// Shared 48px field shell — white surface, rounded-[10px], inner-aligned
+// Shared 48px field shell — white surface, rounded-xl, inner-aligned
 // content, focus-within ring, destructive recolor on error.
 function FieldShell({ children, error }: { children: ReactNode; error: string | null }) {
   return (
     <div
       className={cn(
-        'flex h-12 items-center gap-2.5 rounded-[10px] border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
+        'flex h-12 items-center gap-2.5 rounded-xl border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
         error
           ? 'border-state-destructive-border focus-within:ring-state-destructive-active'
           : 'border-divider-regular focus-within:border-state-accent-solid',

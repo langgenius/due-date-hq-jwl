@@ -31,7 +31,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *      we don't re-implement it.
  *
  * Visual contract:
- *   - Trigger: `size-7 rounded-md` ghost button, lucide
+ *   - Trigger: `size-7 rounded-lg` ghost button, lucide
  *     `MoreHorizontalIcon` at `size-4`, hover bg `bg-state-base-hover`.
  *   - Hover-reveal default: trigger is `opacity-0 group-hover:opacity-100
  *     focus-visible:opacity-100 data-[popup-open]:opacity-100`. Rows
@@ -131,7 +131,7 @@ export function RowActionsMenu({
             onClick={stopRowClick}
             onKeyDown={stopRowKey}
             className={cn(
-              'inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-[background-color,color,opacity]',
+              'inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-[background-color,color,opacity]',
               'hover:bg-state-base-hover hover:text-text-secondary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'data-[popup-open]:bg-state-base-hover data-[popup-open]:text-text-secondary data-[popup-open]:opacity-100',
               alwaysVisible

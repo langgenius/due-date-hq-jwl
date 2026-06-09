@@ -30,7 +30,7 @@ export function MatchedPulseBlock({ matches }: { matches: readonly PulseRuleMatc
   const visible = matches.slice(0, MAX_VISIBLE)
   const hiddenCount = matches.length - visible.length
   return (
-    <section className="flex flex-col gap-2 rounded-md border border-state-accent-active-alt bg-background-default px-3 py-3">
+    <section className="flex flex-col gap-2 rounded-lg border border-state-accent-active-alt bg-background-default px-3 py-3">
       <div className="flex items-center gap-2">
         <TriangleAlertIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
         <h3 className="text-sm font-semibold text-text-primary">
@@ -62,7 +62,7 @@ function MatchedPulseRow({ match }: { match: PulseRuleMatch }) {
   const isOverlay = match.alert.actionMode === 'due_date_overlay'
   const hasDiff = isOverlay && match.newDueDate !== null
   return (
-    <li className="flex flex-col gap-1.5 rounded-md border border-divider-subtle bg-background-default px-2.5 py-2">
+    <li className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2.5 py-2">
       <div className="flex items-start justify-between gap-2">
         <span className="text-sm font-medium text-text-primary">{match.alert.title}</span>
         <Badge variant="outline" className="shrink-0 text-text-tertiary">

@@ -476,7 +476,7 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
           className="w-full max-w-[520px] px-4 shadow-overlay"
         >
           <div className="flex items-start gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-state-accent-hover-alt text-text-accent">
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-state-accent-hover-alt text-text-accent">
               <LoaderCircleIcon className="size-5 animate-spin" aria-hidden />
             </span>
             <div className="min-w-0">
@@ -513,7 +513,7 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
                 <li
                   key={step.key}
                   className={cn(
-                    'flex min-h-8 items-center gap-2 rounded-md border px-2.5 text-sm transition-colors',
+                    'flex min-h-8 items-center gap-2 rounded-lg border px-2.5 text-sm transition-colors',
                     active
                       ? 'border-state-accent-active bg-state-accent-hover text-text-primary'
                       : complete

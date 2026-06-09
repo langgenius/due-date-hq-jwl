@@ -1,10 +1,11 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, Navigate, useLocation } from 'react-router'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
 import {
   ArrowDownToLineIcon,
+  ArrowRightIcon,
   ArrowUpRightIcon,
   CalendarClock,
   Check,
@@ -19,6 +20,7 @@ import {
   Loader2,
   MessageSquareText,
   PlusIcon,
+  RssIcon,
   SearchIcon,
   XIcon,
 } from 'lucide-react'
@@ -50,6 +52,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@duedatehq/ui/components/ui/sheet'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
@@ -77,9 +87,9 @@ import {
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { PageHeader } from '@/components/patterns/page-header'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
+import { StatBand } from '@/components/patterns/stat-band'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { SearchInput } from '@/components/primitives/search-input'
-import { CatalogReleaseBanner } from '@/features/rules/catalog-release-banner'
 import {
   CandidateReviewSection,
   RuleDetailCompact,
@@ -97,13 +107,16 @@ import {
 import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 import { JurisdictionRail, type RailJurisdiction } from '@/features/rules/states-rail'
 import {
+  EMPTY_RULE_TABLE_FILTER,
+  JurisdictionFilterBar,
   JurisdictionKpiStrip,
   JurisdictionRuleTable,
-  JurisdictionStatusChips,
-  KpiStrip,
+  formatRuleTypeLabel,
+  type RuleScope,
+  type RuleTableFilter,
 } from '@/features/rules/jurisdiction-rule-table'
 import { formatTaxCode } from '@/lib/tax-codes'
-import { formatRelativeTime } from '@/lib/utils'
+import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 
 /**
@@ -785,7 +798,7 @@ function jurisdictionPillClass(jurisdiction: string): string {
   if (jurisdiction === 'FED') {
     return 'bg-text-primary text-background-default'
   }
-  return 'bg-background-subtle text-text-secondary'
+  return 'border border-divider-regular bg-background-subtle text-text-tertiary'
 }
 
 // Change-kind classification for a rule, derived from its wired fields.
@@ -822,265 +835,130 @@ function useRuleChangeKindLabels(): Record<RuleChangeKind, string> {
   )
 }
 
-/**
- * ActionHero — the blue review-queue callout (Pencil O0pyRO `g4pVe7`).
- * A count tile, a headline + "oldest Nd" chip, a one-line summary, and
- * a primary "Open review queue" CTA that runs the same batch-review
- * entry point as the header's Start review. Only rendered when there
- * are rules awaiting review.
- */
-function OverviewActionHero({
-  reviewCount,
-  oldestRelative,
-  riskBreakdown,
-  onOpenReview,
-  onRemindLater,
-}: {
-  reviewCount: number
-  oldestRelative: string | null
-  riskBreakdown: { high: number; med: number; low: number }
-  onOpenReview: () => void
-  onRemindLater?: () => void
-}) {
-  const { t } = useLingui()
-  // Subline impact breakdown (Pencil "3 high-impact · 2 medium · 1 low")
-  // — derived from the wired `riskLevel` of the rules awaiting review.
-  // Only buckets with a count appear, so a queue that's all-high reads
-  // "5 high-impact" rather than padding with "· 0 medium · 0 low".
-  const impactParts = [
-    riskBreakdown.high > 0 ? t`${riskBreakdown.high} high-impact` : null,
-    riskBreakdown.med > 0 ? t`${riskBreakdown.med} medium` : null,
-    riskBreakdown.low > 0 ? t`${riskBreakdown.low} low` : null,
-  ].filter(Boolean)
-  return (
-    <div className="flex shrink-0 flex-col gap-3 rounded-[14px] border border-state-accent-border bg-state-accent-hover p-[18px] xl:flex-row xl:items-center xl:gap-[18px] xl:px-[22px]">
-      <span
-        aria-hidden
-        className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-state-accent-solid text-xl font-bold tracking-tight text-background-default tabular-nums"
-      >
-        {reviewCount}
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="flex flex-wrap items-center gap-2">
-          <span className="text-base font-semibold tracking-tight text-text-primary">
-            <Plural
-              value={reviewCount}
-              one="# rule change is waiting on you"
-              other="# rule changes are waiting on you"
-            />
-          </span>
-          {oldestRelative ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-[11px] font-semibold text-text-warning">
-              <Loader2 aria-hidden className="size-2.5" />
-              <Trans>oldest {oldestRelative}</Trans>
-            </span>
-          ) : null}
-        </span>
-        <span className="text-[13px] font-medium text-text-secondary">
-          {impactParts.length > 0 ? (
-            <>
-              <span className="text-text-primary">{impactParts.join(' · ')}</span>
-              {'. '}
-            </>
-          ) : null}
-          <Trans>
-            Reviewing now keeps client deadlines accurate and unblocks downstream obligations.
-          </Trans>
-        </span>
-      </div>
-      <div className="flex shrink-0 items-center gap-3">
-        <Button size="sm" onClick={onOpenReview}>
-          <Trans>Open review queue</Trans>
-          <ArrowUpRightIcon data-icon="inline-end" />
-        </Button>
-        {onRemindLater ? (
-          <button
-            type="button"
-            onClick={onRemindLater}
-            className="shrink-0 rounded-md text-xs font-medium text-text-tertiary outline-none transition-colors cursor-pointer hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <Trans>Remind me Friday</Trans>
-          </button>
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
-/**
- * OverviewStatusCoverageCard — segmented active/review/draft bar + chips
- * (Pencil O0pyRO `tFXYw`). Reads the catalog-wide status counts. The
- * segment bar widths are proportional to each bucket's share.
- */
-function OverviewStatusCoverageCard({
-  total,
-  active,
-  review,
-  draft,
-  archived,
-  className,
-}: {
-  total: number
-  active: number
-  review: number
-  draft: number
-  archived: number
-  className?: string
-}) {
-  const { t } = useLingui()
-  const segments = [
-    { key: 'active', flex: active, barClass: 'bg-state-success-solid' },
-    { key: 'review', flex: review, barClass: 'bg-state-warning-solid' },
-    { key: 'draft', flex: draft, barClass: 'bg-state-accent-solid' },
-  ].filter((seg) => seg.flex > 0)
-  // Per-status breakdown rows — overall segmented bar up top, then an
-  // itemized list (label · proportion bar · count) that carries the
-  // card's weight in the 2-column dashboard.
-  const breakdown = [
-    { key: 'active', label: t`Active`, count: active, tone: 'bg-state-success-solid' },
-    { key: 'review', label: t`Awaiting review`, count: review, tone: 'bg-state-warning-solid' },
-    { key: 'draft', label: t`Draft`, count: draft, tone: 'bg-state-accent-solid' },
-    { key: 'archived', label: t`Archived`, count: archived, tone: 'bg-divider-deep' },
-  ]
-  const pct = (n: number) => (total > 0 ? `${Math.round((n / total) * 100)}%` : '0%')
-  return (
-    <div
-      className={cn(
-        'flex shrink-0 flex-col gap-4 rounded-[14px] border border-divider-subtle bg-background-default px-[22px] py-5',
-        className,
-      )}
-    >
-      <div className="flex flex-col gap-0.5">
-        <span className="text-base font-semibold tracking-tight text-text-primary">
-          <Trans>Status coverage</Trans>
-        </span>
-        <span className="text-xs font-medium text-text-tertiary">
-          <Trans>
-            {total} rules · {active} active · {review} awaiting review
-          </Trans>
-        </span>
-      </div>
-      <div
-        className="flex h-2 w-full gap-0.5 overflow-hidden rounded-full bg-background-subtle"
-        role="presentation"
-      >
-        {segments.map((seg) => (
-          <span key={seg.key} className={cn('block', seg.barClass)} style={{ flex: seg.flex }} />
-        ))}
-      </div>
-      <div className="flex flex-col gap-2.5 pt-1">
-        {breakdown.map((row) => (
-          <div key={row.key} className="flex items-center gap-3">
-            <span aria-hidden className={cn('size-2 shrink-0 rounded-full', row.tone)} />
-            <span className="w-28 shrink-0 text-sm text-text-secondary">{row.label}</span>
-            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-background-subtle">
-              <span
-                className={cn('block h-full rounded-full', row.tone)}
-                style={{ width: pct(row.count) }}
-              />
-            </span>
-            <span className="w-10 shrink-0 text-right text-sm font-semibold tabular-nums text-text-primary">
-              {row.count}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+// Change-pill tone per kind for the Recent changes rows (Pencil O0pyRO
+// `lDTO0`): UPDATED reads accent-blue, NEW reads success-green, EFFECTIVE
+// (a scheduled future change) reads warning-brown. Mapped onto existing
+// state tokens — no bespoke hex.
+const RECENT_CHANGE_PILL_CLASS: Record<RuleChangeKind, string> = {
+  updated: 'bg-state-accent-hover text-text-accent',
+  new: 'bg-state-success-hover text-text-success',
+  effective: 'bg-state-warning-hover text-state-warning-text',
 }
 
 /**
  * OverviewRecentChangesCard — the most-recently-touched rules (Pencil
- * O0pyRO `lDTO0`). Each row: jurisdiction pill · title + meta · change
- * pill · relative timestamp · chevron. Clicking a row opens that rule's
- * detail panel (same `?rule=` deep-link the table rows use). Derived
- * from the wired rules — no separate query needed.
+ * O0pyRO `lDTO0`). A flush, full-width section (header + hairline-
+ * separated rows), NOT a bordered card: jurisdiction code pill · title +
+ * source/effective/author meta · change pill (UPDATED / NEW / EFFECTIVE)
+ * · relative timestamp · chevron. Clicking a row opens that rule's detail
+ * panel (same `?rule=` deep-link the table rows use). Derived from the
+ * wired rules — no separate query.
  */
 function OverviewRecentChangesCard({
   rules,
+  changedTotal,
   onRuleClick,
   onViewAll,
-  className,
 }: {
   rules: ObligationRule[]
+  /** Total rules changed in the trailing window — drives the "N of M" sub. */
+  changedTotal: number
   onRuleClick: (rule: ObligationRule) => void
   onViewAll: () => void
-  className?: string
 }) {
+  const { t } = useLingui()
   const changeKindLabels = useRuleChangeKindLabels()
   const now = Date.now()
   if (rules.length === 0) return null
   return (
-    <div
-      className={cn(
-        'flex shrink-0 flex-col gap-3.5 rounded-[14px] border border-divider-subtle bg-background-default px-[22px] py-5',
-        className,
-      )}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-base font-semibold tracking-tight text-text-primary">
+    <div className="flex shrink-0 flex-col gap-5">
+      <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="text-[20px] leading-tight font-semibold tracking-[-0.015em] text-text-primary">
             <Trans>Recent changes</Trans>
           </span>
-          <span className="text-xs font-medium text-text-tertiary">
-            <Trans>Last 30 days</Trans>
+          <span className="text-sm font-medium text-text-tertiary">
+            {changedTotal > rules.length ? (
+              <Trans>
+                Last 30 days · {rules.length} of {changedTotal}
+              </Trans>
+            ) : (
+              <Trans>Last 30 days</Trans>
+            )}
           </span>
         </div>
-        <TextLink className="shrink-0" onClick={onViewAll}>
-          <Trans>View all</Trans>
-        </TextLink>
+        <span className="flex-1" />
+        <button
+          type="button"
+          onClick={onViewAll}
+          className="group/viewall inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg text-[13px] font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <Trans>View all changes</Trans>
+          <ArrowRightIcon
+            aria-hidden
+            className="size-3.5 transition-transform duration-150 group-hover/viewall:translate-x-0.5"
+          />
+        </button>
       </div>
       <ul className="flex flex-col">
         {rules.map((rule, index) => {
           const kind = ruleChangeKind(rule, now)
           const changedAt = ruleChangedAt(rule)
           const relative = changedAt ? formatRelativeTime(new Date(changedAt).toISOString()) : null
-          // `reviewedByName` is a real display name; `verifiedBy` is a
-          // seed-placeholder slug (e.g. `practice.template_seed`) that the
-          // rest of the library deliberately never surfaces — so the meta
-          // line shows the form code + reviewer name only when a real
-          // reviewer name exists.
-          const metaParts = [rule.formName, rule.reviewedByName ?? null].filter(Boolean)
+          // Meta line mirrors the mock: source/form code · effective date ·
+          // reviewer. `reviewedByName` is a real display name; the seed
+          // placeholder `verifiedBy` slug is deliberately never shown.
+          const effective = rule.verifiedAt ? formatDatePretty(rule.verifiedAt) : null
+          const metaParts = [
+            rule.formName,
+            effective ? t`effective ${effective}` : null,
+            rule.reviewedByName ? t`by ${rule.reviewedByName}` : null,
+          ].filter(Boolean)
           return (
             <li key={rule.id}>
               <button
                 type="button"
                 onClick={() => onRuleClick(rule)}
                 className={cn(
-                  'flex w-full items-center gap-3 py-3.5 text-left outline-none transition-colors cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                  'group/row flex w-full items-center gap-3.5 py-4 text-left outline-none transition-colors cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                   index > 0 && 'border-t border-divider-subtle',
                 )}
               >
                 <span
                   className={cn(
-                    'inline-flex shrink-0 items-center rounded-md px-2 py-[3px] text-[11px] font-bold',
+                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-[3px] text-[11px] font-bold',
                     jurisdictionPillClass(rule.jurisdiction),
                   )}
                 >
                   {rule.jurisdiction}
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="truncate text-[13px] font-semibold text-text-primary">
+                  <span className="truncate text-base font-semibold tracking-[-0.01em] text-text-primary transition-colors group-hover/row:text-text-accent">
                     {rule.title}
                   </span>
                   {metaParts.length > 0 ? (
-                    <span className="truncate text-[11px] font-medium text-text-tertiary">
+                    <span className="truncate text-sm font-medium text-text-tertiary">
                       {metaParts.join(' · ')}
                     </span>
                   ) : null}
                 </span>
-                <Badge
-                  variant={kind === 'new' ? 'success' : kind === 'updated' ? 'info' : 'warning'}
-                  className="shrink-0"
+                <span
+                  className={cn(
+                    'inline-flex shrink-0 items-center rounded-full px-2 py-[3px] text-[10px] font-bold tracking-wider uppercase',
+                    RECENT_CHANGE_PILL_CLASS[kind],
+                  )}
                 >
                   {changeKindLabels[kind]}
-                </Badge>
+                </span>
                 {relative ? (
-                  <span className="shrink-0 text-xs font-medium text-text-muted tabular-nums">
+                  <span className="shrink-0 text-sm font-medium text-text-muted tabular-nums">
                     {relative}
                   </span>
                 ) : null}
-                <ChevronRightIcon aria-hidden className="size-3.5 shrink-0 text-text-muted" />
+                <ChevronRightIcon
+                  aria-hidden
+                  className="size-3.5 shrink-0 text-text-muted transition-all duration-150 group-hover/row:translate-x-0.5 group-hover/row:text-text-tertiary"
+                />
               </button>
             </li>
           )
@@ -1090,23 +968,68 @@ function OverviewRecentChangesCard({
   )
 }
 
+/**
+ * OverviewCaughtUpCard — the "all caught up" empty state shown on the
+ * Overview when the review queue is clear (Pencil O0pyRO `whr8M` /
+ * `sgts2`). A centered card on the subtle surface: a success check, a
+ * headline + body, a quiet "last reviewed" meta line, and two quiet
+ * links (past decisions / monitor sources). Per the mock it sits ABOVE
+ * the stats band so a clear queue reads as the reward, not an afterthought.
+ */
+function OverviewCaughtUpCard({
+  lastReviewedRelative,
+  onViewDecisions,
+  onMonitorSources,
+}: {
+  lastReviewedRelative: string | null
+  onViewDecisions: () => void
+  onMonitorSources: () => void
+}) {
+  const linkClass =
+    'group/link inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg text-[13px] font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
+  const linkArrowClass =
+    'size-3.5 transition-transform duration-150 group-hover/link:translate-x-0.5'
+  return (
+    <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-background-subtle px-6 py-10">
+      <div className="flex w-[520px] max-w-full flex-col items-center gap-3.5 text-center">
+        <span
+          aria-hidden
+          className="flex size-12 items-center justify-center rounded-full bg-state-success-hover"
+        >
+          <Check className="size-[22px] text-state-success-solid" />
+        </span>
+        <span className="text-xl font-semibold tracking-[-0.015em] text-text-primary">
+          <Trans>You're all caught up</Trans>
+        </span>
+        <p className="max-w-[480px] text-base font-medium leading-relaxed text-text-tertiary">
+          <Trans>
+            No rule changes are waiting on review. We'll surface new updates from sources as they're
+            published.
+          </Trans>
+        </p>
+        {lastReviewedRelative ? (
+          <span className="text-sm font-medium text-text-muted">
+            <Trans>Last rule reviewed {lastReviewedRelative}</Trans>
+          </span>
+        ) : null}
+        <div className="flex items-center gap-4 pt-1.5">
+          <button type="button" onClick={onViewDecisions} className={linkClass}>
+            <Trans>View past decisions</Trans>
+            <ArrowRightIcon aria-hidden className={linkArrowClass} />
+          </button>
+          <button type="button" onClick={onMonitorSources} className={linkClass}>
+            <Trans>Monitor sources</Trans>
+            <ArrowRightIcon aria-hidden className={linkArrowClass} />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Main route
 // ---------------------------------------------------------------------------
-
-const HERO_SNOOZE_KEY = 'ddhq.rules.heroSnoozeUntil'
-
-// Timestamp for upcoming Friday end-of-day — backs the ActionHero
-// "Remind me Friday" snooze. Returns this Friday if today is before
-// Friday, else next week's Friday.
-function nextFridayTs(now: number): number {
-  const d = new Date(now)
-  const day = d.getDay() // 0=Sun … 5=Fri
-  const delta = (5 - day + 7) % 7 || 7
-  d.setDate(d.getDate() + delta)
-  d.setHours(23, 59, 59, 999)
-  return d.getTime()
-}
 
 export function RulesLibraryRoute() {
   const { t } = useLingui()
@@ -1142,21 +1065,6 @@ export function RulesLibraryRoute() {
   // round-trips for marginal gain and break the in-memory search /
   // jurisdiction-grouping flow this page already runs.
   const [visibleGroupCount, setVisibleGroupCount] = useState(PAGE_SIZE)
-  // ActionHero "Remind me Friday" snooze — persisted so the review
-  // nudge stays hidden across reloads until the chosen Friday passes.
-  const [heroSnoozeUntil, setHeroSnoozeUntil] = useState<number>(() => {
-    if (typeof window === 'undefined') return 0
-    const raw = window.localStorage.getItem(HERO_SNOOZE_KEY)
-    return raw ? Number(raw) || 0 : 0
-  })
-  const remindHeroLater = useCallback(() => {
-    const until = nextFridayTs(Date.now())
-    setHeroSnoozeUntil(until)
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(HERO_SNOOZE_KEY, String(until))
-    }
-  }, [])
-  const heroSnoozed = heroSnoozeUntil > Date.now()
   // 2026-06-04 (Yuqi rule-library master–detail pivot, Pencil HR6mK):
   // the selected jurisdiction drives the right-pane flat table. URL-
   // bound so a state deep-links; null / unknown code = the All overview.
@@ -1170,9 +1078,9 @@ export function RulesLibraryRoute() {
     parseAsStringLiteral(['all', 'active', 'review', 'archived', 'missing'] as const),
   )
   const activeScope = scope ?? 'all'
-  // Catalog-release cohort deep-link (?cohort=YYYY) — set by the release banner
-  // / notification to narrow the library to a single filing-year cohort.
-  const [cohort, setCohort] = useQueryState('cohort', parseAsInteger)
+  // Catalog-release cohort deep-link (?cohort=YYYY) — narrows the library
+  // to a single filing-year cohort when present.
+  const [cohort] = useQueryState('cohort', parseAsInteger)
   const isSearching = (search ?? '').trim().length > 0
   // Batch-review state. `selectedRuleIds` tracks which needs-review
   // rules the user has checked off. `batchReviewRuleIds` snapshots the
@@ -1258,7 +1166,6 @@ export function RulesLibraryRoute() {
     () => filteredGroups.slice(0, clampedVisibleCount),
     [filteredGroups, clampedVisibleCount],
   )
-  const hasMoreGroups = clampedVisibleCount < totalGroupCount
   // Reset the visible window whenever the filter/scope set changes
   // shape. Using a derived fingerprint (jurisdiction list identity)
   // means re-running `listRules` data without a filter change DOESN'T
@@ -1270,9 +1177,6 @@ export function RulesLibraryRoute() {
   useEffect(() => {
     setVisibleGroupCount(PAGE_SIZE)
   }, [filteredGroupsFingerprint])
-  const loadMoreGroups = useCallback(() => {
-    setVisibleGroupCount((current) => current + PAGE_SIZE)
-  }, [])
   // Top-of-page stats data. `statusCounts` drives the multi-color
   // stacked progress bar (one segment per `RuleStatus` with >0 rules).
   // Scope-tab counts (`totalActive`, `totalPendingReview`,
@@ -1343,7 +1247,6 @@ export function RulesLibraryRoute() {
     return out
   }, [rules, coverageRows])
   const totalArchived = statusCounts.archived + statusCounts.deprecated
-  const totalDraft = statusCounts.candidate
 
   // 2026-06-07 (Yuqi /rules Overview pixel pass, Pencil O0pyRO): the
   // overview summary surfaces read from the SAME wired `rules` the
@@ -1368,6 +1271,16 @@ export function RulesLibraryRoute() {
     if (!Number.isFinite(oldest)) return null
     return formatRelativeTime(new Date(oldest).toISOString())
   }, [rules])
+  // Most-recent review timestamp — backs the "all caught up" empty
+  // state's "Last rule reviewed …" meta line (Pencil O0pyRO `whr8M`).
+  const lastReviewedRelative = useMemo(() => {
+    let latest = 0
+    for (const rule of rules) {
+      const reviewed = rule.reviewedAt ? Date.parse(rule.reviewedAt) : Number.NaN
+      if (!Number.isNaN(reviewed) && reviewed > latest) latest = reviewed
+    }
+    return latest > 0 ? formatRelativeTime(new Date(latest).toISOString()) : null
+  }, [rules])
 
   // Overview KPI-strip + eyebrow inputs (Pencil O0pyRO KPI Strip /
   // eyebrow). All derived from already-wired queries — no extra fetch.
@@ -1379,10 +1292,6 @@ export function RulesLibraryRoute() {
   const stateCount = useMemo(
     () => coverageRows.filter((row) => row.jurisdiction !== 'FED').length,
     [coverageRows],
-  )
-  const activeSources = useMemo(
-    () => (sourcesQuery.data ?? []).filter((s) => s.healthStatus === 'healthy').length,
-    [sourcesQuery.data],
   )
   // Rail library-section rows (Pencil O0pyRO — Sources / Temporary rules).
   const railSources = useMemo(() => {
@@ -1406,13 +1315,39 @@ export function RulesLibraryRoute() {
       return changed !== null && changed >= cutoff
     }).length
   }, [rules])
-  const pendingRisk = useMemo(() => {
-    const out = { high: 0, med: 0, low: 0 }
-    for (const rule of rules) {
-      if (statusGroupOf(rule.status) !== 'needs_review') continue
-      out[rule.riskLevel] += 1
+  // Overview stats-band subs (Pencil O0pyRO `p0WeNy`) — all derived from
+  // already-wired queries, no fiction:
+  //   sourcesMonitored — total feeds the catalog watches
+  //   coveragePct      — share of jurisdictions with zero entity gaps
+  //   highImpactChanged — high-risk rules touched in the trailing 30d
+  //   newThisMonth     — brand-new rules added in the trailing 30d
+  const sourcesMonitored = useMemo(() => sourcesQuery.data?.length ?? 0, [sourcesQuery.data])
+  const coveragePct = useMemo(() => {
+    if (coverageRows.length === 0) return 0
+    let covered = 0
+    for (const row of coverageRows) {
+      const hasGap = ENTITY_KEYS.some(
+        (e) =>
+          row.entityCoverage[e] === 'none' && row.entitySourceCoverage[e] !== 'not_applicable',
+      )
+      if (!hasGap) covered++
     }
-    return out
+    return Math.round((covered / coverageRows.length) * 100)
+  }, [coverageRows])
+  const highImpactChanged = useMemo(() => {
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
+    return rules.filter((rule) => {
+      const changed = ruleChangedAt(rule)
+      return changed !== null && changed >= cutoff && rule.riskLevel === 'high'
+    }).length
+  }, [rules])
+  const newThisMonth = useMemo(() => {
+    const now = Date.now()
+    const cutoff = now - 30 * 24 * 60 * 60 * 1000
+    return rules.filter((rule) => {
+      const changed = ruleChangedAt(rule)
+      return changed !== null && changed >= cutoff && ruleChangeKind(rule, now) === 'new'
+    }).length
   }, [rules])
 
   // 2026-06-04 (Yuqi rule-library master–detail pivot): the states rail
@@ -1446,6 +1381,13 @@ export function RulesLibraryRoute() {
     () => unfilteredGroups.find((g) => g.jurisdiction === activeJurisdiction) ?? null,
     [unfilteredGroups, activeJurisdiction],
   )
+  // oJL8o facet-filter state (Type / Severity / sort). Ephemeral, not
+  // URL-bound; reset whenever the selected jurisdiction changes so the
+  // chips never carry stale selections between states.
+  const [tableFilter, setTableFilter] = useState<RuleTableFilter>(EMPTY_RULE_TABLE_FILTER)
+  useEffect(() => {
+    setTableFilter(EMPTY_RULE_TABLE_FILTER)
+  }, [activeJurisdiction])
   // Rules for the selected jurisdiction's flat table — filtered by the
   // active scope (active/review/archived) + entity + rule search.
   // 'missing' scope shows gap rows only (handled in the render).
@@ -1469,8 +1411,42 @@ export function RulesLibraryRoute() {
           r.taxType.toLowerCase().includes(q),
       )
     }
+    // oJL8o filter bar — Type / Severity multi-select, Modified / Effective
+    // sort. Applied after scope/entity/search so the facet chips narrow the
+    // already-scoped set.
+    if (tableFilter.types.size > 0) {
+      result = result.filter((r) => tableFilter.types.has(r.taxType))
+    }
+    if (tableFilter.severities.size > 0) {
+      result = result.filter((r) => tableFilter.severities.has(r.riskLevel))
+    }
+    if (tableFilter.sort) {
+      const { field, dir } = tableFilter.sort
+      const stamp = (r: ObligationRule) =>
+        field === 'modified'
+          ? r.reviewedAt
+            ? Date.parse(r.reviewedAt)
+            : 0
+          : Date.parse(r.verifiedAt)
+      return [...result].sort((a, b) => (dir === 'desc' ? stamp(b) - stamp(a) : stamp(a) - stamp(b)))
+    }
     return result.toSorted(compareByStatusGroupPriority)
-  }, [selectedGroup, activeScope, activeEntity, search])
+  }, [selectedGroup, activeScope, activeEntity, search, tableFilter])
+  // Distinct tax-type options for the selected jurisdiction's Type filter.
+  const jurisdictionTypeOptions = useMemo(() => {
+    if (!selectedGroup) return []
+    const counts = new Map<string, number>()
+    for (const rule of selectedGroup.rules) {
+      counts.set(rule.taxType, (counts.get(rule.taxType) ?? 0) + 1)
+    }
+    return Array.from(counts.entries())
+      .map(([value, count]) => ({
+        value,
+        label: formatRuleTypeLabel(value, selectedGroup.jurisdiction),
+        count,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [selectedGroup])
   // Scoped progress-bar status counts for the selected jurisdiction.
   const jurisdictionStatusCounts = useMemo<Record<RuleStatus, number> | null>(() => {
     if (!selectedGroup) return null
@@ -1485,22 +1461,6 @@ export function RulesLibraryRoute() {
     }
     for (const rule of selectedGroup.rules) counts[rule.status] += 1
     return counts
-  }, [selectedGroup])
-  // Scoped entity-chip stats for the selected jurisdiction. gap/review
-  // collapse to 0/1 since there's exactly one jurisdiction in scope.
-  const jurisdictionEntityStats = useMemo(() => {
-    if (!selectedGroup) return []
-    return ENTITY_KEYS.map((entity) => {
-      const cov = selectedGroup.coverage
-      const srcCov = selectedGroup.sourceCoverage
-      let gapCount = 0
-      let reviewCount = 0
-      if (cov && srcCov?.[entity] !== 'not_applicable') {
-        if (cov[entity] === 'none') gapCount = 1
-        else if (cov[entity] === 'review') reviewCount = 1
-      }
-      return { entity, count: selectedGroup.entityCounts[entity], gapCount, reviewCount }
-    })
   }, [selectedGroup])
   // Per-jurisdiction scope-tab counts (stable across tab toggles).
   const jurisdictionTabCounts = useMemo(() => {
@@ -1553,14 +1513,6 @@ export function RulesLibraryRoute() {
       else next.add(jur)
       return next
     })
-  }, [])
-
-  const expandAll = useCallback(() => {
-    setExpanded(new Set(groups.map((g) => g.jurisdiction)))
-  }, [groups])
-  const collapseAll = useCallback(() => {
-    autoExpandAfterBatchRef.current = new Set()
-    setExpanded(new Set())
   }, [])
 
   // Filter rules across all groups by search query. Honors the
@@ -1620,6 +1572,18 @@ export function RulesLibraryRoute() {
     },
     [setRuleId],
   )
+
+  // Recent-changes "View all changes" → the audit log, the canonical
+  // full history of rule edits (Pencil O0pyRO `pyrzT`). The overview no
+  // longer hosts a grouped table to filter, so the link points at the
+  // real changes feed rather than a scope toggle.
+  const navigate = useNavigate()
+  const handleViewAllChanges = useCallback(() => {
+    void navigate('/audit')
+  }, [navigate])
+  const handleMonitorSources = useCallback(() => {
+    void navigate('/rules/sources')
+  }, [navigate])
 
   // Toggle one rule's selection. Used by the row checkbox.
   const toggleRuleSelection = useCallback((id: string) => {
@@ -1879,29 +1843,6 @@ export function RulesLibraryRoute() {
   // brand-new (unseeded) rule. Restored the header CTA on every
   // scope; the gap-row prefilled action remains as a quicker path
   // for the specific row case.
-  // Per-jurisdiction detail header — leaned to a two-button cluster
-  // (Yuqi 2026-06-08): the shortcut chip, ⋯ (Export coverage), and the
-  // standalone Sources button were dropped — Sources now lives in the
-  // rail, Export on the overview header, and `?` still opens shortcuts.
-  // The detail view keeps its two contextually-useful actions: New rule
-  // + Start review (the latter only when a review queue exists).
-  const headerActions = (
-    <>
-      <Button variant="outline" size="sm" onClick={openNewRule}>
-        <PlusIcon data-icon="inline-start" />
-        <Trans>New rule</Trans>
-      </Button>
-      {reviewCount > 0 ? (
-        <Button size="sm" onClick={startReviewAll}>
-          <Trans>Start review</Trans>
-          <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 text-xs tabular-nums text-text-accent">
-            {reviewCount}
-          </span>
-        </Button>
-      ) : null}
-    </>
-  )
-
   // Overview header actions (Pencil O0pyRO): pared down to Export +
   // Add new rule. The all-jurisdictions overview promotes the catalog
   // export (was buried in the ⋯ menu) and the create flow; review lives
@@ -1909,6 +1850,30 @@ export function RulesLibraryRoute() {
   // set still drives the per-jurisdiction detail header.
   const overviewHeaderActions = (
     <>
+      {/* Sources — moved off the jurisdiction rail to a header button
+          (links to the standalone Sources view, with a live health dot +
+          monitored count). */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => void navigate('/rules/sources')}
+        aria-label={t`View monitored sources`}
+      >
+        <RssIcon data-icon="inline-start" />
+        <Trans>Sources</Trans>
+        {railSources ? (
+          <span className="ml-0.5 inline-flex items-center gap-1.5">
+            <PulsingDot
+              tone={railSources.healthy ? 'success' : 'warning'}
+              active={false}
+              label={
+                railSources.healthy ? t`All sources healthy` : t`Some sources need attention`
+              }
+            />
+            <span className="tabular-nums text-text-tertiary">{railSources.count}</span>
+          </span>
+        ) : null}
+      </Button>
       <Button
         variant="outline"
         size="sm"
@@ -1921,7 +1886,7 @@ export function RulesLibraryRoute() {
       </Button>
       <Button size="sm" onClick={openNewRule}>
         <PlusIcon data-icon="inline-start" />
-        <Trans>Add new rule</Trans>
+        <Trans>Add rule</Trans>
       </Button>
     </>
   )
@@ -2156,6 +2121,40 @@ export function RulesLibraryRoute() {
     )
   }
 
+  // Overview stats band (Pencil O0pyRO `p0WeNy`) — extracted so it renders
+  // identically whether it sits below the Recent changes feed (queue has
+  // work) or below the "all caught up" card (queue clear).
+  const overviewStats = [
+    {
+      key: 'total',
+      label: t`Total rules`,
+      value: totalRules,
+      sub: newThisMonth > 0 ? t`+${newThisMonth} this month` : t`${totalActive} active`,
+      subClass: 'text-text-accent',
+    },
+    {
+      key: 'jurisdictions',
+      label: t`Jurisdictions`,
+      value: jurisdictionCount,
+      sub: t`${coveragePct}% coverage`,
+      subClass: 'text-text-success',
+    },
+    {
+      key: 'changed',
+      label: t`Changed (30d)`,
+      value: changedLast30,
+      sub: highImpactChanged > 0 ? t`${highImpactChanged} high-impact` : t`Last 30 days`,
+      subClass: highImpactChanged > 0 ? 'text-state-warning-text' : 'text-text-tertiary',
+    },
+    {
+      key: 'pending',
+      label: t`Pending review`,
+      value: totalPendingReview,
+      sub: oldestReviewRelative ? t`oldest ${oldestReviewRelative}` : t`Queue clear`,
+      subClass: totalPendingReview > 0 ? 'text-text-accent' : 'text-text-success',
+    },
+  ]
+
   return (
     // 2026-05-26 (Yuqi /rules/library critique P0 — structural pass):
     // Rule library adopts the canonical sticky-footer + table-card +
@@ -2186,7 +2185,6 @@ export function RulesLibraryRoute() {
           onSelect={(jur) => void setJurisdiction(jur)}
           search={railSearch}
           onSearchChange={setRailSearch}
-          sources={railSources}
           temporary={railTemporary}
           className="hidden lg:flex"
         />
@@ -2195,38 +2193,86 @@ export function RulesLibraryRoute() {
           {/* Inner panel is centered + width-capped (like /today) so the
               overview reads as a focused dashboard with side breathing
               room, not an edge-to-edge wall. */}
-          <div className="mx-auto flex min-h-0 w-full max-w-page-expanded flex-1 flex-col gap-8 px-4 pt-6 pb-0 md:px-8 md:pt-8 md:pb-0">
+          <div className="mx-auto flex min-h-0 w-full max-w-page-expanded flex-1 flex-col gap-8 px-4 pt-6 pb-0 md:px-8 md:pb-0">
             {selectedGroup ? (
+              // Selected-jurisdiction header (Pencil O0pyRO `oJL8o`): a
+              // sync/coverage eyebrow, the state name + mono code pill, and
+              // Export + "Add <state> rule". The "back" affordance is the
+              // rail's Overview row, so no breadcrumb. Per-status counts live
+              // in the KPI strip below, not as title chips.
               <PageHeader
-                breadcrumbs={[{ label: t`Rule library`, to: '/rules/library' }]}
-                title={
-                  <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                    <span>{selectedGroup.label}</span>
-                    <JurisdictionStatusChips
-                      reviewCount={selectedGroup.pendingReviewCount}
-                      activeCount={
-                        (jurisdictionStatusCounts?.active ?? 0) +
-                        (jurisdictionStatusCounts?.verified ?? 0)
+                eyebrow={
+                  <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 tracking-normal normal-case">
+                    <PulsingDot
+                      tone={selectedGroup.pendingReviewCount > 0 ? 'warning' : 'success'}
+                      label={
+                        selectedGroup.pendingReviewCount > 0
+                          ? t`Rules awaiting review`
+                          : t`All rules reviewed`
                       }
-                      sourcesHealthy
                     />
+                    <span className="text-xs font-medium text-text-tertiary">
+                      <Plural value={selectedGroup.ruleCount} one="# rule" other="# rules" />
+                    </span>
+                    <span aria-hidden className="text-text-muted">
+                      ·
+                    </span>
+                    <span className="text-xs font-medium text-text-tertiary">
+                      {selectedGroup.pendingReviewCount > 0 ? (
+                        <Trans>{selectedGroup.pendingReviewCount} pending review</Trans>
+                      ) : (
+                        <Trans>Queue clear</Trans>
+                      )}
+                    </span>
                   </span>
                 }
-                actions={headerActions}
+                title={
+                  <span className="inline-flex items-center gap-2.5">
+                    <span>{selectedGroup.label}</span>
+                    <span className="inline-flex items-center justify-center rounded bg-background-subtle px-2 py-[3px] font-mono text-base font-semibold text-text-secondary">
+                      {selectedGroup.jurisdiction}
+                    </span>
+                  </span>
+                }
+                actions={
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExport}
+                      disabled={rules.length === 0}
+                      aria-label={t`Export rules as CSV`}
+                    >
+                      <ArrowDownToLineIcon data-icon="inline-start" />
+                      <Trans>Export</Trans>
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => setNewRuleSeed({ jurisdiction: selectedGroup.jurisdiction })}
+                    >
+                      <PlusIcon data-icon="inline-start" />
+                      <Trans>Add {selectedGroup.label} rule</Trans>
+                    </Button>
+                  </>
+                }
               />
             ) : (
-              // Overview header (Pencil O0pyRO): a sentence-case status
-              // eyebrow with a green sync dot, the "Rule library overview"
-              // title, and a lean two-button action cluster (Export +
-              // Add new rule). The catalog totals live in the KPI strip
-              // and status-coverage card below, so the title no longer
-              // carries count/review badges; "Start review" lives in the
-              // ActionHero and "Sources" in the jurisdiction rail.
+              // Overview header (Pencil O0pyRO): a sentence-case "Live"
+              // status eyebrow with a green sync dot, the "Rule library"
+              // title + "N rules across M jurisdictions" subtitle, and a
+              // lean two-button action cluster (Export + Add rule). The
+              // catalog totals live in the subtitle + stats band below.
               <PageHeader
                 eyebrow={
                   !statsLoading ? (
                     <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 tracking-normal normal-case">
                       <PulsingDot tone="success" label={t`Library in sync`} />
+                      <span className="text-xs font-medium text-text-tertiary">
+                        <Trans>Live</Trans>
+                      </span>
+                      <span aria-hidden className="text-text-muted">
+                        ·
+                      </span>
                       <span className="text-xs font-medium text-text-tertiary">
                         <Trans>Federal + {stateCount} states</Trans>
                       </span>
@@ -2235,230 +2281,175 @@ export function RulesLibraryRoute() {
                       </span>
                       <span className="text-xs font-medium text-text-tertiary">
                         <Plural
-                          value={activeSources}
-                          one="# source active"
-                          other="# sources active"
+                          value={sourcesMonitored}
+                          one="# source monitored"
+                          other="# sources monitored"
                         />
                       </span>
                     </span>
                   ) : undefined
                 }
-                title={<Trans>Rule library overview</Trans>}
+                title={<Trans>Rule library</Trans>}
+                description={
+                  !statsLoading ? (
+                    <Trans>
+                      {totalRules} rules across {jurisdictionCount} jurisdictions
+                    </Trans>
+                  ) : undefined
+                }
                 actions={overviewHeaderActions}
               />
             )}
 
-            {/* Overview summary surfaces (Pencil O0pyRO) — ActionHero
-              review callout + Status coverage card + Recent changes
-              card. Rendered only on the "All jurisdictions" overview
-              (no jurisdiction selected, not mid-search). They read from
-              the same wired `rules` the grouped table below consumes, so
-              the table's behavior (infinite scroll / batch review / gap
-              rows) is untouched — these are an additive scannable header
-              for the catalog. */}
-            {!selectedGroup && !isSearching && !statsLoading ? (
+            {/* Body. The Overview (no jurisdiction selected, not
+              mid-search) is the clean Pencil O0pyRO dashboard — a
+              borderless stats band + a full-width Recent changes feed,
+              and nothing else. Drilling into a jurisdiction (or running a
+              rule search) swaps in the working console: scoped KPI strip,
+              progress meter, scope tabs, entity/search filters, and the
+              rule table. */}
+            {selectedGroup || isSearching ? (
               <>
-                <CatalogReleaseBanner
-                  onReviewCohort={(filingYear) => {
-                    void setCohort(filingYear)
-                    void setScope('review')
-                  }}
-                />
-                {totalPendingReview > 0 && !heroSnoozed ? (
-                  <OverviewActionHero
-                    reviewCount={totalPendingReview}
-                    oldestRelative={oldestReviewRelative}
-                    riskBreakdown={pendingRisk}
-                    onOpenReview={startReviewAll}
-                    onRemindLater={remindHeroLater}
+                {/* KPI strip — 4-stat band (Total / Effective / Pending /
+                  Deprecated) for the selected jurisdiction. */}
+                {selectedGroup && jurisdictionStatusCounts ? (
+                  <JurisdictionKpiStrip
+                    total={selectedGroup.ruleCount}
+                    effective={jurisdictionStatusCounts.active + jurisdictionStatusCounts.verified}
+                    pending={selectedGroup.pendingReviewCount}
+                    deprecated={
+                      jurisdictionStatusCounts.archived + jurisdictionStatusCounts.deprecated
+                    }
+                    jurisdictionLabel={selectedGroup.label}
                   />
                 ) : null}
-                {/* Overview KPI band (Pencil O0pyRO KPI Strip) — catalog-wide
-                  Total / Jurisdictions / Changed 30d / Pending review,
-                  built on the shared KpiStrip. */}
-                <KpiStrip
-                  size="lg"
-                  stats={[
-                    {
-                      key: 'total',
-                      label: t`Total rules`,
-                      value: totalRules,
-                      sub: t`${totalActive} active`,
-                      subClass: 'text-text-success',
-                    },
-                    {
-                      key: 'jurisdictions',
-                      label: t`Jurisdictions`,
-                      value: jurisdictionCount,
-                      sub: t`Federal + ${stateCount} states`,
-                      subClass: 'text-text-tertiary',
-                    },
-                    {
-                      key: 'changed',
-                      label: t`Changed 30 days`,
-                      value: changedLast30,
-                      sub: t`Last 30 days`,
-                      subClass: 'text-text-tertiary',
-                    },
-                    {
-                      key: 'pending',
-                      label: t`Pending review`,
-                      value: totalPendingReview,
-                      sub: oldestReviewRelative ? t`oldest ${oldestReviewRelative}` : t`All clear`,
-                      subClass: totalPendingReview > 0 ? 'text-text-warning' : 'text-text-success',
-                    },
-                  ]}
-                />
-                {/* Dashboard row — Status coverage + Recent changes side by
-                    side (equal height) only at 2xl+, where the pane (after
-                    the two sidebars) is wide enough; stacked below so the
-                    feed isn't crushed. Breaks the flat vertical stack into a
-                    real overview grid. */}
-                <div className="flex flex-col gap-6 2xl:flex-row 2xl:items-stretch">
-                  <div className="flex min-w-0 2xl:flex-[3]">
-                    <OverviewStatusCoverageCard
-                      total={totalRules}
-                      active={totalActive}
-                      review={totalPendingReview}
-                      draft={totalDraft}
-                      archived={totalArchived}
-                      className="w-full"
+
+                {selectedGroup ? (
+                  // Selected jurisdiction → the oJL8o filter bar: status
+                  // segmented + search + Type/Modified/Effective/Severity
+                  // facet chips, all on shared design-system primitives. The
+                  // completion meter is dropped (the KPI strip carries the
+                  // status breakdown).
+                  <JurisdictionFilterBar
+                    jurisdictionLabel={selectedGroup.label}
+                    scope={(activeScope === 'missing' ? 'all' : activeScope) as RuleScope}
+                    onScopeChange={(next) => void setScope(next === 'all' ? null : next)}
+                    search={search ?? ''}
+                    onSearchChange={(next) => void setSearch(next || null)}
+                    typeOptions={jurisdictionTypeOptions}
+                    filter={tableFilter}
+                    onFilterChange={setTableFilter}
+                  />
+                ) : (
+                  // Global rule search → scope tabs + entity chips + the
+                  // collapsible search control (unchanged).
+                  <>
+                    <ScopeTabBand
+                      activeScope={activeScope}
+                      totalAll={jurisdictionTabCounts ? jurisdictionTabCounts.all : totalRules}
+                      totalActive={
+                        jurisdictionTabCounts ? jurisdictionTabCounts.active : totalActive
+                      }
+                      totalReview={
+                        jurisdictionTabCounts ? jurisdictionTabCounts.review : totalPendingReview
+                      }
+                      totalArchived={
+                        jurisdictionTabCounts ? jurisdictionTabCounts.archived : totalArchived
+                      }
+                      totalMissing={
+                        jurisdictionTabCounts ? jurisdictionTabCounts.missing : totalGapEntities
+                      }
+                      onChange={(next) => void setScope(next === 'all' ? null : next)}
                     />
-                  </div>
-                  <div className="flex min-w-0 2xl:flex-[2]">
-                    <OverviewRecentChangesCard
-                      rules={recentChanges}
-                      onRuleClick={handleRuleClick}
-                      onViewAll={() => void setScope('review')}
-                      className="w-full"
-                    />
+                    <div className="flex shrink-0 items-center justify-between gap-3">
+                      {statsLoading ? (
+                        <EntityChipRowSkeleton />
+                      ) : (
+                        <EntityChipRow
+                          entityStats={entityStats}
+                          activeEntity={activeEntity}
+                          onSelect={(entity) => void setEntityFilter(entity)}
+                          onClear={() => void setEntityFilter(null)}
+                        />
+                      )}
+                      <RuleSearchControl
+                        inputRef={searchInputRef}
+                        value={search ?? ''}
+                        open={searchOpen}
+                        onOpenChange={setSearchOpen}
+                        onChange={(next) => void setSearch(next || null)}
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                  <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+                    {rulesQuery.isLoading || coverageQuery.isLoading ? (
+                      <LoadingState />
+                    ) : selectedGroup ? (
+                      // Selected jurisdiction → flat per-state table.
+                      <JurisdictionRuleTable
+                        rules={jurisdictionTableRules}
+                        jurisdictionLabel={selectedGroup.label}
+                        gapEntities={selectedGroup.gapEntities}
+                        showGaps={activeScope === 'missing'}
+                        tierLabels={tierLabels}
+                        selectedRuleIds={selectedRuleIds}
+                        onToggleRuleSelection={toggleRuleSelection}
+                        onToggleRulesSelection={toggleRulesSelection}
+                        focusedRowId={focusedRowId}
+                        onRuleClick={handleRuleClick}
+                        onAddRule={(entity) =>
+                          setNewRuleSeed({ jurisdiction: selectedGroup.jurisdiction, entity })
+                        }
+                      />
+                    ) : (
+                      // Active rule search → flat global results.
+                      <SearchResultsTable
+                        activeRuleId={ruleId}
+                        rules={matchedRules}
+                        query={searchLower}
+                        onRuleClick={handleRuleClick}
+                        focusedRowId={focusedRowId}
+                      />
+                    )}
                   </div>
                 </div>
               </>
-            ) : null}
-
-            {/* KPI strip — 4-stat band (Total / Effective / Pending /
-              Deprecated) for the selected jurisdiction (Pencil O0pyRO
-              KPI Strip). Only rendered in the per-jurisdiction detail
-              pane; the All overview keeps the grouped table below. */}
-            {selectedGroup && jurisdictionStatusCounts ? (
-              <JurisdictionKpiStrip
-                total={selectedGroup.ruleCount}
-                effective={jurisdictionStatusCounts.active + jurisdictionStatusCounts.verified}
-                pending={selectedGroup.pendingReviewCount}
-                deprecated={jurisdictionStatusCounts.archived + jurisdictionStatusCounts.deprecated}
-                jurisdictionLabel={selectedGroup.label}
-              />
-            ) : null}
-
-            {/* Progress bar — completion meter. Scoped to the selected
-              jurisdiction when one is active. Yuqi explicitly asked for
-              this to stay ("把进度条放回来"). */}
-            <RuleReviewProgressBar
-              {...(statsLoading
-                ? ({ loading: true } as const)
-                : ({ statusCounts: jurisdictionStatusCounts ?? statusCounts } as const))}
-            />
-
-            {/* Scope tabs — All / Active / Requires review / Archive /
-              Missing. Counts scope to the selected jurisdiction when
-              one is active; otherwise pinned to the unfiltered catalog. */}
-            <ScopeTabBand
-              activeScope={activeScope}
-              totalAll={jurisdictionTabCounts ? jurisdictionTabCounts.all : totalRules}
-              totalActive={jurisdictionTabCounts ? jurisdictionTabCounts.active : totalActive}
-              totalReview={
-                jurisdictionTabCounts ? jurisdictionTabCounts.review : totalPendingReview
-              }
-              totalArchived={jurisdictionTabCounts ? jurisdictionTabCounts.archived : totalArchived}
-              totalMissing={
-                jurisdictionTabCounts ? jurisdictionTabCounts.missing : totalGapEntities
-              }
-              onChange={(next) => void setScope(next === 'all' ? null : next)}
-            />
-
-            {/* Filter row — entity-filter chips + collapsible search.
-              Chips scope to the selected jurisdiction when one is
-              active. */}
-            <div className="flex shrink-0 items-center justify-between gap-3">
-              {statsLoading ? (
-                <EntityChipRowSkeleton />
+            ) : (
+              // Overview (Pencil O0pyRO). Reads from the same wired `rules`
+              // the jurisdiction tables consume; no banner, hero, status
+              // card, scope tabs, or grouped table here.
+              //
+              //  - loading            → stats-band skeleton
+              //  - queue clear (0 pending, `whr8M`) → "all caught up" card
+              //    ABOVE the stats band (a clear queue reads as the reward)
+              //  - otherwise (`O0pyRO`) → stats band ABOVE the flush Recent
+              //    changes feed
+              statsLoading ? (
+                <StatBand loading stats={overviewStats} ariaLabel={t`Rule library summary`} />
+              ) : totalPendingReview === 0 ? (
+                <>
+                  <OverviewCaughtUpCard
+                    lastReviewedRelative={lastReviewedRelative}
+                    onViewDecisions={handleViewAllChanges}
+                    onMonitorSources={handleMonitorSources}
+                  />
+                  <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
+                </>
               ) : (
-                <EntityChipRow
-                  entityStats={selectedGroup ? jurisdictionEntityStats : entityStats}
-                  activeEntity={activeEntity}
-                  onSelect={(entity) => void setEntityFilter(entity)}
-                  onClear={() => void setEntityFilter(null)}
-                />
-              )}
-              <RuleSearchControl
-                inputRef={searchInputRef}
-                value={search ?? ''}
-                open={searchOpen}
-                onOpenChange={setSearchOpen}
-                onChange={(next) => void setSearch(next || null)}
-              />
-            </div>
-
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-                {rulesQuery.isLoading || coverageQuery.isLoading ? (
-                  <LoadingState />
-                ) : selectedGroup ? (
-                  // Selected jurisdiction → flat per-state table.
-                  <JurisdictionRuleTable
-                    rules={jurisdictionTableRules}
-                    jurisdictionLabel={selectedGroup.label}
-                    gapEntities={selectedGroup.gapEntities}
-                    showGaps={activeScope === 'missing'}
-                    tierLabels={tierLabels}
-                    selectedRuleIds={selectedRuleIds}
-                    onToggleRuleSelection={toggleRuleSelection}
-                    onToggleRulesSelection={toggleRulesSelection}
-                    focusedRowId={focusedRowId}
+                <>
+                  <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
+                  <OverviewRecentChangesCard
+                    rules={recentChanges}
+                    changedTotal={changedLast30}
                     onRuleClick={handleRuleClick}
-                    onAddRule={(entity) =>
-                      setNewRuleSeed({ jurisdiction: selectedGroup.jurisdiction, entity })
-                    }
+                    onViewAll={handleViewAllChanges}
                   />
-                ) : isSearching ? (
-                  // All overview + active rule search → flat global results.
-                  <SearchResultsTable
-                    activeRuleId={ruleId}
-                    rules={matchedRules}
-                    query={searchLower}
-                    onRuleClick={handleRuleClick}
-                    focusedRowId={focusedRowId}
-                  />
-                ) : groups.length === 0 ? (
-                  activeScope === 'missing' ? (
-                    <MissingRulesEmptyState onViewAll={() => void setScope(null)} />
-                  ) : (
-                    <RulesLibraryEmptyState onNewRule={openNewRule} />
-                  )
-                ) : (
-                  // All overview → grouped jurisdiction table (infinite scroll).
-                  <GroupedRulesTable
-                    activeScope={activeScope}
-                    activeRuleId={ruleId}
-                    groups={groups}
-                    expanded={expanded}
-                    onToggle={toggleGroup}
-                    onExpandAll={expandAll}
-                    onCollapseAll={collapseAll}
-                    onRuleClick={handleRuleClick}
-                    onAddRule={handleAddRule}
-                    selectedRuleIds={selectedRuleIds}
-                    onToggleRuleSelection={toggleRuleSelection}
-                    onToggleRulesSelection={toggleRulesSelection}
-                    focusedRowId={focusedRowId}
-                    totalGroupCount={totalGroupCount}
-                    hasMoreGroups={hasMoreGroups}
-                    onLoadMore={loadMoreGroups}
-                  />
-                )}
-              </div>
-            </div>
+                </>
+              )
+            )}
           </div>
         </div>
       </div>
@@ -2586,7 +2577,7 @@ function ScopeTabBand({
 // 2026-05-26 (Stripe S14 restyle — "Your overview" Payments card):
 // Was a two-tone meter (active LEFT vs needs-review RIGHT). Now a
 // multi-color stacked bar — one segment per `RuleStatus` with >0
-// rules in the catalog. Same h-7 rounded-md shape; the data is
+// rules in the catalog. Same h-7 rounded-lg shape; the data is
 // just broken out finer so the eye reads the actual catalog
 // composition (verified / candidate / archived weren't visible
 // before, all collapsed into "active" or implicit). Per-segment
@@ -2618,7 +2609,7 @@ function RuleReviewProgressBar(
   if (props.loading) {
     // 2026-06-01: collapse hand-rolled animate-pulse placeholder onto the
     // canonical Skeleton primitive — same visual recipe, shared tokens.
-    return <Skeleton className="h-7 w-full rounded-md" />
+    return <Skeleton className="h-7 w-full rounded-lg" />
   }
   const { statusCounts } = props
   // Order matches the catalog's lifecycle reading: green (done) →
@@ -2683,7 +2674,7 @@ function RuleReviewProgressBar(
   const breakdown = segments.map((s) => `${s.count} ${s.label}`).join(' · ')
   return (
     <div
-      className="relative flex h-7 w-full overflow-hidden rounded-md border border-divider-subtle bg-background-subtle"
+      className="relative flex h-7 w-full overflow-hidden rounded-lg border border-divider-subtle bg-background-subtle"
       role="img"
       aria-label={total > 0 ? t`Rule catalog breakdown — ${breakdown}` : t`Empty rule catalog`}
       title={breakdown || undefined}
@@ -2995,7 +2986,7 @@ function RuleSearchControl({
 
 function LoadingState() {
   return (
-    <div className="flex flex-col gap-2 rounded-[14px] border border-divider-subtle p-4">
+    <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle p-4">
       <Skeleton className="h-4 w-32" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-full" />
@@ -3259,7 +3250,7 @@ function GroupedRulesTable({
           selectors; now the chrome lives on this outer div so the
           card wraps the table AND the pagination footer below as
           one cohesive rounded surface. */}
-      <div className="flex flex-col overflow-hidden rounded-[14px] border border-divider-subtle">
+      <div className="flex flex-col overflow-hidden rounded-xl border border-divider-subtle">
         <Table>
           {/* 2026-05-26 (Yuqi follow-up — "table-header和别的页面上的
             table header一样颜色"): override the primitive's default
@@ -3575,7 +3566,7 @@ function GroupHeaderRow({
               icon everywhere"): SVG StateBadge dropped from the
               jurisdiction header pill. The bordered pill alone
               carries the identity. */}
-          <span className="inline-flex items-center rounded-md border border-divider-deep bg-background-subtle px-1.5 py-0.5">
+          <span className="inline-flex items-center rounded-lg border border-divider-deep bg-background-subtle px-1.5 py-0.5">
             <span className="text-caption-xs uppercase tracking-wider text-text-secondary">
               {group.jurisdiction}
             </span>
@@ -4140,7 +4131,7 @@ function SearchResultsTable({
   const { t } = useLingui()
   const tierLabels = useRuleTierLabels()
   return (
-    <div className="rounded-[14px] border border-divider-subtle bg-background-default">
+    <div className="rounded-xl border border-divider-subtle bg-background-default">
       <div className="flex items-center justify-between border-b border-divider-subtle px-3 py-1.5 text-xs">
         <span className="text-text-secondary">
           <Plural
@@ -4348,81 +4339,42 @@ function RuleDetailPanel({
   concreteDraft: RuleConcreteDraftCacheEntry | null
   onClose: () => void
 }) {
+  const { t } = useLingui()
+  const isReviewable = rule.status === 'candidate' || rule.status === 'pending_review'
   return (
-    <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
-      {/* 2026-05-25 (Yuqi rule library #13, #14, #24, #26): dialog
-          chrome rebuilt.
-          - DialogTitle is now the RULE TITLE itself (proper title,
-            text-base font-semibold) instead of an eyebrow caps
-            label "Rule details" (Yuqi: never use ALL CAPS or
-            eyebrow text for a section/page title).
-          - Header carries a kicker line above with the rule's
-            jurisdiction badge, form name, tax year, and status —
-            identity reads top-down: badge cluster → title → body.
-          - Body padding tightened. The kicker carries the identity
-            shape the audit ID line used to spell out, so the body
-            no longer needs to repeat it. */}
-      {/* 2026-05-27 (Yuqi follow-up — "圆角有一些问题"): added
-          `overflow-hidden` so the header strip's `bg-background-
-          subtle` clips to the dialog's rounded top corners instead
-          of painting a sharp rectangle past the curve. Without it
-          the header bg bleeds to the inner edge of the border, so
-          the corners look subtly square against the rounded
-          border. */}
-      {/* 2026-06-07 (Yuqi /rules detail pixel pass, Pencil DvLC9):
-          widened 640 → 960 to match the canvas rule-detail frame. The
-          content sections (header meta row, effective-date banner, body,
-          sticky footer) are restyled to the canvas; all wired data and
-          the CandidateReviewSection accept/reject/edit actions are
-          preserved. */}
-      <DialogContent
-        showCloseButton
-        className="flex max-h-[85vh] w-[min(960px,calc(100vw-2rem))] max-w-[960px] flex-col gap-0 overflow-hidden p-0"
+    // 2026-06-09 (design-universe audit, Yuqi feedback on the review panel):
+    // the rule detail was the app's lone centered modal — every other entity
+    // detail (Alert / Client / Obligation / Audit-event / Evidence) opens as a
+    // right-side `Sheet` drawer. Converted to the canonical flush Sheet so the
+    // layout, tokens, and chrome match its siblings: full-height right drawer,
+    // `flush` sectioned header/body/footer, the shared close button, and the
+    // same `w-[min(720/840/900)]` width ramp the deadline detail drawer uses.
+    // All wired data + the CandidateReviewSection actions are preserved.
+    <Sheet open onOpenChange={(next) => (next ? null : onClose())}>
+      <SheetContent
+        side="right"
+        flush
+        className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] sm:data-[side=right]:max-w-none md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(900px,calc(100vw-2rem))]"
+        aria-label={t`Rule detail`}
       >
-        {/* 2026-05-25 (Yuqi rule library fourth pass #8, #10):
-            third-pass tweaks weren't enough — Yuqi still flagged
-            the header as "混乱" (chaotic, no section).
-            Restructured:
-              - Title bumped text-lg → text-xl (even bigger anchor)
-              - Title moved ABOVE the kicker so the eye lands on
-                "Arizona individual income tax return" first, then
-                catches the identity-meta line (jurisdiction + form
-                + year + status) as supporting context below.
-              - 12px gap between title and kicker (gap-3) so the
-                two read as two distinct sections, not one
-                visually-fused block.
-              - Background slightly lifted (bg-background-subtle)
-                on the header surface so it visually separates from
-                the body content scroll area. */}
-        <DialogHeader className="flex flex-col gap-3 border-b border-divider-subtle bg-background-subtle px-5 py-4">
-          <DialogTitle className="text-xl font-semibold leading-tight text-text-primary">
+        {/* Header — rule title anchor + identity kicker (jurisdiction · impact
+            · form · year · status). `pr-10` clears the Sheet close button. */}
+        <SheetHeader className="flex flex-col gap-3 border-b border-divider-subtle bg-background-subtle px-5 py-4">
+          <SheetTitle className="pr-10 text-xl font-semibold leading-tight text-text-primary">
             {rule.title}
-          </DialogTitle>
+          </SheetTitle>
           <RuleDetailKicker rule={rule} />
-        </DialogHeader>
-        {/* Effective-date banner (Pencil DvLC9 DecisionBanner) — an
-            amber callout shown when this rule's effective date is still
-            in the future, so a CPA sees a scheduled change before
-            acting. Derived from the wired `verifiedAt` date. */}
+        </SheetHeader>
+        {/* Effective-date banner — amber callout when the effective date is
+            still in the future, so a CPA sees a scheduled change before acting. */}
         <RuleEffectiveBanner rule={rule} />
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           <RuleDetailInline rule={rule} />
         </div>
-        {/* 2026-05-27 (Yuqi — "最高决定review的实际上是Practice
-            review,但它却在最下面而且需要滑动才能看到"): the action
-            zone used to live as the last item INSIDE the scrollable
-            body, so the Accept button required scrolling past every
-            reference section first — the WHY of the dialog was
-            buried below the WHAT. Now it sits as a sticky footer:
-            the body scrolls (reference info), the action stays
-            visible. Border-t + tinted bg give the footer its own
-            visual zone without a competing rounded card chrome
-            (`chrome="flat"` on the section). */}
-        {(rule.status === 'candidate' || rule.status === 'pending_review') && (
-          <div className="flex shrink-0 flex-col gap-3 border-t border-divider-subtle bg-background-default px-5 py-4">
-            {/* Audit-ledger eyebrow (Pencil DvLC9 StickyFooter) — every
-                review decision is written to the firm audit ledger;
-                surface that reassurance next to the action buttons. */}
+        {/* Sticky review footer — the action zone stays visible while the
+            reference body scrolls; only for candidate / pending-review rules. */}
+        {isReviewable && (
+          <SheetFooter className="flex shrink-0 flex-col gap-3 border-t border-divider-subtle bg-background-default px-5 pt-4 pb-5">
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-muted">
               <ShieldCheck aria-hidden className="size-3" />
               <Trans>Decisions are logged to the audit ledger</Trans>
@@ -4435,10 +4387,10 @@ function RuleDetailPanel({
               confirmImpact
               onActionComplete={onClose}
             />
-          </div>
+          </SheetFooter>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -4466,9 +4418,9 @@ function RuleDetailKicker({ rule }: { rule: ObligationRule }) {
     // soft-fill mono pill, the risk level an impact pill (high reads
     // destructive, medium warning, low quiet) — matching the canvas.
     <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
-      <span className="inline-flex items-center rounded-full bg-background-subtle px-2.5 py-0.5 text-caption-xs font-semibold tracking-wider text-text-secondary uppercase">
+      <Badge variant="secondary" shape="square">
         {rule.jurisdiction}
-      </span>
+      </Badge>
       <RuleImpactPill riskLevel={rule.riskLevel} />
       <span className="font-medium text-text-secondary">{rule.formName}</span>
       <span aria-hidden>·</span>
@@ -4518,35 +4470,31 @@ function RuleStatusKicker({ status }: { status: ObligationRule['status'] }) {
   )
 }
 
-// Impact pill for the rule-detail header meta row (Pencil DvLC9 Hero —
-// "HIGH IMPACT"). Reads the wired `riskLevel`: high → destructive tint,
-// medium → warning tint, low → quiet neutral.
+// Impact pill for the rule-detail header meta row ("HIGH IMPACT"). Reads
+// the wired `riskLevel` onto the shared `Badge` primitive (`shape="square"`
+// — the canonical uppercase eyebrow-chip treatment the badge documents for
+// "jurisdiction kickers"): high → destructive tint, medium → warning, low →
+// quiet neutral. Replaces three hand-rolled tint spans.
 function RuleImpactPill({ riskLevel }: { riskLevel: ObligationRule['riskLevel'] }) {
-  if (riskLevel === 'high') {
-    return (
-      <span className="inline-flex items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-[11px] font-semibold tracking-[0.4px] text-text-destructive uppercase">
-        <Trans>High impact</Trans>
-      </span>
-    )
-  }
-  if (riskLevel === 'med') {
-    return (
-      <span className="inline-flex items-center rounded-[4px] bg-state-warning-hover px-2 py-[3px] text-[11px] font-semibold tracking-[0.4px] text-text-warning uppercase">
-        <Trans>Medium impact</Trans>
-      </span>
-    )
-  }
+  const variant = riskLevel === 'high' ? 'destructive' : riskLevel === 'med' ? 'warning' : 'secondary'
   return (
-    <span className="inline-flex items-center rounded-[4px] bg-background-subtle px-2 py-[3px] text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
-      <Trans>Low impact</Trans>
-    </span>
+    <Badge variant={variant} shape="square">
+      {riskLevel === 'high' ? (
+        <Trans>High impact</Trans>
+      ) : riskLevel === 'med' ? (
+        <Trans>Medium impact</Trans>
+      ) : (
+        <Trans>Low impact</Trans>
+      )}
+    </Badge>
   )
 }
 
-// Effective-date banner (Pencil DvLC9 DecisionBanner). Renders only when
-// the rule's effective date (`verifiedAt`) is still in the future — a
-// scheduled change the CPA should see before acting. Amber surface with a
-// destructive left rail, matching the canvas.
+// Effective-date banner. Renders only when the rule's effective date
+// (`verifiedAt`) is still in the future — a scheduled change the CPA should
+// see before acting. Uses the shared `Alert` primitive (variant `warning`)
+// so it reads as the same callout vocabulary as the `Needs CPA review`
+// Alert in the body below, rather than a one-off hand-rolled strip.
 function RuleEffectiveBanner({ rule }: { rule: ObligationRule }) {
   const effective = Date.parse(rule.verifiedAt)
   if (Number.isNaN(effective)) return null
@@ -4559,16 +4507,16 @@ function RuleEffectiveBanner({ rule }: { rule: ObligationRule }) {
     year: 'numeric',
   })
   return (
-    <div className="flex shrink-0 items-center gap-3 border-l-[3px] border-state-warning-solid bg-state-warning-hover px-5 py-3">
-      <CalendarClock aria-hidden className="size-3.5 shrink-0 text-text-warning" />
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-[13px] font-semibold text-text-warning">
+    <div className="shrink-0 px-5 pt-4">
+      <Alert variant="warning" aria-label="Scheduled change">
+        <CalendarClock />
+        <AlertTitle>
           <Plural value={days} one="Effective in # day" other="Effective in # days" />
-        </span>
-        <span className="text-xs font-medium text-text-secondary">
+        </AlertTitle>
+        <AlertDescription>
           <Trans>This change takes effect {effectiveLabel}.</Trans>
-        </span>
-      </div>
+        </AlertDescription>
+      </Alert>
     </div>
   )
 }
@@ -5116,7 +5064,7 @@ function NewRuleModal({
               // Full jurisdiction + entity pickers would expand scope;
               // for now we route users back to a specific gap row so
               // the rule has unambiguous applicability.
-              <div className="rounded-md border border-divider-subtle bg-background-subtle px-3 py-3 text-xs text-text-secondary">
+              <div className="rounded-lg border border-divider-subtle bg-background-subtle px-3 py-3 text-xs text-text-secondary">
                 <Trans>
                   Custom rules currently need to be created from a missing-rule row in the table
                   below so the jurisdiction and entity are unambiguous. Close this dialog and click
@@ -5127,7 +5075,7 @@ function NewRuleModal({
               <div className="flex flex-col gap-4">
                 {/* Disclosure: this rule will ACTIVATE immediately.
                     Server forces `status: 'active'` on createCustomRule. */}
-                <div className="rounded-md border border-state-warning-border bg-state-warning-subtle px-3 py-2 text-xs text-text-secondary">
+                <div className="rounded-lg border border-state-warning-border bg-state-warning-subtle px-3 py-2 text-xs text-text-secondary">
                   <Trans>
                     This rule will be active immediately for every client filing in{' '}
                     {seed.jurisdiction} as {ENTITY_LABELS[seed.entity ?? 'llc']}. You can refine the

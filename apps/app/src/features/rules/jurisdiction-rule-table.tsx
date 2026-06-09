@@ -1,18 +1,20 @@
 import { Fragment, useMemo, type ReactNode } from 'react'
-import {
-  ArrowUpRightIcon,
-  ChevronRightIcon,
-  CircleCheckIcon,
-  ExternalLinkIcon,
-  GitPullRequestArrowIcon,
-  LinkIcon,
-} from 'lucide-react'
+import { CircleCheckIcon, GitPullRequestArrowIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationRule, RuleStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@duedatehq/ui/components/ui/dropdown-menu'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import {
   Table,
   TableBody,
@@ -21,22 +23,21 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
-import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
+import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { SearchInput } from '@/components/primitives/search-input'
 import {
-  ENTITY_KEYS,
   ENTITY_LABELS,
   STATUS_LABEL_SHORT,
   STATUS_TONE,
-  humanizeDueDateLogic,
   stripJurisdictionPrefix,
   type EntityKey,
   type RuleTierLabels,
 } from '@/features/rules/rules-console-model'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { formatDatePretty } from '@/lib/utils'
 
 /**
  * `JurisdictionRuleTable` — the right detail pane of the Rule Library
@@ -55,24 +56,262 @@ import { formatTaxCode } from '@/lib/tax-codes'
  * the route module.
  */
 
-// Status tone → Badge variant. `review` maps to the blue `info` badge
-// (review tone is accent-blue across the rule library); muted → the
-// neutral gray `secondary`.
-const STATUS_BADGE_VARIANT: Record<
-  (typeof STATUS_TONE)[RuleStatus],
-  'success' | 'warning' | 'destructive' | 'secondary'
-> = {
-  success: 'success',
-  // "needs review" is amber across the surface (header status chips, KPI
-  // pending, rail dot) — the status badge was blue (`info`), the lone
-  // outlier; align it to `warning`.
-  review: 'warning',
-  destructive: 'destructive',
-  muted: 'secondary',
-}
-
 function isSelectable(status: RuleStatus): boolean {
   return status === 'pending_review' || status === 'candidate'
+}
+
+// Severity (rule riskLevel) → pill label + tone (Pencil oJL8o `SevPill`).
+// HIGH reads warning-brown; MED/LOW stay quiet on the subtle surface so
+// the eye lands on the high-severity rows.
+const SEVERITY_PILL: Record<ObligationRule['riskLevel'], { label: string; cls: string }> = {
+  high: { label: 'HIGH', cls: 'bg-state-warning-hover text-state-warning-text' },
+  med: { label: 'MED', cls: 'bg-background-subtle text-text-secondary' },
+  low: { label: 'LOW', cls: 'bg-background-subtle text-text-muted' },
+}
+
+// Status tone → dot/text/bg for the row status pill (Pencil oJL8o
+// `StPill`). Mapped onto existing state tokens — Active reads success,
+// Pending reads warning, rejected destructive, archived/deprecated muted.
+const STATUS_PILL: Record<
+  (typeof STATUS_TONE)[RuleStatus],
+  { dot: string; text: string; bg: string }
+> = {
+  success: { dot: 'bg-state-success-solid', text: 'text-text-success', bg: 'bg-state-success-hover' },
+  review: {
+    dot: 'bg-state-warning-solid',
+    text: 'text-state-warning-text',
+    bg: 'bg-state-warning-hover',
+  },
+  destructive: {
+    dot: 'bg-state-destructive-solid',
+    text: 'text-text-destructive',
+    bg: 'bg-state-destructive-hover',
+  },
+  muted: { dot: 'bg-text-muted', text: 'text-text-muted', bg: 'bg-background-subtle' },
+}
+
+// Humanized type label for a rule's tax type, with the jurisdiction's
+// "AK State …" prefix stripped (the column/filter is already scoped to one
+// jurisdiction). Shared by the TYPE column + the Type filter options so
+// the two never drift.
+export function formatRuleTypeLabel(taxType: string, jurisdiction: string): string {
+  return (formatTaxCode(taxType) || taxType).replace(
+    new RegExp(`^${jurisdiction}\\s+State\\s+`, 'i'),
+    '',
+  )
+}
+
+// Status segmented scopes for the selected-jurisdiction filter bar (Pencil
+// oJL8o `Z4x36`): All / Active / Pending / Deprecated. Maps onto the
+// route's existing `scope` URL values (review = Pending, archived =
+// Deprecated); the catalog-only "missing" scope is dropped here.
+export type RuleScope = 'all' | 'active' | 'review' | 'archived'
+
+export type RuleTableSort = { field: 'modified' | 'effective'; dir: 'desc' | 'asc' }
+export type RuleTableFilter = {
+  types: ReadonlySet<string>
+  severities: ReadonlySet<ObligationRule['riskLevel']>
+  sort: RuleTableSort | null
+}
+
+export const EMPTY_RULE_TABLE_FILTER: RuleTableFilter = {
+  types: new Set(),
+  severities: new Set(),
+  sort: null,
+}
+
+const SEVERITY_OPTIONS: ReadonlyArray<{ value: ObligationRule['riskLevel']; label: string }> = [
+  { value: 'high', label: 'High' },
+  { value: 'med', label: 'Medium' },
+  { value: 'low', label: 'Low' },
+]
+
+/**
+ * `JurisdictionFilterBar` — the selected-jurisdiction toolbar (Pencil
+ * oJL8o `uxrVs`): a status `Segmented` (All / Active / Pending /
+ * Deprecated), an inline `SearchInput`, and four `FilterTrigger` +
+ * `DropdownMenu` facet chips (Type · Modified · Effective · Severity).
+ *
+ * Built entirely from existing design-system primitives — the same
+ * `Segmented`, `SearchInput`, and `FilterTrigger`/`DropdownMenu` chrome
+ * /deadlines + /alerts use — so the Pencil's bespoke pills are replaced,
+ * not re-skinned. Type + Severity multi-select filter the rows; Modified +
+ * Effective set a single active sort.
+ */
+export function JurisdictionFilterBar({
+  jurisdictionLabel,
+  scope,
+  onScopeChange,
+  search,
+  onSearchChange,
+  typeOptions,
+  filter,
+  onFilterChange,
+}: {
+  jurisdictionLabel: string
+  scope: RuleScope
+  onScopeChange: (next: RuleScope) => void
+  search: string
+  onSearchChange: (next: string) => void
+  typeOptions: ReadonlyArray<{ value: string; label: string; count: number }>
+  filter: RuleTableFilter
+  onFilterChange: (next: RuleTableFilter) => void
+}) {
+  const { t } = useLingui()
+
+  const toggleType = (value: string) => {
+    const next = new Set(filter.types)
+    if (next.has(value)) next.delete(value)
+    else next.add(value)
+    onFilterChange({ ...filter, types: next })
+  }
+  const toggleSeverity = (value: ObligationRule['riskLevel']) => {
+    const next = new Set(filter.severities)
+    if (next.has(value)) next.delete(value)
+    else next.add(value)
+    onFilterChange({ ...filter, severities: next })
+  }
+  const setSort = (field: RuleTableSort['field'], dir: RuleTableSort['dir'] | 'none') => {
+    onFilterChange({ ...filter, sort: dir === 'none' ? null : { field, dir } })
+  }
+  const sortValueFor = (field: RuleTableSort['field']) =>
+    filter.sort?.field === field ? filter.sort.dir : 'none'
+
+  return (
+    <div className="flex shrink-0 flex-wrap items-center gap-3">
+      <Segmented<RuleScope>
+        value={scope}
+        onValueChange={onScopeChange}
+        ariaLabel={t`Filter by status`}
+        options={[
+          { value: 'all', label: <Trans>All</Trans> },
+          { value: 'active', label: <Trans>Active</Trans> },
+          { value: 'review', label: <Trans>Pending</Trans> },
+          { value: 'archived', label: <Trans>Deprecated</Trans> },
+        ]}
+      />
+      <div className="w-full sm:w-[260px]">
+        <SearchInput
+          value={search}
+          onChange={onSearchChange}
+          placeholder={t`Search ${jurisdictionLabel} rules`}
+        />
+      </div>
+
+      <span className="hidden flex-1 sm:block" />
+
+      {/* Type — multi-select by tax type. */}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <FilterTrigger
+              active={filter.types.size > 0}
+              valueLabel={filter.types.size > 0 ? String(filter.types.size) : undefined}
+            >
+              <Trans>Type</Trans>
+            </FilterTrigger>
+          }
+        />
+        <DropdownMenuContent align="end" className="max-h-[320px] min-w-[220px] overflow-y-auto">
+          {typeOptions.length === 0 ? (
+            <div className="px-2 py-1.5 text-xs text-text-tertiary">
+              <Trans>No rule types</Trans>
+            </div>
+          ) : (
+            typeOptions.map((option) => (
+              <DropdownMenuCheckboxItem
+                key={option.value}
+                checked={filter.types.has(option.value)}
+                onCheckedChange={() => toggleType(option.value)}
+              >
+                <span className="flex-1 truncate">{option.label}</span>
+                <span className="ml-3 tabular-nums text-text-tertiary">{option.count}</span>
+              </DropdownMenuCheckboxItem>
+            ))
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Modified — sort by last-modified date. */}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <FilterTrigger active={filter.sort?.field === 'modified'}>
+              <Trans>Modified</Trans>
+            </FilterTrigger>
+          }
+        />
+        <DropdownMenuContent align="end" className="min-w-[180px]">
+          <DropdownMenuRadioGroup
+            value={sortValueFor('modified')}
+            onValueChange={(value) => setSort('modified', value as RuleTableSort['dir'] | 'none')}
+          >
+            <DropdownMenuRadioItem value="desc">
+              <Trans>Newest first</Trans>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="asc">
+              <Trans>Oldest first</Trans>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="none">
+              <Trans>Default order</Trans>
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Effective — sort by effective date. */}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <FilterTrigger active={filter.sort?.field === 'effective'}>
+              <Trans>Effective</Trans>
+            </FilterTrigger>
+          }
+        />
+        <DropdownMenuContent align="end" className="min-w-[180px]">
+          <DropdownMenuRadioGroup
+            value={sortValueFor('effective')}
+            onValueChange={(value) => setSort('effective', value as RuleTableSort['dir'] | 'none')}
+          >
+            <DropdownMenuRadioItem value="desc">
+              <Trans>Newest first</Trans>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="asc">
+              <Trans>Oldest first</Trans>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="none">
+              <Trans>Default order</Trans>
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Severity — multi-select by risk level. */}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <FilterTrigger
+              active={filter.severities.size > 0}
+              valueLabel={filter.severities.size > 0 ? String(filter.severities.size) : undefined}
+            >
+              <Trans>Severity</Trans>
+            </FilterTrigger>
+          }
+        />
+        <DropdownMenuContent align="end" className="min-w-[160px]">
+          {SEVERITY_OPTIONS.map((option) => (
+            <DropdownMenuCheckboxItem
+              key={option.value}
+              checked={filter.severities.has(option.value)}
+              onCheckedChange={() => toggleSeverity(option.value)}
+            >
+              {option.label}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  )
 }
 
 export function JurisdictionRuleTable({
@@ -116,7 +355,7 @@ export function JurisdictionRuleTable({
   const isEmpty = rules.length === 0 && !(showGaps && gapEntities.length > 0)
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-[14px] border border-divider-subtle">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-xl border border-divider-subtle">
       {/* table-fixed so long Form / Due-logic text clamps inside its
           column instead of blowing the table wider than the pane (which
           pushed Status + ⋯ off-screen). Only this instance is fixed; the
@@ -141,21 +380,23 @@ export function JurisdictionRuleTable({
               ) : null}
             </TableHead>
             <TableHead className="min-w-0">
-              <Trans>Rule</Trans>
+              <Trans>Rule name</Trans>
             </TableHead>
-            <TableHead className="w-[100px] px-2">
-              <Trans>Form</Trans>
+            <TableHead className="w-[120px] px-2">
+              <Trans>Type</Trans>
             </TableHead>
-            <TableHead className="w-[112px] px-2">
-              <Trans>Entities</Trans>
+            <TableHead className="w-[120px] px-2">
+              <Trans>Effective</Trans>
             </TableHead>
-            <TableHead className="w-[140px] px-2">
-              <Trans>Due date</Trans>
+            <TableHead className="w-[124px] px-2">
+              <Trans>Last modified</Trans>
             </TableHead>
-            <TableHead className="w-[108px] px-2">
+            <TableHead className="w-[96px] px-2">
+              <Trans>Severity</Trans>
+            </TableHead>
+            <TableHead className="w-[120px] px-2">
               <Trans>Status</Trans>
             </TableHead>
-            <TableHead className="w-12" aria-label={t`Actions`} />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -218,26 +459,26 @@ function JurisdictionRuleRow({
   onSelectChange: (next: boolean) => void
   onClick: (rule: ObligationRule) => void
 }) {
-  const applicabilitySet = useMemo(
-    () => new Set(rule.entityApplicability),
-    [rule.entityApplicability],
-  )
   const displayTitle = stripJurisdictionPrefix(rule.title, jurisLabel)
-  const taxLabel = formatTaxCode(rule.taxType)
+  const typeLabel = formatRuleTypeLabel(rule.taxType, rule.jurisdiction)
   const tone = STATUS_TONE[rule.status]
-  // Honest "due" representation: a rule carries due-date LOGIC, not a
-  // single date. Show the humanized logic rather than fabricating a
-  // concrete date. (2026-06-07, coworker feedback: the "updated NN ago"
-  // subline was dropped — that timestamp reflects when WE imported the
-  // rule, not a change to the rule itself, so it read as misleading.)
-  // TODO(rules): if a concrete-draft computed date is wired through,
-  // prefer it as the primary value here.
-  const dueLogic = humanizeDueDateLogic(rule.dueDateLogic)
+  // oJL8o columns: Effective = the rule's verified/effective date;
+  // Last modified = the most recent review timestamp (omitted when the
+  // rule has never been re-reviewed).
+  const effective = formatDatePretty(rule.verifiedAt, { alwaysShowYear: true })
+  const lastModified = rule.reviewedAt
+    ? formatDatePretty(rule.reviewedAt, { alwaysShowYear: true })
+    : null
+  const severity = SEVERITY_PILL[rule.riskLevel]
+  const statusPill = STATUS_PILL[tone]
 
   return (
     <TableRow
       className={cn(
         'group/row cursor-pointer hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        // Selected (checked) rows read in accent-hover with a left accent
+        // bar — the Pencil oJL8o `AccentBar` treatment.
+        selected && 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onClick(rule)}
@@ -271,143 +512,71 @@ function JurisdictionRuleRow({
         )}
       </TableCell>
 
-      {/* Rule — title + meta. */}
-      <TableCell className="py-2.5 align-top whitespace-normal">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-sm font-medium text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-focus-within/row:underline">
-            {displayTitle}
-          </span>
-          <span className="text-xs text-text-tertiary">
-            {taxLabel ? `${taxLabel} · ` : ''}
-            {tierLabels[rule.ruleTier]}
-          </span>
+      {/* Rule name — jurisdiction code badge + title + one-line summary. */}
+      <TableCell className="py-3 align-top whitespace-normal">
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="inline-flex shrink-0 items-center justify-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-tertiary">
+              {rule.jurisdiction}
+            </span>
+            <span className="min-w-0 truncate text-[13px] font-semibold text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-focus-within/row:underline">
+              {displayTitle}
+            </span>
+          </div>
+          {rule.defaultTip ? (
+            <span className="line-clamp-1 text-sm text-text-tertiary">{rule.defaultTip}</span>
+          ) : null}
         </div>
       </TableCell>
 
-      {/* Form — clamps to its column so a long form name doesn't widen
-          the table. */}
-      <TableCell className="px-2 py-2.5 align-top">
-        {rule.formName?.trim() && rule.formName.trim() !== '—' ? (
-          <span className="line-clamp-2 text-xs text-text-secondary" title={rule.formName}>
-            {rule.formName}
-          </span>
-        ) : (
-          <EmptyCellMark label="No form code" />
-        )}
-      </TableCell>
-
-      {/* Entities — compact applicability dots (filled = applies) + N/7.
-          2026-06-07 (coworker feedback): one tooltip over the WHOLE
-          cluster (not a native title per 6px dot, which was almost
-          impossible to hover) — shows the full entity legend so it's
-          clear which dot is which and whether it applies. */}
-      <TableCell className="px-2 py-2.5 align-top">
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <div className="flex w-fit cursor-default items-center gap-2">
-                <div className="flex items-center gap-1">
-                  {ENTITY_KEYS.map((entity) => (
-                    <span
-                      key={entity}
-                      aria-hidden
-                      className={cn(
-                        'size-1.5 rounded-full',
-                        applicabilitySet.has(entity)
-                          ? 'bg-text-secondary'
-                          : 'border border-divider-regular',
-                      )}
-                    />
-                  ))}
-                </div>
-                <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
-                  {applicabilitySet.size}/{ENTITY_KEYS.length}
-                </span>
-              </div>
-            }
-          />
-          <TooltipContent className="max-w-none">
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] font-semibold tracking-wide uppercase opacity-70">
-                <Trans>Entity types</Trans>
-              </span>
-              <div className="flex flex-col gap-0.5">
-                {ENTITY_KEYS.map((entity) => {
-                  const applies = applicabilitySet.has(entity)
-                  return (
-                    <span
-                      key={entity}
-                      className={cn('flex items-center gap-1.5 text-xs', !applies && 'opacity-50')}
-                    >
-                      <span
-                        className={cn(
-                          'size-1.5 shrink-0 rounded-full',
-                          applies ? 'bg-current' : 'border border-current',
-                        )}
-                      />
-                      {ENTITY_LABELS[entity]}
-                    </span>
-                  )
-                })}
-              </div>
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TableCell>
-
-      {/* Due date — humanized rule logic, clamped to 3 lines so a long
-          description stays inside its (now narrower) column instead of
-          starving the Rule column under table-fixed. Full text on hover. */}
-      <TableCell className="px-2 py-2.5 align-top">
-        <span className="line-clamp-3 text-xs text-text-secondary" title={dueLogic}>
-          {dueLogic}
+      {/* Type — humanized tax type pill, truncated to its column. */}
+      <TableCell className="overflow-hidden px-2 py-3 align-top">
+        <span
+          className="block max-w-full truncate rounded-full border border-divider-subtle bg-background-subtle px-2.5 py-0.5 text-center text-[11px] font-medium text-text-secondary"
+          title={typeLabel}
+        >
+          {typeLabel}
         </span>
       </TableCell>
 
-      {/* Status. */}
-      <TableCell className="px-2 py-2.5 align-top">
-        <Badge variant={STATUS_BADGE_VARIANT[tone]}>{STATUS_LABEL_SHORT[rule.status]}</Badge>
+      {/* Effective — the rule's verified/effective date, mono. */}
+      <TableCell className="px-2 py-3 align-top">
+        <span className="font-mono text-sm text-text-secondary tabular-nums">{effective}</span>
       </TableCell>
 
-      {/* Actions. */}
-      <TableCell className="py-2.5 align-top">
-        <div className="flex items-center justify-end gap-1">
-          <ChevronRightIcon
-            aria-hidden
-            className="size-3.5 shrink-0 text-text-tertiary opacity-30 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100"
-          />
-          <RowActionsMenu
-            label={`Actions for ${displayTitle}`}
-            items={[
-              { label: 'Open rule', icon: ArrowUpRightIcon, onSelect: () => onClick(rule) },
-              {
-                label: 'Copy rule ID',
-                icon: LinkIcon,
-                onSelect: () => {
-                  if (typeof window === 'undefined') return
-                  try {
-                    void window.navigator.clipboard?.writeText(rule.id)
-                  } catch {
-                    // Clipboard can throw in sandboxed iframes — non-critical.
-                  }
-                },
-              },
-              {
-                label: 'Copy link',
-                icon: ExternalLinkIcon,
-                onSelect: () => {
-                  if (typeof window === 'undefined') return
-                  try {
-                    const url = `${window.location.origin}/rules/library?rule=${rule.id}`
-                    void window.navigator.clipboard?.writeText(url)
-                  } catch {
-                    // Clipboard can throw in sandboxed iframes — non-critical.
-                  }
-                },
-              },
-            ]}
-          />
-        </div>
+      {/* Last modified — most recent review date. */}
+      <TableCell className="px-2 py-3 align-top">
+        {lastModified ? (
+          <span className="text-sm text-text-tertiary tabular-nums">{lastModified}</span>
+        ) : (
+          <EmptyCellMark label="Never re-reviewed" />
+        )}
+      </TableCell>
+
+      {/* Severity — risk-level pill. */}
+      <TableCell className="px-2 py-3 align-top">
+        <span
+          className={cn(
+            'inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide',
+            severity.cls,
+          )}
+        >
+          {severity.label}
+        </span>
+      </TableCell>
+
+      {/* Status — dot + label pill. */}
+      <TableCell className="px-2 py-3 align-top">
+        <span
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+            statusPill.bg,
+            statusPill.text,
+          )}
+        >
+          <span aria-hidden className={cn('size-1.5 rounded-full', statusPill.dot)} />
+          {STATUS_LABEL_SHORT[rule.status]}
+        </span>
       </TableCell>
     </TableRow>
   )
@@ -501,7 +670,7 @@ export function KpiStrip({
   return (
     <div
       className={cn(
-        'grid shrink-0 grid-cols-2 gap-y-4 rounded-[14px] border border-divider-subtle bg-background-default px-2 sm:flex sm:items-center sm:gap-y-0',
+        'grid shrink-0 grid-cols-2 gap-y-4 rounded-xl border border-divider-subtle bg-background-default px-2 sm:flex sm:items-center sm:gap-y-0',
         lg ? 'py-6' : 'py-[18px]',
       )}
     >

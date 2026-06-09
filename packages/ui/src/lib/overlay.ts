@@ -12,7 +12,7 @@ export type OverlayItemVariant = 'default' | 'destructive'
 
 /* Highlightable row inside an overlay (menu item, select option). */
 export const overlayRowClassName =
-  'mx-1 flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 outline-hidden select-none data-highlighted:bg-state-base-hover data-disabled:cursor-not-allowed data-disabled:opacity-50'
+  'mx-1 flex h-8 cursor-pointer items-center gap-2 rounded-lg px-2 outline-hidden select-none data-highlighted:bg-state-base-hover data-disabled:cursor-not-allowed data-disabled:opacity-50'
 
 /* Adds destructive variant styling on top of overlayRowClassName. */
 export const overlayDestructiveClassName =
@@ -23,7 +23,7 @@ export const overlayIndicatorClassName = 'ml-auto flex shrink-0 items-center tex
 
 /* Checkbox-style selected indicator used by header filters and filter selects. */
 export const overlayCheckboxIndicatorClassName =
-  'pointer-events-none absolute left-2 flex size-3.5 items-center justify-center rounded-[3px] border border-divider-regular bg-background-default text-text-accent'
+  'pointer-events-none absolute left-2 flex size-3.5 items-center justify-center rounded-sm border border-divider-regular bg-background-default text-text-accent'
 
 /* Section label (group header) inside menus / selects. */
 export const overlayLabelClassName =

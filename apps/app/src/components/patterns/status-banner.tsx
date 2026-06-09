@@ -26,7 +26,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *
  * Visual contract:
  *   - `flex items-center gap-3`
- *   - `rounded-md border border-dashed border-divider-regular`
+ *   - `rounded-lg border border-dashed border-divider-regular`
  *   - `bg-background-default p-4`
  *   - `text-sm text-text-secondary`
  *
@@ -81,7 +81,7 @@ export function StatusBanner({
       role={role ?? 'status'}
       aria-live={ariaLive ?? 'polite'}
       className={cn(
-        'flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default p-4 text-sm text-text-secondary',
+        'flex items-center gap-3 rounded-lg border border-dashed border-divider-regular bg-background-default p-4 text-sm text-text-secondary',
         className,
       )}
     >

@@ -264,7 +264,7 @@ export function ClassificationImpactDialog({
                       return (
                         <li
                           key={obligationId}
-                          className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2.5 gap-y-1 rounded-md border border-divider-regular bg-background-default p-3"
+                          className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2.5 gap-y-1 rounded-lg border border-divider-regular bg-background-default p-3"
                         >
                           <Checkbox
                             id={`orphan-${obligationId}`}
@@ -316,7 +316,7 @@ export function ClassificationImpactDialog({
 
               {orphanSafeRows.length > 0 ? (
                 <Collapsible>
-                  <div className="rounded-md border border-divider-regular">
+                  <div className="rounded-lg border border-divider-regular">
                     <CollapsibleTrigger
                       render={
                         <button

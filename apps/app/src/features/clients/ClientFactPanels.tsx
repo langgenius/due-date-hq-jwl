@@ -45,7 +45,7 @@ export function RiskProfileSmartPriorityHelp() {
             type="button"
             aria-label={t`Explain Risk profile`}
             title={helpText}
-            className="inline-flex size-5 shrink-0 cursor-help items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="inline-flex size-5 shrink-0 cursor-help items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           />
         }
       >

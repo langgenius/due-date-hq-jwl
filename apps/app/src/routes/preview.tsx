@@ -658,7 +658,7 @@ export function PreviewRoute() {
             </div>
             {/* Theme toggle — flips the whole preview between light + dark so
                 designers can verify token mappings without leaving the page. */}
-            <div className="flex shrink-0 items-center gap-1 rounded-md border border-divider-regular bg-background-default p-1">
+            <div className="flex shrink-0 items-center gap-1 rounded-lg border border-divider-regular bg-background-default p-1">
               <Button
                 variant={theme === 'light' ? 'secondary' : 'ghost'}
                 size="sm"
@@ -795,7 +795,7 @@ export function PreviewRoute() {
             {/* Inverted-ghost only reads correctly on dark chrome — the same
                 bg-text-primary surface the alerts bulk-action bar uses. */}
             <Row label="Inverted (dark chrome)" mono="variant=inverted-ghost">
-              <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-text-primary p-3">
+              <div className="flex flex-wrap items-center gap-2 rounded-xl bg-text-primary p-3">
                 <Button variant="inverted-ghost" size="sm">
                   <ArchiveIcon /> Dismiss
                 </Button>
@@ -1070,7 +1070,7 @@ export function PreviewRoute() {
                     </Button>
                   }
                 />
-                <CollapsiblePanel className="mt-2 rounded-md border border-divider-regular bg-background-default p-3 text-sm text-text-secondary">
+                <CollapsiblePanel className="mt-2 rounded-lg border border-divider-regular bg-background-default p-3 text-sm text-text-secondary">
                   Inner content. Use this for "show more" rows on settings, advanced filters, or
                   rarely-used form sections that shouldn't crowd the default view.
                 </CollapsiblePanel>
@@ -1172,7 +1172,7 @@ export function PreviewRoute() {
             subtitle="Low-level table primitives. /deadlines and /clients compose on top of these with sorting, pagination, and row actions."
           >
             <Row label="Basic">
-              <div className="w-full overflow-hidden rounded-md border border-divider-regular">
+              <div className="w-full overflow-hidden rounded-lg border border-divider-regular">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1411,7 +1411,7 @@ export function PreviewRoute() {
             subtitle="cmdk primitives. The real palette mounts inside a Dialog; here it's rendered inline so you can read the structure."
           >
             <Row label="Inline" mono="<Command />">
-              <Command className="w-full max-w-md rounded-md border border-divider-regular">
+              <Command className="w-full max-w-md rounded-lg border border-divider-regular">
                 <CommandInput placeholder="Type a command or search…" />
                 <CommandList>
                   <CommandEmpty>No results found.</CommandEmpty>
@@ -1845,7 +1845,7 @@ export function PreviewRoute() {
               />
             </Row>
             <Row label="RowActionsMenu" mono="patterns/row-actions-menu">
-              <div className="group/row inline-flex items-center gap-3 rounded-md border border-divider-subtle bg-background-default px-3 py-2">
+              <div className="group/row inline-flex items-center gap-3 rounded-lg border border-divider-subtle bg-background-default px-3 py-2">
                 <span className="text-sm">Form 1120 — Acme LLC</span>
                 <RowActionsMenu
                   label="Actions for Form 1120"
@@ -1875,7 +1875,7 @@ export function PreviewRoute() {
             subtitle="Appears when one or more rows are selected. Real instances are `position: fixed` and float at the bottom of the viewport; here it's rendered statically so you can see the chrome."
           >
             <Row label="FloatingActionBar" mono="patterns/floating-action-bar">
-              <div className="relative w-full max-w-2xl rounded-md border border-dashed border-divider-regular bg-background-soft p-8">
+              <div className="relative w-full max-w-2xl rounded-lg border border-dashed border-divider-regular bg-background-soft p-8">
                 <p className="text-center text-xs text-text-tertiary">
                   Imagine a table with 3 rows selected. The bar below floats over the viewport.
                 </p>
@@ -2153,7 +2153,7 @@ export function PreviewRoute() {
             subtitle="The compound row pieces. StageActions clusters the per-stage CTAs; BlockerContextCard fetches a parent obligation live (skeleton without a real ID)."
           >
             <Row label="StageActions" mono="features/obligations/StageActions">
-              <div className="w-full max-w-md rounded-md border border-divider-regular bg-background-default p-4">
+              <div className="w-full max-w-md rounded-lg border border-divider-regular bg-background-default p-4">
                 <StageActions tasks={MOCK_STAGE_TASKS} onTaskClick={() => {}} />
               </div>
             </Row>
@@ -2259,7 +2259,7 @@ export function PreviewRoute() {
             subtitle="The row chrome and actor / action / target columns from /audit. Each row is clickable to open the audit-event drawer (the click handler here is a no-op)."
           >
             <Row label="AuditLogTable" mono="features/audit/audit-log-table">
-              <div className="w-full overflow-hidden rounded-md border border-divider-regular">
+              <div className="w-full overflow-hidden rounded-lg border border-divider-regular">
                 <AuditLogTable
                   events={MOCK_AUDIT_EVENTS}
                   firmTimezone="America/Los_Angeles"

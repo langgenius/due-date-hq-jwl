@@ -52,6 +52,7 @@ import {
 } from '@/components/patterns/table-header-filter'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
+import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { RowActionsMenu, type RowActionsMenuItem } from '@/components/patterns/row-actions-menu'
 import { SearchInput } from '@/components/primitives/search-input'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
@@ -446,7 +447,7 @@ function ColumnSortHeader({
         // (page-family-canonical §6) specifies sortable headers use
         // sm + normal-case + text-secondary so they read as labels,
         // not eyebrows. Matches /deadlines + /alerts table headers.
-        '-mx-1 inline-flex h-7 cursor-pointer items-center gap-1 rounded-md px-1 text-sm font-medium whitespace-nowrap text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:text-text-primary',
+        '-mx-1 inline-flex h-7 cursor-pointer items-center gap-1 rounded-lg px-1 text-sm font-medium whitespace-nowrap text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:text-text-primary',
         align === 'right' && 'justify-end',
       )}
     >
@@ -667,7 +668,7 @@ export function ClientFactsWorkspace({
                   onClick={(event) => event.stopPropagation()}
                   aria-label={t`Peek ${row.original.name} details`}
                   title={t`Peek details (without leaving the list)`}
-                  className="ml-auto inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="ml-auto inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 >
                   <EyeIcon className="size-4" aria-hidden />
                 </button>
@@ -1184,15 +1185,10 @@ export function ClientFactsWorkspace({
         clients={clients}
       />
 
-      {/* 2026-06-07 (Pencil rOSHx — /clients pixel pass): KPI strip
-          above the filter toolbar. Single bordered card, five columns
-          divided by vertical hairlines: Total clients · Active
-          obligations · YTD revenue · At risk · Onboarding. Live counts
-          come from the loaded clients + obligation summaries; the
-          revenue + onboarding columns fall back to static figures
-          because those facts aren't in the contracts yet (see
-          TODO(data) inside the component). Hidden on the empty-state
-          surface (clients.length === 0). */}
+      {/* Directory summary above the filter toolbar — the shared
+          StatBand (Total clients · Active obligations · At risk). Live
+          counts come from the loaded clients + obligation summaries.
+          Hidden on the empty-state surface (clients.length === 0). */}
       {clients.length > 0 ? (
         <ClientsKpiStrip
           isLoading={isLoading}
@@ -1255,7 +1251,7 @@ export function ClientFactsWorkspace({
       ) : (
         // 2026-05-26 (Yuqi cross-table chrome unify): canonical
         // workbench-table card frame. Same recipe as /deadlines +
-        // /rules/library — `rounded-md border border-divider-subtle
+        // /rules/library — `rounded-lg border border-divider-subtle
         // overflow-hidden bg-background-default/50`. The inner div
         // is just for the flex split between the Table block and
         // the Pagination footer; the rounded card frame lives here
@@ -1265,7 +1261,7 @@ export function ClientFactsWorkspace({
           // 2026-06-04 round 16 (Yuqi "lighter border"): /clients
           // outer card border settled at `divider-regular` (8%
           // alpha) — the visible-but-quiet canonical tone.
-          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-divider-regular"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-divider-regular"
         >
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {isLoading ? (
@@ -1274,7 +1270,7 @@ export function ClientFactsWorkspace({
               // 2026-05-26 (Yuqi cross-page audit — align /clients to
               // the canonical workbench-table chrome shared with
               // /rules/library + /deadlines):
-              //   - Card chrome (rounded-md + border + bg) moved DOWN
+              //   - Card chrome (rounded-lg + border + bg) moved DOWN
               //     to `data-slot="table-container"` via Tailwind
               //     arbitrary-selector chain. Eliminates the nested-
               //     wrapper layer mismatch that caused rounded-corner
@@ -1286,7 +1282,7 @@ export function ClientFactsWorkspace({
               //     the family.
               <Table
                 // 2026-05-26 (Yuqi cross-table chrome unify): the
-                // table-container chrome overrides (rounded-md +
+                // table-container chrome overrides (rounded-lg +
                 // border) moved UP to the outer card wrapper, where
                 // they wrap Table + Pagination together as one
                 // cohesive rounded card. Only `table-fixed` stays
@@ -1698,9 +1694,11 @@ function ClientsSearchControl({
 }
 
 /**
- * 2026-06-07 (Pencil rOSHx — /clients pixel pass): the directory KPI
- * strip. One bordered card, five label/value/caption columns split by
- * vertical hairlines. Mirrors the canvas `ClientsStats` frame.
+ * The /clients directory summary — Total clients · Active obligations ·
+ * At risk. Renders the shared `StatBand` (the same "card summary" the
+ * rule-library overview, /rules/sources, /alerts/history, and
+ * /clients/[id] use) so all five surfaces share one borderless,
+ * hairline-framed band instead of drifting bespoke cards.
  *
  * Data sourcing:
  *   - Total clients   → live (`clients.length`)
@@ -1740,67 +1738,35 @@ function ClientsKpiStrip({
     return { activeObligations: active, atRiskCount: atRisk }
   }, [obligationSummariesByClient])
 
-  if (isLoading) {
-    return <Skeleton className="h-[78px] w-full rounded-2xl" aria-busy="true" />
-  }
-
   // Only real, computed metrics are shown. YTD revenue and onboarding
   // doc counts are not in the ClientPublic / obligations contracts, so
   // those tiles were removed rather than filled with fabricated figures
   // — add them back once engagement-revenue + onboarding-status fields
   // ship and can be bound to live data.
-  const columns: {
-    key: string
-    label: string
-    value: string
-    caption: string
-    captionTone: string
-  }[] = [
+  const stats: StatBandItem[] = [
     {
       key: 'total',
-      label: t`TOTAL CLIENTS`,
-      value: String(totalClients),
-      caption: needsFactsCount > 0 ? t`${needsFactsCount} need setup` : t`All set up`,
-      captionTone: needsFactsCount > 0 ? 'text-text-warning' : 'text-text-success',
+      label: t`Total clients`,
+      value: totalClients,
+      sub: needsFactsCount > 0 ? t`${needsFactsCount} need setup` : t`All set up`,
+      subClass: needsFactsCount > 0 ? 'text-text-warning' : 'text-text-success',
     },
     {
       key: 'obligations',
-      label: t`ACTIVE OBLIGATIONS`,
-      value: String(activeObligations),
-      caption: t`across ${statesCovered} jurisdictions`,
-      captionTone: 'text-text-secondary',
+      label: t`Active obligations`,
+      value: activeObligations,
+      sub: t`across ${statesCovered} jurisdictions`,
     },
     {
       key: 'risk',
-      label: t`AT RISK`,
-      value: String(atRiskCount),
-      caption: atRiskCount > 0 ? t`need attention` : t`on track`,
-      captionTone: atRiskCount > 0 ? 'text-text-warning' : 'text-text-secondary',
+      label: t`At risk`,
+      value: atRiskCount,
+      sub: atRiskCount > 0 ? t`need attention` : t`on track`,
+      subClass: atRiskCount > 0 ? 'text-text-warning' : 'text-text-tertiary',
     },
   ]
 
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-divider-regular bg-background-default px-2 py-4 sm:flex-row sm:items-center sm:px-5">
-      {columns.map((column, index) => (
-        <div key={column.key} className="contents sm:flex sm:flex-1 sm:items-center">
-          {index > 0 ? (
-            <div aria-hidden className="hidden h-11 w-px shrink-0 bg-divider-regular sm:block" />
-          ) : null}
-          <div className="flex flex-1 flex-col gap-1 px-3 sm:px-5">
-            <span className="text-[10px] font-bold tracking-wider text-text-muted">
-              {column.label}
-            </span>
-            <span className="text-[22px] font-semibold leading-none tracking-tight text-text-primary tabular-nums">
-              {column.value}
-            </span>
-            <span className={cn('text-[10px] font-medium', column.captionTone)}>
-              {column.caption}
-            </span>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
+  return <StatBand stats={stats} loading={isLoading} ariaLabel={t`Clients summary`} />
 }
 
 /**
@@ -1851,13 +1817,13 @@ function ClientsActionStrip({
 
   // Chrome mirrors the canonical InfoBanner sibling that sits right
   // above it (the import-CSV tip): h-12 row, `bg-background-subtle`,
-  // `border border-divider-subtle`, `rounded-md`. AlertTriangle + red
+  // `border border-divider-subtle`, `rounded-lg`. AlertTriangle + red
   // button keep the destructive tone — this is "warning + action," not
   // "tip + dismiss."
   return (
     <div
       role="status"
-      className="flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-subtle px-3 py-2 sm:h-12 sm:flex-row sm:items-center sm:gap-3 sm:py-0"
+      className="flex flex-col gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2 sm:h-12 sm:flex-row sm:items-center sm:gap-3 sm:py-0"
     >
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <AlertTriangleIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
@@ -1912,7 +1878,7 @@ function ClientTableSkeleton() {
       className={cn(
         'table-fixed',
         '[&_[data-slot=table-container]]:overflow-hidden',
-        '[&_[data-slot=table-container]]:rounded-md',
+        '[&_[data-slot=table-container]]:rounded-lg',
         '[&_[data-slot=table-container]]:border',
         // 2026-06-04 round 16: skeleton border matches the live
         // table's canonical tone (`divider-regular`).

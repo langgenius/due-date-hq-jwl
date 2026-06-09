@@ -189,7 +189,7 @@ function AlertsNotificationsBell() {
               regardless of how long the notification list scrolls.
               2026-06-01: hand-rolled icon link replaced by Button
               variant='ghost' size='icon-xs' (28px), which already
-              owns the size-7 + rounded-md + hover/focus chrome. */}
+              owns the size-7 + rounded-lg + hover/focus chrome. */}
             <Button
               variant="ghost"
               size="icon-xs"

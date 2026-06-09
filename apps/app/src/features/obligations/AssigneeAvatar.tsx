@@ -49,7 +49,7 @@ import { cn } from '@/lib/utils'
 //                            monograms (firm switcher).
 //
 //   shape='round' (default) → rounded-full (avatars).
-//   shape='square'          → rounded-md (firm monograms / workspace
+//   shape='square'          → rounded-lg (firm monograms / workspace
 //                             identity tiles).
 //
 //   image (optional) → renders <img> inside the same shape-aware
@@ -96,7 +96,7 @@ export function AssigneeAvatar({
   const styles = sizeStyles[size]
   const baseClasses = cn(
     'inline-flex items-center justify-center font-semibold uppercase tracking-tight',
-    shape === 'square' ? 'rounded-md' : 'rounded-full',
+    shape === 'square' ? 'rounded-lg' : 'rounded-full',
     styles.box,
     styles.text,
     className,
@@ -144,7 +144,7 @@ export function AssigneeAvatar({
   // app-shell firm switcher visual.
   // 2026-06-09 (Yuqi sidebar polish): the company monogram gets a
   // slightly larger corner (rounded-lg, up from the square default
-  // rounded-md) and a faint light hairline (border-white/15) so the
+  // rounded-lg) and a faint light hairline (border-white/15) so the
   // dark tile reads a touch softer / lifted against the rail.
   const initials = initialsFromName(name ?? '')
   if (resolvedType === 'firm') {

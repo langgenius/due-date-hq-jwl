@@ -186,8 +186,8 @@ export function ShellSkeleton() {
       className="flex min-h-screen items-center justify-center bg-background-body p-6"
     >
       <div className="flex w-full max-w-[480px] flex-col gap-3">
-        <div className="h-6 w-40 rounded-md border border-divider-subtle" />
-        <div className="h-4 w-64 rounded-md border border-divider-subtle" />
+        <div className="h-6 w-40 rounded-lg border border-divider-subtle" />
+        <div className="h-4 w-64 rounded-lg border border-divider-subtle" />
         <div className="h-40 w-full rounded-lg border border-divider-subtle" />
       </div>
     </div>

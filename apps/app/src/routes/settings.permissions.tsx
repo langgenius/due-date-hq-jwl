@@ -272,7 +272,7 @@ export function SettingsPermissionsRoute() {
         </div>
 
         {/* Matrix */}
-        <div className="overflow-hidden rounded-2xl border border-divider-regular bg-background-default">
+        <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
           <div className="overflow-x-auto">
             <div className="min-w-[760px]">
               {/* Header */}
@@ -371,7 +371,7 @@ function PermissionPill({
   if (state === 'na') {
     return (
       <span
-        className="grid h-6 w-10 place-items-center rounded-md text-text-disabled"
+        className="grid h-6 w-10 place-items-center rounded-lg text-text-disabled"
         aria-label={t`${actionLabel} on ${scopeLabel}: not applicable`}
       >
         <span aria-hidden className="text-xs">
@@ -383,7 +383,7 @@ function PermissionPill({
   if (state === 'yes') {
     return (
       <span
-        className="grid h-6 w-10 place-items-center rounded-md bg-state-success-hover text-text-success"
+        className="grid h-6 w-10 place-items-center rounded-lg bg-state-success-hover text-text-success"
         aria-label={t`${actionLabel} on ${scopeLabel}: allowed`}
       >
         <CheckIcon className="size-3.5" aria-hidden />
@@ -392,7 +392,7 @@ function PermissionPill({
   }
   return (
     <span
-      className="grid h-6 w-10 place-items-center rounded-md bg-background-section text-text-muted"
+      className="grid h-6 w-10 place-items-center rounded-lg bg-background-section text-text-muted"
       aria-label={t`${actionLabel} on ${scopeLabel}: not allowed`}
     >
       <XIcon className="size-3.5" aria-hidden />

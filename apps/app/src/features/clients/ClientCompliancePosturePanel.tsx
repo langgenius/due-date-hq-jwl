@@ -79,9 +79,9 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
   const lateFlag = client.lateFilingCountLast12mo
 
   return (
-    // 2026-06-01: swapped hand-rolled `<section className="rounded-md border…">`
+    // 2026-06-01: swapped hand-rolled `<section className="rounded-lg border…">`
     // chrome for the Card primitive (size="sm" gives px-4/py-4 + gap-4;
-    // radius="md" matches the dense rounded-md used across the in-page
+    // radius="md" matches the dense rounded-lg used across the in-page
     // surfaces). CardContent owns the inner padding so the inner grid
     // no longer needs its own `p-4`.
     <Card size="sm" radius="md" role="region" aria-label={t`Compliance posture`}>

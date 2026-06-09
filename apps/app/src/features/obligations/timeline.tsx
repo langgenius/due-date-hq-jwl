@@ -179,7 +179,7 @@ function MilestoneNode({
             {events.map((event) => (
               <li
                 key={event.id}
-                className="rounded-md border border-divider-regular bg-surface-base px-3 py-2"
+                className="rounded-lg border border-divider-regular bg-surface-base px-3 py-2"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="text-xs font-medium text-text-secondary">
@@ -221,7 +221,7 @@ function OtherActivity({
         {events.map((event) => (
           <li
             key={event.id}
-            className="rounded-md border border-divider-regular bg-surface-base px-3 py-2"
+            className="rounded-lg border border-divider-regular bg-surface-base px-3 py-2"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <span className="text-xs font-medium text-text-secondary">

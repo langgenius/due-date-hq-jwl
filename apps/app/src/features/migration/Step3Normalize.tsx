@@ -410,7 +410,7 @@ function ValueGroupRow({ group }: { group: NormalizationValueGroup }) {
         <span aria-hidden className="text-text-tertiary">
           →
         </span>
-        <span className="inline-flex min-h-7 min-w-[120px] max-w-[260px] items-center rounded-md border border-divider-regular bg-background-default px-2 text-xs text-text-primary">
+        <span className="inline-flex min-h-7 min-w-[120px] max-w-[260px] items-center rounded-lg border border-divider-regular bg-background-default px-2 text-xs text-text-primary">
           {formatNormalizedValue(group)}
         </span>
         <GroupStatus group={group} />
@@ -512,7 +512,7 @@ function MatrixDefaultsCard({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex h-5 items-center rounded-md border border-divider-subtle bg-background-section px-1.5 text-xs text-text-tertiary">
+            <span className="inline-flex h-5 items-center rounded-lg border border-divider-subtle bg-background-section px-1.5 text-xs text-text-tertiary">
               <Trans>Saved as default</Trans>
             </span>
             <span className="text-xs tabular-nums text-text-tertiary">
@@ -652,7 +652,7 @@ function MatrixControls({
                 {cell.taxTypes.map((taxType) => (
                   <span
                     key={taxType}
-                    className="inline-flex h-5 items-center rounded-md border border-divider-regular bg-components-panel-bg px-1.5 font-mono tabular-nums text-text-secondary"
+                    className="inline-flex h-5 items-center rounded-lg border border-divider-regular bg-components-panel-bg px-1.5 font-mono tabular-nums text-text-secondary"
                   >
                     {taxType}
                   </span>
@@ -674,13 +674,13 @@ function MatrixControls({
                      reads as "you should look at this", while
                      "Verified" keeps the calmer treatment as a
                      passing reassurance. */
-                  <span className="inline-flex h-5 items-center gap-1 rounded-md border border-state-warning-hover-alt bg-components-badge-bg-warning-soft px-1.5 text-xs font-medium text-text-primary">
+                  <span className="inline-flex h-5 items-center gap-1 rounded-lg border border-state-warning-hover-alt bg-components-badge-bg-warning-soft px-1.5 text-xs font-medium text-text-primary">
                     <AlertTriangleIcon className="size-3" aria-hidden />
                     <Trans>Needs review</Trans>
                   </span>
                 ) : (
                   <span
-                    className="inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-background-subtle px-1.5 text-xs text-text-success"
+                    className="inline-flex h-5 items-center gap-1 rounded-lg border border-divider-regular bg-background-subtle px-1.5 text-xs text-text-success"
                     aria-hidden
                   >
                     <ShieldCheckIcon className="size-3" />
@@ -688,7 +688,7 @@ function MatrixControls({
                   </span>
                 )}
                 {cell.applicationMode === 'federal_return_type_plus_state' ? (
-                  <span className="inline-flex h-5 items-center rounded-md border border-divider-regular bg-background-subtle px-1.5 text-xs text-text-secondary">
+                  <span className="inline-flex h-5 items-center rounded-lg border border-divider-regular bg-background-subtle px-1.5 text-xs text-text-secondary">
                     <Trans>State context added</Trans>
                   </span>
                 ) : null}
@@ -704,7 +704,7 @@ function MatrixControls({
 function GroupStatus({ group }: { group: NormalizationValueGroup }) {
   if (!group.usesFallback) {
     return (
-      <span className="inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-background-subtle px-1.5 text-xs text-text-success">
+      <span className="inline-flex h-5 items-center gap-1 rounded-lg border border-divider-regular bg-background-subtle px-1.5 text-xs text-text-success">
         <CheckCircle2Icon className="size-3" aria-hidden />
         <Trans>Ready</Trans>
       </span>
@@ -712,7 +712,7 @@ function GroupStatus({ group }: { group: NormalizationValueGroup }) {
   }
   return (
     <span
-      className="inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-components-badge-bg-warning-soft px-1.5 text-xs text-text-primary"
+      className="inline-flex h-5 items-center gap-1 rounded-lg border border-divider-regular bg-components-badge-bg-warning-soft px-1.5 text-xs text-text-primary"
       role="status"
     >
       <AlertTriangleIcon className="size-3" aria-hidden />
@@ -836,7 +836,7 @@ function EvidenceChip({
   const label = isAi ? 'AI' : 'Rules'
   return (
     <span
-      className="inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-transparent px-1.5 font-mono text-xs tabular-nums text-text-secondary"
+      className="inline-flex h-5 items-center gap-1 rounded-lg border border-divider-regular bg-transparent px-1.5 font-mono text-xs tabular-nums text-text-secondary"
       title={label}
     >
       <span>{label}</span>

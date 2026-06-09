@@ -16,7 +16,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *
  * Visual contract:
  *   - `h-12` slim row, `bg-background-subtle`, `border border-divider-subtle`,
- *     `rounded-md`
+ *     `rounded-lg`
  *   - Lightbulb (or any) icon on the left: `size-4 text-text-tertiary`
  *   - Message text: `text-sm text-text-secondary`
  *   - Optional CTA on the right: accent-purple link, `hover:underline`
@@ -118,7 +118,7 @@ export function InfoBanner({
     <div
       role="status"
       className={cn(
-        'flex h-12 items-center gap-3 rounded-md border border-divider-subtle bg-background-subtle px-3',
+        'flex h-12 items-center gap-3 rounded-lg border border-divider-subtle bg-background-subtle px-3',
         className,
       )}
     >
@@ -139,7 +139,7 @@ export function InfoBanner({
           type="button"
           onClick={handleDismiss}
           aria-label="Dismiss"
-          className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <XIcon className="size-4" aria-hidden />
         </button>

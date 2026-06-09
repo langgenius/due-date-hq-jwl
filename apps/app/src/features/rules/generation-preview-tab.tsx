@@ -319,7 +319,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
                 if (value) setSelectedClientId(value)
               }}
             >
-              <SelectTrigger className="h-8 w-full rounded-md text-xs">
+              <SelectTrigger className="h-8 w-full rounded-lg text-xs">
                 <SelectValue>{selectedClientLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -461,7 +461,7 @@ function GenerationPreviewForm({
                   onSelectClient(client.id)
                 }}
               >
-                <SelectTrigger className="h-8 w-full rounded-md font-mono text-xs">
+                <SelectTrigger className="h-8 w-full rounded-lg font-mono text-xs">
                   <SelectValue>{selectedClientLabel}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -494,7 +494,7 @@ function GenerationPreviewForm({
                   }
                 }}
               >
-                <SelectTrigger className="h-8 w-full rounded-md text-xs">
+                <SelectTrigger className="h-8 w-full rounded-lg text-xs">
                   <SelectValue>{previewEntityLabel(entityTypeValue)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -517,7 +517,7 @@ function GenerationPreviewForm({
                   }
                 }}
               >
-                <SelectTrigger className="h-8 w-full rounded-md text-xs">
+                <SelectTrigger className="h-8 w-full rounded-lg text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -557,7 +557,7 @@ function GenerationPreviewForm({
           </div>
 
           <PreviewField label={t`TAX TYPES`} htmlFor="preview-tax-types">
-            <div className="flex min-h-[56px] flex-wrap gap-1.5 rounded-md border border-divider-regular bg-background-subtle p-2">
+            <div className="flex min-h-[56px] flex-wrap gap-1.5 rounded-lg border border-divider-regular bg-background-subtle p-2">
               {taxTypeChips.length === 0 ? (
                 <span className="text-xs text-text-tertiary">
                   <Trans>No tax types selected.</Trans>
@@ -623,7 +623,7 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
   const { t } = useLingui()
 
   return (
-    <div className="overflow-hidden rounded-md border border-divider-regular">
+    <div className="overflow-hidden rounded-lg border border-divider-regular">
       <div className="grid grid-cols-7 gap-0 border-b border-divider-regular bg-background-subtle">
         <RolloverMetric
           label={t`Source deadlines`}
@@ -969,7 +969,7 @@ function TaxYearCalendarSelect({
             aria-expanded={open}
             aria-invalid={invalid || undefined}
             className={cn(
-              'flex h-8 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-transparent bg-components-input-bg-normal py-1 pr-2 pl-2.5 text-xs text-components-input-text-filled transition-colors outline-none',
+              'flex h-8 w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-transparent bg-components-input-bg-normal py-1 pr-2 pl-2.5 text-xs text-components-input-text-filled transition-colors outline-none',
               'hover:bg-components-input-bg-hover',
               'focus-visible:border-components-input-border-active focus-visible:bg-components-input-bg-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'aria-invalid:border-components-input-border-destructive aria-invalid:bg-components-input-bg-destructive aria-invalid:ring-2 aria-invalid:ring-state-destructive-active',
@@ -1016,7 +1016,7 @@ function TaxYearCalendarSelect({
               variant={year === value ? 'accent' : 'ghost'}
               size="xs"
               aria-pressed={year === value}
-              className="h-8 rounded-md px-0 font-mono text-xs tabular-nums"
+              className="h-8 rounded-lg px-0 font-mono text-xs tabular-nums"
               onClick={() => selectYear(year)}
             >
               {year}
@@ -1035,7 +1035,7 @@ function TaxYearCalendarSelect({
 
 function TaxYearDateSummary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-md bg-background-subtle px-2 py-1.5">
+    <div className="min-w-0 rounded-lg bg-background-subtle px-2 py-1.5">
       <div className="truncate text-caption-xs font-medium uppercase tracking-eyebrow text-text-muted">
         {label}
       </div>

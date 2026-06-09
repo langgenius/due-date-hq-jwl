@@ -383,7 +383,7 @@ export function ClientWorkPlanPanel({
     <TabSection title={t`Filing plan`} summary={subtitle}>
       {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3): each year
           section is wrapped in its own framed block using the
-          canonical `rounded-md border-divider-regular
+          canonical `rounded-lg border-divider-regular
           bg-background-default` shape. The column header bar lives
           INSIDE the frame, paired with the rows it legends. This
           replaces the earlier single-column-header-above-all-years
@@ -622,12 +622,12 @@ function FilingPlanYearSection({
   // (`bg-background-soft` + `rounded-xl` + inset hairline).
   // 2026-05-26 (Yuqi post-revamp critique P1 / §3.5 — tab section-
   // frame unification): frame swapped to the canonical
-  // `bg-background-default rounded-md border-divider-regular` so
+  // `bg-background-default rounded-lg border-divider-regular` so
   // the Work tab's year panels read identically to the section
   // frames in Client info, Discover, and Activity. The previous
   // `rounded-xl bg-background-soft border-subtle` was the only
   // divergent frame on the page — left over from the pre-canonical
-  // pixel-replica pass. Inset-surface canonical (rounded-md +
+  // pixel-replica pass. Inset-surface canonical (rounded-lg +
   // bg-default) is the system-level rule; per-page Figma replicas
   // should respect it.
   //   - Year header row: year + `· current year` italic marker +
@@ -638,7 +638,7 @@ function FilingPlanYearSection({
   //   - Row cells: 12px text + rule pill unchanged.
   const isUnknown = group.year === 'unknown'
   return (
-    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+    <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
       {/* Year header bar.
           2026-05-26 (Yuqi feedback #9 + #10 — "感觉很难发现 / 没有看出
           来这是 header"): bumped the year-section header from

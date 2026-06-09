@@ -234,7 +234,7 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               aria-keyshortcuts="Meta+Shift+O Control+Shift+O"
               title={firm.name}
               // 2026-05-26 (Yuqi sixty-ninth pass follow-up — firm
-              // switcher bug): dropped `rounded-md` + the bg-hover
+              // switcher bug): dropped `rounded-lg` + the bg-hover
               // / focus-bg states. The rounded corners made the
               // trigger read as a floating card peeking out of the
               // sidebar (especially during hover-expand on an

@@ -231,7 +231,7 @@ export function AccountSecurityRoute() {
         </CardHeader>
         <CardContent className="grid gap-4">
           {status.twoFactorEnabled ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border-default p-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border-default p-3">
               <div className="flex items-center gap-2 text-sm text-text-secondary">
                 <CheckCircle2Icon className="size-4 text-status-done" aria-hidden />
                 <Trans>Authenticator is active on this account.</Trans>
@@ -297,7 +297,7 @@ export function AccountSecurityRoute() {
             {status.sessions.map((session) => (
               <div
                 key={session.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border-default p-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border-default p-3"
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -443,7 +443,7 @@ export function AccountSecurityRoute() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           {pendingSessionRevoke ? (
-            <div className="grid gap-1 rounded-md border border-divider-regular bg-background-subtle p-3 text-sm">
+            <div className="grid gap-1 rounded-lg border border-divider-regular bg-background-subtle p-3 text-sm">
               <p className="font-medium text-text-primary">
                 {pendingSessionRevoke.userAgent || <Trans>Unknown browser</Trans>}
               </p>

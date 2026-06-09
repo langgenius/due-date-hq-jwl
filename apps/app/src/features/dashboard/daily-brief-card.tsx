@@ -54,7 +54,7 @@ export function DailyBriefCard({
     return (
       <section
         aria-label={t`Daily brief`}
-        className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[14px] bg-state-accent-hover px-[18px] py-2.5"
+        className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-state-accent-hover px-[18px] py-2.5"
       >
         <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
           <Trans>Daily Brief</Trans>
@@ -75,7 +75,7 @@ export function DailyBriefCard({
               type="button"
               onClick={onClose}
               aria-label={t`Dismiss brief`}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
             >
               <XIcon className="size-3.5" aria-hidden />
             </button>
@@ -91,7 +91,7 @@ export function DailyBriefCard({
       // 2026-06-08 (Yuqi /today #1 "top padding reduce"): the section's
       // top padding is trimmed (pt-3 vs the 18px on the other sides) so the
       // title row sits closer to the top edge and the card reads tighter.
-      className="group flex flex-col gap-1 rounded-[14px] bg-state-accent-hover px-[18px] pt-3 pb-[18px]"
+      className="group flex flex-col gap-1 rounded-xl bg-state-accent-hover px-[18px] pt-3 pb-[18px]"
     >
       {/* TopRow — Pencil qYrr3 `LfcWh` */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -118,7 +118,7 @@ export function DailyBriefCard({
               // icon on the accent card — it read as disabled chrome. It now
               // carries the card's accent ink at rest and lifts onto a white
               // chip on hover, so it reads as the card's one live affordance.
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-accent transition-colors hover:bg-background-default hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-accent transition-colors hover:bg-background-default hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
             >
               <RotateCwIcon className="size-3.5" aria-hidden />
             </button>
@@ -131,7 +131,7 @@ export function DailyBriefCard({
               type="button"
               onClick={onClose}
               aria-label={t`Dismiss brief`}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
             >
               <XIcon className="size-3.5" aria-hidden />
             </button>
@@ -224,7 +224,7 @@ function BriefFreshness({
             type="button"
             onClick={onRefresh}
             aria-label={t`Regenerate brief`}
-            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
           >
             <RotateCwIcon className="size-3" aria-hidden />
           </button>

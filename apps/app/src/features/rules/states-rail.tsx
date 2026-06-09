@@ -6,7 +6,6 @@ import {
   LayoutDashboardIcon,
   ListFilterIcon,
   MapPinIcon,
-  RssIcon,
   TimerIcon,
 } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -14,7 +13,6 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { SearchInput } from '@/components/primitives/search-input'
-import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 
 /**
  * `JurisdictionRail` — the left master pane of the Rule Library
@@ -56,7 +54,6 @@ export function JurisdictionRail({
   onSelect,
   search,
   onSearchChange,
-  sources,
   temporary,
   className,
 }: {
@@ -68,11 +65,10 @@ export function JurisdictionRail({
   search: string
   onSearchChange: (next: string) => void
   /**
-   * Library-section nav rows (Pencil `O0pyRO` — Sources / Temporary
-   * rules sit between Overview and the jurisdictions). Each links to its
-   * standalone route. Omitted while their data is still loading.
+   * Temporary-rules nav row between Overview and the jurisdictions. Links
+   * to its standalone route; omitted while loading or when none are active.
+   * (Sources moved to a button on the Overview header.)
    */
-  sources?: { count: number; healthy: boolean } | undefined
   temporary?: { activeCount: number; obligationCount: number } | undefined
   className?: string
 }) {
@@ -110,9 +106,10 @@ export function JurisdictionRail({
       aria-label={t`Jurisdictions`}
     >
       {/* Header — eyebrow + title row + search pill. Top padding matches
-          the main panel's `pt-6 md:pt-8` so the rail eyebrow lines up with
-          the page eyebrow instead of sitting jammed against the top. */}
-      <div className="shrink-0 px-3.5 pt-6 md:pt-8">
+          the main panel's `pt-6` so the rail eyebrow lines up with the page
+          eyebrow, and both sit at the same title height as /today +
+          /deadlines (the app-wide pt-6 page-title baseline). */}
+      <div className="shrink-0 px-3.5 pt-6">
         <div className="flex flex-col gap-2.5 pb-4">
           <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
             <Trans>Rule library</Trans>
@@ -133,7 +130,7 @@ export function JurisdictionRail({
                 reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
               }
               className={cn(
-                'inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 reviewOnly
                   ? 'bg-state-accent-hover text-text-accent'
                   : 'text-text-secondary hover:bg-state-base-hover',
@@ -170,27 +167,6 @@ export function JurisdictionRail({
                 selected={selected === null}
                 onSelect={() => onSelect(null)}
               />
-              {sources ? (
-                <RailNavRow
-                  icon={RssIcon}
-                  label={t`Sources`}
-                  href="/rules/sources"
-                  trailing={
-                    <span className="flex shrink-0 items-center gap-1.5">
-                      <PulsingDot
-                        tone={sources.healthy ? 'success' : 'warning'}
-                        active={false}
-                        label={
-                          sources.healthy ? t`All sources healthy` : t`Some sources need attention`
-                        }
-                      />
-                      <span className="text-[11px] font-semibold text-text-muted tabular-nums">
-                        {sources.count}
-                      </span>
-                    </span>
-                  }
-                />
-              ) : null}
               {temporary && temporary.activeCount > 0 ? (
                 <RailNavRow
                   icon={TimerIcon}

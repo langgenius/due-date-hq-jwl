@@ -124,7 +124,7 @@ export function ClientCycleArrows({ currentClientId }: { currentClientId: string
 
   return (
     <div
-      className="inline-flex items-center gap-0.5 rounded-md border border-divider-regular bg-background-default p-0.5"
+      className="inline-flex items-center gap-0.5 rounded-lg border border-divider-regular bg-background-default p-0.5"
       role="group"
       aria-label={t`Previous and next client in the filtered list`}
     >

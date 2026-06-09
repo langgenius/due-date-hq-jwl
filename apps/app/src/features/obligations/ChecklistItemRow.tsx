@@ -97,7 +97,7 @@ export function ChecklistItemRow({
   return (
     <div
       className={cn(
-        'group/checklist-item rounded-md border bg-background-default p-3 transition-colors',
+        'group/checklist-item rounded-lg border bg-background-default p-3 transition-colors',
         selected
           ? 'border-accent-default ring-2 ring-accent-default/20'
           : 'border-divider-subtle hover:border-divider-regular',

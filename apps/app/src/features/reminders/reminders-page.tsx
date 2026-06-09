@@ -182,7 +182,7 @@ function StatTile({
           </span>
           <span className="text-xs text-text-tertiary">{caption}</span>
         </div>
-        <span className="rounded-md bg-background-subtle p-2 text-text-secondary">
+        <span className="rounded-lg bg-background-subtle p-2 text-text-secondary">
           <Icon className="size-4" aria-hidden />
         </span>
       </CardContent>
@@ -600,7 +600,7 @@ function SuppressionsPanel({
           <EmptyState title={<Trans>No client emails are suppressed.</Trans>} />
         ) : (
           suppressions.map((item) => (
-            // 2026-06-01: hand-rolled <article> rounded-md border swapped
+            // 2026-06-01: hand-rolled <article> rounded-lg border swapped
             // for Card size="xs" radius="md" — same dense in-page chrome
             // PulseDetailDrawer / AlertsListPage use. Card primitive
             // owns the border + radius + padding rhythm.
@@ -700,7 +700,7 @@ function TemplateDialog({
               target; we keep the status-dot / pause-icon glyph inline. */}
           <Field
             orientation="horizontal"
-            className="rounded-md border border-divider-subtle p-3 text-sm"
+            className="rounded-lg border border-divider-subtle p-3 text-sm"
           >
             <FieldLabel htmlFor="reminder-template-active">
               {active ? (

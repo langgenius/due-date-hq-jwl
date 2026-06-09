@@ -1048,7 +1048,7 @@ function FileSummaryRow({
   onRemove: () => void
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border border-divider-regular bg-components-panel-bg px-3 py-2 shadow-subtle">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-divider-regular bg-components-panel-bg px-3 py-2 shadow-subtle">
       <div className="flex min-w-0 items-center gap-2.5">
         {isReadingFile ? (
           <LoaderCircleIcon className="size-4 shrink-0 animate-spin text-text-accent" aria-hidden />
@@ -1139,7 +1139,7 @@ function PresetChip({ id, label, selected, compact = false, onToggle }: PresetCh
       onClick={onToggle}
       aria-pressed={selected}
       className={cn(
-        'inline-flex cursor-pointer items-center gap-2 rounded-md border text-sm font-medium transition-colors',
+        'inline-flex cursor-pointer items-center gap-2 rounded-lg border text-sm font-medium transition-colors',
         compact ? 'h-7 px-2 pl-1.5' : 'h-8 px-3 pl-1.5',
         selected
           ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
@@ -1206,7 +1206,7 @@ function PresetExportGuideCard({
   return (
     <div
       className={cn(
-        'rounded-md border border-divider-regular bg-background-subtle px-3 py-2.5',
+        'rounded-lg border border-divider-regular bg-background-subtle px-3 py-2.5',
         compact ? 'space-y-2' : 'space-y-2.5',
       )}
     >

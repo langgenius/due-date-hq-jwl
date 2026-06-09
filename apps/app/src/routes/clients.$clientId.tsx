@@ -102,8 +102,8 @@ export function ClientDetailRoute() {
         // Reduces the visual jolt when the real layout paints.
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Skeleton className="h-7 w-64 rounded-md" />
-            <Skeleton className="h-4 w-40 rounded-md" />
+            <Skeleton className="h-7 w-64 rounded-lg" />
+            <Skeleton className="h-4 w-40 rounded-lg" />
             <div className="flex flex-wrap items-center gap-2">
               <Skeleton className="h-5 w-20 rounded-full" />
               <Skeleton className="h-5 w-14 rounded-full" />
@@ -111,11 +111,11 @@ export function ClientDetailRoute() {
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Skeleton className="h-20 flex-1 min-w-44 rounded-md" />
-            <Skeleton className="h-20 flex-1 min-w-44 rounded-md" />
-            <Skeleton className="h-20 flex-1 min-w-44 rounded-md" />
+            <Skeleton className="h-20 flex-1 min-w-44 rounded-lg" />
+            <Skeleton className="h-20 flex-1 min-w-44 rounded-lg" />
+            <Skeleton className="h-20 flex-1 min-w-44 rounded-lg" />
           </div>
-          <Skeleton className="h-72 w-full rounded-md" />
+          <Skeleton className="h-72 w-full rounded-lg" />
         </div>
       ) : isError ? (
         <Alert variant="destructive">

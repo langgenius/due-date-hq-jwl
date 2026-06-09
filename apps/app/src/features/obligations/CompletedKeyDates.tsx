@@ -66,7 +66,7 @@ export function CompletedKeyDates({
     rows.push({ label: t`Completed`, value: formatDatePretty(completedAt.slice(0, 10)) })
   return (
     // 2026-05-26 (Yuqi feedback — "too many lines"): dropped the
-    //   `rounded-md border border-divider-regular bg-background-subtle p-3`
+    //   `rounded-lg border border-divider-regular bg-background-subtle p-3`
     //   chrome on this inner panel. It sat INSIDE the already-tinted
     //   `ActiveStageDetailCard` and was painting a redundant rule
     //   right beneath the card's own outline. The KEY DATES uppercase

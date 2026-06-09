@@ -176,7 +176,7 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
                 return (
                   <div
                     key={group.category}
-                    className="flex min-h-9 items-center justify-between rounded-md px-2.5 text-sm"
+                    className="flex min-h-9 items-center justify-between rounded-lg px-2.5 text-sm"
                   >
                     <span className="font-medium text-text-secondary">{group.label}</span>
                     <span className="font-mono text-xs tabular-nums text-text-tertiary">
@@ -201,7 +201,7 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
                         {group.items.length}
                       </span>
                     </div>
-                    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                    <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
                       {group.items.map((item) => (
                         <ShortcutRow key={item.id} item={item} />
                       ))}

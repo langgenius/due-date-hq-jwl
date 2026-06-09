@@ -159,7 +159,7 @@ export function ClientNotesPanel({
               disabled={isPending}
             />
           ) : sourceNotes.length > 0 ? (
-            <div className="rounded-md border border-divider-regular bg-background-default p-4 text-sm whitespace-pre-wrap text-text-secondary">
+            <div className="rounded-lg border border-divider-regular bg-background-default p-4 text-sm whitespace-pre-wrap text-text-secondary">
               {sourceNotes}
             </div>
           ) : (

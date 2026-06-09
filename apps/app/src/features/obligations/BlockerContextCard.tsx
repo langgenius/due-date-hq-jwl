@@ -43,7 +43,7 @@ export function BlockerContextCard({
       <div
         role="status"
         aria-label={t`Loading blocker details`}
-        className="rounded-md border border-divider-subtle bg-background-subtle p-3"
+        className="rounded-lg border border-divider-subtle bg-background-subtle p-3"
       >
         <Skeleton className="h-3 w-1/2" />
         <Skeleton className="mt-2 h-3 w-1/3" />
@@ -54,7 +54,7 @@ export function BlockerContextCard({
     <button
       type="button"
       onClick={() => onOpen(blockerId)}
-      className="group flex w-full cursor-pointer flex-col gap-1.5 rounded-md border border-divider-regular bg-background-subtle p-3 text-left transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
+      className="group flex w-full cursor-pointer flex-col gap-1.5 rounded-lg border border-divider-regular bg-background-subtle p-3 text-left transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
       aria-label={t`Open blocking deadline: ${formatTaxCode(blocker.taxType)} for ${blocker.clientName}`}
     >
       <div className="flex items-baseline justify-between gap-2">

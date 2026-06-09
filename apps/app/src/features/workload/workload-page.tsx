@@ -227,7 +227,7 @@ function WorkloadUpgradePanel() {
           <CardTitle className="flex items-center gap-2">
             <span
               aria-hidden
-              className="grid size-8 place-items-center rounded-md border border-state-accent-active bg-state-accent-hover-alt text-text-accent"
+              className="grid size-8 place-items-center rounded-lg border border-state-accent-active bg-state-accent-hover-alt text-text-accent"
             >
               <LockKeyholeIcon className="size-4" />
             </span>

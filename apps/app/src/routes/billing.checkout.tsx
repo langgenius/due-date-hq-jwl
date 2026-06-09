@@ -296,7 +296,7 @@ export function BillingCheckoutRoute() {
           <span className="inline-flex min-w-0 items-center gap-3">
             <span
               aria-hidden
-              className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted"
+              className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-primary text-text-inverted"
             >
               <CreditCardIcon className="size-4" />
             </span>
@@ -589,7 +589,7 @@ function CheckoutFact({
 }) {
   return (
     <div className="flex items-start gap-3 rounded-lg border border-divider-regular bg-background-default p-3">
-      <span className="grid size-8 shrink-0 place-items-center rounded-md bg-background-subtle text-text-accent">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-background-subtle text-text-accent">
         {icon}
       </span>
       <div className="min-w-0">
@@ -611,7 +611,7 @@ function CheckoutNote({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="grid size-8 shrink-0 place-items-center rounded-md bg-background-subtle text-text-accent">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-background-subtle text-text-accent">
         {icon}
       </span>
       <div>

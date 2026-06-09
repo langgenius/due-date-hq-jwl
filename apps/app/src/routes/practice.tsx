@@ -477,7 +477,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
           <span className="inline-flex min-w-0 items-center gap-3">
             <span
               aria-hidden
-              className="grid size-9 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted"
+              className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-primary text-text-inverted"
             >
               <Building2Icon className="size-4" />
             </span>
@@ -581,7 +581,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               <FieldLabel>
                 <Trans>Monitoring start date</Trans>
               </FieldLabel>
-              <div className="rounded-md border border-divider-regular bg-background-subtle px-3 py-2 text-sm text-text-secondary">
+              <div className="rounded-lg border border-divider-regular bg-background-subtle px-3 py-2 text-sm text-text-secondary">
                 <Trans>Monitoring since {formatDate(firm.monitoringStartDate)}</Trans>
               </div>
               <FieldDescription>
@@ -1088,7 +1088,7 @@ function PriorityPreviewTable({
 }) {
   if (preview.rows.length === 0) {
     return (
-      <div className="rounded-md border border-divider-subtle bg-background-section px-3 py-2 text-sm text-text-secondary">
+      <div className="rounded-lg border border-divider-subtle bg-background-section px-3 py-2 text-sm text-text-secondary">
         <Trans>No open deadlines available for preview.</Trans>
       </div>
     )

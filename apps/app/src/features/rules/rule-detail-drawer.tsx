@@ -819,7 +819,7 @@ function ConfirmImpactDialog({
         <div className="flex items-start gap-3 border-b border-divider-subtle px-5 py-4">
           <span
             aria-hidden
-            className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-state-accent-hover"
+            className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-state-accent-hover"
           >
             <SparklesIcon className="size-[18px] text-text-accent" />
           </span>
@@ -838,7 +838,7 @@ function ConfirmImpactDialog({
             type="button"
             aria-label={t`Close`}
             onClick={() => onOpenChange(false)}
-            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <XIcon className="size-4" aria-hidden />
           </button>
@@ -986,7 +986,7 @@ function RejectReasonDialog({
             aria-label={t`Close`}
             onClick={() => onOpenChange(false)}
             disabled={pending}
-            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-40"
+            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-40"
           >
             <XIcon className="size-4" aria-hidden />
           </button>
@@ -1496,7 +1496,7 @@ function RuleEvidenceCard({
         rel="noopener noreferrer"
         aria-label={`Open official source: ${source.title}`}
         onClick={(event) => openEvidenceSource(event, url)}
-        className="group/card flex flex-col items-stretch gap-1.5 rounded-md border border-components-card-border bg-components-card-bg px-3 py-2.5 text-left text-sm text-text-primary no-underline outline-none transition-colors hover:border-state-accent-active-alt hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="group/card flex flex-col items-stretch gap-1.5 rounded-lg border border-components-card-border bg-components-card-bg px-3 py-2.5 text-left text-sm text-text-primary no-underline outline-none transition-colors hover:border-state-accent-active-alt hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         {inner}
       </a>

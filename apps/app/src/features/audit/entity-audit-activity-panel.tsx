@@ -78,7 +78,7 @@ export function EntityAuditActivityPanel({
     )
   }
   return (
-    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+    <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
       <ul className="divide-y divide-divider-subtle">
         {events.map((event) => (
           <li key={event.id} className="grid gap-1 px-4 py-3">

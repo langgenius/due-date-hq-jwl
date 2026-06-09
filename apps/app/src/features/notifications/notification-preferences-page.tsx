@@ -151,9 +151,9 @@ export function NotificationPreferencesPage() {
 
       {preferencesQuery.isLoading || !preferences ? (
         <div className="grid gap-5" aria-busy="true">
-          <Skeleton className="h-64 w-full rounded-2xl" />
-          <Skeleton className="h-96 w-full rounded-2xl" />
-          <Skeleton className="h-64 w-full rounded-2xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-96 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
         </div>
       ) : (
         <div className="grid gap-5">
@@ -463,7 +463,7 @@ function TypesMatrixCard({
                 )}
               >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-background-subtle text-text-secondary">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-secondary">
                     <row.icon className="size-3.5" aria-hidden />
                   </span>
                   <div className="flex min-w-0 flex-col gap-0.5">
@@ -487,7 +487,7 @@ function TypesMatrixCard({
                 <MatrixCell on={false} muted />
                 <MatrixCell on={false} muted />
                 <span className="w-[150px]">
-                  <span className="inline-flex items-center gap-1.5 rounded-md border border-divider-regular bg-background-default px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-[11px] font-medium text-text-secondary">
                     <TimerIcon className="size-2.5 text-text-tertiary" aria-hidden />
                     {row.cadence}
                   </span>
@@ -528,7 +528,7 @@ function MatrixCell({
   const content = (
     <span
       className={cn(
-        'inline-flex h-6 w-8 items-center justify-center rounded-md',
+        'inline-flex h-6 w-8 items-center justify-center rounded-lg',
         on ? 'bg-state-accent-hover text-text-accent' : 'bg-background-section text-text-tertiary',
       )}
     >
@@ -615,7 +615,7 @@ function QuietHoursCard() {
             <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-[13px] text-text-primary">
               07:30
             </span>
-            <span className="inline-flex items-center rounded-md bg-background-subtle px-2.5 py-1.5 font-mono text-[11px] text-text-secondary">
+            <span className="inline-flex items-center rounded-lg bg-background-subtle px-2.5 py-1.5 font-mono text-[11px] text-text-secondary">
               America/New_York
             </span>
           </div>
@@ -799,7 +799,7 @@ function MorningDigestCard({
 
 function Card({ children }: { children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-divider-regular bg-background-default p-[22px_26px]">
+    <section className="flex flex-col gap-4 rounded-xl border border-divider-regular bg-background-default p-[22px_26px]">
       {children}
     </section>
   )

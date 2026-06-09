@@ -30,10 +30,10 @@ function Card({
   //
   // 2026-06-01: `tone` and `radius` axes added so in-drawer tinted
   // panels (warning amber, muted section, accent step-frame) and
-  // dense in-page surfaces (rounded-md) can use the Card primitive
+  // dense in-page surfaces (rounded-lg) can use the Card primitive
   // instead of hand-rolling border+bg+rounded recipes. Tone tints the
   // border + background; `radius="md"` swaps the chrome from the
-  // marketing rounded-xl down to the dense rounded-md used across
+  // marketing rounded-xl down to the dense rounded-lg used across
   // PulseDetailDrawer, AlertsListPage, workload, opportunities, etc.
   //
   // 2026-06-01: `interactive`, `emphasis="unread"`, and
@@ -56,7 +56,7 @@ function Card({
       data-emphasis={emphasis}
       data-interactive={interactive ? 'true' : undefined}
       className={cn(
-        'group/card flex flex-col gap-5 overflow-hidden rounded-xl border border-components-card-border bg-components-card-bg py-5 text-base text-text-primary shadow-xs has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 data-[size=xs]:gap-2 data-[size=xs]:py-3 data-[size=xs]:text-sm data-[radius=md]:rounded-md data-[tone=warning]:border-warning/40 data-[tone=warning]:bg-warning/5 data-[tone=accent]:border-state-accent-active data-[tone=accent]:bg-state-accent-hover-alt data-[tone=accent-active]:border-state-accent-border data-[tone=accent-active]:bg-state-accent-hover data-[tone=muted]:border-divider-subtle data-[tone=muted]:bg-background-section data-[emphasis=unread]:border-l-[3px] data-[emphasis=unread]:border-l-accent-default data-[interactive=true]:cursor-pointer data-[interactive=true]:transition-colors data-[interactive=true]:hover:border-state-accent-active-alt data-[interactive=true]:hover:bg-state-base-hover data-[interactive=true]:focus-visible:ring-2 data-[interactive=true]:focus-visible:ring-state-accent-active-alt data-[interactive=true]:focus-visible:outline-none *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl',
+        'group/card flex flex-col gap-5 overflow-hidden rounded-xl border border-components-card-border bg-components-card-bg py-5 text-base text-text-primary shadow-xs has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 data-[size=xs]:gap-2 data-[size=xs]:py-3 data-[size=xs]:text-sm data-[radius=md]:rounded-lg data-[tone=warning]:border-warning/40 data-[tone=warning]:bg-warning/5 data-[tone=accent]:border-state-accent-active data-[tone=accent]:bg-state-accent-hover-alt data-[tone=accent-active]:border-state-accent-border data-[tone=accent-active]:bg-state-accent-hover data-[tone=muted]:border-divider-subtle data-[tone=muted]:bg-background-section data-[emphasis=unread]:border-l-[3px] data-[emphasis=unread]:border-l-accent-default data-[interactive=true]:cursor-pointer data-[interactive=true]:transition-colors data-[interactive=true]:hover:border-state-accent-active-alt data-[interactive=true]:hover:bg-state-base-hover data-[interactive=true]:focus-visible:ring-2 data-[interactive=true]:focus-visible:ring-state-accent-active-alt data-[interactive=true]:focus-visible:outline-none *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl',
         className,
       )}
       {...props}

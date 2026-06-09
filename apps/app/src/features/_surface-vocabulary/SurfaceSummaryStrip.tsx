@@ -58,7 +58,7 @@ export function SurfaceSummaryStrip({
   detailLabel,
 }: SurfaceSummaryStripProps) {
   return (
-    <div className="flex h-10 items-center gap-3 rounded-md border border-divider-regular bg-background-default px-4">
+    <div className="flex h-10 items-center gap-3 rounded-lg border border-divider-regular bg-background-default px-4">
       <span className="w-[88px] shrink-0 text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
         {label}
       </span>
@@ -123,7 +123,7 @@ function SurfaceSummaryNumber({
   // "pressed / filter on" without competing with the destructive /
   // warning tone tints on the value itself.
   const interactiveClass = cn(
-    'inline-flex cursor-pointer items-baseline gap-1 rounded-md px-1.5 py-0.5 outline-none',
+    'inline-flex cursor-pointer items-baseline gap-1 rounded-lg px-1.5 py-0.5 outline-none',
     'hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
     active && 'bg-state-base-hover-alt hover:no-underline',
   )

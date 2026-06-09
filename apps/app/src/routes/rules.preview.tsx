@@ -8,6 +8,8 @@ export function RulesPreviewRoute() {
   return (
     <RulesPageShell
       title={t`Deadline preview`}
+      wide
+      contentClassName="gap-8 md:px-8"
       breadcrumbs={[
         { label: t`Rule library`, to: '/rules/library' },
         { label: t`Preview & approve` },

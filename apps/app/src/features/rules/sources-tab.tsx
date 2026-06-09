@@ -1,11 +1,9 @@
-import { Fragment, useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
 import { toast } from 'sonner'
-
-import { cn } from '@duedatehq/ui/lib/utils'
 
 import type { PulseAlertSourceCoverage, PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -20,6 +18,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 
 import { EmptyState } from '@/components/patterns/empty-state'
+import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import {
   TableHeaderMultiFilter,
   type TableFilterOption,
@@ -205,15 +204,15 @@ export function SourcesTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* KPI strip (Pencil bf6Ni) — feed health at a glance. Four stats
-          in one bordered card, mono values, vertical hairline dividers.
-          Mirrors the JurisdictionKpiStrip family already shipped on the
-          library overview. */}
+      {/* Feed-health summary (Pencil bf6Ni) — four stats at a glance via
+          the shared StatBand, the same "card summary" the rule-library
+          overview, /clients/[id], and /alerts/history render. */}
       <SourcesKpiStrip
         feedsMonitored={kpiStats.feedsMonitored}
         rulesDerived={kpiStats.rulesDerived}
         fetched24h={kpiStats.fetched24h}
         failed={kpiStats.failed}
+        paused={counts.paused}
       />
       <div className="flex items-center gap-4">
         <FilterChips
@@ -345,30 +344,34 @@ export function SourcesTab() {
 }
 
 /**
- * SourcesKpiStrip — the 4-stat band above the Sources table (Pencil
- * bf6Ni KPI Strip): FEEDS MONITORED · RULES DERIVED · FETCHED LAST 24H ·
- * FAILED FETCHES. One bordered card, mono values, vertical hairline
- * dividers, tone-colored "failed" value (success-green at 0, destructive
- * otherwise). Same visual contract as the library overview's KPI strip.
+ * SourcesKpiStrip — the 4-stat summary above the Sources table (Pencil
+ * bf6Ni): FEEDS MONITORED · RULES DERIVED · FETCHED LAST 24H · FAILED
+ * FETCHES, with a tone-colored "failed" value (success-green at 0,
+ * destructive otherwise). Renders the shared `StatBand` — the same
+ * "card summary" component the rule-library overview, /clients/[id], and
+ * /alerts/history use — so the four surfaces never drift apart again.
  */
 function SourcesKpiStrip({
   feedsMonitored,
   rulesDerived,
   fetched24h,
   failed,
+  paused,
 }: {
   feedsMonitored: number
   rulesDerived: number | null
   fetched24h: number
   failed: number
+  paused: number
 }) {
   const { t } = useLingui()
-  const stats: Array<{ key: string; label: string; value: string; valueClass: string }> = [
+  const stats: StatBandItem[] = [
     {
       key: 'feeds',
       label: t`Feeds monitored`,
-      value: String(feedsMonitored),
-      valueClass: 'text-text-primary',
+      value: feedsMonitored,
+      sub: paused > 0 ? t`${paused} paused` : t`All active`,
+      subClass: paused > 0 ? 'text-text-warning' : 'text-text-tertiary',
     },
     {
       key: 'rules',
@@ -376,41 +379,25 @@ function SourcesKpiStrip({
       // TODO(data): no per-source derived-rule count in the RuleSource
       // contract — falls back to the total rule-catalog size, and to an
       // em-dash while that query is in flight.
-      value: rulesDerived === null ? '—' : String(rulesDerived),
-      valueClass: 'text-text-primary',
+      value: rulesDerived === null ? '—' : rulesDerived,
+      sub: t`From ${feedsMonitored} feeds`,
     },
     {
       key: 'fetched',
       label: t`Fetched last 24h`,
-      value: String(fetched24h),
-      valueClass: 'text-text-primary',
+      value: fetched24h,
+      sub: t`of ${feedsMonitored} feeds`,
     },
     {
       key: 'failed',
       label: t`Failed fetches`,
-      value: String(failed),
+      value: failed,
       valueClass: failed > 0 ? 'text-text-destructive' : 'text-text-success',
+      sub: failed > 0 ? t`Needs attention` : t`All healthy`,
+      subClass: failed > 0 ? 'text-text-destructive' : 'text-text-success',
     },
   ]
-  return (
-    <div className="flex shrink-0 items-center rounded-xl border border-divider-subtle bg-background-default px-2 py-[18px]">
-      {stats.map((stat, index) => (
-        <Fragment key={stat.key}>
-          {index > 0 ? (
-            <span className="h-[42px] w-px shrink-0 bg-divider-subtle" aria-hidden />
-          ) : null}
-          <div className="flex min-w-0 flex-1 flex-col gap-1.5 px-[22px]">
-            <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
-              {stat.label}
-            </span>
-            <span className={cn('font-mono text-2xl font-semibold tabular-nums', stat.valueClass)}>
-              {stat.value}
-            </span>
-          </div>
-        </Fragment>
-      ))}
-    </div>
-  )
+  return <StatBand stats={stats} ariaLabel={t`Source feed summary`} />
 }
 
 /**
@@ -703,7 +690,7 @@ function SourceRow({
               disabled={retrying}
               aria-label={t`Re-check ${source.title} now`}
               title={t`Re-check now`}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
             >
               <RefreshCwIcon className={`size-3.5 ${retrying ? 'animate-spin' : ''}`} aria-hidden />
             </button>
@@ -714,7 +701,7 @@ function SourceRow({
             rel="noopener noreferrer"
             aria-label={t`Open official source: ${source.title}`}
             onClick={(event) => event.stopPropagation()}
-            className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="inline-flex size-7 items-center justify-center rounded-lg text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <ExternalLinkIcon className="size-3.5" aria-hidden />
           </a>
