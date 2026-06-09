@@ -4,6 +4,7 @@ export type NotificationType =
   | 'client_reminder'
   | 'pulse_alert'
   | 'audit_package_ready'
+  | 'catalog_release'
   | 'internal_request'
   | 'system'
 

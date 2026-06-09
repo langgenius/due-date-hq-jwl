@@ -6,9 +6,12 @@ import {
   makeRulesRepo,
 } from '@duedatehq/db'
 import {
+  detectNewCohort,
+  expectedCatalogReleaseDate,
   isTemporaryAnnouncementSource,
   listObligationRules,
   listRuleSources,
+  substantialCohortYears,
   type ObligationRule,
   type RuleSource,
 } from '@duedatehq/core/rules'
@@ -464,7 +467,58 @@ export async function consumeRuleRegistryCatalogSync(
   })
   const deprecatedRules = await ops.deprecateGlobalRuleTemplates(staleRuleIds)
 
-  await ops.fanoutReviewTasks({ newRules, changedRules })
+  // Catalog-release event (Stage B): announce a brand-new annual cohort exactly
+  // once, on a predictable cadence. The release row's unique filing_year keeps
+  // detection idempotent across the 30-minute catalog-sync ticks.
+  // The whole block is additive — wrapped so a release-row / notification
+  // failure can never block the core sync's review-task fanout below.
+  let cohortRuleIds: readonly string[] = []
+  try {
+    const releasedFilingYears = await ops.listReleasedCohortFilingYears()
+    const cohort = detectNewCohort({ rules, existingReleaseFilingYears: releasedFilingYears })
+    if (cohort) {
+      if (releasedFilingYears.length === 0) {
+        // First run after this feature ships: baseline every already-shipped
+        // cohort silently — no notifications, and a back-dated releasedAt so the
+        // banner's recency filter hides them. Real announcements start next cohort.
+        for (const filingYear of substantialCohortYears(rules)) {
+          await ops.insertCatalogRelease({
+            filingYear,
+            newRuleCount: rules.filter((rule) => rule.applicableYear === filingYear).length,
+            changedRuleCount: 0,
+            releasedAt: expectedCatalogReleaseDate(filingYear),
+          })
+        }
+      } else {
+        const created = await ops.insertCatalogRelease({
+          filingYear: cohort.filingYear,
+          newRuleCount: cohort.newCohortRuleIds.length,
+          changedRuleCount: changedRules.length,
+        })
+        // Only the tick that actually created the row notifies + tags the cohort,
+        // so a concurrent tick (or a re-run) never double-announces.
+        if (created) {
+          cohortRuleIds = cohort.newCohortRuleIds
+          const notifications = await ops.fanoutCatalogReleaseNotifications({
+            filingYear: cohort.filingYear,
+            newRuleCount: cohort.newCohortRuleIds.length,
+            changedRuleCount: changedRules.length,
+          })
+          recordPulseMetric('rule.catalog_release', {
+            filingYear: cohort.filingYear,
+            newRuleCount: cohort.newCohortRuleIds.length,
+            changedRuleCount: changedRules.length,
+            notifications,
+          })
+        }
+      }
+    }
+  } catch {
+    // Additive announcement must never break the core catalog sync.
+    recordPulseMetric('rule.catalog_release.failed', { failed: 1 })
+  }
+
+  await ops.fanoutReviewTasks({ newRules, changedRules, cohortRuleIds })
 
   // Library version bump → unified Alert: for each changed rule that firms have adopted,
   // raise a targeted rule_source_drift Alert (only to the adopting firms) so CPAs handle it

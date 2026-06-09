@@ -1132,7 +1132,10 @@ const listReviewTasks = os.rules.listReviewTasks.handler(async ({ input, context
   await ensureTemplateReviewTasks(context)
   const { scoped } = requireTenant(context)
   const templateById = new Map(templateRules().map((rule) => [rule.id, rule]))
-  const rows = await scoped.rules.listReviewTasks(input?.status ? { status: input.status } : {})
+  const rows = await scoped.rules.listReviewTasks({
+    ...(input?.status ? { status: input.status } : {}),
+    ...(input?.reason ? { reason: input.reason } : {}),
+  })
   return rows.flatMap((row) => {
     const template = templateById.get(row.ruleId)
     if (!template) return []
@@ -1163,6 +1166,18 @@ const listReviewDecisions = os.rules.listReviewDecisions.handler(async ({ input,
 const listTemporaryRules = os.rules.listTemporaryRules.handler(async ({ context }) => {
   const { scoped } = requireTenant(context)
   return (await scoped.rules.listTemporaryRules()).map(toTemporaryRule)
+})
+
+const listCatalogRelease = os.rules.listCatalogRelease.handler(async ({ context }) => {
+  const { scoped } = requireTenant(context)
+  const row = await scoped.rules.getLatestCatalogRelease()
+  if (!row) return null
+  return {
+    filingYear: row.filingYear,
+    newRuleCount: row.newRuleCount,
+    changedRuleCount: row.changedRuleCount,
+    releasedAt: row.releasedAt.toISOString(),
+  }
 })
 
 const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }) => {
@@ -2415,6 +2430,7 @@ export const rulesHandlers = {
   listSources,
   listRules,
   listTemporaryRules,
+  listCatalogRelease,
   listReviewTasks,
   listReviewDecisions,
   acceptTemplate,

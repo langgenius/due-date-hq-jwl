@@ -7,6 +7,7 @@ import {
   CalendarClockIcon,
   CheckCheckIcon,
   CircleAlertIcon,
+  LayersIcon,
   Maximize2Icon,
   MegaphoneIcon,
   MessageSquareTextIcon,
@@ -54,6 +55,7 @@ const TYPE_ICONS: Record<NotificationType, LucideIcon> = {
   overdue: CircleAlertIcon,
   client_reminder: BellIcon,
   audit_package_ready: CheckCheckIcon,
+  catalog_release: LayersIcon,
   internal_request: MessageSquareTextIcon,
   system: SettingsIcon,
 }

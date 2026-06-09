@@ -157,6 +157,7 @@ export interface RulesRepo {
   ensureReviewTasks(inputs: PracticeRuleReviewTaskInput[]): Promise<PracticeRuleReviewTaskRow[]>
   listReviewTasks(input?: {
     status?: PracticeRuleReviewTaskStatus
+    reason?: PracticeRuleReviewTaskReason
   }): Promise<PracticeRuleReviewTaskRow[]>
   getReviewTask(ruleId: string, templateVersion: number): Promise<PracticeRuleReviewTaskRow | null>
   decideReviewTask(input: PracticeRuleReviewTaskDecisionInput): Promise<PracticeRuleReviewTaskRow>
@@ -171,6 +172,16 @@ export interface RulesRepo {
   listUnclearedDriftRuleIds(ruleIds: string[]): Promise<string[]>
   // Clear every uncleared drift row for a rule when a human re-verifies it.
   clearRuleSourceDrift(input: { ruleId: string; clearedBy?: string | null }): Promise<void>
+  // Most recently shipped catalog cohort (highest filing year), or null — drives
+  // the in-app release banner. Reads the global release log (not firm-scoped).
+  getLatestCatalogRelease(): Promise<RuleCatalogReleaseRow | null>
+}
+
+export interface RuleCatalogReleaseRow {
+  filingYear: number
+  newRuleCount: number
+  changedRuleCount: number
+  releasedAt: Date
 }
 
 export interface RulesOpsRepo {
@@ -181,5 +192,29 @@ export interface RulesOpsRepo {
   fanoutReviewTasks(input: {
     newRules: Array<{ ruleId: string; templateVersion: number }>
     changedRules: Array<{ ruleId: string; templateVersion: number }>
+    // Rule ids belonging to a brand-new annual cohort — tagged `annual_review`
+    // instead of `new_template` so the cohort review view can isolate them.
+    cohortRuleIds?: readonly string[]
   }): Promise<{ newTaskTargets: number; changedTaskTargets: number; supersededTasks: number }>
+  // Filing years that already have a rule_catalog_release row — the
+  // "already announced" set for new-cohort detection.
+  listReleasedCohortFilingYears(): Promise<number[]>
+  // Insert a release row for a filing year. Idempotent on filing_year: returns
+  // true only when THIS call created the row (so the caller notifies once).
+  insertCatalogRelease(input: {
+    filingYear: number
+    newRuleCount: number
+    changedRuleCount: number
+    // Override the release timestamp (defaults to now). First-run baselines for
+    // cohorts that shipped before this feature existed pass a past date so the
+    // banner's recency filter hides them.
+    releasedAt?: Date
+  }): Promise<boolean>
+  // One in-app notification per active member of every active firm, deduped by
+  // (firm, user, filing year). Returns the number of notifications written.
+  fanoutCatalogReleaseNotifications(input: {
+    filingYear: number
+    newRuleCount: number
+    changedRuleCount: number
+  }): Promise<number>
 }

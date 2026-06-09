@@ -408,6 +408,13 @@ export {
   resolvePredecessorRuleId,
 } from './rule-diff'
 export type { RuleDiff, RuleDiffClassification, RuleFieldDiff } from './rule-diff'
+export {
+  detectNewCohort,
+  expectedCatalogReleaseDate,
+  MIN_NEW_COHORT_SIZE,
+  substantialCohortYears,
+} from './catalog-release'
+export type { RuleCohort } from './catalog-release'
 
 export type RuleGenerationEntity = Exclude<EntityApplicability, 'any_business'> | 'other'
 

@@ -636,6 +636,13 @@ msgstr "{0} ready · {1} estimated deadline matches"
 msgid "{0} required fact(s) missing"
 msgstr "{0} required fact(s) missing"
 
+#. placeholder {0}: release.filingYear
+#. placeholder {1}: release.newRuleCount
+#. placeholder {2}: release.changedRuleCount
+#: src/features/rules/catalog-release-banner.tsx
+msgid "{0} rule catalog: {1} new · {2} changed"
+msgstr "{0} rule catalog: {1} new · {2} changed"
+
 #. placeholder {0}: item.rulesActivated
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{0} rules activated"
@@ -1015,6 +1022,10 @@ msgstr "{needsManualCount, plural, one {# selected deadline has no fixed extensi
 #: src/features/migration/Step2Mapping.tsx
 msgid "{needsReview, plural, =0 {0 need review} one {# needs review} other {# need review}}"
 msgstr "{needsReview, plural, =0 {0 need review} one {# needs review} other {# need review}}"
+
+#: src/features/rules/catalog-release-banner.tsx
+msgid "{nextYear} rule catalog expected around {expectedLabel}"
+msgstr "{nextYear} rule catalog expected around {expectedLabel}"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "{offsetDays} days before"
@@ -9472,6 +9483,10 @@ msgstr "New rule"
 msgid "New rule added"
 msgstr "New rule added"
 
+#: src/features/notifications/notifications-page.tsx
+msgid "New rule catalog"
+msgstr "New rule catalog"
+
 #. placeholder {0}: seed.jurisdiction
 #. placeholder {1}: ENTITY_LABELS[seed.entity]
 #: src/routes/rules.library.tsx
@@ -12813,6 +12828,10 @@ msgstr "Review batch-ready templates and AI concrete drafts, add one batch note,
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "Review classification impact"
 msgstr "Review classification impact"
+
+#: src/features/rules/catalog-release-banner.tsx
+msgid "Review cohort"
+msgstr "Review cohort"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review coverage, sources, and pending rules."

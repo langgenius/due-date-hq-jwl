@@ -22,7 +22,7 @@ import {
   SearchIcon,
   XIcon,
 } from 'lucide-react'
-import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 
 import type {
   ObligationRule,
@@ -79,6 +79,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { SearchInput } from '@/components/primitives/search-input'
+import { CatalogReleaseBanner } from '@/features/rules/catalog-release-banner'
 import {
   CandidateReviewSection,
   RuleDetailCompact,
@@ -1169,6 +1170,9 @@ export function RulesLibraryRoute() {
     parseAsStringLiteral(['all', 'active', 'review', 'archived', 'missing'] as const),
   )
   const activeScope = scope ?? 'all'
+  // Catalog-release cohort deep-link (?cohort=YYYY) — set by the release banner
+  // / notification to narrow the library to a single filing-year cohort.
+  const [cohort, setCohort] = useQueryState('cohort', parseAsInteger)
   const isSearching = (search ?? '').trim().length > 0
   // Batch-review state. `selectedRuleIds` tracks which needs-review
   // rules the user has checked off. `batchReviewRuleIds` snapshots the
@@ -1228,8 +1232,11 @@ export function RulesLibraryRoute() {
     // For 'missing' scope, the rules array stays — we still need rule
     // data to identify which entity columns have a rule. Group-level
     // post-filter below restricts to groups with gap entities.
+    if (cohort) {
+      result = result.filter((r) => r.applicableYear === cohort)
+    }
     return result
-  }, [rules, activeEntity, activeScope])
+  }, [rules, activeEntity, activeScope, cohort])
   const groupsAll = useMemo(
     () => buildGroups(filteredRules, coverageRows),
     [filteredRules, coverageRows],
@@ -2251,6 +2258,12 @@ export function RulesLibraryRoute() {
               for the catalog. */}
             {!selectedGroup && !isSearching && !statsLoading ? (
               <>
+                <CatalogReleaseBanner
+                  onReviewCohort={(filingYear) => {
+                    void setCohort(filingYear)
+                    void setScope('review')
+                  }}
+                />
                 {totalPendingReview > 0 && !heroSnoozed ? (
                   <OverviewActionHero
                     reviewCount={totalPendingReview}

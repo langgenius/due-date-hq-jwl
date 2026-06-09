@@ -580,9 +580,19 @@ export const RuleReviewTaskListInputSchema = z
   .object({
     status: RuleReviewTaskStatusSchema.optional(),
     jurisdiction: RuleJurisdictionSchema.optional(),
+    reason: RuleReviewTaskReasonSchema.optional(),
   })
   .optional()
 export type RuleReviewTaskListInput = z.infer<typeof RuleReviewTaskListInputSchema>
+
+// A shipped annual catalog cohort — drives the in-app release banner.
+export const RuleCatalogReleaseSchema = z.object({
+  filingYear: z.number().int().min(2000).max(2100),
+  newRuleCount: z.number().int().nonnegative(),
+  changedRuleCount: z.number().int().nonnegative(),
+  releasedAt: z.iso.datetime(),
+})
+export type RuleCatalogRelease = z.infer<typeof RuleCatalogReleaseSchema>
 
 const RuleVersionSelectionSchema = z.object({
   ruleId: z.string().min(1),
@@ -890,6 +900,7 @@ export const rulesContract = oc.router({
     .output(RuleBulkVerifyCandidatesOutputSchema),
   rejectCandidate: oc.input(RuleRejectCandidateInputSchema).output(RuleReviewDecisionSchema),
   coverage: oc.input(z.undefined()).output(z.array(RuleCoverageRowSchema)),
+  listCatalogRelease: oc.input(z.undefined()).output(RuleCatalogReleaseSchema.nullable()),
   previewObligations: oc
     .input(RuleGenerationPreviewInputSchema)
     .output(z.array(ObligationGenerationPreviewSchema)),

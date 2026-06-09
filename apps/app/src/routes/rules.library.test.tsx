@@ -36,6 +36,7 @@ const rpcMocks = vi.hoisted(() => ({
   previewRuleImpactQueryFn: vi.fn(),
   createCustomRuleMutationFn: vi.fn(),
   diffAgainstPredecessorQueryFn: vi.fn(),
+  listCatalogReleaseQueryFn: vi.fn(),
 }))
 
 const nuqsMocks = vi.hoisted(() => ({
@@ -177,6 +178,12 @@ vi.mock('@/lib/rpc', () => ({
         queryOptions: ({ input }: { input: unknown }) => ({
           queryKey: ['rules', 'diffAgainstPredecessor', input],
           queryFn: rpcMocks.diffAgainstPredecessorQueryFn,
+        }),
+      },
+      listCatalogRelease: {
+        queryOptions: () => ({
+          queryKey: ['rules', 'listCatalogRelease'],
+          queryFn: rpcMocks.listCatalogReleaseQueryFn,
         }),
       },
       createCustomRule: {
@@ -512,6 +519,8 @@ beforeEach(() => {
     classification: 'new',
     fields: [],
   })
+  rpcMocks.listCatalogReleaseQueryFn.mockReset()
+  rpcMocks.listCatalogReleaseQueryFn.mockResolvedValue(null)
   rpcMocks.previewRuleImpactQueryFn.mockReset()
   rpcMocks.previewRuleImpactQueryFn.mockResolvedValue({
     selectedCount: 1,

@@ -230,6 +230,30 @@ export const practiceRuleReviewTaskRelations = relations(practiceRuleReviewTask,
   }),
 }))
 
+/**
+ * rule_catalog_release — one row per filing-year cohort the platform ships.
+ * The row's existence (unique filing_year) is the idempotency key the
+ * catalog-sync job uses to detect a brand-new annual cohort exactly once, and
+ * it drives the in-app "new catalog" banner. Platform-global: no firm scope,
+ * no review deadline — surfacing the release is a pure system signal.
+ */
+export const ruleCatalogRelease = sqliteTable(
+  'rule_catalog_release',
+  {
+    id: text('id').primaryKey(),
+    filingYear: integer('filing_year').notNull(),
+    newRuleCount: integer('new_rule_count').notNull().default(0),
+    changedRuleCount: integer('changed_rule_count').notNull().default(0),
+    releasedAt: integer('released_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [uniqueIndex('uq_rule_catalog_release_filing_year').on(table.filingYear)],
+)
+
 export type RuleReviewDecision = typeof ruleReviewDecision.$inferSelect
 export type NewRuleReviewDecision = typeof ruleReviewDecision.$inferInsert
 export type RuleSourceTemplate = typeof ruleSourceTemplate.$inferSelect
@@ -240,3 +264,5 @@ export type PracticeRule = typeof practiceRule.$inferSelect
 export type NewPracticeRule = typeof practiceRule.$inferInsert
 export type PracticeRuleReviewTask = typeof practiceRuleReviewTask.$inferSelect
 export type NewPracticeRuleReviewTask = typeof practiceRuleReviewTask.$inferInsert
+export type RuleCatalogRelease = typeof ruleCatalogRelease.$inferSelect
+export type NewRuleCatalogRelease = typeof ruleCatalogRelease.$inferInsert

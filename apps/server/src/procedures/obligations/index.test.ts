@@ -305,6 +305,7 @@ function makeContext(input: {
     firmId: FIRM_ID,
     upsertGlobalTemplates: null!,
     getGlobalRuleTemplatesByIds: null!,
+    getLatestCatalogRelease: null!,
     listPracticeRules: null!,
     listActivePracticeRules: null!,
     getPracticeRule: vi.fn(

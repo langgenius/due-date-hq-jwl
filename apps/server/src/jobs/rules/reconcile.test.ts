@@ -24,6 +24,9 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
     deprecateGlobalRuleTemplates: vi.fn(),
     firmIdsWithReviewedRule: vi.fn(),
     fanoutReviewTasks: vi.fn(),
+    listReleasedCohortFilingYears: vi.fn(),
+    insertCatalogRelease: vi.fn(),
+    fanoutCatalogReleaseNotifications: vi.fn(),
   }
   const rulesRepo = { upsertGlobalTemplates: vi.fn() }
   const pulseOpsRepo = {
@@ -75,7 +78,11 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
   }
 })
 
-vi.mock('@duedatehq/core/rules', () => ({
+vi.mock('@duedatehq/core/rules', async (importActual) => ({
+  // Spread the real module so the pure catalog-release helpers (detectNewCohort,
+  // substantialCohortYears, expectedCatalogReleaseDate) run for real; only the
+  // catalog *inputs* below are mocked.
+  ...(await importActual<typeof import('@duedatehq/core/rules')>()),
   listRuleSources: coreMocks.listRuleSources,
   listObligationRules: coreMocks.listObligationRules,
   isTemporaryAnnouncementSource: (ruleSource: { authorityRole?: string; sourceType?: string }) =>
@@ -203,6 +210,9 @@ describe('rule source scan jobs', () => {
       supersededTasks: 0,
     })
     dbMocks.opsRepo.firmIdsWithReviewedRule.mockResolvedValue([])
+    dbMocks.opsRepo.listReleasedCohortFilingYears.mockResolvedValue([])
+    dbMocks.opsRepo.insertCatalogRelease.mockResolvedValue(true)
+    dbMocks.opsRepo.fanoutCatalogReleaseNotifications.mockResolvedValue(0)
     dbMocks.pulseOpsRepo.listUnclearedDriftRuleIds.mockResolvedValue([])
     dbMocks.pulseOpsRepo.createRuleSourceDriftPulse.mockResolvedValue({
       pulseId: 'pulse-test',
@@ -555,6 +565,7 @@ describe('rule source scan jobs', () => {
     expect(dbMocks.opsRepo.fanoutReviewTasks).toHaveBeenCalledWith({
       newRules: [{ ruleId: 'ca.new.rule', templateVersion: 1 }],
       changedRules: [{ ruleId: 'ca.changed.rule', templateVersion: 2 }],
+      cohortRuleIds: [],
     })
     expect(dbMocks.opsRepo.deprecateGlobalRuleTemplates).toHaveBeenCalledWith([])
     expect(queueSend).toHaveBeenCalledTimes(2)
@@ -588,8 +599,69 @@ describe('rule source scan jobs', () => {
     expect(dbMocks.opsRepo.fanoutReviewTasks).toHaveBeenCalledWith({
       newRules: [],
       changedRules: [],
+      cohortRuleIds: [],
     })
     expect(result.deprecatedRules).toBe(1)
+  })
+
+  it('announces a brand-new annual cohort once: release row, firm notice, annual_review tasks', async () => {
+    const cohort = Array.from({ length: 8 }, (_, index) =>
+      sourceDefinedRule({ id: `fed.cohort.2027.${index}`, applicableYear: 2027 }),
+    )
+    coreMocks.rules.splice(0, coreMocks.rules.length, ...cohort)
+    // A prior cohort is already released → this is the incremental announce path.
+    dbMocks.opsRepo.listReleasedCohortFilingYears.mockResolvedValue([2026])
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([])
+    dbMocks.opsRepo.insertCatalogRelease.mockResolvedValue(true)
+    dbMocks.opsRepo.fanoutCatalogReleaseNotifications.mockResolvedValue(8)
+
+    await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env() as Env,
+    )
+
+    expect(dbMocks.opsRepo.insertCatalogRelease).toHaveBeenCalledWith({
+      filingYear: 2027,
+      newRuleCount: 8,
+      changedRuleCount: 0,
+    })
+    expect(dbMocks.opsRepo.fanoutCatalogReleaseNotifications).toHaveBeenCalledWith({
+      filingYear: 2027,
+      newRuleCount: 8,
+      changedRuleCount: 0,
+    })
+    expect(dbMocks.opsRepo.fanoutReviewTasks).toHaveBeenCalledWith(
+      expect.objectContaining({ cohortRuleIds: cohort.map((rule) => rule.id) }),
+    )
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'rule.catalog_release',
+      expect.objectContaining({ filingYear: 2027, newRuleCount: 8 }),
+    )
+  })
+
+  it('baselines existing cohorts silently on first run (no firm notifications)', async () => {
+    const cohort = Array.from({ length: 8 }, (_, index) =>
+      sourceDefinedRule({ id: `fed.cohort.2026.${index}`, applicableYear: 2026 }),
+    )
+    coreMocks.rules.splice(0, coreMocks.rules.length, ...cohort)
+    // Empty release log → first run after the feature ships.
+    dbMocks.opsRepo.listReleasedCohortFilingYears.mockResolvedValue([])
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([])
+    dbMocks.opsRepo.fanoutCatalogReleaseNotifications.mockClear()
+
+    await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env() as Env,
+    )
+
+    // Existing cohort is recorded (back-dated releasedAt) but NOT announced.
+    expect(dbMocks.opsRepo.insertCatalogRelease).toHaveBeenCalledWith(
+      expect.objectContaining({ filingYear: 2026, releasedAt: expect.any(Date) }),
+    )
+    expect(dbMocks.opsRepo.fanoutCatalogReleaseNotifications).not.toHaveBeenCalled()
+    expect(dbMocks.opsRepo.fanoutReviewTasks).toHaveBeenCalledWith(
+      expect.objectContaining({ cohortRuleIds: [] }),
+    )
   })
 
   it('raises a targeted rule_source_drift alert for a changed rule firms have adopted', async () => {

@@ -4,20 +4,24 @@ import type {
   PracticeRuleInput,
   PracticeRuleReviewTaskDecisionInput,
   PracticeRuleReviewTaskInput,
+  RuleCatalogReleaseRow,
   RuleSourceTemplateInput,
   RuleTemplateInput,
   TemporaryRuleRow,
   TemporaryRuleRowStatus,
 } from '@duedatehq/ports/rules'
 import type { Db } from '../client'
+import { member } from '../schema/auth'
 import { firmProfile } from '../schema/firm'
 import { client } from '../schema/clients'
+import { inAppNotification } from '../schema/notifications'
 import { obligationInstance } from '../schema/obligations'
 import { exceptionRule, obligationExceptionApplication } from '../schema/overlay'
 import { pulse, pulseFirmAlert, ruleSourceDriftState } from '../schema/pulse'
 import {
   practiceRule,
   practiceRuleReviewTask,
+  ruleCatalogRelease,
   ruleReviewDecision,
   ruleSourceTemplate,
   ruleTemplate,
@@ -55,6 +59,10 @@ export function isTemporaryRuleExpired(
 }
 
 const D1_BATCH_CHUNK_SIZE = 50
+// Rows per multi-row in-app-notification insert. Small enough that each
+// statement's bind-variable count stays well under D1's limit when a release
+// fans out across every firm member.
+const CATALOG_NOTIFICATION_ROW_CHUNK = 25
 
 function toNonEmptyBatch<T>(items: T[]): [T, ...T[]] {
   const [first, ...rest] = items
@@ -280,15 +288,31 @@ export function makeRulesRepo(db: Db, firmId: string) {
     async listReviewTasks(
       input: {
         status?: PracticeRuleReviewTask['status']
+        reason?: PracticeRuleReviewTask['reason']
       } = {},
     ): Promise<PracticeRuleReviewTask[]> {
       const filters = [eq(practiceRuleReviewTask.firmId, firmId)]
       if (input.status) filters.push(eq(practiceRuleReviewTask.status, input.status))
+      if (input.reason) filters.push(eq(practiceRuleReviewTask.reason, input.reason))
       return db
         .select()
         .from(practiceRuleReviewTask)
         .where(and(...filters))
         .orderBy(desc(practiceRuleReviewTask.createdAt))
+    },
+
+    async getLatestCatalogRelease(): Promise<RuleCatalogReleaseRow | null> {
+      const rows = await db
+        .select({
+          filingYear: ruleCatalogRelease.filingYear,
+          newRuleCount: ruleCatalogRelease.newRuleCount,
+          changedRuleCount: ruleCatalogRelease.changedRuleCount,
+          releasedAt: ruleCatalogRelease.releasedAt,
+        })
+        .from(ruleCatalogRelease)
+        .orderBy(desc(ruleCatalogRelease.filingYear))
+        .limit(1)
+      return rows[0] ?? null
     },
 
     async getReviewTask(
@@ -687,11 +711,13 @@ export function makeRulesOpsRepo(db: Db) {
     async fanoutReviewTasks(input: {
       newRules: Array<{ ruleId: string; templateVersion: number }>
       changedRules: Array<{ ruleId: string; templateVersion: number }>
+      cohortRuleIds?: readonly string[]
     }): Promise<{ newTaskTargets: number; changedTaskTargets: number; supersededTasks: number }> {
       let newTaskTargets = 0
       let changedTaskTargets = 0
       let supersededTasks = 0
       const allActiveFirmIds = await activeFirmIds()
+      const cohortRuleIds = new Set(input.cohortRuleIds ?? [])
 
       const newCounts = await Promise.all(
         input.newRules.map(async (rule) => {
@@ -709,7 +735,7 @@ export function makeRulesOpsRepo(db: Db) {
             firmIds: allActiveFirmIds,
             ruleId: rule.ruleId,
             templateVersion: rule.templateVersion,
-            reason: 'new_template',
+            reason: cohortRuleIds.has(rule.ruleId) ? 'annual_review' : 'new_template',
           })
         }),
       )
@@ -740,6 +766,92 @@ export function makeRulesOpsRepo(db: Db) {
       supersededTasks = input.changedRules.length
 
       return { newTaskTargets, changedTaskTargets, supersededTasks }
+    },
+
+    async listReleasedCohortFilingYears(): Promise<number[]> {
+      const rows = await db
+        .select({ filingYear: ruleCatalogRelease.filingYear })
+        .from(ruleCatalogRelease)
+      return rows.map((row) => row.filingYear)
+    },
+
+    async insertCatalogRelease(input: {
+      filingYear: number
+      newRuleCount: number
+      changedRuleCount: number
+      releasedAt?: Date
+    }): Promise<boolean> {
+      const inserted = await db
+        .insert(ruleCatalogRelease)
+        .values({
+          id: crypto.randomUUID(),
+          filingYear: input.filingYear,
+          newRuleCount: input.newRuleCount,
+          changedRuleCount: input.changedRuleCount,
+          ...(input.releasedAt ? { releasedAt: input.releasedAt } : {}),
+        })
+        .onConflictDoNothing({ target: ruleCatalogRelease.filingYear })
+        .returning({ id: ruleCatalogRelease.id })
+      return inserted.length > 0
+    },
+
+    async fanoutCatalogReleaseNotifications(input: {
+      filingYear: number
+      newRuleCount: number
+      changedRuleCount: number
+    }): Promise<number> {
+      const entityId = String(input.filingYear)
+      // Recipients = active members of active firms. The notification table is
+      // per-user, so a release lands one row per member (deduped below).
+      const recipients = await db
+        .select({ firmId: member.organizationId, userId: member.userId })
+        .from(member)
+        .innerJoin(firmProfile, eq(member.organizationId, firmProfile.id))
+        .where(and(eq(member.status, 'active'), eq(firmProfile.status, 'active')))
+      if (recipients.length === 0) return 0
+      // Dedup against any release notice already sent for this filing year, so a
+      // re-run or a concurrent tick never double-notifies the same member.
+      const existing = await db
+        .select({ firmId: inAppNotification.firmId, userId: inAppNotification.userId })
+        .from(inAppNotification)
+        .where(
+          and(
+            eq(inAppNotification.type, 'catalog_release'),
+            eq(inAppNotification.entityId, entityId),
+          ),
+        )
+      const seen = new Set(existing.map((row) => `${row.firmId}:${row.userId}`))
+      const title = `${input.filingYear} rule catalog`
+      const body = `${input.newRuleCount} new · ${input.changedRuleCount} changed rules are ready to review.`
+      const rows = recipients
+        .filter((row) => !seen.has(`${row.firmId}:${row.userId}`))
+        .map((row) => ({
+          id: crypto.randomUUID(),
+          firmId: row.firmId,
+          userId: row.userId,
+          type: 'catalog_release' as const,
+          entityType: 'rule_catalog_release',
+          entityId,
+          title,
+          body,
+          href: `/rules?cohort=${input.filingYear}`,
+          metadataJson: {
+            filingYear: input.filingYear,
+            newRuleCount: input.newRuleCount,
+            changedRuleCount: input.changedRuleCount,
+          },
+        }))
+      if (rows.length === 0) return 0
+      const queries: BatchItem<'sqlite'>[] = []
+      for (let index = 0; index < rows.length; index += CATALOG_NOTIFICATION_ROW_CHUNK) {
+        queries.push(
+          db
+            .insert(inAppNotification)
+            .values(rows.slice(index, index + CATALOG_NOTIFICATION_ROW_CHUNK)),
+        )
+      }
+      await runBatchChunks(db, queries)
+      return rows.length
     },
   }
 }

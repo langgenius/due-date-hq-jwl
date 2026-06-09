@@ -32,6 +32,7 @@ function notificationTypeLabel(type: NotificationType): React.ReactNode {
   if (type === 'client_reminder') return <Trans>Client reminder</Trans>
   if (type === 'pulse_alert') return <Trans>Alert</Trans>
   if (type === 'audit_package_ready') return <Trans>Audit package</Trans>
+  if (type === 'catalog_release') return <Trans>New rule catalog</Trans>
   if (type === 'internal_request') return <Trans>Internal request</Trans>
   return <Trans>System notification</Trans>
 }
@@ -44,6 +45,7 @@ const NOTIFICATION_TYPE_FILTERS = [
   'client_reminder',
   'pulse_alert',
   'audit_package_ready',
+  'catalog_release',
   'internal_request',
   'system',
 ] as const

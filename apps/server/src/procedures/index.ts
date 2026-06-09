@@ -227,6 +227,7 @@ export const router = os.router({
     listSources: rulesHandlers.listSources,
     listRules: rulesHandlers.listRules,
     listTemporaryRules: rulesHandlers.listTemporaryRules,
+    listCatalogRelease: rulesHandlers.listCatalogRelease,
     listReviewTasks: rulesHandlers.listReviewTasks,
     listReviewDecisions: rulesHandlers.listReviewDecisions,
     acceptTemplate: rulesHandlers.acceptTemplate,

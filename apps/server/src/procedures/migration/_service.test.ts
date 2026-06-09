@@ -847,6 +847,9 @@ function buildScopedRepo(
       async getGlobalRuleTemplatesByIds() {
         return []
       },
+      async getLatestCatalogRelease() {
+        return null
+      },
       async listPracticeRules() {
         return options.activeRuleRows ?? activePracticeRuleRows(firmId)
       },

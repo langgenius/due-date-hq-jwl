@@ -26,6 +26,7 @@ export const IN_APP_NOTIFICATION_TYPES = [
   'client_reminder',
   'pulse_alert',
   'audit_package_ready',
+  'catalog_release',
   'internal_request',
   'system',
 ] as const

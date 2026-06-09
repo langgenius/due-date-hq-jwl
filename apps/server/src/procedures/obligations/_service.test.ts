@@ -627,6 +627,9 @@ function buildScoped(firmId: string, rows: Row[]) {
       async getGlobalRuleTemplatesByIds() {
         return []
       },
+      async getLatestCatalogRelease() {
+        return null
+      },
       async listPracticeRules() {
         return []
       },
