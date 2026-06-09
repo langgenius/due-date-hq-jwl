@@ -2132,7 +2132,6 @@ function BulkReviewDrawer({
                           {rule.id}
                         </span>
                       </div>
-                      <span className="font-mono text-xs text-text-tertiary">v{rule.version}</span>
                     </div>
                   ))
                 ) : (

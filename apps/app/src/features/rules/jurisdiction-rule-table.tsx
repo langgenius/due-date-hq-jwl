@@ -279,7 +279,7 @@ function JurisdictionRuleRow({
           </span>
           <span className="text-xs text-text-tertiary">
             {taxLabel ? `${taxLabel} · ` : ''}
-            {tierLabels[rule.ruleTier]} · v{rule.version}
+            {tierLabels[rule.ruleTier]}
           </span>
         </div>
       </TableCell>

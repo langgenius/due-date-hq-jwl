@@ -629,6 +629,7 @@ describe('RulesLibraryRoute', () => {
       jurisdiction: 'FED',
       formName: 'Form 1040',
       status: 'active',
+      version: 2,
     })
     rpcMocks.listRulesQueryFn.mockResolvedValue([federalRule])
 
@@ -654,6 +655,8 @@ describe('RulesLibraryRoute', () => {
     expect(tableFrame?.className).toContain('min-h-0')
     expect(tableFrame?.className).toContain('flex-1')
     expect(tableFrame?.className).toContain('overflow-y-auto')
+    expect(tableFrame?.textContent).toContain('Basic')
+    expect(tableFrame?.textContent).not.toContain('v2')
   })
 
   it('orders selected jurisdiction rules needing review before active rules', async () => {

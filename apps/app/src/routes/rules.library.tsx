@@ -1794,12 +1794,12 @@ export function RulesLibraryRoute() {
 
   // Export — CSV of the loaded rules. Real download (no dead control):
   // one row per rule with the catalog's columns (jurisdiction, form,
-  // status tier, applicable entities, version). Mirrors the pattern on
+  // status tier, applicable entities). Mirrors the pattern on
   // /alerts history (Blob + object URL + temp <a download>).
   const handleExport = useCallback(() => {
     if (rules.length === 0) return
     const escape = (value: string) => `"${value.replace(/"/g, '""')}"`
-    const header = ['Jurisdiction', 'Rule / Form', 'Status', 'Tier', 'Entities', 'Version']
+    const header = ['Jurisdiction', 'Rule / Form', 'Status', 'Tier', 'Entities']
     const rows = rules.map((rule) =>
       [
         jurisdictionLabel(rule.jurisdiction),
@@ -1807,7 +1807,6 @@ export function RulesLibraryRoute() {
         STATUS_LABEL_SHORT[rule.status],
         tierLabels[rule.ruleTier],
         rule.entityApplicability.join('; '),
-        String(rule.version),
       ]
         .map((cell) => escape(cell))
         .join(','),
