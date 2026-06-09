@@ -4688,6 +4688,10 @@ msgstr "Couldn't load rule sources"
 msgid "Couldn't load rules coverage"
 msgstr "Couldn't load rules coverage"
 
+#: src/routes/clients.tsx
+msgid "Couldn't load sample data"
+msgstr "Couldn't load sample data"
+
 #: src/features/workload/workload-page.tsx
 msgid "Couldn't load team workload"
 msgstr "Couldn't load team workload"
@@ -4794,6 +4798,10 @@ msgstr "Couldn't reject rule"
 #: src/routes/obligations.tsx
 msgid "Couldn't remove document item"
 msgstr "Couldn't remove document item"
+
+#: src/routes/clients.tsx
+msgid "Couldn't remove sample data"
+msgstr "Couldn't remove sample data"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Couldn't request export"
@@ -12444,6 +12452,10 @@ msgstr "Remove from practice (1)"
 msgid "Remove member?"
 msgstr "Remove member?"
 
+#: src/routes/clients.tsx
+msgid "Remove sample data"
+msgstr "Remove sample data"
+
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Removes"
@@ -13293,13 +13305,25 @@ msgstr "same day"
 msgid "Same Practice AI as Pro"
 msgstr "Same Practice AI as Pro"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Sample"
+msgstr "Sample"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Sample (first row)"
 msgstr "Sample (first row)"
 
+#: src/routes/clients.tsx
+msgid "Sample data loaded"
+msgstr "Sample data loaded"
+
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "Sample data on your dashboard"
 msgstr "Sample data on your dashboard"
+
+#: src/routes/clients.tsx
+msgid "Sample data removed"
+msgstr "Sample data removed"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Sample values"
@@ -15702,6 +15726,10 @@ msgstr "Try a different filter combination, or clear all filters to see the full
 #: src/routes/clients.$clientId.tsx
 msgid "Try again"
 msgstr "Try again"
+
+#: src/routes/clients.tsx
+msgid "Try again in a moment."
+msgstr "Try again in a moment."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Try again, or skip this rule for now."

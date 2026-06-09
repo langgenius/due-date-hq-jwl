@@ -279,6 +279,8 @@ function makeContext(input: {
     findManyByIds: null!,
     listByFirm: null!,
     countActiveClients: null!,
+    listSampleClients: null!,
+    deleteSampleClients: null!,
     listByBatch: null!,
     updatePenaltyInputs: null!,
     updateJurisdiction: null!,

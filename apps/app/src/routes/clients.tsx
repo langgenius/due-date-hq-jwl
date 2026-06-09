@@ -245,6 +245,38 @@ export function ClientsRoute() {
     }),
   )
 
+  const seedSampleMutation = useMutation(
+    orpc.clients.seedSample.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        toast.success(t`Sample data loaded`)
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't load sample data`, {
+          description: rpcErrorMessage(err) ?? t`Try again in a moment.`,
+        })
+      },
+    }),
+  )
+
+  const removeSampleMutation = useMutation(
+    orpc.clients.removeSample.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        toast.success(t`Sample data removed`)
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't remove sample data`, {
+          description: rpcErrorMessage(err) ?? t`Try again in a moment.`,
+        })
+      },
+    }),
+  )
+
+  const hasSampleClients = clients.some((c) => c.isSample)
+
   // 2026-05-26 (Yuqi /clients directory pivot brief): inline search
   // handler. The `q` URL param flows through normalizeClientsQueryFilters
   // → filters.search → filterClients haystack. Passing `null` when the
@@ -388,6 +420,16 @@ export function ClientsRoute() {
                 Discoverability for `?` without forcing users to
                 guess which key opens the help dialog. */}
             <ShortcutHintChip className="hidden md:inline-flex" />
+            {hasSampleClients && canCreateClient ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => removeSampleMutation.mutate({})}
+                disabled={removeSampleMutation.isPending}
+              >
+                <Trans>Remove sample data</Trans>
+              </Button>
+            ) : null}
             {/* 2026-05-25 (Yuqi /clients #2): the button opens migration
                 import history, not client archival. Keep the visible label
                 aligned with the drawer title so "Archive" does not read as
@@ -487,6 +529,7 @@ export function ClientsRoute() {
         canImport={canRunMigration}
         onCreateClient={canCreateClient ? () => setCreateDialogOpen(true) : undefined}
         canCreate={canCreateClient}
+        onSampleData={canCreateClient ? () => seedSampleMutation.mutate({}) : undefined}
       />
 
       {/* 2026-06-07 (design replication): controlled create dialog driven by

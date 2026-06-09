@@ -14,10 +14,10 @@ import {
  * Procedures never call this constructor directly; they call
  * `scoped(db, firmId).clients` (packages/db/src/scoped.ts).
  *
- * D1 100-param budget: `client` inserts 36 cols -> 2 rows per batch INSERT.
+ * D1 100-param budget: `client` inserts 37 cols -> 2 rows per batch INSERT.
  */
 
-const COLS_PER_CLIENT_ROW = 36
+const COLS_PER_CLIENT_ROW = 37
 const CLIENT_BATCH_SIZE = Math.floor(100 / COLS_PER_CLIENT_ROW) // = 2
 const CLIENT_LOOKUP_IDS_PER_BATCH = 99
 const CLIENT_UPDATE_IDS_PER_BATCH = 90
@@ -58,6 +58,7 @@ export interface ClientCreateInput {
   estimatedTaxLiabilitySource?: 'manual' | 'imported' | 'demo_seed' | null
   equityOwnerCount?: number | null
   migrationBatchId?: string | null
+  isSample?: boolean
 }
 
 export function makeClientsRepo(db: Db, firmId: string) {
@@ -103,6 +104,7 @@ export function makeClientsRepo(db: Db, firmId: string) {
         estimatedTaxLiabilitySource: input.estimatedTaxLiabilitySource ?? null,
         equityOwnerCount: input.equityOwnerCount ?? null,
         migrationBatchId: input.migrationBatchId ?? null,
+        isSample: input.isSample ?? false,
       })
       return { id }
     },
@@ -146,6 +148,7 @@ export function makeClientsRepo(db: Db, firmId: string) {
         estimatedTaxLiabilitySource: i.estimatedTaxLiabilitySource ?? null,
         equityOwnerCount: i.equityOwnerCount ?? null,
         migrationBatchId: i.migrationBatchId ?? null,
+        isSample: i.isSample ?? false,
       }))
       const writes = []
       for (let i = 0; i < rows.length; i += CLIENT_BATCH_SIZE) {
@@ -209,8 +212,31 @@ export function makeClientsRepo(db: Db, firmId: string) {
       const [row] = await db
         .select({ value: count() })
         .from(client)
-        .where(and(eq(client.firmId, firmId), isNull(client.deletedAt)))
+        .where(and(eq(client.firmId, firmId), isNull(client.deletedAt), eq(client.isSample, false)))
       return row?.value ?? 0
+    },
+
+    // Onboarding sample clients (isSample=true), newest first. Backs the
+    // "Load sample data" idempotency check + the returned rows.
+    async listSampleClients(): Promise<Client[]> {
+      return db
+        .select()
+        .from(client)
+        .where(and(eq(client.firmId, firmId), eq(client.isSample, true)))
+        .orderBy(desc(client.createdAt))
+    },
+
+    // Hard-delete this firm's sample clients (cascades to obligations / filing
+    // profiles / readiness / reminders). Backs one-click "Remove sample data".
+    async deleteSampleClients(): Promise<number> {
+      const rows = await db
+        .select({ id: client.id })
+        .from(client)
+        .where(and(eq(client.firmId, firmId), eq(client.isSample, true)))
+      if (rows.length === 0) return 0
+      const ids = rows.map((r) => r.id)
+      await db.delete(client).where(and(eq(client.firmId, firmId), inArray(client.id, ids)))
+      return ids.length
     },
 
     async listByBatch(batchId: string): Promise<Client[]> {

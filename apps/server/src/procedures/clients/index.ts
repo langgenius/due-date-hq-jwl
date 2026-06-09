@@ -21,6 +21,12 @@ import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import { runClassificationRecompute } from './_classification-recompute'
 import {
+  SAMPLE_CLIENTS,
+  buildSampleFilingProfile,
+  buildSampleObligations,
+  toSampleClientInput,
+} from './_sample-data'
+import {
   toClientPublic,
   type ClientCreateInputForRepo,
   type ClientFilingProfileRow,
@@ -1211,11 +1217,75 @@ const usage = os.clients.usage.handler(async ({ context }) => {
   }
 })
 
+// Onboarding "Load sample data": seed a few labeled (isSample) clients with
+// filing profiles + believable deadlines so a fresh firm isn't empty. Sample
+// clients are excluded from clientLimit and removable in one click. Idempotent.
+const seedSample = os.clients.seedSample.handler(async ({ context }) => {
+  const { userId } = await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+  const { scoped } = requireTenant(context)
+
+  const existing = await scoped.clients.listSampleClients()
+  let ids: string[]
+  if (existing.length > 0) {
+    ids = existing.map((c) => c.id)
+  } else {
+    const now = new Date()
+    const created = await scoped.clients.createBatch(SAMPLE_CLIENTS.map(toSampleClientInput))
+    ids = created.ids
+    await scoped.filingProfiles.createBatch(
+      SAMPLE_CLIENTS.map((spec, index) => buildSampleFilingProfile(spec, ids[index]!)),
+    )
+    const obligations = SAMPLE_CLIENTS.flatMap((spec, index) =>
+      buildSampleObligations(spec, ids[index]!, now),
+    )
+    if (obligations.length > 0) {
+      await scoped.obligations.createBatch(obligations)
+    }
+    await scoped.audit.write({
+      actorId: userId,
+      entityType: 'client_batch',
+      entityId: ids[0] ?? 'sample',
+      action: 'client.sample_seeded',
+      after: { count: ids.length },
+    })
+  }
+
+  const [rows, profilesByClient] = await Promise.all([
+    rereadCreatedClientBatch(scoped.clients, ids),
+    scoped.filingProfiles.listByClients(ids),
+  ])
+  return {
+    clients: rows.map((row) =>
+      toClientPublic(row, { filingProfiles: filingProfilesByClientId(profilesByClient, row.id) }),
+    ),
+  }
+})
+
+// One-click "Remove sample data": hard-delete sample clients (cascades to
+// their obligations / filing profiles). Never touches real clients.
+const removeSample = os.clients.removeSample.handler(async ({ context }) => {
+  const { userId } = await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+  const { scoped } = requireTenant(context)
+  const deletedCount = await scoped.clients.deleteSampleClients()
+  if (deletedCount > 0) {
+    await scoped.audit.write({
+      actorId: userId,
+      entityType: 'client_batch',
+      entityId: 'sample',
+      action: 'client.sample_removed',
+      after: { count: deletedCount },
+    })
+  }
+  return { deletedCount }
+})
+
 export const clientsHandlers = {
   create,
   createBatch,
   get,
   usage,
+  seedSample,
+  removeSample,
   listByFirm,
   updateJurisdiction,
   updateTaxYearProfile,

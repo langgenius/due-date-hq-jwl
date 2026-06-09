@@ -234,6 +234,12 @@ function buildScopedRepo(
     async countActiveClients() {
       return 0
     },
+    async listSampleClients() {
+      return []
+    },
+    async deleteSampleClients() {
+      return 0
+    },
     async listByBatch() {
       return []
     },

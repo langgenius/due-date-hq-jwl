@@ -37,6 +37,7 @@ export interface ClientRow {
   estimatedTaxLiabilitySource: 'manual' | 'imported' | 'demo_seed' | null
   equityOwnerCount: number | null
   migrationBatchId: string | null
+  isSample?: boolean
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -78,6 +79,7 @@ export interface ClientCreateInput {
   estimatedTaxLiabilitySource?: 'manual' | 'imported' | 'demo_seed' | null
   equityOwnerCount?: number | null
   migrationBatchId?: string | null
+  isSample?: boolean
 }
 
 export interface ClientsRepo {
@@ -87,8 +89,12 @@ export interface ClientsRepo {
   findById(id: string): Promise<ClientRow | undefined>
   findManyByIds(ids: string[]): Promise<ClientRow[]>
   listByFirm(opts?: { includeDeleted?: boolean; limit?: number }): Promise<ClientRow[]>
-  /** Active (non-deleted) client count — backs the plan clientLimit gate + usage meter. */
+  /** Active (non-deleted, non-sample) client count — backs the plan clientLimit gate + usage meter. */
   countActiveClients(): Promise<number>
+  /** Onboarding sample clients (isSample=true) for this firm. */
+  listSampleClients(): Promise<ClientRow[]>
+  /** Hard-delete this firm's sample clients (cascades to children). Returns count removed. */
+  deleteSampleClients(): Promise<number>
   listByBatch(batchId: string): Promise<ClientRow[]>
   updatePenaltyInputs(
     id: string,

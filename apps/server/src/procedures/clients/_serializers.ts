@@ -76,6 +76,7 @@ export interface ClientRow {
   estimatedTaxLiabilitySource: 'manual' | 'imported' | 'demo_seed' | null
   equityOwnerCount: number | null
   migrationBatchId: string | null
+  isSample?: boolean
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -192,6 +193,7 @@ export function toClientPublic(
     estimatedTaxLiabilitySource: opts.hideDollars ? null : row.estimatedTaxLiabilitySource,
     equityOwnerCount: row.equityOwnerCount,
     migrationBatchId: row.migrationBatchId,
+    isSample: row.isSample,
     filingProfiles: (opts.filingProfiles ?? []).map(toClientFilingProfilePublic),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

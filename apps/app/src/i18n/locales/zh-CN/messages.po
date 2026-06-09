@@ -4725,6 +4725,10 @@ msgstr "无法加载规则来源"
 msgid "Couldn't load rules coverage"
 msgstr "无法加载规则覆盖"
 
+#: src/routes/clients.tsx
+msgid "Couldn't load sample data"
+msgstr "无法载入示例数据"
+
 #: src/features/workload/workload-page.tsx
 msgid "Couldn't load team workload"
 msgstr "无法加载团队负载"
@@ -4831,6 +4835,10 @@ msgstr "无法拒绝规则"
 #: src/routes/obligations.tsx
 msgid "Couldn't remove document item"
 msgstr "无法移除文件项"
+
+#: src/routes/clients.tsx
+msgid "Couldn't remove sample data"
+msgstr "无法移除示例数据"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Couldn't request export"
@@ -12534,6 +12542,10 @@ msgstr "从事务所移除（1）"
 msgid "Remove member?"
 msgstr "移除成员？"
 
+#: src/routes/clients.tsx
+msgid "Remove sample data"
+msgstr "移除示例数据"
+
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Removes"
@@ -13386,13 +13398,25 @@ msgstr "当天"
 msgid "Same Practice AI as Pro"
 msgstr "与 Pro 相同的事务所 AI"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Sample"
+msgstr "示例"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Sample (first row)"
 msgstr "样本（首行）"
 
+#: src/routes/clients.tsx
+msgid "Sample data loaded"
+msgstr "示例数据已载入"
+
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "Sample data on your dashboard"
 msgstr "仪表板上的示例数据"
+
+#: src/routes/clients.tsx
+msgid "Sample data removed"
+msgstr "示例数据已移除"
 
 #: src/features/migration/Step2Mapping.tsx
 #, fuzzy
@@ -15805,6 +15829,10 @@ msgstr "请尝试不同的筛选组合，或清除所有筛选以查看完整队
 #: src/routes/clients.$clientId.tsx
 #, fuzzy
 msgid "Try again"
+msgstr "请稍后重试。"
+
+#: src/routes/clients.tsx
+msgid "Try again in a moment."
 msgstr "请稍后重试。"
 
 #: src/features/rules/rule-detail-drawer.tsx

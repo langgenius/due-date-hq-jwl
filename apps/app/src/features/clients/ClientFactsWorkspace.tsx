@@ -125,6 +125,8 @@ type ClientFactsWorkspaceProps = {
   // import-only hero.
   onCreateClient?: (() => void) | undefined
   canCreate?: boolean | undefined
+  // Onboarding "Load sample data" chip in the empty-state hero.
+  onSampleData?: (() => void) | undefined
 }
 
 // 2026-05-26 (Yuqi macro→micro audit, Fix #6 / §3.4): /clients adopts
@@ -493,6 +495,7 @@ export function ClientFactsWorkspace({
   canImport,
   onCreateClient,
   canCreate,
+  onSampleData,
 }: ClientFactsWorkspaceProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -639,6 +642,11 @@ export function ClientFactsWorkspace({
                 <span className="truncate text-base text-text-primary group-hover:underline">
                   {row.original.name}
                 </span>
+                {row.original.isSample ? (
+                  <Badge variant="secondary" className="shrink-0">
+                    {t`Sample`}
+                  </Badge>
+                ) : null}
                 {readiness?.status === 'needs_facts' ? (
                   <ClientReadinessBadge readiness={readiness} compact />
                 ) : null}
@@ -1242,6 +1250,7 @@ export function ClientFactsWorkspace({
           canImport={canImport}
           onCreate={onCreateClient}
           canCreate={canCreate}
+          onSampleData={onSampleData}
         />
       ) : (
         // 2026-05-26 (Yuqi cross-table chrome unify): canonical

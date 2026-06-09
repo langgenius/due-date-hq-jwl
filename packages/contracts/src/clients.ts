@@ -132,6 +132,9 @@ export const ClientPublicSchema = ClientIdentitySchema.extend({
   estimatedTaxLiabilitySource: z.enum(['manual', 'imported', 'demo_seed']).nullable(),
   equityOwnerCount: z.number().int().positive().nullable(),
   migrationBatchId: EntityIdSchema.nullable(),
+  // Optional: always set by the serializer, but optional here so the many
+  // ClientPublic test fixtures don't all need updating. Display/filter flag only.
+  isSample: z.boolean().optional(),
   filingProfiles: z.array(ClientFilingProfilePublicSchema),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -488,6 +491,14 @@ export const clientsContract = oc.router({
       clientLimit: z.number().int().min(0).nullable(),
     }),
   ),
+  // Onboarding sample data: seed labeled (removable) sample clients, or remove
+  // them in one click. Sample clients never count toward clientLimit.
+  seedSample: oc
+    .input(z.object({}).optional())
+    .output(z.object({ clients: z.array(ClientPublicSchema) })),
+  removeSample: oc
+    .input(z.object({}).optional())
+    .output(z.object({ deletedCount: z.number().int().min(0) })),
 })
 
 export type ClientIdentity = z.infer<typeof ClientIdentitySchema>

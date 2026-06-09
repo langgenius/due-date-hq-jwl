@@ -121,6 +121,11 @@ export const client = sqliteTable(
     // Migration batch revert (24h full revert) / single-client undo (7d).
     migrationBatchId: text('migration_batch_id'),
 
+    // Labeled onboarding sample/demo data ("Load sample data"). Excluded from
+    // clientLimit counting and removed in one click (cascades to obligations /
+    // filing profiles). Distinct from migrationBatchId (real imported clients).
+    isSample: integer('is_sample', { mode: 'boolean' }).notNull().default(false),
+
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),

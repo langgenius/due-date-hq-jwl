@@ -69,6 +69,7 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     estimatedTaxLiabilitySource: overrides.estimatedTaxLiabilitySource ?? null,
     equityOwnerCount: overrides.equityOwnerCount ?? null,
     migrationBatchId: overrides.migrationBatchId ?? null,
+    isSample: overrides.isSample ?? false,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
     deletedAt: overrides.deletedAt ?? null,
