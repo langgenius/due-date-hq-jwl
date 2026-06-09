@@ -965,7 +965,11 @@ export function AlertDetailDrawer({
           ListHead (`py-3.5`), and the redundant ▲▼ paging buttons are gone —
           the alert RAIL on the left is the navigator, so the bar just reads
           "‹ Alerts … N of M … ✕". */}
-      <div className="flex h-[52px] shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-12">
+      {/* 2026-06-09 (Yuqi right-side measure, option B): chrome border spans the
+          full width (so the bar never looks cut off), but its content is capped
+          to the same 760px measure + left-pinned as the document below. */}
+      <div className="flex h-[52px] shrink-0 items-center border-b border-divider-subtle px-12">
+        <div className="flex w-full max-w-[760px] items-center justify-between gap-3">
         <button
           type="button"
           onClick={onClose}
@@ -988,6 +992,7 @@ export function AlertDetailDrawer({
           >
             <XIcon className="size-4" aria-hidden />
           </button>
+        </div>
         </div>
       </div>
 
@@ -1032,7 +1037,7 @@ export function AlertDetailDrawer({
           sitting on a 40px floor of dead space before the body
           content started; cutting bottom padding tightens the
           transition from Hero → first body section. */}
-      <SheetHeader className="border-b border-divider-subtle px-12 pt-10 pb-6">
+      <SheetHeader className="border-b border-divider-subtle px-12 pt-10 pb-6 [&>*]:w-full [&>*]:max-w-[760px]">
         {detailQuery.isLoading || !detail ? (
           <DetailHeaderSkeleton />
         ) : (
@@ -1175,7 +1180,7 @@ export function AlertDetailDrawer({
             room, so the CPA always sees both the last content and
             the action bar with a clean gap between them. Top stays
             py-10 (40px) — header → content rhythm doesn't change. */}
-      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-12 pt-6 pb-24">
+      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-12 pt-6 pb-24 [&>*]:w-full [&>*]:max-w-[760px]">
         {/* 2026-06-08 (Pencil ibEoz order): SOURCE EXTRACT moved from
             the top of the body down to just before Provenance — the
             design leads with the decision banner + key change + facts +
@@ -1690,6 +1695,9 @@ export function AlertDetailDrawer({
           gap between the left kbd-hints/audit-ledger note and the action cluster
           bumped gap-4 → gap-8 so the note doesn't butt against the first button. */}
       <SheetFooter className="min-h-16 flex-row items-center gap-8 border-t border-divider-subtle bg-background-default px-12 py-3 sm:flex-row">
+        {/* 2026-06-09 (Yuqi right-side measure, option B): footer chrome spans
+            full width; its actions cap to the 760px document measure. */}
+        <div className="flex w-full max-w-[760px] flex-row items-center gap-8">
         {detail ? (
           <div className="hidden shrink-0 items-center gap-3.5 text-text-tertiary xl:flex">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
@@ -1742,6 +1750,7 @@ export function AlertDetailDrawer({
               onCopyDraft={handleCopyDraft}
             />
           ) : null}
+        </div>
         </div>
       </SheetFooter>
     </>
@@ -1841,7 +1850,14 @@ export function AlertDetailDrawer({
           // band) are nudged to white so they still read as distinct blocks on
           // the gray; the header/footer chrome stays white and reads as pinned
           // bars against the calmer body wash.
-          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-[#f2f2f2] shadow-subtle"
+          // 2026-06-09 (Yuqi "what is the design decision for the right side?"):
+          // the panel now FILLS its column (`w-full`) so the #f2f2f2 surface
+          // reaches the viewport edge — the prior intrinsic-width sizing left a
+          // ~96px dead white strip on the right (the aside shrank to content).
+          // The document CONTENT inside is capped to a 760px reading measure and
+          // left-pinned (see the per-region `max-w-[760px]` wrappers below); the
+          // calm gray now breathes on the right by design, not by accident.
+          className="relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-[#f2f2f2] shadow-subtle"
         >
           {/* 2026-06-08: the close affordance moved into the body's
               BackStrip top bar (with prev/next paging), so the
