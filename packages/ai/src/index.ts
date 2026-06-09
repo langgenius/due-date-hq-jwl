@@ -34,6 +34,8 @@ export interface AiEnv extends AiModelRoutingEnv {
   AI_GATEWAY_PROVIDER?: string
   AI_GATEWAY_PROVIDER_API_KEY?: string
   CACHE?: AiBudgetKv
+  /** Global daily ceiling for system (no-firmId) AI calls; see budget.ts. */
+  AI_SYSTEM_DAILY_LIMIT?: string
 }
 
 export interface AiRefusal {
@@ -127,6 +129,8 @@ export function createAI(env: AiEnv = {}) {
     const taskKind = routing.taskKind ?? taskKindForPrompt(name)
     const modelTier = parseModelTier(prompt.modelTier)
     const selectedModel = modelTier ? modelForPromptTier(env, modelTier, routing) : undefined
+    const parsedSystemLimit = Number.parseInt(env.AI_SYSTEM_DAILY_LIMIT ?? '', 10)
+    const systemAiDailyLimit = Number.isFinite(parsedSystemLimit) ? parsedSystemLimit : undefined
 
     if (
       !env.AI_GATEWAY_ACCOUNT_ID ||
@@ -150,7 +154,10 @@ export function createAI(env: AiEnv = {}) {
     }
 
     try {
-      if (shouldEnforceAiBudget(env)) {
+      // System (no-firmId) calls enforce a global daily ceiling in EVERY env as a
+      // cost circuit-breaker; the per-firm fair-use limit only runs in production.
+      const isSystemCall = !routing.firmId
+      if (isSystemCall || shouldEnforceAiBudget(env)) {
         const budget = await consumeAiBudget({
           taskKind,
           ...(env.CACHE ? { kv: env.CACHE } : {}),
@@ -160,11 +167,14 @@ export function createAI(env: AiEnv = {}) {
           ...(routing.migrationOnboardingCompleted !== undefined
             ? { migrationOnboardingCompleted: routing.migrationOnboardingCompleted }
             : {}),
+          ...(systemAiDailyLimit !== undefined ? { systemDailyLimit: systemAiDailyLimit } : {}),
         })
         if (!budget.allowed) {
           return refusal(
             'AI_BUDGET_EXCEEDED',
-            'The practice reached its AI fair-use limit for today.',
+            isSystemCall
+              ? 'The global system AI daily budget has been reached.'
+              : 'The practice reached its AI fair-use limit for today.',
             createTrace({
               promptVersion: name,
               model: selectedModel,

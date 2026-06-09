@@ -118,7 +118,20 @@ export async function queue(batch: MessageBatch, env: Env, _ctx: ExecutionContex
   await Promise.all(batch.messages.map((message) => dispatchMessage(message, env)))
 }
 
+// A persistently-failing message (e.g. AI provider down) must not retry forever.
+// After this many delivery attempts we drop it (ack) instead of retrying. Backs
+// up the queue's own max_retries (wrangler.toml) at the application layer.
+const MAX_DISPATCH_ATTEMPTS = 3
+
 async function dispatchMessage(message: Message, env: Env): Promise<void> {
+  if (message.attempts > MAX_DISPATCH_ATTEMPTS) {
+    recordPulseAlert('queue.dispatch.dropped', {
+      messageType: queueMessageType(message.body),
+      attempts: message.attempts,
+    })
+    message.ack()
+    return
+  }
   try {
     const body = message.body
     if (isAiInsightRefreshMessage(body)) {

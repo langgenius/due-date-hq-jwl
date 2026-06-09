@@ -109,7 +109,9 @@ dead_letter_queue = "due-date-hq-email-dlq-staging"
 queue = "due-date-hq-pulse-staging"
 max_batch_size = 10
 max_batch_timeout = 5
-max_retries = 5
+# Retry cap: a persistently-failing snapshot (e.g. AI provider down) is retried
+# at most 3× then routed to the DLQ (drained + alerted), instead of looping.
+max_retries = 3
 max_concurrency = 5
 dead_letter_queue = "due-date-hq-pulse-dlq-staging"
 
@@ -160,6 +162,11 @@ AI_GATEWAY_MODEL_QUALITY_JSON = "google/gemini-3.5-flash"
 AI_GATEWAY_MODEL_REASONING = "google/gemini-3.5-flash"
 AI_GATEWAY_QUALITY_REASONING_EFFORT = "high"
 AI_GATEWAY_FAST_REASONING_EFFORT = "low"
+# Global daily ceiling on system (no-firmId) AI calls — pulse extraction + rule
+# concrete-draft warming. Cost circuit-breaker: the per-firm fair-use limit can't
+# gate firmId-less system jobs, so without this a runaway loop has no cost bound
+# (this is how the OpenRouter balance was drained in 2026-06). Tune as needed.
+AI_SYSTEM_DAILY_LIMIT = "1500"
 PULSE_BROWSERLESS_URL = "https://production-sfo.browserless.io/content"
 # The old 400-failures were a client bug (invalid fields sent to /content),
 # fixed in browserless.ts. Re-add IDs here only for sources that genuinely need

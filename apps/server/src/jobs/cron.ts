@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import type { Env } from '../env'
 import { enqueueDashboardBriefRefresh } from './dashboard-brief/enqueue'
 import { enqueuePulseIngestScans } from './pulse/ingest'
+import { recordPulseAlert } from './pulse/metrics'
 import { dispatchDeadlineReminders } from './reminders/dispatch'
 import { dispatchMorningDigests } from './notifications/morning-digest'
 import { dispatchAutoRollover } from './rollover/auto'
@@ -123,6 +124,33 @@ async function refreshStillOpenAlertWindows(env: Env, now: Date): Promise<number
   return makePulseOpsRepo(db).refreshStillOpenWindowsForAllFirms(now)
 }
 
+const PULSE_HEALTH_WINDOW_MS = 6 * 60 * 60 * 1000
+const PULSE_HEALTH_MIN_ATTEMPTS = 8
+const PULSE_HEALTH_FAILURE_RATE_THRESHOLD = 0.5
+
+// Canary for the AI extraction pipeline. If most recent extraction attempts are
+// failing (provider down / out of credits / excerpt rejects), emit a pulse.alert
+// so a stalled pipeline is observable within a tick — the signal the 2026-06
+// multi-day, zero-alert outage silently lacked. Runs every 30-min tick over a
+// rolling window; downstream alerting dedupes the repeated signal.
+async function checkPulseExtractionHealth(env: Env, now: Date): Promise<void> {
+  const db = createDb(env.DB)
+  const { extracted, failed } = await makePulseOpsRepo(db).countRecentExtractionOutcomes({
+    sinceMs: PULSE_HEALTH_WINDOW_MS,
+    now,
+  })
+  const attempted = extracted + failed
+  if (attempted < PULSE_HEALTH_MIN_ATTEMPTS) return
+  const failureRate = failed / attempted
+  if (failureRate < PULSE_HEALTH_FAILURE_RATE_THRESHOLD) return
+  recordPulseAlert('pulse.extract.failure_rate_high', {
+    windowHours: PULSE_HEALTH_WINDOW_MS / (60 * 60 * 1000),
+    attempted,
+    failed,
+    failureRate: Math.round(failureRate * 100) / 100,
+  })
+}
+
 // Cron Trigger entry — fan out by cron expression in Phase 0.
 // Current schedule: */30 * * * * (see wrangler.toml). Drives Pulse ingest + reminders.
 //
@@ -145,6 +173,7 @@ export async function scheduled(
     ['scheduled_dashboard_briefs', enqueueScheduledDashboardBriefs(env, now)],
     ['pulse_ingest_scans', enqueuePulseIngestScans(env, undefined, now)],
     ['still_open_alert_windows', refreshStillOpenAlertWindows(env, now)],
+    ['pulse_extract_health', checkPulseExtractionHealth(env, now)],
     ['deadline_reminders', dispatchDeadlineReminders(env, now)],
     ['morning_digests', dispatchMorningDigests(env, now)],
     ['annual_rollover_auto', dispatchAutoRollover(env, now)],

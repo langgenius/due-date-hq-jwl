@@ -1,4 +1,18 @@
-import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, ne, or } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count as rowCount,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  ne,
+  or,
+} from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
 import { CLOSED_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
 import { taxAreaForTaxType } from '@duedatehq/core/tax-area'
@@ -1186,6 +1200,35 @@ export function makePulseOpsRepo(db: Db) {
      */
     async refreshStillOpenWindowsForAllFirms(now: Date = new Date()): Promise<number> {
       return refreshStillOpenWindows({ now })
+    },
+
+    /**
+     * Count source-snapshot extraction outcomes inside a recent window, for the
+     * cron health canary. `extracted` = the AI extractor produced a pulse;
+     * `failed` = it errored (gateway/credits, excerpt reject, schema). A high
+     * failed / (extracted + failed) ratio means the extraction pipeline is
+     * degraded — the signal the 2026-06 multi-day outage silently lacked.
+     */
+    async countRecentExtractionOutcomes(input: { sinceMs: number; now?: Date }): Promise<{
+      extracted: number
+      failed: number
+      total: number
+    }> {
+      const cutoff = new Date((input.now ?? new Date()).getTime() - input.sinceMs)
+      const rows = await db
+        .select({ parseStatus: pulseSourceSnapshot.parseStatus, n: rowCount() })
+        .from(pulseSourceSnapshot)
+        .where(gte(pulseSourceSnapshot.createdAt, cutoff))
+        .groupBy(pulseSourceSnapshot.parseStatus)
+      let extracted = 0
+      let failed = 0
+      let total = 0
+      for (const row of rows) {
+        total += row.n
+        if (row.parseStatus === 'extracted') extracted += row.n
+        if (row.parseStatus === 'failed') failed += row.n
+      }
+      return { extracted, failed, total }
     },
 
     async createPulseForFirmReviewFromExtract(

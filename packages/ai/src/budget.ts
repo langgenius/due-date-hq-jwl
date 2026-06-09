@@ -21,6 +21,8 @@ export interface AiBudgetInput {
   firmCreatedAt?: Date | string
   migrationOnboardingCompleted?: boolean
   now?: Date
+  /** Override for the global ceiling applied to system (no-firmId) calls. */
+  systemDailyLimit?: number
 }
 
 export type AiBudgetResult =
@@ -32,6 +34,15 @@ const MONTH_TTL_SECONDS = 32 * 24 * 60 * 60
 
 /** Onboarding/import AI scales with the firm's client allotment (~1-2 parses per entity). */
 const MIGRATION_BUDGET_PER_CLIENT = 2
+
+// Cost circuit-breaker for system (no-firmId) AI calls — pulse extraction, rule
+// concrete-draft warming, etc. The per-firm fair-use limit cannot gate these
+// (there is no firm to key on), so without a global ceiling a runaway system
+// loop has no cost bound. This default is deliberately well above legitimate
+// daily system volume (low hundreds) yet far below a runaway (tens of
+// thousands). Override per-env via AI_SYSTEM_DAILY_LIMIT.
+export const SYSTEM_AI_DAILY_LIMIT_DEFAULT = 1500
+const SYSTEM_BUDGET_KEY_PREFIX = 'ai-budget:__system__'
 
 /**
  * Two invisible fair-use buckets (never a marketed tier lever):
@@ -62,8 +73,27 @@ function budgetTtlSeconds(taskKind: AiTaskKind): number {
 }
 
 export async function consumeAiBudget(input: AiBudgetInput): Promise<AiBudgetResult> {
+  // System (no-firmId) calls share one global daily ceiling — the per-firm
+  // fair-use limit below cannot gate them. Without KV we cannot count, so we
+  // fail open (allow) rather than stall the pipeline.
+  if (!input.firmId) {
+    const limit = input.systemDailyLimit ?? SYSTEM_AI_DAILY_LIMIT_DEFAULT
+    if (!input.kv) {
+      return { allowed: true, used: 0, limit, key: null }
+    }
+    const key = `${SYSTEM_BUDGET_KEY_PREFIX}:${(input.now ?? new Date()).toISOString().slice(0, 10)}`
+    const used = Number.parseInt((await input.kv.get(key)) ?? '0', 10)
+    const current = Number.isFinite(used) ? used : 0
+    if (current >= limit) {
+      return { allowed: false, used: current, limit, key }
+    }
+    const next = current + 1
+    await input.kv.put(key, String(next), { expirationTtl: DAY_TTL_SECONDS })
+    return { allowed: true, used: next, limit, key }
+  }
+
   const limit = aiBudgetLimit(input)
-  if (!input.kv || !input.firmId || limit === Number.POSITIVE_INFINITY) {
+  if (!input.kv || limit === Number.POSITIVE_INFINITY) {
     return { allowed: true, used: 0, limit, key: null }
   }
 

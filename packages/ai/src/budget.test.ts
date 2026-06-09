@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { aiBudgetLimit, consumeAiBudget, type AiBudgetKv } from './budget'
 
+function memoryKv(): AiBudgetKv {
+  const store = new Map<string, string>()
+  return {
+    async get(key) {
+      return store.get(key) ?? null
+    },
+    async put(key, value) {
+      store.set(key, value)
+    },
+  }
+}
+
 describe('aiBudgetLimit', () => {
   it('scales the migration bucket to ~2x the plan client limit', () => {
     expect(aiBudgetLimit({ plan: 'free', taskKind: 'migration' })).toBe(20)
@@ -79,5 +91,45 @@ describe('consumeAiBudget', () => {
     expect(result.allowed).toBe(true)
     expect(result.key).toBeNull()
     expect(kv.store.size).toBe(0)
+  })
+})
+
+describe('consumeAiBudget — system (no-firmId) ceiling', () => {
+  const now = new Date('2026-06-09T00:00:00.000Z')
+
+  it('fails open for system calls when no KV is available', async () => {
+    const result = await consumeAiBudget({ taskKind: 'pulse', now })
+    expect(result.allowed).toBe(true)
+    expect(result.key).toBeNull()
+  })
+
+  it('enforces one shared global ceiling across system task kinds', async () => {
+    const kv = memoryKv()
+    const systemDailyLimit = 2
+    expect((await consumeAiBudget({ taskKind: 'pulse', kv, now, systemDailyLimit })).allowed).toBe(
+      true,
+    )
+    // A different system task kind draws from the same global bucket.
+    expect(
+      (await consumeAiBudget({ taskKind: 'insight', kv, now, systemDailyLimit })).allowed,
+    ).toBe(true)
+    const blocked = await consumeAiBudget({ taskKind: 'pulse', kv, now, systemDailyLimit })
+    expect(blocked.allowed).toBe(false)
+    expect(blocked.used).toBe(2)
+    expect(blocked.limit).toBe(2)
+  })
+
+  it('keys system usage separately so it never consumes a firm bucket', async () => {
+    const kv = memoryKv()
+    await consumeAiBudget({ taskKind: 'pulse', kv, now, systemDailyLimit: 5 })
+    const firm = await consumeAiBudget({
+      taskKind: 'brief',
+      kv,
+      now,
+      firmId: 'firm_1',
+      plan: 'pro',
+    })
+    expect(firm.allowed).toBe(true)
+    expect(firm.used).toBe(1)
   })
 })
