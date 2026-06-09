@@ -21,9 +21,10 @@ export function toContractDueDateLogic(
 }
 
 export function toContractRule(rule: CoreObligationRule): ContractObligationRule {
-  const { localFactRequirements, ...ruleRest } = rule
+  const { localFactRequirements, predecessorRuleId, ...ruleRest } = rule
   return {
     ...ruleRest,
+    ...(predecessorRuleId !== undefined ? { predecessorRuleId } : {}),
     ...(localFactRequirements !== undefined
       ? { localFactRequirements: [...localFactRequirements] }
       : {}),
@@ -111,11 +112,13 @@ export function toCoreRule(rule: ContractObligationRule): CoreObligationRule {
     localFactRequirements,
     reviewedByName,
     reviewedAt,
+    predecessorRuleId,
     ...ruleRest
   } = rule
   return {
     ...ruleRest,
     status,
+    ...(predecessorRuleId !== undefined ? { predecessorRuleId } : {}),
     ...(localJurisdiction !== undefined ? { localJurisdiction } : {}),
     ...(localFactRequirements !== undefined
       ? { localFactRequirements: [...localFactRequirements] }

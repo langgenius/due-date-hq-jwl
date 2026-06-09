@@ -618,6 +618,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     rules: {
       firmId,
       async upsertGlobalTemplates() {},
+      async getGlobalRuleTemplatesByIds() {
+        return []
+      },
       async listPracticeRules() {
         return []
       },

@@ -404,6 +404,7 @@ export const ObligationRuleSchema = z.object({
   isPayment: z.boolean(),
   taxYear: z.number().int().min(2000).max(2100),
   applicableYear: z.number().int().min(2000).max(2100),
+  predecessorRuleId: z.string().min(1).optional(),
   ruleTier: RuleTierSchema,
   status: RuleStatusSchema,
   coverageStatus: CoverageStatusSchema,
@@ -613,6 +614,7 @@ export const RuleBulkAcceptSkipSchema = z.object({
     'source_changed_requires_review',
     'source_drifted_requires_review',
     'source_defined_requires_ai_review',
+    'substantive_requires_review',
   ]),
 })
 export type RuleBulkAcceptSkip = z.infer<typeof RuleBulkAcceptSkipSchema>
@@ -622,6 +624,32 @@ export const RuleBulkAcceptTemplatesOutputSchema = z.object({
   skipped: z.array(RuleBulkAcceptSkipSchema),
 })
 export type RuleBulkAcceptTemplatesOutput = z.infer<typeof RuleBulkAcceptTemplatesOutputSchema>
+
+// Year-over-year review diff (serialized shape of @duedatehq/core's RuleDiff).
+export const RuleFieldDiffSchema = z.object({
+  field: z.string().min(1),
+  kind: z.enum(['date', 'substantive']),
+  before: z.unknown(),
+  after: z.unknown(),
+})
+export type RuleFieldDiff = z.infer<typeof RuleFieldDiffSchema>
+
+export const RuleDiffSchema = z.object({
+  hasPredecessor: z.boolean(),
+  classification: z.enum(['new', 'date_only', 'substantive']),
+  fields: z.array(RuleFieldDiffSchema),
+})
+export type RuleDiff = z.infer<typeof RuleDiffSchema>
+
+// Carry-forward bulk accept: like bulkAcceptTemplates but classifies each rule
+// against its predecessor and skips substantive changes unless explicitly forced.
+export const RuleBulkAcceptCarryforwardInputSchema = z.object({
+  rules: z.array(RuleVersionSelectionSchema).min(1).max(100),
+  reviewNote: z.string().trim().min(1).max(1000),
+  // Rule ids the reviewer accepts despite a substantive (non-date-only) change.
+  forceRuleIds: z.array(z.string().min(1)).optional(),
+})
+export type RuleBulkAcceptCarryforwardInput = z.infer<typeof RuleBulkAcceptCarryforwardInputSchema>
 
 export const RuleOnboardingActivationInputSchema = z.object({
   states: z.array(RuleGenerationStateSchema).max(RuleGenerationStateValues.length),
@@ -675,6 +703,13 @@ export const RuleBulkImpactPreviewSchema = z.object({
   entityCounts: z.array(RuleImpactDistributionRowSchema),
   formCounts: z.array(RuleImpactDistributionRowSchema),
   reviewReasonCounts: z.array(RuleImpactDistributionRowSchema),
+  // Year-over-year classification across the accept-ready selections, so the
+  // bulk dialog can show "N date-only · M need individual review".
+  classificationCounts: z.object({
+    new: z.number().int().nonnegative(),
+    date_only: z.number().int().nonnegative(),
+    substantive: z.number().int().nonnegative(),
+  }),
   sourceCount: z.number().int().nonnegative(),
   estimatedObligationCount: z.number().int().nonnegative(),
 })
@@ -829,6 +864,10 @@ export const rulesContract = oc.router({
   acceptTemplate: oc.input(RuleAcceptTemplateInputSchema).output(RuleReviewTaskSchema),
   bulkAcceptTemplates: oc
     .input(RuleBulkAcceptTemplatesInputSchema)
+    .output(RuleBulkAcceptTemplatesOutputSchema),
+  diffAgainstPredecessor: oc.input(RuleVersionSelectionSchema).output(RuleDiffSchema),
+  bulkAcceptCarryforward: oc
+    .input(RuleBulkAcceptCarryforwardInputSchema)
     .output(RuleBulkAcceptTemplatesOutputSchema),
   activateOnboardingJurisdictions: oc
     .input(RuleOnboardingActivationInputSchema)

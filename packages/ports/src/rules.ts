@@ -144,6 +144,12 @@ export interface RulesRepo {
     sources: RuleSourceTemplateInput[]
     rules: RuleTemplateInput[]
   }): Promise<void>
+  // Read global rule templates by id, INCLUDING deprecated rows. A year-stamped
+  // rule's prior-year predecessor is retained here (deprecated) after the cohort
+  // rolls forward, so this is the diff "before" source. Global, not firm-scoped.
+  getGlobalRuleTemplatesByIds(
+    ruleIds: readonly string[],
+  ): Promise<Array<{ id: string; version: number; status: string; ruleJson: unknown }>>
   listPracticeRules(status?: PracticeRuleStatus): Promise<PracticeRuleRow[]>
   listActivePracticeRules(): Promise<PracticeRuleRow[]>
   getPracticeRule(ruleId: string): Promise<PracticeRuleRow | null>

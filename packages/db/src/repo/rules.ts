@@ -534,6 +534,30 @@ export function makeRulesRepo(db: Db, firmId: string) {
       return row
     },
 
+    // Global read (incl. deprecated rows) — the diff "before" for year-stamped
+    // rules whose predecessor is retained in rule_template as a deprecated row.
+    async getGlobalRuleTemplatesByIds(
+      ruleIds: readonly string[],
+    ): Promise<Array<{ id: string; version: number; status: string; ruleJson: unknown }>> {
+      const ids = Array.from(new Set(ruleIds))
+      if (ids.length === 0) return []
+      const out: Array<{ id: string; version: number; status: string; ruleJson: unknown }> = []
+      // Chunk to stay under D1's bound-parameter limit.
+      for (let index = 0; index < ids.length; index += 90) {
+        const rows = await db
+          .select({
+            id: ruleTemplate.id,
+            version: ruleTemplate.version,
+            status: ruleTemplate.status,
+            ruleJson: ruleTemplate.ruleJson,
+          })
+          .from(ruleTemplate)
+          .where(inArray(ruleTemplate.id, ids.slice(index, index + 90)))
+        out.push(...rows)
+      }
+      return out
+    },
+
     // Drift state is global (a property of the rule↔source pair), so these two
     // intentionally do not filter by firmId.
     async listUnclearedDriftRuleIds(ruleIds: string[]): Promise<string[]> {

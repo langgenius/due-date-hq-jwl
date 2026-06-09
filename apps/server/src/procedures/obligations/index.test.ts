@@ -302,6 +302,7 @@ function makeContext(input: {
   const rules: ScopedRepo['rules'] = {
     firmId: FIRM_ID,
     upsertGlobalTemplates: null!,
+    getGlobalRuleTemplatesByIds: null!,
     listPracticeRules: null!,
     listActivePracticeRules: null!,
     getPracticeRule: vi.fn(

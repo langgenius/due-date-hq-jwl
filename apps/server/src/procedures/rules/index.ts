@@ -26,6 +26,8 @@ import {
   listRuleSources,
   previewObligationsFromRules,
   sourceCoversRuleDomain,
+  diffObligationRules,
+  resolvePredecessorRuleId,
   type ObligationRule as CoreObligationRule,
   type RequiredSourceCoverageCell,
   type RuleGenerationEntity,
@@ -782,6 +784,33 @@ export async function activateOnboardingJurisdictionRules(input: {
   }
 }
 
+/**
+ * Resolve the diff "before" rule for year-over-year review:
+ * - same-id source_changed → the firm's currently-active practice rule, or
+ * - year-stamped cohort → the deprecated predecessor template (by predecessorRuleId),
+ * - else null (brand-new / first cohort → review cold).
+ */
+function predecessorFromMaps(
+  next: CoreObligationRule,
+  practiceById: Map<string, PracticeRuleRow>,
+  globalById: Map<string, { ruleJson: unknown }>,
+): CoreObligationRule | null {
+  const existing = practiceById.get(next.id)
+  if (existing && existing.status === 'active' && existing.ruleJson) {
+    const parsed = ObligationRuleSchema.safeParse(existing.ruleJson)
+    if (parsed.success) return toCoreRule(parsed.data)
+  }
+  const predecessorId = resolvePredecessorRuleId(next)
+  if (predecessorId) {
+    const row = globalById.get(predecessorId)
+    if (row) {
+      const parsed = ObligationRuleSchema.safeParse(row.ruleJson)
+      if (parsed.success) return toCoreRule(parsed.data)
+    }
+  }
+  return null
+}
+
 async function previewBulkImpactForSelections(
   context: RpcContext,
   selections: readonly { ruleId: string; expectedVersion: number }[],
@@ -909,6 +938,23 @@ async function previewBulkImpactForSelections(
     }
   }
 
+  // Year-over-year classification of the accept-ready selections, so the bulk
+  // dialog can show "N date-only · M need individual review".
+  const predecessorIds = ready
+    .map((rule) => resolvePredecessorRuleId(rule))
+    .filter((id): id is string => id !== null)
+  const globalById = new Map(
+    (predecessorIds.length
+      ? await scoped.rules.getGlobalRuleTemplatesByIds(predecessorIds)
+      : []
+    ).map((row) => [row.id, row]),
+  )
+  const classificationCounts = { new: 0, date_only: 0, substantive: 0 }
+  for (const rule of ready) {
+    const predecessor = predecessorFromMaps(rule, practiceById, globalById)
+    classificationCounts[diffObligationRules(predecessor, rule).classification] += 1
+  }
+
   return {
     selectedCount: selections.length,
     acceptReadyCount: ready.length,
@@ -917,6 +963,7 @@ async function previewBulkImpactForSelections(
     entityCounts: distribution(entityCounts),
     formCounts: distribution(formCounts),
     reviewReasonCounts: distribution(reviewReasonCounts),
+    classificationCounts,
     sourceCount: sourceIds.size,
     estimatedObligationCount,
   }
@@ -1268,6 +1315,187 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
 
   return { accepted, skipped }
 })
+
+const diffAgainstPredecessor = os.rules.diffAgainstPredecessor.handler(
+  async ({ input, context }) => {
+    const { scoped } = requireTenant(context)
+    const next = templateRuleById(input.ruleId)
+    if (!next) return { hasPredecessor: false, classification: 'new' as const, fields: [] }
+    const practiceById = new Map(
+      (await scoped.rules.listPracticeRules()).map((rule) => [rule.ruleId, rule]),
+    )
+    const predecessorId = resolvePredecessorRuleId(next)
+    const globalById = new Map(
+      (predecessorId ? await scoped.rules.getGlobalRuleTemplatesByIds([predecessorId]) : []).map(
+        (row) => [row.id, row],
+      ),
+    )
+    return diffObligationRules(predecessorFromMaps(next, practiceById, globalById), next)
+  },
+)
+
+// Like bulkAcceptTemplates, but classifies each rule against its prior-year
+// predecessor: substantive (non-date-only) changes are skipped for individual
+// review unless the reviewer explicitly forced them via forceRuleIds.
+const bulkAcceptCarryforward = os.rules.bulkAcceptCarryforward.handler(
+  async ({ input, context }) => {
+    const { scoped, tenant, userId } = requireTenant(context)
+    await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+    const reviewerName = await currentReviewerName(context, userId)
+    const forceRuleIds = new Set(input.forceRuleIds ?? [])
+    const templateById = new Map(templateRules().map((rule) => [rule.id, rule]))
+    const practiceById = new Map(
+      (await scoped.rules.listPracticeRules()).map((rule) => [rule.ruleId, rule]),
+    )
+    const taskBySelection = new Map(
+      (await scoped.rules.listReviewTasks({ status: 'open' })).map((task) => [
+        `${task.ruleId}:${task.templateVersion}`,
+        task,
+      ]),
+    )
+    const driftRuleIds = new Set(
+      await scoped.rules.listUnclearedDriftRuleIds(
+        input.rules.map((selection) => selection.ruleId),
+      ),
+    )
+    // Predecessors (deprecated prior-year templates) for the YoY classification gate.
+    const predecessorIds = input.rules
+      .map((selection) => templateById.get(selection.ruleId))
+      .filter((rule): rule is CoreObligationRule => rule !== undefined)
+      .map((rule) => resolvePredecessorRuleId(rule))
+      .filter((id): id is string => id !== null)
+    const globalById = new Map(
+      (predecessorIds.length
+        ? await scoped.rules.getGlobalRuleTemplatesByIds(predecessorIds)
+        : []
+      ).map((row) => [row.id, row]),
+    )
+    const acceptInputs: CoreObligationRule[] = []
+    const skipped: RuleBulkAcceptSkip[] = []
+    const reviewedAt = new Date()
+
+    for (const selection of input.rules.slice(0, MAX_BULK_ACCEPT)) {
+      const rule = templateById.get(selection.ruleId)
+      if (!rule) {
+        skipped.push({
+          ruleId: selection.ruleId,
+          expectedVersion: selection.expectedVersion,
+          reason: 'template_not_found',
+        })
+        continue
+      }
+      if (rule.version !== selection.expectedVersion) {
+        skipped.push({
+          ruleId: selection.ruleId,
+          expectedVersion: selection.expectedVersion,
+          reason: 'version_conflict',
+        })
+        continue
+      }
+      if (isSourceDefinedRule(rule)) {
+        skipped.push({
+          ruleId: selection.ruleId,
+          expectedVersion: selection.expectedVersion,
+          reason: 'source_defined_requires_ai_review',
+        })
+        continue
+      }
+      const task = taskBySelection.get(`${selection.ruleId}:${selection.expectedVersion}`)
+      if (task?.reason === 'source_changed') {
+        skipped.push({
+          ruleId: selection.ruleId,
+          expectedVersion: selection.expectedVersion,
+          reason: 'source_changed_requires_review',
+        })
+        continue
+      }
+      if (driftRuleIds.has(selection.ruleId)) {
+        skipped.push({
+          ruleId: selection.ruleId,
+          expectedVersion: selection.expectedVersion,
+          reason: 'source_drifted_requires_review',
+        })
+        continue
+      }
+      const existing = practiceById.get(selection.ruleId)
+      if (existing?.status === 'active') {
+        skipped.push({
+          ruleId: selection.ruleId,
+          expectedVersion: selection.expectedVersion,
+          reason: 'already_active',
+        })
+        continue
+      }
+      if (existing?.status === 'rejected' || existing?.status === 'archived') {
+        skipped.push({
+          ruleId: selection.ruleId,
+          expectedVersion: selection.expectedVersion,
+          reason: existing.status,
+        })
+        continue
+      }
+      // YoY gate: a substantive (non-date-only) change needs individual review
+      // unless the reviewer chose to force-accept it.
+      const predecessor = predecessorFromMaps(rule, practiceById, globalById)
+      if (
+        diffObligationRules(predecessor, rule).classification === 'substantive' &&
+        !forceRuleIds.has(selection.ruleId)
+      ) {
+        skipped.push({
+          ruleId: selection.ruleId,
+          expectedVersion: selection.expectedVersion,
+          reason: 'substantive_requires_review',
+        })
+        continue
+      }
+      acceptInputs.push(rule)
+    }
+
+    if (acceptInputs.length > 0) await ensureGlobalTemplateCatalog(context)
+
+    const accepted = await Promise.all(
+      acceptInputs.map((rule) =>
+        acceptTemplateRule({
+          context,
+          rule,
+          reviewNote: input.reviewNote,
+          reviewedBy: userId,
+          reviewedByName: reviewerName,
+          reviewedAt,
+          catalogSeeded: true,
+          generateObligations: false,
+        }),
+      ),
+    )
+
+    const generation = await generateObligationsForAcceptedRules({
+      scoped,
+      userId,
+      rules: acceptInputs,
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+      monitoringStartDate: tenant.monitoringStartDate,
+      now: reviewedAt,
+      reason: input.reviewNote,
+    })
+
+    await scoped.audit.write({
+      actorId: userId,
+      entityType: 'rule_batch',
+      entityId: accepted[0]?.id ?? 'empty',
+      action: 'rules.bulk_accepted_carryforward',
+      after: {
+        acceptedCount: accepted.length,
+        skippedCount: skipped.length,
+        forcedCount: forceRuleIds.size,
+        ruleIds: accepted.map((task) => task.ruleId),
+        generatedObligationCount: generation.createdCount,
+      },
+      reason: input.reviewNote,
+    })
+
+    return { accepted, skipped }
+  },
+)
 
 const activateOnboardingJurisdictions = os.rules.activateOnboardingJurisdictions.handler(
   async ({ input, context }) => {
@@ -2191,6 +2419,8 @@ export const rulesHandlers = {
   listReviewDecisions,
   acceptTemplate,
   bulkAcceptTemplates,
+  diffAgainstPredecessor,
+  bulkAcceptCarryforward,
   activateOnboardingJurisdictions,
   rejectTemplate,
   createCustomRule,

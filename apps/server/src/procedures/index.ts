@@ -229,6 +229,8 @@ export const router = os.router({
     listReviewDecisions: rulesHandlers.listReviewDecisions,
     acceptTemplate: rulesHandlers.acceptTemplate,
     bulkAcceptTemplates: rulesHandlers.bulkAcceptTemplates,
+    diffAgainstPredecessor: rulesHandlers.diffAgainstPredecessor,
+    bulkAcceptCarryforward: rulesHandlers.bulkAcceptCarryforward,
     activateOnboardingJurisdictions: rulesHandlers.activateOnboardingJurisdictions,
     rejectTemplate: rulesHandlers.rejectTemplate,
     createCustomRule: rulesHandlers.createCustomRule,

@@ -376,6 +376,12 @@ export interface ObligationRule {
   isPayment: boolean
   taxYear: number
   applicableYear: number
+  /**
+   * Prior filing-year equivalent of this rule, for year-over-year review diffs.
+   * Authored when a new annual cohort is added; absent on the first-ever cohort
+   * (then the rule reviews "cold" with no predecessor to diff against).
+   */
+  predecessorRuleId?: string
   ruleTier: RuleTier
   status: RuleStatus
   coverageStatus: CoverageStatus
@@ -394,6 +400,14 @@ export interface ObligationRule {
   nextReviewOn: string
   version: number
 }
+
+export {
+  derivePredecessorRuleIdFromToken,
+  diffObligationRules,
+  isDateOnlyDueDateLogicChange,
+  resolvePredecessorRuleId,
+} from './rule-diff'
+export type { RuleDiff, RuleDiffClassification, RuleFieldDiff } from './rule-diff'
 
 export type RuleGenerationEntity = Exclude<EntityApplicability, 'any_business'> | 'other'
 

@@ -2262,6 +2262,7 @@ function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null
     source_changed_requires_review: t`Source changed requires single-rule review`,
     source_drifted_requires_review: t`Source updated — re-verify before adopting`,
     source_defined_requires_ai_review: t`AI draft review required`,
+    substantive_requires_review: t`Substantive change — review individually`,
   }
 
   return (
