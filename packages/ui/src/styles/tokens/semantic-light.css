@@ -67,6 +67,14 @@
   --background-overlay-fullscreen: rgb(249 250 251 / 0.95);
   --background-sidenav-bg: rgb(255 255 255 / 0.85);
   --background-surface-white: rgb(255 255 255 / 0.95);
+  /* 2026-06-09 (Yuqi sidebar parity): the floating sidebar card fill.
+     A cool very-light gray (#f6f8fa) so the white work surface beyond
+     reads as the brighter plane. `--background-sidebar-hover` is ~10
+     units darker for nav-row hover — a perceptible but quiet step on
+     the card. The search field sits WHITE on this card (raised), so it
+     uses `--background-default`, not these. */
+  --background-sidebar-card: #f6f8fa;
+  --background-sidebar-hover: #eceff4;
 
   /* ===== Divider ======================================================== */
   --divider-subtle: rgb(16 24 40 / 0.04);
@@ -200,6 +208,9 @@
   --components-button-accent-bg-hover: var(--color-util-colors-primary-100);
   --components-button-accent-bg-disabled: var(--color-util-colors-gray-50);
   --components-button-accent-border: rgb(21 90 239 / 0.22);
+  /* 2026-06-09: disabled accent drops the blue border back to a neutral
+     hairline — a blue edge on a gray disabled fill read as "still active." */
+  --components-button-accent-border-disabled: rgb(16 24 40 / 0.04);
 
   /* ===== Components: input ============================================== */
   --components-input-bg-normal: rgb(200 206 218 / 0.25);

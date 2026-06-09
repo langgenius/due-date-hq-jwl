@@ -7,6 +7,7 @@ import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
   CheckIcon,
+  ChevronsUpDownIcon,
   GlobeIcon,
   LogOutIcon,
   MonitorIcon,
@@ -228,16 +229,28 @@ function UserMenuTrigger({
               // avatar at 16px). No collapsed size override — only the
               // name span hides, the avatar stays put and centers in the
               // narrow card via the symmetric padding.
-              'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2 rounded-md px-1 py-1 outline-none transition-[background-color,color]',
+              'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2.5 rounded-md px-1.5 py-2.5 outline-none transition-[background-color,color]',
               'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             )}
           />
         }
       >
         <UserAvatar user={user} />
-        <span className="min-w-0 flex-1 truncate text-left text-sm font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden">
-          {displayName}
+        {/* 2026-06-09 (Yuqi follow-up — match Pencil §UserFooter): the
+            chip is a two-line identity stack (display name + workspace
+            name) with a chevron affordance, replacing the single-line
+            name. Both the stack and chevron hide in the collapsed rail,
+            leaving just the avatar. */}
+        <span className="flex min-w-0 flex-1 flex-col text-left leading-tight group-data-[collapsed=true]/sidebar:hidden">
+          <span className="truncate text-[13px] font-semibold text-text-primary">{displayName}</span>
+          <span className="truncate text-[11px] font-medium text-text-muted" translate="no">
+            {firm.name}
+          </span>
         </span>
+        <ChevronsUpDownIcon
+          className="size-4 shrink-0 text-text-tertiary group-data-[collapsed=true]/sidebar:hidden"
+          aria-hidden
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-64">
         {/* 2026-05-25 (Yuqi caps fix): this block was using

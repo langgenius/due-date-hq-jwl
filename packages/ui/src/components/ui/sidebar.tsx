@@ -440,9 +440,9 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
               the right. The warm body (bg-background-body) shows in the
               gutters, so the white card reads as detached from the
               canvas with the white work surface beyond.
-            • Fill is a NEUTRAL gray (#f4f4f4 light / #242426 dark) — no
-              warm/cool tint (Yuqi "gray background not colour tinted") —
-              so it reads as a plain gray surface against the white shell.
+            • Fill is the `--background-sidebar-card` token (#f6f8fa light
+              / #242426 dark) — a cool very-light gray, so the white work
+              surface beyond reads as the brighter plane.
             • `rounded-xl` (12px) + a soft 1px shadow give the float; NO
               border ("no board") — the shadow alone lifts the panel off
               the white canvas.
@@ -457,7 +457,7 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           measure and overflows the narrow footprint, floating above the
           inset. */}
       <div
-        className="absolute inset-y-3 left-3 z-30 flex flex-col gap-2 overflow-hidden rounded-xl bg-[#f4f4f4] p-3 shadow-[0_1px_2px_rgb(16_24_40_/_0.04)] transition-[width] duration-300 ease-apple motion-reduce:transition-none dark:bg-[#242426]"
+        className="absolute inset-y-3 left-3 z-30 flex flex-col gap-1.5 overflow-hidden rounded-xl bg-background-sidebar-card p-2.5 shadow-[0_1px_2px_rgb(16_24_40_/_0.04)] transition-[width] duration-300 ease-apple motion-reduce:transition-none"
         style={{
           width: `calc(${targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH} - ${SIDEBAR_CARD_INSET})`,
         }}
@@ -593,10 +593,10 @@ export function SidebarGroupLabel({ className, ...props }: React.ComponentProps<
       role="separator"
       aria-orientation="horizontal"
       className={cn(
-        // 2026-06-09 (Yuqi "copy exactly from pencil" §RuleLabel /
-        // §ClientsLabel): height 30, padding [12,12,4,12] → pt-3 pb-1
-        // px-3, text 11px / 600 / +1 tracking, #98a2b2 (text-muted).
-        'flex h-[30px] shrink-0 items-center px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-muted',
+        // 2026-06-09 (Yuqi sidebar parity — §RuleLabel / §ClientsLabel):
+        // height 30, padding [14,12,4,12] → pt-3.5 pb-1 px-3, text 10px /
+        // 600 / 1.2px tracking, #676f83 (text-tertiary).
+        'flex h-[30px] shrink-0 items-center px-3 pt-3.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-tertiary',
         // Collapsed: the frame KEEPS its 30px height + padding (no
         // height collapse → no layout jump). The text is hidden and a
         // centered 19×1.5px hairline (#CCCCCC → divider-deep) is drawn
@@ -633,10 +633,9 @@ export function SidebarMenu({ className, ...props }: React.ComponentProps<'ul'>)
   return (
     <ul
       data-slot="sidebar-menu"
-      // 2026-06-09 (Yuqi "drop to 0px"): no gap between nav rows — they
-      // sit flush as one continuous list; the hover/active tile is the
-      // only thing that separates a row visually. Same in both modes.
-      className={cn('flex w-full min-w-0 flex-col', className)}
+      // 2026-06-09 (Yuqi sidebar parity — Pencil §Frame18 gap 2): a 2px
+      // gap between nav rows (gap-0.5). Same in both modes.
+      className={cn('flex w-full min-w-0 flex-col gap-0.5', className)}
       {...props}
     />
   )
@@ -675,22 +674,21 @@ const sidebarMenuButtonVariants = cva(
     // (gap-3 — "icon与text之间的gap稍微大一点"), px-3, rounded-lg. Label
     // text-[15px]. Identical in both modes — collapsed re-centering is
     // gone (see below).
-    'group/menu-button peer/menu-button relative flex h-9 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-3 text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
-    // Hover uses a neutral surface token; selected state below uses the
-    // explicit accent tint so route wayfinding stays distinct from row hover.
-    'hover:bg-background-default-hover hover:text-text-primary',
+    'group/menu-button peer/menu-button relative flex h-9 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-lg px-[9px] text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
+    // Hover uses the sidebar-row token (~10 units darker than the
+    // #f6f8fa card) so the wash reads as a quiet step on the card;
+    // selected state below uses the explicit accent tint so route
+    // wayfinding stays distinct from row hover.
+    'hover:bg-background-sidebar-hover hover:text-text-primary',
     'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
     'disabled:pointer-events-none disabled:opacity-50',
     'aria-disabled:pointer-events-none aria-disabled:opacity-50',
-    // 2026-06-09 (Yuqi "be thoughtful about what can be seen easily vs
-    // not"): inactive nav icons sit a step QUIETER than their labels
-    // (text-tertiary #676f83 vs text-secondary #354052). The label
-    // carries the meaning and leads; the icon supports. This restores a
-    // hierarchy where the eye lands on the active (blue) row first, then
-    // labels, with icons as a calm supporting layer — instead of every
-    // glyph reading at full strength. Active + muted states override
-    // this below / via the group's opacity.
-    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-text-tertiary",
+    // 2026-06-09 (Yuqi sidebar parity — match Pencil): inactive nav
+    // icons sit at the SAME tone as their labels (text-secondary
+    // #354052), per Pencil §Sidebar where icon and label share one
+    // color. Active + muted states override this below / via the
+    // group's opacity.
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-text-secondary",
     // Active state has two valid sources: (1) react-router's NavLink renders
     // `aria-current="page"` automatically, and (2) any consumer that passes
     // `isActive` to SidebarMenuButton sets `data-active="true"`. Either flips
@@ -881,7 +879,7 @@ export function SidebarMenuBadge({
   //     row's right edge via `ml-auto`. Same chrome as collapsed, just
   //     full-size and aligned.
   const pillBaseExpanded =
-    'pointer-events-none inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 font-mono text-[10px] font-semibold tabular-nums leading-none'
+    'pointer-events-none inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 font-mono text-[11px] font-medium tabular-nums leading-none'
   const expandedPos = 'ml-auto'
   // 2026-05-27 (Yuqi feedback "just a red dot is enough"): collapsed
   // mode reverts to a bare dot indicator — no digit, no border. The

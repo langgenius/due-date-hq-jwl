@@ -168,6 +168,8 @@
   --color-background-overlay-fullscreen: var(--background-overlay-fullscreen);
   --color-background-sidenav-bg: var(--background-sidenav-bg);
   --color-background-surface-white: var(--background-surface-white);
+  --color-background-sidebar-card: var(--background-sidebar-card);
+  --color-background-sidebar-hover: var(--background-sidebar-hover);
 
   /* Divider */
   --color-divider-subtle: var(--divider-subtle);
@@ -317,6 +319,7 @@
   --color-components-button-accent-bg-hover: var(--components-button-accent-bg-hover);
   --color-components-button-accent-bg-disabled: var(--components-button-accent-bg-disabled);
   --color-components-button-accent-border: var(--components-button-accent-border);
+  --color-components-button-accent-border-disabled: var(--components-button-accent-border-disabled);
 
   /* Components: input */
   --color-components-input-bg-normal: var(--components-input-bg-normal);

@@ -50,6 +50,10 @@
   --background-overlay-fullscreen: rgb(39 39 42 / 0.97);
   --background-sidenav-bg: rgb(39 39 42 / 0.92);
   --background-surface-white: rgb(255 255 255 / 0.9);
+  /* 2026-06-09 (Yuqi sidebar parity): dark counterparts of the floating
+     sidebar card fill + nav-row hover (light = #f6f8fa / #eceff4). */
+  --background-sidebar-card: #242426;
+  --background-sidebar-hover: #2e2e31;
 
   /* ===== Divider ======================================================== */
   --divider-subtle: rgb(200 206 218 / 0.08);
@@ -177,6 +181,8 @@
   --components-button-accent-bg-hover: rgb(21 90 239 / 0.24);
   --components-button-accent-bg-disabled: rgb(255 255 255 / 0.03);
   --components-button-accent-border: rgb(21 90 239 / 0.32);
+  /* 2026-06-09: see semantic-light.css — neutral disabled hairline. */
+  --components-button-accent-border-disabled: rgb(255 255 255 / 0.04);
 
   /* ===== Components: input ============================================== */
   --components-input-bg-normal: rgb(255 255 255 / 0.08);

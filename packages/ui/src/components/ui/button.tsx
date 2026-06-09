@@ -64,7 +64,7 @@ const buttonVariants = cva(
           'border-components-button-accent-border bg-components-button-accent-bg text-components-button-accent-text',
           'hover:bg-components-button-accent-bg-hover',
           'aria-expanded:bg-components-button-accent-bg-hover',
-          'disabled:bg-components-button-accent-bg-disabled disabled:text-components-button-accent-text-disabled',
+          'disabled:border-components-button-accent-border-disabled disabled:bg-components-button-accent-bg-disabled disabled:text-components-button-accent-text-disabled',
         ),
         'destructive-primary': cn(
           'border-components-button-destructive-primary-border bg-components-button-destructive-primary-bg text-components-button-destructive-primary-text',

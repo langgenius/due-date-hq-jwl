@@ -253,23 +253,22 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               // SidebarCollapseToggle sibling. Collapsed mode
               // still snaps to size-8 since both children stack
               // vertically below xl.
-              // 2026-06-09 (Yuqi new design v202hj §BrandHeader): the
-              // firm switcher is an OUTLINED BOX — rounded-2xl (16),
-              // 1px divider border, transparent fill, padding 12 — with
-              // just the practice name + chevron. No company avatar (the
-              // monogram was redundant with the name beside it). Collapsed
-              // mode falls back to the 32px monogram tile (a name can't
-              // show in the narrow rail), so the box chrome drops and the
-              // button becomes a borderless avatar tile.
-              className="flex w-full min-w-0 cursor-pointer touch-manipulation items-center gap-2 rounded-lg border border-divider-deep px-3 py-2 text-left outline-none transition-colors hover:border-divider-intense hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:rounded-md group-data-[collapsed=true]/sidebar:border-0 group-data-[collapsed=true]/sidebar:p-0"
+              // 2026-06-09 (Yuqi follow-up — match Pencil v202hj
+              // §BrandHeader): the firm switcher is an OUTLINED BOX —
+              // rounded-xl (12), 1px divider border, transparent fill,
+              // padding 12 — holding the 32px monogram tile + practice
+              // name + chevron. Collapsed mode drops the box chrome and
+              // the name/chevron, leaving the borderless monogram tile
+              // centered in the narrow rail.
+              className="flex w-full min-w-0 cursor-pointer touch-manipulation items-center gap-2.5 rounded-xl border border-divider-deep p-1 text-left outline-none transition-colors hover:border-divider-intense hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:rounded-md group-data-[collapsed=true]/sidebar:border-0 group-data-[collapsed=true]/sidebar:p-0"
             />
           }
         >
-          {/* 2026-06-09 (Yuqi new design v202hj): no company avatar in
-              the expanded box. The monogram tile renders ONLY in the
-              collapsed rail, where a name can't fit — there it's the
-              compact workspace identity. */}
-          <span className="hidden shrink-0 group-data-[collapsed=true]/sidebar:flex">
+          {/* 2026-06-09 (Yuqi follow-up — monogram restored to match
+              Pencil §BrandHeader): the 32px monogram tile renders in BOTH
+              modes — beside the name when expanded, and as the standalone
+              workspace identity in the collapsed rail. */}
+          <span className="flex shrink-0">
             <AssigneeAvatar
               name={firm.name}
               title={firm.name}
@@ -280,7 +279,7 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
             />
           </span>
           <span
-            className="min-w-0 flex-1 truncate text-base font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
+            className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
             translate="no"
           >
             {firm.name}
@@ -404,15 +403,16 @@ function SidebarQuickFind() {
       aria-keyshortcuts="Meta+K Control+K"
       title={collapsedRail ? t`Quick find` : undefined}
       className={cn(
-        // 2026-06-09 (Yuqi "remove the background of the search bar"):
-        // no field fill — the search row sits flat on the card like the
-        // nav rows, picking up the same neutral hover. gap-2.5 + a 16px
-        // icon (below) line its icon and text up exactly with the nav
-        // items beneath it.
-        'flex h-9 w-full cursor-pointer touch-manipulation items-center gap-3 rounded-lg px-3 text-left text-text-muted outline-none transition-colors',
-        'hover:bg-background-default-hover hover:text-text-secondary',
+        // 2026-06-09 (Yuqi "search input bg white"): the quick-find field
+        // is WHITE (bg-background-default) — raised on the #f6f8fa card.
+        // Hover uses the shared sidebar-row darken; collapsed drops to
+        // transparent (icon-only, in family with the nav rows). gap-3 +
+        // a 16px icon (below) line its icon and text up exactly with the
+        // nav items beneath it.
+        'flex h-9 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg bg-background-default px-3 text-left text-text-muted outline-none transition-colors',
+        'hover:bg-background-sidebar-hover hover:text-text-secondary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        'group-data-[collapsed=true]/sidebar:text-text-tertiary',
+        'group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',
       )}
     >
       <SearchIcon className="size-4 shrink-0" aria-hidden />
@@ -425,7 +425,7 @@ function SidebarQuickFind() {
           modifier + key read clearly. */}
       <span
         aria-hidden
-        className="shrink-0 font-mono text-[11px] font-semibold tracking-wide text-text-tertiary group-data-[collapsed=true]/sidebar:hidden"
+        className="shrink-0 font-mono text-[10px] font-semibold tracking-wide text-text-tertiary group-data-[collapsed=true]/sidebar:hidden"
       >
         {shortcut}
       </span>
