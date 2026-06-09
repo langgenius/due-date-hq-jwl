@@ -342,8 +342,10 @@ function NeedsAttentionCard({
         // 2026-06-09 (Yuqi #9 "hover to show border"): a transparent
         // border at rest keeps geometry fixed; on hover a divider hairline
         // fades in alongside the bg step so the card reads as "liftable."
-        'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-4 rounded-[14px] border border-transparent bg-background-section p-[18px] text-left',
-        'transition-colors duration-200 hover:border-divider-regular hover:bg-background-subtle',
+        'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-4 rounded-[14px] bg-background-section p-[18px] text-left',
+        // 2026-06-09 (Yuqi /today "hover do not show border"): the hover border
+        // hairline is dropped — hover is carried by the bg step alone.
+        'transition-colors duration-200 hover:bg-background-subtle',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}
@@ -423,8 +425,14 @@ function NeedsAttentionCard({
             ) : null}
 
             {/* CHANGE KIND — e.g. "DEADLINE SHIFTED", plain label. Neutral
-                (two-color rule) + card font (#11). */}
-            <span className="shrink-0 text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase transition-colors group-hover:text-text-accent">
+                (two-color rule) + card font (#11).
+                2026-06-09 (Yuqi /today "hide on default, show on hover"): the
+                change-kind label is invisible at rest and fades in on card
+                hover. opacity-0 reserves its width so the meta row doesn't
+                reflow.
+                2026-06-09 (Yuqi /today "gray. hover shows gray"): on hover it
+                stays the muted gray tone — no accent-tone switch. */}
+            <span className="shrink-0 text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               {changeKindLabel(alert.changeKind)}
             </span>
           </div>
@@ -503,7 +511,11 @@ function NeedsAttentionCard({
           )}
         </span>
 
-        {avatars.length > 0 ? (
+        {/* 2026-06-09 (Yuqi /today "avatar only when clients affected"): gate
+            the avatar stack on real client impact, not just the presence of
+            affected-client names. When nothing matched (impacted === 0) the
+            row reads "No clients matched" with no avatars trailing it. */}
+        {impacted > 0 && avatars.length > 0 ? (
           <span className="flex items-center pl-0.5">
             {avatars.map((avatar, index) => (
               <Tooltip key={avatar.name}>
@@ -546,16 +558,23 @@ function NeedsAttentionCard({
           </span>
         ) : null}
 
-        <span aria-hidden className="text-text-muted">
-          ·
-        </span>
-        <span
-          className={cn(
-            'text-xs font-medium tabular-nums text-text-secondary transition-colors',
-            confidenceHoverToneClass,
-          )}
-        >
-          <Trans>conf {confidencePct}%</Trans>
+        {/* 2026-06-09 (Yuqi /today "confidence only on hover"): the
+            confidence read-out (and its leading dot separator) is invisible at
+            rest and fades in on card hover. opacity-0 reserves the layout width
+            so the row doesn't shift; the tier color still resolves on hover via
+            confidenceHoverToneClass. */}
+        <span className="inline-flex items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+          <span aria-hidden className="text-text-muted">
+            ·
+          </span>
+          <span
+            className={cn(
+              'text-xs font-medium tabular-nums text-text-secondary transition-colors',
+              confidenceHoverToneClass,
+            )}
+          >
+            <Trans>conf {confidencePct}%</Trans>
+          </span>
         </span>
 
         <span className="flex-1" />

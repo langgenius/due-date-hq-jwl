@@ -881,7 +881,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   reachable while paging through alerts. `bg-background-inset`
                   (the page wash) + `pb-2` keep the cards reading cleanly as
                   they scroll underneath; `z-20` sits above the rows. */}
-              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 border-b border-divider-subtle bg-background-inset pb-3">
+              {/* 2026-06-09 (Yuqi /alerts "remove the bottom border"): the
+                  sticky toolbar's `border-b` hairline is dropped. The page-wash
+                  fill + padding already separate the toolbar from the scrolling
+                  rows; the extra rule read as a hard seam across the column. */}
+              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset pb-3">
                 {/* 2026-06-04 round 39 (Yuqi 3-item filter-row feedback):
                     filter row restructured into a single dense strip.
                     Order LEFT → RIGHT:

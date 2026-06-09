@@ -61,8 +61,10 @@ export function MonitoringChip({
     </>
   )
   const badgeClass = cn(
-    'px-0 text-text-secondary',
-    to ? 'cursor-pointer transition-colors hover:text-text-primary' : 'cursor-help',
+    // 2026-06-09 (Yuqi /today "muted text colour"): the chip label sits at
+    // text-muted so it reads as quiet ambient status, not a second title.
+    'px-0 text-text-muted',
+    to ? 'cursor-pointer transition-colors hover:text-text-secondary' : 'cursor-help',
     className,
   )
   return (

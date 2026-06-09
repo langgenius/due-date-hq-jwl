@@ -25,7 +25,6 @@ import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { DueDateLabel } from '@/components/primitives/due-date-label'
 import { formatDatePretty } from '@/lib/utils'
 import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
-import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { ExtensionChip } from './extension-chip'
@@ -289,7 +288,7 @@ function ActionsTable({
                       label to text-primary so it reads as a real header
                       dividing the lifecycle groups, not a faint whisper. */}
                   <TableCell
-                    colSpan={8}
+                    colSpan={7}
                     className="bg-background-subtle px-[18px] py-1 text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
                   >
                     <StatusGroupLabel kind={currentStatusGroup} />
@@ -380,7 +379,7 @@ function ActionsTableRow({
       // but rows can now contain a 2-line stacked cell (action +
       // why-now, due-date + relative date) without feeling
       // suffocated.
-      className="group cursor-pointer hover:!bg-background-subtle focus-visible:bg-background-subtle focus-visible:outline-none [&_td]:py-3"
+      className="group relative cursor-pointer hover:!bg-background-subtle focus-visible:bg-background-subtle focus-visible:outline-none [&_td]:py-3"
     >
       {/* 2026-06-04 round 11 (Yuqi "don't like the dedicated Smart
           Priority chip - too complicated and useless"): chip
@@ -483,31 +482,33 @@ function ActionsTableRow({
             hover on each row to show more information"): the
             Why-now factor line surfaces Smart Priority reasoning
             inline.
-            2026-06-09 (Yuqi "hover the row shows the corner icon"):
-            the line (corner glyph + "Why now: …") now fades in on
-            ROW HOVER for EVERY row — the earlier always-on treatment
-            for Critical rows is dropped so the reveal is uniform. The
-            TableRow carries the `group` class, so this is a CSS-only
-            reveal with no JS state; `opacity-0` reserves the row
-            height when factors exist so hover doesn't jitter the table. */}
+            2026-06-09 (Yuqi "show the why now by default, only the corner
+            icon on hover"): the reason text is now ALWAYS visible under the
+            prompt — it's the primary triage signal, not a hover-only extra.
+            Only the leading corner glyph fades in on row hover (it's a
+            decorative connector, not information), so the line reads cleanly at
+            rest and the corner reinforces the prompt↔reason link on hover. The
+            corner's `opacity-0` reserves its slot so the text doesn't shift. */}
         <div className="flex flex-col gap-0.5">
           <span className="text-sm font-normal text-text-secondary transition-colors group-hover:font-medium group-hover:text-text-primary">
             {prompt}
           </span>
           {allRowFactors.length > 0 ? (
             <span
-              className="inline-flex items-center gap-1.5 text-xs text-text-tertiary opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+              className="relative inline-flex items-center text-xs text-text-tertiary"
               title={allRowFactors.join(' · ')}
             >
-              {/* Leading elbow/"L" glyph mirrors the alert row's action elbow,
-                  signalling this is a follow-on reason for the prompt above.
-                  2026-06-09 (Yuqi "replace the corner with the new svg"): swapped
-                  the stroked elbow for the filled corner glyph (9×9, curved
-                  quarter-turn) so the reason-line corner matches the supplied
-                  asset. `fill-current` inherits the muted tone. */}
+              {/* Leading corner glyph (9×9 filled quarter-turn) signalling this
+                  is a follow-on reason for the prompt above.
+                  2026-06-09 (Yuqi "default the corner icon is hidden, hence the
+                  2 lines left-align"): the glyph is pulled OUT of the text flow —
+                  `absolute -left-3` parks it in the cell's px-5 (20px) left
+                  gutter — so the "Why now:" text sits flush-left with the prompt
+                  by default (icon hidden, no indent). On row hover the glyph
+                  fades in within the gutter without shifting the text. */}
               <svg
                 viewBox="0 0 9 9"
-                className="size-[5px] shrink-0 text-text-muted"
+                className="absolute top-1/2 -left-3 size-[5px] -translate-y-1/2 text-text-muted opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
                 fill="none"
                 aria-hidden
               >
@@ -538,8 +539,10 @@ function ActionsTableRow({
           {row.status === 'extended' ? <ExtensionChip /> : null}
         </div>
       </TableCell>
-      {/* DUE cell stacks: relative countdown + absolute internal due date. */}
-      <TableCell>
+      {/* DUE cell stacks: relative countdown + absolute internal due date.
+          It's now the trailing cell (pr-[18px] gives the row's right inset);
+          the Review action no longer takes a dedicated column. */}
+      <TableCell className="pr-[18px]">
         <div className="flex flex-col gap-0.5">
           <DueDateLabel
             days={days}
@@ -551,30 +554,34 @@ function ActionsTableRow({
             {formatDatePretty(row.currentDueDate)}
           </span>
         </div>
-      </TableCell>
-      {/* 2026-06-08 (Yuqi "hover each row shows a review button"): a
-          hover-revealed Review action, matching the /alerts row pattern.
-          The button reserves its own trailing column so the reveal never
-          jitters the table; it's invisible at rest (opacity-0) and fades in
-          on row hover/focus. The whole-row click still opens the drawer —
-          this is the explicit affordance for users who want a visible CTA.
-          `tabIndex={-1}` keeps it out of the tab order (the row itself is
-          the focusable target); `aria-hidden` mirrors that. */}
-      <TableCell className="pr-[18px] text-right">
-        <Button
-          type="button"
-          size="xs"
-          variant="link"
-          tabIndex={-1}
-          aria-hidden
-          onClick={(event) => {
-            event.stopPropagation()
-            onClick()
-          }}
-          className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
-        >
-          <Trans>Review</Trans>
-        </Button>
+        {/* 2026-06-09 (Yuqi "review button doesn't need its own column — put it
+            on top of content with a mask/fade so the action reads clear"): the
+            Review CTA dropped its trailing column (which was stealing width
+            from the content cells). It's now an absolutely-positioned overlay
+            anchored to the row's right edge (the row is `relative`), invisible
+            at rest and faded in on hover/focus. A left-fading gradient in the
+            row's hover tone (`bg-background-subtle`) masks whatever sits under
+            it (the due date) so the button always reads cleanly without
+            obscuring the action prompt far to the left. `pointer-events-none`
+            on the mask keeps the whole-row click working; the button re-enables
+            pointer events. `tabIndex={-1}`/`aria-hidden` keep it out of the tab
+            order — the row itself is the focusable target. */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-subtle from-55% to-transparent pr-[18px] pl-16 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+          <Button
+            type="button"
+            size="xs"
+            variant="link"
+            tabIndex={-1}
+            aria-hidden
+            onClick={(event) => {
+              event.stopPropagation()
+              onClick()
+            }}
+            className="pointer-events-auto"
+          >
+            <Trans>Review</Trans>
+          </Button>
+        </div>
       </TableCell>
     </TableRow>
   )
@@ -943,7 +950,20 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
             treatment shared with the Alerts h2. See
             docs/Design/section-header-style.md. */}
         <h2 className="flex items-center gap-1.5 text-[14px] font-semibold tracking-[0.4px] text-text-primary uppercase">
-          <Trans>Actions this week</Trans>
+          {/* 2026-06-09 (Yuqi /today "click go to deadlines page"): the title
+              links to the full deadlines list (via onOpenAll — the same handler
+              the removed "View all deadlines" link used). The Sparkles tooltip
+              stays a non-link sibling. */}
+          <Link
+            to="/deadlines"
+            onClick={(event) => {
+              event.preventDefault()
+              onOpenAll()
+            }}
+            className="rounded-sm underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <Trans>Actions this week</Trans>
+          </Link>
           <Tooltip>
             <TooltipTrigger
               render={(props) => (
@@ -986,23 +1006,9 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
           </Trans>
         </p>
       </div>
-      {/* 2026-06-04 round 16 (Yuqi page-feedback "remove arrow"):
-          trailing ChevronRightIcon dropped on the section-link.
-          The underlined "View all" copy alone carries the
-          affordance; chevron read as a redundant directional cue. */}
-      <TextLink
-        render={
-          <Link
-            to="/deadlines"
-            onClick={(event) => {
-              event.preventDefault()
-              onOpenAll()
-            }}
-          />
-        }
-      >
-        <Trans>View all deadlines</Trans>
-      </TextLink>
+      {/* 2026-06-09 (Yuqi /today "hide"): the right-aligned "View all
+          deadlines" link is removed — the section title "Actions this week"
+          now navigates to the deadlines list. */}
     </div>
   )
 }

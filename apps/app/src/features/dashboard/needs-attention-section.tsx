@@ -1,13 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { CircleCheckIcon } from 'lucide-react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
-
-import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import {
@@ -52,7 +50,6 @@ const TODAY_ALERTS_LIMIT = 50
 
 function NeedsAttentionSection() {
   const { t } = useLingui()
-  const navigate = useNavigate()
   const { openDrawer: openAlert } = useAlertDrawer()
 
   const alertsQuery = useQuery(useAlertsListQueryOptions(TODAY_ALERTS_LIMIT))
@@ -211,7 +208,16 @@ function NeedsAttentionSection() {
             14/600/0.4px-uppercase + primary-ink treatment; see
             docs/Design/section-header-style.md. */}
         <h2 className="flex items-center gap-2 text-[14px] font-semibold tracking-[0.4px] text-text-primary uppercase">
-          <Trans>Alerts</Trans>
+          {/* 2026-06-09 (Yuqi /today "click Alerts go to alerts page"): the
+              title word links to /alerts; the count badge + MonitoringChip stay
+              as non-link siblings. Replaces the removed right-aligned "View
+              all" TextLink. */}
+          <Link
+            to="/alerts"
+            className="rounded-sm underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <Trans>Alerts</Trans>
+          </Link>
           {totalAlertCount > 0 ? (
             // 2026-06-04 round 45 (Yuqi /today feedback #2 — "just
             // write a number, [8]"): the count chip drops the
@@ -244,19 +250,9 @@ function NeedsAttentionSection() {
             <MonitoringChip />
           ) : null}
         </h2>
-        {totalAlertCount > 0 ? (
-          // 2026-06-04 round 16 (Yuqi page-feedback "remove arrow"):
-          // trailing ChevronRightIcon dropped. The "View all" copy
-          // alone carries the affordance; the chevron was reading
-          // as a redundant directional cue next to underlined link
-          // chrome.
-          <TextLink
-            onClick={() => void navigate('/alerts')}
-            aria-label={t`View all ${totalAlertCount} alerts`}
-          >
-            <Trans>View all</Trans>
-          </TextLink>
-        ) : null}
+        {/* 2026-06-09 (Yuqi /today "hide"): the right-aligned "View all"
+            TextLink is removed — the section title "Alerts" now navigates to
+            /alerts, so the duplicate affordance is gone. */}
       </div>
 
       {totalAlertCount > 0 ? (

@@ -164,7 +164,12 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
     .filter(Boolean)
     .join(', ')
   return (
-    <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-default p-4">
+    // 2026-06-09 (Yuqi alert-detail "light gray background"): the hero
+    // Deadline-change card steps white → bg-background-subtle, matching its
+    // sibling PracticeImpactSection below. With the gray fill carrying the
+    // card's edge against the white body, the border is dropped so the two
+    // stacked cards read as one consistent gray-card family.
+    <section className="flex flex-col gap-2.5 rounded-lg bg-background-subtle p-4">
       {/* 2026-06-08 (Aogxu parity Phase 1, task 3): the AI signal is now the
           single inline subtitle on the EXTRACTED FACTS header — the hero
           DEADLINE CHANGE card shows no AI badge (matches the Aogxu mock). */}
@@ -263,7 +268,10 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
       : getJurisdictionName(detail.jurisdiction)
 
   return (
-    <section className="flex flex-col gap-3 rounded-lg bg-background-subtle p-4">
+    // 2026-06-09 (Yuqi alert-detail "too many boxes"): flattened — the gray
+    // box + padding are dropped now that this sits inside the white "The
+    // change" group card. Its Lightbulb header carries the delineation.
+    <section className="flex flex-col gap-3">
       <header className="flex items-center gap-1.5">
         <LightbulbIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
         <span className="text-[12px] font-semibold text-text-secondary">
@@ -954,6 +962,28 @@ export function AlertDetailDrawer({
   // (see `ObligationQueueDetailDrawer` in routes/obligations.tsx)
   // which already proves this works for cross-surface drawers
   // that need both an in-route panel + a floating fallback.
+  // 2026-06-09 (Yuqi alert-detail "header collapses on scroll to leave more
+  // room for reading"): the hero header shrinks once the body scrolls past a
+  // small threshold — the big title drops to a single compact line and the
+  // summary dek + roomy padding fall away, reclaiming vertical space for the
+  // content below. Driven by the body scroll container's onScroll; the setter
+  // bails out when the boolean doesn't change so scrolling doesn't thrash
+  // renders.
+  const [headerCollapsed, setHeaderCollapsed] = useState(false)
+
+  // 2026-06-09 (Yuqi alert-detail "group into obvious sections"): the
+  // "Affected clients" group card renders only when it has real content —
+  // a client surface (overlay or review-only) OR an apply-permission notice
+  // OR the manager-review / ready-to-apply controls. Avoids an empty card on
+  // no-match / read-only alerts.
+  const showClientsGroup =
+    !!detail &&
+    ((detail.alert.actionMode === 'due_date_overlay' &&
+      detail.alert.firmImpact !== 'no_current_match') ||
+      (detail.alert.actionMode === 'review_only' && detail.affectedClients.length > 0) ||
+      (detail.alert.firmImpact !== 'no_current_match' && !canApply) ||
+      (detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady))
+
   const body = (
     <>
       {/* 2026-06-08 (Pencil ibEoz/BbQAK `BackStrip`): top bar — back-to-
@@ -970,9 +1000,13 @@ export function AlertDetailDrawer({
           "‹ Alerts … N of M … ✕". */}
       {/* 2026-06-09 (Yuqi right-side measure, option B): chrome border spans the
           full width (so the bar never looks cut off), but its content is capped
-          to the same 760px measure + left-pinned as the document below. */}
+          to the same 760px measure as the document below.
+          2026-06-09 (Yuqi alert-detail "align to the center"): the 760px measure
+          is now `mx-auto` so the top bar's back-link + position + close sit
+          centered over the same document column the header, body, and footer
+          share, instead of pinning to the left padding edge. */}
       <div className="flex h-[52px] shrink-0 items-center border-b border-divider-subtle px-12">
-        <div className="flex w-full max-w-[760px] items-center justify-between gap-3">
+        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
@@ -991,7 +1025,7 @@ export function AlertDetailDrawer({
               type="button"
               onClick={onClose}
               aria-label={t`Close alert detail`}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <XIcon className="size-4" aria-hidden />
             </button>
@@ -1040,7 +1074,18 @@ export function AlertDetailDrawer({
           sitting on a 40px floor of dead space before the body
           content started; cutting bottom padding tightens the
           transition from Hero → first body section. */}
-      <SheetHeader className="border-b border-divider-subtle px-12 pt-10 pb-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
+      {/* 2026-06-09 (Yuqi alert-detail "light gray header background" + "remove
+          bottom border"): the hero header takes a soft gray fill
+          (bg-background-subtle) and drops its `border-b` hairline. The tonal
+          step from the gray header to the white body now carries the
+          separation on its own — no rule needed — and reads as a calmer,
+          document-style masthead. */}
+      <SheetHeader
+        className={cn(
+          'bg-background-subtle px-12 transition-all duration-200 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+          headerCollapsed ? 'pt-4 pb-4' : 'pt-10 pb-6',
+        )}
+      >
         {detailQuery.isLoading || !detail ? (
           <DetailHeaderSkeleton />
         ) : (
@@ -1141,12 +1186,19 @@ export function AlertDetailDrawer({
                     much of the fold that the title pushed the
                     Source Extract below it. 22px keeps the title
                     as the lede without dominating the panel. */}
-                <h2 className="text-[22px] font-semibold leading-[1.25] tracking-[-0.4px] text-text-primary">
+                <h2
+                  className={cn(
+                    'font-semibold leading-[1.25] tracking-[-0.4px] text-text-primary transition-all duration-200',
+                    headerCollapsed ? 'line-clamp-1 text-[16px]' : 'text-[22px]',
+                  )}
+                >
                   {detail.alert.title}
                 </h2>
 
-                {/* Summary / dek */}
-                {detail.alert.summary &&
+                {/* Summary / dek — hidden once the header collapses on scroll so
+                    the masthead shrinks to title-only. */}
+                {!headerCollapsed &&
+                detail.alert.summary &&
                 detail.alert.summary.trim() !== detail.alert.title.trim() ? (
                   <p className="text-[14px] font-medium leading-[1.5] text-text-secondary">
                     {detail.alert.summary}
@@ -1183,7 +1235,13 @@ export function AlertDetailDrawer({
             room, so the CPA always sees both the last content and
             the action bar with a clean gap between them. Top stays
             py-10 (40px) — header → content rhythm doesn't change. */}
-      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-12 pt-6 pb-24 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
+      <div
+        onScroll={(event) => {
+          const next = event.currentTarget.scrollTop > 16
+          setHeaderCollapsed((prev) => (prev === next ? prev : next))
+        }}
+        className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto bg-background-subtle px-12 pt-6 pb-24 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]"
+      >
         {/* 2026-06-08 (Pencil ibEoz order): SOURCE EXTRACT moved from
             the top of the body down to just before Provenance — the
             design leads with the decision banner + key change + facts +
@@ -1217,52 +1275,67 @@ export function AlertDetailDrawer({
         ) : null}
 
         {detail ? (
-          // 2026-06-08 (Yuqi alert-detail feedback #12 "remove frame" +
-          // "avoid using too many frames"): the sections no longer live in a
-          // bordered white card-within-a-card. They're a flat `divide-y`
-          // stack flush with the body's `px-12` margin, sitting directly on
-          // the panel's light wash — so the detail reads as one calm document
-          // instead of a card nested inside a card. `[&>*]:py-5` keeps the
-          // vertical rhythm; horizontal padding comes from the body.
-          // (Kept out of flex-shrink so the body owns the scroll height.)
-          <div className="flex shrink-0 flex-col divide-y divide-divider-subtle [&>*]:py-5">
-            {/* 2026-06-08 (Pencil ibEoz/BbQAK `Qla5h KeyChange`): the
-                prominent left-border DEADLINE CHANGE card — the single
-                most scannable fact on the panel. Old → new date with the
-                day delta, then the scope facts (jurisdiction/county,
-                affected forms, apply mode). Real data only; renders for
-                deadline-overlay alerts that carry both dates. */}
-            <DeadlineChangeCard detail={detail} />
+          // 2026-06-09 (Yuqi alert-detail "group into obvious sections"): the
+          // body is a `gap-4` stack of up-to-four white group cards on the
+          // gray-wash body (see the per-group comment below). Kept out of
+          // flex-shrink so the scroll container owns the scroll height.
+          <div className="flex shrink-0 flex-col gap-4">
+            {/* 2026-06-09 (Yuqi alert-detail "too many boxes floating around —
+                group into obvious sections"): the former flat divide-y stack of
+                ~14 mixed flat-sections + floating tinted boxes is reorganised
+                into four white cards on the body's gray wash —
+                  1. The change      (deadline shift + extracted facts + impact)
+                  2. Affected clients (scope table + apply/review controls)
+                  3. Source & confidence (warnings + source extract + provenance)
+                  4. Activity         (lifecycle timeline + team notes)
+                No new section labels: each card's boundary + its existing inner
+                headers carry the grouping, so the panel reads as four obvious
+                blocks instead of a dozen disconnected boxes. Card radius 12
+                (canonical wrapper); white fill pops against the gray body. */}
 
-            {/* 2026-06-08 (Yuqi "confirm deadline change是什么?"): the
-                standalone DeadlineDetailsPanel form is gone — it isn't
-                in the ibEoz design and read as a stray empty box. The
-                affected-clients table below IS the confirmation surface
-                (per-row Confirm / Exclude), so it now always renders for
-                due-date alerts regardless of `missingDeadlineDetails`. */}
-            {detail.alert.actionMode === 'due_date_overlay' &&
-            detail.alert.firmImpact !== 'no_current_match' ? (
-              // 2026-06-08 (Yuqi alert-detail feedback #11 "gap too large"):
-              // the header→table gap was gap-3 (12px), which left the
-              // "Affected clients" label floating above its table. Tightened
-              // to gap-2 (8px) so the label reads as the table's caption.
-              <section className="flex flex-col gap-2">
-                {/* Round 47 (Yuqi #5 — "fulfill the content and make
-                    it information rich"): section header restyled
-                    to Pencil n9m9B vocabulary — `font-mono` 11/700
-                    uppercase `tracking-[0.8px]` `text-text-muted`,
-                    matching SOURCE EXTRACT / EXTRACTED FACTS /
-                    PROVENANCE & CONFIDENCE labels. Count moves into
-                    the same line as a tabular-nums tag instead of
-                    a parenthesized aside. */}
+            {/* GROUP 1 — The change. */}
+            <div className="flex flex-col gap-5 rounded-[12px] border border-divider-subtle bg-background-default p-6">
+              {/* 2026-06-09 (Yuqi alert-detail "sections with labels"): each
+                  group card gets a consistent eyebrow title (11/600 uppercase
+                  tertiary) so the four sections are unmistakable. */}
+              <h3 className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+                <Trans>The change</Trans>
+              </h3>
+              {/* Pencil ibEoz/BbQAK `Qla5h KeyChange`: the prominent DEADLINE
+                  CHANGE hero — old → new date + day delta + scope facts. Renders
+                  for deadline-overlay alerts that carry both dates. */}
+              <DeadlineChangeCard detail={detail} />
+
+              {/* Extracted facts (Aogxu parity): the AI signal is the inline
+                  muted subtitle — the single AI affordance in the detail. */}
+              <section className="flex flex-col gap-3">
+                <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <span className="text-[12px] font-semibold text-text-secondary">
+                    <Trans>Extracted facts</Trans>
+                  </span>
+                  <span className="text-[12px] text-text-tertiary">
+                    <Trans>AI parsed these from the source — verify before Apply</Trans>
+                  </span>
+                </header>
+                <AlertStructuredFields detail={detail} />
+              </section>
+
+              {/* "What this means for your practice" — self-gates to auto-applied
+                  due-date overlays with matched clients; otherwise renders null. */}
+              <PracticeImpactSection detail={detail} />
+            </div>
+
+            {/* GROUP 2 — Affected clients + apply/review controls. */}
+            {showClientsGroup ? (
+              <div className="flex flex-col gap-5 rounded-[12px] border border-divider-subtle bg-background-default p-6">
+                {/* 2026-06-09 (Yuqi "sections with labels"): single group header
+                    for the card — carries the client count + (overlay) selection
+                    summary. The inner overlay/review sections drop their own
+                    headers so "Affected clients" isn't duplicated. <h3> (not a
+                    span) — E2E specs match
+                    getByRole('heading', { name: /Affected clients/ }). */}
                 <header className="flex items-baseline justify-between">
-                  {/* 2026-06-05 (pre-CI green-up): the section label was
-                      a <span> for compactness, but E2E specs
-                      (pulse.spec.ts:29, rbac-permissions.spec.ts) match
-                      `getByRole('heading', { name: /Affected clients/ })`.
-                      Switched to `<h3>` so screen readers + Playwright
-                      see this as a heading. Typography unchanged. */}
-                  <h3 className="text-[12px] font-semibold text-text-secondary">
+                  <h3 className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
                     <Trans>Affected clients</Trans>
                     {detail.affectedClients.length > 0 ? (
                       <span className="ml-2 tabular-nums">{detail.affectedClients.length}</span>
@@ -1270,271 +1343,220 @@ export function AlertDetailDrawer({
                   </h3>
                   {stats ? <SelectionSummary stats={stats} /> : null}
                 </header>
-                {detail.affectedClients.length > 0 ? (
-                  <AffectedClientsTable
-                    rows={detail.affectedClients}
-                    selection={selection}
-                    confirmedReviewIds={confirmedReviewIds}
-                    excludedIds={excludedIds}
-                    onChangeSelection={setSelection}
-                    onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
-                    onToggleExcluded={
-                      permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
-                    }
-                    readOnly={!canApply || !deadlineApplyReady}
+
+                {/* Due-date overlay: per-row Confirm / Exclude is the
+                    confirmation surface — always renders for due-date alerts. */}
+                {detail.alert.actionMode === 'due_date_overlay' &&
+                detail.alert.firmImpact !== 'no_current_match' ? (
+                  <section className="flex flex-col gap-2">
+                    {detail.affectedClients.length > 0 ? (
+                      <AffectedClientsTable
+                        rows={detail.affectedClients}
+                        selection={selection}
+                        confirmedReviewIds={confirmedReviewIds}
+                        excludedIds={excludedIds}
+                        onChangeSelection={setSelection}
+                        onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
+                        onToggleExcluded={
+                          permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
+                        }
+                        readOnly={!canApply || !deadlineApplyReady}
+                      />
+                    ) : (
+                      <p className="rounded-lg border border-divider-subtle bg-background-soft px-4 py-3 text-sm text-text-secondary">
+                        <Trans>
+                          No clients matched this alert's scope. You can dismiss it or wait — if a
+                          new client is added that matches the scope, the alert will reopen.
+                        </Trans>
+                      </p>
+                    )}
+                  </section>
+                ) : null}
+
+                {/* Review-only (rule-change / source-drift): read-only blast
+                    radius — which clients have open obligations on the rule. */}
+                {detail.alert.actionMode === 'review_only' &&
+                detail.affectedClients.length > 0 ? (
+                  <section className="flex flex-col gap-3">
+                    <AffectedClientsTable
+                      rows={detail.affectedClients}
+                      selection={selection}
+                      confirmedReviewIds={confirmedReviewIds}
+                      excludedIds={excludedIds}
+                      onChangeSelection={setSelection}
+                      onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
+                      readOnly
+                      variant="review"
+                    />
+                  </section>
+                ) : null}
+
+                {detail.alert.firmImpact !== 'no_current_match' && !canApply ? (
+                  <PermissionInlineNotice
+                    permission="pulse.apply"
+                    currentRole={permissions.role}
                   />
-                ) : (
-                  <p className="rounded-md border border-divider-subtle bg-background-soft px-4 py-3 text-sm text-text-secondary">
-                    <Trans>
-                      No clients matched this alert's scope. You can dismiss it or wait — if a new
-                      client is added that matches the scope, the alert will reopen.
-                    </Trans>
-                  </p>
-                )}
-              </section>
+                ) : null}
+
+                {detail.alert.actionMode === 'due_date_overlay' &&
+                permissions.canViewPriorityQueue &&
+                deadlineApplyReady ? (
+                  <ManagerReviewPanel
+                    canManage={permissions.canManagePriorityReview}
+                    reviewStatus={priorityReview?.status ?? null}
+                    selectedCount={stats?.selectedCount ?? 0}
+                    excludedCount={excludedIds.size}
+                    needsReviewCount={stats?.needsReviewCount ?? 0}
+                    isMutating={isMutating}
+                    onConfirmAll={handleConfirmAllNeedsReview}
+                    onSave={() =>
+                      reviewPriorityMutation.mutate({
+                        alertId: detail.alert.id,
+                        selectedObligationIds: Array.from(selection),
+                        confirmedObligationIds: Array.from(confirmedReviewIds),
+                        excludedObligationIds: Array.from(excludedIds),
+                      })
+                    }
+                  />
+                ) : null}
+
+                {/* Pencil `sbs7M ReadyToApply`: green ready-to-apply
+                    affirmation + Apply-now shortcut (same verification gate as
+                    the footer). Real data: selected-client count + confidence. */}
+                {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
+                  <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4">
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-text-success/15 text-text-success">
+                        <ShieldCheckIcon className="size-4" aria-hidden />
+                      </span>
+                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <span className="text-[13px] font-semibold text-text-success">
+                          <Trans>Ready to apply · deadline selection confirmed</Trans>
+                        </span>
+                        <p className="text-[12px] leading-[1.5] text-text-secondary">
+                          <Plural
+                            value={stats?.selectedCount ?? 0}
+                            one="# client confirmed and matched to the new date."
+                            other="# clients confirmed and matched to the new date."
+                          />{' '}
+                          <Trans>
+                            Every decision is captured to the audit ledger and reversible for 24
+                            hours.
+                          </Trans>
+                        </p>
+                      </div>
+                      <span className="hidden shrink-0 font-mono text-[11px] font-bold text-text-success tabular-nums sm:inline">
+                        {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
+                      </span>
+                    </div>
+                    {canApply ? (
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleApply}
+                          disabled={isMutating}
+                          className="bg-text-success hover:bg-text-success/90"
+                        >
+                          <Trans>Apply now</Trans>
+                          <ArrowRightIcon data-icon="inline-end" />
+                        </Button>
+                      </div>
+                    ) : null}
+                  </section>
+                ) : null}
+              </div>
             ) : null}
 
-            {/* Rule-change / source-drift alerts (review_only) don't apply a date
-                overlay, so the overlay section above is skipped. Surface the same
-                impact question read-only: which clients have open obligations backed
-                by the changed rule (so the CPA sees the blast radius before re-verifying). */}
-            {detail.alert.actionMode === 'review_only' && detail.affectedClients.length > 0 ? (
-              <section className="flex flex-col gap-3">
-                <header className="flex items-baseline justify-between">
-                  <h3 className="text-sm font-semibold text-text-primary">
-                    <Trans>Affected clients</Trans>
-                    <span className="ml-1.5 text-text-tertiary">
-                      ({detail.affectedClients.length})
-                    </span>
-                  </h3>
-                </header>
-                <AffectedClientsTable
-                  rows={detail.affectedClients}
-                  selection={selection}
-                  confirmedReviewIds={confirmedReviewIds}
-                  excludedIds={excludedIds}
-                  onChangeSelection={setSelection}
-                  onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
-                  readOnly
-                  variant="review"
-                />
-              </section>
-            ) : null}
-
-            {/* 2026-05-26 (Yuqi sixteenth pass #6): SuggestedActionsPanel
-                removed — its Apply / Mark-reviewed buttons duplicated
-                the sticky SheetFooter (DrawerActions) at the bottom
-                of the drawer. With the footer always visible at the
-                bottom (sheet + panel modes), the inline panel just
-                doubled the action surface area. The footer is now
-                the canonical action site. */}
-
-            {/* AI confidence: combined the small "AI 46%" badge
-                  with the "Low AI confidence" alert into one block
-                  so the same concept isn't shown twice (#15, #19).
-                  The alert is the canonical surface — it names the
-                  exact confidence number AND explains what to do.
-                  2026-05-25 (Yuqi Today #11): variant flipped from
-                  `destructive` → `warning`. Low AI confidence is a
-                  "double-check this" cue, not a "this thing broke"
-                  cue. Red text reads as error and pushes the CPA
-                  toward the wrong mental model (data is wrong vs.
-                  data needs verification). Amber matches the
-                  semantics. */}
-            {isLowAiConfidence(detail.alert.confidence) ? (
-              // 2026-05-26 (Yuqi eighteenth pass): icon removed from
-              // this Alert. With the icon gone the Alert primitive
-              // falls back to its non-icon layout (single column),
-              // so the title + description align on the same left
-              // edge without the column-offset behaviour.
-              <Alert variant="warning">
-                <AlertTitle>
-                  <ConceptLabel concept="aiConfidence">
+            {/* GROUP 3 — Source & confidence: warnings, the verbatim source
+                extract, and the provenance read-out. */}
+            <div className="flex flex-col gap-5 rounded-[12px] border border-divider-subtle bg-background-default p-6">
+              <h3 className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+                <Trans>Source &amp; confidence</Trans>
+              </h3>
+              {/* Low AI confidence — a "double-check this" cue (amber, not
+                  destructive). Names the % and explains what to verify. */}
+              {isLowAiConfidence(detail.alert.confidence) ? (
+                <Alert variant="warning">
+                  <AlertTitle>
+                    <ConceptLabel concept="aiConfidence">
+                      {detail.alert.firmImpact === 'no_current_match' ? (
+                        <Trans>
+                          AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
+                        </Trans>
+                      ) : (
+                        <Trans>
+                          AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
+                          before applying
+                        </Trans>
+                      )}
+                    </ConceptLabel>
+                  </AlertTitle>
+                  <AlertDescription>
                     {detail.alert.firmImpact === 'no_current_match' ? (
                       <Trans>
-                        AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
+                        The model extracted these fields with low confidence. Compare against the
+                        source excerpt below and the structured scope before marking it reviewed.
                       </Trans>
                     ) : (
                       <Trans>
-                        AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
-                        before applying
+                        The model extracted these fields with low confidence. Compare against the
+                        source excerpt below and the structured scope before pushing changes to
+                        clients.
                       </Trans>
                     )}
-                  </ConceptLabel>
-                </AlertTitle>
-                <AlertDescription>
-                  {detail.alert.firmImpact === 'no_current_match' ? (
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+
+              {detail.alert.sourceStatus === 'source_revoked' ? (
+                <Alert variant="destructive">
+                  <AlertTitle>
+                    <Trans>Source revoked</Trans>
+                  </AlertTitle>
+                  <AlertDescription>
                     <Trans>
-                      The model extracted these fields with low confidence. Compare against the
-                      source excerpt below and the structured scope before marking it reviewed.
+                      This source is no longer trusted. The historical alert remains visible, but
+                      new apply, review, dismiss, and undo actions are disabled.
                     </Trans>
-                  ) : (
-                    <Trans>
-                      The model extracted these fields with low confidence. Compare against the
-                      source excerpt below and the structured scope before pushing changes to
-                      clients.
-                    </Trans>
-                  )}
-                </AlertDescription>
-              </Alert>
-            ) : null}
+                  </AlertDescription>
+                </Alert>
+              ) : null}
 
-            {/* Round 47 (Yuqi #5 — content richness): wrap the
-                structured-fields panel with an EXTRACTED FACTS
-                section header so it reads as a named block, not
-                as floating chrome. The PulseStructuredFields
-                primitive owns its internal layout (Source / Scope
-                fact cards); this just adds the canonical n9m9B
-                label above it. */}
-            {/* 2026-06-08 (Aogxu parity Phase 1, task 3): the AI signal moves
-                from a tooltip-revealed Astroid glyph to an inline muted
-                subtitle next to the title — "AI parsed these from the source —
-                verify before Apply". This is the single AI affordance in the
-                detail now (the DeadlineChangeCard hero dropped its badge), so
-                the signal reads as one consistent caption rather than two. */}
-            <section className="flex flex-col gap-3">
-              <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                <span className="text-[12px] font-semibold text-text-secondary">
-                  <Trans>Extracted facts</Trans>
-                </span>
-                <span className="text-[12px] text-text-tertiary">
-                  <Trans>AI parsed these from the source — verify before Apply</Trans>
-                </span>
-              </header>
-              <AlertStructuredFields detail={detail} />
-            </section>
-
-            {/* 2026-06-08 (Aogxu parity Phase 1, task 1): the tinted "What
-                this means for your practice" band — sits right after the raw
-                extracted facts to translate them into firm-facing value.
-                Self-gates to auto-applied due-date overlays with matched
-                clients; otherwise renders nothing. */}
-            <PracticeImpactSection detail={detail} />
-
-            {detail.alert.firmImpact !== 'no_current_match' && !canApply ? (
-              // ρ ROH-D6: canonical PermissionInlineNotice derives the
-              // required-role text from the enum. ψ ROH-D11's hand-rolled
-              // Alert+helper alternative was already redundant here.
-              <PermissionInlineNotice permission="pulse.apply" currentRole={permissions.role} />
-            ) : null}
-
-            {detail.alert.sourceStatus === 'source_revoked' ? (
-              <Alert variant="destructive">
-                <AlertTitle>
-                  <Trans>Source revoked</Trans>
-                </AlertTitle>
-                <AlertDescription>
-                  <Trans>
-                    This source is no longer trusted. The historical alert remains visible, but new
-                    apply, review, dismiss, and undo actions are disabled.
-                  </Trans>
-                </AlertDescription>
-              </Alert>
-            ) : null}
-
-            {detail.alert.actionMode === 'due_date_overlay' &&
-            permissions.canViewPriorityQueue &&
-            deadlineApplyReady ? (
-              <ManagerReviewPanel
-                canManage={permissions.canManagePriorityReview}
-                reviewStatus={priorityReview?.status ?? null}
-                selectedCount={stats?.selectedCount ?? 0}
-                excludedCount={excludedIds.size}
-                needsReviewCount={stats?.needsReviewCount ?? 0}
-                isMutating={isMutating}
-                onConfirmAll={handleConfirmAllNeedsReview}
-                onSave={() =>
-                  reviewPriorityMutation.mutate({
-                    alertId: detail.alert.id,
-                    selectedObligationIds: Array.from(selection),
-                    confirmedObligationIds: Array.from(confirmedReviewIds),
-                    excludedObligationIds: Array.from(excludedIds),
-                  })
-                }
-              />
-            ) : null}
-
-            {/* 2026-06-08 (Pencil ibEoz/BbQAK `sbs7M ReadyToApply`): the
-                green ready-to-apply affirmation. Replaces the plain
-                dashed safety-checklist with the design's success callout
-                — confirmed-client summary + AI confidence + an Apply-now
-                shortcut that routes through the same verification gate as
-                the footer. Real data: selected-client count + confidence. */}
-            {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
-              <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4">
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-text-success/15 text-text-success">
-                    <ShieldCheckIcon className="size-4" aria-hidden />
-                  </span>
-                  <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="text-[13px] font-semibold text-text-success">
-                      <Trans>Ready to apply · deadline selection confirmed</Trans>
+              {/* SOURCE EXTRACT — the verbatim quote anchor. */}
+              {detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
+                <section className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-semibold text-text-secondary">
+                      <Trans>Source extract</Trans>
                     </span>
-                    <p className="text-[12px] leading-[1.5] text-text-secondary">
-                      <Plural
-                        value={stats?.selectedCount ?? 0}
-                        one="# client confirmed and matched to the new date."
-                        other="# clients confirmed and matched to the new date."
-                      />{' '}
-                      <Trans>
-                        Every decision is captured to the audit ledger and reversible for 24 hours.
-                      </Trans>
-                    </p>
-                  </div>
-                  <span className="hidden shrink-0 font-mono text-[11px] font-bold text-text-success tabular-nums sm:inline">
-                    {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
-                  </span>
-                </div>
-                {canApply ? (
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={handleApply}
-                      disabled={isMutating}
-                      className="bg-text-success hover:bg-text-success/90"
-                    >
-                      <Trans>Apply now</Trans>
-                      <ArrowRightIcon data-icon="inline-end" />
-                    </Button>
-                  </div>
-                ) : null}
-              </section>
-            ) : null}
-
-            {/* SOURCE EXTRACT (Pencil ibEoz order — near the bottom, a
-                verbatim anchor after the decision content). */}
-            {detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
-              <section className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[12px] font-semibold text-text-secondary">
-                    <Trans>Source extract</Trans>
-                  </span>
-                  {detail.alert.sourceUrl ? (
-                    <TextLink
-                      variant="accent"
-                      render={<a href={detail.alert.sourceUrl} target="_blank" rel="noreferrer" />}
-                    >
-                      <Trans>Open original ↗</Trans>
-                    </TextLink>
-                  ) : null}
-                </div>
-                <blockquote className="rounded-lg bg-background-subtle px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
-                  &ldquo;{detail.alert.summary}&rdquo;
-                  <footer className="mt-2 font-sans text-[11px] font-medium text-text-muted">
-                    {detail.alert.source}
-                    {detail.alert.publishedAt ? (
-                      <>
-                        {' · '}
-                        <span className="tabular-nums">
-                          {formatRelativeTime(detail.alert.publishedAt)}
-                        </span>
-                      </>
+                    {detail.alert.sourceUrl ? (
+                      <TextLink
+                        variant="accent"
+                        render={
+                          <a href={detail.alert.sourceUrl} target="_blank" rel="noreferrer" />
+                        }
+                      >
+                        <Trans>Open original ↗</Trans>
+                      </TextLink>
                     ) : null}
-                  </footer>
-                </blockquote>
-              </section>
-            ) : null}
+                  </div>
+                  <blockquote className="rounded-lg bg-background-subtle px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
+                    &ldquo;{detail.alert.summary}&rdquo;
+                    <footer className="mt-2 font-sans text-[11px] font-medium text-text-muted">
+                      {detail.alert.source}
+                      {detail.alert.publishedAt ? (
+                        <>
+                          {' · '}
+                          <span className="tabular-nums">
+                            {formatRelativeTime(detail.alert.publishedAt)}
+                          </span>
+                        </>
+                      ) : null}
+                    </footer>
+                  </blockquote>
+                </section>
+              ) : null}
 
             {/* Round 47 (Yuqi #5 — "fulfill the content and make it
                 information rich"): PROVENANCE & CONFIDENCE section
@@ -1634,19 +1656,22 @@ export function AlertDetailDrawer({
               )
             })()}
 
-            {/* 2026-06-08 (Pencil ibEoz/BbQAK `gRY5g Activity`): the
-                lifecycle timeline. Built from the alert's real
-                timestamps (received → matched → reviewed → current
-                state) rather than a per-alert event feed (none exists
-                yet) — so every node is a fact already on the record,
-                not a fabricated event. */}
-            <AlertActivityTimeline detail={detail} />
+            </div>
 
-            {/* 2026-06-08 (Pencil Aogxu §7 "Team notes"): internal team
-                discussion threaded on the alert — the LAST section in the body.
-                Any firm member can read + add a note (with a quiet Reply
-                affordance). Wired to pulse.listAlertNotes / pulse.addAlertNote. */}
-            <AlertTeamNotes alertId={detail.alert.id} />
+            {/* GROUP 4 — Activity: lifecycle timeline + team notes. */}
+            <div className="flex flex-col gap-5 rounded-[12px] border border-divider-subtle bg-background-default p-6">
+              <h3 className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+                <Trans>Activity &amp; notes</Trans>
+              </h3>
+              {/* Pencil `gRY5g Activity`: lifecycle timeline built from the
+                  alert's real timestamps (received → matched → reviewed →
+                  current) — every node is a fact already on the record. */}
+              <AlertActivityTimeline detail={detail} />
+
+              {/* Pencil Aogxu §7 "Team notes": internal discussion threaded on
+                  the alert. Wired to pulse.listAlertNotes / pulse.addAlertNote. */}
+              <AlertTeamNotes alertId={detail.alert.id} />
+            </div>
           </div>
         ) : null}
       </div>
@@ -1699,18 +1724,22 @@ export function AlertDetailDrawer({
           bumped gap-4 → gap-8 so the note doesn't butt against the first button. */}
       <SheetFooter className="min-h-16 flex-row items-center gap-8 border-t border-divider-subtle bg-background-default px-12 py-3 sm:flex-row">
         {/* 2026-06-09 (Yuqi right-side measure, option B): footer chrome spans
-            full width; its actions cap to the 760px document measure. */}
-        <div className="flex w-full max-w-[760px] flex-row items-center gap-8">
+            full width; its actions cap to the 760px document measure.
+            2026-06-09 (Yuqi alert-detail "center placed"): the 760px measure is
+            now `mx-auto` so the footer action row sits centered under the
+            same document column the header + body share, instead of hugging
+            the left padding edge. */}
+        <div className="mx-auto flex w-full max-w-[760px] flex-row items-center gap-8">
           {detail ? (
             <div className="hidden shrink-0 items-center gap-3.5 text-text-tertiary xl:flex">
               <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
-                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
+                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
                   A
                 </kbd>
                 <Trans>Apply</Trans>
               </span>
               <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
-                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
+                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
                   D
                 </kbd>
                 <Trans>Dismiss</Trans>
@@ -2355,7 +2384,7 @@ function AlertApplyVerificationDialog({
             <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
               <Trans>Source excerpt</Trans>
             </span>
-            <blockquote className="line-clamp-6 break-words rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-sm italic leading-relaxed text-text-secondary">
+            <blockquote className="line-clamp-6 break-words rounded-lg border border-divider-subtle bg-background-soft px-3 py-2 text-sm italic leading-relaxed text-text-secondary">
               “{detail.sourceExcerpt}”
             </blockquote>
           </section>
@@ -2366,7 +2395,7 @@ function AlertApplyVerificationDialog({
               "you still need to confirm". */}
           <Label
             htmlFor="pulse-apply-verified"
-            className="flex cursor-pointer items-start gap-3 rounded-md border border-divider-regular bg-background-default px-3 py-3 transition-colors hover:border-text-tertiary has-[input:checked]:border-state-accent-active-alt has-[input:checked]:bg-state-accent-active-alt/5"
+            className="flex cursor-pointer items-start gap-3 rounded-lg border border-divider-regular bg-background-default px-3 py-3 transition-colors hover:border-text-tertiary has-[input:checked]:border-state-accent-active-alt has-[input:checked]:bg-state-accent-active-alt/5"
           >
             <Checkbox
               id="pulse-apply-verified"

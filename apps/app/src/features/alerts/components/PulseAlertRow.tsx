@@ -397,7 +397,7 @@ function PulseAlertRow({
       {!compact ? (
         <div className="flex w-[90px] shrink-0 flex-col gap-1">
           <span className="text-[13px] font-medium text-text-primary">{railDate}</span>
-          <span className="text-[11px] font-medium tracking-[-0.1px] text-text-tertiary tabular-nums">
+          <span className="text-[11px] font-medium text-text-tertiary tabular-nums">
             {absoluteTime}
           </span>
           <span className="text-[11px] text-text-muted">{railRelative}</span>
@@ -417,7 +417,7 @@ function PulseAlertRow({
               when the alert is in the priority queue. */}
           {levelPill ? (
             <span
-              className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] border px-2 text-[10px] font-bold tracking-[0.6px] uppercase"
+              className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] border px-2 text-[11px] font-semibold tracking-[0.3px] uppercase"
               style={{
                 backgroundColor: levelPill.bg,
                 borderColor: levelPill.border,
@@ -464,15 +464,13 @@ function PulseAlertRow({
               accent). One change-kind type signature across /today + /alerts.
               Followed by the real source-corroboration count (`kdiMz`) in
               success green when the same change was seen across snapshots. */}
-          <span className="inline-flex min-w-0 shrink-0 items-center gap-1.5">
-            <span className="text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
-              {changeKindLabel(alert.changeKind)}
-            </span>
-            {confirmingSources > 1 ? (
-              <span className="text-[11px] font-semibold text-text-success">
-                <Trans>· confirmed by {confirmingSources} sources</Trans>
-              </span>
-            ) : null}
+          {/* 2026-06-09 (Yuqi /alerts "tidy up the content"): the
+              "· confirmed by N sources" green clause was removed — the bottom
+              confidence pill already leads with "N sources · X% conf", so the
+              head was duplicating the corroboration signal. The change-kind
+              label now stands alone here. */}
+          <span className="text-[11px] font-semibold tracking-[0.3px] text-text-tertiary uppercase">
+            {changeKindLabel(alert.changeKind)}
           </span>
 
           {/* Spacer NdGpw (fill_container) */}
@@ -512,7 +510,7 @@ function PulseAlertRow({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="inline-flex min-w-0 shrink cursor-pointer items-center gap-1 truncate text-[12px] font-medium tracking-[-0.1px] text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline"
+                    className="inline-flex min-w-0 shrink cursor-pointer items-center gap-1 truncate text-[12px] font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline"
                     onClick={(event) => {
                       event.stopPropagation()
                       window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
@@ -534,7 +532,7 @@ function PulseAlertRow({
               </TooltipContent>
             </Tooltip>
           ) : (
-            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-[12px] font-medium tracking-[-0.1px] text-text-tertiary">
+            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-[12px] font-medium text-text-tertiary">
               <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
               <span className="truncate">{alert.source}</span>
             </span>
@@ -607,7 +605,7 @@ function PulseAlertRow({
           <div className="flex flex-col gap-2">
             {showDateRow ? (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[12px] font-medium tracking-[0.2px] text-text-muted line-through tabular-nums">
+                <span className="font-mono text-[12px] font-medium text-text-muted line-through tabular-nums">
                   {oldDateLabel}
                 </span>
                 <ArrowRightIcon
@@ -615,7 +613,7 @@ function PulseAlertRow({
                   strokeWidth={1.5}
                   aria-hidden
                 />
-                <span className="font-mono text-[12px] font-bold tracking-[-0.2px] text-text-primary tabular-nums">
+                <span className="font-mono text-[12px] font-semibold text-text-primary tabular-nums">
                   {newDateLabel}
                 </span>
                 {daysDiff !== null ? (
@@ -668,7 +666,7 @@ function PulseAlertRow({
                   style={{ backgroundColor: '#FFFBEB' }}
                 >
                   <span
-                    className="text-[11px] font-bold tracking-[0.7px] uppercase"
+                    className="text-[11px] font-semibold tracking-[0.3px] uppercase"
                     style={{ color: '#92400E' }}
                   >
                     <Trans>Action</Trans>
@@ -692,7 +690,7 @@ function PulseAlertRow({
           <div className="flex flex-col gap-2 rounded-[10px] border border-divider-subtle bg-[#fafbfc] px-[14px] py-3">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
-              <span className="text-[11px] font-bold tracking-[0.3px] text-text-secondary">
+              <span className="text-[11px] font-semibold tracking-[0.3px] text-text-secondary">
                 <Trans>Why this is urgent · priority {priority.score}</Trans>
               </span>
               <span className="flex-1" aria-hidden />
@@ -706,7 +704,7 @@ function PulseAlertRow({
                   key={reason.key}
                   className="inline-flex items-center gap-1.5 rounded-md border border-divider-subtle bg-background-default px-2 py-1"
                 >
-                  <span className="text-[11px] font-bold text-text-accent tabular-nums">
+                  <span className="text-[11px] font-semibold text-text-accent tabular-nums">
                     +{reason.points}
                   </span>
                   <span className="text-[11px] font-semibold text-text-secondary">
@@ -1088,8 +1086,12 @@ function PulseAlertList({
                 date header"): the day-group band now carries the same
                 `bg-background-subtle` fill + text-secondary uppercase label as
                 the /today Actions table's status-group header. */}
+                {/* 2026-06-09 (Yuqi /alerts "lighter muted text"): the date
+                    divider label steps text-secondary → text-tertiary. It's a
+                    quiet date separator, not a lede — the lighter tone keeps it
+                    from competing with the alert rows beneath it. */}
                 <div className="flex items-center border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
                     {isToday ? (
                       <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
                     ) : null}
