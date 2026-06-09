@@ -290,7 +290,18 @@ export function ReadinessOverview({
 // the year ("2026"); fiscal / short / quarterly periods keep the
 // explicit start–end range.
 
-export function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
+export function PrimaryDeadlineStrip({
+  row,
+  variant = 'flat',
+}: {
+  row: ObligationQueueRow
+  // 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil ne4Fd + Alert-detail
+  // unification): `cards` renders the three deadlines as bordered white cards
+  // (rounded-12 + divider-subtle + bg-default, matching the Alert detail's
+  // card system) for the standalone page. `flat` (default) keeps the frameless
+  // divide-x cells used inside the /clients + sheet panels.
+  variant?: 'flat' | 'cards'
+}) {
   const { i18n, t } = useLingui()
   const todayIso = todayIsoDate()
   // 2026-05-26 (Yuqi fiftieth pass — Figma-Make hero from
@@ -457,7 +468,11 @@ export function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
       // rules; each cell gets `px-3` for breathing room around the rule,
       // and the first cell drops its left pad so the strip aligns flush
       // with the body's `px-12` rhythm.
-      className="grid grid-cols-3 divide-x divide-divider-subtle [&>*]:px-3 [&>*:first-child]:pl-0"
+      className={
+        variant === 'cards'
+          ? 'grid grid-cols-3 gap-3 [&>*]:rounded-[12px] [&>*]:border [&>*]:border-divider-subtle [&>*]:bg-background-default [&>*]:p-4'
+          : 'grid grid-cols-3 divide-x divide-divider-subtle [&>*]:px-3 [&>*:first-child]:pl-0'
+      }
     >
       <DeadlineTile
         label={t`Filing deadline`}
@@ -1103,7 +1118,7 @@ export function AuthorityResponsePanel({
           : null
 
     return (
-      <section className="grid gap-3 rounded-md border border-state-danger-border bg-state-danger-hover px-4 py-3">
+      <section className="grid gap-3 rounded-lg border border-state-danger-border bg-state-danger-hover px-4 py-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-1">
             <p className="text-sm font-semibold text-text-primary">
@@ -1169,7 +1184,7 @@ export function AuthorityResponsePanel({
   if (row.status !== 'done') return null
 
   return (
-    <section className="grid gap-3 rounded-md border border-divider-subtle bg-background-default px-4 py-3">
+    <section className="grid gap-3 rounded-lg border border-divider-subtle bg-background-default px-4 py-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="grid gap-1">
           <p className="text-sm font-semibold text-text-primary">
@@ -2069,7 +2084,7 @@ export function ActiveStageDetailCard({
         // and the "what to do" reads as a calmer follow-up.
         <div
           role="status"
-          className="mt-3 flex flex-col gap-0.5 rounded-md border border-divider-regular bg-background-default px-3 py-2 text-sm leading-snug"
+          className="mt-3 flex flex-col gap-0.5 rounded-lg border border-divider-regular bg-background-default px-3 py-2 text-sm leading-snug"
         >
           <p className="font-medium text-text-primary">
             <Trans>
@@ -2127,7 +2142,7 @@ export function ActiveStageDetailCard({
               return null
             }
             return (
-              <div className="mt-3 rounded-md border border-divider-subtle bg-background-subtle px-3 py-2 text-xs leading-snug text-text-secondary">
+              <div className="mt-3 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2 text-xs leading-snug text-text-secondary">
                 <Trans>
                   Resumed from blocked on{' '}
                   {formatDatePretty(autoUnblockEvent.createdAt.slice(0, 10))} after the upstream
@@ -2153,7 +2168,7 @@ export function ActiveStageDetailCard({
         <button
           type="button"
           onClick={() => onChangeTab('readiness')}
-          className="mt-3 -mx-1 flex cursor-pointer items-center gap-1.5 rounded-md px-1 py-1 text-left text-xs text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="mt-3 -mx-1 flex cursor-pointer items-center gap-1.5 rounded-lg px-1 py-1 text-left text-xs text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           aria-label={t`Check Materials to review ${outstandingDocsCount} outstanding items`}
         >
           <CircleIcon className="size-2 fill-current text-state-warning-solid" aria-hidden />

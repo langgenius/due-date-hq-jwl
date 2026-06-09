@@ -524,13 +524,17 @@ export function createAppRouter() {
               },
             },
             {
+              // 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil rzzww):
+              // `/deadlines/:ref` is now its own master-detail PAGE
+              // (navigator rail + detail), not the table route's side-panel.
+              // The plain `/deadlines` above still renders the table.
               path: 'deadlines/:obligationRef',
               handle: routeHandle(routeSummaries.deadlines),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
-                const { ObligationQueueRoute } = await import('@/routes/obligations')
+                const { DeadlineDetailRoute } = await import('@/routes/deadline-detail')
 
-                return { Component: ObligationQueueRoute }
+                return { Component: DeadlineDetailRoute }
               },
             },
             {
@@ -538,9 +542,9 @@ export function createAppRouter() {
               handle: routeHandle(routeSummaries.deadlines),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
-                const { ObligationQueueRoute } = await import('@/routes/obligations')
+                const { DeadlineDetailRoute } = await import('@/routes/deadline-detail')
 
-                return { Component: ObligationQueueRoute }
+                return { Component: DeadlineDetailRoute }
               },
             },
             {
