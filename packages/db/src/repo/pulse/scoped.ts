@@ -152,6 +152,28 @@ function decodePulseAlertCursor(cursor: string): PulseAlertCursor | null {
   }
 }
 
+// The denormalized card counts as a pure function of a freshly-built detail:
+// matched = applyable eligible rows, needs-review = rows pending county
+// confirmation — gated on apply-readiness so a not-yet-scoped overlay reads 0,
+// matching the drawer (which can't apply yet). Extracted so the mutation-time
+// refresh and the read-time reconcile (getDetail) share ONE definition and
+// can't diverge. review_only / protective alerts are never apply-ready, so
+// this returns 0 for them — only call it for due_date_overlay alerts.
+function liveAlertCounts(
+  detail: PulseDetailRow,
+  alert: AlertJoinedRow,
+): { matchedCount: number; needsReviewCount: number } {
+  const countable = detail.applyReadiness.status === 'ready' || alert.alertStatus === 'applied'
+  return {
+    matchedCount: countable
+      ? detail.affectedClients.filter((row) => row.matchStatus === 'eligible').length
+      : 0,
+    needsReviewCount: countable
+      ? detail.affectedClients.filter((row) => row.matchStatus === 'needs_review').length
+      : 0,
+  }
+}
+
 export function makePulseRepo(db: Db, firmId: string) {
   async function getAlert(
     alertId: string,
@@ -834,28 +856,6 @@ export function makePulseRepo(db: Db, firmId: string) {
       reviewedAt: alert.reviewedAt,
       applyReadiness,
       affectedClients,
-    }
-  }
-
-  // The denormalized card counts as a pure function of a freshly-built detail:
-  // matched = applyable eligible rows, needs-review = rows pending county
-  // confirmation — gated on apply-readiness so a not-yet-scoped overlay reads 0,
-  // matching the drawer (which can't apply yet). Extracted so the mutation-time
-  // refresh and the read-time reconcile (getDetail) share ONE definition and
-  // can't diverge. review_only / protective alerts are never apply-ready, so
-  // this returns 0 for them — only call it for due_date_overlay alerts.
-  function liveAlertCounts(
-    detail: PulseDetailRow,
-    alert: AlertJoinedRow,
-  ): { matchedCount: number; needsReviewCount: number } {
-    const countable = detail.applyReadiness.status === 'ready' || alert.alertStatus === 'applied'
-    return {
-      matchedCount: countable
-        ? detail.affectedClients.filter((row) => row.matchStatus === 'eligible').length
-        : 0,
-      needsReviewCount: countable
-        ? detail.affectedClients.filter((row) => row.matchStatus === 'needs_review').length
-        : 0,
     }
   }
 

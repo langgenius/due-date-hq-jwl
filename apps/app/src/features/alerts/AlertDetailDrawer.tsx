@@ -222,16 +222,17 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
  *     'payment' deadlines AND penaltyRelief === true. Otherwise omitted (Phase 1
  *     behavior) — old alerts carry no such facts, so nothing changes for them.
  */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 function deadlineShiftPaymentRelief(detail: PulseDetail): boolean {
   if (detail.alert.changeKind !== 'deadline_shift') return false
   const raw = detail.structuredChange
-  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return false
-  const record = raw as Record<string, unknown>
+  if (!isRecord(raw)) return false
+  const record = raw
   const blockRaw = record.deadlineShift
-  const block =
-    typeof blockRaw === 'object' && blockRaw !== null && !Array.isArray(blockRaw)
-      ? (blockRaw as Record<string, unknown>)
-      : record
+  const block = isRecord(blockRaw) ? blockRaw : record
   const deadlineTypes = Array.isArray(block.deadlineTypes) ? block.deadlineTypes : []
   return deadlineTypes.includes('payment') && block.penaltyRelief === true
 }
@@ -587,7 +588,7 @@ export function AlertDetailDrawer({
   useEffect(() => {
     if (!open || (!onPrev && !onNext)) return undefined
     const handler = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null
+      const target = event.target instanceof HTMLElement ? event.target : null
       if (
         target &&
         (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)

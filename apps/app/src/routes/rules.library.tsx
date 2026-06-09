@@ -1809,7 +1809,7 @@ export function RulesLibraryRoute() {
         rule.entityApplicability.join('; '),
         String(rule.version),
       ]
-        .map((cell) => escape(String(cell)))
+        .map((cell) => escape(cell))
         .join(','),
     )
     const csv = [header.map(escape).join(','), ...rows].join('\n')

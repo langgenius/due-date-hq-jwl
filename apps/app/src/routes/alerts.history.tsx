@@ -29,6 +29,10 @@ import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 const HISTORY_LIMIT = 50
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000
 
+// CSV field escaping (wrap in quotes, double any embedded quote). Module-scoped
+// so it isn't re-created per render and reads identically across exports.
+const csvEscape = (value: string) => `"${value.replace(/"/g, '""')}"`
+
 export function AlertsHistoryRoute() {
   const { t } = useLingui()
   const { open: panelOpen } = useAlertDrawer()
@@ -55,7 +59,6 @@ export function AlertsHistoryRoute() {
   // control): one row per alert with the table's columns + provenance.
   const handleExport = () => {
     if (alerts.length === 0) return
-    const escape = (value: string) => `"${value.replace(/"/g, '""')}"`
     const header = ['Date', 'Jurisdiction', 'Alert', 'Change', 'Source', 'Clients', 'Status']
     const rows = alerts.map((alert) =>
       [
@@ -67,10 +70,10 @@ export function AlertsHistoryRoute() {
         String(alert.matchedCount + alert.needsReviewCount),
         alert.status,
       ]
-        .map((cell) => escape(String(cell)))
+        .map(csvEscape)
         .join(','),
     )
-    const csv = [header.map(escape).join(','), ...rows].join('\n')
+    const csv = [header.map(csvEscape).join(','), ...rows].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
