@@ -91,3 +91,14 @@ distinct); `tertiary` border = `rgba(16,24,40,.08)` (hairline applies after the
 Follow-up: click-test the `Step2Mapping` "Change →" dropdown trigger (it's now a
 `DropdownMenuTrigger render={<TextLink/>}` — structurally sound and type-clean,
 but worth one manual open since it nests two `useRender` elements).
+
+## Addendum (2026-06-09, post-merge pass)
+
+- **Disabled `accent` border.** The first pass left disabled `accent` carrying
+  its `0.22` blue border on a gray-50 fill — read as "still active." Added
+  `--components-button-accent-border-disabled` (`rgb(16 24 40 / .04)` light /
+  `rgb(255 255 255 / .04)` dark), the `preset.css` `@theme` re-export, and a
+  `disabled:border-…` class on the `accent` variant. (Same three-way sync as
+  the tertiary-border gotcha above.)
+- `vp check` clean on all touched files (formatter normalized the new
+  multi-line `preset.css` var).
