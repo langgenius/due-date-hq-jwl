@@ -255,7 +255,7 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
   return (
     <section
       aria-labelledby="morning-sweep-panel-title"
-      className="flex items-center gap-3 rounded-2xl bg-state-accent-hover px-4 py-2.5"
+      className="flex items-center gap-3 rounded-xl bg-state-accent-hover px-4 py-2.5"
     >
       {/* Round 83 (Yuqi #21 "brewing your briefing - icon should
           be the coffee"): leading icon flips from Sparkles to
@@ -288,7 +288,7 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
         type="button"
         onClick={onClose}
         aria-label={t`Close morning sweep`}
-        className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-accent-hover-alt hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-accent-hover-alt hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <XIcon className="size-3.5" aria-hidden />
       </button>

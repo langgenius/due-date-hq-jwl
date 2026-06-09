@@ -731,7 +731,7 @@ function DashboardActionsList({
       <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
         <ActionsListHeader count={0} onOpenAll={onOpenAllObligations} />
         {totalOpen > 0 ? (
-          <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
+          <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-secondary">
             <Trans>Nothing due this week.</Trans>{' '}
             <Button
               variant="link"
@@ -1129,7 +1129,7 @@ function DashboardStatusLifecycleStrip({ rows }: { rows: DashboardTopRow[] }) {
       <span className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
         <Trans>Status across this week's actions</Trans>
       </span>
-      <div className="flex flex-row flex-wrap overflow-hidden rounded-[10px] border border-divider-deep bg-background-default">
+      <div className="flex flex-row flex-wrap overflow-hidden rounded-xl border border-divider-deep bg-background-default">
         {LIFECYCLE_CELLS.map((cell, index) => {
           const count = counts.get(cell.key as ObligationStatus) ?? 0
           return (

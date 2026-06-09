@@ -3,10 +3,10 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { SearchIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CountPill } from '@/components/primitives/count-pill'
-import { StateBadge } from '@/components/primitives/state-badge'
 import { useActiveAlertCount } from '@/features/alerts/api'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -32,11 +32,21 @@ export function AlertListRail({
   activeId,
   onSelect,
   onCloseDetail,
+  workQueue,
+  onWorkQueueChange,
+  workQueueCounts,
 }: {
   alerts: readonly PulseAlertPublic[]
   activeId: string | null
   onSelect: (alertId: string) => void
   onCloseDetail?: () => void
+  // 2026-06-09 (Yuqi "on alert detail page, there should be a toggle of review
+  // and active as well"): the work-queue toggle is echoed in the rail head so
+  // you can switch queues while stepping through a detail. Wired to the page's
+  // workQueue state; omit to hide it.
+  workQueue?: 'active' | 'review'
+  onWorkQueueChange?: (queue: 'active' | 'review') => void
+  workQueueCounts?: { active: number; review: number }
 }) {
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
@@ -79,7 +89,7 @@ export function AlertListRail({
           <button
             type="button"
             onClick={onCloseDetail}
-            className="-mx-1 cursor-pointer rounded-md px-1 text-[15px] font-semibold text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="-mx-1 cursor-pointer rounded-lg px-1 text-[15px] font-semibold text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>Alerts</Trans>
           </button>
@@ -95,10 +105,47 @@ export function AlertListRail({
         ) : null}
       </div>
 
+      {/* Work-queue toggle — echoes the main list's Active/Review switch so the
+          queue can be changed while a detail is open. */}
+      {workQueue && onWorkQueueChange ? (
+        <div className="flex shrink-0 items-center border-b border-divider-subtle px-4 py-2.5">
+          <Segmented
+            className="h-8 w-full [&>button]:h-7 [&>button]:flex-1"
+            ariaLabel={t`Alert work queue`}
+            value={workQueue}
+            onValueChange={onWorkQueueChange}
+            options={[
+              {
+                value: 'review',
+                label: (
+                  <span className="inline-flex items-center gap-1">
+                    <Trans>Review</Trans>
+                    <span className="tabular-nums text-text-tertiary">
+                      {workQueueCounts?.review ?? 0}
+                    </span>
+                  </span>
+                ),
+              },
+              {
+                value: 'active',
+                label: (
+                  <span className="inline-flex items-center gap-1">
+                    <Trans>Active</Trans>
+                    <span className="tabular-nums text-text-tertiary">
+                      {workQueueCounts?.active ?? 0}
+                    </span>
+                  </span>
+                ),
+              },
+            ]}
+          />
+        </div>
+      ) : null}
+
       {/* FilterRow — full-width search (the All/Unresolved segmented was removed,
           see D10 above). */}
       <div className="flex shrink-0 items-center gap-2 border-b border-divider-subtle px-4 py-2.5">
-        <label className="inline-flex h-7 w-full items-center gap-2 rounded-md px-2 text-text-muted transition-colors focus-within:bg-state-base-hover hover:bg-state-base-hover">
+        <label className="inline-flex h-7 w-full items-center gap-2 rounded-lg px-2 text-text-muted transition-colors focus-within:bg-state-base-hover hover:bg-state-base-hover">
           <SearchIcon className="size-3.5 shrink-0" aria-hidden />
           <input
             type="search"
@@ -194,12 +241,10 @@ function RailItem({
       {/* Content — badge meta row + 2-line title. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          {/* 2026-06-08 (Yuqi alert-detail feedback #9 "missing the circular
-              rounded state badge"): the jurisdiction chip carries the
-              canonical StateBadge motif + code, matching the /today card +
-              /alerts row. */}
-          <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-[6px] border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
-            <StateBadge code={alert.jurisdiction} size="xs" style={{ width: 12, height: 12 }} />
+          {/* 2026-06-09 (Yuqi "remove the circular state badge"): plain
+              bordered 2-letter code; the StateBadge seal is dropped, matching
+              the /alerts row. */}
+          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
             {alert.jurisdiction}
           </span>
           {form ? <TaxCodeBadge code={form} /> : null}

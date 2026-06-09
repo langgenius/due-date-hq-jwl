@@ -17,6 +17,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { getJurisdictionName } from '@/components/primitives/state-badge'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
@@ -175,64 +176,51 @@ export function AlertHistoryView() {
       return set
     })
 
-  const statCards: { label: string; value: number; sub?: string; subTone?: string }[] = [
+  const statCards: StatBandItem[] = [
     {
+      key: 'handled',
       label: t`Handled`,
       value: stats.handled,
       sub: t`last 90 days`,
-      subTone: 'text-text-tertiary',
+      subClass: 'text-text-tertiary',
     },
     {
+      key: 'applied',
       label: t`Applied`,
       value: stats.applied,
       sub: `${stats.pct(stats.applied)}% ${t`of handled`}`,
-      subTone: 'text-text-success',
+      subClass: 'text-text-success',
     },
     {
+      key: 'dismissed',
       label: t`Dismissed`,
       value: stats.dismissed,
       sub: `${stats.pct(stats.dismissed)}%`,
-      subTone: 'text-text-tertiary',
+      subClass: 'text-text-tertiary',
     },
     {
+      key: 'reverted',
       label: t`Reverted`,
       value: stats.reverted,
       sub: t`all with reason`,
-      subTone: 'text-text-warning',
+      subClass: 'text-text-warning',
     },
     {
+      key: 'expired',
       label: t`Expired`,
       value: stats.expired,
       sub: t`deadline passed`,
-      subTone: 'text-text-tertiary',
+      subClass: 'text-text-tertiary',
     },
   ]
 
   return (
     <>
       <div className="flex flex-col gap-6">
-        {/* STATS — derived from real loaded data. Responsive grid wraps
-          on narrow viewports (2 → 3 → 6 cols) so it never scrolls. */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {statCards.map((card) => (
-            <div
-              key={card.label}
-              className="flex flex-col gap-1 rounded-xl border border-divider-subtle bg-background-default px-4 py-3"
-            >
-              <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
-                {card.label}
-              </span>
-              <span className="text-[22px] font-semibold text-text-primary tabular-nums">
-                {card.value}
-              </span>
-              {card.sub ? (
-                <span className={cn('text-[10px] font-medium tabular-nums', card.subTone)}>
-                  {card.sub}
-                </span>
-              ) : null}
-            </div>
-          ))}
-        </div>
+        {/* STATS — derived from real loaded data, via the shared StatBand
+          (the same "card summary" the rule-library overview, /clients/[id],
+          and /rules/sources render). */}
+        <StatBand stats={statCards} ariaLabel={t`Handled alerts summary`} />
 
         {/* TABS + SEARCH — wraps instead of scrolling on small screens.
             2026-06-08: tabs render off the shared flat <Segmented>
@@ -457,7 +445,7 @@ function HistoryRow({
 
       {/* JURIS */}
       <TableCell>
-        <span className="inline-flex h-[20px] items-center rounded-md bg-background-subtle px-2 text-[11px] font-semibold text-text-secondary uppercase">
+        <span className="inline-flex h-[20px] items-center rounded-lg bg-background-subtle px-2 text-[11px] font-semibold text-text-secondary uppercase">
           {alert.jurisdiction}
         </span>
       </TableCell>

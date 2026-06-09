@@ -22,7 +22,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 // Dashboard variant of the Alert card. Tuned for the dashboard's
 // "scan-and-act" mode and built to Pencil node VVMj9 specs:
 //
-//   • Card chrome: `bg-background-default` (white), `rounded-2xl`
+//   • Card chrome: `bg-background-default` (white), `rounded-xl`
 //     (16px), NO border (Pencil shows the stroke disabled). Hover
 //     drops to `bg-background-subtle` (gray-100). This is the same
 //     pattern the /alerts AlertCard uses — both surfaces serve
@@ -281,7 +281,7 @@ function NeedsAttentionCard({
         // alerts tile into the same family.
         // 2026-06-04 round 45 (Yuqi /today feedback #1+#3): outer
         // column gap `gap-1.5` (6px) → `gap-2` (8px) and corner
-        // `rounded-2xl` (16px) → `rounded-3xl` (24px). Both nudges
+        // `rounded-xl` (16px) → `rounded-xl` (24px). Both nudges
         // are small but read as a softer, more deliberate card.
         // Round 60 (X3j4nt sizing) + round 62 (Yuqi 7-item card
         // feedback): outer gap bumped `gap-4` (16) → `gap-5` (20)
@@ -342,7 +342,7 @@ function NeedsAttentionCard({
         // 2026-06-09 (Yuqi #9 "hover to show border"): a transparent
         // border at rest keeps geometry fixed; on hover a divider hairline
         // fades in alongside the bg step so the card reads as "liftable."
-        'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-4 rounded-[14px] bg-background-section p-[18px] text-left',
+        'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-4 rounded-xl bg-background-section p-[18px] text-left',
         // 2026-06-09 (Yuqi /today "hover do not show border"): the hover border
         // hairline is dropped — hover is carried by the bg step alone.
         'transition-colors duration-200 hover:bg-background-subtle',
@@ -420,7 +420,7 @@ function NeedsAttentionCard({
             {alertForm ? (
               <TaxCodeBadge
                 code={alertForm}
-                className="rounded-md border-divider-subtle px-2 py-[2px] text-[11px]"
+                className="rounded-lg border-divider-subtle px-2 py-[2px] text-[11px]"
               />
             ) : null}
 
@@ -627,7 +627,7 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       onClick={onOpen}
       aria-label={ariaLabel}
       className={cn(
-        'group/overflow flex shrink-0 cursor-pointer flex-col items-center justify-center gap-1 self-stretch rounded-2xl px-4 text-text-secondary',
+        'group/overflow flex shrink-0 cursor-pointer flex-col items-center justify-center gap-1 self-stretch rounded-xl px-4 text-text-secondary',
         'transition-colors hover:text-text-primary',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         CARD_MIN_HEIGHT_CLASS,

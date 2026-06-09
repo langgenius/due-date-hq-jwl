@@ -63,7 +63,11 @@ import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
-import { impactBadgeFromAlert, actionPillFromAlert } from './components/pulse-alert-chrome'
+import {
+  impactBadgeFromAlert,
+  actionPillFromAlert,
+  isActiveAlert,
+} from './components/pulse-alert-chrome'
 import { AffectedClientsTable } from './components/AffectedClientsTable'
 // Step 9 retired `AlertConfidencePill` in favor of the canonical
 // 2026-06-05 (pre-CI green-up): the four pill imports below
@@ -823,8 +827,12 @@ export function AlertDetailDrawer({
     orpc.pulse.markReviewed.mutationOptions({
       onSuccess: () => {
         toast.success(t`Alert marked reviewed`)
+        // 2026-06-09 (Yuqi "clicking Mark reviewed goes back to alert page —
+        // bad UX"): do NOT onClose() on review. Marking reviewed is a status
+        // change, not a "done with this alert" exit — the CPA stays on the
+        // alert and the detail (status pill + action shelf) updates in place
+        // via invalidate(). Apply/dismiss still close (those resolve the alert).
         invalidate()
-        onClose()
       },
       onError: (err) => {
         toast.error(t`Couldn't mark alert reviewed`, {
@@ -1130,6 +1138,15 @@ export function AlertDetailDrawer({
                     `drawerChangeKindLabel` we had here) so the
                     exact wording matches. */}
                 <div className="flex flex-wrap items-center gap-2">
+                  {/* ACTIVE badge — 2026-06-09 (Yuqi "on alert detail page …
+                      active has an indication it is active"): flags the
+                      actionable due-date-overlay queue, mirroring the row badge. */}
+                  {isActiveAlert(detail.alert) ? (
+                    <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-[4px] border border-[#17b26a40] bg-[#e8f5ee] px-2 text-[11px] font-semibold tracking-[0.3px] text-text-success uppercase">
+                      <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
+                      <Trans>Active</Trans>
+                    </span>
+                  ) : null}
                   {/* 2026-06-08 (Pencil ibEoz header): impact pill reads
                       "HIGH IMPACT" (not bare "HIGH"). */}
                   {showSeverityPill ? (
@@ -2126,7 +2143,7 @@ function ManagerReviewPanel({
   return (
     // 2026-06-01: muted Manager-review panel swapped to the canonical
     // Card primitive (size="xs" tone="muted" radius="md"). The
-    // bg-background-section + border-divider-subtle + rounded-md
+    // bg-background-section + border-divider-subtle + rounded-lg
     // chrome is now Card's tone="muted" + radius="md"; xs density
     // matches the original p-3.
     <Card size="xs" tone="muted" radius="md">

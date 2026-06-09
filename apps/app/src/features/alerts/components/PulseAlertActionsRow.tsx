@@ -55,7 +55,7 @@ function PulseAlertActionsRow({
               <Button
                 variant="ghost"
                 size="sm"
-                className="size-7 rounded-md p-0 text-text-tertiary hover:bg-state-base-hover hover:text-text-primary"
+                className="size-7 rounded-lg p-0 text-text-tertiary hover:bg-state-base-hover hover:text-text-primary"
                 aria-label={t`Archive alert: ${alertTitle}`}
                 onClick={(event) => {
                   event.stopPropagation()
@@ -77,7 +77,7 @@ function PulseAlertActionsRow({
               <Button
                 variant="ghost"
                 size="sm"
-                className="size-7 rounded-md p-0 text-text-tertiary hover:bg-state-base-hover hover:text-text-primary"
+                className="size-7 rounded-lg p-0 text-text-tertiary hover:bg-state-base-hover hover:text-text-primary"
                 aria-label={t`Dismiss alert: ${alertTitle}`}
                 onClick={(event) => {
                   event.stopPropagation()

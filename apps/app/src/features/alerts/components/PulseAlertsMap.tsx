@@ -127,7 +127,7 @@ function PulseAlertsMap({
         {/* Federal tile — 2026-06-04 round 78 audit (Yuqi
             "Map view's <PulseAlertsMap> jurisdiction-tile chrome
             consistency"): radius dropped `rounded-lg` (8px) →
-            `rounded-md` (6px) to match the state-grid tiles below.
+            `rounded-lg` (6px) to match the state-grid tiles below.
             The two-radius mix was reading as two different
             primitives even though they're both jurisdiction
             selectors. */}
@@ -136,7 +136,7 @@ function PulseAlertsMap({
           onClick={() => onSelect(selectedJurisdiction === 'FED' ? null : 'FED')}
           aria-pressed={selectedJurisdiction === 'FED'}
           className={cn(
-            'inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold tracking-tight outline-none transition-colors',
+            'inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold tracking-tight outline-none transition-colors',
             'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             selectedJurisdiction === 'FED'
               ? 'border-state-accent-active-alt bg-state-accent-hover ring-2 ring-state-accent-active-alt'
@@ -177,7 +177,7 @@ function PulseAlertsMap({
                 gridColumnStart: cell.col + 1,
               }}
               className={cn(
-                'flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-md border text-[11px] font-semibold leading-none transition-colors',
+                'flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border text-[11px] font-semibold leading-none transition-colors',
                 'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 isSelected
                   ? 'border-state-accent-active-alt bg-state-accent-hover ring-2 ring-state-accent-active-alt'
@@ -200,23 +200,23 @@ function MapLegend() {
   return (
     <ul className="flex items-center gap-2 text-[11px] text-text-tertiary">
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-[3px] border border-divider-subtle bg-background-section" />
+        <span className="inline-block size-3 rounded-sm border border-divider-subtle bg-background-section" />
         <Trans>0</Trans>
       </li>
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-[3px] border border-state-accent-border bg-state-accent-hover-alt" />
+        <span className="inline-block size-3 rounded-sm border border-state-accent-border bg-state-accent-hover-alt" />
         <Trans>1</Trans>
       </li>
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-[3px] border border-state-accent-active-alt bg-state-accent-hover" />
+        <span className="inline-block size-3 rounded-sm border border-state-accent-active-alt bg-state-accent-hover" />
         <Trans>2-3</Trans>
       </li>
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-[3px] border border-state-warning-border bg-state-warning-hover" />
+        <span className="inline-block size-3 rounded-sm border border-state-warning-border bg-state-warning-hover" />
         <Trans>4-6</Trans>
       </li>
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-[3px] border border-state-destructive-border bg-state-destructive-hover" />
+        <span className="inline-block size-3 rounded-sm border border-state-destructive-border bg-state-destructive-hover" />
         <Trans>7+</Trans>
       </li>
     </ul>

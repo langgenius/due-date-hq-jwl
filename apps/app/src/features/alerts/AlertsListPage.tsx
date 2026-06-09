@@ -55,6 +55,7 @@ import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { StatusBanner } from '@/components/patterns/status-banner'
+import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 
 // 2026-06-05 (merge with origin/main): the MorningSweepPanel +
 // aiConfidenceTier imports below were added in our rounds 70-85
@@ -94,6 +95,7 @@ import {
   type AlertImpactFilter,
 } from './lib/impact-filter'
 import { alertImpactCount } from './lib/impact-level'
+import { isActiveAlert } from './components/pulse-alert-chrome'
 import {
   ACTIVE_STATUS_FILTER_OPTIONS,
   CHANGE_KIND_FILTER_OPTIONS,
@@ -216,6 +218,16 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // 2026-06-08 (Yuqi /alerts "show suggested action" checkbox): toggles the
   // per-row ACTION suggestion line. Default on.
   const [showSuggestedAction, setShowSuggestedAction] = useState(true)
+  // 2026-06-09 (Yuqi "toggle between review and active"): the active queue
+  // splits alerts into two work queues by actionMode —
+  //   • 'active' = `due_date_overlay` alerts (they apply a due-date change →
+  //     actionable work).
+  //   • 'review' = `review_only` alerts (informational, just need a look).
+  // Active-only affordance (history has its own handled-status filter).
+  // 2026-06-09 (Yuqi "Review is before active"): Review leads the toggle and is
+  // the default queue (it's the larger, always-populated set; the Active queue
+  // is often empty until a due-date/client-impacting alert lands).
+  const [workQueue, setWorkQueue] = useState<'active' | 'review'>('review')
 
   // 2026-06-07 (Pencil g5kKJQ — bulk selection): local selection set
   // of alert ids. Drives the per-row checkboxes, the BulkSelectStrip's
@@ -389,6 +401,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     const trimmedQuery = searchQuery.trim().toLowerCase()
     return alerts.filter(
       (alert) =>
+        // 2026-06-09 (Yuqi "toggle between review and active"): active list
+        // splits by work queue. History shows handled alerts of both modes, so
+        // the queue split is suppressed there.
+        (historyMode || (workQueue === 'active' ? isActiveAlert(alert) : !isActiveAlert(alert))) &&
         matchesAlertImpactFilter(alert, impactFilter) &&
         matchesStatusFilter(alert.status, effectiveStatusFilter) &&
         matchesChangeKindFilter(alert.changeKind, changeKindFilter) &&
@@ -404,11 +420,23 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     changeKindFilter,
     effectiveStatusFilter,
     effectiveTimeRangeFilter,
+    historyMode,
     impactFilter,
     jurisdictionFilter,
     searchQuery,
     taxAreaFilter,
+    workQueue,
   ])
+  // 2026-06-09 (Yuqi "toggle between review and active"): per-queue counts for
+  // the segmented toggle labels. Counted off the loaded set so the badge
+  // reflects what's available, independent of the other in-list filters.
+  const workQueueCounts = useMemo(
+    () => ({
+      active: alerts.filter((alert) => isActiveAlert(alert)).length,
+      review: alerts.filter((alert) => !isActiveAlert(alert)).length,
+    }),
+    [alerts],
+  )
   // 2026-06-04 round 42 (Yuqi punch list #4): real sort logic.
   // The list renderer reads `sortedAlerts` instead of
   // `filteredAlerts` so the Sort by dropdown actually reorders
@@ -742,6 +770,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
             activeId={openAlertId}
             onSelect={openDrawer}
             onCloseDetail={closeDrawer}
+            {...(!historyMode
+              ? {
+                  workQueue,
+                  onWorkQueueChange: setWorkQueue,
+                  workQueueCounts,
+                }
+              : {})}
           />
         ) : null}
         {/* List column vertical rhythm — 2026-06-04 round 40 (Yuqi
@@ -932,6 +967,44 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     View toggle it shares this toolbar row with, so the cluster
                     stays aligned. (Briefly tried 40px; Yuqi settled the search
                     family on 36px to keep the delicate round-83 filter sizing.) */}
+                {/* 2026-06-09 (Yuqi "add a toggle between review and active"):
+                    the primary work-queue switch leads the toolbar on the
+                    active list — Active = actionable due-date alerts, Review =
+                    review-only. Counts ride in the labels. Suppressed in
+                    history (which slices by handled status instead). */}
+                {!historyMode ? (
+                  <Segmented
+                    className="h-9 shrink-0 [&>button]:h-8"
+                    ariaLabel={t`Alert work queue`}
+                    value={workQueue}
+                    onValueChange={setWorkQueue}
+                    options={[
+                      {
+                        value: 'review',
+                        label: (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Trans>Review</Trans>
+                            <span className="tabular-nums text-text-tertiary">
+                              {workQueueCounts.review}
+                            </span>
+                          </span>
+                        ),
+                      },
+                      {
+                        value: 'active',
+                        label: (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Trans>Active</Trans>
+                            <span className="tabular-nums text-text-tertiary">
+                              {workQueueCounts.active}
+                            </span>
+                          </span>
+                        ),
+                      },
+                    ]}
+                  />
+                ) : null}
+
                 <label className="inline-flex h-9 w-[180px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-inset focus-within:ring-state-accent-active-alt sm:w-[200px]">
                   <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
                   <input
@@ -1224,10 +1297,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   inspect Pencil RMS9y"): map view restructured to the
                   side-by-side body split Pencil specifies:
                     • LEFT (`MapPh`, ~66% width): map grid in a
-                      gray-50 `rounded-2xl` padded panel. Per Pencil
+                      gray-50 `rounded-xl` padded panel. Per Pencil
                       `w2IzH` — bg #f9fafb, cornerRadius 14, padding
                       24. Translates to `bg-background-section
-                      rounded-2xl p-6`.
+                      rounded-xl p-6`.
                     • RIGHT (`PanelPh`, ~34% width, min-width 360px):
                       compact alert list with an "ACTIVE ALERTS"
                       mono-uppercase label header. Alerts render in
@@ -1243,7 +1316,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
               {viewMode === 'map' ? (
                 <div className="flex min-h-0 flex-1 gap-6">
                   {/* LEFT: map grid in gray-50 panel */}
-                  <div className="flex flex-1 flex-col overflow-hidden rounded-2xl bg-background-section p-6">
+                  <div className="flex flex-1 flex-col overflow-hidden rounded-xl bg-background-section p-6">
                     <PulseAlertsMap
                       alerts={alerts}
                       selectedJurisdiction={jurisdictionFilter}
@@ -1290,11 +1363,17 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     )}
                   </div>
                 </div>
-              ) : isEmpty ? (
+              ) : isEmpty || (isFilteredEmpty && !filtersActive) ? (
                 // 2026-06-07 (design replication O3s4ie / rR9X1): the genuinely
                 // empty alerts surface now owns the area with the prominent
                 // empty state (was a one-line status banner). History mode gets
                 // its own copy + "what gets recorded" legend.
+                // 2026-06-09 (Yuqi "this is the current empty state. it should
+                // be like this" — the caught-up card): an empty work QUEUE
+                // (Active/Review toggle) with no real filters now shows the same
+                // prominent "you're caught up" empty state, not the terse
+                // "no alerts match these filters" line. The terse filtered
+                // state is reserved for when actual filters are narrowing.
                 <AlertsEmptyState historyMode={historyMode} sources={sourceHealth} />
               ) : isFilteredEmpty ? (
                 <FilteredEmptyState onClearFilters={resetFilters} />
@@ -1325,6 +1404,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   // 2026-06-08 (Yuqi "sort by impact … remove the date header"):
                   // day-group headers only make sense chronologically — drop
                   // them when the list is ordered by impact (flat ranked list).
+                  // 2026-06-09 (Yuqi "i like the date header for alerts" →
+                  // restore): day-group bands are back on the active list too;
+                  // only the impact sort drops them (a flat ranked list).
                   grouped={sortOrder !== 'highest_impact'}
                   highImpactIds={highImpactIds}
                   // 2026-06-07 (Pencil g5kKJQ): bulk-selection +
@@ -1488,10 +1570,15 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   )
 }
 
-// Floating dark action bar shown while alerts are selected (Pencil
-// g5kKJQ `saDv7`). Fixed to the bottom-center of the viewport with a
-// slide-up entrance. Dismiss fires the batch mutation passed from the
-// page; Apply all is rendered disabled because no bulk RPC backs it yet.
+// 2026-06-09 (Yuqi "unify the batch actions across the application"): the
+// alerts bulk bar now renders through the canonical `<FloatingActionBar>`
+// (tone="elevated") — the SAME bottom-center floating pill /deadlines, /rules,
+// and /clients use — instead of a hand-rolled `motion.div` at a different
+// bottom offset / z-index. Answer to "bar above the table or bottom banner?":
+// it's the bottom-center floating command pill, app-wide. The bar keeps its
+// alerts-specific content (selection read-out + Apply-all + Dismiss + Clear);
+// only the shell is now shared. Separators use role="separator" so the
+// primitive's elevated styling tints them.
 function BulkActionBar({
   selectedCount,
   totalCount,
@@ -1505,67 +1592,38 @@ function BulkActionBar({
 }) {
   const { t } = useLingui()
   return (
-    <motion.div
-      role="region"
-      aria-label={t`Bulk actions`}
-      initial={{ y: 24, opacity: 0 }}
-      animate={{ y: 0, opacity: 1, transition: { duration: 0.22, ease: [0.32, 0.72, 0, 1] } }}
-      exit={{ y: 24, opacity: 0 }}
-      className="fixed bottom-6 left-1/2 z-50 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3.5 rounded-2xl bg-text-primary py-3 pr-3.5 pl-[18px] shadow-lg"
-    >
+    <FloatingActionBar tone="elevated" ariaLabel={t`Bulk actions`}>
       {/* Selection read-out */}
       <div className="flex items-center gap-2.5">
-        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-state-accent-solid">
+        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-lg bg-state-accent-solid">
           <CheckIcon className="size-3.5 text-white" aria-hidden />
         </span>
         <div className="flex flex-col leading-tight">
-          <span className="text-[14px] font-semibold text-white">
+          <span className="text-[14px] font-semibold">
             <Plural value={selectedCount} one="# selected" other="# selected" />
           </span>
-          <span className="text-[12px] text-white/50">
-            <Trans>of {totalCount} dispatches</Trans>
+          <span className="text-[12px] text-text-inverted/60">
+            <Trans>of {totalCount} alerts</Trans>
           </span>
         </div>
       </div>
 
-      <span className="h-8 w-px shrink-0 bg-white/20" aria-hidden />
+      <span role="separator" className="h-8 w-px shrink-0" aria-hidden />
 
-      {/* Action cluster */}
+      {/* Action cluster — 2026-06-09 (Yuqi "fix Apply all … dead-looking UI"):
+          the permanently-disabled "Apply all" button was removed. A true bulk
+          apply needs per-alert source verification (F-041), so there is no
+          backend for it — a dead control is worse than its absence. Bulk apply
+          happens per-alert from each detail panel; the bar keeps only the wired
+          batch action (Dismiss) + Clear. */}
       <div className="flex items-center gap-1.5">
-        {/* Apply all — present per design but unwired: a true bulk
-            apply needs per-alert source-verification (F-041). */}
-        <Tooltip>
-          <TooltipTrigger
-            render={(props) => (
-              <span {...props} className="inline-flex">
-                <button
-                  type="button"
-                  disabled
-                  className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg bg-state-accent-solid/50 px-3 py-2 text-[13px] font-semibold text-white/70 outline-none"
-                >
-                  <CheckIcon className="size-3.5" aria-hidden />
-                  <Trans>Apply all</Trans>
-                </button>
-              </span>
-            )}
-          />
-          <TooltipContent>
-            <Trans>Apply each alert from its detail panel to verify the change first.</Trans>
-          </TooltipContent>
-        </Tooltip>
-
-        {/* Dismiss — wired to the looped per-alert dismiss mutation.
-            (Pencil labels this slot "Mark read"; the closest wired
-            per-alert action is Dismiss, so the bar exposes Dismiss
-            with the same archive semantics the row hover-action
-            uses.) */}
         <Button variant="inverted-ghost" size="sm" onClick={onDismiss}>
           <ArchiveIcon className="size-3.5" aria-hidden />
           <Trans>Dismiss</Trans>
         </Button>
       </div>
 
-      <span className="h-8 w-px shrink-0 bg-white/20" aria-hidden />
+      <span role="separator" className="h-8 w-px shrink-0" aria-hidden />
 
       <Button
         variant="inverted-ghost"
@@ -1575,7 +1633,7 @@ function BulkActionBar({
       >
         <XIcon className="size-3.5" aria-hidden />
       </Button>
-    </motion.div>
+    </FloatingActionBar>
   )
 }
 
@@ -1819,7 +1877,7 @@ function FilterPillSection<T extends string>({
               onClick={() => onSelect(option)}
               aria-pressed={active}
               className={cn(
-                'inline-flex h-7 cursor-pointer items-center rounded-md border px-2.5 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex h-7 cursor-pointer items-center rounded-lg border px-2.5 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 active
                   ? 'border-state-accent-border bg-state-accent-hover text-text-accent'
                   : 'border-divider-subtle text-text-secondary hover:bg-state-base-hover',
@@ -1972,7 +2030,7 @@ function SkeletonAlertRow() {
           />
           <Skeleton
             aria-hidden
-            className="h-[22px] w-20 rounded-[5px] motion-reduce:animate-none"
+            className="h-[22px] w-20 rounded-sm motion-reduce:animate-none"
           />
           <span className="flex-1" aria-hidden />
           <Skeleton aria-hidden className="h-3 w-24 rounded-full motion-reduce:animate-none" />

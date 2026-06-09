@@ -4,7 +4,6 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
   ArchiveIcon,
-  CheckCheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   ExternalLinkIcon,
@@ -23,7 +22,6 @@ import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -32,6 +30,7 @@ import { formatRelativeTime } from '@/lib/utils'
 
 import { useAlertDetailQueryOptions } from '../api'
 import { changeKindLabel } from './PulseChangeKindChip'
+import { isActiveAlert } from './pulse-alert-chrome'
 
 /**
  * `PulseAlertRow` — list-row rendering of an alert, replacing the
@@ -396,11 +395,26 @@ function PulseAlertRow({
           relative time relocates to the head-row right cluster. */}
       {!compact ? (
         <div className="flex w-[90px] shrink-0 flex-col gap-1">
-          <span className="text-[13px] font-medium text-text-primary">{railDate}</span>
+          {/* 2026-06-09 (Yuqi "hide [the relative line]; show a tooltip when you
+              hover on the date with how many days ago"): the third rail line
+              (railRelative) is dropped — hovering the date surfaces "N days
+              ago" instead, so the rail is just date + wall-clock at rest. */}
+          <Tooltip>
+            <TooltipTrigger
+              render={(props) => (
+                <span
+                  className="w-fit cursor-help text-[13px] font-medium text-text-primary outline-none"
+                  {...props}
+                >
+                  {railDate}
+                </span>
+              )}
+            />
+            <TooltipContent>{railRelative}</TooltipContent>
+          </Tooltip>
           <span className="text-[11px] font-medium text-text-tertiary tabular-nums">
             {absoluteTime}
           </span>
-          <span className="text-[11px] text-text-muted">{railRelative}</span>
         </div>
       ) : null}
 
@@ -413,6 +427,16 @@ function PulseAlertRow({
             level → state → form → change-kind (text) · sources →
             spacer → source link → why. */}
         <div className="flex min-w-0 items-center gap-2">
+          {/* ACTIVE badge — 2026-06-09 (Yuqi "active has some kind of
+              indication saying it is active"): due-date-overlay alerts are the
+              actionable "Active" queue; a green dot+label flags them on the row
+              (and the detail header). Review-only alerts carry no badge. */}
+          {isActiveAlert(alert) ? (
+            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-[#17b26a40] bg-[#e8f5ee] px-1.5 text-[11px] font-semibold tracking-[0.3px] text-text-success uppercase">
+              <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
+              <Trans>Active</Trans>
+            </span>
+          ) : null}
           {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
               when the alert is in the priority queue. */}
           {levelPill ? (
@@ -440,12 +464,10 @@ function PulseAlertRow({
             </span>
           ) : null}
 
-          {/* STATE — 2026-06-08 (Yuqi /alerts): the jurisdiction chip
-              carries the canonical StateBadge seal + 2-letter code,
-              matching the /today card + the AlertListRail (was a plain
-              bordered mono code). */}
-          <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
-            <StateBadge code={alert.jurisdiction} size="xs" style={{ width: 12, height: 12 }} />
+          {/* STATE — 2026-06-09 (Yuqi "remove the circular state badge"): the
+              jurisdiction chip is now a plain bordered 2-letter code; the
+              circular StateBadge seal is dropped. */}
+          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
             {alert.jurisdiction}
           </span>
 
@@ -453,7 +475,7 @@ function PulseAlertRow({
               TaxCodeBadge primitive (bg-subtle mono code chip).
               2026-06-09 (Yuqi /alerts L2 "softer chip corners"): bump the
               row instance to rounded-lg (8px) via className override; the
-              shared primitive base stays rounded-[5px] for other surfaces. */}
+              shared primitive base stays rounded-sm for other surfaces. */}
           {formLabel ? <TaxCodeBadge code={formLabel} className="rounded-lg" /> : null}
 
           {/* CHANGE KIND — 2026-06-08 (Yuqi /alerts #1+#3 "reuse Today's
@@ -550,7 +572,7 @@ function PulseAlertRow({
               }}
               aria-expanded={whyOpen}
               className={cn(
-                'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-[6px] border px-2 text-[11px] font-semibold text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2 text-[11px] font-semibold text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 // Pencil `X6enpJ`: expanded = accent fill + accent
                 // border; collapsed = transparent with a hairline
                 // border that tints to the accent wash on hover.
@@ -569,30 +591,18 @@ function PulseAlertRow({
           ) : null}
         </div>
 
-        {/* Subject IVBgx — title 16/600 + dek 13/normal.
-            Title uses the same tracking-tight / leading-1.25
-            treatment that /today's card uses, so the two surfaces
-            share a typography signature for the alert title. */}
-        <div className="flex flex-col gap-[3px]">
-          {/* Title — round 76: weight aligned to NeedsAttentionCard's
-              15/medium for cross-page consistency. ActionsTable's
-              row lede sits at 13/medium-primary; the alert title
-              gets a +2px lift (15px) because alerts are more
-              event-driven than table actions, but the weight is
-              the same medium-not-bold across both surfaces so the
-              type families read in one zone. */}
-          <h3
-            className="line-clamp-1 min-w-0 text-[15px] font-medium leading-[1.25] tracking-[-0.25px] text-text-secondary"
-            title={alert.title}
-          >
-            {alert.title}
-          </h3>
-          {alert.summary && alert.summary.trim() !== alert.title.trim() ? (
-            <p className="line-clamp-2 text-[13px] leading-[1.5] text-text-tertiary">
-              {alert.summary}
-            </p>
-          ) : null}
-        </div>
+        {/* Subject — title only.
+            2026-06-09 (Yuqi "are they too complicated?" → simplify the list):
+            the 2-line summary dek was DROPPED — it largely restated the title
+            and added a whole band of noise to every row. The title now carries
+            the headline (clamped to 2 lines so long ones aren't cut
+            mid-thought); the full summary lives in the detail drawer. */}
+        <h3
+          className="line-clamp-2 min-w-0 text-[15px] font-medium leading-[1.3] tracking-[-0.25px] text-text-secondary"
+          title={alert.title}
+        >
+          {alert.title}
+        </h3>
 
         {/* KeyChange inset hKGFX — transparent (Pencil fill
             disabled), gap 8 vertical. Restored from round 67
@@ -687,7 +697,7 @@ function PulseAlertRow({
             this client"). All values come from the real priority
             queue; nothing is hardcoded. */}
         {showPriority && whyOpen && priority ? (
-          <div className="flex flex-col gap-2 rounded-[10px] border border-divider-subtle bg-[#fafbfc] px-[14px] py-3">
+          <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-[#fafbfc] px-[14px] py-3">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
               <span className="text-[11px] font-semibold tracking-[0.3px] text-text-secondary">
@@ -702,7 +712,7 @@ function PulseAlertRow({
               {priority.reasons.map((reason) => (
                 <span
                   key={reason.key}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-divider-subtle bg-background-default px-2 py-1"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-1"
                 >
                   <span className="text-[11px] font-semibold text-text-accent tabular-nums">
                     +{reason.points}
@@ -766,35 +776,43 @@ function PulseAlertRow({
               <Trans>No matching clients</Trans>
             )}
           </span>
-          {/* 2026-06-07 (Pencil g5kKJQ `WZi5X sourcesConf`): confidence
-              promoted from bare inline text to a rounded pill (radius
-              999, py-0.5 px-2) so it reads as a discrete signal chip,
-              matching the design's bottom-meta anatomy. When the change
-              was corroborated by more than one source snapshot, the pill
-              leads with that real count ("3 sources · 94% conf",
-              `duplicateSourceSnapshotCount`). Tier-colored so it stays
-              honest — green/checked only at high AI confidence, neutral
-              at medium, destructive-tinted at low. */}
+          {/* AI confidence — 2026-06-09 (Yuqi "find other indication for ai
+              confidence"): the green "high-confidence" pill collided with the
+              new green ACTIVE badge and read like yet another status chip.
+              Replaced with a neutral signal-strength METER (three rising bars
+              filled by tier) + the % — it reads as a MEASUREMENT, not a status.
+              Only LOW keeps a warning-amber tint (the tier worth flagging);
+              high/medium stay neutral. Source corroboration moves to the
+              tooltip so the row stays quiet. */}
           <span
-            className={cn(
-              'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums',
-              confidenceTier === 'high'
-                ? 'border-[#17b26a40] bg-[#e8f5ee] text-text-success'
-                : confidenceTier === 'medium'
-                  ? 'border-divider-regular bg-background-section text-text-tertiary'
-                  : 'border-[#f0443840] bg-state-destructive-hover text-text-destructive',
-            )}
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] font-medium tabular-nums text-text-tertiary"
+            title={
+              confirmingSources > 1
+                ? t`AI confidence ${confidencePct}% · confirmed by ${confirmingSources} sources`
+                : t`AI confidence ${confidencePct}%`
+            }
           >
-            {confidenceTier === 'high' ? (
-              <CheckCheckIcon className="size-2.5 shrink-0" aria-hidden />
-            ) : null}
-            {confirmingSources > 1 ? (
-              <Trans>
-                {confirmingSources} sources · {confidencePct}% conf
-              </Trans>
-            ) : (
-              <Trans>{confidencePct}% conf</Trans>
-            )}
+            <span className="inline-flex items-end gap-[2px]" aria-hidden>
+              {[0, 1, 2].map((i) => {
+                const filled =
+                  i < (confidenceTier === 'high' ? 3 : confidenceTier === 'medium' ? 2 : 1)
+                return (
+                  <span
+                    key={i}
+                    className={cn(
+                      'w-[3px] rounded-full',
+                      i === 0 ? 'h-1.5' : i === 1 ? 'h-2' : 'h-2.5',
+                      filled
+                        ? confidenceTier === 'low'
+                          ? 'bg-text-warning'
+                          : 'bg-text-tertiary'
+                        : 'bg-divider-regular',
+                    )}
+                  />
+                )
+              })}
+            </span>
+            {t`${confidencePct}% conf`}
           </span>
 
           {/* Hover-only action cluster — Dismiss / Review.
@@ -815,9 +833,9 @@ function PulseAlertRow({
                 variant="outline"
                 size="xs"
                 // 2026-06-08 (Yuqi /alerts "wrong rounded corners"): override the
-                // Button base's squircle corner to a plain circular rounded-[6px]
+                // Button base's squircle corner to a plain circular rounded-lg
                 // so these row buttons match the row's chips (state/form/etc.).
-                className="rounded-[6px] [corner-shape:round]"
+                className="rounded-lg [corner-shape:round]"
                 onClick={(event) => {
                   event.stopPropagation()
                   onDismiss()
@@ -837,7 +855,7 @@ function PulseAlertRow({
             <Button
               type="button"
               size="xs"
-              className="rounded-[6px] [corner-shape:round]"
+              className="rounded-lg [corner-shape:round]"
               onClick={(event) => {
                 event.stopPropagation()
                 onReview()
@@ -1009,7 +1027,7 @@ function PulseAlertList({
     // guideline and rules to Alert and Deadlines"): list frame
     // now uses the ActionsTable canonical chrome —
     // `rounded-[12px] border-divider-regular` (not the round-70
-    // `rounded-2xl border-divider-subtle`). Same shape every
+    // `rounded-xl border-divider-subtle`). Same shape every
     // tabular list surface uses, so /today, /alerts, /deadlines
     // share one outer frame language.
     // 2026-06-04 round 84 (Yuqi "remove the overflow:hidden

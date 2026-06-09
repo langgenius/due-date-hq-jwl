@@ -58,7 +58,7 @@ export function ReverifyRulesSection({
   const openRule = openRuleId ? (ruleById.get(openRuleId) ?? null) : null
 
   return (
-    <section className="flex flex-col gap-3 rounded-md border border-divider-regular bg-background-subtle px-4 py-4">
+    <section className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-subtle px-4 py-4">
       <div className="flex items-center gap-2">
         <ShieldAlertIcon className="size-4 text-text-secondary" aria-hidden />
         <h3 className="text-sm font-semibold">
@@ -75,7 +75,7 @@ export function ReverifyRulesSection({
         {rules.map((rule) => (
           <li
             key={rule.id}
-            className="flex items-center justify-between gap-3 rounded-md border border-divider-regular bg-background-default px-3 py-2"
+            className="flex items-center justify-between gap-3 rounded-lg border border-divider-regular bg-background-default px-3 py-2"
           >
             <span className="min-w-0 truncate text-sm">{rule.title}</span>
             {ruleNeedsReview(rule) ? (

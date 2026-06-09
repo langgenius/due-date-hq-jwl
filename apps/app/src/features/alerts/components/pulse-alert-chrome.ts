@@ -37,7 +37,7 @@ import { alertImpactLevel } from '../lib/impact-level'
  *     font-bold tracking-[0.7px] uppercase` + colors from
  *     `impactBadgeFromAlert`
  *   - Action pill (change-action amber, separate from status):
- *     `bg #FFFBEB`, `color #92400E`, `rounded-md px-[10px] py-[4px]`,
+ *     `bg #FFFBEB`, `color #92400E`, `rounded-lg px-[10px] py-[4px]`,
  *     mono ACTION label 10/700 + body 12/500 (same amber)
  *
  * ## Hover / focus
@@ -112,6 +112,29 @@ export function impactBadgeFromAlert(
  *   • matched / partially_applied          → "Needs Action" (destructive)
  *   • Otherwise                            → null (no pill rendered)
  */
+/**
+ * 2026-06-09 (Yuqi "toggle between review and active"): an alert is in the
+ * "Active" work queue when it NEEDS ACTION — it applies a due-date change
+ * (`due_date_overlay` / `deadline_shift`) OR it actually flags real clients
+ * (matched / needs-review > 0). "Review" = informational: no date change and no
+ * client impact, so it just needs a look.
+ *
+ * Client-impact is part of the test on purpose: the list projection reports
+ * `actionMode: review_only` for every demo row (it has drifted from the detail,
+ * which still resolves due-date overlays), so impact counts are the reliable
+ * list-data signal that separates the rows the CPA must act on from pure FYI.
+ */
+export function isActiveAlert(
+  alert: Pick<PulseAlertPublic, 'actionMode' | 'changeKind' | 'matchedCount' | 'needsReviewCount'>,
+): boolean {
+  return (
+    alert.actionMode === 'due_date_overlay' ||
+    alert.changeKind === 'deadline_shift' ||
+    alert.matchedCount > 0 ||
+    alert.needsReviewCount > 0
+  )
+}
+
 export type ActionPillId = 'needs-action' | 'needs-review' | 'closed'
 export function actionPillFromAlert(
   alert: PulseAlertPublic,

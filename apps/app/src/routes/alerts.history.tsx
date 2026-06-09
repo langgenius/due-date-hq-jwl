@@ -105,7 +105,10 @@ export function AlertsHistoryRoute() {
       // so the archive caps at the same width as /alerts active.
       wide
       contentClassName={cn(
-        'gap-8 md:px-16 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
+        // 2026-06-09 (Yuqi "Alert history page is having a different width"):
+        // match the active /alerts shell exactly — `md:px-8` (was md:px-16,
+        // which left the archive 32px narrower on each side).
+        'gap-8 md:px-8 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
         panelOpen && '!pb-0 md:!pb-0',
       )}
       breadcrumbs={[{ label: t`Alerts`, to: '/alerts' }]}

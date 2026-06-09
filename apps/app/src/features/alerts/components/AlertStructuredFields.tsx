@@ -221,7 +221,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
   return (
     <div className="flex flex-col gap-3">
       {detail.alert.duplicateSourceSnapshotCount > 0 ? (
-        <div className="rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
+        <div className="rounded-lg border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
           <Plural
             value={detail.alert.duplicateSourceSnapshotCount}
             one="# similar source update was merged into this alert."
@@ -257,7 +257,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
       </div>
 
       {detail.alert.changeKind === 'threshold_advisory' ? (
-        <div className="rounded-md border border-divider-subtle bg-background-soft px-4 py-3">
+        <div className="rounded-lg border border-divider-subtle bg-background-soft px-4 py-3">
           <p className="text-sm leading-relaxed text-text-secondary">
             <Trans>
               This alert points to the official IRS Revenue Procedure and asserts no specific
@@ -268,7 +268,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
       ) : null}
 
       {protectiveFacts ? (
-        <div className="rounded-md border border-divider-subtle bg-background-soft px-4 py-3">
+        <div className="rounded-lg border border-divider-subtle bg-background-soft px-4 py-3">
           <div className="grid gap-3 sm:grid-cols-2">
             {protectiveFacts.actionDeadline ? (
               <div className="flex flex-col gap-1">
@@ -335,7 +335,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
       ) : null}
 
       {/* Source excerpt — flush bordered blockquote with copy affordance. */}
-      <div className="group/excerpt relative rounded-md border border-divider-subtle bg-background-soft px-4 py-3">
+      <div className="group/excerpt relative rounded-lg border border-divider-subtle bg-background-soft px-4 py-3">
         <blockquote className="break-words pr-8 text-sm italic leading-relaxed text-text-secondary">
           &ldquo;{detail.sourceExcerpt}&rdquo;
         </blockquote>

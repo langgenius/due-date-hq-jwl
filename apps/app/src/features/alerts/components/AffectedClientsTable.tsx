@@ -96,7 +96,7 @@ export function AffectedClientsTable({
   return (
     <>
       {/* 2026-05-26 (Yuqi /alerts third pass #9): outer
-          rounded-md border + overflow-hidden so the table reads
+          rounded-lg border + overflow-hidden so the table reads
           as one clipped surface — corners and the bottom row
           line up to the same radius. Previously the raw <Table>
           had its own square corners and was sitting flush
@@ -125,7 +125,7 @@ export function AffectedClientsTable({
           — visible-but-quiet sweet spot) after a brief deep-tone
           overshoot. Matches the new canonical wrapper recipe. */}
       {/* 2026-06-04 round 78 (Yuqi "finish the partially done first"
-          — detail panel #5): outer frame `rounded-md` (6px) →
+          — detail panel #5): outer frame `rounded-lg` (6px) →
           `rounded-[12px]` to match ActionsTable's canonical card
           radius. Border token already at `divider-regular`. */}
       <div className="overflow-hidden rounded-[12px] border border-divider-regular">

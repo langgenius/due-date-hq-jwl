@@ -25,14 +25,14 @@ import { changeKindLabel } from './PulseChangeKindChip'
  * round-28 build. Re-audit of the latest resolveVariables JSON
  * caught these deltas:
  *
- *   • cornerRadius 20 → **16** (`rounded-2xl`).
+ *   • cornerRadius 20 → **16** (`rounded-xl`).
  *   • padding 24 → **20** (`p-5`).
  *   • Outer gap 20 → **8** (`gap-2`) between sections
  *     c4OFh (meta) / eMmjH (title) / iKzA1 (facts+impact).
  *   • iKzA1 internal gap dropped to **0** — facts (R2kul) sits
  *     directly above impact (I1qCj9); breathing room comes from
  *     impact's own `padding: [10, 0, 2, 0]` (pt-2.5 pb-0.5).
- *   • Facts panel R2kul kept `rounded-[10px]` + `bg-#f9fafb`
+ *   • Facts panel R2kul kept `rounded-xl` + `bg-#f9fafb`
  *     (bg-background-section).
  *   • Cell strokes (`border-divider-regular` left borders on
  *     cells 2-4) REMOVED in the latest Pencil — cells are
@@ -127,12 +127,12 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
       onKeyDown={handleCardKeyDown}
       className={cn(
         // Outer chrome — Pencil ZkXFr exactly.
-        //   • cornerRadius 16 → rounded-2xl
+        //   • cornerRadius 16 → rounded-xl
         //   • padding 20 → p-5
         //   • outer gap 8 → gap-2 between c4OFh / eMmjH / iKzA1
         //   • stroke disabled → no border
         //   • bg #ffffff → bg-background-default
-        'flex cursor-pointer flex-col gap-2 overflow-hidden rounded-2xl bg-background-default p-5',
+        'flex cursor-pointer flex-col gap-2 overflow-hidden rounded-xl bg-background-default p-5',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         className,
       )}
@@ -202,10 +202,10 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           The impact row's own pt-2.5 padding creates the visual
           breathing room. */}
       <div className="flex flex-col">
-        {/* R2kul facts panel: rounded-[10px], bg #f9fafb. NO cell
+        {/* R2kul facts panel: rounded-xl, bg #f9fafb. NO cell
             strokes anymore (Pencil dropped them). Column widths
             500/500/200/200 → grid-cols-[5fr_5fr_2fr_2fr]. */}
-        <div className="grid grid-cols-[5fr_5fr_2fr_2fr] overflow-hidden rounded-[10px] bg-background-section">
+        <div className="grid grid-cols-[5fr_5fr_2fr_2fr] overflow-hidden rounded-xl bg-background-section">
           {/* wdV5a WHAT CHANGED. padding [12,16], gap-1.5. */}
           <div className="flex flex-col gap-1.5 px-4 py-3">
             <span className="text-[11px] font-semibold tracking-[0.6px] text-text-muted">
@@ -250,7 +250,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
                   // QbZPm form-code pill: bg #f9fafb, border
                   // divider-regular, rounded-5, padding [4,12], 12/700
                   // JetBrains Mono.
-                  className="inline-flex items-center rounded-[5px] border border-divider-regular bg-background-section px-3 py-1 font-mono text-xs font-bold text-text-secondary"
+                  className="inline-flex items-center rounded-sm border border-divider-regular bg-background-section px-3 py-1 font-mono text-xs font-bold text-text-secondary"
                 >
                   {code}
                 </span>

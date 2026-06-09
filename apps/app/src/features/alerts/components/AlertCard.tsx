@@ -179,11 +179,11 @@ export function AlertCard({
       className={cn(
         // 2026-06-04 round 40 (Yuqi "左右 padding 可以更多"): asymmetric
         // padding — vertical `py-3` (12px), horizontal `px-5` (20px).
-        // 2026-06-04 round 32 (Pencil ZkXFr): rounded-2xl, no resting
+        // 2026-06-04 round 32 (Pencil ZkXFr): rounded-xl, no resting
         // border (the white card defines its own edge against the gray
         // page wash via the round-25 bg inversion below). Outer flex
         // gap-0 since the body is a single child column.
-        'group/alert-card relative flex cursor-pointer items-start gap-0 rounded-2xl px-5 py-3 transition-[opacity,background-color,border-color]',
+        'group/alert-card relative flex cursor-pointer items-start gap-0 rounded-xl px-5 py-3 transition-[opacity,background-color,border-color]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
           ? // 2026-06-04 round 41 (Yuqi "hover 背景蓝色也不是很美丽"):
