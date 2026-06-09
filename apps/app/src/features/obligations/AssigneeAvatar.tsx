@@ -142,6 +142,10 @@ export function AssigneeAvatar({
   // Firm/workspace monogram — always paired with shape='square'
   // typically. Brand-primary fill + inverted text matches the
   // app-shell firm switcher visual.
+  // 2026-06-09 (Yuqi sidebar polish): the company monogram gets a
+  // slightly larger corner (rounded-lg, up from the square default
+  // rounded-md) and a faint light hairline (border-white/15) so the
+  // dark tile reads a touch softer / lifted against the rail.
   const initials = initialsFromName(name ?? '')
   if (resolvedType === 'firm') {
     return (
@@ -149,7 +153,7 @@ export function AssigneeAvatar({
         aria-hidden
         translate="no"
         title={title}
-        className={cn(baseClasses, 'bg-brand-primary text-text-inverted')}
+        className={cn(baseClasses, 'rounded-lg border border-white/15 bg-brand-primary text-text-inverted')}
       >
         {initials || 'DD'}
       </span>

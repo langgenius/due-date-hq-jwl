@@ -247,20 +247,19 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               // card-shaped wash). Compact (collapsed) mode keeps
               // its size-8 footprint; the visual card-ness was the
               // expanded-mode problem.
-              // 2026-05-26 (Yuqi seventy-third pass — collapse
-              // toggle mounted): trigger now `min-w-0 flex-1` so
-              // it shares the header row with the new
-              // SidebarCollapseToggle sibling. Collapsed mode
-              // still snaps to size-8 since both children stack
-              // vertically below xl.
               // 2026-06-09 (Yuqi follow-up — match Pencil v202hj
               // §BrandHeader): the firm switcher is an OUTLINED BOX —
               // rounded-xl (12), 1px divider border, transparent fill,
-              // padding 12 — holding the 32px monogram tile + practice
-              // name + chevron. Collapsed mode drops the box chrome and
-              // the name/chevron, leaving the borderless monogram tile
-              // centered in the narrow rail.
-              className="flex w-full min-w-0 cursor-pointer touch-manipulation items-center gap-2.5 rounded-xl border border-divider-deep p-1 text-left outline-none transition-colors hover:border-divider-intense hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:rounded-md group-data-[collapsed=true]/sidebar:border-0 group-data-[collapsed=true]/sidebar:p-0"
+              // holding the 32px monogram tile + practice name + chevron.
+              // 2026-06-09 (Yuqi "no flick on collapse"): the button
+              // keeps a FIXED h-10 in BOTH modes and the monogram stays
+              // left-aligned + vertically centered, so its position never
+              // moves between expanded/collapsed. Collapsing only makes
+              // the border transparent (box chrome disappears but its 1px
+              // layout is preserved → no shift) and hides the name +
+              // chevron (their own group-collapsed:hidden). No size-8
+              // snap, no mx-auto re-center — those were the flick.
+              className="flex h-10 w-full min-w-0 cursor-pointer touch-manipulation items-center gap-2.5 rounded-xl border border-divider-deep p-1 text-left outline-none transition-colors hover:border-divider-intense hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:border-transparent group-data-[collapsed=true]/sidebar:hover:border-transparent"
             />
           }
         >

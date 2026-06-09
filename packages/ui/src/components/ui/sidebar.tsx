@@ -64,7 +64,7 @@ import {
 //     card. Symmetric 12/12 item padding then centers the 16px icon in
 //     the collapsed card with NO per-mode re-centering — the source of
 //     the old expand/collapse padding jump.
-const SIDEBAR_WIDTH = '17.5rem' // 280px — Pencil SidebarColumn (expanded)
+const SIDEBAR_WIDTH = '16.5rem' // 264px — Pencil SidebarColumn (expanded), trimmed a touch
 const SIDEBAR_WIDTH_COLLAPSED = '5.5rem' // 88px — Pencil SidebarColumn (collapsed)
 const SIDEBAR_WIDTH_MOBILE = '17.5rem' // 280px — Sheet drawer matches expanded
 // Gutter inset of the floating card from its footprint, summed across
@@ -1014,13 +1014,13 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
       aria-expanded={!collapsed}
       title={label}
       className={cn(
-        // Edge handle: centered on the aside's right edge
-        // (`right-0` + `translate-x-1/2`), vertically centered, so it
-        // sits just OUTSIDE the card in the gutter. A bordered white
-        // pill with a soft shadow reads as a control against the body.
+        // Edge handle: centered on the CARD's right edge (`right-3` +
+        // `translate-x-1/2`) so the circle half-overlaps the rail and
+        // half sits in the gutter. No border, no shadow — just the white
+        // fill — so it reads as a quiet handle, not a floating control.
         // `opacity-0` until the sidebar is hovered / focus-within (or
         // the handle itself is focused) keeps it unobtrusive.
-        'absolute top-1/2 right-0 z-40 hidden size-6 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-divider-regular bg-background-default text-text-tertiary opacity-0 shadow-[0_1px_3px_rgb(16_24_40_/_0.1)] outline-none transition-[opacity,background-color,color]',
+        'absolute top-1/2 right-3 z-40 hidden size-6 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full bg-background-default text-text-tertiary opacity-0 outline-none transition-[opacity,background-color,color]',
         'hover:bg-background-default-hover hover:text-text-secondary',
         'focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100',
