@@ -3,6 +3,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircle, Astroid, BriefcaseIcon, Building2, UserRound, UsersIcon } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -479,21 +480,21 @@ export function AlertCard({
               footer's right edge. Hover-revealed so the action chrome
               doesn't claim resting-state weight (visible when the card
               is active / focused-within for keyboard users). */}
-          <button
-            type="button"
+          <TextLink
+            variant="accent"
             onClick={(event) => {
               event.stopPropagation()
               onReview()
             }}
             className={cn(
-              'text-xs font-semibold text-text-accent outline-none transition-opacity duration-150 hover:underline focus-visible:underline',
+              'font-semibold transition-opacity duration-150 focus-visible:underline',
               active
                 ? 'opacity-100'
                 : 'pointer-events-none opacity-0 group-hover/alert-card:pointer-events-auto group-hover/alert-card:opacity-100 group-focus-within/alert-card:pointer-events-auto group-focus-within/alert-card:opacity-100',
             )}
           >
             <Trans>Review →</Trans>
-          </button>
+          </TextLink>
           {!compact ? (
             <div
               className={cn(

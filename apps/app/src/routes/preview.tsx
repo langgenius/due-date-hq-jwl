@@ -763,16 +763,51 @@ export function PreviewRoute() {
           <Section
             id="button"
             title="Button"
-            subtitle="7 variants × 5 sizes. Built on Base UI button. Supports icon-only and icon+label via data-icon attributes."
+            subtitle="Emphasis ladder (primary → secondary → tertiary → ghost) + accent / link + a parallel destructive ladder + inverted-ghost for dark chrome. 8 sizes (4 text + 4 icon). Built on Base UI button; icon+label via data-icon attributes."
           >
-            <Row label="Variants" mono="variant=…">
+            <Row label="Emphasis ladder" mono="variant=…">
               <Button variant="primary">Primary</Button>
               <Button variant="secondary">Secondary</Button>
-              <Button variant="default">Default</Button>
-              <Button variant="outline">Outline</Button>
+              <Button variant="tertiary">Tertiary</Button>
               <Button variant="ghost">Ghost</Button>
+            </Row>
+            <Row label="Accent + link" mono="low-emphasis, attention">
+              <Button variant="accent">Accent</Button>
               <Button variant="link">Link</Button>
-              <Button variant="destructive">Destructive</Button>
+            </Row>
+            {/* On a gray section pane: secondary's white fill pops, tertiary
+                keeps its boundary via the new hairline (2026-06-09), ghost
+                stays invisible until hover — the three stay distinguishable. */}
+            <Row label="On gray surface" mono="bg-background-section">
+              <div className="flex flex-wrap items-center gap-2 rounded-lg bg-background-section p-3">
+                <Button variant="secondary">Secondary</Button>
+                <Button variant="tertiary">Tertiary</Button>
+                <Button variant="ghost">Ghost</Button>
+                <Button variant="accent">Accent</Button>
+              </div>
+            </Row>
+            <Row label="Destructive ladder" mono="variant=destructive-*">
+              <Button variant="destructive-primary">Primary</Button>
+              <Button variant="destructive-secondary">Secondary</Button>
+              <Button variant="destructive-tertiary">Tertiary</Button>
+              <Button variant="destructive-ghost">Ghost</Button>
+            </Row>
+            {/* Inverted-ghost only reads correctly on dark chrome — the same
+                bg-text-primary surface the alerts bulk-action bar uses. */}
+            <Row label="Inverted (dark chrome)" mono="variant=inverted-ghost">
+              <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-text-primary p-3">
+                <Button variant="inverted-ghost" size="sm">
+                  <ArchiveIcon /> Dismiss
+                </Button>
+                <Button variant="inverted-ghost" size="icon-sm" aria-label="Clear">
+                  <XIcon />
+                </Button>
+              </div>
+            </Row>
+            <Row label="Legacy aliases" mono="default · outline · destructive">
+              <Button variant="default">Default → primary</Button>
+              <Button variant="outline">Outline → secondary</Button>
+              <Button variant="destructive">Destructive → dest-secondary</Button>
             </Row>
             <Row label="Sizes" mono="size=…">
               <Button variant="primary" size="xs">
@@ -785,7 +820,18 @@ export function PreviewRoute() {
               <Button variant="primary" size="lg">
                 Large
               </Button>
-              <Button variant="primary" size="icon" aria-label="Add">
+            </Row>
+            <Row label="Icon sizes" mono="size=icon-*">
+              <Button variant="secondary" size="icon-xs" aria-label="Add">
+                <PlusIcon />
+              </Button>
+              <Button variant="secondary" size="icon-sm" aria-label="Add">
+                <PlusIcon />
+              </Button>
+              <Button variant="secondary" size="icon" aria-label="Add">
+                <PlusIcon />
+              </Button>
+              <Button variant="secondary" size="icon-lg" aria-label="Add">
                 <PlusIcon />
               </Button>
             </Row>
@@ -807,8 +853,11 @@ export function PreviewRoute() {
               <Button variant="secondary" disabled>
                 Secondary
               </Button>
-              <Button variant="outline" disabled>
-                Outline
+              <Button variant="tertiary" disabled>
+                Tertiary
+              </Button>
+              <Button variant="accent" disabled>
+                Accent
               </Button>
             </Row>
           </Section>

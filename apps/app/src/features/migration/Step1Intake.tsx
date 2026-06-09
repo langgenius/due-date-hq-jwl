@@ -630,7 +630,7 @@ export function Step1Intake({
                 <button
                   type="button"
                   onClick={() => setPasteMode(true)}
-                  className="text-sm text-text-tertiary underline-offset-2 hover:text-text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+                  className="text-sm text-text-tertiary underline-offset-2 hover:text-text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm cursor-pointer"
                 >
                   <Trans>Paste a list instead →</Trans>
                 </button>
@@ -1016,7 +1016,7 @@ function DetectionHero({
       <button
         type="button"
         onClick={onRemove}
-        className="text-sm text-text-tertiary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+        className="text-sm text-text-tertiary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm cursor-pointer"
       >
         <Trans>Remove file</Trans>
       </button>
@@ -1067,7 +1067,7 @@ function FileSummaryRow({
       <button
         type="button"
         onClick={onRemove}
-        className="shrink-0 rounded-sm text-sm text-text-tertiary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="shrink-0 cursor-pointer rounded-sm text-sm text-text-tertiary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <Trans>Remove</Trans>
       </button>

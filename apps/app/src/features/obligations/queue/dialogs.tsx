@@ -245,7 +245,7 @@ export function SignatureReminderDialog({
             ) : null}
             {/* P1 throttle: bulk skip toggle for recently-reminded clients. */}
             {isBulk && recentlyRemindedCount > 0 ? (
-              <label className="flex items-center gap-2 text-sm text-text-secondary">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-text-secondary">
                 <Checkbox
                   checked={skipRecent}
                   onCheckedChange={(checked) => setSkipRecent(checked)}
@@ -814,7 +814,7 @@ export function AuthorityRejectionDialog({
                     role="radio"
                     aria-checked={selected}
                     className={cn(
-                      'grid gap-1 rounded-md border px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                      'grid cursor-pointer gap-1 rounded-md border px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                       selected
                         ? 'border-accent-default bg-state-accent-hover-alt'
                         : 'border-divider-subtle hover:bg-state-base-hover',

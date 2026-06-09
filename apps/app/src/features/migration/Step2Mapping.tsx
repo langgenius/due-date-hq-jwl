@@ -22,6 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import {
   DropdownMenu,
@@ -407,7 +408,7 @@ function MappingBannerRow({
         type="button"
         aria-expanded={expanded}
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full min-h-14 flex-col items-stretch gap-2 px-4 py-3 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset sm:flex-row sm:items-center sm:gap-3"
+        className="flex w-full min-h-14 cursor-pointer flex-col items-stretch gap-2 px-4 py-3 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset sm:flex-row sm:items-center sm:gap-3"
       >
         <span className="truncate text-sm font-medium text-text-primary sm:w-[170px] sm:shrink-0">
           {row.sourceHeader}
@@ -536,17 +537,17 @@ function ChangeDestinationLink({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <button
-            type="button"
+          <TextLink
+            variant="accent"
+            className="shrink-0 px-1"
             // Click on the inline "Change" must not toggle the parent
             // banner's expanded state — that would either dismiss the
             // dropdown immediately or hide the row body the user just
             // opened. Stop propagation at the trigger.
             onClick={(event) => event.stopPropagation()}
-            className="shrink-0 rounded-sm px-1 text-xs font-medium text-text-accent outline-none transition-colors hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>Change →</Trans>
-          </button>
+          </TextLink>
         }
       />
       <DropdownMenuContent className="w-60" align="end">

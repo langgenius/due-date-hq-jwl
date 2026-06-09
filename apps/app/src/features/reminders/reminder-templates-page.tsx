@@ -8,6 +8,7 @@ import type { ReminderTemplateKind, ReminderTemplatePublic } from '@duedatehq/co
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
@@ -137,13 +138,14 @@ function TemplateCard({ template }: { template: ReminderTemplatePublic }) {
         <span className="text-[11px] font-medium text-text-muted">
           <Trans>Practice-managed template</Trans>
         </span>
-        <Link
-          to={editHref}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-accent hover:underline"
+        <TextLink
+          variant="accent"
+          render={<Link to={editHref} />}
+          className="gap-1.5 font-semibold"
         >
           <Trans>Edit</Trans>
           <ArrowRightIcon className="size-3" aria-hidden />
-        </Link>
+        </TextLink>
       </div>
     </article>
   )

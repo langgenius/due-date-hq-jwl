@@ -187,7 +187,7 @@ function CycleButton({
       aria-label={ariaLabel}
       title={title}
       className={cn(
-        'inline-flex size-6 items-center justify-center rounded-sm text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        'inline-flex size-6 cursor-pointer items-center justify-center rounded-sm text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         disabled &&
           'cursor-not-allowed text-text-disabled hover:bg-transparent hover:text-text-disabled',
       )}

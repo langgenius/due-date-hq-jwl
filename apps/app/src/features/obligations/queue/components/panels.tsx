@@ -2153,7 +2153,7 @@ export function ActiveStageDetailCard({
         <button
           type="button"
           onClick={() => onChangeTab('readiness')}
-          className="mt-3 -mx-1 flex items-center gap-1.5 rounded-md px-1 py-1 text-left text-xs text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="mt-3 -mx-1 flex cursor-pointer items-center gap-1.5 rounded-md px-1 py-1 text-left text-xs text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           aria-label={t`Check Materials to review ${outstandingDocsCount} outstanding items`}
         >
           <CircleIcon className="size-2 fill-current text-state-warning-solid" aria-hidden />
@@ -2418,7 +2418,7 @@ export function ActiveStageDetailCard({
                     type="button"
                     onClick={() => setExpandedPast(open ? null : entryKey)}
                     aria-expanded={open}
-                    className="-mx-1 flex items-center gap-2 rounded px-1 py-1 text-left text-xs outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    className="-mx-1 flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-left text-xs outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   >
                     <ChevronRightIcon
                       className={cn(

@@ -35,6 +35,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/component
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import {
   DropdownMenu,
@@ -922,6 +923,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     `overflow-y-auto` list column can't clip it (an outset
                     ring-2 was getting cropped at the column's top/left
                     edge). */}
+                {/* 2026-06-09 (Yuqi "all search bars 36px"): this search stays
+                    h-9 (36px) — the same height as the FilterTrigger pills +
+                    View toggle it shares this toolbar row with, so the cluster
+                    stays aligned. (Briefly tried 40px; Yuqi settled the search
+                    family on 36px to keep the delicate round-83 filter sizing.) */}
                 <label className="inline-flex h-9 w-[180px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-inset focus-within:ring-state-accent-active-alt sm:w-[200px]">
                   <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
                   <input
@@ -1549,26 +1555,22 @@ function BulkActionBar({
             per-alert action is Dismiss, so the bar exposes Dismiss
             with the same archive semantics the row hover-action
             uses.) */}
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
-        >
+        <Button variant="inverted-ghost" size="sm" onClick={onDismiss}>
           <ArchiveIcon className="size-3.5" aria-hidden />
           <Trans>Dismiss</Trans>
-        </button>
+        </Button>
       </div>
 
       <span className="h-8 w-px shrink-0 bg-white/20" aria-hidden />
 
-      <button
-        type="button"
+      <Button
+        variant="inverted-ghost"
+        size="icon-sm"
         onClick={onClear}
         aria-label={t`Clear selection`}
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-white/60 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
       >
         <XIcon className="size-3.5" aria-hidden />
-      </button>
+      </Button>
     </motion.div>
   )
 }
@@ -1633,16 +1635,15 @@ function StateFilterPopover({
               <Trans>Filter by state</Trans>
             </span>
             {activeState ? (
-              <button
-                type="button"
+              <TextLink
+                variant="accent"
                 onClick={() => {
                   onSelect(activeState)
                   setOpen(false)
                 }}
-                className="cursor-pointer rounded-sm text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 <Trans>Clear</Trans>
-              </button>
+              </TextLink>
             ) : null}
           </div>
           <StateTilegram
@@ -1761,18 +1762,18 @@ function AlertFiltersPopover({
             onSelect={onTaxAreaChange}
           />
           {activeCount > 0 ? (
-            <button
-              type="button"
+            <TextLink
+              variant="accent"
+              className="self-start"
               onClick={() => {
                 onTimeRangeChange('all_time')
                 onImpactChange('all')
                 onChangeKindChange('all')
                 onTaxAreaChange('all')
               }}
-              className="self-start text-[12px] font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:underline"
             >
               <Trans>Clear these filters</Trans>
-            </button>
+            </TextLink>
           ) : null}
         </div>
       </PopoverContent>
@@ -1814,7 +1815,7 @@ function FilterPillSection<T extends string>({
               onClick={() => onSelect(option)}
               aria-pressed={active}
               className={cn(
-                'inline-flex h-7 items-center rounded-md border px-2.5 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex h-7 cursor-pointer items-center rounded-md border px-2.5 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 active
                   ? 'border-state-accent-border bg-state-accent-hover text-text-accent'
                   : 'border-divider-subtle text-text-secondary hover:bg-state-base-hover',

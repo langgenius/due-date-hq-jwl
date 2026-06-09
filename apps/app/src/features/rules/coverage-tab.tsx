@@ -1128,7 +1128,7 @@ function ActiveFilterChip({
         type="button"
         onClick={onClear}
         aria-label={t`Clear filter`}
-        className="inline-flex h-6 items-center gap-1 rounded px-1.5 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="inline-flex h-6 cursor-pointer items-center gap-1 rounded px-1.5 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <Trans>Clear filter</Trans>
         <XIcon aria-hidden className="size-3" />
@@ -1305,7 +1305,7 @@ function CoverageRow({
                   onActiveDrillIn(row.jurisdiction)
                 }}
                 aria-label={t`Open ${active} active rules for ${jurisdictionLabel(row.jurisdiction)}`}
-                className="rounded-sm text-text-secondary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                className="cursor-pointer rounded-sm text-text-secondary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 {active}
               </button>
@@ -1330,7 +1330,7 @@ function CoverageRow({
                   onJurisdictionDrillIn(row.jurisdiction)
                 }}
                 aria-label={t`Open ${pending} pending rules for ${jurisdictionLabel(row.jurisdiction)}`}
-                className="rounded-sm font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                className="cursor-pointer rounded-sm font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 {pending}
               </button>
@@ -1355,7 +1355,7 @@ function CoverageRow({
                 onSourceDrillIn(row.jurisdiction, row.missingSourceDomains?.[0])
               }}
               aria-label={t`Open sources for ${jurisdictionLabel(row.jurisdiction)}`}
-              className="group/source inline-flex items-center gap-2 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="group/source inline-flex cursor-pointer items-center gap-2 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <SourceCountBadge count={sourceCount} attention={missingSourceCount > 0} />
               <span
@@ -1400,7 +1400,7 @@ function CoverageRow({
                     onEntityDrillIn?.(row.jurisdiction, col, state)
                   }}
                   aria-label={t`Open ${fullName} rules for ${jurisdictionLabel(row.jurisdiction)} — ${labelForSourceState(sourceState, t)}`}
-                  className="inline-flex items-center justify-center rounded outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="inline-flex cursor-pointer items-center justify-center rounded outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 >
                   {cellInner}
                 </button>
@@ -1837,7 +1837,7 @@ function PendingRuleQueue({
         <SearchInput value={search} onChange={onSearchChange} fullWidth />
         <div className="flex items-center justify-between gap-2">
           {visibleSelectableCount > 0 ? (
-            <label className="inline-flex min-w-0 items-center gap-2 text-xs text-text-secondary">
+            <label className="inline-flex min-w-0 cursor-pointer items-center gap-2 text-xs text-text-secondary">
               <input
                 type="checkbox"
                 aria-label={t`Select visible batch-ready rules`}
@@ -2516,7 +2516,7 @@ function RulePanel({
                     : t`Skip — review next pending rule (j)`
                 }
                 title={mode === 'active' ? t`Next · j` : t`Skip · j`}
-                className="inline-flex h-7 shrink-0 items-center gap-1 rounded px-2 text-xs font-medium text-text-secondary outline-none hover:bg-background-subtle hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                className="inline-flex h-7 shrink-0 cursor-pointer items-center gap-1 rounded px-2 text-xs font-medium text-text-secondary outline-none hover:bg-background-subtle hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 {mode === 'active' ? <Trans>Next</Trans> : <Trans>Skip</Trans>}
                 <ChevronRightIcon aria-hidden className="size-3.5" />
@@ -2527,7 +2527,7 @@ function RulePanel({
               onClick={onClose}
               aria-label={t`Close rule detail`}
               title={t`Exit review · Esc`}
-              className="inline-flex size-7 shrink-0 items-center justify-center rounded text-text-tertiary outline-none hover:bg-background-subtle hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded text-text-tertiary outline-none hover:bg-background-subtle hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <XIcon aria-hidden className="size-4" />
             </button>

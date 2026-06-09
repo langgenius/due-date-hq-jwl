@@ -552,7 +552,7 @@ function PulseAlertRow({
               }}
               aria-expanded={whyOpen}
               className={cn(
-                'inline-flex h-[22px] shrink-0 items-center gap-1 rounded-[6px] border px-2 text-[11px] font-semibold text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-[6px] border px-2 text-[11px] font-semibold text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 // Pencil `X6enpJ`: expanded = accent fill + accent
                 // border; collapsed = transparent with a hairline
                 // border that tints to the accent wash on hover.

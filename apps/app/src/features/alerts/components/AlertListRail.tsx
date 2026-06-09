@@ -79,7 +79,7 @@ export function AlertListRail({
           <button
             type="button"
             onClick={onCloseDetail}
-            className="-mx-1 rounded-md px-1 text-[15px] font-semibold text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="-mx-1 cursor-pointer rounded-md px-1 text-[15px] font-semibold text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>Alerts</Trans>
           </button>
@@ -171,7 +171,7 @@ function RailItem({
         // override the left accent below.
         // 2026-06-08 (Yuqi "左边 list 太密密麻麻"): roomier item padding
         // (py-4) + a touch more column gap so the rail breathes.
-        'flex w-full gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-[background-color,opacity]',
+        'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-[background-color,opacity]',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
         // 2026-06-08 (Yuqi /alerts F "non-active items dimmed more so the open
         // one stands out"): the whole inactive row drops to opacity-60 (badges

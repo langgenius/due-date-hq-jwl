@@ -59,13 +59,18 @@ export function ShortcutHintChip({ className }: { className?: string }) {
   //   • "where's text? just be small text" → bring "for shortcuts" back,
   //     small. (Earlier I removed it entirely after the "too big" feedback;
   //     the right answer was smaller, not gone.)
+  // 2026-06-09 (Yuqi #7 "hover — why no rounded corner?"): the xs Button's
+  // 6px radius under `[corner-shape:squircle]` flattens the corners so the
+  // ghost hover-fill read as a sharp rectangle. Bumped to `rounded-lg` (8px)
+  // so the hover chip reads as a clearly-rounded affordance in the header
+  // cluster.
   return (
     <Button
       type="button"
       variant="ghost"
       size="xs"
       onClick={() => openShortcutHelp()}
-      className={cn('text-text-tertiary hover:text-text-secondary', className)}
+      className={cn('rounded-lg text-text-tertiary hover:text-text-secondary', className)}
     >
       <Kbd>?</Kbd>
       <span>

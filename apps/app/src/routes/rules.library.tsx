@@ -897,7 +897,7 @@ function OverviewActionHero({
           <button
             type="button"
             onClick={onRemindLater}
-            className="shrink-0 rounded-md text-xs font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="shrink-0 rounded-md text-xs font-medium text-text-tertiary outline-none transition-colors cursor-pointer hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>Remind me Friday</Trans>
           </button>
@@ -1047,7 +1047,7 @@ function OverviewRecentChangesCard({
                 type="button"
                 onClick={() => onRuleClick(rule)}
                 className={cn(
-                  'flex w-full items-center gap-3 py-3.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                  'flex w-full items-center gap-3 py-3.5 text-left outline-none transition-colors cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                   index > 0 && 'border-t border-divider-subtle',
                 )}
               >
@@ -3246,7 +3246,7 @@ function GroupedRulesTable({
           <button
             type="button"
             onClick={someExpanded ? onCollapseAll : onExpandAll}
-            className="inline-flex items-center gap-1 text-sm font-medium text-text-secondary outline-none hover:text-text-primary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="inline-flex items-center gap-1 text-sm font-medium text-text-secondary outline-none cursor-pointer hover:text-text-primary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             {someExpanded ? <Trans>Collapse all</Trans> : <Trans>Expand all</Trans>}
           </button>
@@ -4622,7 +4622,7 @@ function BulkReviewBar({
         <button
           type="button"
           onClick={onClear}
-          className="text-xs text-text-tertiary outline-none hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="text-xs text-text-tertiary outline-none cursor-pointer hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <Trans>Clear</Trans>
         </button>
@@ -4630,13 +4630,9 @@ function BulkReviewBar({
       {showSelectAll ? (
         <>
           <span aria-hidden className="h-4 w-px bg-divider-subtle" />
-          <button
-            type="button"
-            onClick={onSelectAll}
-            className="text-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
+          <TextLink variant="accent" onClick={onSelectAll}>
             <Trans>Select all {totalPending}</Trans>
-          </button>
+          </TextLink>
         </>
       ) : null}
       <span aria-hidden className="h-4 w-px bg-divider-subtle" />

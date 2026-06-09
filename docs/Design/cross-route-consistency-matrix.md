@@ -34,6 +34,10 @@ A cell value of:
 | Loading skeleton                 | `<Skeleton className="h-{px} w-{px}">` shaped to the eventual content                                                                        | `@duedatehq/ui/components/ui/skeleton`            |
 | Retry button                     | `<Button type="button" variant="link" size="sm" className="h-auto p-0 align-baseline">`                                                      | `@duedatehq/ui/components/ui/button`              |
 | Page header                      | `<PageHeader eyebrow breadcrumbs title description actions>`                                                                                 | `components/patterns/page-header.tsx`             |
+| Section header (region anchor)   | Register A: `text-[14px] font-semibold tracking-[0.4px] text-text-primary uppercase`                                                         | `docs/Design/section-header-style.md`             |
+| Field-group / column label       | Register B: `… tracking-[0.5px]/eyebrow text-text-tertiary uppercase` (11–12px)                                                              | same                                              |
+| Card / panel title               | Register C: `text-base font-semibold text-text-primary` (title-case, NOT uppercase)                                                          | same                                              |
+| Monitoring status chip           | `<MonitoringChip to? tooltip?>` — dot + "Monitoring: Federal · 50 States · DC" ghost-badge; passive on /today, nav-Link on /alerts           | `features/alerts/components/MonitoringChip.tsx`   |
 | Breadcrumbs (inside header)      | `breadcrumbs={[{ label, to? }, ...]}` prop on `PageHeader`                                                                                   | `components/patterns/breadcrumb.tsx`              |
 | Dialog cancel button             | `<Button type="button" variant="ghost" onClick=close>`                                                                                       | n/a — pattern only                                |
 | Mutation submit button           | `<Button type="submit" disabled={isPending} aria-busy={isPending}>` with `{isPending ? <Loader2 className="animate-spin" /> : null}` + label | n/a — pattern only                                |
@@ -300,3 +304,42 @@ The matrix now reads as "✓" or "n/a" in all but the deferred cells. The
 remaining drift is concentrated in long-tail mutation-button polish — a single
 sweep with a codemod (find `disabled={X.isPending}` without sibling Loader2)
 is the natural wave-5 follow-up.
+
+---
+
+## §6. Section-header register audit (2026-06-09)
+
+**Author:** dashboard-polish pass. **Authority:** prescriptive — canonical defined
+in `docs/Design/section-header-style.md`. Three registers (A region-anchor / B
+field-group / C card-title); pick by the header's job.
+
+### Per-route state
+
+| Route                                          | Section-header register in use                                       | State                                                                                                           |
+| ---------------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `/today`                                       | A (ALERTS, ACTIONS THIS WEEK) + B (group bands)                      | ✓ canonical — A is **primary** as of 2026-06-09                                                                 |
+| `/alerts`                                      | B (row meta labels)                                                  | ✓                                                                                                               |
+| alert detail (drawer)                          | B2 (field labels, tertiary)                                          | ✓                                                                                                               |
+| deadline detail (drawer)                       | B2 (field labels, tertiary)                                          | ✓                                                                                                               |
+| `/clients`, `/deadlines`, `/audit`, `/members` | — (single table; PageHeader H1 only)                                 | ✓ n/a                                                                                                           |
+| `/rules/library`                               | C (Status coverage / Recent changes cards) + B1 (status group bands) | ✓ register-correct; B1 bands at `text-text-secondary` (B canonical is tertiary) — **minor drift**               |
+| `/billing`                                     | C ("Choose a workspace tier") + a `text-xs` eyebrow                  | C ok; the `text-xs font-medium uppercase text-text-tertiary` "Plan options" eyebrow is a B-variant — acceptable |
+| `/settings`, `/settings/profile`, `/practice`  | C (panel titles)                                                     | ✓ register-correct (title-case card titles)                                                                     |
+| `/calendar`, `/workload`                       | C (CardTitle primitive)                                              | ✓                                                                                                               |
+
+### Finding
+
+Register A (the dense-overview uppercase-primary eyebrow) is **specific to
+`/today`** — no other route is an overview-register page, so none carry A-level
+titles. The wide "divergence" a naïve grep shows is pages correctly using
+Register **C** (card titles), not broken A headers. **No mass conversion applied.**
+
+### Open / deferred
+
+- **B-register size+tracking unification** (tertiary color is already consistent;
+  size/tracking varies 11–12px / eyebrow-vs-0.5px). Mechanical sweep — deferred.
+- **`/rules/library` status bands** use `text-text-secondary`; B canonical is
+  `text-text-tertiary`. One-line fix — deferred to a rules pass.
+- **Register C → A conversion** for settings/billing/practice/members/rules —
+  **DECIDED 2026-06-09: keep Register C.** Yuqi confirmed the uppercase eyebrow
+  stays reserved for overview pages (`/today`). No conversion.

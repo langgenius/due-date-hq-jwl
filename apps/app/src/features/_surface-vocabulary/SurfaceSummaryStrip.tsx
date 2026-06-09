@@ -123,7 +123,7 @@ function SurfaceSummaryNumber({
   // "pressed / filter on" without competing with the destructive /
   // warning tone tints on the value itself.
   const interactiveClass = cn(
-    'inline-flex items-baseline gap-1 rounded-md px-1.5 py-0.5 outline-none',
+    'inline-flex cursor-pointer items-baseline gap-1 rounded-md px-1.5 py-0.5 outline-none',
     'hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
     active && 'bg-state-base-hover-alt hover:no-underline',
   )

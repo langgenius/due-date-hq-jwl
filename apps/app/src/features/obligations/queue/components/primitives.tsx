@@ -29,7 +29,7 @@ export function DropdownTriggerButton({
       type="button"
       disabled={disabled}
       className={cn(
-        'inline-flex w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:bg-state-base-hover',
+        'inline-flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:bg-state-base-hover',
         size === 'lg' ? 'h-10 text-left' : 'h-9',
         className,
       )}

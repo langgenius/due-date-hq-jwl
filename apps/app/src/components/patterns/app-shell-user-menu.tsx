@@ -223,9 +223,13 @@ function UserMenuTrigger({
             type="button"
             aria-label={accountLabel}
             className={cn(
+              // 2026-06-09 (Yuqi "unify expanded/collapsed padding"):
+              // keeps px-1 in both modes (Pencil UserFooter padding 4 →
+              // avatar at 16px). No collapsed size override — only the
+              // name span hides, the avatar stays put and centers in the
+              // narrow card via the symmetric padding.
               'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2 rounded-md px-1 py-1 outline-none transition-[background-color,color]',
               'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-              'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:flex-none group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:p-0',
             )}
           />
         }

@@ -89,7 +89,7 @@ export function ObligationQueueSortableHeader({
           onSortChange(nextHeaderSort({ currentSort: sort, ascSort, descSort, firstSort }))
         }
         className={cn(
-          'inline-flex min-w-0 items-center gap-0.5 rounded px-1 py-0.5 text-left',
+          'inline-flex min-w-0 cursor-pointer items-center gap-0.5 rounded px-1 py-0.5 text-left',
           // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #2/#3): sortable
           // button now matches the new TableHead canonical (text-sm
           // sentence-case font-medium text-secondary). Previously the
@@ -438,7 +438,7 @@ export function ObligationQueueActionChip({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors ${
+      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors ${
         active
           ? 'border-accent-default bg-accent-tint font-medium text-text-accent'
           : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-deep hover:text-text-primary'

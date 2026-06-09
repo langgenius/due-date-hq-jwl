@@ -49,7 +49,7 @@ const buttonVariants = cva(
           'disabled:border-components-button-secondary-border-disabled disabled:bg-components-button-secondary-bg-disabled disabled:text-components-button-secondary-text-disabled',
         ),
         tertiary: cn(
-          'bg-components-button-tertiary-bg text-components-button-tertiary-text',
+          'border-components-button-tertiary-border bg-components-button-tertiary-bg text-components-button-tertiary-text',
           'hover:bg-components-button-tertiary-bg-hover',
           'aria-expanded:bg-components-button-tertiary-bg-hover',
           'disabled:bg-components-button-tertiary-bg-disabled disabled:text-components-button-tertiary-text-disabled',
@@ -86,6 +86,21 @@ const buttonVariants = cva(
           'hover:bg-components-button-destructive-ghost-bg-hover',
         ),
         link: 'text-text-accent underline-offset-4 hover:underline',
+        // inverted-ghost — the quiet control for DARK CHROME surfaces
+        // (the alerts bulk-action bar, future command bars). These sit on
+        // an explicitly dark `bg-text-primary` chrome, so they use fixed
+        // white-alpha values rather than theme tokens: that is the whole
+        // point of "inverted" — it does not flip with the theme, it always
+        // reads as light-on-dark. Consolidates the hand-rolled
+        // `text-white/70 hover:bg-white/10` buttons that were duplicated
+        // inline across the bulk bar (2026-06-09 button-differentiation).
+        'inverted-ghost': cn(
+          'text-white/70',
+          'hover:bg-white/10 hover:text-white',
+          'aria-expanded:bg-white/10',
+          'focus-visible:ring-white/40 focus-visible:ring-offset-0',
+          'disabled:text-white/30',
+        ),
         // Legacy aliases — preserved so existing call-sites keep working.
         // These are intentionally NOT exported via type narrowing; they alias
         // onto the Dify-style variants above.

@@ -969,7 +969,7 @@ function TaxYearCalendarSelect({
             aria-expanded={open}
             aria-invalid={invalid || undefined}
             className={cn(
-              'flex h-8 w-full items-center justify-between gap-2 rounded-md border border-transparent bg-components-input-bg-normal py-1 pr-2 pl-2.5 text-xs text-components-input-text-filled transition-colors outline-none',
+              'flex h-8 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-transparent bg-components-input-bg-normal py-1 pr-2 pl-2.5 text-xs text-components-input-text-filled transition-colors outline-none',
               'hover:bg-components-input-bg-hover',
               'focus-visible:border-components-input-border-active focus-visible:bg-components-input-bg-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'aria-invalid:border-components-input-border-destructive aria-invalid:bg-components-input-bg-destructive aria-invalid:ring-2 aria-invalid:ring-state-destructive-active',

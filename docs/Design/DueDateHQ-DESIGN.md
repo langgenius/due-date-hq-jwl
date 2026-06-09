@@ -1,8 +1,8 @@
 # DueDateHQ · DESIGN.md
 
 > 文档类型：视觉设计系统（Single Source of Truth for UI）
-> 版本：**v2.2**
-> 日期：2026-06-01（v2.1 → v2.2 修订：双向 design-system sweep — 6 primitive 扩展 + 34 call-site 迁移）
+> 版本：**v2.3**
+> 日期：2026-06-09（v2.2 → v2.3 修订：button-differentiation pass — accent/tertiary 区分度 + inverted-ghost 变体 + §4.8 重写）
 > 方向：**Ramp × Linear · Light Workbench**（浅色主导，暗色为镜像，不做方向 B 的 Bloomberg 终端风）
 > 对齐：PRD v2.0 §1.3 设计原则 + §5 核心页面规格 + §10 UI/UX 规范
 > 阅读对象：Designer / Frontend Engineer / AI coding agents（Cursor / v0 / Lovable）
@@ -37,6 +37,42 @@ in `docs/dev-log/2026-06-01-design-system-bidirectional-sweep.md`.
    the call site.
 3. No half-step spacing values (`p-3.5`, `gap-2.5`, `text-[10px]`, `rounded-[14px]`).
 4. No raw hex values in component code. Use semantic tokens.
+
+## v2.3 changelog (2026-06-09) — button-differentiation pass
+
+Yuqi-driven review of "are the button types well differentiated?" The
+emphasis ladder (primary → secondary → tertiary → ghost) was sound, but two
+tiers were too close to read apart, and §4.8 had drifted years out of date.
+Changes (full write-up in
+`docs/dev-log/2026-06-09-button-differentiation-pass.md`):
+
+- **`accent` no longer collides with `secondary`.** Both used a white fill +
+  the same neutral `0.14` border, so the only signal separating them was text
+  hue. `accent` now carries a light-blue tint fill (`primary-50`) + a
+  blue-toned border (`rgb(21 90 239 / .22)`) — a distinct low-emphasis-but-
+  attention-drawing tier, not a recoloured secondary. (Token-only change;
+  all 17 call sites improved at once.)
+- **`tertiary` gained a hairline** (`--components-button-tertiary-border`).
+  Its only signal used to be a gray-100 fill, which dissolves on a
+  `background-section` gray pane. The hairline keeps the boundary on any
+  surface while staying quieter than secondary's border.
+- **New `inverted-ghost` variant** for dark chrome (the alerts bulk-action
+  bar). Consolidates the hand-rolled `text-white/70 hover:bg-white/10`
+  buttons that were duplicated inline. Uses fixed white-alpha (does NOT flip
+  with theme — that is the point of "inverted").
+- **20 hand-rolled `text-text-accent hover:underline` inline links → `<TextLink variant="accent">`.**
+  Continues the v2.2 link-consolidation. Remaining hand-rolled accent links
+  are the _tertiary/secondary-at-rest → accent-on-hover_ pattern
+  (`coverage-tab`, `Step1Intake`) which no `TextLink` variant covers yet —
+  left intentionally; extend `TextLink` before migrating them.
+- **§4.8 rewritten** to match the real primitive (the 2026-06-08 flat-radius
+  rework + the full Dify-style variant set). The old §4.8 still described the
+  pre-rework 6px system, defined "Ghost" as the underlined accent link (now
+  the `link` variant), and forbade pill/circular buttons that now exist as
+  sanctioned animated exceptions.
+- **`/preview#button` gallery** rebuilt to show every variant on white,
+  on gray, and on dark chrome — the live surface for eyeballing
+  differentiation.
 
 ## v2.0 changelog (2026-05-26)
 
@@ -549,17 +585,76 @@ Tax Period review。
 
 ### 4.8 Button 系统
 
-> **来源声明**：本节按钮规格 = `pnpm dlx shadcn add button` 在 `base-vega` style 下产出的默认值；DESIGN.md `components.button-{primary,secondary,primary-hover,primary-active}` token 段落是这些值的镜像。修改任一处需三方同步。
+> **权威实现**：`packages/ui/src/components/ui/button.tsx`（Base UI button + cva）。
+> 颜色全部来自 `--components-button-*` 语义 token（`semantic-light.css` /
+> `semantic-dark.css`），并经 `preset.css` 的 `@theme` 映射成 `bg-*` / `border-*` /
+> `text-*` 工具类。改任一处需 token + preset + button.tsx 三方同步。
+> **live gallery：`/preview#button`**（`apps/app/src/routes/preview.tsx`）渲染全部
+> variant × size × surface，是肉眼检查"区分度"的唯一来源。
 
-| 类型                                | 规格                                                                                                                                          |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Primary**（Apply / Save / Start） | `bg: accent-default` + `text: white` + `radius: 6px` (`rounded-md`) + `h-9` 36px + `px-2.5` 10px + `text-sm` 12px / 500 (`typography.button`) |
-| **Secondary**（Cancel / Dismiss）   | `bg: transparent` + `border: 1px border-default` + `text: primary` + 同 Primary 的 radius / height / padding / typography                     |
-| **Ghost**（row 内操作）             | `text: accent-default` + no bg / border + hover underline                                                                                     |
-| **Destructive**（Delete）           | `bg: severity-critical` + `text: white` + 同 Primary 的 radius / height / padding / typography                                                |
-| **Icon-only**                       | `size-8` 32x32 (`size: sm` variant) / `size-9` 36x36 (`size: default`)，`radius: 6px`，hover `bg: bg-subtle`                                  |
+按钮按**强调阶梯**（emphasis ladder）排列——每个产品视图只有一个 primary，往下逐级变安静。
+2026-06-08 的 "flatter & quieter" 改版去掉了所有阴影，并把圆角按 size 分级（见下）。
 
-**禁止**：圆形按钮、pill 按钮（radius > 8px）、带渐变的按钮。
+#### Variant（语义层，浅色解析值）
+
+| Variant                   | 用途                                                   | 静止态视觉（light）                                                                  |
+| ------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| **primary**               | 每屏唯一主操作（Apply / Save）                         | 实心蓝 `primary-600` `#155aef` + 白字。整套里唯一的实色按钮                          |
+| **secondary**             | 次操作（Cancel / 返回）                                | 白底 + `gray-700` 字 + `0.14` 中性 hairline                                          |
+| **tertiary**              | 工具条 / 行内第三级                                    | `gray-100` 灰填充 + `gray-700` 字 + **`0.08` hairline**（2026-06-09）                |
+| **ghost**                 | 行内 / 图标操作，最低存在感                            | 透明，`gray-700` 字，hover 才出现 `state-base-hover` 填充                            |
+| **accent**                | 低强调但要"引一眼"的操作                               | **浅蓝 `primary-50` 填充 + `primary-600` 字 + `0.22` 蓝 hairline**（2026-06-09）     |
+| **link**                  | 正文里的内联链接                                       | accent 字 + hover 下划线（`underline-offset-4`）                                     |
+| **destructive-primary**   | 不可逆主操作（确认删除）                               | 实心红 `red-600` + 白字                                                              |
+| **destructive-secondary** | 不可逆次操作（= 旧 `destructive`）                     | 白底 + 红字 + hairline                                                               |
+| **destructive-tertiary**  | 红色阶梯第三级                                         | `red-100` 红填充 + 红字                                                              |
+| **destructive-ghost**     | 红色阶梯 ghost                                         | 透明 + 红字，hover 红填充                                                            |
+| **inverted-ghost**        | **深色 chrome 上的安静按钮**（alerts bulk-action bar） | 固定 `white/70`，hover `white/10` + 白字。**不随主题翻转**——这正是 "inverted" 的含义 |
+
+**关键区分度规则（2026-06-09 review 的产物）**：
+
+- `accent` ≠ `secondary`：以前两者都是白底 + 同样的 `0.14` 中性边框，只差字色，肉眼难分。
+  现在 `accent` 带浅蓝填充 + 蓝边框，是一个**独立的低强调-引注意层**，不是"换了字色的 secondary"。
+- `tertiary` 必须带 hairline：它唯一的信号是灰填充，放到 `background-section` 灰面板上会化掉。
+  hairline 让它在任何表面都保住边界，同时比 secondary 更安静。
+- `ghost` 静止态没有任何边框/填充，和纯文字标签等同——这是 ghost 的固有取舍。它是全产品**用得最多**
+  的 variant，确保真正可点的 ghost 操作不会在页面里"消失"。
+
+#### Size（2026-06-08 flat radius scale）
+
+| size      | 高度        | 圆角             | 文字              |
+| --------- | ----------- | ---------------- | ----------------- |
+| `xs`      | `h-7` 28px  | `rounded-md` 6   | `text-xs`         |
+| `sm`      | `h-8` 32px  | `rounded-lg` 8   | `text-sm`         |
+| `default` | `h-9` 36px  | `rounded-[10px]` | `text-sm`         |
+| `lg`      | `h-10` 40px | `rounded-xl` 12  | `text-base` / 600 |
+| `icon-xs` | `size-7`    | `rounded-md`     | —                 |
+| `icon-sm` | `size-8`    | `rounded-lg`     | —                 |
+| `icon`    | `size-9`    | `rounded-[10px]` | —                 |
+| `icon-lg` | `size-10`   | `rounded-xl`     | —                 |
+
+基类统一带 `[corner-shape:squircle]`（iOS 连续圆角，受支持的浏览器自动平滑，其余优雅降级）+
+`focus-visible:ring-2 ring-state-accent-active-alt ring-offset-2`。
+
+#### Legacy 别名（保留，勿在新代码用）
+
+`default → primary`、`outline → secondary`、`destructive → destructive-secondary`。
+`outline` 仍有 ~229 处历史 call site，与 `secondary` 解析完全一致；属纯命名漂移，零视觉差，
+未做大规模改名（改 229 处=巨大零收益 diff）。新代码一律用 `secondary`。
+
+#### 行内链接：用 `<TextLink>`，不要用 Button
+
+- 正文里的下划线链接（"read more about Pulse"）→ `<Button variant="link">`。
+- section / 卡片里更安静的导航与 affordance（"View all"、"+N more"、"Edit →"）→
+  `<TextLink variant="muted | secondary | accent">`（`packages/ui/.../text-link.tsx`）。
+  禁止再手搓 `text-text-accent hover:underline` 的内联 `<button>`/`<a>`（2026-06-09 已迁 20 处）。
+  **例外（尚未迁移）**：静止态是 `text-tertiary`/`text-secondary`、hover 才变 accent+下划线的链接
+  （`coverage-tab`、`Step1Intake`）——当前 `TextLink` 没有这个 variant；要迁先扩 `TextLink`。
+
+**禁止**：带渐变的按钮；自由发挥的圆角（圆角只能取上表的 size 档）；新代码手搓 button（一律走 `<Button>`）。
+**Pill / 圆形例外**：仅两处**动效 affordance** 允许 `rounded-full`——dashboard 的 "+" 导入按钮
+（静止是 28px 圆，hover 宽度展开成 pill）与 `ClientsEmptyState` 的 sample-data pill。二者均在 dev-log
+留档（`2026-06-08-today-import-button-true-circle.md` 等），用色仍引用 button token。除此之外不得新增圆形/pill 按钮。
 
 ### 4.9 Sidebar Navigation（AppShell sidebar）
 

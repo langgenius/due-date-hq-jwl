@@ -12,15 +12,17 @@ while its column ran to x=1512. There was no design intent — the aside had no
 column showed through as the parent's white background. It read as "the panel
 ends early."
 
-## Decision (Yuqi: option B)
+## Decision (Yuqi: option B, then "center the content")
 
-Fill the surface, cap the reading measure:
+Fill the surface, cap the reading measure, **center** it:
 
 - The `<aside>` now fills its column (`w-full`) so the `#f2f2f2` surface reaches
-  the viewport edge — the calm gray now trails on the right **by design**, not by
-  accident.
+  the viewport edge — the calm gray now breathes **by design**, not by accident.
 - The document **content** is capped to a **760px** reading measure and
-  left-pinned, so prose lines don't stretch to the full ~980px column.
+  **centered** in the column (Yuqi follow-up: "have the content at the center of
+  the right panel"), so prose lines don't stretch to the full ~980px column and
+  the gray gutters are symmetric (158px each side at 1512px) rather than a single
+  lopsided trailing margin.
 - **Chrome borders/backgrounds stay full-width** (top BackStrip, SheetHeader
   divider, SheetFooter border + bg) so no bar ever looks cut off; only the
   content _inside_ each region is capped.
@@ -30,13 +32,14 @@ Fill the surface, cap the reading measure:
 `apps/app/src/features/alerts/AlertDetailDrawer.tsx` (panel mode only):
 
 - aside root: added `w-full`.
-- Top BackStrip: content wrapped in `flex w-full max-w-[760px]` (border/px-12 stay
-  on the full-width outer).
-- `SheetHeader`: `[&>*]:w-full [&>*]:max-w-[760px]` (border stays full-width).
-- Scroll body: `[&>*]:w-full [&>*]:max-w-[760px]` (scrollbar stays at the panel's
-  right edge).
-- `SheetFooter`: actions wrapped in `flex w-full max-w-[760px]` (border/bg stay
+- Top BackStrip: content wrapped in `mx-auto flex w-full max-w-[760px]`
+  (border/px-12 stay on the full-width outer).
+- `SheetHeader`: `[&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]` (border stays
   full-width).
+- Scroll body: `[&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]` (scrollbar stays
+  at the panel's right edge).
+- `SheetFooter`: actions wrapped in `mx-auto flex w-full max-w-[760px]`
+  (border/bg stay full-width).
 
 ## Verify
 

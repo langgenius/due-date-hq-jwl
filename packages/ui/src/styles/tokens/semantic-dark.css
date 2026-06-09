@@ -136,6 +136,9 @@
   --components-button-tertiary-bg: rgb(255 255 255 / 0.08);
   --components-button-tertiary-bg-hover: rgb(255 255 255 / 0.12);
   --components-button-tertiary-bg-disabled: rgb(255 255 255 / 0.03);
+  /* 2026-06-09 (Yuqi button-differentiation pass): hairline so tertiary
+     holds an edge on raised dark panes. See semantic-light.css. */
+  --components-button-tertiary-border: rgb(255 255 255 / 0.08);
 
   --components-button-ghost-text: #d9d9de;
   --components-button-ghost-text-disabled: rgb(255 255 255 / 0.2);
@@ -167,10 +170,13 @@
 
   --components-button-accent-text: var(--color-util-colors-primary-300);
   --components-button-accent-text-disabled: rgb(21 90 239 / 0.3);
-  --components-button-accent-bg: rgb(255 255 255 / 0.05);
-  --components-button-accent-bg-hover: rgb(255 255 255 / 0.08);
+  /* 2026-06-09 (Yuqi button-differentiation pass): blue-tinted fill +
+     border so accent reads distinct from the neutral secondary on dark
+     too. See semantic-light.css. */
+  --components-button-accent-bg: rgb(21 90 239 / 0.15);
+  --components-button-accent-bg-hover: rgb(21 90 239 / 0.24);
   --components-button-accent-bg-disabled: rgb(255 255 255 / 0.03);
-  --components-button-accent-border: rgb(255 255 255 / 0.08);
+  --components-button-accent-border: rgb(21 90 239 / 0.32);
 
   /* ===== Components: input ============================================== */
   --components-input-bg-normal: rgb(255 255 255 / 0.08);

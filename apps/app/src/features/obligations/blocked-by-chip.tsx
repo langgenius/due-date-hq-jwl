@@ -55,7 +55,7 @@ function BlockedByChip({
         }}
         title={title}
         aria-label={title}
-        className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle text-text-tertiary hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle text-text-tertiary hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <LinkIcon className="size-3" aria-hidden />
       </button>
@@ -79,7 +79,7 @@ function BlockedByChip({
       }}
       title={title}
       aria-label={title}
-      className="inline-flex max-w-[280px] items-center gap-1 rounded-sm text-sm text-text-secondary underline-offset-2 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="inline-flex max-w-[280px] cursor-pointer items-center gap-1 rounded-sm text-sm text-text-secondary underline-offset-2 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
       {/* 2026-05-26 (Yuqi sixty-sixth pass): icon tone aligned to
           the label's text-text-secondary so the icon + text read

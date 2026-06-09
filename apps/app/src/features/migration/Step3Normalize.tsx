@@ -15,6 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Switch } from '@duedatehq/ui/components/ui/switch'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { useAppHotkey } from '@/components/patterns/keyboard-shell'
@@ -333,7 +334,7 @@ function CategoryCard({ category }: { category: NormalizationCategory }) {
         type="button"
         onClick={() => setExpanded((open) => !open)}
         aria-expanded={expanded}
-        className="flex w-full items-center justify-between gap-3 rounded-lg px-4 py-3 text-left outline-none transition-colors hover:bg-background-section-burn focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-left outline-none transition-colors hover:bg-background-section-burn focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="text-2xl font-semibold tabular-nums text-text-primary">
@@ -527,14 +528,15 @@ function MatrixDefaultsCard({
           {/* 2026-06-07 (Cluster 3 — design daU2Q): "Edit defaults" link to
               the firm's default-matrix settings. stopPropagation so the
               click doesn't toggle the card's expanded state. */}
-          <a
-            href="/settings"
+          <TextLink
+            variant="accent"
+            className="gap-0.5"
             onClick={(event) => event.stopPropagation()}
-            className="inline-flex items-center gap-0.5 rounded-sm text-xs font-medium text-text-accent outline-none transition-colors hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            render={<a href="/settings" />}
           >
             <Trans>Edit defaults</Trans>
             <ArrowUpRightIcon className="size-3" aria-hidden />
-          </a>
+          </TextLink>
           <ChevronDownIcon
             className={cn(
               'size-4 text-text-tertiary transition-transform duration-200',

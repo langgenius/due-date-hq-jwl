@@ -22,8 +22,10 @@ import { useAppHotkey } from '@/components/patterns/keyboard-shell'
  * to clear" works identically everywhere.
  *
  * Behavior:
- *  - h-9 with the SearchIcon at left-2.5 and an inline `X` clear
- *    button on the right when there's a value.
+ *  - h-9 (36px) with the SearchIcon at left-2.5 and an inline `X` clear
+ *    button on the right when there's a value. (2026-06-09 Yuqi settled on
+ *    "all search bars 36px" — they sit at the same height as the delicate
+ *    h-9 FilterTrigger pills they share toolbar rows with.)
  *  - `Escape` clears the value (and blurs if the consumer wires the
  *    ref).
  *  - Placeholder styled as text-secondary (not tertiary) so it
@@ -139,7 +141,7 @@ export const SearchInput = forwardRef(function SearchInput(
             type="button"
             aria-label={t`Clear search`}
             onClick={() => onChange('')}
-            className="absolute right-2 top-1/2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="absolute right-2 top-1/2 inline-flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <XIcon className="size-3.5" aria-hidden />
           </button>

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ChevronRightIcon, CoffeeIcon, HistoryIcon } from 'lucide-react'
+import { CoffeeIcon, HistoryIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -12,7 +12,7 @@ import { CountPill } from '@/components/primitives/count-pill'
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
 import { useActiveAlertCount, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
-import { PulsingDot } from '@/features/alerts/components/PulsingDot'
+import { MonitoringChip } from '@/features/alerts/components/MonitoringChip'
 import { MorningSweepProvider, useMorningSweep } from '@/features/alerts/MorningSweepContext'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 
@@ -104,32 +104,20 @@ export function AlertsRoute() {
           <Plural value={alertCount} one="# active" other="# active" />
         </CountPill>
       ) : null}
-      {/* 2026-06-09 (Yuqi /alerts D8 "align with /today's Monitoring status"):
-          this Sources chip is converged onto the dashboard
-          NeedsAttentionSection's "Monitoring: Federal · 50 States · DC"
-          treatment — same label format (colon, middot separators, capital S),
-          same neutral text + leading success PulsingDot. It stays a Link to
-          /rules/sources (it's also the navigation affordance the standalone
-          Sources button collapsed into), so it keeps the trailing chevron;
-          the database-icon accent pill is dropped so the two surfaces read as
-          one monitoring-status vocabulary. */}
+      {/* 2026-06-09 (Yuqi /alerts #2 "should be the same as you have on today
+          page"): the Monitoring chip is now the shared `<MonitoringChip>` — the
+          exact same dot + label + ghost-badge treatment /today renders. Here it
+          takes the `to` variant so it stays the Sources navigation affordance
+          (the standalone Sources button collapsed into it), and passes the live
+          source-health status as the tooltip body — the chip LOOKS identical to
+          /today; only the hover detail is page-specific. The trailing chevron is
+          dropped to match /today (nav cue is now the hover-deepen). */}
       {hasNationalMonitoringCoverage ? (
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Link
-                to="/rules/sources"
-                className="inline-flex h-6 items-center gap-1.5 rounded-full px-1 text-[13px] font-medium text-text-secondary transition-colors hover:text-text-primary"
-                aria-label={t`Monitoring: Federal · 50 States · DC`}
-              >
-                <PulsingDot tone="success" active />
-                <Trans>Monitoring: Federal · 50 States · DC</Trans>
-                <ChevronRightIcon className="size-3 shrink-0 text-text-tertiary" aria-hidden />
-              </Link>
-            }
-          />
-          <TooltipContent>
-            {!sourceHealthLoaded ? (
+        <MonitoringChip
+          to="/rules/sources"
+          ariaLabel={t`Monitoring: Federal · 50 States · DC`}
+          tooltip={
+            !sourceHealthLoaded ? (
               <Trans>Checking source health…</Trans>
             ) : allSourcesHealthy ? (
               <Trans>All {monitoredSources.length} monitored sources operational</Trans>
@@ -137,9 +125,9 @@ export function AlertsRoute() {
               <Trans>
                 {unhealthySourceCount} of {monitoredSources.length} sources need attention
               </Trans>
-            )}
-          </TooltipContent>
-        </Tooltip>
+            )
+          }
+        />
       ) : null}
     </span>
   )

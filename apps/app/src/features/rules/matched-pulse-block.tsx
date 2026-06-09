@@ -4,6 +4,7 @@ import { ArrowRightIcon, ExternalLinkIcon, TriangleAlertIcon } from 'lucide-reac
 
 import type { PulseRuleMatch } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 
 import { formatDate } from '@/lib/utils'
 
@@ -48,9 +49,9 @@ export function MatchedPulseBlock({ matches }: { matches: readonly PulseRuleMatc
         ))}
       </ul>
       {hiddenCount > 0 ? (
-        <Link to="/alerts" className="text-xs text-text-accent hover:underline">
+        <TextLink variant="accent" render={<Link to="/alerts" />}>
           <Trans>+{hiddenCount} more in Alerts</Trans>
-        </Link>
+        </TextLink>
       ) : null}
     </section>
   )
@@ -88,13 +89,10 @@ function MatchedPulseRow({ match }: { match: PulseRuleMatch }) {
         <span className="text-xs text-text-tertiary">
           {t`${Math.round(match.alert.confidence * 100)}% confidence`}
         </span>
-        <Link
-          to={alertHref(match.alert.id)}
-          className="inline-flex items-center gap-1 text-xs text-text-accent hover:underline"
-        >
+        <TextLink variant="accent" render={<Link to={alertHref(match.alert.id)} />}>
           <Trans>View alert</Trans>
           <ExternalLinkIcon className="size-3" aria-hidden />
-        </Link>
+        </TextLink>
       </div>
     </li>
   )

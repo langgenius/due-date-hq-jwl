@@ -36,6 +36,18 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--dir", "apps/server", "exec", "wrangler", "dev", "--local", "--port", "8787"],
       "port": 8787
+    },
+    {
+      "name": "wt-server-8788",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "/Users/yuqi/dev/ddhq-deadlines-parity/apps/server", "exec", "wrangler", "dev", "--local", "--port", "8788"],
+      "port": 8788
+    },
+    {
+      "name": "wt-app-5183",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "/Users/yuqi/dev/ddhq-deadlines-parity/apps/app", "dev", "--", "--port", "5183", "--strictPort"],
+      "port": 5183
     }
   ]
 }

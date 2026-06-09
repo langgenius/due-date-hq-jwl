@@ -667,7 +667,7 @@ export function ClientFactsWorkspace({
                   onClick={(event) => event.stopPropagation()}
                   aria-label={t`Peek ${row.original.name} details`}
                   title={t`Peek details (without leaving the list)`}
-                  className="ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="ml-auto inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 >
                   <EyeIcon className="size-4" aria-hidden />
                 </button>

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowRightIcon, UsersIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatRelativeTime } from '@/lib/utils'
@@ -301,18 +302,18 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
               )}
             </span>
           </div>
-          <button
-            type="button"
+          <TextLink
+            variant="accent"
             onClick={(event) => {
               // Card-level onClick already calls onReview; stop the
               // bubble so the button doesn't fire it a second time.
               event.stopPropagation()
               onReview()
             }}
-            className="text-xs font-semibold text-text-accent outline-none transition-colors hover:underline focus-visible:underline"
+            className="font-semibold focus-visible:underline"
           >
             <Trans>Review →</Trans>
-          </button>
+          </TextLink>
         </div>
       </div>
     </article>

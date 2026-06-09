@@ -339,8 +339,11 @@ function NeedsAttentionCard({
         // (#f9fafb = bg-background-section) while the Actions table stays
         // white. Different surface colors split the two regions and let
         // the white table — your work — read as the focal point.
-        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-[14px] bg-background-section p-[18px] text-left',
-        'transition-colors duration-200 hover:bg-background-subtle',
+        // 2026-06-09 (Yuqi #9 "hover to show border"): a transparent
+        // border at rest keeps geometry fixed; on hover a divider hairline
+        // fades in alongside the bg step so the card reads as "liftable."
+        'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-4 rounded-[14px] border border-transparent bg-background-section p-[18px] text-left',
+        'transition-colors duration-200 hover:border-divider-regular hover:bg-background-subtle',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}
@@ -406,13 +409,16 @@ function NeedsAttentionCard({
               <TooltipContent>{alert.jurisdiction}</TooltipContent>
             </Tooltip>
 
-            {/* FORM badge — same pill as the jurisdiction one; only adds a
-                gray fill. Override the shared TaxCodeBadge to the card's
-                font (#11, sans) + scale so the two badges read as one. */}
+            {/* FORM badge — gray-filled code chip. 2026-06-09 (Yuqi #4 "are we
+                always using monospace? replace all with monospace, like the one
+                in the alert table"): dropped the `font-sans`/`tracking-normal`
+                override so the form code inherits TaxCodeBadge's canonical
+                `font-mono tracking-tight` — same mono treatment the /alerts
+                table rows use. Only the scale (#11) + padding stay overridden. */}
             {alertForm ? (
               <TaxCodeBadge
                 code={alertForm}
-                className="rounded-md border-divider-subtle px-2 py-[2px] font-sans text-[11px] font-semibold tracking-normal"
+                className="rounded-md border-divider-subtle px-2 py-[2px] text-[11px]"
               />
             ) : null}
 
@@ -511,7 +517,13 @@ function NeedsAttentionCard({
                         // colour"): fill stepped gray-100 → gray-200 and the
                         // initials to text-primary so the avatars read against
                         // the card's gray-50 surface instead of dissolving in.
-                        'inline-flex size-5 items-center justify-center rounded-full bg-[#e9ebf0] text-[10px] font-semibold text-text-primary ring-[1.5px] ring-background-section outline-none',
+                        // 2026-06-09 (Yuqi #10 "slightly darker border than the
+                        // avatar background", then "lighter border"): the
+                        // separating ring is a faint rim just below the #e9ebf0
+                        // fill — settled at #e2e5ea (lighter than the first
+                        // #d7dbe2 try) so the rim reads without darkening the
+                        // overlap gap.
+                        'inline-flex size-5 items-center justify-center rounded-full bg-[#e9ebf0] text-[10px] font-semibold text-text-primary ring-[1.5px] ring-[#e2e5ea] outline-none',
                         index > 0 && '-ml-1.5',
                       )}
                       {...props}
@@ -596,7 +608,7 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       onClick={onOpen}
       aria-label={ariaLabel}
       className={cn(
-        'group/overflow flex shrink-0 flex-col items-center justify-center gap-1 self-stretch rounded-2xl px-4 text-text-secondary',
+        'group/overflow flex shrink-0 cursor-pointer flex-col items-center justify-center gap-1 self-stretch rounded-2xl px-4 text-text-secondary',
         'transition-colors hover:text-text-primary',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         CARD_MIN_HEIGHT_CLASS,

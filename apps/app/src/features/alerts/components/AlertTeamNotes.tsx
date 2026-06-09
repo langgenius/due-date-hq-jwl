@@ -86,7 +86,7 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
                 <button
                   type="button"
                   onClick={() => handleReply(note.authorName)}
-                  className="ml-auto text-[11px] font-medium text-text-tertiary underline-offset-2 transition-colors hover:text-text-secondary hover:underline"
+                  className="ml-auto cursor-pointer text-[11px] font-medium text-text-tertiary underline-offset-2 transition-colors hover:text-text-secondary hover:underline"
                 >
                   <Trans>Reply</Trans>
                 </button>

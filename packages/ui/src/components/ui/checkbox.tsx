@@ -19,7 +19,7 @@ function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
         // the Indicator always rendered the same CheckIcon, so the
         // tri-state caller (rules.library section header) couldn't
         // visually distinguish "all" from "some" selected.
-        'group/checkbox peer relative flex size-4 shrink-0 items-center justify-center rounded-sm border border-components-checkbox-border bg-components-checkbox-bg-unchecked outline-none transition-colors',
+        'group/checkbox peer relative flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-components-checkbox-border bg-components-checkbox-bg-unchecked outline-none transition-colors',
         'group-has-disabled/field:opacity-50',
         'after:absolute after:-inset-x-3 after:-inset-y-2',
         'hover:border-components-checkbox-border-hover hover:bg-components-checkbox-bg-unchecked-hover',

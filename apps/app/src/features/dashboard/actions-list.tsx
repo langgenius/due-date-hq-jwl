@@ -31,7 +31,6 @@ import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-stat
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { ExtensionChip } from './extension-chip'
 import { LifecycleStripCell } from './lifecycle-strip-cell'
-import { severityToTier } from './severity-section'
 // 2026-05-31 (Yuqi Pencil FpHtM — owner-avatar slot): Pencil also
 // shows a per-row owner-initials avatar on the right cluster.
 // `DashboardTopRow` (packages/contracts/src/dashboard.ts) does not
@@ -353,10 +352,6 @@ function ActionsTableRow({
   const { t } = useLingui()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = useActionPrompt(row, asOfDate)
-  // The Why-now line stays open at rest for the most urgent rows; the
-  // rest reveal it on hover. Urgency comes straight from severity now
-  // that rows are grouped by status, not tier.
-  const isUrgent = severityToTier(row.severity) === 'critical'
   // 2026-06-04 round 8 (Yuqi "tooltip to show why this matter"):
   // ALL rows compute factors for the rank-cell tooltip — even
   // High / Upcoming rows surface their Smart Priority rationale
@@ -487,43 +482,40 @@ function ActionsTableRow({
       <TableCell>
         {/* 2026-06-04 round 16 (Yuqi page-feedback "should allow
             hover on each row to show more information"): the
-            Why-now factor line previously only rendered on
-            Critical rows (always visible). High + Upcoming rows
-            had Smart Priority factors but nowhere to surface
-            them inline. Now ALL rows with factors render the
-            line — Critical stays visible at rest, High / Upcoming
-            fade in on row hover via `group-hover:opacity-100`.
-            The TableRow already carries the `group` class, so
-            this is a CSS-only reveal with no JS state. Row height
-            is reserved when factors exist (opacity-0 keeps layout
-            in place) so hover doesn't jitter the table. */}
+            Why-now factor line surfaces Smart Priority reasoning
+            inline.
+            2026-06-09 (Yuqi "hover the row shows the corner icon"):
+            the line (corner glyph + "Why now: …") now fades in on
+            ROW HOVER for EVERY row — the earlier always-on treatment
+            for Critical rows is dropped so the reveal is uniform. The
+            TableRow carries the `group` class, so this is a CSS-only
+            reveal with no JS state; `opacity-0` reserves the row
+            height when factors exist so hover doesn't jitter the table. */}
         <div className="flex flex-col gap-0.5">
           <span className="text-sm font-normal text-text-secondary transition-colors group-hover:font-medium group-hover:text-text-primary">
             {prompt}
           </span>
           {allRowFactors.length > 0 ? (
             <span
-              className={cn(
-                'inline-flex items-center gap-1.5 text-xs text-text-tertiary transition-opacity duration-200',
-                isUrgent
-                  ? 'opacity-100'
-                  : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100',
-              )}
+              className="inline-flex items-center gap-1.5 text-xs text-text-tertiary opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
               title={allRowFactors.join(' · ')}
             >
               {/* Leading elbow/"L" glyph mirrors the alert row's action elbow,
-                  signalling this is a follow-on reason for the prompt above. */}
+                  signalling this is a follow-on reason for the prompt above.
+                  2026-06-09 (Yuqi "replace the corner with the new svg"): swapped
+                  the stroked elbow for the filled corner glyph (9×9, curved
+                  quarter-turn) so the reason-line corner matches the supplied
+                  asset. `fill-current` inherits the muted tone. */}
               <svg
-                viewBox="0 0 12 12"
-                className="size-3 shrink-0 text-text-muted"
+                viewBox="0 0 9 9"
+                className="size-[5px] shrink-0 text-text-muted"
                 fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
                 aria-hidden
               >
-                <path d="M4 2.5v3a1.5 1.5 0 0 0 1.5 1.5H9" />
+                <path
+                  d="M0 2V0H1V2C1 5.03757 3.46243 7.5 6.5 7.5H8.5V8.5H6.5C2.91015 8.5 0 5.58985 0 2Z"
+                  fill="currentColor"
+                />
               </svg>
               <span className="truncate">
                 <Trans>Why now:</Trans> {allRowFactors.join(' · ')}
@@ -947,7 +939,11 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
           subtitle reads as a direct continuation of the h2, not
           as a separate caption line. */}
       <div className="flex flex-col">
-        <h2 className="flex items-center gap-1.5 text-[14px] font-semibold tracking-[0.4px] text-text-muted uppercase">
+        {/* 2026-06-09 (Yuqi "primary"): section eyebrow settled at
+            text-text-primary (gray-900) — the canonical /today section-title
+            treatment shared with the Alerts h2. See
+            docs/Design/section-header-style.md. */}
+        <h2 className="flex items-center gap-1.5 text-[14px] font-semibold tracking-[0.4px] text-text-primary uppercase">
           <Trans>Actions this week</Trans>
           <Tooltip>
             <TooltipTrigger
@@ -955,19 +951,25 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
                 <button
                   type="button"
                   aria-label={t`About Actions this week`}
-                  className="inline-flex size-4 cursor-default items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   {...props}
                 >
                   <SparklesIcon className="size-3.5" aria-hidden />
                 </button>
               )}
             />
-            <TooltipContent>
-              <div className="flex max-w-[300px] flex-col gap-1 text-left">
-                <span className="font-semibold">
+            {/* 2026-06-09 (Yuqi #3 "use the correct text size, text style,
+                header style"): the header is now a proper title row — a tiny
+                accent SparklesIcon + 13/600 title — sitting above a 12/normal
+                relaxed-leading body, separated by a hairline. Reads as a
+                designed mini-popover, not a bold line stacked on a plain line. */}
+            <TooltipContent className="items-stretch">
+              <div className="flex max-w-[300px] flex-col gap-2 text-left">
+                <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-components-tooltip-text">
+                  <SparklesIcon className="size-3.5 shrink-0 text-text-accent" aria-hidden />
                   <Trans>What's in this list</Trans>
                 </span>
-                <span>
+                <span className="border-t border-components-panel-border/60 pt-2 text-xs leading-relaxed font-normal text-components-tooltip-text/85">
                   <Trans>
                     Your top 10 deadlines due this week, ranked by Smart Priority and bucketed into
                     Critical (act today), High (this week), and Upcoming. Subgroups inside each tier

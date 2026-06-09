@@ -49,7 +49,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  */
 const textLinkVariants = cva(
   cn(
-    'inline-flex items-center gap-1 rounded-sm font-medium outline-none transition-colors',
+    'inline-flex cursor-pointer items-center gap-1 rounded-sm font-medium outline-none transition-colors',
     'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
   ),
   {

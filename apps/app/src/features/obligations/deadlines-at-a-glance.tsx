@@ -248,7 +248,7 @@ function NarrativeTile({
       onClick={onClick}
       aria-label={ariaLabel}
       className={cn(
-        'flex items-start gap-3 rounded-[14px] bg-background-section p-[18px] text-left',
+        'flex cursor-pointer items-start gap-3 rounded-[14px] bg-background-section p-[18px] text-left',
         'outline-none transition-colors duration-200 hover:bg-background-subtle',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}

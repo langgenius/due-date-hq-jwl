@@ -25,7 +25,22 @@
       "Bash(python3 -c \"import sys; s=open\\('/tmp/pen1.txt'\\).read\\(\\); sys.stdout.write\\(s[20091:32562]\\)\")",
       "Bash(python3 -c \"import sys; s=open\\('/tmp/pen1.txt'\\).read\\(\\); sys.stdout.write\\(s[32562:45326]\\)\")",
       "Bash(python3 -c \"import sys; s=open\\('/tmp/pen1.txt'\\).read\\(\\); sys.stdout.write\\(s[45326:53545]\\)\")",
-      "Bash(python3 -c \"import sys; s=open\\('/tmp/pen1.txt'\\).read\\(\\); sys.stdout.write\\(s[53545:60713]\\)\")"
+      "Bash(python3 -c \"import sys; s=open\\('/tmp/pen1.txt'\\).read\\(\\); sys.stdout.write\\(s[53545:60713]\\)\")",
+      "Bash(awk '/TabsContent value=\"risk\"/,/<\\\\/TabsContent>/' /Users/yuqi/dev/due-date-hq-jwl/apps/app/src/features/obligations/queue/ObligationQueueDetailDrawer.tsx)",
+      "Bash(awk '/TabsContent value=\"audit\"/,/<\\\\/TabsContent>/' /Users/yuqi/dev/due-date-hq-jwl/apps/app/src/features/obligations/queue/ObligationQueueDetailDrawer.tsx)",
+      "Bash(cat /Users/yuqi/dev/ddhq-deadlines-parity/docs/dev-log/2026-06-08-deadlines-parity-HANDOFF.md 2>/dev/null | head -80)",
+      "Bash(awk -F: '$1 < 302150')",
+      "Bash(grep -n '^      \"name\":\\\\|^      \"id\":' /Users/yuqi/Desktop/duedatehq_work.pen | awk -F: '$1 < 302150' | tail -20)",
+      "Bash(awk -F: '$1 > 302150 && $1 < 330145')",
+      "Bash(awk -F: '{print NR\" \"$0}')",
+      "Bash(grep -n '\"id\": \"ZQQRi\"\\\\|\"id\": \"D2fqYh\"\\\\|\"id\": \"WUywk\"' /Users/yuqi/Desktop/duedatehq_work.pen)",
+      "Bash(awk -F: '$1 < 55718')",
+      "Bash(python3 -c \"import sys, json; data=json.load\\(sys.stdin\\); print\\('---DESIGN_OBSERVATIONS---'\\); print\\('\\\\n'.join\\(data['audit'].get\\('design_observations',[]\\)\\)\\); print\\(\\); print\\('---VARIANT---'\\); print\\(json.dumps\\(data.get\\('variant',{}\\),indent=2\\)[:3000]\\)\")",
+      "Bash(python3 -c \"import sys, json; data=json.load\\(sys.stdin\\); print\\(json.dumps\\(list\\(data.keys\\(\\)\\),indent=2\\)\\); print\\('---'\\); print\\(json.dumps\\(data,indent=2\\)[20000:30000]\\)\")",
+      "Bash(python3 -c \"print\\(open\\('/Users/yuqi/.claude/projects/-Users-yuqi-dev-due-date-hq-jwl/51e80e00-f7aa-4ac0-8af5-ddfd82966e51/tool-results/mcp-pencil-batch_get-1780965981092.txt'\\).read\\(\\)[0:80000]\\)\")",
+      "Bash(python3 -c \"print\\(open\\('/Users/yuqi/.claude/projects/-Users-yuqi-dev-due-date-hq-jwl/828fef50-78c3-44e2-bbaa-ff06db5e8c5f/tool-results/mcp-pencil-batch_get-1780966002557.txt'\\).read\\(\\)[0:80000]\\)\")",
+      "Bash(python3 -c \"print\\(open\\('/Users/yuqi/.claude/projects/-Users-yuqi-dev-due-date-hq-jwl/828fef50-78c3-44e2-bbaa-ff06db5e8c5f/tool-results/mcp-pencil-batch_get-1780966002557.txt'\\).read\\(\\)[80000:106333]\\)\" > /tmp/rules_chunk.txt && wc -c /tmp/rules_chunk.txt)",
+      "Bash(grep -n \"Djnfu\" /Users/yuqi/Desktop/duedatehq_work.pen | head -5)"
     ]
   }
 }

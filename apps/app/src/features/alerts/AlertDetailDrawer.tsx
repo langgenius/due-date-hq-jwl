@@ -24,6 +24,7 @@ import type { PulseDetail } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
@@ -262,7 +263,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
       : getJurisdictionName(detail.jurisdiction)
 
   return (
-    <section className="flex flex-col gap-3 rounded-lg border border-divider-subtle bg-background-default p-4">
+    <section className="flex flex-col gap-3 rounded-lg bg-background-subtle p-4">
       <header className="flex items-center gap-1.5">
         <LightbulbIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
         <span className="text-[12px] font-semibold text-text-secondary">
@@ -467,7 +468,7 @@ function DecisionBanners({
           <button
             type="button"
             onClick={onRetry}
-            className="text-[12px] font-semibold text-text-destructive underline-offset-2 hover:underline"
+            className="cursor-pointer text-[12px] font-semibold text-text-destructive underline-offset-2 hover:underline"
           >
             <Trans>Retry now</Trans>
           </button>
@@ -500,7 +501,7 @@ function DecisionBanners({
             <button
               type="button"
               onClick={onUndo}
-              className="text-[12px] font-semibold text-text-success underline-offset-2 hover:underline"
+              className="cursor-pointer text-[12px] font-semibold text-text-success underline-offset-2 hover:underline"
             >
               <Trans>Undo</Trans>
             </button>
@@ -975,7 +976,7 @@ export function AlertDetailDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center gap-1 text-[13px] font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
+            className="inline-flex cursor-pointer items-center gap-1 text-[13px] font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
           >
             <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
             <Trans>Alerts</Trans>
@@ -990,7 +991,7 @@ export function AlertDetailDrawer({
               type="button"
               onClick={onClose}
               aria-label={t`Close alert detail`}
-              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <XIcon className="size-4" aria-hidden />
             </button>
@@ -1039,7 +1040,7 @@ export function AlertDetailDrawer({
           sitting on a 40px floor of dead space before the body
           content started; cutting bottom padding tightens the
           transition from Hero → first body section. */}
-      <SheetHeader className="border-b border-divider-subtle px-12 pt-10 pb-6 [&>*]:w-full [&>*]:max-w-[760px]">
+      <SheetHeader className="border-b border-divider-subtle px-12 pt-10 pb-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
         {detailQuery.isLoading || !detail ? (
           <DetailHeaderSkeleton />
         ) : (
@@ -1182,7 +1183,7 @@ export function AlertDetailDrawer({
             room, so the CPA always sees both the last content and
             the action bar with a clean gap between them. Top stays
             py-10 (40px) — header → content rhythm doesn't change. */}
-      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-12 pt-6 pb-24 [&>*]:w-full [&>*]:max-w-[760px]">
+      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-12 pt-6 pb-24 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
         {/* 2026-06-08 (Pencil ibEoz order): SOURCE EXTRACT moved from
             the top of the body down to just before Provenance — the
             design leads with the decision banner + key change + facts +
@@ -1510,17 +1511,15 @@ export function AlertDetailDrawer({
                     <Trans>Source extract</Trans>
                   </span>
                   {detail.alert.sourceUrl ? (
-                    <a
-                      href={detail.alert.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs font-medium text-text-accent hover:underline"
+                    <TextLink
+                      variant="accent"
+                      render={<a href={detail.alert.sourceUrl} target="_blank" rel="noreferrer" />}
                     >
                       <Trans>Open original ↗</Trans>
-                    </a>
+                    </TextLink>
                   ) : null}
                 </div>
-                <blockquote className="rounded-lg border border-divider-subtle bg-background-default px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
+                <blockquote className="rounded-lg bg-background-subtle px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
                   &ldquo;{detail.alert.summary}&rdquo;
                   <footer className="mt-2 font-sans text-[11px] font-medium text-text-muted">
                     {detail.alert.source}
@@ -1606,14 +1605,14 @@ export function AlertDetailDrawer({
                       <span className="text-text-secondary">
                         <Trans>From</Trans>{' '}
                         {detail.alert.sourceUrl ? (
-                          <a
-                            href={detail.alert.sourceUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-medium text-text-accent hover:underline"
+                          <TextLink
+                            variant="accent"
+                            render={
+                              <a href={detail.alert.sourceUrl} target="_blank" rel="noreferrer" />
+                            }
                           >
                             {detail.alert.source} ↗
-                          </a>
+                          </TextLink>
                         ) : (
                           <span className="font-medium text-text-primary">
                             {detail.alert.source}
@@ -1847,21 +1846,19 @@ export function AlertDetailDrawer({
           // border is dropped — the rail's own right border already separates
           // the detail column from the list, so the extra hairline read as a
           // redundant frame.
-          // 2026-06-09 (Yuqi /alerts D12 "give the detail pane a #f2f2f2
-          // background"): the panel root is now a soft gray surface (supersedes
-          // the 2026-06-08 #6 white decision). Flat sections that were tinted
-          // `bg-background-subtle` (source-extract quote, "What this means…"
-          // band) are nudged to white so they still read as distinct blocks on
-          // the gray; the header/footer chrome stays white and reads as pinned
-          // bars against the calmer body wash.
-          // 2026-06-09 (Yuqi "what is the design decision for the right side?"):
-          // the panel now FILLS its column (`w-full`) so the #f2f2f2 surface
-          // reaches the viewport edge — the prior intrinsic-width sizing left a
-          // ~96px dead white strip on the right (the aside shrank to content).
-          // The document CONTENT inside is capped to a 760px reading measure and
-          // left-pinned (see the per-region `max-w-[760px]` wrappers below); the
-          // calm gray now breathes on the right by design, not by accident.
-          className="relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-[#f2f2f2] shadow-subtle"
+          // 2026-06-09 (Yuqi "lets have side bar back to white"): the panel
+          // surface returns to WHITE, reverting the D12 #f2f2f2 wash and
+          // restoring the 2026-06-08 #6 decision — alert detail is a flat
+          // calm-document on white (deadline detail = warm gray; alert detail
+          // = white, the intentional divergence). The two flat blocks that D12
+          // had nudged to white-with-border (source-extract quote, "What this
+          // means…" band) go back to their borderless `bg-background-subtle`
+          // tint so they still read as distinct blocks against the white body.
+          // The panel still FILLS its column (`w-full`) so the surface reaches
+          // the viewport edge, and the document CONTENT inside stays capped to a
+          // 760px reading measure and CENTERED in the column (see the per-region
+          // `mx-auto max-w-[760px]` wrappers below).
+          className="relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background-default shadow-subtle"
         >
           {/* 2026-06-08: the close affordance moved into the body's
               BackStrip top bar (with prev/next paging), so the

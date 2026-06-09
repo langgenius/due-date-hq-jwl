@@ -14,6 +14,7 @@ import {
   PlusIcon,
   SatelliteDishIcon,
   ScrollTextIcon,
+  SearchIcon,
   SettingsIcon,
   SquareChartGanttIcon,
   UsersIcon,
@@ -71,10 +72,15 @@ import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
 import { canCreateAdditionalFirm, ownedActiveFirms } from '@/features/billing/model'
 import { DEFAULT_US_FIRM_TIMEZONE } from '@/features/firm/timezone-model'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
-import { FIRM_SWITCHER_HOTKEY } from '@/components/patterns/keyboard-shell/display'
+import {
+  COMMAND_PALETTE_HOTKEY,
+  FIRM_SWITCHER_HOTKEY,
+  formatShortcutForDisplay,
+} from '@/components/patterns/keyboard-shell/display'
 import { useNavV2 } from '@/components/patterns/use-nav-v2'
 import {
   useAppHotkey,
+  useKeyboardShell,
   useKeyboardShortcutsBlocked,
 } from '@/components/patterns/keyboard-shell/hooks'
 
@@ -218,7 +224,7 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
     // `min-w-0 flex-1` makes the SidebarHeader expand to fill the row
     // so the toggle stays inside the sidebar boundary. Collapsed mode
     // overrides with `w-auto flex-none` in the parent.
-    <SidebarHeader className="min-w-0 flex-1 group-data-[collapsed=true]/sidebar:w-auto group-data-[collapsed=true]/sidebar:flex-none">
+    <SidebarHeader className="min-w-0 flex-1">
       <DropdownMenu open={switcherOpen} onOpenChange={setSwitcherOpen}>
         <DropdownMenuTrigger
           render={
@@ -247,7 +253,13 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               // SidebarCollapseToggle sibling. Collapsed mode
               // still snaps to size-8 since both children stack
               // vertically below xl.
-              className="flex h-14 min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2.5 px-3 text-left outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset group-data-[collapsed=true]/sidebar:h-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:flex-none group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0"
+              // 2026-06-09 (Yuqi "copy exactly from pencil" §BrandHeader):
+              // padding [12,4] → px-1 (the card panel owns the 12; this
+              // adds the 4 so the logo lands at 16px), gap 8 → gap-2,
+              // height 56 → h-14. No collapsed size override — the row
+              // keeps these exact metrics in both modes; with the toggle
+              // hidden when collapsed, the logo centers in the narrow card.
+              className="flex h-14 min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2 px-1 text-left outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
             />
           }
         >
@@ -271,13 +283,16 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               as oversized chrome; 28px sits as a tidy brand anchor next to
               the +1px nav items, and matches the collapsed-rail size so the
               tile never resizes between expanded/collapsed. */}
+          {/* 2026-06-09 (Yuqi "company avatar 32px"): firm tile is 32×32
+              (size='md') in both modes — Pencil §Logo. At 32 it centers
+              exactly in the 64px collapsed card; no collapsed shrink. */}
           <AssigneeAvatar
             name={firm.name}
             title={firm.name}
             type="firm"
             shape="square"
-            size="sm"
-            className="shrink-0 group-data-[collapsed=true]/sidebar:size-7 group-data-[collapsed=true]/sidebar:text-xs"
+            size="md"
+            className="shrink-0"
           />
           <span
             className="min-w-0 flex-1 truncate text-[15px] font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
@@ -362,6 +377,73 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
       </DropdownMenu>
       <AddFirmDialog open={addOpen} onOpenChange={setAddOpen} firms={firms} />
     </SidebarHeader>
+  )
+}
+
+/**
+ * SidebarQuickFind — the "Quick find…" search affordance under the firm
+ * switcher (Pencil duedatehq_work.pen §QuickSearch).
+ *
+ * It is not a real input: clicking it (or pressing the ⌘K hotkey) opens
+ * the global CommandPalette, which owns the actual search field, client
+ * results and navigation. Rendering it as a button keeps a single source
+ * of truth for search while giving the rail a visible, discoverable
+ * entry point — the keyboard-only ⌘K was undiscoverable for new users.
+ *
+ * Collapsed rail: shrinks to a centered 32×32 icon tile (no fill, no
+ * label, no shortcut) so it sits in family with the icon-only nav rows.
+ */
+function SidebarQuickFind() {
+  const { t } = useLingui()
+  const { collapsed, isMobile } = useSidebar()
+  const { openCommandPalette } = useKeyboardShell()
+  // Keep the space between glyphs ("⌘ K") — Yuqi wants it spaced, not
+  // compacted — so the modifier and key read with a little air between
+  // them rather than as one cramped token.
+  const shortcut = formatShortcutForDisplay(COMMAND_PALETTE_HOTKEY)
+  const collapsedRail = collapsed && !isMobile
+
+  return (
+    // 2026-06-09 (Yuqi "copy exactly from pencil" §QuickSearch): height
+    // 40 (h-10), padding [0,12] → px-3, gap 8 → gap-2, cornerRadius 8
+    // (rounded-lg), fill #f2f4f7 (bg-background-subtle). No wrapper
+    // padding (the card panel's p-3 owns it) and no collapsed re-
+    // centering: the metrics are identical in both modes. Collapsed only
+    // drops the fill (Pencil §xiZyr QuickSearch is unfilled) and hides
+    // the label + shortcut; the icon then centers via the symmetric
+    // padding, exactly like the nav rows.
+    <button
+      type="button"
+      onClick={() => openCommandPalette()}
+      aria-label={t`Quick find`}
+      aria-keyshortcuts="Meta+K Control+K"
+      title={collapsedRail ? t`Quick find` : undefined}
+      className={cn(
+        // 2026-06-09 (Yuqi "remove the background of the search bar"):
+        // no field fill — the search row sits flat on the card like the
+        // nav rows, picking up the same neutral hover. gap-2.5 + a 16px
+        // icon (below) line its icon and text up exactly with the nav
+        // items beneath it.
+        'flex h-10 w-full cursor-pointer touch-manipulation items-center gap-2.5 rounded-md px-3 text-left text-text-muted outline-none transition-colors',
+        'hover:bg-background-default-hover hover:text-text-secondary',
+        'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        'group-data-[collapsed=true]/sidebar:text-text-tertiary',
+      )}
+    >
+      <SearchIcon className="size-4 shrink-0" aria-hidden />
+      {/* Same 15px size as the nav item labels, in the muted tone. */}
+      <span className="min-w-0 flex-1 truncate text-[15px] group-data-[collapsed=true]/sidebar:hidden">
+        {t`Quick find…`}
+      </span>
+      {/* ⌘K hint: slightly bigger (11px) with extra tracking so the
+          modifier + key read clearly. */}
+      <span
+        aria-hidden
+        className="shrink-0 font-mono text-[11px] font-semibold tracking-wide text-text-tertiary group-data-[collapsed=true]/sidebar:hidden"
+      >
+        {shortcut}
+      </span>
+    </button>
   )
 }
 
@@ -860,8 +942,14 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
             section label wrapped a single item also named "Clients" —
             duplicate eyebrow chrome. Dropped the label so the Clients
             item sits standalone, matching how the `primary` group places
-            single items without an orientation hint. */}
-        <NavGroupSection>
+            single items without an orientation hint.
+            2026-06-09 (Yuqi "Clients spaced apart from Rule library +
+            Sources, it's not part of the rules"): without a label the
+            Clients row sat 4px under Sources and read as a third RULE
+            item. `mt-3` (12px, → 16px with the group gap) breaks it away
+            so it reads as its own destination, separate from the RULE
+            group above. */}
+        <NavGroupSection className="mt-3">
           {items.practice.map((item) => (
             <NavMenuItem key={item.href} item={item} />
           ))}
@@ -912,12 +1000,14 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
 function NavGroupSection({
   label,
   muted = false,
+  className,
   children,
 }: {
   // Labels stay visible only in the expanded rail; the sidebar primitive
   // hides them in icons-only mode via `data-collapsed`.
   label?: string
   muted?: boolean
+  className?: string
   children: ReactNode
 }) {
   // 2026-05-25 (Yuqi #31): `muted` groups (today: Audit log +
@@ -927,7 +1017,7 @@ function NavGroupSection({
   // groups. Without this they sit immediately under Clients with no
   // separation.
   return (
-    <SidebarGroup className={cn(muted && 'mt-auto opacity-55')}>
+    <SidebarGroup className={cn(muted && 'mt-auto opacity-55', className)}>
       {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
       <SidebarGroupContent>
         <SidebarMenu>{children}</SidebarMenu>
@@ -1012,4 +1102,4 @@ function NavItemBadge({ value, tone }: { value: string; tone: NonNullable<NavIte
   )
 }
 
-export { FirmSwitcherTrigger, NavGroups, roleLabel }
+export { FirmSwitcherTrigger, NavGroups, SidebarQuickFind, roleLabel }

@@ -422,7 +422,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 aria-pressed={active}
                 onClick={() => setPill(entry.id)}
                 className={cn(
-                  'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                  'cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors',
                   active
                     ? 'bg-state-accent-hover text-text-accent'
                     : 'bg-background-subtle text-text-secondary hover:text-text-primary',

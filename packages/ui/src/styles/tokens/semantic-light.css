@@ -153,6 +153,12 @@
   --components-button-tertiary-bg: var(--color-util-colors-gray-100);
   --components-button-tertiary-bg-hover: var(--color-util-colors-gray-200);
   --components-button-tertiary-bg-disabled: var(--color-util-colors-gray-50);
+  /* 2026-06-09 (Yuqi button-differentiation pass): tertiary's only signal
+     used to be its gray-100 fill, which dissolves when it sits on a
+     `background-section` gray pane — no edge to hold it. A hairline keeps
+     the boundary on any surface while staying quieter than secondary's
+     0.14 border. */
+  --components-button-tertiary-border: rgb(16 24 40 / 0.08);
 
   --components-button-ghost-text: var(--color-util-colors-gray-700);
   --components-button-ghost-text-disabled: rgb(16 24 40 / 0.25);
@@ -184,10 +190,16 @@
 
   --components-button-accent-text: var(--color-util-colors-primary-600);
   --components-button-accent-text-disabled: var(--color-util-colors-primary-200);
-  --components-button-accent-bg: #ffffff;
-  --components-button-accent-bg-hover: var(--state-base-hover);
+  /* 2026-06-09 (Yuqi button-differentiation pass): accent used to be a
+     white fill + the SAME neutral 0.14 border as secondary, so the only
+     thing separating the two was text hue — they read as "the same button,
+     one has blue text." accent now carries a light-blue tint fill + a
+     blue-toned border so it reads as a distinct low-emphasis-but-
+     attention-drawing tier, not a recoloured secondary. */
+  --components-button-accent-bg: var(--color-util-colors-primary-50);
+  --components-button-accent-bg-hover: var(--color-util-colors-primary-100);
   --components-button-accent-bg-disabled: var(--color-util-colors-gray-50);
-  --components-button-accent-border: rgb(16 24 40 / 0.14);
+  --components-button-accent-border: rgb(21 90 239 / 0.22);
 
   /* ===== Components: input ============================================== */
   --components-input-bg-normal: rgb(200 206 218 / 0.25);

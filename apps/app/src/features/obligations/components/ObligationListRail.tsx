@@ -148,7 +148,7 @@ function RailItem({
       aria-pressed={active}
       aria-label={t`Deadline: ${row.clientName} ${row.taxType}`}
       className={cn(
-        'flex w-full gap-3 border-b border-b-divider-subtle px-[18px] py-3.5 text-left outline-none transition-colors',
+        'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-3.5 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
         active
           ? 'border-l-2 border-l-state-accent-solid bg-[#fafbfc]'

@@ -197,14 +197,14 @@ export function SplashRoute() {
           <div className="flex items-center gap-2.5 text-xs font-medium text-text-tertiary">
             <button
               type="button"
-              className="rounded-sm outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="rounded-sm outline-none transition-colors cursor-pointer hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <Trans>Quick tour (90 sec)</Trans>
             </button>
             <span aria-hidden className="block size-[3px] rounded-full bg-text-muted" />
             <button
               type="button"
-              className="rounded-sm outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="rounded-sm outline-none transition-colors cursor-pointer hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <Trans>What&apos;s new in 6.7</Trans>
             </button>

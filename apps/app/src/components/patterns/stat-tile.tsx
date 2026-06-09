@@ -190,7 +190,7 @@ export function StatTile({
         type="button"
         onClick={onClick}
         aria-label={ariaLabel}
-        className={cn(baseClass, interactiveClass, 'text-left')}
+        className={cn(baseClass, interactiveClass, 'cursor-pointer text-left')}
       >
         {body}
       </button>

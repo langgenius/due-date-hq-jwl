@@ -297,7 +297,7 @@ function NotificationItem({
       <button
         type="button"
         onClick={onClick}
-        className="flex w-full items-start gap-3 border-b border-divider-subtle px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none"
+        className="flex w-full cursor-pointer items-start gap-3 border-b border-divider-subtle px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none"
       >
         <span
           aria-label={unread ? 'unread' : undefined}

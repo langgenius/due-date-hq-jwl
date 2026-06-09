@@ -133,7 +133,7 @@ export function JurisdictionRail({
                 reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
               }
               className={cn(
-                'inline-flex size-6 shrink-0 items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 reviewOnly
                   ? 'bg-state-accent-hover text-text-accent'
                   : 'text-text-secondary hover:bg-state-base-hover',
@@ -342,7 +342,7 @@ function RailRow({
       onClick={onSelect}
       aria-current={selected ? 'true' : undefined}
       className={cn(
-        'flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-colors',
+        'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-colors',
         accentSelected
           ? 'bg-state-accent-hover'
           : selected

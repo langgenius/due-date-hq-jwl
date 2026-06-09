@@ -136,7 +136,7 @@ function PulseAlertsMap({
           onClick={() => onSelect(selectedJurisdiction === 'FED' ? null : 'FED')}
           aria-pressed={selectedJurisdiction === 'FED'}
           className={cn(
-            'inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold tracking-tight outline-none transition-colors',
+            'inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold tracking-tight outline-none transition-colors',
             'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             selectedJurisdiction === 'FED'
               ? 'border-state-accent-active-alt bg-state-accent-hover ring-2 ring-state-accent-active-alt'
@@ -177,7 +177,7 @@ function PulseAlertsMap({
                 gridColumnStart: cell.col + 1,
               }}
               className={cn(
-                'flex flex-col items-center justify-center gap-0.5 rounded-md border text-[11px] font-semibold leading-none transition-colors',
+                'flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-md border text-[11px] font-semibold leading-none transition-colors',
                 'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 isSelected
                   ? 'border-state-accent-active-alt bg-state-accent-hover ring-2 ring-state-accent-active-alt'

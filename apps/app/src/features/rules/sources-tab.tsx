@@ -703,7 +703,7 @@ function SourceRow({
               disabled={retrying}
               aria-label={t`Re-check ${source.title} now`}
               title={t`Re-check now`}
-              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
             >
               <RefreshCwIcon className={`size-3.5 ${retrying ? 'animate-spin' : ''}`} aria-hidden />
             </button>

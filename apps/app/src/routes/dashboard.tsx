@@ -335,7 +335,7 @@ export function DashboardRoute() {
               // Hover steps to `text-text-secondary` (one tier
               // darker) so the interactive cue is still tonal but
               // stays in the gray family.
-              className="inline-flex items-center gap-1 text-xs font-medium tracking-normal text-text-tertiary outline-none normal-case transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50"
+              className="inline-flex items-center gap-1 text-xs font-medium tracking-normal text-text-tertiary outline-none normal-case transition-colors cursor-pointer hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>
                 {syncedLabel === 'just now' ? (
@@ -407,7 +407,7 @@ export function DashboardRoute() {
                 `variant="primary"` tokens. */}
             <button
               type="button"
-              className="group/import inline-flex h-7 items-center rounded-full border border-components-button-primary-border bg-components-button-primary-bg px-1.5 text-components-button-primary-text transition-all [corner-shape:round] hover:border-components-button-primary-border-hover hover:bg-components-button-primary-bg-hover hover:px-3 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default focus-visible:outline-none"
+              className="group/import inline-flex h-8 items-center rounded-full border border-components-button-primary-border bg-components-button-primary-bg px-2 text-components-button-primary-text transition-all cursor-pointer [corner-shape:round] hover:border-components-button-primary-border-hover hover:bg-components-button-primary-bg-hover hover:px-3.5 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default focus-visible:outline-none"
               onClick={() => {
                 if (!canRunMigration) {
                   toast.error(

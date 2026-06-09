@@ -372,7 +372,7 @@ function ToolbarButton({ icon: Icon, label }: { icon: typeof BoldIcon; label: st
       type="button"
       aria-label={label}
       disabled
-      className="inline-flex size-7 items-center justify-center rounded-md text-text-secondary disabled:opacity-60"
+      className="inline-flex size-7 cursor-not-allowed items-center justify-center rounded-md text-text-secondary disabled:opacity-60"
     >
       <Icon className="size-3.5" aria-hidden />
     </button>

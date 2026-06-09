@@ -485,7 +485,7 @@ function DuplicateSegmentedControl({
             disabled={disabled}
             onClick={() => onChange(option.key)}
             className={cn(
-              'rounded-full px-2.5 py-1 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-60',
+              'cursor-pointer rounded-full px-2.5 py-1 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-60',
               active
                 ? 'bg-background-default font-semibold text-text-primary shadow-xs'
                 : 'font-medium text-text-secondary hover:text-text-primary',

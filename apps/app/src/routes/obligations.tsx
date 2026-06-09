@@ -164,6 +164,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import {
   Sheet,
   SheetContent,
@@ -453,7 +454,7 @@ function DropdownTriggerButton({
       type="button"
       disabled={disabled}
       className={cn(
-        'inline-flex w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:bg-state-base-hover',
+        'inline-flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:bg-state-base-hover',
         size === 'lg' ? 'h-10 text-left' : 'h-9',
         className,
       )}
@@ -2402,7 +2403,7 @@ export function ObligationQueueRoute() {
                   onClick={(event) => event.stopPropagation()}
                   aria-label={t`Peek ${tableRow.original.clientName} details`}
                   title={t`Peek client details`}
-                  className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 >
                   <EyeIcon className="size-3.5" aria-hidden />
                 </button>
@@ -2701,7 +2702,7 @@ export function ObligationQueueRoute() {
                   label: `${tableRow.original.clientName} - ${formatTaxCode(tableRow.original.taxType)}`,
                 })
               }}
-              className="inline-flex items-center rounded-sm outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex cursor-pointer items-center rounded-sm outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               {hasEvidence ? (
                 // Has evidence → green count badge only (the number
@@ -4104,15 +4105,15 @@ export function ObligationQueueRoute() {
                           // with `clearOnDefault: false` on the parser)
                           // explicitly says "no columns are hidden,
                           // preserve this in URL."
-                          <button
-                            type="button"
+                          <TextLink
+                            variant="accent"
+                            className="font-normal"
                             onClick={() => {
                               void setObligationQueueQuery({ hide: [] })
                             }}
-                            className="rounded-sm text-xs font-normal text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                           >
                             <Trans>Show all</Trans>
-                          </button>
+                          </TextLink>
                         ) : null}
                       </DropdownMenuLabel>
                     </DropdownMenuGroup>
@@ -4739,7 +4740,7 @@ export function ObligationQueueRoute() {
                                         ? t`Expand ${groupHeader.label}`
                                         : t`Collapse ${groupHeader.label}`
                                     }
-                                    className="inline-flex w-full items-center gap-2 rounded-sm py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                                    className="inline-flex w-full cursor-pointer items-center gap-2 rounded-sm py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                                   >
                                     <ChevronRightIcon
                                       className={cn(
@@ -5486,7 +5487,7 @@ function ObligationQueueSortableHeader({
           onSortChange(nextHeaderSort({ currentSort: sort, ascSort, descSort, firstSort }))
         }
         className={cn(
-          'inline-flex min-w-0 items-center gap-0.5 rounded px-1 py-0.5 text-left',
+          'inline-flex min-w-0 cursor-pointer items-center gap-0.5 rounded px-1 py-0.5 text-left',
           // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #2/#3): sortable
           // button now matches the new TableHead canonical (text-sm
           // sentence-case font-medium text-secondary). Previously the
@@ -5945,7 +5946,7 @@ function SignatureReminderDialog({
             ) : null}
             {/* P1 throttle: bulk skip toggle for recently-reminded clients. */}
             {isBulk && recentlyRemindedCount > 0 ? (
-              <label className="flex items-center gap-2 text-sm text-text-secondary">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-text-secondary">
                 <Checkbox
                   checked={skipRecent}
                   onCheckedChange={(checked) => setSkipRecent(checked)}
@@ -7408,7 +7409,7 @@ export function ObligationQueueDetailDrawer({
                   toast.error(t`Couldn't copy link — your browser blocked clipboard access.`)
                 }
               }}
-              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <LinkIcon className="size-4" aria-hidden />
             </button>
@@ -7416,7 +7417,7 @@ export function ObligationQueueDetailDrawer({
               type="button"
               aria-label={t`Close deadline detail`}
               onClick={onClose}
-              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <XIcon className="size-4" aria-hidden />
             </button>
@@ -7426,7 +7427,7 @@ export function ObligationQueueDetailDrawer({
             type="button"
             aria-label={t`Close deadline detail`}
             onClick={onClose}
-            className="absolute right-3 top-3 inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="absolute right-3 top-3 inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <XIcon className="size-4" aria-hidden />
           </button>
@@ -9597,7 +9598,7 @@ function AuthorityRejectionDialog({
                     role="radio"
                     aria-checked={selected}
                     className={cn(
-                      'grid gap-1 rounded-md border px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                      'grid cursor-pointer gap-1 rounded-md border px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                       selected
                         ? 'border-accent-default bg-state-accent-hover-alt'
                         : 'border-divider-subtle hover:bg-state-base-hover',
@@ -12573,7 +12574,7 @@ function ActiveStageDetailCard({
         <button
           type="button"
           onClick={() => onChangeTab('readiness')}
-          className="mt-3 -mx-1 flex items-center gap-1.5 rounded-md px-1 py-1 text-left text-xs text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="mt-3 -mx-1 flex cursor-pointer items-center gap-1.5 rounded-md px-1 py-1 text-left text-xs text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           aria-label={t`Check Materials to review ${outstandingDocsCount} outstanding items`}
         >
           <CircleIcon className="size-2 fill-current text-state-warning-solid" aria-hidden />
@@ -12838,7 +12839,7 @@ function ActiveStageDetailCard({
                     type="button"
                     onClick={() => setExpandedPast(open ? null : entryKey)}
                     aria-expanded={open}
-                    className="-mx-1 flex items-center gap-2 rounded px-1 py-1 text-left text-xs outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    className="-mx-1 flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-left text-xs outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   >
                     <ChevronRightIcon
                       className={cn(
@@ -13209,7 +13210,7 @@ function ObligationQueueScopeTab({
         // 2026-06-08 (Pencil HuYeb /deadlines #1 — "smaller"): tab text
         // text-base→text-sm, py-3→py-2, icon size-4→size-3.5, count
         // text-sm→text-xs so the scope strip reads more compact.
-        'relative -mb-px flex shrink-0 items-center gap-1.5 py-2 text-sm whitespace-nowrap transition-colors',
+        'relative -mb-px flex shrink-0 cursor-pointer items-center gap-1.5 py-2 text-sm whitespace-nowrap transition-colors',
         active
           ? 'font-semibold text-state-accent-solid'
           : 'border-b-2 border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary',
@@ -13409,8 +13410,9 @@ function ObligationFiltersPopover({
           />
 
           {activeCount > 0 ? (
-            <button
-              type="button"
+            <TextLink
+              variant="accent"
+              className="self-start"
               onClick={() =>
                 onPatch({
                   due: null,
@@ -13425,10 +13427,9 @@ function ObligationFiltersPopover({
                   row: null,
                 })
               }
-              className="self-start text-[12px] font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:underline"
             >
               <Trans>Clear these filters</Trans>
-            </button>
+            </TextLink>
           ) : null}
         </div>
       </PopoverContent>
@@ -13457,7 +13458,7 @@ function ObligationFilterPill({
       disabled={disabled}
       aria-pressed={active}
       className={cn(
-        'inline-flex h-7 max-w-full items-center rounded-md border px-2.5 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex h-7 max-w-full cursor-pointer items-center rounded-md border px-2.5 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
         active
           ? 'border-state-accent-border bg-state-accent-hover text-text-accent'
           : 'border-divider-subtle text-text-secondary hover:bg-state-base-hover',

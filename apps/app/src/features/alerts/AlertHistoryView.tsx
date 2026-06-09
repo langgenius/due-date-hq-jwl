@@ -277,7 +277,7 @@ export function AlertHistoryView() {
             <button
               type="button"
               onClick={() => setSelected(new Set())}
-              className="text-[13px] font-medium text-text-accent underline-offset-2 hover:underline"
+              className="cursor-pointer text-[13px] font-medium text-text-accent underline-offset-2 hover:underline"
             >
               <Trans>Clear</Trans>
             </button>

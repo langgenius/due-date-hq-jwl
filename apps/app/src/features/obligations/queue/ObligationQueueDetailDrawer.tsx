@@ -104,6 +104,7 @@ import {
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -1533,7 +1534,7 @@ export function ObligationQueueDetailDrawer({
             type="button"
             aria-label={t`Close deadline detail`}
             onClick={onClose}
-            className="absolute right-3 top-3 inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="absolute right-3 top-3 inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <XIcon className="size-4" aria-hidden />
           </button>
@@ -2118,13 +2119,13 @@ export function ObligationQueueDetailDrawer({
                           )
                         })}
                       </ul>
-                      <button
-                        type="button"
+                      <TextLink
+                        variant="accent"
+                        className="w-fit"
                         onClick={() => onTabChange('readiness')}
-                        className="w-fit text-caption font-medium text-text-accent hover:underline"
                       >
                         <Trans>Manage in Materials →</Trans>
-                      </button>
+                      </TextLink>
                     </section>
                   ) : null}
                   {/* Cluster 2 (Summary design `d4YrtC > w9bXOk`):
@@ -2189,17 +2190,17 @@ export function ObligationQueueDetailDrawer({
                       <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
                         <Trans>Source docs</Trans>
                       </h3>
-                      <button
-                        type="button"
+                      <TextLink
+                        variant="accent"
+                        className="ml-auto"
                         onClick={() =>
                           toast.info(t`File upload is coming soon`, {
                             description: t`We'll let you attach source documents here as soon as ingest lands.`,
                           })
                         }
-                        className="ml-auto text-caption font-medium text-text-accent hover:underline"
                       >
                         <Trans>+ Add file</Trans>
-                      </button>
+                      </TextLink>
                     </div>
                     <p className="py-1 text-caption text-text-tertiary">
                       <Trans>No files attached yet.</Trans>
@@ -3190,12 +3191,15 @@ export function ObligationQueueDetailDrawer({
                             </div>
                           </div>
                           {detail.matchedRule ? (
-                            <Link
-                              to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`}
-                              className="shrink-0 text-caption font-semibold text-text-accent hover:underline"
+                            <TextLink
+                              variant="accent"
+                              className="shrink-0 font-semibold"
+                              render={
+                                <Link to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`} />
+                              }
                             >
                               <Trans>Open rule →</Trans>
-                            </Link>
+                            </TextLink>
                           ) : null}
                         </div>
                         {estimatedTaxCents && estimatedTaxCents > 0 ? (
@@ -3375,12 +3379,13 @@ export function ObligationQueueDetailDrawer({
                         {row.clientName}
                         {row.taxType ? ` · ${row.taxType}` : ''}
                       </span>
-                      <Link
-                        to="/deadlines"
-                        className="ml-auto text-caption font-semibold text-text-accent hover:underline"
+                      <TextLink
+                        variant="accent"
+                        className="ml-auto font-semibold"
+                        render={<Link to="/deadlines" />}
                       >
                         <Trans>View all client extensions →</Trans>
-                      </Link>
+                      </TextLink>
                     </header>
                     <div>
                       <div className="hidden grid-cols-[64px_72px_64px_110px_110px_1fr_auto] gap-3 border-b border-divider-subtle px-4 py-2.5 sm:grid">
@@ -3686,12 +3691,17 @@ export function ObligationQueueDetailDrawer({
                         },
                       ]}
                       action={
-                        <Link
-                          to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
-                          className="text-xs font-semibold text-text-accent hover:underline"
+                        <TextLink
+                          variant="accent"
+                          className="font-semibold"
+                          render={
+                            <Link
+                              to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
+                            />
+                          }
                         >
                           <Trans>Open rule reference →</Trans>
-                        </Link>
+                        </TextLink>
                       }
                     />
                   ) : null}

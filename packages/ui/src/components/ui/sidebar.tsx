@@ -51,9 +51,26 @@ import {
  * `accent` variant on `SidebarMenuButton`.
  */
 
-const SIDEBAR_WIDTH = '13.75rem' // 220px — DESIGN §Layout regions
-const SIDEBAR_WIDTH_COLLAPSED = '3.5rem' // 56px — icons-only rail
-const SIDEBAR_WIDTH_MOBILE = '17.5rem' // 280px — Sheet drawer is slightly wider
+// 2026-06-09 (Yuqi "copy exactly the measurements from pencil" —
+// duedatehq_work.pen §SidebarColumn / §Sidebar). Every metric below is
+// taken verbatim from the Pencil frames so expanded (Rwh3C) and
+// collapsed (xiZyr) share ONE padding system:
+//   • SidebarColumn padding 12 → the card floats 12px inside its
+//     footprint on every side (gutter). 12 left + 12 right = 1.5rem,
+//     subtracted from the footprint to size the card.
+//   • Sidebar card: padding 12, gap 8 (see the panel className below).
+//   • Expanded column width 280; collapsed column 88 (logo 32 + card
+//     padding 12·2 + gutter 12·2 = 88). Both reduce to `width − 24px`
+//     card. Symmetric 12/12 item padding then centers the 16px icon in
+//     the collapsed card with NO per-mode re-centering — the source of
+//     the old expand/collapse padding jump.
+const SIDEBAR_WIDTH = '17.5rem' // 280px — Pencil SidebarColumn (expanded)
+const SIDEBAR_WIDTH_COLLAPSED = '5.5rem' // 88px — Pencil SidebarColumn (collapsed)
+const SIDEBAR_WIDTH_MOBILE = '17.5rem' // 280px — Sheet drawer matches expanded
+// Gutter inset of the floating card from its footprint, summed across
+// both sides (12px left + 12px right). Kept in sync with `inset-y-3
+// left-3` on the panel below.
+const SIDEBAR_CARD_INSET = '1.5rem'
 
 type SidebarContextValue = {
   openMobile: boolean
@@ -415,9 +432,35 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           width was still animating 56→220 over 300ms). With the
           clip, any momentary overflow is hidden inside the sidebar
           rather than spilling into the page content area. */}
+      {/* 2026-06-09 (Yuqi "where is the float?" — white floating card):
+          the rail is a white card lifted off the warm body.
+            • `inset-y-2 left-2` floats it 8px off the top, bottom and
+              left of its footprint; the width subtracts
+              SIDEBAR_CARD_INSET (16px) so an equal 8px gutter sits on
+              the right. The warm body (bg-background-body) shows in the
+              gutters, so the white card reads as detached from the
+              canvas with the white work surface beyond.
+            • Fill is a NEUTRAL gray (#f4f4f4 light / #242426 dark) — no
+              warm/cool tint (Yuqi "gray background not colour tinted") —
+              so it reads as a plain gray surface against the white shell.
+            • `rounded-xl` (12px) + a soft 1px shadow give the float; NO
+              border ("no board") — the shadow alone lifts the panel off
+              the white canvas.
+            • `p-3` (Pencil Sidebar padding 12) + `gap-2` (Pencil gap 8)
+              are the ONLY owners of the card's inner spacing. Every
+              section below sits flush (no horizontal padding of its
+              own); the nav/search items add their own 12px item padding,
+              so glyphs land at 24px and the brand/avatar at 16px — the
+              exact Pencil insets, identical in both modes.
+          The hover-expand overlay still works: when collapsed + hovered,
+          `targetCollapsed` is false so the card widens to the expanded
+          measure and overflows the narrow footprint, floating above the
+          inset. */}
       <div
-        className="absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-divider-regular bg-background-canvas-warm transition-[width] duration-300 ease-apple motion-reduce:transition-none group-data-[collapsed=true]/sidebar:border-r-0"
-        style={{ width: targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
+        className="absolute inset-y-3 left-3 z-30 flex flex-col gap-2 overflow-hidden rounded-xl bg-[#f4f4f4] p-3 shadow-[0_1px_2px_rgb(16_24_40_/_0.04)] transition-[width] duration-300 ease-apple motion-reduce:transition-none dark:bg-[#242426]"
+        style={{
+          width: `calc(${targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH} - ${SIDEBAR_CARD_INSET})`,
+        }}
       >
         {children}
       </div>
@@ -460,24 +503,14 @@ export function SidebarContent({ className, ...props }: React.ComponentProps<'di
     <div
       data-slot="sidebar-content"
       className={cn(
-        // 2026-05-28 (Yuqi sidebar polish — divider symmetry): in
-        // collapsed mode the SidebarGroupLabel becomes a 28px wide
-        // hairline divider (see SidebarGroupLabel below), so the
-        // parent gap between groups stacks on top of the label's
-        // own `my-N` margin — the icon visually closer to one
-        // divider than the other ("Rule library" sat 24px from the
-        // top divider and 8px from the bottom). Drop parent gap to
-        // 0 in collapsed mode so the icon-to-divider distance comes
-        // SOLELY from the label's symmetric `my-3` (see below).
-        // 2026-05-29 (Yuqi sidebar expanded polish): expanded
-        // inter-group gap stepped `gap-4` → `gap-3` (12px). Matches
-        // the app-wide canonical section gap codified in the gap
-        // consistency sweep (PR #44) — the sidebar now reads on the
-        // same rhythm as the body's section headers. Tighter groups
-        // also let the visible eyebrow text-headers carry their own
-        // breathing room instead of leaning on a bigger outer gap.
-        'flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-2 pt-4 pb-2',
-        'group-data-[collapsed=true]/sidebar:px-1.5 group-data-[collapsed=true]/sidebar:gap-0',
+        // 2026-06-09 (Yuqi "unify expanded/collapsed padding"): the
+        // scroll region carries NO horizontal padding of its own — the
+        // card panel's `p-3` owns the 12px card padding in both modes.
+        // `gap-1` (4px) matches Pencil Frame18's inter-item gap; the
+        // muted footer group pushes to the bottom via its own `mt-auto`.
+        // No `group-data-[collapsed]` overrides: padding is identical
+        // expanded and collapsed.
+        'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto',
         className,
       )}
       {...props}
@@ -495,8 +528,11 @@ export function SidebarFooter({ className, ...props }: React.ComponentProps<'div
     <div
       data-slot="sidebar-footer"
       className={cn(
-        'flex shrink-0 flex-col border-t border-divider-regular px-2 py-2',
-        'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0',
+        // 2026-06-09 (Yuqi "unify expanded/collapsed padding"): no
+        // horizontal padding (the card panel's `p-3` owns it) and no
+        // per-mode override. `pt-3` (Pencil UserFooter padding-top 12)
+        // sits the user row 12px below the top divider in both modes.
+        'flex shrink-0 flex-col border-t border-divider-regular pt-3',
         className,
       )}
       {...props}
@@ -552,34 +588,16 @@ export function SidebarGroupLabel({ className, ...props }: React.ComponentProps<
       role="separator"
       aria-orientation="horizontal"
       className={cn(
-        'flex h-7 shrink-0 items-center px-3 text-xs font-medium uppercase tracking-eyebrow text-text-tertiary',
-        // 2026-05-26 (Yuqi collapsed-rail overflow fix): in collapsed
-        // mode the row was `h-px` + `overflow: visible` + text content
-        // ("RULE", "CLIENTS") still inside. The 11px uppercase glyphs
-        // ignored the 1px container and spilled above the hairline,
-        // making the group labels visible in the icons-only rail.
-        // `overflow-hidden` clips the text to the 1px row so only the
-        // `bg-divider-subtle` strip reads; `text-transparent` belt-
-        // and-suspenders the case where sub-pixel rendering leaves
-        // half-pixel slivers. `[&>*]:hidden` still catches element
-        // children (kept for symmetry; current call sites pass text
-        // nodes only).
-        // 2026-05-26 (Yuqi Figma collapsed-rail pass): hairline gets
-        // `mx-auto` + fixed `w-7` (28px) instead of spanning the full
-        // 43px row width. Matches the Figma reference where the
-        // group separator is a short centered stroke under the
-        // icon column, not a divider that touches the panel edges.
-        // `divider-subtle` → `divider-deep` so the 28px line still
-        // reads at 1px tall.
-        // 2026-05-28 (Yuqi sidebar polish — divider symmetry):
-        // bumped `my-2` → `my-3` so each hairline divider sits
-        // 12px from the icon above AND 12px from the icon below
-        // (parent `gap-0` in collapsed mode — see SidebarContent).
-        // Net: icons between two dividers are mathematically
-        // centered between them, not visually drifted toward the
-        // top one as they were before.
-        'group-data-[collapsed=true]/sidebar:my-3 group-data-[collapsed=true]/sidebar:h-px group-data-[collapsed=true]/sidebar:w-7 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:overflow-hidden group-data-[collapsed=true]/sidebar:bg-divider-deep group-data-[collapsed=true]/sidebar:text-transparent',
-        'group-data-[collapsed=true]/sidebar:[&>*]:hidden',
+        // 2026-06-09 (Yuqi "copy exactly from pencil" §RuleLabel /
+        // §ClientsLabel): height 30, padding [12,12,4,12] → pt-3 pb-1
+        // px-3, text 11px / 600 / +1 tracking, #98a2b2 (text-muted).
+        'flex h-[30px] shrink-0 items-center px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-muted',
+        // Collapsed: the frame KEEPS its 30px height + padding (no
+        // height collapse → no layout jump). The text is hidden and a
+        // centered 19×1.5px hairline (#CCCCCC → divider-deep) is drawn
+        // via ::before, matching Pencil §xiZyr's collapsed label.
+        'group-data-[collapsed=true]/sidebar:relative group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:overflow-hidden group-data-[collapsed=true]/sidebar:text-transparent',
+        "group-data-[collapsed=true]/sidebar:before:absolute group-data-[collapsed=true]/sidebar:before:left-1/2 group-data-[collapsed=true]/sidebar:before:top-1/2 group-data-[collapsed=true]/sidebar:before:h-[1.5px] group-data-[collapsed=true]/sidebar:before:w-[19px] group-data-[collapsed=true]/sidebar:before:-translate-x-1/2 group-data-[collapsed=true]/sidebar:before:-translate-y-1/2 group-data-[collapsed=true]/sidebar:before:rounded-full group-data-[collapsed=true]/sidebar:before:bg-divider-deep group-data-[collapsed=true]/sidebar:before:content-['']",
         className,
       )}
       {...props}
@@ -644,13 +662,26 @@ const sidebarMenuButtonVariants = cva(
     // height stays h-8 (32px); icon stays size-4 (16px). Restores a touch
     // more presence to the nav without returning to the text-base (16px)
     // that previously competed with the firm-switcher anchor.
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-md px-3 text-left text-sm font-normal text-text-secondary outline-none transition-colors',
+    // 2026-06-09 (Yuqi "copy exactly from pencil" §NavItem): height 40
+    // (h-10), padding [10,12] → px-3 with the 40px height giving the
+    // vertical 10, gap 10 (gap-2.5), cornerRadius 6 (rounded-md). Label
+    // text-[15px] (Yuqi +1px). These metrics are IDENTICAL in both
+    // modes — the collapsed re-centering overrides are gone (see below).
+    'group/menu-button peer/menu-button relative flex h-10 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
     // Hover uses a neutral surface token; selected state below uses the
     // explicit accent tint so route wayfinding stays distinct from row hover.
     'hover:bg-background-default-hover hover:text-text-primary',
     'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
     'disabled:pointer-events-none disabled:opacity-50',
     'aria-disabled:pointer-events-none aria-disabled:opacity-50',
+    // 2026-06-09 (Yuqi "be thoughtful about what can be seen easily vs
+    // not"): inactive nav icons sit a step QUIETER than their labels
+    // (text-tertiary #676f83 vs text-secondary #354052). The label
+    // carries the meaning and leads; the icon supports. This restores a
+    // hierarchy where the eye lands on the active (blue) row first, then
+    // labels, with icons as a calm supporting layer — instead of every
+    // glyph reading at full strength. Active + muted states override
+    // this below / via the group's opacity.
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-text-tertiary",
     // Active state has two valid sources: (1) react-router's NavLink renders
     // `aria-current="page"` automatically, and (2) any consumer that passes
@@ -663,16 +694,11 @@ const sidebarMenuButtonVariants = cva(
     // accent border, no `accent-text` label color.
     "data-[active=true]:bg-accent-tint data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
     "aria-[current=page]:bg-accent-tint aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
-    // 2026-05-26 (Yuqi sidebar status surface — bold pass):
-    // active-route marker in collapsed mode. A 3px-wide accent
-    // bar at the LEFT EDGE of the active tile signals "you are
-    // here" without needing labels. Combines with the bg-accent-tint
-    // tile so the active route reads both as a color-tinted square
-    // AND as the column's anchored marker, similar to Linear's
-    // active-route indicator. Only applies in collapsed mode; the
-    // expanded mode's full bg-tint already does the wayfinding job.
-    "group-data-[collapsed=true]/sidebar:data-[active=true]:before:absolute group-data-[collapsed=true]/sidebar:data-[active=true]:before:left-0 group-data-[collapsed=true]/sidebar:data-[active=true]:before:top-1/2 group-data-[collapsed=true]/sidebar:data-[active=true]:before:h-4 group-data-[collapsed=true]/sidebar:data-[active=true]:before:w-[3px] group-data-[collapsed=true]/sidebar:data-[active=true]:before:-translate-y-1/2 group-data-[collapsed=true]/sidebar:data-[active=true]:before:rounded-r-full group-data-[collapsed=true]/sidebar:data-[active=true]:before:bg-state-accent-solid group-data-[collapsed=true]/sidebar:data-[active=true]:before:content-['']",
-    "group-data-[collapsed=true]/sidebar:aria-[current=page]:before:absolute group-data-[collapsed=true]/sidebar:aria-[current=page]:before:left-0 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:top-1/2 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:h-4 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:w-[3px] group-data-[collapsed=true]/sidebar:aria-[current=page]:before:-translate-y-1/2 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:rounded-r-full group-data-[collapsed=true]/sidebar:aria-[current=page]:before:bg-state-accent-solid group-data-[collapsed=true]/sidebar:aria-[current=page]:before:content-['']",
+    // 2026-06-09 (Yuqi "copy exactly from pencil"): no collapsed
+    // left-bar marker. Pencil's collapsed NavToday keeps the SAME full
+    // `#eff4ff` tinted tile as expanded (just narrower) — the active
+    // state is already carried by `bg-accent-tint` in both modes, so the
+    // separate 3px rail bar is dropped.
     '[&>span:nth-child(2)]:flex-1 [&>span:nth-child(2)]:truncate',
     // 2026-05-26 (Yuqi sidebar smoothness pass): label span now
     // animates rather than hard-hides. Expanded → collapsed
@@ -683,40 +709,16 @@ const sidebarMenuButtonVariants = cva(
     // fast against the 300ms aside transition, labels popped
     // before the rail finished moving.)
     '[&>span:nth-child(2)]:transition-[opacity,max-width] [&>span:nth-child(2)]:duration-240 [&>span:nth-child(2)]:ease-apple',
-    // 2026-05-25 (Yuqi sidebar collapse): collapsed-mode tweaks —
-    // center the icon at 56px width, drop the horizontal padding,
-    // and hide the label span. The consumer's NavLink passes a
-    // `title` attribute as the native hover tooltip.
-    // 2026-05-25 (Yuqi rail alignment v2): in collapsed mode the
-    // button shrinks to a centered 32×32 square (size-8 mx-auto).
-    // Previously it kept w-full + h-8, so the bg-accent-tint
-    // active state stretched the full 44px row width while
-    // sibling icons (bell, toggle, footer items) were 32×32 —
-    // the active row read as a stretched pill out of family
-    // with everything else. Now active + hover both render as
-    // a 32×32 tinted tile, matching the rest of the rail.
-    // 2026-05-26 (Yuqi vertical-center fix): added `gap-0` in
-    // collapsed mode. The base button has `gap-2.5` (10px) between
-    // its flex children (icon + label span). In collapsed mode the
-    // label shrinks to max-w-0 / opacity-0 but is still a flex
-    // child, so the 10px gap stayed reserved between icon and
-    // (zero-width) label. With `justify-center`, the 16px icon
-    // ended up at x=3 instead of x=8 inside the 32px tile —
-    // visibly off-center to the left. `gap-0` collapses the
-    // reserved spacer so the icon centers properly.
-    // 2026-05-26 (Yuqi sidebar fix — "icon position do not match"):
-    // collapsed-mode button gets `overflow-visible` so the badge pill
-    // can overhang the top-right corner via `-top-0.5 -right-0.5`.
-    // With the previous `overflow-hidden` inherited from the base
-    // chain, the badge was forced INSIDE the button (top-0 right-0)
-    // and overlapped the centered icon — visual shift left.
-    'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:overflow-visible',
-    // 2026-05-26 (Yuqi sidebar smoothness pass): collapsed-mode
-    // label hide swapped from `hidden` → opacity-0 + max-w-0 +
-    // overflow-hidden so the label animates out (per the
-    // `transition-[opacity,max-width]` rule above) instead of
-    // disappearing instantly. `pointer-events-none` keeps the
-    // collapsed label from intercepting clicks during the fade.
+    // 2026-06-09 (Yuqi "unify expanded/collapsed padding" + "copy
+    // exactly from pencil"): the button KEEPS its full metrics in
+    // collapsed mode — same h-10, same px-3, same gap-2.5. It is no
+    // longer shrunk to a centered 32×32 tile. Because the card is
+    // exactly icon + symmetric 12/12 item padding + 12/12 card padding
+    // wide when collapsed (Pencil §xiZyr), the left-aligned 16px icon
+    // lands dead-center automatically — no mx-auto / justify-center /
+    // gap-0 / px-0 gymnastics, and therefore no padding jump on toggle.
+    // Only the label hides: it fades to max-w-0 / opacity-0 (animated
+    // via the rule above) so the row visibly narrows with the rail.
     'group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:max-w-0 group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:opacity-0 group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:pointer-events-none group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:overflow-hidden',
   ),
   {
@@ -877,8 +879,12 @@ export function SidebarMenuBadge({
   // `[&>*]:hidden` hides the digit text in collapsed mode; the dot
   // itself comes from a 8×8 destructive-solid circle positioned at
   // the icon's top-right.
-  const collapsedPos =
-    'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:top-0 group-data-[collapsed=true]/sidebar:right-0 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:h-2 group-data-[collapsed=true]/sidebar:min-w-2 group-data-[collapsed=true]/sidebar:w-2 group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:text-[0px] group-data-[collapsed=true]/sidebar:overflow-hidden'
+  // 2026-06-09 (Yuqi "copy exactly from pencil"): Pencil's collapsed
+  // rail (§xiZyr) shows NO badges — just the icon. With the unified
+  // full-width row (no 32×32 tile), a corner dot would float at the
+  // row's right edge far from the centered icon, so the badge is simply
+  // hidden when collapsed. The count returns inline when expanded.
+  const collapsedPos = 'group-data-[collapsed=true]/sidebar:hidden'
   if (tone === 'inventory') {
     return (
       <span
@@ -887,7 +893,11 @@ export function SidebarMenuBadge({
         className={cn(
           pillBaseExpanded,
           expandedPos,
-          'bg-background-subtle text-text-secondary',
+          // 2026-06-09 (Yuqi sidebar floating-card pass): reference counts
+          // sit at text-tertiary (#676f83) per Pencil §Sidebar — a step
+          // quieter than the #354052 label, so the number reads as a fact
+          // rather than competing with the destination name.
+          'bg-background-subtle text-text-tertiary',
           collapsedPos,
           className,
         )}

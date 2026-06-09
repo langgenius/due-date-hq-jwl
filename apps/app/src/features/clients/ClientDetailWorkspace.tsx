@@ -1948,7 +1948,7 @@ function ClientOwnerHeaderPill({
             title={triggerLabel}
             disabled={disabled}
             className={cn(
-              'inline-flex h-7 items-center gap-1.5 rounded-full border border-divider-regular bg-background-default pl-1 pr-2.5 text-xs outline-none transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
+              'inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular bg-background-default pl-1 pr-2.5 text-xs outline-none transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
               name === null ? 'text-text-secondary' : 'text-text-primary',
             )}
           >

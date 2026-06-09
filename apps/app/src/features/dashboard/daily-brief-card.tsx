@@ -65,21 +65,17 @@ export function DailyBriefCard({
         {/* 2026-06-08 (Yuqi /today): the "Failed" label is dropped (the message
             already says it failed) and the icon-only retry becomes a quiet
             "Regenerate brief" TEXT button sitting right after the message. */}
-        <button
-          type="button"
-          onClick={onRefresh}
-          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
-        >
+        <TextLink variant="accent" onClick={onRefresh} className="shrink-0">
           <RotateCwIcon className="size-3.5" aria-hidden />
           <Trans>Regenerate brief</Trans>
-        </button>
+        </TextLink>
         <div className="flex flex-1 shrink-0 items-center justify-end gap-1">
           {onClose ? (
             <button
               type="button"
               onClick={onClose}
               aria-label={t`Dismiss brief`}
-              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
             >
               <XIcon className="size-3.5" aria-hidden />
             </button>
@@ -118,7 +114,11 @@ export function DailyBriefCard({
               type="button"
               onClick={onRefresh}
               aria-label={t`Regenerate brief`}
-              className="inline-flex size-7 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+              // 2026-06-09 (Yuqi #5 "gray"): the regenerate control was a gray
+              // icon on the accent card — it read as disabled chrome. It now
+              // carries the card's accent ink at rest and lifts onto a white
+              // chip on hover, so it reads as the card's one live affordance.
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-accent transition-colors hover:bg-background-default hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
             >
               <RotateCwIcon className="size-3.5" aria-hidden />
             </button>
@@ -131,7 +131,7 @@ export function DailyBriefCard({
               type="button"
               onClick={onClose}
               aria-label={t`Dismiss brief`}
-              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
             >
               <XIcon className="size-3.5" aria-hidden />
             </button>
@@ -141,7 +141,12 @@ export function DailyBriefCard({
 
       {/* Body — Pencil qYrr3 `zgUBx`: prose at 14/normal, primary ink,
           with inline accent citation chips. */}
-      {isPending ? (
+      {/* 2026-06-09 (Yuqi #5 "click to regenerate, the page flicks"): the
+          skeleton only shows on a COLD generate (no prior text). While
+          regenerating an existing brief we keep the current prose on screen —
+          the freshness chip's spinner carries the "working" signal — so the
+          card no longer flashes blank → skeleton → prose on every refresh. */}
+      {isPending && !brief.text ? (
         <div className="grid gap-2" aria-busy>
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-[88%]" />
@@ -219,7 +224,7 @@ function BriefFreshness({
             type="button"
             onClick={onRefresh}
             aria-label={t`Regenerate brief`}
-            className="inline-flex size-5 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
           >
             <RotateCwIcon className="size-3" aria-hidden />
           </button>
@@ -309,7 +314,7 @@ function CitationChip({
       type="button"
       onClick={onOpen}
       aria-label={t`Citation ${n} — open deadline`}
-      className="mx-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-[11px] leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+      className="mx-0.5 inline-flex h-[18px] min-w-[18px] cursor-pointer items-center justify-center rounded-[4px] border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-[11px] leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
     >
       {n}
     </button>

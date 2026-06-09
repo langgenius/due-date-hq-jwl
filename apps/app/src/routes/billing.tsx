@@ -695,7 +695,7 @@ function BillingIntervalToggle({
         aria-pressed={value === 'monthly'}
         onClick={() => onChange('monthly')}
         className={cn(
-          'inline-flex h-9 min-w-24 items-center justify-center rounded-md px-3 text-sm font-medium text-text-secondary transition-colors',
+          'inline-flex h-9 min-w-24 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium text-text-secondary transition-colors',
           value === 'monthly'
             ? 'bg-accent-default text-primary-foreground shadow-sm'
             : 'hover:bg-state-base-hover hover:text-text-primary',
@@ -708,7 +708,7 @@ function BillingIntervalToggle({
         aria-pressed={value === 'yearly'}
         onClick={() => onChange('yearly')}
         className={cn(
-          'inline-flex h-9 min-w-40 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-text-secondary transition-colors',
+          'inline-flex h-9 min-w-40 cursor-pointer items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-text-secondary transition-colors',
           value === 'yearly'
             ? 'bg-accent-default text-primary-foreground shadow-sm'
             : 'hover:bg-state-base-hover hover:text-text-primary',

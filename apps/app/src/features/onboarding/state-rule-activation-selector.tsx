@@ -140,7 +140,7 @@ export function StateRuleActivationSelector({
           onClick={toggleAllStates}
           aria-label={allStatesSelected ? t`Clear all states` : t`Select all states`}
           aria-pressed={allStatesSelected}
-          className="inline-flex h-7 items-center gap-1.5 rounded-sm border border-divider-subtle bg-background-default px-2 text-caption font-medium text-text-secondary outline-none transition-colors hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-sm border border-divider-subtle bg-background-default px-2 text-caption font-medium text-text-secondary outline-none transition-colors hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <CheckIcon className="size-3.5" aria-hidden />
           <span>{allStatesSelected ? <Trans>Clear all</Trans> : <Trans>Select all</Trans>}</span>
@@ -181,7 +181,7 @@ export function StateRuleActivationSelector({
                         // as a state abbreviation, not a button
                         // label competing with the tile itself.
                         className={cn(
-                          'relative flex size-7 shrink-0 items-center justify-center rounded-sm border font-mono text-[10px] font-medium transition-colors outline-none',
+                          'relative flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-sm border font-mono text-[10px] font-medium transition-colors outline-none',
                           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
                           selectedState
                             ? 'border-state-accent-active-alt bg-state-accent-solid text-text-inverted shadow-sm'

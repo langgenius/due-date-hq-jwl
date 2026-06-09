@@ -191,7 +191,7 @@ function FilingPlanSortHeader({
       onClick={onClick}
       title={title}
       className={cn(
-        'inline-flex items-center gap-1 text-sm font-medium leading-5 outline-none focus-visible:text-text-primary',
+        'inline-flex cursor-pointer items-center gap-1 text-sm font-medium leading-5 outline-none focus-visible:text-text-primary',
         alignRight ? 'justify-end' : 'text-left',
         active ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary',
         className,
@@ -792,7 +792,7 @@ function FilingPlanYearSection({
                         onOpen(obligation.id)
                       }}
                       aria-label={t`Open ${formatTaxCode(obligation.taxType)} due ${formatDate(obligation.currentDueDate)}`}
-                      className="block w-full min-w-0 truncate rounded-sm text-left text-sm font-medium leading-5 text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                      className="block w-full min-w-0 cursor-pointer truncate rounded-sm text-left text-sm font-medium leading-5 text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                     >
                       <TaxCodeLabel code={obligation.taxType} tooltip={false} />
                     </button>

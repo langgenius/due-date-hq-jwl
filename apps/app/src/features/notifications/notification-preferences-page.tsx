@@ -732,7 +732,7 @@ function MorningDigestCard({
                     disabled={saving && !active}
                     onClick={() => toggleDay(day.key)}
                     className={cn(
-                      'flex h-10 w-[54px] items-center justify-center rounded-lg text-xs font-semibold transition-colors',
+                      'flex h-10 w-[54px] cursor-pointer items-center justify-center rounded-lg text-xs font-semibold transition-colors disabled:cursor-not-allowed',
                       active
                         ? 'bg-state-accent-solid text-text-inverted'
                         : 'border border-divider-regular bg-background-default text-text-secondary hover:bg-background-section',

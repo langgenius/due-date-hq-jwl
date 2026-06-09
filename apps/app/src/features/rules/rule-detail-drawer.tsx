@@ -838,7 +838,7 @@ function ConfirmImpactDialog({
             type="button"
             aria-label={t`Close`}
             onClick={() => onOpenChange(false)}
-            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <XIcon className="size-4" aria-hidden />
           </button>
@@ -986,7 +986,7 @@ function RejectReasonDialog({
             aria-label={t`Close`}
             onClick={() => onOpenChange(false)}
             disabled={pending}
-            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-40"
+            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-40"
           >
             <XIcon className="size-4" aria-hidden />
           </button>
@@ -1006,7 +1006,7 @@ function RejectReasonDialog({
                   aria-checked={active}
                   onClick={() => setSelected(preset.key)}
                   className={cn(
-                    'flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                    'flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                     active
                       ? 'border-state-accent-solid bg-state-accent-hover text-text-primary'
                       : 'border-divider-regular text-text-secondary hover:bg-state-base-hover',

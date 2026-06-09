@@ -251,6 +251,7 @@
   --color-components-button-tertiary-bg: var(--components-button-tertiary-bg);
   --color-components-button-tertiary-bg-hover: var(--components-button-tertiary-bg-hover);
   --color-components-button-tertiary-bg-disabled: var(--components-button-tertiary-bg-disabled);
+  --color-components-button-tertiary-border: var(--components-button-tertiary-border);
   --color-components-button-ghost-text: var(--components-button-ghost-text);
   --color-components-button-ghost-text-disabled: var(--components-button-ghost-text-disabled);
   --color-components-button-ghost-bg-hover: var(--components-button-ghost-bg-hover);

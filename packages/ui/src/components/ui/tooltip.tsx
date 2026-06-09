@@ -52,7 +52,10 @@ function TooltipContent({
             // radius (lg), roomier padding, medium-weight type, a layered
             // shadow + crisper blur — reads as an intentional floating chip,
             // not a flat label.
-            'inline-flex w-fit max-w-xs items-center gap-1.5 rounded-[10px] border border-components-panel-border bg-components-tooltip-bg px-3 py-2 text-xs font-medium leading-snug text-components-tooltip-text shadow-lg backdrop-blur-[6px]',
+            // 2026-06-09 (Yuqi #3 "more generous with paddings"): padding
+            // bumped px-3 py-2 → px-3.5 py-2.5 so rich tooltips (header + body)
+            // breathe; single-line labels still read tight via w-fit.
+            'inline-flex w-fit max-w-xs items-center gap-1.5 rounded-[10px] border border-components-panel-border bg-components-tooltip-bg px-3.5 py-2.5 text-xs font-medium leading-snug text-components-tooltip-text shadow-lg backdrop-blur-[6px]',
             overlayPopupAnimationClassName,
             'has-data-[slot=kbd]:pr-1.5 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 **:data-[slot=kbd]:rounded-sm',
             className,

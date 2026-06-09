@@ -10,11 +10,10 @@ import {
   SidebarFooter,
   SidebarInset,
   SidebarProvider,
-  SidebarSeparator,
   useSidebar,
 } from '@duedatehq/ui/components/ui/sidebar'
 import type { ThemePreference } from '@duedatehq/ui/theme'
-import { FirmSwitcherTrigger, NavGroups } from './app-shell-nav'
+import { FirmSwitcherTrigger, NavGroups, SidebarQuickFind } from './app-shell-nav'
 import { SIDEBAR_TOGGLE_HOTKEY } from './keyboard-shell/display'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from './keyboard-shell/hooks'
 import { UserMenuTrigger, isReadOnlyDemoUser } from './app-shell-user-menu'
@@ -97,7 +96,13 @@ export function AppShell(props: AppShellProps) {
         is the simplest path that doesn't require `position: sticky` games on
         the sidebar.
       */}
-      <div className="relative isolate flex h-svh w-full overflow-hidden bg-background-body text-text-primary">
+      {/* 2026-06-09 (Yuqi "general background is white, float sidebar has
+          a slight background"): the shell canvas is white — it shows in
+          the gutters around the floating sidebar and behind the white
+          work surface. The sidebar card carries a slight warm-gray fill
+          instead (see `Sidebar` in sidebar.tsx) so it reads as lifted
+          off the white. */}
+      <div className="relative isolate flex h-svh w-full overflow-hidden bg-background-inset text-text-primary">
         <PendingBar />
         <Sidebar>
           {/* 2026-05-26 (Yuqi sidebar reorg — bell moves out):
@@ -146,18 +151,36 @@ export function AppShell(props: AppShellProps) {
               tweak to padding/content drifted them apart. Hard-coding
               `h-[72px]` makes both modes pin to the exact same height
               regardless of inner content size. */}
-          <div className="flex h-[72px] flex-col justify-center gap-1 px-2 py-2 group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:gap-2 group-data-[collapsed=true]/sidebar:px-0">
-            <div className="flex w-full items-center gap-1 group-data-[collapsed=true]/sidebar:w-auto group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:gap-2">
-              <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
-              <SidebarCollapseToggle />
-            </div>
+          {/* 2026-06-09 (Yuqi /alerts #1 "should always be the same height
+              as the [content] header. h-[52px]"): the EXPANDED workspace-
+              identity section now pins to 52px so its bottom seam lines up
+              with the 52px content header bar across pages. COLLAPSED keeps
+              72px — that mode stacks the 32px monogram + 32px collapse toggle
+              vertically (8px gap = 72px), which can't compress into 52px. */}
+          {/* 2026-06-09 (Yuqi "unify expanded/collapsed padding"): the
+              brand row carries no per-mode height of its own — the card
+              panel's `p-3` owns the card padding, and the firm switcher's
+              own h-14 sets the height. The collapse toggle hides itself
+              when collapsed, so the row is just the firm identity in that
+              mode. Identical metrics both ways → no jump.
+              2026-06-09 (Yuqi "further from the top"): `pt-3` adds 12px
+              above the brand on top of the panel's own 12px, so the
+              company tile sits ~24px down from the card's top edge with
+              clear breathing room.
+              2026-06-09 (Yuqi "pt-3 breathing room below it"): `pb-3`
+              adds 12px below the brand row too, separating the company
+              identity from the Quick find row beneath it. */}
+          <div className="flex items-center gap-1 pt-3 pb-3">
+            <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
+            <SidebarCollapseToggle />
           </div>
-          {/*
-            Sibling 1px rib — identical technique to the rib below the route
-            header (see SidebarInset), so both ribs sit at exactly y =
-            header_h. No `border-b` mixing.
-          */}
-          <SidebarSeparator />
+          {/* 2026-06-09 (Yuqi sidebar floating-card pass): the 1px rib
+              under the firm switcher is gone — the Pencil design has no
+              divider here. A "Quick find…" search affordance now sits
+              between the firm identity and the nav, opening the global
+              ⌘K command palette. The card's padding + the search box's
+              own surface carry the separation the rib used to provide. */}
+          <SidebarQuickFind />
           <SidebarContent>
             <NavGroups firm={props.firm} />
           </SidebarContent>

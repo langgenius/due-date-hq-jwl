@@ -207,7 +207,7 @@ export function SuccessModal({
             <button
               type="button"
               onClick={onViewAuditLog}
-              className="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-sm text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <ScrollTextIcon className="size-3.5" aria-hidden />
               <Trans>View audit log entry</Trans>
@@ -256,7 +256,7 @@ function NextStep({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-3 rounded-lg px-1 py-2 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="flex cursor-pointer items-center gap-3 rounded-lg px-1 py-2 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
       <span
         className={cn(

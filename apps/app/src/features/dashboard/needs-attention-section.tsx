@@ -5,7 +5,6 @@ import { Link, useNavigate } from 'react-router'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
@@ -16,6 +15,7 @@ import {
   useAlertsListQueryOptions,
   useAlertSourceHealthQueryOptions,
 } from '@/features/alerts/api'
+import { MonitoringChip } from '@/features/alerts/components/MonitoringChip'
 import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 
 // 2026-05-31 (Yuqi Pencil Sq0EX): NeedsAttentionOverflowCard is no
@@ -204,7 +204,13 @@ function NeedsAttentionSection() {
           The section h2's are second-tier titles under the page
           h1, NOT same-tier; this resets the hierarchy. */}
       <div className="flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-[14px] font-semibold tracking-[0.4px] text-text-muted uppercase">
+        {/* 2026-06-09 (Yuqi "primary colour Alerts title"): section eyebrow
+            tone settled at text-text-primary (gray-900) — supersedes the
+            earlier muted/disabled experiments. Both /today section titles
+            (Alerts + Actions this week) now share this canonical
+            14/600/0.4px-uppercase + primary-ink treatment; see
+            docs/Design/section-header-style.md. */}
+        <h2 className="flex items-center gap-2 text-[14px] font-semibold tracking-[0.4px] text-text-primary uppercase">
           <Trans>Alerts</Trans>
           {totalAlertCount > 0 ? (
             // 2026-06-04 round 45 (Yuqi /today feedback #2 — "just
@@ -230,52 +236,12 @@ function NeedsAttentionSection() {
             </Badge>
           ) : null}
           {hasNationalMonitoringCoverage ? (
-            // 2026-06-04 round 14 (Yuqi page-feedback "hover on
-            // can show tooltip or expanded information?"): wrapped
-            // the Monitoring chip in a Tooltip that expands what
-            // "monitoring" actually does — naming the cadence and
-            // the change types we're watching for, so the CPA knows
-            // what counts as a Pulse-worthy event. `cursor-help`
-            // signals the interactivity to mouse users; keyboard
-            // users can tab to the trigger and get the same expansion.
-            <Tooltip>
-              <TooltipTrigger
-                render={(props) => (
-                  <Badge
-                    variant="ghost"
-                    size="sm"
-                    className="cursor-help px-0 text-text-secondary"
-                    {...props}
-                  >
-                    <PulsingDot tone="success" active />
-                    {/* 2026-06-04 round 18 (Yuqi page-feedback
-                        "Monitoring: Federal · 50 States · DC"):
-                        copy refined — colon after Monitoring,
-                        middot separators instead of `+`, capital
-                        S on States. The middot reads as a list
-                        separator (matches the rest of the app's
-                        meta-row separator vocab); the colon
-                        scopes "Monitoring" as the verb-anchor of
-                        the chip. */}
-                    <Trans>Monitoring: Federal · 50 States · DC</Trans>
-                  </Badge>
-                )}
-              />
-              <TooltipContent>
-                <div className="flex max-w-[280px] flex-col gap-1 text-left">
-                  <span className="font-semibold">
-                    <Trans>National policy watch</Trans>
-                  </span>
-                  <span>
-                    <Trans>
-                      Daily sweep of IRS + 50 states + DC tax authority sources for new rules,
-                      extended deadlines, rate changes, and form revisions. Matches against your
-                      clients' obligations and surfaces what actually affects you.
-                    </Trans>
-                  </span>
-                </div>
-              </TooltipContent>
-            </Tooltip>
+            // 2026-06-09 (Yuqi /alerts #2 "should be the same as you have on
+            // today page"): the Monitoring chip is now the shared
+            // `<MonitoringChip>` so /today + /alerts render identically. The
+            // passive (no `to`) variant keeps /today's cursor-help + the
+            // "National policy watch" explainer tooltip.
+            <MonitoringChip />
           ) : null}
         </h2>
         {totalAlertCount > 0 ? (
