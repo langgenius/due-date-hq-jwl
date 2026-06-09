@@ -224,7 +224,9 @@ export function BillingRoute() {
         ? t`Team`
         : currentFirm.plan === 'pro'
           ? t`Pro`
-          : t`Solo`
+          : currentFirm.plan === 'solo'
+            ? t`Solo`
+            : t`Free`
     : '—'
   const seatLimit = currentFirm ? t`${currentFirm.seatLimit} seat limit` : '—'
   const subscriptionStatus = activeSubscription?.status ?? t`No paid subscription`
@@ -572,10 +574,11 @@ function billingStatusVariant(status: string | undefined): BadgeVariant {
 }
 
 const PLAN_RANK: Record<BillingPlan, number> = {
-  solo: 0,
-  pro: 1,
-  team: 2,
-  firm: 3,
+  free: 0,
+  solo: 1,
+  pro: 2,
+  team: 3,
+  firm: 4,
 }
 
 function Metric({ label, value, name }: { label: ReactNode; value: string; name: string }) {

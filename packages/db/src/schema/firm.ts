@@ -33,11 +33,12 @@ export const firmProfile = sqliteTable('firm_profile', {
   // legal vs display names. Kept here so business reads don't need to JOIN.
   name: text('name').notNull(),
 
-  // Pricing tier — drives membershipLimit / billing later. Default 'solo'
-  // matches PRD §3.6.1 (Solo plan as P0 default).
-  plan: text('plan', { enum: ['solo', 'pro', 'team', 'firm'] })
+  // Pricing tier — drives seat/client limits & billing. Default 'free'
+  // (new funnel tier: full Pulse on a small real book). 'firm' is the
+  // internal/custom unlimited plan, not shown on self-serve pricing cards.
+  plan: text('plan', { enum: ['free', 'solo', 'pro', 'team', 'firm'] })
     .notNull()
-    .default('solo'),
+    .default('free'),
 
   // Cached seat ceiling derived from plan. Authoritative quota check still
   // happens at write time (membership / invitation) — this is the cached value

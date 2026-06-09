@@ -286,6 +286,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     async listByFirm() {
       return []
     },
+    async countActiveClients() {
+      return 0
+    },
     async listByBatch() {
       return []
     },

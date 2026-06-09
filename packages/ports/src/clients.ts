@@ -87,6 +87,8 @@ export interface ClientsRepo {
   findById(id: string): Promise<ClientRow | undefined>
   findManyByIds(ids: string[]): Promise<ClientRow[]>
   listByFirm(opts?: { includeDeleted?: boolean; limit?: number }): Promise<ClientRow[]>
+  /** Active (non-deleted) client count — backs the plan clientLimit gate + usage meter. */
+  countActiveClients(): Promise<number>
   listByBatch(batchId: string): Promise<ClientRow[]>
   updatePenaltyInputs(
     id: string,

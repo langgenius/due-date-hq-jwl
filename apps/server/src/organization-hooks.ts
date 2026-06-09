@@ -34,7 +34,7 @@ export function buildOrganizationHooks(db: Db): OrganizationHooks {
         await db.insert(firmSchema.firmProfile).values({
           id: organization.id,
           name: organization.name,
-          plan: 'solo',
+          plan: 'free',
           seatLimit: 1,
           // Default tz is a P0 ICP assumption (PRD §2.1: US CPA).
           // P1 onboarding will let the user pick — see ADR 0010 follow-ups.

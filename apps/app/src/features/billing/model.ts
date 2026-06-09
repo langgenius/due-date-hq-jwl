@@ -2,7 +2,7 @@ import { parseAsStringLiteral, type inferParserType } from 'nuqs'
 import type { FirmPublic } from '@duedatehq/contracts'
 import { activePracticeLimitForPlan, planHasFeature } from '@duedatehq/core/plan-entitlements'
 
-const BILLING_PLANS = ['solo', 'pro', 'team', 'firm'] as const
+const BILLING_PLANS = ['free', 'solo', 'pro', 'team', 'firm'] as const
 const SELF_SERVE_BILLING_PLANS = ['solo', 'pro', 'team'] as const
 const BILLING_INTERVALS = ['monthly', 'yearly'] as const
 const SELF_SERVE_BILLING_PLAN = 'pro' as const
@@ -19,6 +19,12 @@ interface BillingPlanPricing {
 }
 
 const BILLING_PLAN_PRICING = {
+  free: {
+    monthlyPriceUsd: 0,
+    yearlyMonthlyPriceUsd: 0,
+    yearlyAnnualPriceUsd: 0,
+    yearlySavingsUsd: 0,
+  },
   solo: {
     monthlyPriceUsd: 39,
     yearlyMonthlyPriceUsd: 31,
@@ -53,7 +59,9 @@ export const billingSearchParamsParsers = {
 type BillingSearchParams = inferParserType<typeof billingSearchParamsParsers>
 
 export function isBillingPlan(value: string | null): value is BillingPlan {
-  return value === 'solo' || value === 'pro' || value === 'team' || value === 'firm'
+  return (
+    value === 'free' || value === 'solo' || value === 'pro' || value === 'team' || value === 'firm'
+  )
 }
 
 export function isBillingInterval(value: string | null): value is BillingInterval {

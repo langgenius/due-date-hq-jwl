@@ -79,7 +79,7 @@ describe('buildOrganizationHooks', () => {
         expect.objectContaining({
           id: 'org_abc',
           name: 'Bright CPA Practice',
-          plan: 'solo',
+          plan: 'free',
           seatLimit: 1,
           timezone: 'America/New_York',
           internalDeadlineOffsetDays: 14,

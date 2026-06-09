@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm'
 import type { Db } from '../client'
 import {
   client,
@@ -201,6 +201,16 @@ export function makeClientsRepo(db: Db, firmId: string) {
         : and(eq(client.firmId, firmId), isNull(client.deletedAt))
       const q = db.select().from(client).where(where).orderBy(desc(client.createdAt))
       return opts.limit ? await q.limit(opts.limit) : await q
+    },
+
+    // Active (non-deleted) client count for the firm. Backs the plan
+    // clientLimit gate (forward-only at create) and the usage meter.
+    async countActiveClients(): Promise<number> {
+      const [row] = await db
+        .select({ value: count() })
+        .from(client)
+        .where(and(eq(client.firmId, firmId), isNull(client.deletedAt)))
+      return row?.value ?? 0
     },
 
     async listByBatch(batchId: string): Promise<Client[]> {

@@ -84,8 +84,8 @@ describe('firm_profile schema', () => {
     expect(findColumn('deleted_at').notNull).toBe(false)
   })
 
-  it('defaults plan to solo / status to active / seatLimit to 1 / timezone to NY', () => {
-    expect(findColumn('plan').default).toBe('solo')
+  it('defaults plan to free / status to active / seatLimit to 1 / timezone to NY', () => {
+    expect(findColumn('plan').default).toBe('free')
     expect(findColumn('status').default).toBe('active')
     expect(findColumn('seat_limit').default).toBe(1)
     expect(findColumn('timezone').default).toBe('America/New_York')
@@ -97,7 +97,7 @@ describe('firm_profile schema', () => {
   it('declares the plan and status enums (drizzle-side enum values)', () => {
     const planCol = findColumn('plan') as AnySQLiteColumn & { enumValues?: readonly string[] }
     const statusCol = findColumn('status') as AnySQLiteColumn & { enumValues?: readonly string[] }
-    expect(planCol.enumValues).toEqual(['solo', 'pro', 'team', 'firm'])
+    expect(planCol.enumValues).toEqual(['free', 'solo', 'pro', 'team', 'firm'])
     expect(statusCol.enumValues).toEqual(['active', 'suspended', 'deleted'])
   })
 

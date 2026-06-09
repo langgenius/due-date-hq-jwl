@@ -140,6 +140,7 @@ const NAV_PLAN_LABELS = {
   team: msg`Team`,
   pro: msg`Pro`,
   solo: msg`Solo`,
+  free: msg`Free`,
 } as const
 
 function roleLabel(role: FirmPublic['role'], i18n: I18n): string {

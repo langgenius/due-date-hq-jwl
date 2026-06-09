@@ -244,8 +244,10 @@ describe('@duedatehq/ai', () => {
     const ai = createAI({
       ...CONFIGURED_ENV,
       CACHE: {
+        // Above the solo migration ceiling (2x clientLimit = 200) so the
+        // fair-use guard trips before the gateway is called.
         async get() {
-          return '15'
+          return '500'
         },
         async put() {
           throw new Error('put should not run')

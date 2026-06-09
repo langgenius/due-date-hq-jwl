@@ -17,6 +17,10 @@ export const ErrorCodes = {
   MEMBER_NOT_FOUND: 'MEMBER_NOT_FOUND',
   MEMBER_SEAT_LIMIT: 'MEMBER_SEAT_LIMIT',
   MEMBER_DUPLICATE: 'MEMBER_DUPLICATE',
+  // Plan client/entity cap reached. Forward-only: blocks NEW manual client
+  // creation; never stops monitoring existing clients. Bulk import is exempt
+  // (allowed to overflow + true-up). See plan clientLimit.
+  CLIENT_LIMIT: 'CLIENT_LIMIT',
   INVITATION_NOT_FOUND: 'INVITATION_NOT_FOUND',
   INVITATION_DUPLICATE: 'INVITATION_DUPLICATE',
   MEMBER_SELF_ACTION_FORBIDDEN: 'MEMBER_SELF_ACTION_FORBIDDEN',

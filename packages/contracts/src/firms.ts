@@ -3,7 +3,7 @@ import * as z from 'zod'
 import { SmartPriorityFactorKeySchema, SmartPriorityProfileSchema } from './priority'
 import { TenantIdSchema } from './shared/ids'
 
-export const FirmPlanSchema = z.enum(['solo', 'pro', 'team', 'firm'])
+export const FirmPlanSchema = z.enum(['free', 'solo', 'pro', 'team', 'firm'])
 export const FirmStatusSchema = z.enum(['active', 'suspended', 'deleted'])
 export const FirmRoleSchema = z.enum(['owner', 'partner', 'manager', 'preparer', 'coordinator'])
 export const DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS = 14

@@ -245,7 +245,7 @@ describe('@duedatehq/contracts', () => {
       ]),
     )
     expect(USFirmTimezoneSchema.options).not.toContain('Pacific/Johnston')
-    expect(FirmPlanSchema.options).toEqual(['solo', 'pro', 'team', 'firm'])
+    expect(FirmPlanSchema.options).toEqual(['free', 'solo', 'pro', 'team', 'firm'])
     expect(() =>
       FirmUpdateInputSchema.parse({ name: 'Bright CPA', timezone: 'Europe/London' }),
     ).toThrow()

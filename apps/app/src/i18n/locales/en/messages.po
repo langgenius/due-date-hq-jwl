@@ -7314,6 +7314,11 @@ msgstr "Four artefacts confirm the return is filed, accepted, and signed off."
 msgid "Franchise & fees"
 msgstr "Franchise & fees"
 
+#: src/components/patterns/app-shell-nav.tsx
+#: src/routes/billing.tsx
+msgid "Free"
+msgstr "Free"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Free text"
 msgstr "Free text"

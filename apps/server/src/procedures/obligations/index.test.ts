@@ -278,6 +278,7 @@ function makeContext(input: {
     findById: vi.fn(async () => client ?? undefined),
     findManyByIds: null!,
     listByFirm: null!,
+    countActiveClients: null!,
     listByBatch: null!,
     updatePenaltyInputs: null!,
     updateJurisdiction: null!,

@@ -4,6 +4,8 @@ import type {
   ClientClassificationReason,
   ClientFilingProfileInput,
 } from '@duedatehq/contracts'
+import { ErrorCodes } from '@duedatehq/contracts'
+import { planClientLimit, type BillingPlan } from '@duedatehq/core/plan-entitlements'
 import type {
   ClientFilingProfileInput as ClientFilingProfileRepoInput,
   ClientFilingProfileReplaceInput as ClientFilingProfileRepoReplaceInput,
@@ -232,9 +234,28 @@ async function resolveClientAssignees(
   })
 }
 
+/**
+ * Forward-only client cap. Blocks NEW manual client creation once the firm is
+ * at its plan's clientLimit; never touches existing clients (they keep full
+ * monitoring & alerts). Bulk import (createBatch) is intentionally exempt — it
+ * may overflow and surface a true-up prompt instead. Mirrors the seat gate.
+ */
+async function assertClientCapacity(
+  plan: BillingPlan,
+  clients: Pick<ClientsRepo, 'countActiveClients'>,
+): Promise<void> {
+  const limit = planClientLimit(plan)
+  if (limit === null) return
+  const active = await clients.countActiveClients()
+  if (active >= limit) {
+    throw new ORPCError('FORBIDDEN', { message: ErrorCodes.CLIENT_LIMIT })
+  }
+}
+
 const create = os.clients.create.handler(async ({ input, context }) => {
   const { members, tenant, userId } = await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
   const { scoped } = requireTenant(context)
+  await assertClientCapacity(tenant.plan, scoped.clients)
   const [assignee] = await resolveClientAssignees(members, tenant.firmId, [input])
   const repoInput: ClientCreateInputForRepo = {
     name: input.name,

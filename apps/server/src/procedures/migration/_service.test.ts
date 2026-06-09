@@ -231,6 +231,9 @@ function buildScopedRepo(
     async listByFirm() {
       return []
     },
+    async countActiveClients() {
+      return 0
+    },
     async listByBatch() {
       return []
     },

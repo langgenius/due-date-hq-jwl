@@ -4,6 +4,7 @@ import {
   count as sqlCount,
   desc,
   eq,
+  gte,
   inArray,
   isNotNull,
   isNull,
@@ -1324,11 +1325,25 @@ export function makePulseRepo(db: Db, firmId: string) {
     },
 
     async listHistory(
-      opts: { limit?: number; status?: PulseHandledFirmAlertStatus; cursor?: string | null } = {},
+      opts: {
+        limit?: number
+        status?: PulseHandledFirmAlertStatus
+        cursor?: string | null
+        historyWindowDays?: number | null
+      } = {},
     ): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }> {
       const limit = Math.min(Math.max(opts.limit ?? 20, 1), 100)
       const cursor = opts.cursor ? decodePulseAlertCursor(opts.cursor) : null
       const now = new Date()
+      // Free tier sees only a recent window of resolved history (full history is
+      // a paid feature). Filters on updatedAt (the resolved-time proxy). ACTIVE
+      // alerts live in listAlerts and are NEVER windowed — no coverage trap.
+      const historyWindowMs =
+        opts.historyWindowDays != null ? opts.historyWindowDays * 24 * 60 * 60 * 1000 : null
+      const windowCondition =
+        historyWindowMs != null
+          ? gte(pulseFirmAlert.updatedAt, new Date(now.getTime() - historyWindowMs))
+          : undefined
       const statusFilter = opts.status
         ? eq(pulseFirmAlert.status, opts.status)
         : or(
@@ -1377,6 +1392,7 @@ export function makePulseRepo(db: Db, firmId: string) {
             eq(pulseFirmAlert.firmId, firmId),
             inArray(pulse.status, ['approved', 'source_revoked']),
             statusFilter,
+            windowCondition,
             cursor
               ? or(
                   lt(pulse.publishedAt, cursor.publishedAt),

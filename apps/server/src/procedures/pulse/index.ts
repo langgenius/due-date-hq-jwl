@@ -27,7 +27,11 @@ import {
 } from '../../jobs/pulse/rule-source-adapters'
 import { requireTenant, type RpcContext } from '../_context'
 import { requireCurrentFirmRole } from '../_permissions'
-import { requirePriorityPulseMatching, requireProductionPulse } from '../_plan-gates'
+import {
+  requireBulkAlertActions,
+  requirePriorityPulseMatching,
+  requireProductionPulse,
+} from '../_plan-gates'
 import { os } from '../_root'
 
 interface PulseAlertRow {
@@ -474,11 +478,14 @@ const activeCount = os.pulse.activeCount.handler(async ({ context }) => {
 })
 
 const listHistory = os.pulse.listHistory.handler(async ({ input, context }) => {
-  const { scoped } = requireTenant(context)
+  const { scoped, tenant } = requireTenant(context)
+  // Free tier: only the last 30 days of resolved history; paid tiers: full.
+  const historyWindowDays = planHasFeature(tenant.plan, 'fullAlertHistory') ? null : 30
   const { alerts, nextCursor } = await scoped.pulse.listHistory({
     ...(input?.limit === undefined ? {} : { limit: input.limit }),
     ...(input?.status === undefined ? {} : { status: input.status }),
     ...(input?.cursor == null ? {} : { cursor: input.cursor }),
+    historyWindowDays,
   })
   return { alerts: toPublicAlertsSafely(alerts, 'listHistory'), nextCursor }
 })
@@ -818,7 +825,9 @@ const dismiss = os.pulse.dismiss.handler(async ({ input, context }) => {
 const bulkDismiss = os.pulse.bulkDismiss.handler(async ({ input, context }) => {
   const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
   const { scoped, tenant } = requireTenant(context)
-  requireProductionPulse(tenant.plan)
+  // Bulk dismiss is a paid time-saver (Pro+). Single dismiss stays open to all
+  // tiers (incl. free) via the per-alert `dismiss` handler above.
+  requireBulkAlertActions(tenant.plan)
   const alerts: ReturnType<typeof toAlertPublic>[] = []
   const auditIds: string[] = []
   const failedIds: string[] = []

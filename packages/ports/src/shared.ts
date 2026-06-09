@@ -1,4 +1,4 @@
-export type FirmPlan = 'solo' | 'pro' | 'team' | 'firm'
+export type FirmPlan = 'free' | 'solo' | 'pro' | 'team' | 'firm'
 export type FirmStatus = 'active' | 'suspended' | 'deleted'
 export type FirmRole = 'owner' | 'partner' | 'manager' | 'preparer' | 'coordinator'
 export type MemberStatus = 'active' | 'suspended'

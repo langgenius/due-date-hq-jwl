@@ -91,7 +91,8 @@ export interface CreateAuthPluginsOptions {
  */
 export type DatabaseHooks = NonNullable<BetterAuthOptions['databaseHooks']>
 
-export type SelfServeBillingPlan = Exclude<BillingPlan, 'firm'>
+// `free` and `firm` are not self-serve: free has no checkout, firm is custom/sales.
+export type SelfServeBillingPlan = Exclude<BillingPlan, 'firm' | 'free'>
 
 export type BillingCheckoutConfig = {
   stripeConfigured: boolean

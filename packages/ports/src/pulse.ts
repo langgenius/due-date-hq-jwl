@@ -339,6 +339,8 @@ export interface PulseRepo {
     limit?: number
     status?: PulseAlertRow['status']
     cursor?: string | null
+    /** Free tier passes 30 to window resolved history; null/undefined = full history (paid). */
+    historyWindowDays?: number | null
   }): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }>
   listSourceStates(): Promise<PulseSourceStateRow[]>
   getLatestSourceSnapshotBySourceId(sourceId: string): Promise<PulseSourceSnapshotRow | null>

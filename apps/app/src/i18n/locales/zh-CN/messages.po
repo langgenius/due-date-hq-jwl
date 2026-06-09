@@ -7362,6 +7362,11 @@ msgstr "四项凭证确认表单已申报、已受理并已签核。"
 msgid "Franchise & fees"
 msgstr "特许经营税与规费"
 
+#: src/components/patterns/app-shell-nav.tsx
+#: src/routes/billing.tsx
+msgid "Free"
+msgstr "免费"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Free text"
 msgstr "Free text"
