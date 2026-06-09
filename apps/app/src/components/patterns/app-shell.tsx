@@ -1,5 +1,5 @@
-import { Outlet, useNavigation, useNavigate } from 'react-router'
-import { useCallback, useState } from 'react'
+import { Outlet, useNavigation, useNavigate, useLocation } from 'react-router'
+import { useCallback, useEffect, useState } from 'react'
 import { Trans } from '@lingui/react/macro'
 
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -85,9 +85,15 @@ function DemoSignupBanner() {
 }
 
 export function AppShell(props: AppShellProps) {
+  // 2026-06-09 (Yuqi "only Today defaults expanded"): seed the rail's
+  // initial collapse from the landing path so a non-Today reload lands
+  // collapsed with no expand→collapse flash. SidebarRouteSync keeps it
+  // updated on every subsequent navigation.
+  const { pathname } = useLocation()
   return (
-    <SidebarProvider>
+    <SidebarProvider initialRouteCollapsed={pathname !== '/'}>
       <SidebarKeyboardBindings />
+      <SidebarRouteSync />
       {/*
         Layout invariant: the outer flex row is exactly viewport-height and
         clips overflow, so the sidebar stays pinned while only `<main>` (the
@@ -286,6 +292,21 @@ export function AppShell(props: AppShellProps) {
       </div>
     </SidebarProvider>
   )
+}
+
+// 2026-06-09 (Yuqi "only Today defaults expanded; every other page
+// defaults collapsed"): drives the rail's per-page default from the
+// route. Today (`/`) expands; every other path collapses. The user's
+// manual toggle still wins for the current page (it's cleared on the
+// next navigation). Lives inside SidebarProvider so it can reach the
+// context; renders nothing.
+function SidebarRouteSync() {
+  const { pathname } = useLocation()
+  const { setRouteCollapsed } = useSidebar()
+  useEffect(() => {
+    setRouteCollapsed(pathname !== '/')
+  }, [pathname, setRouteCollapsed])
+  return null
 }
 
 function SidebarKeyboardBindings() {

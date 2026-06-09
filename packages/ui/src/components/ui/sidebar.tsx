@@ -112,14 +112,15 @@ type SidebarContextValue = {
    */
   setAutoCollapsed: (next: boolean) => void
   /**
-   * 2026-05-26 (Yuqi sixty-ninth pass): call from sidebar nav
-   * item clicks. Treats this navigation as a "show me where I
-   * am" intent and absorbs the NEXT auto-collapse request from
-   * the destination route. The next time a wide panel opens
-   * (e.g. the user clicks a row in the queue), auto-collapse
-   * resumes as normal. This way a sidebar click never lands the
-   * user on a page with the sidebar already gone, even if that
-   * page deep-links into a row.
+   * 2026-06-09 (Yuqi "only Today defaults expanded"): the per-page
+   * default. Call from the app shell on every navigation — `false`
+   * for Today (`/`), `true` for every other route. Clears any manual
+   * override so each page starts from its route default.
+   */
+  setRouteCollapsed: (next: boolean) => void
+  /**
+   * Call from sidebar nav item clicks. Drops any manual collapse
+   * override + hover so the destination lands at its route default.
    */
   notifySidebarNavigation: () => void
   /**
@@ -162,19 +163,31 @@ export function useOptionalSidebar(): SidebarContextValue | null {
   return React.useContext(SidebarContext)
 }
 
-export function SidebarProvider({ children }: { children: React.ReactNode }) {
+export function SidebarProvider({
+  children,
+  initialRouteCollapsed = false,
+}: {
+  children: React.ReactNode
+  initialRouteCollapsed?: boolean
+}) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
-  // 2026-05-26 (Yuqi: default expanded on every reload — no
-  // persistence): the sidebar always starts expanded on page load.
-  // `userCollapsed` is session-only — when the user clicks the
-  // collapse icon during a session, it flips locally, but the next
-  // reload returns to expanded. No localStorage write, no reads on
-  // mount. Predictable: "every fresh page = expanded sidebar."
-  const [userCollapsed, setUserCollapsed] = React.useState(false)
+  // 2026-06-09 (Yuqi "only Today defaults expanded; every other page
+  // defaults collapsed"): the rail's default is ROUTE-driven.
+  // `routeCollapsed` is set by the app shell on every navigation —
+  // false on `/` (Today), true everywhere else. Seeded from the
+  // initial path so a non-Today reload lands collapsed with no
+  // expand→collapse flash. Session-only; never persisted.
+  const [routeCollapsed, setRouteCollapsedState] = React.useState(initialRouteCollapsed)
+  // `manualOverride` is the user's explicit toggle for the CURRENT
+  // page: true = forced collapsed, false = forced expanded, null = no
+  // override (route default applies). Cleared on every navigation so
+  // each page starts from its route default.
+  const [manualOverride, setManualOverride] = React.useState<boolean | null>(null)
   // `autoCollapsed` is transient programmatic collapse driven by
-  // route surfaces with a wide right panel. NEVER persisted —
-  // closing the panel restores the user's preference.
+  // route surfaces with a wide right panel. With the route default
+  // now collapsing every non-Today page, this mostly matters on
+  // Today (no panel there) — kept so existing panel callers work.
   const [autoCollapsed, setAutoCollapsedState] = React.useState(false)
   // 2026-05-26 (Yuqi sidebar mental-model pass — immediate collapse):
   // `hovered` lives in the provider so `toggleCollapsed` can reset
@@ -182,13 +195,6 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   // passive hover-peek. Sidebar's onMouseEnter/Leave still drive it
   // via `setHovered` exposed through context.
   const [hovered, setHovered] = React.useState(false)
-  // 2026-05-26 (Yuqi sixty-ninth pass): one-shot absorber for
-  // auto-collapse requests that arrive immediately after a
-  // sidebar nav click. Ref (not state) because we don't want a
-  // re-render when it flips, and the route effect's
-  // `setAutoCollapsed(true)` call would otherwise race with a
-  // state update from the click handler.
-  const blockNextAutoCollapseRef = React.useRef(false)
   const visibleOpenMobile = isMobile ? openMobile : false
 
   if (!isMobile && openMobile) {
@@ -202,78 +208,41 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     setOpenMobile((prev) => !prev)
   }, [])
 
-  // Effective collapsed state: either source can flip it on.
-  const collapsed = userCollapsed || autoCollapsed
+  // Effective collapsed state: an explicit manual override wins for
+  // the current page; otherwise the route default OR a panel
+  // auto-collapse.
+  const collapsed = manualOverride !== null ? manualOverride : routeCollapsed || autoCollapsed
 
   const toggleCollapsed = React.useCallback(() => {
-    // The user's intent is to flip the EFFECTIVE state. If we're
-    // currently collapsed (whether the user set it OR auto did),
-    // clicking expand should expand — set BOTH flags to false so
-    // auto doesn't immediately re-collapse. Session-only state;
-    // no localStorage write — next page load returns to expanded.
-    setUserCollapsed((prevUserCollapsed) => {
-      const prevEffective = prevUserCollapsed || autoCollapsed
-      return !prevEffective
-    })
-    // If the user is overriding an auto-collapse, clear the auto
-    // flag so it doesn't immediately reapply on the next render.
-    if (autoCollapsed) setAutoCollapsedState(false)
-    // 2026-05-26 (Yuqi sidebar mental-model pass — immediate
-    // collapse): explicit user toggle beats passive hover-peek.
-    // Without this reset, clicking the collapse icon while the
-    // cursor is inside the sidebar leaves the overlay expanded
-    // (because `targetCollapsed = collapsed && !hovered` keeps it
-    // false). User has to move their cursor out before the
-    // sidebar visibly shrinks — feels broken. The reset makes the
-    // sidebar collapse the moment they click; if they move the
-    // cursor out and back in, hover-peek activates normally on
-    // the next mouseenter.
+    // Flip the EFFECTIVE state and pin it as a manual override for
+    // this page. The override is cleared on the next navigation
+    // (setRouteCollapsed), so it never leaks across pages.
+    setManualOverride(!collapsed)
+    // 2026-05-26 (Yuqi): explicit user toggle beats passive
+    // hover-peek — reset hover so the rail visibly shrinks the moment
+    // they click (targetCollapsed = collapsed && !hovered).
     setHovered(false)
-  }, [autoCollapsed])
+  }, [collapsed])
 
   const setAutoCollapsed = React.useCallback((next: boolean) => {
-    // 2026-05-26 (Yuqi sixty-ninth pass): if the user just clicked
-    // a sidebar nav link, absorb the FIRST `setAutoCollapsed(true)`
-    // that arrives from the destination route. Releases the
-    // one-shot block on either consumption or an explicit
-    // `setAutoCollapsed(false)` (route unmount / panel close) so
-    // future panel opens during this same route work normally.
-    if (next && blockNextAutoCollapseRef.current) {
-      blockNextAutoCollapseRef.current = false
-      return
-    }
-    if (!next) {
-      // An explicit "panel just closed" call clears any pending
-      // block too — we don't want a stale block hanging around.
-      blockNextAutoCollapseRef.current = false
-    }
     setAutoCollapsedState(next)
   }, [])
 
+  const setRouteCollapsed = React.useCallback((next: boolean) => {
+    // Called by the app shell on every navigation. Sets the page's
+    // default (Today expanded, everything else collapsed) and clears
+    // any manual override so the new page starts from its default.
+    setRouteCollapsedState(next)
+    setManualOverride(null)
+  }, [])
+
   const notifySidebarNavigation = React.useCallback(() => {
-    // 2026-05-26 (Yuqi sidebar mental-model pass — nav click expands):
-    // every nav click lands the user on a new page with the sidebar
-    // FULLY expanded, regardless of prior collapse choice. Clicking
-    // a nav item is treated as "show me where I am, full context."
-    //
-    // Reset all three sources:
-    //   • userCollapsed = false — even if the user manually
-    //     collapsed earlier in the session, the nav click overrides
-    //     that intent. Their next collapse click can return to
-    //     collapsed.
-    //   • autoCollapsed = false — clear any standing drawer-driven
-    //     collapse so the destination page lands expanded.
-    //   • hovered = false — drop any active hover-peek state so
-    //     the new page isn't rendered with an overlay shadow.
-    //
-    // The one-shot ref absorbs the FIRST `setAutoCollapsed(true)`
-    // from the destination route's mount effect (e.g. /deadlines'
-    // panel mount). Without that block, the route would
-    // immediately re-collapse after this expand.
-    setUserCollapsed(false)
-    setAutoCollapsedState(false)
+    // A sidebar nav click drops any manual override + hover so the
+    // destination lands at its route default (the route effect sets
+    // routeCollapsed for the new path). No force-expand — clicking
+    // "Deadlines" lands collapsed because Deadlines isn't Today.
+    setManualOverride(null)
     setHovered(false)
-    blockNextAutoCollapseRef.current = true
   }, [])
 
   // Memoise the value so non-Provider subscribers don't re-render on every
@@ -287,6 +256,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       collapsed,
       toggleCollapsed,
       setAutoCollapsed,
+      setRouteCollapsed,
       notifySidebarNavigation,
       hovered,
       setHovered,
@@ -298,6 +268,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       collapsed,
       toggleCollapsed,
       setAutoCollapsed,
+      setRouteCollapsed,
       notifySidebarNavigation,
       hovered,
     ],
