@@ -24,7 +24,7 @@ import { SettingsShell, useSettingsNavSections } from '@/features/settings/setti
  *   • this overview (right) lists the same destinations grouped as cards.
  *
  * The routes underneath still live at their original paths (`/practice`,
- * `/members`, `/workload`, `/billing`, `/audit`, `/reminders`,
+ * `/members`, `/workload`, `/billing`, `/reminders`,
  * `/notifications/preferences`, `/deadlines/calendar`, `/settings/profile`,
  * `/settings/permissions`). Personal account settings (`/account/security`,
  * sign-out) stay in the sidebar's `UserMenuTrigger` dropdown.

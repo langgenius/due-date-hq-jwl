@@ -7,7 +7,6 @@ import {
   CalendarDaysIcon,
   ClipboardListIcon,
   CreditCardIcon,
-  ScaleIcon,
   ShieldCheckIcon,
   UserRoundIcon,
   UsersIcon,
@@ -42,7 +41,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *   Team / Members → /members
  *   Workload       → /workload
  *   Billing        → /billing
- *   Audit log      → /audit
  *   Reminders      → /reminders
  *   Notifications  → /notifications/preferences
  *   Calendar sync  → /deadlines/calendar
@@ -125,18 +123,6 @@ export function useSettingsNavSections(): SettingsNavSection[] {
           label: t`Billing`,
           description: t`Active plan, seat usage, and subscription portal.`,
           Icon: CreditCardIcon,
-        },
-      ],
-    },
-    {
-      label: t`Compliance`,
-      description: t`Audit trail for client, rule, status, and team changes.`,
-      items: [
-        {
-          to: '/audit',
-          label: t`Audit log`,
-          description: t`Timestamped event log across the workspace.`,
-          Icon: ScaleIcon,
         },
       ],
     },
