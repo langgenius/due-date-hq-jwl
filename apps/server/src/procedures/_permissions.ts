@@ -56,6 +56,10 @@ export async function requireCurrentFirmRole(
   allowedRoles: readonly FirmRole[],
 ): Promise<CurrentFirmOwnerContext> {
   const { tenant, userId } = requireTenant(ctx)
+  // Public read-only demo: block every write (these helpers gate all mutations).
+  if (tenant.isReadOnlyDemo) {
+    throw new ORPCError('FORBIDDEN', { message: ErrorCodes.DEMO_READ_ONLY })
+  }
   const { members } = ctx.vars
   if (!members) {
     throw new Error('Member access middleware did not run before this procedure.')
@@ -85,6 +89,10 @@ export async function requirePermission(
 ): Promise<CurrentFirmOwnerContext> {
   const allowedRoles = requiredRolesForFirmPermission(permission)
   const { tenant, userId } = requireTenant(ctx)
+  // Public read-only demo: block every write (these helpers gate all mutations).
+  if (tenant.isReadOnlyDemo) {
+    throw new ORPCError('FORBIDDEN', { message: ErrorCodes.DEMO_READ_ONLY })
+  }
   const { members } = ctx.vars
   if (!members) {
     throw new Error('Member access middleware did not run before this procedure.')

@@ -226,6 +226,7 @@ describe('tenantMiddleware', () => {
         seatLimit: 1,
         timezone: 'America/New_York',
         internalDeadlineOffsetDays: 14,
+        isReadOnlyDemo: false,
         monitoringStartDate: '2026-05-29',
         status: 'active',
         ownerUserId: 'user_owner',

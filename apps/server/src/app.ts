@@ -12,6 +12,7 @@ import { authCapabilitiesRoute } from './routes/auth-capabilities'
 import { authRoute } from './routes/auth'
 import { auditDownloadRoute } from './routes/audit-download'
 import { e2eRoute } from './routes/e2e'
+import { publicDemoRoute } from './routes/public-demo'
 import { healthRoute } from './routes/health'
 import { icsRoute } from './routes/ics'
 import { notificationsRoute } from './routes/notifications'
@@ -96,6 +97,12 @@ export function createApp() {
   // /api/e2e/* — Playwright bootstrap. Development is open locally; staging
   // requires E2E_SEED_TOKEN; production always returns 404.
   app.route('/api/e2e', e2eRoute)
+
+  // /api/demo — public no-signup read-only product tour (gated by ENABLE_PUBLIC_DEMO;
+  // always on in development). IP rate-limited; it mints its own demo session, so no
+  // session/tenant middleware runs before it.
+  app.use('/api/demo', rateLimitMiddleware)
+  app.route('/api/demo', publicDemoRoute)
 
   // /api/webhook/* — external callbacks. Provider signature verification is required
   // before side effects; IP allowlists are defense-in-depth when supported.

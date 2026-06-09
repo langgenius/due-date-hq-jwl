@@ -33,6 +33,9 @@ export const ErrorCodes = {
   PULSE_REVIEW_UNAVAILABLE: 'PULSE_REVIEW_UNAVAILABLE',
   PULSE_REVIEW_ONLY: 'PULSE_REVIEW_ONLY',
   WORKLOAD_PLAN_REQUIRED: 'WORKLOAD_PLAN_REQUIRED',
+  // Public read-only demo session attempted a write. UI maps this to a
+  // friendly "sign up to do this" nudge.
+  DEMO_READ_ONLY: 'DEMO_READ_ONLY',
 } as const
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes]

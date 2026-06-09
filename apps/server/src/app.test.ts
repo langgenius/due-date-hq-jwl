@@ -152,7 +152,9 @@ describe('@duedatehq/server app', () => {
   it('keeps live-demo account contracts aligned with the mock seed SQL', () => {
     const seedSql = readFileSync(new URL('../../../mock/demo.sql', import.meta.url), 'utf8')
 
-    for (const account of DEMO_ACCOUNTS) {
+    // The public-demo visitor is created at runtime (ensureDemoIdentities on
+    // GET /api/demo), not pre-seeded — so it's intentionally absent from demo.sql.
+    for (const account of DEMO_ACCOUNTS.filter((a) => a.id !== 'public-demo')) {
       expect(seedSql).toContain(`('${account.userId}',`)
       expect(seedSql).toMatch(
         new RegExp(`'[^']+',\\s*'${account.firmId}',\\s*'${account.userId}',\\s*'${account.role}'`),

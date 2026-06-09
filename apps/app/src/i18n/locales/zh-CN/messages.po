@@ -14313,6 +14313,10 @@ msgstr "登出其他会话"
 msgid "Sign out other sessions?"
 msgstr "要退出其它会话吗？"
 
+#: src/components/patterns/app-shell.tsx
+msgid "Sign up to manage your own deadlines"
+msgstr "注册以管理你自己的截止期限"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Sign-in failed"
 msgstr "登录失败"
@@ -17024,6 +17028,10 @@ msgstr "您即将创建："
 #: src/features/rules/sources-tab.tsx
 msgid "You're already caught up — no still-open windows to add."
 msgstr "已是最新——没有需要补齐的仍开放窗口。"
+
+#: src/components/patterns/app-shell.tsx
+msgid "You're exploring a live, read-only demo."
+msgstr "你正在体验一个只读的实时演示。"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "You're rolling over {totalCount} obligations from tax year {headerFrom} into {headerTo}."

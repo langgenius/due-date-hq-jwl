@@ -1,6 +1,7 @@
 ---
 import type { HeroCopy } from '../i18n/types'
 import HeroSurface from './HeroSurface.astro'
+import { getAppHref } from '../lib/app-url'
 
 interface Props {
   t: HeroCopy
@@ -9,6 +10,11 @@ interface Props {
 }
 
 const { t, ctaHref, workflowAnchor } = Astro.props
+// Public no-signup demo: lands in a read-only, pre-seeded workspace. Shown only
+// where the demo is enabled (always in dev; in prod/staging gate on
+// PUBLIC_ENABLE_DEMO) so the button never points at a disabled/empty endpoint.
+const demoHref = getAppHref('/api/demo?redirectTo=/today')
+const showDemo = import.meta.env.DEV || import.meta.env.PUBLIC_ENABLE_DEMO === 'true'
 ---
 
 <section id="hero" class="border-b border-border-default bg-bg-canvas">
@@ -45,6 +51,16 @@ const { t, ctaHref, workflowAnchor } = Astro.props
           <span>{t.secondaryCta}</span>
           <span aria-hidden="true">↓</span>
         </a>
+        {showDemo && (
+          <a
+            href={demoHref}
+            class="inline-flex h-10 items-center gap-2 rounded-md px-4 text-base font-medium text-accent-text outline-none transition-colors hover:bg-accent-tint focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            data-event="marketing.demo_cta.clicked"
+          >
+            <span>Try a live demo</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        )}
       </div>
       <div class="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-sm text-text-muted">
         {t.trust.map((item, idx) => (

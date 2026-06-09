@@ -14214,6 +14214,10 @@ msgstr "Sign out other sessions"
 msgid "Sign out other sessions?"
 msgstr "Sign out other sessions?"
 
+#: src/components/patterns/app-shell.tsx
+msgid "Sign up to manage your own deadlines"
+msgstr "Sign up to manage your own deadlines"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Sign-in failed"
 msgstr "Sign-in failed"
@@ -16915,6 +16919,10 @@ msgstr "You're about to create:"
 #: src/features/rules/sources-tab.tsx
 msgid "You're already caught up — no still-open windows to add."
 msgstr "You're already caught up — no still-open windows to add."
+
+#: src/components/patterns/app-shell.tsx
+msgid "You're exploring a live, read-only demo."
+msgstr "You're exploring a live, read-only demo."
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "You're rolling over {totalCount} obligations from tax year {headerFrom} into {headerTo}."

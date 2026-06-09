@@ -12,6 +12,10 @@ export interface TenantContext {
   readonly status: FirmStatus
   readonly ownerUserId: string
   readonly coordinatorCanSeeDollars: boolean
+  // True for the public no-signup demo visitor (userId `public_demo_*`). When
+  // set, all write procedures reject with DEMO_READ_ONLY. Optional so other
+  // TenantContext constructions (tests, e2e) don't all need to set it.
+  readonly isReadOnlyDemo?: boolean
   readonly createdAt?: Date
 }
 

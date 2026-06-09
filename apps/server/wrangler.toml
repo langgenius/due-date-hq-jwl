@@ -167,6 +167,11 @@ AI_GATEWAY_FAST_REASONING_EFFORT = "low"
 # gate firmId-less system jobs, so without this a runaway loop has no cost bound
 # (this is how the OpenRouter balance was drained in 2026-06). Tune as needed.
 AI_SYSTEM_DAILY_LIMIT = "1500"
+# Public no-signup demo (GET /api/demo). OFF by default. To enable: (1) seed the
+# brightline demo firm + data into this env's D1 (pnpm db:seed:demo), (2) flip
+# this to "true", AND (3) set marketing PUBLIC_ENABLE_DEMO="true" so the Hero
+# "Try a live demo" button appears. The demo session is server-enforced read-only.
+ENABLE_PUBLIC_DEMO = "false"
 PULSE_BROWSERLESS_URL = "https://production-sfo.browserless.io/content"
 # The old 400-failures were a client bug (invalid fields sent to /content),
 # fixed in browserless.ts. Re-add IDs here only for sources that genuinely need

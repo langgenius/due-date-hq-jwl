@@ -106,6 +106,12 @@ export function isDemoUser(user: Pick<AuthUser, 'id'> | null | undefined): boole
   return typeof user?.id === 'string' && user.id.startsWith('mock_user_')
 }
 
+// Public no-signup demo visitor (server mints userId `public_demo_*`). Their
+// session is server-enforced read-only; the app shows a "sign up" banner.
+export function isReadOnlyDemoUser(user: Pick<AuthUser, 'id'> | null | undefined): boolean {
+  return typeof user?.id === 'string' && user.id.startsWith('public_demo_')
+}
+
 export function currentPathForDemoSwitch(input: {
   pathname: string
   search: string

@@ -110,6 +110,8 @@ export const tenantMiddleware = createMiddleware<{
     status: profile.status,
     ownerUserId: profile.ownerUserId,
     coordinatorCanSeeDollars: profile.coordinatorCanSeeDollars,
+    // Public read-only demo visitor → all writes rejected downstream.
+    isReadOnlyDemo: (c.get('userId') ?? '').startsWith('public_demo_'),
     createdAt: profile.createdAt,
   }
   c.set('tenantContext', tenant)

@@ -83,6 +83,8 @@ export interface Env extends WorkerBindings, ServerEnv {
   AI_GATEWAY_FAST_REASONING_EFFORT: string
   /** Optional override for the global daily ceiling on system (no-firmId) AI calls. */
   AI_SYSTEM_DAILY_LIMIT?: string
+  /** "true" enables the public no-signup demo (`GET /api/demo`). Off unless set; always on in development. */
+  ENABLE_PUBLIC_DEMO?: string
   VAPID_PUBLIC_KEY: string
   VAPID_PRIVATE_KEY: string
   VAPID_SUBJECT: string

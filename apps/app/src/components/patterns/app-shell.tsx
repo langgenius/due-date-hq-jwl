@@ -1,4 +1,6 @@
-import { Outlet, useNavigation } from 'react-router'
+import { Outlet, useNavigation, useNavigate } from 'react-router'
+import { useCallback, useState } from 'react'
+import { Trans } from '@lingui/react/macro'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import {
@@ -15,9 +17,9 @@ import type { ThemePreference } from '@duedatehq/ui/theme'
 import { FirmSwitcherTrigger, NavGroups } from './app-shell-nav'
 import { SIDEBAR_TOGGLE_HOTKEY } from './keyboard-shell/display'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from './keyboard-shell/hooks'
-import { UserMenuTrigger } from './app-shell-user-menu'
+import { UserMenuTrigger, isReadOnlyDemoUser } from './app-shell-user-menu'
 import type { FirmPublic } from '@duedatehq/contracts'
-import type { AuthUser } from '@/lib/auth'
+import { signOut, type AuthUser } from '@/lib/auth'
 
 /**
  * AppShell — layout-level shell shared by every protected layout.
@@ -49,6 +51,39 @@ type AppShellProps = {
   route: RouteSummary
   themePreference: ThemePreference
   switchThemePreference: (next: ThemePreference) => void
+}
+
+// Public read-only demo banner: shown for `public_demo_*` visitors. The CTA
+// ends the demo session and routes to /login so they can create a real account.
+function DemoSignupBanner() {
+  const navigate = useNavigate()
+  const [leaving, setLeaving] = useState(false)
+  const handleSignUp = useCallback(() => {
+    if (leaving) return
+    setLeaving(true)
+    void (async () => {
+      try {
+        await signOut()
+      } finally {
+        await navigate('/login', { replace: true })
+      }
+    })()
+  }, [leaving, navigate])
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-b border-divider-regular bg-state-accent-hover px-4 py-2 text-center text-sm text-text-accent">
+      <span className="font-medium">
+        <Trans>You're exploring a live, read-only demo.</Trans>
+      </span>
+      <button
+        type="button"
+        onClick={handleSignUp}
+        disabled={leaving}
+        className="font-semibold underline underline-offset-2 outline-none hover:brightness-95 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-60"
+      >
+        <Trans>Sign up to manage your own deadlines</Trans>
+      </button>
+    </div>
+  )
 }
 
 export function AppShell(props: AppShellProps) {
@@ -178,6 +213,7 @@ export function AppShell(props: AppShellProps) {
             retone the entire product's work surface — no need to
             touch consumer code. */}
         <SidebarInset className="relative bg-background-inset">
+          {isReadOnlyDemoUser(props.user) ? <DemoSignupBanner /> : null}
           {/* 2026-05-28 (Yuqi /today polish — bell back in sidebar):
               the floating top-right bell was a free-floating utility
               chip that read as orphaned chrome — no neighbour, no

@@ -28,6 +28,20 @@ const COOKIE_NAME = 'duedatehq.session_token'
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
 const E2E_MONITORING_START_DATE = '2026-01-01'
 const DEMO_FIRM_ID = 'mock_firm_brightline'
+// Public read-only demo visitor (marketing "Try a live demo"). Owner role for
+// full read access (incl. dollars); ALL writes are blocked by the
+// isReadOnlyDemo gate (keyed on the `public_demo_` user-id prefix), so it can
+// never mutate the shared demo firm. Distinct from the `mock_user_*` accounts
+// (which stay writable for dev/e2e).
+export const PUBLIC_DEMO_ACCOUNT = {
+  id: 'public-demo',
+  role: 'owner',
+  userId: 'public_demo_viewer',
+  firmId: DEMO_FIRM_ID,
+  plan: 'pro',
+  name: 'Demo Visitor',
+  email: 'demo.visitor@duedatehq.test',
+} as const
 export const DEMO_ACCOUNTS = [
   {
     id: 'brightline-owner',
@@ -74,6 +88,7 @@ export const DEMO_ACCOUNTS = [
     name: 'Jules Rivera',
     email: 'jules.coordinator@duedatehq.test',
   },
+  PUBLIC_DEMO_ACCOUNT,
   {
     id: 'plan-solo',
     role: 'owner',
@@ -310,7 +325,7 @@ function renderDemoLoginHandoffHtml(redirectTo: string): string {
 </html>`
 }
 
-async function ensureDemoIdentities(
+export async function ensureDemoIdentities(
   db: ReturnType<typeof createDb>,
   accounts: readonly DemoAccount[],
 ) {
