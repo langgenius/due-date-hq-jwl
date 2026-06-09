@@ -658,6 +658,33 @@ Tax Period review。
 
 ### 4.9 Sidebar Navigation（AppShell sidebar）
 
+> **2026-06-09 redesign (supersedes the surface + metrics below).** The rail
+> is now a **floating gray card on a white canvas**, not a flush right-bordered
+> panel. Key deltas vs the original spec in this section — see
+> [dev-log/2026-06-09-sidebar-rail-redesign.md](../dev-log/2026-06-09-sidebar-rail-redesign.md)
+> for the full record and Pencil refs:
+>
+> - **Surface**: floating card — inset 12px (white shell canvas shows in the
+>   gutter), 12px radius, soft shadow, **no border**, neutral untinted gray
+>   fill `#f4f4f4` / `#242426` dark. Shell canvas is **white**
+>   (`bg-background-inset`). Footprints **280px expanded / 88px collapsed**
+>   (was 220/56).
+> - **Unified padding**: the card panel (`p-3` + `gap-2`) owns all inner
+>   spacing; symmetric item padding auto-centers icons when collapsed — NO
+>   per-mode re-centering, so nothing shifts on toggle (glyph at 24–25px from
+>   the card edge in both modes; row 36px).
+> - **Firm switcher**: outlined box (`rounded-lg`, 1px border, transparent),
+>   name + chevron, **no company avatar** (monogram only in the collapsed
+>   rail). Full width.
+> - **Quick find**: a visible flat search row that opens the ⌘K palette.
+> - **Active state**: light accent fill + accent text/icon + **`font-semibold`**.
+>   Inactive icons sit a step quieter (`text-tertiary`) than labels.
+> - **Urgent badge** (Alerts / Rule library): neutral gray pill that flips to
+>   **red only when its row is the active route**.
+> - **Section eyebrows** RULE + CLIENTS present; nav rows **gap 0**.
+> - **Collapse control**: hover-revealed **chevron handle on the sidebar's
+>   outer edge** (not a header button); direction follows state.
+
 > **权威实现**：`@duedatehq/ui/components/ui/sidebar` 是项目自建的 thin primitives（**不是 shadcn `Sidebar` 注册组件**）。app 端在 [`apps/app/src/components/patterns/app-shell.tsx`](../../apps/app/src/components/patterns/app-shell.tsx) 复用，所有 protected layout 共享同一个 `<AppShell>`，entry shell（`/login` / `/onboarding` / `/migration/new`）不挂侧栏。
 
 #### 为什么不是 shadcn

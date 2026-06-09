@@ -253,55 +253,40 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               // SidebarCollapseToggle sibling. Collapsed mode
               // still snaps to size-8 since both children stack
               // vertically below xl.
-              // 2026-06-09 (Yuqi "copy exactly from pencil" §BrandHeader):
-              // padding [12,4] → px-1 (the card panel owns the 12; this
-              // adds the 4 so the logo lands at 16px), gap 8 → gap-2,
-              // height 56 → h-14. No collapsed size override — the row
-              // keeps these exact metrics in both modes; with the toggle
-              // hidden when collapsed, the logo centers in the narrow card.
-              className="flex h-14 min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2 px-1 text-left outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+              // 2026-06-09 (Yuqi new design v202hj §BrandHeader): the
+              // firm switcher is an OUTLINED BOX — rounded-2xl (16),
+              // 1px divider border, transparent fill, padding 12 — with
+              // just the practice name + chevron. No company avatar (the
+              // monogram was redundant with the name beside it). Collapsed
+              // mode falls back to the 32px monogram tile (a name can't
+              // show in the narrow rail), so the box chrome drops and the
+              // button becomes a borderless avatar tile.
+              className="flex w-full min-w-0 cursor-pointer touch-manipulation items-center gap-2 rounded-lg border border-divider-deep px-3 py-2 text-left outline-none transition-colors hover:border-divider-intense hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:rounded-md group-data-[collapsed=true]/sidebar:border-0 group-data-[collapsed=true]/sidebar:p-0"
             />
           }
         >
-          {/* 2026-05-26 (Yuqi forty-fourth pass — sidebar header
-              match Frame 137 reference): avatar bumped size-8 (32px)
-              → size-10 (40px) and firm name bumped text-sm → text-base
-              so the brand-identity row reads as a proper header,
-              not a slim row. Reference screenshot shows a clearly
-              prominent logo + name pair as the rail's top anchor.
-              Collapsed mode still uses size-7 (28px) inside the
-              56px rail.
-              2026-06-01: monogram now renders through AssigneeAvatar
-              (type='firm', shape='square') so the brand tile shares
-              one primitive with people avatars. The size cycle
-              (size-10 expanded → size-7 collapsed) stays as a
-              className override since AssigneeAvatar has no
-              sidebar-context size hook. */}
-          {/* 2026-06-08 (Yuqi product-wide unification — "smaller company
-              avatar"): firm tile size-10 (40px) → size-7 (28px), name
-              text-base (16px) → text-[15px] to match. The 40px tile read
-              as oversized chrome; 28px sits as a tidy brand anchor next to
-              the +1px nav items, and matches the collapsed-rail size so the
-              tile never resizes between expanded/collapsed. */}
-          {/* 2026-06-09 (Yuqi "company avatar 32px"): firm tile is 32×32
-              (size='md') in both modes — Pencil §Logo. At 32 it centers
-              exactly in the 64px collapsed card; no collapsed shrink. */}
-          <AssigneeAvatar
-            name={firm.name}
-            title={firm.name}
-            type="firm"
-            shape="square"
-            size="md"
-            className="shrink-0"
-          />
+          {/* 2026-06-09 (Yuqi new design v202hj): no company avatar in
+              the expanded box. The monogram tile renders ONLY in the
+              collapsed rail, where a name can't fit — there it's the
+              compact workspace identity. */}
+          <span className="hidden shrink-0 group-data-[collapsed=true]/sidebar:flex">
+            <AssigneeAvatar
+              name={firm.name}
+              title={firm.name}
+              type="firm"
+              shape="square"
+              size="md"
+              className="shrink-0"
+            />
+          </span>
           <span
-            className="min-w-0 flex-1 truncate text-[15px] font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
+            className="min-w-0 flex-1 truncate text-base font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
             translate="no"
           >
             {firm.name}
           </span>
           <ChevronsUpDownIcon
-            className="size-3 shrink-0 text-text-muted group-data-[collapsed=true]/sidebar:hidden"
+            className="size-4 shrink-0 text-text-tertiary group-data-[collapsed=true]/sidebar:hidden"
             aria-hidden
           />
         </DropdownMenuTrigger>
@@ -424,15 +409,16 @@ function SidebarQuickFind() {
         // nav rows, picking up the same neutral hover. gap-2.5 + a 16px
         // icon (below) line its icon and text up exactly with the nav
         // items beneath it.
-        'flex h-10 w-full cursor-pointer touch-manipulation items-center gap-2.5 rounded-md px-3 text-left text-text-muted outline-none transition-colors',
+        'flex h-9 w-full cursor-pointer touch-manipulation items-center gap-3 rounded-lg px-3 text-left text-text-muted outline-none transition-colors',
         'hover:bg-background-default-hover hover:text-text-secondary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'group-data-[collapsed=true]/sidebar:text-text-tertiary',
       )}
     >
       <SearchIcon className="size-4 shrink-0" aria-hidden />
-      {/* Same 15px size as the nav item labels, in the muted tone. */}
-      <span className="min-w-0 flex-1 truncate text-[15px] group-data-[collapsed=true]/sidebar:hidden">
+      {/* 2026-06-09 (Yuqi "Quick find smaller text"): 13px — a step below
+          the 15px nav labels so the search hint reads quieter. Muted tone. */}
+      <span className="min-w-0 flex-1 truncate text-[13px] group-data-[collapsed=true]/sidebar:hidden">
         {t`Quick find…`}
       </span>
       {/* ⌘K hint: slightly bigger (11px) with extra tracking so the
@@ -938,18 +924,12 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
             ))}
           </NavGroupSection>
         ) : null}
-        {/* 2026-06-08 (IA audit — redundant group label): the "Clients"
-            section label wrapped a single item also named "Clients" —
-            duplicate eyebrow chrome. Dropped the label so the Clients
-            item sits standalone, matching how the `primary` group places
-            single items without an orientation hint.
-            2026-06-09 (Yuqi "Clients spaced apart from Rule library +
-            Sources, it's not part of the rules"): without a label the
-            Clients row sat 4px under Sources and read as a third RULE
-            item. `mt-3` (12px, → 16px with the group gap) breaks it away
-            so it reads as its own destination, separate from the RULE
-            group above. */}
-        <NavGroupSection className="mt-3">
+        {/* 2026-06-09 (Yuqi new design v202hj §ClientsLabel): the CLIENTS
+            eyebrow is back. It both labels the group and separates Clients
+            from the RULE group above (Rule library + Sources) — Clients is
+            its own destination, not a rule. The label's own top padding
+            provides the break, so the earlier manual `mt-3` is gone. */}
+        <NavGroupSection label={t`Clients`}>
           {items.practice.map((item) => (
             <NavMenuItem key={item.href} item={item} />
           ))}

@@ -5,7 +5,6 @@ import { Trans } from '@lingui/react/macro'
 import { cn } from '@duedatehq/ui/lib/utils'
 import {
   Sidebar,
-  SidebarCollapseToggle,
   SidebarContent,
   SidebarFooter,
   SidebarInset,
@@ -169,10 +168,14 @@ export function AppShell(props: AppShellProps) {
               clear breathing room.
               2026-06-09 (Yuqi "pt-3 breathing room below it"): `pb-3`
               adds 12px below the brand row too, separating the company
-              identity from the Quick find row beneath it. */}
-          <div className="flex items-center gap-1 pt-3 pb-3">
+              identity from the Quick find row beneath it.
+              2026-06-09 (Yuqi "company dropdown full width, no collapse
+              icon"): the firm box spans the full header width — the
+              collapse control is no longer here. It now floats as an
+              edge-handle arrow OUTSIDE the card, mounted by the Sidebar
+              primitive itself (see SidebarCollapseToggle). */}
+          <div className="flex items-center pt-3 pb-3">
             <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
-            <SidebarCollapseToggle />
           </div>
           {/* 2026-06-09 (Yuqi sidebar floating-card pass): the 1px rib
               under the firm switcher is gone — the Pencil design has no

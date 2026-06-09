@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { PanelLeftIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import { useIsMobile } from '@duedatehq/ui/hooks/use-mobile'
@@ -464,6 +464,11 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
       >
         {children}
       </div>
+      {/* 2026-06-09 (Yuqi "collapse icon = triangle arrow outside the
+          sidebar"): the collapse/expand handle lives on the aside's
+          right edge, OUTSIDE the painted card, as a sibling of the panel
+          so the card's `overflow-hidden` doesn't clip it. */}
+      <SidebarCollapseToggle />
     </aside>
   )
 }
@@ -628,7 +633,10 @@ export function SidebarMenu({ className, ...props }: React.ComponentProps<'ul'>)
   return (
     <ul
       data-slot="sidebar-menu"
-      className={cn('flex w-full min-w-0 flex-col gap-1', className)}
+      // 2026-06-09 (Yuqi "drop to 0px"): no gap between nav rows — they
+      // sit flush as one continuous list; the hover/active tile is the
+      // only thing that separates a row visually. Same in both modes.
+      className={cn('flex w-full min-w-0 flex-col', className)}
       {...props}
     />
   )
@@ -662,12 +670,12 @@ const sidebarMenuButtonVariants = cva(
     // height stays h-8 (32px); icon stays size-4 (16px). Restores a touch
     // more presence to the nav without returning to the text-base (16px)
     // that previously competed with the firm-switcher anchor.
-    // 2026-06-09 (Yuqi "copy exactly from pencil" §NavItem): height 40
-    // (h-10), padding [10,12] → px-3 with the 40px height giving the
-    // vertical 10, gap 10 (gap-2.5), cornerRadius 6 (rounded-md). Label
-    // text-[15px] (Yuqi +1px). These metrics are IDENTICAL in both
-    // modes — the collapsed re-centering overrides are gone (see below).
-    'group/menu-button peer/menu-button relative flex h-10 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
+    // 2026-06-09 (Yuqi): height 36 (h-9 — "hover padding smaller", a
+    // more compact tile now that rows sit flush at gap-0), gap 12
+    // (gap-3 — "icon与text之间的gap稍微大一点"), px-3, rounded-lg. Label
+    // text-[15px]. Identical in both modes — collapsed re-centering is
+    // gone (see below).
+    'group/menu-button peer/menu-button relative flex h-9 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-3 text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
     // Hover uses a neutral surface token; selected state below uses the
     // explicit accent tint so route wayfinding stays distinct from row hover.
     'hover:bg-background-default-hover hover:text-text-primary',
@@ -692,8 +700,12 @@ const sidebarMenuButtonVariants = cva(
     // `#eff4ff` light / 14 % Dify blue dark) — calm enough to honor "color only
     // serves risk" while still visibly identifying the active route. No 2 px
     // accent border, no `accent-text` label color.
-    "data-[active=true]:bg-accent-tint data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
-    "aria-[current=page]:bg-accent-tint aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
+    // 2026-06-09 (Yuqi "selected": light accent bg + semibold accent
+    // label + accent icon). The active row now also bumps to
+    // `font-semibold` so the selected destination reads with extra
+    // weight, not just color — matching the reference.
+    "data-[active=true]:bg-accent-tint data-[active=true]:font-semibold data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
+    "aria-[current=page]:bg-accent-tint aria-[current=page]:font-semibold aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
     // 2026-06-09 (Yuqi "copy exactly from pencil"): no collapsed
     // left-bar marker. Pencil's collapsed NavToday keeps the SAME full
     // `#eff4ff` tinted tile as expanded (just narrower) — the active
@@ -912,7 +924,15 @@ export function SidebarMenuBadge({
       className={cn(
         pillBaseExpanded,
         expandedPos,
-        'bg-state-destructive-solid text-text-inverted',
+        // 2026-06-09 (Yuqi "red alert number bubble only becomes red when
+        // active selected"): the urgent badge is a neutral gray pill by
+        // default and only flips to the red solid when its nav row is the
+        // active route. `group/menu-button` lives on the SidebarMenuButton
+        // ancestor, so the badge reads the row's active state (NavLink's
+        // aria-current OR the data-active prop).
+        'bg-background-subtle text-text-tertiary',
+        'group-data-[active=true]/menu-button:bg-state-destructive-solid group-data-[active=true]/menu-button:text-text-inverted',
+        'group-aria-[current=page]/menu-button:bg-state-destructive-solid group-aria-[current=page]/menu-button:text-text-inverted',
         collapsedPos,
         // 2026-05-27 (Yuqi feedback "remove the shining effect"): the
         // collapsed-mode animate-pulse was making the digit pulse in
@@ -971,51 +991,46 @@ export function SidebarTrigger({
 }
 
 /**
- * 2026-05-25 (Yuqi sidebar collapse): desktop-only toggle that
- * flips between full-width (220px) and icons-only (56px). Hidden
- * below `md` since mobile uses the `SidebarTrigger` Sheet flow.
+ * 2026-06-09 (Yuqi "collapse icon = a triangle arrow OUTSIDE the
+ * sidebar"): the toggle is now an edge HANDLE, not a header button.
+ * It's a small round arrow that floats on the sidebar's right edge
+ * (straddling the seam between the rail and the work surface),
+ * vertically centered, and is hover-revealed (`group-hover/sidebar`)
+ * so it stays out of the way until you reach for it. Mounted by the
+ * `Sidebar` desktop branch as a sibling of the painted card (NOT in
+ * the header), which is why the firm box can span the full width.
  *
- * Originally rendered as a full-width row above the user menu —
- * Yuqi flagged that as a lonely centered chevron orphaned between
- * the footer nav divider and the user row. Now sized as a compact
- * 24px square icon button so it can sit inline with the firm
- * switcher in the top header row (right side of the row when
- * expanded; stacked vertically with switcher + bell when
- * collapsed).
- *
- * Icons follow the standard "panel" metaphor: `PanelLeftIcon`
- * when the sidebar is expanded (visual: the left panel is
- * highlighted → click to push it back), `PanelRightIcon` when
- * collapsed (visual: the right side is full → click to bring
- * the left panel back).
+ * Direction follows state: a left chevron when expanded (push the
+ * rail closed) and a right chevron when collapsed (pull it back
+ * open) — so it doubles as the expand affordance too.
  */
 export function SidebarCollapseToggle({ className }: { className?: string }) {
   const { collapsed, toggleCollapsed } = useSidebar()
-  // 2026-05-26 (Yuqi: no collapse icon when collapsed): collapse-only
-  // affordance — visible ONLY when the sidebar is expanded. When the
-  // sidebar is in any collapsed state (persistent OR drawer-pressure
-  // OR hover-peek — `collapsed` from context is the effective
-  // userCollapsed||autoCollapsed), the icon hides entirely. The
-  // expand path is: hover-peek (transient label preview), ⌘B
-  // (keyboard), or clicking any nav item (always lands on expanded
-  // sidebar per `notifySidebarNavigation`).
-  if (collapsed) return null
+  const Icon = collapsed ? ChevronRightIcon : ChevronLeftIcon
+  const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar'
   return (
     <button
       type="button"
       onClick={toggleCollapsed}
-      aria-label="Collapse sidebar"
-      aria-expanded
-      title="Collapse sidebar"
+      aria-label={label}
+      aria-expanded={!collapsed}
+      title={label}
       className={cn(
-        'hidden size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors',
+        // Edge handle: centered on the aside's right edge
+        // (`right-0` + `translate-x-1/2`), vertically centered, so it
+        // sits just OUTSIDE the card in the gutter. A bordered white
+        // pill with a soft shadow reads as a control against the body.
+        // `opacity-0` until the sidebar is hovered / focus-within (or
+        // the handle itself is focused) keeps it unobtrusive.
+        'absolute top-1/2 right-0 z-40 hidden size-6 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-divider-regular bg-background-default text-text-tertiary opacity-0 shadow-[0_1px_3px_rgb(16_24_40_/_0.1)] outline-none transition-[opacity,background-color,color]',
         'hover:bg-background-default-hover hover:text-text-secondary',
-        'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        'focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        'group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100',
         'md:inline-flex',
         className,
       )}
     >
-      <PanelLeftIcon className="size-4" aria-hidden />
+      <Icon className="size-3.5" aria-hidden />
     </button>
   )
 }
