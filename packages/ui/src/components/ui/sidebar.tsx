@@ -974,9 +974,19 @@ export function SidebarTrigger({
  * open) — so it doubles as the expand affordance too.
  */
 export function SidebarCollapseToggle({ className }: { className?: string }) {
-  const { collapsed, toggleCollapsed } = useSidebar()
+  const { collapsed, hovered, toggleCollapsed } = useSidebar()
   const Icon = collapsed ? ChevronRightIcon : ChevronLeftIcon
   const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar'
+  // 2026-06-09 (Yuqi "the arrow does not move when it expanded"): the
+  // handle must track the CARD's *visible* right edge, which follows
+  // hover-peek (`targetCollapsed = collapsed && !hovered`) — NOT the
+  // aside footprint, which stays at the collapsed width during peek.
+  // Positioned via an explicit `left` at the card edge (total width −
+  // 12px right gutter) so the circle's center lands on that edge
+  // (half-overlap) and slides out with the card when the collapsed
+  // rail peeks open, instead of stranding mid-rail. Transitions in
+  // lockstep with the card (300ms ease-apple).
+  const targetCollapsed = collapsed && !hovered
   return (
     <button
       type="button"
@@ -984,17 +994,21 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
       aria-label={label}
       aria-expanded={!collapsed}
       title={label}
+      style={{
+        left: `calc(${targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH} - 12px)`,
+      }}
       className={cn(
-        // Edge handle: centered on the CARD's right edge (`right-3` +
-        // `translate-x-1/2`) so the circle half-overlaps the rail and
-        // half sits in the gutter. No border, no shadow — just the white
-        // fill — so it reads as a quiet handle, not a floating control.
-        // `opacity-0` until the sidebar is hovered / focus-within (or
-        // the handle itself is focused) keeps it unobtrusive.
-        'absolute top-1/2 right-3 z-40 hidden size-6 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full bg-background-default text-text-tertiary opacity-0 outline-none transition-[opacity,background-color,color]',
+        // No border, no shadow — just the white fill — so it reads as a
+        // quiet handle, not a floating control. `opacity-0` by default;
+        // 2026-06-09 (Yuqi "only hover onto the sidebar shows the little
+        // arrow"): revealed ONLY while the sidebar is hovered — NOT on
+        // focus-within (which lingered visible after a nav click left
+        // focus on the link). Keyboard `focus-visible` on the handle
+        // itself still reveals it so a focused control is never hidden.
+        'absolute top-1/2 z-40 hidden size-6 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-background-default text-text-tertiary opacity-0 outline-none transition-[left,opacity,background-color,color] duration-300 ease-apple motion-reduce:transition-none',
         'hover:bg-background-default-hover hover:text-text-secondary',
         'focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        'group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100',
+        'group-hover/sidebar:opacity-100',
         'md:inline-flex',
         className,
       )}
