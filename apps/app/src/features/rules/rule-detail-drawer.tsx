@@ -18,6 +18,7 @@ import type {
   RuleConcreteDraftCacheEntry,
   RuleEvidence,
   RuleEvidenceAuthorityRole,
+  RuleReviewTaskReason,
   RuleSource,
 } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -48,6 +49,7 @@ import {
 } from './rules-console-model'
 import { JurisdictionCode } from './rules-console-primitives'
 import { MatchedPulseBlock } from './matched-pulse-block'
+import { RuleYearDiff } from './rule-year-diff'
 import { useSourceLookup } from './use-source-lookup'
 
 const isEntityKey = (key: string): key is EntityKey => key in ENTITY_LABELS
@@ -219,8 +221,10 @@ export function RuleDetailCompact({
   concreteDraftLoading = false,
   deferQueryInvalidation = false,
   onActionComplete,
+  reviewReason,
 }: {
   rule: ObligationRule
+  reviewReason?: RuleReviewTaskReason
   concreteDraft?: RuleConcreteDraftCacheEntry | null
   concreteDraftLoading?: boolean
   deferQueryInvalidation?: boolean
@@ -300,6 +304,7 @@ export function RuleDetailCompact({
         concreteDraft={concreteDraft ?? null}
         concreteDraftLoading={concreteDraftLoading}
         deferQueryInvalidation={deferQueryInvalidation}
+        {...(reviewReason !== undefined ? { reviewReason } : {})}
         {...(onActionComplete ? { onActionComplete } : {})}
       />
     </div>
@@ -359,8 +364,10 @@ export function CandidateReviewSection({
   onActionComplete,
   chrome = 'card',
   confirmImpact = false,
+  reviewReason,
 }: {
   rule: ObligationRule
+  reviewReason?: RuleReviewTaskReason
   concreteDraft?: RuleConcreteDraftCacheEntry | null
   concreteDraftLoading?: boolean
   deferQueryInvalidation?: boolean
@@ -395,6 +402,7 @@ export function CandidateReviewSection({
       deferQueryInvalidation={deferQueryInvalidation}
       chrome={chrome}
       confirmImpact={confirmImpact}
+      {...(reviewReason !== undefined ? { reviewReason } : {})}
       {...(onActionComplete ? { onActionComplete } : {})}
     />
   )
@@ -408,8 +416,10 @@ function CandidateReviewForm({
   onActionComplete,
   chrome = 'card',
   confirmImpact = false,
+  reviewReason,
 }: {
   rule: ObligationRule
+  reviewReason?: RuleReviewTaskReason
   concreteDraft: RuleConcreteDraftCacheEntry | null
   concreteDraftLoading?: boolean
   deferQueryInvalidation?: boolean
@@ -688,6 +698,11 @@ function CandidateReviewForm({
           />
         </p>
       ) : null}
+      <RuleYearDiff
+        ruleId={rule.id}
+        expectedVersion={rule.version}
+        {...(reviewReason !== undefined ? { reason: reviewReason } : {})}
+      />
       {sourceDefined ? (
         <AiDraftReviewPanel
           draft={draft}

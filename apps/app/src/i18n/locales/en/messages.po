@@ -435,6 +435,12 @@ msgstr "{0} available seats"
 msgid "{0} blocked"
 msgstr "{0} blocked"
 
+#. placeholder {0}: preview.classificationCounts.date_only
+#. placeholder {1}: preview.classificationCounts.substantive
+#: src/features/rules/coverage-tab.tsx
+msgid "{0} date-only · {1} need individual review"
+msgstr "{0} date-only · {1} need individual review"
+
 #. placeholder {0}: result.obligations.length
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "{0} deadline created from the rule library."
@@ -1550,6 +1556,10 @@ msgstr "A specific compliance deadline generated from client facts and active pr
 msgid "About Actions this week"
 msgstr "About Actions this week"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Accept"
+msgstr "Accept"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accept & apply"
 msgstr "Accept & apply"
@@ -1569,6 +1579,14 @@ msgstr "Accept rule"
 #: src/features/rules/coverage-tab.tsx
 msgid "Accept selected"
 msgstr "Accept selected"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Accept selected rules"
+msgstr "Accept selected rules"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Accept the selected rules into active practice rules. Rules with year-over-year logic changes are held for individual review unless you include them below."
+msgstr "Accept the selected rules into active practice rules. Rules with year-over-year logic changes are held for individual review unless you include them below."
 
 #: src/routes/accept-invite.tsx
 msgid "Accept to join the firm's deadline workbench. No password to remember — we'll email a sign-in link whenever you need to come back."
@@ -2430,6 +2448,11 @@ msgstr "Already applied"
 msgid "Already in your client list"
 msgstr "Already in your client list"
 
+#. placeholder {0}: preview.classificationCounts.substantive
+#: src/features/rules/coverage-tab.tsx
+msgid "Also accept {0} rules with year-over-year changes"
+msgstr "Also accept {0} rules with year-over-year changes"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid."
 msgstr "Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid."
@@ -2457,6 +2480,10 @@ msgstr "An extension can be filed for this deadline."
 #: src/features/migration/Wizard.tsx
 msgid "An import"
 msgstr "An import"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "Annual catalog refresh"
+msgstr "Annual catalog refresh"
 
 #: src/routes/billing.tsx
 msgid "Annual contract"
@@ -5227,6 +5254,10 @@ msgstr "Custom AI routing"
 msgid "Custom document"
 msgstr "Custom document"
 
+#: src/features/rules/rule-year-diff.tsx
+msgid "Custom edit"
+msgstr "Custom edit"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Custom rule created"
 msgstr "Custom rule created"
@@ -5286,6 +5317,10 @@ msgstr "Date · YYYY-MM-DD"
 #: src/routes/settings.profile.tsx
 msgid "Date format"
 msgstr "Date format"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "Date-only"
+msgstr "Date-only"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -7221,6 +7256,10 @@ msgstr "Fix the Smart Priority inputs above before previewing — weights must t
 msgid "FL tentative tax"
 msgstr "FL tentative tax"
 
+#: src/features/rules/rule-year-diff.tsx
+msgid "Flagged by an alert"
+msgstr "Flagged by an alert"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Follow up with client to approve the estimate"
@@ -7597,6 +7636,10 @@ msgstr "I've saved these recovery codes somewhere safe. I know they won't be sho
 #: src/routes/obligations.tsx
 msgid "iCal .ics"
 msgstr "iCal .ics"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "Identical to last year — no field changes."
+msgstr "Identical to last year — no field changes."
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Identity facts that drive the deadline generator"
@@ -9340,6 +9383,7 @@ msgstr "Needs help"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/rules/coverage-tab.tsx
+#: src/features/rules/rule-year-diff.tsx
 #: src/routes/practice.tsx
 #: src/routes/rules.library.tsx
 msgid "Needs review"
@@ -9373,6 +9417,7 @@ msgid "Never"
 msgstr "Never"
 
 #: src/features/audit/audit-event-drawer.tsx
+#: src/features/rules/rule-year-diff.tsx
 #: src/routes/practice.tsx
 #: src/routes/rules.library.tsx
 msgid "New"
@@ -9438,6 +9483,7 @@ msgid "New seat limit"
 msgstr "New seat limit"
 
 #: src/features/reminders/reminder-templates-page.tsx
+#: src/features/rules/rule-year-diff.tsx
 msgid "New template"
 msgstr "New template"
 
@@ -9911,6 +9957,10 @@ msgstr "No practice selected"
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "No previous client"
 msgstr "No previous client"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "No prior-year equivalent — review cold."
+msgstr "No prior-year equivalent — review cold."
 
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "No problem — you can import your clients any time from Clients → Import. Here's what changes if you skip now:"
@@ -14224,6 +14274,10 @@ msgstr "Skip for now"
 msgid "Skip importing for now?"
 msgstr "Skip importing for now?"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Skip individual review and accept the substantive changes as shown."
+msgstr "Skip individual review and accept the substantive changes as shown."
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Skip materials collection?"
@@ -14391,6 +14445,10 @@ msgstr "Source (optional)"
 #: src/routes/obligations.tsx
 msgid "Source #{0} · retrieved {1}"
 msgstr "Source #{0} · retrieved {1}"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "Source changed"
+msgstr "Source changed"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Source changed requires single-rule review"
@@ -14731,6 +14789,10 @@ msgstr "Subscription overview"
 #: src/routes/billing.tsx
 msgid "Subscription status"
 msgstr "Subscription status"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Substantive change — review individually"
+msgstr "Substantive change — review individually"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Success"
@@ -16740,6 +16802,10 @@ msgstr "XLSX or IIF"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Year"
 msgstr "Year"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "Year-over-year"
+msgstr "Year-over-year"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx

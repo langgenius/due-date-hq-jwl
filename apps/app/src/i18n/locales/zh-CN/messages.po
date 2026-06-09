@@ -438,6 +438,12 @@ msgstr "{0} 个可用席位"
 msgid "{0} blocked"
 msgstr "{0} 项被阻止"
 
+#. placeholder {0}: preview.classificationCounts.date_only
+#. placeholder {1}: preview.classificationCounts.substantive
+#: src/features/rules/coverage-tab.tsx
+msgid "{0} date-only · {1} need individual review"
+msgstr "{0} 项仅日期 · {1} 项需单独评审"
+
 #. placeholder {0}: result.obligations.length
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "{0} deadline created from the rule library."
@@ -1569,6 +1575,10 @@ msgstr "由客户事实和当前事务所已生效规则生成的具体合规截
 msgid "About Actions this week"
 msgstr "关于本周事项"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Accept"
+msgstr "接受"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accept & apply"
 msgstr "接受并应用"
@@ -1588,6 +1598,14 @@ msgstr "接受规则"
 #: src/features/rules/coverage-tab.tsx
 msgid "Accept selected"
 msgstr "接受所选"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Accept selected rules"
+msgstr "接受所选规则"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Accept the selected rules into active practice rules. Rules with year-over-year logic changes are held for individual review unless you include them below."
+msgstr "将所选规则接受为生效的事务所规则。存在逐年逻辑变化的规则会留作单独评审，除非你在下方一并纳入。"
 
 #: src/routes/accept-invite.tsx
 msgid "Accept to join the firm's deadline workbench. No password to remember — we'll email a sign-in link whenever you need to come back."
@@ -2455,6 +2473,11 @@ msgstr "已应用"
 msgid "Already in your client list"
 msgstr "已在您的客户列表中"
 
+#. placeholder {0}: preview.classificationCounts.substantive
+#: src/features/rules/coverage-tab.tsx
+msgid "Also accept {0} rules with year-over-year changes"
+msgstr "同时接受 {0} 项存在逐年变化的规则"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid."
 msgstr "备选路径：在 Return Manager 中将 Quick Search 过滤器设为 All 并运行，然后使用 Home > Export Grid。"
@@ -2482,6 +2505,10 @@ msgstr "此截止事项可申请延期。"
 #: src/features/migration/Wizard.tsx
 msgid "An import"
 msgstr "一次导入"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "Annual catalog refresh"
+msgstr "年度目录更新"
 
 #: src/routes/billing.tsx
 msgid "Annual contract"
@@ -5266,6 +5293,10 @@ msgstr "定制 AI 路由"
 msgid "Custom document"
 msgstr "自定义文件"
 
+#: src/features/rules/rule-year-diff.tsx
+msgid "Custom edit"
+msgstr "自定义修改"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Custom rule created"
 msgstr "自定义规则已创建"
@@ -5326,6 +5357,10 @@ msgstr "Date · YYYY-MM-DD"
 #: src/routes/settings.profile.tsx
 msgid "Date format"
 msgstr "日期格式"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "Date-only"
+msgstr "仅日期"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -7268,6 +7303,10 @@ msgstr "Fix the Smart Priority inputs above before previewing — weights must t
 msgid "FL tentative tax"
 msgstr "FL 暂定税额"
 
+#: src/features/rules/rule-year-diff.tsx
+msgid "Flagged by an alert"
+msgstr "由提醒触发"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Follow up with client to approve the estimate"
@@ -7647,6 +7686,10 @@ msgstr "I've saved these recovery codes somewhere safe. I know they won't be sho
 #: src/routes/obligations.tsx
 msgid "iCal .ics"
 msgstr "iCal .ics"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "Identical to last year — no field changes."
+msgstr "与去年完全一致 —— 无字段变化。"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Identity facts that drive the deadline generator"
@@ -9402,6 +9445,7 @@ msgstr "需要协助"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/rules/coverage-tab.tsx
+#: src/features/rules/rule-year-diff.tsx
 #: src/routes/practice.tsx
 #: src/routes/rules.library.tsx
 msgid "Needs review"
@@ -9435,6 +9479,7 @@ msgid "Never"
 msgstr "从未"
 
 #: src/features/audit/audit-event-drawer.tsx
+#: src/features/rules/rule-year-diff.tsx
 #: src/routes/practice.tsx
 #: src/routes/rules.library.tsx
 msgid "New"
@@ -9500,6 +9545,7 @@ msgid "New seat limit"
 msgstr "新席位上限"
 
 #: src/features/reminders/reminder-templates-page.tsx
+#: src/features/rules/rule-year-diff.tsx
 msgid "New template"
 msgstr "新建模板"
 
@@ -9975,6 +10021,10 @@ msgstr "未选择事务所"
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "No previous client"
 msgstr "没有上一个客户"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "No prior-year equivalent — review cold."
+msgstr "没有上一年的对应规则 —— 需从零评审。"
 
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "No problem — you can import your clients any time from Clients → Import. Here's what changes if you skip now:"
@@ -14323,6 +14373,10 @@ msgstr "暂时跳过"
 msgid "Skip importing for now?"
 msgstr "暂时跳过导入？"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Skip individual review and accept the substantive changes as shown."
+msgstr "跳过单独评审，按现状接受这些实质性变化。"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Skip materials collection?"
@@ -14491,6 +14545,10 @@ msgstr "来源（可选）"
 #: src/routes/obligations.tsx
 msgid "Source #{0} · retrieved {1}"
 msgstr "来源 #{0} · 获取于 {1}"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "Source changed"
+msgstr "来源已变更"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Source changed requires single-rule review"
@@ -14832,6 +14890,10 @@ msgstr "订阅概览"
 #: src/routes/billing.tsx
 msgid "Subscription status"
 msgstr "订阅状态"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Substantive change — review individually"
+msgstr "实质性变化 —— 请单独评审"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Success"
@@ -16849,6 +16911,10 @@ msgstr "XLSX 或 IIF"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Year"
 msgstr "年度"
+
+#: src/features/rules/rule-year-diff.tsx
+msgid "Year-over-year"
+msgstr "逐年对比"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx

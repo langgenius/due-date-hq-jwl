@@ -38,6 +38,8 @@ const rpcMocks = vi.hoisted(() => ({
   previewRuleImpactQueryFn: vi.fn(),
   previewBulkRuleImpactMutationFn: vi.fn(),
   bulkAcceptTemplatesMutationFn: vi.fn(),
+  bulkAcceptCarryforwardMutationFn: vi.fn(),
+  diffAgainstPredecessorQueryFn: vi.fn(),
   bulkVerifyCandidatesMutationFn: vi.fn(),
 }))
 const nuqsMocks = vi.hoisted(() => ({
@@ -145,6 +147,18 @@ vi.mock('@/lib/rpc', () => ({
         mutationOptions: (options: Record<string, unknown>) => ({
           mutationFn: rpcMocks.bulkAcceptTemplatesMutationFn,
           ...options,
+        }),
+      },
+      bulkAcceptCarryforward: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.bulkAcceptCarryforwardMutationFn,
+          ...options,
+        }),
+      },
+      diffAgainstPredecessor: {
+        queryOptions: ({ input }: { input: unknown }) => ({
+          queryKey: ['rules', 'diffAgainstPredecessor', input],
+          queryFn: rpcMocks.diffAgainstPredecessorQueryFn,
         }),
       },
       bulkVerifyCandidates: {
@@ -464,6 +478,7 @@ beforeEach(() => {
     entityCounts: [{ key: 'individual', count: 1 }],
     formCounts: [{ key: 'Form 540', count: 1 }],
     reviewReasonCounts: [],
+    classificationCounts: { new: 1, date_only: 0, substantive: 0 },
     sourceCount: 1,
     estimatedObligationCount: 1,
   })
@@ -471,6 +486,14 @@ beforeEach(() => {
   rpcMocks.bulkAcceptTemplatesMutationFn.mockResolvedValue({ accepted: [], skipped: [] })
   rpcMocks.bulkVerifyCandidatesMutationFn.mockReset()
   rpcMocks.bulkVerifyCandidatesMutationFn.mockResolvedValue({ verified: [], skipped: [] })
+  rpcMocks.bulkAcceptCarryforwardMutationFn.mockReset()
+  rpcMocks.bulkAcceptCarryforwardMutationFn.mockResolvedValue({ accepted: [], skipped: [] })
+  rpcMocks.diffAgainstPredecessorQueryFn.mockReset()
+  rpcMocks.diffAgainstPredecessorQueryFn.mockResolvedValue({
+    hasPredecessor: false,
+    classification: 'new',
+    fields: [],
+  })
   nuqsMocks.filter = 'all'
   nuqsMocks.search = ''
   nuqsMocks.library = null

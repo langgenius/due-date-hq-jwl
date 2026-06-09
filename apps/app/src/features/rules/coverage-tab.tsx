@@ -8,6 +8,7 @@ import {
   ChevronRightIcon,
   EyeIcon,
   ExternalLinkIcon,
+  LayersIcon,
   XIcon,
 } from 'lucide-react'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
@@ -21,6 +22,7 @@ import type {
   RuleCoverageRow,
   RuleJurisdiction,
   RuleReviewTask,
+  RuleReviewTaskReason,
   RuleSource,
   RuleSourceCoverageStatus,
 } from '@duedatehq/contracts'
@@ -46,6 +48,7 @@ import {
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { BulkConfirmDialog, BulkConfirmOption } from '@/components/patterns/bulk-confirm-dialog'
 import {
   isInteractiveEventTarget,
   useAppHotkey,
@@ -201,6 +204,11 @@ export function CoverageTab({
   const [bulkDrawerOpen, setBulkDrawerOpen] = useState(false)
   const [reviewNote, setReviewNote] = useState('')
   const [preview, setPreview] = useState<RuleBulkImpactPreview | null>(null)
+  // Bulk carry-forward confirm dialog: opened from the drawer's "Accept
+  // selected" so the reviewer sees the year-over-year breakdown (and can
+  // opt to force substantive changes) before committing.
+  const [confirmAcceptOpen, setConfirmAcceptOpen] = useState(false)
+  const [forceSubstantive, setForceSubstantive] = useState(false)
   // Per-jurisdiction expansion state. Row-click toggles a jurisdiction
   // into this set; multiple rows can be expanded simultaneously so the
   // user can compare two jurisdictions inline without context-switching.
@@ -440,6 +448,11 @@ export function CoverageTab({
     const target = concreteDraftTargetForRule(selectedRule)
     return target ? (concreteDraftByTarget.get(concreteDraftTargetKey(target)) ?? null) : null
   }, [concreteDraftByTarget, selectedRule])
+  // The open review task's reason ("why this rule is in review") for the
+  // selected rule, threaded into RuleDetailCompact's year-over-year panel.
+  const selectedReviewReason = selectedRule
+    ? openTaskByRuleVersion.get(reviewTaskKeyForRule(selectedRule))?.reason
+    : undefined
   const selectedRows = useMemo(
     () =>
       visiblePendingQueue.filter(
@@ -490,6 +503,8 @@ export function CoverageTab({
     setSelectedRuleKeys([])
     setBulkDrawerOpen(false)
     setPreview(null)
+    setConfirmAcceptOpen(false)
+    setForceSubstantive(false)
   }
 
   const invalidateRules = () => {
@@ -515,7 +530,9 @@ export function CoverageTab({
       },
     }),
   )
-  const bulkAcceptMutation = useMutation(orpc.rules.bulkAcceptTemplates.mutationOptions({}))
+  const bulkCarryforwardMutation = useMutation(
+    orpc.rules.bulkAcceptCarryforward.mutationOptions({}),
+  )
   const bulkVerifyMutation = useMutation(orpc.rules.bulkVerifyCandidates.mutationOptions({}))
 
   // Queue navigation helpers + keyboard shortcuts. All hoisted ABOVE
@@ -701,6 +718,24 @@ export function CoverageTab({
     setBulkDrawerOpen(true)
     previewMutation.mutate({ rules: selections })
   }
+  const requestBulkAccept = () => {
+    if (selectedRows.length === 0) {
+      toast.error(t`Select at least one pending rule.`)
+      return
+    }
+    if (!reviewNote.trim()) {
+      toast.error(t`Batch review note is required.`)
+      return
+    }
+    // Only the carry-forward (template) path needs the year-over-year confirm.
+    // A pure source-defined-draft selection has nothing to classify — accept it
+    // directly, preserving the original one-step flow.
+    if (selections.length === 0) {
+      void bulkAccept()
+      return
+    }
+    setConfirmAcceptOpen(true)
+  }
   const bulkAccept = async () => {
     const note = reviewNote.trim()
     if (selectedRows.length === 0) {
@@ -711,10 +746,18 @@ export function CoverageTab({
       toast.error(t`Batch review note is required.`)
       return
     }
+    // Carry-forward skips substantive (year-over-year logic) changes unless the
+    // reviewer explicitly opted to include them — forcing every selected id
+    // accepts them as shown.
+    const forceRuleIds = forceSubstantive ? selections.map((selection) => selection.ruleId) : []
     try {
       const [templateResult, concreteDraftResult] = await Promise.all([
         selections.length > 0
-          ? bulkAcceptMutation.mutateAsync({ rules: selections, reviewNote: note })
+          ? bulkCarryforwardMutation.mutateAsync({
+              rules: selections,
+              reviewNote: note,
+              ...(forceRuleIds.length > 0 ? { forceRuleIds } : {}),
+            })
           : Promise.resolve({ accepted: [], skipped: [] }),
         concreteDraftSelections.length > 0
           ? bulkVerifyMutation.mutateAsync({ rules: concreteDraftSelections, reviewNote: note })
@@ -849,6 +892,9 @@ export function CoverageTab({
                     onClose={() => void setSelectedRuleId(null)}
                     onActionComplete={advanceAfterDecision}
                     mode={queueMode}
+                    {...(selectedReviewReason !== undefined
+                      ? { reviewReason: selectedReviewReason }
+                      : {})}
                     queuePosition={
                       workspaceQueue.length > 0
                         ? {
@@ -963,11 +1009,52 @@ export function CoverageTab({
         preview={preview}
         reviewNote={reviewNote}
         previewPending={previewMutation.isPending}
-        acceptPending={bulkAcceptMutation.isPending || bulkVerifyMutation.isPending}
+        acceptPending={bulkCarryforwardMutation.isPending || bulkVerifyMutation.isPending}
         onReviewNoteChange={setReviewNote}
         onPreview={runBulkPreview}
-        onAccept={() => void bulkAccept()}
+        onAccept={requestBulkAccept}
       />
+      <BulkConfirmDialog
+        open={confirmAcceptOpen}
+        onOpenChange={setConfirmAcceptOpen}
+        tone="accent"
+        icon={LayersIcon}
+        title={<Trans>Accept selected rules</Trans>}
+        description={
+          <Trans>
+            Accept the selected rules into active practice rules. Rules with year-over-year logic
+            changes are held for individual review unless you include them below.
+          </Trans>
+        }
+        confirmLabel={<Trans>Accept</Trans>}
+        confirmDisabled={bulkCarryforwardMutation.isPending || bulkVerifyMutation.isPending}
+        onConfirm={() => void bulkAccept()}
+      >
+        {preview &&
+        preview.classificationCounts.date_only + preview.classificationCounts.substantive > 0 ? (
+          <p className="text-sm text-text-secondary">
+            <Trans>
+              {preview.classificationCounts.date_only} date-only ·{' '}
+              {preview.classificationCounts.substantive} need individual review
+            </Trans>
+          </p>
+        ) : null}
+        {preview && preview.classificationCounts.substantive > 0 ? (
+          <BulkConfirmOption
+            checked={forceSubstantive}
+            onCheckedChange={setForceSubstantive}
+            label={
+              <Trans>
+                Also accept {preview.classificationCounts.substantive} rules with year-over-year
+                changes
+              </Trans>
+            }
+            description={
+              <Trans>Skip individual review and accept the substantive changes as shown.</Trans>
+            }
+          />
+        ) : null}
+      </BulkConfirmDialog>
     </div>
   )
 }
@@ -2277,6 +2364,14 @@ function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null
         <span>
           <Trans>{preview.sourceCount} sources involved</Trans>
         </span>
+        {preview.classificationCounts.date_only + preview.classificationCounts.substantive > 0 ? (
+          <span>
+            <Trans>
+              {preview.classificationCounts.date_only} date-only ·{' '}
+              {preview.classificationCounts.substantive} need individual review
+            </Trans>
+          </span>
+        ) : null}
       </div>
       {preview.jurisdictionCounts.length > 0 ? (
         <PreviewList label={<Trans>Jurisdictions</Trans>} rows={preview.jurisdictionCounts} />
@@ -2372,6 +2467,7 @@ function RulePanel({
   onSkip,
   onActionComplete,
   queuePosition,
+  reviewReason,
 }: {
   rule: ObligationRule
   concreteDraft: RuleConcreteDraftCacheEntry | null
@@ -2381,6 +2477,7 @@ function RulePanel({
   onSkip?: () => void
   onActionComplete: () => void | Promise<void>
   queuePosition: { index: number; total: number } | null
+  reviewReason?: RuleReviewTaskReason
 }) {
   const { t } = useLingui()
   return (
@@ -2468,6 +2565,7 @@ function RulePanel({
           concreteDraft={concreteDraft}
           concreteDraftLoading={concreteDraftLoading}
           onActionComplete={onActionComplete}
+          {...(reviewReason !== undefined ? { reviewReason } : {})}
         />
       </div>
     </>
