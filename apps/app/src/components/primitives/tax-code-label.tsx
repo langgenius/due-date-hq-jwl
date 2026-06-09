@@ -47,7 +47,7 @@ function TaxCodeLabel({
     <Tooltip>
       <TooltipTrigger
         render={asChild ? (props) => <span {...props}>{meta.label}</span> : undefined}
-        className={asChild ? cn('cursor-help', className) : undefined}
+        className={asChild ? cn('cursor-help', className) : 'cursor-help'}
       >
         {asChild ? null : inner}
       </TooltipTrigger>

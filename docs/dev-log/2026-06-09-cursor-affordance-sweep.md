@@ -75,3 +75,26 @@ every `button`/`[role=button|checkbox|switch|tab|radio|combobox]` checked:
 
 424 interactive elements verified, 0 on the default arrow. `vp fmt` clean on
 all touched files.
+
+## Follow-up review pass
+
+Closed the gaps from the first pass:
+
+- **False-positive scan** (cursor-pointer _class_ on a non-interactive element
+  with no clickable self/ancestor — ignoring CSS inheritance): 0 across every
+  route and overlay.
+- **Full route coverage** — added /clients/[id], /deadlines/calendar, /workload,
+  /members, /billing, /notifications, /reminders, /audit on top of the original
+  six. All 0/0 **except** /reminders, which surfaced one real gap (below).
+- **Overlays opened + scanned**: alert detail (inline, 53 buttons), an open
+  dropdown menu, and the CreateObligationDialog (selects/comboboxes/checkboxes
+  in a modal) — all clean.
+- **Tests**: `vp test run` over the edited areas — 51 files, 341 passed, 2
+  skipped, 0 failures.
+
+One real fix from this pass: `TaxCodeLabel` (`components/primitives/tax-code-label.tsx`)
+rendered its info `TooltipTrigger` as a bare Base-UI `<button>` with no cursor in
+the default (non-`asChild`) branch — only the inner label span had `cursor-help`,
+so the trigger button itself sat on the arrow. Set the trigger to `cursor-help`
+(matching its own `asChild` branch). Pre-existing, not a regression from this
+sweep; propagates everywhere tax codes render with a tooltip.
