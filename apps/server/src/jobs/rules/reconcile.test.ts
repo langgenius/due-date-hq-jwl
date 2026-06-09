@@ -44,6 +44,7 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
   }
   const aiRepo = {
     findSuccessfulGlobalRunsByContextRefs: vi.fn(),
+    findGlobalContextRefsWithRecentFailures: vi.fn(),
   }
   return {
     coreMocks: {
@@ -202,6 +203,7 @@ describe('rule source scan jobs', () => {
     Object.values(dbMocks.pulseOpsRepo).forEach((mock) => mock.mockReset())
     Object.values(dbMocks.aiRepo).forEach((mock) => mock.mockReset())
     dbMocks.aiRepo.findSuccessfulGlobalRunsByContextRefs.mockResolvedValue([])
+    dbMocks.aiRepo.findGlobalContextRefsWithRecentFailures.mockResolvedValue(new Set<string>())
     dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([])
     dbMocks.opsRepo.deprecateGlobalRuleTemplates.mockResolvedValue(0)
     dbMocks.opsRepo.fanoutReviewTasks.mockResolvedValue({
