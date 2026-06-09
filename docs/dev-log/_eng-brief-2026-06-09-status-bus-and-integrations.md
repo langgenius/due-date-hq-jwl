@@ -133,7 +133,7 @@ Implementations grouped by priority. Each entry has: path · mode · file locati
 
 - File: `apps/app/src/features/today/NeedsYouStrip.tsx`
 - Data: `count(obligations where status IN (waiting_on_client, blocked) AND assignee=me)`
-- Pencil ref: `jnnk0` H9bWy6 — warm NeedsYou card is the precedent
+- Pencil ref: `YuFyD` is the standalone integration demo (copy from this); `jnnk0` H9bWy6 is the in-context precedent inside the /today page layout
 - Click → `/deadlines?status=waiting_on_client,blocked&owner=me`
 - Acceptance: count updates reactively when any status transitions
 

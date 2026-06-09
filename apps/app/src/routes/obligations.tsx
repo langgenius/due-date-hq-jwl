@@ -57,13 +57,11 @@ import {
   CalendarClockIcon,
   CheckIcon,
   FileTextIcon,
-  FlameIcon,
   PaperclipIcon,
   LinkIcon,
   LayersIcon,
   ListChecksIcon,
   BookmarkIcon,
-  MoreHorizontalIcon,
   RotateCcwIcon,
   RefreshCwIcon,
   SendIcon,
@@ -1642,7 +1640,7 @@ export function ObligationQueueRoute() {
       clientName: t`Client`,
       smartPriority: t`Priority`,
       assigneeName: t`Assignee`,
-      clientState: t`State`,
+      clientState: t`Jurisdiction`,
       clientCounty: t`County`,
       taxType: t`Tax type`,
       // 2026-05-27 (Step 6 #61 — P3): was "Internal Due" — dropped
@@ -2619,7 +2617,13 @@ export function ObligationQueueRoute() {
         // 2026-06-08 (Yuqi /deadlines design parity): per-column State
         // filter dropdown removed — State filtering moved to the toolbar
         // "Filters" popover. Plain label header.
-        header: () => <span>{t`State`}</span>,
+        // 2026-06-09 (Yuqi page feedback #7 "irs? what does IRS mean?"): the
+        // header was "State", but the cell leads with the filing AUTHORITY
+        // ("IRS" / "FinCEN") for federal forms — a federal agency under a
+        // "State" label reads as a category error. Renamed to "Jurisdiction",
+        // the umbrella that legitimately covers both the federal agency (IRS)
+        // and the state code (NY).
+        header: () => <span>{t`Jurisdiction`}</span>,
         // 2026-05-26 (Yuqi /deadlines sixty-fifth pass — State cell
         // canonical): adopt the Alerts page's universal state
         // representation. The bare 2-letter code "CA" / "NY" read
@@ -2632,26 +2636,25 @@ export function ObligationQueueRoute() {
         // "no state" would be more confusing than less.
         // 2026-06-09 (Yuqi /deadlines production recreation): STATE cell now
         // leads with the filing AUTHORITY ("IRS" / "FinCEN") followed by the
-        // client's state code badge — "IRS CA". The authority answers "who
-        // are we filing to" and the state badge "where the client sits";
-        // together they read as one jurisdiction cluster at scan distance.
+        // client's state code — "IRS · CA". The authority answers "who are we
+        // filing to" and the state code "where the client sits"; together
+        // they read as one jurisdiction cluster at scan distance.
+        // 2026-06-09 (Yuqi page feedback #8 "is this the correct way of
+        // showing state?"): the state code used to be a lone outline Badge
+        // while the authority was plain text, so "IRS" and "NY" looked like
+        // two different classes of thing in the same column. Both are now the
+        // same plain uppercase tertiary text, middot-separated — one calm
+        // jurisdiction string instead of text + a competing pill.
         cell: ({ row: tableRow }) => {
           const state = tableRow.original.clientState
           const authority = shortFilingAuthority(tableRow.original)
           if (!state && !authority) return <EmptyCellMark />
           return (
-            <div className="flex items-center gap-1.5">
-              {authority ? (
-                <span className="text-caption-xs font-medium uppercase tracking-wide text-text-tertiary">
-                  {authority}
-                </span>
-              ) : null}
-              {state ? (
-                <Badge variant="outline" className="text-xs font-normal tabular-nums">
-                  {state}
-                </Badge>
-              ) : null}
-            </div>
+            <span className="inline-flex items-center gap-1 text-caption-xs font-medium uppercase tracking-wide text-text-tertiary tabular-nums">
+              {authority ? <span>{authority}</span> : null}
+              {authority && state ? <span aria-hidden>·</span> : null}
+              {state ? <span>{state}</span> : null}
+            </span>
           )
         },
         meta: { headerClassName: 'w-[92px]', cellClassName: 'w-[92px] text-text-secondary' },
@@ -3034,12 +3037,22 @@ export function ObligationQueueRoute() {
                     <CircleDollarSignIcon className="size-4" aria-hidden />
                   </span>
                 ) : (
+                  // 2026-06-09 (Yuqi page feedback #10 "do we have to show
+                  // payment 29d late?"): this was a filled red destructive
+                  // badge carrying the exact day count, repeated on every
+                  // overdue row — a wall of red that competed with the actual
+                  // Status pill and the late-days in the Internal-due column.
+                  // Quieted to an outline chip with a $ glyph reading just
+                  // "Payment due"; the precise "Nd late" lives in the detail
+                  // panel + tooltip, so the list keeps the signal ("payment
+                  // hasn't cleared") without shouting a number on every line.
                   <Badge
-                    variant="destructive"
-                    className="h-5 px-1.5 text-caption-xs uppercase tracking-wide"
-                    title={t`Filing submitted but the authority payment due ${formatDate(obligationQueueRow.paymentDueDate ?? '')} hasn't been confirmed. Penalty interest accrues until the wire lands.`}
+                    variant="outline"
+                    className="h-5 gap-1 px-1.5 text-caption-xs"
+                    title={t`Filing submitted but the authority payment due ${formatDate(obligationQueueRow.paymentDueDate ?? '')} hasn't been confirmed (${paymentLateDays}d). Penalty interest accrues until the wire lands.`}
                   >
-                    <Trans>Payment {paymentLateDays}d late</Trans>
+                    <CircleDollarSignIcon className="size-3" aria-hidden />
+                    <Trans>Payment due</Trans>
                   </Badge>
                 )
               ) : null}
@@ -3688,15 +3701,19 @@ export function ObligationQueueRoute() {
       <PageHeader
         // 2026-06-09 (Yuqi /deadlines production recreation): sync status
         // line above the title — a calm "we're live and how much we track"
-        // signal. Green dot + sync glyph + "Synced just now · N deadlines
-        // tracked". The fabricated "focus hours" phrase from the mock is
-        // intentionally dropped (no backing data). `normal-case` overrides
-        // the eyebrow slot's default uppercase so it reads as prose.
+        // signal: "Synced just now [glyph] · N deadlines tracked".
+        // 2026-06-09 (Yuqi page feedback #15 "same layout as Today. Sync
+        // just now + icon no green dot"): dropped the leading green status
+        // dot and moved the refresh glyph to AFTER the "Synced just now"
+        // label so the eyebrow matches /today's sync stamp exactly (flat
+        // tertiary text, icon trailing, no chrome). Freshness is an
+        // informational stamp, not a success state — the green dot was
+        // over-claiming. The "· N deadlines tracked" count stays because
+        // it's the page's scope context (Today has no equivalent).
         eyebrow={
-          <span className="inline-flex items-center gap-2 normal-case tracking-normal text-text-tertiary">
-            <span className="size-1.5 shrink-0 rounded-full bg-status-done" aria-hidden />
-            <RefreshCwIcon className="size-3 shrink-0" aria-hidden />
+          <span className="inline-flex items-center gap-1.5 normal-case tracking-normal text-text-tertiary">
             <Trans>Synced just now</Trans>
+            <RefreshCwIcon className="size-3 shrink-0" aria-hidden />
             <span aria-hidden>·</span>
             <span className="tabular-nums">
               <Plural value={scopeTotal} one="# deadline tracked" other="# deadlines tracked" />
@@ -3796,17 +3813,25 @@ export function ObligationQueueRoute() {
                 cluster (matches /clients's "+ Add client" placement).
                 Same global dialog, no schema change. */}
             {/* 2026-06-09 (Yuqi /deadlines production recreation): "Add
-                deadline" is now a split button — the main button opens the
+                deadline" is a split button — the main button opens the
                 single-create dialog; the caret opens a menu with "Add one
                 deadline" (same dialog) + "Add several deadlines" (the bulk
                 migration wizard) and a note that Pulse drafts land in
-                Projected. Outline styling kept (not the mock's black fill). */}
+                Projected.
+                2026-06-09 (Yuqi page feedback #5 "are the buttons correct
+                style?"): Export, Calendar sync, and Add deadline were three
+                identical outline buttons, so the row had no primary — the
+                page's one real CTA (creation lives on /deadlines, per the
+                /today header trim) didn't read as the action. Promoted the
+                split button to the filled `primary` variant, matching
+                /today's single filled affordance; Export + Calendar sync
+                stay outline as the secondary cluster. */}
             <div className="inline-flex">
               <CreateObligationDialog
                 open={addDeadlineOpen}
                 onOpenChange={setAddDeadlineOpen}
                 trigger={
-                  <Button type="button" variant="outline" size="sm" className="rounded-r-none">
+                  <Button type="button" variant="primary" size="sm" className="rounded-r-none">
                     <PlusIcon data-icon="inline-start" />
                     <Trans>Add deadline</Trans>
                   </Button>
@@ -3817,7 +3842,7 @@ export function ObligationQueueRoute() {
                   render={
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="primary"
                       size="sm"
                       aria-label={t`More add-deadline options`}
                       className="-ml-px rounded-l-none px-2"
@@ -3877,7 +3902,14 @@ export function ObligationQueueRoute() {
       {!panelOpenIntent ? (
         <section
           aria-label={t`Deadlines at a glance`}
-          className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-subtle px-6 py-5"
+          // 2026-06-09 (Yuqi page feedback #4/#14 "tighten this up" / "too
+          // loose"): the banner was carrying a 24px/20px pad with a loose
+          // 8px stack between three short lines, so it ate far more vertical
+          // budget than its three lines of content justified. Tightened to
+          // px-5/py-3.5 with a 4px stack, and the headline steps text-xl →
+          // text-lg so the eyebrow/headline/metric trio reads as one
+          // compact editorial block, not a hero.
+          className="flex flex-col gap-1 rounded-xl border border-divider-subtle bg-background-subtle px-5 py-3.5"
         >
           <p className="inline-flex items-center gap-2 text-caption font-medium tracking-eyebrow text-text-tertiary uppercase">
             <span
@@ -3888,7 +3920,7 @@ export function ObligationQueueRoute() {
             <span aria-hidden>·</span>
             <Trans>Closing the week</Trans>
           </p>
-          <h2 className="max-w-[64ch] text-xl leading-7 font-semibold text-text-primary">
+          <h2 className="max-w-[64ch] text-lg leading-6 font-semibold text-text-primary">
             {deadlinesNarrative.overdue > 0 && deadlinesNarrative.dueToday > 0 ? (
               <Trans>
                 {deadlinesNarrative.overdue} overdue, {deadlinesNarrative.dueToday} filing today —
@@ -4150,17 +4182,26 @@ export function ObligationQueueRoute() {
               {panelOpenIntent ? null : (
                 <div className="ml-auto flex items-center gap-1">
                   {/* 2026-06-09 (Yuqi /deadlines production recreation —
-                      Pencil XKiKR): the kebab is now the consolidated
-                      VIEW + ACTIONS menu. VIEW = Columns / Group by /
-                      Density submenus (each trigger shows its current
-                      value); ACTIONS = Export visible rows · Save current
-                      view · Reset filters. The standalone Columns icon is
-                      folded in here. */}
+                      Pencil XKiKR): the kebab is the consolidated VIEW +
+                      ACTIONS menu. VIEW = Columns / Group by / Density
+                      submenus (each trigger shows its current value);
+                      ACTIONS = Export visible rows · Save current view ·
+                      Reset filters. The standalone Columns icon is folded
+                      in here.
+                      2026-06-09 (Yuqi page feedback #12/#13 "if the ...
+                      button is useless then remove" + "missing a column
+                      organise button"): the bare "..." gave no hint that it
+                      holds the column organiser, so it read as useless. It's
+                      now a labelled "View" button with the columns glyph —
+                      same menu, but the column-organise affordance (plus
+                      group-by / density) is finally discoverable from the
+                      toolbar instead of hidden behind an anonymous kebab. */}
                   <DropdownMenu>
                     <DropdownMenuTrigger
                       render={
-                        <Button variant="ghost" size="icon-sm" aria-label={t`View and actions`}>
-                          <MoreHorizontalIcon className="size-4" aria-hidden />
+                        <Button variant="ghost" size="sm" aria-label={t`View, columns, and actions`}>
+                          <Columns3Icon data-icon="inline-start" />
+                          <Trans>View</Trans>
                         </Button>
                       }
                     />
@@ -4387,22 +4428,28 @@ export function ObligationQueueRoute() {
               // the viewport-centered default.
               className="md:!left-[calc(50%+6.875rem)]"
             >
-              <span className="whitespace-nowrap text-xs font-medium tabular-nums">
-                {/* 2026-05-26 (step-6 ux-flow audit Q4.1): "rows" is
-                    engineering-speak. CPAs say "deadlines". The prev
-                    audit shipped the toast fix but missed this
-                    counter chip. */}
-                <Plural
-                  value={selectedIds.length}
-                  one="# deadline selected"
-                  other="# deadlines selected"
-                />
+              {/* 2026-06-09 (Yuqi page feedback #1 "ugly batch action bar"):
+                  the counter ran as one flat weight, so the bar had no
+                  anchor. The COUNT now leads in semibold tabular-nums with
+                  the "deadlines selected" label dropped to 70% so the eye
+                  lands on the number first ("28 · deadlines selected"). */}
+              <span className="flex items-baseline gap-1.5 whitespace-nowrap pl-1 text-xs">
+                <span className="font-semibold tabular-nums">{selectedIds.length}</span>
+                <span className="text-text-inverted/70">
+                  <Plural value={selectedIds.length} one="deadline selected" other="deadlines selected" />
+                </span>
               </span>
               <Separator orientation="vertical" className="mx-0.5 h-4" />
+              {/* 2026-06-09 (Yuqi page feedback #1): "Assign owner" and "Set
+                  status" carried no leading glyph while "Confirm projected"
+                  and "Clear" did — a mixed icon/no-icon cluster that read as
+                  unfinished. Every action now leads with an icon so the bar
+                  scans as one consistent control row. */}
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
                     <Button variant="ghost" size="sm">
+                      <UserRoundIcon data-icon="inline-start" />
                       <Trans>Assign owner</Trans>
                       <ChevronDownIcon data-icon="inline-end" />
                     </Button>
@@ -4443,6 +4490,7 @@ export function ObligationQueueRoute() {
                           : t`Status changes require owner, partner, manager, or preparer access.`
                       }
                     >
+                      <CircleIcon data-icon="inline-start" />
                       <Trans>Set status</Trans>
                       <ChevronDownIcon data-icon="inline-end" />
                     </Button>
@@ -4758,7 +4806,18 @@ export function ObligationQueueRoute() {
                     header buttons so the whole row matches the Today / Alerts
                     tables. `!important` beats the per-component overrides;
                     hover/active color still wins via its own selector. */}
-                <Table className="table-fixed rounded-none border-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-[11px] [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_th_button]:!tracking-[0.5px] [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-[13px]">
+                {/* 2026-06-09 (Yuqi page feedback #11 "overflow clipped,
+                    rounded corners"): a FULL bordered card was deliberately
+                    removed 2026-06-05 (a short result set left a tall empty
+                    bordered rectangle) and `overflow-hidden` on the wrapper
+                    breaks the page-level sticky header. So instead of the full
+                    frame, the header band's bg is moved off the <thead> onto
+                    the <th> cells so its top corners can round
+                    (`rounded-t[lr]-[14px]`) — the gray header reads as the
+                    rounded top of a sheet, while the rows below stay frameless
+                    (no side/bottom border → no empty-rectangle on short sets).
+                    Confirmed direction with Yuqi 2026-06-09. */}
+                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-[14px] [&_thead_tr_th:last-child]:rounded-tr-[14px] [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-[11px] [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_th_button]:!tracking-[0.5px] [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-[13px]">
                   {/* 2026-06-04 (Yuqi infinite scroll): header pinned to
                       the top of the scroll container so column labels stay
                       visible as the buffer scrolls. `bg-background-section`
@@ -4931,7 +4990,17 @@ export function ObligationQueueRoute() {
                               // surface matches the canonical subgroup
                               // divider on /today + /alerts.
                               <TableRow className="bg-background-subtle">
-                                <TableCell colSpan={visibleColumnCount} className="px-5 py-2">
+                                {/* 2026-06-09 (Yuqi page feedback #6 "red dot
+                                    align with form content"): the chevron now
+                                    lives in a w-10 slot matching the leading
+                                    select column, and the tone dot + label sit
+                                    behind a pl-3 that matches the Form cell's
+                                    padding — so the dot lines up vertically with
+                                    the form chips below it instead of floating
+                                    at the band's left edge. Cell padding drops
+                                    its left inset (pl-0) to let the slot do the
+                                    alignment. */}
+                                <TableCell colSpan={visibleColumnCount} className="py-2 pr-5 pl-0">
                                   <button
                                     type="button"
                                     onClick={() => toggleQueueGroupCollapse(groupHeader.groupKey)}
@@ -4942,20 +5011,29 @@ export function ObligationQueueRoute() {
                                         ? t`Expand ${groupHeader.label}`
                                         : t`Collapse ${groupHeader.label}`
                                     }
-                                    className="inline-flex w-full cursor-pointer items-center gap-2 rounded-sm py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                                    className="flex w-full cursor-pointer items-center rounded-sm py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                                   >
-                                    <ChevronRightIcon
-                                      className={cn(
-                                        'size-3.5 shrink-0 text-text-tertiary transition-transform duration-100 ease-out',
-                                        !headerCollapsed && 'rotate-90',
-                                      )}
-                                      aria-hidden
-                                    />
-                                    <>
-                                      {/* 2026-06-09 (Yuqi /deadlines production
-                                          recreation): band header reads "● OVERDUE
-                                          N DEADLINES" with a tone dot, and a
-                                          right-aligned "≈Xd avg · N of TOTAL" meta. */}
+                                    <span className="flex w-10 shrink-0 items-center justify-center">
+                                      <ChevronRightIcon
+                                        className={cn(
+                                          'size-3.5 shrink-0 text-text-tertiary transition-transform duration-100 ease-out',
+                                          !headerCollapsed && 'rotate-90',
+                                        )}
+                                        aria-hidden
+                                      />
+                                    </span>
+                                    {/* 2026-06-09 (Yuqi page feedback #3 "are the
+                                        styles used anywhere else?"): the "N late"
+                                        signal was a filled destructive Badge —
+                                        the same red-pill style as the Payment-late
+                                        chip in the rows below, so the band read as
+                                        yet another red badge. It's now plain
+                                        destructive-tinted text in the count
+                                        cluster, and the right-aligned "≈Xd avg ·
+                                        N of TOTAL" meta is dropped (the avg was
+                                        derived noise; "N of TOTAL" duplicated the
+                                        count already shown). */}
+                                    <span className="flex min-w-0 items-center gap-2">
                                       <span
                                         className={cn(
                                           'size-1.5 shrink-0 rounded-full',
@@ -4980,9 +5058,8 @@ export function ObligationQueueRoute() {
                                         />
                                       </span>
                                       {(groupHeader.lateCount ?? 0) > 0 ? (
-                                        <Badge
-                                          variant="destructive"
-                                          className="h-5 px-1.5 text-caption-xs"
+                                        <span
+                                          className="text-xs tracking-wide text-text-destructive uppercase tabular-nums"
                                           title={
                                             groupHeader.kind === 'client'
                                               ? t`${groupHeader.lateCount ?? 0} of this client's deadlines are past the internal target`
@@ -4991,23 +5068,15 @@ export function ObligationQueueRoute() {
                                                 : t`${groupHeader.lateCount ?? 0} of this filing type's deadlines are past the internal target`
                                           }
                                         >
+                                          <span aria-hidden>· </span>
                                           <Plural
                                             value={groupHeader.lateCount ?? 0}
                                             one="# late"
                                             other="# late"
                                           />
-                                        </Badge>
+                                        </span>
                                       ) : null}
-                                      <span className="ml-auto text-caption-xs tracking-wide text-text-tertiary uppercase tabular-nums">
-                                        {groupHeader.avgAbsDays && groupHeader.avgAbsDays > 0 ? (
-                                          <>
-                                            ≈{groupHeader.avgAbsDays}d avg
-                                            <span aria-hidden> · </span>
-                                          </>
-                                        ) : null}
-                                        {groupHeader.count} of {scopeTotal} deadlines
-                                      </span>
-                                    </>
+                                    </span>
                                   </button>
                                 </TableCell>
                               </TableRow>
@@ -5744,8 +5813,16 @@ function ObligationQueueSortableHeader({
           // sortable and non-sortable headers indistinguishable in
           // weight.
           'text-sm font-medium normal-case tracking-normal',
-          'text-text-secondary hover:text-text-primary',
-          'data-[active=true]:text-text-primary',
+          // 2026-06-09 (Yuqi page feedback #2 "why is this different colour
+          // to others?"): the sortable header sat at text-secondary and
+          // jumped to near-black text-primary when active, so the sorted
+          // column ("Internal due") read as a different, darker colour than
+          // every plain header (which sit at text-tertiary). Now the
+          // sortable label matches the plain-header tertiary at rest and
+          // only nudges one tier to text-secondary on hover/active — the
+          // accent-coloured sort chevron is the real "this column is sorted"
+          // signal, so the label no longer needs to shout.
+          'text-text-tertiary hover:text-text-secondary',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         )}
       >
@@ -6032,14 +6109,14 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
         // entirely. The tinted text color already carries the
         // urgency signal (text-text-destructive for late, etc.);
         // the dot was redundant noise next to the date.
-        // 2026-06-09 (Yuqi /deadlines production recreation): overdue rows
-        // lead with a small flame glyph so the "N days late" cluster reads
-        // as active urgency at scan distance (matches the Pencil mock).
+        // 2026-06-09 (Yuqi page feedback #9 "remove all of the fire icon"):
+        // the leading flame glyph is gone. The tinted red text already
+        // carries the late-urgency signal; the flame was a second redundant
+        // marker on the same axis and added to the row's red overload.
         'inline-flex items-center gap-1 text-sm tabular-nums leading-tight',
         tintedTextClass,
       )}
     >
-      {isLate ? <FlameIcon className="size-3 shrink-0" aria-hidden /> : null}
       {days === 0 ? (
         <Trans>Today</Trans>
       ) : isLate ? (
