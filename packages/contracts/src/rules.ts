@@ -680,7 +680,7 @@ export const RuleBulkImpactPreviewSchema = z.object({
 })
 export type RuleBulkImpactPreview = z.infer<typeof RuleBulkImpactPreviewSchema>
 
-export const TemporaryRuleStatusSchema = z.enum(['active', 'reverted', 'retracted'])
+export const TemporaryRuleStatusSchema = z.enum(['active', 'reverted', 'retracted', 'expired'])
 export type TemporaryRuleStatus = z.infer<typeof TemporaryRuleStatusSchema>
 
 export const TemporaryRuleSchema = z.object({

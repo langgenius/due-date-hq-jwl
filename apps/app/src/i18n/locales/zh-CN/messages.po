@@ -6561,6 +6561,7 @@ msgstr "预计退款"
 
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/members/members-page.tsx
+#: src/features/rules/temporary-rules-tab.tsx
 msgid "Expired"
 msgstr "已过期"
 

@@ -1854,7 +1854,11 @@ export function makePulseRepo(db: Db, firmId: string) {
         },
         overrideDueDate: newDueDate,
         effectiveFrom: alert.parsedEffectiveFrom,
-        effectiveUntil: null,
+        // Persist the source's relief-window end so the rule library can mark
+        // this temporary rule "expired" once the window closes. Display metadata
+        // only — the per-obligation override stays applied (the due-date change
+        // is a permanent fact for that tax year, never auto-reverted).
+        effectiveUntil: alert.parsedEffectiveUntil,
         status: 'applied',
         sourceUrl: alert.sourceUrl,
         verbatimQuote: alert.verbatimQuote,

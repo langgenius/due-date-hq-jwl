@@ -7,6 +7,7 @@ import type {
   RuleSourceTemplateInput,
   RuleTemplateInput,
   TemporaryRuleRow,
+  TemporaryRuleRowStatus,
 } from '@duedatehq/ports/rules'
 import type { Db } from '../client'
 import { firmProfile } from '../schema/firm'
@@ -25,6 +26,33 @@ import {
   type RuleReviewDecision,
   type RuleReviewDecisionStatus,
 } from '../schema/rules'
+import { toDateOnly } from './pulse/shared'
+
+/**
+ * A temporary rule is "expired" when its relief window has closed but its
+ * override is still applied — a NON-destructive, read-time annotation. The
+ * applied override is never reverted (the due-date change is a permanent fact
+ * for that tax year); `expired` only re-labels an otherwise-`active` rule so the
+ * library can separate lapsed reliefs from live ones.
+ *
+ * Boundary = coalesce(effectiveUntil, overrideDueDate): prefer the source's
+ * stated relief-window end, falling back to the (postponed) due date the rule
+ * set — always present for a due-date extension — so a rule still expires even
+ * when the source never stated an explicit window. Compared date-only (UTC, to
+ * match the contract's date serialization): expired strictly AFTER the boundary
+ * day, so the boundary date itself still reads active.
+ */
+export function isTemporaryRuleExpired(
+  baseStatus: TemporaryRuleRowStatus,
+  effectiveUntil: Date | null,
+  overrideDueDate: Date | null,
+  now: Date,
+): boolean {
+  if (baseStatus !== 'active') return false
+  const boundary = effectiveUntil ?? overrideDueDate
+  if (!boundary) return false
+  return toDateOnly(boundary) < toDateOnly(now)
+}
 
 const D1_BATCH_CHUNK_SIZE = 50
 
@@ -332,7 +360,7 @@ export function makeRulesRepo(db: Db, firmId: string) {
       return this.listDecisions('verified')
     },
 
-    async listTemporaryRules(): Promise<TemporaryRuleRow[]> {
+    async listTemporaryRules(now: Date = new Date()): Promise<TemporaryRuleRow[]> {
       const rows = await db
         .select({
           id: exceptionRule.id,
@@ -449,7 +477,16 @@ export function makeRulesRepo(db: Db, firmId: string) {
       }
 
       return Array.from(byRule.values())
-        .map(({ clientNames: _clientNames, taxTypes: _taxTypes, ...row }) => row)
+        .map(({ clientNames: _clientNames, taxTypes: _taxTypes, ...row }) => {
+          // Read-time, non-destructive: re-label a still-applied rule as
+          // `expired` once its relief window has passed. Mutating the freshly
+          // destructured `row` (a new object, not the stored value) leaves the
+          // override and the obligation's due date untouched.
+          if (isTemporaryRuleExpired(row.status, row.effectiveUntil, row.overrideDueDate, now)) {
+            row.status = 'expired'
+          }
+          return row
+        })
         .toSorted((a, b) => b.lastActivityAt.getTime() - a.lastActivityAt.getTime())
     },
 

@@ -6517,6 +6517,7 @@ msgstr "Expected refund"
 
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/members/members-page.tsx
+#: src/features/rules/temporary-rules-tab.tsx
 msgid "Expired"
 msgstr "Expired"
 

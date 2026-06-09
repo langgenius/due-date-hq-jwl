@@ -50,6 +50,7 @@ export function TemporaryRulesTab() {
       { value: 'active' as const, label: t`Active`, count: counts.active },
       { value: 'reverted' as const, label: t`Reverted`, count: counts.reverted },
       { value: 'retracted' as const, label: t`Retracted`, count: counts.retracted },
+      { value: 'expired' as const, label: t`Expired`, count: counts.expired },
     ],
     [counts, t],
   )
@@ -203,8 +204,16 @@ function TemporaryRuleStatusBadge({ status }: { status: TemporaryRule['status'] 
     active: t`Active`,
     reverted: t`Reverted`,
     retracted: t`Retracted`,
+    expired: t`Expired`,
   }[status]
-  const tone = status === 'active' ? 'success' : status === 'reverted' ? 'disabled' : 'error'
+  const tone =
+    status === 'active'
+      ? 'success'
+      : status === 'expired'
+        ? 'warning'
+        : status === 'reverted'
+          ? 'disabled'
+          : 'error'
   return (
     <Badge variant="outline" className="h-[22px] rounded-full px-2 text-xs">
       <BadgeStatusDot tone={tone} className="size-1.5" />
@@ -219,6 +228,7 @@ function countByStatus(rules: readonly TemporaryRule[]): Record<TemporaryRuleFil
     active: rules.filter((rule) => rule.status === 'active').length,
     reverted: rules.filter((rule) => rule.status === 'reverted').length,
     retracted: rules.filter((rule) => rule.status === 'retracted').length,
+    expired: rules.filter((rule) => rule.status === 'expired').length,
   }
 }
 

@@ -113,7 +113,7 @@ export interface PracticeRuleReviewTaskDecisionInput {
   reviewedAt?: Date
 }
 
-export type TemporaryRuleRowStatus = 'active' | 'reverted' | 'retracted'
+export type TemporaryRuleRowStatus = 'active' | 'reverted' | 'retracted' | 'expired'
 
 export interface TemporaryRuleRow {
   id: string
@@ -156,7 +156,7 @@ export interface RulesRepo {
   decideReviewTask(input: PracticeRuleReviewTaskDecisionInput): Promise<PracticeRuleReviewTaskRow>
   listDecisions(status?: RuleReviewDecisionStatus): Promise<RuleReviewDecisionRow[]>
   listVerified(): Promise<RuleReviewDecisionRow[]>
-  listTemporaryRules(): Promise<TemporaryRuleRow[]>
+  listTemporaryRules(now?: Date): Promise<TemporaryRuleRow[]>
   getDecision(ruleId: string): Promise<RuleReviewDecisionRow | null>
   upsertDecision(input: RuleReviewDecisionInput): Promise<RuleReviewDecisionRow>
   // Rules (from the given set) that carry an uncleared source-drift signal —
