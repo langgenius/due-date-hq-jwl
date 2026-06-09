@@ -853,5 +853,8 @@ describe('@duedatehq/ai', () => {
     expect(result.result).toBeNull()
     expect(result.refusal?.code).toBe('AI_GATEWAY_ERROR')
     expect(result.trace.refusalCode).toBe('AI_GATEWAY_ERROR')
+    // Gateway/transport/credit failures bucket as 'ai_unavailable', not 'schema_fail' —
+    // so an exhausted-credit outage stays diagnosable instead of looking like bad model output.
+    expect(result.trace.guardResult).toBe('ai_unavailable')
   })
 })

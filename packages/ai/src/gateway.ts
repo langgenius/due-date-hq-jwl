@@ -8,6 +8,15 @@ import { computeCostUsd } from './pricing'
 /** JSON-compatible value matching the AI SDK provider-options value type (no cast needed at the call site). */
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
 
+/**
+ * Default completion-token ceiling. 16k comfortably fits high-effort reasoning
+ * plus the bounded JSON output of our structured tasks, while cutting the
+ * OpenRouter credit reservation ~4x versus the model's 65536 default (and
+ * capping a single runaway generation). Bump per-request via
+ * GatewayRequest.maxOutputTokens if a task legitimately truncates.
+ */
+const DEFAULT_MAX_OUTPUT_TOKENS = 16384
+
 export interface GatewayRequest<TOut> {
   accountId: string
   slug: string
@@ -19,6 +28,15 @@ export interface GatewayRequest<TOut> {
   input: unknown
   schema: z.ZodType<TOut>
   timeoutMs?: number
+  /**
+   * Cap on completion tokens (reasoning + visible output). Defaults to
+   * DEFAULT_MAX_OUTPUT_TOKENS. Left unset, the provider reserves the model's max
+   * (65536 for gemini-3.5-flash), and OpenRouter's pre-flight requires the
+   * account to afford that ceiling up front — so a low balance rejects every
+   * request with "requires more credits, or fewer max_tokens". Capping shrinks
+   * the reservation and bounds worst-case per-call spend.
+   */
+  maxOutputTokens?: number
   /** Provider-namespaced options forwarded to generateText, e.g. { openrouter: { reasoning: { effort } } }. */
   providerOptions?: Record<string, Record<string, JsonValue>>
 }
@@ -87,6 +105,7 @@ export async function callGateway<TOut>(
       prompt: JSON.stringify(request.input),
       output: Output.object({ schema: request.schema }),
       temperature: 0,
+      maxOutputTokens: request.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
       ...(controller ? { abortSignal: controller.signal } : {}),
       // Provider-namespaced opts (e.g. OpenRouter reasoning.effort). The AI SDK forwards these to
       // the model's doGenerate; ai-gateway-provider passes them through unchanged.

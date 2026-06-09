@@ -282,7 +282,11 @@ export function createAI(env: AiEnv = {}) {
           promptVersion: name,
           model: selectedModel ?? prompt.modelTier,
           latencyMs: Date.now() - startedAt,
-          guardResult: 'schema_fail',
+          // Gateway/transport/credit failures are not schema mismatches — keep them
+          // in their own bucket so a provider outage or exhausted OpenRouter balance
+          // (which rejects every request at pre-flight) is diagnosable, not masked
+          // as 'schema_fail'. The actual error text rides along in the refusal message.
+          guardResult: 'ai_unavailable',
           inputHash,
           refusalCode: 'AI_GATEWAY_ERROR',
         }),
