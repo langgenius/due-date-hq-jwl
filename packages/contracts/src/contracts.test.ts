@@ -1219,6 +1219,8 @@ describe('@duedatehq/contracts', () => {
       'revert',
       'reactivate',
       'requestReview',
+      'listAlertNotes',
+      'addAlertNote',
       'catchUpStillOpenWindows',
       'morningSweepSummary',
     ])
