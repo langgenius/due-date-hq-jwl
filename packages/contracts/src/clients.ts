@@ -479,6 +479,15 @@ export const clientsContract = oc.router({
     .input(ClientBulkAssigneeUpdateInputSchema)
     .output(ClientBulkAssigneeUpdateOutputSchema),
   delete: oc.input(ClientDeleteInputSchema).output(ClientDeleteOutputSchema),
+  // Plan client-meter usage for the current firm: active client count + the
+  // plan's clientLimit (null = unlimited). Backs the billing-page usage meter
+  // and true-up nudge.
+  usage: oc.input(z.object({}).optional()).output(
+    z.object({
+      activeClients: z.number().int().min(0),
+      clientLimit: z.number().int().min(0).nullable(),
+    }),
+  ),
 })
 
 export type ClientIdentity = z.infer<typeof ClientIdentitySchema>

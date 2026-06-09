@@ -1402,6 +1402,10 @@ msgstr "1 practice workspace"
 msgid "1 production practice"
 msgstr "1 production practice"
 
+#: src/routes/billing.tsx
+msgid "1 seat"
+msgstr "1 seat"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "10 seats included"
@@ -1436,6 +1440,10 @@ msgstr "3 seats included"
 #: src/features/reminders/reminders-page.tsx
 msgid "30 / 7 days and overdue"
 msgstr "30 / 7 days and overdue"
+
+#: src/routes/billing.tsx
+msgid "30-day alert history"
+msgstr "30-day alert history"
 
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "4 min"
@@ -2193,6 +2201,10 @@ msgstr "Alert source revoked"
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert status"
 msgstr "Alert status"
+
+#: src/routes/billing.tsx
+msgid "Alert summaries and lightweight assistance on your starter book."
+msgstr "Alert summaries and lightweight assistance on your starter book."
 
 #. placeholder {0}: alert.title
 #: src/features/alerts/AlertHistoryView.tsx
@@ -4009,6 +4021,7 @@ msgstr "clients"
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/migration/Step4Preview.tsx
 #: src/features/rules/generation-preview-tab.tsx
+#: src/routes/billing.tsx
 #: src/routes/clients.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
@@ -4428,6 +4441,10 @@ msgstr "Copy URI"
 #: src/routes/obligations.tsx
 msgid "Copy URL"
 msgstr "Copy URL"
+
+#: src/routes/billing.tsx
+msgid "Core AI access"
+msgstr "Core AI access"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -6804,6 +6821,10 @@ msgstr "Failed fetches"
 msgid "Failed last 7 days"
 msgstr "Failed last 7 days"
 
+#: src/routes/billing.tsx
+msgid "Fair-use AI"
+msgstr "Fair-use AI"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Fallback document list ready"
@@ -7353,6 +7374,10 @@ msgstr "Full name"
 msgid "Full practice AI workflows"
 msgstr "Full practice AI workflows"
 
+#: src/routes/billing.tsx
+msgid "Full Pulse alerts and rule library on a starter book — feel the core value before you scale."
+msgstr "Full Pulse alerts and rule library on a starter book — feel the core value before you scale."
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Future edits to facts, risk profile, or deletion will appear here."
 msgstr "Future edits to facts, risk profile, or deletion will appear here."
@@ -7407,6 +7432,10 @@ msgstr "Generating deadlines…"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Generating…"
 msgstr "Generating…"
+
+#: src/routes/billing.tsx
+msgid "Get started"
+msgstr "Get started"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Global search · {commandShortcut}"
@@ -10818,6 +10847,10 @@ msgstr "outstanding"
 msgid "Outstanding"
 msgstr "Outstanding"
 
+#: src/routes/billing.tsx
+msgid "Over your client limit"
+msgstr "Over your client limit"
+
 #: src/features/notifications/notifications-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -11828,6 +11861,10 @@ msgstr "Publication"
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Published"
 msgstr "Published"
+
+#: src/routes/billing.tsx
+msgid "Pulse alerts + rule library"
+msgstr "Pulse alerts + rule library"
 
 #: src/routes/settings.permissions.tsx
 msgid "Pulse alerts, reminders, calendar sync"
@@ -14424,6 +14461,10 @@ msgstr "Source-backed evidence"
 msgid "Source-backed previews and lightweight migration help for one owner."
 msgstr "Source-backed previews and lightweight migration help for one owner."
 
+#: src/routes/billing.tsx
+msgid "Source-backed summaries"
+msgstr "Source-backed summaries"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-changed rules are skipped from bulk accept. Review them one by one."
 msgstr "Source-changed rules are skipped from bulk accept. Review them one by one."
@@ -15427,6 +15468,10 @@ msgstr "This page will keep checking. You can also return to Billing and refresh
 msgid "This practice already has the selected plan."
 msgstr "This practice already has the selected plan."
 
+#: src/routes/billing.tsx
+msgid "This practice monitors more clients than the plan includes. Existing clients keep full monitoring — upgrade to add more."
+msgstr "This practice monitors more clients than the plan includes. Existing clients keep full monitoring — upgrade to add more."
+
 #: src/routes/readiness.tsx
 msgid "This readiness link is expired, revoked, or invalid."
 msgstr "This readiness link is expired, revoked, or invalid."
@@ -15879,6 +15924,10 @@ msgstr "Unknown browser"
 msgid "Unknown reviewer"
 msgstr "Unknown reviewer"
 
+#: src/routes/billing.tsx
+msgid "Unlimited clients"
+msgstr "Unlimited clients"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Unmapped"
 msgstr "Unmapped"
@@ -15895,6 +15944,22 @@ msgstr "Unsaved changes · {reorderCount} deadlines will reorder"
 #: src/routes/practice.tsx
 msgid "Unsaved changes · calculate a preview to see the impact"
 msgstr "Unsaved changes · calculate a preview to see the impact"
+
+#: src/routes/billing.tsx
+msgid "Up to 1,000 clients"
+msgstr "Up to 1,000 clients"
+
+#: src/routes/billing.tsx
+msgid "Up to 10 clients"
+msgstr "Up to 10 clients"
+
+#: src/routes/billing.tsx
+msgid "Up to 100 clients"
+msgstr "Up to 100 clients"
+
+#: src/routes/billing.tsx
+msgid "Up to 300 clients"
+msgstr "Up to 300 clients"
 
 #: src/features/dashboard/severity-section.tsx
 #: src/features/reminders/reminders-page.tsx

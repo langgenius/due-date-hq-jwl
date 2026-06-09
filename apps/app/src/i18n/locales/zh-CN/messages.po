@@ -1419,6 +1419,10 @@ msgstr "1 个事务所工作区"
 msgid "1 production practice"
 msgstr "1 个生产事务所"
 
+#: src/routes/billing.tsx
+msgid "1 seat"
+msgstr "1 个席位"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "10 seats included"
@@ -1453,6 +1457,10 @@ msgstr "包含 3 个席位"
 #: src/features/reminders/reminders-page.tsx
 msgid "30 / 7 days and overdue"
 msgstr "30 / 7 天和逾期"
+
+#: src/routes/billing.tsx
+msgid "30-day alert history"
+msgstr "30 天告警历史"
 
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "4 min"
@@ -2217,6 +2225,10 @@ msgstr "提醒来源已撤销"
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert status"
 msgstr "提醒状态"
+
+#: src/routes/billing.tsx
+msgid "Alert summaries and lightweight assistance on your starter book."
+msgstr "对你起步客户册的告警摘要与轻量协助。"
 
 #. placeholder {0}: alert.title
 #: src/features/alerts/AlertHistoryView.tsx
@@ -4041,6 +4053,7 @@ msgstr "客户"
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/migration/Step4Preview.tsx
 #: src/features/rules/generation-preview-tab.tsx
+#: src/routes/billing.tsx
 #: src/routes/clients.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
@@ -4464,6 +4477,10 @@ msgstr "复制 URI"
 #: src/routes/obligations.tsx
 msgid "Copy URL"
 msgstr "复制 URL"
+
+#: src/routes/billing.tsx
+msgid "Core AI access"
+msgstr "核心 AI 功能"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -6848,6 +6865,10 @@ msgstr "抓取失败"
 msgid "Failed last 7 days"
 msgstr "过去 7 天失败"
 
+#: src/routes/billing.tsx
+msgid "Fair-use AI"
+msgstr "公平使用 AI"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Fallback document list ready"
@@ -7401,6 +7422,10 @@ msgstr "全名"
 msgid "Full practice AI workflows"
 msgstr "完整事务所 AI 工作流"
 
+#: src/routes/billing.tsx
+msgid "Full Pulse alerts and rule library on a starter book — feel the core value before you scale."
+msgstr "起步客户册即享完整 Pulse 告警与规则库——先体验核心价值,再扩张。"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Future edits to facts, risk profile, or deletion will appear here."
 msgstr "后续对事实、风险档案的编辑或删除操作将在此显示。"
@@ -7456,6 +7481,10 @@ msgstr "正在生成截止事项…"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Generating…"
 msgstr "正在生成…"
+
+#: src/routes/billing.tsx
+msgid "Get started"
+msgstr "开始使用"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Global search · {commandShortcut}"
@@ -10891,6 +10920,10 @@ msgstr "待补充"
 msgid "Outstanding"
 msgstr "未交"
 
+#: src/routes/billing.tsx
+msgid "Over your client limit"
+msgstr "已超出客户数上限"
+
 #: src/features/notifications/notifications-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -11916,6 +11949,10 @@ msgstr "出版物"
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Published"
 msgstr "发布日期"
+
+#: src/routes/billing.tsx
+msgid "Pulse alerts + rule library"
+msgstr "Pulse 告警 + 规则库"
 
 #: src/routes/settings.permissions.tsx
 msgid "Pulse alerts, reminders, calendar sync"
@@ -14524,6 +14561,10 @@ msgstr "带来源的证据"
 msgid "Source-backed previews and lightweight migration help for one owner."
 msgstr "带来源的预览，以及适合单个负责人的轻量迁移辅助。"
 
+#: src/routes/billing.tsx
+msgid "Source-backed summaries"
+msgstr "有来源支撑的摘要"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-changed rules are skipped from bulk accept. Review them one by one."
 msgstr "来源变更的规则已从批量接受中跳过。请逐条审核。"
@@ -15530,6 +15571,10 @@ msgstr "此页面会继续检查。你也可以返回账单页稍后刷新。"
 msgid "This practice already has the selected plan."
 msgstr "此事务所已经是所选计划。"
 
+#: src/routes/billing.tsx
+msgid "This practice monitors more clients than the plan includes. Existing clients keep full monitoring — upgrade to add more."
+msgstr "本所监控的客户数已超过当前套餐包含的数量。已有客户仍保持完整监控——升级即可新增更多。"
+
 #: src/routes/readiness.tsx
 msgid "This readiness link is expired, revoked, or invalid."
 msgstr "此准备状态链接已过期、已撤销或无效。"
@@ -15985,6 +16030,10 @@ msgstr "未知浏览器"
 msgid "Unknown reviewer"
 msgstr "未知复核人"
 
+#: src/routes/billing.tsx
+msgid "Unlimited clients"
+msgstr "客户数不限"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Unmapped"
 msgstr "Unmapped"
@@ -16001,6 +16050,22 @@ msgstr "未保存的更改 · {reorderCount} 个截止日期将重新排序"
 #: src/routes/practice.tsx
 msgid "Unsaved changes · calculate a preview to see the impact"
 msgstr "未保存的更改 · 计算预览以查看影响"
+
+#: src/routes/billing.tsx
+msgid "Up to 1,000 clients"
+msgstr "最多 1,000 个客户"
+
+#: src/routes/billing.tsx
+msgid "Up to 10 clients"
+msgstr "最多 10 个客户"
+
+#: src/routes/billing.tsx
+msgid "Up to 100 clients"
+msgstr "最多 100 个客户"
+
+#: src/routes/billing.tsx
+msgid "Up to 300 clients"
+msgstr "最多 300 个客户"
 
 #: src/features/dashboard/severity-section.tsx
 #: src/features/reminders/reminders-page.tsx

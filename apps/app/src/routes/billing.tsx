@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { useState, type ComponentProps, type ReactNode } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   AlertCircleIcon,
@@ -29,6 +29,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { createBillingPortal } from '@/features/billing/api'
+import { orpc } from '@/lib/rpc'
 import { formatDate, formatDollarPrice } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import {
@@ -58,6 +59,7 @@ type PlanCard = {
   savings: string | undefined
   seats: string
   firms: string
+  clients: string
   aiLabel: string
   aiDescription: string
   aiFeatures: string[]
@@ -80,6 +82,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
 
   function savings(plan: BillingPlan): string | undefined {
     if (monthly) return undefined
+    if (plan === 'free') return undefined
     if (plan === 'solo') return t`Save $96/year`
     if (plan === 'pro') return t`Save $192/year`
     if (plan === 'team') return t`Save $360/year`
@@ -87,6 +90,28 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
   }
 
   return [
+    {
+      id: 'free',
+      name: t`Free`,
+      price: price('free'),
+      priceSuffix: t`/ mo`,
+      cadence,
+      savings: savings('free'),
+      seats: t`1 seat`,
+      firms: t`1 practice workspace`,
+      clients: t`Up to 10 clients`,
+      aiLabel: t`Core AI access`,
+      aiDescription: t`Alert summaries and lightweight assistance on your starter book.`,
+      aiFeatures: [t`Source-backed summaries`, t`Fair-use AI`],
+      description: t`Full Pulse alerts and rule library on a starter book — feel the core value before you scale.`,
+      features: [
+        t`Up to 10 clients`,
+        t`Pulse alerts + rule library`,
+        t`30-day alert history`,
+        t`1 seat`,
+      ],
+      cta: t`Get started`,
+    },
     {
       id: 'solo',
       name: t`Solo`,
@@ -96,6 +121,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       savings: savings('solo'),
       seats: t`1 owner seat`,
       firms: t`1 practice workspace`,
+      clients: t`Up to 100 clients`,
       aiLabel: t`Basic AI`,
       aiDescription: t`Source-backed previews and lightweight migration help for one owner.`,
       aiFeatures: [t`Preview-only AI assistance`, t`Source-constrained summaries`],
@@ -118,6 +144,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       savings: savings('pro'),
       seats: t`3 seats included`,
       firms: t`1 production practice`,
+      clients: t`Up to 300 clients`,
       aiLabel: t`Practice AI included`,
       aiDescription: t`Today briefs, Alert summaries, client risk summaries, and guided import AI for live client data.`,
       aiFeatures: [t`Full practice AI workflows`, t`Same AI capability as Team`],
@@ -141,6 +168,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       savings: savings('team'),
       seats: t`10 seats included`,
       firms: t`1 production practice`,
+      clients: t`Up to 1,000 clients`,
       aiLabel: t`Same Practice AI as Pro`,
       aiDescription: t`The same practice AI functionality as Pro, paired with team-scale management and review workflows.`,
       aiFeatures: [t`Same AI capability as Pro`, t`Team-scale fair-use protection`],
@@ -164,6 +192,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       savings: savings('firm'),
       seats: t`10+ seats`,
       firms: t`Multiple practices/offices`,
+      clients: t`Unlimited clients`,
       aiLabel: t`Custom AI and coverage by contract`,
       aiDescription: t`Contract-level model routing, custom coverage, and audit-grade AI controls.`,
       aiFeatures: [t`Custom AI routing`, t`Contract coverage and audit controls`],
@@ -229,6 +258,17 @@ export function BillingRoute() {
             : t`Free`
     : '—'
   const seatLimit = currentFirm ? t`${currentFirm.seatLimit} seat limit` : '—'
+  const clientUsageQuery = useQuery(orpc.clients.usage.queryOptions({ input: {} }))
+  const clientUsage = clientUsageQuery.data
+  const clientUsageValue = clientUsage
+    ? clientUsage.clientLimit === null
+      ? `${clientUsage.activeClients} / ∞`
+      : `${clientUsage.activeClients} / ${clientUsage.clientLimit}`
+    : '—'
+  const clientOverLimit =
+    !!clientUsage &&
+    clientUsage.clientLimit !== null &&
+    clientUsage.activeClients > clientUsage.clientLimit
   const subscriptionStatus = activeSubscription?.status ?? t`No paid subscription`
   // B21: surface trial / pending-cancellation / renewal context — these
   // fields are on the subscription but were never shown.
@@ -404,6 +444,11 @@ export function BillingRoute() {
                     name={`Seat limit: ${currentFirm?.seatLimit ?? 'none'}`}
                   />
                   <Metric
+                    label={<Trans>Clients</Trans>}
+                    value={clientUsageValue}
+                    name={`Clients: ${clientUsageValue}`}
+                  />
+                  <Metric
                     label={<Trans>Practice workspaces</Trans>}
                     value={activeFirmUsage}
                     name={`Practice workspaces: ${activeFirmCount} of ${activeFirmLimitLabel}`}
@@ -426,6 +471,20 @@ export function BillingRoute() {
                     name={`Billing role: ${owner ? 'owner' : 'member'}`}
                   />
                 </div>
+                {clientOverLimit ? (
+                  <Alert>
+                    <AlertCircleIcon />
+                    <AlertTitle>
+                      <Trans>Over your client limit</Trans>
+                    </AlertTitle>
+                    <AlertDescription>
+                      <Trans>
+                        This practice monitors more clients than the plan includes. Existing clients
+                        keep full monitoring — upgrade to add more.
+                      </Trans>
+                    </AlertDescription>
+                  </Alert>
+                ) : null}
               </>
             )}
           </CardContent>
@@ -512,7 +571,7 @@ export function BillingRoute() {
           <BillingIntervalToggle value={billingInterval} onChange={setBillingInterval} />
         </header>
 
-        <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4">
           {planCards.map((plan) => (
             <PlanOption
               key={plan.id}
@@ -754,6 +813,7 @@ function PlanOption({
               ) : null}
             </div>
             <div className="grid gap-1.5">
+              <span className="font-medium text-text-primary">{plan.clients}</span>
               <span>{plan.firms}</span>
               <span className="inline-flex min-w-0 items-center gap-2">
                 <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-divider-deep" />

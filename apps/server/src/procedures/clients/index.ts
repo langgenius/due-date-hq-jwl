@@ -1203,10 +1203,19 @@ const deleteClient = os.clients.delete.handler(async ({ input, context }) => {
   return { deleted: true as const, auditId }
 })
 
+const usage = os.clients.usage.handler(async ({ context }) => {
+  const { scoped, tenant } = requireTenant(context)
+  return {
+    activeClients: await scoped.clients.countActiveClients(),
+    clientLimit: planClientLimit(tenant.plan),
+  }
+})
+
 export const clientsHandlers = {
   create,
   createBatch,
   get,
+  usage,
   listByFirm,
   updateJurisdiction,
   updateTaxYearProfile,
