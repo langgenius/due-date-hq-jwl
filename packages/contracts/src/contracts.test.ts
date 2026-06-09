@@ -1619,6 +1619,8 @@ describe('@duedatehq/contracts', () => {
       'listReviewDecisions',
       'acceptTemplate',
       'bulkAcceptTemplates',
+      'diffAgainstPredecessor',
+      'bulkAcceptCarryforward',
       'activateOnboardingJurisdictions',
       'rejectTemplate',
       'createCustomRule',
