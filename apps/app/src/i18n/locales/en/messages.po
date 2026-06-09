@@ -188,6 +188,11 @@ msgstr "{0, plural, one {# event} other {# events}}"
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# handled} other {# handled}}"
 
+#. placeholder {0}: notes.length
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "{0, plural, one {# internal} other {# internal}}"
+msgstr "{0, plural, one {# internal} other {# internal}}"
+
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# jurisdiction} other {# jurisdictions}}"
@@ -1823,6 +1828,10 @@ msgstr "Add an active owner or partner before sending an input request."
 msgid "Add an email address for this client to send signature reminders."
 msgstr "Add an email address for this client to send signature reminders."
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Add an internal note for your team…"
+msgstr "Add an internal note for your team…"
+
 #: src/routes/obligations.tsx
 msgid "Add an optional memo to record why on the audit trail."
 msgstr "Add an optional memo to record why on the audit trail."
@@ -1863,6 +1872,10 @@ msgstr "Add item manually"
 #: src/routes/rules.library.tsx
 msgid "Add new rule"
 msgstr "Add new rule"
+
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Add note"
+msgstr "Add note"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Add notes"
@@ -2096,10 +2109,6 @@ msgstr "AI-assisted (user applied)"
 msgid "AI-generated summary"
 msgstr "AI-generated summary"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-#~ msgid "AI-read from the alert"
-#~ msgstr "AI-read from the alert"
-
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/notifications/notifications-page.tsx
@@ -2130,10 +2139,6 @@ msgstr "Alert detail"
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert dismissed"
 msgstr "Alert dismissed"
-
-#: src/features/alerts/components/AlertListRail.tsx
-msgid "Alert filter"
-msgstr "Alert filter"
 
 #: src/routes/alerts.history.tsx
 #: src/routes/alerts.tsx
@@ -2242,7 +2247,6 @@ msgstr "all"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertHistoryView.tsx
-#: src/features/alerts/components/AlertListRail.tsx
 #: src/features/rules/sources-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
@@ -2380,7 +2384,6 @@ msgstr "All systems operational"
 msgid "All tax areas"
 msgstr "All tax areas"
 
-#: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 msgid "All time"
 msgstr "All time"
@@ -2488,6 +2491,10 @@ msgstr "Any"
 #: src/features/calendar/calendar-page.tsx
 msgid "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
 msgstr "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Any time"
+msgstr "Any time"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -2820,7 +2827,6 @@ msgstr "Audit ledger: every change is logged"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.permissions.tsx
 msgid "Audit log"
@@ -2845,10 +2851,6 @@ msgstr "Audit timeline"
 #: src/features/concepts/concept-help.tsx
 msgid "Audit trail"
 msgstr "Audit trail"
-
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Audit trail for client, rule, status, and team changes."
-msgstr "Audit trail for client, rule, status, and team changes."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Audit-safe: relief is automatic for {scopeArea} addresses — no opt-in form needed."
@@ -4149,10 +4151,6 @@ msgstr "Complete the deadline details before applying this alert."
 msgid "Completed"
 msgstr "Completed"
 
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Compliance"
-msgstr "Compliance"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Compliance posture"
@@ -4170,10 +4168,6 @@ msgstr "conf {0}%"
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "conf {confidencePct}%"
 msgstr "conf {confidencePct}%"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-#~ msgid "conf {confPct}%"
-#~ msgstr "conf {confPct}%"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/migration/Step2Mapping.tsx
@@ -4479,6 +4473,10 @@ msgstr "Couldn't add deadline"
 #: src/routes/obligations.tsx
 msgid "Couldn't add document item"
 msgstr "Couldn't add document item"
+
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Couldn't add note"
+msgstr "Couldn't add note"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't apply alert"
@@ -5424,6 +5422,10 @@ msgstr "Deadline Tip"
 msgid "Deadline tip refresh started"
 msgstr "Deadline tip refresh started"
 
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Deadline types"
+msgstr "Deadline types"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadline unblocked"
 msgstr "Deadline unblocked"
@@ -5911,10 +5913,6 @@ msgstr "Due {0}"
 msgid "Due date"
 msgstr "Due date"
 
-#: src/features/alerts/components/AffectedClientsTable.tsx
-#~ msgid "Due date change"
-#~ msgstr "Due date change"
-
 #: src/features/rules/sources-tab.tsx
 msgid "Due dates"
 msgstr "Due dates"
@@ -6362,6 +6360,11 @@ msgstr "Estate"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "estimate · not yet reconciled"
 msgstr "estimate · not yet reconciled"
+
+#. placeholder {0}: formatDeadlineDate(oldIso)
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Estimated payments due {0} are also postponed — no penalties accrue."
+msgstr "Estimated payments due {0} are also postponed — no penalties accrue."
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Estimated tax credit"
@@ -6932,6 +6935,7 @@ msgstr "files"
 msgid "Files"
 msgstr "Files"
 
+#: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/audit/audit-log-table.tsx
 #: src/routes/obligations.tsx
 msgid "Filing"
@@ -7035,10 +7039,6 @@ msgstr "Filter by scope"
 #: src/features/alerts/components/StateTilegram.tsx
 msgid "Filter by state"
 msgstr "Filter by state"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Filter by time range"
-msgstr "Filter by time range"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "Filter by type"
@@ -9062,6 +9062,7 @@ msgid "Monitoring start date cannot be in the future."
 msgstr "Monitoring start date cannot be in the future."
 
 #: src/features/dashboard/needs-attention-section.tsx
+#: src/routes/alerts.tsx
 msgid "Monitoring: Federal · 50 States · DC"
 msgstr "Monitoring: Federal · 50 States · DC"
 
@@ -10004,6 +10005,10 @@ msgstr "No tax year"
 msgid "No tax-type services tracked"
 msgstr "No tax-type services tracked"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "No team notes yet. Add the first one for your colleagues."
+msgstr "No team notes yet. Add the first one for your colleagues."
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
@@ -10101,6 +10106,10 @@ msgstr "Not reachable from {0}."
 #: src/features/evidence/extension-decision-evidence.tsx
 msgid "Not recorded"
 msgstr "Not recorded"
+
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Not required"
+msgstr "Not required"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -10634,6 +10643,10 @@ msgstr "Open the linked deadline that's blocking this row."
 msgid "Open the Migration Copilot wizard."
 msgstr "Open the Migration Copilot wizard."
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "open to add or reply"
+msgstr "open to add or reply"
+
 #: src/routes/two-factor.tsx
 msgid "Open your authenticator app and enter the 6 digits you see for DueDateHQ."
 msgstr "Open your authenticator app and enter the 6 digits you see for DueDateHQ."
@@ -10674,6 +10687,10 @@ msgstr "Opens the existing duplicate deadline or the newly created deadline afte
 #: src/routes/route-summary.ts
 msgid "Operations"
 msgstr "Operations"
+
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Opt-in"
+msgstr "Opt-in"
 
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
@@ -11031,6 +11048,7 @@ msgstr "Paste or upload to continue."
 msgid "Paused"
 msgstr "Paused"
 
+#: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/obligation-type.ts
 msgid "Payment"
@@ -11791,10 +11809,6 @@ msgstr "Prompt version"
 msgid "Protective claim window"
 msgstr "Protective claim window"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-#~ msgid "Provenance & confidence"
-#~ msgstr "Provenance & confidence"
-
 #: src/routes/billing.tsx
 msgid "Provider hosted"
 msgstr "Provider hosted"
@@ -12271,6 +12285,10 @@ msgstr "Relief / disaster"
 msgid "Relief notice"
 msgstr "Relief notice"
 
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Relief type"
+msgstr "Relief type"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Remind client to sign Form 8879"
@@ -12414,6 +12432,10 @@ msgstr "Reopen the return for drafting"
 msgid "Replace this file"
 msgstr "Replace this file"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Reply"
+msgstr "Reply"
+
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Reply STOP to unsubscribe from reminders"
 msgstr "Reply STOP to unsubscribe from reminders"
@@ -12465,6 +12487,10 @@ msgstr "Request review"
 #: src/routes/obligations.tsx
 msgid "Requested from client"
 msgstr "Requested from client"
+
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Required"
+msgstr "Required"
 
 #: src/routes/onboarding.tsx
 msgid "required, 2+ characters"
@@ -14292,10 +14318,6 @@ msgstr "Source"
 msgid "Source (optional)"
 msgstr "Source (optional)"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-#~ msgid "Source & audit"
-#~ msgstr "Source & audit"
-
 #. placeholder {0}: item.sourceId
 #. placeholder {1}: item.retrievedAt
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -14420,10 +14442,6 @@ msgstr "Source-defined rules are skipped from bulk accept. Generate and review t
 #: src/routes/rules.sources.tsx
 msgid "Sources"
 msgstr "Sources"
-
-#: src/routes/alerts.tsx
-msgid "Sources · Federal + 50 states + DC"
-msgstr "Sources · Federal + 50 states + DC"
 
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Sources all working"
@@ -14919,6 +14937,14 @@ msgstr "Team and Enterprise plans add capacity pressure, unassigned risk, and re
 msgid "Team member"
 msgstr "Team member"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Team note"
+msgstr "Team note"
+
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Team notes"
+msgstr "Team notes"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/settings/settings-sub-nav.tsx
 #: src/features/workload/workload-page.tsx
@@ -15067,10 +15093,6 @@ msgstr "The deadline's lifecycle state. Click any row's pill to change its statu
 #: src/routes/obligations.tsx
 msgid "The events themselves — nothing scheduled is removed"
 msgstr "The events themselves — nothing scheduled is removed"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-#~ msgid "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
-#~ msgstr "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
 
 #. placeholder {0}: formatDate(obligation.paymentDueDate ?? '')
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -15482,6 +15504,10 @@ msgstr "This template is used when Materials sends a checklist collection reques
 msgid "This week"
 msgstr "This week"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Time"
+msgstr "Time"
+
 #: src/routes/settings.profile.tsx
 msgid "Time format"
 msgstr "Time format"
@@ -15494,10 +15520,6 @@ msgstr "Time range"
 #: src/routes/onboarding.tsx
 msgid "Time zone"
 msgstr "Time zone"
-
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Timestamped event log across the workspace."
-msgstr "Timestamped event log across the workspace."
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -15859,10 +15881,6 @@ msgstr "Unmapped"
 #: src/features/notifications/notifications-page.tsx
 msgid "Unread: {0}"
 msgstr "Unread: {0}"
-
-#: src/features/alerts/components/AlertListRail.tsx
-msgid "Unresolved"
-msgstr "Unresolved"
 
 #: src/routes/practice.tsx
 msgid "Unsaved changes · {reorderCount} deadlines will reorder"

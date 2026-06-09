@@ -188,6 +188,11 @@ msgstr "{0, plural, one {# 个事件} other {# 个事件}}"
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# 条已处理} other {# 条已处理}}"
 
+#. placeholder {0}: notes.length
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "{0, plural, one {# internal} other {# internal}}"
+msgstr "{0, plural, other {# 条内部}}"
+
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# jurisdiction} other {# jurisdictions}}"
@@ -797,7 +802,7 @@ msgstr "{confirmingSources} 个来源 · {confidencePct}% 置信度"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "{confTierLabel} confidence"
-msgstr ""
+msgstr "{confTierLabel}置信度"
 
 #: src/routes/rules.library.tsx
 msgid "{count, plural, one {# rule selected} other {# rules selected}}"
@@ -991,7 +996,7 @@ msgstr "{0, plural, one {# 列} other {# 列}}"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "{matchedCount, plural, one {# client gains ~{months} months of breathing room} other {# clients gain ~{months} months of breathing room}}"
-msgstr ""
+msgstr "{matchedCount, plural, other {# 个客户多出约 {months} 个月的缓冲时间}}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{missingSourceCount} source gaps"
@@ -1846,6 +1851,10 @@ msgstr "发送输入请求前，请先添加一位活跃的 owner 或 partner。
 msgid "Add an email address for this client to send signature reminders."
 msgstr "为该客户添加邮箱地址以发送签名提醒。"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Add an internal note for your team…"
+msgstr "为团队添加一条内部备注…"
+
 #: src/routes/obligations.tsx
 msgid "Add an optional memo to record why on the audit trail."
 msgstr "添加可选备注以在审计跟踪中记录原因。"
@@ -1886,6 +1895,10 @@ msgstr "手动添加项"
 #: src/routes/rules.library.tsx
 msgid "Add new rule"
 msgstr "新增规则"
+
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Add note"
+msgstr "添加备注"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Add notes"
@@ -2081,7 +2094,7 @@ msgstr "AI output id"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "AI parsed these from the source — verify before Apply"
-msgstr ""
+msgstr "这些由 AI 从来源解析得出 — 应用前请先核对"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "AI prepared your columns"
@@ -2120,10 +2133,6 @@ msgstr "AI-assisted (user applied)"
 msgid "AI-generated summary"
 msgstr "AI 生成的摘要"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-#~ msgid "AI-read from the alert"
-#~ msgstr "由 AI 从提醒中读取"
-
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/notifications/notifications-page.tsx
@@ -2154,10 +2163,6 @@ msgstr "提醒详情"
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert dismissed"
 msgstr "已忽略提醒"
-
-#: src/features/alerts/components/AlertListRail.tsx
-msgid "Alert filter"
-msgstr "提醒筛选"
 
 #: src/routes/alerts.history.tsx
 #: src/routes/alerts.tsx
@@ -2266,7 +2271,6 @@ msgstr "全部"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertHistoryView.tsx
-#: src/features/alerts/components/AlertListRail.tsx
 #: src/features/rules/sources-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
@@ -2405,7 +2409,6 @@ msgstr "所有系统运行正常"
 msgid "All tax areas"
 msgstr "全部税务领域"
 
-#: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 msgid "All time"
 msgstr "全部时间"
@@ -2513,6 +2516,10 @@ msgstr "任意"
 #: src/features/calendar/calendar-page.tsx
 msgid "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
 msgstr "所有订阅当前 {0} feed 的设备都会停止同步。你需要把新的 URL 分享给持有旧 URL 的人员。"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Any time"
+msgstr "任意时间"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -2841,12 +2848,11 @@ msgstr "保留审计历史以备合规"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Audit ledger: every change is logged"
-msgstr ""
+msgstr "审计台账：每一处变更都有记录"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.permissions.tsx
 msgid "Audit log"
@@ -2872,13 +2878,9 @@ msgstr "审计时间线"
 msgid "Audit trail"
 msgstr "审计轨迹"
 
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Audit trail for client, rule, status, and team changes."
-msgstr "客户、规则、状态与团队变更的审计追踪。"
-
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Audit-safe: relief is automatic for {scopeArea} addresses — no opt-in form needed."
-msgstr ""
+msgstr "审计无忧：{scopeArea} 的地址自动享受减免 — 无需填写选择加入表格。"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Auth"
@@ -4182,10 +4184,6 @@ msgstr "请先补全截止日详情，再应用此提醒。"
 msgid "Completed"
 msgstr "已完成"
 
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Compliance"
-msgstr "合规"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Compliance posture"
@@ -4203,10 +4201,6 @@ msgstr "置信度 {0}%"
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "conf {confidencePct}%"
 msgstr "置信度 {confidencePct}%"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-#~ msgid "conf {confPct}%"
-#~ msgstr "置信度 {confPct}%"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/migration/Step2Mapping.tsx
@@ -4515,6 +4509,10 @@ msgstr "无法添加截止日"
 #: src/routes/obligations.tsx
 msgid "Couldn't add document item"
 msgstr "无法添加文件项"
+
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Couldn't add note"
+msgstr "无法添加备注"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't apply alert"
@@ -5464,6 +5462,10 @@ msgstr "截止日提示"
 msgid "Deadline tip refresh started"
 msgstr "已开始刷新截止日提示"
 
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Deadline types"
+msgstr "截止日期类型"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadline unblocked"
 msgstr "截止日期已解除受阻"
@@ -5953,10 +5955,6 @@ msgstr "到期 {0}"
 msgid "Due date"
 msgstr "到期日"
 
-#: src/features/alerts/components/AffectedClientsTable.tsx
-#~ msgid "Due date change"
-#~ msgstr "截止日变更"
-
 #: src/features/rules/sources-tab.tsx
 msgid "Due dates"
 msgstr "截止日"
@@ -6405,6 +6403,11 @@ msgstr "遗产"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "estimate · not yet reconciled"
 msgstr "估算 · 尚未对账"
+
+#. placeholder {0}: formatDeadlineDate(oldIso)
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Estimated payments due {0} are also postponed — no penalties accrue."
+msgstr "应于 {0} 缴纳的预估税款也将延期 — 不会产生罚款。"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Estimated tax credit"
@@ -6976,6 +6979,7 @@ msgstr "文件"
 msgid "Files"
 msgstr "文件"
 
+#: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/audit/audit-log-table.tsx
 #: src/routes/obligations.tsx
 msgid "Filing"
@@ -7080,10 +7084,6 @@ msgstr "按范围筛选"
 #: src/features/alerts/components/StateTilegram.tsx
 msgid "Filter by state"
 msgstr "按州筛选"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Filter by time range"
-msgstr "按时间范围筛选"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "Filter by type"
@@ -7571,7 +7571,7 @@ msgstr "HomeBase 联系人 CSV"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "How confident we are · where this came from"
-msgstr ""
+msgstr "置信度高低 · 数据来源"
 
 #: src/features/settings/settings-sub-nav.tsx
 msgid "How DueDateHQ reaches your team, your clients, and your calendars."
@@ -9123,6 +9123,7 @@ msgid "Monitoring start date cannot be in the future."
 msgstr "监控起始日期不能是未来日期。"
 
 #: src/features/dashboard/needs-attention-section.tsx
+#: src/routes/alerts.tsx
 msgid "Monitoring: Federal · 50 States · DC"
 msgstr "监控范围：联邦 · 50 个州 · DC"
 
@@ -9427,7 +9428,7 @@ msgstr "新建自定义规则"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "New deadline"
-msgstr ""
+msgstr "新截止日期"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "New form version"
@@ -10071,6 +10072,10 @@ msgstr "没有税年"
 msgid "No tax-type services tracked"
 msgstr "暂无税种服务记录"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "No team notes yet. Add the first one for your colleagues."
+msgstr "还没有团队备注。为同事添加第一条吧。"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
@@ -10168,6 +10173,10 @@ msgstr "无法从 {0} 访问。"
 #: src/features/evidence/extension-decision-evidence.tsx
 msgid "Not recorded"
 msgstr "未记录"
+
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Not required"
+msgstr "无需"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -10370,7 +10379,7 @@ msgstr "官方来源 — 待处理规则"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "Old deadline"
-msgstr ""
+msgstr "原截止日期"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Oldest"
@@ -10707,6 +10716,10 @@ msgstr "打开正在阻塞当前行的关联截止日期。"
 msgid "Open the Migration Copilot wizard."
 msgstr "打开 Migration Copilot 向导。"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "open to add or reply"
+msgstr "展开以添加或回复"
+
 #: src/routes/two-factor.tsx
 msgid "Open your authenticator app and enter the 6 digits you see for DueDateHQ."
 msgstr "打开您的身份验证器应用，输入其中显示的 DueDateHQ 6 位验证码。"
@@ -10747,6 +10760,10 @@ msgstr "成功生成后打开现有重复截止日期或新建截止日期。"
 #: src/routes/route-summary.ts
 msgid "Operations"
 msgstr "运营"
+
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Opt-in"
+msgstr "选择加入"
 
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
@@ -11108,6 +11125,7 @@ msgstr "粘贴或上传以继续。"
 msgid "Paused"
 msgstr "已暂停"
 
+#: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/obligation-type.ts
 msgid "Payment"
@@ -11879,10 +11897,6 @@ msgstr "Prompt version"
 msgid "Protective claim window"
 msgstr "保护性申请窗口"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-#~ msgid "Provenance & confidence"
-#~ msgstr "出处与置信度"
-
 #: src/routes/billing.tsx
 msgid "Provider hosted"
 msgstr "服务商托管"
@@ -12361,6 +12375,10 @@ msgstr "救济 / 灾害"
 msgid "Relief notice"
 msgstr "救灾公告"
 
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Relief type"
+msgstr "减免类型"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Remind client to sign Form 8879"
@@ -12504,6 +12522,10 @@ msgstr "重新打开该申报继续起草"
 msgid "Replace this file"
 msgstr "替换此文件"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Reply"
+msgstr "回复"
+
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Reply STOP to unsubscribe from reminders"
 msgstr "回复 STOP 以取消订阅提醒"
@@ -12555,6 +12577,10 @@ msgstr "请求审核"
 #: src/routes/obligations.tsx
 msgid "Requested from client"
 msgstr "已向客户索取"
+
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Required"
+msgstr "需要"
 
 #: src/routes/onboarding.tsx
 msgid "required, 2+ characters"
@@ -14392,10 +14418,6 @@ msgstr "来源"
 msgid "Source (optional)"
 msgstr "来源（可选）"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-#~ msgid "Source & audit"
-#~ msgstr "来源与审计"
-
 #. placeholder {0}: item.sourceId
 #. placeholder {1}: item.retrievedAt
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -14520,10 +14542,6 @@ msgstr "来源定义规则会跳过批量接受。请逐条生成并审核其 AI
 #: src/routes/rules.sources.tsx
 msgid "Sources"
 msgstr "来源"
-
-#: src/routes/alerts.tsx
-msgid "Sources · Federal + 50 states + DC"
-msgstr "来源 · 联邦 + 50 州 + DC"
 
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Sources all working"
@@ -15022,6 +15040,14 @@ msgstr "Team 和 Enterprise 计划会为每周工作负载分诊增加产能压�
 msgid "Team member"
 msgstr "团队成员"
 
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Team note"
+msgstr "团队备注"
+
+#: src/features/alerts/components/AlertTeamNotes.tsx
+msgid "Team notes"
+msgstr "团队备注"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/settings/settings-sub-nav.tsx
 #: src/features/workload/workload-page.tsx
@@ -15170,10 +15196,6 @@ msgstr "该截止日期的生命周期状态。点击任一行的状态标签即
 #: src/routes/obligations.tsx
 msgid "The events themselves — nothing scheduled is removed"
 msgstr "事件本身不会被删除，已安排内容会保留"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-#~ msgid "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
-#~ msgstr "以下字段是 AI 从源公告中提取的。在对客户应用变更前请打开官方来源进行核实。"
 
 #. placeholder {0}: formatDate(obligation.paymentDueDate ?? '')
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -15585,6 +15607,10 @@ msgstr "此模板用于 Materials 发送 checklist 收集请求。变量：clien
 msgid "This week"
 msgstr "本周"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Time"
+msgstr "时间"
+
 #: src/routes/settings.profile.tsx
 msgid "Time format"
 msgstr "时间格式"
@@ -15597,10 +15623,6 @@ msgstr "时间范围"
 #: src/routes/onboarding.tsx
 msgid "Time zone"
 msgstr "时区"
-
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Timestamped event log across the workspace."
-msgstr "工作区内带时间戳的事件日志。"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -15965,10 +15987,6 @@ msgstr "Unmapped"
 #: src/features/notifications/notifications-page.tsx
 msgid "Unread: {0}"
 msgstr "未读：{0}"
-
-#: src/features/alerts/components/AlertListRail.tsx
-msgid "Unresolved"
-msgstr "未处理"
 
 #: src/routes/practice.tsx
 msgid "Unsaved changes · {reorderCount} deadlines will reorder"
@@ -16527,7 +16545,7 @@ msgstr "此证据说明了什么"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "What this means for your practice"
-msgstr ""
+msgstr "这对你的事务所意味着什么"
 
 #: src/features/migration/SuccessModal.tsx
 msgid "What to do next"
