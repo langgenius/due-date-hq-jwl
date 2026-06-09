@@ -13,7 +13,7 @@ import {
 import { toast } from 'sonner'
 
 import type { AuditEventPublic, AuditListInput, FirmPublic } from '@duedatehq/contracts'
-import { AUDIT_FILTER_MAX_LENGTH } from '@duedatehq/contracts'
+import { AUDIT_FILTER_MAX_LENGTH, DEFAULT_AUDIT_RANGE } from '@duedatehq/contracts'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -91,7 +91,7 @@ const auditLogSearchParamsParsers = {
     .withDefault('all')
     .withOptions(REPLACE_HISTORY_OPTIONS),
   range: parseAsStringLiteral(AUDIT_RANGE_OPTIONS)
-    .withDefault('24h')
+    .withDefault(DEFAULT_AUDIT_RANGE)
     .withOptions(REPLACE_HISTORY_OPTIONS),
   action: parseAsString.withDefault('').withOptions(REPLACE_HISTORY_OPTIONS),
   actor: parseAsString.withDefault('').withOptions(REPLACE_HISTORY_OPTIONS),
@@ -652,7 +652,7 @@ export function AuditLogPage() {
   const filtersActive =
     query.q !== '' ||
     query.category !== 'all' ||
-    query.range !== '24h' ||
+    query.range !== DEFAULT_AUDIT_RANGE ||
     actionFilter !== '' ||
     actorFilter !== '' ||
     entityTypeFilter !== ''
@@ -832,7 +832,7 @@ export function AuditLogPage() {
               onValueChange={(value) => {
                 if (typeof value !== 'string' || !isAuditRange(value)) return
                 setPageIndex(0)
-                void setQuery({ range: value === '24h' ? null : value, event: null })
+                void setQuery({ range: value === DEFAULT_AUDIT_RANGE ? null : value, event: null })
               }}
             >
               <SelectTrigger className="w-full" aria-label={t`Time range`}>

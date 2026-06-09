@@ -5,6 +5,7 @@ import {
   AuditActionCategorySchema,
   AuditEventPublicSchema,
   AuditListInputSchema,
+  DEFAULT_AUDIT_RANGE,
   auditContract,
 } from './audit'
 import { ErrorCodes } from './errors'
@@ -181,6 +182,7 @@ describe('@duedatehq/contracts', () => {
       limit: 50,
     })
     expect(input.category).toBe('obligation')
+    expect(AuditListInputSchema.parse({}).range).toBe(DEFAULT_AUDIT_RANGE)
     expect(() =>
       AuditListInputSchema.parse({ search: 'x'.repeat(AUDIT_SEARCH_MAX_LENGTH + 1) }),
     ).toThrow()

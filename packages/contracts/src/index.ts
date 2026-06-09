@@ -131,6 +131,7 @@ export type {
 export {
   AUDIT_FILTER_MAX_LENGTH,
   AUDIT_SEARCH_MAX_LENGTH,
+  DEFAULT_AUDIT_RANGE,
   AiEventMetadataSchema,
   AuditActionCategorySchema,
   AuditActorTypeFilterSchema,

@@ -49,6 +49,7 @@ export type AiEventMetadata = z.infer<typeof AiEventMetadataSchema>
 
 export const AuditRangeSchema = z.enum(['24h', '7d', '30d', 'all'])
 export type AuditRange = z.infer<typeof AuditRangeSchema>
+export const DEFAULT_AUDIT_RANGE = 'all' satisfies AuditRange
 
 export const AUDIT_SEARCH_MAX_LENGTH = 80
 export const AUDIT_FILTER_MAX_LENGTH = 128
@@ -61,7 +62,7 @@ export const AuditListInputSchema = z.object({
   actorType: AuditActorTypeFilterSchema.optional(),
   entityType: z.string().min(1).max(AUDIT_FILTER_MAX_LENGTH).optional(),
   entityId: z.string().min(1).max(AUDIT_FILTER_MAX_LENGTH).optional(),
-  range: AuditRangeSchema.default('24h').optional(),
+  range: AuditRangeSchema.default(DEFAULT_AUDIT_RANGE).optional(),
   cursor: z.string().nullable().optional(),
   limit: z.number().int().min(1).max(100).default(50).optional(),
 })
