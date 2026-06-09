@@ -8,6 +8,7 @@ Team notes full-stack + migration; Phase 3 = AI extraction for relief/deadline-
 types/opt-in/penalty.)
 
 ## Changes (apps/app/src/features/alerts/)
+
 - **"What this means for your practice"** — new `PracticeImpactSection` in
   AlertDetailDrawer.tsx, rendered after Extracted facts; gated to
   `due_date_overlay` + both dates + `matchedCount > 0`. Two REAL-data bullets:
@@ -27,6 +28,7 @@ types/opt-in/penalty.)
   right). Real confidence/source/publishedAt.
 
 ## Verify
+
 tsgo clean; lingui extract validated; no console errors. Visible parts confirmed
 on /alerts?alert=…3001. The matched-client sections (What this means / affected
 table) are correctly hidden for alerts with no matched clients.

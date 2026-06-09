@@ -437,11 +437,7 @@ export const pulseAlertNote = sqliteTable(
       .notNull(),
   },
   (table) => [
-    index('idx_pulse_alert_note_firm_alert_time').on(
-      table.firmId,
-      table.alertId,
-      table.createdAt,
-    ),
+    index('idx_pulse_alert_note_firm_alert_time').on(table.firmId, table.alertId, table.createdAt),
   ],
 )
 

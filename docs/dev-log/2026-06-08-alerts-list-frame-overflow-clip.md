@@ -2,7 +2,7 @@
 
 Date: 2026-06-08
 
-Feedback: *"add overflow to clip."*
+Feedback: _"add overflow to clip."_
 
 The `PulseAlertList` frame (`rounded-[12px] border`) had no `overflow-hidden`
 (dropped back in round 84 to avoid clipping tooltips). The full-bleed gray

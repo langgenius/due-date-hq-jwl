@@ -10,4 +10,5 @@ the full filter bar (no expand/collapse dance needed). Dropped the `tab`/
 filters by search only.
 
 ## Verify
+
 tsgo clean; rail head shows a single full-width "Search alerts" input, no toggle.

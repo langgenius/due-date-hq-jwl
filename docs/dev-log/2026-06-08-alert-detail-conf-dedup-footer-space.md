@@ -3,6 +3,7 @@
 Date: 2026-06-08
 
 Yuqi (low-conf alert review):
+
 1. "the banner and the AI confidence 46% below — same thing?" → yes, both render
    `alert.confidence`. Deduped: dropped "conf X%" from the top status banner; the
    confidence now lives only in the dedicated "AI confidence" block (which for
@@ -13,5 +14,6 @@ Yuqi (low-conf alert review):
    Button styles confirmed correct (ghost secondary + filled primary CTA).
 
 ## Verify
+
 tsgo clean; /alerts?alert=…3004 at 1512×861 — banner shows only "Pending your
 review" (no conf), footer has clear note↔actions spacing.

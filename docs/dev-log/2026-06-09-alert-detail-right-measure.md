@@ -23,7 +23,7 @@ Fill the surface, cap the reading measure:
   left-pinned, so prose lines don't stretch to the full ~980px column.
 - **Chrome borders/backgrounds stay full-width** (top BackStrip, SheetHeader
   divider, SheetFooter border + bg) so no bar ever looks cut off; only the
-  content *inside* each region is capped.
+  content _inside_ each region is capped.
 
 ## Implementation
 
@@ -42,9 +42,9 @@ Fill the surface, cap the reading measure:
 
 - `npx tsgo --noEmit -p apps/app` — clean.
 - Live at 1512×861: aside `left 436 → right 1512` (fills, no white strip); header
-  + body content both `484 → 1244` (uniform 760px, left-pinned, aligned); footer
-  "Mark reviewed" aligns to the same right edge; kbd hints still fit; no
-  horizontal scroll.
+  - body content both `484 → 1244` (uniform 760px, left-pinned, aligned); footer
+    "Mark reviewed" aligns to the same right edge; kbd hints still fit; no
+    horizontal scroll.
 
 Note: sheet mode (off-route fallback) is unchanged — it has its own
 viewport-capped width.

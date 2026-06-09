@@ -251,6 +251,9 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
   )
   // Only a forward shift earns "breathing room" — a same-day / earlier
   // deadline wouldn't read honestly, so bullet A is gated to days > 0.
+  // `months` feeds the <Plural> ICU message below ({months}); oxlint can't see
+  // interpolation inside Lingui message strings, so it misreads it as unused.
+  // eslint-disable-next-line no-unused-vars
   const months = Math.max(1, Math.round(days / 30))
   const scopeArea =
     detail.counties.length > 0
@@ -297,8 +300,8 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
             </span>
             <p className="text-[13px] leading-[1.45] text-text-secondary">
               <Trans>
-                Estimated payments due {formatDeadlineDate(oldIso)} are also postponed — no penalties
-                accrue.
+                Estimated payments due {formatDeadlineDate(oldIso)} are also postponed — no
+                penalties accrue.
               </Trans>
             </p>
           </div>
@@ -534,9 +537,7 @@ function DecisionBanners({
         // alerts is the prominent actionable warning). The banner now carries
         // only status + the due-date timing.
         note={
-          dueInDays !== null && dueInDays >= 0 ? (
-            <span>{t`due in ${dueInDays} days`}</span>
-          ) : null
+          dueInDays !== null && dueInDays >= 0 ? <span>{t`due in ${dueInDays} days`}</span> : null
         }
       />
     )
@@ -970,29 +971,29 @@ export function AlertDetailDrawer({
           to the same 760px measure + left-pinned as the document below. */}
       <div className="flex h-[52px] shrink-0 items-center border-b border-divider-subtle px-12">
         <div className="flex w-full max-w-[760px] items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex items-center gap-1 text-[13px] font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
-        >
-          <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
-          <Trans>Alerts</Trans>
-        </button>
-        <div className="flex items-center gap-2">
-          {position && position.total > 0 ? (
-            <span className="text-[12px] font-medium text-text-muted tabular-nums">
-              {t`${position.index + 1} of ${position.total}`}
-            </span>
-          ) : null}
           <button
             type="button"
             onClick={onClose}
-            aria-label={t`Close alert detail`}
-            className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="inline-flex items-center gap-1 text-[13px] font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
           >
-            <XIcon className="size-4" aria-hidden />
+            <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
+            <Trans>Alerts</Trans>
           </button>
-        </div>
+          <div className="flex items-center gap-2">
+            {position && position.total > 0 ? (
+              <span className="text-[12px] font-medium text-text-muted tabular-nums">
+                {t`${position.index + 1} of ${position.total}`}
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t`Close alert detail`}
+              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <XIcon className="size-4" aria-hidden />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1613,7 +1614,9 @@ export function AlertDetailDrawer({
                             {detail.alert.source} ↗
                           </a>
                         ) : (
-                          <span className="font-medium text-text-primary">{detail.alert.source}</span>
+                          <span className="font-medium text-text-primary">
+                            {detail.alert.source}
+                          </span>
                         )}
                       </span>
                       <span className="text-text-tertiary">
@@ -1698,59 +1701,59 @@ export function AlertDetailDrawer({
         {/* 2026-06-09 (Yuqi right-side measure, option B): footer chrome spans
             full width; its actions cap to the 760px document measure. */}
         <div className="flex w-full max-w-[760px] flex-row items-center gap-8">
-        {detail ? (
-          <div className="hidden shrink-0 items-center gap-3.5 text-text-tertiary xl:flex">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
-              <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
-                A
-              </kbd>
-              <Trans>Apply</Trans>
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
-              <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
-                D
-              </kbd>
-              <Trans>Dismiss</Trans>
-            </span>
-            <span className="h-3.5 w-px bg-divider-regular" aria-hidden />
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-success">
-              <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
-              <Trans>Every decision captured to audit ledger</Trans>
-            </span>
-          </div>
-        ) : null}
-        <div className="flex min-w-0 flex-1">
           {detail ? (
-            <DrawerActions
-              alertStatus={detail.alert.status}
-              sourceStatus={detail.alert.sourceStatus}
-              selectionCount={stats?.selectedCount ?? 0}
-              actionMode={detail.alert.actionMode}
-              firmImpact={detail.alert.firmImpact}
-              requiresDeadlineDetails={missingDeadlineDetails}
-              canApply={canApply}
-              // ROH-D15 — Undo button now gates on `pulse.revert` instead
-              // of the `pulse.apply` proxy.
-              canRevert={permissions.canRevert}
-              canRequestReview={canRequestAlertReview({
-                role: permissions.role,
-                alertStatus: detail.alert.status,
-                sourceStatus: detail.alert.sourceStatus,
-              })}
-              canApplyReviewed={permissions.canManagePriorityReview}
-              reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
-              reverifyIncomplete={reverifyIncomplete}
-              isMutating={isMutating}
-              onApply={handleApply}
-              onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
-              onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
-              onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
-              onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
-              onRequestReview={() => setReviewDialogOpen(true)}
-              onCopyDraft={handleCopyDraft}
-            />
+            <div className="hidden shrink-0 items-center gap-3.5 text-text-tertiary xl:flex">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
+                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
+                  A
+                </kbd>
+                <Trans>Apply</Trans>
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
+                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
+                  D
+                </kbd>
+                <Trans>Dismiss</Trans>
+              </span>
+              <span className="h-3.5 w-px bg-divider-regular" aria-hidden />
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-success">
+                <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
+                <Trans>Every decision captured to audit ledger</Trans>
+              </span>
+            </div>
           ) : null}
-        </div>
+          <div className="flex min-w-0 flex-1">
+            {detail ? (
+              <DrawerActions
+                alertStatus={detail.alert.status}
+                sourceStatus={detail.alert.sourceStatus}
+                selectionCount={stats?.selectedCount ?? 0}
+                actionMode={detail.alert.actionMode}
+                firmImpact={detail.alert.firmImpact}
+                requiresDeadlineDetails={missingDeadlineDetails}
+                canApply={canApply}
+                // ROH-D15 — Undo button now gates on `pulse.revert` instead
+                // of the `pulse.apply` proxy.
+                canRevert={permissions.canRevert}
+                canRequestReview={canRequestAlertReview({
+                  role: permissions.role,
+                  alertStatus: detail.alert.status,
+                  sourceStatus: detail.alert.sourceStatus,
+                })}
+                canApplyReviewed={permissions.canManagePriorityReview}
+                reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
+                reverifyIncomplete={reverifyIncomplete}
+                isMutating={isMutating}
+                onApply={handleApply}
+                onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
+                onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
+                onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
+                onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
+                onRequestReview={() => setReviewDialogOpen(true)}
+                onCopyDraft={handleCopyDraft}
+              />
+            ) : null}
+          </div>
         </div>
       </SheetFooter>
     </>

@@ -1040,13 +1040,7 @@ const requestReview = os.pulse.requestReview.handler(async ({ input, context }) 
 // Any active firm member may write — capturing their userId for authorship —
 // so the write path uses the full member-role set (mirrors the read-side
 // "any firm member" rule). The repo verifies the alert belongs to the firm.
-const PULSE_NOTE_AUTHOR_ROLES = [
-  'owner',
-  'partner',
-  'manager',
-  'preparer',
-  'coordinator',
-] as const
+const PULSE_NOTE_AUTHOR_ROLES = ['owner', 'partner', 'manager', 'preparer', 'coordinator'] as const
 
 interface PulseAlertNoteRow {
   id: string

@@ -9,6 +9,7 @@ migration, fully backward-compatible, behind the "AI parsed — verify before Ap
 gate. (Yuqi chose "build it (plumbing + gate)".)
 
 ## Changes
+
 - **packages/ai/src/pulse.ts**: `PulseDeadlineShiftFactsSchema`/type (reliefType,
   deadlineTypes: ('filing'|'payment')[], optInRequired, penaltyRelief — all
   optional/nullable). `structuredChange` stays `unknown` (freeform → graceful old-row degrade).
@@ -29,6 +30,7 @@ gate. (Yuqi chose "build it (plumbing + gate)".)
 - **packages/ai/src/ai.test.ts**: schema/shape tests (pass-through + partial).
 
 ## Verify
+
 app + server tsgo clean; packages/ai (33) + packages/db (146) tests pass. Injected
 a deadlineShift blob into a local pulse → the grid rendered RELIEF TYPE "Disaster
 (auto-applied)" / DEADLINE TYPES "Filing + Payment" / OPT-IN "Not required"

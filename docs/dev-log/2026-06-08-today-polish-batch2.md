@@ -5,6 +5,7 @@ Date: 2026-06-08
 Yuqi review of /today (8 items; #7 was a no-op).
 
 ## Changes
+
 - **Import clients → expand-on-hover pill** (dashboard.tsx): the icon-only "+"
   Button became a hand-rolled pill — 28px circle at rest, label expands on hover
   (`max-w-0 opacity-0` → `group-hover:max-w-[120px]`), fixed `h-7` so it never
@@ -24,6 +25,7 @@ Yuqi review of /today (8 items; #7 was a no-op).
   table) — no change.
 
 ## Verify
+
 tsgo clean; /today at 1512×861 — import button 28px fixed-height (label expands on
 hover), Regenerate-brief beside the failed message, lighter eyebrows, why-now
 elbow, "View all deadlines".
