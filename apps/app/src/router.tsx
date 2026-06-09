@@ -346,6 +346,22 @@ export function createAppRouter() {
       ErrorBoundary: RouteErrorBoundary,
       children: [
         {
+          // 2026-06-09 (Yuqi — pW6pK split-screen redesign): /login is now a
+          // standalone full-bleed route that owns its own chrome (two-column
+          // split + dedicated footer), so it sits OUTSIDE the EntryShell layout
+          // — it no longer wants the shared header/footer. Every other entry
+          // surface keeps EntryShell below.
+          path: '/login',
+          loader: guestLoader,
+          handle: routeHandle(routeSummaries.login),
+          HydrateFallback: EntryRouteHydrateFallback,
+          lazy: async () => {
+            const { LoginRoute } = await import('@/routes/login')
+
+            return { Component: LoginRoute }
+          },
+        },
+        {
           // Pathless layout route — renders the shared "entry" chrome
           // (header / footer / locale switcher) once for every page users
           // see before reaching the dashboard shell. Each child owns its
@@ -353,17 +369,6 @@ export function createAppRouter() {
           // 2026-04-26-entry-shell-extraction.md` for the naming rationale.
           Component: EntryShell,
           children: [
-            {
-              path: '/login',
-              loader: guestLoader,
-              handle: routeHandle(routeSummaries.login),
-              HydrateFallback: EntryRouteHydrateFallback,
-              lazy: async () => {
-                const { LoginRoute } = await import('@/routes/login')
-
-                return { Component: LoginRoute }
-              },
-            },
             {
               path: '/two-factor',
               loader: twoFactorLoader,

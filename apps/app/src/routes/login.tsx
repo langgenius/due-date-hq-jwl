@@ -1,22 +1,58 @@
-import { useState, useTransition } from 'react'
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+  type ComponentType,
+  type FormEvent,
+  type ReactNode,
+} from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { Loader2Icon } from 'lucide-react'
+import {
+  ArrowRightIcon,
+  GlobeIcon,
+  Loader2Icon,
+  LockIcon,
+  MailCheckIcon,
+  MailIcon,
+  MapPinIcon,
+  ShieldIcon,
+} from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { EmailOtpSignInForm } from '@/features/auth/email-otp-sign-in-form'
-import { EntryBetaPill, EntryBrandLockup } from '@/features/auth/entry-brand-lockup'
-import { authCapabilities } from '@/lib/auth-capabilities'
-import { signInWithGoogle, signInWithMicrosoft, startGoogleOneTap } from '@/lib/auth'
 import { cn } from '@duedatehq/ui/lib/utils'
+import {
+  displayNameFromEmail,
+  sendEmailSignInCode,
+  signInWithEmailCode,
+  signInWithGoogle,
+  signInWithMicrosoft,
+  startGoogleOneTap,
+} from '@/lib/auth'
+import { authCapabilities } from '@/lib/auth-capabilities'
+
+// 2026-06-09 (Yuqi — "100% replicate Pencil node pW6pK"): /login moved from
+// the centered single-column EntryShell card to a full-bleed two-column split
+// — a product-story column (left) beside the sign-in card (right), with a
+// dedicated footer. The page now owns its own chrome and is wired as a
+// standalone route (no EntryShell parent) in router.tsx, so the other entry
+// surfaces (/onboarding, /two-factor, /accept-invite) keep the shared shell.
+//
+// Colors/spacing map to the app's semantic tokens (text-text-*, bg-bg-*,
+// border-divider-*, the primary Button) rather than the canvas's raw hex, per
+// the "use variables and tokens" direction. The left column is a STATIC
+// marketing proof — illustrative sample deadlines, not the visitor's live data
+// (they are logged out), so it does not violate the no-fiction-on-canvas rule.
 
 const GoogleIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 48 48"
     aria-hidden="true"
-    className={cn('size-4', className)}
+    className={cn('size-[18px]', className)}
     xmlns="http://www.w3.org/2000/svg"
   >
     <path
@@ -42,7 +78,7 @@ const MicrosoftIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 23 23"
     aria-hidden="true"
-    className={cn('size-4', className)}
+    className={cn('size-[18px]', className)}
     xmlns="http://www.w3.org/2000/svg"
   >
     <path fill="#f25022" d="M1 1h10v10H1z" />
@@ -153,173 +189,626 @@ export function LoginRoute() {
   }
 
   return (
-    <div className="flex w-full max-w-[400px] flex-col items-center">
-      {/* 2026-06-07 (Cluster 6 auth canvas, node pW6pK): the canvas
-          anchors /login with a centered brand lockup + beta pill
-          above the heading, so a first-time visitor arriving from a
-          referral confirms the product *before* reading any copy.
-          The route previously opened straight on a left-aligned H1
-          with no brand mark. Brought the lockup + "PRIVATE BETA"
-          pill in and centred the column to match. */}
-      <EntryBrandLockup
-        className="mb-5"
-        pill={
-          <EntryBetaPill>
-            <Trans>PRIVATE BETA · JUN 2026</Trans>
-          </EntryBetaPill>
-        }
-      />
+    <div className="flex h-dvh flex-col overflow-hidden bg-bg-canvas text-text-primary">
+      <a
+        href="#sign-in"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:border focus:border-divider-regular focus:bg-background-default focus:px-3 focus:py-1.5 focus:text-sm focus:text-text-primary focus:shadow-overlay"
+      >
+        <Trans>Skip to sign-in</Trans>
+      </a>
 
-      {/* 2026-05-26 (Step 7 onboarding audit F1-01): "Welcome to
-          the workbench" was decoration-first — no product noun,
-          no "this is DueDateHQ" anchor, so first-time visitors
-          arrived from a referral and couldn't confirm they were
-          at the right product without scanning the sub-headline.
-          Promoted the product name + value-prop onto the H1
-          line and tightened the sub-headline to a single
-          sentence with the verbs the user actually does
-          ("sign in", "open your practice"). */}
-      <h1 className="text-center text-[26px] font-semibold leading-[1.15] tracking-tight text-text-primary">
-        <Trans>Welcome to DueDateHQ.</Trans>
-      </h1>
+      <div className="flex min-h-0 flex-1 gap-8 overflow-hidden px-4 py-6 lg:px-[72px] lg:py-10">
+        <ProductStory />
 
-      <p className="mt-2 text-center text-description leading-6 text-text-secondary">
+        <main
+          id="sign-in"
+          className="mx-auto flex max-h-full w-full max-w-[584px] flex-col self-center overflow-y-auto rounded-[20px] border border-divider-subtle bg-background-default px-6 py-10 shadow-[0_8px_32px_-4px_rgba(16,24,40,0.08)] lg:mx-0 lg:px-[72px] lg:py-16"
+        >
+          <div className="mx-auto flex w-full max-w-[440px] flex-col gap-7">
+            {/* Frame 21 — brand, heading, form, reassurance, and foot share the
+                24px rhythm (canvas dGFth gap 24); residency sits 28px below. */}
+            <div className="flex flex-col gap-6">
+              {/* Brand lockup */}
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-text-primary text-sm font-bold text-text-primary-on-surface">
+                  D
+                </span>
+                <span className="text-sm font-semibold text-text-primary">DueDateHQ</span>
+              </div>
+
+              {/* Heading */}
+              <div className="flex flex-col gap-2">
+                <h1 className="text-[28px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
+                  <Trans>Welcome back</Trans>
+                </h1>
+                <p className="text-sm font-medium leading-normal text-text-tertiary">
+                  <Trans>
+                    Paste your work email and we will send a one-time sign-in link. No password to
+                    remember.
+                  </Trans>
+                </p>
+              </div>
+
+              {/* Form card — Google + divider + email at 16px */}
+              <div className="flex flex-col gap-4">
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={socialDisabled}
+                  aria-busy={submittingProvider === 'google'}
+                  className="flex h-12 w-full items-center justify-center gap-3 rounded-[10px] border border-divider-regular bg-background-default px-3.5 text-sm font-semibold tracking-[-0.1px] text-text-primary shadow-[0_1px_2px_rgba(16,24,40,0.06)] transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-60"
+                >
+                  {submittingProvider === 'google' ? (
+                    <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
+                  ) : (
+                    <GoogleIcon />
+                  )}
+                  <span>
+                    {submittingProvider === 'google' ? (
+                      <Trans>Redirecting to Google…</Trans>
+                    ) : (
+                      <Trans>Continue with Google</Trans>
+                    )}
+                  </span>
+                </button>
+
+                {microsoftEnabled ? (
+                  <button
+                    type="button"
+                    onClick={handleMicrosoftSignIn}
+                    disabled={socialDisabled}
+                    aria-busy={submittingProvider === 'microsoft'}
+                    className="flex h-12 w-full items-center justify-center gap-3 rounded-[10px] border border-divider-regular bg-background-default px-3.5 text-sm font-semibold tracking-[-0.1px] text-text-primary shadow-[0_1px_2px_rgba(16,24,40,0.06)] transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-60"
+                  >
+                    {submittingProvider === 'microsoft' ? (
+                      <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
+                    ) : (
+                      <MicrosoftIcon />
+                    )}
+                    <span>
+                      {submittingProvider === 'microsoft' ? (
+                        <Trans>Redirecting to Microsoft…</Trans>
+                      ) : (
+                        <Trans>Continue with Microsoft</Trans>
+                      )}
+                    </span>
+                  </button>
+                ) : null}
+
+                {emailOtpEnabled ? (
+                  <>
+                    <div className="flex items-center gap-3.5">
+                      <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
+                      <span className="text-[11px] font-medium tracking-[0.2px] text-text-muted">
+                        <Trans>or continue with email</Trans>
+                      </span>
+                      <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
+                    </div>
+
+                    <LoginEmailForm
+                      disabled={submittingProvider !== null}
+                      initialEmail={linkEmail ?? undefined}
+                      initialCode={linkCode ?? undefined}
+                      onInteraction={() => setEmailFlowActive(true)}
+                      onPendingChange={setEmailBusy}
+                      onSignedIn={() => navigate(postSignInTarget, { replace: true })}
+                    />
+                  </>
+                ) : null}
+              </div>
+
+              {/* Reassurance */}
+              <div className="flex items-center gap-2.5 rounded-[10px] bg-bg-subtle px-3.5 py-3">
+                <LockIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-xs font-semibold text-text-secondary">
+                    <Trans>Secured by one-time link</Trans>
+                  </p>
+                  <p className="text-[11px] font-medium leading-[1.45] text-text-muted">
+                    <Trans>Links expire in 10 minutes. We never store passwords.</Trans>
+                  </p>
+                </div>
+              </div>
+
+              {/* "Open it now" focuses the email field to begin sign-in —
+                  there is no separate paste-link surface; a real magic link is
+                  a URL the user opens straight from their inbox. */}
+              <p className="flex items-center justify-center gap-1.5 text-center">
+                <span className="text-xs font-medium text-text-tertiary">
+                  <Trans>Already have a magic link?</Trans>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('login-email')?.focus()}
+                  className="rounded-sm text-xs font-semibold text-text-accent transition-colors hover:text-text-accent-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                >
+                  <Trans>Open it now →</Trans>
+                </button>
+              </p>
+            </div>
+
+            {/* Residency */}
+            <div className="flex flex-col items-center gap-1 text-center">
+              <p className="flex items-center gap-1 text-[11px] font-medium text-text-muted">
+                <MapPinIcon className="size-3 shrink-0" aria-hidden />
+                <Trans>Hosted in US-East · your data never leaves your jurisdiction</Trans>
+              </p>
+              <p className="text-[11px] font-medium text-text-muted">
+                <Trans>ISO 27001 in progress</Trans>
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <LoginFooter />
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Left column — static product story. Hidden below `lg` so the sign-in card
+// takes the full width on laptops/phones. All copy is marketing, not live data.
+// ---------------------------------------------------------------------------
+
+type CapabilityTone = 'warning' | 'accent' | 'success'
+
+const TONE_TICK: Record<CapabilityTone, string> = {
+  warning: 'bg-state-warning-solid',
+  accent: 'bg-state-accent-solid',
+  success: 'bg-state-success-solid',
+}
+
+const CAPABILITIES: {
+  index: string
+  tone: CapabilityTone
+  eyebrow: string
+  title: string
+  body: string
+}[] = [
+  {
+    index: '01',
+    tone: 'warning',
+    eyebrow: 'STATUS CONTROL',
+    title: 'Status updates itself.',
+    body: 'Stages move forward when the work does. Uploads, e-file acks, client replies — the deadline knows.',
+  },
+  {
+    index: '02',
+    tone: 'accent',
+    eyebrow: 'MONITORING STATE ALERTS',
+    title: 'Constant monitoring',
+    body: 'If a deadline stalls or a rule changes, the partner who owns it gets a heads-up.',
+  },
+  {
+    index: '03',
+    tone: 'success',
+    eyebrow: 'EVERY CHANGE SOURCED',
+    title: 'Every change is logged.',
+    body: 'Who, when, what triggered it, what changed — captured automatically. Export in one click.',
+  },
+]
+
+const TRUST_ITEMS: { Icon: ComponentType<{ className?: string }>; label: string }[] = [
+  { Icon: LockIcon, label: 'No password, no token to lose' },
+  { Icon: MailCheckIcon, label: 'One-time sign-in links expire in 10 minutes' },
+  { Icon: ShieldIcon, label: 'Your client data never leaves your jurisdiction' },
+]
+
+function ProductStory() {
+  return (
+    <section className="hidden min-w-0 flex-1 flex-col gap-5 pr-[72px] pt-2 lg:flex">
+      {/* Brand anchor */}
+      <div className="flex items-center gap-2.5">
+        <span className="flex size-[30px] items-center justify-center rounded-lg bg-text-primary text-sm font-bold tracking-[-0.2px] text-text-primary-on-surface">
+          D
+        </span>
+        <span className="text-[15px] font-semibold tracking-[-0.2px] text-text-primary">
+          DueDateHQ
+        </span>
+        <span aria-hidden className="h-3.5 w-px bg-divider-regular" />
+        <span className="text-[13px] font-medium italic tracking-[-0.1px] text-text-tertiary">
+          <Trans>for CPA firms</Trans>
+        </span>
+      </div>
+
+      <h2 className="text-[44px] font-semibold leading-[1.1] tracking-[-1px] text-text-primary">
         <Trans>
-          Sign in to open your practice&apos;s deadline workbench with evidence-backed
-          recommendations.
+          Every CPA deadline.
+          <br />
+          One source of truth.
+        </Trans>
+      </h2>
+      <p className="text-sm font-medium leading-[1.55] text-text-tertiary">
+        <Trans>
+          DueDateHQ replaces the spreadsheet that runs every busy season. Track every 1040, 1120,
+          payroll, and BOI filing across the firm — with auto-rollover, blocking-item triggers, and
+          audit-grade history.
         </Trans>
       </p>
 
-      {/* 2026-05-27 (Step 7 onboarding audit F1-03 drain): the trust
-          pill used to sit below the OTP form, after the user had
-          already decided whether to type their email. Trust signals
-          do their job before the credential moment, not after — a
-          first-time visitor hesitating at the email box is the
-          exact reader who needs to see "Encrypted · 7-day session"
-          to make the leap. Moved between sub-headline and the
-          first SSO button so the reassurance arrives before the
-          decision. */}
-      <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
-        <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
-        <Trans>Encrypted · 7-day session · SSO-ready</Trans>
-      </p>
+      <div className="mt-2 flex flex-col gap-3.5">
+        <div className="flex items-center gap-3.5">
+          <span className="text-[10px] font-semibold tracking-[1.8px] text-text-tertiary">
+            WHAT IT DOES
+          </span>
+          <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
+          <span className="text-[10px] italic text-text-muted">three things, done well</span>
+        </div>
+
+        <div className="grid grid-cols-1 overflow-hidden rounded-xl border border-divider-subtle bg-background-default sm:grid-cols-3">
+          {CAPABILITIES.map((cap, i) => (
+            <div
+              key={cap.index}
+              className={cn(
+                'flex flex-col gap-3 p-6',
+                i > 0 && 'border-t border-divider-subtle sm:border-l sm:border-t-0',
+              )}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="font-mono text-[10px] tracking-[0.4px] text-text-muted">
+                  {cap.index}
+                </span>
+                <span aria-hidden className={cn('h-px w-3.5', TONE_TICK[cap.tone])} />
+                <span className="text-[9px] font-semibold tracking-[1.6px] text-text-tertiary">
+                  {cap.eyebrow}
+                </span>
+              </div>
+              <p className="text-base font-medium leading-[1.3] tracking-[-0.3px] text-text-primary">
+                {cap.title}
+              </p>
+              <p className="text-xs leading-[1.6] text-text-tertiary">{cap.body}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 px-1">
+          <span className="text-[11px] italic text-text-muted">
+            All three ship in v1. See them live in
+          </span>
+          {['/today', '/deadlines', '/alerts'].map((path) => (
+            <span
+              key={path}
+              className="rounded-md bg-bg-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-[0.2px] text-text-secondary"
+            >
+              {path}
+            </span>
+          ))}
+          <span className="flex-1" />
+          <span className="text-[10px] font-medium italic text-text-muted">
+            no waitlist, no asterisks
+          </span>
+        </div>
+      </div>
+
+      {/* Trust strip */}
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 pt-2">
+        {TRUST_ITEMS.map((item, i) => (
+          <Fragment key={item.label}>
+            {i > 0 ? <span aria-hidden className="h-2.5 w-px bg-divider-subtle" /> : null}
+            <span className="flex items-center gap-1.5 text-[11px] font-medium italic text-text-tertiary">
+              <item.Icon className="size-[11px] shrink-0 text-text-muted" />
+              {item.label}
+            </span>
+          </Fragment>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function LoginFooter() {
+  return (
+    <footer className="flex flex-col gap-3 border-t border-divider-subtle px-6 py-3.5 text-[11px] font-medium text-text-tertiary sm:flex-row sm:items-center lg:px-10">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <span>© {new Date().getFullYear()} DueDateHQ</span>
+        {[
+          { label: 'Terms', href: '/terms' },
+          { label: 'Privacy', href: '/privacy' },
+          { label: 'Security', href: '/security' },
+        ].map((item) => (
+          <span key={item.label} className="flex items-center gap-2.5">
+            <span aria-hidden className="text-text-muted">
+              ·
+            </span>
+            <a
+              href={item.href}
+              className="transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              {item.label}
+            </a>
+          </span>
+        ))}
+      </div>
+      <span className="hidden flex-1 sm:block" />
+      <div className="flex items-center gap-3.5">
+        <span className="font-mono text-[10px] text-text-muted">v2.18.4 · build 9c3a1f</span>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default px-2.5 py-1">
+          <GlobeIcon className="size-3 text-text-tertiary" aria-hidden />
+          <span className="text-text-secondary">US East</span>
+        </span>
+      </div>
+    </footer>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Inline email-OTP form — login-specific styling that matches pW6pK (label
+// row + hint, inner mail icon, Return hint, blue "Send sign-in link" CTA).
+// Kept separate from the shared <EmailOtpSignInForm> (used by /accept-invite)
+// so this visual treatment does not leak into that surface. Wired to the same
+// `@/lib/auth` helpers, with the same deep-link auto-submit + resend behavior.
+// ---------------------------------------------------------------------------
+
+type PendingAction = 'send' | 'resend' | 'verify'
+
+interface LoginEmailFormProps {
+  disabled?: boolean
+  initialEmail?: string | undefined
+  initialCode?: string | undefined
+  onInteraction?: () => void
+  onPendingChange?: (pending: boolean) => void
+  onSignedIn: () => void | Promise<void>
+}
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+}
+
+function normalizeCode(value: string): string {
+  return value.replace(/\s+/g, '')
+}
+
+function readErrorMessage(error: unknown, fallback: string): string {
+  if (!error || typeof error !== 'object' || !('message' in error)) return fallback
+  const message = Reflect.get(error, 'message')
+  return typeof message === 'string' && message ? message : fallback
+}
+
+function LoginEmailForm({
+  disabled = false,
+  initialEmail,
+  initialCode,
+  onInteraction,
+  onPendingChange,
+  onSignedIn,
+}: LoginEmailFormProps) {
+  const { t } = useLingui()
+  const seededEmail = (initialEmail ?? '').trim().toLowerCase()
+  const hasSeededEmail = isValidEmail(seededEmail)
+  const [email, setEmail] = useState(hasSeededEmail ? seededEmail : '')
+  const [sentEmail, setSentEmail] = useState<string | null>(hasSeededEmail ? seededEmail : null)
+  const [code, setCode] = useState(normalizeCode(initialCode ?? '').slice(0, 6))
+  const [error, setError] = useState<string | null>(null)
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const autoSubmittedRef = useRef(false)
+
+  const codeSent = sentEmail !== null
+  const busy = pendingAction !== null
+  const formDisabled = disabled || busy
+
+  function setPending(action: PendingAction | null) {
+    setPendingAction(action)
+    onPendingChange?.(action !== null)
+  }
+
+  function noteInteraction() {
+    onInteraction?.()
+  }
+
+  function verifyCode(targetEmail: string, otp: string) {
+    setError(null)
+    if (!/^\d{6}$/.test(otp)) {
+      setError(t`Enter the 6-digit code.`)
+      return
+    }
+    setPending('verify')
+    void signInWithEmailCode({
+      email: targetEmail,
+      otp,
+      name: displayNameFromEmail(targetEmail),
+    })
+      .then(() => onSignedIn())
+      .catch((err: unknown) => {
+        setError(readErrorMessage(err, t`Couldn't verify the code`))
+      })
+      .finally(() => setPending(null))
+  }
+
+  useEffect(() => {
+    if (autoSubmittedRef.current) return
+    const otp = normalizeCode(initialCode ?? '')
+    if (!hasSeededEmail || !/^\d{6}$/.test(otp)) return
+    autoSubmittedRef.current = true
+    noteInteraction()
+    verifyCode(seededEmail, otp)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, [])
+
+  async function sendCode(action: Extract<PendingAction, 'send' | 'resend'>) {
+    noteInteraction()
+    const target = (sentEmail ?? email).trim().toLowerCase()
+    setError(null)
+
+    if (!isValidEmail(target)) {
+      setError(t`Enter a valid email address`)
+      return
+    }
+
+    setPending(action)
+    try {
+      await sendEmailSignInCode(target)
+      setEmail(target)
+      setSentEmail(target)
+      setCode('')
+    } catch (err) {
+      setError(readErrorMessage(err, t`Couldn't send the code`))
+    } finally {
+      setPending(null)
+    }
+  }
+
+  function handleSendSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!busy) void sendCode('send')
+  }
+
+  function handleVerifySubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (busy || !sentEmail) return
+    noteInteraction()
+    verifyCode(sentEmail, normalizeCode(code))
+  }
+
+  if (codeSent) {
+    return (
+      <form onSubmit={handleVerifySubmit} noValidate className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3 rounded-[10px] bg-bg-subtle px-3.5 py-2.5">
+          <div className="min-w-0">
+            <p className="text-[11px] font-medium text-text-muted">
+              <Trans>Code sent to</Trans>
+            </p>
+            <p className="min-w-0 truncate font-mono text-sm text-text-primary">{sentEmail}</p>
+          </div>
+          <button
+            type="button"
+            disabled={formDisabled}
+            onClick={() => {
+              noteInteraction()
+              setSentEmail(null)
+              setError(null)
+            }}
+            className="shrink-0 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary disabled:opacity-60"
+          >
+            <Trans>Change</Trans>
+          </button>
+        </div>
+
+        <FieldShell error={error}>
+          <label htmlFor="login-otp-code" className="sr-only">
+            <Trans>Verification code</Trans>
+          </label>
+          <input
+            id="login-otp-code"
+            name="otp"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]*"
+            maxLength={6}
+            value={code}
+            disabled={formDisabled}
+            aria-invalid={Boolean(error)}
+            placeholder={t`6-digit code`}
+            onFocus={noteInteraction}
+            onChange={(event) => {
+              noteInteraction()
+              setCode(normalizeCode(event.target.value).slice(0, 6))
+              setError(null)
+            }}
+            className="h-full flex-1 bg-transparent font-mono text-sm tracking-[0.3em] text-text-primary outline-none placeholder:font-sans placeholder:tracking-normal placeholder:text-text-muted"
+          />
+        </FieldShell>
+        {error ? <p className="text-xs font-medium text-text-destructive">{error}</p> : null}
+
+        <div className="grid grid-cols-[1fr_auto] gap-2.5">
+          <Button
+            type="submit"
+            className="h-12 justify-center gap-2 rounded-[10px] font-semibold"
+            disabled={formDisabled || normalizeCode(code).length !== 6}
+            aria-busy={pendingAction === 'verify'}
+          >
+            {pendingAction === 'verify' ? (
+              <Loader2Icon className="size-4 animate-spin" aria-hidden />
+            ) : null}
+            <Trans>Verify &amp; sign in</Trans>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 rounded-[10px] px-4"
+            disabled={formDisabled}
+            onClick={() => void sendCode('resend')}
+            aria-busy={pendingAction === 'resend'}
+          >
+            {pendingAction === 'resend' ? (
+              <Loader2Icon className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <Trans>Resend</Trans>
+            )}
+          </Button>
+        </div>
+      </form>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSendSubmit} noValidate className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <label htmlFor="login-email" className="text-xs font-semibold text-text-secondary">
+            <Trans>Work email</Trans>
+          </label>
+          <span className="flex-1" />
+          <span className="text-[11px] font-medium text-text-muted">
+            <Trans>we look up your firm automatically</Trans>
+          </span>
+        </div>
+
+        <FieldShell error={error}>
+          <MailIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+          <input
+            id="login-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder={t`you@firm.com`}
+            value={email}
+            disabled={formDisabled}
+            aria-invalid={Boolean(error)}
+            onFocus={noteInteraction}
+            onChange={(event) => {
+              noteInteraction()
+              setEmail(event.target.value)
+              setError(null)
+            }}
+            className="h-full flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-text-muted"
+          />
+          <span className="shrink-0 rounded-[4px] bg-bg-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-tertiary">
+            Return ↵
+          </span>
+        </FieldShell>
+        {error ? <p className="text-xs font-medium text-text-destructive">{error}</p> : null}
+      </div>
 
       <Button
-        variant="outline"
-        className="mt-6 w-full justify-center gap-2.5"
-        onClick={handleGoogleSignIn}
-        disabled={socialDisabled}
-        aria-busy={submittingProvider === 'google'}
+        type="submit"
+        className="h-12 w-full justify-center gap-2 rounded-[10px] font-semibold"
+        disabled={formDisabled}
+        aria-busy={pendingAction === 'send'}
       >
-        {submittingProvider === 'google' ? (
+        {pendingAction === 'send' ? (
           <Loader2Icon className="size-4 animate-spin" aria-hidden />
-        ) : (
-          <GoogleIcon />
-        )}
-        <span>
-          {submittingProvider === 'google' ? (
-            <Trans>Redirecting to Google…</Trans>
-          ) : (
-            <Trans>Continue with Google</Trans>
-          )}
-        </span>
+        ) : null}
+        <Trans>Send sign-in link</Trans>
+        {pendingAction === 'send' ? null : <ArrowRightIcon className="size-4" aria-hidden />}
       </Button>
+    </form>
+  )
+}
 
-      {microsoftEnabled ? (
-        <Button
-          variant="outline"
-          className="mt-2 w-full justify-center gap-2.5"
-          onClick={handleMicrosoftSignIn}
-          disabled={socialDisabled}
-          aria-busy={submittingProvider === 'microsoft'}
-        >
-          {submittingProvider === 'microsoft' ? (
-            <Loader2Icon className="size-4 animate-spin" aria-hidden />
-          ) : (
-            <MicrosoftIcon />
-          )}
-          <span>
-            {submittingProvider === 'microsoft' ? (
-              <Trans>Redirecting to Microsoft…</Trans>
-            ) : (
-              <Trans>Continue with Microsoft</Trans>
-            )}
-          </span>
-        </Button>
-      ) : null}
-
-      {emailOtpEnabled ? (
-        <>
-          {/* 2026-05-26 (Step 7 onboarding audit F1-04): the
-              "OR" divider was `font-mono text-caption-xs uppercase`
-              — same weight as a status badge, heavier than the
-              buttons it separates. A separator must be the
-              calmest element on the page; switched to sentence-
-              case `or` in the canonical caption tone so the
-              SSO/email choice reads as two equally-weighted
-              options separated by a quiet pivot, not as a
-              third labelled affordance. */}
-          <div className="my-4 grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2.5">
-            <span className="h-px bg-divider-subtle" aria-hidden />
-            <span className="text-[11px] leading-none text-text-muted">
-              <Trans>or</Trans>
-            </span>
-            <span className="h-px bg-divider-subtle" aria-hidden />
-          </div>
-          <EmailOtpSignInForm
-            disabled={submittingProvider !== null}
-            initialEmail={linkEmail ?? undefined}
-            initialCode={linkCode ?? undefined}
-            onInteraction={() => setEmailFlowActive(true)}
-            onPendingChange={setEmailBusy}
-            onSignedIn={() => navigate(postSignInTarget, { replace: true })}
-          />
-        </>
-      ) : null}
-
-      {/* 2026-05-26 (Step 7 F1-10): support mailto broken out from the
-          legal block so stuck users find it without parsing
-          disclaimer copy. Size kept at text-sm for the support line
-          (was text-[12px] in Step 7 — Step 1-5 reaudit prefers
-          tokens over arbitrary sizes). Legal copy quieted below.
-          2026-05-27 (F1-03 drain): trust pill that used to sit
-          above this support line moved up next to the sub-headline
-          — see comment above the SSO buttons. */}
-      <p className="mt-5 w-full text-center text-sm leading-relaxed text-text-secondary">
-        <Trans>
-          Trouble signing in? Email{' '}
-          <a
-            data-t="supportLink"
-            className="font-mono text-text-primary underline underline-offset-4 transition-colors hover:text-text-accent"
-            href="mailto:support@duedatehq.com"
-          >
-            support@duedatehq.com
-          </a>
-          .
-        </Trans>
-      </p>
-
-      <p className="mt-2 w-full text-center text-caption leading-relaxed text-text-muted">
-        <Trans>
-          By signing in you agree to the{' '}
-          <a
-            data-t="termsLink"
-            className="text-text-secondary underline underline-offset-4 transition-colors hover:text-text-primary"
-            href="/terms"
-          >
-            Terms
-          </a>{' '}
-          and{' '}
-          <a
-            data-t="privacyLink"
-            className="text-text-secondary underline underline-offset-4 transition-colors hover:text-text-primary"
-            href="/privacy"
-          >
-            Privacy Policy
-          </a>
-          .
-        </Trans>
-      </p>
+// Shared 48px field shell — white surface, rounded-[10px], inner-aligned
+// content, focus-within ring, destructive recolor on error.
+function FieldShell({ children, error }: { children: ReactNode; error: string | null }) {
+  return (
+    <div
+      className={cn(
+        'flex h-12 items-center gap-2.5 rounded-[10px] border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
+        error
+          ? 'border-state-destructive-border focus-within:ring-state-destructive-active'
+          : 'border-divider-regular focus-within:border-state-accent-solid',
+      )}
+    >
+      {children}
     </div>
   )
 }
