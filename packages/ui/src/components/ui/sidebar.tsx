@@ -414,9 +414,13 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
             • Fill is the `--background-sidebar-card` token (#f6f8fa light
               / #242426 dark) — a cool very-light gray, so the white work
               surface beyond reads as the brighter plane.
-            • `rounded-xl` (12px) + a soft 1px shadow give the float; NO
-              border ("no board") — the shadow alone lifts the panel off
-              the white canvas.
+            • 2026-06-09 (Yuqi "it smudged into the background"): the
+              near-white card was disappearing into the white work surface
+              (especially when peeked OVER content). Now `rounded-xl` (12px)
+              + a hairline `border-divider-regular` + real elevation: a soft
+              shadow when docked, and a prominent floating shadow when the
+              collapsed rail peeks over content (`overlayActive`). The
+              border crisps the edge; the shadow lifts the panel.
             • `p-3` (Pencil Sidebar padding 12) + `gap-2` (Pencil gap 8)
               are the ONLY owners of the card's inner spacing. Every
               section below sits flush (no horizontal padding of its
@@ -428,7 +432,12 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           measure and overflows the narrow footprint, floating above the
           inset. */}
       <div
-        className="absolute inset-y-3 left-3 z-30 flex flex-col gap-1.5 overflow-hidden rounded-xl bg-background-sidebar-card p-2.5 shadow-[0_1px_2px_rgb(16_24_40_/_0.04)] transition-[width] duration-300 ease-apple motion-reduce:transition-none"
+        className={cn(
+          'absolute inset-y-3 left-3 z-30 flex flex-col gap-1.5 overflow-hidden rounded-xl border border-divider-regular bg-background-sidebar-card p-2.5 transition-[width,box-shadow] duration-300 ease-apple motion-reduce:transition-none',
+          overlayActive
+            ? 'shadow-[0_16px_40px_-8px_rgb(16_24_40_/_0.22)]'
+            : 'shadow-[0_2px_8px_rgb(16_24_40_/_0.08)]',
+        )}
         style={{
           width: `calc(${targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH} - ${SIDEBAR_CARD_INSET})`,
         }}
