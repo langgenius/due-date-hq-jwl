@@ -4727,15 +4727,18 @@ export function ObligationQueueRoute() {
               // this card instead of the page, so the table flows borderless
               // and the header can pin to the page below the filter bar.
               className={cn(
-                'flex flex-col',
-                // 2026-06-08 (Yuqi /deadlines ↔ /today table parity): the
-                // split-view card frame radius `rounded-xl` (12px) →
-                // `rounded-[14px]` to match /today's ActionsTable wrapper
-                // (`rounded-[14px] border border-divider-subtle bg-
-                // background-default`). Same hairline border + bg so the two
-                // tables share one card-frame language.
-                panelOpenIntent &&
-                  'min-h-0 flex-1 overflow-hidden rounded-[14px] border border-divider-subtle bg-background-default',
+                // 2026-06-09 (Yuqi "unify the table design across Today, Alerts
+                // and Deadlines"): the canonical bordered card
+                // (`rounded-[12px] border border-divider-regular bg-default`,
+                // table-canonical-style.md) now applies in BOTH modes so
+                // /deadlines shares the /today + /alerts frame. `overflow-hidden`
+                // is gated to panel-open only — in full-page it would scope the
+                // page-level sticky column header to this card; without it the
+                // header still pins to the page. `flex-1` (fill height) is also
+                // panel-only, so the full-page card sizes to content and never
+                // leaves a tall empty bordered rectangle on short result sets.
+                'flex flex-col rounded-[12px] border border-divider-regular bg-background-default',
+                panelOpenIntent && 'min-h-0 flex-1 overflow-hidden',
               )}
             >
               {/* 2026-05-26 (Yuqi feedback — pagination position +
@@ -4817,7 +4820,7 @@ export function ObligationQueueRoute() {
                     rounded top of a sheet, while the rows below stay frameless
                     (no side/bottom border → no empty-rectangle on short sets).
                     Confirmed direction with Yuqi 2026-06-09. */}
-                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-[14px] [&_thead_tr_th:last-child]:rounded-tr-[14px] [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-[11px] [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_th_button]:!tracking-[0.5px] [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-[13px]">
+                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-[12px] [&_thead_tr_th:last-child]:rounded-tr-[12px] [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-[11px] [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_th_button]:!tracking-[0.5px] [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-[13px]">
                   {/* 2026-06-04 (Yuqi infinite scroll): header pinned to
                       the top of the scroll container so column labels stay
                       visible as the buffer scrolls. `bg-background-section`
@@ -5000,7 +5003,7 @@ export function ObligationQueueRoute() {
                                     at the band's left edge. Cell padding drops
                                     its left inset (pl-0) to let the slot do the
                                     alignment. */}
-                                <TableCell colSpan={visibleColumnCount} className="py-2 pr-5 pl-0">
+                                <TableCell colSpan={visibleColumnCount} className="py-1.5 pr-5 pl-0">
                                   <button
                                     type="button"
                                     onClick={() => toggleQueueGroupCollapse(groupHeader.groupKey)}
@@ -5047,10 +5050,17 @@ export function ObligationQueueRoute() {
                                         )}
                                         aria-hidden
                                       />
-                                      <span className="text-xs font-semibold tracking-wide text-text-primary uppercase">
+                                      {/* 2026-06-09 (Yuqi "unify the table
+                                          design"): band label conformed to the
+                                          canonical eyebrow shared by /today +
+                                          /alerts — 11px/600/uppercase/
+                                          tracking-[0.5px]/tertiary (was 12px
+                                          primary tracking-wide). The leading
+                                          tone dot + count still carry urgency. */}
+                                      <span className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
                                         {groupHeader.label}
                                       </span>
-                                      <span className="text-xs tracking-wide text-text-tertiary uppercase tabular-nums">
+                                      <span className="text-[11px] tracking-[0.5px] text-text-tertiary uppercase tabular-nums">
                                         <Plural
                                           value={groupHeader.count}
                                           one="# deadline"

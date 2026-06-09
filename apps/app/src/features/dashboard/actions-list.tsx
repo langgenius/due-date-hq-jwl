@@ -217,7 +217,13 @@ function ActionsTable({
     // visible-but-quiet sweet spot; deep was reading as too heavy
     // an outline against the white card. Updated canonical doc
     // back to regular.
-    <div className="overflow-hidden rounded-[14px] border border-divider-subtle bg-background-default">
+    // 2026-06-09 (Yuqi "unify the table design across Today, Alerts and
+    // Deadlines"): wrapper conformed to the canonical table card —
+    // rounded-[12px] border border-divider-regular (table-canonical-style.md;
+    // matches the /alerts list + /deadlines table). Drops the freelance 14px
+    // radius (the no-random-corners rule bans 14) and the lighter subtle border
+    // so all three tables share one frame.
+    <div className="overflow-hidden rounded-[12px] border border-divider-regular bg-background-default">
       {/* Pencil ErW76 Table — radius 14, white fill, one 8% hairline
           (#10182814 -> border-divider-subtle). The white fill keeps the
           Actions table the brightest (focal) surface on /today. */}
@@ -289,7 +295,7 @@ function ActionsTable({
                       dividing the lifecycle groups, not a faint whisper. */}
                   <TableCell
                     colSpan={7}
-                    className="bg-background-subtle px-[18px] py-1 text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
+                    className="bg-background-subtle px-[18px] py-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase"
                   >
                     <StatusGroupLabel kind={currentStatusGroup} />
                   </TableCell>
