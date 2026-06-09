@@ -433,10 +433,14 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           inset. */}
       <div
         className={cn(
-          'absolute inset-y-3 left-3 z-30 flex flex-col gap-1.5 overflow-hidden rounded-xl border border-divider-regular bg-background-sidebar-card p-2.5 transition-[width,box-shadow] duration-300 ease-apple motion-reduce:transition-none',
+          'absolute inset-y-3 left-3 z-30 flex flex-col gap-1.5 overflow-hidden rounded-xl bg-background-sidebar-card p-2.5 transition-[width,box-shadow] duration-300 ease-apple motion-reduce:transition-none',
+          // No hard border ("no board"). Separation comes from a soft
+          // 1px ring-shadow (defines every edge subtly, no hard line)
+          // plus a blur lift — gentle when docked, prominent when the
+          // collapsed rail peeks OVER content so it reads as floating.
           overlayActive
-            ? 'shadow-[0_16px_40px_-8px_rgb(16_24_40_/_0.22)]'
-            : 'shadow-[0_2px_8px_rgb(16_24_40_/_0.08)]',
+            ? 'shadow-[0_0_0_1px_rgb(16_24_40_/_0.05),0_16px_36px_-6px_rgb(16_24_40_/_0.18)]'
+            : 'shadow-[0_0_0_1px_rgb(16_24_40_/_0.04),0_4px_12px_-2px_rgb(16_24_40_/_0.10)]',
         )}
         style={{
           width: `calc(${targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH} - ${SIDEBAR_CARD_INSET})`,
@@ -956,7 +960,7 @@ export function SidebarTrigger({
       'aria-label': 'Toggle navigation',
       onClick: handleClick,
       className: cn(
-        'inline-flex size-7 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-colors',
+        'inline-flex size-7 cursor-pointer touch-manipulation items-center justify-center rounded-lg border border-divider-regular bg-background-default text-text-secondary outline-none transition-colors',
         'hover:bg-background-default-hover hover:text-text-primary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'md:hidden',
