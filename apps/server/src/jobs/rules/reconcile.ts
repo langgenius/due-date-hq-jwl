@@ -38,6 +38,13 @@ const WEEKLY_GOVERNANCE_DAY_UTC = 1
 const WEEKLY_GOVERNANCE_HOUR_UTC = 9
 const AUTOMATED_SCAN_METHODS = new Set<RuleSource['acquisitionMethod']>(['html_watch', 'pdf_watch'])
 
+// A source-defined-rule draft that has failed this many times within the window
+// is abandoned (not re-enqueued) until those failures age out — this breaks the
+// every-catalog-sync re-enqueue loop when the AI provider is down or the system
+// budget is exhausted, while still auto-recovering once it succeeds again.
+const CONCRETE_DRAFT_ABANDON_FAILURES = 3
+const CONCRETE_DRAFT_ABANDON_WINDOW_MS = 6 * 60 * 60 * 1000
+
 export interface PulseRuleSourceScanMessage {
   type: typeof PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE
   sourceId: string
@@ -603,16 +610,30 @@ export async function consumeRuleRegistryCatalogSync(
         : []
     }),
   )
-  const cachedRuns = await makeAiRepo(db, 'global').findSuccessfulGlobalRunsByContextRefs({
+  const aiRepo = makeAiRepo(db, 'global')
+  const inputContextRefs = Array.from(contextRefByRuleId.values())
+  const cachedRuns = await aiRepo.findSuccessfulGlobalRunsByContextRefs({
     kind: 'rule_concrete_draft',
-    inputContextRefs: Array.from(contextRefByRuleId.values()),
+    inputContextRefs,
     promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
   })
   const cachedContextRefs = new Set(cachedRuns.map((run) => run.inputContextRef).filter(Boolean))
+  // Drafts that keep failing (provider down / budget exhausted) would otherwise be
+  // re-enqueued every catalog sync — the loop that drained the AI budget. Skip the
+  // repeat-failures, but always (re)try changed/new rules since their source moved.
+  const abandonedContextRefs = await aiRepo.findGlobalContextRefsWithRecentFailures({
+    kind: 'rule_concrete_draft',
+    inputContextRefs,
+    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+    minFailures: CONCRETE_DRAFT_ABANDON_FAILURES,
+    since: new Date(Date.now() - CONCRETE_DRAFT_ABANDON_WINDOW_MS),
+  })
   const draftTargets = sourceDefinedRules.filter((rule) => {
     const contextRef = contextRefByRuleId.get(rule.id)
     if (!contextRef) return false
-    return changedOrNewIds.has(rule.id) || !cachedContextRefs.has(contextRef)
+    if (changedOrNewIds.has(rule.id)) return true
+    if (cachedContextRefs.has(contextRef)) return false
+    return !abandonedContextRefs.has(contextRef)
   })
   await Promise.all(
     draftTargets.flatMap((rule) => {

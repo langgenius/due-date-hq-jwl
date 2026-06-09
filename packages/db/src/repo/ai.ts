@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne } from 'drizzle-orm'
 import type {
   AiOutputRow,
   FindSuccessfulAiRunInput,
@@ -218,6 +218,56 @@ export function makeAiRepo(db: Db, firmId: string) {
       input: FindSuccessfulAiRunsByContextRefsInput,
     ): Promise<AiOutputRow[]> {
       return findSuccessfulRunsByContextRefsForScope('global', input)
+    },
+
+    /**
+     * Context refs (global scope) with at least `minFailures` non-'ok' runs since
+     * `since`. Lets an enqueuer abandon work that keeps failing (e.g. the AI
+     * provider is down) instead of re-enqueuing it every tick — the loop that
+     * drained the AI budget. Budget-blocked attempts record guardResult
+     * 'budget_exceeded', so they count here too. The window means abandonment is
+     * temporary: failures age out and the work retries once the provider recovers.
+     */
+    async findGlobalContextRefsWithRecentFailures(
+      input: FindSuccessfulAiRunsByContextRefsInput & { minFailures: number; since: Date },
+    ): Promise<Set<string>> {
+      const inputContextRefs = Array.from(new Set(input.inputContextRefs))
+      if (inputContextRefs.length === 0 || input.minFailures <= 0) return new Set()
+      const batches: string[][] = []
+      for (
+        let start = 0;
+        start < inputContextRefs.length;
+        start += SUCCESSFUL_RUN_CONTEXT_REF_BATCH_SIZE
+      ) {
+        batches.push(inputContextRefs.slice(start, start + SUCCESSFUL_RUN_CONTEXT_REF_BATCH_SIZE))
+      }
+      const counts = (
+        await Promise.all(
+          batches.map((batch) =>
+            db
+              .select({ inputContextRef: aiOutput.inputContextRef, failures: count() })
+              .from(aiOutput)
+              .where(
+                and(
+                  isNull(aiOutput.firmId),
+                  eq(aiOutput.kind, input.kind),
+                  inArray(aiOutput.inputContextRef, batch),
+                  eq(aiOutput.promptVersion, input.promptVersion),
+                  ne(aiOutput.guardResult, 'ok'),
+                  gte(aiOutput.generatedAt, input.since),
+                ),
+              )
+              .groupBy(aiOutput.inputContextRef),
+          ),
+        )
+      ).flat()
+      const abandoned = new Set<string>()
+      for (const row of counts) {
+        if (row.inputContextRef && row.failures >= input.minFailures) {
+          abandoned.add(row.inputContextRef)
+        }
+      }
+      return abandoned
     },
 
     async recordRun(input: RecordAiRunInput): Promise<{ aiOutputId: string; llmLogId: string }> {

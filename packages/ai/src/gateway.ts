@@ -3,6 +3,7 @@ import { createOpenRouter } from 'ai-gateway-provider/providers/openrouter'
 import { createUnified } from 'ai-gateway-provider/providers/unified'
 import { generateText, Output } from 'ai'
 import * as z from 'zod'
+import { computeCostUsd } from './pricing'
 
 /** JSON-compatible value matching the AI SDK provider-options value type (no cast needed at the call site). */
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
@@ -101,5 +102,9 @@ export async function callGateway<TOut>(
   }
   const tokens = readUsage(result.usage)
   if (tokens) response.tokens = tokens
+  // The gateway doesn't return a cost — attribute it from usage so spend lands in
+  // the DB (ai_output / llm_log cost_usd) instead of only the provider dashboard.
+  const costUsd = computeCostUsd(request.model, tokens)
+  if (costUsd !== undefined) response.costUsd = costUsd
   return response
 }
