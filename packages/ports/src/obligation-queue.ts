@@ -43,6 +43,15 @@ export interface ObligationQueueListRow extends ObligationInstanceRow {
   clientName: string
   clientState: string | null
   clientCounty: string | null
+  clientEntityType:
+    | 'llc'
+    | 's_corp'
+    | 'partnership'
+    | 'c_corp'
+    | 'sole_prop'
+    | 'trust'
+    | 'individual'
+    | 'other'
   assigneeName: string | null
   readiness: ObligationQueueReadiness
   daysUntilDue: number

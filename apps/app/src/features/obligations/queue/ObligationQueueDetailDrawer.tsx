@@ -73,7 +73,10 @@ import {
   formatDate,
   formatDatePretty,
   formatDateTimeWithTimezone,
+  formatRelativeTime,
 } from '@/lib/utils'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import {
   type MemberAssigneeOption,
   type ObligationPrepStage,
@@ -288,6 +291,9 @@ export function ObligationQueueDetailDrawer({
   const { t } = useLingui()
   const navigate = useNavigate()
   const practiceTimezone = usePracticeTimezone()
+  // 2026-06-09 (Yuqi /deadlines detail recreation — Pencil rzzww): humanized
+  // labels for the Recent activity card sourced from the audit feed.
+  const auditActionLabels = useAuditActionLabels()
   const queryClient = useQueryClient()
   const permission = useFirmPermission()
   const canRequestInput = permission.firm?.role === 'preparer'
@@ -2057,9 +2063,14 @@ export function ObligationQueueDetailDrawer({
                       (?tab=summary is shareable).
                     - Materials / Extension / Evidence don't get the
                       stage card pushing them below the fold. */}
-                <div className="grid gap-3">
-                  <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
-                  {/* Cluster 2 (Summary design `d4YrtC > xOO3r`): a condensed
+                {/* 2026-06-09 (Yuqi /deadlines detail recreation — Pencil
+                    rzzww): the Status tab is a two-column read — the milestone
+                    story + activity on the left, an Ownership / Linked-from
+                    rail on the right. Stacks below lg. */}
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+                  <div className="grid min-w-0 flex-1 gap-3">
+                    <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
+                    {/* Cluster 2 (Summary design `d4YrtC > xOO3r`): a condensed
                       "What's left to do" mirror of the materials checklist.
                       Read-only here — the full editable checklist lives on
                       the Materials tab. Received rows use a filled accent
@@ -2067,68 +2078,68 @@ export function ObligationQueueDetailDrawer({
                       "Manage in Materials →" link routes the user to the
                       tab that owns the source of truth instead of
                       duplicating the editor. */}
-                  {checklist.length > 0 && row.status !== 'done' && row.status !== 'completed' ? (
-                    <section className="flex flex-col gap-2.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
-                          <Trans>What's left to do</Trans>
-                        </h3>
-                        <span className="text-caption text-text-secondary">
-                          <Trans>
-                            {checklist.filter((item) => item.status === 'received').length} of{' '}
-                            {checklist.length} complete
-                          </Trans>
-                        </span>
-                      </div>
-                      <ul className="grid gap-2.5">
-                        {checklist.slice(0, 6).map((item) => {
-                          const isDone = item.status === 'received'
-                          return (
-                            <li key={item.id} className="flex items-start gap-3">
-                              <span
-                                className={cn(
-                                  'mt-px flex size-[18px] shrink-0 items-center justify-center rounded-[5px] border',
-                                  isDone
-                                    ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
-                                    : 'border-divider-regular bg-background-default',
-                                )}
-                                aria-hidden
-                              >
-                                {isDone ? <CheckIcon className="size-3" /> : null}
-                              </span>
-                              <span className="grid min-w-0 gap-0.5">
+                    {checklist.length > 0 && row.status !== 'done' && row.status !== 'completed' ? (
+                      <section className="flex flex-col gap-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
+                            <Trans>What's left to do</Trans>
+                          </h3>
+                          <span className="text-caption text-text-secondary">
+                            <Trans>
+                              {checklist.filter((item) => item.status === 'received').length} of{' '}
+                              {checklist.length} complete
+                            </Trans>
+                          </span>
+                        </div>
+                        <ul className="grid gap-2.5">
+                          {checklist.slice(0, 6).map((item) => {
+                            const isDone = item.status === 'received'
+                            return (
+                              <li key={item.id} className="flex items-start gap-3">
                                 <span
                                   className={cn(
-                                    'text-sm leading-tight',
+                                    'mt-px flex size-[18px] shrink-0 items-center justify-center rounded-[5px] border',
                                     isDone
-                                      ? 'text-text-secondary line-through decoration-text-tertiary/40'
-                                      : 'text-text-primary',
+                                      ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
+                                      : 'border-divider-regular bg-background-default',
                                   )}
+                                  aria-hidden
                                 >
-                                  {item.label}
+                                  {isDone ? <CheckIcon className="size-3" /> : null}
                                 </span>
-                                {isDone && item.receivedAt ? (
-                                  <span className="text-caption-xs text-text-tertiary">
-                                    <Trans>
-                                      received {formatDate(item.receivedAt.slice(0, 10))}
-                                    </Trans>
+                                <span className="grid min-w-0 gap-0.5">
+                                  <span
+                                    className={cn(
+                                      'text-sm leading-tight',
+                                      isDone
+                                        ? 'text-text-secondary line-through decoration-text-tertiary/40'
+                                        : 'text-text-primary',
+                                    )}
+                                  >
+                                    {item.label}
                                   </span>
-                                ) : null}
-                              </span>
-                            </li>
-                          )
-                        })}
-                      </ul>
-                      <TextLink
-                        variant="accent"
-                        className="w-fit"
-                        onClick={() => onTabChange('readiness')}
-                      >
-                        <Trans>Manage in Materials →</Trans>
-                      </TextLink>
-                    </section>
-                  ) : null}
-                  {/* Cluster 2 (Summary design `d4YrtC > w9bXOk`):
+                                  {isDone && item.receivedAt ? (
+                                    <span className="text-caption-xs text-text-tertiary">
+                                      <Trans>
+                                        received {formatDate(item.receivedAt.slice(0, 10))}
+                                      </Trans>
+                                    </span>
+                                  ) : null}
+                                </span>
+                              </li>
+                            )
+                          })}
+                        </ul>
+                        <TextLink
+                          variant="accent"
+                          className="w-fit"
+                          onClick={() => onTabChange('readiness')}
+                        >
+                          <Trans>Manage in Materials →</Trans>
+                        </TextLink>
+                      </section>
+                    ) : null}
+                    {/* Cluster 2 (Summary design `d4YrtC > w9bXOk`):
                       Expected refund card — a green headline total + a
                       3-row component breakdown. The contract has no
                       refund/withholding fields today (getDetail carries
@@ -2140,42 +2151,44 @@ export function ObligationQueueDetailDrawer({
                       rows).
                       // TODO(data): expected-refund total + per-component
                       // withholding breakdown on the obligation detail. */}
-                  <section className="flex flex-col gap-2.5">
-                    <div className="flex items-end justify-between gap-2">
-                      <div className="grid gap-0.5">
-                        <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
-                          <Trans>Expected refund</Trans>
-                        </h3>
-                        <span className="text-2xl font-semibold leading-none tracking-tight text-text-success tabular-nums">
-                          $4,210
-                        </span>
-                        <span className="text-caption text-text-secondary">
-                          <Trans>estimate · not yet reconciled</Trans>
-                        </span>
-                      </div>
-                    </div>
-                    <dl className="grid gap-0 border-t border-divider-subtle pt-1.5">
-                      {[
-                        { label: t`Federal withholding`, value: '$12,400' },
-                        { label: t`CA state withholding`, value: '$3,100' },
-                        { label: t`Estimated tax credit`, value: '$2,210' },
-                      ].map((entry, index, rows) => (
-                        <div
-                          key={entry.label}
-                          className={cn(
-                            'flex items-center justify-between gap-3 py-1.5',
-                            index < rows.length - 1 && 'border-b border-divider-subtle',
-                          )}
-                        >
-                          <dt className="text-sm font-medium text-text-secondary">{entry.label}</dt>
-                          <dd className="text-sm font-semibold tabular-nums text-text-primary">
-                            {entry.value}
-                          </dd>
+                    <section className="flex flex-col gap-2.5">
+                      <div className="flex items-end justify-between gap-2">
+                        <div className="grid gap-0.5">
+                          <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
+                            <Trans>Expected refund</Trans>
+                          </h3>
+                          <span className="text-2xl font-semibold leading-none tracking-tight text-text-success tabular-nums">
+                            $4,210
+                          </span>
+                          <span className="text-caption text-text-secondary">
+                            <Trans>estimate · not yet reconciled</Trans>
+                          </span>
                         </div>
-                      ))}
-                    </dl>
-                  </section>
-                  {/* Cluster 2 (Summary design `d4YrtC > D9cnC`):
+                      </div>
+                      <dl className="grid gap-0 border-t border-divider-subtle pt-1.5">
+                        {[
+                          { label: t`Federal withholding`, value: '$12,400' },
+                          { label: t`CA state withholding`, value: '$3,100' },
+                          { label: t`Estimated tax credit`, value: '$2,210' },
+                        ].map((entry, index, rows) => (
+                          <div
+                            key={entry.label}
+                            className={cn(
+                              'flex items-center justify-between gap-3 py-1.5',
+                              index < rows.length - 1 && 'border-b border-divider-subtle',
+                            )}
+                          >
+                            <dt className="text-sm font-medium text-text-secondary">
+                              {entry.label}
+                            </dt>
+                            <dd className="text-sm font-semibold tabular-nums text-text-primary">
+                              {entry.value}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </section>
+                    {/* Cluster 2 (Summary design `d4YrtC > D9cnC`):
                       Source docs card. The contract's `evidence` array is
                       rule/extraction evidence (sourceType, verbatimQuote
                       …), not file artifacts with filenames + byte sizes,
@@ -2185,113 +2198,269 @@ export function ObligationQueueDetailDrawer({
                       upload/ingest pipeline lands.
                       // TODO(data): source-document attachments (filename,
                       // size, uploadedAt) on the obligation detail. */}
-                  <section className="flex flex-col gap-1.5">
-                    <div className="flex items-center gap-2 pb-1">
-                      <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
-                        <Trans>Source docs</Trans>
+                    <section className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2 pb-1">
+                        <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
+                          <Trans>Source docs</Trans>
+                        </h3>
+                        <TextLink
+                          variant="accent"
+                          className="ml-auto"
+                          onClick={() =>
+                            toast.info(t`File upload is coming soon`, {
+                              description: t`We'll let you attach source documents here as soon as ingest lands.`,
+                            })
+                          }
+                        >
+                          <Trans>+ Add file</Trans>
+                        </TextLink>
+                      </div>
+                      <p className="py-1 text-caption text-text-tertiary">
+                        <Trans>No files attached yet.</Trans>
+                      </p>
+                    </section>
+                    <AuthorityResponsePanel
+                      row={row}
+                      auditEvents={detail.auditEvents}
+                      accepting={markAcceptedMutation.isPending}
+                      rejecting={markFiledRejectedMutation.isPending}
+                      onConfirmAccepted={() =>
+                        markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
+                      }
+                      onRecordRejection={openAuthorityRejectionDialog}
+                      onChangeTab={(nextTab) => onTabChange(nextTab)}
+                    />
+                    <ActiveStageDetailCard
+                      row={row}
+                      auditEvents={detail.auditEvents}
+                      readinessChecklist={detail.readinessChecklist}
+                      onChangeTab={(nextTab) => onTabChange(nextTab)}
+                      onChangeStatus={(nextStatus) => changeStatus(row.id, nextStatus, row.status)}
+                      onConfirmAcceptance={() =>
+                        markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
+                      }
+                      onRecordRejection={openAuthorityRejectionDialog}
+                      onChangePrepStage={(nextPrepStage) => {
+                        // Capture the previous value so the success toast can
+                        // offer an Undo that fires the reverse mutation. No-op
+                        // clicks (same value) still let the request through —
+                        // the server short-circuits and emits a zero-uuid
+                        // auditId, but the toast logic uses the captured
+                        // previous to decide whether to show Undo.
+                        prepStagePreviousRef.current = row.prepStage
+                        updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
+                      }}
+                      onChangeReviewStage={(nextReviewStage) => {
+                        reviewStagePreviousRef.current = row.reviewStage
+                        updateReviewStageMutation.mutate({
+                          id: row.id,
+                          reviewStage: nextReviewStage,
+                        })
+                      }}
+                      onMarkSigned={() => {
+                        // Advance the e-file pipeline; success toast offers an
+                        // Undo that reverts to authorization_requested (the
+                        // only state mark-signed fires from). Same per-call
+                        // onSuccess + Undo split as `changeStatus`.
+                        updateEfileStateMutation.mutate(
+                          { id: row.id, efileState: 'authorization_signed' },
+                          {
+                            onSuccess: (result) => {
+                              toast.success(t`Marked 8879 signed`, {
+                                description: t`Audit ${result.auditId.slice(0, 8)}`,
+                                action: {
+                                  label: t`Undo`,
+                                  onClick: () =>
+                                    updateEfileStateMutation.mutate({
+                                      id: row.id,
+                                      efileState: 'authorization_requested',
+                                    }),
+                                },
+                              })
+                            },
+                          },
+                        )
+                      }}
+                      onRemindSignature={() => setRemindDialogOpen(true)}
+                      onSubmitEfile={() => {
+                        // Signed → e-filed. Undo reverts to
+                        // authorization_signed (where submit fires from).
+                        updateEfileStateMutation.mutate(
+                          { id: row.id, efileState: 'submitted' },
+                          {
+                            onSuccess: (result) => {
+                              toast.success(t`Marked e-filed`, {
+                                description: t`Audit ${result.auditId.slice(0, 8)}`,
+                                action: {
+                                  label: t`Undo`,
+                                  onClick: () =>
+                                    updateEfileStateMutation.mutate({
+                                      id: row.id,
+                                      efileState: 'authorization_signed',
+                                    }),
+                                },
+                              })
+                            },
+                          },
+                        )
+                      }}
+                    />
+                    {/* Recent activity — last few audit-feed entries, with a
+                        link out to the full Timeline tab. */}
+                    {detail.auditEvents.length > 0 ? (
+                      <section className="flex flex-col gap-3 rounded-xl border border-divider-subtle bg-background-default p-4">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
+                            <Trans>Recent activity</Trans>
+                          </h3>
+                          <TextLink
+                            variant="accent"
+                            className="text-caption font-normal"
+                            onClick={() => onTabChange('audit')}
+                          >
+                            <Trans>View all in Timeline →</Trans>
+                          </TextLink>
+                        </div>
+                        <ul className="flex flex-col gap-3">
+                          {detail.auditEvents.slice(0, 3).map((event) => {
+                            const actor = event.actorLabel ?? t`System`
+                            return (
+                              <li key={event.id} className="flex items-center gap-2.5">
+                                <AssigneeAvatar name={actor} title={actor} size="sm" />
+                                <span className="min-w-0 flex-1 text-sm leading-tight text-text-secondary">
+                                  <span className="font-medium text-text-primary">{actor}</span>
+                                  <span aria-hidden> · </span>
+                                  {(auditActionLabels as Record<string, string>)[event.action] ??
+                                    event.action}
+                                </span>
+                                <span className="shrink-0 text-caption-xs tabular-nums text-text-tertiary">
+                                  {formatRelativeTime(event.createdAt)}
+                                </span>
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      </section>
+                    ) : null}
+                  </div>
+                  {/* Right rail — Ownership + Linked from (Pencil rzzww). */}
+                  <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-[256px]">
+                    <section className="flex flex-col gap-3 rounded-xl border border-divider-subtle bg-background-default p-4">
+                      <h3 className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
+                        <Trans>Ownership</Trans>
                       </h3>
-                      <TextLink
-                        variant="accent"
-                        className="ml-auto"
-                        onClick={() =>
-                          toast.info(t`File upload is coming soon`, {
-                            description: t`We'll let you attach source documents here as soon as ingest lands.`,
-                          })
-                        }
+                      <div className="flex items-center gap-2.5">
+                        <AssigneeAvatar
+                          name={row.assigneeName ?? t`Unassigned`}
+                          title={row.assigneeName ?? t`Unassigned`}
+                          size="sm"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-caption-xs text-text-tertiary">
+                            <Trans>Assignee</Trans>
+                          </p>
+                          <p className="truncate text-sm font-medium text-text-primary">
+                            {row.assigneeName ?? <Trans>Unassigned</Trans>}
+                          </p>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-caption font-normal text-state-accent-solid"
+                              >
+                                <Trans>Change</Trans>
+                              </Button>
+                            }
+                          />
+                          <DropdownMenuContent align="end" className="w-56">
+                            {assignableMembers.length > 0 ? (
+                              <DropdownMenuRadioGroup
+                                value={row.assigneeId ?? ''}
+                                onValueChange={(value) =>
+                                  assignMutation.mutate({ id: row.id, assigneeId: value || null })
+                                }
+                              >
+                                {assignableMembers.map((member) => (
+                                  <DropdownMenuRadioItem
+                                    key={member.assigneeId}
+                                    value={member.assigneeId}
+                                  >
+                                    {member.name}
+                                  </DropdownMenuRadioItem>
+                                ))}
+                              </DropdownMenuRadioGroup>
+                            ) : (
+                              <DropdownMenuItem disabled>
+                                <Trans>No assignable teammates</Trans>
+                              </DropdownMenuItem>
+                            )}
+                            {row.assigneeId ? (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    assignMutation.mutate({ id: row.id, assigneeId: null })
+                                  }
+                                >
+                                  <Trans>Clear assignee</Trans>
+                                </DropdownMenuItem>
+                              </>
+                            ) : null}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </section>
+                    <section className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default p-4">
+                      <h3 className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
+                        <Trans>Linked from</Trans>
+                      </h3>
+                      <Link
+                        to={clientDetailPath({ id: row.clientId, name: row.clientName })}
+                        className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
-                        <Trans>+ Add file</Trans>
-                      </TextLink>
-                    </div>
-                    <p className="py-1 text-caption text-text-tertiary">
-                      <Trans>No files attached yet.</Trans>
-                    </p>
-                  </section>
-                  <AuthorityResponsePanel
-                    row={row}
-                    auditEvents={detail.auditEvents}
-                    accepting={markAcceptedMutation.isPending}
-                    rejecting={markFiledRejectedMutation.isPending}
-                    onConfirmAccepted={() =>
-                      markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
-                    }
-                    onRecordRejection={openAuthorityRejectionDialog}
-                    onChangeTab={(nextTab) => onTabChange(nextTab)}
-                  />
-                  <ActiveStageDetailCard
-                    row={row}
-                    auditEvents={detail.auditEvents}
-                    readinessChecklist={detail.readinessChecklist}
-                    onChangeTab={(nextTab) => onTabChange(nextTab)}
-                    onChangeStatus={(nextStatus) => changeStatus(row.id, nextStatus, row.status)}
-                    onConfirmAcceptance={() =>
-                      markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
-                    }
-                    onRecordRejection={openAuthorityRejectionDialog}
-                    onChangePrepStage={(nextPrepStage) => {
-                      // Capture the previous value so the success toast can
-                      // offer an Undo that fires the reverse mutation. No-op
-                      // clicks (same value) still let the request through —
-                      // the server short-circuits and emits a zero-uuid
-                      // auditId, but the toast logic uses the captured
-                      // previous to decide whether to show Undo.
-                      prepStagePreviousRef.current = row.prepStage
-                      updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
-                    }}
-                    onChangeReviewStage={(nextReviewStage) => {
-                      reviewStagePreviousRef.current = row.reviewStage
-                      updateReviewStageMutation.mutate({
-                        id: row.id,
-                        reviewStage: nextReviewStage,
-                      })
-                    }}
-                    onMarkSigned={() => {
-                      // Advance the e-file pipeline; success toast offers an
-                      // Undo that reverts to authorization_requested (the
-                      // only state mark-signed fires from). Same per-call
-                      // onSuccess + Undo split as `changeStatus`.
-                      updateEfileStateMutation.mutate(
-                        { id: row.id, efileState: 'authorization_signed' },
-                        {
-                          onSuccess: (result) => {
-                            toast.success(t`Marked 8879 signed`, {
-                              description: t`Audit ${result.auditId.slice(0, 8)}`,
-                              action: {
-                                label: t`Undo`,
-                                onClick: () =>
-                                  updateEfileStateMutation.mutate({
-                                    id: row.id,
-                                    efileState: 'authorization_requested',
-                                  }),
-                              },
-                            })
-                          },
-                        },
-                      )
-                    }}
-                    onRemindSignature={() => setRemindDialogOpen(true)}
-                    onSubmitEfile={() => {
-                      // Signed → e-filed. Undo reverts to
-                      // authorization_signed (where submit fires from).
-                      updateEfileStateMutation.mutate(
-                        { id: row.id, efileState: 'submitted' },
-                        {
-                          onSuccess: (result) => {
-                            toast.success(t`Marked e-filed`, {
-                              description: t`Audit ${result.auditId.slice(0, 8)}`,
-                              action: {
-                                label: t`Undo`,
-                                onClick: () =>
-                                  updateEfileStateMutation.mutate({
-                                    id: row.id,
-                                    efileState: 'authorization_signed',
-                                  }),
-                              },
-                            })
-                          },
-                        },
-                      )
-                    }}
-                  />
+                        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-background-subtle text-text-tertiary">
+                          <UsersIcon className="size-3.5" aria-hidden />
+                        </span>
+                        <span className="min-w-0 flex-1 leading-tight">
+                          <span className="block truncate text-sm font-medium text-text-primary">
+                            {row.clientName}
+                          </span>
+                          <span className="block text-caption-xs text-text-tertiary">
+                            <Trans>Client profile</Trans>
+                          </span>
+                        </span>
+                        <ExternalLinkIcon
+                          className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
+                          aria-hidden
+                        />
+                      </Link>
+                      {row.taxYear ? (
+                        <Link
+                          to={clientDetailPath({ id: row.clientId, name: row.clientName })}
+                          className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        >
+                          <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-background-subtle text-text-tertiary">
+                            <CalendarClockIcon className="size-3.5" aria-hidden />
+                          </span>
+                          <span className="min-w-0 flex-1 leading-tight">
+                            <span className="block truncate text-sm font-medium text-text-primary">
+                              <Trans>TY {row.taxYear - 1}</Trans>
+                            </span>
+                            <span className="block text-caption-xs text-text-tertiary">
+                              <Trans>Prior return</Trans>
+                            </span>
+                          </span>
+                          <ExternalLinkIcon
+                            className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
+                            aria-hidden
+                          />
+                        </Link>
+                      ) : null}
+                    </section>
+                  </aside>
                 </div>
               </motion.div>
             </TabsContent>

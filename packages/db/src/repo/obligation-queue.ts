@@ -145,6 +145,15 @@ export interface ObligationQueueListRow {
   clientName: string
   clientState: string | null
   clientCounty: string | null
+  clientEntityType:
+    | 'llc'
+    | 's_corp'
+    | 'partnership'
+    | 'c_corp'
+    | 'sole_prop'
+    | 'trust'
+    | 'individual'
+    | 'other'
   assigneeName: string | null
   assigneeId: string | null
   snoozedUntil: Date | null
@@ -294,7 +303,15 @@ interface ObligationQueueRawJoinedRow {
   // hydrateRows and wins over the client-level `assigneeName` above.
   assigneeId: string | null
   snoozedUntil: Date | null
-  clientEntityType: string
+  clientEntityType:
+    | 'llc'
+    | 's_corp'
+    | 'partnership'
+    | 'c_corp'
+    | 'sole_prop'
+    | 'trust'
+    | 'individual'
+    | 'other'
   clientEstimatedTaxLiabilityCents: number | null
   clientEquityOwnerCount: number | null
   importanceWeight: number

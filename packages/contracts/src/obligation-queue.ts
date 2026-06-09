@@ -109,6 +109,19 @@ export const ObligationQueueRowSchema = ObligationInstancePublicSchema.omit({
   clientName: z.string().min(1),
   clientState: StateCodeSchema.nullable(),
   clientCounty: ObligationQueueFilterValueSchema.nullable(),
+  // Client entity type (llc / s_corp / sole_prop / trust / …). Surfaced so the
+  // queue CLIENT cell can render the "Sole Prop · California" identity subtitle
+  // (Pencil /deadlines production recreation). Mirrors clients.entity_type.
+  clientEntityType: z.enum([
+    'llc',
+    's_corp',
+    'partnership',
+    'c_corp',
+    'sole_prop',
+    'trust',
+    'individual',
+    'other',
+  ]),
   assigneeName: z.string().min(1).nullable(),
   taxYearProfileEditable: z.boolean(),
   readiness: ObligationQueueReadinessSchema,

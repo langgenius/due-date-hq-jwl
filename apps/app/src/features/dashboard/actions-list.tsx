@@ -20,7 +20,6 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableRow } from '@duedatehq/ui/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
-import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { DueDateLabel } from '@/components/primitives/due-date-label'

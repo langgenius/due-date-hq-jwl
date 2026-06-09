@@ -1,4 +1,4 @@
-import { Fragment, type ReactElement, useMemo, useState } from 'react'
+import { Fragment, type ReactElement, useCallback, useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useForm, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -724,15 +724,30 @@ export function CreateObligationDialog({
   trigger,
   defaultClientId,
   onCreated,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   trigger?: ReactElement
   defaultClientId?: string
   onCreated?: (obligationId: string) => void
+  // 2026-06-09 (Yuqi /deadlines production recreation): optional controlled
+  // open, so the split "Add deadline" button (main click + dropdown "Add one
+  // deadline" item) can both drive this one dialog. Uncontrolled by default.
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const entityLabels = useEntityLabels()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen ?? internalOpen
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (controlledOpen === undefined) setInternalOpen(next)
+      onOpenChange?.(next)
+    },
+    [controlledOpen, onOpenChange],
+  )
   const [createClientOpen, setCreateClientOpen] = useState(false)
   const taxYearContext = useMemo(buildTaxYearSelectContext, [])
 

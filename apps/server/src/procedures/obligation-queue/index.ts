@@ -107,6 +107,7 @@ interface RawRow {
   clientName: string
   clientState: string | null
   clientCounty: string | null
+  clientEntityType: ObligationQueueRow['clientEntityType']
   assigneeName: string | null
   daysUntilDue: number
   evidenceCount: number
@@ -244,6 +245,7 @@ function toRow(
     clientName: row.clientName,
     clientState: normalizeStateCode(row.clientState),
     clientCounty: normalizeNullableText(row.clientCounty),
+    clientEntityType: row.clientEntityType,
     assigneeName: row.assigneeName?.trim() || null,
     taxYearProfileEditable: canEditTaxYearProfileForObligation({
       rule,

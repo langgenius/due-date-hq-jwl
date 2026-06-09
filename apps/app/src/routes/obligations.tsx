@@ -57,8 +57,14 @@ import {
   CalendarClockIcon,
   CheckIcon,
   FileTextIcon,
+  FlameIcon,
   PaperclipIcon,
   LinkIcon,
+  LayersIcon,
+  ListChecksIcon,
+  BookmarkIcon,
+  MoreHorizontalIcon,
+  RotateCcwIcon,
   RefreshCwIcon,
   SendIcon,
   PlusIcon,
@@ -130,12 +136,14 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import {
@@ -185,7 +193,6 @@ import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
-import { DeadlinesAtAGlance } from '@/features/obligations/deadlines-at-a-glance'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -205,8 +212,6 @@ import {
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
   ObligationStatusReadBadge,
-  STATUS_ICON,
-  STATUS_ICON_COLOR,
   useLifecycleV2StatusLabels,
   useStatusLabels,
   type ObligationStatus,
@@ -235,6 +240,7 @@ import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPane
 import { ObligationListRail } from '@/features/obligations/components/ObligationListRail'
 import { StageActions, type StageTask } from '@/features/obligations/StageActions'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { initialsFromName } from '@/lib/auth'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
@@ -293,7 +299,11 @@ const DEFAULT_DENSITY: ObligationQueueDensity = 'comfortable'
 // due-date-derived; both legacy and new `?group=urgency` URLs now resolve.
 const GROUP_OPTIONS = ['due', 'urgency', 'client', 'filing'] as const
 type ObligationQueueGroup = (typeof GROUP_OPTIONS)[number]
-const DEFAULT_GROUP: ObligationQueueGroup = 'due'
+// 2026-06-09 (Yuqi /deadlines production recreation): default grouping is
+// urgency bands (Overdue / This week / Upcoming) so the queue opens on the
+// banded view from the mock — an "OVERDUE · N DEADLINES" header leads the
+// list. Users can still switch to Due date / Client / Filing in the kebab.
+const DEFAULT_GROUP: ObligationQueueGroup = 'urgency'
 const DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS = 3_000
 const DEADLINE_TIP_REFRESH_TIMEOUT_MS = 60_000
 const EMPTY_OBLIGATION_QUEUE_ROWS: ObligationQueueRow[] = []
@@ -606,10 +616,11 @@ const DEFAULT_COLUMN_ORDER = [
   'select',
   'taxType',
   'clientName',
+  'taxCategory',
   'clientState',
-  'assigneeName',
   'currentDueDate',
   'filingDueDate',
+  'assigneeName',
   'estimatedExposureCents',
   'status',
   'smartPriority',
@@ -638,6 +649,7 @@ const DEFAULT_COLUMN_ORDER = [
 const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
   'clientState',
   'clientCounty',
+  'taxCategory',
   'assigneeName',
   'evidenceCount',
   'smartPriority',
@@ -650,6 +662,55 @@ const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
 ] as const
 const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
+
+// Short entity-type labels for the CLIENT cell identity subtitle
+// ("Sole Prop · California"), Pencil /deadlines production recreation.
+// Mirrors clients.entity_type; kept terse so the subtitle stays a quiet
+// one-liner under the client name.
+const CLIENT_ENTITY_TYPE_LABELS: Record<ObligationQueueRow['clientEntityType'], string> = {
+  llc: 'LLC',
+  s_corp: 'S-Corp',
+  c_corp: 'C-Corp',
+  partnership: 'Partnership',
+  sole_prop: 'Sole Prop',
+  trust: 'Trust',
+  individual: 'Individual',
+  other: 'Entity',
+}
+
+// Broad tax category for the TAX column ("Income tax" / "Payroll" /
+// "Information"), Pencil /deadlines production recreation. Derived from
+// the form code + obligation type since the queue row carries no explicit
+// category. Payroll = the 94x employment-tax family + deposits;
+// Information = BOI / 990 / 1099 information returns; everything else
+// (1040 / 1065 / 1120 / 1041 / elections) reads as income tax.
+function taxCategoryLabel(row: Pick<ObligationQueueRow, 'taxType' | 'obligationType'>): string {
+  const code = formatTaxCode(row.taxType).toLowerCase()
+  if (row.obligationType === 'deposit' || /\b94\d\b|payroll|w-?2/.test(code)) return 'Payroll'
+  if (row.obligationType === 'information' || /\bboi\b|\b990\b|\b1099\b|information/.test(code)) {
+    return 'Information'
+  }
+  return 'Income tax'
+}
+
+// Short filing-authority token for the STATE cell ("IRS" / "FinCEN").
+// The queue row's `authority` is free text; we only surface the two
+// recognizable federal authorities (the design's vocabulary). State
+// agencies and unknowns return null so the cell falls back to the bare
+// state-code badge instead of printing a truncated agency name.
+function shortFilingAuthority(
+  row: Pick<ObligationQueueRow, 'authority' | 'taxType'>,
+): string | null {
+  if (row.authority) {
+    if (/fincen/i.test(row.authority)) return 'FinCEN'
+    if (/irs|internal revenue/i.test(row.authority)) return 'IRS'
+  }
+  const code = formatTaxCode(row.taxType).toLowerCase()
+  if (/\bboi\b/.test(code)) return 'FinCEN'
+  // Federal income/payroll/information forms file to the IRS.
+  if (/\b(1040|1041|1065|1120|94\d|990|1099|2553|7004|4868)\b/.test(code)) return 'IRS'
+  return null
+}
 
 // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
 // the obligation detail panel now shares the alerts panel's
@@ -1466,6 +1527,10 @@ export function ObligationQueueRoute() {
   // bar's live height so the header's sticky `top` offset tracks it (the bar
   // wraps responsively, so a hard-coded offset would drift).
   const filterBarRef = useRef<HTMLDivElement | null>(null)
+  // 2026-06-09 (Yuqi /deadlines production recreation): controlled open for the
+  // split "Add deadline" button — both the main button and the dropdown's
+  // "Add one deadline" item drive the same CreateObligationDialog.
+  const [addDeadlineOpen, setAddDeadlineOpen] = useState(false)
   const [filterBarHeight, setFilterBarHeight] = useState(0)
   useEffect(() => {
     const element = filterBarRef.current
@@ -2063,6 +2128,9 @@ export function ObligationQueueRoute() {
         clientId?: string
         lateCount?: number
         earliestDueDate?: string
+        // Average |days from internal due| across the group — powers the
+        // "≈12D AVG" right-side meta on the band header (production design).
+        avgAbsDays?: number
       }
     >()
     if (group === 'due') {
@@ -2102,22 +2170,26 @@ export function ObligationQueueRoute() {
       while (j < orderedRows.length && groupKeyOf(orderedRows[j]!) === startKey) j++
       let earliest = start.currentDueDate
       let lateCount = 0
+      let absDaysSum = 0
       for (let k = i; k < j; k++) {
         const r = orderedRows[k]!
         if (r.currentDueDate < earliest) earliest = r.currentDueDate
+        absDaysSum += Math.abs(daysUntilEffectiveInternalDueDate(r))
         // "Late" = past internal due AND non-terminal (still actionable).
         if (r.daysUntilDue < 0 && r.status !== 'done' && r.status !== 'completed') {
           lateCount++
         }
       }
+      const groupSize = j - i
       map.set(start.id, {
         groupKey: startKey,
         label: groupLabelOf(start),
         kind: group === 'urgency' ? 'urgency' : group === 'filing' ? 'filing' : 'client',
         ...(group === 'client' ? { clientId: start.clientId } : {}),
-        count: j - i,
+        count: groupSize,
         lateCount,
         earliestDueDate: earliest,
+        avgAbsDays: groupSize > 0 ? Math.round(absDaysSum / groupSize) : 0,
       })
       i = j
     }
@@ -2367,26 +2439,42 @@ export function ObligationQueueRoute() {
               </div>
             )
           }
+          // 2026-06-09 (Yuqi /deadlines production recreation): identity
+          // subtitle under the client name — "Sole Prop · California"
+          // (entity type · home state). Gives each row a second line of
+          // who-is-this context without opening the client peek.
+          const entityLabel = CLIENT_ENTITY_TYPE_LABELS[tableRow.original.clientEntityType]
+          const stateName = tableRow.original.clientState
+            ? jurisdictionLabel(tableRow.original.clientState)
+            : null
+          const clientSubtitle = stateName ? `${entityLabel} · ${stateName}` : entityLabel
           return (
             <div className="flex min-w-0 items-center gap-1.5">
-              <span
+              <div
+                className="flex min-w-0 flex-1 flex-col"
                 onClick={handleClientNameClick}
                 onMouseDown={(event) => {
                   // Prevent text-selection drag from interfering with
                   // the shift-click range gesture.
                   if (event.shiftKey) event.preventDefault()
                 }}
-                className={cn(
-                  // 2026-06-08 (Pencil HuYeb /deadlines #9): client name is
-                  // font-medium by default (was font-normal); the active row
-                  // steps up to semibold so the selection still reads.
-                  'line-clamp-2 min-w-0 flex-1 text-sm leading-tight text-text-primary',
-                  tableRow.original.id === explicitActiveRowId ? 'font-semibold' : 'font-medium',
-                )}
-                title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
               >
-                {tableRow.original.clientName}
-              </span>
+                <span
+                  className={cn(
+                    // 2026-06-08 (Pencil HuYeb /deadlines #9): client name is
+                    // font-medium by default (was font-normal); the active row
+                    // steps up to semibold so the selection still reads.
+                    'line-clamp-1 min-w-0 text-sm leading-tight text-text-primary',
+                    tableRow.original.id === explicitActiveRowId ? 'font-semibold' : 'font-medium',
+                  )}
+                  title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
+                >
+                  {tableRow.original.clientName}
+                </span>
+                <span className="line-clamp-1 text-caption-xs leading-tight text-text-tertiary">
+                  {clientSubtitle}
+                </span>
+              </div>
               {/* Peek the client info in place. The eye icon is the
                   hover/focus trigger for a small popover (ClientPeek
                   HoverCard) — no click required to see identity. The
@@ -2411,7 +2499,7 @@ export function ObligationQueueRoute() {
             </div>
           )
         },
-        meta: { headerClassName: 'w-[168px]', cellClassName: 'w-[168px]' },
+        meta: { headerClassName: 'w-[196px]', cellClassName: 'w-[196px]' },
       },
       {
         // Smart Priority — second data column (right after Client) per
@@ -2542,27 +2630,39 @@ export function ObligationQueueRoute() {
         // pill so "state" reads as a recognized motif at scan
         // distance. Empty cell stays "—" since rendering a flag for
         // "no state" would be more confusing than less.
-        cell: (info) => {
-          const state = info.getValue<string | null>()
-          if (!state) return <EmptyCellMark />
-          // 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
-          // everywhere"): swept to a bordered Badge for cross-route
-          // consistency with /clients. The SVG flag glyph is gone;
-          // the code itself sits in the unified outline pill.
+        // 2026-06-09 (Yuqi /deadlines production recreation): STATE cell now
+        // leads with the filing AUTHORITY ("IRS" / "FinCEN") followed by the
+        // client's state code badge — "IRS CA". The authority answers "who
+        // are we filing to" and the state badge "where the client sits";
+        // together they read as one jurisdiction cluster at scan distance.
+        cell: ({ row: tableRow }) => {
+          const state = tableRow.original.clientState
+          const authority = shortFilingAuthority(tableRow.original)
+          if (!state && !authority) return <EmptyCellMark />
           return (
-            <Badge variant="outline" className="text-xs font-normal tabular-nums">
-              {state}
-            </Badge>
+            <div className="flex items-center gap-1.5">
+              {authority ? (
+                <span className="text-caption-xs font-medium uppercase tracking-wide text-text-tertiary">
+                  {authority}
+                </span>
+              ) : null}
+              {state ? (
+                <Badge variant="outline" className="text-xs font-normal tabular-nums">
+                  {state}
+                </Badge>
+              ) : null}
+            </div>
           )
         },
-        meta: { headerClassName: 'w-[64px]', cellClassName: 'w-[64px] text-text-secondary' },
+        meta: { headerClassName: 'w-[92px]', cellClassName: 'w-[92px] text-text-secondary' },
       },
       {
         accessorKey: 'taxType',
-        // 2026-06-08 (Yuqi /deadlines design parity): per-column Filing
-        // filter dropdown removed — Filing filtering moved to the toolbar
-        // "Filters" popover. Plain label header.
-        header: () => <span>{t`Filing`}</span>,
+        // 2026-06-09 (Yuqi /deadlines production recreation): header reads
+        // "Form" — the cell is the form-code chip ("Form 1040"), so the
+        // FORM column anchors each row by the document, and the broad
+        // category lives in the separate TAX column below.
+        header: () => <span>{t`Form`}</span>,
         // 2026-06-04 round 81 (Yuqi "/deadlines cell-by-cell sweep"):
         // FILING cell aligned to /today's ActionsTable canonical
         // primitive — `<TaxCodeBadge>` (bordered chip + mono +
@@ -2572,6 +2672,20 @@ export function ObligationQueueRoute() {
         // showing the form as plain text.
         cell: (info) => <TaxCodeBadge code={info.getValue<string>()} />,
         meta: { headerClassName: 'w-[104px]', cellClassName: 'w-[104px] text-text-secondary' },
+      },
+      {
+        // 2026-06-09 (Yuqi /deadlines production recreation): TAX column —
+        // the broad tax category ("Income tax" / "Payroll" / "Information")
+        // derived from the form code + obligation type. Sits between CLIENT
+        // and STATE so the row reads "who · what kind of tax · where".
+        id: 'taxCategory',
+        accessorFn: (queueRow) => taxCategoryLabel(queueRow),
+        enableSorting: false,
+        header: () => <span>{t`Tax`}</span>,
+        cell: ({ row: tableRow }) => (
+          <span className="text-xs text-text-secondary">{taxCategoryLabel(tableRow.original)}</span>
+        ),
+        meta: { headerClassName: 'w-[96px]', cellClassName: 'w-[96px]' },
       },
       {
         accessorKey: 'currentDueDate',
@@ -2629,13 +2743,18 @@ export function ObligationQueueRoute() {
         cell: (info) => {
           const value = info.getValue<string | null>()
           if (!value) return <EmptyCellMark />
+          // 2026-06-09 (Yuqi /deadlines production recreation): prose date
+          // "May 12, 2026" (was ISO YYYY-MM-DD). alwaysShowYear keeps the
+          // year visible even within the current tax year, matching the mock.
           return (
-            <span className="text-xs tabular-nums text-text-secondary">{formatDate(value)}</span>
+            <span className="text-xs tabular-nums text-text-secondary">
+              {formatDatePretty(value, { alwaysShowYear: true })}
+            </span>
           )
         },
         meta: {
-          headerClassName: 'w-[110px]',
-          cellClassName: 'w-[110px] tabular-nums',
+          headerClassName: 'w-[116px]',
+          cellClassName: 'w-[116px] tabular-nums',
         },
       },
       {
@@ -3090,6 +3209,37 @@ export function ObligationQueueRoute() {
     () => Array.from(statusFacetCounts.values()).reduce((sum, n) => sum + n, 0),
     [statusFacetCounts],
   )
+  // 2026-06-09 (Yuqi /deadlines production recreation): aggregates for the
+  // narrative banner that replaced the three at-a-glance tiles. Overdue /
+  // due-today counts and total penalty exposure are derived from the loaded
+  // glance page; entity count comes from the client facet (full set). These
+  // power one editorial sentence + a metric line instead of three tiles.
+  const deadlinesNarrative = useMemo(() => {
+    let overdue = 0
+    let dueToday = 0
+    let penaltyCents = 0
+    for (const r of glanceRows) {
+      const terminal =
+        r.status === 'done' || r.status === 'completed' || r.status === 'not_applicable'
+      const days = daysUntilEffectiveInternalDueDate(r)
+      if (!terminal && days < 0) overdue++
+      if (!terminal && days === 0) dueToday++
+      penaltyCents += r.accruedPenaltyCents ?? 0
+    }
+    const entities =
+      facetsQuery.data?.clients.length ?? new Set(glanceRows.map((r) => r.clientId)).size
+    return { overdue, dueToday, penaltyCents, entities }
+  }, [glanceRows, facetsQuery.data?.clients])
+  // Eyebrow date for the narrative banner — "TUE JUN 9". Built from the
+  // as-of date when one is pinned (demo / time-travel), else today.
+  const bannerDateLabel = useMemo(() => {
+    const base = asOf ? new Date(`${asOf}T00:00:00`) : new Date()
+    const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(base)
+    const monthDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(
+      base,
+    )
+    return `${weekday} ${monthDay}`.toUpperCase()
+  }, [asOf])
   const scopeStatuses = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   const activeScope: ObligationStatus | 'all' =
     statusQuery.length === 1 && isObligationStatus(statusQuery[0]!) ? statusQuery[0] : 'all'
@@ -3370,6 +3520,30 @@ export function ObligationQueueRoute() {
     setRowSelection({})
   }
 
+  // 2026-06-09 (Yuqi /deadlines production recreation): single flag for the
+  // "Reset filters" affordance now living in the toolbar overflow (kebab)
+  // menu — true whenever any search / status / facet / date filter is set.
+  const queueFiltersActive =
+    searchInput !== '' ||
+    statusQuery.length > 0 ||
+    due !== null ||
+    thisWeekFilterActive ||
+    evidence !== null ||
+    Boolean(awaitingSignature) ||
+    Boolean(projected) ||
+    stateQuery.length > 0 ||
+    countyQuery.length > 0 ||
+    taxTypeQuery.length > 0 ||
+    assigneeQuery.length > 0 ||
+    obligationQuery.length > 0 ||
+    ruleQuery.length > 0 ||
+    clientQuery.length > 0 ||
+    assigneeNameQuery !== null ||
+    owner !== null ||
+    minDaysUntilDue !== undefined ||
+    maxDaysUntilDue !== undefined ||
+    asOf !== null
+
   function changeSelectedStatus(status: ObligationStatus, reason?: string) {
     if (selectedIds.length === 0) return
     bulkStatusMutation.mutate({
@@ -3512,6 +3686,23 @@ export function ObligationQueueRoute() {
           types in the search/filter chips — what the count
           represents shouldn't change mid-typing. */}
       <PageHeader
+        // 2026-06-09 (Yuqi /deadlines production recreation): sync status
+        // line above the title — a calm "we're live and how much we track"
+        // signal. Green dot + sync glyph + "Synced just now · N deadlines
+        // tracked". The fabricated "focus hours" phrase from the mock is
+        // intentionally dropped (no backing data). `normal-case` overrides
+        // the eyebrow slot's default uppercase so it reads as prose.
+        eyebrow={
+          <span className="inline-flex items-center gap-2 normal-case tracking-normal text-text-tertiary">
+            <span className="size-1.5 shrink-0 rounded-full bg-status-done" aria-hidden />
+            <RefreshCwIcon className="size-3 shrink-0" aria-hidden />
+            <Trans>Synced just now</Trans>
+            <span aria-hidden>·</span>
+            <span className="tabular-nums">
+              <Plural value={scopeTotal} one="# deadline tracked" other="# deadlines tracked" />
+            </span>
+          </span>
+        }
         title={
           // 2026-05-26 (Yuqi fifty-fourth pass — title vertical
           // alignment): items-baseline → items-center so the count
@@ -3604,7 +3795,68 @@ export function ObligationQueueRoute() {
                 Now lives on the queue too, right-edge of the actions
                 cluster (matches /clients's "+ Add client" placement).
                 Same global dialog, no schema change. */}
-            <CreateObligationDialog />
+            {/* 2026-06-09 (Yuqi /deadlines production recreation): "Add
+                deadline" is now a split button — the main button opens the
+                single-create dialog; the caret opens a menu with "Add one
+                deadline" (same dialog) + "Add several deadlines" (the bulk
+                migration wizard) and a note that Pulse drafts land in
+                Projected. Outline styling kept (not the mock's black fill). */}
+            <div className="inline-flex">
+              <CreateObligationDialog
+                open={addDeadlineOpen}
+                onOpenChange={setAddDeadlineOpen}
+                trigger={
+                  <Button type="button" variant="outline" size="sm" className="rounded-r-none">
+                    <PlusIcon data-icon="inline-start" />
+                    <Trans>Add deadline</Trans>
+                  </Button>
+                }
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      aria-label={t`More add-deadline options`}
+                      className="-ml-px rounded-l-none px-2"
+                    >
+                      <ChevronDownIcon className="size-4" aria-hidden />
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="end" className="min-w-[260px]">
+                  <DropdownMenuItem onClick={() => setAddDeadlineOpen(true)}>
+                    <PlusIcon className="size-4" aria-hidden />
+                    <span className="flex-1">
+                      <Trans>Add one deadline</Trans>
+                    </span>
+                    <kbd className="rounded-[4px] border border-divider-regular bg-background-subtle px-1 font-sans text-caption-xs text-text-tertiary">
+                      N
+                    </kbd>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={!canRunMigration}
+                    onClick={() => {
+                      if (canRunMigration) openWizard()
+                    }}
+                  >
+                    <ClipboardListIcon className="size-4" aria-hidden />
+                    <span className="flex-1">
+                      <Trans>Add several deadlines</Trans>
+                    </span>
+                    <Badge variant="secondary" className="h-5 px-1.5 text-caption-xs">
+                      <Trans>Bulk</Trans>
+                    </Badge>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <p className="px-2 py-1.5 text-caption-xs text-text-tertiary">
+                    <Trans>Pulse-generated drafts live in Projected</Trans>
+                  </p>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             {/* Saved views + Reset removed 2026-05-21 per UX call —
                 Reset is redundant with the "Clear filters" link in
                 the applied-filters strip; saved views was high-chrome
@@ -3615,32 +3867,70 @@ export function ObligationQueueRoute() {
         }
       />
 
-      {/* AT A GLANCE narrative tile row (Pencil u3nNA). Three derived
-          tiles — most-overdue / due-this-week / needs-review — sourced
-          from the loaded queue rows + the review facet count (no extra
-          round-trip). Hidden while a detail panel is open so the split
-          view keeps its vertical budget for the table (matches Pencil
-          Y12Dht, which omits the row in the split state). Each tile
-          drills into the matching filtered scope. */}
+      {/* 2026-06-09 (Yuqi /deadlines production recreation): the three
+          at-a-glance tiles (most-overdue / due-this-week / needs-review)
+          are replaced by a single narrative banner — an editorial read of
+          where the week stands (eyebrow date + one headline + a metric
+          line). Derived from the loaded glance page + client facet. Hidden
+          while a detail panel is open so the split view keeps its vertical
+          budget for the table. */}
       {!panelOpenIntent ? (
-        <DeadlinesAtAGlance
-          rows={glanceRows}
-          reviewCount={statusFacetCounts.get('review') ?? 0}
-          isLoading={glanceQuery.isLoading}
-          onOpenScope={(scope) => {
-            if (scope === 'overdue') {
-              void setObligationQueueQuery({ due: 'overdue', daysMin: null, daysMax: null })
-            } else if (scope === 'this_week') {
-              void setObligationQueueQuery({
-                due: null,
-                daysMin: null,
-                daysMax: THIS_WEEK_MAX_DAYS,
-              })
-            } else {
-              void setObligationQueueQuery({ status: ['review'] })
-            }
-          }}
-        />
+        <section
+          aria-label={t`Deadlines at a glance`}
+          className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-subtle px-6 py-5"
+        >
+          <p className="inline-flex items-center gap-2 text-caption font-medium tracking-eyebrow text-text-tertiary uppercase">
+            <span
+              className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt"
+              aria-hidden
+            />
+            {bannerDateLabel}
+            <span aria-hidden>·</span>
+            <Trans>Closing the week</Trans>
+          </p>
+          <h2 className="max-w-[64ch] text-xl leading-7 font-semibold text-text-primary">
+            {deadlinesNarrative.overdue > 0 && deadlinesNarrative.dueToday > 0 ? (
+              <Trans>
+                {deadlinesNarrative.overdue} overdue, {deadlinesNarrative.dueToday} filing today —
+                clear the urgent set to close the week strong.
+              </Trans>
+            ) : deadlinesNarrative.overdue > 0 ? (
+              <Trans>
+                {deadlinesNarrative.overdue} overdue — clear the urgent set to pull the week back on
+                track.
+              </Trans>
+            ) : deadlinesNarrative.dueToday > 0 ? (
+              <Trans>
+                {deadlinesNarrative.dueToday} filing today — stay ahead to keep the week on track.
+              </Trans>
+            ) : (
+              <Trans>Nothing overdue — the week is on track.</Trans>
+            )}
+          </h2>
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-secondary">
+            <span className="tabular-nums">
+              <Plural value={scopeTotal} one="# active filing" other="# active filings" />
+            </span>
+            <span aria-hidden>·</span>
+            <span className="tabular-nums">
+              <Plural
+                value={deadlinesNarrative.entities}
+                one="across # entity"
+                other="across # entities"
+              />
+            </span>
+            {deadlinesNarrative.penaltyCents > 0 ? (
+              <>
+                <span aria-hidden>·</span>
+                <span className="tabular-nums">
+                  <Trans>
+                    {formatCents(deadlinesNarrative.penaltyCents)} penalty exposure on the line
+                  </Trans>
+                </span>
+              </>
+            ) : null}
+          </p>
+        </section>
       ) : null}
 
       {/* When a row is selected, this section becomes a 2-column flex:
@@ -3757,73 +4047,15 @@ export function ObligationQueueRoute() {
               !panelOpenIntent && 'bg-background-default',
             )}
           >
-            <div className="flex flex-wrap items-end gap-3 pb-2">
-              <nav
-                aria-label={t`Status scopes`}
-                // No horizontal scroll — the user found it disorienting.
-                // Tabs sit on one line; if the viewport is genuinely too
-                // narrow, they wrap. With the collapsible search icon
-                // (below), there's enough room on every reasonable
-                // viewport for the 5–6 visible tabs.
-                // 2026-06-04 round 21 (Yuqi Pencil h4bQ2): inter-tab gap
-                // bumped `gap-1` (4px) → `gap-6` (24px) to match
-                // Pencil's `WB7vU` tab strip. The previous tight gap
-                // read as "buttons crammed together"; 24px makes each
-                // tab read as its own destination, the way the design
-                // intends.
-                className="-mb-px flex flex-1 flex-wrap items-center gap-6"
-              >
-                <ObligationQueueScopeTab
-                  label={t`All`}
-                  count={scopeTotal}
-                  active={activeScope === 'all'}
-                  compact={panelOpenIntent}
-                  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass —
-                  // "page blinks and jumps on tab/pill click"):
-                  // dropped the `obligation: null, row: null` patch
-                  // from scope-tab handlers. The clears were auto-
-                  // closing the detail panel on every filter change,
-                  // which triggered the AnimatePresence width-collapse
-                  // exit (280ms) + queue column re-expand to full
-                  // width — that's the "jump." The panel now persists
-                  // across filter changes; if the selected row is no
-                  // longer in the filtered set, the user can close
-                  // explicitly via X / Esc.
-                  onClick={() => void setObligationQueueQuery({ status: null })}
-                />
-                {visibleScopeStatuses.map((status) => (
-                  <ObligationQueueScopeTab
-                    key={status}
-                    label={statusLabels[status]}
-                    count={statusFacetCounts.get(status) ?? 0}
-                    active={activeScope === status}
-                    compact={panelOpenIntent}
-                    // 2026-05-25 (Yuqi status icon pass): scope tabs lead
-                    // with the same lucide icon used on row pills — same
-                    // glyph in the same color across the cell + the tab,
-                    // so the user can match "this filter brings up the
-                    // rows with this mark".
-                    // 2026-05-25 (status-pill audit §4 #8): dropped the
-                    // `dotTone={STATUS_DOT[status]}` fallback. Every
-                    // status-mapped tab provides an `icon` so the dot
-                    // path was already dead, and STATUS_DOT is being
-                    // retired from the export surface (icon-led badges
-                    // are canonical per audit §3.3).
-                    icon={STATUS_ICON[status]}
-                    iconColor={STATUS_ICON_COLOR[status]}
-                    // 2026-05-26: drop panel-close patch (see "All" tab
-                    // handler above) so filter clicks no longer trigger
-                    // the drawer width-collapse animation.
-                    onClick={() => void setObligationQueueQuery({ status: [status] })}
-                  />
-                ))}
-              </nav>
-              {/* 2026-06-08 (Pencil HuYeb /deadlines #3): the Search field
-                  sits on the scope-tab row, right-aligned (the nav is
-                  flex-1 so it pushes Search to the trailing edge). The
-                  separate filter-row search + the Sort-by control below
-                  were removed (#2). */}
-              <label className="inline-flex h-9 w-[260px] shrink-0 items-center gap-2 self-center rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt">
+            {/* 2026-06-09 (Yuqi /deadlines production recreation): the
+                scope-tab strip + the separate Group-by / Filters / Columns
+                row are consolidated into ONE toolbar line, matching the
+                production design: Search · All Status · Quick filters ……
+                kebab · columns. The status scope (tabs) is now an "All
+                Status" dropdown writing the same `status` URL param. */}
+            <div className="flex flex-wrap items-center gap-2 pb-3">
+              {/* Search — primary lookup across client / form / assignee. */}
+              <label className="inline-flex h-9 w-full min-w-0 shrink items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt sm:w-[320px]">
                 <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
                 <input
                   ref={searchInputRef}
@@ -3838,200 +4070,64 @@ export function ObligationQueueRoute() {
                         : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
                     )
                   }}
-                  placeholder={t`Search deadlines`}
-                  aria-label={t`Search deadlines`}
+                  placeholder={t`Search client, form, or assignee`}
+                  aria-label={t`Search client, form, or assignee`}
                   className="min-w-0 flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-tertiary"
                 />
               </label>
-            </div>
-          </div>
-
-          {/* 2026-06-05 (Yuqi DS alignment — "add both on deadlines"):
-              new /alerts-style FilterTrigger scroll row above the
-              existing quick-filter chip + actions cluster. Same
-              `flex-nowrap overflow-x-auto` single-line scroll pattern
-              /alerts uses (rounds 71/83). Search field sits left at
-              h-9 w-[260px] rounded-xl chrome that matches /alerts'
-              search input pixel-for-pixel; Sort by + Reset trail at
-              the right. The collapsible search next to the scope
-              tabs above STAYS — it carries the `q` URL param and
-              the `/` hotkey; this new search field is a parallel
-              affordance in the canonical /alerts spot so both
-              filter primitives coexist as Yuqi requested. */}
-          {/* 2026-06-08 (Pencil HuYeb /deadlines #2 + #3): the Sort-by
-              control and the duplicate search field were removed — Search
-              moved up to the scope-tab row. This row now carries only the
-              Reset affordance, and `empty:hidden` collapses it when no
-              filters are active. */}
-          <div className="flex shrink-0 flex-nowrap items-center gap-2 overflow-x-auto empty:hidden">
-            {panelOpenIntent ? null : (
-              <>
-                {due !== null ||
-                thisWeekFilterActive ||
-                evidence !== null ||
-                awaitingSignature ||
-                projected ||
-                stateQuery.length > 0 ||
-                countyQuery.length > 0 ||
-                taxTypeQuery.length > 0 ||
-                assigneeQuery.length > 0 ||
-                obligationQuery.length > 0 ||
-                ruleQuery.length > 0 ||
-                clientQuery.length > 0 ||
-                assigneeNameQuery !== null ||
-                owner !== null ||
-                minDaysUntilDue !== undefined ||
-                maxDaysUntilDue !== undefined ||
-                asOf !== null ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      void setObligationQueueQuery({
-                        q: null,
-                        status: null,
-                        obligation: null,
-                        client: null,
-                        rule: null,
-                        state: null,
-                        county: null,
-                        taxType: null,
-                        assignee: null,
-                        assignees: null,
-                        owner: null,
-                        due: null,
-                        dueWithin: null,
-                        daysMin: null,
-                        daysMax: null,
-                        evidence: null,
-                        awaitingSignature: null,
-                        projected: null,
-                        asOf: null,
-                      })
-                    }
-                    aria-label={t`Reset filters`}
+              {/* All Status — single dropdown pill replacing the scope-tab
+                  strip. Writes the same `status` param; trigger shows the
+                  active scope label + count. */}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <FilterTrigger noLeadingIcon active={activeScope !== 'all'}>
+                      <span>
+                        {activeScope === 'all' ? (
+                          <Trans>All Status</Trans>
+                        ) : (
+                          statusLabels[activeScope]
+                        )}
+                      </span>
+                      <span className="tabular-nums text-text-tertiary">
+                        {activeScope === 'all'
+                          ? scopeTotal
+                          : (statusFacetCounts.get(activeScope) ?? 0)}
+                      </span>
+                    </FilterTrigger>
+                  }
+                />
+                <DropdownMenuContent align="start" className="min-w-[208px]">
+                  <DropdownMenuRadioGroup
+                    value={activeScope}
+                    onValueChange={(next) => {
+                      if (next === 'all') {
+                        void setObligationQueueQuery({ status: null })
+                      } else if (isObligationStatus(next)) {
+                        void setObligationQueueQuery({ status: [next] })
+                      }
+                    }}
                   >
-                    <Trans>Reset</Trans>
-                  </Button>
-                ) : null}
-              </>
-            )}
-          </div>
-
-          {/* 2026-06-05 (Yuqi DS alignment — same Round 68 collapse
-              as /alerts): existing quick-filter chip row + actions
-              cluster hide entirely when the detail panel is up. The
-              new alerts-style row above keeps the Search anchored,
-              and the table's auto-collapse already trims columns
-              so the focus mode reads as clean as /alerts'. */}
-          {/* 2026-06-08 (Yuqi /deadlines design parity — "consolidate the
-              filter toolbar to match /alerts"): the four quick-filter chips
-              (Past due / Due this week / Needs evidence / Awaiting signature)
-              were removed from this row — they now live as labeled pill
-              sections inside the single "Filters" popover in the right
-              cluster below, alongside the relocated Filing / Client / State
-              column-header filters. One clean toolbar line remains:
-              Group by · Filters(n) · Columns. */}
-          {panelOpenIntent ? null : (
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              <div className="flex flex-wrap items-center gap-3">
-                {/* "Applied · <chip> · Clear filters" strip removed
-                2026-05-21 — the row chips above are already the
-                authoritative active-filter display, and each carries
-                its own × to dismiss. The breadcrumb was reading the
-                same state twice. */}
-                {/* 2026-05-26 (Yuqi /deadlines redesign): Group by
-                  switcher. Three modes — Due date (flat chronological),
-                  Client (clusters by client), and Filing (clusters by
-                  filing type). The selected mode drives the primary row
-                  sort key so groupings cluster visually. */}
-                {/* 2026-05-26 (Yuqi inset-followups D): Sort by converted
-                  from Base UI Select → DropdownMenu w/ RadioGroup.
-                  Base UI Select had different click + keyboard
-                  behavior than every other dropdown in the product
-                  (which all use Base UI Menu / DropdownMenu). User
-                  flagged "incorrect dropdown interaction" — converting
-                  to DropdownMenu puts Sort-by in the same interaction
-                  family as the Columns dropdown right next to it.
-                  Trigger chrome unchanged (single "Sort by X" label,
-                  matches Alerts). */}
-                <DropdownMenu>
-                  {/* 2026-05-26 (Yuqi feedback — "change the icon for
-                    sort by to lucide arrow-down-up"): the FilterTrigger
-                    default leading `+` icon read as "add a filter".
-                    Sort/Group-by isn't a filter — it's reorder. Swapped
-                    in `ArrowDownUp` (the canonical lucide sort icon)
-                    so the trigger reads as "change how rows are
-                    ordered/grouped". Aligns with the three Group-by
-                    wireframes Yuqi shared. */}
-                  <DropdownMenuTrigger
-                    render={
-                      /* 2026-05-27 (Yuqi feedback "remove" Plus icon):
-                       `noLeadingIcon` explicitly suppresses both the
-                       default PlusIcon (which was showing up after
-                       I removed ArrowDownUp) and any custom icon.
-                       The "Group by" label already names the action. */
-                      <FilterTrigger noLeadingIcon>
-                        <span className="text-text-tertiary">
-                          <Trans>Group by</Trans>
+                    <DropdownMenuRadioItem value="all">
+                      <span className="flex-1">
+                        <Trans>All Status</Trans>
+                      </span>
+                      <span className="tabular-nums text-text-tertiary">{scopeTotal}</span>
+                    </DropdownMenuRadioItem>
+                    {visibleScopeStatuses.map((status) => (
+                      <DropdownMenuRadioItem key={status} value={status}>
+                        <span className="flex-1">{statusLabels[status]}</span>
+                        <span className="tabular-nums text-text-tertiary">
+                          {statusFacetCounts.get(status) ?? 0}
                         </span>
-                        <span>
-                          {group === 'client' ? (
-                            <Trans>Client</Trans>
-                          ) : group === 'filing' ? (
-                            <Trans>Filing</Trans>
-                          ) : group === 'urgency' ? (
-                            <Trans>Urgency</Trans>
-                          ) : (
-                            <Trans>Due date</Trans>
-                          )}
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="end" className="min-w-[180px]">
-                    {/* 2026-05-26 (Yuqi follow-up — "remove group by
-                      status, since there is already the top tab switch
-                      between status"): Status option dropped. The
-                      scope-tab band above the table already filters by
-                      status, so a Group-by option was a redundant
-                      control. Just Due date (default flat list), Client
-                      (per-client cluster headers), and Filing (per-form
-                      cluster headers) remain. */}
-                    <DropdownMenuRadioGroup
-                      value={group}
-                      onValueChange={(next) => {
-                        if (
-                          next === 'due' ||
-                          next === 'urgency' ||
-                          next === 'client' ||
-                          next === 'filing'
-                        ) {
-                          void setObligationQueueQuery({ group: next })
-                        }
-                      }}
-                    >
-                      <DropdownMenuRadioItem value="due">
-                        <Trans>Due date</Trans>
                       </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="urgency">
-                        <Trans>Urgency</Trans>
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="client">
-                        <Trans>Client</Trans>
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="filing">
-                        <Trans>Filing</Trans>
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                {/* 2026-06-08 (Yuqi /deadlines design parity): the single
-                  "Filters" popover — Due / Needs evidence / Awaiting
-                  signature / Filing / Client / State all live here,
-                  mirroring /alerts. The trigger badge counts active facets.
-                  The Row-density Segmented that used to sit here was removed
-                  the same pass — the queue is now always compact. */}
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {/* Quick filters — the consolidated facet popover (Due /
+                  Evidence / Awaiting signature / Filing / Client / State). */}
+              {panelOpenIntent ? null : (
                 <ObligationFiltersPopover
                   due={due}
                   thisWeekFilterActive={thisWeekFilterActive}
@@ -4048,98 +4144,204 @@ export function ObligationQueueRoute() {
                   filtersDisabled={filtersDisabled}
                   onPatch={(patch) => void setObligationQueueQuery(patch)}
                 />
-                {/* 2026-05-26 (Yuqi feedback — "14 rows is misleading on
-                  top right. should say the number of deadlines in
-                  total"): label switched from `totalShown` (current
-                  page row count) to `rows.length` (total deadlines
-                  matching current filters across ALL pages). The
-                  per-page count was confusing — the page-header
-                  already carries the total open count ("17 open"),
-                  and this toolbar slot should reflect the same
-                  semantic ("how many things am I working with"),
-                  not "how many things are on this page right now." */}
-                {/* 2026-05-27 (Yuqi "去掉这个17 deadlines"): inline
-                  "{N} deadlines" count next to Group-by removed —
-                  was duplicating what the status tabs above already
-                  show (All 17, Not started 3, etc.). */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      /* 2026-05-26 (Yuqi /deadlines #8): variant outline →
-                       ghost. The toolbar's right cluster has the
-                       row-count + columns trigger; the column trigger
-                       was reading as a primary affordance via its
-                       outline border. Ghost matches the row-count's
-                       quietness — both are "info / control" rather
-                       than "do something." */
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label={t`Columns — ${visibleHideableCount} of ${totalHideableCount} visible`}
-                        title={t`${visibleHideableCount} of ${totalHideableCount} columns visible`}
-                        className="gap-1.5"
-                      >
-                        <Columns3Icon className="size-4" aria-hidden />
-                        <span className="text-caption tabular-nums text-text-secondary">
-                          {visibleHideableCount}/{totalHideableCount}
-                        </span>
-                      </Button>
-                    }
-                  />
-                  <DropdownMenuContent className="w-56" align="end">
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="flex items-center justify-between gap-2">
-                        <Trans>Visible columns</Trans>
-                        {hiddenColumnsCount > 0 ? (
-                          // Bulk "Show all" — clear the hidden set in
-                          // ONE state write.
-                          // 2026-05-26 (Yuqi /deadlines sixty-fifth pass
-                          // — "Show all doesn't work"): switched from
-                          // `hide: null` → `hide: []`. The `hide` parser
-                          // has a non-empty default (DEFAULT_HIDDEN_-
-                          // COLUMN_IDS), so passing null resolved BACK
-                          // to that default — which still hides 3+
-                          // columns. The user clicked "Show all" and
-                          // nothing changed because the defaults were
-                          // re-applied. Passing an empty array (combined
-                          // with `clearOnDefault: false` on the parser)
-                          // explicitly says "no columns are hidden,
-                          // preserve this in URL."
-                          <TextLink
-                            variant="accent"
-                            className="font-normal"
-                            onClick={() => {
-                              void setObligationQueueQuery({ hide: [] })
+              )}
+              {/* Right cluster — overflow kebab (group by + reset) and the
+                  column-visibility menu, icon-only per the design. */}
+              {panelOpenIntent ? null : (
+                <div className="ml-auto flex items-center gap-1">
+                  {/* 2026-06-09 (Yuqi /deadlines production recreation —
+                      Pencil XKiKR): the kebab is now the consolidated
+                      VIEW + ACTIONS menu. VIEW = Columns / Group by /
+                      Density submenus (each trigger shows its current
+                      value); ACTIONS = Export visible rows · Save current
+                      view · Reset filters. The standalone Columns icon is
+                      folded in here. */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button variant="ghost" size="icon-sm" aria-label={t`View and actions`}>
+                          <MoreHorizontalIcon className="size-4" aria-hidden />
+                        </Button>
+                      }
+                    />
+                    <DropdownMenuContent align="end" className="min-w-[244px]">
+                      <DropdownMenuLabel className="text-caption-xs tracking-wide text-text-tertiary uppercase">
+                        <Trans>View</Trans>
+                      </DropdownMenuLabel>
+                      {/* Columns submenu — count on the trigger, checklist inside. */}
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <Columns3Icon className="size-4" aria-hidden />
+                          <span>
+                            <Trans>Columns</Trans>
+                          </span>
+                          <span className="ml-auto tabular-nums text-text-tertiary">
+                            {t`${visibleHideableCount} of ${totalHideableCount}`}
+                          </span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className="w-56">
+                          <DropdownMenuLabel className="flex items-center justify-between gap-2">
+                            <Trans>Visible columns</Trans>
+                            {hiddenColumnsCount > 0 ? (
+                              <TextLink
+                                variant="accent"
+                                className="font-normal"
+                                onClick={() => {
+                                  void setObligationQueueQuery({ hide: [] })
+                                }}
+                              >
+                                <Trans>Show all</Trans>
+                              </TextLink>
+                            ) : null}
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {table
+                            .getAllLeafColumns()
+                            .filter((column) => column.getCanHide())
+                            .map((column) => {
+                              const label = columnLabel(column.id, columnLabels)
+                              return (
+                                <DropdownMenuCheckboxItem
+                                  key={column.id}
+                                  aria-label={label}
+                                  checked={column.getIsVisible()}
+                                  closeOnClick={false}
+                                  onCheckedChange={(checked) => column.toggleVisibility(checked)}
+                                >
+                                  <span>{label}</span>
+                                </DropdownMenuCheckboxItem>
+                              )
+                            })}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                      {/* Group by submenu. */}
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <LayersIcon className="size-4" aria-hidden />
+                          <span>
+                            <Trans>Group by</Trans>
+                          </span>
+                          <span className="ml-auto text-text-tertiary">
+                            {group === 'client' ? (
+                              <Trans>Client</Trans>
+                            ) : group === 'filing' ? (
+                              <Trans>Filing</Trans>
+                            ) : group === 'urgency' ? (
+                              <Trans>Urgency</Trans>
+                            ) : (
+                              <Trans>Due date</Trans>
+                            )}
+                          </span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className="min-w-[160px]">
+                          <DropdownMenuRadioGroup
+                            value={group}
+                            onValueChange={(next) => {
+                              if (
+                                next === 'due' ||
+                                next === 'urgency' ||
+                                next === 'client' ||
+                                next === 'filing'
+                              ) {
+                                void setObligationQueueQuery({ group: next })
+                              }
                             }}
                           >
-                            <Trans>Show all</Trans>
-                          </TextLink>
-                        ) : null}
-                      </DropdownMenuLabel>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    {table
-                      .getAllLeafColumns()
-                      .filter((column) => column.getCanHide())
-                      .map((column) => {
-                        const label = columnLabel(column.id, columnLabels)
-                        return (
-                          <DropdownMenuCheckboxItem
-                            key={column.id}
-                            aria-label={label}
-                            checked={column.getIsVisible()}
-                            closeOnClick={false}
-                            onCheckedChange={(checked) => column.toggleVisibility(checked)}
+                            <DropdownMenuRadioItem value="urgency">
+                              <Trans>Urgency</Trans>
+                            </DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="due">
+                              <Trans>Due date</Trans>
+                            </DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="client">
+                              <Trans>Client</Trans>
+                            </DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="filing">
+                              <Trans>Filing</Trans>
+                            </DropdownMenuRadioItem>
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                      {/* Density submenu. */}
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <ListChecksIcon className="size-4" aria-hidden />
+                          <span>
+                            <Trans>Density</Trans>
+                          </span>
+                          <span className="ml-auto text-text-tertiary">
+                            {density === 'compact' ? (
+                              <Trans>Compact</Trans>
+                            ) : (
+                              <Trans>Default</Trans>
+                            )}
+                          </span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className="min-w-[160px]">
+                          <DropdownMenuRadioGroup
+                            value={density}
+                            onValueChange={(next) => {
+                              if (next === 'comfortable' || next === 'compact') {
+                                void setObligationQueueQuery({ density: next })
+                              }
+                            }}
                           >
-                            <span>{label}</span>
-                          </DropdownMenuCheckboxItem>
-                        )
-                      })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                            <DropdownMenuRadioItem value="comfortable">
+                              <Trans>Default</Trans>
+                            </DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="compact">
+                              <Trans>Compact</Trans>
+                            </DropdownMenuRadioItem>
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel className="text-caption-xs tracking-wide text-text-tertiary uppercase">
+                        <Trans>Actions</Trans>
+                      </DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => openExportDialog('filtered')}>
+                        <DownloadIcon className="size-4" aria-hidden />
+                        <span className="flex-1">
+                          <Trans>Export visible rows</Trans>
+                        </span>
+                        <Badge variant="secondary" className="h-5 px-1.5 text-caption-xs">
+                          CSV
+                        </Badge>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          toast.success(t`View saved`, {
+                            description: t`Your current columns, grouping, and filters are saved to this view.`,
+                          })
+                        }
+                      >
+                        <BookmarkIcon className="size-4" aria-hidden />
+                        <span className="flex-1">
+                          <Trans>Save current view</Trans>
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={!queueFiltersActive}
+                        onClick={() => resetObligationQueue()}
+                        className="text-text-destructive data-highlighted:text-text-destructive"
+                      >
+                        <RotateCcwIcon className="size-4" aria-hidden />
+                        <span className="flex-1">
+                          <Trans>Reset filters</Trans>
+                        </span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* 2026-06-09 (Yuqi /deadlines production recreation): the old
+              standalone Reset row and the Group-by / Filters / Columns row
+              were folded into the single toolbar line above (Search · All
+              Status · Quick filters …… kebab · columns). Reset filters now
+              lives inside the kebab overflow menu. */}
 
           {selectedIds.length > 0 ? (
             /*
@@ -4750,22 +4952,32 @@ export function ObligationQueueRoute() {
                                       aria-hidden
                                     />
                                     <>
-                                      <span className="text-sm font-semibold text-text-primary">
+                                      {/* 2026-06-09 (Yuqi /deadlines production
+                                          recreation): band header reads "● OVERDUE
+                                          N DEADLINES" with a tone dot, and a
+                                          right-aligned "≈Xd avg · N of TOTAL" meta. */}
+                                      <span
+                                        className={cn(
+                                          'size-1.5 shrink-0 rounded-full',
+                                          groupHeader.kind === 'urgency' &&
+                                            groupHeader.groupKey === 'overdue'
+                                            ? 'bg-text-destructive'
+                                            : groupHeader.kind === 'urgency' &&
+                                                groupHeader.groupKey === 'this_week'
+                                              ? 'bg-text-warning'
+                                              : 'bg-text-tertiary',
+                                        )}
+                                        aria-hidden
+                                      />
+                                      <span className="text-xs font-semibold tracking-wide text-text-primary uppercase">
                                         {groupHeader.label}
                                       </span>
-                                      <span className="text-xs text-text-tertiary">
+                                      <span className="text-xs tracking-wide text-text-tertiary uppercase tabular-nums">
                                         <Plural
                                           value={groupHeader.count}
                                           one="# deadline"
                                           other="# deadlines"
                                         />
-                                        <span aria-hidden> · </span>
-                                        <Trans>
-                                          next{' '}
-                                          {formatDatePretty(
-                                            (groupHeader.earliestDueDate ?? '').slice(0, 10),
-                                          )}
-                                        </Trans>
                                       </span>
                                       {(groupHeader.lateCount ?? 0) > 0 ? (
                                         <Badge
@@ -4786,6 +4998,15 @@ export function ObligationQueueRoute() {
                                           />
                                         </Badge>
                                       ) : null}
+                                      <span className="ml-auto text-caption-xs tracking-wide text-text-tertiary uppercase tabular-nums">
+                                        {groupHeader.avgAbsDays && groupHeader.avgAbsDays > 0 ? (
+                                          <>
+                                            ≈{groupHeader.avgAbsDays}d avg
+                                            <span aria-hidden> · </span>
+                                          </>
+                                        ) : null}
+                                        {groupHeader.count} of {scopeTotal} deadlines
+                                      </span>
                                     </>
                                   </button>
                                 </TableCell>
@@ -4987,6 +5208,30 @@ export function ObligationQueueRoute() {
                     <Trans>Load more</Trans>
                   </Button>
                 </div>
+              ) : null}
+              {/* 2026-06-09 (Yuqi /deadlines production recreation): footer
+                  hint row — names the row-click + keyboard affordances that
+                  drive the triage drawer. Hidden when empty or in the
+                  panel-open split (the rail carries its own navigation). */}
+              {!panelOpenIntent && rows.length > 0 ? (
+                <p className="flex flex-wrap items-center gap-1.5 px-1 pt-3 text-caption-xs text-text-tertiary">
+                  <Trans>Click any row to open the triage drawer</Trans>
+                  <span aria-hidden>·</span>
+                  <Trans>
+                    Press{' '}
+                    <kbd className="rounded-[4px] border border-divider-regular bg-background-subtle px-1 font-sans text-text-secondary">
+                      ↵
+                    </kbd>{' '}
+                    to jump to the full page
+                  </Trans>
+                  <span aria-hidden>·</span>
+                  <Trans>
+                    <kbd className="rounded-[4px] border border-divider-regular bg-background-subtle px-1 font-sans text-text-secondary">
+                      Esc
+                    </kbd>{' '}
+                    to close
+                  </Trans>
+                </p>
               ) : null}
             </div>
           )}
@@ -5787,10 +6032,14 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
         // entirely. The tinted text color already carries the
         // urgency signal (text-text-destructive for late, etc.);
         // the dot was redundant noise next to the date.
-        'inline-flex items-center text-sm tabular-nums leading-tight',
+        // 2026-06-09 (Yuqi /deadlines production recreation): overdue rows
+        // lead with a small flame glyph so the "N days late" cluster reads
+        // as active urgency at scan distance (matches the Pencil mock).
+        'inline-flex items-center gap-1 text-sm tabular-nums leading-tight',
         tintedTextClass,
       )}
     >
+      {isLate ? <FlameIcon className="size-3 shrink-0" aria-hidden /> : null}
       {days === 0 ? (
         <Trans>Today</Trans>
       ) : isLate ? (
@@ -13140,96 +13389,10 @@ function parseOwnerCount(value: string): number | null {
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
 }
 
-// Scope tab — borderless, inline count, active state is a 2px accent
-// underline that overlaps the parent's bottom hairline (via -mb-px on
-// the parent and border-b-2 here). The count is a sibling tabular span,
-// not a nested pill — pill-inside-pill was visual stutter.
-//
-// 2026-06-05 (page-feedback #5): `ObligationQueueSearchControl`
-// removed. The page now has a single search affordance — the fixed
-// search field in the filter row above the table — so the
-// collapsible icon-button variant that used to live next to the
-// scope tabs is no longer needed. The canonical extracted version
-// at `features/obligations/queue/components/toolbar.tsx` stays for
-// other consumers; only this route's local copy is dropped.
-
-// `dotTone` (optional) renders the same status indicator dot the row
-// badge uses, mirroring queue colors into the tab so the user can see
-// at a glance which scope corresponds to which row tint. Omitted on
-// the "All" tab (it's an aggregate, not a single status).
-function ObligationQueueScopeTab({
-  label,
-  count,
-  active,
-  onClick,
-  icon: Icon,
-  iconColor,
-  compact = false,
-}: {
-  label: string
-  count: number
-  active: boolean
-  onClick: () => void
-  // 2026-05-25 (Yuqi status icon pass): scope tabs now lead with a
-  // lucide status icon when the tab maps to a lifecycle status (the
-  // 6 v2 scope tabs). `icon` is the lucide component, `iconColor`
-  // is the tailwind text-color class. The "All" tab passes neither
-  // and renders without a leading mark.
-  // 2026-05-25 (status-pill audit §4 #8): the prior `dotTone`
-  // fallback (BadgeStatusDot) was removed — icon-led badges are
-  // canonical per audit §3.3, and every status-mapped tab already
-  // provides an icon.
-  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
-  iconColor?: string
-  compact?: boolean
-}) {
-  // 2026-05-26 (Yuqi inset-followups G — smooth slide transition):
-  // dropped the per-tab `border-b-2` and replaced it with a single
-  // shared underline rendered via `layoutId="scope-tab-underline"`.
-  // Framer Motion smoothly slides the underline between tabs when a
-  // new one becomes active — no more jumpy "underline disappears
-  // here, reappears there" feel. Inactive tabs render a transparent
-  // 2px bottom border for hover state symmetry.
-  const hideLabel = compact && Boolean(Icon)
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      aria-label={hideLabel ? label : undefined}
-      title={hideLabel ? label : undefined}
-      onClick={onClick}
-      // 2026-06-04 round 21 (Yuqi Pencil h4bQ2 — Deadlines): tab
-      // padding shape rebuilt to match the Pencil `Row` spec —
-      // `py-3` (12px vertical, no horizontal) so the inter-tab
-      // gap-6 on the parent nav does the spacing work, and the
-      // active text steps from `text-text-primary` to
-      // `text-state-accent-solid` (blue) so Pencil's
-      // "active tab in blue" pattern reads on screen. Inactive
-      // tabs keep their hover-deepen-border affordance.
-      className={cn(
-        // 2026-06-08 (Pencil HuYeb /deadlines #1 — "smaller"): tab text
-        // text-base→text-sm, py-3→py-2, icon size-4→size-3.5, count
-        // text-sm→text-xs so the scope strip reads more compact.
-        'relative -mb-px flex shrink-0 cursor-pointer items-center gap-1.5 py-2 text-sm whitespace-nowrap transition-colors',
-        active
-          ? 'font-semibold text-state-accent-solid'
-          : 'border-b-2 border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary',
-      )}
-    >
-      {Icon ? <Icon className={cn('size-3.5', iconColor)} aria-hidden /> : null}
-      {hideLabel ? null : <span>{label}</span>}
-      <span className="text-xs tabular-nums text-text-tertiary">{count}</span>
-      {active ? (
-        <motion.span
-          layoutId="scope-tab-underline"
-          aria-hidden
-          className="absolute inset-x-0 bottom-0 h-0.5 bg-accent-default"
-          transition={{ type: 'spring', stiffness: 500, damping: 38 }}
-        />
-      ) : null}
-    </button>
-  )
-}
+// 2026-06-09 (Yuqi /deadlines production recreation): the
+// `ObligationQueueScopeTab` component was removed when the status scope-tab
+// strip was replaced by the toolbar's "All Status" dropdown. Status
+// filtering still writes the same `status` URL param from the dropdown.
 
 // 2026-06-08 (Yuqi /deadlines design parity): `ObligationQueueActionChip`
 // (the pill chrome for the 4 quick-filter chips — Past due / Due this week /
@@ -13314,10 +13477,10 @@ function ObligationFiltersPopover({
             active={activeCount > 0}
             leadingIcon={SlidersHorizontalIcon}
             valueLabel={activeCount > 0 ? String(activeCount) : undefined}
-            aria-label={t`Filters`}
+            aria-label={t`Quick filters`}
           >
             <span>
-              <Trans>Filters</Trans>
+              <Trans>Quick filters</Trans>
             </span>
           </FilterTrigger>
         }

@@ -39,6 +39,15 @@ interface FakeRow {
   clientName: string
   clientState: string | null
   clientCounty: string | null
+  clientEntityType:
+    | 'llc'
+    | 's_corp'
+    | 'partnership'
+    | 'c_corp'
+    | 'sole_prop'
+    | 'trust'
+    | 'individual'
+    | 'other'
   assigneeName: string | null
   assigneeId: string | null
   snoozedUntil: Date | null
@@ -184,6 +193,7 @@ function makeRow(over: Partial<FakeRow> = {}): FakeRow {
     clientName: over.clientName ?? 'Acme Holdings LLC',
     clientState: over.clientState ?? 'CA',
     clientCounty: over.clientCounty ?? 'Orange',
+    clientEntityType: over.clientEntityType ?? 'llc',
     assigneeName: over.assigneeName ?? null,
     assigneeId: over.assigneeId ?? null,
     snoozedUntil: over.snoozedUntil ?? null,

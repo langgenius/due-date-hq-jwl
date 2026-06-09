@@ -445,6 +445,7 @@ describe('client detail model', () => {
       clientName: 'Client',
       clientState: 'CA',
       clientCounty: null,
+      clientEntityType: 'llc',
       assigneeName: null,
       taxYearProfileEditable: false,
       readiness: 'ready',
