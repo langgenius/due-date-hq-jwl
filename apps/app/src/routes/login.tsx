@@ -1,4 +1,4 @@
-import { useState, useTransition, type ReactNode } from 'react'
+import { useState, useTransition } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -259,7 +259,7 @@ export function LoginRoute() {
               SSO/email choice reads as two equally-weighted
               options separated by a quiet pivot, not as a
               third labelled affordance. */}
-          <div className="my-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
+          <div className="my-4 grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2.5">
             <span className="h-px bg-divider-subtle" aria-hidden />
             <span className="text-[11px] leading-none text-text-muted">
               <Trans>or</Trans>
@@ -320,58 +320,6 @@ export function LoginRoute() {
           .
         </Trans>
       </p>
-
-      {/* 2026-06-07 (Cluster 6 auth canvas, node pW6pK): the canvas
-          closes /login with a trust strip — "TRUSTED BY 480+ TAX
-          PRACTICES" over a row of firm chips and a SOC-2 / scale
-          stat row. It is social proof for the referral visitor who
-          hasn't decided to type their email yet. Rendered wider than
-          the sign-in column (canvas trust strip is 720px vs the
-          520px card) and allowed to wrap on narrow viewports. */}
-      <LoginTrustStrip />
-    </div>
-  )
-}
-
-const TRUST_FIRMS = [
-  'Brightline CPA',
-  'Mason & Park',
-  'Northbridge Tax',
-  'Hudson Advisors',
-  'Riverstone CPA',
-]
-
-function LoginTrustStrip() {
-  return (
-    <div className="mt-10 flex w-full flex-col items-center gap-3.5 border-t border-divider-subtle pt-6">
-      <p className="font-mono text-caption tracking-wide text-text-muted">
-        <Trans>TRUSTED BY 480+ TAX PRACTICES</Trans>
-      </p>
-      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-        {TRUST_FIRMS.map((firm) => (
-          <span key={firm} className="text-sm font-medium text-text-secondary">
-            {firm}
-          </span>
-        ))}
-      </div>
-      <div className="mt-1 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-        <TrustStat value="12,400" label={<Trans>DEADLINES TRACKED</Trans>} />
-        <span aria-hidden className="h-8 w-px bg-divider-subtle max-sm:hidden" />
-        <TrustStat value="23 SEC" label={<Trans>AVG ALERT TRIAGE</Trans>} />
-        <span aria-hidden className="h-8 w-px bg-divider-subtle max-sm:hidden" />
-        <TrustStat value="99.98%" label={<Trans>SOC 2 UPTIME</Trans>} />
-      </div>
-    </div>
-  )
-}
-
-function TrustStat({ value, label }: { value: string; label: ReactNode }) {
-  return (
-    <div className="flex flex-col items-center gap-0.5">
-      <span className="font-mono text-base font-semibold tabular-nums text-text-primary">
-        {value}
-      </span>
-      <span className="font-mono text-[10px] tracking-wide text-text-muted">{label}</span>
     </div>
   )
 }

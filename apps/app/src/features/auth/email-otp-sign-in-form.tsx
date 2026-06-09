@@ -146,7 +146,7 @@ export function EmailOtpSignInForm({
 
   if (codeSent) {
     return (
-      <form onSubmit={handleVerifySubmit} noValidate className={cn('grid gap-2', className)}>
+      <form onSubmit={handleVerifySubmit} noValidate className={cn('grid w-full gap-2', className)}>
         <div className="rounded-lg border border-border-default bg-bg-panel px-3 py-2">
           <p className="text-sm text-text-muted">
             <Trans>Code sent to</Trans>
@@ -235,7 +235,7 @@ export function EmailOtpSignInForm({
   }
 
   return (
-    <form onSubmit={handleSendSubmit} noValidate className={cn('grid gap-2', className)}>
+    <form onSubmit={handleSendSubmit} noValidate className={cn('grid w-full gap-2', className)}>
       <Field className="gap-2">
         <FieldLabel htmlFor="email-otp-email">
           <Trans>Email address</Trans>
