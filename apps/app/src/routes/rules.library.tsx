@@ -1327,7 +1327,7 @@ export function RulesLibraryRoute() {
   //   sourcesMonitored — total feeds the catalog watches
   //   coveragePct      — share of jurisdictions with zero entity gaps
   //   highImpactChanged — high-risk rules touched in the trailing 30d
-  //   newThisMonth     — brand-new rules added in the trailing 30d
+  //   reviewedLast30    — rules explicitly reviewed by the practice in the trailing 30d
   const sourcesMonitored = useMemo(() => sourcesQuery.data?.length ?? 0, [sourcesQuery.data])
   const coveragePct = useMemo(() => {
     if (coverageRows.length === 0) return 0
@@ -1347,12 +1347,11 @@ export function RulesLibraryRoute() {
       return changed !== null && changed >= cutoff && rule.riskLevel === 'high'
     }).length
   }, [rules])
-  const newThisMonth = useMemo(() => {
-    const now = Date.now()
-    const cutoff = now - 30 * 24 * 60 * 60 * 1000
+  const reviewedLast30 = useMemo(() => {
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
     return rules.filter((rule) => {
-      const changed = ruleChangedAt(rule)
-      return changed !== null && changed >= cutoff && ruleChangeKind(rule, now) === 'new'
+      const reviewed = rule.reviewedAt ? Date.parse(rule.reviewedAt) : Number.NaN
+      return !Number.isNaN(reviewed) && reviewed >= cutoff
     }).length
   }, [rules])
 
@@ -2135,7 +2134,7 @@ export function RulesLibraryRoute() {
       key: 'total',
       label: t`Total rules`,
       value: totalRules,
-      sub: newThisMonth > 0 ? t`+${newThisMonth} this month` : t`${totalActive} active`,
+      sub: reviewedLast30 > 0 ? t`${reviewedLast30} reviewed in 30d` : t`${totalActive} active`,
       subClass: 'text-text-accent',
     },
     {

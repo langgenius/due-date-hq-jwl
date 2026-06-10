@@ -1201,6 +1201,10 @@ msgstr "{reviewCount} Requires review"
 msgid "{reviewCount} to review · {blockedTotal} deadlines blocked"
 msgstr "{reviewCount} to review · {blockedTotal} deadlines blocked"
 
+#: src/routes/rules.library.tsx
+msgid "{reviewedLast30} reviewed in 30d"
+msgstr "{reviewedLast30} reviewed in 30d"
+
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "{reviewHeadlineClient} is waiting on your review"
 msgstr "{reviewHeadlineClient} is waiting on your review"
@@ -1389,10 +1393,6 @@ msgstr "+{hasMore} more"
 #: src/features/rules/matched-pulse-block.tsx
 msgid "+{hiddenCount} more in Alerts"
 msgstr "+{hiddenCount} more in Alerts"
-
-#: src/routes/rules.library.tsx
-msgid "+{newThisMonth} this month"
-msgstr "+{newThisMonth} this month"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"

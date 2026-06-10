@@ -651,6 +651,7 @@ describe('RulesLibraryRoute', () => {
       title: 'Arizona individual income tax return',
       jurisdiction: 'AZ',
       formName: 'Arizona Row Form',
+      reviewedAt: new Date().toISOString(),
     })
     rpcMocks.listRulesQueryFn.mockResolvedValue([federalRule, stateRule])
 
@@ -658,6 +659,7 @@ describe('RulesLibraryRoute', () => {
     await waitForText('Federal')
     await waitForText('Arizona')
     await waitForText('Total rules')
+    await waitForText('1 reviewed in 30d')
 
     // No rule table on the overview — drilling into a rail jurisdiction
     // is what swaps in the working console with the per-state table.

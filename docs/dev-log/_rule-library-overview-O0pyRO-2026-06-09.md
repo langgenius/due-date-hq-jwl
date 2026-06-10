@@ -17,7 +17,7 @@ monitored` (was `Federal + N states · N sources active`). Title is **Rule
    new rule"). Reuses the shared `PageHeader`.
 2. **Stats band** (`OverviewStatsBand`, new) — replaces the bordered `KpiStrip`
    card with the mock's borderless 4-stat band framed by top+bottom hairlines.
-   32px medium values; colored subs: Total `+N this month`/`N active` (accent),
+   32px medium values; colored subs: Total `N reviewed in 30d`/`N active` (accent),
    Jurisdictions `N% coverage` (success), Changed (30d) `N high-impact` (warning)
    /`Last 30 days`, Pending review `oldest …` (accent).
 3. **Recent changes** (`OverviewRecentChangesCard`, rewritten) — now a flush
@@ -37,8 +37,9 @@ filters, and the rule table — unchanged.
 ## Data / no-fiction
 
 All stat subs derive from already-wired queries (no new fetch, no invented
-numbers): `coveragePct` from coverage rows, `highImpactChanged`/`newThisMonth`
-from `ruleChangedAt` + `riskLevel`/`ruleChangeKind` over the trailing 30d,
+numbers): `coveragePct` from coverage rows, `highImpactChanged` from
+`ruleChangedAt` + `riskLevel`, and `reviewedLast30` from `reviewedAt`, all over
+the trailing 30d,
 `sourcesMonitored` from the sources query. The Recent-changes `N of M` sub
 suppresses itself when the 30-day count would be smaller than the rows shown, so
 demo data (0 changes in the window) reads `Last 30 days` instead of `5 of 0`.

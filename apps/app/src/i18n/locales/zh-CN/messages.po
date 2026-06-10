@@ -1212,6 +1212,10 @@ msgstr "{reviewCount} 需要审查"
 msgid "{reviewCount} to review · {blockedTotal} deadlines blocked"
 msgstr "{reviewCount} 项待审核 · {blockedTotal} 个截止日期被阻止"
 
+#: src/routes/rules.library.tsx
+msgid "{reviewedLast30} reviewed in 30d"
+msgstr "近 30 天已审核 {reviewedLast30} 条"
+
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "{reviewHeadlineClient} is waiting on your review"
 msgstr "{reviewHeadlineClient} 正在等待您的审核"
@@ -1406,10 +1410,6 @@ msgstr "+{hasMore} 个"
 #: src/features/rules/matched-pulse-block.tsx
 msgid "+{hiddenCount} more in Alerts"
 msgstr "提醒中还有 +{hiddenCount} 条"
-
-#: src/routes/rules.library.tsx
-msgid "+{newThisMonth} this month"
-msgstr "本月 +{newThisMonth}"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"
