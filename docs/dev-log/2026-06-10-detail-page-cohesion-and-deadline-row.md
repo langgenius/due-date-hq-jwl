@@ -1,0 +1,61 @@
+# Dev log — detail-page cohesion + shared DeadlineRow (2026-06-10)
+
+Yuqi: "ensure … the Alert detail, Deadlines detail, Clients detail, and Rule
+Library detail are consistent and design-wise aligned … obviously from the same
+design system." Plus: replicate the Pencil deadline detail (`Qn4nX`) 100%, and
+"read docs/Design/deadline-row-interaction.md to execute."
+
+Frontend-only. No contract/schema/mutation changes. `tsgo` clean throughout.
+
+## Cross-page cohesion — the shared `DetailSectionCard`
+
+The gray-header-band card (`components/patterns/detail-section-card.tsx`, landed
+earlier this session) is now the single section-card primitive across the
+detail surfaces, so every page reads as one system:
+
+- **Rule Library detail** (`features/rules/rule-detail-drawer.tsx`) — the flat
+  bare-`<h4>` reference sections (Applicability · When it's due · Extension ·
+  Evidence · Practice review · Version history) now render through
+  `DetailSectionCard` (gray header band + count/meta in the header-right slot),
+  matching the alert + deadline detail. The decision footer
+  (`CandidateReviewSection`) intentionally stays flat (it's the sticky commit
+  surface, not a reference card).
+- **Penalty exposure** (`features/obligations/detail/PenaltyExposureCard.tsx`) —
+  swapped its hand-rolled card chrome for `DetailSectionCard`; header bg
+  corrected `#f2f4f7 → #f9fafb` (`background-section`) to match the Pencil
+  `u2jxP` + the rest of the cards.
+
+## Deadline detail — Pencil `Qn4nX` date cards
+
+`features/obligations/queue/components/panels.tsx`: the standalone-page `'cards'`
+variant of `PrimaryDeadlineStrip` now renders a dedicated `DeadlineDateCard`
+(was reusing the frameless flat `DeadlineTile`) matching `MuJyP`/`QMQgD`/`ZSK1V`:
+
+- Leading icon per card (`calendar-x` / `target` / `wallet`), uppercase
+  `11/600` label, `22/600` prettified date (`alwaysShowYear`), and a
+  `weekday · relative` sub-line (red when overdue/slipped, warning for payment).
+- The Filing card flips to the warm `state-warning-hover` (#fff4f1) tint with a
+  warning-tone icon when overdue.
+- The flat variant (`/clients` + sheet contexts) is unchanged.
+
+## Shared `DeadlineRow` component (Phase 1 of deadline-row-interaction.md)
+
+NEW `features/obligations/queue/components/DeadlineRow.tsx` — the single shared
+obligation-row per the interaction spec. Built but **not yet wired** (Phase 2,
+the `/clients` panel integration, is a follow-up):
+
+- 4 modes (`navigate` · `inline-expand` · `drawer` · `navigate-to-audit`); the
+  title link always navigates (Cmd+click → new tab).
+- All 7 click targets with `stopPropagation` on every nested control so pills /
+  owner never trigger the row body; keyboard parity (Enter/Space/←→/Esc) + ARIA.
+- Overdue left destructive rule + inline penalty exposure (§7.1).
+- Inline expansion: workflow journey strip + readiness/evidence signal +
+  Mark-filed / Reassign / Snooze actions + Open-full link.
+- **Deferred per §11** (procedures don't exist): Section B recent-activity and
+  Section C per-item todos render as "→ full page" links / a readiness summary
+  instead. No backend procedures added.
+
+Reuses existing primitives throughout: `AssigneeAvatar`, `DueDaysPill`,
+`ObligationStatusReadBadge`, `TaxCodeBadge`, `deadlineDetailHref`.
+
+Spec: `docs/Design/deadline-row-interaction.md` (committed alongside).
