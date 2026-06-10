@@ -1603,11 +1603,10 @@ export function ObligationQueueDetailDrawer({
             the hero into the shared sticky bottom action bar (enabled for page
             mode below, mirroring the Alert detail's footer). This shortens the
             header so more detail is readable on scroll. */}
-        {isPageMode && row && detail && detail.auditEvents.length > 0 ? (
-          <div className="pb-1 text-xs text-text-tertiary">
-            <Trans>Last activity {formatRelativeTime(detail.auditEvents[0]!.createdAt)}</Trans>
-          </div>
-        ) : null}
+        {/* 2026-06-10 (Yuqi "looked at Qn4nX"): the "Last activity" stamp is NOT
+            in the Qn4nX hero — the eyebrow is just "Tax year · period". Removed
+            from the page hero; the activity story lives in the Status tab's
+            Recent activity card + the Audit tab. */}
         {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): the status
             dot + label that used to lead this row is gone — the new top
             status banner carries the status, mirroring the alerts detail.
@@ -1643,10 +1642,12 @@ export function ObligationQueueDetailDrawer({
               // line-clamp-1 flipping `display` to -webkit-box) left the
               // computed size stuck at the start value, so the title never
               // visually reached 16px. The size now switches instantly.
-              'pr-8 font-semibold tracking-[-0.4px] text-text-primary',
+              // 2026-06-10 (Yuqi "looked at Qn4nX"): expanded title matches the
+              // Qn4nX hero — 26px / 600 / -0.6 tracking.
+              'pr-8 font-semibold text-text-primary',
               heroCollapsed
-                ? 'line-clamp-1 text-[16px] leading-[1.3]'
-                : 'text-[22px] leading-[1.25]',
+                ? 'line-clamp-1 text-[16px] leading-[1.3] tracking-[-0.3px]'
+                : 'text-[26px] leading-[1.2] tracking-[-0.6px]',
             )}
           >
             {(() => {
@@ -1662,6 +1663,15 @@ export function ObligationQueueDetailDrawer({
             jurisdiction / tax-year / period meta. */}
         {row && !heroCollapsed ? (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8 text-sm">
+            {/* 2026-06-10 (Yuqi "looked at Qn4nX"): the status pill LEADS the
+                meta strip, then the jurisdiction seal, then the client chip —
+                matching Qn4nX's StatusPill · FED · client order (was
+                client-first, which buried the status). */}
+            <ObligationStatusReadBadge
+              status={row.status}
+              className="h-6 text-caption-xs uppercase tracking-wide"
+            />
+            {row.jurisdiction ? <JurisdictionLabel code={row.jurisdiction} /> : null}
             {row.clientId && row.clientName ? (
               <button
                 type="button"
@@ -1687,10 +1697,6 @@ export function ObligationQueueDetailDrawer({
                 <Trans>Client record missing</Trans>
               </span>
             ) : null}
-            <ObligationStatusReadBadge
-              status={row.status}
-              className="h-6 text-caption-xs uppercase tracking-wide"
-            />
             {latestInputRequest ? (
               <Badge
                 variant="secondary"
@@ -1701,12 +1707,6 @@ export function ObligationQueueDetailDrawer({
                 <Trans>Input requested</Trans>
               </Badge>
             ) : null}
-            {/* 2026-06-10 (Yuqi #5 tidy + #6 displaced): the trailing meta span
-                duplicated the "Tax year · period" line above AND its
-                items-baseline alignment left the text vertically offset from
-                the h-6 chips. Reduced to just the shared JurisdictionLabel seal
-                (the one fact not shown elsewhere), aligned with the chip row. */}
-            {row.jurisdiction ? <JurisdictionLabel code={row.jurisdiction} /> : null}
           </div>
         ) : null}
         {/* 2026-05-23: dropped the canonical-forward-action row
