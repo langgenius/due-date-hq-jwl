@@ -972,15 +972,19 @@ export function PathToFilingSummary({
                     // current stage"; the extra ring layer was reading as a
                     // double-bordered chip and shouting too hard against the
                     // calmer done/upcoming neighbors.
+                    // 2026-06-10 (Yuqi "#5 反色" / Qn4nX StatusJourney): stage
+                    // circles are SOLID FILLED with white glyphs (not soft
+                    // tints) — done/active read as filled chips, upcoming stays
+                    // an empty outline ring.
                     'grid size-6 shrink-0 place-items-center rounded-full border',
                     state === 'done'
-                      ? 'border-divider-regular bg-background-default text-text-secondary'
+                      ? 'border-transparent bg-state-accent-solid text-text-inverted'
                       : state === 'skipped'
                         ? 'border-dashed border-divider-regular bg-background-default text-text-tertiary/60'
                         : overdueActive
-                          ? 'border-state-destructive-solid bg-state-destructive-hover text-text-destructive'
+                          ? 'border-transparent bg-state-destructive-solid text-text-inverted'
                           : state === 'active'
-                            ? 'border-accent-default bg-state-accent-hover text-text-accent'
+                            ? 'border-transparent bg-state-accent-solid text-text-inverted'
                             : 'border-divider-regular bg-background-default text-text-tertiary/70',
                   )}
                 >
@@ -2196,17 +2200,18 @@ export function ActiveStageDetailCard({
         // line carrying the urgency cue; the action line drops to
         // text-secondary so the eye lands on the urgent line first
         // and the "what to do" reads as a calmer follow-up.
-        <div
-          role="status"
-          className="mt-3 flex flex-col gap-0.5 rounded-lg border border-divider-regular bg-background-default px-3 py-2 text-sm leading-snug"
-        >
-          <p className="font-medium text-text-primary">
+        <div role="status" className="flex flex-col gap-0.5 leading-snug">
+          {/* 2026-06-10 (Yuqi "work on the detail page" — Qn4nX active card):
+              the overdue context reads as the active-stage headline + sub (like
+              the canonical "8 materials still outstanding." treatment), not a
+              white-on-white boxed callout inside the white WorkflowMilestoneCard. */}
+          <p className="text-[15px] font-semibold tracking-[-0.2px] text-text-primary">
             <Trans>
               Filing was due {formatDatePretty(row.currentDueDate.slice(0, 10))} —{' '}
               <Plural value={daysPastDeadline} one="# day" other="# days" /> past deadline.
             </Trans>
           </p>
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-text-tertiary">
             <Trans>Submit the return now, or file an extension if eligible.</Trans>
           </p>
         </div>
