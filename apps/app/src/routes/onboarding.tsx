@@ -119,7 +119,10 @@ function FieldHeaderRow({
 }) {
   return (
     <div className="flex items-center gap-1.5">
-      <FieldLabel htmlFor={htmlFor} className="text-[13px] font-semibold text-text-primary">
+      <FieldLabel
+        htmlFor={htmlFor}
+        className="whitespace-nowrap text-[13px] font-semibold text-text-primary"
+      >
         {label}
       </FieldLabel>
       <span aria-hidden className="h-px flex-1" />
@@ -216,7 +219,7 @@ export function OnboardingRoute() {
   }
 
   return (
-    <div className="flex w-full max-w-[680px] flex-col gap-6">
+    <div className="flex w-full max-w-[720px] flex-col gap-6">
       <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-3">
         <div className="flex items-center gap-2.5">
           <span

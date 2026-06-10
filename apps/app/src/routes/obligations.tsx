@@ -584,6 +584,10 @@ const DAY_MS = 86_400_000
 // OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME retired 2026-05-26 with the
 // sixty-fifth pass #17 DueDaysPill cleanup — the Badge wrapper was
 // dropped so the shared text-xs token is no longer in use.
+// Form-code chips need enough room for the longest default federal label
+// ("Form 1099-NEC"). The table is fixed-layout, so content cannot resize this
+// column after layout; keep the width explicit and large enough for the chip.
+const OBLIGATION_QUEUE_FORM_COL_WIDTH = 'w-[168px] min-w-[168px]'
 // Width of the Due column. Tokenized so the magic-number doesn't fight
 // long client-name wraps if the table layout shifts.
 const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'w-[110px]'
@@ -2730,7 +2734,10 @@ export function ObligationQueueRoute() {
         // same chip primitive now; /deadlines was the lone outlier
         // showing the form as plain text.
         cell: (info) => <TaxCodeBadge code={info.getValue<string>()} />,
-        meta: { headerClassName: 'w-[104px]', cellClassName: 'w-[104px] text-text-secondary' },
+        meta: {
+          headerClassName: OBLIGATION_QUEUE_FORM_COL_WIDTH,
+          cellClassName: `${OBLIGATION_QUEUE_FORM_COL_WIDTH} text-text-secondary`,
+        },
       },
       {
         // 2026-06-09 (Yuqi /deadlines production recreation): TAX column —

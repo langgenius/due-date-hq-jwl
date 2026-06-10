@@ -71,3 +71,27 @@ visuals only — all submit/mutation wiring, validation, and the
 - Tests: `state-rule-activation-selector` + `onboarding-firm-flow` + `router` →
   68 passed. No dedicated `onboarding.tsx` DOM test exists, so none needed updating.
 - `npx vp check` → 0 errors (file contributes 0 warnings).
+
+## 2026-06-10 follow-up — field-label width
+
+Yuqi feedback on the live `/onboarding` form: the **Internal deadline offset**
+label wrapped in the two-column row. Increased the route frame from
+`max-w-[680px]` to `max-w-[720px]`, which gives each of the date/offset fields
+more room, and made the shared `FieldHeaderRow` label non-wrapping so the label
+and trailing helper stay on one line while only slightly widening the overall
+setup card.
+
+No `DESIGN.md` update needed: this is a route-specific width correction inside
+the existing onboarding form pattern, not a token, primitive, or app-wide layout
+contract change.
+
+## 2026-06-10 follow-up — state hover caption removal
+
+Yuqi feedback on the live `/onboarding` state picker: hovering a state tile
+showed a persistent abbreviation/name caption under the whole map. Removed that
+map-bottom hover caption and its `hoverCode` state so hovering no longer changes
+the layout or adds extra text below the picker. Tile labels, selection, and
+accessibility names remain intact.
+
+No `DESIGN.md` update needed: this removes a route-local affordance from an
+existing onboarding picker without changing the underlying visual system.

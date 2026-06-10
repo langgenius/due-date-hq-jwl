@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { CheckIcon } from 'lucide-react'
 
@@ -78,9 +78,7 @@ export function StateRuleActivationSelector({
   onChange,
 }: StateRuleActivationSelectorProps) {
   const { t } = useLingui()
-  const [hoverCode, setHoverCode] = useState<RuleGenerationState | null>(null)
   const selectedSet = useMemo(() => new Set(selected), [selected])
-  const hoveredLabel = hoverCode ? jurisdictionLabel(hoverCode) : null
   const allStatesSelected = ALL_RULE_GENERATION_STATES.every((state) => selectedSet.has(state))
   const sourceDefinedReviewStates = useMemo(
     () => sourceDefinedCalendarReviewStates(selected),
@@ -166,10 +164,6 @@ export function StateRuleActivationSelector({
                       <button
                         type="button"
                         onClick={() => toggleState(code)}
-                        onMouseEnter={() => setHoverCode(code)}
-                        onMouseLeave={() =>
-                          setHoverCode((current) => (current === code ? null : current))
-                        }
                         aria-label={selectedState ? t`${label}, selected` : label}
                         aria-pressed={selectedState}
                         style={{ gridRow: row, gridColumn: column }}
@@ -205,16 +199,6 @@ export function StateRuleActivationSelector({
           </div>
         </TooltipProvider>
       </div>
-
-      <p className="min-h-[18px] text-caption leading-5 text-text-muted">
-        {hoverCode && hoveredLabel ? (
-          <>
-            <span className="font-mono font-medium text-text-secondary">{hoverCode}</span>
-            <span aria-hidden> · </span>
-            {hoveredLabel}
-          </>
-        ) : null}
-      </p>
 
       {sourceDefinedReviewStates.length > 0 ? (
         // 2026-05-26 (Step 7 onboarding F5-08): copy rewrite —
