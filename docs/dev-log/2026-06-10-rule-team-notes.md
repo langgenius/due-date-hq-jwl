@@ -4,10 +4,11 @@
 
 irBJ8's "Practice review" card is a team-note composer + thread ("View N team
 notes"). There was no rule-notes persistence (the old "review note" was just the
-accept/reject *reason*). Built the feature by mirroring the existing alert-notes
+accept/reject _reason_). Built the feature by mirroring the existing alert-notes
 pattern.
 
 ## Backend (mirrors pulse alert-notes)
+
 - `rule_note` table (`schema/rules.ts`) + migration `0075_rule_note.sql` (applied
   local). `rule_id` is plain text (rules are global string-id templates — no FK);
   `firm_id` / `author_id` keep FKs; index on (firmId, ruleId, createdAt).
@@ -19,6 +20,7 @@ pattern.
   audit event).
 
 ## UI
+
 - `RulePracticeReviewCard` (`rule-detail-drawer.tsx`): NOTE textarea + char count
   (/2000) + "View N team notes" disclosure of the thread (author · relative time
   · body) + Add note. Wired to the real endpoints. Rendered between Impact and

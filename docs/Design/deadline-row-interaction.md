@@ -22,11 +22,11 @@ Before touching any code, read these:
 
 The "deadline" entity is called `obligation` in this codebase. Schema:
 
-| What | Where |
-|---|---|
-| DB schema | `packages/db/src/schema/obligations.ts:189-206` |
-| Public contract | `packages/contracts/src/obligations.ts` (re-exports from `obligation-instance.ts`) |
-| Queue row schema | `packages/contracts/src/obligation-queue.ts:96-100` (`ObligationQueueRowSchema`) |
+| What             | Where                                                                              |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| DB schema        | `packages/db/src/schema/obligations.ts:189-206`                                    |
+| Public contract  | `packages/contracts/src/obligations.ts` (re-exports from `obligation-instance.ts`) |
+| Queue row schema | `packages/contracts/src/obligation-queue.ts:96-100` (`ObligationQueueRowSchema`)   |
 
 ### 1.2 Status enum (10 values — verbatim from `obligations.ts:441-454`)
 
@@ -47,33 +47,33 @@ export const OBLIGATION_STATUSES = [
 
 **Important:** the design canvas occasionally uses canonical-design names (`not_started`, `in_review`, `filed`). Map them to the existing enum before rendering — do NOT change the enum:
 
-| Canonical design label | Backend `OBLIGATION_STATUSES` value |
-|---|---|
-| Not started | `pending` |
-| In progress | `in_progress` |
-| Waiting on client | `waiting_on_client` |
-| Blocked | `blocked` |
-| In review | `review` |
-| Filed | `done` (or `paid` when payment matters) |
-| Completed | `completed` |
-| Extended | `extended` |
-| Not applicable | `not_applicable` |
+| Canonical design label | Backend `OBLIGATION_STATUSES` value     |
+| ---------------------- | --------------------------------------- |
+| Not started            | `pending`                               |
+| In progress            | `in_progress`                           |
+| Waiting on client      | `waiting_on_client`                     |
+| Blocked                | `blocked`                               |
+| In review              | `review`                                |
+| Filed                  | `done` (or `paid` when payment matters) |
+| Completed              | `completed`                             |
+| Extended               | `extended`                              |
+| Not applicable         | `not_applicable`                        |
 
 ### 1.3 Routes — Tanstack Router, NOT Next.js
 
-| Route | File | Behavior |
-|---|---|---|
-| `/deadlines` (queue list) | `apps/app/src/routes/obligations.tsx` | TanStack Table list with filter/sort/multi-select |
-| `/deadlines/:obligationRef` | `apps/app/src/routes/deadline-detail.tsx:34-100` | Master-detail page (list pane + detail) |
-| `/deadlines/:obligationRef/:tab` | same | Deep-linked detail tabs |
-| `/clients/:clientId` | `apps/app/src/routes/clients.$clientId.tsx` | Client detail; renders `ClientDetailWorkspace` |
-| `/dashboard` | `apps/app/src/routes/dashboard.tsx` | Today dashboard |
-| `/alerts` | `apps/app/src/routes/alerts.tsx` | Alerts feed |
+| Route                            | File                                             | Behavior                                          |
+| -------------------------------- | ------------------------------------------------ | ------------------------------------------------- |
+| `/deadlines` (queue list)        | `apps/app/src/routes/obligations.tsx`            | TanStack Table list with filter/sort/multi-select |
+| `/deadlines/:obligationRef`      | `apps/app/src/routes/deadline-detail.tsx:34-100` | Master-detail page (list pane + detail)           |
+| `/deadlines/:obligationRef/:tab` | same                                             | Deep-linked detail tabs                           |
+| `/clients/:clientId`             | `apps/app/src/routes/clients.$clientId.tsx`      | Client detail; renders `ClientDetailWorkspace`    |
+| `/dashboard`                     | `apps/app/src/routes/dashboard.tsx`              | Today dashboard                                   |
+| `/alerts`                        | `apps/app/src/routes/alerts.tsx`                 | Alerts feed                                       |
 
 ### 1.4 Detail tabs (verbatim from `obligation-queue.ts ObligationQueueDetailTabSchema`)
 
 ```ts
-'summary' | 'readiness' | 'extension' | 'risk' | 'evidence' | 'audit'
+;'summary' | 'readiness' | 'extension' | 'risk' | 'evidence' | 'audit'
 ```
 
 **Default tab on click** = `'summary'`. Use `deadlineDetailPath()` helper at `apps/app/src/features/obligations/deadline-detail-url.ts:51-57` to build the URL. Do not hand-assemble paths.
@@ -83,23 +83,30 @@ export const OBLIGATION_STATUSES = [
 This project uses `nuqs` adapted for Tanstack Router. See `apps/app/src/routes/obligations.tsx:80-82` for the import pattern:
 
 ```ts
-import { parseAsArrayOf, parseAsBoolean, parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
+import {
+  parseAsArrayOf,
+  parseAsBoolean,
+  parseAsInteger,
+  parseAsString,
+  parseAsStringLiteral,
+  useQueryStates,
+} from 'nuqs'
 ```
 
 All filter / sort / multi-select state is `useQueryStates`-driven so URL is the source of truth. New URL params introduced by this spec (e.g. `?expanded=`) MUST go through `useQueryStates` — never `window.location` or local state.
 
 ### 1.6 Reusable primitives already in the codebase
 
-| Component | File | Use for |
-|---|---|---|
-| `AssigneeAvatar` | `apps/app/src/components/AssigneeAvatar.tsx:75-177` | Owner avatar (32px default) — has `size · type · name · isMine` props |
-| `DueDaysPill` | `apps/app/src/features/obligations/queue/components/primitives.tsx:43-135` | "9d / Today / 3d late" with urgency tone |
-| `status-control` | `apps/app/src/features/obligations/status-control.tsx` | Status → icon + label + tone mapping |
-| `getAssigneeTint(name)` | `AssigneeAvatar.tsx` helper | Stable per-name color (use for the brand-color avatar tiles in design) |
-| `initialsFromName()` | same | Initials |
-| `deadlineDetailHref()` | `deadline-detail-url.ts` | Build the detail URL |
-| `deadlineDetailPath()` | `deadline-detail-url.ts:51-57` | Path-only variant |
-| `cleanDeadlineDetailSearch()` | `deadline-detail-url.ts:59-78` | Preserves parent table filters on navigation |
+| Component                     | File                                                                       | Use for                                                                |
+| ----------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `AssigneeAvatar`              | `apps/app/src/components/AssigneeAvatar.tsx:75-177`                        | Owner avatar (32px default) — has `size · type · name · isMine` props  |
+| `DueDaysPill`                 | `apps/app/src/features/obligations/queue/components/primitives.tsx:43-135` | "9d / Today / 3d late" with urgency tone                               |
+| `status-control`              | `apps/app/src/features/obligations/status-control.tsx`                     | Status → icon + label + tone mapping                                   |
+| `getAssigneeTint(name)`       | `AssigneeAvatar.tsx` helper                                                | Stable per-name color (use for the brand-color avatar tiles in design) |
+| `initialsFromName()`          | same                                                                       | Initials                                                               |
+| `deadlineDetailHref()`        | `deadline-detail-url.ts`                                                   | Build the detail URL                                                   |
+| `deadlineDetailPath()`        | `deadline-detail-url.ts:51-57`                                             | Path-only variant                                                      |
+| `cleanDeadlineDetailSearch()` | `deadline-detail-url.ts:59-78`                                             | Preserves parent table filters on navigation                           |
 
 ### 1.7 Existing row implementation
 
@@ -126,15 +133,15 @@ This spec adds a third mode: **inline-expand** (used only on `/clients/:clientId
 
 ## 2. Click target matrix (the 7 click targets in any row)
 
-| # | Target | DOM element | Action | Destination | Affordance |
-|---|---|---|---|---|---|
-| 1 | **Row body** (default chrome — not a link/pill) | `<article>` wrapping the row | Mode-dependent (see §3) | Inline expand · navigate · drawer | Cursor `pointer`; hover bg `var(--ddhq-bg-subtle)` |
-| 2 | **Deadline title** | `<Link>` element | Navigate | `deadlineDetailHref({ obligationId, tab: 'summary' })` | Accent text · underline on hover |
-| 3 | **Form-tag tile** (e.g. `1099`) | `<button>` | Navigate (same as title) | `deadlineDetailHref({ obligationId, tab: 'summary' })` | Outline ring on hover |
-| 4 | **Status pill** | `<button>` | Filter same page | URL param `?status=` updated via `useQueryStates` | Box-shadow ring on hover |
-| 5 | **Owner avatar + name** | `<button>` | Filter same page | URL param `?assigneeNames=` updated via `useQueryStates` | Underline on name hover · `aria-label="Filter by {name}"` |
-| 6 | **Chevron-right** (inline-expand mode only) | `<button>` | Toggle accordion | Local state + URL `?expanded=` | Rotates 90° on expand · 200ms transition |
-| 7 | **Cmd/Ctrl + click on title** | Browser default | New tab | Same URL | Standard browser behavior — do NOT `preventDefault()` on link |
+| #   | Target                                          | DOM element                  | Action                   | Destination                                              | Affordance                                                    |
+| --- | ----------------------------------------------- | ---------------------------- | ------------------------ | -------------------------------------------------------- | ------------------------------------------------------------- |
+| 1   | **Row body** (default chrome — not a link/pill) | `<article>` wrapping the row | Mode-dependent (see §3)  | Inline expand · navigate · drawer                        | Cursor `pointer`; hover bg `var(--ddhq-bg-subtle)`            |
+| 2   | **Deadline title**                              | `<Link>` element             | Navigate                 | `deadlineDetailHref({ obligationId, tab: 'summary' })`   | Accent text · underline on hover                              |
+| 3   | **Form-tag tile** (e.g. `1099`)                 | `<button>`                   | Navigate (same as title) | `deadlineDetailHref({ obligationId, tab: 'summary' })`   | Outline ring on hover                                         |
+| 4   | **Status pill**                                 | `<button>`                   | Filter same page         | URL param `?status=` updated via `useQueryStates`        | Box-shadow ring on hover                                      |
+| 5   | **Owner avatar + name**                         | `<button>`                   | Filter same page         | URL param `?assigneeNames=` updated via `useQueryStates` | Underline on name hover · `aria-label="Filter by {name}"`     |
+| 6   | **Chevron-right** (inline-expand mode only)     | `<button>`                   | Toggle accordion         | Local state + URL `?expanded=`                           | Rotates 90° on expand · 200ms transition                      |
+| 7   | **Cmd/Ctrl + click on title**                   | Browser default              | New tab                  | Same URL                                                 | Standard browser behavior — do NOT `preventDefault()` on link |
 
 ### 2.1 NOT clickable (pure information)
 
@@ -164,13 +171,13 @@ Status pill click must NOT bubble to row body click. Use `event.stopPropagation(
 
 The **same** `<DeadlineRow>` component renders in 5 surfaces. Behavior differs by `mode` prop.
 
-| Surface | `mode` prop value | Row body click behavior | Why |
-|---|---|---|---|
-| `/clients/:clientId` | `'inline-expand'` | Expand accordion below the row | Single-client browse mode — peek without context loss |
-| `/deadlines` (queue list) | `'navigate'` or `'drawer'` (user preference) | Navigate to detail OR open drawer | Multi-client list — user is processing |
-| `/dashboard` (`/today`) | `'navigate'` | Navigate to `/deadlines/:ref/summary` | Action-oriented surface |
-| `/alerts/:alertId` (AffectedClients table) | `'drawer'` | Open right-side sheet | Keep alert context |
-| `/audit-log` (when row references a deadline) | `'navigate-to-audit'` | Navigate to `/deadlines/:ref/audit` directly | User came here for audit context |
+| Surface                                       | `mode` prop value                            | Row body click behavior                      | Why                                                   |
+| --------------------------------------------- | -------------------------------------------- | -------------------------------------------- | ----------------------------------------------------- |
+| `/clients/:clientId`                          | `'inline-expand'`                            | Expand accordion below the row               | Single-client browse mode — peek without context loss |
+| `/deadlines` (queue list)                     | `'navigate'` or `'drawer'` (user preference) | Navigate to detail OR open drawer            | Multi-client list — user is processing                |
+| `/dashboard` (`/today`)                       | `'navigate'`                                 | Navigate to `/deadlines/:ref/summary`        | Action-oriented surface                               |
+| `/alerts/:alertId` (AffectedClients table)    | `'drawer'`                                   | Open right-side sheet                        | Keep alert context                                    |
+| `/audit-log` (when row references a deadline) | `'navigate-to-audit'`                        | Navigate to `/deadlines/:ref/audit` directly | User came here for audit context                      |
 
 ### 3.1 Component prop signature
 
@@ -180,10 +187,10 @@ The **same** `<DeadlineRow>` component renders in 5 surfaces. Behavior differs b
 import type { ObligationQueueRow } from '@/contracts/obligation-queue'
 
 export type DeadlineRowMode =
-  | 'navigate'              // Default — click navigates to detail
-  | 'inline-expand'         // /clients — click expands inline
-  | 'drawer'                // /alerts — click opens drawer
-  | 'navigate-to-audit'     // /audit-log — click navigates to /deadlines/:ref/audit
+  | 'navigate' // Default — click navigates to detail
+  | 'inline-expand' // /clients — click expands inline
+  | 'drawer' // /alerts — click opens drawer
+  | 'navigate-to-audit' // /audit-log — click navigates to /deadlines/:ref/audit
 
 export interface DeadlineRowProps {
   /** The obligation row data — matches ObligationQueueRowSchema */
@@ -299,7 +306,7 @@ A horizontal strip of 6 stages from `OBLIGATION_STATUSES`, condensed to: `pendin
 <div className="flex items-center gap-[8px] overflow-x-auto">
   {WORKFLOW_STAGES.map((stage, idx) => {
     const isActive = stage.key === deadline.status
-    const isPast = WORKFLOW_STAGES.findIndex(s => s.key === deadline.status) > idx
+    const isPast = WORKFLOW_STAGES.findIndex((s) => s.key === deadline.status) > idx
 
     return (
       <Fragment key={stage.key}>
@@ -307,17 +314,21 @@ A horizontal strip of 6 stages from `OBLIGATION_STATUSES`, condensed to: `pendin
           <div
             className={cn(
               'rounded-full transition-all',
-              isActive ? 'w-[12px] h-[12px] bg-[var(--ddhq-state-warning-hover)] ring-2 ring-[var(--ddhq-state-warning-solid)]'
-                : isPast ? 'w-[8px] h-[8px] bg-[var(--ddhq-state-success-solid)]'
-                : 'w-[8px] h-[8px] bg-[var(--ddhq-divider-regular)]',
+              isActive
+                ? 'w-[12px] h-[12px] bg-[var(--ddhq-state-warning-hover)] ring-2 ring-[var(--ddhq-state-warning-solid)]'
+                : isPast
+                  ? 'w-[8px] h-[8px] bg-[var(--ddhq-state-success-solid)]'
+                  : 'w-[8px] h-[8px] bg-[var(--ddhq-divider-regular)]',
             )}
           />
           <span
             className={cn(
               'text-[11px] font-medium whitespace-nowrap',
-              isActive ? 'text-[var(--ddhq-state-warning-text)] font-semibold'
-                : isPast ? 'text-[var(--ddhq-text-tertiary)]'
-                : 'text-[var(--ddhq-text-muted)] opacity-60',
+              isActive
+                ? 'text-[var(--ddhq-state-warning-text)] font-semibold'
+                : isPast
+                  ? 'text-[var(--ddhq-text-tertiary)]'
+                  : 'text-[var(--ddhq-text-muted)] opacity-60',
             )}
           >
             {stage.label}
@@ -343,7 +354,7 @@ const WORKFLOW_STAGES = [
   { key: 'review', label: 'In review' },
   { key: 'done', label: 'Filed' },
   { key: 'completed', label: 'Completed' },
-] as const satisfies ReadonlyArray<{ key: ObligationStatus, label: string }>
+] as const satisfies ReadonlyArray<{ key: ObligationStatus; label: string }>
 ```
 
 ### 4.4 Section B — Recent activity (last 2 events)
@@ -352,12 +363,14 @@ Use the activity feed shape that already exists in `apps/app/src/features/obliga
 
 ```tsx
 <div className="flex flex-col gap-[8px]">
-  {events.slice(0, 2).map(event => (
+  {events.slice(0, 2).map((event) => (
     <div key={event.id} className="flex items-start gap-[10px]">
-      <div className={cn(
-        'w-[8px] h-[8px] rounded-full mt-[6px]',
-        toneClass(event.tone),  // 'accent' | 'warning' | 'success' | 'muted'
-      )} />
+      <div
+        className={cn(
+          'w-[8px] h-[8px] rounded-full mt-[6px]',
+          toneClass(event.tone), // 'accent' | 'warning' | 'success' | 'muted'
+        )}
+      />
       <div className="flex-1 flex items-center justify-between">
         <span className="text-[12px] font-semibold text-[var(--ddhq-text-primary)]">
           {event.title}
@@ -377,26 +390,27 @@ Where `events` comes from `trpc.obligations.getRecentActivity.useQuery({ obligat
 
 ```tsx
 <div className="flex items-center gap-[12px] flex-wrap">
-  {todos.slice(0, 3).map(todo => (
+  {todos.slice(0, 3).map((todo) => (
     <div key={todo.id} className="flex items-center gap-[6px]">
-      {todo.done
-        ? <SquareCheck size={16} className="text-[var(--ddhq-state-success-solid)]" />
-        : <Square size={16} className="text-[var(--ddhq-divider-regular)]" />
-      }
-      <span className={cn(
-        'text-[12px] font-medium',
-        todo.done
-          ? 'text-[var(--ddhq-text-tertiary)] line-through'
-          : 'text-[var(--ddhq-text-primary)]',
-      )}>
+      {todo.done ? (
+        <SquareCheck size={16} className="text-[var(--ddhq-state-success-solid)]" />
+      ) : (
+        <Square size={16} className="text-[var(--ddhq-divider-regular)]" />
+      )}
+      <span
+        className={cn(
+          'text-[12px] font-medium',
+          todo.done
+            ? 'text-[var(--ddhq-text-tertiary)] line-through'
+            : 'text-[var(--ddhq-text-primary)]',
+        )}
+      >
         {todo.label}
       </span>
     </div>
   ))}
   {todos.length > 3 && (
-    <span className="text-[12px] text-[var(--ddhq-text-tertiary)]">
-      +{todos.length - 3} more
-    </span>
+    <span className="text-[12px] text-[var(--ddhq-text-tertiary)]">+{todos.length - 3} more</span>
   )}
 </div>
 ```
@@ -417,22 +431,12 @@ Where `events` comes from `trpc.obligations.getRecentActivity.useQuery({ obligat
     Mark filed
   </Button>
 
-  <Button
-    variant="outline"
-    size="sm"
-    disabled={!canEdit}
-    onClick={handleReassign}
-  >
+  <Button variant="outline" size="sm" disabled={!canEdit} onClick={handleReassign}>
     <UserRoundCog size={14} />
     Reassign
   </Button>
 
-  <Button
-    variant="ghost"
-    size="sm"
-    disabled={!canEdit}
-    onClick={handleSnooze}
-  >
+  <Button variant="ghost" size="sm" disabled={!canEdit} onClick={handleSnooze}>
     <AlarmClock size={14} />
     Snooze
   </Button>
@@ -473,7 +477,7 @@ The inline expansion is **deliberately less than the full page**. Do NOT include
 - Notes / comments
 - Related rules
 
-**Principle:** inline expansion answers *"what's going on"*; full page answers *"how do I work on it"*.
+**Principle:** inline expansion answers _"what's going on"_; full page answers _"how do I work on it"_.
 
 ---
 
@@ -483,12 +487,12 @@ All interactive state lives in URL search params via `nuqs`.
 
 ### 5.1 URL params introduced/used by this spec
 
-| Param | Type | Example | Effect |
-|---|---|---|---|
-| `expanded` | `string` (obligation ID) | `?expanded=ob_abc123` | Auto-expand this row on load (only in `inline-expand` mode) |
-| `status` | `string[]` (existing) | `?status=waiting_on_client,blocked` | Queue filters by status; updated when user clicks a status pill |
-| `assigneeNames` | `string[]` (existing) | `?assigneeNames=Mira+Robinson` | Queue filters by assignee; updated when user clicks an owner |
-| `sort` | enum (existing) | `?sort=smart_priority` | Sort order; existing param, do not change |
+| Param           | Type                     | Example                             | Effect                                                          |
+| --------------- | ------------------------ | ----------------------------------- | --------------------------------------------------------------- |
+| `expanded`      | `string` (obligation ID) | `?expanded=ob_abc123`               | Auto-expand this row on load (only in `inline-expand` mode)     |
+| `status`        | `string[]` (existing)    | `?status=waiting_on_client,blocked` | Queue filters by status; updated when user clicks a status pill |
+| `assigneeNames` | `string[]` (existing)    | `?assigneeNames=Mira+Robinson`      | Queue filters by assignee; updated when user clicks an owner    |
+| `sort`          | enum (existing)          | `?sort=smart_priority`              | Sort order; existing param, do not change                       |
 
 **Implementation in clients route:**
 
@@ -505,7 +509,11 @@ const [filters, setFilters] = useQueryStates({
 const handleExpand = (id: string) => setFilters({ expanded: id })
 const handleCollapse = () => setFilters({ expanded: '' })
 const handleFilterByStatus = (status: string) =>
-  setFilters({ status: filters.status.includes(status) ? filters.status.filter(s => s !== status) : [...filters.status, status] })
+  setFilters({
+    status: filters.status.includes(status)
+      ? filters.status.filter((s) => s !== status)
+      : [...filters.status, status],
+  })
 ```
 
 ### 5.2 Accordion default
@@ -558,22 +566,22 @@ The detail page breadcrumb should read:
 
 ### 6.2 Key bindings
 
-| Key | Where | Behavior |
-|---|---|---|
-| `Tab` / `Shift+Tab` | global | Move focus between rows / between targets within row |
-| `Enter` | row focused | Navigate to `/deadlines/:ref/summary` |
-| `Space` | row focused | Mode-dependent: `inline-expand` toggles accordion; other modes navigate |
-| `Escape` | row expanded | Collapse, return focus to row body |
-| `↑` / `↓` | row focused | Focus previous/next row |
-| `→` | row focused | Expand (only in inline-expand mode) |
-| `←` | row focused, expanded | Collapse |
-| `Cmd+Enter` (Mac) / `Ctrl+Enter` (Win) | row focused | Open in new tab |
+| Key                                    | Where                 | Behavior                                                                |
+| -------------------------------------- | --------------------- | ----------------------------------------------------------------------- |
+| `Tab` / `Shift+Tab`                    | global                | Move focus between rows / between targets within row                    |
+| `Enter`                                | row focused           | Navigate to `/deadlines/:ref/summary`                                   |
+| `Space`                                | row focused           | Mode-dependent: `inline-expand` toggles accordion; other modes navigate |
+| `Escape`                               | row expanded          | Collapse, return focus to row body                                      |
+| `↑` / `↓`                              | row focused           | Focus previous/next row                                                 |
+| `→`                                    | row focused           | Expand (only in inline-expand mode)                                     |
+| `←`                                    | row focused, expanded | Collapse                                                                |
+| `Cmd+Enter` (Mac) / `Ctrl+Enter` (Win) | row focused           | Open in new tab                                                         |
 
 ### 6.3 Implementation skeleton
 
 ```tsx
 const handleKeyDown = (event: React.KeyboardEvent) => {
-  if (event.target !== event.currentTarget) return  // bubbled from child; ignore
+  if (event.target !== event.currentTarget) return // bubbled from child; ignore
 
   switch (event.key) {
     case 'Enter':
@@ -650,25 +658,16 @@ const handleKeyDown = (event: React.KeyboardEvent) => {
   </button>
 
   <span id={`deadline-meta-${deadline.id}`} className="sr-only">
-    Status: {statusLabel}. Owned by {assigneeName ?? 'unassigned'}.
-    Due {formatRelative(deadline.currentDueDate)}.
+    Status: {statusLabel}. Owned by {assigneeName ?? 'unassigned'}. Due{' '}
+    {formatRelative(deadline.currentDueDate)}.
   </span>
 
-  <StatusChip
-    aria-label={`Filter by status: ${statusLabel}`}
-    role="button"
-  />
+  <StatusChip aria-label={`Filter by status: ${statusLabel}`} role="button" />
 
-  <AssigneeAvatar
-    aria-label={`Filter by ${assigneeName ?? 'unassigned'}`}
-    role="button"
-  />
+  <AssigneeAvatar aria-label={`Filter by ${assigneeName ?? 'unassigned'}`} role="button" />
 
   {isExpanded && (
-    <section
-      role="region"
-      aria-labelledby={`deadline-title-${deadline.id}`}
-    >
+    <section role="region" aria-labelledby={`deadline-title-${deadline.id}`}>
       {/* expansion content */}
     </section>
   )}
@@ -687,18 +686,18 @@ On expand: `"Expanded. Workflow stage: Waiting on client. Last activity: Reminde
 
 For each of the 10 backend statuses, this is the row appearance + expansion + click destination.
 
-| Backend status | Row chrome | Status pill | Expansion shows | Title click → tab |
-|---|---|---|---|---|
-| `pending` | default `bg-default` | "Not started" — `bg-subtle` + `text-tertiary` | Empty workflow strip; 0 events; `Start working →` CTA | `summary` |
-| `in_progress` | default | "In progress" — `state-accent-hover` + `text-accent-solid` | Workflow active at "Not started" or "In progress" branch (custom); 2 events | `summary` |
-| `waiting_on_client` | default | "Waiting on client" — `state-warning-hover` + `text-warning` | Active stage = waiting; last reminder shown; `Send another reminder` action | `summary` |
-| `review` | default | "In review" — `state-accent-hover` + `text-accent-solid` | Active stage = In review; reviewer name shown | `summary` |
-| `blocked` | default | "Blocked" — `state-destructive-hover` + `text-destructive` | Active stage = Blocked; blocking-items list inline; `Unblock` action | `summary` |
-| `done` | dim (opacity 0.85) | "Filed" — `state-success-hover` + `text-success` | Filing confirmation #; `Undo (7d)` action **only if** within 7 days of `updatedAt` | `summary` |
-| `paid` | dim | "Paid" — `state-success-hover` + `text-success` | Payment confirmation; similar to `done` | `summary` |
-| `extended` | default | "Extended" — `state-warning-hover` + `text-warning` | Extension details + new due date | `extension` |
-| `not_applicable` | dim, dashed border | "N/A" — `bg-subtle` + `text-muted` | Explanation: "Activate this obligation from the rule library" | `summary` |
-| `completed` | dim (opacity 0.7) | "Completed" — `state-success-hover` + `text-success` | Activity summary only; no actions | `summary` |
+| Backend status      | Row chrome           | Status pill                                                  | Expansion shows                                                                    | Title click → tab |
+| ------------------- | -------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ----------------- |
+| `pending`           | default `bg-default` | "Not started" — `bg-subtle` + `text-tertiary`                | Empty workflow strip; 0 events; `Start working →` CTA                              | `summary`         |
+| `in_progress`       | default              | "In progress" — `state-accent-hover` + `text-accent-solid`   | Workflow active at "Not started" or "In progress" branch (custom); 2 events        | `summary`         |
+| `waiting_on_client` | default              | "Waiting on client" — `state-warning-hover` + `text-warning` | Active stage = waiting; last reminder shown; `Send another reminder` action        | `summary`         |
+| `review`            | default              | "In review" — `state-accent-hover` + `text-accent-solid`     | Active stage = In review; reviewer name shown                                      | `summary`         |
+| `blocked`           | default              | "Blocked" — `state-destructive-hover` + `text-destructive`   | Active stage = Blocked; blocking-items list inline; `Unblock` action               | `summary`         |
+| `done`              | dim (opacity 0.85)   | "Filed" — `state-success-hover` + `text-success`             | Filing confirmation #; `Undo (7d)` action **only if** within 7 days of `updatedAt` | `summary`         |
+| `paid`              | dim                  | "Paid" — `state-success-hover` + `text-success`              | Payment confirmation; similar to `done`                                            | `summary`         |
+| `extended`          | default              | "Extended" — `state-warning-hover` + `text-warning`          | Extension details + new due date                                                   | `extension`       |
+| `not_applicable`    | dim, dashed border   | "N/A" — `bg-subtle` + `text-muted`                           | Explanation: "Activate this obligation from the rule library"                      | `summary`         |
+| `completed`         | dim (opacity 0.7)    | "Completed" — `state-success-hover` + `text-success`         | Activity summary only; no actions                                                  | `summary`         |
 
 ### 7.1 Overdue overlay (orthogonal to status)
 
@@ -710,10 +709,10 @@ Computed from `deadline.currentDueDate < now()` and `status !in ['done', 'paid',
 
 ### 7.2 Permission cases (use `canEdit` prop)
 
-| `canEdit` value | Behavior |
-|---|---|
-| `true` | All actions in expansion available |
-| `false` | `Mark filed`, `Reassign`, `Snooze`, `Send reminder` buttons hidden. Expansion is read-only. Title still navigates. |
+| `canEdit` value | Behavior                                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `true`          | All actions in expansion available                                                                                 |
+| `false`         | `Mark filed`, `Reassign`, `Snooze`, `Send reminder` buttons hidden. Expansion is read-only. Title still navigates. |
 
 Derive `canEdit` from existing role check helper — likely at `apps/app/src/features/auth/usePermissions.ts` or similar. **Verify location** before assuming.
 
@@ -754,7 +753,7 @@ const { data: deadlines } = trpc.obligations.queueList.useQuery({
 
 return (
   <div className="flex flex-col">
-    {deadlines.map(d => (
+    {deadlines.map((d) => (
       <DeadlineRow
         key={d.id}
         deadline={d}
@@ -766,14 +765,14 @@ return (
         onFilterByStatus={(status) =>
           setFilters({
             status: filters.status.includes(status)
-              ? filters.status.filter(s => s !== status)
+              ? filters.status.filter((s) => s !== status)
               : [...filters.status, status],
           })
         }
         onFilterByAssignee={(_id, name) =>
           setFilters({
             assigneeNames: filters.assigneeNames.includes(name)
-              ? filters.assigneeNames.filter(n => n !== name)
+              ? filters.assigneeNames.filter((n) => n !== name)
               : [...filters.assigneeNames, name],
           })
         }
@@ -954,14 +953,14 @@ SETUP: Seed a client with ≥3 deadlines in different statuses.
 
 This spec assumes the following tRPC procedures already exist. **Before implementing each section, verify their existence with `rg` in `apps/app/src/server/routers/obligations.ts`.** If missing, ADD A NOTE to the dev-log entry and DEFER that section. Do not add new mutations.
 
-| Procedure | Used for | If missing |
-|---|---|---|
-| `obligations.queueList` | Fetching deadlines on `/clients` and `/today` | Required — should exist; spec depends on it |
-| `obligations.updateStatus` | Mark filed action | Required for inline action; if missing, hide Mark filed button |
-| `obligations.assign` | Reassign action | Required; if missing, hide Reassign button |
-| `obligations.snooze` | Snooze action | OPTIONAL; if missing, hide Snooze button (do NOT add new mutation) |
-| `obligations.getRecentActivity` | Section B inline expansion | If missing, OPTIONAL — render "Activity available on full page →" link in expansion instead |
-| `obligations.getTodos` | Section C inline expansion | If missing, OPTIONAL — derive from `prepStage` / `reviewStage` on the obligation, OR skip the section |
+| Procedure                       | Used for                                      | If missing                                                                                            |
+| ------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `obligations.queueList`         | Fetching deadlines on `/clients` and `/today` | Required — should exist; spec depends on it                                                           |
+| `obligations.updateStatus`      | Mark filed action                             | Required for inline action; if missing, hide Mark filed button                                        |
+| `obligations.assign`            | Reassign action                               | Required; if missing, hide Reassign button                                                            |
+| `obligations.snooze`            | Snooze action                                 | OPTIONAL; if missing, hide Snooze button (do NOT add new mutation)                                    |
+| `obligations.getRecentActivity` | Section B inline expansion                    | If missing, OPTIONAL — render "Activity available on full page →" link in expansion instead           |
+| `obligations.getTodos`          | Section C inline expansion                    | If missing, OPTIONAL — derive from `prepStage` / `reviewStage` on the obligation, OR skip the section |
 
 ### 11.1 Allowed contract usage
 
@@ -999,6 +998,7 @@ Phased to minimize merge risk. Each phase is a separate PR.
 ### Phase 1 — Create the shared component (no behavior change yet)
 
 **Files:**
+
 - `apps/app/src/features/obligations/queue/components/DeadlineRow.tsx` (NEW)
 - `apps/app/src/features/obligations/queue/components/DeadlineRowExpansion.tsx` (NEW)
 - `apps/app/src/features/obligations/queue/components/__tests__/DeadlineRow.test.tsx` (NEW)
@@ -1006,6 +1006,7 @@ Phased to minimize merge risk. Each phase is a separate PR.
 **Behavior:** component exists, can render rows, all modes implemented. Not used anywhere yet.
 
 **Done-when:**
+
 - [ ] Component renders all 5 modes correctly in Storybook (if available) OR manual smoke
 - [ ] All 7 click targets work (no console errors)
 - [ ] Keyboard nav works per §6
@@ -1017,22 +1018,26 @@ Phased to minimize merge risk. Each phase is a separate PR.
 ### Phase 2 — Use it on `/clients/:clientId` (NEW surface — lowest risk)
 
 **Files:**
+
 - `apps/app/src/routes/clients.$clientId.tsx` (or `ClientDetailWorkspace.tsx`)
 
 **Behavior:** deadlines tab on client detail uses `<DeadlineRow mode="inline-expand">`. URL state via `nuqs`.
 
 **Done-when:**
+
 - [ ] All smoke tests in §10.1, §10.2, §10.3 pass
 - [ ] No regression on rest of client detail page
 
 ### Phase 3 — Use it on `/dashboard` (Today)
 
 **Files:**
+
 - `apps/app/src/routes/dashboard.tsx`
 
 **Behavior:** upcoming-deadlines list uses `<DeadlineRow mode="navigate">`.
 
 **Done-when:**
+
 - [ ] Dashboard still renders all existing widgets
 - [ ] Click on row navigates to detail
 - [ ] Smoke test §10.5 step 2 passes
@@ -1040,12 +1045,14 @@ Phased to minimize merge risk. Each phase is a separate PR.
 ### Phase 4 — Migrate `/deadlines` queue (RISKY — do last)
 
 **Files:**
+
 - `apps/app/src/routes/obligations.tsx`
 - `apps/app/src/features/obligations/queue/components/use-obligation-queue-columns.tsx`
 
 **Behavior:** swap column-based row rendering for `<DeadlineRow mode="navigate">` or `<DeadlineRow mode="drawer">` per user preference.
 
 **Done-when:**
+
 - [ ] All existing queue functionality preserved (sorting, filtering, multi-select, bulk actions)
 - [ ] Visual diff vs production: zero regression
 - [ ] All existing smoke tests on `/deadlines` pass
@@ -1061,15 +1068,15 @@ Phased to minimize merge risk. Each phase is a separate PR.
 
 ## 13. Open product decisions (defaults in place)
 
-| Question | Default | Owner | Confirmed? |
-|---|---|---|---|
-| Should Shift+Click enable multi-expand or strict accordion? | Strict accordion (single string in URL) | Product | ⚠️ |
-| Snooze default duration when picker opens? | 3 days | Product | ⚠️ |
-| Inline reassign popover or modal? | Popover (lighter weight) | Confirmed | ✅ |
-| Should overdue rows auto-expand on page load? | No (too aggressive) | Confirmed | ✅ |
-| Form-tag tile click — filter or navigate? | Navigate (paired with title) | Confirmed | ✅ |
-| Show penalty exposure inline on non-overdue rows? | No (overdue only) | Confirmed | ✅ |
-| Allow Undo (7d) on `done`/`paid` status from inline expansion? | Yes — calls `obligations.updateStatus` with previous status | Engineering check needed | ⚠️ |
+| Question                                                       | Default                                                     | Owner                    | Confirmed? |
+| -------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------ | ---------- |
+| Should Shift+Click enable multi-expand or strict accordion?    | Strict accordion (single string in URL)                     | Product                  | ⚠️         |
+| Snooze default duration when picker opens?                     | 3 days                                                      | Product                  | ⚠️         |
+| Inline reassign popover or modal?                              | Popover (lighter weight)                                    | Confirmed                | ✅         |
+| Should overdue rows auto-expand on page load?                  | No (too aggressive)                                         | Confirmed                | ✅         |
+| Form-tag tile click — filter or navigate?                      | Navigate (paired with title)                                | Confirmed                | ✅         |
+| Show penalty exposure inline on non-overdue rows?              | No (overdue only)                                           | Confirmed                | ✅         |
+| Allow Undo (7d) on `done`/`paid` status from inline expansion? | Yes — calls `obligations.updateStatus` with previous status | Engineering check needed | ⚠️         |
 
 ---
 
@@ -1079,11 +1086,7 @@ Phased to minimize merge risk. Each phase is a separate PR.
 import type { ObligationQueueRow } from '@/contracts/obligation-queue'
 import type { ObligationStatus } from '@/contracts/obligations'
 
-export type DeadlineRowMode =
-  | 'navigate'
-  | 'inline-expand'
-  | 'drawer'
-  | 'navigate-to-audit'
+export type DeadlineRowMode = 'navigate' | 'inline-expand' | 'drawer' | 'navigate-to-audit'
 
 export interface DeadlineRowProps {
   deadline: ObligationQueueRow

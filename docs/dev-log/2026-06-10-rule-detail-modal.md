@@ -11,6 +11,7 @@ centered modal** with the **summary-first card-stack**, that **closes on
 outside-click**.
 
 `RuleDetailPanel` (`rules.library.tsx`): **Sheet → `Dialog`**.
+
 - 980px-wide centered modal (`max-h-[90vh]`, scrolls), `bg-subtle` so the white
   cards read as a stack.
 - Closes on overlay (outside) click **and** Esc — the Dialog fires
@@ -27,10 +28,12 @@ threaded to its `CandidateReviewSection`, so the modal's Accept keeps the
 impact-confirm dialog (parity with the old Sheet footer).
 
 ## Verified live
+
 Row-click → 980px centered modal, hero + Applicability/Due date/Evidence/Activity
 cards + Accept/Reject; **overlay-click closes it**. `tsgo` clean.
 
 ## Impact card — added (all 8 `N2X10V` cards now present)
+
 `RuleImpactCard` inserted between Evidence and Activity (review-context rules
 only). Summary = the **real** `previewRuleImpact.estimatedObligationCount`
 ("Activates this rule → ~N new obligations…", or an honest "No client obligations
@@ -44,6 +47,7 @@ Due date · Evidence · **Impact** · Activity · Practice review · Decision.
 ## Card chrome → irBJ8 (right-slots, chips, labels)
 
 Refined `RuleDetailCompact`'s cards to the `irBJ8` spec:
+
 - **Applicability**: right-slot "Verify before Accept"; summary = 3 labeled
   `FactChip`s (ENTITY · FILES · EFFECTIVE) instead of an inline line;
   read-more "Show all fields".
@@ -68,7 +72,7 @@ visible while the reference cards scroll. Reviewable rules only.
 Verified live: Accept stays pinned at the modal bottom when the card stack is
 scrolled. tsgo clean.
 
-Remaining vs irBJ8: the footer still shows the *full* decision (Practice-review
+Remaining vs irBJ8: the footer still shows the _full_ decision (Practice-review
 heading + "Before you accept" aids + buttons) rather than the slim "summary +
 Skip/Reject/Accept + signed line"; splitting the Practice-review note into its own
 scroll card + a slim footer needs the CandidateReviewSection refactor + the
