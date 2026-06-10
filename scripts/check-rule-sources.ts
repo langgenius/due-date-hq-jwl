@@ -1,5 +1,10 @@
 #!/usr/bin/env node
+// Offline health check for the rule-source registry. Run via
+// `vp run rules:check-sources`; `--json <path>` additionally writes a machine-
+// readable report. Exit code is a bitmask: 0 = clean, 1 = dead source URLs,
+// 2 = static catalog failures (penalty/coverage/rule-date), 3 = both.
 import { execFile } from 'node:child_process'
+import { writeFile } from 'node:fs/promises'
 import { listPenaltyFormulaCatalog } from '../packages/core/src/penalty/index.ts'
 import {
   announcementItemsFromSnapshot,
@@ -12,11 +17,16 @@ import {
   listTemporaryAnnouncementSourceCoverage,
   RULE_SOURCE_DOMAINS,
   RULE_SOURCES,
+  ruleSourceFetchUrl,
   sourceCoversRuleDomain,
   sourceDomainsForRule,
   type RuleSource,
 } from '../packages/core/src/rules/index.ts'
 import { findRuleDateReconciliationIssues } from '../apps/server/src/procedures/rules/rule-date-reconciliation.ts'
+// Runtime-agnostic at module scope today (verified under tsx) — if a future
+// edit makes it touch Workers-only globals at import time, the weekly
+// rule-source-health workflow will surface that as a crash.
+import { pulseManagedSourceIds } from '../apps/server/src/jobs/pulse/rule-source-adapters.ts'
 
 type CheckedMethod = 'HEAD' | 'GET'
 
@@ -153,7 +163,10 @@ async function curlText(
 }
 
 function sourceFetchUrl(source: RuleSource): string {
-  return source.feedUrl ?? source.url
+  // feedUrl ?? url with the {year} token resolved — the exact URL the cron
+  // fetches, so the checker stops reporting a different page than production
+  // (literal-{year} probes kept NY/WV permanently red).
+  return ruleSourceFetchUrl(source)
 }
 
 function announcementSourceConfig(source: RuleSource): AnnouncementSourceConfig {
@@ -239,15 +252,20 @@ async function checkAnnouncementAdapterSource(source: RuleSource): Promise<RuleS
   }
 }
 
+const SKIPPED_BY_DESIGN_MARKER = 'skipped by design'
+
 async function checkRuleSource(source: RuleSource): Promise<RuleSourceHealthResult> {
-  if (source.acquisitionMethod === 'manual_review') {
+  // The pulse cron DOES fetch most manual_review sources (healthy manual_review
+  // HTML sources become parser-backed adapters) — only the handful outside
+  // every cron path are exempt from URL checking.
+  if (source.acquisitionMethod === 'manual_review' && !pulseManagedSourceIds.has(source.id)) {
     return {
       sourceId: source.id,
       status: 'skipped',
       httpStatus: null,
       checkedUrl: source.url,
       checkedMethod: null,
-      reason: 'manual_review source is not expected to be machine-fetched.',
+      reason: `manual_review source is not fetched by any cron path (${SKIPPED_BY_DESIGN_MARKER}).`,
     }
   }
   if (source.acquisitionMethod === 'api_watch') {
@@ -260,15 +278,16 @@ async function checkRuleSource(source: RuleSource): Promise<RuleSourceHealthResu
       httpStatus: null,
       checkedUrl: source.url,
       checkedMethod: null,
-      reason: 'api_watch source is checked by its adapter, not the generic URL checker.',
+      reason: `api_watch source is checked by its adapter, not the generic URL checker (${SKIPPED_BY_DESIGN_MARKER}).`,
     }
   }
 
+  const checkedUrl = sourceFetchUrl(source)
   let headStatus: number | null = null
   let headError: string | null = null
 
   try {
-    headStatus = await curlStatus(source.url, 'HEAD')
+    headStatus = await curlStatus(checkedUrl, 'HEAD')
   } catch (error) {
     headError = error instanceof Error ? error.message : 'Unknown HEAD curl error'
   }
@@ -278,31 +297,45 @@ async function checkRuleSource(source: RuleSource): Promise<RuleSourceHealthResu
       sourceId: source.id,
       status: 'ok',
       httpStatus: headStatus,
-      checkedUrl: source.url,
+      checkedUrl,
       checkedMethod: 'HEAD',
     }
   }
 
   try {
-    const getStatus = await curlStatus(source.url, 'GET')
+    const getStatus = await curlStatus(checkedUrl, 'GET')
     if (getStatus >= 200 && getStatus < 400) {
       return {
         sourceId: source.id,
         status: 'ok',
         httpStatus: getStatus,
-        checkedUrl: source.url,
+        checkedUrl,
         checkedMethod: 'GET',
       }
     }
 
-    const plainGetStatus = await curlStatus(source.url, 'GET', 'plain')
+    const plainGetStatus = await curlStatus(checkedUrl, 'GET', 'plain')
     if (plainGetStatus >= 200 && plainGetStatus < 400) {
       return {
         sourceId: source.id,
         status: 'ok',
         httpStatus: plainGetStatus,
-        checkedUrl: source.url,
+        checkedUrl,
         checkedMethod: 'GET',
+      }
+    }
+
+    // Anti-bot / rate-limit responses are not dead links: the cron fetches this
+    // class with a browser UA (and some ids via browserless). Mirror the
+    // announcement-path's soft-skip so red stays = genuinely dead.
+    if ([getStatus, plainGetStatus].some((status) => [403, 429, 503].includes(status))) {
+      return {
+        sourceId: source.id,
+        status: 'skipped',
+        httpStatus: null,
+        checkedUrl,
+        checkedMethod: null,
+        reason: `anti-bot/rate-limit response (HTTP ${getStatus}/${plainGetStatus})`,
       }
     }
 
@@ -310,17 +343,29 @@ async function checkRuleSource(source: RuleSource): Promise<RuleSourceHealthResu
       sourceId: source.id,
       status: 'failed',
       httpStatus: getStatus,
-      checkedUrl: source.url,
+      checkedUrl,
       checkedMethod: 'GET',
       reason: `HTTP ${getStatus}`,
     }
   } catch (error) {
     const getError = error instanceof Error ? error.message : 'Unknown GET curl error'
+    // GET probes can die on local network noise after HEAD already revealed an
+    // anti-bot response — same soft-skip as the in-band 403/429/503 path.
+    if (headStatus !== null && [403, 429, 503].includes(headStatus)) {
+      return {
+        sourceId: source.id,
+        status: 'skipped',
+        httpStatus: null,
+        checkedUrl,
+        checkedMethod: null,
+        reason: `anti-bot/rate-limit response (HTTP ${headStatus} on HEAD; GET probe failed)`,
+      }
+    }
     return {
       sourceId: source.id,
       status: 'failed',
       httpStatus: headStatus,
-      checkedUrl: source.url,
+      checkedUrl,
       checkedMethod: 'GET',
       reason: headError ? `${headError}; ${getError}` : getError,
     }
@@ -364,7 +409,62 @@ async function checkWithRetry(source: RuleSource): Promise<RuleSourceHealthResul
   return second
 }
 
-const results = await Promise.all(RULE_SOURCES.map(checkWithRetry))
+// Bounded worker pool: an unbounded Promise.all fired ~390 simultaneous curls
+// (impolite to state sites and noisy with local socket errors).
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const out: R[] = Array.from({ length: items.length }) as R[]
+  let next = 0
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (next < items.length) {
+        const index = next++
+        const item = items[index]
+        if (item === undefined) continue
+        out[index] = await fn(item)
+      }
+    }),
+  )
+  return out
+}
+
+// Probe host-by-host (hosts concurrent, sources within a host sequential),
+// mirroring the cron's per-host politeness: many registry sources share one
+// state host, and hammering it with parallel TLS handshakes produced spurious
+// SSL_ERROR_SYSCALL resets that read as "unreachable".
+function probeHost(source: RuleSource): string {
+  try {
+    return new URL(sourceFetchUrl(source)).host
+  } catch {
+    return source.id
+  }
+}
+
+const sourcesByHost = new Map<string, RuleSource[]>()
+for (const source of RULE_SOURCES) {
+  const host = probeHost(source)
+  const group = sourcesByHost.get(host)
+  if (group) group.push(source)
+  else sourcesByHost.set(host, [source])
+}
+
+const grouped = await mapWithConcurrency(
+  [...sourcesByHost.values()],
+  10,
+  async (group): Promise<RuleSourceHealthResult[]> => {
+    const out: RuleSourceHealthResult[] = []
+    for (const source of group) {
+      out.push(await checkWithRetry(source))
+      if (group.length > 1) await wait(250)
+    }
+    return out
+  },
+)
+
+const results = grouped.flat().toSorted((a, b) => a.sourceId.localeCompare(b.sourceId))
 const penaltyCatalog = listPenaltyFormulaCatalog()
 const penaltySourceFailures: string[] = []
 const sourceCoverageFailures: string[] = []
@@ -532,24 +632,37 @@ for (const formula of penaltyCatalog) {
 }
 
 const failed = results.filter((result) => result.status === 'failed')
+const skipped = results.filter((result) => result.status === 'skipped')
+const skippedByDesign = skipped.filter((result) => result.reason.includes(SKIPPED_BY_DESIGN_MARKER))
+const staticFailures = [...penaltySourceFailures, ...sourceCoverageFailures, ...ruleDateFailures]
 
-for (const failure of penaltySourceFailures) {
+for (const failure of staticFailures) {
   console.error(failure)
 }
 
-for (const failure of sourceCoverageFailures) {
-  console.error(failure)
+const summary = {
+  ok: results.filter((result) => result.status === 'ok').length,
+  failed: failed.length,
+  skipped_by_design: skippedByDesign.length,
+  skipped_unreachable: skipped.length - skippedByDesign.length,
+  static_failures: staticFailures.length,
+}
+console.log(
+  `summary\tok=${summary.ok} failed=${summary.failed} skipped_by_design=${summary.skipped_by_design} skipped_unreachable=${summary.skipped_unreachable} static_failures=${summary.static_failures}`,
+)
+
+const jsonFlagIndex = process.argv.indexOf('--json')
+const jsonPath = jsonFlagIndex >= 0 ? process.argv[jsonFlagIndex + 1] : undefined
+if (jsonPath) {
+  await writeFile(
+    jsonPath,
+    `${JSON.stringify({ generatedAt: new Date().toISOString(), summary, results, staticFailures }, null, 2)}\n`,
+  )
 }
 
-for (const failure of ruleDateFailures) {
-  console.error(failure)
-}
-
-if (
-  failed.length > 0 ||
-  penaltySourceFailures.length > 0 ||
-  sourceCoverageFailures.length > 0 ||
-  ruleDateFailures.length > 0
-) {
-  process.exitCode = 1
-}
+// Bitmask (see header comment): dead URLs and static catalog failures fail
+// independently so the weekly workflow can report them as distinct problems.
+let exitCode = 0
+if (failed.length > 0) exitCode |= 1
+if (staticFailures.length > 0) exitCode |= 2
+process.exitCode = exitCode

@@ -1,0 +1,133 @@
+name: Rule Source Health
+
+# Weekly offline probe of every registry source URL (scripts/check-rule-sources.ts).
+# Schedule/dispatch ONLY — this must never gate push/PR CI and must NOT be added
+# to branch-protection required checks. Failures upsert a single tracking issue
+# labeled `rule-source-health` so dead sources stop rotting silently (the OH/AZ/
+# fed.irs_inflation_adjustments outages of 2026-06 went unnoticed for months).
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: rule-source-health
+  cancel-in-progress: false
+
+jobs:
+  check-sources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: '22'
+          cache: true
+
+      - run: vp install --frozen-lockfile
+
+      - name: Check rule source health
+        id: check
+        run: |
+          set +e
+          ./node_modules/.bin/tsx scripts/check-rule-sources.ts --json rule-source-health.json | tee rule-source-health.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rule-source-health
+          path: |
+            rule-source-health.json
+            rule-source-health.txt
+          retention-days: 30
+
+      - name: Upsert tracking issue
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs')
+            const label = 'rule-source-health'
+            const report = JSON.parse(fs.readFileSync('rule-source-health.json', 'utf8'))
+            const failedRows = report.results.filter((row) => row.status === 'failed')
+            const unreachable = report.results.filter(
+              (row) => row.status === 'skipped' && !row.reason.includes('skipped by design'),
+            )
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            const { data: open } = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: 'open',
+              labels: label,
+            })
+            const existing = open[0]
+
+            const clean = failedRows.length === 0 && report.summary.static_failures === 0
+            if (clean) {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number: existing.number,
+                  body: `Clean run on ${report.generatedAt}: every probed source is reachable again. ${runUrl}`,
+                })
+                await github.rest.issues.update({
+                  ...context.repo,
+                  issue_number: existing.number,
+                  state: 'closed',
+                })
+              }
+              return
+            }
+
+            const failedTable = [
+              '| sourceId | HTTP | checked URL | reason |',
+              '| --- | --- | --- | --- |',
+              ...failedRows.map(
+                (row) =>
+                  `| \`${row.sourceId}\` | ${row.httpStatus ?? '—'} | ${row.checkedUrl} | ${row.reason} |`,
+              ),
+            ].join('\n')
+            const unreachableList = unreachable.length
+              ? `\n<details><summary>${unreachable.length} skipped as unreachable from CI (anti-bot / network) — eyeball occasionally</summary>\n\n${unreachable
+                  .map((row) => `- \`${row.sourceId}\` — ${row.reason} (${row.checkedUrl})`)
+                  .join('\n')}\n\n</details>\n`
+              : ''
+            const staticBlock = report.staticFailures.length
+              ? `\n**Static catalog failures (${report.staticFailures.length})**\n\n${report.staticFailures
+                  .map((line) => `- ${line}`)
+                  .join('\n')}\n`
+              : ''
+            const body = [
+              `Weekly rule-source health run on ${report.generatedAt} found problems. ${runUrl}`,
+              '',
+              `Summary: ok=${report.summary.ok} failed=${report.summary.failed} skipped_by_design=${report.summary.skipped_by_design} skipped_unreachable=${report.summary.skipped_unreachable} static_failures=${report.summary.static_failures}`,
+              '',
+              failedRows.length ? `**Dead source URLs (${failedRows.length})**\n\n${failedTable}` : '',
+              staticBlock,
+              unreachableList,
+              '',
+              '> Note: failures on `{year}`-token sources in early January are often new-year',
+              '> rollover lag — the state has not published the new page yet. They self-heal',
+              '> once the page exists; treat them as dead only if they persist past January.',
+            ]
+              .filter(Boolean)
+              .join('\n')
+            const title = `Rule source health: ${failedRows.length} dead source(s), ${report.summary.static_failures} static failure(s)`
+
+            if (existing) {
+              await github.rest.issues.update({
+                ...context.repo,
+                issue_number: existing.number,
+                title,
+                body,
+              })
+            } else {
+              await github.rest.issues.create({ ...context.repo, title, body, labels: [label] })
+            }
+
+      - name: Reflect failures in the run status
+        if: steps.check.outputs.exit_code != '0'
+        run: exit 1
