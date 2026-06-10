@@ -216,12 +216,9 @@ export const router = os.router({
     listByObligation: readinessHandlers.listByObligation,
   },
   reminders: {
-    overview: remindersHandlers.overview,
     listTemplates: remindersHandlers.listTemplates,
     updateTemplate: remindersHandlers.updateTemplate,
-    listUpcoming: remindersHandlers.listUpcoming,
     listRecentSends: remindersHandlers.listRecentSends,
-    listSuppressions: remindersHandlers.listSuppressions,
   },
   rules: {
     listSources: rulesHandlers.listSources,

@@ -22,33 +22,6 @@ export interface ReminderTemplateRow {
   updatedAt: Date | null
 }
 
-export interface ReminderOverviewRow {
-  practiceTimezone: string
-  activeTemplateCount: number
-  upcomingCount: number
-  queuedTodayCount: number
-  sentLast7DaysCount: number
-  failedLast7DaysCount: number
-  suppressedEmailCount: number
-}
-
-export interface ReminderUpcomingRow {
-  id: string
-  obligationId: string
-  clientId: string
-  clientName: string
-  clientEmail: string | null
-  taxType: string
-  status: string
-  recipientKind: ReminderRecipientKind
-  channel: ReminderChannel
-  offsetDays: number
-  dueDate: string
-  scheduledFor: string
-  deliveryStatus: ReminderDeliveryStatus
-  templateKey: string | null
-}
-
 export interface ReminderRecentSendRow {
   id: string
   obligationId: string
@@ -65,13 +38,6 @@ export interface ReminderRecentSendRow {
   failureReason: string | null
   createdAt: Date
   sentAt: Date | null
-}
-
-export interface ReminderSuppressionRow {
-  id: string
-  email: string
-  reason: 'unsubscribe' | 'bounce' | 'manual'
-  createdAt: Date
 }
 
 export interface ReminderTemplatePatch {
@@ -99,12 +65,9 @@ export function renderReminderTemplate(
 
 export interface RemindersRepo {
   readonly firmId: string
-  overview(): Promise<ReminderOverviewRow>
   listTemplates(): Promise<ReminderTemplateRow[]>
   updateTemplate(templateKey: string, patch: ReminderTemplatePatch): Promise<ReminderTemplateRow>
   resolveTemplate(kind: ReminderTemplateKind): Promise<ReminderTemplateRow | null>
   resolveTemplateByKey(templateKey: string): Promise<ReminderTemplateRow | null>
-  listUpcoming(input?: { limit?: number }): Promise<ReminderUpcomingRow[]>
   listRecentSends(input?: { limit?: number }): Promise<ReminderRecentSendRow[]>
-  listSuppressions(input?: { limit?: number }): Promise<ReminderSuppressionRow[]>
 }

@@ -41,35 +41,6 @@ export const ReminderTemplatePublicSchema = z.object({
 })
 export type ReminderTemplatePublic = z.infer<typeof ReminderTemplatePublicSchema>
 
-export const ReminderOverviewSchema = z.object({
-  practiceTimezone: z.string().min(1),
-  activeTemplateCount: z.number().int().min(0),
-  upcomingCount: z.number().int().min(0),
-  queuedTodayCount: z.number().int().min(0),
-  sentLast7DaysCount: z.number().int().min(0),
-  failedLast7DaysCount: z.number().int().min(0),
-  suppressedEmailCount: z.number().int().min(0),
-})
-export type ReminderOverview = z.infer<typeof ReminderOverviewSchema>
-
-export const ReminderUpcomingItemSchema = z.object({
-  id: z.string().min(1),
-  obligationId: EntityIdSchema,
-  clientId: EntityIdSchema,
-  clientName: z.string().min(1),
-  clientEmail: z.string().nullable(),
-  taxType: z.string().min(1),
-  status: z.string().min(1),
-  recipientKind: ReminderRecipientKindSchema,
-  channel: ReminderChannelSchema,
-  offsetDays: z.number().int(),
-  dueDate: z.string().min(1),
-  scheduledFor: z.string().min(1),
-  deliveryStatus: ReminderDeliveryStatusSchema,
-  templateKey: z.string().nullable(),
-})
-export type ReminderUpcomingItem = z.infer<typeof ReminderUpcomingItemSchema>
-
 export const ReminderRecentSendSchema = z.object({
   id: EntityIdSchema,
   obligationId: EntityIdSchema,
@@ -89,14 +60,6 @@ export const ReminderRecentSendSchema = z.object({
 })
 export type ReminderRecentSend = z.infer<typeof ReminderRecentSendSchema>
 
-export const ReminderSuppressionSchema = z.object({
-  id: EntityIdSchema,
-  email: z.string().min(1),
-  reason: z.enum(['unsubscribe', 'bounce', 'manual']),
-  createdAt: z.iso.datetime(),
-})
-export type ReminderSuppression = z.infer<typeof ReminderSuppressionSchema>
-
 export const ReminderListInputSchema = z
   .object({
     limit: z.number().int().min(1).max(100).default(25).optional(),
@@ -112,18 +75,11 @@ export const ReminderTemplateUpdateInputSchema = z.object({
 export type ReminderTemplateUpdateInput = z.infer<typeof ReminderTemplateUpdateInputSchema>
 
 export const remindersContract = oc.router({
-  overview: oc.input(z.undefined()).output(ReminderOverviewSchema),
   listTemplates: oc.input(z.undefined()).output(z.array(ReminderTemplatePublicSchema)),
   updateTemplate: oc.input(ReminderTemplateUpdateInputSchema).output(ReminderTemplatePublicSchema),
-  listUpcoming: oc
-    .input(ReminderListInputSchema)
-    .output(z.object({ reminders: z.array(ReminderUpcomingItemSchema) })),
   listRecentSends: oc
     .input(ReminderListInputSchema)
     .output(z.object({ reminders: z.array(ReminderRecentSendSchema) })),
-  listSuppressions: oc
-    .input(ReminderListInputSchema)
-    .output(z.object({ suppressions: z.array(ReminderSuppressionSchema) })),
 })
 
 export type RemindersContract = typeof remindersContract

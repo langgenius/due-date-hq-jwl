@@ -873,29 +873,23 @@ export {
 export type {
   ReminderChannel,
   ReminderDeliveryStatus,
-  ReminderOverview,
   ReminderRecentSend,
   ReminderRecipientKind,
-  ReminderSuppression,
   ReminderTemplateKind,
   ReminderTemplatePublic,
   ReminderTemplateUpdateInput,
-  ReminderUpcomingItem,
   RemindersContract,
 } from './reminders'
 export {
   ReminderChannelSchema,
   ReminderDeliveryStatusSchema,
   ReminderListInputSchema,
-  ReminderOverviewSchema,
   ReminderRecentSendSchema,
   ReminderRecipientKindSchema,
   remindersContract,
-  ReminderSuppressionSchema,
   ReminderTemplateKindSchema,
   ReminderTemplatePublicSchema,
   ReminderTemplateUpdateInputSchema,
-  ReminderUpcomingItemSchema,
 } from './reminders'
 
 export type {
