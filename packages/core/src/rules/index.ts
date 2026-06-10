@@ -645,6 +645,10 @@ interface StateIncomeTaxSourceSeed {
   jurisdiction: RuleGenerationState
   title: string
   url: string
+  // Fetch-address override for year-paginated pages: carries the {year} token
+  // (resolved at fetch time) while `url` stays the current dated content page
+  // that rules cite and UIs link to. See ruleSourceFetchUrl.
+  feedUrl?: string
   sourceType?: RuleSourceType
   acquisitionMethod?: AcquisitionMethod
   candidateDomainSlugs?: readonly StateCandidateRuleSlug[]
@@ -657,6 +661,8 @@ interface StateAdditionalRuleSourceSeed {
   localFactRequirements?: readonly LocalFactRequirement[]
   title: string
   url: string
+  // Same {year}-token fetch override as StateIncomeTaxSourceSeed.feedUrl.
+  feedUrl?: string
   sourceType: RuleSourceType
   acquisitionMethod: AcquisitionMethod
   domains: readonly RuleSourceDomain[]
@@ -1058,7 +1064,10 @@ const STATE_INCOME_TAX_SOURCE_SEEDS = [
   {
     jurisdiction: 'NY',
     title: 'New York Tax Department 2026 Tax Filing Dates',
+    // Year-paginated; MUST carry the same feedUrl as ny.tax_calendar.2026 so
+    // uniqueByFetchUrl keeps deduping the two watchers to one fetch.
     url: 'https://www.tax.ny.gov/help/calendar/2026.htm',
+    feedUrl: 'https://www.tax.ny.gov/help/calendar/{year}.htm',
   },
   {
     jurisdiction: 'NC',
@@ -3204,7 +3213,10 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'LA',
     id: 'la.tax_calendar',
     title: 'Louisiana Department of Revenue Tax Calendar',
+    // Year-paginated calendar; feedUrl's {year} resolves at fetch time so the
+    // watcher follows the live year (url stays the dated page rules cite).
     url: 'https://revenue.louisiana.gov/calendar/2026/',
+    feedUrl: 'https://revenue.louisiana.gov/calendar/{year}/',
     sourceType: 'calendar',
     acquisitionMethod: 'manual_review',
     domains: [
@@ -4130,6 +4142,7 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
       jurisdiction: seed.jurisdiction,
       title: incomeTaxSource.title,
       url: incomeTaxSource.url,
+      ...(incomeTaxSource.feedUrl ? { feedUrl: incomeTaxSource.feedUrl } : {}),
       sourceType: incomeTaxSource.sourceType ?? 'instructions',
       acquisitionMethod: incomeTaxSource.acquisitionMethod ?? 'manual_review',
       cadence: 'pre_season',
@@ -4158,6 +4171,7 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
         : {}),
       title: source.title,
       url: source.url,
+      ...(source.feedUrl ? { feedUrl: source.feedUrl } : {}),
       sourceType: source.sourceType,
       acquisitionMethod: source.acquisitionMethod,
       cadence: 'pre_season',
@@ -4654,8 +4668,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     // The WV notices index is paginated by year (…AdministrativeNotices2026.aspx,
     // …2025.aspx, …); there is no non-year index page. The `{year}` token is
     // resolved to the current calendar year at fetch time (see
-    // resolveAnnouncementYearUrl in rule-source-adapters.ts) so the watcher
-    // follows the live year instead of silently stalling on a past year.
+    // resolveAnnouncementYearUrl in this file) so the watcher follows the
+    // live year instead of silently stalling on a past year.
     url: 'https://tax.wv.gov/TaxProfessionals/AdministrativeNotices/Pages/AdministrativeNotices{year}.aspx',
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
@@ -5280,7 +5294,10 @@ export const RULE_SOURCES = hydrateRuleSources([
     id: 'ny.tax_calendar.2026',
     jurisdiction: 'NY',
     title: 'New York 2026 Tax Filing Dates',
+    // Year-paginated; feedUrl MUST stay identical to the ny.income_tax seed's
+    // so uniqueByFetchUrl keeps deduping the two watchers to one fetch.
     url: 'https://www.tax.ny.gov/help/calendar/2026.htm',
+    feedUrl: 'https://www.tax.ny.gov/help/calendar/{year}.htm',
     sourceType: 'calendar',
     acquisitionMethod: 'html_watch',
     cadence: 'weekly',
@@ -5429,7 +5446,9 @@ export const RULE_SOURCES = hydrateRuleSources([
     id: 'tx.franchise_forms_2026',
     jurisdiction: 'TX',
     title: 'Texas Franchise Tax Report Forms for 2026',
+    // Year-paginated form index; feedUrl {year} resolves at fetch time.
     url: 'https://comptroller.texas.gov/taxes/franchise/forms/2026-franchise.php',
+    feedUrl: 'https://comptroller.texas.gov/taxes/franchise/forms/{year}-franchise.php',
     sourceType: 'form',
     acquisitionMethod: 'html_watch',
     cadence: 'weekly',
@@ -5509,7 +5528,10 @@ export const RULE_SOURCES = hydrateRuleSources([
     id: 'wa.excise_due_dates_2026',
     jurisdiction: 'WA',
     title: 'Washington DOR 2026 Excise Tax Return Due Dates',
+    // Year-paginated calendar; feedUrl {year} resolves at fetch time.
     url: 'https://dor.wa.gov/file-pay-taxes/filing-frequencies-due-dates/2026-excise-tax-return-due-dates',
+    feedUrl:
+      'https://dor.wa.gov/file-pay-taxes/filing-frequencies-due-dates/{year}-excise-tax-return-due-dates',
     sourceType: 'calendar',
     acquisitionMethod: 'manual_review',
     cadence: 'weekly',
@@ -10461,6 +10483,33 @@ export function isCoveredTemporaryAnnouncementSource(source: RuleSource): boolea
 
 function urlLooksPdf(url: string): boolean {
   return /\.pdf(?:[?#]|$)/i.test(url)
+}
+
+/**
+ * Some official announcement indexes are paginated by year with no stable
+ * non-year page (e.g. WV Administrative Notices: …Notices{year}.aspx). Such
+ * sources register a `{year}` token in their URL; it resolves to the current
+ * calendar year at fetch time so the watcher follows the live year instead of
+ * silently stalling on a past year's page after the new year rolls over.
+ * THE canonical implementation — the pulse adapters, the rules-scan and the
+ * offline source checker (scripts/check-rule-sources.ts) must all resolve
+ * identically or the checker reports a different page than the cron fetches.
+ */
+export function resolveAnnouncementYearUrl(url: string, now: Date = new Date()): string {
+  return url.includes('{year}') ? url.replaceAll('{year}', String(now.getUTCFullYear())) : url
+}
+
+/**
+ * The URL a source is actually fetched from: `feedUrl` (when present) wins
+ * over `url`, with the `{year}` token resolved. `feedUrl` doubles as a
+ * fetch-address override for year-paginated index pages — `url` then stays
+ * the dated content page rules cite and UIs link to.
+ */
+export function ruleSourceFetchUrl(
+  source: Pick<RuleSource, 'url' | 'feedUrl'>,
+  now: Date = new Date(),
+): string {
+  return resolveAnnouncementYearUrl(source.feedUrl ?? source.url, now)
 }
 
 function sourceLooksLikeAnnouncementList(

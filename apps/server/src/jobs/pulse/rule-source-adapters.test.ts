@@ -4,6 +4,7 @@ import {
   isParserBackedRuleSource,
   listHiddenPolicyWatchSources,
   listRuleSources,
+  ruleSourceFetchUrl,
   type RuleSource,
 } from '@duedatehq/core/rules'
 import { livePulseAdapters } from '@duedatehq/ingest/adapters'
@@ -102,13 +103,11 @@ describe('rule source adapters', () => {
       eligibleHiddenSources.map((source) => source.id).toSorted(),
     )
 
-    // Resolved fetch URL per id, mirroring fetchUrlForAdapterId in the module:
-    // registry sources fetch feedUrl ?? url with `{year}` resolved.
-    const resolveYear = (url: string) =>
-      url.includes('{year}') ? url.replaceAll('{year}', String(new Date().getUTCFullYear())) : url
+    // Resolved fetch URL per id via the SHARED resolver, locking the single
+    // implementation fetchUrlForAdapterId/reconcile/checker all use.
     const urlBySourceId = new Map<string, string>()
     for (const source of listRuleSources()) {
-      urlBySourceId.set(source.id, resolveYear(source.feedUrl ?? source.url))
+      urlBySourceId.set(source.id, ruleSourceFetchUrl(source))
     }
     const liveIds = new Set(liveRegulatorySourceAdapters.map((candidate) => candidate.id))
     const seenLiveUrls = new Set<string>()

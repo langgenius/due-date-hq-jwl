@@ -11,6 +11,7 @@ import {
   isTemporaryAnnouncementSource,
   listObligationRules,
   listRuleSources,
+  ruleSourceFetchUrl,
   substantialCohortYears,
   type ObligationRule,
   type RuleSource,
@@ -146,13 +147,9 @@ function sourceCanAutoScan(source: RuleSource): boolean {
 }
 
 function sourceFetchUrl(source: RuleSource): string {
-  const url = source.feedUrl ?? source.url
-  // Resolve the {year} token (e.g. WV AdministrativeNotices{year}.aspx) like the
-  // adapter path does, so the scan fetches the current-year page instead of a
-  // literal "{year}" URL that 404s.
-  return url.includes('{year}')
-    ? url.replaceAll('{year}', String(new Date().getUTCFullYear()))
-    : url
+  // feedUrl ?? url with the {year} token resolved — shared with the adapter
+  // path and the offline checker so all three fetch the same page.
+  return ruleSourceFetchUrl(source)
 }
 
 function sourceTemplateInput(source: RuleSource) {

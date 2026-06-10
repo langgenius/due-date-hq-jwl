@@ -7,6 +7,8 @@ import {
   listRuleSources,
   parserBackedAdapterKindForSource,
   policyWatchAutomationStatusForSource,
+  resolveAnnouncementYearUrl,
+  ruleSourceFetchUrl,
   type AlertSourcePurpose,
   type PolicyWatchSource,
   type RuleSource,
@@ -600,21 +602,15 @@ function uniqueByFetchUrl(adapters: readonly SourceAdapter[]): SourceAdapter[] {
   })
 }
 
-// Some official announcement indexes are paginated by year with no stable
-// non-year page (e.g. WV Administrative Notices: …Notices2026.aspx). Such
-// sources register a `{year}` token in their URL; we resolve it to the current
-// calendar year at fetch time so the watcher follows the live year instead of
-// silently stalling on a past year's page after the new year rolls over.
-function resolveAnnouncementYearUrl(url: string, now: Date = new Date()): string {
-  return url.includes('{year}') ? url.replaceAll('{year}', String(now.getUTCFullYear())) : url
-}
-
+// {year}-token resolution moved to @duedatehq/core/rules (resolveAnnouncementYearUrl /
+// ruleSourceFetchUrl) so the adapters, the rules-scan and the offline checker share
+// one implementation.
 function sourceFetchUrl(source: RuleSource): string {
-  return resolveAnnouncementYearUrl(source.feedUrl ?? source.url)
+  return ruleSourceFetchUrl(source)
 }
 
 function policyWatchFetchUrl(source: PolicyWatchSource): string {
-  return resolveAnnouncementYearUrl(source.feedUrl ?? source.url)
+  return ruleSourceFetchUrl(source)
 }
 
 function intervalForCadence(cadence: RuleSource['cadence']): number {
@@ -654,10 +650,14 @@ function parsedItemForSourceSnapshot(
   const text = textExcerpt(fullText)
   return {
     sourceId: source.id,
+    // externalId stays keyed on the registry url so the item's identity is
+    // stable across year rollovers; officialSourceUrl is the RESOLVED page the
+    // body actually came from (feedUrl {year} → current year), so alerts cite
+    // the page that says what the alert says.
     externalId: stableExternalId(source.url),
     title: sourceSnapshotTitle(source),
     publishedAt: fetchedAt,
-    officialSourceUrl: source.url,
+    officialSourceUrl: sourceFetchUrl(source),
     rawText: text || sourceSnapshotTitle(source),
     // Un-truncated page text for drift only — AI input and the contentHash
     // dedupe key stay on the 6000-char excerpt.
@@ -884,7 +884,7 @@ function fetchUrlForAdapterId(id: string): string | null {
   const explicit = EXPLICIT_LIVE_SOURCE_CATALOG[id]
   if (explicit) return resolveAnnouncementYearUrl(explicit.url)
   const source = ruleSourcesById.get(id) ?? hiddenPolicyWatchSourcesById.get(id)
-  if (source) return resolveAnnouncementYearUrl(source.feedUrl ?? source.url)
+  if (source) return ruleSourceFetchUrl(source)
   return null
 }
 

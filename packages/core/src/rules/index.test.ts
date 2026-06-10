@@ -22,9 +22,11 @@ import {
   normalizeRuleTaxTypeCandidates,
   OBLIGATION_RULES,
   previewObligationsFromRules,
+  resolveAnnouncementYearUrl,
   RULE_SOURCES,
   ruleCitesSourceAsBasis,
   rulesBySourceId,
+  ruleSourceFetchUrl,
   sourceCoversRuleDomain,
   STATE_RULE_JURISDICTIONS,
 } from './index'
@@ -1122,6 +1124,7 @@ describe('@duedatehq/core/rules', () => {
     expect(sourcesById.get('la.tax_calendar')).toMatchObject({
       title: 'Louisiana Department of Revenue Tax Calendar',
       url: 'https://revenue.louisiana.gov/calendar/2026/',
+      feedUrl: 'https://revenue.louisiana.gov/calendar/{year}/',
       sourceType: 'calendar',
       domains: expect.arrayContaining([
         'fiduciary_income_return',
@@ -2447,5 +2450,65 @@ describe('rulesBySourceId / ruleCitesSourceAsBasis', () => {
     )!
     expect(ruleCitesSourceAsBasis(ruleWithBasis!, basis.sourceId)).toBe(basis.sourceExcerpt)
     expect(ruleCitesSourceAsBasis(ruleWithBasis!, '__not_a_source__')).toBeNull()
+  })
+
+  it('resolves the {year} URL token against an injected now', () => {
+    const now = new Date('2026-06-10T00:00:00.000Z')
+    expect(
+      resolveAnnouncementYearUrl('https://tax.example.gov/notices/{year}/index.aspx', now),
+    ).toBe('https://tax.example.gov/notices/2026/index.aspx')
+    expect(resolveAnnouncementYearUrl('https://tax.example.gov/{year}/q/{year}.htm', now)).toBe(
+      'https://tax.example.gov/2026/q/2026.htm',
+    )
+    expect(resolveAnnouncementYearUrl('https://tax.example.gov/static', now)).toBe(
+      'https://tax.example.gov/static',
+    )
+  })
+
+  it('fetches feedUrl over url with the token resolved', () => {
+    const now = new Date('2026-06-10T00:00:00.000Z')
+    expect(
+      ruleSourceFetchUrl(
+        {
+          url: 'https://tax.example.gov/2026-page',
+          feedUrl: 'https://tax.example.gov/{year}-page',
+        },
+        now,
+      ),
+    ).toBe('https://tax.example.gov/2026-page')
+    expect(ruleSourceFetchUrl({ url: 'https://tax.example.gov/{year}/cal.htm' }, now)).toBe(
+      'https://tax.example.gov/2026/cal.htm',
+    )
+  })
+
+  it('resolves every {year}-token registry source to the current UTC year', () => {
+    const year = String(new Date().getUTCFullYear())
+    const tokenSources = listRuleSources().filter((source) =>
+      (source.feedUrl ?? source.url).includes('{year}'),
+    )
+    expect(tokenSources.length).toBeGreaterThan(0)
+    for (const source of tokenSources) {
+      const resolved = ruleSourceFetchUrl(source)
+      expect(resolved, source.id).not.toContain('{year}')
+      expect(resolved, source.id).toContain(year)
+    }
+  })
+
+  it('threads seed feedUrl overrides through to the hydrated registry sources', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+    // Year-paginated pages converted 2026-06-10 (P4): the watcher follows the
+    // live year via feedUrl while url stays the dated content page.
+    expect(sourcesById.get('ny.income_tax')?.feedUrl).toBe(
+      'https://www.tax.ny.gov/help/calendar/{year}.htm',
+    )
+    expect(sourcesById.get('ny.tax_calendar.2026')?.feedUrl).toBe(
+      'https://www.tax.ny.gov/help/calendar/{year}.htm',
+    )
+    expect(sourcesById.get('tx.franchise_forms_2026')?.feedUrl).toBe(
+      'https://comptroller.texas.gov/taxes/franchise/forms/{year}-franchise.php',
+    )
+    expect(sourcesById.get('wa.excise_due_dates_2026')?.feedUrl).toBe(
+      'https://dor.wa.gov/file-pay-taxes/filing-frequencies-due-dates/{year}-excise-tax-return-due-dates',
+    )
   })
 })

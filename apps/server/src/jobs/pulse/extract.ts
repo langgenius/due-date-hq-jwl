@@ -49,9 +49,21 @@ function nullableDateFromIsoDate(value: string | null): Date | null {
 // Only surface alerts for current/upcoming policy changes. When a newly-recovered
 // source first succeeds it re-parses the page's whole history, and the AI extracts
 // each old policy (2023 winter-storm relief, 2024/2025 forms, ...). Suppress an
-// alert when every parsed policy date is before this floor. Items with no parsed
-// date are kept (no evidence they are historical). Bump the year to raise the floor.
-const PULSE_ALERT_MIN_RELEVANT_AT = new Date('2026-01-01T00:00:00.000Z')
+// alert when every parsed policy date is before the rolling floor below. Items
+// with no parsed date are kept (no evidence they are historical).
+const HISTORICAL_GRACE_MS = 90 * 24 * 60 * 60 * 1000
+
+/**
+ * Rolling relevance floor: min(start of the current UTC year, now − 90 days).
+ * Mid-year that is simply Jan 1 (identical to the old hardcoded 2026-01-01
+ * through 2026); in January–March it reaches back up to 90 days into the prior
+ * year so fresh alerts citing Q4 dates aren't suppressed right after rollover.
+ */
+export function pulseAlertMinRelevantAt(now: Date): Date {
+  const startOfYear = new Date(Date.UTC(now.getUTCFullYear(), 0, 1))
+  const grace = new Date(now.getTime() - HISTORICAL_GRACE_MS)
+  return grace < startOfYear ? grace : startOfYear
+}
 
 // Confidence gating for AI regulatory extracts, calibrated against the live
 // alert corpus (non-events cluster ≤0.25; genuine items ≥0.5):
@@ -148,6 +160,7 @@ type PulseExtractSnapshot = NonNullable<Awaited<ReturnType<PulseExtractRepo['get
 export async function extractPulseSnapshot(
   env: PulseExtractEnv,
   snapshotId: string,
+  now: Date = new Date(),
 ): Promise<PulseExtractResult> {
   const db = createDb(env.DB)
   const repo = makePulseExtractRepo(db)
@@ -170,7 +183,7 @@ export async function extractPulseSnapshot(
 
   await repo.updateSourceSnapshotStatus(snapshotId, { parseStatus: 'extracting' })
   try {
-    return await runPulseExtractionAfterMark(env, db, repo, snapshot, snapshotId)
+    return await runPulseExtractionAfterMark(env, db, repo, snapshot, snapshotId, now)
   } catch (error) {
     // A *thrown* error (R2 / AI / DB infra) is transient — distinct from an AI
     // refusal, which returns a `failed` result below. Reset `extracting` →
@@ -202,6 +215,7 @@ async function runPulseExtractionAfterMark(
   repo: PulseExtractRepo,
   snapshot: PulseExtractSnapshot,
   snapshotId: string,
+  now: Date = new Date(),
 ): Promise<PulseExtractResult> {
   // IRS annual inflation Revenue Procedure: emit a deterministic review_only
   // "pointer" advisory and skip AI entirely. We never let the model read a
@@ -475,16 +489,16 @@ async function runPulseExtractionAfterMark(
   ])
   const keepHistoricalProtectiveWindow =
     result.result.changeKind === 'protective_claim_window' &&
-    hasCurrentProtectiveActionDeadline(result.result.structuredChange)
+    hasCurrentProtectiveActionDeadline(result.result.structuredChange, now)
   if (
     latestRelevant &&
-    latestRelevant.getTime() < PULSE_ALERT_MIN_RELEVANT_AT.getTime() &&
+    latestRelevant.getTime() < pulseAlertMinRelevantAt(now).getTime() &&
     !keepHistoricalProtectiveWindow
   ) {
     await repo.updateSourceSnapshotStatus(snapshotId, {
       parseStatus: 'ignored',
       aiOutputId,
-      failureReason: 'historical_pre_2026',
+      failureReason: 'historical_policy_dates',
     })
     recordPulseMetric('pulse.extract.result', {
       snapshotId,

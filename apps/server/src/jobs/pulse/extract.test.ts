@@ -9,7 +9,11 @@ import {
   RAW_EMAIL_ARTIFACT_BEGIN,
   RAW_EMAIL_ARTIFACT_END,
 } from './email-artifact'
-import { extractPulseSnapshot, normalizeExtractJurisdiction } from './extract'
+import {
+  extractPulseSnapshot,
+  normalizeExtractJurisdiction,
+  pulseAlertMinRelevantAt,
+} from './extract'
 
 const { aiMocks, coreMocks, dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
   const repo = {
@@ -378,7 +382,7 @@ describe('extractPulseSnapshot', () => {
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 
-  it('suppresses alerts whose parsed policy dates are all before 2026', async () => {
+  it('suppresses alerts whose parsed policy dates all predate the rolling floor', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue({
       id: 'snapshot-ca-2023',
       sourceId: 'policy-watch.ca.announcements',
@@ -419,13 +423,17 @@ describe('extractPulseSnapshot', () => {
       refusal: null,
     })
 
-    const result = await extractPulseSnapshot(env(), 'snapshot-ca-2023')
+    const result = await extractPulseSnapshot(
+      env(),
+      'snapshot-ca-2023',
+      new Date('2026-06-08T12:00:00.000Z'),
+    )
 
     expect(result).toEqual({ pulseId: null, status: 'skipped' })
     expect(repoMocks.createPulseForFirmReviewFromExtract).not.toHaveBeenCalled()
     expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith(
       'snapshot-ca-2023',
-      expect.objectContaining({ parseStatus: 'ignored', failureReason: 'historical_pre_2026' }),
+      expect.objectContaining({ parseStatus: 'ignored', failureReason: 'historical_policy_dates' }),
     )
   })
 
@@ -489,7 +497,7 @@ describe('extractPulseSnapshot', () => {
       expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
       expect(repoMocks.updateSourceSnapshotStatus).not.toHaveBeenCalledWith(
         'snapshot-kwong',
-        expect.objectContaining({ failureReason: 'historical_pre_2026' }),
+        expect.objectContaining({ failureReason: 'historical_policy_dates' }),
       )
       expect(repoMocks.findDuplicatePulseForExtract).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -928,6 +936,27 @@ describe('extractPulseSnapshot', () => {
 
     expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
     expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalled()
+  })
+})
+
+describe('pulseAlertMinRelevantAt', () => {
+  it('floors at the start of the current year mid-year (matches the old hardcoded value)', () => {
+    expect(pulseAlertMinRelevantAt(new Date('2026-06-10T12:00:00.000Z')).toISOString()).toBe(
+      '2026-01-01T00:00:00.000Z',
+    )
+    expect(pulseAlertMinRelevantAt(new Date('2026-12-31T23:59:59.000Z')).toISOString()).toBe(
+      '2026-01-01T00:00:00.000Z',
+    )
+  })
+
+  it('reaches back up to 90 days across the year rollover', () => {
+    expect(pulseAlertMinRelevantAt(new Date('2027-01-05T00:00:00.000Z')).toISOString()).toBe(
+      '2026-10-07T00:00:00.000Z',
+    )
+    // Past the grace window, back to the start of the (new) current year.
+    expect(pulseAlertMinRelevantAt(new Date('2027-04-02T00:00:00.000Z')).toISOString()).toBe(
+      '2027-01-01T00:00:00.000Z',
+    )
   })
 })
 
