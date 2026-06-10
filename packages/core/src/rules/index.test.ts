@@ -2494,6 +2494,39 @@ describe('rulesBySourceId / ruleCitesSourceAsBasis', () => {
     }
   })
 
+  it('registers only standing pages for relief/disaster watchers (no event tombstones)', () => {
+    // A per-event page (a 2024 Helene release, a TaxYear2024 extension, a
+    // dated newsroom item) never announces the NEXT event — it becomes dead
+    // weight counted as "disaster coverage: watching". Watch living indexes or
+    // standing pages instead; states without one carry the
+    // relief_or_disaster_signal role on their news watcher.
+    const FROZEN_URL_PATTERNS = [
+      /\/20\d{2}[-./_]/, // dated paths like newsroom/2025/09-30-2025.html
+      /taxyear20\d{2}/i,
+      /\/news(?:item)?\/uuid\//i,
+      /(helene|debby|ian|idalia|milton|fern|katrina|kona[-_ ]?low|wildfires?)/i,
+    ]
+    // Standing pages that legitimately trip a pattern — keep justified.
+    const FROZEN_URL_ALLOWLIST = new Map<string, string>([
+      ['la.ldr_disaster_relief', 'standing hurricane-recovery hub, not a single-event page'],
+    ])
+    const reliefSources = listRuleSources().filter(
+      (source) =>
+        source.sourceType === 'emergency_relief' ||
+        source.alertCoverageRoles?.includes('relief_or_disaster_signal'),
+    )
+    expect(reliefSources.length).toBeGreaterThan(0)
+    for (const source of reliefSources) {
+      if (FROZEN_URL_ALLOWLIST.has(source.id)) continue
+      for (const pattern of FROZEN_URL_PATTERNS) {
+        expect(
+          pattern.test(source.url),
+          `${source.id} looks like a one-off event page (${source.url} matches ${pattern})`,
+        ).toBe(false)
+      }
+    }
+  })
+
   it('threads seed feedUrl overrides through to the hydrated registry sources', () => {
     const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
     // Year-paginated pages converted 2026-06-10 (P4): the watcher follows the

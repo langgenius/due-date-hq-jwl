@@ -4279,6 +4279,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'DC',
     title: 'District of Columbia OTR Newsroom',
     url: 'https://otr.cfo.dc.gov/newsroom',
+    // Index-level relief signal: DC posts disaster relief as OTR newsroom
+    // releases; the prior dedicated page was a frozen one-off (retired 2026-06-10).
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'de.temporary_announcements',
@@ -4298,6 +4301,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'GA',
     title: 'Georgia DOR Press Releases',
     url: 'https://dor.georgia.gov/press-releases',
+    // Index-level relief signal: GA posts disaster relief as press-release
+    // items; the prior dedicated page was a frozen one-off (retired 2026-06-10).
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'hi.temporary_announcements',
@@ -4316,6 +4322,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'ID',
     title: 'Idaho Tax Commission Newsroom',
     url: 'https://tax.idaho.gov/pressrelease/',
+    // Index-level relief signal: ID posts disaster relief as press releases;
+    // the prior dedicated page was a frozen one-off (retired 2026-06-10).
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'il.temporary_announcements',
@@ -4353,6 +4362,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'KY',
     title: 'Kentucky DOR News',
     url: 'https://revenue.ky.gov/News/Pages/default.aspx',
+    // Index-level relief signal: KY posts disaster relief as DOR news items;
+    // the prior dedicated page was a frozen one-off (retired 2026-06-10).
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'la.temporary_announcements',
@@ -4437,12 +4449,19 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     acquisitionMethod: 'api_watch',
     adapterKind: 'rss_or_announcement_list',
     feedUrl: 'https://dor.mo.gov/news/rss',
+    // Index-level relief signal: MO posts disaster relief as DOR news items;
+    // the prior dedicated page was a frozen one-off (retired 2026-06-10).
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'ms.temporary_announcements',
     jurisdiction: 'MS',
     title: 'Mississippi DOR News',
     url: 'https://www.dor.ms.gov/news',
+    // Index-level relief signal: MS posts disaster relief (e.g. Winter Storm
+    // Fern, Jan 2026) as news items; the prior dedicated page was a frozen
+    // one-off (retired 2026-06-10).
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'mt.temporary_announcements',
@@ -4564,6 +4583,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'OK',
     title: 'Oklahoma Tax Commission Newsroom',
     url: 'https://oklahoma.gov/tax/newsroom.html',
+    // Index-level relief signal: OK posts disaster relief as dated newsroom
+    // items; the prior dedicated page was a frozen one-off (retired 2026-06-10).
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'or.temporary_announcements',
@@ -4661,6 +4683,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'VA',
     title: 'Virginia Tax News',
     url: 'https://www.tax.virginia.gov/news',
+    // Index-level relief signal: VA posts disaster relief as /news items and
+    // Tax Bulletins; the prior dedicated page was a frozen one-off (retired
+    // 2026-06-10).
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'vt.temporary_announcements',
@@ -4692,6 +4718,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     url: 'https://tax.wv.gov/TaxProfessionals/AdministrativeNotices/Pages/AdministrativeNotices{year}.aspx',
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
+    // Index-level relief signal: new WV relief flows through these year-indexed
+    // administrative notices; the prior dedicated page was a frozen
+    // TaxYear2024 one-off (retired 2026-06-10).
+    alertCoverageRoles: ['relief_or_disaster_signal'],
     sourceNotes:
       'Year-paginated administrative notices index; URL year is resolved dynamically to the current year at fetch time.',
   },
@@ -5761,20 +5791,11 @@ export const RULE_SOURCES = hydrateRuleSources([
     notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
     lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
   },
-  {
-    id: 'ms.dor_disaster_relief',
-    jurisdiction: 'MS',
-    title: 'Mississippi DOR Storm and Flooding Relief',
-    url: 'https://www.dor.ms.gov/news/mississippi-storm-and-flooding-relief',
-    sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
-    cadence: 'weekly',
-    priority: 'high',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
-  },
+  // ms.dor_disaster_relief was retired 2026-06-10: despite sitting in the
+  // standing-pages tier it watched a single storm's news item — MS posted its
+  // Winter Storm Fern relief (Jan 2026) as a NEW news item the tombstone could
+  // never surface. MS relief is covered at the index level via
+  // ms.temporary_announcements (relief_or_disaster_signal role).
   {
     id: 'mt.dor_disaster_relief',
     jurisdiction: 'MT',
@@ -5974,149 +5995,53 @@ export const RULE_SOURCES = hydrateRuleSources([
     notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
     lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
   },
-  // Tier B — states that publish per-event / dated relief pages rather than a
-  // single standing page. The URL below was the live, verified relief page on
-  // DISASTER_RELIEF_VERIFIED_AT; refresh it when the state supersedes it for a
-  // new event (priority kept at 'medium' to flag the lower durability).
+  // The former "Tier B" per-event pages (DC, GA, ID, KY, MO, OK, VA, WV — plus
+  // the mislabeled MS entry above) were retired 2026-06-10: a 2024 Helene
+  // release or a year-stamped extension page never announces the NEXT event,
+  // so each was a frozen tombstone counted as "disaster coverage: watching".
+  // Those states post relief as items on their news indexes, which their
+  // *.temporary_announcements sources already watch — the
+  // relief_or_disaster_signal role on those sources is what keeps the
+  // jurisdictions covered (AL/AR/MD/NM precedent). FL and HI keep dedicated
+  // watchers because they DO publish living pages:
   {
-    id: 'dc.otr_disaster_relief',
-    jurisdiction: 'DC',
-    title: 'DC OTR Disaster Tax Relief',
-    url: 'https://otr.cfo.dc.gov/release/tax-relief-victims-hurricane-helene',
-    sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
-    cadence: 'weekly',
-    priority: 'medium',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
-  },
-  {
-    id: 'fl.dor_disaster_relief',
+    id: 'fl.dor_emergency_disaster_info',
     jurisdiction: 'FL',
-    title: 'Florida DOR Disaster and Emergency Tax Relief',
-    url: 'https://floridarevenue.com/Pages/Hurricane_Helene.aspx',
+    title: 'Florida DOR Office Closures and Emergency Information',
+    // Standing emergency page whose "News and Messages" / "Office Closures" /
+    // "Emergency Orders" panels populate during declared events ("None at this
+    // time" otherwise — allowEmptyParse covers the quiet state). Replaces the
+    // frozen Hurricane_Helene.aspx tombstone. NEW id on purpose: a fresh id
+    // goes through the monitoring-baseline damper on first crawl instead of
+    // fanning the page's existing content out as alerts.
+    url: 'https://floridarevenue.com/emdisaster/Pages/EmergencyDisaster.aspx',
     sourceType: 'emergency_relief',
     acquisitionMethod: 'html_watch',
     cadence: 'weekly',
-    priority: 'medium',
+    priority: 'high',
     healthStatus: 'healthy',
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
+    lastReviewedOn: '2026-06-10',
   },
   {
-    id: 'ga.dor_disaster_relief',
-    jurisdiction: 'GA',
-    title: 'Georgia DOR Hurricane and Disaster Relief Measures',
-    url: 'https://dor.georgia.gov/hurricane-helene-relief-measures',
-    sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
-    cadence: 'weekly',
-    priority: 'medium',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
-  },
-  {
-    id: 'hi.dotax_disaster_relief',
+    id: 'hi.dotax_tax_announcements',
     jurisdiction: 'HI',
-    title: 'Hawaii Department of Taxation Disaster Relief',
-    url: 'https://tax.hawaii.gov/hawaii-wildfires/',
+    title: 'Hawaii DOTAX Tax Announcements',
+    // Server-rendered dated index of annNN-NN.pdf announcements — where the
+    // March 2026 Kona Low relief was actually published while the old
+    // hawaii-wildfires/ (2023) tombstone sat frozen. Same pdf_watch+pdf_index
+    // pattern as ME; NEW id for the baseline damper.
+    url: 'https://tax.hawaii.gov/news/announce/',
     sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
+    acquisitionMethod: 'pdf_watch',
+    adapterKind: 'pdf_index',
     cadence: 'weekly',
-    priority: 'medium',
+    priority: 'high',
     healthStatus: 'healthy',
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
-  },
-  {
-    id: 'id.tax_disaster_relief',
-    jurisdiction: 'ID',
-    title: 'Idaho State Tax Commission Disaster Tax Deadline Relief',
-    url: 'https://tax.idaho.gov/pressrelease/idaho-grants-tax-deadline-relief-to-victims-of-weather-related-disasters/',
-    sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
-    cadence: 'weekly',
-    priority: 'medium',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
-  },
-  {
-    id: 'ky.dor_disaster_relief',
-    jurisdiction: 'KY',
-    title: 'Kentucky DOR Disaster-Related Tax Relief',
-    url: 'https://revenue.ky.gov/News/Pages/Disaster-Related-Tax-Relief-for-Feb.-14,-2025-Storms.aspx',
-    sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
-    cadence: 'weekly',
-    priority: 'medium',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
-  },
-  {
-    id: 'mo.dor_disaster_relief',
-    jurisdiction: 'MO',
-    title: 'Missouri DOR Disaster Tax Relief',
-    url: 'https://dor.mo.gov/news/newsitem/uuid/d0287734-b2e7-414a-abb5-add5ff245168',
-    sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
-    cadence: 'weekly',
-    priority: 'medium',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
-  },
-  {
-    id: 'ok.otc_disaster_relief',
-    jurisdiction: 'OK',
-    title: 'Oklahoma Tax Commission Disaster Relief',
-    url: 'https://oklahoma.gov/tax/newsroom/2025/09-30-2025.html',
-    sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
-    cadence: 'weekly',
-    priority: 'medium',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
-  },
-  {
-    id: 'va.tax_disaster_relief',
-    jurisdiction: 'VA',
-    title: 'Virginia Tax Disaster Relief',
-    url: 'https://www.tax.virginia.gov/news/tax-relief-victims-february-2025-flooding-virginia',
-    sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
-    cadence: 'weekly',
-    priority: 'medium',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
-  },
-  {
-    id: 'wv.tax_disaster_relief',
-    jurisdiction: 'WV',
-    title: 'West Virginia Tax Division Disaster Relief Extension',
-    url: 'https://tax.wv.gov/Individuals/TaxFilingSeason/Pages/DisasterReliefExtensionTaxYear2024.aspx',
-    sourceType: 'emergency_relief',
-    acquisitionMethod: 'html_watch',
-    cadence: 'weekly',
-    priority: 'medium',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
-    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
+    lastReviewedOn: '2026-06-10',
   },
 ] as const satisfies readonly RuleSourceSeedRecord[])
 

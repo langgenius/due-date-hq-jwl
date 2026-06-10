@@ -530,7 +530,9 @@ describe('rule source adapters', () => {
     expect(byJurisdiction.get('FL')).toMatchObject({
       coverageLevel: 'standard',
       missingRoles: expect.arrayContaining(['multi_agency_sources']),
-      reliefOrDisasterSourceIds: expect.arrayContaining(['fl.dor_disaster_relief']),
+      // 2026-06-10: the frozen Hurricane_Helene tombstone was replaced by the
+      // standing emergency-information page under a NEW id.
+      reliefOrDisasterSourceIds: expect.arrayContaining(['fl.dor_emergency_disaster_info']),
       emailSignalSourceIds: expect.arrayContaining(['fl.tips']),
     })
     expect(byJurisdiction.get('MA')).toMatchObject({
@@ -556,6 +558,27 @@ describe('rule source adapters', () => {
     expect(byJurisdiction.get('AL')?.requiredRoles).not.toContain('multi_agency_sources')
     expect(byJurisdiction.get('AL')?.requiredRoles).not.toContain('rights_window_signal')
     expect(byJurisdiction.get('NY')?.requiredRoles).toContain('multi_agency_sources')
+    // 2026-06-10: the frozen per-event relief tombstones were retired; those
+    // states stay covered at the index level via their news watchers (and HI
+    // via the dated Tax Announcements index).
+    for (const [state, indexSourceId] of [
+      ['MS', 'ms.temporary_announcements'],
+      ['DC', 'dc.temporary_announcements'],
+      ['WV', 'wv.temporary_announcements'],
+      ['HI', 'hi.dotax_tax_announcements'],
+    ] as const) {
+      expect(
+        byJurisdiction.get(state)?.reliefOrDisasterSourceIds,
+        `${state} index-level relief`,
+      ).toEqual(expect.arrayContaining([indexSourceId]))
+      expect(byJurisdiction.get(state)?.missingRoles).not.toContain('relief_or_disaster_signal')
+    }
+    expect(byJurisdiction.get('OK')?.reliefOrDisasterSourceIds).not.toContain(
+      'ok.otc_disaster_relief',
+    )
+    expect(byJurisdiction.get('VA')?.reliefOrDisasterSourceIds).not.toContain(
+      'va.tax_disaster_relief',
+    )
 
     const alAnnouncement = listRuleSources('AL').find(
       (source) => source.id === 'al.temporary_announcements',
