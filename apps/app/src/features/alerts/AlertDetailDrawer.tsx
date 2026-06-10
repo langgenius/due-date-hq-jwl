@@ -77,6 +77,7 @@ import { AffectedClientsTable } from './components/AffectedClientsTable'
 // chrome refactor. Dropped to satisfy no-unused-vars.
 import { AlertStructuredFields } from './components/AlertStructuredFields'
 import { AlertTeamNotes } from './components/AlertTeamNotes'
+import { ReverifyRulesSection } from './components/ReverifyRulesSection'
 import { changeKindLabel } from './components/PulseChangeKindChip'
 import {
   useAlertsInvalidation,
@@ -1497,6 +1498,21 @@ export function AlertDetailDrawer({
               {/* "What this means for your practice" — self-gates. */}
               <PracticeImpactSection detail={detail} />
             </DetailSectionCard>
+
+            {/* Rules to re-verify — the task list that clears the Mark-reviewed
+                gate (`reverifyIncomplete`, footer + 'A' shortcut). Dropped by the
+                rounds 70-85 design merge (b6876bf1) while the gate stayed; restored
+                2026-06-10 so the disabled CTA's "rules below" tooltip points at a
+                real surface again. Sits between The change and Affected clients —
+                it is the action the change demands. */}
+            {detail.reverifyRuleIds.length > 0 ? (
+              <ReverifyRulesSection
+                reverifyRuleIds={detail.reverifyRuleIds}
+                onReverified={() => {
+                  void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
+                }}
+              />
+            ) : null}
 
             {/* GROUP 2 — Affected clients + apply/review controls. */}
             {showClientsGroup ? (
