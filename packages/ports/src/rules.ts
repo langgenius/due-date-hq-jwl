@@ -175,6 +175,33 @@ export interface RulesRepo {
   // Most recently shipped catalog cohort (highest filing year), or null — drives
   // the in-app release banner. Reads the global release log (not firm-scoped).
   getLatestCatalogRelease(): Promise<RuleCatalogReleaseRow | null>
+  // Internal team notes threaded on a rule (Pencil "Practice review" card).
+  // Firm-scoped by the repo's firmId; ordered oldest → newest, joined to the
+  // author's display name. Mirrors the pulse alert-note repo methods.
+  listRuleNotes(ruleId: string): Promise<RuleNoteRow[]>
+  addRuleNote(input: RuleAddNoteInput): Promise<RuleNoteRow>
+}
+
+// One internal team note threaded on a firm's rule. The author's display name is
+// resolved server-side (user join) so the UI never needs a second lookup.
+// `parentNoteId` is the flat reply pointer. Mirrors PulseAlertNoteRow.
+export interface RuleNoteRow {
+  id: string
+  ruleId: string
+  authorId: string
+  authorName: string
+  body: string
+  parentNoteId: string | null
+  createdAt: Date
+}
+
+// Mirrors PulseAddAlertNoteInput.
+export interface RuleAddNoteInput {
+  ruleId: string
+  body: string
+  parentNoteId?: string | null
+  userId: string
+  now?: Date
 }
 
 export interface RuleCatalogReleaseRow {

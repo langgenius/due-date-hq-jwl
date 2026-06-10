@@ -36,6 +36,7 @@ import type { AiOutputRow } from '@duedatehq/ports/ai'
 import type {
   PracticeRuleRow,
   PracticeRuleReviewTaskRow,
+  RuleNoteRow,
   RuleReviewDecisionRow,
   TemporaryRuleRow,
 } from '@duedatehq/ports/rules'
@@ -58,6 +59,8 @@ import { toContractRule, toCoreRule, toPracticeContractRule } from './runtime'
 
 const MAX_BULK_ACCEPT = 100
 const RULE_REVIEW_ROLES = ['owner', 'partner', 'manager'] as const
+// Mirrors PULSE_NOTE_AUTHOR_ROLES: any working firm member can add a team note.
+const RULE_NOTE_AUTHOR_ROLES = ['owner', 'partner', 'manager', 'preparer', 'coordinator'] as const
 const ONBOARDING_RULE_REVIEW_NOTE = 'Activated from onboarding jurisdiction selection.'
 const COVERAGE_ENTITY_COLUMNS = [
   'llc',
@@ -2432,6 +2435,52 @@ const previewObligations = os.rules.previewObligations.handler(async ({ input, c
     .map(toPreview)
 })
 
+function toRuleNotePublic(row: RuleNoteRow) {
+  return {
+    id: row.id,
+    ruleId: row.ruleId,
+    authorId: row.authorId,
+    authorName: row.authorName,
+    body: row.body,
+    parentNoteId: row.parentNoteId,
+    createdAt: row.createdAt.toISOString(),
+  }
+}
+
+// Read: any firm member can see the rule's team notes.
+const listRuleNotes = os.rules.listRuleNotes.handler(async ({ input, context }) => {
+  const { scoped } = requireTenant(context)
+  const notes = await scoped.rules.listRuleNotes(input.ruleId)
+  return { notes: notes.map(toRuleNotePublic) }
+})
+
+// Write: capture the author's userId via the full member-role check, write the
+// note, then best-effort record a `rules.note_added` audit event.
+const addRuleNote = os.rules.addRuleNote.handler(async ({ input, context }) => {
+  const { userId } = await requireCurrentFirmRole(context, RULE_NOTE_AUTHOR_ROLES)
+  const { scoped } = requireTenant(context)
+  const note = await scoped.rules.addRuleNote({
+    ruleId: input.ruleId,
+    body: input.body,
+    parentNoteId: input.parentNoteId ?? null,
+    userId,
+  })
+  await scoped.audit
+    .write({
+      actorId: userId,
+      entityType: 'rule',
+      entityId: input.ruleId,
+      action: 'rules.note_added',
+      after: {
+        noteId: note.id,
+        ruleId: input.ruleId,
+        parentNoteId: note.parentNoteId,
+      },
+    })
+    .catch(() => undefined)
+  return toRuleNotePublic(note)
+})
+
 export const rulesHandlers = {
   listSources,
   listRules,
@@ -2457,4 +2506,6 @@ export const rulesHandlers = {
   rejectCandidate,
   coverage,
   previewObligations,
+  listRuleNotes,
+  addRuleNote,
 }

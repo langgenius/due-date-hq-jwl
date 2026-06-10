@@ -866,6 +866,31 @@ export const RuleSourcesListInputSchema = z
   .optional()
 export type RuleSourcesListInput = z.infer<typeof RuleSourcesListInputSchema>
 
+// Internal team note threaded on a rule (Pencil "Practice review" card).
+// `authorName` is resolved server-side (user join); `parentNoteId` is the flat
+// reply pointer (v1 stores the thread flat). `createdAt` is an ISO timestamp.
+// Mirrors PulseAlertNoteSchema.
+export const RuleNoteSchema = z.object({
+  id: EntityIdSchema,
+  ruleId: z.string().min(1),
+  authorId: z.string().min(1),
+  authorName: z.string().min(1),
+  body: z.string().min(1),
+  parentNoteId: EntityIdSchema.nullable(),
+  createdAt: z.iso.datetime(),
+})
+export type RuleNote = z.infer<typeof RuleNoteSchema>
+
+export const RuleAddNoteInputSchema = z.object({
+  ruleId: z.string().min(1),
+  body: z.string().trim().min(1).max(2000),
+  parentNoteId: z.string().nullable().optional(),
+})
+export type RuleAddNoteInput = z.infer<typeof RuleAddNoteInputSchema>
+
+export const RuleNoteListInputSchema = z.object({ ruleId: z.string().min(1) })
+export type RuleNoteListInput = z.infer<typeof RuleNoteListInputSchema>
+
 export const rulesContract = oc.router({
   listSources: oc.input(RuleSourcesListInputSchema).output(z.array(RuleSourceSchema)),
   listRules: oc.input(RulesListInputSchema).output(z.array(ObligationRuleSchema)),
@@ -907,5 +932,11 @@ export const rulesContract = oc.router({
   previewObligations: oc
     .input(RuleGenerationPreviewInputSchema)
     .output(z.array(ObligationGenerationPreviewSchema)),
+  // Team notes (Pencil "Practice review" card) — internal discussion threaded on
+  // a rule. `listRuleNotes` reads (any firm member); `addRuleNote` writes a note.
+  listRuleNotes: oc
+    .input(RuleNoteListInputSchema)
+    .output(z.object({ notes: z.array(RuleNoteSchema) })),
+  addRuleNote: oc.input(RuleAddNoteInputSchema).output(RuleNoteSchema),
 })
 export type RulesContract = typeof rulesContract

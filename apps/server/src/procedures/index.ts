@@ -245,6 +245,8 @@ export const router = os.router({
     rejectCandidate: rulesHandlers.rejectCandidate,
     coverage: rulesHandlers.coverage,
     previewObligations: rulesHandlers.previewObligations,
+    listRuleNotes: rulesHandlers.listRuleNotes,
+    addRuleNote: rulesHandlers.addRuleNote,
   },
   security: {
     status: securityHandlers.status,

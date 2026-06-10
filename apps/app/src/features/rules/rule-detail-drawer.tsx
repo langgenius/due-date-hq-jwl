@@ -40,7 +40,7 @@ import { EntityAuditActivityPanel } from '@/features/audit/entity-audit-activity
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
+import { formatDatePretty, formatDateTimeWithTimezone, formatRelativeTime } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
@@ -454,6 +454,11 @@ export function RuleDetailCompact({
         <RuleImpactCard rule={rule} />
       ) : null}
 
+      {/* Practice review — team-note composer + thread (irBJ8). Review only. */}
+      {rule.status === 'candidate' || rule.status === 'pending_review' ? (
+        <RulePracticeReviewCard rule={rule} />
+      ) : null}
+
       {/* Activity — summary = current version; detail = full audit timeline. */}
       <DisclosureCard
         title={<Trans>Activity</Trans>}
@@ -558,6 +563,114 @@ function RuleImpactCard({ rule }: { rule: ObligationRule }) {
         ) : undefined
       }
     />
+  )
+}
+
+/**
+ * `RulePracticeReviewCard` — the irBJ8 "Practice review" card: a team-note
+ * composer (NOTE textarea + char count) + a "View N team notes" disclosure of
+ * the threaded notes. Backed by the real `rules.listRuleNotes` / `addRuleNote`
+ * endpoints (rule_note table). Review-context rules only.
+ */
+function RulePracticeReviewCard({ rule }: { rule: ObligationRule }) {
+  const { t } = useLingui()
+  const queryClient = useQueryClient()
+  const [body, setBody] = useState('')
+  const [showNotes, setShowNotes] = useState(false)
+  const notesQuery = useQuery(
+    orpc.rules.listRuleNotes.queryOptions({ input: { ruleId: rule.id } }),
+  )
+  const notes = notesQuery.data?.notes ?? []
+  const addMutation = useMutation(
+    orpc.rules.addRuleNote.mutationOptions({
+      onSuccess: () => {
+        setBody('')
+        void queryClient.invalidateQueries({ queryKey: orpc.rules.listRuleNotes.key() })
+        toast.success(t`Note added`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't add note`, {
+          description: rpcErrorMessage(error) ?? t`Try again.`,
+        })
+      },
+    }),
+  )
+  const trimmed = body.trim()
+  const canSubmit = trimmed.length > 0 && !addMutation.isPending
+  return (
+    <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+      <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
+        <h3 className="text-[13px] font-semibold text-text-primary">
+          <Trans>Practice review</Trans>
+        </h3>
+        <span className="ml-auto text-caption font-medium text-text-tertiary">
+          <Trans>Required before Accept</Trans>
+        </span>
+      </div>
+      <div className="flex flex-col gap-2 px-5 py-4">
+        <Textarea
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          maxLength={2000}
+          disabled={addMutation.isPending}
+          placeholder={t`Add a note for your team — explain assumptions, scope decisions, or follow-ups.`}
+          className="min-h-16 text-sm"
+        />
+        <div className="flex items-center gap-3">
+          {notes.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setShowNotes((value) => !value)}
+              aria-expanded={showNotes}
+              className="inline-flex cursor-pointer items-center gap-1 rounded-md text-[13px] font-medium text-text-accent outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <Plural value={notes.length} one="View # team note" other="View # team notes" />
+              <ChevronDownIcon
+                aria-hidden
+                className={cn('size-3.5 transition-transform', showNotes && 'rotate-180')}
+              />
+            </button>
+          ) : (
+            <span className="text-[13px] text-text-muted">
+              <Trans>No team notes yet</Trans>
+            </span>
+          )}
+          <span className="ml-auto text-caption font-medium text-text-muted tabular-nums">
+            {body.length} / 2000
+          </span>
+          {trimmed.length > 0 ? (
+            <Button
+              type="button"
+              size="xs"
+              onClick={() => canSubmit && addMutation.mutate({ ruleId: rule.id, body: trimmed })}
+              disabled={!canSubmit}
+            >
+              {addMutation.isPending ? (
+                <Loader2 data-icon="inline-start" className="animate-spin" />
+              ) : null}
+              <Trans>Add note</Trans>
+            </Button>
+          ) : null}
+        </div>
+        {showNotes && notes.length > 0 ? (
+          <ul className="flex flex-col gap-2 border-t border-divider-subtle pt-2">
+            {notes.map((note) => (
+              <li key={note.id} className="flex flex-col gap-0.5">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[13px] font-semibold text-text-primary">
+                    {note.authorName}
+                  </span>
+                  <span className="text-caption text-text-muted">
+                    {formatRelativeTime(note.createdAt)}
+                  </span>
+                </div>
+                <p className="text-sm whitespace-pre-wrap text-text-secondary">{note.body}</p>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    </section>
   )
 }
 
@@ -932,7 +1045,7 @@ function CandidateReviewForm({
           line above. Dropped per /critique — one canonical "needs
           review" signal is enough. */}
       <RuleSectionHeading>
-        <Trans>Practice review</Trans>
+        <Trans>Decision</Trans>
       </RuleSectionHeading>
       <p className="text-sm text-text-secondary">
         {sourceDefined && rule.status === 'active' ? (

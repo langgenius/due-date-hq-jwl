@@ -893,6 +893,12 @@ function buildScopedRepo(
         return []
       },
       async clearRuleSourceDrift() {},
+      async listRuleNotes() {
+        return []
+      },
+      async addRuleNote() {
+        return unexpectedRepoCall('rules.addRuleNote')
+      },
     },
     migration,
     evidence,

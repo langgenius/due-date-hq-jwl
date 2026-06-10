@@ -1,17 +1,19 @@
-import { and, desc, eq, inArray, isNull, lt } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNull, lt } from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
 import type {
   PracticeRuleInput,
   PracticeRuleReviewTaskDecisionInput,
   PracticeRuleReviewTaskInput,
+  RuleAddNoteInput,
   RuleCatalogReleaseRow,
+  RuleNoteRow,
   RuleSourceTemplateInput,
   RuleTemplateInput,
   TemporaryRuleRow,
   TemporaryRuleRowStatus,
 } from '@duedatehq/ports/rules'
 import type { Db } from '../client'
-import { member } from '../schema/auth'
+import { member, user } from '../schema/auth'
 import { firmProfile } from '../schema/firm'
 import { client } from '../schema/clients'
 import { inAppNotification } from '../schema/notifications'
@@ -22,9 +24,11 @@ import {
   practiceRule,
   practiceRuleReviewTask,
   ruleCatalogRelease,
+  ruleNote,
   ruleReviewDecision,
   ruleSourceTemplate,
   ruleTemplate,
+  type NewRuleNote,
   type PracticeRule,
   type PracticeRuleReviewTask,
   type RuleReviewDecision,
@@ -611,6 +615,69 @@ export function makeRulesRepo(db: Db, firmId: string) {
             isNull(ruleSourceDriftState.clearedAt),
           ),
         )
+    },
+
+    // Internal team notes on a rule (Pencil "Practice review" card). Firm-scoped
+    // by the closure firmId; ordered oldest → newest, joined to the author's
+    // display name (user.name) so the UI renders without a second lookup —
+    // mirrors the pulse alert-note repo methods.
+    async listRuleNotes(ruleId: string): Promise<RuleNoteRow[]> {
+      const rows = await db
+        .select({
+          id: ruleNote.id,
+          ruleId: ruleNote.ruleId,
+          authorId: ruleNote.authorId,
+          authorName: user.name,
+          body: ruleNote.body,
+          parentNoteId: ruleNote.parentNoteId,
+          createdAt: ruleNote.createdAt,
+        })
+        .from(ruleNote)
+        .leftJoin(user, eq(ruleNote.authorId, user.id))
+        .where(and(eq(ruleNote.firmId, firmId), eq(ruleNote.ruleId, ruleId)))
+        .orderBy(asc(ruleNote.createdAt), asc(ruleNote.id))
+
+      return rows.map((row) => ({
+        id: row.id,
+        ruleId: row.ruleId,
+        authorId: row.authorId,
+        // `leftJoin` so a note authored by a since-removed user still renders.
+        authorName: row.authorName ?? 'Unknown',
+        body: row.body,
+        parentNoteId: row.parentNoteId,
+        createdAt: row.createdAt,
+      }))
+    },
+
+    async addRuleNote(input: RuleAddNoteInput): Promise<RuleNoteRow> {
+      const now = input.now ?? new Date()
+      const row: NewRuleNote = {
+        id: crypto.randomUUID(),
+        firmId,
+        ruleId: input.ruleId,
+        authorId: input.userId,
+        body: input.body,
+        parentNoteId: input.parentNoteId ?? null,
+        createdAt: now,
+        updatedAt: now,
+      }
+      await db.insert(ruleNote).values(row)
+
+      const [name] = await db
+        .select({ name: user.name })
+        .from(user)
+        .where(eq(user.id, input.userId))
+        .limit(1)
+
+      return {
+        id: row.id,
+        ruleId: input.ruleId,
+        authorId: input.userId,
+        authorName: name?.name ?? 'Unknown',
+        body: input.body,
+        parentNoteId: input.parentNoteId ?? null,
+        createdAt: now,
+      }
     },
   }
 }

@@ -673,6 +673,12 @@ function buildScoped(firmId: string, rows: Row[]) {
         return []
       },
       async clearRuleSourceDrift() {},
+      async listRuleNotes() {
+        return []
+      },
+      async addRuleNote() {
+        return unused('rules.addRuleNote')
+      },
     },
     migration,
     evidence,

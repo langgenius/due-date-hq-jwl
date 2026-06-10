@@ -323,6 +323,8 @@ function makeContext(input: {
     upsertDecision: null!,
     listUnclearedDriftRuleIds: null!,
     clearRuleSourceDrift: null!,
+    listRuleNotes: null!,
+    addRuleNote: null!,
   }
   const obligations: ScopedRepo['obligations'] = {
     firmId: FIRM_ID,

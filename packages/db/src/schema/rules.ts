@@ -254,8 +254,61 @@ export const ruleCatalogRelease = sqliteTable(
   (table) => [uniqueIndex('uq_rule_catalog_release_filing_year').on(table.filingYear)],
 )
 
+/**
+ * rule_note — internal team notes / discussion threaded on a rule, mirroring
+ * pulse_alert_note (Pencil "Practice review" card). Firm-scoped collaboration:
+ * any firm member can read + add. `ruleId` is a PLAIN text column (no FK) because
+ * rules are global templates referenced by string id, not firm-owned rows.
+ * `parentNoteId` is a flat self-reference so a note can mark itself a reply to
+ * another; v1 stores the thread flat (no nesting enforced) — the UI renders a
+ * single list with an inline Reply affordance.
+ */
+export const ruleNote = sqliteTable(
+  'rule_note',
+  {
+    id: text('id').primaryKey(),
+    firmId: text('firm_id')
+      .notNull()
+      .references(() => firmProfile.id, { onDelete: 'cascade' }),
+    // Plain text — rules are global templates referenced by string id, so there
+    // is no firm-scoped row to constrain against (mirrors practice_rule.ruleId).
+    ruleId: text('rule_id').notNull(),
+    // A note's authorship is an audit-grade fact, so the author row is `restrict`
+    // (a user with notes can't be hard-deleted out from under the record).
+    authorId: text('author_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'restrict' }),
+    body: text('body').notNull(),
+    // Flat self-ref: nullable, points at another note in the same thread.
+    parentNoteId: text('parent_note_id'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index('idx_rule_note_firm_rule_time').on(table.firmId, table.ruleId, table.createdAt),
+  ],
+)
+
+export const ruleNoteRelations = relations(ruleNote, ({ one }) => ({
+  firm: one(firmProfile, {
+    fields: [ruleNote.firmId],
+    references: [firmProfile.id],
+  }),
+  author: one(user, {
+    fields: [ruleNote.authorId],
+    references: [user.id],
+  }),
+}))
+
 export type RuleReviewDecision = typeof ruleReviewDecision.$inferSelect
 export type NewRuleReviewDecision = typeof ruleReviewDecision.$inferInsert
+export type RuleNote = typeof ruleNote.$inferSelect
+export type NewRuleNote = typeof ruleNote.$inferInsert
 export type RuleSourceTemplate = typeof ruleSourceTemplate.$inferSelect
 export type NewRuleSourceTemplate = typeof ruleSourceTemplate.$inferInsert
 export type RuleTemplate = typeof ruleTemplate.$inferSelect
