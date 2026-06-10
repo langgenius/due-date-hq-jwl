@@ -279,10 +279,11 @@ function BriefRow({
           {row.status === 'extended' ? <ExtensionChip /> : null}
         </span>
         {paymentLate ? (
-          // Amber, not red: payment-late is a DIFFERENT obligation from the
-          // filing. Red is reserved for the filing lateness (the due column) so
-          // one red = one signal per row (Yuqi #1).
-          <span className="inline-flex items-center rounded bg-state-warning-hover px-1.5 py-0.5 text-caption-xs font-medium text-text-warning">
+          // Neutral, not red: payment-late is a DIFFERENT obligation from the
+          // filing, and this design system has no amber (warning IS red-orange),
+          // so a gray chip is the only way to keep RED pointing at exactly one
+          // thing per row — the filing lateness in the due column (Yuqi #1).
+          <span className="inline-flex items-center rounded bg-background-subtle px-1.5 py-0.5 text-caption-xs font-medium text-text-secondary">
             <Trans>Pay {paymentLateDays}d late</Trans>
           </span>
         ) : null}
