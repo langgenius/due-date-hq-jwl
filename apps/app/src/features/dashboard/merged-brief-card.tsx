@@ -9,7 +9,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
-import { useLifecycleV2StatusLabels } from '@/features/obligations/status-control'
+import { ObligationStatusReadBadge, useLifecycleV2StatusLabels } from '@/features/obligations/status-control'
 import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
 
 /**
@@ -187,7 +187,7 @@ export function MergedBriefCard({
       {/* Grouped deadline cards */}
       {!collapsed ? (
         <>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {groups.length === 0 ? (
               <p className="px-1 text-sm text-text-tertiary">
                 <Trans>Nothing due in the next week. You're clear.</Trans>
@@ -204,6 +204,9 @@ export function MergedBriefCard({
                   moreCount={Math.max(0, g.total - Math.min(3, g.rows.length))}
                   asOf={asOf}
                   onOpenObligation={onOpenObligation}
+                  // In "By stage" the group header IS the status, so the per-row
+                  // status pill would be redundant — hide it there only.
+                  showStatus={mode !== 'stage'}
                 />
               ))
             )}
@@ -264,6 +267,7 @@ function GroupCard({
   moreCount,
   asOf,
   onOpenObligation,
+  showStatus,
 }: {
   label: string
   tone: 'destructive' | 'warning' | 'neutral'
@@ -273,6 +277,7 @@ function GroupCard({
   moreCount: number
   asOf: Date
   onOpenObligation: (obligationId: string) => void
+  showStatus: boolean
 }) {
   const eyebrowTone =
     tone === 'destructive'
@@ -291,7 +296,7 @@ function GroupCard({
     // group is delineated by its colored eyebrow + count badge and the outer
     // gap, so there are no frames-within-frames (Yuqi).
     <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-2 px-1">
+      <div className="flex items-center gap-2 border-b border-divider-subtle px-1 pb-1.5">
         <span className={cn('text-caption-xs font-semibold tracking-wider uppercase', eyebrowTone)}>
           {label}
         </span>
@@ -305,7 +310,13 @@ function GroupCard({
         </span>
       </div>
       {rows.map((row) => (
-        <BriefDeadlineRow key={row.obligationId} row={row} asOf={asOf} onOpen={onOpenObligation} />
+        <BriefDeadlineRow
+          key={row.obligationId}
+          row={row}
+          asOf={asOf}
+          onOpen={onOpenObligation}
+          showStatus={showStatus}
+        />
       ))}
       {moreCount > 0 ? (
         <Link
@@ -324,10 +335,12 @@ function BriefDeadlineRow({
   row,
   asOf,
   onOpen,
+  showStatus,
 }: {
   row: DashboardTopRow
   asOf: Date
   onOpen: (obligationId: string) => void
+  showStatus: boolean
 }) {
   const { t } = useLingui()
   const d = daysUntil(row.currentDueDate, asOf)
@@ -344,12 +357,12 @@ function BriefDeadlineRow({
       className="flex w-full items-center gap-2.5 border-b border-divider-subtle px-1 py-2.5 text-left outline-none transition-colors last:border-b-0 hover:bg-background-section focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
     >
       <TaxCodeBadge code={row.taxType} />
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-sm font-medium text-text-primary">{row.clientName}</span>
-        <span className="truncate text-caption text-text-tertiary">
-          {row.assigneeName ?? t`Unassigned`}
-        </span>
+      <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
+        {row.clientName}
       </span>
+      {showStatus ? (
+        <ObligationStatusReadBadge status={row.status} className="h-5 shrink-0 text-caption-xs" />
+      ) : null}
       <AssigneeAvatar name={row.assigneeName} title={row.assigneeName ?? t`Unassigned`} />
       <span className="w-[60px] shrink-0 text-right text-caption tabular-nums text-text-secondary">
         {dueText}
