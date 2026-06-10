@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import type { Env } from '../env'
 import { enqueueDashboardBriefRefresh } from './dashboard-brief/enqueue'
 import { dispatchOpsAlert } from './ops-alerts'
+import { retryFailedPulseExtractions } from './pulse/extract-retry'
 import { enqueuePulseIngestScans } from './pulse/ingest'
 import { recordPulseAlert } from './pulse/metrics'
 import { dispatchDeadlineReminders } from './reminders/dispatch'
@@ -187,6 +188,7 @@ export async function scheduled(
     ['pulse_ingest_scans', enqueuePulseIngestScans(env, undefined, now)],
     ['still_open_alert_windows', refreshStillOpenAlertWindows(env, now)],
     ['pulse_extract_health', checkPulseExtractionHealth(env, now)],
+    ['pulse_extract_failed_retry', retryFailedPulseExtractions(env, now)],
     ['deadline_reminders', dispatchDeadlineReminders(env, now)],
     ['morning_digests', dispatchMorningDigests(env, now)],
     ['annual_rollover_auto', dispatchAutoRollover(env, now)],

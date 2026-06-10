@@ -8,6 +8,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  like,
   lt,
   lte,
   ne,
@@ -1113,6 +1114,45 @@ export function makePulseOpsRepo(db: Db) {
         .from(pulseSourceSnapshot)
         .where(eq(pulseSourceSnapshot.parseStatus, 'failed'))
         .orderBy(desc(pulseSourceSnapshot.updatedAt), desc(pulseSourceSnapshot.createdAt))
+        .limit(limit)
+      return rows.map(toSnapshot)
+    },
+
+    /**
+     * Failed snapshots whose failure class is transient (gateway / credit /
+     * budget) and therefore worth re-driving once the AI pipeline is healthy
+     * again. New failures are written as "CODE: message" (extract.ts); the
+     * bare-message patterns cover rows written before that convention.
+     * Deterministic failures (guard rejections, missing source text,
+     * out-of-scope, low confidence) never match, so the retry sweep converges
+     * instead of cycling them forever. Oldest-touched first: a re-failed row
+     * bumps updated_at and rotates to the back of the line.
+     */
+    async listRetryableFailedSnapshots(input: {
+      limit: number
+      maxAgeMs: number
+      now?: Date
+    }): Promise<PulseSourceSnapshotRow[]> {
+      const cutoff = new Date((input.now ?? new Date()).getTime() - input.maxAgeMs)
+      const limit = Math.min(Math.max(input.limit, 1), 100)
+      const rows = await db
+        .select()
+        .from(pulseSourceSnapshot)
+        .where(
+          and(
+            eq(pulseSourceSnapshot.parseStatus, 'failed'),
+            gte(pulseSourceSnapshot.createdAt, cutoff),
+            or(
+              like(pulseSourceSnapshot.failureReason, 'AI_GATEWAY_ERROR%'),
+              like(pulseSourceSnapshot.failureReason, 'AI_UNAVAILABLE%'),
+              like(pulseSourceSnapshot.failureReason, 'AI_BUDGET_EXCEEDED%'),
+              // Legacy rows (pre code-prefix): transport-class messages only.
+              like(pulseSourceSnapshot.failureReason, '%requires more credits%'),
+              eq(pulseSourceSnapshot.failureReason, 'Pulse extract failed.'),
+            ),
+          ),
+        )
+        .orderBy(asc(pulseSourceSnapshot.updatedAt))
         .limit(limit)
       return rows.map(toSnapshot)
     },

@@ -312,16 +312,20 @@ async function runPulseExtractionAfterMark(
   ])
 
   if (!result.result) {
+    const refusalCode = result.trace.refusalCode ?? result.refusal?.code ?? null
+    const refusalMessage = result.refusal?.message ?? 'Pulse extract failed.'
     await repo.updateSourceSnapshotStatus(snapshotId, {
       parseStatus: 'failed',
       aiOutputId,
-      failureReason: result.refusal?.message ?? 'Pulse extract failed.',
+      // Code-prefixed so the failed-extract retry sweep can tell transient
+      // failures (gateway/credit/budget — re-drivable) from deterministic ones.
+      failureReason: refusalCode ? `${refusalCode}: ${refusalMessage}` : refusalMessage,
     })
     recordPulseMetric('pulse.extract.result', {
       snapshotId,
       sourceId: snapshot.sourceId,
       result: 'failed',
-      refusalCode: result.trace.refusalCode ?? result.refusal?.code ?? null,
+      refusalCode,
       confidence: null,
     })
     return { pulseId: null, status: 'failed' }
