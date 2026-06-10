@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router'
 
-import type { DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
+import type { DashboardBriefScope, DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableRow } from '@duedatehq/ui/components/ui/table'
@@ -26,21 +26,18 @@ import { DueDateLabel } from '@/components/primitives/due-date-label'
 import { formatDatePretty } from '@/lib/utils'
 import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
-import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { ExtensionChip } from './extension-chip'
 import { LifecycleStripCell } from './lifecycle-strip-cell'
-// 2026-05-31 (Yuqi Pencil FpHtM — owner-avatar slot): Pencil also
-// shows a per-row owner-initials avatar on the right cluster.
-// `DashboardTopRow` (packages/contracts/src/dashboard.ts) does not
-// expose an `assigneeName` field today — the obligation queue
-// schema does (`obligation-queue.ts`), but the dashboard top-rows
-// projection drops it. To render the avatar without a stale
-// placeholder, the contract + server projection need a small
-// extension (one field + one SELECT). Imports kept commented so
-// the wire-up is one uncomment away once the contract change
-// lands.
-// import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
-// import { useCurrentUserName } from '@/lib/use-current-user-name'
+// 2026-06-10 (My work / Everyone): the owner-avatar slot Pencil FpHtM
+// reserved is now live — DashboardTopRow carries the EFFECTIVE
+// assigneeId/assigneeName (obligation override, else client default).
+// The avatar REPLACES the old status-pill column: rows are already
+// grouped under status headers, so a per-row status badge repeated the
+// header's information while the owner was invisible. `isMine` matches
+// on user id (not display name — the queue's name-compare fallback
+// predates the id being available on the contract).
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { useCurrentUserId } from '@/lib/use-current-user-name'
 
 function topPriorityFactors(row: DashboardTopRow): string[] {
   const factors = [...(row.smartPriority.factors ?? [])]
@@ -250,36 +247,36 @@ function ActionsTable({
             const currentStatusGroup = classifyStatusGroup(row.status)
             const isNewStatusGroup = currentStatusGroup !== lastStatusGroup
             lastStatusGroup = currentStatusGroup
-            const statusHeader =
-              isNewStatusGroup &&
-              // Only render status dividers when the table spans MORE THAN
-              // ONE status group — a single-status list doesn't need them.
-              hasMultipleStatusGroups(rows) ? (
-                // 2026-06-04 round 10 (Yuqi "ensure everything
-                // clickable is really clickable"): subgroup
-                // divider rows are NOT clickable — they're
-                // labels. Override the TableRow primitive's
-                // default hover-bg + cursor so they don't look
-                // tappable. `cursor-default` and the explicit
-                // `!hover:bg-transparent` enforce static behavior.
-                // 2026-06-04 round 14 (Yuqi page-feedback #1
-                // "header 应该有个稍微深的颜色"): subgroup-label
-                // bg bumped from `bg-background-section/40`
-                // (40% alpha gray-50, barely visible) to
-                // `bg-background-subtle` (solid gray-100) so
-                // the row reads as a real header band dividing
-                // Ready-to-work from Waiting-on-client, not a
-                // near-invisible whisper. Hover override matches
-                // so the row stays static-looking on hover.
-                // `even:bg-transparent` opts the row out of the
-                // canonical zebra (otherwise the subgroup label
-                // would alternate tint with row position).
-                <TableRow
-                  key={`${currentStatusGroup}-divider`}
-                  className="cursor-default even:bg-transparent hover:!bg-background-subtle"
-                  aria-hidden="false"
-                >
-                  {/* 2026-06-04 round 84 (Yuqi "apply table design
+            // 2026-06-10 (owner column): dividers render even for a
+            // single-status table now — with the per-row status pill
+            // replaced by the owner avatar, the group header is the ONLY
+            // place a row's workflow status is visible.
+            const statusHeader = isNewStatusGroup ? (
+              // 2026-06-04 round 10 (Yuqi "ensure everything
+              // clickable is really clickable"): subgroup
+              // divider rows are NOT clickable — they're
+              // labels. Override the TableRow primitive's
+              // default hover-bg + cursor so they don't look
+              // tappable. `cursor-default` and the explicit
+              // `!hover:bg-transparent` enforce static behavior.
+              // 2026-06-04 round 14 (Yuqi page-feedback #1
+              // "header 应该有个稍微深的颜色"): subgroup-label
+              // bg bumped from `bg-background-section/40`
+              // (40% alpha gray-50, barely visible) to
+              // `bg-background-subtle` (solid gray-100) so
+              // the row reads as a real header band dividing
+              // Ready-to-work from Waiting-on-client, not a
+              // near-invisible whisper. Hover override matches
+              // so the row stays static-looking on hover.
+              // `even:bg-transparent` opts the row out of the
+              // canonical zebra (otherwise the subgroup label
+              // would alternate tint with row position).
+              <TableRow
+                key={`${currentStatusGroup}-divider`}
+                className="cursor-default even:bg-transparent hover:!bg-background-subtle"
+                aria-hidden="false"
+              >
+                {/* 2026-06-04 round 84 (Yuqi "apply table design
                       guideline … to Alert and Deadlines" — push
                       readability to both surfaces): subgroup
                       divider tokens lifted to match /alerts day-
@@ -289,18 +286,18 @@ function ActionsTable({
                       brings /today's matching primitive up to
                       the same readable scale so both surfaces
                       share one token combo end-to-end. */}
-                  {/* 2026-06-08 (Yuqi /today #6 "darker header"): the
+                {/* 2026-06-08 (Yuqi /today #6 "darker header"): the
                       status-group band steps gray-100 → gray-200 and the
                       label to text-primary so it reads as a real header
                       dividing the lifecycle groups, not a faint whisper. */}
-                  <TableCell
-                    colSpan={7}
-                    className="bg-background-subtle px-[18px] py-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase"
-                  >
-                    <StatusGroupLabel kind={currentStatusGroup} />
-                  </TableCell>
-                </TableRow>
-              ) : null
+                <TableCell
+                  colSpan={7}
+                  className="bg-background-subtle px-[18px] py-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase"
+                >
+                  <StatusGroupLabel kind={currentStatusGroup} />
+                </TableCell>
+              </TableRow>
+            ) : null
             return (
               <Fragment key={row.obligationId}>
                 {statusHeader}
@@ -316,15 +313,6 @@ function ActionsTable({
       </Table>
     </div>
   )
-}
-
-function hasMultipleStatusGroups(rows: DashboardTopRow[]): boolean {
-  const seen = new Set<StatusGroup>()
-  for (const row of rows) {
-    seen.add(classifyStatusGroup(row.status))
-    if (seen.size > 1) return true
-  }
-  return false
 }
 
 function StatusGroupLabel({ kind }: { kind: StatusGroup }) {
@@ -356,6 +344,9 @@ function ActionsTableRow({
   const { t } = useLingui()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = useActionPrompt(row, asOfDate)
+  const currentUserId = useCurrentUserId()
+  const isMine = currentUserId !== null && row.assigneeId === currentUserId
+  const assigneeName = row.assigneeName
   // 2026-06-04 round 8 (Yuqi "tooltip to show why this matter"):
   // ALL rows compute factors for the rank-cell tooltip — even
   // High / Upcoming rows surface their Smart Priority rationale
@@ -541,12 +532,29 @@ function ActionsTableRow({
       <TableCell>
         <ReadinessIndicator obligationType={row.obligationType} attached={row.evidenceCount} />
       </TableCell>
-      {/* 2026-06-08 (Yuqi #12 "status 向前移一个 column"): the status cell
-          now sits BEFORE the due cell. The status pill stays neutral — red
-          is carried once by the DUE cell's payment-late branch. */}
+      {/* 2026-06-10 (My work / Everyone — owner column): the status pill
+          is REPLACED by the owner avatar. Rows already sit under status
+          group headers, so the per-row pill repeated information; "whose
+          work is this?" was the missing signal. ExtensionChip stays —
+          `extended` folds into the "Not started" group, so without the
+          chip an extended row would be indistinguishable from a plain
+          pending one. */}
       <TableCell>
         <div className="flex flex-wrap items-center gap-2">
-          <ObligationStatusReadBadge status={row.status} className="h-6 text-xs" />
+          <AssigneeAvatar
+            name={assigneeName}
+            isMine={isMine}
+            title={
+              assigneeName === null
+                ? t`Unassigned`
+                : isMine
+                  ? // Local binding (not row.assigneeName) so the Lingui
+                    // placeholder is {assigneeName} — same message id the
+                    // deadlines queue already translates.
+                    t`Assigned to you (${assigneeName})`
+                  : assigneeName
+            }
+          />
           {row.status === 'extended' ? <ExtensionChip /> : null}
         </div>
       </TableCell>
@@ -621,14 +629,25 @@ function DashboardActionsList({
   blockedDelta,
   waitingOnClientDelta,
   hasClients,
+  scope,
+  firmTotalOpen,
+  onSwitchToEveryone,
 }: {
   rows: DashboardTopRow[]
   asOfDate: string | null
   isLoading: boolean
-  // Total open obligations across the whole practice — used to split
-  // the empty state: zero rows in the priority queue means there is no
-  // open deadline work; rows elsewhere should still route to /deadlines.
+  // Open obligations WITHIN the current scope — used to split the empty
+  // state: zero rows in the priority queue means there is no open
+  // deadline work in this scope; rows elsewhere should still route to
+  // /deadlines.
   totalOpen: number
+  // 2026-06-10 (My work / Everyone): current page scope + the unscoped
+  // firm-wide open count. When scope='me' empties the personal queue but
+  // the firm still has open work, the empty state offers a one-click
+  // switch to Everyone instead of pretending the practice is idle.
+  scope: DashboardBriefScope
+  firmTotalOpen: number
+  onSwitchToEveryone: () => void
   canRunMigration: boolean
   // 2026-05-29 (Yuqi /today follow-up — "no clients vs no deadlines"):
   // when there are 0 open obligations we need to distinguish a
@@ -707,7 +726,7 @@ function DashboardActionsList({
   if (isLoading) {
     return (
       <section aria-label={t`Priority Actions`} className="flex flex-col gap-3">
-        <ActionsListHeader onOpenAll={onOpenAllObligations} />
+        <ActionsListHeader scope={scope} onOpenAll={onOpenAllObligations} />
         <div className="flex flex-wrap gap-3">
           <Skeleton className="h-16 w-40" />
           <Skeleton className="h-16 w-40" />
@@ -723,16 +742,21 @@ function DashboardActionsList({
   }
 
   if (visible.length === 0) {
-    // Three empty states, in order of how they should be tested:
-    //   1. The practice has obligations elsewhere — route to /deadlines.
-    //      Avoids the "import again" misread when the user already has data.
-    //   2. The practice has zero obligations AND no clients yet — keep
+    // Empty states, in the order they should be tested:
+    //   1. This scope has open obligations elsewhere — route to
+    //      /deadlines. Avoids the "import again" misread when the user
+    //      already has data.
+    //   2. (scope='me' only) Your queue is clear but the FIRM still has
+    //      open work — say so and offer the one-click switch to Everyone.
+    //      Without this branch a cleared-up member reads "no deadlines"
+    //      while colleagues' work is still burning down.
+    //   3. The practice has zero obligations AND no clients yet — keep
     //      the import CTA.
-    //   3. Caught-up state (rows exist somewhere but Smart Priority
+    //   4. Caught-up state (rows exist somewhere but Smart Priority
     //      filtered them all out).
     return (
       <section aria-label={t`Priority Actions`} className="flex flex-col gap-3">
-        <ActionsListHeader onOpenAll={onOpenAllObligations} />
+        <ActionsListHeader scope={scope} onOpenAll={onOpenAllObligations} />
         {totalOpen > 0 ? (
           <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-secondary">
             <Trans>No priority actions right now.</Trans>{' '}
@@ -746,6 +770,28 @@ function DashboardActionsList({
               <ArrowUpRightIcon data-icon="inline-end" />
             </Button>
           </p>
+        ) : scope === 'me' && firmTotalOpen > 0 ? (
+          // Personal queue is clear, firm isn't. Celebrate the clear
+          // queue but keep the firm's remaining load one click away —
+          // the switch flips the WHOLE page scope (brief + actions +
+          // counts), not just this list.
+          <SharedEmptyState
+            icon={CircleCheckIcon}
+            title={<Trans>You're all caught up</Trans>}
+            description={
+              <Plural
+                value={firmTotalOpen}
+                one="Nothing assigned to you (or unassigned) needs attention. The rest of the practice still has # open deadline."
+                other="Nothing assigned to you (or unassigned) needs attention. The rest of the practice still has # open deadlines."
+              />
+            }
+            cta={
+              <Button size="sm" variant="outline" onClick={onSwitchToEveryone}>
+                <Trans>Show everyone's work</Trans>
+                <ArrowRightIcon data-icon="inline-end" />
+              </Button>
+            }
+          />
         ) : canRunMigration ? (
           // 2026-05-28 (Yuqi /today polish): empty state refined to
           // follow the design system —
@@ -830,7 +876,7 @@ function DashboardActionsList({
 
   return (
     <section aria-label={t`Priority Actions`} className="flex flex-col gap-3">
-      <ActionsListHeader onOpenAll={onOpenAllObligations} />
+      <ActionsListHeader scope={scope} onOpenAll={onOpenAllObligations} />
       {/* 2026-06-04 round 15 (Yuqi page-feedback "hide this for
           now"): `<DashboardStatusLifecycleStrip>` render hidden.
           The strip + its scope caption + the new border tone work
@@ -872,7 +918,13 @@ function DashboardActionsList({
   )
 }
 
-function ActionsListHeader({ onOpenAll }: { onOpenAll: () => void }) {
+function ActionsListHeader({
+  scope,
+  onOpenAll,
+}: {
+  scope: DashboardBriefScope
+  onOpenAll: () => void
+}) {
   const { t } = useLingui()
   return (
     // 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
@@ -995,10 +1047,20 @@ function ActionsListHeader({ onOpenAll }: { onOpenAll: () => void }) {
                   <Trans>What's in this list</Trans>
                 </span>
                 <span className="border-t border-components-panel-border/60 pt-2 text-xs leading-relaxed font-normal text-components-tooltip-text/85">
-                  <Trans>
-                    Your top 10 open deadlines, ranked by Smart Priority and grouped by workflow
-                    status. Each group keeps Smart Priority order.
-                  </Trans>
+                  {/* 2026-06-10 (My work / Everyone): the copy follows the
+                      page scope — "your" was a lie while the list was
+                      firm-wide; now each mode says what it shows. */}
+                  {scope === 'me' ? (
+                    <Trans>
+                      Your top 10 open deadlines — assigned to you or unassigned — ranked by Smart
+                      Priority and grouped by workflow status.
+                    </Trans>
+                  ) : (
+                    <Trans>
+                      The practice's top 10 open deadlines, ranked by Smart Priority and grouped by
+                      workflow status. Each group keeps Smart Priority order.
+                    </Trans>
+                  )}
                 </span>
               </div>
             </TooltipContent>

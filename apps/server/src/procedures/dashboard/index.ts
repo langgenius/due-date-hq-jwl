@@ -23,6 +23,10 @@ interface DashboardRepoTopRow {
   // filed-but-payment-overdue cases (anti-pattern #1).
   paymentDueDate: Date | null
   status: DashboardTopRow['status']
+  // Effective assignee (obligation override, else client default) —
+  // resolved by the repo; drives the Today owner avatar + 'me' scope.
+  assigneeId: string | null
+  assigneeName: string | null
   missingPenaltyFacts: string[]
   penaltySourceRefs: DashboardTopRow['penaltySourceRefs']
   penaltyFormulaLabel: string | null
@@ -82,6 +86,10 @@ function toTopRow(
     currentDueDate: toDateOnly(row.currentDueDate),
     paymentDueDate: row.paymentDueDate ? toDateOnly(row.paymentDueDate) : null,
     status: row.status,
+    assigneeId: row.assigneeId,
+    // Trim-to-null so a legacy empty-string assignee_name can't trip the
+    // contract's `min(1)` and fail the whole response.
+    assigneeName: row.assigneeName?.trim() ? row.assigneeName.trim() : null,
     missingPenaltyFacts: opts.hideDollars ? [] : row.missingPenaltyFacts,
     penaltySourceRefs: opts.hideDollars ? [] : row.penaltySourceRefs,
     penaltyFormulaLabel: opts.hideDollars ? null : row.penaltyFormulaLabel,
@@ -134,13 +142,15 @@ const load = os.dashboard.load.handler(async ({ input, context }) => {
   const asOfDate = input?.asOfDate ?? dateInTimezone(tenant.timezone)
   const windowDays = input?.windowDays ?? 7
   const topLimit = input?.topLimit ?? 8
-  const briefScope = input?.briefScope ?? 'firm'
+  // One scope for the whole page: brief + rows + summary + facets. The
+  // user id comes from the session, never from the client payload.
+  const scope = input?.scope ?? 'firm'
   const result = await scoped.dashboard.load({
     asOfDate,
     windowDays,
     topLimit,
-    briefScope,
-    briefUserId: briefScope === 'me' ? userId : null,
+    scope,
+    scopeUserId: scope === 'me' ? userId : null,
     ...(input?.clientIds ? { clientIds: input.clientIds } : {}),
     ...(input?.taxTypes ? { taxTypes: input.taxTypes } : {}),
     ...(input?.dueBuckets ? { dueBuckets: input.dueBuckets } : {}),
@@ -148,6 +158,23 @@ const load = os.dashboard.load.handler(async ({ input, context }) => {
     ...(input?.severity ? { severity: input.severity } : {}),
     ...(input?.evidence ? { evidence: input.evidence } : {}),
   })
+
+  // Personal briefs have no cron — the daily scheduler only generates
+  // firm-scope briefs. Self-heal on view: when the viewer's 'me' brief is
+  // missing or expired, enqueue a refresh. Cost is bounded: the enqueue
+  // debounce collapses repeated loads, and the consumer's input-hash
+  // dedupe skips the AI call entirely unless the (scoped) snapshot
+  // actually changed — in practice at most one personal-brief generation
+  // per user per day, and only for users who view My work.
+  if (scope === 'me' && (!result.brief || result.brief.status === 'stale')) {
+    await enqueueDashboardBriefRefresh(context.env, {
+      firmId: tenant.firmId,
+      scope: 'me',
+      userId,
+      asOfDate,
+      reason: 'scope_view',
+    })
+  }
 
   const actor = await context.vars.members?.findMembership(tenant.firmId, userId)
   const hideDollars = actor?.role === 'coordinator' && !tenant.coordinatorCanSeeDollars

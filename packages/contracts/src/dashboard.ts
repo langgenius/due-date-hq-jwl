@@ -60,7 +60,12 @@ export const DashboardLoadInputSchema = z
     asOfDate: z.iso.date().optional(),
     windowDays: z.number().int().min(1).max(31).default(7).optional(),
     topLimit: z.number().int().min(1).max(20).default(8).optional(),
-    briefScope: DashboardBriefScopeSchema.default('firm').optional(),
+    // Unified "My work / Everyone" page scope (2026-06-10). One field
+    // scopes BOTH the daily brief and the priority-action rows/summary/
+    // facets. `me` = effective assignee is the caller, plus unassigned
+    // rows. The server resolves the user id from the session — it is
+    // never client-supplied.
+    scope: DashboardBriefScopeSchema.default('firm').optional(),
     clientIds: z.array(EntityIdSchema).max(DASHBOARD_FILTER_MAX_SELECTIONS).optional(),
     taxTypes: z.array(DashboardFilterValueSchema).max(DASHBOARD_FILTER_MAX_SELECTIONS).optional(),
     dueBuckets: z
@@ -82,6 +87,9 @@ export type DashboardLoadInput = z.infer<typeof DashboardLoadInputSchema>
 
 export const DashboardSummarySchema = z.object({
   openObligationCount: z.number().int().min(0),
+  // Firm-wide open count, never scoped — when scope='me' empties the
+  // personal queue, this drives the "firm still has N" empty state.
+  firmOpenObligationCount: z.number().int().min(0),
   dueThisWeekCount: z.number().int().min(0),
   needsReviewCount: z.number().int().min(0),
   evidenceGapCount: z.number().int().min(0),
@@ -118,6 +126,13 @@ export const DashboardTopRowSchema = z.object({
   // filings).
   paymentDueDate: z.iso.date().nullable(),
   status: ObligationStatusSchema,
+  // 2026-06-10 (My work / Everyone): EFFECTIVE assignee — obligation-level
+  // override, else client-level default (COALESCE semantics shared with
+  // the obligations queue). `assigneeId` is an auth user id (NOT a UUID
+  // entity id); `assigneeName` may be a free-text import label with no
+  // bound user. Drives the owner avatar on the Today actions table.
+  assigneeId: z.string().min(1).nullable(),
+  assigneeName: z.string().min(1).nullable(),
   missingPenaltyFacts: z.array(z.string().min(1)),
   penaltySourceRefs: z.array(PenaltySourceRefSchema),
   penaltyFormulaLabel: z.string().nullable(),

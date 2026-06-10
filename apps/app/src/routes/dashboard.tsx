@@ -17,6 +17,7 @@ import type {
 import { DASHBOARD_FILTER_MAX_SELECTIONS } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
@@ -56,6 +57,23 @@ const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 
+// Page-scope persistence. Declared ABOVE the parsers const: its
+// initializer calls storedDashboardScope() during module evaluation, and
+// while function declarations hoist, a `const` key defined below would
+// still be in the temporal dead zone at that moment ("Cannot access
+// 'SCOPE_STORAGE_KEY' before initialization").
+const SCOPE_STORAGE_KEY = 'ddhq:dashboard:scope'
+
+function storedDashboardScope(): DashboardBriefScope {
+  if (typeof window === 'undefined') return 'me'
+  return window.localStorage.getItem(SCOPE_STORAGE_KEY) === 'firm' ? 'firm' : 'me'
+}
+
+function rememberDashboardScope(scope: DashboardBriefScope): void {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(SCOPE_STORAGE_KEY, scope)
+}
+
 // URL params are retained for deep-link compatibility — they feed
 // dashboardTableInput below so server-side filters still apply even
 // though the v2 UI no longer exposes filter controls.
@@ -78,11 +96,17 @@ const dashboardSearchParamsParsers = {
   evidence: parseAsArrayOf(parseAsStringLiteral(DASHBOARD_EVIDENCE_FILTERS))
     .withDefault([])
     .withOptions(REPLACE_HISTORY_OPTIONS),
-  // Daily-brief scope. `firm` (whole practice) is the default; `me`
-  // narrows the AI brief to the current user's obligations. Persisted in
-  // the URL so the choice survives refresh and is shareable.
-  brief: parseAsStringLiteral(['firm', 'me'] as const satisfies readonly DashboardBriefScope[])
-    .withDefault('firm')
+  // Unified page scope (2026-06-10 "My work / Everyone"). ONE toggle
+  // drives the daily brief AND Priority Actions (rows, ranks, counts,
+  // facets). `me` = effective assignee is the viewer, plus unassigned
+  // rows — an unclaimed deadline never disappears from anyone's Today.
+  // Default is "My work": for a firm with no assignments mine∪unassigned
+  // equals everything, so the default is a no-op until the practice
+  // starts assigning. URL param survives refresh and is shareable; the
+  // last choice is also remembered per browser via localStorage (read
+  // once at module init as the parser default).
+  scope: parseAsStringLiteral(['firm', 'me'] as const satisfies readonly DashboardBriefScope[])
+    .withDefault(storedDashboardScope())
     .withOptions(REPLACE_HISTORY_OPTIONS),
 } as const
 
@@ -116,9 +140,14 @@ export function DashboardRoute() {
   // the right obligation already selected.
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const [
-    { asOfDate, client, taxType, due, status: statusFilter, severity, evidence, brief: briefScope },
+    { asOfDate, client, taxType, due, status: statusFilter, severity, evidence, scope },
     setDashboardParams,
   ] = useQueryStates(dashboardSearchParamsParsers)
+  // One switch for the whole page: brief + actions + every count.
+  const setScope = (next: DashboardBriefScope) => {
+    rememberDashboardScope(next)
+    void setDashboardParams({ scope: next })
+  }
   const queryClient = useQueryClient()
   // 2026-06-08 (Yuqi /today #8 "able to close it"): the Daily Brief is
   // dismissable. We persist the dismissal keyed to the brief's generation
@@ -142,25 +171,23 @@ export function DashboardRoute() {
       ...(statusFilter.length > 0 ? { status: statusFilter } : {}),
       ...(severity.length > 0 ? { severity } : {}),
       ...(evidence.length > 0 ? { evidence } : {}),
-      briefScope,
+      scope,
     }),
-    [
-      briefScope,
-      clientQuery,
-      dashboardAsOfDate,
-      due,
-      evidence,
-      severity,
-      statusFilter,
-      taxTypeQuery,
-    ],
+    [scope, clientQuery, dashboardAsOfDate, due, evidence, severity, statusFilter, taxTypeQuery],
   )
   const dashboardQuery = useQuery({
     ...orpc.dashboard.load.queryOptions({ input: dashboardTableInput }),
     placeholderData: keepPreviousData,
     // Poll while the AI brief is still generating so the card flips from
-    // "Generating…" to the narrative without a manual refresh.
-    refetchInterval: (query) => (query.state.data?.brief?.status === 'pending' ? 4000 : false),
+    // "Generating…" to the narrative without a manual refresh. A missing
+    // brief at scope='me' also polls: personal briefs have no cron — the
+    // server self-heals by enqueueing one on view, and the pending row
+    // appears moments later.
+    refetchInterval: (query) =>
+      query.state.data?.brief?.status === 'pending' ||
+      (scope === 'me' && query.state.data && query.state.data.brief === null)
+        ? 4000
+        : false,
   })
   const requestBriefRefresh = useMutation(
     orpc.dashboard.requestBriefRefresh.mutationOptions({
@@ -380,6 +407,21 @@ export function DashboardRoute() {
         }
         actions={
           <>
+            {/* 2026-06-10 (My work / Everyone): ONE scope toggle for the
+                whole page — daily brief, Priority Actions rows/ranks, and
+                every count switch together. Lives in the header action
+                cluster (not on the brief card) precisely because it
+                governs more than the brief. "My work" = assigned to me +
+                unassigned; the choice is remembered per browser. */}
+            <Segmented
+              value={scope}
+              onValueChange={setScope}
+              ariaLabel={t`Dashboard scope`}
+              options={[
+                { value: 'me', label: t`My work` },
+                { value: 'firm', label: t`Everyone` },
+              ]}
+            />
             {/* 2026-05-27 (Step 6 UX flows audit H2.6): the
                 keyboard shortcut help dialog opens on `?` but
                 that key was undiscoverable from the dashboard.
@@ -478,7 +520,24 @@ export function DashboardRoute() {
           `dashboard.load` already returns `brief`; the card renders
           null when none exists (feature-off firms). */}
       {(() => {
-        const brief = data?.brief ?? null
+        // 2026-06-10 (My work / Everyone): at scope='me' a missing brief
+        // means "the server just enqueued your personal brief" (no cron
+        // generates those) — render the card in its generating state
+        // instead of nothing, so the scope switch visibly answers. Firm
+        // scope keeps the old behavior: no brief row → no card.
+        const brief =
+          data?.brief ??
+          (scope === 'me' && data
+            ? ({
+                status: 'pending',
+                generatedAt: null,
+                expiresAt: null,
+                text: null,
+                citations: null,
+                aiOutputId: null,
+                errorCode: null,
+              } as const)
+            : null)
         // Key the dismissal to the brief's generation stamp so a NEW brief
         // (different stamp) reappears even after a prior one was closed.
         const briefKey = brief?.generatedAt ?? brief?.status ?? null
@@ -486,9 +545,7 @@ export function DashboardRoute() {
         return (
           <DailyBriefCard
             brief={brief}
-            scope={briefScope}
-            onScopeChange={(scope) => void setDashboardParams({ brief: scope })}
-            onRefresh={() => requestBriefRefresh.mutate({ scope: briefScope })}
+            onRefresh={() => requestBriefRefresh.mutate({ scope })}
             refreshing={requestBriefRefresh.isPending}
             onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
             onClose={
@@ -527,6 +584,9 @@ export function DashboardRoute() {
           // Smart Priority shortlist; the component keeps status grouping.
           rows={data?.topRows ?? []}
           totalOpen={data?.summary?.openObligationCount ?? 0}
+          scope={scope}
+          firmTotalOpen={data?.summary?.firmOpenObligationCount ?? 0}
+          onSwitchToEveryone={() => setScope('firm')}
           needDecisionCount={data?.summary?.needsReviewCount ?? 0}
           blockedCount={facets?.statuses.find((s) => s.value === 'blocked')?.count ?? 0}
           waitingOnClientCount={

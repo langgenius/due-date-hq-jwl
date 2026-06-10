@@ -22,3 +22,15 @@ export function useCurrentUserName(): string | null {
   const trimmed = name.trim()
   return trimmed.length > 0 ? trimmed : null
 }
+
+/**
+ * Current auth user id from the same protected-layout loader. Prefer this
+ * over `useCurrentUserName` for "is this row mine?" checks whenever the
+ * row carries an assignee user id (display names collide and change) —
+ * the Today actions table does since the 2026-06-10 scope work.
+ */
+export function useCurrentUserId(): string | null {
+  const data = useRouteLoaderData(PROTECTED_ROUTE_ID)
+  const id = data?.user?.id
+  return typeof id === 'string' && id.length > 0 ? id : null
+}

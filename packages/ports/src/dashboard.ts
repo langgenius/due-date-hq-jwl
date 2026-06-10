@@ -17,8 +17,13 @@ export interface DashboardLoadInput {
   asOfDate: string
   windowDays?: number
   topLimit?: number
-  briefScope?: DashboardBriefScope
-  briefUserId?: string | null
+  // Unified page scope (2026-06-10 "My work / Everyone"): one field drives
+  // BOTH the daily-brief lookup and the row/summary/facet scoping. `me`
+  // keeps rows whose effective assignee (obligation-level override, else
+  // client-level) is `scopeUserId` — plus unassigned rows, so a deadline
+  // nobody claimed never disappears from everyone's Today.
+  scope?: DashboardBriefScope
+  scopeUserId?: string | null
   clientIds?: string[]
   taxTypes?: string[]
   dueBuckets?: DashboardDueBucket[]
@@ -60,6 +65,13 @@ export interface DashboardTopRow {
   // "Payment N days late" on filed-but-payment-overdue rows.
   paymentDueDate: Date | null
   status: ObligationStatus
+  // 2026-06-10 (My work / Everyone): EFFECTIVE assignee — the
+  // obligation-level override when set, else the client-level default
+  // (COALESCE semantics shared with the obligations queue + reminder
+  // dispatch). `assigneeId` is an auth user id; `assigneeName` is the
+  // display label (may be a free-text import name with no user id).
+  assigneeId: string | null
+  assigneeName: string | null
   missingPenaltyFacts: string[]
   penaltySourceRefs: PenaltySourceRef[]
   penaltyFormulaLabel: string | null
@@ -124,6 +136,10 @@ export interface DashboardLoadResult {
   windowDays: number
   summary: {
     openObligationCount: number
+    // Firm-wide open count, ALWAYS unscoped — when `scope: 'me'` empties
+    // the personal queue this still says whether the rest of the firm has
+    // open work (drives the "you're clear, firm has N" empty state).
+    firmOpenObligationCount: number
     dueThisWeekCount: number
     needsReviewCount: number
     evidenceGapCount: number

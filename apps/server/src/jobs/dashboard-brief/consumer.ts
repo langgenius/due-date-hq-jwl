@@ -173,12 +173,15 @@ async function refreshDashboardBrief(
   const now = new Date()
   const db = createDb(env.DB)
   const repo = scoped(db, message.firmId)
+  // `scope` also filters the row snapshot (not just the brief lookup), so
+  // a 'me' brief narrates the member's own queue — assigned-to-them plus
+  // unassigned — never the whole firm's.
   const snapshotResult = await repo.dashboard.load({
     asOfDate,
     windowDays: 7,
     topLimit: 8,
-    briefScope: message.scope,
-    briefUserId: message.userId ?? null,
+    scope: message.scope,
+    scopeUserId: message.userId ?? null,
   })
   const snapshot = stableSnapshot(snapshotResult)
   const inputHash = await hashValue(snapshot)

@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
 
-import type { DashboardBriefPublic, DashboardBriefScope } from '@duedatehq/contracts'
+import type { DashboardBriefPublic } from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -16,7 +16,11 @@ type DashboardBriefCitation = NonNullable<DashboardBriefPublic['citations']>[num
  * DailyBriefCard — the AI narrative of the firm's day. Rebuilt to Pencil
  * `qYrr3`: a white card with a single hairline border (no shadow), a calm
  * title row (sparkles + "Daily Brief" + one status dot + a mono age label),
- * a Firm/Me pill toggle and an icon-only refresh, then the prose. Each
+ * an icon-only refresh, then the prose. (2026-06-10: the Firm/Me pill
+ * moved OFF the card — the page-level "My work / Everyone" Segmented in
+ * the /today header switches the brief AND Priority Actions together;
+ * the card just renders whatever brief the scoped dashboard.load
+ * returned.) Each
  * `[n]` token resolves to an accent citation chip that deep-links back to
  * the obligation it cites (evidence traceability, not decoration).
  *
@@ -32,8 +36,6 @@ export function DailyBriefCard({
   onClose,
 }: {
   brief: DashboardBriefPublic | null
-  scope: DashboardBriefScope
-  onScopeChange: (scope: DashboardBriefScope) => void
   onRefresh: () => void
   refreshing: boolean
   onOpenObligation: (obligationId: string) => void
@@ -107,7 +109,7 @@ export function DailyBriefCard({
             onRefresh={canRefresh ? onRefresh : undefined}
           />
         </div>
-        {/* Right — scope toggle + icon-only refresh + dismiss */}
+        {/* Right — icon-only refresh + dismiss */}
         <div className="flex shrink-0 items-center gap-2.5">
           {canRefresh && brief.status !== 'failed' ? (
             <button

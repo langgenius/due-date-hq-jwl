@@ -14,6 +14,14 @@ vi.mock('@/features/billing/use-billing-data', () => ({
   useCurrentFirm: () => ({ currentFirm: null, firmsQuery: {} }),
 }))
 
+// useCurrentUserId reads the protected layout's loader via
+// useRouteLoaderData, which requires a DATA router — these tests render
+// in a plain <MemoryRouter>. Outside the protected tree the hook returns
+// null anyway, so mock that resolved state.
+vi.mock('@/lib/use-current-user-name', () => ({
+  useCurrentUserId: () => null,
+}))
+
 import { DashboardActionsList } from './actions-list'
 
 declare global {
@@ -32,6 +40,8 @@ const dashboardRow: DashboardTopRow = {
   currentDueDate: '2026-05-23',
   paymentDueDate: null,
   status: 'review',
+  assigneeId: null,
+  assigneeName: 'Kai Park',
   missingPenaltyFacts: [],
   penaltySourceRefs: [],
   penaltyFormulaLabel: 'California LLC annual tax penalty',
@@ -104,6 +114,9 @@ describe('DashboardActionsList', () => {
         asOfDate="2026-05-23"
         isLoading={false}
         totalOpen={0}
+        scope="firm"
+        firmTotalOpen={0}
+        onSwitchToEveryone={vi.fn()}
         needDecisionCount={0}
         blockedCount={0}
         waitingOnClientCount={0}
@@ -155,6 +168,9 @@ describe('DashboardActionsList', () => {
         asOfDate="2026-05-23"
         isLoading={false}
         totalOpen={1}
+        scope="firm"
+        firmTotalOpen={1}
+        onSwitchToEveryone={vi.fn()}
         needDecisionCount={0}
         blockedCount={0}
         waitingOnClientCount={0}
@@ -167,6 +183,50 @@ describe('DashboardActionsList', () => {
     )
 
     expect(document.body.textContent).toContain('Payment 10 days late')
+    // 2026-06-10 (owner column): the status pill is replaced by the
+    // owner avatar — initials render with the assignee name as title.
+    const avatar = document.querySelector('[title="Kai Park"]')
+    expect(avatar).toBeInstanceOf(HTMLElement)
+    expect(avatar?.textContent).toBe('KP')
+  })
+
+  // 2026-06-10 (My work / Everyone): when the personal queue is clear but
+  // the firm still has open work, the empty state must say so and offer
+  // the one-click switch to Everyone — NOT pretend the practice is idle.
+  it('renders the personal-clear empty state with a switch-to-everyone CTA', () => {
+    const onSwitchToEveryone = vi.fn()
+
+    render(
+      <DashboardActionsList
+        rows={[]}
+        asOfDate="2026-05-23"
+        isLoading={false}
+        totalOpen={0}
+        scope="me"
+        firmTotalOpen={7}
+        onSwitchToEveryone={onSwitchToEveryone}
+        needDecisionCount={0}
+        blockedCount={0}
+        waitingOnClientCount={0}
+        canRunMigration={true}
+        hasClients={true}
+        onOpenWizard={vi.fn()}
+        onOpenObligation={vi.fn()}
+        onOpenAllObligations={vi.fn()}
+      />,
+    )
+
+    expect(document.body.textContent).toContain("You're all caught up")
+    expect(document.body.textContent).toContain('7 open deadlines')
+
+    const switchButton = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes("Show everyone's work"),
+    )
+    expect(switchButton).toBeInstanceOf(HTMLButtonElement)
+    act(() => {
+      switchButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    expect(onSwitchToEveryone).toHaveBeenCalledTimes(1)
   })
 
   // 2026-06-05 (post-merge): rounds 70-85 simplified the actions
@@ -185,6 +245,9 @@ describe('DashboardActionsList', () => {
         asOfDate="2026-05-23"
         isLoading={false}
         totalOpen={1}
+        scope="firm"
+        firmTotalOpen={1}
+        onSwitchToEveryone={vi.fn()}
         needDecisionCount={0}
         blockedCount={0}
         waitingOnClientCount={0}

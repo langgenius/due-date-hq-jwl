@@ -28,6 +28,8 @@ describe('dashboard aggregation', () => {
           clientEntityType: 'c_corp',
           clientEstimatedTaxLiabilityCents: null,
           clientEquityOwnerCount: null,
+          assigneeId: null,
+          assigneeName: null,
         },
         {
           obligationId: 'oi_week',
@@ -46,6 +48,8 @@ describe('dashboard aggregation', () => {
           clientEntityType: 'c_corp',
           clientEstimatedTaxLiabilityCents: 1_000_000,
           clientEquityOwnerCount: null,
+          assigneeId: null,
+          assigneeName: null,
         },
         {
           obligationId: 'oi_later',
@@ -64,6 +68,8 @@ describe('dashboard aggregation', () => {
           clientEntityType: 'c_corp',
           clientEstimatedTaxLiabilityCents: 1_000_000,
           clientEquityOwnerCount: null,
+          assigneeId: null,
+          assigneeName: null,
         },
         {
           obligationId: 'oi_day_7',
@@ -82,6 +88,8 @@ describe('dashboard aggregation', () => {
           clientEntityType: 'c_corp',
           clientEstimatedTaxLiabilityCents: 1_000_000,
           clientEquityOwnerCount: null,
+          assigneeId: null,
+          assigneeName: null,
         },
       ],
       [
@@ -105,6 +113,7 @@ describe('dashboard aggregation', () => {
 
     expect(result.summary).toEqual({
       openObligationCount: 4,
+      firmOpenObligationCount: 4,
       dueThisWeekCount: 3,
       needsReviewCount: 1,
       evidenceGapCount: 3,
@@ -172,6 +181,8 @@ describe('dashboard aggregation', () => {
           clientEntityType: 'c_corp',
           clientEstimatedTaxLiabilityCents: 1_000_000,
           clientEquityOwnerCount: null,
+          assigneeId: null,
+          assigneeName: null,
         }
       }),
       [],
@@ -212,6 +223,8 @@ describe('dashboard aggregation', () => {
         clientEntityType: 'c_corp',
         clientEstimatedTaxLiabilityCents: null,
         clientEquityOwnerCount: null,
+        assigneeId: null,
+        assigneeName: null,
       },
       {
         obligationId: 'oi_week',
@@ -230,6 +243,8 @@ describe('dashboard aggregation', () => {
         clientEntityType: 'c_corp',
         clientEstimatedTaxLiabilityCents: 1_000_000,
         clientEquityOwnerCount: null,
+        assigneeId: null,
+        assigneeName: null,
       },
       {
         obligationId: 'oi_day_7',
@@ -248,6 +263,8 @@ describe('dashboard aggregation', () => {
         clientEntityType: 'c_corp',
         clientEstimatedTaxLiabilityCents: 1_000_000,
         clientEquityOwnerCount: null,
+        assigneeId: null,
+        assigneeName: null,
       },
       {
         obligationId: 'oi_later',
@@ -266,6 +283,8 @@ describe('dashboard aggregation', () => {
         clientEntityType: 'c_corp',
         clientEstimatedTaxLiabilityCents: 1_000_000,
         clientEquityOwnerCount: null,
+        assigneeId: null,
+        assigneeName: null,
       },
     ]
     const evidenceRows = [
@@ -333,6 +352,8 @@ describe('dashboard aggregation', () => {
           clientEntityType: 'c_corp',
           clientEstimatedTaxLiabilityCents: null,
           clientEquityOwnerCount: null,
+          assigneeId: null,
+          assigneeName: null,
         },
         {
           obligationId: 'oi_no_pay',
@@ -351,6 +372,8 @@ describe('dashboard aggregation', () => {
           clientEntityType: 'c_corp',
           clientEstimatedTaxLiabilityCents: null,
           clientEquityOwnerCount: null,
+          assigneeId: null,
+          assigneeName: null,
         },
       ],
       [],
@@ -369,5 +392,102 @@ describe('dashboard aggregation', () => {
     expect(severityForDueDate(due('2026-05-03'), AS_OF, 'pending')).toBe('high')
     expect(severityForDueDate(due('2026-05-10'), AS_OF, 'review')).toBe('medium')
     expect(severityForDueDate(due('2026-05-30'), AS_OF, 'pending')).toBe('neutral')
+  })
+
+  // 2026-06-10 (My work / Everyone): 'me' scope keeps rows whose effective
+  // assignee is the viewer PLUS unassigned rows (an unclaimed deadline must
+  // never disappear from everyone's Today). A name-only assignment with no
+  // bound user id counts as unassigned. Every scoped number (summary,
+  // ranks, facets) must agree with the visible rows; only
+  // firmOpenObligationCount stays firm-wide.
+  it("scopes rows to the viewer plus unassigned in 'me' scope", () => {
+    const baseRow = {
+      clientEmail: null,
+      taxType: 'federal_1120',
+      obligationType: 'filing' as const,
+      filingDueDate: due('2026-05-02'),
+      paymentDueDate: null,
+      baseDueDate: due('2026-05-02'),
+      currentDueDate: due('2026-05-02'),
+      status: 'pending' as const,
+      penaltyFormulaVersion: null,
+      clientState: null,
+      clientEntityType: 'c_corp',
+      clientEstimatedTaxLiabilityCents: null,
+      clientEquityOwnerCount: null,
+    }
+    const rows = [
+      {
+        ...baseRow,
+        obligationId: 'oi_mine',
+        clientId: 'client_mine',
+        clientName: 'Mine LLC',
+        assigneeId: 'user_me',
+        assigneeName: 'Me Myself',
+      },
+      {
+        ...baseRow,
+        obligationId: 'oi_theirs',
+        clientId: 'client_theirs',
+        clientName: 'Theirs LLC',
+        assigneeId: 'user_other',
+        assigneeName: 'Someone Else',
+      },
+      {
+        ...baseRow,
+        obligationId: 'oi_unassigned',
+        clientId: 'client_unassigned',
+        clientName: 'Unassigned LLC',
+        assigneeId: null,
+        assigneeName: null,
+      },
+      {
+        ...baseRow,
+        obligationId: 'oi_name_only',
+        clientId: 'client_name_only',
+        clientName: 'Name Only LLC',
+        assigneeId: null,
+        assigneeName: 'Imported Free-Text',
+      },
+    ]
+
+    const firmResult = composeDashboardLoad(rows, [], {
+      asOfDate: AS_OF,
+      windowDays: 7,
+      topLimit: 8,
+      scope: 'firm',
+      scopeUserId: 'user_me',
+    })
+    expect(firmResult.summary.openObligationCount).toBe(4)
+    expect(firmResult.summary.firmOpenObligationCount).toBe(4)
+    expect(firmResult.topRows).toHaveLength(4)
+
+    const meResult = composeDashboardLoad(rows, [], {
+      asOfDate: AS_OF,
+      windowDays: 7,
+      topLimit: 8,
+      scope: 'me',
+      scopeUserId: 'user_me',
+    })
+    const meIds = meResult.topRows.map((row) => row.obligationId)
+    expect(meIds).toHaveLength(3)
+    expect(meIds).not.toContain('oi_theirs')
+    expect(new Set(meIds)).toEqual(new Set(['oi_mine', 'oi_unassigned', 'oi_name_only']))
+    // Scoped numbers agree with the visible rows; the firm-wide count
+    // still reports the unscoped total for the empty-state split.
+    expect(meResult.summary.openObligationCount).toBe(3)
+    expect(meResult.summary.firmOpenObligationCount).toBe(4)
+    // Smart Priority re-ranks within the scope — contiguous from #1.
+    expect(
+      meResult.topRows.map((row) => row.smartPriority.rank ?? -1).toSorted((a, b) => a - b),
+    ).toEqual([1, 2, 3])
+    // Effective assignee fields survive to the top rows (avatar source).
+    const mine = meResult.topRows.find((row) => row.obligationId === 'oi_mine')
+    expect(mine?.assigneeId).toBe('user_me')
+    expect(mine?.assigneeName).toBe('Me Myself')
+    // Facet counts follow the scope too.
+    expect(meResult.facets.clients.map((option) => option.value).toSorted()).toEqual(
+      ['client_mine', 'client_name_only', 'client_unassigned'].toSorted(),
+    )
   })
 })

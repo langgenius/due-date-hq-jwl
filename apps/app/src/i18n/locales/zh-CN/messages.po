@@ -984,6 +984,10 @@ msgstr "{field} 从 {previous} 变更为 {next}"
 msgid "{filingDays, plural, one {in # day} other {in # days}}"
 msgstr "{filingDays, plural, other {# 天后}}"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "{firmTotalOpen, plural, one {Nothing assigned to you (or unassigned) needs attention. The rest of the practice still has # open deadline.} other {Nothing assigned to you (or unassigned) needs attention. The rest of the practice still has # open deadlines.}}"
+msgstr "{firmTotalOpen, plural, other {分配给你（或未分配）的事项都已处理完毕。事务所其他成员还有 # 个进行中的截止事项。}}"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "{fixedCount} of {totalCount} fixed"
 msgstr "已修复 {fixedCount} / {totalCount}"
@@ -2861,6 +2865,7 @@ msgstr "已将 {count} 个截止事项分配给 {label}"
 msgid "Assigned to {name}"
 msgstr "已分配给 {name}"
 
+#: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Assigned to you ({assigneeName})"
@@ -5437,6 +5442,10 @@ msgstr "危险区域"
 msgid "Dark"
 msgstr "深色"
 
+#: src/routes/dashboard.tsx
+msgid "Dashboard scope"
+msgstr "仪表盘范围"
+
 #: src/features/migration/Step2Mapping.tsx
 #, fuzzy
 msgid "Data type"
@@ -6670,6 +6679,10 @@ msgstr "每个选中的辖区都需要有一条已激活且由规则支持的截
 #: src/routes/settings.profile.tsx
 msgid "Every signed-in browser and device EXCEPT this one will lose access immediately. Each one will need to re-authenticate next time it's used."
 msgstr "除当前设备外，所有已登录的浏览器和设备都会立即失去访问权限。下次使用时需要重新认证。"
+
+#: src/routes/dashboard.tsx
+msgid "Everyone"
+msgstr "所有人"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "Everything that wants your attention — Alerts, deadline reminders, system updates."
@@ -9530,6 +9543,10 @@ msgstr "我的晨间巡查"
 #: src/routes/onboarding.tsx
 msgid "My Practice"
 msgstr "我的事务所"
+
+#: src/routes/dashboard.tsx
+msgid "My work"
+msgstr "我的工作"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Name"
@@ -14515,6 +14532,10 @@ msgstr "全部显示"
 msgid "Show all jurisdictions"
 msgstr "显示所有辖区"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "Show everyone's work"
+msgstr "查看所有人的工作"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Show less"
 msgstr "收起"
@@ -15698,6 +15719,10 @@ msgstr "该事务所会从你的账户中移除。审计历史会为合规继续
 msgid "The practice-scoped record of who changed what, when it changed, and what evidence or reason was attached."
 msgstr "事务所范围内记录谁在何时改了什么，以及附带了哪些证据或原因。"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "The practice's top 10 open deadlines, ranked by Smart Priority and grouped by workflow status. Each group keeps Smart Priority order."
+msgstr "事务所当前未完成的前 10 个截止日，按 Smart Priority 排序并按工作流状态分组。每个分组内保留 Smart Priority 顺序。"
+
 #: src/lib/i18n-error.ts
 msgid "The request was invalid. Please review your input and try again."
 msgstr "请求无效，请检查输入后重试。"
@@ -16293,6 +16318,7 @@ msgstr "无法启动 Microsoft 登录"
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
+#: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/workload/workload-page.tsx
@@ -17321,6 +17347,7 @@ msgstr "您将被重定向至 Stripe 输入付款详情。"
 msgid "You're about to create:"
 msgstr "您即将创建："
 
+#: src/features/dashboard/actions-list.tsx
 #: src/routes/rules.library.tsx
 msgid "You're all caught up"
 msgstr "已全部处理完毕"
@@ -17436,8 +17463,8 @@ msgid "Your subscription is confirmed and the plan is active."
 msgstr "订阅已确认，当前计划已生效。"
 
 #: src/features/dashboard/actions-list.tsx
-msgid "Your top 10 open deadlines, ranked by Smart Priority and grouped by workflow status. Each group keeps Smart Priority order."
-msgstr "当前未完成的前 10 个截止日，按 Smart Priority 排序并按工作流状态分组。每个分组内保留 Smart Priority 顺序。"
+msgid "Your top 10 open deadlines — assigned to you or unassigned — ranked by Smart Priority and grouped by workflow status."
+msgstr "你当前未完成的前 10 个截止日（分配给你或未分配），按 Smart Priority 排序并按工作流状态分组。"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Your uploaded file stays unchanged — this clean draft is used only after you import."

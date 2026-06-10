@@ -977,6 +977,10 @@ msgstr "{field} changed from {previous} to {next}"
 msgid "{filingDays, plural, one {in # day} other {in # days}}"
 msgstr "{filingDays, plural, one {in # day} other {in # days}}"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "{firmTotalOpen, plural, one {Nothing assigned to you (or unassigned) needs attention. The rest of the practice still has # open deadline.} other {Nothing assigned to you (or unassigned) needs attention. The rest of the practice still has # open deadlines.}}"
+msgstr "{firmTotalOpen, plural, one {Nothing assigned to you (or unassigned) needs attention. The rest of the practice still has # open deadline.} other {Nothing assigned to you (or unassigned) needs attention. The rest of the practice still has # open deadlines.}}"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "{fixedCount} of {totalCount} fixed"
 msgstr "{fixedCount} of {totalCount} fixed"
@@ -2836,6 +2840,7 @@ msgstr "Assigned {count} deadlines to {label}"
 msgid "Assigned to {name}"
 msgstr "Assigned to {name}"
 
+#: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Assigned to you ({assigneeName})"
@@ -5401,6 +5406,10 @@ msgstr "Danger zone"
 msgid "Dark"
 msgstr "Dark"
 
+#: src/routes/dashboard.tsx
+msgid "Dashboard scope"
+msgstr "Dashboard scope"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Data type"
 msgstr "Data type"
@@ -6629,6 +6638,10 @@ msgstr "Every selected jurisdiction needs an active rule-backed deadline."
 #: src/routes/settings.profile.tsx
 msgid "Every signed-in browser and device EXCEPT this one will lose access immediately. Each one will need to re-authenticate next time it's used."
 msgstr "Every signed-in browser and device EXCEPT this one will lose access immediately. Each one will need to re-authenticate next time it's used."
+
+#: src/routes/dashboard.tsx
+msgid "Everyone"
+msgstr "Everyone"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "Everything that wants your attention — Alerts, deadline reminders, system updates."
@@ -9472,6 +9485,10 @@ msgstr "My morning sweep"
 #: src/routes/onboarding.tsx
 msgid "My Practice"
 msgstr "My Practice"
+
+#: src/routes/dashboard.tsx
+msgid "My work"
+msgstr "My work"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Name"
@@ -14422,6 +14439,10 @@ msgstr "Show all"
 msgid "Show all jurisdictions"
 msgstr "Show all jurisdictions"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "Show everyone's work"
+msgstr "Show everyone's work"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Show less"
 msgstr "Show less"
@@ -15603,6 +15624,10 @@ msgstr "The practice will be removed from your account. Audit history stays reta
 msgid "The practice-scoped record of who changed what, when it changed, and what evidence or reason was attached."
 msgstr "The practice-scoped record of who changed what, when it changed, and what evidence or reason was attached."
 
+#: src/features/dashboard/actions-list.tsx
+msgid "The practice's top 10 open deadlines, ranked by Smart Priority and grouped by workflow status. Each group keeps Smart Priority order."
+msgstr "The practice's top 10 open deadlines, ranked by Smart Priority and grouped by workflow status. Each group keeps Smart Priority order."
+
 #: src/lib/i18n-error.ts
 msgid "The request was invalid. Please review your input and try again."
 msgstr "The request was invalid. Please review your input and try again."
@@ -16197,6 +16222,7 @@ msgstr "Unable to start Microsoft sign-in"
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
+#: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/workload/workload-page.tsx
@@ -17220,6 +17246,7 @@ msgstr "You'll be redirected to Stripe to enter payment details."
 msgid "You're about to create:"
 msgstr "You're about to create:"
 
+#: src/features/dashboard/actions-list.tsx
 #: src/routes/rules.library.tsx
 msgid "You're all caught up"
 msgstr "You're all caught up"
@@ -17334,8 +17361,8 @@ msgid "Your subscription is confirmed and the plan is active."
 msgstr "Your subscription is confirmed and the plan is active."
 
 #: src/features/dashboard/actions-list.tsx
-msgid "Your top 10 open deadlines, ranked by Smart Priority and grouped by workflow status. Each group keeps Smart Priority order."
-msgstr "Your top 10 open deadlines, ranked by Smart Priority and grouped by workflow status. Each group keeps Smart Priority order."
+msgid "Your top 10 open deadlines — assigned to you or unassigned — ranked by Smart Priority and grouped by workflow status."
+msgstr "Your top 10 open deadlines — assigned to you or unassigned — ranked by Smart Priority and grouped by workflow status."
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Your uploaded file stays unchanged — this clean draft is used only after you import."

@@ -24,6 +24,7 @@ import type { SmartPriorityProfile } from '@duedatehq/core/priority'
 import type { SmartPriorityBreakdown } from '@duedatehq/ports/priority'
 import type { Db } from '../client'
 import { evidenceLink } from '../schema/audit'
+import { user } from '../schema/auth'
 import { client } from '../schema/clients'
 import { dashboardBrief, userDashboardVisit } from '../schema/dashboard'
 import { firmProfile } from '../schema/firm'
@@ -35,6 +36,7 @@ import { toSmartPriorityProfile } from './priority-profile'
 
 const OPEN_STATUSES = [...OPEN_OBLIGATION_STATUSES] satisfies ObligationStatus[]
 const EVIDENCE_BATCH_SIZE = 90
+const ASSIGNEE_LOOKUP_BATCH_SIZE = 90
 const DAY_MS = 24 * 60 * 60 * 1000
 const DASHBOARD_DUE_BUCKETS = [
   'overdue',
@@ -61,8 +63,13 @@ export interface DashboardLoadInput {
   asOfDate: string
   windowDays?: number
   topLimit?: number
-  briefScope?: DashboardBriefScope
-  briefUserId?: string | null
+  // Unified page scope ("My work / Everyone"). One field drives BOTH the
+  // daily-brief lookup and row/summary/facet scoping — see
+  // `composeDashboardLoad`. `me` = effective assignee is `scopeUserId`
+  // OR unassigned (an unclaimed deadline must never vanish from every
+  // member's Today — same fallback rule the reminder dispatcher uses).
+  scope?: DashboardBriefScope
+  scopeUserId?: string | null
   clientIds?: string[]
   taxTypes?: string[]
   dueBuckets?: DashboardDueBucket[]
@@ -101,6 +108,12 @@ export interface DashboardRawRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  // EFFECTIVE assignee, resolved by `load()` before compose:
+  // COALESCE(obligation.assignee_id, client.assignee_id) for the id,
+  // with the obligation-level user's display name winning over the
+  // client-level denormalized `assignee_name` (queue parity).
+  assigneeId: string | null
+  assigneeName: string | null
   penaltyFormulaVersion: string | null
   penaltyFactsJson?: unknown
   penaltyFactsVersion?: string | null
@@ -142,6 +155,9 @@ export interface DashboardLoadResult {
   windowDays: number
   summary: {
     openObligationCount: number
+    // Always firm-wide (unscoped), even when `scope: 'me'` — feeds the
+    // "your queue is clear, the firm still has N" empty-state split.
+    firmOpenObligationCount: number
     dueThisWeekCount: number
     needsReviewCount: number
     evidenceGapCount: number
@@ -336,6 +352,19 @@ export function composeDashboardLoad(
 ): DashboardLoadResult {
   const windowDays = input.windowDays ?? 7
   const topLimit = input.topLimit ?? 8
+  // "My work" scope: keep rows whose effective assignee is the viewer —
+  // PLUS unassigned rows. Unassigned must stay visible to every member
+  // (reminder-dispatch parity: unowned work falls back to owners rather
+  // than silently disappearing). A name-only assignment with no bound
+  // user id counts as unassigned — over-showing is the safe failure mode
+  // for a deadline product. Everything downstream (summary, Smart
+  // Priority ranks, triage tabs, facets) is computed from the scoped set
+  // so every number on the page agrees with the visible rows; only
+  // `firmOpenObligationCount` reports the unscoped total.
+  const scopedRows =
+    input.scope === 'me'
+      ? rows.filter((row) => row.assigneeId === null || row.assigneeId === input.scopeUserId)
+      : rows
   const evidenceByObligation = new Map<string, DashboardEvidenceRow[]>()
 
   for (const evidence of evidenceRows) {
@@ -359,7 +388,7 @@ export function composeDashboardLoad(
   const asOf = parseDateOnly(input.asOfDate).getTime()
   const topRowDrafts: Array<Omit<DashboardTopRow, 'smartPriority'>> = []
 
-  for (const row of rows) {
+  for (const row of scopedRows) {
     const days = daysUntilDueFromDate(row.currentDueDate, input.asOfDate)
     const inUrgentWindow = days <= windowDays
     const isOverdue = days < 0
@@ -442,7 +471,8 @@ export function composeDashboardLoad(
     asOfDate: input.asOfDate,
     windowDays,
     summary: {
-      openObligationCount: rows.length,
+      openObligationCount: scopedRows.length,
+      firmOpenObligationCount: rows.length,
       dueThisWeekCount,
       needsReviewCount,
       evidenceGapCount,
@@ -499,6 +529,21 @@ export function makeDashboardRepo(db: Db, firmId: string) {
       .where(eq(firmProfile.id, firmId))
       .limit(1)
     return toSmartPriorityProfile(row?.smartPriorityProfileJson)
+  }
+
+  // Display names for assignee user ids (queue `loadUserNames` parity).
+  // Chunked to stay under D1's 100-bind-param limit.
+  async function loadAssigneeNames(userIds: string[]): Promise<Map<string, string>> {
+    if (userIds.length === 0) return new Map()
+    const reads = []
+    for (let i = 0; i < userIds.length; i += ASSIGNEE_LOOKUP_BATCH_SIZE) {
+      const chunk = userIds.slice(i, i + ASSIGNEE_LOOKUP_BATCH_SIZE)
+      reads.push(
+        db.select({ id: user.id, name: user.name }).from(user).where(inArray(user.id, chunk)),
+      )
+    }
+    const rows = (await Promise.all(reads)).flat()
+    return new Map(rows.map((row) => [row.id, row.name]))
   }
 
   function briefScopePredicate(scope: DashboardBriefScope, userId?: string | null) {
@@ -759,6 +804,11 @@ export function makeDashboardRepo(db: Db, firmId: string) {
           baseDueDate: obligationInstance.baseDueDate,
           currentDueDate: obligationInstance.currentDueDate,
           status: obligationInstance.status,
+          // Per-obligation assignee override + the client-level default
+          // (id for scope matching, denormalized name for display).
+          obligationAssigneeId: obligationInstance.assigneeId,
+          clientAssigneeId: client.assigneeId,
+          clientAssigneeName: client.assigneeName,
           penaltyFormulaVersion: obligationInstance.penaltyFormulaVersion,
           penaltyFactsJson: obligationInstance.penaltyFactsJson,
           penaltyFactsVersion: obligationInstance.penaltyFactsVersion,
@@ -787,30 +837,54 @@ export function makeDashboardRepo(db: Db, firmId: string) {
         .limit(1000)
 
       const obligationIds = rows.map((row) => row.obligationId)
-      const [evidenceRows, overlayDueDateSet, smartPriorityProfile] = await Promise.all([
-        listEvidenceByObligations(obligationIds),
-        listActiveOverlayDueDateSet(db, firmId, obligationIds),
-        loadSmartPriorityProfile(),
-      ])
+      // Resolve display names for every user id an assignee could come
+      // from: obligation-level overrides always, client-level ids only as
+      // a fallback when the denormalized `assignee_name` is missing.
+      const assigneeUserIds = [
+        ...new Set(
+          rows
+            .flatMap((row) => [
+              row.obligationAssigneeId,
+              row.clientAssigneeName ? null : row.clientAssigneeId,
+            ])
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ]
+      const [evidenceRows, overlayDueDateSet, smartPriorityProfile, assigneeNamesById] =
+        await Promise.all([
+          listEvidenceByObligations(obligationIds),
+          listActiveOverlayDueDateSet(db, firmId, obligationIds),
+          loadSmartPriorityProfile(),
+          loadAssigneeNames(assigneeUserIds),
+        ])
       const { statutory: overlayStatutory, internal: overlayInternal } = overlayDueDateSet
       const overlayRows = rows.map((row) => {
         // Pulse postponement moves the statutory filing + payment deadlines to
         // the override date; current_due_date (internal target) is that minus
         // the firm offset. statutoryPenaltyDueDate then defers accrual too.
         const overlayStatutoryDate = overlayStatutory.get(row.obligationId)
+        // Effective assignee: the per-obligation override wins over the
+        // client default (queue + reminder-dispatch parity).
+        const assigneeId = row.obligationAssigneeId ?? row.clientAssigneeId
+        const assigneeName = row.obligationAssigneeId
+          ? (assigneeNamesById.get(row.obligationAssigneeId) ?? row.clientAssigneeName)
+          : (row.clientAssigneeName ??
+            (row.clientAssigneeId ? (assigneeNamesById.get(row.clientAssigneeId) ?? null) : null))
         return Object.assign({}, row, {
           currentDueDate: overlayInternal.get(row.obligationId) ?? row.currentDueDate,
           filingDueDate: overlayStatutoryDate ?? row.filingDueDate,
           paymentDueDate: overlayStatutoryDate ?? row.paymentDueDate,
+          assigneeId,
+          assigneeName,
         })
       })
       const result = composeDashboardLoad(overlayRows, evidenceRows, input, smartPriorityProfile)
       return {
         ...result,
         brief: await findBriefForDisplay({
-          scope: input.briefScope ?? 'firm',
+          scope: input.scope ?? 'firm',
           asOfDate: input.asOfDate,
-          userId: input.briefUserId ?? null,
+          userId: input.scopeUserId ?? null,
         }),
       }
     },

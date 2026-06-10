@@ -18,6 +18,9 @@ export type DashboardBriefRefreshReason =
   | 'due_date_update'
   | 'annual_rollover'
   | 'manual_refresh'
+  // Self-heal for personal ('me') briefs, which have no daily cron: the
+  // dashboard load enqueues this when the viewer's brief is missing/stale.
+  | 'scope_view'
 
 export interface DashboardBriefRefreshMessage {
   type: typeof DASHBOARD_BRIEF_MESSAGE_TYPE
