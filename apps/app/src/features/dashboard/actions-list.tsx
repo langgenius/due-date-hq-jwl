@@ -488,7 +488,7 @@ function ActionsTableRow({
           client name reads as the "for which client?" context
           rather than competing for primary attention. */}
       <TableCell className="text-xs text-text-tertiary">{row.clientName}</TableCell>
-      <TableCell>
+      <TableCell className="w-[400px]">
         {/* 2026-06-04 round 16 (Yuqi page-feedback "should allow
             hover on each row to show more information"): the
             Why-now factor line surfaces Smart Priority reasoning

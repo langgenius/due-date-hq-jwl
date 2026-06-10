@@ -59,15 +59,15 @@ hover:!bg-background-subtle focus-visible:bg-background-subtle focus-visible:out
 
 ## Columns (left → right)
 
-| #   | Column        | Content                                                             | Key classes                                                                                                                                                    |
-| --- | ------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Rank**      | Smart-Priority rank + accent sparkle; tooltip lists why-now factors | `pr-2 pl-[18px]` · `font-mono text-[11px] font-semibold tabular-nums text-text-tertiary` · `<SparklesIcon className="size-2.5 text-text-accent">`              |
-| 2   | **Client**    | Client name (quiet)                                                 | `text-xs text-text-tertiary`                                                                                                                                   |
-| 3   | **Action**    | Verb prompt + WHY-NOW subline                                       | prompt: `text-sm font-normal text-text-secondary group-hover:font-medium group-hover:text-text-primary` · subline: corner glyph + `text-xs text-text-tertiary` |
-| 4   | **Filing**    | Form code chip                                                      | `<TaxCodeBadge>` — mono code chip (`bg-background-subtle font-mono`)                                                                                           |
-| 5   | **Readiness** | Docs x/y indicator                                                  | `<ReadinessIndicator>`                                                                                                                                         |
-| 6   | **Status**    | Status pill (+ extension chip)                                      | `<ObligationStatusReadBadge className="h-6 text-xs">`                                                                                                          |
-| 7   | **Due**       | Due label + date; red on payment-late                               | `pr-[18px] text-right` · date: `text-xs font-medium tabular-nums text-text-tertiary`                                                                           |
+| #   | Column        | Content                                                             | Key classes                                                                                                                                                                        |
+| --- | ------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Rank**      | Smart-Priority rank + accent sparkle; tooltip lists why-now factors | `pr-2 pl-[18px]` · `font-mono text-[11px] font-semibold tabular-nums text-text-tertiary` · `<SparklesIcon className="size-2.5 text-text-accent">`                                  |
+| 2   | **Client**    | Client name (quiet)                                                 | `text-xs text-text-tertiary`                                                                                                                                                       |
+| 3   | **Action**    | Verb prompt + WHY-NOW subline                                       | cell: `w-[400px]` · prompt: `text-sm font-normal text-text-secondary group-hover:font-medium group-hover:text-text-primary` · subline: corner glyph + `text-xs text-text-tertiary` |
+| 4   | **Filing**    | Form code chip                                                      | `<TaxCodeBadge>` — mono code chip (`bg-background-subtle font-mono`)                                                                                                               |
+| 5   | **Readiness** | Docs x/y indicator                                                  | `<ReadinessIndicator>`                                                                                                                                                             |
+| 6   | **Status**    | Status pill (+ extension chip)                                      | `<ObligationStatusReadBadge className="h-6 text-xs">`                                                                                                                              |
+| 7   | **Due**       | Due label + date; red on payment-late                               | `pr-[18px] text-right` · date: `text-xs font-medium tabular-nums text-text-tertiary`                                                                                               |
 
 ### WHY-NOW subline (column 3)
 
