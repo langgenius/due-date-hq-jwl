@@ -1666,15 +1666,25 @@ export function ObligationQueueRoute() {
       assigneeName: t`Assignee`,
       clientState: t`Jurisdiction`,
       clientCounty: t`County`,
-      taxType: t`Tax type`,
+      // 2026-06-10: was "Tax type" — stale since the 2026-06-09
+      // production recreation renamed the column header to "Form"
+      // (the cell is the form-code chip) and moved the broad tax
+      // category to its own TAX column. "Form" matches the header
+      // and stays unambiguous next to the `taxCategory` entry.
+      taxType: t`Form`,
+      taxCategory: t`Tax`,
       // 2026-05-27 (Step 6 #61 — P3): was "Internal Due" — dropped
       // the noun and didn't match the neighbouring "Due date" column
       // header. Restored "date" so the two date-column labels read
       // as a consistent pair.
       currentDueDate: t`Internal due date`,
+      // Header reads "Official due"; the menu spells out "date" so
+      // the date-column entries read as a consistent family.
+      filingDueDate: t`Official due date`,
       dueDateExact: t`Due date`,
       daysUntilDue: t`Days`,
       evidenceCount: t`Evidence`,
+      estimatedExposureCents: t`Exposure`,
       status: t`Status`,
     }),
     [t],

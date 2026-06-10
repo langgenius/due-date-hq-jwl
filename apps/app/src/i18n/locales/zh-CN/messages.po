@@ -8248,7 +8248,7 @@ msgstr "内部截止"
 #: src/routes/obligations.tsx
 #, fuzzy
 msgid "Internal due date"
-msgstr "内部备注已起草"
+msgstr "内部截止日"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/queue/dialogs.tsx
@@ -10773,6 +10773,10 @@ msgstr "官方截止日期"
 #: src/routes/obligations.tsx
 msgid "Official due"
 msgstr "官方截止"
+
+#: src/routes/obligations.tsx
+msgid "Official due date"
+msgstr "官方截止日"
 
 #: src/routes/obligations.tsx
 msgid "Official form or method"
@@ -15504,7 +15508,6 @@ msgstr "税务期间"
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
-#: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
 msgid "Tax type"
 msgstr "税种"

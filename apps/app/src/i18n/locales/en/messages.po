@@ -10708,6 +10708,10 @@ msgid "Official due"
 msgstr "Official due"
 
 #: src/routes/obligations.tsx
+msgid "Official due date"
+msgstr "Official due date"
+
+#: src/routes/obligations.tsx
 msgid "Official form or method"
 msgstr "Official form or method"
 
@@ -15410,7 +15414,6 @@ msgstr "Tax period"
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
-#: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
 msgid "Tax type"
 msgstr "Tax type"
