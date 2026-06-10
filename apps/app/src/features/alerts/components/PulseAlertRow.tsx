@@ -28,7 +28,7 @@ import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatRelativeTime } from '@/lib/utils'
 
-import { useAlertDetailQueryOptions } from '../api'
+import { useAlertDetailFromCacheQueryOptions } from '../api'
 import { changeKindLabel } from './PulseChangeKindChip'
 import { isActiveAlert } from './pulse-alert-chrome'
 
@@ -246,7 +246,10 @@ function PulseAlertRow({
   showAction?: boolean
 }) {
   const { t } = useLingui()
-  const detailQuery = useQuery(useAlertDetailQueryOptions(alert.id))
+  // Cache-only subscription — the date-diff / form fields fill in when the
+  // page's getDetailsBatch seed (or the open drawer's refetch) lands. The
+  // row itself never issues a `pulse.getDetail` request.
+  const detailQuery = useQuery(useAlertDetailFromCacheQueryOptions(alert.id))
   const detail = detailQuery.data
 
   // 2026-06-07 (Pencil g5kKJQ `X6enpJ whyAff` toggle): the

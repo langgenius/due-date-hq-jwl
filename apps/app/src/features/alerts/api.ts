@@ -25,7 +25,9 @@ function normalizeAlertsListLimit(limit: number | undefined): number | undefined
 
 // All alert-related cache invalidation flows through this hook so every
 // mutation (apply, dismiss, revert) refreshes the same surfaces:
-//   - pulse.* engine queries (banner / detail / history)
+//   - pulse.*: everything is stale-marked, but only the mounted list, the
+//     activeCount badges, the priority queue, and the open drawer's detail
+//     refetch immediately (see the refetchType split below)
 //   - dashboard.load (open obligations + risk summary)
 //   - obligations.* — applying/reverting a due-date overlay moves an
 //     obligation's EFFECTIVE due date, so every obligation surface must
@@ -39,7 +41,24 @@ function normalizeAlertsListLimit(limit: number | undefined): number | undefined
 export function useAlertsInvalidation(): () => void {
   const queryClient = useQueryClient()
   return useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
+    // Don't blanket-refetch the pulse namespace — with /alerts mounted that
+    // re-fired EVERY pulse query per mutation (list + source health +
+    // priority queue + activeCount + the N-detail getDetailsBatch + every
+    // seeded getDetail). Instead: mark everything pulse stale WITHOUT
+    // refetching, so any later mount / drawer open still pulls fresh data…
+    void queryClient.invalidateQueries({ queryKey: orpc.pulse.key(), refetchType: 'none' })
+    // …then actively refetch only the surfaces a mutation must update NOW:
+    // the visible list (active or history — only the mounted one refires),
+    // the activeCount badges (sidebar / header / rail), the priority queue
+    // (level pills), and the open drawer's detail. `getDetail.key()` spans
+    // every alert id, but refetchType defaults to 'active' and list rows
+    // subscribe with `enabled: false` (useAlertDetailFromCacheQueryOptions),
+    // so the only live observer is the open drawer — exactly one refetch.
+    void queryClient.invalidateQueries({ queryKey: orpc.pulse.listAlerts.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.pulse.listHistory.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.pulse.activeCount.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.pulse.listPriorityQueue.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.pulse.getDetail.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.calendar.key() })
@@ -203,6 +222,22 @@ export function useAlertDetailQueryOptions(alertId: string | null) {
     // stays network-free; mutations still `invalidate()` (which overrides
     // staleTime) and the drawer's explicit `refetch()` paths are unaffected.
     staleTime: ALERT_DETAIL_STALE_TIME_MS,
+  }
+}
+
+// List rows render a few detail-only fields (old→new due dates, first form)
+// but must NEVER fetch detail themselves — the page already pulls every
+// visible alert's full PulseDetail in ONE `getDetailsBatch` round-trip and
+// seeds each per-alert `getDetail` cache (see useAlertsAffectedClients).
+// `enabled: false` keeps the row a passive cache subscriber: it re-renders
+// when the seed (or an open drawer's refetch) lands, so a cold /alerts load
+// is exactly 1 list + 1 batch instead of ~N parallel `pulse.getDetail` calls
+// beside the identical batch. Rows past the 100-id batch cap render without
+// the date row until their drawer opens (which fills this same cache entry).
+export function useAlertDetailFromCacheQueryOptions(alertId: string) {
+  return {
+    ...useAlertDetailQueryOptions(alertId),
+    enabled: false,
   }
 }
 

@@ -25,6 +25,7 @@ const rpcMocks = vi.hoisted(() => ({
   listHistoryQueryFn: vi.fn(),
   listSourceHealthQueryFn: vi.fn(),
   getDetailsBatchQueryFn: vi.fn(),
+  getDetailQueryFn: vi.fn(),
 }))
 
 vi.mock('@/lib/rpc', () => ({
@@ -55,7 +56,9 @@ vi.mock('@/lib/rpc', () => ({
     },
     pulse: {
       key: () => ['pulse'],
+      activeCount: { key: () => ['pulse', 'activeCount'] },
       listAlerts: {
+        key: () => ['pulse', 'listAlerts'],
         queryOptions: (args: { input: unknown }) => ({
           queryKey: ['pulse', 'listAlerts', args.input],
           queryFn: rpcMocks.listAlertsQueryFn,
@@ -68,6 +71,7 @@ vi.mock('@/lib/rpc', () => ({
         }),
       },
       listHistory: {
+        key: () => ['pulse', 'listHistory'],
         queryOptions: (args: { input: unknown }) => ({
           queryKey: ['pulse', 'listHistory', args.input],
           queryFn: rpcMocks.listHistoryQueryFn,
@@ -92,15 +96,15 @@ vi.mock('@/lib/rpc', () => ({
         }),
       },
       getDetail: {
+        key: () => ['pulse', 'getDetail'],
         queryKey: (args: { input: unknown }) => ['pulse', 'getDetail', args.input],
-        // 2026-06-05 (post-merge regression fix): PulseAlertRow now
-        // prefetches per-alert detail on hover via
-        // `useAlertDetailQueryOptions`, which calls
-        // `orpc.pulse.getDetail.queryOptions`. Stub it so the row
-        // renders without forcing each test to opt in.
+        // 2026-06-10 (P2-4 N+1 fix): rows subscribe with enabled:false via
+        // `useAlertDetailFromCacheQueryOptions` and must never call this.
+        // The stub exists because useQuery still builds options at render,
+        // and the no-fetch regression test below asserts zero calls.
         queryOptions: (args: { input: unknown }) => ({
           queryKey: ['pulse', 'getDetail', args.input],
-          queryFn: async () => null,
+          queryFn: rpcMocks.getDetailQueryFn,
         }),
       },
       // 2026-06-05 (post-merge regression fix): rounds 70-85 wired
@@ -127,6 +131,7 @@ vi.mock('@/lib/rpc', () => ({
       // but `useQuery` still evaluates `queryOptions(...)` at render,
       // so the stub must exist.
       listPriorityQueue: {
+        key: () => ['pulse', 'listPriorityQueue'],
         queryOptions: (args: { input: unknown }) => ({
           queryKey: ['pulse', 'listPriorityQueue', args.input],
           queryFn: async () => ({ items: [] }),
@@ -279,12 +284,29 @@ async function waitFor(assertion: () => void, attempts = 100): Promise<void> {
   }
 }
 
+// 006bc09d made Review the default work queue (Yuqi feedback); fixtures that
+// live in the Active queue (deadline_shift / matched) need a segment switch
+// before their rows render.
+async function selectActiveQueue(): Promise<void> {
+  await waitForText('Active')
+  const segment = Array.from(document.querySelectorAll('button')).find((candidate) =>
+    candidate.textContent?.startsWith('Active'),
+  )
+  expect(segment).toBeTruthy()
+  await act(async () => {
+    segment?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    await Promise.resolve()
+  })
+}
+
 beforeEach(() => {
   bootstrapI18n()
   rpcMocks.listAlertsQueryFn.mockReset()
   rpcMocks.listHistoryQueryFn.mockReset()
   rpcMocks.listSourceHealthQueryFn.mockReset()
   rpcMocks.getDetailsBatchQueryFn.mockReset()
+  rpcMocks.getDetailQueryFn.mockReset()
+  rpcMocks.getDetailQueryFn.mockResolvedValue(null)
   rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [], nextCursor: null })
   rpcMocks.listHistoryQueryFn.mockResolvedValue({ alerts: [], nextCursor: null })
   rpcMocks.listSourceHealthQueryFn.mockResolvedValue({ sources: [] })
@@ -405,6 +427,7 @@ describe('AlertsListPage affected-client batching', () => {
 
     const client = await render(<AlertsListPage embedded />)
 
+    await selectActiveQueue()
     // Wait for the list to settle — the row chrome (count + conf%)
     // marks completion of the render pass that triggered the batch.
     await waitForText('Affects 1 client')
@@ -419,6 +442,23 @@ describe('AlertsListPage affected-client batching', () => {
         detail,
       ),
     )
+  })
+
+  it('never fires per-row getDetail — rows render the date line from the batch-seeded cache', async () => {
+    const detail = alertDetail()
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [detail.alert], nextCursor: null })
+    rpcMocks.getDetailsBatchQueryFn.mockResolvedValue({ details: [detail] })
+
+    await render(<AlertsListPage embedded />)
+
+    await selectActiveQueue()
+    await waitForText('Affects 1 client')
+    // The disabled row observer re-renders when the batch seed lands — the
+    // old→new due-date line is detail-only data, so its presence proves the
+    // cache subscription works without a per-row fetch.
+    await waitForText('Mar 15, 2026')
+    expect(rpcMocks.getDetailQueryFn).not.toHaveBeenCalled()
+    expect(rpcMocks.getDetailsBatchQueryFn).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -470,6 +510,7 @@ describe('AlertsListPage tax area filter', () => {
     rpcMocks.getDetailsBatchQueryFn.mockResolvedValue({ details: [detail] })
 
     await render(<AlertsListPage embedded />)
+    await selectActiveQueue()
 
     // 2026-06-05 (merge with origin/main): the i90PZ row layout
     // from rounds 70-85 shows count-only ("Affects N clients"); the
@@ -495,6 +536,7 @@ describe('AlertsListPage bulk selection (Pencil g5kKJQ)', () => {
     rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
 
     await render(<AlertsListPage embedded />)
+    await selectActiveQueue()
 
     await waitForText('Seeded CA relief')
     // 2026-06-08 (Yuqi "remove"): the "Select all · N dispatches"
@@ -510,6 +552,7 @@ describe('AlertsListPage bulk selection (Pencil g5kKJQ)', () => {
     rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
 
     await render(<AlertsListPage embedded />)
+    await selectActiveQueue()
 
     await waitForText('Seeded CA relief')
     // No bar at rest.
@@ -552,6 +595,7 @@ describe('AlertsListPage status filter scope', () => {
     rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
 
     await render(<AlertsListPage embedded />)
+    await selectActiveQueue()
 
     await waitForText('Seeded CA relief')
     expect(document.querySelector('[aria-label="Filter by alert status"]')).toBeNull()

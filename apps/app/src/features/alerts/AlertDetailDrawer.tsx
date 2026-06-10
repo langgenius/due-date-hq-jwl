@@ -953,7 +953,7 @@ export function AlertDetailDrawer({
         setReviewDialogOpen(false)
         setReviewNote('')
         void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
+        invalidate()
         // 2026-05-26 (Step 6 UX audit #96): future tense "will be
         // sent" suggested an action that hadn't happened yet, even
         // though the API call already completed and queued the
