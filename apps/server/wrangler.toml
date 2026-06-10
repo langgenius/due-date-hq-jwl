@@ -183,9 +183,14 @@ PULSE_BROWSERLESS_URL = "https://production-sfo.browserless.io/content"
 # The old 400-failures were a client bug (invalid fields sent to /content),
 # fixed in browserless.ts. Re-add IDs here only for sources that genuinely need
 # a headless browser. mt/pa render their newsroom list client-side (JS), so a
-# direct fetch sees an empty shell — they need browserless. Verify in prod
+# direct fetch sees an empty shell. 2026-06-10: added the WAF/TLS-blocked hosts
+# (tax.ohio.gov 404s, azdor.gov/michigan.gov/dor.ri.gov/revenue.nh.gov 403,
+# ksrevenue.gov TLS-resets non-browser clients) — 26 ids across 6 hosts,
+# ~7.5 extra browserless fetches/day at their cadences. Verify in prod
 # source-health (/rules/sources) after deploy; revert if browserless regresses.
-PULSE_BROWSERLESS_SOURCE_IDS = "mt.temporary_announcements,pa.temporary_announcements"
+# az.pass_through_entities/az.withholding_due_dates are PDF urls — if /content
+# can't render them, move those two out and try direct PDF fetch instead.
+PULSE_BROWSERLESS_SOURCE_IDS = "mt.temporary_announcements,pa.temporary_announcements,oh.sales_tax_rate_changes,az.temporary_announcements,ks.temporary_announcements,mi.temporary_announcements,nh.temporary_announcements,ri.temporary_announcements,mi.treasury_disaster_relief,az.income_tax,az.individual_estimated_tax,az.fiduciary_income_tax,az.corporate_income_tax,az.pass_through_entities,az.tpt_due_dates,az.withholding_due_dates,ks.income_tax,ks.tax_calendar,mi.income_tax,mi.individual_estimated_tax,mi.fiduciary_income_tax,mi.corporate_income_tax,mi.flow_through_entity_tax,mi.sales_use_tax,mi.withholding_due_dates,mi.ui_wage_report,nh.income_tax,nh.business_tax"
 
 # Current stage uses a single top-level Worker configuration.
 # Add named environments only when each env has its own complete bindings

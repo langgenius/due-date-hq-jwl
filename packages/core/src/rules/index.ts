@@ -2530,10 +2530,14 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
   {
     jurisdiction: 'UT',
     id: 'ut.individual_estimated_tax',
-    title: 'Utah Individual Income Tax Prepayment Coupon (TC-546)',
-    url: 'https://tax.utah.gov/forms/current/tc-546.pdf',
+    title:
+      'Utah Individual Income Tax General Instructions (Due Dates, Extensions and Prepayments)',
+    // 2026-06-10: tc-546.pdf is gone (404 at tax.utah.gov AND files.tax.utah.gov —
+    // the state's own forms index links the dead file). The general-instructions
+    // page carries the TC-546 prepayment/due-date/extension content.
+    url: 'https://incometax.utah.gov/general-instructions',
     sourceType: 'instructions',
-    acquisitionMethod: 'pdf_watch',
+    acquisitionMethod: 'html_watch',
     domains: ['individual_estimated_tax'],
     entityApplicability: ['individual', 'sole_prop'],
     priority: 'high',
@@ -4239,11 +4243,13 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'az.temporary_announcements',
     jurisdiction: 'AZ',
     title: 'Arizona DOR News Center',
+    // 2026-06-10: metadata corrected api_watch/rss → html_watch (the URL is an
+    // HTML news page, not a feed; same fix as RI/ND). azdor.gov WAF-403s
+    // non-browser clients — fetched via browserless (PULSE_BROWSERLESS_SOURCE_IDS).
     url: 'https://azdor.gov/news-center',
     alertCoverageRoles: ['relief_or_disaster_signal'],
-    acquisitionMethod: 'api_watch',
-    adapterKind: 'rss_or_announcement_list',
-    feedUrl: 'https://azdor.gov/news-center',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
   {
     id: 'ca.temporary_announcements',
@@ -4334,11 +4340,13 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ks.temporary_announcements',
     jurisdiction: 'KS',
     title: 'Kansas DOR Press Releases',
+    // 2026-06-10: metadata corrected api_watch/rss → html_watch (HTML page, not
+    // a feed). ksrevenue.gov TLS-blocks non-browser clients — fetched via
+    // browserless (PULSE_BROWSERLESS_SOURCE_IDS).
     url: 'https://www.ksrevenue.gov/pressreleases.html',
     alertCoverageRoles: ['relief_or_disaster_signal'],
-    acquisitionMethod: 'api_watch',
-    adapterKind: 'rss_or_announcement_list',
-    feedUrl: 'https://www.ksrevenue.gov/pressreleases.html',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
   {
     id: 'ky.temporary_announcements',
@@ -4408,10 +4416,12 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'mi.temporary_announcements',
     jurisdiction: 'MI',
     title: 'Michigan Treasury Taxes News',
+    // 2026-06-10: metadata corrected api_watch/rss → html_watch (HTML page, not
+    // a feed). michigan.gov WAF-403s non-browser clients — fetched via
+    // browserless (PULSE_BROWSERLESS_SOURCE_IDS).
     url: 'https://www.michigan.gov/taxes/news',
-    acquisitionMethod: 'api_watch',
-    adapterKind: 'rss_or_announcement_list',
-    feedUrl: 'https://www.michigan.gov/taxes/news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
   {
     id: 'mn.temporary_announcements',
@@ -4490,11 +4500,16 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'nv.temporary_announcements',
     jurisdiction: 'NV',
-    title: 'Nevada Department of Taxation News and Publications',
-    url: 'https://tax.nv.gov/news-publications/',
-    acquisitionMethod: 'api_watch',
-    adapterKind: 'rss_or_announcement_list',
-    feedUrl: 'https://tax.nv.gov/feed/',
+    title: 'Nevada Department of Taxation Tax Notes',
+    // 2026-06-10: repointed. The old WordPress /feed/ has been dead since
+    // 2024-06 (single junk 'Search Results' item) and /news-publications/ is a
+    // bare hub — NV effectively had zero coverage. Tax Notes is the dated
+    // quarterly newsletter index (PDF links), the same pdf_index pattern as ME.
+    url: 'https://tax.nv.gov/news-publications/nevada-tax-notes/',
+    acquisitionMethod: 'pdf_watch',
+    adapterKind: 'pdf_index',
+    sourceNotes:
+      'Quarterly Nevada Tax Notes newsletter index; PDF issues carry due-date and policy announcements.',
   },
   {
     id: 'ny.temporary_announcements',
@@ -4532,13 +4547,17 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'oh.sales_tax_rate_changes',
     jurisdiction: 'OH',
-    title: 'Ohio Department of Taxation Tax Alerts',
-    url: 'https://tax.ohio.gov/taxalerts',
+    title: 'Ohio Department of Taxation Tax Alerts Archive',
+    // 2026-06-10: repointed /taxalerts (subscription hub) → the dated alerts
+    // archive content page. tax.ohio.gov WAF-404s non-browser clients (even its
+    // homepage), so this is fetched via browserless (PULSE_BROWSERLESS_SOURCE_IDS).
+    // OH's only web watch — the parallel oh.temporary_announcements is email-only.
+    url: 'https://tax.ohio.gov/professional/ohtaxalert/taxalertsarchive',
     alertCoverageRoles: ['relief_or_disaster_signal'],
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
     sourceNotes:
-      'Official Ohio Department of Taxation Tax Alerts feed (dated tax-change notices). Replaces The Finder rate-lookup tool, which is an interactive query form, not an announcement stream.',
+      'Official Ohio Department of Taxation Tax Alerts archive (dated tax-change notices). Replaces The Finder rate-lookup tool, which is an interactive query form, not an announcement stream.',
   },
   {
     id: 'ok.temporary_announcements',
@@ -4911,14 +4930,19 @@ export const RULE_SOURCES = hydrateRuleSources([
     // and the prefix gate covers it automatically.
     id: 'fed.irs_inflation_adjustments_2026',
     jurisdiction: 'FED',
-    title: 'IRS Annual Inflation Adjustments — Tax Year 2026 (Rev. Proc.)',
-    url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026',
+    title: 'IRS Annual Inflation Adjustments — Tax Year 2026 (Rev. Proc. 2025-32)',
+    // 2026-06-10: the short URL 404s — the IRS published the TY2026 adjustments
+    // under an OBBB-amended slug. This page being dead since launch is why the
+    // threshold_advisory branch has NEVER fired. backfill baseline so the
+    // already-published page emits its advisory on first successful fetch.
+    url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill',
     sourceType: 'publication',
     acquisitionMethod: 'html_watch',
     cadence: 'pre_season',
     priority: 'high',
     healthStatus: 'healthy',
     isEarlyWarning: false,
+    initialBaselineMode: 'backfill',
     notificationChannels: ['source_change'],
     lastReviewedOn: VERIFIED_AT,
   },

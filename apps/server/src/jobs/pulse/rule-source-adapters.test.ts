@@ -131,7 +131,9 @@ describe('rule source adapters', () => {
     )
 
     const source = hiddenSources.find((candidate) => candidate.jurisdiction === 'AZ')!
-    expect(source.feedUrl).toBe('https://azdor.gov/news-center')
+    // 2026-06-10: AZ's feedUrl was removed (HTML page mis-tagged as a feed);
+    // the hidden mirror derives its fetch URL from `url` now.
+    expect(source.url).toBe('https://azdor.gov/news-center')
     const adapter = createPolicyWatchAdapter(source)
     expect(requiresReviewOnlyPulseAlert(adapter.id)).toBe(false)
     const ohioSource = hiddenSources.find((candidate) => candidate.jurisdiction === 'OH')!
@@ -289,9 +291,12 @@ describe('rule source adapters', () => {
     expect(sources.map((source) => source.id)).not.toContain('oh.temporary_announcements')
 
     const source = sources.find((candidate) => candidate.id === 'az.temporary_announcements')!
+    // 2026-06-10: metadata corrected — the AZ news center is an HTML page
+    // fetched via browserless, not an RSS feed.
     expect(source).toMatchObject({
-      adapterKind: 'rss_or_announcement_list',
-      feedUrl: 'https://azdor.gov/news-center',
+      adapterKind: 'html_announcement_list',
+      acquisitionMethod: 'html_watch',
+      url: 'https://azdor.gov/news-center',
     })
     expect(
       sources.find((candidate) => candidate.id === 'ak.temporary_announcements'),

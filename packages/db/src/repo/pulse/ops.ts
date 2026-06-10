@@ -973,6 +973,18 @@ export function makePulseOpsRepo(db: Db) {
       const checkedAt = input.checkedAt ?? new Date()
       const current = await getSourceStateRow(input.sourceId)
       const consecutiveFailures = (current?.consecutiveFailures ?? 0) + 1
+      // Derive the visible health from the failure streak — nothing ever wrote
+      // 'degraded'/'failing' before, so months-dead sources read healthy in the
+      // sources UI. At the 15-min failure retry cap, 12 failures ≈ 3 hours of
+      // sustained death. recordSourceSuccess resets to healthy.
+      const derivedHealth =
+        current?.healthStatus === 'paused'
+          ? null
+          : consecutiveFailures >= 12
+            ? ('failing' as const)
+            : consecutiveFailures >= 3
+              ? ('degraded' as const)
+              : null
       await db
         .update(pulseSourceState)
         .set({
@@ -980,6 +992,7 @@ export function makePulseOpsRepo(db: Db) {
           nextCheckAt: input.nextCheckAt,
           consecutiveFailures,
           lastError: input.error.slice(0, 500),
+          ...(derivedHealth ? { healthStatus: derivedHealth } : {}),
         })
         .where(eq(pulseSourceState.sourceId, input.sourceId))
     },

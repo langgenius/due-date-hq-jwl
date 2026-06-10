@@ -1538,7 +1538,9 @@ describe('makePulseOpsRepo', () => {
     ).toBe(true)
   })
 
-  it('records source failures without changing CPA-facing health', async () => {
+  it('records early source failures without changing CPA-facing health', async () => {
+    // First two failures stay quiet (transient blips); the streak-derived
+    // degraded/failing transitions are covered in the dedicated test below.
     const sourceState = {
       sourceId: 'irs.disaster',
       tier: 'T1',
@@ -1550,7 +1552,7 @@ describe('makePulseOpsRepo', () => {
       lastSuccessAt: null,
       lastChangeDetectedAt: null,
       nextCheckAt: null,
-      consecutiveFailures: 2,
+      consecutiveFailures: 1,
       lastError: null,
       etag: null,
       lastModified: null,
@@ -1568,7 +1570,7 @@ describe('makePulseOpsRepo', () => {
       | { value?: Record<string, unknown> }
       | undefined
     expect(update?.value).toMatchObject({
-      consecutiveFailures: 3,
+      consecutiveFailures: 2,
       lastError: 'selector_drift',
     })
     expect(update?.value).not.toHaveProperty('healthStatus')
@@ -2169,6 +2171,38 @@ describe('makePulseOpsRepo', () => {
     expect(query.params).toContain('tx.temporary_announcements')
     expect(query.params).toContain('snapshot-new')
     expect(query.sql).toContain('<>')
+  })
+
+  it('derives degraded/failing health from the failure streak and respects paused', async () => {
+    const failureUpdate = async (row: Record<string, unknown>) => {
+      const { db, directStatements } = fakeDb([[row]])
+      await makePulseOpsRepo(db).recordSourceFailure({
+        sourceId: 'oh.sales_tax_rate_changes',
+        nextCheckAt: new Date('2026-06-10T01:00:00.000Z'),
+        error: 'HTTP 404',
+      })
+      const update = directStatements.find((statement) => isKind(statement, 'update')) as {
+        value: Record<string, unknown>
+      }
+      return update.value
+    }
+
+    // 3rd consecutive failure → degraded; 12th → failing.
+    expect(await failureUpdate({ consecutiveFailures: 2, healthStatus: 'healthy' })).toMatchObject({
+      consecutiveFailures: 3,
+      healthStatus: 'degraded',
+    })
+    expect(
+      await failureUpdate({ consecutiveFailures: 11, healthStatus: 'degraded' }),
+    ).toMatchObject({ consecutiveFailures: 12, healthStatus: 'failing' })
+    // Early failures leave the stored health untouched.
+    expect(
+      'healthStatus' in (await failureUpdate({ consecutiveFailures: 0, healthStatus: 'healthy' })),
+    ).toBe(false)
+    // Operator-paused sources are never overwritten by failure streaks.
+    expect(
+      'healthStatus' in (await failureUpdate({ consecutiveFailures: 30, healthStatus: 'paused' })),
+    ).toBe(false)
   })
 
   it('re-drives excerpt-location guard rejections but keeps other guard rejections dead', async () => {
