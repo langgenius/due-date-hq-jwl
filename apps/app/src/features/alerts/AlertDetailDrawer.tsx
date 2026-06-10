@@ -99,6 +99,23 @@ import {
   useAlertPermissions,
 } from './lib/alert-permissions'
 
+// The drawer's window-level hotkeys (A/D, ArrowUp/ArrowDown pager) must go
+// quiet while ANY modal layer is stacked above the drawer — the
+// apply-verification gate, the review-request dialog, AffectedClientsTable's
+// child-owned "Confirm applies" dialog, or a list-page bulk confirm in panel
+// mode. Their focusable controls are <button>s (Base UI Checkbox renders a
+// button), so the INPUT/TEXTAREA target guard never catches them. Base UI
+// keeps Dialog/AlertDialog popups out of the DOM until open (no `keepMounted`
+// in this app), so probing for a mounted popup is a reliable "is a modal up?"
+// check that needs no open-state threading from child- or sibling-owned
+// dialogs. The sheet drawer itself is data-slot="sheet-content", so hotkeys
+// keep working when only the drawer is open.
+const MODAL_LAYER_SELECTOR = '[data-slot="dialog-content"], [data-slot="alert-dialog-content"]'
+
+function isModalLayerOpen(): boolean {
+  return document.querySelector(MODAL_LAYER_SELECTOR) !== null
+}
+
 interface AlertDetailDrawerProps {
   alertId: string | null
   onClose: () => void
@@ -657,6 +674,7 @@ export function AlertDetailDrawer({
       ) {
         return
       }
+      if (isModalLayerOpen()) return
       if (event.key === 'ArrowUp' && onPrev) {
         event.preventDefault()
         onPrev()
@@ -1072,6 +1090,7 @@ export function AlertDetailDrawer({
         return
       }
       if (event.metaKey || event.ctrlKey || event.altKey || isMutating) return
+      if (isModalLayerOpen()) return
       const key = event.key.toLowerCase()
       if (key === 'd' && canDismiss) {
         event.preventDefault()

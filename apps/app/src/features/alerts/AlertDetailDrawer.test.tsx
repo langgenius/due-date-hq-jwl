@@ -1,14 +1,107 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
+import { MemoryRouter } from 'react-router'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { PulseFirmAlertStatus } from '@duedatehq/contracts'
+import type { PulseAlertPublic, PulseDetail, PulseFirmAlertStatus } from '@duedatehq/contracts'
 
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
 
-import { DrawerActions } from './AlertDetailDrawer'
+import { AlertDetailDrawer, DrawerActions } from './AlertDetailDrawer'
+
+const rpcMocks = vi.hoisted(() => ({
+  getDetailQueryFn: vi.fn(),
+  dismissMutationFn: vi.fn(),
+  applyMutationFn: vi.fn(),
+  markReviewedMutationFn: vi.fn(),
+}))
+
+type MutationOpts = Record<string, unknown>
+
+vi.mock('@/lib/rpc', () => ({
+  orpc: {
+    audit: { key: () => ['audit'] },
+    calendar: { key: () => ['calendar'] },
+    dashboard: { load: { key: () => ['dashboard', 'load'] } },
+    notifications: { key: () => ['notifications'] },
+    obligations: { key: () => ['obligations'] },
+    reminders: { key: () => ['reminders'] },
+    workload: { key: () => ['workload'] },
+    firms: {
+      listMine: {
+        queryKey: () => ['firms', 'listMine'],
+        queryOptions: () => ({
+          queryKey: ['firms', 'listMine'],
+          queryFn: async () => [],
+        }),
+      },
+    },
+    rules: {
+      listRules: {
+        queryOptions: (args: { input: unknown }) => ({
+          queryKey: ['rules', 'listRules', args.input],
+          queryFn: async () => [],
+        }),
+      },
+    },
+    pulse: {
+      key: () => ['pulse'],
+      getDetail: {
+        queryKey: (args: { input: unknown }) => ['pulse', 'getDetail', args.input],
+        queryOptions: (args: { input: unknown }) => ({
+          queryKey: ['pulse', 'getDetail', args.input],
+          queryFn: rpcMocks.getDetailQueryFn,
+        }),
+      },
+      listPriorityQueue: {
+        queryOptions: (args: { input: unknown }) => ({
+          queryKey: ['pulse', 'listPriorityQueue', args.input],
+          queryFn: async () => ({ items: [] }),
+        }),
+      },
+      listAlertNotes: {
+        queryKey: (args: { input: unknown }) => ['pulse', 'listAlertNotes', args.input],
+        queryOptions: (args: { input: unknown }) => ({
+          queryKey: ['pulse', 'listAlertNotes', args.input],
+          queryFn: async () => ({ notes: [] }),
+        }),
+      },
+      apply: {
+        mutationOptions: (opts: MutationOpts) => ({
+          ...opts,
+          mutationFn: rpcMocks.applyMutationFn,
+        }),
+      },
+      applyReviewed: {
+        mutationOptions: (opts: MutationOpts) => ({ ...opts, mutationFn: vi.fn() }),
+      },
+      dismiss: {
+        mutationOptions: (opts: MutationOpts) => ({
+          ...opts,
+          mutationFn: rpcMocks.dismissMutationFn,
+        }),
+      },
+      markReviewed: {
+        mutationOptions: (opts: MutationOpts) => ({
+          ...opts,
+          mutationFn: rpcMocks.markReviewedMutationFn,
+        }),
+      },
+      reactivate: { mutationOptions: (opts: MutationOpts) => ({ ...opts, mutationFn: vi.fn() }) },
+      requestReview: {
+        mutationOptions: (opts: MutationOpts) => ({ ...opts, mutationFn: vi.fn() }),
+      },
+      revert: { mutationOptions: (opts: MutationOpts) => ({ ...opts, mutationFn: vi.fn() }) },
+      reviewPriorityMatches: {
+        mutationOptions: (opts: MutationOpts) => ({ ...opts, mutationFn: vi.fn() }),
+      },
+      addAlertNote: { mutationOptions: (opts: MutationOpts) => ({ ...opts, mutationFn: vi.fn() }) },
+    },
+  },
+}))
 import {
   canApplyAlertDeadline,
   canRequestAlertReview,
@@ -217,5 +310,217 @@ describe('Pulse due-date apply readiness helpers', () => {
     expect(isNoActionReviewAlert(detail)).toBe(true)
     expect(hasMissingDeadlineDetails(detail)).toBe(false)
     expect(canApplyAlertDeadline(detail)).toBe(false)
+  })
+})
+
+const SEED_ALERT_ID = '12121212-1212-4121-8121-121212121212'
+
+function hotkeyAlert(): PulseAlertPublic {
+  return {
+    id: SEED_ALERT_ID,
+    pulseId: '34343434-3434-4343-8343-343434343434',
+    status: 'matched',
+    sourceStatus: 'approved',
+    changeKind: 'deadline_shift',
+    actionMode: 'due_date_overlay',
+    firmImpact: 'matched',
+    title: 'Seeded CA relief',
+    source: 'CA FTB',
+    sourceUrl: 'https://example.com/source',
+    summary: 'California posted deadline relief.',
+    publishedAt: '2026-05-01T00:00:00.000Z',
+    dismissedAt: null,
+    appliedAt: null,
+    matchedCount: 1,
+    needsReviewCount: 0,
+    applyReadiness: { status: 'ready', missing: [] },
+    duplicateSourceSnapshotCount: 0,
+    confidence: 0.9,
+    isSample: false,
+    jurisdiction: 'CA',
+    taxAreas: [],
+    forms: [],
+  }
+}
+
+function hotkeyDetail(): PulseDetail {
+  return {
+    alert: hotkeyAlert(),
+    jurisdiction: 'CA',
+    counties: [],
+    forms: ['1065'],
+    entityTypes: ['llc'],
+    originalDueDate: '2026-03-15',
+    newDueDate: '2026-10-15',
+    effectiveFrom: null,
+    effectiveUntil: null,
+    affectedRuleIds: [],
+    reverifyRuleIds: [],
+    structuredChange: null,
+    sourceExcerpt: 'Excerpt.',
+    reviewedAt: null,
+    applyReadiness: { status: 'ready', missing: [] },
+    affectedClients: [
+      {
+        obligationId: '99999999-9999-4999-8999-999999999999',
+        clientId: '88888888-8888-4888-8888-888888888888',
+        clientName: 'Seeded Client Co',
+        state: 'CA',
+        county: null,
+        entityType: 'llc',
+        taxType: '1065',
+        currentDueDate: '2026-03-15',
+        newDueDate: '2026-10-15',
+        status: 'pending',
+        matchStatus: 'eligible',
+        reason: null,
+      },
+    ],
+  }
+}
+
+async function waitForText(text: string, attempts = 100): Promise<void> {
+  if (document.body.textContent?.includes(text)) return
+  if (attempts > 0) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    })
+    return waitForText(text, attempts - 1)
+  }
+  throw new Error(`Expected text not found: ${text}; body=${document.body.textContent ?? ''}`)
+}
+
+async function pressKey(key: string, target?: Element | null) {
+  // Async act flush: mutations fire their mutationFn on a microtask after
+  // `mutate()`, and Base UI state updates settle the same way.
+  await act(async () => {
+    const event = new KeyboardEvent('keydown', { key, bubbles: true })
+    if (target) target.dispatchEvent(event)
+    else window.dispatchEvent(event)
+    await Promise.resolve()
+  })
+}
+
+async function renderHotkeyDrawer({
+  onPrev = vi.fn(),
+  onNext = vi.fn(),
+}: { onPrev?: () => void; onNext?: () => void } = {}) {
+  container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  // useAlertPermissions reads the firm role from this cache entry; 'owner'
+  // unlocks apply/dismiss so the hotkeys are live.
+  client.setQueryData(
+    ['firms', 'listMine'],
+    [
+      {
+        id: 'firm-1',
+        name: 'Test Firm',
+        isCurrent: true,
+        role: 'owner',
+        plan: 'pro',
+        coordinatorCanSeeDollars: false,
+      },
+    ],
+  )
+
+  await act(async () => {
+    root?.render(
+      <MemoryRouter initialEntries={['/alerts']}>
+        <QueryClientProvider client={client}>
+          <AppI18nProvider>
+            <AlertDetailDrawer
+              alertId={SEED_ALERT_ID}
+              mode="panel"
+              onClose={vi.fn()}
+              onPrev={onPrev}
+              onNext={onNext}
+              position={{ index: 0, total: 3 }}
+            />
+          </AppI18nProvider>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    )
+  })
+  await waitForText('Seeded CA relief')
+  return { onPrev, onNext }
+}
+
+describe('AlertDetailDrawer hotkeys behind modal layers', () => {
+  beforeEach(() => {
+    rpcMocks.getDetailQueryFn.mockReset()
+    rpcMocks.dismissMutationFn.mockReset()
+    rpcMocks.applyMutationFn.mockReset()
+    rpcMocks.markReviewedMutationFn.mockReset()
+    rpcMocks.getDetailQueryFn.mockResolvedValue(hotkeyDetail())
+    rpcMocks.dismissMutationFn.mockResolvedValue({})
+    rpcMocks.applyMutationFn.mockResolvedValue({})
+    rpcMocks.markReviewedMutationFn.mockResolvedValue({})
+  })
+
+  it('fires dismiss on D when only the drawer is open', async () => {
+    await renderHotkeyDrawer()
+
+    await pressKey('d')
+
+    expect(rpcMocks.dismissMutationFn).toHaveBeenCalledTimes(1)
+  })
+
+  it('ignores D while the apply-verification dialog is open', async () => {
+    await renderHotkeyDrawer()
+
+    await pressKey('a')
+    await waitForText('Verify the new deadline before applying')
+    const dialog = document.querySelector('[data-slot="dialog-content"]')
+    expect(dialog).not.toBeNull()
+
+    // Reproduce the audit path: the event bubbles from the focusable
+    // checkbox control inside the dialog (Base UI renders a span with
+    // role="checkbox"; the #id sits on its hidden mirror input), which the
+    // INPUT/TEXTAREA target guard never catches.
+    await pressKey(
+      'd',
+      document.querySelector('[data-slot="dialog-content"] [data-slot="checkbox"]'),
+    )
+
+    expect(rpcMocks.dismissMutationFn).not.toHaveBeenCalled()
+    expect(document.querySelector('[data-slot="dialog-content"]')).not.toBeNull()
+  })
+
+  it('keeps the verified checkbox ticked when A is pressed behind the dialog', async () => {
+    await renderHotkeyDrawer()
+
+    await pressKey('a')
+    await waitForText('Verify the new deadline before applying')
+    const checkbox = document.querySelector('[data-slot="dialog-content"] [data-slot="checkbox"]')
+    expect(checkbox).not.toBeNull()
+    await act(async () => {
+      // Base UI's checkbox toggles on the keyboard path in happy-dom; a bare
+      // synthetic MouseEvent lacks the pointer fields its click handler reads.
+      checkbox?.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }))
+      checkbox?.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }))
+      await Promise.resolve()
+    })
+    expect(checkbox?.getAttribute('aria-checked')).toBe('true')
+
+    await pressKey('a', checkbox)
+
+    expect(checkbox?.getAttribute('aria-checked')).toBe('true')
+    expect(document.querySelectorAll('[data-slot="dialog-content"]')).toHaveLength(1)
+  })
+
+  it('ignores ArrowUp/ArrowDown paging while a modal dialog is open', async () => {
+    const { onNext } = await renderHotkeyDrawer()
+
+    await pressKey('ArrowDown')
+    expect(onNext).toHaveBeenCalledTimes(1)
+
+    await pressKey('a')
+    await waitForText('Verify the new deadline before applying')
+
+    await pressKey('ArrowDown')
+    await pressKey('ArrowUp')
+    expect(onNext).toHaveBeenCalledTimes(1)
   })
 })
