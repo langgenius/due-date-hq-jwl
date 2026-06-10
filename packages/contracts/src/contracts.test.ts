@@ -1646,6 +1646,8 @@ describe('@duedatehq/contracts', () => {
       'coverage',
       'listCatalogRelease',
       'previewObligations',
+      'listRuleNotes',
+      'addRuleNote',
     ])
 
     const source = RuleSourceSchema.parse({
