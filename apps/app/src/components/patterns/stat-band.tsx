@@ -71,12 +71,16 @@ export function StatBand({
   ariaLabel?: string
 }) {
   if (loading) {
-    return <Skeleton className="h-[132px] w-full rounded-none" />
+    return <Skeleton className="h-[100px] w-full rounded-none" />
   }
   return (
     <section
       aria-label={ariaLabel}
-      className="grid shrink-0 grid-cols-2 gap-y-6 border-y border-divider-subtle py-7 sm:flex sm:items-start sm:gap-y-0"
+      // 2026-06-10 (Yuqi "occupied too much space. be information dense and
+      // clean"): tightened the band — py-7→py-4, column gap-2→gap-1, number
+      // 32→26 — so it carries the same info in ~40px less height. The shared
+      // band drives all 5 summary surfaces, so they all densify together.
+      className="grid shrink-0 grid-cols-2 gap-y-4 border-y border-divider-subtle py-4 sm:flex sm:items-start sm:gap-y-0"
     >
       {stats.map((stat) => {
         const body = (
@@ -86,7 +90,7 @@ export function StatBand({
             </span>
             <span
               className={cn(
-                'text-[32px] leading-none font-medium tracking-tight tabular-nums',
+                'text-[26px] leading-none font-medium tracking-tight tabular-nums',
                 stat.valueClass ?? 'text-text-primary',
               )}
             >
@@ -105,7 +109,7 @@ export function StatBand({
           </>
         )
 
-        const columnClass = 'flex min-w-0 flex-1 flex-col gap-2 px-5'
+        const columnClass = 'flex min-w-0 flex-1 flex-col gap-1 px-5'
         // Interactive columns gain a hover wash + focus ring so they read
         // as tappable; the read-only column stays dead-quiet.
         const interactiveClass = cn(
