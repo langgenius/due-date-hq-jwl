@@ -1306,6 +1306,44 @@ describe('makePulseOpsRepo', () => {
     expect(directStatements).toHaveLength(0)
   })
 
+  it('refreshes an approved pulse after a duplicate fold without resurrecting handled alerts', async () => {
+    // Duplicate-extract folds re-run the fan-out for counts; the conflict
+    // update must NOT include status, or every tenant's dismissed/applied
+    // alert flips back to 'matched' whenever a page re-snapshots.
+    const approvedPulse = {
+      id: 'pulse-approved',
+      status: 'approved' as const,
+      actionMode: 'review_only' as const,
+      changeKind: 'protective_claim_window' as const,
+      parsedJurisdiction: 'FED',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      reverifyRuleIdsJson: [],
+      structuredChangeJson: { kind: 'protective_claim_window', actionDeadline: '2026-07-10' },
+    }
+    const { db, directStatements } = fakeDb([
+      [approvedPulse], // wrapper status guard
+      [approvedPulse], // getPulse inside the fan-out
+      [{ id: 'firm-a' }], // active firms
+      [{ firmId: 'firm-a', clientId: 'client-a', taxType: 'federal_1040' }], // protective scan
+    ])
+
+    const count = await makePulseOpsRepo(db).refreshFirmAlertsForApprovedPulse('pulse-approved')
+
+    expect(count).toBe(1)
+    const upsert = directStatements.find(
+      (statement) =>
+        isKind(statement, 'insert') && statementHasValue(statement, { firmId: 'firm-a' }),
+    ) as { onConflictDoUpdate: ReturnType<typeof vi.fn> }
+    const conflictArg = upsert.onConflictDoUpdate.mock.calls[0]?.[0] as {
+      set: Record<string, unknown>
+    }
+    expect(conflictArg.set).not.toHaveProperty('status')
+    expect(conflictArg.set).toHaveProperty('needsReviewCount')
+  })
+
   it('sweeps still-open windows to all active firms without resurrecting dismissals', async () => {
     // Periodic sweep fans out to ALL firms; preserveStatus means the conflict
     // update refreshes counts but does not flip a dismissed alert to 'matched'.

@@ -582,7 +582,9 @@ export function makePulseOpsRepo(db: Db) {
         async (alert): Promise<NewEmailOutbox> => ({
           id: crypto.randomUUID(),
           firmId: alert.firmId,
-          externalId: `pulse-review:${alert.firmId}:${approvedPulse.id}:${now.getTime()}`,
+          // Deterministic (no timestamp): uq_email_outbox_external_id dedupes
+          // a re-fan-out of the same pulse instead of re-emailing every firm.
+          externalId: `pulse-review:${alert.firmId}:${approvedPulse.id}`,
           type: 'pulse_digest',
           status: 'pending',
           payloadJson: {
@@ -621,7 +623,12 @@ export function makePulseOpsRepo(db: Db) {
     )
     const writes: BatchItem<'sqlite'>[] = []
     for (const chunk of chunkRows(reviewEmails, EMAIL_BATCH_SIZE)) {
-      writes.push(db.insert(emailOutbox).values(chunk))
+      writes.push(
+        db
+          .insert(emailOutbox)
+          .values(chunk)
+          .onConflictDoNothing({ target: emailOutbox.externalId }),
+      )
     }
     for (const chunk of chunkRows(reviewNotifications, NOTIFICATION_BATCH_SIZE)) {
       writes.push(db.insert(inAppNotification).values(chunk))
@@ -1213,10 +1220,14 @@ export function makePulseOpsRepo(db: Db) {
       return duplicate?.id ?? null
     },
 
+    // Duplicate-extract re-observation of an already-approved pulse: refresh
+    // counts (and reach firms created since approval) but never flip a firm's
+    // dismissed/handled alert back to 'matched' — without preserveStatus a
+    // re-snapshotted page reset every tenant's handled alerts.
     async refreshFirmAlertsForApprovedPulse(pulseId: string): Promise<number> {
       const row = await getPulse(pulseId)
       if (!row || row.status !== 'approved') return 0
-      return refreshFirmAlertsForPulse(pulseId)
+      return refreshFirmAlertsForPulse(pulseId, { preserveStatus: true })
     },
 
     /**
@@ -1640,7 +1651,9 @@ export function makePulseOpsRepo(db: Db) {
             async (alert): Promise<NewEmailOutbox> => ({
               id: crypto.randomUUID(),
               firmId: alert.firmId,
-              externalId: `pulse-approved:${alert.firmId}:${input.pulseId}:${now.getTime()}`,
+              // Deterministic (no timestamp): a re-approve dedupes on
+              // uq_email_outbox_external_id instead of re-emailing every firm.
+              externalId: `pulse-approved:${alert.firmId}:${input.pulseId}`,
               type: 'pulse_digest',
               status: 'pending',
               payloadJson: {
@@ -1680,7 +1693,14 @@ export function makePulseOpsRepo(db: Db) {
         )
         const writes: BatchItem<'sqlite'>[] = [db.insert(auditEvent).values(audits)]
         for (const chunk of chunkRows(approvedEmails, EMAIL_BATCH_SIZE)) {
-          writes.push(db.insert(emailOutbox).values(chunk))
+          // onConflictDoNothing also keeps a uniqueness throw from rolling
+          // back the whole atomic approval batch (audits + notifications).
+          writes.push(
+            db
+              .insert(emailOutbox)
+              .values(chunk)
+              .onConflictDoNothing({ target: emailOutbox.externalId }),
+          )
         }
         for (const chunk of chunkRows(approvedNotifications, NOTIFICATION_BATCH_SIZE)) {
           writes.push(db.insert(inAppNotification).values(chunk))
