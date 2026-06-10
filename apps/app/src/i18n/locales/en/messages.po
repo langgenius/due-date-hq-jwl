@@ -1428,10 +1428,6 @@ msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · 
 msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
 msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
 
-#: src/routes/obligations.tsx
-msgid "<0>Esc</0> to close"
-msgstr "<0>Esc</0> to close"
-
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "~5 minutes of focused work"
 msgstr "~5 minutes of focused work"
@@ -2410,6 +2406,7 @@ msgstr "all"
 #: src/features/rules/jurisdiction-rule-table.tsx
 #: src/features/rules/sources-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
+#: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
 msgid "All"
 msgstr "All"
@@ -2535,11 +2532,8 @@ msgstr "All set up"
 msgid "All sources healthy"
 msgstr "All sources healthy"
 
-#: src/routes/obligations.tsx
-msgid "All Status"
-msgstr "All Status"
-
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 msgid "All statuses"
 msgstr "All statuses"
@@ -3978,10 +3972,6 @@ msgstr "Cleared from {0}"
 #: src/routes/obligations.tsx
 msgid "Cleared from {before}"
 msgstr "Cleared from {before}"
-
-#: src/routes/obligations.tsx
-msgid "Click any row to open the triage drawer"
-msgstr "Click any row to open the triage drawer"
 
 #: src/routes/dashboard.tsx
 msgid "Click to refresh"
@@ -5753,6 +5743,10 @@ msgstr "Decision memo (required)"
 msgid "Decision memo is required."
 msgstr "Decision memo is required."
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Decisions are recorded in the audit ledger."
+msgstr "Decisions are recorded in the audit ledger."
+
 #: src/routes/obligations.tsx
 msgid "Default"
 msgstr "Default"
@@ -7289,6 +7283,7 @@ msgstr "Filter by scope"
 msgid "Filter by state"
 msgstr "Filter by state"
 
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Filter by status"
 msgstr "Filter by status"
@@ -9887,6 +9882,10 @@ msgstr "Next week"
 msgid "Next years"
 msgstr "Next years"
 
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Next:"
+msgstr "Next:"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "No"
 msgstr "No"
@@ -12028,10 +12027,6 @@ msgstr "Preparing your mapping"
 #: src/features/audit/audit-log-labels.ts
 msgid "Preset"
 msgstr "Preset"
-
-#: src/routes/obligations.tsx
-msgid "Press <0>↵</0> to jump to the full page"
-msgstr "Press <0>↵</0> to jump to the full page"
 
 #: src/routes/rules.library.tsx
 msgid "Press Escape to close the review queue."

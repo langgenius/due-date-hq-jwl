@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useMemo } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
 
@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatRelativeTime } from '@/lib/utils'
+import { parseBriefText } from './brief-text'
 
 type DashboardBriefCitation = NonNullable<DashboardBriefPublic['citations']>[number]
 
@@ -159,19 +160,96 @@ export function DailyBriefCard({
           <Trans>We couldn't generate today's brief. Try again, or check back shortly.</Trans>
         </p>
       ) : brief.text ? (
-        <p className="text-sm leading-[1.5] font-normal text-text-primary">
-          <BriefProse
-            text={brief.text}
-            citations={brief.citations}
-            onOpenObligation={onOpenObligation}
-          />
-        </p>
+        <BriefBody
+          text={brief.text}
+          citations={brief.citations}
+          onOpenObligation={onOpenObligation}
+        />
       ) : (
         <p className="text-sm text-text-tertiary">
           <Trans>No brief for this view yet.</Trans>
         </p>
       )}
     </section>
+  )
+}
+
+/**
+ * Structured brief body (2026-06-10 Yuqi: "brief 太乱太大，不够清晰不够有
+ * 条理 — 要尽量简洁直观"). The stored text is the consumer's flattened
+ * headline/items/footer format; rendering it in one <p> collapsed the
+ * newlines into a wall of prose. Parse it back apart (brief-text.ts) and
+ * render:
+ *   • headline — one 14/500 lead line, the at-a-glance takeaway
+ *   • items — one compact line each: why-clause in primary ink, then the
+ *     verification step toned down ("Next: …" in tertiary), citation
+ *     chips inline via BriefProse. A muted dot anchors each line start.
+ *   • footer — DROPPED. It's the model's generic compliance closer
+ *     ("review all pending items…"): bulk without information. The
+ *     brief@v1 prompt now also tells the model to omit it.
+ * Plain prose with no numbered items (e.g. the zero-risk brief) falls
+ * back to the original single-paragraph rendering, so unknown shapes
+ * never lose content.
+ */
+function BriefBody({
+  text,
+  citations,
+  onOpenObligation,
+}: {
+  text: string
+  citations: DashboardBriefPublic['citations']
+  onOpenObligation: (obligationId: string) => void
+}) {
+  const parsed = useMemo(() => parseBriefText(text), [text])
+  if (parsed.items.length === 0) {
+    return (
+      <p className="text-sm leading-[1.5] font-normal text-text-primary">
+        <BriefProse text={text} citations={citations} onOpenObligation={onOpenObligation} />
+      </p>
+    )
+  }
+  return (
+    <div className="flex flex-col gap-1.5">
+      {parsed.headline ? (
+        <p className="text-sm leading-[1.5] font-medium text-text-primary">
+          <BriefProse
+            text={parsed.headline}
+            citations={citations}
+            onOpenObligation={onOpenObligation}
+          />
+        </p>
+      ) : null}
+      <ul className="flex flex-col gap-1">
+        {parsed.items.map((item, index) => (
+          <li
+            key={`${index}:${item.text}`}
+            className="flex items-baseline gap-2 text-sm leading-[1.5]"
+          >
+            <span aria-hidden className="select-none text-text-muted">
+              •
+            </span>
+            <span className="min-w-0 text-text-primary">
+              <BriefProse
+                text={item.text}
+                citations={citations}
+                onOpenObligation={onOpenObligation}
+              />
+              {item.nextCheck ? (
+                <span className="text-text-tertiary">
+                  {' '}
+                  <Trans>Next:</Trans>{' '}
+                  <BriefProse
+                    text={item.nextCheck}
+                    citations={citations}
+                    onOpenObligation={onOpenObligation}
+                  />
+                </span>
+              ) : null}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 

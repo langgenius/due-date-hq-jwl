@@ -147,16 +147,16 @@ Dashboard snapshot and source refs. Output strict JSON only.
 
 Return:
 {
-  "headline": "<one sentence, <= 18 words>",
+  "headline": "<one sentence, <= 14 words — the takeaway itself>",
   "items": [
     {
       "obligationId": "<one provided obligation id>",
-      "summary": "<why this item should be reviewed first, <= 24 words>",
-      "nextCheck": "<one concrete CPA verification step, <= 18 words>",
+      "summary": "<why this item should be reviewed first, <= 16 words, lead with the filing/payment subject>",
+      "nextCheck": "<one concrete CPA verification step, <= 14 words, imperative>",
       "citationRefs": [1]
     }
   ],
-  "footer": "<optional closing sentence, <= 18 words>"
+  "footer": "<omit unless it adds a concrete cross-item risk>"
 }
 
 Rules:
@@ -167,6 +167,12 @@ Rules:
 - Do not say "AI confirmed", "guaranteed", or "no penalty will apply".
 - If evidence is missing, say what to verify; do not invent a source.
 - Keep language operational and calm.
+- 2026-06-10 (brief readability): no label prefixes in the headline
+  ("Weekly triage brief:", "Daily brief:") — start with the takeaway.
+- Do not restate urgency adjectives item after item ("This critical…");
+  state the subject, the date, and the gap once each.
+- Omit the footer entirely rather than writing a generic compliance
+  reminder ("review all pending items…", "to ensure compliance…").
 
 Retention: Do not retain any data seen for training.
 PII handling: client names may be placeholders; do not add new personal data.
