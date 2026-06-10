@@ -17,6 +17,130 @@ import { recordPulseMetric } from '../pulse/metrics'
 export const RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE = 'rule.concreteDraft.generate'
 const DEFAULT_PREWARM_LIMIT = 25
 
+// A source-defined-rule draft that has failed this many times within the window
+// is abandoned (not re-enqueued) until those failures age out — this breaks the
+// every-catalog-sync re-enqueue loop when the AI provider is down or the system
+// budget is exhausted, while still auto-recovering once it succeeds again.
+export const CONCRETE_DRAFT_ABANDON_FAILURES = 3
+export const CONCRETE_DRAFT_ABANDON_WINDOW_MS = 6 * 60 * 60 * 1000
+// The abandon window alone still duty-cycles under a PERSISTENT outage (failures
+// age out every 6h → every rule re-fails ~10x/day forever). Two more layers:
+// a health gate over recent rule_concrete_draft outcomes (mirrors the pulse
+// extract-retry sweep) that shrinks the sweep to a single canary while the
+// provider is down, and a longer "park" for rules that keep failing on their
+// own (bad source text) even when the provider is healthy.
+export const CONCRETE_DRAFT_HEALTH_WINDOW_MS = 6 * 60 * 60 * 1000
+const CONCRETE_DRAFT_HEALTH_MIN_FAILURES = 3
+export const CONCRETE_DRAFT_PARK_FAILURES = 12
+export const CONCRETE_DRAFT_PARK_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
+
+/**
+ * Healthy by default when there's no recent data, so a quiet/new system still
+ * backfills promptly; any recent success reopens the sweep; only "several
+ * recent failures and zero successes" closes it.
+ */
+export function isConcreteDraftAiHealthy(health: { ok: number; failed: number }): boolean {
+  return health.ok > 0 || health.failed < CONCRETE_DRAFT_HEALTH_MIN_FAILURES
+}
+
+// Structural slice of makeAiRepo so tests can pass plain vi.fn() doubles.
+interface ConcreteDraftSweepAiRepo {
+  findSuccessfulGlobalRunsByContextRefs(input: {
+    kind: 'rule_concrete_draft'
+    inputContextRefs: readonly string[]
+    promptVersion: string
+  }): Promise<Array<{ inputContextRef: string | null }>>
+  findGlobalContextRefsWithRecentFailures(input: {
+    kind: 'rule_concrete_draft'
+    inputContextRefs: readonly string[]
+    promptVersion: string
+    minFailures: number
+    since: Date
+  }): Promise<Set<string>>
+  countGlobalRunOutcomes(input: {
+    kind: 'rule_concrete_draft'
+    promptVersion: string
+    since: Date
+  }): Promise<{ ok: number; failed: number }>
+}
+
+/**
+ * Shared target selection for both concrete-draft sweeps (catalog sync and the
+ * prewarm helper): drop cached/abandoned/parked refs, then health-gate the rest.
+ * `alwaysRetry` items (changed/new rules — their source moved) bypass every
+ * filter including the gate. When gated, exactly ONE non-alwaysRetry candidate
+ * goes out as the canary that re-detects provider recovery; abandon/park
+ * naturally rotate which rule serves as canary.
+ */
+export async function selectConcreteDraftSweepTargets<T>(input: {
+  aiRepo: ConcreteDraftSweepAiRepo
+  items: ReadonlyArray<{ item: T; contextRef: string; alwaysRetry: boolean }>
+  now: Date
+}): Promise<{
+  targets: T[]
+  cached: number
+  gated: boolean
+  health: { ok: number; failed: number }
+}> {
+  if (input.items.length === 0) {
+    return { targets: [], cached: 0, gated: false, health: { ok: 0, failed: 0 } }
+  }
+  const inputContextRefs = input.items.map((entry) => entry.contextRef)
+  const [cachedRuns, abandoned, parked, health] = await Promise.all([
+    input.aiRepo.findSuccessfulGlobalRunsByContextRefs({
+      kind: 'rule_concrete_draft',
+      inputContextRefs,
+      promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+    }),
+    input.aiRepo.findGlobalContextRefsWithRecentFailures({
+      kind: 'rule_concrete_draft',
+      inputContextRefs,
+      promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+      minFailures: CONCRETE_DRAFT_ABANDON_FAILURES,
+      since: new Date(input.now.getTime() - CONCRETE_DRAFT_ABANDON_WINDOW_MS),
+    }),
+    input.aiRepo.findGlobalContextRefsWithRecentFailures({
+      kind: 'rule_concrete_draft',
+      inputContextRefs,
+      promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+      minFailures: CONCRETE_DRAFT_PARK_FAILURES,
+      since: new Date(input.now.getTime() - CONCRETE_DRAFT_PARK_WINDOW_MS),
+    }),
+    input.aiRepo.countGlobalRunOutcomes({
+      kind: 'rule_concrete_draft',
+      promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+      since: new Date(input.now.getTime() - CONCRETE_DRAFT_HEALTH_WINDOW_MS),
+    }),
+  ])
+  const cachedContextRefs = new Set(
+    cachedRuns.map((run) => run.inputContextRef).filter((ref): ref is string => ref !== null),
+  )
+  const eligible = input.items.filter(
+    (entry) =>
+      entry.alwaysRetry ||
+      (!cachedContextRefs.has(entry.contextRef) &&
+        !abandoned.has(entry.contextRef) &&
+        !parked.has(entry.contextRef)),
+  )
+  if (isConcreteDraftAiHealthy(health)) {
+    return {
+      targets: eligible.map((entry) => entry.item),
+      cached: cachedContextRefs.size,
+      gated: false,
+      health,
+    }
+  }
+  const canary = eligible.find((entry) => !entry.alwaysRetry)
+  return {
+    targets: [...eligible.filter((entry) => entry.alwaysRetry), ...(canary ? [canary] : [])].map(
+      (entry) => entry.item,
+    ),
+    cached: cachedContextRefs.size,
+    gated: true,
+    health,
+  }
+}
+
 export type RuleConcreteDraftGenerateReason = 'prewarm' | 'source_changed' | 'manual'
 
 export interface RuleConcreteDraftGenerateMessage {
@@ -84,37 +208,26 @@ export function ruleConcreteDraftMessagesForSource(
 
 export async function enqueueMissingRuleConcreteDrafts(
   env: Pick<Env, 'DB' | 'PULSE_QUEUE'>,
-  opts: { limit?: number } = {},
-): Promise<{ inspected: number; cached: number; enqueued: number }> {
+  opts: { limit?: number; now?: Date } = {},
+): Promise<{ inspected: number; cached: number; enqueued: number; gated: boolean }> {
   const targets = listConcreteDraftTargets()
-  if (targets.length === 0) return { inspected: 0, cached: 0, enqueued: 0 }
+  if (targets.length === 0) return { inspected: 0, cached: 0, enqueued: 0, gated: false }
 
   const aiRepo = makeAiRepo(createDb(env.DB), 'global')
-  const contextRefs = targets.map((target) =>
-    cachedConcreteDraftKey({
-      ruleId: target.rule.id,
-      ruleVersion: target.rule.version,
-      sourceId: target.source.id,
-    }),
-  )
-  const cachedRuns = await aiRepo.findSuccessfulGlobalRunsByContextRefs({
-    kind: 'rule_concrete_draft',
-    inputContextRefs: contextRefs,
-    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+  const selection = await selectConcreteDraftSweepTargets({
+    aiRepo,
+    items: targets.map((target) => ({
+      item: target,
+      contextRef: cachedConcreteDraftKey({
+        ruleId: target.rule.id,
+        ruleVersion: target.rule.version,
+        sourceId: target.source.id,
+      }),
+      alwaysRetry: false,
+    })),
+    now: opts.now ?? new Date(),
   })
-  const cachedContextRefs = new Set(cachedRuns.map((run) => run.inputContextRef).filter(Boolean))
-  const missingTargets = targets
-    .filter(
-      (target) =>
-        !cachedContextRefs.has(
-          cachedConcreteDraftKey({
-            ruleId: target.rule.id,
-            ruleVersion: target.rule.version,
-            sourceId: target.source.id,
-          }),
-        ),
-    )
-    .slice(0, opts.limit ?? DEFAULT_PREWARM_LIMIT)
+  const missingTargets = selection.targets.slice(0, opts.limit ?? DEFAULT_PREWARM_LIMIT)
 
   await Promise.all(
     missingTargets.map((target) =>
@@ -129,8 +242,9 @@ export async function enqueueMissingRuleConcreteDrafts(
 
   return {
     inspected: targets.length,
-    cached: cachedContextRefs.size,
+    cached: selection.cached,
     enqueued: missingTargets.length,
+    gated: selection.gated,
   }
 }
 

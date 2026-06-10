@@ -7,12 +7,15 @@ import type { Env } from '../../env'
 import {
   consumeRuleConcreteDraftGenerate,
   enqueueMissingRuleConcreteDrafts,
+  isConcreteDraftAiHealthy,
   RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE,
 } from './concrete-draft'
 
 const { dbMocks, draftMocks, metricsMocks, pulseRepoMocks } = vi.hoisted(() => {
   const aiRepo = {
     findSuccessfulGlobalRunsByContextRefs: vi.fn(),
+    findGlobalContextRefsWithRecentFailures: vi.fn(),
+    countGlobalRunOutcomes: vi.fn(),
   }
   const concreteDraftRepo = {
     upsert: vi.fn(),
@@ -86,6 +89,11 @@ describe('rule concrete draft prewarm jobs', () => {
     dbMocks.makeRuleConcreteDraftRepo.mockClear()
     dbMocks.makePulseOpsRepo.mockClear()
     dbMocks.aiRepo.findSuccessfulGlobalRunsByContextRefs.mockReset()
+    dbMocks.aiRepo.findGlobalContextRefsWithRecentFailures.mockReset()
+    dbMocks.aiRepo.findGlobalContextRefsWithRecentFailures.mockResolvedValue(new Set<string>())
+    dbMocks.aiRepo.countGlobalRunOutcomes.mockReset()
+    // Healthy by default so existing tests keep the ungated sweep behavior.
+    dbMocks.aiRepo.countGlobalRunOutcomes.mockResolvedValue({ ok: 0, failed: 0 })
     dbMocks.concreteDraftRepo.upsert.mockReset()
     dbMocks.concreteDraftRepo.listReadyContextRefs.mockReset()
     dbMocks.concreteDraftRepo.health.mockReset()
@@ -113,6 +121,42 @@ describe('rule concrete draft prewarm jobs', () => {
 
     expect(result.enqueued).toBe(0)
     expect(queueSend).not.toHaveBeenCalled()
+  })
+
+  it('skips rules whose drafts were abandoned by repeat recent failures', async () => {
+    const rule = sourceDefinedRule()
+    const queueSend = vi.fn()
+    dbMocks.aiRepo.findSuccessfulGlobalRunsByContextRefs.mockResolvedValue([])
+    dbMocks.aiRepo.findGlobalContextRefsWithRecentFailures.mockImplementation(
+      async (input: { minFailures: number }) =>
+        input.minFailures === 3
+          ? new Set([`rule:${rule.id}:v${rule.version}:${rule.sourceIds[0]}`])
+          : new Set<string>(),
+    )
+
+    const result = await enqueueMissingRuleConcreteDrafts(env(queueSend), { limit: 5 })
+
+    expect(queueSend).not.toHaveBeenCalledWith(expect.objectContaining({ ruleId: rule.id }))
+    expect(result.gated).toBe(false)
+  })
+
+  it('enqueues only a single canary when recent draft runs are unhealthy', async () => {
+    const queueSend = vi.fn()
+    dbMocks.aiRepo.findSuccessfulGlobalRunsByContextRefs.mockResolvedValue([])
+    dbMocks.aiRepo.countGlobalRunOutcomes.mockResolvedValue({ ok: 0, failed: 4 })
+
+    const result = await enqueueMissingRuleConcreteDrafts(env(queueSend), { limit: 25 })
+
+    expect(result.gated).toBe(true)
+    expect(result.enqueued).toBeLessThanOrEqual(1)
+    expect(queueSend.mock.calls.length).toBeLessThanOrEqual(1)
+  })
+
+  it('classifies sweep health with success-dominant boundaries', () => {
+    expect(isConcreteDraftAiHealthy({ ok: 0, failed: 0 })).toBe(true)
+    expect(isConcreteDraftAiHealthy({ ok: 0, failed: 2 })).toBe(true)
+    expect(isConcreteDraftAiHealthy({ ok: 0, failed: 3 })).toBe(false)
+    expect(isConcreteDraftAiHealthy({ ok: 1, failed: 50 })).toBe(true)
   })
 
   it('continues queue consumption after model or guard failures', async () => {

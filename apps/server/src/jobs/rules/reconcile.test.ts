@@ -45,6 +45,7 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
   const aiRepo = {
     findSuccessfulGlobalRunsByContextRefs: vi.fn(),
     findGlobalContextRefsWithRecentFailures: vi.fn(),
+    countGlobalRunOutcomes: vi.fn(),
   }
   return {
     coreMocks: {
@@ -207,6 +208,8 @@ describe('rule source scan jobs', () => {
     Object.values(dbMocks.aiRepo).forEach((mock) => mock.mockReset())
     dbMocks.aiRepo.findSuccessfulGlobalRunsByContextRefs.mockResolvedValue([])
     dbMocks.aiRepo.findGlobalContextRefsWithRecentFailures.mockResolvedValue(new Set<string>())
+    // Healthy by default so existing tests keep today's (ungated) enqueue behavior.
+    dbMocks.aiRepo.countGlobalRunOutcomes.mockResolvedValue({ ok: 0, failed: 0 })
     dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([])
     dbMocks.opsRepo.deprecateGlobalRuleTemplates.mockResolvedValue(0)
     dbMocks.opsRepo.fanoutReviewTasks.mockResolvedValue({
@@ -615,6 +618,195 @@ describe('rule source scan jobs', () => {
       }),
     )
     expect(result).toEqual({ newRules: 1, changedRules: 1, deprecatedRules: 0, draftMessages: 2 })
+  })
+
+  it('abandons an uncached rule with repeat recent failures but still enqueues changed rules', async () => {
+    const changedRule = sourceDefinedRule({
+      id: 'ca.changed.rule',
+      version: 2,
+      sourceIds: ['ca.ftb_business_due_dates'],
+      evidence: [{ sourceId: 'ca.ftb_business_due_dates' }],
+    })
+    const stuckRule = sourceDefinedRule({
+      id: 'ca.stuck.rule',
+      version: 1,
+      sourceIds: ['ca.ftb_business_due_dates'],
+      evidence: [{ sourceId: 'ca.ftb_business_due_dates' }],
+    })
+    coreMocks.rules.splice(0, coreMocks.rules.length, changedRule, stuckRule)
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([
+      { id: 'ca.changed.rule', version: 1, status: 'available', ruleJson: {}, sourceIds: [] },
+      { id: 'ca.stuck.rule', version: 1, status: 'available', ruleJson: {}, sourceIds: [] },
+    ])
+    dbMocks.aiRepo.findGlobalContextRefsWithRecentFailures.mockImplementation(
+      async (input: { minFailures: number }) =>
+        input.minFailures === 3
+          ? new Set(['rule:ca.stuck.rule:v1:ca.ftb_business_due_dates'])
+          : new Set<string>(),
+    )
+    const queueSend = vi.fn()
+
+    const result = await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env(queueSend) as Env,
+    )
+
+    expect(queueSend).toHaveBeenCalledTimes(1)
+    expect(queueSend).toHaveBeenCalledWith(
+      expect.objectContaining({ ruleId: 'ca.changed.rule', reason: 'prewarm' }),
+    )
+    expect(result.draftMessages).toBe(1)
+  })
+
+  it('parks a rule that keeps failing across the trailing week', async () => {
+    const stuckRule = sourceDefinedRule({
+      id: 'ca.stuck.rule',
+      version: 1,
+      sourceIds: ['ca.ftb_business_due_dates'],
+      evidence: [{ sourceId: 'ca.ftb_business_due_dates' }],
+    })
+    const freshRule = sourceDefinedRule({
+      id: 'ca.fresh.rule',
+      version: 1,
+      sourceIds: ['ca.ftb_business_due_dates'],
+      evidence: [{ sourceId: 'ca.ftb_business_due_dates' }],
+    })
+    coreMocks.rules.splice(0, coreMocks.rules.length, stuckRule, freshRule)
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([
+      { id: 'ca.stuck.rule', version: 1, status: 'available', ruleJson: {}, sourceIds: [] },
+      { id: 'ca.fresh.rule', version: 1, status: 'available', ruleJson: {}, sourceIds: [] },
+    ])
+    // The 6h abandon window is clear (failures aged out), but the 7d park count trips.
+    dbMocks.aiRepo.findGlobalContextRefsWithRecentFailures.mockImplementation(
+      async (input: { minFailures: number }) =>
+        input.minFailures === 12
+          ? new Set(['rule:ca.stuck.rule:v1:ca.ftb_business_due_dates'])
+          : new Set<string>(),
+    )
+    const queueSend = vi.fn()
+
+    await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env(queueSend) as Env,
+    )
+
+    expect(queueSend).toHaveBeenCalledTimes(1)
+    expect(queueSend).toHaveBeenCalledWith(expect.objectContaining({ ruleId: 'ca.fresh.rule' }))
+    const failureCalls = dbMocks.aiRepo.findGlobalContextRefsWithRecentFailures.mock.calls.map(
+      (call) => (call[0] as { minFailures: number }).minFailures,
+    )
+    expect(failureCalls).toContain(3)
+    expect(failureCalls).toContain(12)
+  })
+
+  it('gates the sweep to a single canary when recent draft runs all fail', async () => {
+    const rules = ['ca.rule.one', 'ca.rule.two', 'ca.rule.three'].map((id) =>
+      sourceDefinedRule({
+        id,
+        version: 1,
+        sourceIds: ['ca.ftb_business_due_dates'],
+        evidence: [{ sourceId: 'ca.ftb_business_due_dates' }],
+      }),
+    )
+    coreMocks.rules.splice(0, coreMocks.rules.length, ...rules)
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue(
+      rules.map((rule) => ({
+        id: rule.id,
+        version: 1,
+        status: 'available',
+        ruleJson: {},
+        sourceIds: [],
+      })),
+    )
+    dbMocks.aiRepo.countGlobalRunOutcomes.mockResolvedValue({ ok: 0, failed: 5 })
+    const queueSend = vi.fn()
+
+    const result = await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env(queueSend) as Env,
+    )
+
+    expect(queueSend).toHaveBeenCalledTimes(1)
+    expect(queueSend).toHaveBeenCalledWith(expect.objectContaining({ ruleId: 'ca.rule.one' }))
+    expect(result.draftMessages).toBe(1)
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'rule.concrete_draft.sweep_gated',
+      expect.objectContaining({ ok: 0, failed: 5, enqueued: 1 }),
+    )
+  })
+
+  it('still enqueues changed rules while the sweep is gated', async () => {
+    const changedRule = sourceDefinedRule({
+      id: 'ca.changed.rule',
+      version: 2,
+      sourceIds: ['ca.ftb_business_due_dates'],
+      evidence: [{ sourceId: 'ca.ftb_business_due_dates' }],
+    })
+    const steadyRules = ['ca.rule.one', 'ca.rule.two'].map((id) =>
+      sourceDefinedRule({
+        id,
+        version: 1,
+        sourceIds: ['ca.ftb_business_due_dates'],
+        evidence: [{ sourceId: 'ca.ftb_business_due_dates' }],
+      }),
+    )
+    coreMocks.rules.splice(0, coreMocks.rules.length, changedRule, ...steadyRules)
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([
+      { id: 'ca.changed.rule', version: 1, status: 'available', ruleJson: {}, sourceIds: [] },
+      ...steadyRules.map((rule) => ({
+        id: rule.id,
+        version: 1,
+        status: 'available',
+        ruleJson: {},
+        sourceIds: [],
+      })),
+    ])
+    dbMocks.aiRepo.countGlobalRunOutcomes.mockResolvedValue({ ok: 0, failed: 9 })
+    const queueSend = vi.fn()
+
+    await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env(queueSend) as Env,
+    )
+
+    expect(queueSend).toHaveBeenCalledTimes(2)
+    expect(queueSend).toHaveBeenCalledWith(expect.objectContaining({ ruleId: 'ca.changed.rule' }))
+    expect(queueSend).toHaveBeenCalledWith(expect.objectContaining({ ruleId: 'ca.rule.one' }))
+  })
+
+  it('reopens the sweep when any recent draft run succeeded', async () => {
+    const rules = ['ca.rule.one', 'ca.rule.two'].map((id) =>
+      sourceDefinedRule({
+        id,
+        version: 1,
+        sourceIds: ['ca.ftb_business_due_dates'],
+        evidence: [{ sourceId: 'ca.ftb_business_due_dates' }],
+      }),
+    )
+    coreMocks.rules.splice(0, coreMocks.rules.length, ...rules)
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue(
+      rules.map((rule) => ({
+        id: rule.id,
+        version: 1,
+        status: 'available',
+        ruleJson: {},
+        sourceIds: [],
+      })),
+    )
+    dbMocks.aiRepo.countGlobalRunOutcomes.mockResolvedValue({ ok: 1, failed: 10 })
+    const queueSend = vi.fn()
+
+    const result = await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env(queueSend) as Env,
+    )
+
+    expect(queueSend).toHaveBeenCalledTimes(2)
+    expect(result.draftMessages).toBe(2)
+    expect(metricsMocks.recordPulseMetric).not.toHaveBeenCalledWith(
+      'rule.concrete_draft.sweep_gated',
+      expect.anything(),
+    )
   })
 
   it('deprecates old catalog templates that are no longer in the current core catalog', async () => {

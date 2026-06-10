@@ -19,14 +19,12 @@ import { announcementItemsFromSnapshotWithPdfLinks } from '@duedatehq/ingest'
 import { fetchTextSnapshot } from '@duedatehq/ingest/http'
 import type { IngestCtx } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
-import {
-  cachedConcreteDraftKey,
-  RULE_CONCRETE_DRAFT_PROMPT,
-} from '../../procedures/rules/concrete-draft'
+import { cachedConcreteDraftKey } from '../../procedures/rules/concrete-draft'
 import { archivePulseRaw, createPoliteFetch, PULSE_SOURCE_FAILURE_RETRY_MS } from '../pulse/ingest'
 import { recordPulseMetric } from '../pulse/metrics'
 import {
   RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE,
+  selectConcreteDraftSweepTargets,
   type RuleConcreteDraftGenerateMessage,
 } from './concrete-draft'
 import { findRuleDateReconciliationIssues } from '../../procedures/rules/rule-date-reconciliation'
@@ -37,13 +35,6 @@ export const RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE = 'rule.registry.catalog.sy
 const WEEKLY_GOVERNANCE_DAY_UTC = 1
 const WEEKLY_GOVERNANCE_HOUR_UTC = 9
 const AUTOMATED_SCAN_METHODS = new Set<RuleSource['acquisitionMethod']>(['html_watch', 'pdf_watch'])
-
-// A source-defined-rule draft that has failed this many times within the window
-// is abandoned (not re-enqueued) until those failures age out — this breaks the
-// every-catalog-sync re-enqueue loop when the AI provider is down or the system
-// budget is exhausted, while still auto-recovering once it succeeds again.
-const CONCRETE_DRAFT_ABANDON_FAILURES = 3
-const CONCRETE_DRAFT_ABANDON_WINDOW_MS = 6 * 60 * 60 * 1000
 
 export interface PulseRuleSourceScanMessage {
   type: typeof PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE
@@ -616,32 +607,30 @@ export async function consumeRuleRegistryCatalogSync(
     }),
   )
   const aiRepo = makeAiRepo(db, 'global')
-  const inputContextRefs = Array.from(contextRefByRuleId.values())
-  const cachedRuns = await aiRepo.findSuccessfulGlobalRunsByContextRefs({
-    kind: 'rule_concrete_draft',
-    inputContextRefs,
-    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
-  })
-  const cachedContextRefs = new Set(cachedRuns.map((run) => run.inputContextRef).filter(Boolean))
   // Drafts that keep failing (provider down / budget exhausted) would otherwise be
-  // re-enqueued every catalog sync — the loop that drained the AI budget. Skip the
-  // repeat-failures, but always (re)try changed/new rules since their source moved.
-  const abandonedContextRefs = await aiRepo.findGlobalContextRefsWithRecentFailures({
-    kind: 'rule_concrete_draft',
-    inputContextRefs,
-    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
-    minFailures: CONCRETE_DRAFT_ABANDON_FAILURES,
-    since: new Date(Date.now() - CONCRETE_DRAFT_ABANDON_WINDOW_MS),
+  // re-enqueued every catalog sync — the loop that drained the AI budget. The shared
+  // selection drops cached/abandoned/parked refs and health-gates the sweep to a
+  // single canary while recent runs all fail; changed/new rules always (re)try
+  // since their source moved.
+  const selection = await selectConcreteDraftSweepTargets({
+    aiRepo,
+    items: sourceDefinedRules.flatMap((rule) => {
+      const contextRef = contextRefByRuleId.get(rule.id)
+      return contextRef
+        ? [{ item: rule, contextRef, alwaysRetry: changedOrNewIds.has(rule.id) }]
+        : []
+    }),
+    now: new Date(),
   })
-  const draftTargets = sourceDefinedRules.filter((rule) => {
-    const contextRef = contextRefByRuleId.get(rule.id)
-    if (!contextRef) return false
-    if (changedOrNewIds.has(rule.id)) return true
-    if (cachedContextRefs.has(contextRef)) return false
-    return !abandonedContextRefs.has(contextRef)
-  })
+  if (selection.gated) {
+    recordPulseMetric('rule.concrete_draft.sweep_gated', {
+      ok: selection.health.ok,
+      failed: selection.health.failed,
+      enqueued: selection.targets.length,
+    })
+  }
   await Promise.all(
-    draftTargets.flatMap((rule) => {
+    selection.targets.flatMap((rule) => {
       const sourceId = primarySourceIdForRule(rule)
       return sourceId
         ? [
@@ -660,13 +649,14 @@ export async function consumeRuleRegistryCatalogSync(
     newRules: newRules.length,
     changedRules: changedRules.length,
     deprecatedRules,
-    draftMessages: draftTargets.length,
+    draftMessages: selection.targets.length,
+    gated: selection.gated,
   })
   return {
     newRules: newRules.length,
     changedRules: changedRules.length,
     deprecatedRules,
-    draftMessages: draftTargets.length,
+    draftMessages: selection.targets.length,
   }
 }
 

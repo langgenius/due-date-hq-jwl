@@ -270,6 +270,40 @@ export function makeAiRepo(db: Db, firmId: string) {
       return abandoned
     },
 
+    /**
+     * Aggregate success/failure outcome of all global-scope runs of one kind +
+     * prompt since the cutoff — the health signal for sweep gating (is the
+     * provider/budget path currently working for THIS job?), mirroring
+     * countRecentExtractionOutcomes on the pulse side. 'ok' guardResults count
+     * as ok; everything else (ai_unavailable, budget_exceeded, schema_fail,
+     * guard_rejected, …) counts as failed.
+     */
+    async countGlobalRunOutcomes(input: {
+      kind: AiOutputKind
+      promptVersion: string
+      since: Date
+    }): Promise<{ ok: number; failed: number }> {
+      const rows = await db
+        .select({ guardResult: aiOutput.guardResult, n: count() })
+        .from(aiOutput)
+        .where(
+          and(
+            isNull(aiOutput.firmId),
+            eq(aiOutput.kind, input.kind),
+            eq(aiOutput.promptVersion, input.promptVersion),
+            gte(aiOutput.generatedAt, input.since),
+          ),
+        )
+        .groupBy(aiOutput.guardResult)
+      let ok = 0
+      let failed = 0
+      for (const row of rows) {
+        if (row.guardResult === 'ok') ok += row.n
+        else failed += row.n
+      }
+      return { ok, failed }
+    },
+
     async recordRun(input: RecordAiRunInput): Promise<{ aiOutputId: string; llmLogId: string }> {
       return recordRunForFirm(firmId, input)
     },

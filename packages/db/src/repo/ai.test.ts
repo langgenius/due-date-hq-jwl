@@ -34,6 +34,20 @@ function createListDb(rows: unknown[]) {
   }
 }
 
+function createGroupByDb(rows: unknown[]) {
+  const groupBy = vi.fn(async () => rows)
+  const where = vi.fn((_expr: SQL) => ({ groupBy }))
+  const from = vi.fn(() => ({ where }))
+  const select = vi.fn(() => ({ from }))
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- focused Drizzle test double.
+    db: { select } as unknown as Db,
+    select,
+    where,
+    groupBy,
+  }
+}
+
 function createRecordDb() {
   const values: unknown[] = []
   const insert = vi.fn(() => ({
@@ -225,6 +239,40 @@ describe('makeAiRepo', () => {
     expect(rows).toHaveLength(1)
     expect(fake.select).toHaveBeenCalledTimes(3)
     expect(fake.orderBy).toHaveBeenCalledTimes(3)
+  })
+
+  it('folds global run outcomes into ok vs failed', async () => {
+    const fake = createGroupByDb([
+      { guardResult: 'ok', n: 2 },
+      { guardResult: 'ai_unavailable', n: 3 },
+      { guardResult: 'budget_exceeded', n: 1 },
+    ])
+    const repo = makeAiRepo(fake.db, 'firm-1')
+
+    const health = await repo.countGlobalRunOutcomes({
+      kind: 'rule_concrete_draft',
+      promptVersion: 'rule-concrete-draft@v2',
+      since: new Date('2026-06-10T00:00:00.000Z'),
+    })
+
+    expect(health).toEqual({ ok: 2, failed: 4 })
+  })
+
+  it('scopes outcome counts to global rows of one kind and prompt since the cutoff', async () => {
+    const fake = createGroupByDb([])
+    const repo = makeAiRepo(fake.db, 'firm-1')
+
+    await repo.countGlobalRunOutcomes({
+      kind: 'rule_concrete_draft',
+      promptVersion: 'rule-concrete-draft@v2',
+      since: new Date('2026-06-10T00:00:00.000Z'),
+    })
+
+    const where = normalizeWhere(fake.where.mock.calls[0]![0])
+    expect(where.sql).toContain('"ai_output"."firm_id" is null')
+    expect(where.sql).toContain('"ai_output"."generated_at" >= ?')
+    expect(where.params).toContain('rule_concrete_draft')
+    expect(where.params).toContain('rule-concrete-draft@v2')
   })
 
   it('records global runs without firm or user ownership', async () => {
