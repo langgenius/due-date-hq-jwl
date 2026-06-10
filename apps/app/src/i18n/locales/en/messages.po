@@ -2307,10 +2307,6 @@ msgstr "Alert source revoked"
 msgid "Alert status"
 msgstr "Alert status"
 
-#: src/routes/billing.tsx
-msgid "Alert summaries and lightweight assistance on your starter book."
-msgstr "Alert summaries and lightweight assistance on your starter book."
-
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/AlertListRail.tsx
 msgid "Alert work queue"
@@ -3215,10 +3211,6 @@ msgstr "Backup codes copied"
 #: src/routes/rules.library.tsx
 msgid "Basic"
 msgstr "Basic"
-
-#: src/routes/billing.tsx
-msgid "Basic AI"
-msgstr "Basic AI"
 
 #. placeholder {0}: shortBatchId(data.batchId)
 #: src/features/migration/SuccessModal.tsx
@@ -4527,14 +4519,6 @@ msgstr "Continue with Microsoft"
 msgid "contract"
 msgstr "contract"
 
-#: src/routes/billing.tsx
-msgid "Contract coverage and audit controls"
-msgstr "Contract coverage and audit controls"
-
-#: src/routes/billing.tsx
-msgid "Contract-level model routing, custom coverage, and audit-grade AI controls."
-msgstr "Contract-level model routing, custom coverage, and audit-grade AI controls."
-
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -4593,10 +4577,6 @@ msgstr "Copy URI"
 #: src/routes/obligations.tsx
 msgid "Copy URL"
 msgstr "Copy URL"
-
-#: src/routes/billing.tsx
-msgid "Core AI access"
-msgstr "Core AI access"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -5359,14 +5339,6 @@ msgstr "Currently on version {0}. Expand for the full edit + review history."
 #: src/routes/billing.tsx
 msgid "Custom agreement"
 msgstr "Custom agreement"
-
-#: src/routes/billing.tsx
-msgid "Custom AI and coverage by contract"
-msgstr "Custom AI and coverage by contract"
-
-#: src/routes/billing.tsx
-msgid "Custom AI routing"
-msgstr "Custom AI routing"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -7011,10 +6983,6 @@ msgstr "Failed"
 msgid "Failed fetches"
 msgstr "Failed fetches"
 
-#: src/routes/billing.tsx
-msgid "Fair-use AI"
-msgstr "Fair-use AI"
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Fallback document list ready"
@@ -7565,10 +7533,6 @@ msgstr "Full client names"
 #: src/routes/settings.profile.tsx
 msgid "Full name"
 msgstr "Full name"
-
-#: src/routes/billing.tsx
-msgid "Full practice AI workflows"
-msgstr "Full practice AI workflows"
 
 #: src/routes/billing.tsx
 msgid "Full Pulse alerts and rule library on a starter book — feel the core value before you scale."
@@ -11799,10 +11763,6 @@ msgid "PRACTICE ACTIVATION"
 msgstr "PRACTICE ACTIVATION"
 
 #: src/routes/billing.tsx
-msgid "Practice AI included"
-msgstr "Practice AI included"
-
-#: src/routes/billing.tsx
 msgid "Practice billing stays scoped to the selected practice."
 msgstr "Practice billing stays scoped to the selected practice."
 
@@ -12030,10 +11990,6 @@ msgstr "Preview recalculates open deadlines without saving changes."
 #: src/features/rules/coverage-tab.tsx
 msgid "Preview selected rules before accepting them into production."
 msgstr "Preview selected rules before accepting them into production."
-
-#: src/routes/billing.tsx
-msgid "Preview-only AI assistance"
-msgstr "Preview-only AI assistance"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Previewing…"
@@ -13678,22 +13634,10 @@ msgstr "S Corporation"
 msgid "Sales & use"
 msgstr "Sales & use"
 
-#: src/routes/billing.tsx
-msgid "Same AI capability as Pro"
-msgstr "Same AI capability as Pro"
-
-#: src/routes/billing.tsx
-msgid "Same AI capability as Team"
-msgstr "Same AI capability as Team"
-
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "same day"
 msgstr "same day"
-
-#: src/routes/billing.tsx
-msgid "Same Practice AI as Pro"
-msgstr "Same Practice AI as Pro"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Sample"
@@ -14904,14 +14848,6 @@ msgstr "Source watchers feed the rule catalog — once configured, they appear h
 msgid "Source-backed evidence"
 msgstr "Source-backed evidence"
 
-#: src/routes/billing.tsx
-msgid "Source-backed previews and lightweight migration help for one owner."
-msgstr "Source-backed previews and lightweight migration help for one owner."
-
-#: src/routes/billing.tsx
-msgid "Source-backed summaries"
-msgstr "Source-backed summaries"
-
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-changed rules are skipped from bulk accept. Review them one by one."
 msgstr "Source-changed rules are skipped from bulk accept. Review them one by one."
@@ -14919,10 +14855,6 @@ msgstr "Source-changed rules are skipped from bulk accept. Review them one by on
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-changed rules should be checked against evidence before accepting."
 msgstr "Source-changed rules should be checked against evidence before accepting."
-
-#: src/routes/billing.tsx
-msgid "Source-constrained summaries"
-msgstr "Source-constrained summaries"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-defined rules are skipped from bulk accept. Generate and review their AI draft one by one."
@@ -15447,10 +15379,6 @@ msgstr "Team workload and shared triage"
 msgid "Team workload is available on Pro and above"
 msgstr "Team workload is available on Pro and above"
 
-#: src/routes/billing.tsx
-msgid "Team-scale fair-use protection"
-msgstr "Team-scale fair-use protection"
-
 #: src/features/workload/workload-page.tsx
 msgid "Team+"
 msgstr "Team+"
@@ -15685,10 +15613,6 @@ msgstr "The rule library skips clients without a filing state or entity type. Fi
 #: src/routes/rules.library.tsx
 msgid "The rule starts with a source-defined calendar. Refine to a specific date or schedule after creation."
 msgstr "The rule starts with a source-defined calendar. Refine to a specific date or schedule after creation."
-
-#: src/routes/billing.tsx
-msgid "The same practice AI functionality as Pro, paired with team-scale management and review workflows."
-msgstr "The same practice AI functionality as Pro, paired with team-scale management and review workflows."
 
 #: src/routes/billing.success.tsx
 msgid "The secure checkout has redirected back to DueDateHQ. We are confirming the subscription."
@@ -16064,10 +15988,6 @@ msgstr "Today"
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "TODAY"
 msgstr "TODAY"
-
-#: src/routes/billing.tsx
-msgid "Today briefs, Alert summaries, client risk summaries, and guided import AI for live client data."
-msgstr "Today briefs, Alert summaries, client risk summaries, and guided import AI for live client data."
 
 #: src/routes/alerts.tsx
 msgid "Toggle morning sweep briefing"

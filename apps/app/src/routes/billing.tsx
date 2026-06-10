@@ -9,7 +9,6 @@ import {
   CreditCardIcon,
   ExternalLinkIcon,
   ShieldCheckIcon,
-  SparklesIcon,
 } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -25,7 +24,6 @@ import {
   CardTitle,
 } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { createBillingPortal } from '@/features/billing/api'
@@ -60,9 +58,6 @@ type PlanCard = {
   seats: string
   firms: string
   clients: string
-  aiLabel: string
-  aiDescription: string
-  aiFeatures: string[]
   description: string
   features: string[]
   cta: string
@@ -100,9 +95,6 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       seats: t`1 seat`,
       firms: t`1 practice workspace`,
       clients: t`Up to 10 clients`,
-      aiLabel: t`Core AI access`,
-      aiDescription: t`Alert summaries and lightweight assistance on your starter book.`,
-      aiFeatures: [t`Source-backed summaries`, t`Fair-use AI`],
       description: t`Full Pulse alerts and rule library on a starter book — feel the core value before you scale.`,
       features: [
         t`Up to 10 clients`,
@@ -122,9 +114,6 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       seats: t`1 owner seat`,
       firms: t`1 practice workspace`,
       clients: t`Up to 100 clients`,
-      aiLabel: t`Basic AI`,
-      aiDescription: t`Source-backed previews and lightweight migration help for one owner.`,
-      aiFeatures: [t`Preview-only AI assistance`, t`Source-constrained summaries`],
       description: t`For solo owners running one practice workspace.`,
       features: [
         t`1 practice workspace`,
@@ -145,9 +134,6 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       seats: t`3 seats included`,
       firms: t`1 production practice`,
       clients: t`Up to 300 clients`,
-      aiLabel: t`Practice AI included`,
-      aiDescription: t`Today briefs, Alert summaries, client risk summaries, and guided import AI for live client data.`,
-      aiFeatures: [t`Full practice AI workflows`, t`Same AI capability as Team`],
       description: t`For small practices that need shared deadline operations.`,
       features: [
         t`1 production practice`,
@@ -169,9 +155,6 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       seats: t`10 seats included`,
       firms: t`1 production practice`,
       clients: t`Up to 1,000 clients`,
-      aiLabel: t`Same Practice AI as Pro`,
-      aiDescription: t`The same practice AI functionality as Pro, paired with team-scale management and review workflows.`,
-      aiFeatures: [t`Same AI capability as Pro`, t`Team-scale fair-use protection`],
       description: t`For practices coordinating a larger operations team.`,
       features: [
         t`1 production practice`,
@@ -193,9 +176,6 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       seats: t`10+ seats`,
       firms: t`Multiple practices/offices`,
       clients: t`Unlimited clients`,
-      aiLabel: t`Custom AI and coverage by contract`,
-      aiDescription: t`Contract-level model routing, custom coverage, and audit-grade AI controls.`,
-      aiFeatures: [t`Custom AI routing`, t`Contract coverage and audit controls`],
       description: t`For multi-practice operations, API access, and custom coverage.`,
       features: [
         t`Multiple practices/offices`,
@@ -822,32 +802,6 @@ function PlanOption({
             </div>
           </div>
         </div>
-        <div className="grid h-[180px] grid-rows-[1fr_auto] gap-3 overflow-hidden rounded-lg border border-state-accent-active-alt bg-components-panel-bg p-3 shadow-xs">
-          <div className="flex min-w-0 items-start gap-2.5">
-            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-state-accent-hover-alt text-text-accent">
-              <SparklesIcon className="size-4" aria-hidden />
-            </span>
-            <div className="min-w-0">
-              <TooltipText className="line-clamp-2 text-sm leading-5 font-semibold text-text-primary">
-                {plan.aiLabel}
-              </TooltipText>
-              <TooltipText className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
-                {plan.aiDescription}
-              </TooltipText>
-            </div>
-          </div>
-          <ul className="flex flex-wrap gap-1.5 text-caption leading-4 text-text-secondary">
-            {plan.aiFeatures.map((feature) => (
-              <li
-                key={feature}
-                className="inline-flex min-h-6 max-w-full items-center gap-1.5 rounded-sm border border-divider-regular bg-background-default px-2 py-1"
-              >
-                <CheckIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
-                <TooltipText className="min-w-0 truncate">{feature}</TooltipText>
-              </li>
-            ))}
-          </ul>
-        </div>
         <div className="h-px w-full bg-divider-regular" aria-hidden />
         <ul className="grid min-h-[168px] content-start gap-3 text-sm leading-5 text-text-secondary">
           {plan.features.map((feature) => (
@@ -880,17 +834,6 @@ function PlanOption({
         )}
       </CardFooter>
     </Card>
-  )
-}
-
-function TooltipText({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger render={<span className={className}>{children}</span>} />
-      <TooltipContent className="block max-w-[280px] whitespace-normal text-left leading-5">
-        {children}
-      </TooltipContent>
-    </Tooltip>
   )
 }
 

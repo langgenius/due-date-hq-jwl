@@ -107,7 +107,10 @@ The Billing page must show current entitlement usage:
 - Practices: `active / included` for Solo, Pro, and Team; `active / contract` for Enterprise
 - Subscription status remains payment-provider backed, but quota display is app-owned.
 
-Plan cards in the app must mirror public pricing. They should not only list seats.
+Plan cards in the app must mirror public pricing for price, billing cadence, clients,
+seats, practice/workspace limits, and core feature bullets. The protected Billing chooser
+does not show the embedded AI capability mini-card; AI entitlement copy remains in public
+pricing and the entitlement rules above.
 The Billing page defaults to monthly, offers a Monthly/Yearly toggle, and allows an owner to switch
 the same self-serve plan between monthly and yearly intervals when the current subscription interval
 does not already match the selected option.
