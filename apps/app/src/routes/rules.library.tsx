@@ -4362,6 +4362,7 @@ function RuleDetailPanel({
   onClose: () => void
 }) {
   const { t } = useLingui()
+  const isReviewable = rule.status === 'candidate' || rule.status === 'pending_review'
   return (
     // 2026-06-10 (Yuqi): the rule detail is a big CENTERED MODAL — click a
     // rule row → popup with the full summary-first card-stack (the `N2X10V`
@@ -4378,8 +4379,8 @@ function RuleDetailPanel({
             a11y label without duplicating it on screen. */}
         <DialogTitle className="sr-only">{rule.title}</DialogTitle>
         {/* Scrollable summary-first card-stack: hero · Applicability · Due date
-            · Evidence · Activity · Decision (Practice-review note lives in the
-            Decision card). Each card discloses independently. */}
+            · Evidence · Impact · Activity. Each card discloses independently;
+            the Decision is pinned as a sticky footer below (irBJ8). */}
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-5">
           <RuleDetailHeroCard rule={rule} concreteDraft={concreteDraft} />
           <RuleEffectiveBanner rule={rule} />
@@ -4388,9 +4389,25 @@ function RuleDetailPanel({
             rule={rule}
             concreteDraft={concreteDraft}
             confirmImpact
+            hideDecision
             onActionComplete={onClose}
           />
         </div>
+        {/* Sticky Decision footer (irBJ8 card 6) — the commit zone stays
+            visible while the reference cards scroll. Only for reviewable
+            rules; active rules have nothing to decide. */}
+        {isReviewable ? (
+          <div className="shrink-0 border-t border-divider-regular bg-background-default px-5 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
+            <CandidateReviewSection
+              key={rule.id}
+              rule={rule}
+              concreteDraft={concreteDraft}
+              chrome="flat"
+              confirmImpact
+              onActionComplete={onClose}
+            />
+          </div>
+        ) : null}
       </DialogContent>
     </Dialog>
   )

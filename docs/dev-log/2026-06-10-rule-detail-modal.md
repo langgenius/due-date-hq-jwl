@@ -57,3 +57,19 @@ Verified live. tsgo clean. Still open vs irBJ8: a concrete "Due {date}" block fo
 fixed_date rules, the evidence code·name·desc row chrome, a SEPARATE Practice-
 review note card, the sticky Decision footer, and the affected-clients + team-
 notes data (backend).
+
+## Sticky Decision footer (irBJ8 card 6)
+
+`RuleDetailCompact` gains `hideDecision`; the modal (`RuleDetailPanel`) now renders
+the cards in the scroll area and pins `CandidateReviewSection` as a **sticky
+footer** (border-top + soft top-shadow), so the commit zone (Accept/Reject) stays
+visible while the reference cards scroll. Reviewable rules only.
+
+Verified live: Accept stays pinned at the modal bottom when the card stack is
+scrolled. tsgo clean.
+
+Remaining vs irBJ8: the footer still shows the *full* decision (Practice-review
+heading + "Before you accept" aids + buttons) rather than the slim "summary +
+Skip/Reject/Accept + signed line"; splitting the Practice-review note into its own
+scroll card + a slim footer needs the CandidateReviewSection refactor + the
+team-notes backend.

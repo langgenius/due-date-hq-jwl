@@ -312,6 +312,7 @@ export function RuleDetailCompact({
   concreteDraftLoading = false,
   deferQueryInvalidation = false,
   confirmImpact = false,
+  hideDecision = false,
   onActionComplete,
   reviewReason,
 }: {
@@ -322,6 +323,8 @@ export function RuleDetailCompact({
   deferQueryInvalidation?: boolean
   /** Route the Accept through the impact-confirm dialog (single-rule detail). */
   confirmImpact?: boolean
+  /** Omit the Decision footer — the modal renders it as a sticky footer instead. */
+  hideDecision?: boolean
   onActionComplete?: () => void | Promise<void>
 }) {
   const { t } = useLingui()
@@ -456,17 +459,20 @@ export function RuleDetailCompact({
         }
       />
 
-      {/* Decision — the always-expanded commit footer. */}
-      <CandidateReviewSection
-        key={rule.id}
-        rule={rule}
-        concreteDraft={concreteDraft ?? null}
-        concreteDraftLoading={concreteDraftLoading}
-        deferQueryInvalidation={deferQueryInvalidation}
-        confirmImpact={confirmImpact}
-        {...(reviewReason !== undefined ? { reviewReason } : {})}
-        {...(onActionComplete ? { onActionComplete } : {})}
-      />
+      {/* Decision — the always-expanded commit footer. Omitted when the
+          modal renders it as a sticky footer (hideDecision). */}
+      {hideDecision ? null : (
+        <CandidateReviewSection
+          key={rule.id}
+          rule={rule}
+          concreteDraft={concreteDraft ?? null}
+          concreteDraftLoading={concreteDraftLoading}
+          deferQueryInvalidation={deferQueryInvalidation}
+          confirmImpact={confirmImpact}
+          {...(reviewReason !== undefined ? { reviewReason } : {})}
+          {...(onActionComplete ? { onActionComplete } : {})}
+        />
+      )}
     </div>
   )
 }
