@@ -11,7 +11,6 @@ import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
-import { formatDatePretty } from '@/lib/utils'
 import { ExtensionChip } from './extension-chip'
 
 /**
@@ -265,19 +264,17 @@ function BriefRow({
         <ObligationStatusReadBadge status={row.status} className="h-5 text-caption-xs" />
         {row.status === 'extended' ? <ExtensionChip /> : null}
       </span>
-      <AssigneeAvatar name={row.assigneeName} title={row.assigneeName ?? t`Unassigned`} />
-      {/* Due — relative countdown (sized up) over the absolute date, matching
-          the queue's DueDateLabel + handling payment-late (Yuqi: was missing). */}
-      <span className="flex min-w-[80px] shrink-0 flex-col items-end gap-0.5">
+      <AssigneeAvatar size="xs" name={row.assigneeName} title={row.assigneeName ?? t`Unassigned`} />
+      {/* Due — single-line relative/late label, fixed-width + right-aligned so
+          the right edge is a clean column instead of a ragged two-line stack
+          (Yuqi: was messy). The exact date lives one click away in the queue. */}
+      <span className="flex w-[124px] shrink-0 justify-end">
         <DueDateLabel
           days={d}
           status={row.status}
           paymentDueDate={row.paymentDueDate}
           asOfDate={asOfDate}
         />
-        <span className="text-caption tabular-nums text-text-tertiary">
-          {formatDatePretty(row.currentDueDate)}
-        </span>
       </span>
     </button>
   )
