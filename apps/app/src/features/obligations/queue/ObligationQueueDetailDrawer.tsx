@@ -2439,6 +2439,162 @@ export function ObligationQueueDetailDrawer({
                         no exposure applies. Page-only so the /clients drawer
                         summary is unchanged. */}
                     {isPageMode ? <PenaltyExposureCard row={row} /> : null}
+                    {/* 2026-06-10 (Yuqi (c) — fold Extension into Status): the
+                        decideExtension flow (Form 7004/4868) is unreachable in
+                        page mode (no Extension tab in the locked 4-tab bar), so
+                        the apply-extension action is folded here as a Status-tab
+                        card. Reuses the same extensionDraft + saveExtensionDecision
+                        as the legacy Extension tab; no fiction (real rule fields
+                        only). Shows when a rule allows an extension or one is
+                        already on file. */}
+                    {isPageMode &&
+                    (extensionPolicy?.available || Boolean(row.extensionDecidedAt)) ? (
+                      <DetailSectionCard
+                        title={<Trans>Extension</Trans>}
+                        headerRight={
+                          row.extensionDecidedAt ? (
+                            <span className="text-caption-xs text-text-tertiary">
+                              <Trans>Filed {formatDate(row.extensionDecidedAt.slice(0, 10))}</Trans>
+                            </span>
+                          ) : detail.matchedRule ? (
+                            <TextLink
+                              variant="accent"
+                              className="font-semibold"
+                              render={
+                                <Link to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`} />
+                              }
+                            >
+                              <Trans>Open rule →</Trans>
+                            </TextLink>
+                          ) : null
+                        }
+                      >
+                        <div className="flex flex-col gap-3">
+                          <p className="text-caption text-text-tertiary">
+                            {(() => {
+                              const formName =
+                                extensionPolicy?.formName ?? row.extensionFormName ?? null
+                              return formName
+                                ? t`${formName} — automatic extension of time to file. Defers filing, not payment.`
+                                : t`Extension of time to file. Defers filing, not payment.`
+                            })()}
+                          </p>
+                          {extensionNeedsManualDeadline ? (
+                            <label className="flex flex-col gap-1">
+                              <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                <Trans>Extended filing deadline</Trans>
+                              </span>
+                              <IsoDatePicker
+                                value={extensionDraft.extendedFilingDate}
+                                invalid={extensionManualDeadlineInvalid}
+                                ariaLabel={t`Extended filing deadline`}
+                                placeholder={t`Extended filing deadline`}
+                                onValueChange={(extendedFilingDate) =>
+                                  setExtensionDraft((current) => ({
+                                    ...current,
+                                    extendedFilingDate,
+                                  }))
+                                }
+                              />
+                            </label>
+                          ) : null}
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <label className="flex flex-col gap-1">
+                              <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                <Trans>Internal target date</Trans>
+                              </span>
+                              <IsoDatePicker
+                                value={extensionDraft.internalTargetDate}
+                                invalid={internalTargetDateInvalid}
+                                maxIsoDate={extensionDeadlineCap}
+                                ariaLabel={t`Internal extension target date`}
+                                placeholder={t`Internal extension target date`}
+                                onValueChange={(internalTargetDate) =>
+                                  setExtensionDraft((current) => ({
+                                    ...current,
+                                    internalTargetDate,
+                                  }))
+                                }
+                              />
+                            </label>
+                            <label className="flex flex-col gap-1">
+                              <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                <Trans>Source or confirmation</Trans>
+                              </span>
+                              <Input
+                                aria-label={t`Extension source`}
+                                placeholder={t`Reference (optional)`}
+                                value={extensionDraft.source}
+                                onChange={(event) =>
+                                  setExtensionDraft((current) => ({
+                                    ...current,
+                                    source: event.target.value,
+                                  }))
+                                }
+                              />
+                            </label>
+                          </div>
+                          <label className="flex flex-col gap-1">
+                            <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                              <Trans>Decision memo</Trans>
+                            </span>
+                            <Textarea
+                              aria-label={t`Decision memo`}
+                              aria-required="true"
+                              placeholder={t`Why is this extension being filed? (required)`}
+                              value={extensionDraft.memo}
+                              onChange={(event) =>
+                                setExtensionDraft((current) => ({
+                                  ...current,
+                                  memo: event.target.value,
+                                }))
+                              }
+                            />
+                          </label>
+                          {row.paymentDueDate ? (
+                            <PaymentStillDueCallout
+                              title={
+                                typeof row.estimatedTaxDueCents === 'number' &&
+                                row.estimatedTaxDueCents > 0
+                                  ? t`Payment of ${formatCents(row.estimatedTaxDueCents)} still due ${formatDate(row.paymentDueDate)}`
+                                  : t`Payment still due ${formatDate(row.paymentDueDate)}`
+                              }
+                            >
+                              <Trans>
+                                Filing an extension does not extend the time to pay. Schedule an
+                                EFTPS payment by the original deadline to avoid interest and
+                                penalties.
+                              </Trans>
+                            </PaymentStillDueCallout>
+                          ) : null}
+                          <div className="flex flex-wrap items-center justify-end gap-2">
+                            {row.extensionDecidedAt ? (
+                              <span className="mr-auto text-caption text-text-tertiary">
+                                <Trans>
+                                  Last decided{' '}
+                                  {formatDateTimeWithTimezone(
+                                    row.extensionDecidedAt,
+                                    practiceTimezone,
+                                  )}
+                                </Trans>
+                              </span>
+                            ) : null}
+                            <Button
+                              variant="outline"
+                              onClick={() => setExtensionDraft(emptyExtensionPlanDraft(row.id))}
+                            >
+                              <Trans>Reset</Trans>
+                            </Button>
+                            <Button
+                              onClick={saveExtensionDecision}
+                              disabled={saveExtensionPlanDisabled}
+                            >
+                              <Trans>File extension</Trans>
+                            </Button>
+                          </div>
+                        </div>
+                      </DetailSectionCard>
+                    ) : null}
                   </div>
                   {/* 2026-06-10 (Yuqi "actual design" — Pencil Qn4nX): the
                       canonical body is single-column, so Ownership + Linked-from
