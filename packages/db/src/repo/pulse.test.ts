@@ -2,6 +2,8 @@
  * Focused Drizzle chain doubles only implement the query-builder methods used here.
  */
 import { describe, expect, it, vi } from 'vitest'
+import { SQLiteSyncDialect } from 'drizzle-orm/sqlite-core'
+import type { SQL } from 'drizzle-orm'
 import {
   computePulseDedupeKey,
   makePulseOpsRepo,
@@ -2148,6 +2150,32 @@ describe('makePulseOpsRepo', () => {
         }),
       ),
     ).toBe(false)
+  })
+
+  it('re-drives excerpt-location guard rejections but keeps other guard rejections dead', async () => {
+    const { db } = fakeDb([[]])
+
+    await makePulseOpsRepo(db).listRetryableFailedSnapshots({
+      limit: 25,
+      maxAgeMs: 14 * 24 * 60 * 60 * 1000,
+      now: new Date('2026-06-10T00:00:00.000Z'),
+    })
+
+    const select = (db as unknown as { select: ReturnType<typeof vi.fn> }).select
+    const chain = select.mock.results[0]?.value as { where: ReturnType<typeof vi.fn> }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- focused Drizzle test double.
+    const query = new SQLiteSyncDialect().sqlToQuery(chain.where.mock.calls[0]?.[0] as SQL)
+    expect(query.params).toContain(
+      'GUARD_REJECTED: Pulse extract rejected because source excerpt could not be located%',
+    )
+    expect(query.params).toContain('AI_GATEWAY_ERROR%')
+    // The full-message prefix is the only GUARD_REJECTED pattern — every other guard
+    // rejection class stays deterministic-dead so the sweep converges.
+    expect(
+      query.params.filter(
+        (param) => typeof param === 'string' && param.startsWith('GUARD_REJECTED'),
+      ),
+    ).toHaveLength(1)
   })
 })
 

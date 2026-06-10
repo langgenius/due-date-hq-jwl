@@ -1,5 +1,14 @@
 import * as z from 'zod'
 import { createAI } from '@duedatehq/ai'
+import {
+  classifyExcerptMatch,
+  extractComparableDateCodes,
+  MONTH_DAY_RE,
+  MONTH_NAMES,
+  normalizeExcerptText,
+  sourceTextContainsExcerpt,
+  type ExcerptMatch,
+} from '@duedatehq/ai/excerpt'
 import { expandDueDateLogic } from '@duedatehq/core/date-logic'
 import {
   RuleConcreteDraftSchema,
@@ -47,34 +56,6 @@ const UNUSABLE_OFFICIAL_SOURCE_TEXT_RE =
 const nullableBoolean = z.union([z.boolean(), z.string()]).nullable().optional()
 const nullableNumber = z.union([z.number(), z.string()]).nullable().optional()
 const nullableString = z.string().nullable().optional()
-const MONTH_NAMES: Record<string, number> = {
-  jan: 1,
-  january: 1,
-  feb: 2,
-  february: 2,
-  mar: 3,
-  march: 3,
-  apr: 4,
-  april: 4,
-  may: 5,
-  jun: 6,
-  june: 6,
-  jul: 7,
-  july: 7,
-  aug: 8,
-  august: 8,
-  sep: 9,
-  sept: 9,
-  september: 9,
-  oct: 10,
-  october: 10,
-  nov: 11,
-  november: 11,
-  dec: 12,
-  december: 12,
-}
-const MONTH_DAY_RE =
-  /\b(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sept|sep|october|oct|november|nov|december|dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,\s*(\d{4}))?\b/gi
 const MONTH_DAY_SINGLE_RE =
   /\b(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sept|sep|october|oct|november|nov|december|dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,\s*(\d{4}))?\b/i
 const SLASH_DATE_RE = /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/g
@@ -412,65 +393,17 @@ export async function hashAiInput(value: unknown): Promise<string> {
     .join('')
 }
 
-export function normalizeExcerptText(value: string): string {
-  return value.toLowerCase().replace(/\s+/g, ' ').trim()
+// The excerpt-grounding helpers (classifyExcerptMatch & co.) moved to @duedatehq/ai/excerpt
+// so the AI-layer guards and this module share one implementation (2026-06-10 P3 batch).
+// Re-exported here so existing import sites (jobs/pulse/extract.ts, rule-date-reconciliation.ts,
+// tests) keep working unchanged.
+export {
+  classifyExcerptMatch,
+  extractComparableDateCodes,
+  normalizeExcerptText,
+  sourceTextContainsExcerpt,
 }
-
-export type ExcerptMatch = 'exact' | 'fuzzy' | 'none'
-
-/**
- * Classify how strongly a source page supports a cited excerpt:
- * - 'exact' — the excerpt appears verbatim in the source (whitespace/case-normalized substring)
- * - 'fuzzy' — only a loose signal matches: every date-code in the excerpt appears *somewhere* on
- *             the page, or ≥85% order-insensitive token overlap. Plausible but not verbatim.
- * - 'none'  — no meaningful support
- *
- * `sourceTextContainsExcerpt` is a thin `!== 'none'` wrapper so existing callers — including the
- * rule-source drift detector in jobs/pulse/extract.ts — keep their exact prior behavior. New
- * callers (the concrete-draft guard) can demand 'exact' and treat 'fuzzy' as low-trust.
- */
-export function classifyExcerptMatch(sourceText: string, excerpt: string): ExcerptMatch {
-  const normalizedSource = normalizeExcerptText(sourceText)
-  const normalizedExcerpt = normalizeExcerptText(excerpt)
-  if (normalizedSource.includes(normalizedExcerpt)) return 'exact'
-
-  const sourceDateCodes = new Set(extractComparableDateCodes(normalizedSource))
-  const excerptDateCodes = extractComparableDateCodes(normalizedExcerpt)
-  if (excerptDateCodes.length > 0 && excerptDateCodes.every((code) => sourceDateCodes.has(code))) {
-    return 'fuzzy'
-  }
-
-  const sourceTokens = new Set(
-    normalizedSource
-      .match(/[a-z0-9]+/g)
-      ?.map((token) => token.toLowerCase())
-      ?.filter((token) => token.length > 2) ?? [],
-  )
-  const excerptTokens = Array.from(
-    new Set(
-      normalizedExcerpt
-        .match(/[a-z0-9]+/g)
-        ?.map((token) => token.toLowerCase())
-        ?.filter((token) => token.length > 1) ?? [],
-    ),
-  )
-  if (excerptTokens.length === 0) return 'none'
-
-  const hasNumericExcerptToken = excerptTokens.some((token) => /\d/.test(token))
-  const hasExcerptAnchor =
-    /(due|deadline|return|payment|filing|tax|filer|withholding|wage|installment|due-date)/i.test(
-      normalizedExcerpt,
-    )
-  if (excerptTokens.length < 4 && !hasNumericExcerptToken && !hasExcerptAnchor) return 'none'
-
-  const hitCount = excerptTokens.filter((token) => sourceTokens.has(token)).length
-  const threshold = excerptTokens.length <= 3 ? 1 : 0.85
-  return hitCount / excerptTokens.length >= threshold ? 'fuzzy' : 'none'
-}
-
-export function sourceTextContainsExcerpt(sourceText: string, excerpt: string): boolean {
-  return classifyExcerptMatch(sourceText, excerpt) !== 'none'
-}
+export type { ExcerptMatch }
 
 /**
  * Minimum model confidence for a concrete draft to be eligible for one-click bulk verification.
@@ -537,37 +470,6 @@ export function concreteDraftSourceIsStale(input: {
 
 function isSourceWatchTemplateExcerpt(value: string | null | undefined): boolean {
   return typeof value === 'string' && SOURCE_WATCH_PLACEHOLDER_RE.test(value)
-}
-
-export function extractComparableDateCodes(value: string): string[] {
-  const normalized = normalizeExcerptText(value)
-  const codes = new Set<string>()
-
-  for (const match of normalized.matchAll(MONTH_DAY_RE)) {
-    const monthName = match[1]?.toLowerCase()
-    const day = Number(match[2])
-    const month = monthName ? MONTH_NAMES[monthName] : null
-    if (!month || !Number.isFinite(day)) continue
-    codes.add(`${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`)
-  }
-
-  for (const match of normalized.matchAll(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/g)) {
-    const month = Number(match[1])
-    const day = Number(match[2])
-    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-      codes.add(`${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`)
-    }
-  }
-
-  for (const match of normalized.matchAll(/\b(\d{2,4})-(\d{1,2})-(\d{1,2})\b/g)) {
-    const month = Number(match[2])
-    const day = Number(match[3])
-    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-      codes.add(`${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`)
-    }
-  }
-
-  return Array.from(codes)
 }
 
 /**

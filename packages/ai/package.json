@@ -15,6 +15,7 @@
     "./retriever": "./src/retriever.ts",
     "./prompter": "./src/prompter.ts",
     "./guard": "./src/guard.ts",
+    "./excerpt": "./src/excerpt.ts",
     "./pii": "./src/pii.ts",
     "./budget": "./src/budget.ts",
     "./trace": "./src/trace.ts"

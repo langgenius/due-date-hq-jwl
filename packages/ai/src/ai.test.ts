@@ -623,6 +623,49 @@ describe('@duedatehq/ai', () => {
     expect(result.refusal?.code).toBe('GUARD_REJECTED')
   })
 
+  it('accepts a unicode-drifted Pulse excerpt and snaps it to the verbatim source span', async () => {
+    // The paid-output case the exact-substring guard used to discard: the model quotes
+    // the source but substitutes ASCII quotes/dashes for the page's smart quotes/em-dash.
+    const rawText =
+      'Notice 2026-14: Taxpayers in the “District of Columbia” have until October 15, 2026 — penalties waived for covered filers.'
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
+        summary: 'DC filing deadline postponed.',
+        sourceExcerpt:
+          'Taxpayers in the "District of Columbia" have until October 15, 2026 - penalties waived',
+        jurisdiction: 'DC',
+        counties: [],
+        forms: ['federal_1040'],
+        entityTypes: ['individual'],
+        originalDueDate: '2026-04-15',
+        newDueDate: '2026-10-15',
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.92,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.extractPulse({
+      sourceId: 'dc.temporary_announcements',
+      title: 'DC storm relief',
+      officialSourceUrl: 'https://otr.cfo.dc.gov/relief',
+      rawText,
+    })
+
+    expect(result.refusal).toBeNull()
+    expect(result.result?.sourceExcerpt).toBe(
+      'Taxpayers in the “District of Columbia” have until October 15, 2026 — penalties waived',
+    )
+    expect(rawText).toContain(result.result?.sourceExcerpt ?? '')
+  })
+
   it('keeps noisy Pulse news fixtures review-only or no-change unless dates are explicit', async () => {
     callGatewayMock
       .mockResolvedValueOnce({
@@ -806,6 +849,32 @@ describe('@duedatehq/ai', () => {
       confidence: 0.9,
     })
     expect(result.refusal).toBeNull()
+  })
+
+  it('snaps a unicode-drifted rule-draft excerpt to the verbatim source span', async () => {
+    const sourceText =
+      'Withholding returns are due — without exception — on “January 31, 2026” for all employers.'
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        sourceExcerpt: 'due - without exception - on "January 31, 2026"',
+        confidence: 0.9,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'rule-concrete-draft@v2',
+      { sourceText },
+      z.object({
+        sourceExcerpt: z.string(),
+        confidence: z.number(),
+      }),
+    )
+
+    expect(result.refusal).toBeNull()
+    expect(result.result?.sourceExcerpt).toBe('due — without exception — on “January 31, 2026”')
+    expect(sourceText).toContain(result.result?.sourceExcerpt ?? '')
   })
 
   it('guides rule concrete drafts to year-fill month/day installment schedules', async () => {

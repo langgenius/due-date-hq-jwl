@@ -1,3 +1,5 @@
+import { alignExcerptToSource } from './excerpt'
+
 export class GuardRejection extends Error {
   constructor(
     message: string,
@@ -78,14 +80,20 @@ export function verifyPulseSourceExcerpt(input: unknown, output: unknown): void 
   const sourceExcerpt = output.sourceExcerpt
   if (typeof rawText !== 'string' || typeof sourceExcerpt !== 'string') return
 
-  const normalizedRaw = normalizeForExcerpt(rawText)
-  const normalizedExcerpt = normalizeForExcerpt(sourceExcerpt)
-  if (!normalizedExcerpt || normalizedRaw.includes(normalizedExcerpt)) return
-
-  throw new GuardRejection(
-    'Pulse extract rejected because source excerpt could not be located in raw text.',
-    'SOURCE_EXCERPT_NOT_FOUND',
-  )
+  const aligned = alignExcerptToSource(rawText, sourceExcerpt)
+  if (aligned.match === 'none') {
+    throw new GuardRejection(
+      'Pulse extract rejected because source excerpt could not be located in raw text.',
+      'SOURCE_EXCERPT_NOT_FOUND',
+    )
+  }
+  // Repair contract: guards receive the live parsed.data object that runPrompt returns,
+  // so when the model's quote drifted from the source (smart quotes, dashes, hyphenation)
+  // we snap it in place to the verbatim source span — downstream (citationsJson,
+  // pulse.verbatimQuote) then stores text that IS in the source.
+  if (aligned.snappedExcerpt) {
+    output.sourceExcerpt = aligned.snappedExcerpt
+  }
 }
 
 export function verifyRuleConcreteDraft(input: unknown, output: unknown): void {
@@ -101,12 +109,17 @@ export function verifyRuleConcreteDraft(input: unknown, output: unknown): void {
     )
   }
 
-  if (sourceTextContainsExcerpt(sourceText, sourceExcerpt)) return
-
-  throw new GuardRejection(
-    'Rule draft rejected because source excerpt could not be located in source text.',
-    'SOURCE_EXCERPT_NOT_FOUND',
-  )
+  const aligned = alignExcerptToSource(sourceText, sourceExcerpt)
+  if (aligned.match === 'none') {
+    throw new GuardRejection(
+      'Rule draft rejected because source excerpt could not be located in source text.',
+      'SOURCE_EXCERPT_NOT_FOUND',
+    )
+  }
+  // Same repair contract as verifyPulseSourceExcerpt above.
+  if (aligned.snappedExcerpt) {
+    output.sourceExcerpt = aligned.snappedExcerpt
+  }
 }
 
 export function verifyInsightOutput(input: unknown, output: unknown): void {
@@ -154,23 +167,4 @@ export function verifyInsightOutput(input: unknown, output: unknown): void {
       )
     }
   }
-}
-
-function normalizeForExcerpt(value: string): string {
-  return value.replace(/\s+/g, ' ').trim().toLowerCase()
-}
-
-function sourceTextContainsExcerpt(sourceText: string, excerpt: string): boolean {
-  const normalizedText = normalizeForExcerpt(sourceText)
-  const normalizedExcerpt = normalizeForExcerpt(excerpt)
-  if (!normalizedExcerpt || normalizedText.includes(normalizedExcerpt)) return true
-
-  const sourceTokens = new Set(normalizedText.match(/[a-z0-9]+/g) ?? [])
-  const excerptTokens = Array.from(new Set(normalizedExcerpt.match(/[a-z0-9]+/g) ?? [])).filter(
-    (token) => token.length > 2,
-  )
-  if (excerptTokens.length < 4) return false
-
-  const hitCount = excerptTokens.filter((token) => sourceTokens.has(token)).length
-  return hitCount / excerptTokens.length >= 0.85
 }

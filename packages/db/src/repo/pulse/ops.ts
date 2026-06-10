@@ -1127,14 +1127,16 @@ export function makePulseOpsRepo(db: Db) {
     },
 
     /**
-     * Failed snapshots whose failure class is transient (gateway / credit /
-     * budget) and therefore worth re-driving once the AI pipeline is healthy
-     * again. New failures are written as "CODE: message" (extract.ts); the
-     * bare-message patterns cover rows written before that convention.
-     * Deterministic failures (guard rejections, missing source text,
-     * out-of-scope, low confidence) never match, so the retry sweep converges
-     * instead of cycling them forever. Oldest-touched first: a re-failed row
-     * bumps updated_at and rotates to the back of the line.
+     * Failed snapshots whose failure class is worth re-driving once the AI
+     * pipeline is healthy again: transient classes (gateway / credit / budget)
+     * plus excerpt-location guard rejections, which stopped being deterministic
+     * when the guard learned fuzzy alignment. New failures are written as
+     * "CODE: message" (extract.ts); the bare-message patterns cover rows
+     * written before that convention. Other deterministic failures (remaining
+     * guard rejections, missing source text, out-of-scope, low confidence)
+     * never match, so the retry sweep converges instead of cycling them
+     * forever. Oldest-touched first: a re-failed row bumps updated_at and
+     * rotates to the back of the line.
      */
     async listRetryableFailedSnapshots(input: {
       limit: number
@@ -1154,6 +1156,13 @@ export function makePulseOpsRepo(db: Db) {
               like(pulseSourceSnapshot.failureReason, 'AI_GATEWAY_ERROR%'),
               like(pulseSourceSnapshot.failureReason, 'AI_UNAVAILABLE%'),
               like(pulseSourceSnapshot.failureReason, 'AI_BUDGET_EXCEEDED%'),
+              // Excerpt-grounding rejections became fuzzy-tolerant (P3 batch), so the
+              // stranded exact-match-era backlog is worth one re-drive. The full message
+              // prefix keeps every other guard rejection deterministic-dead.
+              like(
+                pulseSourceSnapshot.failureReason,
+                'GUARD_REJECTED: Pulse extract rejected because source excerpt could not be located%',
+              ),
               // Legacy rows (pre code-prefix): transport-class messages only.
               like(pulseSourceSnapshot.failureReason, '%requires more credits%'),
               eq(pulseSourceSnapshot.failureReason, 'Pulse extract failed.'),
