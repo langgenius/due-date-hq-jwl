@@ -3520,7 +3520,6 @@ msgstr "日历订阅已更新"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/calendar/calendar-page.tsx
-#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/obligations.tsx
 msgid "Calendar sync"
 msgstr "日历同步"
@@ -7815,8 +7814,8 @@ msgid "How confident we are · where this came from"
 msgstr "置信度高低 · 数据来源"
 
 #: src/features/settings/settings-sub-nav.tsx
-msgid "How DueDateHQ reaches your team, your clients, and your calendars."
-msgstr "DueDateHQ 如何触达您的团队、客户与日历。"
+msgid "How DueDateHQ reaches your clients and your team."
+msgstr "DueDateHQ 如何触达您的客户与团队。"
 
 #: src/routes/practice.tsx
 msgid "How much client info is already gathered"
@@ -10669,7 +10668,6 @@ msgid "Notification types"
 msgstr "通知类型"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Notifications"
 msgstr "通知"
@@ -11761,10 +11759,6 @@ msgstr "个人详细信息、安全性，以及产品对您的呈现方式。"
 #: src/routes/settings.profile.tsx
 msgid "Personal info"
 msgstr "个人信息"
-
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Personal morning digest preferences and types."
-msgstr "个人晨间摘要偏好与类型。"
 
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "Personalised digest tomorrow morning"
@@ -15230,10 +15224,6 @@ msgstr "可从 Google Calendar、Apple Calendar 或 Outlook 订阅。在日历�
 #: src/features/calendar/calendar-page.tsx
 msgid "Subscribe from web calendar URL"
 msgstr "通过网页日历 URL 订阅"
-
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Subscribe to deadlines from Apple / Google calendars."
-msgstr "从 Apple / Google 日历订阅到期日。"
 
 #: src/routes/billing.success.tsx
 msgid "Subscription active"

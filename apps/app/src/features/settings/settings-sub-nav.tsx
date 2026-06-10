@@ -1,9 +1,7 @@
 import { NavLink } from 'react-router'
 import { useLingui } from '@lingui/react/macro'
 import {
-  BellIcon,
   Building2Icon,
-  CalendarDaysIcon,
   ClipboardListIcon,
   CreditCardIcon,
   MailIcon,
@@ -42,8 +40,14 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *   Workload       → /workload
  *   Billing        → /billing
  *   Email Template → /reminders
- *   Notifications  → /notifications/preferences
- *   Calendar sync  → /deadlines/calendar
+ *
+ * 2026-06-10 (settings trim): two former Automation entries are
+ * deliberately absent from this registry:
+ *   • Notifications (/notifications/preferences) — parts of that surface
+ *     are unbuilt; hidden from Settings until it ships. The route itself
+ *     still exists.
+ *   • Calendar sync (/deadlines/calendar) — dropped from Settings; the
+ *     feature stays a Deadlines-domain surface (header popover + ⌘K).
  *
  * Personal account settings (/account/security, sign-out) stay in the
  * sidebar's UserMenuTrigger dropdown — a different conceptual level.
@@ -128,28 +132,13 @@ export function useSettingsNavSections(): SettingsNavSection[] {
     },
     {
       label: t`Automation`,
-      description: t`How DueDateHQ reaches your team, your clients, and your calendars.`,
+      description: t`How DueDateHQ reaches your clients and your team.`,
       items: [
         {
           to: '/reminders',
           label: t`Email Template`,
           description: t`Reminder email templates and recent delivery.`,
           Icon: MailIcon,
-        },
-        {
-          to: '/notifications/preferences',
-          label: t`Notifications`,
-          description: t`Personal morning digest preferences and types.`,
-          Icon: BellIcon,
-        },
-        {
-          to: '/deadlines/calendar',
-          label: t`Calendar sync`,
-          description: t`Subscribe to deadlines from Apple / Google calendars.`,
-          Icon: CalendarDaysIcon,
-          // /deadlines/calendar is a prefix of nothing the rail links to,
-          // but mark `end` so it never reads as active for a deeper path.
-          end: true,
         },
       ],
     },

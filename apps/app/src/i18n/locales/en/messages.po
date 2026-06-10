@@ -3494,7 +3494,6 @@ msgstr "Calendar subscription updated"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/calendar/calendar-page.tsx
-#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/obligations.tsx
 msgid "Calendar sync"
 msgstr "Calendar sync"
@@ -7768,8 +7767,8 @@ msgid "How confident we are · where this came from"
 msgstr "How confident we are · where this came from"
 
 #: src/features/settings/settings-sub-nav.tsx
-msgid "How DueDateHQ reaches your team, your clients, and your calendars."
-msgstr "How DueDateHQ reaches your team, your clients, and your calendars."
+msgid "How DueDateHQ reaches your clients and your team."
+msgstr "How DueDateHQ reaches your clients and your team."
 
 #: src/routes/practice.tsx
 msgid "How much client info is already gathered"
@@ -10603,7 +10602,6 @@ msgid "Notification types"
 msgstr "Notification types"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Notifications"
 msgstr "Notifications"
@@ -11683,10 +11681,6 @@ msgstr "Personal details, security, and how the product looks for you."
 #: src/routes/settings.profile.tsx
 msgid "Personal info"
 msgstr "Personal info"
-
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Personal morning digest preferences and types."
-msgstr "Personal morning digest preferences and types."
 
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "Personalised digest tomorrow morning"
@@ -15136,10 +15130,6 @@ msgstr "Subscribe from Google Calendar, Apple Calendar, or Outlook. Edits in you
 #: src/features/calendar/calendar-page.tsx
 msgid "Subscribe from web calendar URL"
 msgstr "Subscribe from web calendar URL"
-
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Subscribe to deadlines from Apple / Google calendars."
-msgstr "Subscribe to deadlines from Apple / Google calendars."
 
 #: src/routes/billing.success.tsx
 msgid "Subscription active"
