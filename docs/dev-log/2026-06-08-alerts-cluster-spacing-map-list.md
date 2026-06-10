@@ -19,7 +19,8 @@ which diverged from the list view's `PulseAlertRow`.
   list share one row design (time/meta/title/key-change/affected-clients,
   day-group bands, the new sans change-kind, the elbow ACTION glyph, etc.).
 - Added an optional `compact` prop to `PulseAlertList`: the map rail is
-  ~420px, so it forces the compact row variant (the one the panel-open list
+  ~460px after the June 10 width balance pass, so it forces the compact row
+  variant (the one the panel-open list
   uses — no 100px time rail) instead of deriving compactness from whether a
   detail panel is open. Default behavior (derive from `openAlertId`) is
   unchanged for every other caller.

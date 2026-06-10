@@ -1322,7 +1322,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     />
                   </div>
                   {/* RIGHT: active alerts panel (compact rows) */}
-                  <div className="flex w-[420px] shrink-0 flex-col gap-2 overflow-y-auto">
+                  <div className="flex w-[460px] shrink-0 flex-col gap-2 overflow-y-auto">
                     <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
                       <span className="text-[11px] font-bold tracking-[0.8px] text-text-muted uppercase">
                         <Trans>Active alerts</Trans>
