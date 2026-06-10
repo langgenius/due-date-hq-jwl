@@ -9,6 +9,8 @@ import {
   ArrowUpRightIcon,
   CalendarClock,
   Check,
+  Clock3,
+  Sparkles,
   ChevronRightIcon,
   Circle,
   CircleCheck,
@@ -4379,7 +4381,7 @@ function RuleDetailPanel({
             · Evidence · Activity · Decision (Practice-review note lives in the
             Decision card). Each card discloses independently. */}
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-5">
-          <RuleDetailHeroCard rule={rule} />
+          <RuleDetailHeroCard rule={rule} concreteDraft={concreteDraft} />
           <RuleEffectiveBanner rule={rule} />
           <RuleDetailCompact
             key={rule.id}
@@ -4395,35 +4397,73 @@ function RuleDetailPanel({
 }
 
 /**
- * `RuleDetailHeroCard` — the "Rule under review" hero (Pencil `N2X10V` card 1):
- * a bar-header card carrying the status, the rule title, the identity kicker
- * (jurisdiction · impact · form · year), a 2-line plain summary, and the
- * audit-ledger signature. Honest only — no fabricated AI-confidence %.
+ * `RuleDetailHeroCard` — the "Rule under review" hero (Pencil `irBJ8` card 1):
+ * bar (triangle-alert · "Rule under review" · "Awaiting review" warning chip) +
+ * title + identity meta + 2-line summary + a meta strip (AI % · audit ledger).
+ *
+ * Honest data only: the AI-confidence chip renders ONLY when a real concrete
+ * draft confidence exists (the rule itself carries no confidence); the canvas's
+ * "· 2d in queue" + "Reason:" line are omitted — no queue-timestamp / review-
+ * reason is on the public rule.
  */
-function RuleDetailHeroCard({ rule }: { rule: ObligationRule }) {
+function RuleDetailHeroCard({
+  rule,
+  concreteDraft,
+}: {
+  rule: ObligationRule
+  concreteDraft: RuleConcreteDraftCacheEntry | null
+}) {
   const isReviewable = rule.status === 'candidate' || rule.status === 'pending_review'
+  const confidence = concreteDraft?.draft?.confidence ?? null
+  const aiPct = confidence !== null ? Math.round(confidence * 100) : null
   return (
     <div className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
       <div className="flex h-9 items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5">
+        {isReviewable ? (
+          <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0 text-text-warning" />
+        ) : (
+          <CircleCheck aria-hidden className="size-3.5 shrink-0 text-text-success" />
+        )}
         <span className="text-[13px] font-semibold text-text-primary">
           {isReviewable ? <Trans>Rule under review</Trans> : <Trans>Active rule</Trans>}
         </span>
-        <span className="ml-auto">
-          <RuleStatusKicker status={rule.status} />
-        </span>
+        {isReviewable ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-state-warning-hover px-2.5 py-0.5 text-[11px] font-semibold text-text-warning">
+            <Clock3 aria-hidden className="size-2.5" />
+            <Trans>Awaiting review</Trans>
+          </span>
+        ) : null}
       </div>
-      <div className="flex flex-col gap-2 px-5 py-4">
-        <h2 className="text-xl leading-tight font-semibold text-text-primary">{rule.title}</h2>
-        <RuleDetailKicker rule={rule} />
+      <div className="flex flex-col gap-2.5 px-5 py-4">
+        <h2 className="text-[22px] leading-tight font-bold tracking-tight text-text-primary">
+          {rule.title}
+        </h2>
+        <p className="text-[13px] font-medium text-text-secondary">
+          {rule.jurisdiction} · {rule.formName} ·{' '}
+          <Trans>Tax season {rule.applicableYear}</Trans>
+        </p>
         {rule.defaultTip ? (
-          <p className="line-clamp-2 text-sm leading-relaxed text-text-secondary">
+          <p className="line-clamp-2 text-[13px] leading-relaxed text-text-secondary">
             {rule.defaultTip}
           </p>
         ) : null}
-        <span className="inline-flex w-fit items-center gap-1.5 pt-1 text-xs font-medium text-text-muted">
-          <ShieldCheck aria-hidden className="size-3" />
-          <Trans>Logged in audit ledger</Trans>
-        </span>
+        <div className="flex flex-wrap items-center gap-2.5 pt-1 text-[11px] font-medium">
+          {aiPct !== null ? (
+            <>
+              <span className="inline-flex items-center gap-1 text-text-success">
+                <Sparkles aria-hidden className="size-2.5" />
+                <Trans>AI {aiPct}%</Trans>
+              </span>
+              <span aria-hidden className="text-text-muted">
+                ·
+              </span>
+            </>
+          ) : null}
+          <span className="inline-flex items-center gap-1 text-text-tertiary">
+            <ShieldCheck aria-hidden className="size-2.5" />
+            <Trans>Logged in audit ledger</Trans>
+          </span>
+        </div>
       </div>
     </div>
   )
