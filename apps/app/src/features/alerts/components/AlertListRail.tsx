@@ -222,7 +222,7 @@ function RailItem({
     >
       {/* Time column (60px). */}
       <div className="flex w-[60px] shrink-0 flex-col gap-0.5">
-        <span className="text-xs font-medium text-text-primary">{dateLabel}</span>
+        <span className="text-sm font-medium text-text-primary">{dateLabel}</span>
         <span className="text-caption-xs font-medium tracking-[-0.1px] text-text-tertiary tabular-nums">
           {timeLabel}
         </span>
@@ -234,7 +234,7 @@ function RailItem({
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           {/* Plain bordered 2-letter code (no StateBadge seal),
               matching the /alerts row. */}
-          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-caption font-semibold text-text-secondary uppercase">
+          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-xs font-semibold text-text-secondary uppercase">
             {alert.jurisdiction}
           </span>
           {form ? <TaxCodeBadge code={form} /> : null}
@@ -249,7 +249,7 @@ function RailItem({
             is kept. */}
         <span
           className={cn(
-            'line-clamp-2 text-sm font-medium leading-[1.35]',
+            'line-clamp-2 text-base font-medium leading-[1.35]',
             active ? 'text-text-primary' : 'text-text-tertiary',
           )}
         >

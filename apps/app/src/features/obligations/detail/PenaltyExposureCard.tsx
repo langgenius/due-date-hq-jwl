@@ -142,12 +142,12 @@ export function PenaltyExposureCard({ row }: { row: ObligationQueueRow }) {
                   )}
                 >
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-sm font-medium text-text-primary">{item.label}</span>
+                    <span className="text-base font-medium text-text-primary">{item.label}</span>
                     <span className="truncate font-mono text-caption-xs text-text-tertiary">
                       {item.formula}
                     </span>
                   </div>
-                  <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">
+                  <span className="shrink-0 text-base font-semibold tabular-nums text-text-primary">
                     {formatCents(item.amountCents)}
                   </span>
                 </div>

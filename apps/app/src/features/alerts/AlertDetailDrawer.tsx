@@ -197,7 +197,7 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
       {/* Header — ⚠ Deadline change · status chip · Effective immediately. */}
       <div className="flex flex-wrap items-center gap-2">
         <TriangleAlertIcon className="size-3.5 shrink-0 text-state-warning-solid" aria-hidden />
-        <span className="text-sm font-semibold text-text-primary">
+        <span className="text-base font-semibold text-text-primary">
           <Trans>Deadline change</Trans>
         </span>
         <AlertStatusChip
@@ -214,14 +214,14 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
           }
         />
         <span className="flex-1" />
-        <span className="text-xs font-medium text-text-muted">
+        <span className="text-sm font-medium text-text-muted">
           <Trans>Effective immediately</Trans>
         </span>
       </div>
 
       {/* Diff row — old → new + signed delta (green when later = relief). */}
       <div className="flex flex-wrap items-baseline gap-2.5">
-        <span className="font-mono text-sm font-medium text-text-muted line-through tabular-nums">
+        <span className="font-mono text-base font-medium text-text-muted line-through tabular-nums">
           {formatDeadlineDate(oldIso)}
         </span>
         <ArrowRightIcon className="size-3.5 shrink-0 self-center text-text-muted" aria-hidden />
@@ -230,7 +230,7 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
         </span>
         <span
           className={cn(
-            'text-xs font-semibold tabular-nums',
+            'text-sm font-semibold tabular-nums',
             days >= 0 ? 'text-text-success' : 'text-text-destructive',
           )}
         >
@@ -240,11 +240,11 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
 
       {/* Source summary. */}
       {detail.alert.summary && detail.alert.summary.trim() !== detail.alert.title.trim() ? (
-        <p className="text-sm leading-[1.55] text-text-secondary">{detail.alert.summary}</p>
+        <p className="text-base leading-[1.55] text-text-secondary">{detail.alert.summary}</p>
       ) : null}
 
       {/* Meta — AI confidence · source · audit ledger (top hairline). */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-divider-subtle pt-2.5 text-xs font-medium text-text-tertiary">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-divider-subtle pt-2.5 text-sm font-medium text-text-tertiary">
         <span className="inline-flex items-center gap-1.5">
           <SparklesIcon className={cn('size-3 shrink-0', confClass)} aria-hidden />
           <span className={cn('font-semibold', confClass)}>{confPct}%</span>
@@ -342,7 +342,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
     <section className="flex flex-col gap-3">
       <header className="flex items-center gap-1.5">
         <LightbulbIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-        <span className="text-xs font-semibold text-text-secondary">
+        <span className="text-sm font-semibold text-text-secondary">
           <Trans>What this means for your practice</Trans>
         </span>
       </header>
@@ -352,7 +352,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
             <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover text-text-accent">
               <UsersIcon className="size-3.5" aria-hidden />
             </span>
-            <p className="text-sm leading-[1.45] text-text-secondary">
+            <p className="text-base leading-[1.45] text-text-secondary">
               <Plural
                 value={matchedCount}
                 one="# client gains ~{months} months of breathing room"
@@ -365,7 +365,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
           <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-state-success-hover text-text-success">
             <ShieldCheckIcon className="size-3.5" aria-hidden />
           </span>
-          <p className="text-sm leading-[1.45] text-text-secondary">
+          <p className="text-base leading-[1.45] text-text-secondary">
             <Trans>
               Audit-safe: relief is automatic for {scopeArea} addresses — no opt-in form needed.
             </Trans>
@@ -376,7 +376,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
             <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-state-success-hover text-text-success">
               <ShieldCheckIcon className="size-3.5" aria-hidden />
             </span>
-            <p className="text-sm leading-[1.45] text-text-secondary">
+            <p className="text-base leading-[1.45] text-text-secondary">
               <Trans>
                 Estimated payments due {formatDeadlineDate(oldIso)} are also postponed — no
                 penalties accrue.
@@ -464,10 +464,10 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
     <section className="flex flex-col gap-3">
       {/* Pencil `gRY5g` header: "Activity" + "N events · oldest first". */}
       <header className="flex items-baseline justify-between gap-2">
-        <span className="text-xs font-semibold text-text-secondary">
+        <span className="text-sm font-semibold text-text-secondary">
           <Trans>Activity</Trans>
         </span>
-        <span className="text-xs font-medium text-text-muted">
+        <span className="text-sm font-medium text-text-muted">
           <Plural value={events.length} one="# event" other="# events" />
           {' · '}
           <Trans>oldest first</Trans>
@@ -489,9 +489,9 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
                 {!isLast ? <span className="w-px flex-1 bg-divider-subtle" aria-hidden /> : null}
               </div>
               <div className={cn('flex min-w-0 flex-col gap-0.5', isLast ? '' : 'pb-4')}>
-                <span className="text-sm font-medium text-text-primary">{event.title}</span>
+                <span className="text-base font-medium text-text-primary">{event.title}</span>
                 {event.meta ? (
-                  <span className="text-caption text-text-tertiary tabular-nums">{event.meta}</span>
+                  <span className="text-xs text-text-tertiary tabular-nums">{event.meta}</span>
                 ) : null}
               </div>
             </li>
@@ -547,7 +547,7 @@ function DecisionBanners({
           <button
             type="button"
             onClick={onRetry}
-            className="cursor-pointer text-xs font-semibold text-text-destructive underline-offset-2 hover:underline"
+            className="cursor-pointer text-sm font-semibold text-text-destructive underline-offset-2 hover:underline"
           >
             <Trans>Retry now</Trans>
           </button>
@@ -580,7 +580,7 @@ function DecisionBanners({
             <button
               type="button"
               onClick={onUndo}
-              className="cursor-pointer text-xs font-semibold text-text-success underline-offset-2 hover:underline"
+              className="cursor-pointer text-sm font-semibold text-text-success underline-offset-2 hover:underline"
             >
               <Trans>Undo</Trans>
             </button>
@@ -1181,14 +1181,14 @@ export function AlertDetailDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
+            className="inline-flex cursor-pointer items-center gap-1 text-base font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
           >
             <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
             <Trans>Alerts</Trans>
           </button>
           <div className="flex items-center gap-2">
             {position && position.total > 0 ? (
-              <span className="text-xs font-medium text-text-muted tabular-nums">
+              <span className="text-sm font-medium text-text-muted tabular-nums">
                 {t`${position.index + 1} of ${position.total}`}
               </span>
             ) : null}
@@ -1305,7 +1305,7 @@ export function AlertDetailDrawer({
                       active has an indication it is active"): flags the
                       actionable due-date-overlay queue, mirroring the row badge. */}
                   {isActiveAlert(detail.alert) ? (
-                    <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-[4px] border border-[#17b26a40] bg-[#e8f5ee] px-2 text-caption font-semibold tracking-[0.3px] text-text-success uppercase">
+                    <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-[4px] border border-[#17b26a40] bg-[#e8f5ee] px-2 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
                       <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
                       <Trans>Active</Trans>
                     </span>
@@ -1314,7 +1314,7 @@ export function AlertDetailDrawer({
                       "HIGH IMPACT" (not bare "HIGH"). */}
                   {showSeverityPill ? (
                     <span
-                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-caption font-bold tracking-[0.7px] uppercase"
+                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-xs font-bold tracking-[0.7px] uppercase"
                       style={{ backgroundColor: severity.bg, color: severity.text }}
                     >
                       {t`HIGH IMPACT`}
@@ -1324,10 +1324,10 @@ export function AlertDetailDrawer({
                       JurisdictionLabel primitive — seal + mono code + full name,
                       identical to the deadline detail header. */}
                   <JurisdictionLabel code={detail.alert.jurisdiction} />
-                  <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-caption font-bold tracking-[0.7px] text-text-accent uppercase">
+                  <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-xs font-bold tracking-[0.7px] text-text-accent uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
-                  <span className="ml-auto flex shrink-0 items-center gap-2 text-xs font-medium text-text-tertiary">
+                  <span className="ml-auto flex shrink-0 items-center gap-2 text-sm font-medium text-text-tertiary">
                     {detail.alert.sourceUrl ? (
                       <a
                         href={detail.alert.sourceUrl}
@@ -1369,7 +1369,7 @@ export function AlertDetailDrawer({
                 <h2
                   className={cn(
                     'font-semibold leading-[1.25] tracking-[-0.4px] text-text-primary transition-all duration-200',
-                    headerCollapsed ? 'line-clamp-1 text-base' : 'text-[22px]',
+                    headerCollapsed ? 'line-clamp-1 text-[16px]' : 'text-[22px]',
                   )}
                 >
                   {detail.alert.title}
@@ -1380,7 +1380,7 @@ export function AlertDetailDrawer({
                 {!headerCollapsed &&
                 detail.alert.summary &&
                 detail.alert.summary.trim() !== detail.alert.title.trim() ? (
-                  <p className="text-sm font-medium leading-[1.5] text-text-secondary">
+                  <p className="text-base font-medium leading-[1.5] text-text-secondary">
                     {detail.alert.summary}
                   </p>
                 ) : null}
@@ -1485,10 +1485,10 @@ export function AlertDetailDrawer({
               {/* Extracted facts — the AI signal is the inline muted subtitle. */}
               <section className="flex flex-col gap-3">
                 <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className="text-xs font-semibold text-text-secondary">
+                  <span className="text-sm font-semibold text-text-secondary">
                     <Trans>Extracted facts</Trans>
                   </span>
-                  <span className="text-xs text-text-tertiary">
+                  <span className="text-sm text-text-tertiary">
                     <Trans>AI parsed these from the source — verify before Apply</Trans>
                   </span>
                 </header>
@@ -1536,7 +1536,7 @@ export function AlertDetailDrawer({
                         type="button"
                         onClick={handleConfirmAllNeedsReview}
                         disabled={stats.needsReviewCount === 0}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-[3px] text-caption font-semibold text-white outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-[3px] text-xs font-semibold text-white outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         <CheckIcon className="size-3 shrink-0" aria-hidden />
                         {t`Confirm ${stats.needsReviewCount}`}
@@ -1545,7 +1545,7 @@ export function AlertDetailDrawer({
                         type="button"
                         onClick={handleExcludeSelected}
                         disabled={stats.selectedCount === 0}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-[3px] text-caption font-semibold text-text-secondary outline-none transition-colors hover:bg-state-base-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-[3px] text-xs font-semibold text-text-secondary outline-none transition-colors hover:bg-state-base-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         <XIcon className="size-3 shrink-0" aria-hidden />
                         <Trans>Exclude</Trans>
@@ -1638,10 +1638,10 @@ export function AlertDetailDrawer({
                         <ShieldCheckIcon className="size-4" aria-hidden />
                       </span>
                       <div className="flex min-w-0 flex-1 flex-col gap-1">
-                        <span className="text-sm font-semibold text-text-success">
+                        <span className="text-base font-semibold text-text-success">
                           <Trans>Ready to apply · deadline selection confirmed</Trans>
                         </span>
-                        <p className="text-xs leading-[1.5] text-text-secondary">
+                        <p className="text-sm leading-[1.5] text-text-secondary">
                           <Plural
                             value={stats?.selectedCount ?? 0}
                             one="# client confirmed and matched to the new date."
@@ -1653,7 +1653,7 @@ export function AlertDetailDrawer({
                           </Trans>
                         </p>
                       </div>
-                      <span className="hidden shrink-0 font-mono text-caption font-bold text-text-success tabular-nums sm:inline">
+                      <span className="hidden shrink-0 font-mono text-xs font-bold text-text-success tabular-nums sm:inline">
                         {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
                       </span>
                     </div>
@@ -1734,7 +1734,7 @@ export function AlertDetailDrawer({
               {detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
                 <section className="flex flex-col gap-2.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-text-secondary">
+                    <span className="text-sm font-semibold text-text-secondary">
                       <Trans>Source extract</Trans>
                     </span>
                     {detail.alert.sourceUrl ? (
@@ -1742,7 +1742,7 @@ export function AlertDetailDrawer({
                         href={detail.alert.sourceUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        className="inline-flex items-center gap-1 text-base font-semibold text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         <Trans>Open original</Trans>
                         <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
@@ -1750,7 +1750,7 @@ export function AlertDetailDrawer({
                     ) : null}
                   </div>
                   {/* Citation — source (mono) · published date. */}
-                  <div className="flex flex-wrap items-center gap-1.5 text-caption font-medium text-text-muted">
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-text-muted">
                     <span className="font-mono">{detail.alert.source}</span>
                     {detail.alert.publishedAt ? (
                       <>
@@ -1764,7 +1764,7 @@ export function AlertDetailDrawer({
                       </>
                     ) : null}
                   </div>
-                  <blockquote className="rounded-lg bg-background-section px-4 py-3 text-sm leading-[1.55] text-text-secondary italic">
+                  <blockquote className="rounded-lg bg-background-section px-4 py-3 text-base leading-[1.55] text-text-secondary italic">
                     &ldquo;{detail.alert.summary}&rdquo;
                   </blockquote>
                 </section>
@@ -1802,7 +1802,7 @@ export function AlertDetailDrawer({
                       (modest %, tier label, one-line guidance) / RIGHT source
                       + published + audit-ledger note. */}
                     <header className="flex items-baseline justify-between">
-                      <span className="text-xs font-semibold text-text-secondary">
+                      <span className="text-sm font-semibold text-text-secondary">
                         <Trans>How confident we are · where this came from</Trans>
                       </span>
                     </header>
@@ -1953,7 +1953,7 @@ export function AlertDetailDrawer({
                 <Trans>Dismiss</Trans>
               </span>
               <span className="h-3.5 w-px bg-divider-regular" aria-hidden />
-              <span className="inline-flex items-center gap-1.5 text-caption font-medium text-text-success">
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-success">
                 <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
                 <Trans>Every decision captured to audit ledger</Trans>
               </span>

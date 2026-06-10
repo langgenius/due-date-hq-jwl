@@ -95,7 +95,7 @@ function ReadinessIndicator({
           CPA's eye should land on whether the docs are actually
           ready, not whether they exist on disk. */}
       {typeof verified === 'number' && verified < attached ? (
-        <span className="text-text-warning text-caption">
+        <span className="text-text-warning text-xs">
           <Plural value={attached - verified} one="(# unverified)" other="(# unverified)" />
         </span>
       ) : null}

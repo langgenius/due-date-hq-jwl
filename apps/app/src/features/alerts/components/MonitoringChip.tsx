@@ -60,7 +60,7 @@ export function MonitoringChip({
   const badgeClass = cn(
     // Compact green "LIVE" pill; the full monitoring scope (Federal ·
     // 50 States · DC) lives in the hover tooltip.
-    'gap-1.5 rounded-full border border-state-success-border bg-state-success-hover px-2 py-0.5 text-caption font-semibold uppercase tracking-[0.4px] text-text-success',
+    'gap-1.5 rounded-full border border-state-success-border bg-state-success-hover px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.4px] text-text-success',
     to ? 'cursor-pointer transition-colors hover:bg-state-success-active' : 'cursor-help',
     className,
   )

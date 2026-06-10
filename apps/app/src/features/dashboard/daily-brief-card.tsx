@@ -100,7 +100,7 @@ export function DailyBriefCard({
         >
           <SparklesIcon className="size-3.5 text-text-secondary" />
         </span>
-        <h2 className="text-sm leading-tight font-semibold text-text-primary">
+        <h2 className="text-base leading-tight font-semibold text-text-primary">
           <Trans>Daily Brief</Trans>
         </h2>
         <span className="min-w-0 truncate text-xs text-text-tertiary">
@@ -147,7 +147,7 @@ export function DailyBriefCard({
             <SparklesIcon className="size-4 text-text-secondary" />
           </span>
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
-            <h2 className="text-sm leading-tight font-semibold text-text-primary">
+            <h2 className="text-base leading-tight font-semibold text-text-primary">
               <Trans>Daily Brief</Trans>
             </h2>
             <BriefFreshness
@@ -468,7 +468,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5">
         <RotateCwIcon className="size-3 animate-spin text-text-secondary" aria-hidden />
-        <span className="font-mono text-caption font-medium tracking-[0.4px] text-text-secondary uppercase">
+        <span className="font-mono text-xs font-medium tracking-[0.4px] text-text-secondary uppercase">
           <Trans>Generating</Trans>
         </span>
       </span>
@@ -479,7 +479,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     // right after the label, so recovery lives on the FAILED chip itself
     // (the separate right-side regenerate button hides while failed).
     const failedText = (
-      <span className="text-caption font-medium tracking-[0.4px] text-text-secondary uppercase">
+      <span className="text-xs font-medium tracking-[0.4px] text-text-secondary uppercase">
         <Trans>Failed</Trans>
       </span>
     )
@@ -509,7 +509,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
       />
       <span
         className={cn(
-          'font-mono text-caption font-medium tracking-[0.4px] tabular-nums uppercase',
+          'font-mono text-xs font-medium tracking-[0.4px] tabular-nums uppercase',
           stale ? 'text-text-warning' : 'text-text-secondary',
         )}
       >
@@ -577,7 +577,7 @@ function CitationChip({
       type="button"
       onClick={onOpen}
       aria-label={t`Citation ${n} — open deadline`}
-      className="mx-0.5 inline-flex h-[18px] min-w-[18px] cursor-pointer items-center justify-center rounded-[4px] border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-caption leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+      className="mx-0.5 inline-flex h-[18px] min-w-[18px] cursor-pointer items-center justify-center rounded-[4px] border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-xs leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
     >
       {n}
     </button>

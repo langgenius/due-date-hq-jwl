@@ -15,7 +15,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 //     bg-background-default + overflow-hidden
 //   • TableHeader bg: bg-background-section (gray-50, quiet
 //     inset); 1px bottom border-divider-subtle
-//   • TableHead: text-caption font-semibold tracking-[0.5px]
+//   • TableHead: text-xs font-semibold tracking-[0.5px]
 //     uppercase text-text-tertiary; px-5 py-3
 //   • TableRow body: border-b border-divider-subtle; zebra
 //     stripe on even rows (bg-background-section/40); hover
@@ -114,7 +114,7 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
       // tertiary. Reads as caption-tier meta, not body text —
       // visually subordinate to the row content below.
       className={cn(
-        'px-5 py-3 text-left align-middle text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase whitespace-nowrap [&:has([role=checkbox])]:pr-0',
+        'px-5 py-3 text-left align-middle text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase whitespace-nowrap [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}

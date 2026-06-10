@@ -166,7 +166,7 @@ export function JurisdictionRail({
                   label={t`Temporary rules`}
                   href="/rules/temporary"
                   inlineMeta={
-                    <span className="shrink-0 text-caption font-semibold whitespace-nowrap text-text-warning">
+                    <span className="shrink-0 text-xs font-semibold whitespace-nowrap text-text-warning">
                       {t`${temporary.activeCount} active`}
                     </span>
                   }
@@ -276,7 +276,7 @@ function RailNavRow({
         {trailing}
       </span>
       {subtext ? (
-        <span className="truncate pl-[25px] text-caption font-medium text-text-tertiary">
+        <span className="truncate pl-[25px] text-xs font-medium text-text-tertiary">
           {subtext}
         </span>
       ) : null}
@@ -350,7 +350,7 @@ function RailRow({
       ) : null}
       <span
         className={cn(
-          'shrink-0 text-caption font-semibold tabular-nums',
+          'shrink-0 text-xs font-semibold tabular-nums',
           accentSelected ? 'text-text-accent' : 'text-text-muted',
         )}
       >

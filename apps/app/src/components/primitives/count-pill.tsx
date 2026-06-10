@@ -18,7 +18,7 @@ export function CountPill({ children, className }: { children: ReactNode; classN
         // inheriting the line-height of whatever title it sits beside — next to
         // the 28px page-header title the inherited 32px line-box made it 38px
         // tall.
-        'inline-flex h-[22px] items-center gap-1.5 rounded-full bg-[#fef3f2] px-2 text-xs leading-none font-medium text-text-destructive tabular-nums',
+        'inline-flex h-[22px] items-center gap-1.5 rounded-full bg-[#fef3f2] px-2 text-sm leading-none font-medium text-text-destructive tabular-nums',
         className,
       )}
     >

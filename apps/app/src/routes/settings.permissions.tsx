@@ -259,7 +259,7 @@ export function SettingsPermissionsRoute() {
         <div className="flex items-start gap-3 rounded-xl border border-divider-regular bg-background-section px-4 py-3">
           <InfoIcon className="mt-0.5 size-4 shrink-0 text-text-muted" aria-hidden />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-text-primary">
+            <p className="text-base font-semibold text-text-primary">
               {isOwner ? (
                 <Trans>Owner has every permission</Trans>
               ) : (
@@ -286,13 +286,13 @@ export function SettingsPermissionsRoute() {
               {/* Header */}
               <div className="flex items-center bg-background-section px-5 py-4">
                 <div className="w-[260px] shrink-0 pr-3">
-                  <span className="text-caption font-semibold uppercase tracking-eyebrow text-text-tertiary">
+                  <span className="text-xs font-semibold uppercase tracking-eyebrow text-text-tertiary">
                     <Trans>Scope</Trans>
                   </span>
                 </div>
                 {ACTIONS.map((action) => (
                   <div key={action} className="flex flex-1 justify-center">
-                    <span className="text-caption font-semibold uppercase tracking-eyebrow text-text-tertiary">
+                    <span className="text-xs font-semibold uppercase tracking-eyebrow text-text-tertiary">
                       {i18n._(ACTION_LABELS[action])}
                     </span>
                   </div>
@@ -313,10 +313,10 @@ export function SettingsPermissionsRoute() {
                       <scope.Icon className="size-4" />
                     </span>
                     <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-sm font-semibold text-text-primary">
+                      <span className="text-base font-semibold text-text-primary">
                         {i18n._(scope.label)}
                       </span>
-                      <span className="truncate text-caption text-text-tertiary">
+                      <span className="truncate text-xs text-text-tertiary">
                         {i18n._(scope.description)}
                       </span>
                     </span>

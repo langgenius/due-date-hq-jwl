@@ -581,7 +581,7 @@ const TYPE_SCALE: Array<{ name: string; className: string; spec: string }> = [
   { name: 'Caption', className: 'text-xs', spec: '12 / 16 · 400' },
   {
     name: 'Eyebrow',
-    className: 'text-caption font-semibold uppercase tracking-wider',
+    className: 'text-xs font-semibold uppercase tracking-wider',
     spec: '11 / 14 · 600 uppercase',
   },
 ]
@@ -656,7 +656,7 @@ export function PreviewRoute() {
       <div className="mx-auto flex max-w-[1280px] gap-8 px-8 py-10">
         {/* Sticky TOC */}
         <nav className="sticky top-10 hidden h-[calc(100vh-5rem)] w-44 shrink-0 overflow-y-auto md:block">
-          <p className="mb-3 text-caption font-semibold uppercase tracking-wider text-text-tertiary">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-tertiary">
             Sections
           </p>
           <ul className="space-y-1.5">
@@ -1744,7 +1744,7 @@ export function PreviewRoute() {
                   }
                   footer={
                     <div className="flex flex-col items-center gap-2">
-                      <p className="font-mono text-caption font-semibold tracking-[0.5px] text-text-muted uppercase">
+                      <p className="font-mono text-xs font-semibold tracking-[0.5px] text-text-muted uppercase">
                         What gets recorded
                       </p>
                       <div className="flex flex-wrap items-center justify-center gap-2">

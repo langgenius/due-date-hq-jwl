@@ -39,7 +39,7 @@ function PulseSourceMeta({
       // `text-xs` (12px) to match AlertCard's inline source span on
       // /alerts, so the two surfaces stay aligned. Reads as a quiet
       // caption beside the larger severity pill + title.
-      className={cn('flex min-w-0 items-center gap-2 text-xs text-text-tertiary', className)}
+      className={cn('flex min-w-0 items-center gap-2 text-sm text-text-tertiary', className)}
       aria-label={t`Alert source`}
     >
       <span className="truncate font-medium text-text-tertiary">{source}</span>

@@ -158,7 +158,7 @@ function Editor({ template }: { template: ReminderTemplatePublic }) {
         actions={
           <span
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-caption font-semibold',
+              'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold',
               template.active
                 ? 'bg-state-success-hover text-text-success'
                 : 'bg-background-section text-text-secondary',
@@ -221,7 +221,7 @@ function Editor({ template }: { template: ReminderTemplatePublic }) {
                 className="min-h-[220px] resize-y rounded-none border-0 leading-relaxed focus-visible:ring-0"
               />
               <div className="flex flex-wrap items-center gap-2 border-t border-divider-regular bg-background-section px-4 py-2.5">
-                <span className="text-caption font-semibold text-text-muted">
+                <span className="text-xs font-semibold text-text-muted">
                   <Trans>Available variables:</Trans>
                 </span>
                 {AVAILABLE_VARIABLES.map((variable) => (
@@ -277,11 +277,11 @@ function Editor({ template }: { template: ReminderTemplatePublic }) {
         <div className="flex flex-col gap-3.5">
           <div className="flex items-center gap-2">
             <EyeIcon className="size-3.5 text-text-tertiary" aria-hidden />
-            <span className="text-caption font-bold tracking-wider text-text-tertiary uppercase">
+            <span className="text-xs font-bold tracking-wider text-text-tertiary uppercase">
               <Trans>Live preview</Trans>
             </span>
             <span className="flex-1" />
-            <span className="text-caption font-medium text-text-secondary">
+            <span className="text-xs font-medium text-text-secondary">
               <Trans>sample: Maya Chen</Trans>
             </span>
           </div>
@@ -296,12 +296,12 @@ function Editor({ template }: { template: ReminderTemplatePublic }) {
                 <Trans>Sent to: {template.usageCount} active clients</Trans>
               </span>
               <span className="flex-1" />
-              <span className="inline-flex items-center gap-1 text-caption font-semibold text-text-accent">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-text-accent">
                 <Trans>View list</Trans>
                 <ExternalLinkIcon className="size-2.5" aria-hidden />
               </span>
             </div>
-            <p className="text-caption leading-relaxed font-medium text-text-secondary">
+            <p className="text-xs leading-relaxed font-medium text-text-secondary">
               <Trans>
                 This template applies to clients matched by your reminder rules with an active
                 engagement and an open document request.
@@ -359,7 +359,7 @@ function FormField({
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1.5">
         <span className="text-xs font-semibold text-text-secondary">{label}</span>
-        {hint ? <span className="text-caption font-medium text-text-muted">{hint}</span> : null}
+        {hint ? <span className="text-xs font-medium text-text-muted">{hint}</span> : null}
       </div>
       {children}
     </div>
@@ -418,18 +418,18 @@ function EmailPreview({ subject, bodyText }: { subject: string; bodyText: string
     <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
       <div className="flex flex-col gap-1.5 border-b border-divider-regular px-5 py-4">
         <div className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-full bg-state-accent-hover text-caption font-semibold text-text-accent">
+          <span className="flex size-8 items-center justify-center rounded-full bg-state-accent-hover text-xs font-semibold text-text-accent">
             JR
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="text-xs font-semibold text-text-primary">
               <Trans>Jules Rivera · Hawthorn CPA</Trans>
             </span>
-            <span className="text-caption font-medium text-text-muted">
+            <span className="text-xs font-medium text-text-muted">
               <Trans>to maya.chen@example.com</Trans>
             </span>
           </div>
-          <span className="text-caption font-medium text-text-muted">
+          <span className="text-xs font-medium text-text-muted">
             <Trans>Mon 9:00 AM</Trans>
           </span>
         </div>
@@ -438,10 +438,10 @@ function EmailPreview({ subject, bodyText }: { subject: string; bodyText: string
         </p>
       </div>
       <div className="flex flex-col gap-3 px-5 py-[18px]">
-        <p className="text-sm leading-relaxed whitespace-pre-wrap text-text-primary">
+        <p className="text-base leading-relaxed whitespace-pre-wrap text-text-primary">
           {applyVars(bodyText)}
         </p>
-        <span className="inline-flex w-fit items-center gap-2 rounded-lg bg-state-accent-solid px-[18px] py-2.5 text-sm font-semibold text-text-inverted">
+        <span className="inline-flex w-fit items-center gap-2 rounded-lg bg-state-accent-solid px-[18px] py-2.5 text-base font-semibold text-text-inverted">
           <Trans>Open secure portal</Trans>
           <ArrowRightIcon className="size-3" aria-hidden />
         </span>

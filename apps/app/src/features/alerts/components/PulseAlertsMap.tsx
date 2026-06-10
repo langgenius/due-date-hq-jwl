@@ -172,7 +172,7 @@ function PulseAlertsMap({
                 gridColumnStart: cell.col + 1,
               }}
               className={cn(
-                'flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border text-caption font-semibold leading-none transition-colors',
+                'flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border text-xs font-semibold leading-none transition-colors',
                 'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 isSelected
                   ? 'border-state-accent-active-alt bg-state-accent-hover ring-2 ring-state-accent-active-alt'
@@ -193,7 +193,7 @@ function PulseAlertsMap({
 
 function MapLegend() {
   return (
-    <ul className="flex items-center gap-2 text-caption text-text-tertiary">
+    <ul className="flex items-center gap-2 text-xs text-text-tertiary">
       <li className="inline-flex items-center gap-1">
         <span className="inline-block size-3 rounded-sm border border-divider-subtle bg-background-section" />
         <Trans>0</Trans>

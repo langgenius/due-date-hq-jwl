@@ -90,7 +90,7 @@ export function Stepper({ current }: { current: StepIndex }) {
               <span
                 aria-hidden
                 className={cn(
-                  'grid size-4 shrink-0 place-items-center rounded-full text-caption font-medium tabular-nums',
+                  'grid size-4 shrink-0 place-items-center rounded-full text-xs font-medium tabular-nums',
                   circleTone,
                 )}
               >

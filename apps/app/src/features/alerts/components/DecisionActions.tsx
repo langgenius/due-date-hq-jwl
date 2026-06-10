@@ -72,7 +72,7 @@ export function DecisionActions({
             type="button"
             onClick={tertiary.onClick}
             disabled={loading || tertiary.disabled}
-            className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md text-sm font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md text-base font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
           >
             {TertiaryIcon ? <TertiaryIcon aria-hidden className="size-3 shrink-0" /> : null}
             {tertiary.label}

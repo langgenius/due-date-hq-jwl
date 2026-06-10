@@ -239,7 +239,7 @@ export function AlertHistoryView() {
               onChange={(event) => setSearch(event.target.value)}
               placeholder={t`Search handled alerts`}
               aria-label={t`Search handled alerts`}
-              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-text-muted"
+              className="min-w-0 flex-1 bg-transparent text-base font-medium text-text-primary outline-none placeholder:text-text-muted"
             />
           </label>
         </div>
@@ -254,13 +254,13 @@ export function AlertHistoryView() {
               aria-label={t`Select all`}
               className="size-4 rounded-[4px]"
             />
-            <span className="text-sm font-semibold text-text-accent tabular-nums">
+            <span className="text-base font-semibold text-text-accent tabular-nums">
               <Plural value={selected.size} one="# alert selected" other="# alerts selected" />
             </span>
             <button
               type="button"
               onClick={() => setSelected(new Set())}
-              className="cursor-pointer text-sm font-medium text-text-accent underline-offset-2 hover:underline"
+              className="cursor-pointer text-base font-medium text-text-accent underline-offset-2 hover:underline"
             >
               <Trans>Clear</Trans>
             </button>
@@ -305,7 +305,7 @@ export function AlertHistoryView() {
                 <TableRow className="even:bg-transparent hover:bg-transparent">
                   <TableCell
                     colSpan={5}
-                    className="py-10 text-center text-sm text-text-tertiary"
+                    className="py-10 text-center text-base text-text-tertiary"
                   >
                     <Trans>Loading handled alerts…</Trans>
                   </TableCell>
@@ -314,7 +314,7 @@ export function AlertHistoryView() {
                 <TableRow className="even:bg-transparent hover:bg-transparent">
                   <TableCell
                     colSpan={5}
-                    className="py-10 text-center text-sm text-text-tertiary"
+                    className="py-10 text-center text-base text-text-tertiary"
                   >
                     <Trans>No handled alerts match this view.</Trans>
                   </TableCell>
@@ -327,10 +327,10 @@ export function AlertHistoryView() {
                     <TableRow className="even:bg-transparent hover:bg-transparent">
                       <TableCell colSpan={5} className="bg-[#e9ebf0] px-5 py-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-caption font-semibold tracking-[0.5px] text-text-secondary uppercase">
+                          <span className="text-xs font-semibold tracking-[0.5px] text-text-secondary uppercase">
                             {month}
                           </span>
-                          <span className="text-caption font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
+                          <span className="text-xs font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
                             <Plural value={monthAlerts.length} one="# handled" other="# handled" />
                           </span>
                         </div>
@@ -429,7 +429,7 @@ function HistoryRow({
       {/* DATE */}
       <TableCell>
         <div className="flex flex-col">
-          <span className="text-xs font-semibold text-text-primary">{dateLabel}</span>
+          <span className="text-sm font-semibold text-text-primary">{dateLabel}</span>
           {relativeSub ? (
             <span className="text-caption-xs font-medium text-text-muted">{relativeSub}</span>
           ) : null}
@@ -438,7 +438,7 @@ function HistoryRow({
 
       {/* JURIS */}
       <TableCell>
-        <span className="inline-flex h-[20px] items-center rounded-lg bg-background-subtle px-2 text-caption font-semibold text-text-secondary uppercase">
+        <span className="inline-flex h-[20px] items-center rounded-lg bg-background-subtle px-2 text-xs font-semibold text-text-secondary uppercase">
           {alert.jurisdiction}
         </span>
       </TableCell>
@@ -447,12 +447,12 @@ function HistoryRow({
       <TableCell className="overflow-hidden">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span
-            className="truncate text-sm font-semibold text-text-primary"
+            className="truncate text-base font-semibold text-text-primary"
             title={alert.title}
           >
             {alert.title}
           </span>
-          <span className="flex min-w-0 items-center gap-2 truncate text-caption text-text-tertiary">
+          <span className="flex min-w-0 items-center gap-2 truncate text-xs text-text-tertiary">
             <span className="shrink-0 font-semibold tracking-[0.3px] text-text-muted uppercase">
               {changeKindLabel(alert.changeKind)}
             </span>

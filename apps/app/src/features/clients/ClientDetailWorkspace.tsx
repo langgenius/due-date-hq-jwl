@@ -1439,7 +1439,7 @@ function ClientDetailRail({ client }: { client: ClientPublic }) {
                     <span className="shrink-0 text-xs text-text-secondary">{contact.role}</span>
                   </div>
                   {contact.email ? (
-                    <span className="truncate text-caption text-text-tertiary">{contact.email}</span>
+                    <span className="truncate text-xs text-text-tertiary">{contact.email}</span>
                   ) : null}
                 </div>
                 {/* Compose intentionally not rendered: EmailComposeDialog

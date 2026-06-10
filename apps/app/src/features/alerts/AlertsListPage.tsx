@@ -610,7 +610,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         // "View history" promoted from a text link → outline Button
         // shape so the action cluster reads as actions, not soft
         // links. Description survives via the primitive's description
-        // prop, picking up the canonical text-sm leading-5
+        // prop, picking up the canonical text-base leading-5
         // instead of the hand-rolled text-md.
         <PageHeader
           title={
@@ -1015,7 +1015,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder={t`Search alerts`}
-                    className="min-w-0 flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-text-muted"
+                    className="min-w-0 flex-1 bg-transparent text-base font-medium text-text-primary outline-none placeholder:text-text-muted"
                     aria-label={t`Search alerts`}
                   />
                 </label>
@@ -1026,7 +1026,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     the pin on; this chip (plus Reset and any explicit Time
                     choice) is how it turns off. */}
                 {morningSweep?.active ? (
-                  <span className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-state-accent-border bg-state-accent-hover px-3 text-sm font-medium text-text-accent">
+                  <span className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-state-accent-border bg-state-accent-hover px-3 text-base font-medium text-text-accent">
                     <CoffeeIcon className="size-3.5" aria-hidden />
                     <Trans>Morning sweep · last 24h</Trans>
                     <button
@@ -1082,7 +1082,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         sits at the START of the right cluster — right after the
                         spacer, ahead of Filters / State / Sort (was buried after
                         State, beside Reset). */}
-                    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-sm font-medium text-text-secondary select-none">
+                    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-base font-medium text-text-secondary select-none">
                       <Checkbox
                         checked={showSuggestedAction}
                         onCheckedChange={(next) => setShowSuggestedAction(next)}
@@ -1354,7 +1354,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   {/* RIGHT: active alerts panel (compact rows) */}
                   <div className="flex w-[460px] shrink-0 flex-col gap-2 overflow-y-auto">
                     <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
-                      <span className="text-caption font-bold tracking-[0.8px] text-text-muted uppercase">
+                      <span className="text-xs font-bold tracking-[0.8px] text-text-muted uppercase">
                         <Trans>Active alerts</Trans>
                         <span className="ml-2 tabular-nums">{sortedAlerts.length}</span>
                       </span>
@@ -1633,10 +1633,10 @@ function BulkActionBar({
           <CheckIcon className="size-3.5 text-white" aria-hidden />
         </span>
         <div className="flex flex-col leading-tight">
-          <span className="text-sm font-semibold">
+          <span className="text-base font-semibold">
             <Plural value={selectedCount} one="# selected" other="# selected" />
           </span>
-          <span className="text-xs text-text-inverted/60">
+          <span className="text-sm text-text-inverted/60">
             <Trans>of {totalCount} alerts</Trans>
           </span>
         </div>
@@ -1923,7 +1923,7 @@ function FilterPillSection<T extends string>({
               onClick={() => onSelect(option)}
               aria-pressed={active}
               className={cn(
-                'inline-flex h-7 cursor-pointer items-center rounded-lg border px-2.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex h-7 cursor-pointer items-center rounded-lg border px-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 active
                   ? 'border-state-accent-border bg-state-accent-hover text-text-accent'
                   : 'border-divider-subtle text-text-secondary hover:bg-state-base-hover',
@@ -2035,7 +2035,7 @@ function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {
       </span>
 
       {/* Header band — mirrors the day-group divider tokens */}
-      <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-5 py-2 text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+      <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-5 py-2 text-sm font-semibold tracking-[0.5px] text-text-tertiary uppercase">
         <span className="inline-flex items-center gap-1.5">
           <PulsingDot tone="warning" active />
           <Trans>Checking {label}…</Trans>
@@ -2198,7 +2198,7 @@ function AlertsHistoryRecordLegend() {
     // wrapper (gap-6 column + mt-2) already supplies the separation from the
     // CTA above, so no extra padding-top here.
     <div className="flex flex-col items-center gap-2">
-      <p className="text-caption font-semibold tracking-[0.5px] text-text-muted uppercase">
+      <p className="text-xs font-semibold tracking-[0.5px] text-text-muted uppercase">
         <Trans>What gets recorded</Trans>
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">

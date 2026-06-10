@@ -231,7 +231,7 @@ function NarrativeTile({
     // card (needs-attention-card.tsx) so the two surfaces read as one system —
     //   • card chrome → `rounded-xl bg-background-section p-[18px]` +
     //     `hover:bg-background-subtle transition-colors duration-200`
-    //   • eyebrow label → `text-caption font-semibold tracking-[0.4px]
+    //   • eyebrow label → `text-xs font-semibold tracking-[0.4px]
     //     text-text-tertiary uppercase` (matches the card's change-kind /
     //     meta eyebrow)
     //   • headline → `text-[14px] font-semibold leading-[1.3]
@@ -259,7 +259,7 @@ function NarrativeTile({
         <Icon className="size-3.5" aria-hidden />
       </span>
       <span className="flex min-w-0 flex-col gap-1">
-        <span className="text-caption font-semibold tracking-[0.4px] text-text-tertiary uppercase">
+        <span className="text-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase">
           {label}
         </span>
         {loading ? (

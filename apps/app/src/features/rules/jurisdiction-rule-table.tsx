@@ -556,7 +556,7 @@ function JurisdictionRuleRow({
             <span className="inline-flex shrink-0 items-center justify-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
               {rule.jurisdiction}
             </span>
-            <span className="min-w-0 truncate text-sm font-semibold text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-focus-within/row:underline">
+            <span className="min-w-0 truncate text-base font-semibold text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-focus-within/row:underline">
               {displayTitle}
             </span>
           </div>
@@ -569,7 +569,7 @@ function JurisdictionRuleRow({
       {/* Type — humanized tax type pill, truncated to its column. */}
       <TableCell className="overflow-hidden px-2 py-3 align-top">
         <span
-          className="block max-w-full truncate rounded-full border border-divider-subtle bg-background-subtle px-2.5 py-0.5 text-center text-caption font-medium text-text-secondary"
+          className="block max-w-full truncate rounded-full border border-divider-subtle bg-background-subtle px-2.5 py-0.5 text-center text-xs font-medium text-text-secondary"
           title={typeLabel}
         >
           {typeLabel}
@@ -608,7 +608,7 @@ function JurisdictionRuleRow({
       <TableCell className="px-2 py-3 align-top">
         <span
           className={cn(
-            'inline-flex items-center rounded-full px-2.5 py-0.5 text-caption font-semibold',
+            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
             statusPill.bg,
             statusPill.text,
           )}
@@ -750,7 +750,7 @@ export function KpiStrip({
             </span>
             <span
               className={cn(
-                'truncate text-caption font-medium',
+                'truncate text-xs font-medium',
                 stat.subClass ?? 'text-text-secondary',
               )}
             >

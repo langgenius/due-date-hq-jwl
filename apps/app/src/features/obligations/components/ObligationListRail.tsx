@@ -172,7 +172,7 @@ function RailItem({
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           {row.clientState ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-divider-regular px-1.5 text-caption font-semibold text-text-secondary uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-divider-regular px-1.5 text-xs font-semibold text-text-secondary uppercase">
               <StateBadge code={row.clientState} size="xs" style={{ width: 12, height: 12 }} />
               {row.clientState}
             </span>
@@ -180,7 +180,7 @@ function RailItem({
           <TaxCodeBadge code={row.taxType} />
         </div>
         <span className="truncate text-[13px] font-medium text-text-primary">{row.clientName}</span>
-        <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-caption" />
+        <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-xs" />
       </div>
     </button>
   )

@@ -234,7 +234,7 @@ export function AlertCard({
                       font-bold tracking-[0.7px] uppercase. */}
                   {severity.id === 'high' ? (
                     <span
-                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-caption font-bold tracking-[0.7px] uppercase"
+                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-xs font-bold tracking-[0.7px] uppercase"
                       style={{ backgroundColor: severity.bg, color: severity.text }}
                     >
                       {severityLabel}

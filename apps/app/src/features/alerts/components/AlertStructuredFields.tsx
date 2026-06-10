@@ -245,10 +245,10 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           // 13/normal primary value. The grid's gap-px + divider bg draw the
           // right-/row-hairlines the Pencil shows between cells.
           <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-5 py-2.5">
-            <span className="text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+            <span className="text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
               {cell.label}
             </span>
-            <span className="min-w-0 truncate text-sm font-normal text-text-primary">
+            <span className="min-w-0 truncate text-base font-normal text-text-primary">
               {cell.value}
             </span>
           </div>

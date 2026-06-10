@@ -127,7 +127,7 @@ function CompareCard({
         {rows.map((row) => (
           <li
             key={row.key}
-            className="flex items-start gap-2 text-sm leading-relaxed text-text-secondary"
+            className="flex items-start gap-2 text-base leading-relaxed text-text-secondary"
           >
             <span
               aria-hidden

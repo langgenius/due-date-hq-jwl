@@ -1303,7 +1303,7 @@ export function RuleAcceptErrorDialog({
           </div>
           {showCode ? (
             <div className="flex items-center rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2.5">
-              <span className="font-mono text-caption font-semibold text-text-destructive">
+              <span className="font-mono text-xs font-semibold text-text-destructive">
                 {error.code}
               </span>
             </div>
@@ -1396,7 +1396,7 @@ function ConfirmImpactDialog({
             <span className="text-lg font-bold text-text-primary tabular-nums">
               {loading ? '—' : errored ? '—' : deadlines}
             </span>
-            <span className="text-caption font-medium text-text-muted">
+            <span className="text-xs font-medium text-text-muted">
               {deadlines === 1 ? t`deadline generated` : t`deadlines generated`}
             </span>
           </div>
@@ -1405,7 +1405,7 @@ function ConfirmImpactDialog({
             <span className="text-lg font-bold text-text-primary tabular-nums">
               {rule.entityApplicability.length}
             </span>
-            <span className="text-caption font-medium text-text-muted">
+            <span className="text-xs font-medium text-text-muted">
               {rule.entityApplicability.length === 1 ? t`entity type` : t`entity types`}
             </span>
           </div>
@@ -1969,7 +1969,7 @@ function RuleEvidenceCard({
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          <span className="font-mono text-caption font-medium text-text-secondary">
+          <span className="font-mono text-xs font-medium text-text-secondary">
             {evidence.sourceId}
           </span>
           <span aria-hidden className="text-text-muted">
@@ -1985,7 +1985,7 @@ function RuleEvidenceCard({
         <p className="line-clamp-2 text-sm text-text-secondary">{evidence.summary}</p>
       </div>
       {isPrimary ? (
-        <span className="shrink-0 self-start rounded-full bg-state-success-solid px-2.5 py-0.5 text-caption font-semibold text-white">
+        <span className="shrink-0 self-start rounded-full bg-state-success-solid px-2.5 py-0.5 text-xs font-semibold text-white">
           <Trans>Primary</Trans>
         </span>
       ) : (

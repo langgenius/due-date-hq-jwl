@@ -207,7 +207,7 @@ function ChannelsCard({
               </span>
               {/* TODO(data): the verified delivery address is not on the
                   notification-preference contract. */}
-              <span className="font-mono text-caption text-text-secondary">
+              <span className="font-mono text-xs text-text-secondary">
                 jules@brightline.com
               </span>
               <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 text-caption-xs font-semibold text-text-accent">
@@ -305,7 +305,7 @@ function ChannelRow({
       <div className="flex items-center gap-2.5">
         <span
           className={cn(
-            'text-caption font-semibold tracking-wide uppercase',
+            'text-xs font-semibold tracking-wide uppercase',
             disabled ? 'text-text-tertiary' : isOn ? 'text-text-success' : 'text-text-tertiary',
           )}
         >
@@ -467,8 +467,8 @@ function TypesMatrixCard({
                     <row.icon className="size-3.5" aria-hidden />
                   </span>
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="text-sm font-semibold text-text-primary">{row.name}</span>
-                    <span className="truncate text-caption text-text-secondary">{row.detail}</span>
+                    <span className="text-base font-semibold text-text-primary">{row.name}</span>
+                    <span className="truncate text-xs text-text-secondary">{row.detail}</span>
                   </div>
                 </div>
                 {/* Email + In-app cells reflect the row's type flag AND the
@@ -487,7 +487,7 @@ function TypesMatrixCard({
                 <MatrixCell on={false} muted />
                 <MatrixCell on={false} muted />
                 <span className="w-[150px]">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-caption font-medium text-text-secondary">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary">
                     <TimerIcon className="size-2.5 text-text-tertiary" aria-hidden />
                     {row.cadence}
                   </span>
@@ -608,14 +608,14 @@ function QuietHoursCard() {
             <Trans>Time range</Trans>
           </span>
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-sm text-text-primary">
+            <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-base text-text-primary">
               19:00
             </span>
             <span className="text-text-tertiary">→</span>
-            <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-sm text-text-primary">
+            <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-base text-text-primary">
               07:30
             </span>
-            <span className="inline-flex items-center rounded-lg bg-background-subtle px-2.5 py-1.5 font-mono text-caption text-text-secondary">
+            <span className="inline-flex items-center rounded-lg bg-background-subtle px-2.5 py-1.5 font-mono text-xs text-text-secondary">
               America/New_York
             </span>
           </div>
@@ -628,7 +628,7 @@ function QuietHoursCard() {
           <span className="text-xs font-semibold text-text-secondary">
             <Trans>Urgent overrides still come through</Trans>
           </span>
-          <span className="text-caption text-text-secondary">
+          <span className="text-xs text-text-secondary">
             <Trans>
               High-impact alerts and same-day deadlines bypass quiet hours so nothing critical waits
               until morning.

@@ -112,7 +112,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
               Gated to HIGH only (see severityLabel note above). */}
           {severity.id === 'high' ? (
             <span
-              className="inline-flex shrink-0 items-center rounded-[4px] px-2 pt-[3px] pb-[2px] text-caption font-semibold tracking-[0.8px]"
+              className="inline-flex shrink-0 items-center rounded-[4px] px-2 pt-[3px] pb-[2px] text-xs font-semibold tracking-[0.8px]"
               style={{ backgroundColor: severity.bg, color: severity.text }}
             >
               {severityLabel}
@@ -174,7 +174,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
         <div className="grid grid-cols-[5fr_5fr_2fr_2fr] overflow-hidden rounded-xl bg-background-section">
           {/* wdV5a WHAT CHANGED. padding [12,16], gap-1.5. */}
           <div className="flex flex-col gap-1.5 px-4 py-3">
-            <span className="text-caption font-semibold tracking-[0.6px] text-text-muted">
+            <span className="text-xs font-semibold tracking-[0.6px] text-text-muted">
               <Trans>WHAT CHANGED</Trans>
             </span>
             <div className="flex items-center gap-2.5 text-sm">
@@ -201,7 +201,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           {/* JNTVV AFFECTING (renamed from SCHEMA DIFF). Shows form-code
               pills inline. */}
           <div className="flex flex-col gap-1.5 px-4 py-3">
-            <span className="text-caption font-semibold tracking-[0.6px] text-text-muted">
+            <span className="text-xs font-semibold tracking-[0.6px] text-text-muted">
               <Trans>AFFECTING</Trans>
             </span>
             <div className="flex flex-wrap items-center gap-1">
@@ -225,7 +225,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           </div>
           {/* DOz2N FIRST YEAR — narrower cell. */}
           <div className="flex flex-col gap-1.5 px-4 py-3">
-            <span className="text-caption font-semibold tracking-[0.6px] text-text-muted">
+            <span className="text-xs font-semibold tracking-[0.6px] text-text-muted">
               <Trans>FIRST YEAR</Trans>
             </span>
             <span className="text-sm font-medium text-text-secondary">
@@ -234,7 +234,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           </div>
           {/* y3WVFs TRANSITION — narrower cell. */}
           <div className="flex flex-col gap-1.5 px-4 py-3">
-            <span className="text-caption font-semibold tracking-[0.6px] text-text-muted">
+            <span className="text-xs font-semibold tracking-[0.6px] text-text-muted">
               <Trans>TRANSITION</Trans>
             </span>
             <span className="text-sm font-medium text-text-secondary">

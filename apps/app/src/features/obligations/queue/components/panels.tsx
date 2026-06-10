@@ -322,17 +322,17 @@ function DeadlineDateCard({
           className={cn('size-3 shrink-0', overdue ? 'text-text-warning' : 'text-text-tertiary')}
           aria-hidden
         />
-        <span className="text-caption font-semibold uppercase tracking-[0.4px] text-text-tertiary">
+        <span className="text-xs font-semibold uppercase tracking-[0.4px] text-text-tertiary">
           {label}
         </span>
       </div>
-      <span className="text-base leading-none font-semibold tracking-[-0.2px] text-text-primary tabular-nums">
+      <span className="text-[16px] leading-none font-semibold tracking-[-0.2px] text-text-primary tabular-nums">
         {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
       </span>
       {subline ? (
         <span
           className={cn(
-            'text-caption font-medium',
+            'text-xs font-medium',
             sublineTone === 'destructive'
               ? 'text-text-destructive'
               : sublineTone === 'warning'
@@ -637,7 +637,7 @@ export function DeadlineTile({
     <div className={cn('flex flex-col gap-1 py-2.5', surfaceClass)}>
       <span
         className={cn(
-          'text-caption leading-tight font-semibold uppercase tracking-wide',
+          'text-xs leading-tight font-semibold uppercase tracking-wide',
           labelToneClass,
           primary && 'tracking-[0.6px]',
         )}
@@ -651,7 +651,7 @@ export function DeadlineTile({
         {lateLabel ? (
           // Restrained inline red note — no filled pill — consistent
           // with how the alerts detail shows its red `+N days` delta.
-          <span className="text-caption font-semibold text-text-destructive tabular-nums">
+          <span className="text-xs font-semibold text-text-destructive tabular-nums">
             {lateLabel}
           </span>
         ) : null}
@@ -2129,15 +2129,15 @@ export function ActiveStageDetailCard({
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <ObligationStatusReadBadge status={row.status} />
-          <span className="text-caption font-medium tabular-nums text-text-tertiary">
+          <span className="text-xs font-medium tabular-nums text-text-tertiary">
             {t`Stage ${stageIdx + 1} of ${TIMELINE_STAGE_KEYS.length}`}
           </span>
           {subStatus ? (
             <>
-              <span aria-hidden className="text-caption text-text-tertiary">
+              <span aria-hidden className="text-xs text-text-tertiary">
                 ·
               </span>
-              <span className="text-caption font-medium text-text-secondary">{subStatus}</span>
+              <span className="text-xs font-medium text-text-secondary">{subStatus}</span>
             </>
           ) : null}
         </div>
@@ -2156,7 +2156,7 @@ export function ActiveStageDetailCard({
             </span>
           ) : null}
           {stageEnteredAt ? (
-            <p className="text-xs text-text-tertiary">
+            <p className="text-sm text-text-tertiary">
               <Trans>Entered {formatDatePretty(stageEnteredAt.slice(0, 10))}</Trans>
             </p>
           ) : null}
@@ -2287,7 +2287,7 @@ export function ActiveStageDetailCard({
             <span className="font-mono text-[30px] leading-none font-bold tracking-[-0.6px] text-text-primary tabular-nums">
               {readinessCounts.received}
             </span>
-            <span className="pb-0.5 text-xs font-medium text-text-tertiary">
+            <span className="pb-0.5 text-sm font-medium text-text-tertiary">
               {t`of ${readinessCounts.total} materials`}
             </span>
           </div>
@@ -2314,7 +2314,7 @@ export function ActiveStageDetailCard({
             ].map((chip) => (
               <span
                 key={chip.key}
-                className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2.5 py-0.5 text-caption font-medium text-text-secondary"
+                className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2.5 py-0.5 text-xs font-medium text-text-secondary"
               >
                 <span className={cn('size-1.5 shrink-0 rounded-full', chip.dot)} aria-hidden />
                 <span className="tabular-nums">{chip.count}</span> {chip.label}

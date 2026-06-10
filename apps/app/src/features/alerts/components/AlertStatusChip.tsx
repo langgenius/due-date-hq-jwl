@@ -77,7 +77,7 @@ export function AlertStatusChip({
   return (
     <span
       className={cn(
-        'inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full px-2.5 py-[3px] text-caption font-semibold whitespace-nowrap',
+        'inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full px-2.5 py-[3px] text-xs font-semibold whitespace-nowrap',
         TONE_CLASS[tone],
         bordered && 'border border-divider-regular',
         className,

@@ -870,7 +870,7 @@ function OverviewRecentChangesCard({
               >
                 <span
                   className={cn(
-                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-[3px] text-caption font-bold',
+                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-[3px] text-xs font-bold',
                     jurisdictionPillClass(rule.jurisdiction),
                   )}
                 >
@@ -4248,7 +4248,7 @@ function RuleDetailHeroCard({
           {isReviewable ? <Trans>Rule under review</Trans> : <Trans>Active rule</Trans>}
         </span>
         {isReviewable ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-state-warning-hover px-2.5 py-0.5 text-caption font-semibold text-text-warning">
+          <span className="inline-flex items-center gap-1 rounded-full bg-state-warning-hover px-2.5 py-0.5 text-xs font-semibold text-text-warning">
             <Clock3 aria-hidden className="size-2.5" />
             <Trans>Awaiting review</Trans>
           </span>
@@ -4266,7 +4266,7 @@ function RuleDetailHeroCard({
             {rule.defaultTip}
           </p>
         ) : null}
-        <div className="flex flex-wrap items-center gap-2.5 pt-1 text-caption font-medium">
+        <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-medium">
           {aiPct !== null ? (
             <>
               <span className="inline-flex items-center gap-1 text-text-success">

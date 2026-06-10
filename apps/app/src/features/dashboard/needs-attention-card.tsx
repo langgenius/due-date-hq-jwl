@@ -234,7 +234,7 @@ function NeedsAttentionCard({
                 text → destructive tokens). Full words "High impact", not
                 the abbreviated "HIGH". Only renders for high-impact alerts. */}
             {severity.id === 'high' ? (
-              <span className="inline-flex shrink-0 items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-caption font-semibold tracking-[0.4px] text-text-destructive uppercase">
+              <span className="inline-flex shrink-0 items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-xs font-semibold tracking-[0.4px] text-text-destructive uppercase">
                 <Trans>High impact</Trans>
               </span>
             ) : null}
@@ -246,7 +246,7 @@ function NeedsAttentionCard({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="inline-flex shrink-0 items-center gap-1.5 text-caption font-semibold tracking-[0.2px] text-text-secondary outline-none"
+                    className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold tracking-[0.2px] text-text-secondary outline-none"
                     {...props}
                   >
                     <StateBadge
@@ -269,7 +269,7 @@ function NeedsAttentionCard({
             {alertForm ? (
               <TaxCodeBadge
                 code={alertForm}
-                className="rounded-lg border-divider-subtle px-2 py-[2px] text-caption"
+                className="rounded-lg border-divider-subtle px-2 py-[2px] text-xs"
               />
             ) : null}
 
@@ -277,7 +277,7 @@ function NeedsAttentionCard({
                 (two-color rule). Invisible at rest and fades in on card hover;
                 opacity-0 reserves its width so the meta row doesn't reflow. On
                 hover it stays the muted gray tone — no accent-tone switch. */}
-            <span className="shrink-0 text-caption font-semibold tracking-[0.4px] text-text-tertiary uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <span className="shrink-0 text-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               {changeKindLabel(alert.changeKind)}
             </span>
           </div>

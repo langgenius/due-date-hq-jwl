@@ -212,7 +212,7 @@ function ActionsTable({
               >
                 <TableCell
                   colSpan={7}
-                  className="bg-background-subtle px-[18px] py-1.5 text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase"
+                  className="bg-background-subtle px-[18px] py-1.5 text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase"
                 >
                   <StatusGroupLabel kind={currentStatusGroup} />
                 </TableCell>
@@ -304,7 +304,7 @@ function ActionsTableRow({
                   props?.onClick?.(e)
                   e.stopPropagation()
                 }}
-                className="inline-flex cursor-help items-center justify-center gap-1 font-mono text-caption font-semibold tabular-nums text-text-tertiary"
+                className="inline-flex cursor-help items-center justify-center gap-1 font-mono text-xs font-semibold tabular-nums text-text-tertiary"
               >
                 {row.smartPriority?.rank && row.smartPriority.rank <= 3 ? (
                   <SparklesIcon className="size-2.5 shrink-0 text-text-accent" aria-hidden />
@@ -888,7 +888,7 @@ function DashboardStatusLifecycleStrip({ rows }: { rows: DashboardTopRow[] }) {
     // the page wash. The eyebrow caption names the scope explicitly
     // (the strip is fed from `visible`, the top priority actions).
     <div className="flex flex-col gap-1.5">
-      <span className="text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+      <span className="text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
         <Trans>Status across priority actions</Trans>
       </span>
       <div className="flex flex-row flex-wrap overflow-hidden rounded-xl border border-divider-deep bg-background-default">

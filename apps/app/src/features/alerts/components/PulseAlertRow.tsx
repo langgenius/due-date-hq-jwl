@@ -388,7 +388,7 @@ function PulseAlertRow({
             />
             <TooltipContent>{railRelative}</TooltipContent>
           </Tooltip>
-          <span className="text-caption font-medium text-text-tertiary tabular-nums">
+          <span className="text-xs font-medium text-text-tertiary tabular-nums">
             {absoluteTime}
           </span>
         </div>
@@ -406,7 +406,7 @@ function PulseAlertRow({
               "Active" queue; a green dot+label flags them on the row (and
               the detail header). Review-only alerts carry no badge. */}
           {isActiveAlert(alert) ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-[#17b26a40] bg-[#e8f5ee] px-1.5 text-caption font-semibold tracking-[0.3px] text-text-success uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-[#17b26a40] bg-[#e8f5ee] px-1.5 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
               <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
               <Trans>Active</Trans>
             </span>
@@ -415,7 +415,7 @@ function PulseAlertRow({
               when the alert is in the priority queue. */}
           {levelPill ? (
             <span
-              className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] border px-2 text-caption font-semibold tracking-[0.3px] uppercase"
+              className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] border px-2 text-xs font-semibold tracking-[0.3px] uppercase"
               style={{
                 backgroundColor: levelPill.bg,
                 borderColor: levelPill.border,
@@ -432,14 +432,14 @@ function PulseAlertRow({
               for the ACTION pill below, so the two never read as the same
               signal. */}
           {highImpact ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-[#fecdca] bg-[#fef3f2] px-1.5 text-caption font-semibold tracking-[0.3px] text-text-destructive uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-[#fecdca] bg-[#fef3f2] px-1.5 text-xs font-semibold tracking-[0.3px] text-text-destructive uppercase">
               <Trans>High impact</Trans>
             </span>
           ) : null}
 
           {/* STATE — the jurisdiction chip is a plain bordered 2-letter
               code (no circular StateBadge seal). */}
-          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-caption font-semibold text-text-secondary uppercase">
+          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-xs font-semibold text-text-secondary uppercase">
             {alert.jurisdiction}
           </span>
 
@@ -450,13 +450,13 @@ function PulseAlertRow({
           {formLabel ? <TaxCodeBadge code={formLabel} className="rounded-lg" /> : null}
 
           {/* CHANGE KIND — aligned to the dashboard NeedsAttentionCard's
-              change-kind treatment — SANS (not mono), text-caption
+              change-kind treatment — SANS (not mono), text-xs
               font-semibold tracking-[0.4px], neutral text-tertiary (not
               accent). One change-kind type signature across /today +
               /alerts. The change-kind label stands alone here; the bottom
               confidence pill already leads with "N sources · X% conf", so
               the corroboration signal isn't duplicated in the head. */}
-          <span className="text-caption font-semibold tracking-[0.3px] text-text-tertiary uppercase">
+          <span className="text-xs font-semibold tracking-[0.3px] text-text-tertiary uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
 
@@ -473,7 +473,7 @@ function PulseAlertRow({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="shrink-0 cursor-help whitespace-nowrap text-xs font-medium text-text-tertiary tabular-nums outline-none"
+                    className="shrink-0 cursor-help whitespace-nowrap text-sm font-medium text-text-tertiary tabular-nums outline-none"
                     {...props}
                   >
                     {relativeTime}
@@ -494,7 +494,7 @@ function PulseAlertRow({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="inline-flex min-w-0 shrink cursor-pointer items-center gap-1 truncate text-xs font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline"
+                    className="inline-flex min-w-0 shrink cursor-pointer items-center gap-1 truncate text-sm font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline"
                     onClick={(event) => {
                       event.stopPropagation()
                       window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
@@ -516,7 +516,7 @@ function PulseAlertRow({
               </TooltipContent>
             </Tooltip>
           ) : (
-            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-xs font-medium text-text-tertiary">
+            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-sm font-medium text-text-tertiary">
               <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
               <span className="truncate">{alert.source}</span>
             </span>
@@ -534,7 +534,7 @@ function PulseAlertRow({
               }}
               aria-expanded={whyOpen}
               className={cn(
-                'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2 text-caption font-semibold text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2 text-xs font-semibold text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 // Pencil `X6enpJ`: expanded = accent fill + accent
                 // border; collapsed = transparent with a hairline
                 // border that tints to the accent wash on hover.
@@ -573,7 +573,7 @@ function PulseAlertRow({
           <div className="flex flex-col gap-2">
             {showDateRow ? (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-xs font-medium text-text-muted line-through tabular-nums">
+                <span className="font-mono text-sm font-medium text-text-muted line-through tabular-nums">
                   {oldDateLabel}
                 </span>
                 <ArrowRightIcon
@@ -581,13 +581,13 @@ function PulseAlertRow({
                   strokeWidth={1.5}
                   aria-hidden
                 />
-                <span className="font-mono text-xs font-semibold text-text-primary tabular-nums">
+                <span className="font-mono text-sm font-semibold text-text-primary tabular-nums">
                   {newDateLabel}
                 </span>
                 {daysDiff !== null ? (
                   <span
                     className={cn(
-                      'text-xs font-medium',
+                      'text-sm font-medium',
                       daysDiff < 0 ? 'text-text-destructive' : 'text-text-warning',
                     )}
                   >
@@ -623,12 +623,12 @@ function PulseAlertRow({
                   style={{ backgroundColor: '#FFFBEB' }}
                 >
                   <span
-                    className="text-caption font-semibold tracking-[0.3px] uppercase"
+                    className="text-xs font-semibold tracking-[0.3px] uppercase"
                     style={{ color: '#92400E' }}
                   >
                     <Trans>Action</Trans>
                   </span>
-                  <span className="text-xs font-medium" style={{ color: '#92400E' }}>
+                  <span className="text-sm font-medium" style={{ color: '#92400E' }}>
                     {actionText}
                   </span>
                 </div>
@@ -647,11 +647,11 @@ function PulseAlertRow({
           <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-[#fafbfc] px-[14px] py-3">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
-              <span className="text-caption font-semibold tracking-[0.3px] text-text-secondary">
+              <span className="text-xs font-semibold tracking-[0.3px] text-text-secondary">
                 <Trans>Why this is urgent · priority {priority.score}</Trans>
               </span>
               <span className="flex-1" aria-hidden />
-              <span className="text-caption font-medium text-text-muted tabular-nums">
+              <span className="text-xs font-medium text-text-muted tabular-nums">
                 <Plural value={priority.reasons.length} one="# signal" other="# signals" />
               </span>
             </div>
@@ -661,10 +661,10 @@ function PulseAlertRow({
                   key={reason.key}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-1"
                 >
-                  <span className="text-caption font-semibold text-text-accent tabular-nums">
+                  <span className="text-xs font-semibold text-text-accent tabular-nums">
                     +{reason.points}
                   </span>
-                  <span className="text-caption font-semibold text-text-secondary">
+                  <span className="text-xs font-semibold text-text-secondary">
                     {reason.label}
                   </span>
                 </span>
@@ -681,7 +681,7 @@ function PulseAlertRow({
             gap-y-1`) with `whitespace-nowrap` / `shrink-0` on the text
             + pill — otherwise it wraps mid-unit ("Affects 2 / clients",
             "94% / conf"). */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-xs text-text-muted">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-sm text-text-muted">
           {/* The affected-clients line uses the Users icon — one
               clients-affected glyph across the AlertCard, this row, and
               the dashboard card. Impacted rows step to text-secondary;
@@ -708,7 +708,7 @@ function PulseAlertRow({
               Source corroboration lives in the tooltip so the row stays
               quiet. */}
           <span
-            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-caption font-medium tabular-nums text-text-tertiary"
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium tabular-nums text-text-tertiary"
             title={
               confirmingSources > 1
                 ? t`AI confidence ${confidencePct}% · confirmed by ${confirmingSources} sources`
@@ -977,7 +977,7 @@ function PulseAlertList({
                 the lighter tone keeps it from competing with the alert
                 rows beneath it. */}
                 <div className="flex items-center border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
-                  <div className="flex items-center gap-1.5 text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
                     {isToday ? (
                       <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
                     ) : null}

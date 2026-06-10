@@ -27,7 +27,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *
  * Visual contract (Pencil O0pyRO `p0WeNy`):
  *  - Frame: `border-y border-divider-subtle py-7`, no card border
- *  - Eyebrow: `text-caption font-semibold tracking-eyebrow text-text-muted uppercase`
+ *  - Eyebrow: `text-xs font-semibold tracking-eyebrow text-text-muted uppercase`
  *  - Value: `text-[32px] leading-none font-medium tracking-tight tabular-nums`,
  *    tone-coded via `valueClass` (default `text-text-primary`)
  *  - Sub: `text-sm font-medium`, tone-coded via `subClass`
@@ -81,7 +81,7 @@ export function StatBand({
       {stats.map((stat) => {
         const body = (
           <>
-            <span className="text-caption font-semibold tracking-eyebrow text-text-muted uppercase">
+            <span className="text-xs font-semibold tracking-eyebrow text-text-muted uppercase">
               {stat.label}
             </span>
             <span

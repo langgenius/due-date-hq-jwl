@@ -113,7 +113,7 @@ function TemplateCard({ template }: { template: ReminderTemplatePublic }) {
     <article className="flex flex-col gap-2.5 rounded-xl border border-divider-regular bg-background-default p-[18px_22px]">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold text-text-primary">{template.name}</h2>
-        <span className="shrink-0 text-caption font-medium text-text-muted tabular-nums">
+        <span className="shrink-0 text-xs font-medium text-text-muted tabular-nums">
           <Trans>used {template.usageCount} times</Trans>
         </span>
       </div>
@@ -135,7 +135,7 @@ function TemplateCard({ template }: { template: ReminderTemplatePublic }) {
         {/* TODO(data): "last edited by" actor is not on the contract; show the
             update timestamp marker is also unavailable as a name, so we keep a
             neutral label that doesn't fabricate an author. */}
-        <span className="text-caption font-medium text-text-muted">
+        <span className="text-xs font-medium text-text-muted">
           <Trans>Practice-managed template</Trans>
         </span>
         <TextLink
@@ -155,7 +155,7 @@ function Chip({ tone, children }: { tone: 'accent' | 'muted'; children: ReactNod
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-lg border border-divider-regular px-2 py-[3px] text-caption font-semibold',
+        'inline-flex items-center rounded-lg border border-divider-regular px-2 py-[3px] text-xs font-semibold',
         tone === 'accent'
           ? 'bg-state-accent-hover text-text-accent'
           : 'bg-background-section text-text-secondary',
