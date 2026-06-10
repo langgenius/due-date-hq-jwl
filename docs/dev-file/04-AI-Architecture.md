@@ -1,5 +1,7 @@
 # 04 · AI Architecture · AI SDK · Glass-Box · RAG · Pulse Pipeline
 
+> 最后核对：2026-06-10
+
 > 对齐 PRD §6.2 / §6.3 / §6.6 / §9 / §6D。
 > 本文件是 DueDateHQ 的 AI 接入口径权威：**只通过 Vercel AI SDK Core 调模型，结合 Cloudflare AI Gateway 运行在 Cloudflare Worker 内**。
 >
@@ -65,12 +67,15 @@ writer port 和 refusal 语义。SDK 不替代这些产品安全边界。
 ```json
 {
   "dependencies": {
+    "@duedatehq/core": "workspace:*",
     "ai": "catalog:",
     "ai-gateway-provider": "catalog:",
     "zod": "catalog:"
   }
 }
 ```
+
+（`@duedatehq/core` 是内部 workspace 包——plan entitlements / 规则注册表，不是 provider SDK。）
 
 禁止新增：
 
@@ -89,12 +94,12 @@ AI_GATEWAY_ACCOUNT_ID=
 AI_GATEWAY_SLUG=duedatehq
 AI_GATEWAY_PROVIDER=openrouter
 AI_GATEWAY_PROVIDER_API_KEY=
-AI_GATEWAY_MODEL_FAST_JSON=google/gemini-2.5-flash-lite
-AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING=google/gemini-3.1-flash-lite-preview
-AI_GATEWAY_MODEL_FAST_JSON_SOLO=google/gemini-2.5-flash-lite
-AI_GATEWAY_MODEL_FAST_JSON_PAID=google/gemini-3.1-flash-lite-preview
-AI_GATEWAY_MODEL_QUALITY_JSON=google/gemini-3-flash-preview
-AI_GATEWAY_MODEL_REASONING=openai/gpt-5-mini
+AI_GATEWAY_MODEL_FAST_JSON=google/gemini-3.5-flash
+AI_GATEWAY_MODEL_QUALITY_JSON=google/gemini-3.5-flash
+AI_GATEWAY_MODEL_REASONING=google/gemini-3.5-flash
+AI_GATEWAY_QUALITY_REASONING_EFFORT=high
+AI_GATEWAY_FAST_REASONING_EFFORT=low
+AI_SYSTEM_DAILY_LIMIT=1500
 AI_GATEWAY_API_KEY=
 ```
 
@@ -102,14 +107,15 @@ AI_GATEWAY_API_KEY=
 - `AI_GATEWAY_PROVIDER=openrouter`：使用 Cloudflare AI Gateway 的 OpenRouter Provider Native
   路径。
 - `AI_GATEWAY_PROVIDER_API_KEY`：OpenRouter token；这是本路径唯一必需的密钥。
-- `AI_GATEWAY_MODEL_FAST_JSON`：fast-json fallback 模型 id。
-- `AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING` / `AI_GATEWAY_MODEL_FAST_JSON_SOLO` /
-  `AI_GATEWAY_MODEL_FAST_JSON_PAID`：fast-json 的 plan-aware override。Solo 首次成功导入
-  clients 前使用 `google/gemini-3.1-flash-lite-preview`，之后回到
-  `google/gemini-2.5-flash-lite`；Pro、Team、Enterprise 使用
-  `google/gemini-3.1-flash-lite-preview`。
-- `AI_GATEWAY_MODEL_QUALITY_JSON` / `AI_GATEWAY_MODEL_REASONING`：按 prompt `model_tier` 路由的
-  provider 模型 id；由部署环境配置，不写死在业务调用点。
+- `AI_GATEWAY_MODEL_FAST_JSON` / `AI_GATEWAY_MODEL_QUALITY_JSON` / `AI_GATEWAY_MODEL_REASONING`：
+  按 prompt `model_tier` 路由的 provider 模型 id；由部署环境配置，不写死在业务调用点。
+  当前三档统一为 `google/gemini-3.5-flash`（plan-aware 模型 override 已退役，见 §2.3）。
+- `AI_GATEWAY_QUALITY_REASONING_EFFORT` / `AI_GATEWAY_FAST_REASONING_EFFORT`：按档位设置
+  OpenRouter `reasoning.effort`。quality 任务（pulse / rule / brief / insight）默认 `high`，
+  fast 任务（mapper / normalizer / readiness）默认 `low`；空值或非法值则完全省略 reasoning
+  选项（`packages/ai/src/router.ts` 的 `reasoningEffortForTier`）。
+- `AI_SYSTEM_DAILY_LIMIT`：system（无 firmId）AI 调用的全局每日上限（默认 1500），作为
+  成本熔断器；per-firm fair-use 无法覆盖这类后台任务（详见 §10.1）。
 - `AI_GATEWAY_API_KEY`：仅在启用 Cloudflare Authenticated Gateway 或切回 Unified provider 时使用；
   OpenRouter Provider Native 默认留空。
 - 不再配置第三方 tracing SDK keys。
@@ -117,8 +123,10 @@ AI_GATEWAY_API_KEY=
 ### 2.3 模型选择
 
 模型 id 不在文档中写死成“永远最新”。实现时必须从 AI SDK / Gateway 当前可用模型清单确认，
-再写入 Worker env；`packages/ai/src/router.ts` 负责把 prompt `model_tier` 映射到 env key，其中
-`fast-json` 会额外按 billing plan 和 Solo migration onboarding 状态选择 override。
+再写入 Worker env；`packages/ai/src/router.ts` 负责把 prompt `model_tier` 映射到 env key。
+plan-aware 模型路由已退役（所有 plan 用同一模型；billing plan 只影响 budget，不影响模型选择）。
+当前三档配置同一个 `google/gemini-3.5-flash`，档位差异体现在 OpenRouter `reasoning.effort`
+（quality=high、fast=low）而不是模型 id。
 
 当前策略：
 
@@ -152,11 +160,12 @@ fair-use 保护，但 Billing 文案不能暗示 Team 有更强模型或更深 A
 - Solo 只能使用 preview / basic AI 功能。手动触发的非迁移 practice AI workflows（Dashboard
   brief、Client Risk Summary、Deadline Tip、Readiness Checklist）必须在 procedure 层拒绝，
   并在前端显示 Pro 升级入口。
-- Migration 是核心 activation flow：Solo 的 Mapper / Normalizer 可以使用 AI，但受 Solo
-  migration 额度控制。
-  新 practice 在创建后 7 天内、且尚未完成首次真实导入前，Solo migration 享有 onboarding
-  credit（30 req / firm / day）；首次成功导入后或窗口结束后回到 Solo migration 标准额度
-  （15 req / firm / day）。AI 不可用时才降级到 preset / dictionary fallback，并继续写入 trace。
+- Migration 是核心 activation flow：Solo 的 Mapper / Normalizer 可以使用 AI，但受 migration
+  额度控制。
+  原“Solo onboarding credit（30 req / firm / day）/ 标准 15 req / firm / day”机制已退役，
+  替换为按 plan client 上限缩放的 per-client migration bucket：滚动月内
+  `clientLimit × 2` 次（custom `firm` plan 无上限），见 `packages/ai/src/budget.ts`。
+  AI 不可用时才降级到 preset / dictionary fallback，并继续写入 trace。
 - Alert review / review request 可在所有套餐使用，但多人套餐仍按 owner / partner / manager
   做 review 签核权限控制；Production Pulse 的 apply / revert / dismiss / snooze / reactivate
   仍要求 Pro 及以上。Team 不改变 AI 功能面，但解锁 `priorityPulseMatching`、
@@ -249,9 +258,9 @@ Deployment placement:
 
 - `apps/server/wrangler.toml` 存非 secret：`AI_GATEWAY_ACCOUNT_ID`、`AI_GATEWAY_SLUG`、
   `AI_GATEWAY_PROVIDER=openrouter`、`AI_GATEWAY_MODEL_FAST_JSON`、
-  `AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING`、`AI_GATEWAY_MODEL_FAST_JSON_SOLO`、
-  `AI_GATEWAY_MODEL_FAST_JSON_PAID`、`AI_GATEWAY_MODEL_QUALITY_JSON`、
-  `AI_GATEWAY_MODEL_REASONING`
+  `AI_GATEWAY_MODEL_QUALITY_JSON`、`AI_GATEWAY_MODEL_REASONING`、
+  `AI_GATEWAY_QUALITY_REASONING_EFFORT`、`AI_GATEWAY_FAST_REASONING_EFFORT`、
+  `AI_SYSTEM_DAILY_LIMIT`
 - `apps/server/.dev.vars` 存本地 secret：`AI_GATEWAY_PROVIDER_API_KEY`
 - GitHub environment `due-date-hq-staging` 存部署 secret：`AI_GATEWAY_PROVIDER_API_KEY`
 - Cloudflare Worker runtime secret 由 CI 的 Wrangler `--secrets-file` 写入；不需要在前端或
@@ -261,15 +270,27 @@ Deployment placement:
 
 ## 4. Prompt Registry
 
-Prompt 原文落仓，`prompt_version` 是产品审计字段：
+Prompt 原文落仓，`prompt_version` 是产品审计字段。运行时注册表是
+`packages/ai/src/prompter.ts` 内的常量（wrangler/esbuild bundle 不支持 `?raw` loader）；
+部分 prompt 在 `packages/ai/src/prompts/*.md` 保留编辑用 markdown 副本。当前清单：
 
-- `mapper@v1` → `packages/ai/src/prompts/mapper@v1.md`
-- `normalizer-entity@v1` → `packages/ai/src/prompts/normalizer-entity@v1.md`
-- `normalizer-tax-types@v1` → `packages/ai/src/prompts/normalizer-tax-types@v1.md`
-- `brief@v1` → Phase 0 新增
-- `client-risk-summary@v1` → Phase 0 P0-17 新增
-- `pulse-extract@v1` → Phase 0 新增
-- `deadline-tip@v1` → Phase 0 P0-17 新增
+- `mapper@v1` / `mapper@v2` — CSV 表头 + 5 行样本 → 字段映射；v2 增加 SSN / ITIN /
+  masked taxpayer ID 不映射规则
+- `normalizer-entity@v1` — 原始 entity-type 字符串 → 8 个 canonical 值
+- `normalizer-tax-types@v1` — 原始 tax-type 字符串 → canonical tax_type IDs
+- `brief@v1` — Dashboard snapshot → 每周 triage brief（带 citation）
+- `client-risk-summary@v1` — 2026-06-06 起正文改写为 client History 顶部的活动 recap
+  （recap / standing 两段）；registry id 与 `prompt_version` 刻意保持不变，避免
+  kind→prompt 映射和已存 provenance churn
+- `deadline-tip@v1` — 单 obligation → What / Why / Prepare 三段 tip
+- `pulse-extract@v3` — 官方公告结构化抽取；v3 加入 scope-filter 排除规则（grant /
+  council / job 等非纳税人义务窗口、no-change 公告、RSS 单条聚焦）；v1 / v2 已移除
+- `rule-concrete-draft@v1` / `rule-concrete-draft@v2` — 官方 source 页面文本 → 具体
+  due-date 规则 JSON 草稿（dueDateLogic / extensionPolicy / quality）；v2 收紧输出契约
+  （禁止自造 kind、禁止 null period 行、durationMonths 未知时省略）
+- `readiness-checklist@v1` — obligation 上下文 → 3-4 条客户准备清单（fast-json）
+- `morning-sweep@v1` — 2026-06-04 新增；隔夜 alerts snapshot → 晨报摘要
+  （headline / bullets / topActions），refusal 时服务端回退到模板 mock
 
 Prompt metadata 只描述任务档位，不写 provider SDK：
 
@@ -277,13 +298,13 @@ Prompt metadata 只描述任务档位，不写 provider SDK：
 prompt_version: mapper@v1
 model_tier: fast-json
 temperature: 0
-output: object
-runtime: ai-sdk-core
-gateway: cloudflare-ai-gateway
+response_format: json_object
+route: via Vercel AI SDK Core + Cloudflare AI Gateway
 ```
 
-改 prompt 必须新增版本，例如 `mapper@v1` → `mapper@v2`。新旧版本可并存；A/B 分桶由
-`packages/ai` 根据 `firm_id` hash 决定，并写入内部 trace payload。
+改 prompt 必须新增版本，例如 `mapper@v1` → `mapper@v2`。新旧版本可在 registry 并存
+（如 mapper、rule-concrete-draft），由调用方指定版本；基于 `firm_id` hash 的 A/B 分桶
+尚未实现。
 
 ---
 
@@ -392,7 +413,7 @@ Vectorize 仍是检索层：
 | Client Risk Summary     | P0     | 单客户 top obligations + source snippets | async cached sections + source chips           | 纯 SQL 聚合 `3 upcoming, 1 critical`                     |
 | Deadline Tip            | P0     | 单 obligation + evidence/source snippets | async cached What / Why / Prepare              | deterministic fallback sections                          |
 | Smart Priority          | P0     | open obligations + client risk fields    | score、rank、factor contribution、source label | **纯函数零 AI SDK 调用**                                 |
-| Pulse Source Translator | P0     | 官方公告原文                             | 结构化 JSON + summary + source excerpt         | 低置信度在 firm review 中高亮，owner/manager 决策        |
+| Pulse Source Translator | P0     | 官方公告原文                             | 结构化 JSON + summary + source excerpt         | 低置信（0.3–0.5）系统级 quarantine 不扇出；<0.3 丢弃     |
 | Ask DueDateHQ           | P1     | 自然语言 query                           | DSL + 表格 + 一句话 + citations                | 预设模板 5 条兜底                                        |
 | AI Draft Client Email   | P1     | Pulse + 受影响客户                       | 邮件草稿                                       | 固定模板                                                 |
 | Migration Field Mapper  | P0     | 表头 + 前 5 行样本                       | mapping JSON                                   | Preset profile + 手动下拉                                |
@@ -409,21 +430,36 @@ Smart Priority 必须保持纯函数。排序、badge、popover 和 Weekly Brief
 
 ### 8.1 Ingest（Cron Trigger）
 
-- 每 30 分钟运行 `jobs/pulse/ingest.ts`
-- 抓取源：IRS Disaster Relief、TX Comptroller News Releases / GovDelivery email、CA FTB Newsroom / Tax News、NY DTF Press archive 等
+- 每 30 分钟运行 `jobs/pulse/ingest.ts`（wrangler cron `*/30 * * * *`）
+- 抓取源：IRS Disaster Relief、TX Comptroller News Releases / GovDelivery email、CA FTB
+  Newsroom / Tax News、NY DTF Press archive 等，加上覆盖全部州的
+  `<state>.temporary_announcements` 源注册表（`packages/core/src/rules/index.ts`）
 - 抓取 → hash 比对 → 新内容入库 snapshot → 投递 Queue
 
 ### 8.2 Extract（Queue Consumer）
 
-- Queue 消费者调用 `packages/ai/extractPulse`
+- Queue 消费者调用 `packages/ai` 的 `extractPulse`（prompt `pulse-extract@v3`）
 - AI SDK structured output 产出受限 JSON
 - 后置 guard 校验 source excerpt 必须能定位回 raw text
-- `confidence < 0.7` 仍进入 Rules > Pulse Changes，但 UI 必须高亮低置信度和 source excerpt
-- `confidence ≥ 0.7` 进入 Rules > Pulse Changes，由 owner/manager apply/dismiss/snooze
+- IRS 年度通胀 Rev. Proc. 等 threshold-advisory 源跳过 AI，发确定性 review_only 指引
+- Scope filter（2026-06 降噪）：prompt v3 的排除规则 + 服务端正则 backstop，将
+  grant / clinic / advisory council / job 等机构内部窗口判为 out-of-scope（三重门：
+  有解析日期 + 不命中任何 tax area + 命中 program 关键词才丢弃）
+- 历史底线：所有解析政策日期早于 2026-01-01 的项直接 ignore（仍在有效期内的
+  protective claim window 例外）
+- Confidence 三段闸（`apps/server/src/jobs/pulse/extract.ts`）：`< 0.3` 直接丢弃
+  （几乎都是模型漏标 no_regulatory_change 的非事件）；`0.3 – 0.5` 入库为
+  `quarantined`（保留供 review，不向 firm 扇出）；`≥ 0.5` 自动 approve 并扇出生成
+  firm alerts
+- 去重：签名预检（`findDuplicatePulseForExtract`）+ `pulse.dedupe_key` 唯一索引兜底
+  （race-safe）；duplicate fold 会把 quarantined 幸存者按新置信度提升、union counties，
+  并保留 firm alert 状态
 
 ### 8.3 Match（服务端确定性）
 
-人工 approve 后触发 SQL match。AI 不直接匹配客户，不写 SQL，不更新 deadline。
+pulse 发布（自动 approve 或 quarantine 提升）后触发确定性 SQL match 扇出
+（`refreshFirmAlertsForApprovedPulse`），firm 侧再对 alert 做 review / apply / dismiss /
+snooze。AI 不直接匹配客户，不写 SQL，不更新 deadline。
 
 ### 8.4 Batch Apply（用户确认）
 
@@ -447,38 +483,42 @@ pulse application。Phase 0 Demo 可直接 UPDATE `current_due_date`；完整 MV
 
 ## 10. 成本、限流与观测
 
-### 10.1 每 firm / day 配额
+### 10.1 Fair-use 配额（`packages/ai/src/budget.ts`）
 
-| 任务                          | 每日 cap                                                                                  |
-| ----------------------------- | ----------------------------------------------------------------------------------------- |
-| Weekly Brief                  | 1 次 scheduled + 3 次 event-triggered + 最多 3 次 manual refresh；`input_hash` 不变则跳过 |
-| Client Risk Summary           | N 个客户 × 1                                                                              |
-| Deadline Tip                  | 50（缓存 per-rule 7d）                                                                    |
-| Pulse Extract                 | ops/admin 触发，不计普通用户 cap                                                          |
-| Ask                           | 30（付费可升）                                                                            |
-| Migration Mapper / Normalizer | Solo onboarding 30 req / firm / day；Solo standard 15；Pro 50；Team 150；Enterprise 500   |
+两个不可见的 fair-use bucket（不是营销层级杠杆），外加一个 system 全局熔断：
 
-KV 按 firm + day + task kind 保存预算计数。超限返回 `rate_limited` + 明确 message。
-该 fair-use budget 仅在 `ENV=production` 执行；`ENV=development` 和 `ENV=staging` 用于本地 /
-测试验证，跳过 KV budget 读写，不返回 `AI_BUDGET_EXCEEDED`。非生产环境仍按同一路由调用
-Gateway，并继续写入 trace / usage 记录。
+| Bucket                                                            | 上限                                                                                                           |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `migration`（Mapper / Normalizer）                                | 滚动月内 `clientLimit × 2`（free 20 / solo 200 / pro 600 / team 2000；custom firm 无上限）                     |
+| 交互类（`brief` / `pulse` / `insight` / `readiness`）             | 每 firm / day / task kind 一个扁平日上限 `planAiDailyRunLimit`（free 30 / solo·pro·team 100 / Enterprise 500） |
+| system 调用（无 firmId：pulse extract、rule concrete-draft 预热） | 全局每日上限 `AI_SYSTEM_DAILY_LIMIT`（默认 1500），成本熔断器                                                  |
+
+KV 按 firm + period + task kind 保存预算计数（migration 按月、其余按日）。超限返回
+`AI_BUDGET_EXCEEDED` refusal + 明确 message。Weekly Brief / Insight 的单任务节流
+（debounce、`input_hash` 不变跳过、manual refresh 限制）在 §10.4 / §10.5 的物化路径实现，
+不在 KV budget 里。
+
+per-firm fair-use budget 仅在 `ENV=production` 执行；`ENV=development` 和 `ENV=staging`
+跳过 per-firm KV budget 读写。但 system（无 firmId）调用的全局日上限在**所有环境**执行——
+per-firm 限额管不到这类后台任务，没有全局熔断时一次失控循环就能耗尽 OpenRouter 余额
+（2026-06 实际发生过）。非生产环境仍按同一路由调用 Gateway，并继续写入 trace / usage 记录。
 
 ### 10.2 Trace payload
 
 不再使用第三方 tracing SDK 作为必选架构件。每次 AI SDK 调用都生成内部 trace payload：
 
-| 字段             | 来源                                       |
-| ---------------- | ------------------------------------------ |
-| `prompt_version` | Prompt registry                            |
-| `model`          | AI SDK result / provider metadata          |
-| `model_tier`     | `packages/ai/router.ts`                    |
-| `firm_id_hash`   | server 注入                                |
-| `latency_ms`     | `packages/ai` 计时                         |
-| `tokens`         | AI SDK `usage`                             |
-| `cost_usd`       | Gateway metadata 可用则写入，否则 nullable |
-| `guard_result`   | Glass-Box Guard                            |
-| `refusal_code`   | structured refusal                         |
-| `gateway`        | `cloudflare-ai-gateway`                    |
+| 字段             | 来源                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| `prompt_version` | Prompt registry                                                                                   |
+| `model`          | AI SDK result / provider metadata                                                                 |
+| `model_tier`     | `packages/ai/router.ts`                                                                           |
+| `firm_id_hash`   | server 注入                                                                                       |
+| `latency_ms`     | `packages/ai` 计时                                                                                |
+| `tokens`         | AI SDK `usage`                                                                                    |
+| `cost_usd`       | Gateway 不返回 cost；由 `packages/ai/src/pricing.ts` 按 usage × 单价归因（未知模型为 null）       |
+| `guard_result`   | Glass-Box Guard（`ok` / `schema_fail` / `guard_rejected` / `ai_unavailable` / `budget_exceeded`） |
+| `refusal_code`   | structured refusal                                                                                |
+| `gateway`        | `cloudflare-ai-gateway`                                                                           |
 
 这些字段写入 `ai_output` / `llm_log` 等价表，并可同步到 Cloudflare Logs / Analytics
 Engine。Cloudflare AI Gateway Dashboard 用于 provider-level usage、latency、cache 和 cost
@@ -494,6 +534,16 @@ OpenRouter / OpenAI structured output 兼容性裁定：Migration normalizer pro
 `z.record(...)` 这类会生成 `propertyNames` 的动态键 schema；统一输出
 `{ normalizations: [{ raw, normalized, confidence, reasoning }] }` 数组。Mapper 的
 `reasoning` 为必填字段，避免 provider strict schema 拒绝 optional property。
+
+2026-06 成本可观测性补全：token usage 与 cost 现已实际持久化——
+`ai_output.tokens_in / tokens_out / cost_usd` 与
+`llm_log.input_tokens / output_tokens / cost_usd`（写入点
+`packages/db/src/repo/ai.ts` 的 `recordRun`，pulse extract 在
+`apps/server/src/jobs/pulse/extract.ts` 直插）。“已计费但被拒”的生成
+（schema_fail / guard_rejected）也会从 `NoObjectGeneratedError` /
+`GatewayOutputInvalidError` 上抢救 usage 一并落库，避免 NULL token 让 schema 回归与
+provider 故障在 `llm_log` 中不可区分；纯 gateway/credit 故障归入 `ai_unavailable`，
+不污染 `schema_fail` 桶。
 
 ### 10.3 AI SDK telemetry
 

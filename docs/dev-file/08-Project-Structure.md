@@ -1,5 +1,7 @@
 # 08 · Project Structure · 代码组织与命名约定
 
+> 最后核对：2026-06-10
+
 > 目标：**新人拉代码 10 分钟能跑起来 · 按路径能猜到内容 · 模块边界被类型系统和 lint 规则强制。**
 
 ---
@@ -19,24 +21,32 @@ duedatehq/
 │   ├── db/                        # Drizzle schema + scoped repo 工厂 + writers
 │   ├── core/                      # 纯领域逻辑（penalty / priority / overlay / date-logic）
 │   ├── ai/                        # RAG + prompts + guard + AI SDK gateway
+│   ├── ingest/                    # Pulse 源适配器（IRS/州站 HTML/RSS/PDF fetch+parse，纯 TS，不依赖 DB）
 │   ├── auth/                      # better-auth 配置（Organization + AC）
 │   ├── ui/                        # 跨 app 共享 UI primitives、brand token、cn()
 │   └── typescript-config/         # 共享 tsconfig（base / vite / worker / library）
 ├── docs/
-│   ├── PRD/                       # 产品文档（不变）
-│   ├── Design/                    # 设计系统
-│   ├── dev-file/                  # 本目录 00~09
-│   ├── compliance/                # WISP 等合规文档
+│   ├── dev-file/                  # 当前架构事实（本目录 00~12；读者默认这是最新的）
+│   ├── adr/                       # Architecture Decision Records（正式决策）
+│   ├── dev-log/                   # 带日期的开发日志（`YYYY-MM-DD-<slug>.md`，只收事后记录）
+│   ├── product-design/            # 前瞻工作文档，按 feature 分目录（deadlines / alerts / rules / migration-copilot …）
+│   ├── PRD/                       # 产品需求文档
+│   ├── Design/                    # 设计系统与界面 spec
 │   ├── ops/                       # Runbook / 演练报告
-│   └── adr/                       # Architecture Decision Records
-├── scripts/                        # 运维 CLI（ac-traceability / cost-report / firm-inspect）
+│   └── IA/ · html/ · pitch-deck/ · project-modules/ · report/   # 信息架构 / 早期调研与演示等历史资产
+├── scripts/                        # 运维 CLI（check-dep-direction / check-rule-sources / backfill-* / smoke 工具）
+├── e2e/                            # Playwright E2E（tests / fixtures / pages，见 §8）
+├── mock/                           # GENERATED demo.sql（packages/db/seed/generate-demo.ts 产出，勿手改）
 ├── .github/
 │   └── workflows/
 ├── pnpm-workspace.yaml
+├── playwright.config.ts
 ├── vite.config.ts                  # Vite+ task graph / lint / fmt / staged
 ├── package.json
 └── README.md
 ```
+
+**docs/ 三层契约（2026-06-10 整理）**：`docs/dev-file/` = 当前事实（架构 / 接口 / 约束，读者默认最新）；`docs/adr/` = 正式架构决策（提案 / 状态 / 后果）；`docs/dev-log/` = 带日期的历史日志（`YYYY-MM-DD-<slug>.md`，只收事后记录，可能描述已被取代的状态——与代码或 dev-file 冲突时以后者为准）。前瞻性工作文档（实现 spec、eng-brief、roadmap、position memo）放 `docs/product-design/<feature>/` 或 `docs/PRD/`，**绝不进 dev-log**。详见 `docs/dev-log/README.md` 与根 `AGENTS.md` Workflow 节。
 
 ---
 
@@ -152,34 +162,31 @@ apps/server/
 │   ├── middleware/
 │   │   ├── session.ts              # better-auth session 读取
 │   │   ├── tenant.ts               # 注入 firmId + scoped
+│   │   ├── firm-access.ts
+│   │   ├── locale.ts
 │   │   ├── rate-limit.ts
 │   │   └── logger.ts
 │   ├── procedures/                 # oRPC 实现（每个切片一个目录）
 │   │   ├── index.ts                # 拼装总 router
-│   │   ├── clients/
-│   │   │   ├── list.ts
-│   │   │   ├── create.ts
-│   │   │   ├── update.ts
-│   │   │   └── delete.ts
-│   │   ├── obligations/
-│   │   ├── dashboard/
-│   │   ├── obligations/
-│   │   ├── pulse/
-│   │   ├── migration/
-│   │   └── notifications/
+│   │   ├── _root.ts · _context.ts · _permissions.ts · _plan-gates.ts   # 共享基座（_ 前缀）
+│   │   ├── clients/                # 每个域目录由 index.ts 导出 router；_ 前缀私有 helper colocate
+│   │   ├── obligations/ · obligation-queue/ · dashboard/ · calendar/ · workload/
+│   │   ├── pulse/ · rules/ · migration/ · evidence/ · readiness/
+│   │   └── reminders/ · notifications/ · members/ · firms/ · audit/ · security/
 │   ├── jobs/
 │   │   ├── cron.ts                 # scheduled handler 总入口
 │   │   ├── queue.ts                # queue consumer 总入口
 │   │   ├── dashboard-brief/        # Dashboard AI Brief enqueue / consumer / snapshot
 │   │   ├── pulse/                  # ingest / extract / apply
-│   │   ├── reminders/
-│   │   └── email-outbox/
+│   │   ├── rules/ · rollover/ · reminders/ · notifications/
+│   │   └── email/ · audit/ · ai-insights/ · ops-alerts.ts
 │   ├── webhooks/                   # /api/webhook/*
 │   │   └── resend.ts
 │   └── routes/                     # /api/auth/* 由 better-auth handler 挂载
 │       ├── auth.ts
-│       ├── ics.ts                  # Phase 1
-│       └── health.ts
+│       ├── ics.ts
+│       ├── health.ts
+│       └── audit-download · auth-capabilities · notifications · readiness · signed-url · public-demo · e2e
 ├── wrangler.toml                   # binding + assets + cron + queue
 ├── package.json
 └── tsconfig.json
@@ -192,19 +199,33 @@ apps/server/
 - `jobs/dashboard-brief/**` 只在 Queue / Cron / explicit enqueue mutation 路径运行；不得被
   `dashboard.load` request path 直接调用。其输出写 `ai_output(kind='brief')` +
   `dashboard_brief`，供 Dashboard 只读。
-- 每个 procedure 文件只导出一个 procedure 定义
+- 每个切片目录由 `index.ts` 导出该域 router；私有 helper 用 `_` 前缀文件 colocate（如 `_serializers.ts`、`_sample-data.ts`）
 
 ### 4.2 `apps/app`
 
 详见 §05。核心：
 
-- `src/routes/*`：RR7 data mode 路由
-- `src/features/*`：业务 vertical；feature model、私有 helper、局部 UI 和测试优先 colocate 在这里
+- `src/routes/*`：RR7 data mode 路由（dashboard / clients / obligations / calendar / alerts /
+  rules.\* / reminders.\* / notifications.\* / settings.\* / billing.\* / workload / audit /
+  readiness / migration.new / onboarding 等）
+- `src/features/*`：业务 vertical；feature model、私有 helper、局部 UI 和测试优先 colocate 在这里。
+  当前 vertical：alerts / audit / auth / billing / calendar / clients / concepts / dashboard /
+  evidence / firm / members / migration / notifications / obligations / onboarding / permissions /
+  reminders / rules / settings / workload（另有 `_surface-vocabulary` 词汇约定）
+- `src/features/obligations/*`：deadline 生命周期 model + 局部 UI；含 `detail/`（deadline detail
+  导航/侧栏组件）与 `queue/`（triage queue）子目录
+- `src/features/dashboard/*`：dashboard 专属展示模型和局部 UI（actions-list、needs-attention、
+  daily-brief-card 等）
 - `src/features/billing/*`：billing URL/model + Better Auth billing adapters
-- `src/features/dashboard/*`：dashboard 专属展示模型和局部 UI
 - `src/features/members/*`：settings members 页面、成员角色/邀请派生 model 和局部 UI
-- `src/components/primitives/*`：真正跨 feature 的 app 专属 UI primitive；基础 UI 从 `@duedatehq/ui/components/ui/*` 引入
-- `src/components/patterns/*`：app-shell、keyboard-shell 等跨 feature 复合组件
+- `src/features/reminders/*` / `src/features/notifications/*`：提醒模板编辑/发送页 与
+  通知中心/偏好页
+- `src/components/primitives/*`：真正跨 feature 的 app 专属 UI primitive（state-badge、
+  due-date-label、iso-date-picker、relative-time、search-input、ai-provenance-badge 等）；
+  基础 UI 从 `@duedatehq/ui/components/ui/*` 引入
+- `src/components/patterns/*`：跨 feature 复合组件（app-shell\* / keyboard-shell/ / page-header /
+  breadcrumb / filter-trigger / table-header-filter / floating-action-bar / bulk-confirm-dialog /
+  stat-band / stat-tile / status-banner / detail-section-card / empty-state / row-actions-menu 等）
 - `src/components/patterns/keyboard-shell/*`：唯一 app 级快捷键 provider、Command Palette、`?` 帮助浮层；允许依赖 React Router / Lingui / feature providers，不得下沉到 `packages/ui`
 - `src/lib/*`：app runtime / integration helper，例如 `rpc.ts`、`auth.ts`、theme storage、RPC error mapping；不得放带业务语义的 feature model 或 feature UI
 
@@ -212,9 +233,12 @@ apps/server/
 
 详见 §12。核心：
 
-- `src/pages/*`：Astro static pages；`/` 是公开首页，后续 `/rules` / `/watch` / `/state/*` / `/pulse` 也在这里
+- `src/pages/*`：Astro static pages；`/` 是公开首页，另有 `/pricing`、`/rules`（+ `/rules/[rule]`）、
+  `/states/[state]`、`/state-coverage`、`/guides/[guide]`、`/compare/[comparison]`、`/[trustPage]`，
+  以及 `zh-CN/` 镜像
 - `src/components/*`：marketing 专属 Astro section，不放入 `packages/ui`
-- `src/islands/*`：少量需要交互的 React island，可使用 `@duedatehq/ui`
+- 目前没有 React island：交互（如 PreferenceSwitcher）全部用 `.astro` + inline script 实现；
+  `@duedatehq/ui` 仅消费 `styles/preset.css`、theme runtime 和 brand assets
 - `src/i18n/*`：marketing copy dictionary；共享 locale 常量从 `packages/i18n` 引入
 - `src/styles/globals.css`：Tailwind 入口，导入 `@duedatehq/ui/styles/preset.css` 并 `@source` 扫描 `packages/ui/src`
 - 基础 layout：在 `<head>` 内内联 `@duedatehq/ui/theme/no-flash-script` 的
@@ -234,6 +258,8 @@ packages/ui/
 ├── components.json                 # shadcn base-vega 配置
 ├── src/
 │   ├── components/ui/              # Button / Input / Dialog / Table 等基础 primitives
+│   ├── assets/brand/               # brand SVG（favicon / logo）
+│   ├── hooks/                      # use-mobile 等纯 UI hook
 │   ├── lib/utils.ts                # cn()
 │   ├── styles/preset.css           # Tailwind token preset；不 import tailwindcss
 │   └── theme/                      # shared light/dark/system runtime + no-flash script
@@ -274,13 +300,14 @@ packages/contracts/
 │   │   ├── client.ts
 │   │   ├── evidence-source-types.ts
 │   │   ├── obligation.ts
+│   │   ├── ids.ts
 │   │   └── enums.ts
 │   ├── clients.ts                  # clients 域契约
 │   ├── obligations.ts              # includes obligation jurisdiction/profile DTOs
-│   ├── dashboard.ts
-│   ├── obligation-queue.ts
-│   ├── pulse.ts
-│   ├── migration.ts
+│   ├── obligation-instance.ts · obligation-queue.ts
+│   ├── dashboard.ts · calendar.ts · workload.ts · readiness.ts · priority.ts
+│   ├── pulse.ts · rules.ts · migration.ts · evidence.ts · ai-insights.ts
+│   ├── firms.ts · members.ts · security.ts · audit.ts · notifications.ts · reminders.ts
 │   └── errors.ts                   # 自定义 ORPCError code 表
 └── package.json
 ```
@@ -298,47 +325,43 @@ packages/contracts/
 ```
 packages/db/
 ├── src/
-│   ├── schema/
+│   ├── schema/                     # 无 barrel；按域显式 import @duedatehq/db/schema/<domain>
 │   │   ├── auth.ts                 # better-auth 身份层 schema（手工维护）
 │   │   ├── firm.ts                 # firm_profile 业务租户表；PK = organization.id
-│   │   ├── clients.ts
-│   │   ├── obligations.ts
-│   │   ├── migration.ts
-│   │   ├── pulse.ts                # Phase 1；Demo Sprint 仍为 proxy/stub
-│   │   ├── ai.ts
-│   │   ├── audit.ts
-│   │   ├── notifications.ts
-│   │   └── index.ts
-│   ├── repo/
-│   │   ├── clients.ts
-│   │   ├── client-filing-profiles.ts
-│   │   ├── obligations.ts
-│   │   ├── pulse.ts
-│   │   ├── migration.ts
-│   │   ├── evidence.ts
-│   │   └── audit.ts
+│   │   ├── clients.ts · client-tax-year-profile.ts
+│   │   ├── obligations.ts · obligation-saved-view.ts · calendar.ts
+│   │   ├── migration.ts · mutation-lock.ts
+│   │   ├── pulse.ts · rules.ts · overlay.ts
+│   │   ├── ai.ts · ai-insights.ts · dashboard.ts · readiness.ts
+│   │   └── audit.ts · notifications.ts
+│   ├── repo/                       # per-domain scoped repo
+│   │   ├── clients.ts · client-filing-profiles.ts · client-tax-year-profiles.ts
+│   │   ├── obligations.ts · obligation-queue.ts · calendar.ts · workload.ts
+│   │   ├── pulse/ · rules.ts · rule-concrete-drafts.ts · overlay.ts · priority-profile.ts
+│   │   ├── migration.ts · evidence.ts · audit.ts · mutation-lock.ts
+│   │   └── dashboard.ts · firms.ts · members.ts · notifications.ts · readiness.ts · reminders.ts · ai.ts · ai-insights.ts
 │   ├── scoped.ts                   # ★ 唯一对外入口
 │   ├── client.ts                   # drizzle(D1) factory
 │   ├── audit-writer.ts
 │   ├── evidence-writer.ts
+│   ├── reminder-linkage.ts
 │   └── types.ts
-├── migrations/                      # drizzle-kit 生成
+├── migrations/                      # 手写 SQL（wrangler d1 migrations apply 应用；drizzle-kit 仅备用）
 ├── seed/
-│   ├── rules.ts                    # Legacy demo seed; current rules asset lives in packages/core (FED + 50 states + DC)
-│   ├── demo.ts                     # Sarah firm + 30 clients + 2 pulses
-│   └── pulse-samples.ts
+│   ├── demo.ts                     # seed:demo 入口：把根目录 mock/demo.sql 应用到本地 D1
+│   └── generate-demo.ts            # demo 数据生成器 → 产出 mock/demo.sql（NOW=2026-06-02，勿手改 demo.sql）
 ├── drizzle.config.ts
 └── package.json
 ```
 
 **约束：**
 
-- `exports` 仅暴露 `scoped` / `client` / `audit-writer` / `evidence-writer` / `types` / schema 导入要显式 `@duedatehq/db/schema/<domain>`（只给 migration / seed / writer 内部用）；repo / tenant 类型由 `@duedatehq/ports/<domain>` 定义，`@duedatehq/db/types` 仅做兼容转出
-- `schema/auth.ts` 不再通过 `@better-auth/cli generate` 自动覆盖；它包含手工维护的 `(organization_id, user_id)` unique index、`member.status` 附加字段，以及与 `firm_profile` 配套的身份层约束。后续 schema 变更走 `pnpm db:generate` 并人工 review migration。
+- `exports` 暴露 `.`（根入口）/ `scoped` / `client` / `audit-writer` / `evidence-writer` / `reminder-linkage` / `types`；schema 导入要显式 `@duedatehq/db/schema/<domain>`（只给 migration / seed / writer 内部用）；repo / tenant 类型由 `@duedatehq/ports/<domain>` 定义，`@duedatehq/db/types` 仅做兼容转出
+- `schema/auth.ts` 不再通过 `@better-auth/cli generate` 自动覆盖；它包含手工维护的 `(organization_id, user_id)` unique index、`member.status` 附加字段，以及与 `firm_profile` 配套的身份层约束。后续 schema 变更：手写 migration SQL（`packages/db/migrations/`）+ 同步更新 `schema/*.ts`，由 wrangler 应用；`pnpm db:generate`（drizzle-kit）仅作备用，不是默认路径。
 - `schema/firm.ts` 是业务租户层；`firm_profile.id` 复用 `organization.id`，业务表统一用 `firm_id -> firm_profile.id`。
 - `repo/client-filing-profiles.ts` 是客户多州报税事实的唯一写入口；`client.state/county`
   由 primary profile mirror，不作为规则生成事实来源。
-- oxlint 限制：`apps/server/src/procedures/**` 禁止 import `@duedatehq/db` 或 `@duedatehq/db/schema/*`；规则在 `vite.config.ts` 的 `lint.rules.no-restricted-imports` override 中维护。
+- oxlint 限制：`no-restricted-imports` 基线对全仓禁 `@duedatehq/db/schema/*`（`packages/db/**`、`apps/server/src/{jobs,webhooks}/**`、`packages/db/seed/**` 豁免）；`apps/server/src/procedures/**` 进一步禁整个 `@duedatehq/db`；`apps/app/src/**` 另禁 raw `@orpc/client`（统一走 `lib/rpc.ts`，该文件豁免）。规则在根 `vite.config.ts` 的 `lint.rules.no-restricted-imports` + overrides 中维护。
 
 ### 4.5 `packages/core`
 
@@ -348,8 +371,12 @@ packages/core/
 │   ├── penalty/                    # Source-backed penalty catalog + formula evaluators
 │   ├── priority/                   # Smart Priority 打分 + 因子分解
 │   ├── date-logic/                 # DueDateLogic DSL 求值
-│   ├── overlay/                    # ExceptionRule 叠加（Phase 1）
+│   ├── overlay/                    # ExceptionRule 叠加
 │   ├── default-matrix/             # entity × state → tax_types 矩阵
+│   ├── rules/                      # rules catalog release + rule-diff（FED + 50 states + DC 资产）
+│   ├── deadlines/ · obligation-workflow/ · tax-area/ · tax-codes/ · tax-periods/
+│   ├── federal-holidays/ · csv-parser/ · normalize-dict/ · email-template/
+│   ├── permissions/ · plan-entitlements/ · pii/ · readiness-documents/
 │   └── index.ts
 └── package.json
 ```
@@ -375,10 +402,11 @@ packages/ai/
 │   ├── pii.ts                      # PII redact + fill
 │   ├── budget.ts                   # per-firm/day 配额（KV）
 │   ├── trace.ts                    # AI SDK usage / latency / guard trace payload
+│   ├── pulse.ts · morning-sweep.ts · pricing.ts   # pulse 提取 / morning sweep / 模型价格表
 │   └── prompts/                    # *.md 版本化
-│       ├── mapper@v1.md
-│       ├── normalizer-entity@v1.md
-│       └── normalizer-tax-types@v1.md
+│       ├── mapper@v1.md · mapper@v2.md
+│       ├── normalizer-entity@v1.md · normalizer-tax-types@v1.md
+│       └── rule-concrete-draft@v1.md · rule-concrete-draft@v2.md
 └── package.json
 ```
 
@@ -398,6 +426,7 @@ packages/ai/
 packages/auth/
 ├── src/
 │   ├── index.ts                    # createAuth(db, env) 工厂
+│   ├── client.ts                   # browser-safe exports（apps/app 消费，不触 server plugin/D1）
 │   ├── permissions.ts              # Access Control statement + 四角色
 │   ├── plugins.ts                  # OAuth / organization / twoFactor 配置
 │   ├── email.ts                    # sendInvitationEmail
@@ -448,7 +477,7 @@ apps/*
         └─► packages/{core}
 
 apps/server
-  └─► packages/{db, ai, contracts, auth, core, ports}
+  └─► packages/{db, ai, ingest, contracts, auth, core, ports}
 
 apps/app
   └─► packages/{contracts, auth(client-only exports), ui, i18n}
@@ -465,6 +494,9 @@ packages/db
 
 packages/ports
   └─► (无)
+
+packages/ingest
+  └─► (无内部包依赖；仅 pdfjs-dist，apps/server 注入 fetch)
 
 packages/core
   └─► (无)
@@ -596,6 +628,7 @@ proposed | accepted | deprecated | superseded by #NNN
 2. `0017-orpc-contract-first-rpc-api-boundary.md`
 3. `0018-d1-tenant-isolation-scoped-repo-ports.md`
 4. `0019-ai-sdk-gateway-glass-box-boundary.md`
+5. `0020-tanstack-form-for-client-forms.md`
 
 仍待补充但不阻塞当前实现的 ADR：
 
@@ -619,7 +652,7 @@ proposed | accepted | deprecated | superseded by #NNN
 
 1. `vp check`：**一条命令等同 oxfmt + oxlint + tsgolint**（由根 `vite.config.ts` 的 `lint.options.typeCheck: true` 启用）。本地 `vp` 安装的 staged git hook 用 `vp check --fix` 处理 staged files；CI 跑全量 `vp check`。
 2. `vp run -r test`：递归跑 Vitest（`apps/server` 走 `@cloudflare/vitest-pool-workers`）。
-3. `gitleaks`：本地 pre-commit staged scan + CI full scan（外部 CLI）。
+3. `gitleaks`：CI full scan + 手动 `pnpm secrets:scan`（外部 CLI；staged hook 内目前不跑 gitleaks）。
 4. `pnpm -F <pkg> exec tsc --noEmit`：手动 fallback，不作为默认门禁。
 
 `tsgolint` 已经在 `vp check` 里默认启用，与 oxlint 的 type-aware 规则互补。不再引入独立 typed ESLint。
@@ -633,7 +666,8 @@ import { defineConfig } from 'vite-plus'
 
 export default defineConfig({
   staged: {
-    '*.{ts,tsx,js,jsx,json,md,css}': 'vp check --fix',
+    '*': 'vp check --fix',
+    'DESIGN.md': 'npx --yes @google/design.md lint',
   },
   // ...（见 01-Tech-Stack.md §4.4 完整配置）
 })
@@ -696,8 +730,8 @@ vp run -r dev
 | §3.6 Team           | `packages/auth` Organization plugin                                                                                            |
 | §5.1 Dashboard      | `apps/app/src/routes/dashboard.tsx` + `apps/server/src/procedures/dashboard` + `packages/db/src/repo/dashboard.ts`             |
 | §5.2 Obligations    | `apps/app/src/routes/obligations.tsx` + `features/obligations/`                                                                |
-| §5.5 Evidence Mode  | `apps/app/src/components/patterns/evidence-drawer/` + `packages/db/evidence-writer`                                            |
-| §6.1 Rule Engine    | `packages/db/seed/rules.ts` + `packages/core/date-logic`                                                                       |
+| §5.5 Evidence Mode  | `apps/app/src/features/evidence/`（EvidenceDrawerProvider）+ `packages/db/evidence-writer`                                     |
+| §6.1 Rule Engine    | `packages/core/src/rules`（catalog-release）+ `packages/core/date-logic`                                                       |
 | §6.2 Glass-Box      | `packages/ai/guard.ts`                                                                                                         |
 | §6.3 Pulse          | `apps/server/src/jobs/pulse/*` + `procedures/pulse/*`                                                                          |
 | §6.4 Smart Priority | `packages/core/priority/`                                                                                                      |

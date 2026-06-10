@@ -1,5 +1,7 @@
 # 01 · Tech Stack · 技术栈选型
 
+> 最后核对：2026-06-10
+
 > 原则：**公开站与 SaaS app 分离部署到 Cloudflare · 前后端物理隔离但共享类型契约 · 零 vendor lock-in 的可替换单元 · 类型安全到底。**
 > 每一项选择都必须能回答："为什么不是 X？"
 > 相关 ADR：[`0016`](../adr/0016-cloudflare-first-single-worker-d1-platform.md) · [`0017`](../adr/0017-orpc-contract-first-rpc-api-boundary.md) · [`0018`](../adr/0018-d1-tenant-isolation-scoped-repo-ports.md) · [`0019`](../adr/0019-ai-sdk-gateway-glass-box-boundary.md)
@@ -8,48 +10,48 @@
 
 ## 1. 一张表看全栈
 
-| 领域                    | 选型                                                                                    | 为什么                                                                                                                                                                               |
-| ----------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **语言**                | TypeScript 6.x stable + `@typescript/native-preview` (`tsgo` / `tsgolint`)              | TS 6 是稳定语义基线；`tsgo` 用作快速 typecheck；`vp check` 的 typeCheck 路径内部复用 tsgolint                                                                                        |
-| **Monorepo**            | pnpm workspaces + **Vite Task**（vite-plus 内置）                                       | pnpm 11 workspace + catalog 保留（作为版本单一源）；任务编排 / 缓存 / `-r` 递归由 `vp run` 接管，不再引入 Turborepo                                                                  |
-| **脚手架**              | `vp create vite:monorepo` 起骨架                                                        | Vite+ 官方 monorepo 模板，自带 `vite-plus` 根配置 + 共享 typescript-config                                                                                                           |
-| **统一工具链**          | **Vite+ (`vite-plus` + 全局 `vp`)**                                                     | 一个 dep 吞下 Vite 8 + Vitest + Oxlint + Oxfmt + Rolldown + tsdown + Vite Task；`vp check / test / build / run -r` 是全仓唯一入口，取代独立的 oxlint / oxfmt / vitest / turbo 调用链 |
-| **Git Hooks**           | Vite+ `staged` 块（vite.config.ts）                                                     | 由 `vp` 安装的 git hook 调度，等价于 lefthook + lint-staged；单一配置源                                                                                                              |
-| **SaaS 前端框架**       | Vite 8（由 vite-plus 提供）+ React 19                                                   | `apps/app` 是纯 SPA，不走 SSR；Workers Assets 只托管登录后产品静态产物                                                                                                               |
-| **Marketing 框架**      | Astro static site（React islands deferred）                                             | `apps/marketing` 承载 `due.langgenius.app` landing / SEO / OG；当前 landing 不注册 React integration，只有真实交互 island 出现时才加回 React                                         |
-| **前端路由**            | React Router 7（library/data mode，非 framework mode）                                  | framework mode 会拖进 Node 依赖，与 Worker 冲突                                                                                                                                      |
-| **i18n contract**       | `packages/i18n` + app Lingui catalog + server thin dictionary                           | 语言列表、Intl locale、`x-locale` header 单一来源；文案 catalog 按 app/server/marketing 分离                                                                                         |
-| **UI 底座**             | shadcn/ui（`"style": "base-vega"`）+ Base UI                                            | Base UI 是 Radix 团队下一代；体积更小，键盘/RTL 更严                                                                                                                                 |
-| **样式**                | Tailwind 4（`@theme` directive）                                                        | 密度 + 暗色 token 切换；对齐 DESIGN.md                                                                                                                                               |
-| **图标**                | lucide-react                                                                            | shadcn 默认；体积友好                                                                                                                                                                |
-| **表格**                | TanStack Table 8                                                                        | Obligations 虚拟化 + 客户自定义列                                                                                                                                                    |
-| **快捷键**              | TanStack Hotkeys (`@tanstack/react-hotkeys`)                                            | App keyboard shell、`G then D` 序列快捷键、`?` 注册表帮助浮层；只用于 `apps/app`，不进入 `packages/ui`                                                                               |
-| **服务端数据**          | TanStack Query 5 + oRPC tanstack-query adapter                                          | 乐观 UI + invalidation + 契约派生类型                                                                                                                                                |
-| **全局状态**            | Zustand 5                                                                               | 极少 UI state；不引 Redux                                                                                                                                                            |
-| **URL state**           | nuqs                                                                                    | 筛选 / 分页 / 抽屉开关持久到 URL                                                                                                                                                     |
-| **表单**                | TanStack Form + Zod Standard Schema                                                     | 复杂 app 表单使用 `@tanstack/react-form`；校验直接挂 Zod schema，不再经过 resolver 适配层                                                                                            |
-| **动画**                | framer-motion + canvas-confetti + react-odometerjs                                      | Deadline Radar 游戏化 + Live Genesis                                                                                                                                                 |
-| **PDF**                 | @react-pdf/renderer（Phase 1）                                                          | Client PDF Report / Audit Package；Worker 可跑                                                                                                                                       |
-| **RPC 桥**              | **oRPC**（`@orpc/contract` + `@orpc/server` + `@orpc/client` + `@orpc/tanstack-query`） | Contract-first，端到端强类型；前后端解耦，AI 辅助编程下不易漂                                                                                                                        |
-| **RPC prefix**          | `/rpc`（`RPCHandler` 默认）；`/api` 留给 REST / webhook / 未来 `OpenAPIHandler`         | 对齐 oRPC 官方惯例；两种 handler 可共用同一份契约                                                                                                                                    |
-| **后端框架**            | Hono 4（`hono/cloudflare-workers` adapter）                                             | 中间件 + 路由；`/api/*` 全挂它；轻量、Worker 原生                                                                                                                                    |
-| **Auth**                | **better-auth** + Organization plugin + Access Control plugin                           | 原生 Hono/Edge；Organization / Membership / Invitation / Active-org 开箱即用，PRD §3.6 Team 模型 1:1 对应                                                                            |
-| **ORM**                 | Drizzle ORM（`drizzle-orm/d1`）                                                         | D1 一等支持；零 Node 依赖；类型推导强；支持裸 SQL + 参数化                                                                                                                           |
-| **数据库**              | **Cloudflare D1**（SQLite）                                                             | Workers 原生 binding + SQLite 语义；miniflare dev / prod 同 API；Time-Travel 30 天；对我们的多租户点查询 workload 是**架构正确选择**（§2.5），非权宜之计                             |
-| **向量**                | **Cloudflare Vectorize**                                                                | 与 Worker 同域；RAG top-k 检索                                                                                                                                                       |
-| **对象存储**            | **Cloudflare R2**                                                                       | 零出口流量费；S3 兼容 API（`@aws-sdk/client-s3` 可用）                                                                                                                               |
-| **缓存 / 限流**         | **Workers KV** + **Rate Limiting binding**                                              | KV 做热数据；Rate Limit 是 Cloudflare 原生 primitive                                                                                                                                 |
-| **后台任务**            | **Cron Triggers** + **Queues** + **Workflows**                                          | Pulse ingest / Email outbox / 长任务编排；零外部依赖                                                                                                                                 |
-| **AI SDK**              | Vercel AI SDK Core（`ai`）                                                              | Worker 后端唯一模型执行层；统一 structured output / streaming / tool calling / usage metadata，业务模块不直接碰 provider SDK                                                         |
-| **AI 网关**             | Cloudflare AI Gateway via AI SDK provider                                               | 上游 provider 代理；自带 cache / retry / rate limit / provider-level observability                                                                                                   |
-| **AI Gateway provider** | `ai-gateway-provider`                                                                   | Cloudflare 官方 Vercel AI SDK 集成包；仅在 `packages/ai` 内部组合 Gateway + OpenRouter / Unified provider；不允许业务模块直接 import                                                 |
-| **Embedding**           | AI SDK embedding provider + Cloudflare Vectorize                                        | 模型由 `packages/ai` 路由确认；结果写入 Vectorize                                                                                                                                    |
-| **AI tracing**          | AI SDK usage/telemetry + Cloudflare AI Gateway Dashboard + internal `ai_output` trace   | 不再引入第三方 tracing SDK；prompt 版本 / token / latency / guard result 写入内部 trace payload                                                                                      |
-| **邮件**                | Resend（React Email 模板）                                                              | fetch API；Worker 可跑；Phase 0 的用户通知完全走 email + in-app toast（不做 Web Push）                                                                                               |
-| **监控**                | Sentry（Cloudflare Workers SDK）+ Workers Logs（Logpush）                               | 错误 + 性能 + 日志                                                                                                                                                                   |
-| **产品分析**            | PostHog Cloud（JS SDK）                                                                 | Web Vitals + 核心激活/漏斗事件                                                                                                                                                       |
-| **测试**                | Vitest + `@cloudflare/vitest-pool-workers` + Playwright + msw                           | 单测跑在 Workers runtime；E2E 跨浏览器                                                                                                                                               |
-| **菜单栏壳（Phase 2）** | Tauri 2 + Rust                                                                          | 跨平台；~1 MB 体积                                                                                                                                                                   |
+| 领域                    | 选型                                                                                    | 为什么                                                                                                                                                                                                 |
+| ----------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **语言**                | TypeScript 6.x stable + `@typescript/native-preview` (`tsgo` / `tsgolint`)              | TS 6 是稳定语义基线；`tsgo` 用作快速 typecheck；`vp check` 的 typeCheck 路径内部复用 tsgolint                                                                                                          |
+| **Monorepo**            | pnpm workspaces + **Vite Task**（vite-plus 内置）                                       | pnpm 11 workspace + catalog 保留（作为版本单一源）；任务编排 / 缓存 / `-r` 递归由 `vp run` 接管，不再引入 Turborepo                                                                                    |
+| **脚手架**              | `vp create vite:monorepo` 起骨架                                                        | Vite+ 官方 monorepo 模板，自带 `vite-plus` 根配置 + 共享 typescript-config                                                                                                                             |
+| **统一工具链**          | **Vite+ (`vite-plus` + 全局 `vp`)**                                                     | 一个 dep 吞下 Vite 8 + Vitest + Oxlint + Oxfmt + Rolldown + tsdown + Vite Task；`vp check / test / build / run -r` 是全仓唯一入口，取代独立的 oxlint / oxfmt / vitest / turbo 调用链                   |
+| **Git Hooks**           | Vite+ `staged` 块（vite.config.ts）                                                     | 由 `vp` 安装的 git hook 调度，等价于 lefthook + lint-staged；单一配置源                                                                                                                                |
+| **SaaS 前端框架**       | Vite 8（由 vite-plus 提供）+ React 19                                                   | `apps/app` 是纯 SPA，不走 SSR；Workers Assets 只托管登录后产品静态产物                                                                                                                                 |
+| **Marketing 框架**      | Astro static site（React islands deferred）                                             | `apps/marketing` 承载 `due.langgenius.app` landing / SEO / OG；当前 landing 不注册 React integration，只有真实交互 island 出现时才加回 React                                                           |
+| **前端路由**            | React Router 7（library/data mode，非 framework mode）                                  | framework mode 会拖进 Node 依赖，与 Worker 冲突                                                                                                                                                        |
+| **i18n contract**       | `packages/i18n` + app Lingui catalog + server thin dictionary                           | 语言列表、Intl locale、`x-locale` header 单一来源；文案 catalog 按 app/server/marketing 分离                                                                                                           |
+| **UI 底座**             | shadcn/ui（`"style": "base-vega"`）+ Base UI                                            | Base UI 是 Radix 团队下一代；体积更小，键盘/RTL 更严                                                                                                                                                   |
+| **样式**                | Tailwind 4（`@theme` directive）                                                        | 密度 + 暗色 token 切换；对齐 DESIGN.md                                                                                                                                                                 |
+| **图标**                | lucide-react                                                                            | shadcn 默认；体积友好                                                                                                                                                                                  |
+| **表格**                | TanStack Table 8                                                                        | Obligations 虚拟化 + 客户自定义列                                                                                                                                                                      |
+| **快捷键**              | TanStack Hotkeys (`@tanstack/react-hotkeys`)                                            | App keyboard shell、`G then D` 序列快捷键、`?` 注册表帮助浮层；只用于 `apps/app`，不进入 `packages/ui`                                                                                                 |
+| **服务端数据**          | TanStack Query 5 + oRPC tanstack-query adapter                                          | 乐观 UI + invalidation + 契约派生类型                                                                                                                                                                  |
+| **全局状态**            | Zustand 5                                                                               | 极少 UI state；不引 Redux                                                                                                                                                                              |
+| **URL state**           | nuqs                                                                                    | 筛选 / 分页 / 抽屉开关持久到 URL                                                                                                                                                                       |
+| **表单**                | TanStack Form + Zod Standard Schema                                                     | 复杂 app 表单使用 `@tanstack/react-form`；校验直接挂 Zod schema，不再经过 resolver 适配层                                                                                                              |
+| **动画**                | motion（framer-motion 的后继包名）+ canvas-confetti + react-odometerjs                  | Deadline Radar 游戏化 + Live Genesis                                                                                                                                                                   |
+| **PDF**                 | pdf-lib（生成）+ pdfjs-dist（文本抽取）                                                 | Audit Package / 队列导出 PDF 用 pdf-lib 纯 JS 生成（fflate 打 zip）；Pulse pdf_watch 源用 pdfjs-dist 抽文本；均 Worker 可跑。原规划的 @react-pdf/renderer 未引入                                       |
+| **RPC 桥**              | **oRPC**（`@orpc/contract` + `@orpc/server` + `@orpc/client` + `@orpc/tanstack-query`） | Contract-first，端到端强类型；前后端解耦，AI 辅助编程下不易漂                                                                                                                                          |
+| **RPC prefix**          | `/rpc`（`RPCHandler` 默认）；`/api` 留给 REST / webhook / 未来 `OpenAPIHandler`         | 对齐 oRPC 官方惯例；两种 handler 可共用同一份契约                                                                                                                                                      |
+| **后端框架**            | Hono 4（Worker 入口直接转发 `app.fetch`，不经 adapter）                                 | 中间件 + 路由；`/api/*` 全挂它；轻量、Worker 原生                                                                                                                                                      |
+| **Auth**                | **better-auth** + Organization plugin + Access Control plugin                           | 原生 Hono/Edge；Organization / Membership / Invitation / Active-org 开箱即用，PRD §3.6 Team 模型 1:1 对应                                                                                              |
+| **ORM**                 | Drizzle ORM（`drizzle-orm/d1`）                                                         | D1 一等支持；零 Node 依赖；类型推导强；支持裸 SQL + 参数化                                                                                                                                             |
+| **数据库**              | **Cloudflare D1**（SQLite）                                                             | Workers 原生 binding + SQLite 语义；miniflare dev / prod 同 API；Time-Travel 30 天；对我们的多租户点查询 workload 是**架构正确选择**（§2.5），非权宜之计                                               |
+| **向量**                | **Cloudflare Vectorize**                                                                | 与 Worker 同域；RAG top-k 检索                                                                                                                                                                         |
+| **对象存储**            | **Cloudflare R2**                                                                       | 零出口流量费；S3 兼容 API（`@aws-sdk/client-s3` 可用）                                                                                                                                                 |
+| **缓存 / 限流**         | **Workers KV** + **Rate Limiting binding**                                              | KV 做热数据；Rate Limit 是 Cloudflare 原生 primitive                                                                                                                                                   |
+| **后台任务**            | **Cron Triggers** + **Queues**（email / pulse / dashboard / audit 四组 + DLQ）          | Pulse ingest / Email outbox / dashboard 聚合 / audit 打包；零外部依赖。Workflows 尚未启用（wrangler.toml 无 workflows binding）                                                                        |
+| **AI SDK**              | Vercel AI SDK Core（`ai`）                                                              | Worker 后端唯一模型执行层；统一 structured output / streaming / tool calling / usage metadata，业务模块不直接碰 provider SDK                                                                           |
+| **AI 网关**             | Cloudflare AI Gateway via AI SDK provider                                               | 上游 provider 代理；自带 cache / retry / rate limit / provider-level observability                                                                                                                     |
+| **AI Gateway provider** | `ai-gateway-provider`                                                                   | Cloudflare 官方 Vercel AI SDK 集成包；仅在 `packages/ai` 内部组合 Gateway + OpenRouter / Unified provider；不允许业务模块直接 import                                                                   |
+| **Embedding**           | AI SDK embedding provider + Cloudflare Vectorize                                        | 模型由 `packages/ai` 路由确认；结果写入 Vectorize                                                                                                                                                      |
+| **AI tracing**          | AI SDK usage/telemetry + Cloudflare AI Gateway Dashboard + internal `ai_output` trace   | 不再引入第三方 tracing SDK；prompt 版本 / token / latency / guard result 写入内部 trace payload                                                                                                        |
+| **邮件**                | Resend（出站，React Email 模板）+ postal-mime（入站解析）                               | fetch API；Worker 可跑；Phase 0 的用户通知完全走 email + in-app toast（不做 Web Push）。入站：Pulse email_subscription 源（GovDelivery）经 Email Routing 进 Worker `email()` handler，postal-mime 解析 |
+| **监控**                | Sentry（Cloudflare Workers SDK）+ Workers Logs（Logpush）                               | 错误 + 性能 + 日志                                                                                                                                                                                     |
+| **产品分析**            | PostHog Cloud（JS SDK）                                                                 | Web Vitals + 核心激活/漏斗事件                                                                                                                                                                         |
+| **测试**                | Vitest + `@cloudflare/vitest-pool-workers` + Playwright + msw                           | 单测跑在 Workers runtime；E2E 跨浏览器                                                                                                                                                                 |
+| **菜单栏壳（Phase 2）** | Tauri 2 + Rust                                                                          | 跨平台；~1 MB 体积                                                                                                                                                                                     |
 
 > 所有前端 `apps/app` 依赖不进 `apps/server`；所有后端 Worker 依赖不进 `apps/app`。两者通过 `packages/contracts` 共享类型。`apps/marketing` 只共享 `packages/ui` 与 locale contract，不调用内部 `/rpc`。
 
@@ -89,7 +91,7 @@
 - **D1 / Edge Runtime 原生兼容**（Prisma 需要 Accelerate）
 - 裸 SQL + 类型推导都强；Overlay Engine（派生 `current_due_date`）需要直写 SQL
 - Bundle 体积小（对 Worker 体积敏感场景有正向影响）
-- `drizzle-kit` 管迁移，和 `wrangler d1 migrations` 无缝衔接
+- 迁移 SQL 手写在 `packages/db/migrations`（编号 + meta journal），由 `wrangler d1 migrations apply` 应用；`drizzle-kit` 保留 D1 方言配置与 `db:generate` 兜底，不作为日常迁移生成器
 
 ### 2.4 为什么 better-auth 而非 Auth.js
 
@@ -155,7 +157,7 @@ Vite+ (`vite-plus`) 把 **Vite 8 + Vitest + Oxlint + Oxfmt + Rolldown + tsdown +
 - **每一个 catalog 条目都是精确版本**（例：`hono: 4.12.14`）。禁止 `^`、`~`、`latest`、`*`。`saveExact: true` 在 `pnpm-workspace.yaml` 里强制后续 `pnpm add` / `vp add` 都写精确版本。
 - **升级**：直接改 `pnpm-workspace.yaml` 的 catalog 条目 → `pnpm install`（或 `vp install`）自动传播到所有引用包，生成的 lockfile 作为审计证据。
 - **workspace 包引用**：`"hono": "catalog:"`（主 catalog）或 `"hono": "catalog:canary"`（命名 catalog，给 canary 分组用，Phase 0 暂不启用）。
-- **Renovate 持续升级**：只对 `pnpm-workspace.yaml` 的 catalog 字段自动起 PR。patch / minor 合并自动化，major 升级单独 PR + CODEOWNERS review，重点关注：Vite+ / Drizzle / Hono / oRPC / better-auth / React / Tailwind / Wrangler。
+- **Renovate 持续升级（规划中，尚未接入——仓库目前没有 renovate 配置，升级仍为手动改 catalog）**：接入后只对 `pnpm-workspace.yaml` 的 catalog 字段自动起 PR。patch / minor 合并自动化，major 升级单独 PR + CODEOWNERS review，重点关注：Vite+ / Drizzle / Hono / oRPC / better-auth / React / Tailwind / Wrangler。
 
 **约束：**
 
@@ -263,6 +265,7 @@ catalog:
 
   # ── infra / transport ──
   resend: 6.12.2
+  postal-mime: 2.7.4
   '@react-email/components': 1.0.12
   '@sentry/cloudflare': 10.50.0
   posthog-js: 1.372.5
@@ -272,10 +275,10 @@ catalog:
   '@cloudflare/workers-types': 4.20260426.1
 
   # ── dev tooling（Vite+ 一统） ──
-  # Vite+ 0.1.20 + Astro 6.1.10 currently fails marketing build in generateBundle.
-  vite-plus: 0.1.19
-  vite: npm:@voidzero-dev/vite-plus-core@0.1.19
-  vitest: npm:@voidzero-dev/vite-plus-test@0.1.19
+  # Keep Vite+ pinned at the last CI-green release until the Astro build regression is fixed.
+  vite-plus: 0.1.22
+  vite: npm:@voidzero-dev/vite-plus-core@0.1.22
+  vitest: npm:@voidzero-dev/vite-plus-test@0.1.22
   '@cloudflare/vitest-pool-workers': 0.14.9
   '@playwright/test': 1.59.1
   msw: 2.13.6
@@ -370,8 +373,13 @@ export default defineConfig({
         cache: false,
         dependsOn: ['workspace-check'],
       },
+      'workspace-check': {
+        command: 'vp check',
+        env: ['NODE_ENV'],
+      },
       'workspace-test': {
         command: 'vp run -r test',
+        env: ['NODE_ENV', 'CI'],
       },
       'workspace-publish': {
         command:
@@ -388,6 +396,7 @@ export default defineConfig({
   // 取代 lefthook + lint-staged
   staged: {
     '*': 'vp check --fix',
+    'DESIGN.md': 'npx --yes @google/design.md lint',
   },
 })
 ```
@@ -408,11 +417,9 @@ export default defineConfig({
 
 ```bash
 # ───────── App ─────────
-NODE_ENV=development
-APP_URL=http://localhost:8787
-MARKETING_URL=http://localhost:4321
-PUBLIC_APP_URL=http://localhost:8787
 ENV=development
+AUTH_URL=http://localhost:8787  # 本 Worker origin（/api/auth/* 与公开 API 所在）
+APP_URL=http://localhost:5173   # 浏览器 SPA origin；dev 走 Vite 5173，prod 即 Worker 本身
 
 # ───────── Cloudflare Bindings（由 wrangler.toml 注入到 Worker）─────────
 # 本地 dev 由 miniflare 提供；此处仅供参考
@@ -426,25 +433,32 @@ ENV=development
 # VECTORS      (Vectorize index)
 # EMAIL_QUEUE  (Queues producer)
 # PULSE_QUEUE  (Queues producer)
+# DASHBOARD_QUEUE (Queues producer)
+# AUDIT_QUEUE  (Queues producer)
 # ASSETS       (Static Assets binding)
+# 非密钥运行配置（OPS_ALERT_EMAIL / AI_SYSTEM_DAILY_LIMIT / ENABLE_PUBLIC_DEMO 等）
+# 直接定义在 wrangler.toml [vars]
 
 # ───────── Auth ─────────
 AUTH_SECRET=        # openssl rand -base64 32
-AUTH_URL=http://localhost:8787
 GOOGLE_CLIENT_ID=   # public OAuth client id; Worker exposes it through /api/auth-capabilities for One Tap
 GOOGLE_CLIENT_SECRET=
+MICROSOFT_CLIENT_ID=    # 可选：Microsoft Entra ID OAuth（Outlook / M365 firm），三项需成对配置
+MICROSOFT_CLIENT_SECRET=
+MICROSOFT_TENANT_ID=common
 
 # ───────── AI SDK（经 Cloudflare AI Gateway）─────────
+# 单一模型贯穿所有档位（plan-based 路由已退役）；档位差异只在 reasoning effort：
+# quality 任务（pulse/rule/brief/insights）effort=high，fast 任务（CSV mapper/normalizer/readiness）effort=low
 AI_GATEWAY_ACCOUNT_ID=
 AI_GATEWAY_SLUG=duedatehq
 AI_GATEWAY_PROVIDER=openrouter
 AI_GATEWAY_PROVIDER_API_KEY=  # OpenRouter token；OpenRouter Provider Native 路径唯一必需 AI secret
-AI_GATEWAY_MODEL_FAST_JSON=google/gemini-2.5-flash-lite
-AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING=google/gemini-3.1-flash-lite-preview
-AI_GATEWAY_MODEL_FAST_JSON_SOLO=google/gemini-2.5-flash-lite
-AI_GATEWAY_MODEL_FAST_JSON_PAID=google/gemini-3.1-flash-lite-preview
-AI_GATEWAY_MODEL_QUALITY_JSON=google/gemini-3-flash-preview
-AI_GATEWAY_MODEL_REASONING=openai/gpt-5-mini
+AI_GATEWAY_MODEL_FAST_JSON=google/gemini-3.5-flash
+AI_GATEWAY_MODEL_QUALITY_JSON=google/gemini-3.5-flash
+AI_GATEWAY_MODEL_REASONING=google/gemini-3.5-flash
+AI_GATEWAY_QUALITY_REASONING_EFFORT=high
+AI_GATEWAY_FAST_REASONING_EFFORT=low
 AI_GATEWAY_API_KEY=           # 仅 Authenticated Gateway / Unified provider 需要
 
 # ───────── Mail ─────────
@@ -453,11 +467,24 @@ RESEND_API_KEY=
 RESEND_WEBHOOK_SECRET=
 EMAIL_FROM=noreply@langgenius.app
 
+# ───────── Pulse fetch 兜底（可选）─────────
+PULSE_BROWSERLESS_URL=        # WAF 403 / JS 渲染源走 Browserless /content
+PULSE_BROWSERLESS_TOKEN=
+PULSE_BROWSERLESS_SOURCE_IDS= # 免代码改 fetcher 的源覆盖名单
+
+# ───────── Stripe（better-auth subscription；计费联调前可空）─────────
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PRICE_PRO_MONTHLY=     # 其余 STRIPE_PRICE_<PLAN>_<CYCLE> 见 .dev.vars.example
+
+# ───────── E2E（仅本地 dev；解锁 /api/e2e/* demo-login / seed）─────────
+E2E_SEED_TOKEN=
+
 # ───────── Observability ─────────
 SENTRY_DSN=
 POSTHOG_KEY=
 
-# ───────── Cloudflare CLI auth（仅 CI / 本地 deploy 用）─────────
+# ───────── Cloudflare CLI auth（仅 CI / 本地 deploy 用；放 root `.env`，不进 .dev.vars）─────────
 CLOUDFLARE_ACCOUNT_ID=
 CLOUDFLARE_API_TOKEN=
 ```

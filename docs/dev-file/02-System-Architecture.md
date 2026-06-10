@@ -1,5 +1,7 @@
 # 02 · System Architecture · 系统架构
 
+> 最后核对：2026-06-10
+
 > 目标：把 PRD 的模块在工程上"干净地切开"，保证每个模块都有清晰的输入、输出、依赖与测试边界。
 > 核心决策：**公开站与 SaaS app 分离部署；SaaS 前后端物理隔离、通过 oRPC 契约同步类型；所有基础设施是 Cloudflare 原生 binding。**
 > 相关 ADR：[`0016`](../adr/0016-cloudflare-first-single-worker-d1-platform.md) · [`0017`](../adr/0017-orpc-contract-first-rpc-api-boundary.md) · [`0018`](../adr/0018-d1-tenant-isolation-scoped-repo-ports.md) · [`0019`](../adr/0019-ai-sdk-gateway-glass-box-boundary.md)
@@ -29,6 +31,8 @@
 │  │  • /api/auth/*   → better-auth                                │   │
 │  │  • /api/webhook/*→ Resend / Stripe 入站                       │   │
 │  │  • /api/health   → liveness                                   │   │
+│  │  • /api/{ics·readiness·notifications·audit·demo·e2e}          │   │
+│  │                  → token / 签名 / 门控 Hono routes（见 §3）    │   │
 │  │  • /api/v1/*     → OpenAPIHandler（Phase 2 公网 REST）         │   │
 │  └─────────────────────────┬─────────────────────────────────────┘   │
 │                            │                                         │
@@ -56,7 +60,10 @@
 │  └───────────────────────────────────────────────────────────────┘   │
 │                                                                      │
 │  Bindings: DB(D1) · CACHE(KV) · RATE_LIMIT · R2_* · VECTORS ·        │
-│            EMAIL_QUEUE · PULSE_QUEUE · ASSETS                        │
+│            EMAIL_QUEUE · PULSE_QUEUE · DASHBOARD_QUEUE ·             │
+│            AUDIT_QUEUE · ASSETS                                      │
+│  Handlers: fetch · scheduled(cron) · queue(consumer) ·               │
+│            email(Email Routing 入站 → GovDelivery 邮件订阅源)         │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -75,7 +82,7 @@
 | **auth**                                  | `packages/auth`                                                                                   | §13.2 · §3.6                                     | Google OAuth / invitation                           | Session · Organization · Member                                                               |
 | **members**                               | `apps/server/src/procedures/members` + identity repo                                              | §3.6                                             | current firm + Owner action                         | Member / Invitation gateway over Better Auth                                                  |
 | **clients**                               | `apps/server/src/procedures/clients` + repo                                                       | §5.6 · §8.1                                      | CRUD                                                | Client 实体                                                                                   |
-| **rules**                                 | `packages/db` + seed                                                                              | §6.1 · §6D                                       | rule draft                                          | ObligationRule + Source Registry                                                              |
+| **rules**                                 | `apps/server/src/procedures/rules` + `jobs/rules` + `packages/db` seed                            | §6.1 · §6D                                       | rule draft + source scan / date reconciliation      | ObligationRule + Source Registry                                                              |
 | **obligations**                           | `apps/server/src/procedures/obligations`                                                          | §5.2 · §8.1                                      | rule + client                                       | ObligationInstance                                                                            |
 | **overlay**（Phase 1）                    | `packages/core/overlay`                                                                           | §6D.2                                            | ExceptionRule                                       | 派生 `current_due_date`                                                                       |
 | **penalty**                               | `packages/core/penalty`                                                                           | §7.5                                             | obligation + assumptions                            | ExposureReport                                                                                |
@@ -86,12 +93,14 @@
 | **migration**                             | `apps/server/src/procedures/migration`                                                            | §6A                                              | paste / CSV                                         | Client[] + Obligation[]                                                                       |
 | **readiness**（Phase 1）                  | `apps/server/src/procedures/readiness`                                                            | §6B                                              | obligation tax type + CPA edits                     | Internal document checklist + optional signed portal link / response                          |
 | **audit**                                 | `apps/server/src/procedures/audit` + `packages/db/audit-writer`                                   | §13.2                                            | write events + firm-scoped read filters             | AuditEvent stream                                                                             |
-| **evidence**                              | `packages/db/evidence-writer`                                                                     | §5.5 · §6.2                                      | any source                                          | EvidenceLink                                                                                  |
+| **evidence**                              | `apps/server/src/procedures/evidence` + `packages/db/evidence-writer`                             | §5.5 · §6.2                                      | any source                                          | EvidenceLink                                                                                  |
 | **ai**                                    | `packages/ai`                                                                                     | §6.2 · §9                                        | retrieval + prompt + guard                          | `AiResult` + trace payload；`apps/server` 注入 writer 持久化 AiOutput / EvidenceLink / LlmLog |
 | **ask**（Phase 1）                        | `apps/server/src/procedures/ask`                                                                  | §6.6                                             | NL query                                            | DSL → SQL → table                                                                             |
 | **reminders**                             | `apps/server/src/procedures/reminders` + `jobs/reminders`                                         | §7.1                                             | due obligations + reminder templates                | `/reminders` 运营页、Email / In-app（Web Push 在 Phase 0 已移除）                             |
 | **notifications**                         | `apps/server/src/procedures/notifications` + `jobs/notifications` + `in_app_notification` writers | §7.1.3                                           | personal event / Pulse arrival / morning digest     | In-app bell + Email digest；Pulse lifecycle actions stay in `pulse`                           |
-| **evidence-package**（Phase 1）           | `jobs/evidence-package`                                                                           | §6C                                              | scope + range                                       | ZIP + SHA-256                                                                                 |
+| **evidence-package**（Phase 1）           | `apps/server/src/procedures/audit` + `jobs/audit`（AUDIT_QUEUE consumer）                         | §6C                                              | scope + range                                       | ZIP + SHA-256（存 R2_AUDIT，签名 URL 下载）                                                   |
+
+（核对 2026-06-10）root router `apps/server/src/procedures/index.ts` 还包含上表未单列的 namespace：`calendar`（ICS 订阅管理，feed 在 `routes/ics.ts`）、`firms`（current firm / plan / billing gateway）、`security`（2FA 等）、`workload`；jobs 侧另有 `jobs/ai-insights`（走 DASHBOARD_QUEUE）、`jobs/rollover`（年度滚动）、`jobs/email`（outbox flush）。
 
 ### 2.1 模块依赖图
 
@@ -125,22 +134,33 @@
 Dashboard AI Brief 是后台物化 read model：写路径或 Cron 投递 Queue，Queue consumer 生成
 `ai_output(kind='brief')` + `dashboard_brief`；`dashboard.load` 只读，不调用 AI。
 
+四条队列由同一 Worker 的 `queue()` handler（`jobs/queue.ts`）按消息 `type` 分发：DASHBOARD_QUEUE
+同时承载 `dashboard.brief.refresh` 与 `ai.insight.refresh`；AUDIT_QUEUE 承载
+`audit.package.generate`（evidence package ZIP）；PULSE_QUEUE 承载 `pulse.ingest.source` /
+`pulse.extract` 与 rule-scan 类消息；EMAIL_QUEUE 承载 `email.flush`。Pulse 的 dead-letter queue
+也路由到同一 handler——只 drain + 发 `pulse.queue.dead_letter` ops alert，不重跑失败 handler。
+
 ---
 
 ## 3. 路由前缀约定（约束）
 
 对齐 oRPC 官方惯例，Worker 路由按职责分层，**不可混用**：
 
-| 前缀                     | 挂载的 handler                                                                                 | 职责                                                                                         | 身份 / 调用方                                                |
-| ------------------------ | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `/rpc/*`                 | `RPCHandler`（`@orpc/server/fetch`）                                                           | 内部 TS 前端调用；支持 Date / BigInt / Map / Set / AsyncIterator 富类型                      | `apps/app` 独占；cookie session                              |
-| `/api/auth/*`            | better-auth（Email OTP / Google OAuth / One Tap / Microsoft OAuth + Organization + twoFactor） | 登录 / 注册 / 注销 / OTP / OAuth callback / One Tap callback / 邀请接受 / 2FA / session 管理 | 浏览器 + OAuth 回调                                          |
-| `/api/auth-capabilities` | 手写 Hono route                                                                                | 暴露公开 auth 能力：provider 开关与 Google Client ID；不返回 OAuth secret                    | 浏览器                                                       |
-| `/api/webhook/*`         | 手写 Hono route                                                                                | Resend / Stripe（Phase 1）等外部回调                                                         | 无用户身份；provider 签名校验必做；IP allowlist 仅作可选加固 |
-| `/api/ics/:token(.ics)`  | 手写 Hono route（Phase 1）                                                                     | ICS 日历订阅 feed；`.ics` 后缀兼容 Apple Calendar 等客户端                                   | token 鉴权                                                   |
-| `/api/health`            | 手写 Hono route                                                                                | Cloudflare healthcheck / liveness                                                            | 公开                                                         |
-| `/api/v1/*`（Phase 2）   | `OpenAPIHandler`（`@orpc/openapi/fetch`）                                                      | 公网开放 REST；复用同一份 `packages/contracts` 契约；自动生成 OpenAPI spec                   | OAuth client credentials                                     |
-| app 子域其他所有路径     | ASSETS binding                                                                                 | `apps/app` SPA 静态产物 + `not_found_handling = "single-page-application"` 兜底              | 浏览器                                                       |
+| 前缀                               | 挂载的 handler                                                                                 | 职责                                                                                         | 身份 / 调用方                                                |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `/rpc/*`                           | `RPCHandler`（`@orpc/server/fetch`）                                                           | 内部 TS 前端调用；支持 Date / BigInt / Map / Set / AsyncIterator 富类型                      | `apps/app` 独占；cookie session                              |
+| `/api/auth/*`                      | better-auth（Email OTP / Google OAuth / One Tap / Microsoft OAuth + Organization + twoFactor） | 登录 / 注册 / 注销 / OTP / OAuth callback / One Tap callback / 邀请接受 / 2FA / session 管理 | 浏览器 + OAuth 回调                                          |
+| `/api/auth-capabilities`           | 手写 Hono route                                                                                | 暴露公开 auth 能力：provider 开关与 Google Client ID；不返回 OAuth secret                    | 浏览器                                                       |
+| `/api/webhook/*`                   | 手写 Hono route                                                                                | Resend / Stripe（Phase 1）等外部回调                                                         | 无用户身份；provider 签名校验必做；IP allowlist 仅作可选加固 |
+| `/api/ics/:token(.ics)`            | 手写 Hono route                                                                                | ICS 日历订阅 feed；`.ics` 后缀兼容 Apple Calendar 等客户端                                   | token 鉴权 + rate limit                                      |
+| `/api/readiness/*`                 | 手写 Hono route                                                                                | Readiness 客户 portal（查看 checklist / 提交回应）                                           | 签名 portal token + rate limit；无 session                   |
+| `/api/notifications/unsubscribe`   | 手写 Hono route                                                                                | 客户邮件退订（写 `client_email_suppression`）                                                | 签名 unsubscribe token                                       |
+| `/api/audit/packages/:id/download` | 手写 Hono route                                                                                | Evidence package ZIP 下载                                                                    | cookie session + 签名 URL；Owner + plan `auditExport` 门槛   |
+| `/api/demo`                        | 手写 Hono route                                                                                | 公开免注册只读 demo：为共享 demo firm 铸造短时 session 后跳转 app                            | `ENABLE_PUBLIC_DEMO` 门控 + IP rate limit                    |
+| `/api/e2e/*`                       | 手写 Hono route                                                                                | Playwright 测试 bootstrap（seed / 登录态）                                                   | dev 开放；staging 需 `E2E_SEED_TOKEN`；production 恒 404     |
+| `/api/health`                      | 手写 Hono route                                                                                | Cloudflare healthcheck / liveness                                                            | 公开                                                         |
+| `/api/v1/*`（Phase 2）             | `OpenAPIHandler`（`@orpc/openapi/fetch`）                                                      | 公网开放 REST；复用同一份 `packages/contracts` 契约；自动生成 OpenAPI spec                   | OAuth client credentials                                     |
+| app 子域其他所有路径               | ASSETS binding                                                                                 | `apps/app` SPA 静态产物 + `not_found_handling = "single-page-application"` 兜底              | 浏览器                                                       |
 
 `due.langgenius.app` 的公开首页、后续 `/rules`、`/watch`、`/state/*`、`/pulse` 不走上表的 SaaS Worker fallback；它们属于 `apps/marketing`（见 [12 Marketing Architecture](./12-Marketing-Architecture.md)）。
 
@@ -153,6 +173,12 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = ["/rpc/*", "/api/*"]
 ```
+
+**同一 Worker 的非 HTTP 入口**（`apps/server/src/index.ts`，单 Worker 导出四个 handler）：
+
+- `scheduled()`（cron `*/30 * * * *`，`jobs/cron.ts`）：每 tick 用 `Promise.allSettled` 隔离地 fan-out 12 个分支——rules（registry catalog sync / source scans / date reconciliation）、pulse（ingest scans / extract 失败重试 / extract 健康 canary / still-open alert windows 日扫）、scheduled dashboard briefs、deadline reminders、morning digests、annual rollover、email flush；分支失败逐个落 `cron.branch_failed` 日志 + `OPS_ALERT_EMAIL` ops alert
+- `queue()`（`jobs/queue.ts`）：消费 EMAIL / PULSE / DASHBOARD / AUDIT 四条队列 + pulse DLQ（见 §2.1）
+- `email()`：Cloudflare Email Routing 入站 → `jobs/pulse/govdelivery.ts`，承接 `email_subscription` 类 Pulse 源（GovDelivery 订阅邮件 → raw 归档 → `pulse.extract`）
 
 **为什么 `/rpc` 独立于 `/api`**：
 
@@ -193,7 +219,7 @@ Browser ── GET / ──► Worker
                           浏览器加载 SPA bundle → mount React
                                  │
                                  ▼
-                          oRPC client 发起 rpc.dashboard.load.query()
+                          oRPC client 发起 orpc.dashboard.load.queryOptions()
                                  │
                                  ▼
 Worker ── POST /rpc/dashboard/load ──► Hono → RPCHandler
@@ -222,28 +248,29 @@ SPA 首屏 TTI 冷启动 ≤ 1.5s（bundle 加载）；回访热启动 ≤ 300ms
 Cron Trigger（*/30 * * * *，每源独立 interval 见 11 §3）
         │
         ▼
-scheduled(controller, env) → jobs/pulse/ingest
+scheduled(controller, env) → jobs/pulse/ingest（enqueuePulseIngestScans，按到期源逐源入队）
         │
         ▼
-SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► PULSE_QUEUE { type: 'pulse.extract', snapshotId }
-（HTML / RSS / JSON API / email signal，选择与降级见 11 §4）
-                                        │
-                              AI extract + relevance guard
-                                        │
-                                        ▼
-                              CPA-facing Alert
+PULSE_QUEUE { type: 'pulse.ingest.source', sourceId }
+        │
+        ▼
+Queue consumer → SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► PULSE_QUEUE { type: 'pulse.extract', snapshotId }
+（HTML / RSS / JSON API / email signal，选择与降级见 11 §4；
+ email signal 不走 cron，由 Worker `email()` handler 直接入此链；
+ 白名单 JS 渲染源经 Browserless 抓取）
                                         │
                                         ▼
                                  Queue consumer
                                         │
                                         ▼
-                                 AI SDK Extract（经 CF AI Gateway）
+                                 AI SDK Extract（经 CF AI Gateway）+ relevance guard
                                         │
                                         ▼
                                  Glass-Box Guard 校验
                                         │
                                         ▼
-                                 写 pulse（status=approved）
+                                 写 pulse（高置信 status=approved 并扇出到 firm；
+                                 低置信 quarantined 仅留人工复核，不扇出）
                                         │
                                   firm review（Rules > Pulse Changes）
                                         │
@@ -298,12 +325,13 @@ SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► PULSE_QUEUE { type: 
 
 ## 5. 外部依赖清单
 
-| 依赖                                          | 用途                | 故障降级见           |
-| --------------------------------------------- | ------------------- | -------------------- |
-| AI SDK providers（via Cloudflare AI Gateway） | 模型执行 / fallback | §01.5                |
-| Resend                                        | 邮件                | email_outbox 重试    |
-| Sentry                                        | 错误上报            | 无降级（非关键路径） |
-| PostHog                                       | 产品事件            | 失败吞掉不影响功能   |
+| 依赖                                                                       | 用途                | 故障降级见            |
+| -------------------------------------------------------------------------- | ------------------- | --------------------- |
+| AI SDK providers（via Cloudflare AI Gateway）                              | 模型执行 / fallback | §01.5                 |
+| Resend                                                                     | 邮件                | email_outbox 重试     |
+| Browserless（仅 `PULSE_BROWSERLESS_SOURCE_IDS` 白名单的 JS 渲染 Pulse 源） | headless 抓取       | 11 §4 / source health |
+| Sentry                                                                     | 错误上报            | 无降级（非关键路径）  |
+| PostHog                                                                    | 产品事件            | 失败吞掉不影响功能    |
 
 所有 Cloudflare 原生服务（D1 / KV / R2 / Queues / Vectorize / AI Gateway）**不算外部依赖**，它们是 Worker 的 binding。
 
@@ -311,14 +339,14 @@ SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► PULSE_QUEUE { type: 
 
 ## 6. 并发与一致性策略
 
-| 场景                                         | 策略                                                                                                                             |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 同 firm 多设备并发改同一 obligation          | Drizzle optimistic `updated_at` 比对；前端 toast "conflict" 提示重试                                                             |
-| Pulse Batch Apply 期间同一 firm 禁止二次触发 | KV 做 advisory lock（30s TTL）+ 前端按钮 disable                                                                                 |
-| Migration 运行中禁止二次 import              | `migration_batch.status=applying` 时拒绝新 batch                                                                                 |
-| Dashboard Brief 刷新                         | Queue 消息带 `idempotency_key`；D1 以 `(firm, scope, as_of_date, input_hash)` 去重，KV 以 firm + scope + user 做 5 分钟 debounce |
-| 邮件 outbox 幂等                             | `email_outbox.external_id` 唯一约束；consumer 处理前校验                                                                         |
-| Queue 消息幂等                               | 消息体带 `idempotency_key`，消费者先查 D1 去重                                                                                   |
+| 场景                                                        | 策略                                                                                                                             |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 同 firm 多设备并发改同一 obligation                         | Drizzle optimistic `updated_at` 比对；前端 toast "conflict" 提示重试                                                             |
+| Pulse 同一 alert 的变更操作（apply / dismiss / revert）互斥 | D1 `mutation_lock` 表做 advisory lock（`scoped.mutationLock`，key=firm+alert，60s TTL，过期自愈）+ 前端按钮 disable              |
+| Migration 运行中禁止二次 import                             | `migration_batch.status=applying` 时拒绝新 batch                                                                                 |
+| Dashboard Brief 刷新                                        | Queue 消息带 `idempotency_key`；D1 以 `(firm, scope, as_of_date, input_hash)` 去重，KV 以 firm + scope + user 做 5 分钟 debounce |
+| 邮件 outbox 幂等                                            | `email_outbox.external_id` 唯一约束；consumer 处理前校验                                                                         |
+| Queue 消息幂等                                              | 消息体带 `idempotency_key`，消费者先查 D1 去重                                                                                   |
 
 ---
 

@@ -1,8 +1,9 @@
 # 11 · Pulse Ingest Source Catalog
 
+> 最后核对：2026-06-08
 > 文档类型：Data Source Operations Handbook
 > 版本：v1.2
-> 对齐 PRD：`docs/PRD/DueDateHQ-PRD-v2.0-Unified-Part1.md` §6.3.1 Ingest
+> 对齐 PRD：`docs/PRD/DueDateHQ-PRD-v2.0-Part1A.md` §6.3.1 Ingest
 > 对齐技术：`docs/dev-file/04-AI-Architecture.md` §6 Pulse Pipeline
 > 语言约定：正文中文，URL / 代码 / 命名 / 注释全部英文
 > 本轮源稳定性评审基线：2026-04-30

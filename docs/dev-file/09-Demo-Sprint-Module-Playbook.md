@@ -1,5 +1,6 @@
 # 09 · Demo Sprint Module Playbook · 2 人 AI 辅助模块拆分手册
 
+> ⚠️ 历史快照（2026-04 Demo Sprint）：本册是当时的时间盒拆分计划，**非当前事实**，不随代码维护——现状以代码与其余 dev-file 为准。
 > 适用场景：2 位开发者 · AI 辅助开发 · 目标 Demo-Ready 闭环。
 > 本文只按模块拆分，不按排期、页面、实现位置或技术层拆分。具体项目结构以 Dev File 08 为准。
 > 核心判断：PRD v2.0 是 build-complete 目标形态；本文只覆盖 Phase 0 内嵌 Demo Sprint 的最小可信闭环，不等价于完整 Phase 0 MVP。

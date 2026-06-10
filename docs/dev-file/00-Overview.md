@@ -1,8 +1,10 @@
 # DueDateHQ 技术文档 · 00 项目总览
 
+> 最后核对：2026-06-10
+
 > 文档类型：Technical Design Document Index
 > 版本：v2.0（Cloudflare 全栈口径）
-> 对齐 PRD：`docs/PRD/DueDateHQ-PRD-v2.0-Unified-Part1.md`（§0–§6D） + `docs/PRD/DueDateHQ-PRD-v2.0-Unified-Part2.md`（§7–§19）
+> 对齐 PRD：`docs/PRD/DueDateHQ-PRD-v2.0-Part1A.md`（§0–§6）+ `Part1B`（§6A–§6D）+ `Part2A`（§7–§8）+ `Part2B`（§9–§19）（原 Unified Part 1/2 已拆为 4 册）
 > 对齐设计：`docs/Design/DueDateHQ-DESIGN.md`
 > 目标：把 PRD 的"产品承诺"转译为"可实现、可运维、可演进"的技术方案
 > 语言约定：正文中文，代码 / 命名 / 注释全部英文
@@ -53,8 +55,8 @@
 │   │   app 子域其他路径 ─► ASSETS.fetch() → SPA dist (SPA fallback)│    │
 │   │   /rpc/*       ──► Hono ──► RPCHandler ──► procedures/*      │    │
 │   │                     （oRPC 专有协议；内部前端独占）           │    │
-│   │   /api/auth/*  ──► better-auth (Organization plugin)         │    │
-│   │   /api/webhook/* ──► narrow endpoints (Resend / Stripe)      │    │
+│   │   /api/auth/*  ──► better-auth (Organization + Stripe)       │    │
+│   │   /api/webhook/* ──► narrow endpoints (Resend)               │    │
 │   │   /api/health  ──► liveness probe                            │    │
 │   │   /api/v1/*（Phase 2）──► OpenAPIHandler（公网 REST，复用契约）│    │
 │   │                                                              │    │
@@ -115,6 +117,12 @@
 | **Phase 3 · Q4 2026+**（PRD §14.4）    | Compliance Calendar API（给 TaxDome / Karbon 做 intelligence 层）                                                                                         | 开放 `/api/v1/*` OpenAPIHandler 路由（复用同一份 `packages/contracts` 契约）                                                                                                          |
 
 Schema、索引、目录结构**一次性覆盖到 Phase 1**：Firm / User / Membership 三表在 Phase 0 已通过 better-auth Organization 就位；ExceptionRule 表结构在 Phase 0 末设计到位，Phase 1 启用 Overlay Engine 时零 schema 重构。P0 的安全含义是 tenant isolation、Owner-only 写路径、审计与 AI 日志；完整四角色权限矩阵属 P1，MFA 作为用户可选账户安全项。
+
+2026-06 现状补记（相对上表 Phase 口径已上线的增量界面）：
+
+- Deadlines 主从详情页：`/deadlines/:obligationRef[/:detailTab]`，列表收为左侧 rail，详情同屏切换
+- Reminder 模板库 + 编辑器：`/settings/reminders/templates` 与 `/settings/reminders/templates/edit`
+- Notification preferences 页：`/notifications/preferences`，集中管理通知偏好
 
 ---
 

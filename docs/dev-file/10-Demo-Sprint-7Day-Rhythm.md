@@ -1,5 +1,6 @@
 # 10 · Demo Sprint 进度同步（Post-Activation）
 
+> ⚠️ 历史快照（2026-04/05 Demo Sprint）：本册是当时的进度同步记录，**非当前事实**，不随代码维护——现状以代码与其余 dev-file 为准。
 > 适用场景：给搭档快速同步 Demo Sprint 当前进度、最近几天完成内容、剩余缺口和下一步优先级。
 > 本文是 [09 Demo Sprint Module Playbook](./09-Demo-Sprint-Module-Playbook.md) 的执行状态更新，不重新定义模块边界。
 > Migration Copilot 产品口径以
