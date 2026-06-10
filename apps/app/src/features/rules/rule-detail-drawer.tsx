@@ -6,6 +6,8 @@ import {
   Astroid,
   CheckIcon,
   ChevronDownIcon,
+  ExternalLinkIcon,
+  FileTextIcon,
   Loader2,
   OctagonXIcon,
   RotateCcwIcon,
@@ -403,6 +405,7 @@ export function RuleDetailCompact({
             <RuleEvidenceCard
               evidence={primaryEvidence}
               source={sourceLookup.get(primaryEvidence.sourceId)}
+              isPrimary
             />
           ) : (
             <p className="text-sm text-text-tertiary">
@@ -1810,41 +1813,55 @@ function EvidenceSection({
 function RuleEvidenceCard({
   evidence,
   source,
+  isPrimary = false,
 }: {
   evidence: RuleEvidence
   source: RuleSource | undefined
+  /** The primary source gets the green "Primary" pill (irBJ8); others show
+      their authority-role chip. */
+  isPrimary?: boolean
 }) {
-  // 2026-06-01: hand-rolled chrome (border + bg + rounded + hover/focus
-  // recipe) → Card primitive. Link variant uses `interactive` so the
-  // pointer + accent-border hover + focus-visible ring come from the
-  // primitive, with an overlay <a> carrying href / target / onClick /
-  // aria-label so behavior + a11y are unchanged.
+  // irBJ8 Evidence row: file tile · code (sourceId, mono) · name (source.title)
+  // · external-link · description (evidence.summary) · Primary / authority pill.
+  // (Switched from the verbatim sourceExcerpt quote to the evidence summary, per
+  // the canvas — the quote is the locator-level detail, not the row.)
   const inner = (
     <>
-      <div className="flex w-full min-w-0 items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <AuthorityRoleBadge role={evidence.authorityRole} />
-          <span className="min-w-0 flex-1 truncate text-base font-medium text-text-primary">
+      <span
+        aria-hidden
+        className="flex size-[22px] shrink-0 items-center justify-center self-start rounded bg-background-section"
+      >
+        <FileTextIcon className="size-3.5 text-text-muted" />
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <span className="font-mono text-[11px] font-medium text-text-secondary">
+            {evidence.sourceId}
+          </span>
+          <span aria-hidden className="text-text-muted">
+            ·
+          </span>
+          <span className="min-w-0 truncate text-sm font-medium text-text-primary">
             {source?.title ?? evidence.sourceId}
           </span>
+          {source?.url ? (
+            <ExternalLinkIcon aria-hidden className="size-3 shrink-0 text-text-muted" />
+          ) : null}
         </div>
-        {source?.url ? (
-          <span className="shrink-0 text-sm text-text-accent" aria-hidden>
-            ↗
-          </span>
-        ) : null}
+        <p className="line-clamp-2 text-sm text-text-secondary">{evidence.summary}</p>
       </div>
-      <EvidenceLocator evidence={evidence} />
-      <p className="line-clamp-2 text-xs text-text-secondary italic">“{evidence.sourceExcerpt}”</p>
+      {isPrimary ? (
+        <span className="shrink-0 self-start rounded-full bg-state-success-solid px-2.5 py-0.5 text-[11px] font-semibold text-white">
+          <Trans>Primary</Trans>
+        </span>
+      ) : (
+        <AuthorityRoleBadge role={evidence.authorityRole} />
+      )}
     </>
   )
 
   if (source?.url) {
     const url = source.url
-    // Link variant keeps the host <a> so href / target / rel / aria-label
-    // / onClick remain on the focusable, semantic anchor. Visual recipe
-    // mirrors Card size='sm' radius='md' interactive — couldn't render
-    // Card directly as <a> (Card has no polymorphic render slot yet).
     return (
       <a
         href={url}
@@ -1852,7 +1869,7 @@ function RuleEvidenceCard({
         rel="noopener noreferrer"
         aria-label={`Open official source: ${source.title}`}
         onClick={(event) => openEvidenceSource(event, url)}
-        className="group/card flex flex-col items-stretch gap-1.5 rounded-lg border border-components-card-border bg-components-card-bg px-3 py-2.5 text-left text-sm text-text-primary no-underline outline-none transition-colors hover:border-state-accent-active-alt hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="group/card flex items-start gap-3 rounded-lg border border-components-card-border bg-components-card-bg px-3 py-2.5 text-left text-sm text-text-primary no-underline outline-none transition-colors hover:border-state-accent-active-alt hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         {inner}
       </a>
@@ -1860,7 +1877,7 @@ function RuleEvidenceCard({
   }
 
   return (
-    <Card size="sm" radius="md" className="gap-1.5 px-3 py-2.5">
+    <Card size="sm" radius="md" className="flex items-start gap-3 px-3 py-2.5">
       {inner}
     </Card>
   )
