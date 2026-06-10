@@ -1419,7 +1419,8 @@ export function ActiveStageDetailCard({
   // Pencil `c2l347` BLOCKING glance: the actual outstanding materials (real
   // checklist items) so the card names WHICH docs block, not just a count.
   const outstandingItems = useMemo(
-    () => readinessChecklist.filter((item) => item.status !== 'received' && item.status !== 'waived'),
+    () =>
+      readinessChecklist.filter((item) => item.status !== 'received' && item.status !== 'waived'),
     [readinessChecklist],
   )
   // Sub-status descriptor — read inline (NOT from
@@ -2283,15 +2284,31 @@ export function ActiveStageDetailCard({
           "go review what's outstanding" — the CPA's actual intent
           when the count is non-zero. */}
       {isWaitingDocsCase && readinessCounts.total > 0 ? (
-        // Pencil `iTasJ` materials progress: big mono received count + a
-        // received/outstanding/waived chip row + a green segment bar, with the
-        // "Check materials" affordance below. Real counts from the checklist.
+        // Pencil `X3lBEt` (Qn4nX) ActiveStageCard "Left": headline +
+        // big mono received count + received/outstanding/waived legend chips
+        // + a thin green segment bar, with the "Check materials" affordance
+        // below. Real counts from the checklist (no fiction).
         <div className="mt-3 flex flex-col gap-2.5">
+          {/* Headline — 18/600/-0.4, the canonical "N materials still
+              outstanding." treatment. Names the live blocker count, not
+              a generic label. Falls back to a "received" framing once the
+              outstanding count hits zero so the line stays honest. */}
+          <p className="text-[18px] leading-snug font-semibold tracking-[-0.4px] text-text-primary">
+            {readinessCounts.outstanding > 0 ? (
+              <Plural
+                value={readinessCounts.outstanding}
+                one="# material still outstanding."
+                other="# materials still outstanding."
+              />
+            ) : (
+              <Trans>All materials are in.</Trans>
+            )}
+          </p>
           <div className="flex items-end gap-2.5">
             <span className="font-mono text-[30px] leading-none font-bold tracking-[-0.6px] text-text-primary tabular-nums">
               {readinessCounts.received}
             </span>
-            <span className="pb-0.5 text-sm font-medium text-text-tertiary">
+            <span className="text-xs leading-tight font-medium text-text-tertiary">
               {t`of ${readinessCounts.total} materials`}
             </span>
           </div>
@@ -2302,25 +2319,31 @@ export function ActiveStageDetailCard({
                 count: readinessCounts.received,
                 label: t`received`,
                 dot: 'bg-state-success-solid',
+                muted: false,
               },
               {
                 key: 'outstanding',
                 count: readinessCounts.outstanding,
                 label: t`outstanding`,
-                dot: 'bg-state-warning-solid',
+                dot: 'bg-state-destructive-solid',
+                muted: false,
               },
               {
                 key: 'waived',
                 count: readinessCounts.waived,
                 label: t`waived`,
                 dot: 'bg-text-muted',
+                muted: true,
               },
             ].map((chip) => (
               <span
                 key={chip.key}
-                className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2.5 py-0.5 text-xs font-medium text-text-secondary"
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full bg-background-section px-2 py-0.5 text-[10px] font-semibold',
+                  chip.muted ? 'text-text-tertiary' : 'text-text-secondary',
+                )}
               >
-                <span className={cn('size-1.5 shrink-0 rounded-full', chip.dot)} aria-hidden />
+                <span className={cn('size-[5px] shrink-0 rounded-full', chip.dot)} aria-hidden />
                 <span className="tabular-nums">{chip.count}</span> {chip.label}
               </span>
             ))}
