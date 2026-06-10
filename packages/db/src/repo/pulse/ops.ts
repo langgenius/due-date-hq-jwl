@@ -43,6 +43,7 @@ import {
   type NewRuleSourceDriftState,
   type Pulse,
   type PulseSourceSnapshotStatus,
+  type PulseStatus,
 } from '../../schema/pulse'
 import { listActiveOverlayDueDates } from '../overlay'
 import {
@@ -414,7 +415,7 @@ export function makePulseOpsRepo(db: Db) {
   // alerts, and queue the review/digest emails.
   async function finalizePulseFanOut(
     pulseId: string,
-    opts?: { firmIds?: string[] },
+    opts?: { firmIds?: string[]; preserveStatus?: boolean },
   ): Promise<{ pulseId: string; alertCount: number }> {
     const inserted = await getPulse(pulseId)
     if (!inserted) throw new PulseRepoError('not_found')
@@ -1228,6 +1229,88 @@ export function makePulseOpsRepo(db: Db) {
       const row = await getPulse(pulseId)
       if (!row || row.status !== 'approved') return 0
       return refreshFirmAlertsForPulse(pulseId, { preserveStatus: true })
+    },
+
+    /**
+     * Fold-merge a duplicate AI extract onto its surviving pulse (signature
+     * pre-check hit or uq_pulse_dedupe_key loser). The dedupe key is
+     * status-blind, so two fan-out-relevant updates can hide in a fold:
+     *
+     *  • Promotion: the first sighting landed 'quarantined' (< publish floor)
+     *    and a later extract of the same event clears it. Without this the
+     *    event is suppressed forever — refreshFirmAlertsForApprovedPulse
+     *    no-ops on non-approved rows and nothing in production calls
+     *    approvePulse. Only a *system*-quarantined survivor (reviewedAt NULL)
+     *    is promoted; a human quarantine / reject / revoke decision is never
+     *    overridden. Promotion runs the full first-publication fan-out and
+     *    queues the firm review messages.
+     *  • County expansion: the dated dedupe key deliberately excludes
+     *    counties, so relief extended to NEW counties folds here. Union the
+     *    incoming counties in — only when both sides are county-scoped (an
+     *    empty survivor list means statewide, an empty incoming list is
+     *    usually a parse miss; neither should change scope). The caller's
+     *    counts refresh then picks the new counties up.
+     *
+     * Confidence rises to the strongest sighting on promotion; every other
+     * extracted field (summary, quote, dates, forms, structuredChange) keeps
+     * the survivor's values — they are tied to its aiOutputId / rawR2Key
+     * provenance. Idempotent: re-folding the same extract is a no-op.
+     */
+    async applyDuplicateExtractToPulse(input: {
+      pulseId: string
+      incomingStatus: PulseStatus
+      confidence: number
+      parsedCounties: string[]
+    }): Promise<{ promoted: boolean; countiesExpanded: boolean; alertCount: number }> {
+      const row = await getPulse(input.pulseId)
+      if (!row) return { promoted: false, countiesExpanded: false, alertCount: 0 }
+
+      const promoted =
+        input.incomingStatus === 'approved' &&
+        row.status === 'quarantined' &&
+        row.reviewedAt === null
+
+      let mergedCounties: string[] | null = null
+      if (row.parsedCounties.length > 0 && input.parsedCounties.length > 0) {
+        const seen = new Set(row.parsedCounties.map(normalizeCountyName))
+        const added: string[] = []
+        for (const county of input.parsedCounties) {
+          const key = normalizeCountyName(county)
+          if (seen.has(key)) continue
+          seen.add(key)
+          added.push(county)
+        }
+        if (added.length > 0) mergedCounties = [...row.parsedCounties, ...added]
+      }
+
+      if (!promoted && !mergedCounties) {
+        return { promoted: false, countiesExpanded: false, alertCount: 0 }
+      }
+
+      await db
+        .update(pulse)
+        .set({
+          ...(promoted
+            ? {
+                status: 'approved' as const,
+                confidence: Math.max(row.confidence, input.confidence),
+              }
+            : {}),
+          ...(mergedCounties ? { parsedCounties: mergedCounties } : {}),
+        })
+        .where(eq(pulse.id, input.pulseId))
+
+      if (!promoted) return { promoted: false, countiesExpanded: true, alertCount: 0 }
+      // First publication of this event: full fan-out + review messages, like
+      // an extract that landed approved. preserveStatus is defense-in-depth —
+      // a system-quarantined pulse has never fanned out, so there is no firm
+      // alert status to reset.
+      const fanOut = await finalizePulseFanOut(input.pulseId, { preserveStatus: true })
+      return {
+        promoted: true,
+        countiesExpanded: mergedCounties !== null,
+        alertCount: fanOut.alertCount,
+      }
     },
 
     /**

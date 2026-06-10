@@ -16,6 +16,7 @@ const { aiMocks, coreMocks, dbMocks, metricsMocks, repoMocks } = vi.hoisted(() =
     getSourceSnapshot: vi.fn(),
     updateSourceSnapshotStatus: vi.fn(),
     findDuplicatePulseForExtract: vi.fn(),
+    applyDuplicateExtractToPulse: vi.fn(),
     refreshFirmAlertsForApprovedPulse: vi.fn(),
     createPulseForFirmReviewFromExtract: vi.fn(),
     mergeReverifyRuleIdsIntoPulse: vi.fn(),
@@ -114,6 +115,11 @@ describe('extractPulseSnapshot', () => {
     Object.values(repoMocks).forEach((mock) => mock.mockReset())
     aiMocks.createAI.mockReturnValue({ extractPulse: aiMocks.extractPulse })
     repoMocks.findDuplicatePulseForExtract.mockResolvedValue(null)
+    repoMocks.applyDuplicateExtractToPulse.mockResolvedValue({
+      promoted: false,
+      countiesExpanded: false,
+      alertCount: 0,
+    })
     repoMocks.refreshFirmAlertsForApprovedPulse.mockResolvedValue(0)
     repoMocks.createPulseForFirmReviewFromExtract.mockResolvedValue({
       pulseId: 'pulse-created',
@@ -898,6 +904,11 @@ describe('extractPulseSnapshot — confidence gating & race-safe de-duplication'
     Object.values(repoMocks).forEach((mock) => mock.mockReset())
     aiMocks.createAI.mockReturnValue({ extractPulse: aiMocks.extractPulse })
     repoMocks.findDuplicatePulseForExtract.mockResolvedValue(null)
+    repoMocks.applyDuplicateExtractToPulse.mockResolvedValue({
+      promoted: false,
+      countiesExpanded: false,
+      alertCount: 0,
+    })
     repoMocks.refreshFirmAlertsForApprovedPulse.mockResolvedValue(0)
     repoMocks.createPulseForFirmReviewFromExtract.mockResolvedValue({
       pulseId: 'pulse-created',
@@ -1003,12 +1014,60 @@ describe('extractPulseSnapshot — confidence gating & race-safe de-duplication'
     const result = await extractPulseSnapshot(env(), 'snapshot-conf')
 
     expect(result).toEqual({ pulseId: 'pulse-winner', status: 'skipped' })
+    expect(repoMocks.applyDuplicateExtractToPulse).toHaveBeenCalledWith({
+      pulseId: 'pulse-winner',
+      incomingStatus: 'approved',
+      confidence: 0.8,
+      parsedCounties: [],
+    })
     expect(repoMocks.refreshFirmAlertsForApprovedPulse).toHaveBeenCalledWith('pulse-winner')
     expect(repoMocks.mergeReverifyRuleIdsIntoPulse).toHaveBeenCalledWith('pulse-winner', [])
     expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
       'pulse.extract.result',
       expect.objectContaining({ result: 'duplicate' }),
     )
+  })
+
+  it('promotes a quarantined survivor when a confident duplicate of the same event arrives', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
+    aiMocks.extractPulse.mockResolvedValue(regChange(0.8))
+    repoMocks.findDuplicatePulseForExtract.mockResolvedValue('pulse-quarantined')
+    repoMocks.applyDuplicateExtractToPulse.mockResolvedValue({
+      promoted: true,
+      countiesExpanded: false,
+      alertCount: 2,
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-conf')
+
+    expect(result).toEqual({ pulseId: 'pulse-quarantined', status: 'skipped' })
+    expect(repoMocks.applyDuplicateExtractToPulse).toHaveBeenCalledWith({
+      pulseId: 'pulse-quarantined',
+      incomingStatus: 'approved',
+      confidence: 0.8,
+      parsedCounties: [],
+    })
+    // Promotion already ran the full first-publication fan-out.
+    expect(repoMocks.refreshFirmAlertsForApprovedPulse).not.toHaveBeenCalled()
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'pulse.extract.result',
+      expect.objectContaining({ result: 'duplicate', alertCount: 2 }),
+    )
+  })
+
+  it('a weak duplicate folds with quarantined status and never promotes', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
+    aiMocks.extractPulse.mockResolvedValue(regChange(0.4))
+    repoMocks.findDuplicatePulseForExtract.mockResolvedValue('pulse-existing')
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-conf')
+
+    expect(result).toEqual({ pulseId: 'pulse-existing', status: 'skipped' })
+    expect(repoMocks.applyDuplicateExtractToPulse).toHaveBeenCalledWith(
+      expect.objectContaining({ incomingStatus: 'quarantined', confidence: 0.4 }),
+    )
+    // Non-promoted folds still refresh counts on the survivor.
+    expect(repoMocks.refreshFirmAlertsForApprovedPulse).toHaveBeenCalledWith('pulse-existing')
   })
 
   it('drops an out-of-scope program deadline (LITC grant window) before it becomes an alert', async () => {

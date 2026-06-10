@@ -1306,6 +1306,158 @@ describe('makePulseOpsRepo', () => {
     expect(directStatements).toHaveLength(0)
   })
 
+  it('promotes a system-quarantined survivor and runs the first-publication fan-out', async () => {
+    const quarantinedPulse = {
+      id: 'pulse-q',
+      status: 'quarantined' as const,
+      reviewedAt: null,
+      confidence: 0.4,
+      parsedCounties: [],
+      actionMode: 'review_only' as const,
+      changeKind: 'protective_claim_window' as const,
+      parsedJurisdiction: 'FED',
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      reverifyRuleIdsJson: [],
+      structuredChangeJson: { kind: 'protective_claim_window', actionDeadline: '2026-07-10' },
+    }
+    const promotedPulse = { ...quarantinedPulse, status: 'approved' as const, confidence: 0.8 }
+    const { db, directStatements } = fakeDb([
+      [quarantinedPulse], // fold reads the survivor
+      [promotedPulse], // finalize re-reads
+      [promotedPulse], // fan-out status guard re-reads
+      [{ id: 'firm-a' }], // active firms
+      [{ firmId: 'firm-a', clientId: 'client-a', taxType: 'federal_1040' }], // protective scan
+    ])
+
+    const result = await makePulseOpsRepo(db).applyDuplicateExtractToPulse({
+      pulseId: 'pulse-q',
+      incomingStatus: 'approved',
+      confidence: 0.8,
+      parsedCounties: [],
+    })
+
+    expect(result).toEqual({ promoted: true, countiesExpanded: false, alertCount: 1 })
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { status: 'approved', confidence: 0.8 }),
+      ),
+    ).toBe(true)
+  })
+
+  it('never overrides a human quarantine or reject decision', async () => {
+    const { db, directStatements } = fakeDb([
+      [
+        {
+          id: 'pulse-q',
+          status: 'quarantined' as const,
+          reviewedAt: new Date('2026-06-01T00:00:00.000Z'),
+          confidence: 0.4,
+          parsedCounties: [],
+        },
+      ],
+      [
+        {
+          id: 'pulse-r',
+          status: 'rejected' as const,
+          reviewedAt: null,
+          confidence: 0.4,
+          parsedCounties: [],
+        },
+      ],
+    ])
+    const repo = makePulseOpsRepo(db)
+
+    await expect(
+      repo.applyDuplicateExtractToPulse({
+        pulseId: 'pulse-q',
+        incomingStatus: 'approved',
+        confidence: 0.9,
+        parsedCounties: [],
+      }),
+    ).resolves.toEqual({ promoted: false, countiesExpanded: false, alertCount: 0 })
+    await expect(
+      repo.applyDuplicateExtractToPulse({
+        pulseId: 'pulse-r',
+        incomingStatus: 'approved',
+        confidence: 0.9,
+        parsedCounties: [],
+      }),
+    ).resolves.toEqual({ promoted: false, countiesExpanded: false, alertCount: 0 })
+    expect(directStatements).toHaveLength(0)
+  })
+
+  it('unions newly-named counties into an approved survivor without re-fan-out', async () => {
+    const { db, directStatements } = fakeDb([
+      [
+        {
+          id: 'pulse-a',
+          status: 'approved' as const,
+          reviewedAt: null,
+          confidence: 0.9,
+          parsedCounties: ['Los Angeles County'],
+        },
+      ],
+    ])
+
+    const result = await makePulseOpsRepo(db).applyDuplicateExtractToPulse({
+      pulseId: 'pulse-a',
+      incomingStatus: 'approved',
+      confidence: 0.9,
+      // 'los angeles' normalizes onto the existing entry; Orange County is new.
+      parsedCounties: ['los angeles', 'Orange County'],
+    })
+
+    expect(result).toEqual({ promoted: false, countiesExpanded: true, alertCount: 0 })
+    const update = directStatements.find((statement) => isKind(statement, 'update')) as {
+      value: { parsedCounties: string[] }
+    }
+    expect(update.value.parsedCounties).toEqual(['Los Angeles County', 'Orange County'])
+  })
+
+  it('keeps statewide scope and is idempotent when nothing changes', async () => {
+    const approvedStatewide = {
+      id: 'pulse-s',
+      status: 'approved' as const,
+      reviewedAt: null,
+      confidence: 0.9,
+      parsedCounties: [],
+    }
+    const { db, directStatements } = fakeDb([
+      [approvedStatewide], // statewide survivor + incoming counties → no scope change
+      [{ ...approvedStatewide, parsedCounties: ['Orange County'] }], // county survivor + empty incoming
+      [{ ...approvedStatewide, parsedCounties: ['Orange County'] }], // same county re-fold
+    ])
+    const repo = makePulseOpsRepo(db)
+
+    await expect(
+      repo.applyDuplicateExtractToPulse({
+        pulseId: 'pulse-s',
+        incomingStatus: 'approved',
+        confidence: 0.9,
+        parsedCounties: ['Orange County'],
+      }),
+    ).resolves.toEqual({ promoted: false, countiesExpanded: false, alertCount: 0 })
+    await expect(
+      repo.applyDuplicateExtractToPulse({
+        pulseId: 'pulse-s',
+        incomingStatus: 'approved',
+        confidence: 0.9,
+        parsedCounties: [],
+      }),
+    ).resolves.toEqual({ promoted: false, countiesExpanded: false, alertCount: 0 })
+    await expect(
+      repo.applyDuplicateExtractToPulse({
+        pulseId: 'pulse-s',
+        incomingStatus: 'approved',
+        confidence: 0.9,
+        parsedCounties: ['orange'],
+      }),
+    ).resolves.toEqual({ promoted: false, countiesExpanded: false, alertCount: 0 })
+    expect(directStatements).toHaveLength(0)
+  })
+
   it('refreshes an approved pulse after a duplicate fold without resurrecting handled alerts', async () => {
     // Duplicate-extract folds re-run the fan-out for counts; the conflict
     // update must NOT include status, or every tenant's dismissed/applied

@@ -14,6 +14,7 @@ type PulseExtractRepo = Pick<
   | 'getSourceSnapshot'
   | 'updateSourceSnapshotStatus'
   | 'findDuplicatePulseForExtract'
+  | 'applyDuplicateExtractToPulse'
   | 'refreshFirmAlertsForApprovedPulse'
   | 'createPulseForFirmReviewFromExtract'
   | 'mergeReverifyRuleIdsIntoPulse'
@@ -27,6 +28,7 @@ function makePulseExtractRepo(db: ReturnType<typeof createDb>): PulseExtractRepo
     updateSourceSnapshotStatus: (snapshotId, patch) =>
       repo.updateSourceSnapshotStatus(snapshotId, patch),
     findDuplicatePulseForExtract: (input) => repo.findDuplicatePulseForExtract(input),
+    applyDuplicateExtractToPulse: (input) => repo.applyDuplicateExtractToPulse(input),
     refreshFirmAlertsForApprovedPulse: (pulseId) => repo.refreshFirmAlertsForApprovedPulse(pulseId),
     createPulseForFirmReviewFromExtract: (input) => repo.createPulseForFirmReviewFromExtract(input),
     mergeReverifyRuleIdsIntoPulse: (pulseId, ruleIds) =>
@@ -513,6 +515,13 @@ async function runPulseExtractionAfterMark(
     snapshot.sourceId,
     result.result.jurisdiction,
   )
+  // Low-confidence extracts land quarantined. The same band decides whether a
+  // duplicate fold should promote a quarantined survivor (see
+  // applyDuplicateExtractToPulse).
+  const pulseStatus =
+    result.result.confidence < PULSE_PUBLISH_CONFIDENCE
+      ? ('quarantined' as const)
+      : ('approved' as const)
 
   const duplicatePulseId = await repo.findDuplicatePulseForExtract({
     publishedAt: snapshot.publishedAt,
@@ -527,8 +536,20 @@ async function runPulseExtractionAfterMark(
     actionMode,
   })
   if (duplicatePulseId) {
-    const alertCount = await repo.refreshFirmAlertsForApprovedPulse(duplicatePulseId)
     await repo.mergeReverifyRuleIdsIntoPulse(duplicatePulseId, reverifyRuleIds)
+    // Fold-merge before the counts refresh: promote a system-quarantined
+    // survivor when this extract clears the publish floor, and union any
+    // newly-named counties so the refresh below sees them.
+    const fold = await repo.applyDuplicateExtractToPulse({
+      pulseId: duplicatePulseId,
+      incomingStatus: pulseStatus,
+      confidence: result.result.confidence,
+      parsedCounties: result.result.counties,
+    })
+    // Promotion already ran the full first-publication fan-out (+ messages).
+    const alertCount = fold.promoted
+      ? fold.alertCount
+      : await repo.refreshFirmAlertsForApprovedPulse(duplicatePulseId)
     await recordRuleSourceDrift(duplicatePulseId)
     await repo.updateSourceSnapshotStatus(snapshotId, {
       parseStatus: 'duplicate',
@@ -583,15 +604,21 @@ async function runPulseExtractionAfterMark(
     // Race-safe canonical de-duplication for AI extracts. Low-confidence items
     // land quarantined (retained for review, never fanned out).
     dedupe: true,
-    status: result.result.confidence < PULSE_PUBLISH_CONFIDENCE ? 'quarantined' : 'approved',
+    status: pulseStatus,
   })
 
   // The unique dedupe key caught a sibling/cross-feed extraction of the same
   // event that the signature pre-check missed — fold onto the survivor exactly
   // like the explicit duplicate branch above.
   if (created.deduped) {
-    await repo.refreshFirmAlertsForApprovedPulse(created.pulseId)
     await repo.mergeReverifyRuleIdsIntoPulse(created.pulseId, reverifyRuleIds)
+    const fold = await repo.applyDuplicateExtractToPulse({
+      pulseId: created.pulseId,
+      incomingStatus: pulseStatus,
+      confidence: result.result.confidence,
+      parsedCounties: result.result.counties,
+    })
+    if (!fold.promoted) await repo.refreshFirmAlertsForApprovedPulse(created.pulseId)
     await recordRuleSourceDrift(created.pulseId)
     recordPulseMetric('pulse.extract.result', {
       snapshotId,
