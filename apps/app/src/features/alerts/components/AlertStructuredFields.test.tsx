@@ -45,6 +45,8 @@ function reviewOnlyDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       sourceUrl: 'https://www.tax.ny.gov/notice-mock-pte-2026',
       summary: 'No matching clients in this practice - informational notice only.',
       publishedAt: '2026-05-24T12:00:00.000Z',
+      dismissedAt: null,
+      appliedAt: null,
       matchedCount: 0,
       needsReviewCount: 0,
       applyReadiness: { status: 'not_applicable', missing: [] },

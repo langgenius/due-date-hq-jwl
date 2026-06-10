@@ -3,6 +3,7 @@ import { type ClientEntityType } from '../../schema/clients'
 import { type ObligationStatus } from '../../schema/obligations'
 import {
   pulse,
+  pulseApplication,
   pulseSourceSnapshot,
   type Pulse,
   type PulseActionMode,
@@ -86,6 +87,12 @@ export interface PulseAlertRow {
   // pulse.parsedForms), passed through to the public row so the alert card's
   // "Affecting" cell renders without a per-card detail fetch.
   forms: string[]
+  // 2026-06-10 (handoff Phase 1.2): lifecycle timestamps for the status chip
+  // suffix ("Dismissed · Mar 5" / "Applied · Mar 4"). Only the detail query
+  // populates them; list rows leave them null. Serialized as ISO (like
+  // publishedAt).
+  dismissedAt: Date | null
+  appliedAt: Date | null
 }
 
 export interface PulseAffectedClientRow {
@@ -432,6 +439,12 @@ export interface AlertJoinedRow {
   reviewedAt: Date | null
   isSample: boolean
   duplicateSourceSnapshotCount?: number
+  // Lifecycle timestamps — only the detail query selects these (list
+  // producers omit them, so they're optional). `dismissedAt` is a
+  // `timestamp_ms` column (→ Date); `appliedAt` comes from a raw aggregation
+  // subquery (→ epoch-ms number).
+  dismissedAt?: Date | null
+  appliedAt?: number | null
 }
 
 export interface PriorityReviewJoinedRow {
@@ -673,6 +686,23 @@ export function duplicateSourceSnapshotCountForPulse() {
   )`
 }
 
+/**
+ * Subquery: the earliest still-active (non-reverted) application timestamp for
+ * THIS firm's applications of the alert's pulse — i.e. when the alert was first
+ * applied. Null when never applied. Read through raw SQL so the `timestamp_ms`
+ * column isn't mode-converted — it comes back as epoch-ms; callers wrap it in
+ * `new Date(...)`. Powers the status chip's "Applied · {date}" suffix.
+ */
+export function firstAppliedAtForPulse(firmId: string) {
+  return sql<number | null>`(
+    select min(${pulseApplication.appliedAt})
+    from ${pulseApplication}
+    where ${pulseApplication.pulseId} = ${pulse.id}
+      and ${pulseApplication.firmId} = ${firmId}
+      and ${pulseApplication.revertedAt} is null
+  )`
+}
+
 export function isHandledFirmAlertStatus(
   status: PulseFirmAlertStatus,
 ): status is PulseHandledFirmAlertStatus {
@@ -710,6 +740,10 @@ export function toAlert(row: AlertJoinedRow): PulseAlertRow {
     // 2026-06-05 (Affecting facts cell): pass the AI-parsed forms through so the
     // alert card's "Affecting" cell renders without a per-card detail fetch.
     forms: row.parsedForms,
+    // 2026-06-10 (handoff Phase 1.2): lifecycle timestamps for the status chip.
+    // Detail query populates them; list rows leave them undefined → null.
+    dismissedAt: row.dismissedAt ?? null,
+    appliedAt: row.appliedAt != null ? new Date(row.appliedAt) : null,
   }
 }
 

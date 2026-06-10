@@ -46,6 +46,11 @@ interface PulseAlertRow {
   sourceUrl: string
   summary: string
   publishedAt: Date
+  // 2026-06-10 (handoff Phase 1.2): mirrors the repo PulseAlertRow lifecycle
+  // timestamps (Date | null), serialized to ISO in toAlertPublic for the status
+  // chip suffix. Same structural-twin caveat as the fields above.
+  dismissedAt: Date | null
+  appliedAt: Date | null
   matchedCount: number
   needsReviewCount: number
   applyReadiness: PulseAlertPublic['applyReadiness']
@@ -199,6 +204,9 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     sourceUrl: row.sourceUrl,
     summary: row.summary,
     publishedAt: row.publishedAt.toISOString(),
+    // 2026-06-10 (handoff Phase 1.2): lifecycle timestamps for the status chip.
+    dismissedAt: row.dismissedAt ? row.dismissedAt.toISOString() : null,
+    appliedAt: row.appliedAt ? row.appliedAt.toISOString() : null,
     matchedCount: row.matchedCount,
     needsReviewCount: row.needsReviewCount,
     applyReadiness: row.applyReadiness,

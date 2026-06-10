@@ -16,6 +16,8 @@ function alert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
     firmImpact: 'matched',
     summary: 'Deadline relief applies to affected counties.',
     publishedAt: '2026-05-06T10:00:00.000Z',
+    dismissedAt: null,
+    appliedAt: null,
     matchedCount: 3,
     needsReviewCount: 0,
     applyReadiness: { status: 'ready', missing: [] },

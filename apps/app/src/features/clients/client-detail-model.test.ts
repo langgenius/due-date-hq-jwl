@@ -155,6 +155,8 @@ function alertDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       firmImpact: 'matched',
       summary: 'Deadline moved.',
       publishedAt: '2026-05-01T00:00:00.000Z',
+      dismissedAt: null,
+      appliedAt: null,
       matchedCount: 1,
       needsReviewCount: 0,
       applyReadiness: { status: 'ready', missing: [] },

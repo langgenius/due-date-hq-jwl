@@ -146,6 +146,11 @@ export const PulseAlertPublicSchema = z.object({
   sourceUrl: z.url(),
   summary: z.string().min(1),
   publishedAt: z.iso.datetime(),
+  // 2026-06-10 (handoff Phase 1.2): lifecycle timestamps for the status chip
+  // suffix — "Dismissed · Mar 5" / "Applied · Mar 4". Null until the alert
+  // reaches that state; only the detail query populates them (list rows null).
+  dismissedAt: z.iso.datetime().nullable(),
+  appliedAt: z.iso.datetime().nullable(),
   matchedCount: z.number().int().min(0),
   needsReviewCount: z.number().int().min(0),
   applyReadiness: PulseApplyReadinessSchema,

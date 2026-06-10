@@ -22,6 +22,11 @@ export interface PulseAlertRow {
   sourceUrl: string
   summary: string
   publishedAt: Date
+  // 2026-06-10 (handoff Phase 1.2): lifecycle timestamps for the alert status
+  // chip suffix. Only the detail query populates them; list rows leave them
+  // null. Serialized to ISO at the server boundary (toAlertPublic).
+  dismissedAt: Date | null
+  appliedAt: Date | null
   matchedCount: number
   needsReviewCount: number
   applyReadiness: {

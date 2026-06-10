@@ -374,6 +374,8 @@ const MOCK_PULSE_ALERT: PulseAlertPublic = {
   summary:
     'California Franchise Tax Board extended the Q3 2026 estimated payment deadline from Sep 15 to Sep 29 in response to Northern California wildfire disaster declarations affecting 4 counties.',
   publishedAt: '2026-05-28T15:00:00Z',
+  dismissedAt: null,
+  appliedAt: null,
   matchedCount: 12,
   needsReviewCount: 3,
   applyReadiness: { status: 'ready', missing: [] },

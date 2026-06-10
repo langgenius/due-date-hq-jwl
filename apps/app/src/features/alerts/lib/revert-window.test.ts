@@ -18,6 +18,8 @@ function makeAlert(status: PulseAlertPublic['status']): PulseAlertPublic {
     firmImpact: 'no_current_match',
     summary: 'IRS extends deadlines.',
     publishedAt: new Date('2026-04-15T00:00:00Z').toISOString(),
+    dismissedAt: null,
+    appliedAt: null,
     matchedCount: 0,
     needsReviewCount: 0,
     applyReadiness: { status: 'needs_details', missing: ['affected_clients'] },

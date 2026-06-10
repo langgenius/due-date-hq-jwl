@@ -33,6 +33,8 @@ function alert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
     sourceUrl: 'https://example.com/source',
     summary: 'California posted deadline relief.',
     publishedAt: '2026-05-01T00:00:00.000Z',
+    dismissedAt: null,
+    appliedAt: null,
     matchedCount: 1,
     needsReviewCount: 0,
     applyReadiness: { status: 'ready', missing: [] },

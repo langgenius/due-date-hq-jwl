@@ -184,7 +184,16 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
         </span>
         <AlertStatusChip
           status={detail.alert.status}
-          timestamp={formatRelativeTime(detail.alert.publishedAt)}
+          // Terminal states show WHEN they resolved (date); awaiting shows how
+          // long it's been waiting (relative). dismissedAt / appliedAt come
+          // from the detail query (handoff Phase 1.2).
+          timestamp={
+            detail.alert.status === 'dismissed' && detail.alert.dismissedAt
+              ? formatDate(detail.alert.dismissedAt)
+              : detail.alert.status === 'applied' && detail.alert.appliedAt
+                ? formatDate(detail.alert.appliedAt)
+                : formatRelativeTime(detail.alert.publishedAt)
+          }
         />
         <span className="flex-1" />
         <span className="text-[12px] font-medium text-text-muted">

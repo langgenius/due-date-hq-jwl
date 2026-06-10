@@ -67,6 +67,7 @@ import {
   deadlineSelectionSnapshotsById,
   displayCounty,
   duplicateSourceSnapshotCountForPulse,
+  firstAppliedAtForPulse,
   hasCompleteStructuredDueDateScope,
   isDueDateOverlayAlert,
   isHandledFirmAlertStatus,
@@ -211,6 +212,9 @@ export function makePulseRepo(db: Db, firmId: string) {
         reviewedAt: pulse.reviewedAt,
         isSample: pulse.isSample,
         duplicateSourceSnapshotCount: duplicateSourceSnapshotCountForPulse(),
+        // Lifecycle timestamps for the status chip suffix — detail only.
+        dismissedAt: pulseFirmAlert.dismissedAt,
+        appliedAt: firstAppliedAtForPulse(firmId),
       })
       .from(pulseFirmAlert)
       .innerJoin(pulse, eq(pulseFirmAlert.pulseId, pulse.id))
