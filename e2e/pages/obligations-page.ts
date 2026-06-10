@@ -92,13 +92,20 @@ export class ObligationQueuePage {
     await option.dispatchEvent('click')
   }
 
-  // Close whatever menu/submenu is open by clicking the page backdrop.
-  // Escape is unreliable here: the submenu was opened with synthetic
-  // pointer events, so real keyboard focus may have never entered it and
-  // the Base UI inert backdrop would otherwise linger and swallow every
-  // later pointer interaction on the page.
+  // Close whatever menu/submenu is open with an outside click. Escape is
+  // unreliable here: the submenu was opened with synthetic pointer events,
+  // so real keyboard focus may have never entered it and the Base UI inert
+  // backdrop would otherwise linger and swallow every later pointer
+  // interaction. Raw-click at the H1's coordinates: when a menu is open the
+  // topmost element there is the backdrop (a locator click would refuse to
+  // click "through" it), and the pointer parks over inert header text —
+  // not the viewport corner, where hover expands the sidebar over the
+  // table's leading checkbox column.
   async dismissMenus() {
-    await this.page.mouse.click(5, 5)
+    const box = await this.heading.boundingBox()
+    if (box) {
+      await this.page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+    }
     await this.page
       .locator('[data-base-ui-inert]')
       .waitFor({ state: 'detached', timeout: 5_000 })
