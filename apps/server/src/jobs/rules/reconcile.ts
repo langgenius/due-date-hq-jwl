@@ -20,7 +20,12 @@ import { fetchTextSnapshot } from '@duedatehq/ingest/http'
 import type { IngestCtx } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
 import { cachedConcreteDraftKey } from '../../procedures/rules/concrete-draft'
-import { archivePulseRaw, createPoliteFetch, PULSE_SOURCE_FAILURE_RETRY_MS } from '../pulse/ingest'
+import {
+  archivePulseRaw,
+  createPoliteFetch,
+  PULSE_SOURCE_FAILURE_RETRY_MS,
+  suppressDedupeRehashMigration,
+} from '../pulse/ingest'
 import { recordPulseMetric } from '../pulse/metrics'
 import {
   RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE,
@@ -349,8 +354,9 @@ export async function consumePulseRuleSourceScan(
                 fetchedAt: checkedAt,
                 body: item.rawText,
                 contentType: 'text/plain; charset=utf-8',
+                ...(item.dedupeText ? { dedupeText: item.dedupeText } : {}),
               })
-              return pulseOps.createSourceSnapshot({
+              const result = await pulseOps.createSourceSnapshot({
                 sourceId: item.sourceId,
                 externalId: item.externalId,
                 title: item.title,
@@ -360,25 +366,37 @@ export async function consumePulseRuleSourceScan(
                 contentHash: archived.contentHash,
                 rawR2Key: archived.r2Key,
               })
+              const suppressed =
+                result.inserted &&
+                !establishingBaseline &&
+                item.dedupeText !== undefined &&
+                (await suppressDedupeRehashMigration(pulseOps, item, result.snapshot.id))
+              return { result, suppressed }
             }),
           )
         : [
-            await pulseOps.createSourceSnapshot({
-              sourceId: source.id,
-              externalId: source.url,
-              title: `${source.title} official source snapshot`,
-              officialSourceUrl: source.url,
-              publishedAt: checkedAt,
-              fetchedAt: checkedAt,
-              contentHash: fetched.contentHash,
-              rawR2Key: fetched.r2Key,
-            }),
+            {
+              result: await pulseOps.createSourceSnapshot({
+                sourceId: source.id,
+                externalId: source.url,
+                title: `${source.title} official source snapshot`,
+                officialSourceUrl: source.url,
+                publishedAt: checkedAt,
+                fetchedAt: checkedAt,
+                contentHash: fetched.contentHash,
+                rawR2Key: fetched.r2Key,
+              }),
+              suppressed: false,
+            },
           ]
-    const insertedSnapshots = snapshotResults.filter((result) => result.inserted)
+    const insertedSnapshots = snapshotResults.filter((entry) => entry.result.inserted)
+    // Migration-suppressed rows exist (and are marked ignored) but are not news —
+    // they must not flip `changed`, enqueue extracts, or count as created.
+    const actionableSnapshots = insertedSnapshots.filter((entry) => !entry.suppressed)
     if (establishingBaseline) {
       await Promise.all(
-        insertedSnapshots.map((snapshot) =>
-          pulseOps.updateSourceSnapshotStatus(snapshot.snapshot.id, {
+        insertedSnapshots.map((entry) =>
+          pulseOps.updateSourceSnapshotStatus(entry.result.snapshot.id, {
             parseStatus: 'ignored',
             failureReason: 'monitoring_baseline_established',
           }),
@@ -390,7 +408,7 @@ export async function consumePulseRuleSourceScan(
       sourceId: source.id,
       checkedAt,
       nextCheckAt: nextCheckAt(checkedAt, source),
-      changed: !establishingBaseline && insertedSnapshots.length > 0,
+      changed: !establishingBaseline && actionableSnapshots.length > 0,
       ...(fetched.etag !== undefined ? { etag: fetched.etag } : {}),
       ...(fetched.lastModified !== undefined ? { lastModified: fetched.lastModified } : {}),
     })
@@ -398,17 +416,17 @@ export async function consumePulseRuleSourceScan(
     if (establishingBaseline) return
 
     await Promise.all(
-      insertedSnapshots.map((snapshot) =>
+      actionableSnapshots.map((entry) =>
         env.PULSE_QUEUE.send({
           type: 'pulse.extract',
-          snapshotId: snapshot.snapshot.id,
+          snapshotId: entry.result.snapshot.id,
         }),
       ),
     )
-    if (insertedSnapshots.length > 0) {
+    if (actionableSnapshots.length > 0) {
       recordPulseMetric('pulse.rule_source_scan.snapshots_created', {
         sourceId: source.id,
-        count: insertedSnapshots.length,
+        count: actionableSnapshots.length,
       })
     }
   } catch (error) {

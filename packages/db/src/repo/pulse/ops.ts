@@ -1029,6 +1029,32 @@ export function makePulseOpsRepo(db: Db) {
       return { snapshot: toSnapshot(snapshot), inserted: snapshot.id === id }
     },
 
+    /**
+     * Prior contentHashes recorded for one (sourceId, externalId) item, for the
+     * dedupe-rehash migration check in the ingest jobs: "is this insert the
+     * item's first dedupeText-based hash, with only legacy whole-page hashes
+     * before it?". Covered by the uq_pss_source_external_hash index prefix.
+     * The db layer stays agnostic of hash formats — callers inspect prefixes.
+     */
+    async listItemSnapshotContentHashes(input: {
+      sourceId: string
+      externalId: string
+      excludeId?: string
+    }): Promise<string[]> {
+      const rows = await db
+        .select({ contentHash: pulseSourceSnapshot.contentHash })
+        .from(pulseSourceSnapshot)
+        .where(
+          and(
+            eq(pulseSourceSnapshot.sourceId, input.sourceId),
+            eq(pulseSourceSnapshot.externalId, input.externalId),
+            ...(input.excludeId ? [ne(pulseSourceSnapshot.id, input.excludeId)] : []),
+          ),
+        )
+        .limit(25)
+      return rows.map((row) => row.contentHash)
+    },
+
     async getLatestSourceSnapshotBySourceId(
       sourceId: string,
     ): Promise<PulseSourceSnapshotRow | null> {

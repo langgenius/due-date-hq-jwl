@@ -70,12 +70,14 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
       hashText: vi.fn(async (value: string) => `hash-${value.length}`),
       stableExternalId: vi.fn((value: string) => value),
       textExcerpt: vi.fn((value: string) => value.slice(0, 4000)),
+      normalizeSourceText: vi.fn((value: string) => value.replace(/\s+/g, ' ').trim()),
     },
     metricsMocks: {
       recordPulseMetric: vi.fn(),
     },
     pulseIngestMocks: {
       archivePulseRaw: vi.fn(),
+      suppressDedupeRehashMigration: vi.fn(async () => false),
     },
   }
 })
@@ -105,10 +107,12 @@ vi.mock('@duedatehq/ingest/http', () => ({
   hashText: fetchMocks.hashText,
   stableExternalId: fetchMocks.stableExternalId,
   textExcerpt: fetchMocks.textExcerpt,
+  normalizeSourceText: fetchMocks.normalizeSourceText,
 }))
 
 vi.mock('../pulse/ingest', () => ({
   archivePulseRaw: pulseIngestMocks.archivePulseRaw,
+  suppressDedupeRehashMigration: pulseIngestMocks.suppressDedupeRehashMigration,
   // fetchTextSnapshot is mocked separately, so ctx.fetch is never invoked here;
   // the wrapper just needs to return a function (pass the fetch through).
   createPoliteFetch: (fn: typeof fetch) => fn,
@@ -535,6 +539,9 @@ describe('rule source scan jobs', () => {
         sourceId: 'tx.temporary_announcements',
         externalId: 'https://comptroller.texas.gov/about/media-center/news/20260408-deadline',
         contentType: 'text/plain; charset=utf-8',
+        // Item-local dedupe basis rides along so listing-page churn stops
+        // re-hashing every announcement.
+        dedupeText: expect.stringContaining('April 15 is deadline'),
       }),
     )
     expect(dbMocks.pulseOpsRepo.createSourceSnapshot).toHaveBeenCalledWith(
@@ -546,6 +553,53 @@ describe('rule source scan jobs', () => {
       }),
     )
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
+  })
+
+  it('keeps migration-suppressed announcement snapshots out of extraction and change state', async () => {
+    const queueSend = vi.fn()
+    coreMocks.sources.splice(
+      0,
+      coreMocks.sources.length,
+      source({
+        id: 'tx.temporary_announcements',
+        jurisdiction: 'TX',
+        title: 'Texas Comptroller News',
+        sourceType: 'news',
+        acquisitionMethod: 'html_watch',
+        cadence: 'daily',
+        authorityRole: 'watch',
+        notificationChannels: ['source_change', 'practice_rule_review'],
+        url: 'https://comptroller.texas.gov/about/media-center/news/',
+      }),
+    )
+    fetchMocks.fetchTextSnapshot.mockResolvedValue({
+      notModified: false,
+      fetchedAt: new Date('2026-05-25T09:00:00.000Z'),
+      contentHash: 'list-hash',
+      r2Key: 'raw/source.html',
+      etag: 'etag-2',
+      lastModified: null,
+      body: '<main><a href="/about/media-center/news/20260408-deadline">Texas businesses: April 15 is deadline for filing renditions</a></main>',
+    })
+    pulseIngestMocks.suppressDedupeRehashMigration.mockResolvedValueOnce(true)
+
+    await consumePulseRuleSourceScan(
+      {
+        type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
+        sourceId: 'tx.temporary_announcements',
+        reason: 'cadence_due',
+      },
+      env(queueSend) as Env,
+    )
+
+    expect(queueSend).not.toHaveBeenCalled()
+    expect(dbMocks.pulseOpsRepo.recordSourceSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceId: 'tx.temporary_announcements', changed: false }),
+    )
+    expect(metricsMocks.recordPulseMetric).not.toHaveBeenCalledWith(
+      'pulse.rule_source_scan.snapshots_created',
+      expect.anything(),
+    )
   })
 
   it('records non-automated source checks as healthy scheduler state only', async () => {

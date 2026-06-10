@@ -21,6 +21,7 @@ export interface IngestCtx {
     body: string
     contentType?: string | null
     fullText?: string
+    dedupeText?: string
   }): Promise<{ r2Key: string; contentHash: string }>
 }
 
@@ -47,6 +48,14 @@ export interface ParsedItem {
   // comparison. rawText stays the 6000-char excerpt fed to AI extraction and
   // hashed for snapshot dedupe. Set only when the excerpt actually truncated.
   fullText?: string
+  // Item-local text that stays stable across unrelated changes elsewhere on the
+  // listing page (link text + canonical URL). When set, the snapshot contentHash
+  // is computed over THIS instead of rawText, so a new 21st item or a footer
+  // tweak no longer re-hashes (and re-extracts, at AI cost) every listed item.
+  // rawText — the archive + AI input — is unaffected. Absent → hash(rawText),
+  // the legacy behavior, which is also correct for whole-page-is-the-content
+  // snapshots (sourceSnapshotAnnouncementItem, parsedItemForSourceSnapshot).
+  dedupeText?: string
   jurisdiction?: string
 }
 

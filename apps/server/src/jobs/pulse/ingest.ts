@@ -1,8 +1,8 @@
 import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import { createSourceFetcherRegistry } from '@duedatehq/ingest'
-import { hashText, withFetchTimeout } from '@duedatehq/ingest/http'
+import { hashText, ITEM_DEDUPE_HASH_PREFIX, withFetchTimeout } from '@duedatehq/ingest/http'
 import { RATE_LIMIT } from '@duedatehq/ingest/http'
-import type { IngestCtx, SourceAdapter } from '@duedatehq/ingest/types'
+import type { IngestCtx, ParsedItem, SourceAdapter } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
 import { dispatchOpsAlert, type OpsAlertEnv } from '../ops-alerts'
 import { createBrowserlessFetch } from './browserless'
@@ -63,6 +63,7 @@ type PulseIngestRepo = Pick<
   | 'recordSourceSuccess'
   | 'recordSourceFailure'
   | 'listSourceStates'
+  | 'listItemSnapshotContentHashes'
 >
 
 function makePulseIngestRepo(db: ReturnType<typeof createDb>): PulseIngestRepo {
@@ -78,6 +79,7 @@ function makePulseIngestRepo(db: ReturnType<typeof createDb>): PulseIngestRepo {
     recordSourceSuccess: (input) => repo.recordSourceSuccess(input),
     recordSourceFailure: (input) => repo.recordSourceFailure(input),
     listSourceStates: () => repo.listSourceStates(),
+    listItemSnapshotContentHashes: (input) => repo.listItemSnapshotContentHashes(input),
   }
 }
 
@@ -116,15 +118,28 @@ export async function archivePulseRaw(
     body: string
     contentType?: string | null
     fullText?: string
+    // Item-local dedupe basis (see ParsedItem.dedupeText): when set, contentHash
+    // covers THIS text instead of body, so unrelated listing-page churn no longer
+    // re-hashes every item. body remains what is archived and fed to AI.
+    dedupeText?: string
   },
 ): Promise<{ r2Key: string; contentHash: string }> {
-  const contentHash = await hashText(input.body)
+  const contentHash = input.dedupeText
+    ? `${ITEM_DEDUPE_HASH_PREFIX}${await hashText(input.dedupeText)}`
+    : await hashText(input.body)
   const r2Key = [
     'pulse',
     safePathPart(input.sourceId),
     input.fetchedAt.toISOString().slice(0, 10),
     `${safePathPart(input.externalId).slice(0, 80)}-${contentHash.slice(0, 16)}.txt`,
   ].join('/')
+
+  // A dedupeText hash is stable across re-fetches, so the key no longer rotates
+  // with page churn — keep the FIRST archived body as the item's evidence copy
+  // instead of overwriting it with whatever the listing page looks like today.
+  if (input.dedupeText && (await env.R2_PULSE.head(r2Key))) {
+    return { r2Key, contentHash }
+  }
 
   await env.R2_PULSE.put(r2Key, input.body, {
     httpMetadata: { contentType: input.contentType ?? 'text/plain; charset=utf-8' },
@@ -230,6 +245,35 @@ export function createPoliteFetch(fetchImpl: typeof fetch): typeof fetch {
   }) as typeof fetch
 }
 
+/**
+ * One-time migration damper for the dedupeText hash basis switch: an inserted
+ * snapshot whose (sourceId, externalId) already has rows but NONE in the
+ * item-v2 format is just the old whole-page hash being re-expressed — mark it
+ * ignored instead of burning an AI extract on an announcement we already
+ * processed. Once an item has any v2 row, a later new hash means its link text
+ * genuinely changed and flows through normally. No time window needed: an
+ * ETag-shielded source that only re-parses months from now still suppresses
+ * correctly. Shared with the rules-scan announcement path (reconcile.ts).
+ */
+export async function suppressDedupeRehashMigration(
+  repo: Pick<PulseIngestRepo, 'listItemSnapshotContentHashes' | 'updateSourceSnapshotStatus'>,
+  item: Pick<ParsedItem, 'sourceId' | 'externalId'>,
+  snapshotId: string,
+): Promise<boolean> {
+  const priorHashes = await repo.listItemSnapshotContentHashes({
+    sourceId: item.sourceId,
+    externalId: item.externalId,
+    excludeId: snapshotId,
+  })
+  if (priorHashes.length === 0) return false
+  if (priorHashes.some((hash) => hash.startsWith(ITEM_DEDUPE_HASH_PREFIX))) return false
+  await repo.updateSourceSnapshotStatus(snapshotId, {
+    parseStatus: 'ignored',
+    failureReason: 'dedupe_rehash_migration',
+  })
+  return true
+}
+
 async function ingestAdapter(
   adapter: SourceAdapter,
   ctx: IngestCtx,
@@ -300,6 +344,7 @@ async function ingestAdapter(
           body: item.rawText,
           contentType: 'text/plain; charset=utf-8',
           ...(item.fullText ? { fullText: item.fullText } : {}),
+          ...(item.dedupeText ? { dedupeText: item.dedupeText } : {}),
         })
         const result = await repo.createSourceSnapshot({
           sourceId: item.sourceId,
@@ -325,6 +370,12 @@ async function ingestAdapter(
             duplicates: 0,
             failures: 0,
           }
+        }
+        if (
+          item.dedupeText &&
+          (await suppressDedupeRehashMigration(repo, item, result.snapshot.id))
+        ) {
+          return { snapshots: 1, queued: 0, duplicates: 1, failures: 0 }
         }
         await queue.send({
           type: 'pulse.extract',

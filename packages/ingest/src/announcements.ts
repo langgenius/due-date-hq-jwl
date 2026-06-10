@@ -1,4 +1,10 @@
-import { DEFAULT_HEADERS, readSourceResponseText, stableExternalId, textExcerpt } from './http'
+import {
+  DEFAULT_HEADERS,
+  normalizeSourceText,
+  readSourceResponseText,
+  stableExternalId,
+  textExcerpt,
+} from './http'
 import { parsedItemsFromRss } from './rss'
 import { extractLinks, stripHtml } from './selectors'
 import type { IngestCtx, ParsedItem, RawSnapshot } from './types'
@@ -128,6 +134,11 @@ export function announcementItemsFromHtml(
 
 `),
           ),
+          // rawText embeds the WHOLE listing page (the AI needs the surrounding
+          // context), so hashing it made every item's snapshot hash flip on any
+          // unrelated page change — ~20 paid re-extracts per touch. Dedupe on the
+          // item-local stable identity instead; same inputs as externalId.
+          dedupeText: [normalizeSourceText(link.text), officialSourceUrl].join('\n'),
         },
         source.jurisdiction ? { jurisdiction: source.jurisdiction } : {},
       )

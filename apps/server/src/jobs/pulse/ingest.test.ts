@@ -25,6 +25,7 @@ const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
     recordSourceSuccess: vi.fn(),
     recordSourceFailure: vi.fn(),
     listSourceStates: vi.fn(),
+    listItemSnapshotContentHashes: vi.fn(),
     apply: vi.fn(),
     applyReviewed: vi.fn(),
   }
@@ -59,6 +60,7 @@ function env(queueSend = vi.fn()): Pick<Env, 'DB' | 'R2_PULSE' | 'PULSE_QUEUE'> 
     DB: {} as D1Database,
     R2_PULSE: {
       put: vi.fn(async () => undefined),
+      head: vi.fn(async () => null),
     } as unknown as R2Bucket,
     PULSE_QUEUE: {
       send: queueSend,
@@ -124,6 +126,7 @@ describe('runPulseIngest', () => {
       baselineMode: 'active',
     })
     repoMocks.listSourceStates.mockResolvedValue([])
+    repoMocks.listItemSnapshotContentHashes.mockResolvedValue([])
     repoMocks.apply.mockRejectedValue(new Error('ingest must not apply deadline changes'))
     repoMocks.applyReviewed.mockRejectedValue(
       new Error('ingest must not apply reviewed deadline changes'),
@@ -151,6 +154,70 @@ describe('runPulseIngest', () => {
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
     expect(repoMocks.apply).not.toHaveBeenCalled()
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
+  })
+
+  it('suppresses the one-time dedupe-rehash of a known item instead of re-extracting it', async () => {
+    const queueSend = vi.fn()
+    const dedupeAdapter = adapter({
+      async parse() {
+        return [
+          {
+            sourceId: 'fema.declarations',
+            externalId: 'DR-123',
+            title: 'FEMA declaration',
+            publishedAt: new Date('2026-04-29T00:00:00.000Z'),
+            officialSourceUrl: 'https://www.fema.gov/disaster/123',
+            jurisdiction: 'CA',
+            rawText: 'FEMA declaration raw text',
+            dedupeText: 'FEMA declaration\nhttps://www.fema.gov/disaster/123',
+          },
+        ]
+      },
+    })
+    // The item has prior rows, all legacy whole-page hashes — this insert is the
+    // hash-basis migration, not news.
+    repoMocks.listItemSnapshotContentHashes.mockResolvedValue(['a'.repeat(64)])
+
+    const result = await runPulseIngest(env(queueSend), [dedupeAdapter])
+
+    expect(result).toMatchObject({ snapshots: 1, queued: 0, duplicates: 1 })
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith('snapshot-1', {
+      parseStatus: 'ignored',
+      failureReason: 'dedupe_rehash_migration',
+    })
+    expect(queueSend).not.toHaveBeenCalled()
+    expect(repoMocks.listItemSnapshotContentHashes).toHaveBeenCalledWith({
+      sourceId: 'fema.declarations',
+      externalId: 'DR-123',
+      excludeId: 'snapshot-1',
+    })
+  })
+
+  it('extracts normally once an item already has a v2 hash row (real content change)', async () => {
+    const queueSend = vi.fn()
+    const dedupeAdapter = adapter({
+      async parse() {
+        return [
+          {
+            sourceId: 'fema.declarations',
+            externalId: 'DR-123',
+            title: 'FEMA declaration (amended)',
+            publishedAt: new Date('2026-04-29T00:00:00.000Z'),
+            officialSourceUrl: 'https://www.fema.gov/disaster/123',
+            jurisdiction: 'CA',
+            rawText: 'FEMA declaration amended raw text',
+            dedupeText: 'FEMA declaration (amended)\nhttps://www.fema.gov/disaster/123',
+          },
+        ]
+      },
+    })
+    repoMocks.listItemSnapshotContentHashes.mockResolvedValue(['a'.repeat(64), 'item-v2:abcd'])
+
+    const result = await runPulseIngest(env(queueSend), [dedupeAdapter])
+
+    expect(result).toMatchObject({ snapshots: 1, queued: 1, duplicates: 0 })
+    expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
+    expect(repoMocks.updateSourceSnapshotStatus).not.toHaveBeenCalled()
   })
 
   it('establishes a new source baseline without queueing historical parsed items', async () => {
@@ -395,6 +462,7 @@ describe('consumePulseIngestSource', () => {
       snapshot: { id: 'snapshot-1' },
     })
     repoMocks.listSourceStates.mockResolvedValue([])
+    repoMocks.listItemSnapshotContentHashes.mockResolvedValue([])
   })
 
   it('fetches the single named source and queues its extract', async () => {
@@ -581,5 +649,35 @@ describe('archivePulseRaw', () => {
       },
     )
     expect(put).toHaveBeenCalledTimes(1)
+  })
+
+  it('hashes dedupeText with the item-v2 prefix, independent of body churn', async () => {
+    const put = vi.fn(async (_key: string, _value: unknown) => undefined)
+    const head = vi.fn(async () => null)
+    const r2env = { R2_PULSE: { put, head } as unknown as R2Bucket }
+
+    const first = await archivePulseRaw(r2env, { ...input, dedupeText: 'stable item identity' })
+    const second = await archivePulseRaw(r2env, {
+      ...input,
+      body: 'completely different listing page text',
+      dedupeText: 'stable item identity',
+    })
+
+    expect(first.contentHash.startsWith('item-v2:')).toBe(true)
+    expect(second.contentHash).toBe(first.contentHash)
+    expect(second.r2Key).toBe(first.r2Key)
+  })
+
+  it('keeps the first archived body when the stable key already exists', async () => {
+    const put = vi.fn(async (_key: string, _value: unknown) => undefined)
+    const head = vi.fn(async () => ({ key: 'exists' }))
+
+    const result = await archivePulseRaw(
+      { R2_PULSE: { put, head } as unknown as R2Bucket },
+      { ...input, dedupeText: 'stable item identity' },
+    )
+
+    expect(result.contentHash.startsWith('item-v2:')).toBe(true)
+    expect(put).not.toHaveBeenCalled()
   })
 })

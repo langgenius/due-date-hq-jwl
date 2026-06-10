@@ -84,6 +84,13 @@ export function normalizeSourceText(text: string): string {
   return text.replace(/\s+/g, ' ').trim()
 }
 
+// Marks snapshot contentHashes computed over an item's ParsedItem.dedupeText
+// instead of its whole rawText. The prefix can never collide with the legacy
+// 64-hex-char hashes, which is what lets the one-time migration suppressor
+// (apps/server jobs/pulse/ingest.ts) tell "first v2 row for a known item"
+// apart from a genuine item-content change.
+export const ITEM_DEDUPE_HASH_PREFIX = 'item-v2:'
+
 export function textExcerpt(text: string, max = 6000): string {
   return normalizeSourceText(text).slice(0, max)
 }

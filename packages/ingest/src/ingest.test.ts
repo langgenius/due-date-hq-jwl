@@ -280,6 +280,69 @@ describe('@duedatehq/ingest', () => {
     })
   })
 
+  it('keeps item dedupeText stable across unrelated listing-page changes', () => {
+    const source = {
+      id: 'tx.temporary_announcements',
+      title: 'Texas Comptroller News',
+      url: 'https://comptroller.texas.gov/about/media-center/news/',
+      jurisdiction: 'TX',
+    }
+    const knownLink =
+      '<a href="/about/media-center/news/20260408-deadline">April 15 is the tax filing deadline</a>'
+    const [firstItem] = announcementItemsFromSnapshot(source, {
+      fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+      body: `<main>${knownLink}</main>`,
+    })
+    // Same item a day later: a new 21st announcement appeared and the footer moved.
+    const laterItems = announcementItemsFromSnapshot(source, {
+      fetchedAt: new Date('2026-04-09T00:00:00.000Z'),
+      body: `<main>${knownLink}<a href="/about/media-center/news/20260409-relief">Disaster relief extends the filing deadline</a><footer>Updated 2026-04-09</footer></main>`,
+    })
+    const sameItem = laterItems.find((item) => item.externalId === firstItem?.externalId)
+
+    expect(firstItem?.dedupeText).toBeDefined()
+    expect(sameItem?.dedupeText).toBe(firstItem?.dedupeText)
+    // The whole-page rawText DID change — exactly the drift dedupeText must absorb.
+    expect(sameItem?.rawText).not.toBe(firstItem?.rawText)
+    expect(firstItem?.dedupeText).toContain('April 15 is the tax filing deadline')
+    expect(firstItem?.dedupeText).toContain(firstItem?.officialSourceUrl ?? '')
+  })
+
+  it('leaves dedupeText off whole-page-content items (RSS, source-snapshot fallback)', () => {
+    const rssItems = announcementItemsFromSnapshot(
+      {
+        id: 'az.temporary_announcements',
+        title: 'Arizona DOR News',
+        url: 'https://azdor.gov/news-center/feed',
+        jurisdiction: 'AZ',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: `<rss><channel>
+          <item><guid>signal-1</guid><title>Disaster relief extends filing and payment deadline</title><link>https://azdor.gov/news/relief</link><description>Affected taxpayers have a new filing deadline.</description></item>
+        </channel></rss>`,
+      },
+    )
+    expect(rssItems).toHaveLength(1)
+    expect(rssItems[0]?.dedupeText).toBeUndefined()
+
+    const fallbackItems = announcementItemsFromSnapshot(
+      {
+        id: 'nm.temporary_announcements',
+        title: 'New Mexico TRD News',
+        url: 'https://www.tax.newmexico.gov/news/',
+        jurisdiction: 'NM',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: '<main>Plain page without any qualifying links.</main>',
+      },
+      { fallbackToSourceSnapshot: true },
+    )
+    expect(fallbackItems).toHaveLength(1)
+    expect(fallbackItems[0]?.dedupeText).toBeUndefined()
+  })
+
   // 2026-06-08 — FED rights-window sources. The generic list parser must detect
   // their link text (refund/protective-claim, IRB, AoD vocabulary); production
   // pulls full bodies for IRB/AoD via the PDF-follow path on top of these items.
