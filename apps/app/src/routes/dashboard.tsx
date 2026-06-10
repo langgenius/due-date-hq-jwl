@@ -284,6 +284,8 @@ export function DashboardRoute() {
                 </TooltipContent>
               </Tooltip>
             ) : null}
+            {/* Keyboard-shortcut hint sits right beside the refresh icon (Yuqi). */}
+            <ShortcutHintChip compact className="hidden md:inline-flex" />
             {/* ONE scope toggle for the whole page — daily brief, Priority
                 Actions rows/ranks, and every count switch together. Lives
                 in the header action cluster (not on the brief card)
@@ -299,25 +301,14 @@ export function DashboardRoute() {
                 { value: 'firm', label: t`Everyone` },
               ]}
             />
-            {/* The keyboard shortcut help dialog opens on `?`; this tiny
-                chip in the action cluster makes that discoverable —
-                first-time keyboardists get a path in and mouse users can
-                click. Mirrors the bottom-of-queue pattern in /deadlines. */}
-            <ShortcutHintChip compact className="hidden md:inline-flex" />
-            {/* The PageHeader action cluster is a single control. There's
-                no "Add deadline" here — creation lives in the deadlines
-                surface, not the daily triage header. The "Import clients"
-                affordance is an expand-on-hover pill — at rest a circle
-                with just the "+", on hover its WIDTH grows to reveal
-                "Import clients" (height fixed h-8 so the cluster never
-                jumps). It's a CALM neutral bordered control (matches the
-                search field's hairline treatment) rather than an accent
-                fill, because import is a setup task, not a daily CTA. The
-                permission guard + tooltip-via-aria-label are preserved, so
-                clicks always produce feedback. */}
+            {/* "Import clients" — always-labeled so it reads as a real button
+                (Yuqi: 更明显的 button) instead of a circle that expands on hover.
+                text-sm to match every other button (was text-base). Neutral
+                bordered: import is a setup task, not a daily CTA. Permission
+                guard + aria-label tooltip preserved. */}
             <button
               type="button"
-              className="group/import inline-flex h-8 items-center rounded-full border border-divider-regular bg-background-default px-2 text-text-secondary transition-all cursor-pointer [corner-shape:round] hover:border-divider-deep hover:bg-background-section hover:px-3.5 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default focus-visible:outline-none"
+              className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3.5 text-sm font-medium text-text-secondary transition-colors hover:border-divider-deep hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default focus-visible:outline-none"
               onClick={() => {
                 if (!canRunMigration) {
                   toast.error(
@@ -334,7 +325,7 @@ export function DashboardRoute() {
               }
             >
               <PlusIcon className="size-3.5 shrink-0" />
-              <span className="max-w-0 overflow-hidden text-base font-medium whitespace-nowrap opacity-0 transition-all group-hover/import:ml-1.5 group-hover/import:max-w-[120px] group-hover/import:opacity-100">
+              <span className="whitespace-nowrap">
                 <Trans>Import clients</Trans>
               </span>
             </button>

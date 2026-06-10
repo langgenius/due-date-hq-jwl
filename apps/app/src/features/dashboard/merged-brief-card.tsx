@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ChevronDownIcon, ChevronUpIcon, SparklesIcon } from 'lucide-react'
+import { ArrowRightIcon, SparklesIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
@@ -55,7 +55,6 @@ export function MergedBriefCard({
   onOpenObligation: (obligationId: string) => void
 }) {
   const { t } = useLingui()
-  const [collapsed, setCollapsed] = useState(false)
   const asOf = useMemo(() => (asOfDate ? new Date(asOfDate) : new Date()), [asOfDate])
 
   const byBucket = useMemo(() => {
@@ -114,9 +113,9 @@ export function MergedBriefCard({
         </h2>
 
         {/* Status-scope segmented control borrowed verbatim from the /deadlines
-            queue (Yuqi): rounded-full track, white active pill, tone dot + label
-            + muted count. Same markup so the two surfaces can't drift. */}
-        <div className="flex items-center gap-0.5 rounded-full bg-background-subtle p-1">
+            queue: rounded-full track, white active pill, tone dot + label + muted
+            count. Pinned top-right (Yuqi). */}
+        <div className="ml-auto flex items-center gap-0.5 rounded-full bg-background-subtle p-1">
           {tabs.map((tab) => {
             const active = tab.key === selected
             return (
@@ -135,25 +134,11 @@ export function MergedBriefCard({
             )
           })}
         </div>
-        <button
-          type="button"
-          onClick={() => setCollapsed((c) => !c)}
-          aria-label={collapsed ? t`Expand brief` : t`Collapse brief`}
-          aria-expanded={!collapsed}
-          className="ml-auto inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
-        >
-          {collapsed ? (
-            <ChevronDownIcon className="size-3.5" aria-hidden />
-          ) : (
-            <ChevronUpIcon className="size-3.5" aria-hidden />
-          )}
-        </button>
       </div>
 
       {/* Body — the selected bucket's rows. No dividers: rows separate by space
           + hover so the card stays calm. */}
-      {!collapsed ? (
-        <div className="flex flex-col gap-0.5">
+      <div className="flex flex-col gap-0.5">
           {/* Lede — one-line deterministic summary of the day. */}
           <p className="px-2 pb-1.5 text-sm text-text-secondary">
             {totalActive === 0 ? (
@@ -188,24 +173,23 @@ export function MergedBriefCard({
             ))
           )}
 
-          {/* One link, one arrow — the "+N more" is a plain count, not a second
-              link to the same place (Yuqi: fewer arrows). */}
-          <div className="mt-1 flex items-center justify-end gap-2 px-2">
+          {/* Footer — one link to the full list, with extra top padding so it
+              doesn't crowd the last row (Yuqi). */}
+          <div className="mt-3 flex items-center justify-end gap-2 px-2">
             {moreCount > 0 ? (
               <span className="text-caption tabular-nums text-text-tertiary">
-                <Trans>+{moreCount} more</Trans>
+                <Trans>{moreCount} more not shown</Trans>
               </span>
             ) : null}
             <Link
               to="/deadlines"
               className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
-              <Trans>Open queue</Trans>
+              <Trans>See all deadlines</Trans>
               <ArrowRightIcon className="size-3" aria-hidden />
             </Link>
           </div>
         </div>
-      ) : null}
     </section>
   )
 }
@@ -241,11 +225,11 @@ function BriefRow({
     <button
       type="button"
       onClick={() => onOpen(row.obligationId)}
-      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left outline-none transition-colors hover:bg-background-section focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
+      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left outline-none transition-colors hover:bg-background-section focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
     >
       {/* Fixed-width form column so every client name + action starts at the
           same x — the name/action reads as one left-aligned column (Yuqi). */}
-      <span className="flex w-24 shrink-0 items-center">
+      <span className="flex w-28 shrink-0 items-center">
         <TaxCodeBadge code={row.taxType} />
       </span>
       {/* Client + the instruction/readiness sub-line, aligned together. */}
