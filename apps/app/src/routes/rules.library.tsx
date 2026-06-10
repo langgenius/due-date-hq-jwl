@@ -4360,57 +4360,72 @@ function RuleDetailPanel({
   onClose: () => void
 }) {
   const { t } = useLingui()
+  return (
+    // 2026-06-10 (Yuqi): the rule detail is a big CENTERED MODAL — click a
+    // rule row → popup with the full summary-first card-stack (the `N2X10V`
+    // 8-card design), click anywhere outside (overlay) OR Esc closes it. The
+    // Dialog fires onOpenChange(false) on both. (Reverts the prior Sheet; the
+    // reviewer wants a large reading surface, not a side drawer.)
+    <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
+      <DialogContent
+        showCloseButton
+        aria-label={t`Rule detail`}
+        className="flex max-h-[90vh] w-[min(980px,calc(100vw-2rem))] max-w-[980px] flex-col gap-0 overflow-hidden bg-background-subtle p-0"
+      >
+        {/* Visible title lives in the hero card; this satisfies the Dialog's
+            a11y label without duplicating it on screen. */}
+        <DialogTitle className="sr-only">{rule.title}</DialogTitle>
+        {/* Scrollable summary-first card-stack: hero · Applicability · Due date
+            · Evidence · Activity · Decision (Practice-review note lives in the
+            Decision card). Each card discloses independently. */}
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-5">
+          <RuleDetailHeroCard rule={rule} />
+          <RuleEffectiveBanner rule={rule} />
+          <RuleDetailCompact
+            key={rule.id}
+            rule={rule}
+            concreteDraft={concreteDraft}
+            confirmImpact
+            onActionComplete={onClose}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/**
+ * `RuleDetailHeroCard` — the "Rule under review" hero (Pencil `N2X10V` card 1):
+ * a bar-header card carrying the status, the rule title, the identity kicker
+ * (jurisdiction · impact · form · year), a 2-line plain summary, and the
+ * audit-ledger signature. Honest only — no fabricated AI-confidence %.
+ */
+function RuleDetailHeroCard({ rule }: { rule: ObligationRule }) {
   const isReviewable = rule.status === 'candidate' || rule.status === 'pending_review'
   return (
-    // 2026-06-09 (design-universe audit, Yuqi feedback on the review panel):
-    // the rule detail was the app's lone centered modal — every other entity
-    // detail (Alert / Client / Obligation / Audit-event / Evidence) opens as a
-    // right-side `Sheet` drawer. Converted to the canonical flush Sheet so the
-    // layout, tokens, and chrome match its siblings: full-height right drawer,
-    // `flush` sectioned header/body/footer, the shared close button, and the
-    // same `w-[min(720/840/900)]` width ramp the deadline detail drawer uses.
-    // All wired data + the CandidateReviewSection actions are preserved.
-    <Sheet open onOpenChange={(next) => (next ? null : onClose())}>
-      <SheetContent
-        side="right"
-        flush
-        className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] sm:data-[side=right]:max-w-none md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(900px,calc(100vw-2rem))]"
-        aria-label={t`Rule detail`}
-      >
-        {/* Header — rule title anchor + identity kicker (jurisdiction · impact
-            · form · year · status). `pr-10` clears the Sheet close button. */}
-        <SheetHeader className="flex flex-col gap-3 border-b border-divider-subtle bg-background-subtle px-5 py-4">
-          <SheetTitle className="pr-10 text-xl font-semibold leading-tight text-text-primary">
-            {rule.title}
-          </SheetTitle>
-          <RuleDetailKicker rule={rule} />
-        </SheetHeader>
-        {/* Effective-date banner — amber callout when the effective date is
-            still in the future, so a CPA sees a scheduled change before acting. */}
-        <RuleEffectiveBanner rule={rule} />
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          <RuleDetailInline rule={rule} />
-        </div>
-        {/* Sticky review footer — the action zone stays visible while the
-            reference body scrolls; only for candidate / pending-review rules. */}
-        {isReviewable && (
-          <SheetFooter className="flex shrink-0 flex-col gap-3 border-t border-divider-subtle bg-background-default px-5 pt-4 pb-5">
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-muted">
-              <ShieldCheck aria-hidden className="size-3" />
-              <Trans>Decisions are logged to the audit ledger</Trans>
-            </span>
-            <CandidateReviewSection
-              key={rule.id}
-              rule={rule}
-              concreteDraft={concreteDraft}
-              chrome="flat"
-              confirmImpact
-              onActionComplete={onClose}
-            />
-          </SheetFooter>
-        )}
-      </SheetContent>
-    </Sheet>
+    <div className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
+      <div className="flex h-9 items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5">
+        <span className="text-[13px] font-semibold text-text-primary">
+          {isReviewable ? <Trans>Rule under review</Trans> : <Trans>Active rule</Trans>}
+        </span>
+        <span className="ml-auto">
+          <RuleStatusKicker status={rule.status} />
+        </span>
+      </div>
+      <div className="flex flex-col gap-2 px-5 py-4">
+        <h2 className="text-xl leading-tight font-semibold text-text-primary">{rule.title}</h2>
+        <RuleDetailKicker rule={rule} />
+        {rule.defaultTip ? (
+          <p className="line-clamp-2 text-sm leading-relaxed text-text-secondary">
+            {rule.defaultTip}
+          </p>
+        ) : null}
+        <span className="inline-flex w-fit items-center gap-1.5 pt-1 text-xs font-medium text-text-muted">
+          <ShieldCheck aria-hidden className="size-3" />
+          <Trans>Logged in audit ledger</Trans>
+        </span>
+      </div>
+    </div>
   )
 }
 

@@ -299,6 +299,7 @@ export function RuleDetailCompact({
   concreteDraft,
   concreteDraftLoading = false,
   deferQueryInvalidation = false,
+  confirmImpact = false,
   onActionComplete,
   reviewReason,
 }: {
@@ -307,6 +308,8 @@ export function RuleDetailCompact({
   concreteDraft?: RuleConcreteDraftCacheEntry | null
   concreteDraftLoading?: boolean
   deferQueryInvalidation?: boolean
+  /** Route the Accept through the impact-confirm dialog (single-rule detail). */
+  confirmImpact?: boolean
   onActionComplete?: () => void | Promise<void>
 }) {
   const { t } = useLingui()
@@ -433,6 +436,7 @@ export function RuleDetailCompact({
         concreteDraft={concreteDraft ?? null}
         concreteDraftLoading={concreteDraftLoading}
         deferQueryInvalidation={deferQueryInvalidation}
+        confirmImpact={confirmImpact}
         {...(reviewReason !== undefined ? { reviewReason } : {})}
         {...(onActionComplete ? { onActionComplete } : {})}
       />
