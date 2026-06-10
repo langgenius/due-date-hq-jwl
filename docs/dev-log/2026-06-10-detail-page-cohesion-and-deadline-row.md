@@ -72,3 +72,8 @@ Spec: `docs/Design/deadline-row-interaction.md` (committed alongside).
   `items-baseline` meta span (duplicated the "Tax year · period" line above and
   sat baseline-misaligned against the h-6 chips). Reduced to just the
   JurisdictionLabel seal, aligned with the chip row.
+- **#13 sticky action bar (+ #1/#5)**: the alert-style sticky bottom action bar
+  now renders in page mode too (was `!isPageMode`) — Last updated · Copy link on
+  the left, Assign · Snooze · Mark filed on the right. The page hero dropped its
+  top action cluster (moved to the bar), shortening the header so more detail is
+  readable. Footer surface is white in page mode (gray body), warm in panel.

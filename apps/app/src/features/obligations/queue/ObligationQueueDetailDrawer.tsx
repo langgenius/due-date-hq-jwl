@@ -1594,49 +1594,14 @@ export function ObligationQueueDetailDrawer({
             <XIcon className="size-4" aria-hidden />
           </button>
         ) : null}
-        {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil ne4Fd): the
-            standalone page leads the hero with a "Last activity {time}" stamp
-            on the left and the action cluster (Assign · Snooze · Mark filed)
-            + Copy link on the right — the design's top-of-hero affordance row.
-            Replaces the bottom footer (hidden in page mode). */}
-        {isPageMode && row ? (
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
-            <span className="text-xs text-text-tertiary">
-              {detail && detail.auditEvents.length > 0 ? (
-                <Trans>Last activity {formatRelativeTime(detail.auditEvents[0]!.createdAt)}</Trans>
-              ) : null}
-            </span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={async () => {
-                  const url = new URL(
-                    deadlineDetailHref({ obligationId: row.id, tab: activeTab }),
-                    window.location.origin,
-                  )
-                  try {
-                    await copyTextToClipboard(url.toString())
-                    toast.success(t`Link copied`)
-                  } catch {
-                    toast.error(t`Couldn't copy link — your browser blocked clipboard access.`)
-                  }
-                }}
-              >
-                <LinkIcon data-icon="inline-start" />
-                <Trans>Copy link</Trans>
-              </Button>
-              <DeadlineTopActions
-                row={row}
-                assignableMembers={assignableMembers}
-                onAssign={(assigneeId) => assignMutation.mutate({ id: row.id, assigneeId })}
-                onSnooze={(snoozedUntil) => snoozeMutation.mutate({ id: row.id, snoozedUntil })}
-                onMarkFiled={() => changeStatus(row.id, 'done', row.status)}
-                assignPending={assignMutation.isPending}
-                snoozePending={snoozeMutation.isPending}
-                markFiledPending={changeStatusMutation.isPending}
-              />
-            </div>
+        {/* 2026-06-10 (Yuqi feedback #13 + #1): the action cluster (Copy link ·
+            Assign · Snooze · Mark filed) + "Last activity" stamp moved OUT of
+            the hero into the shared sticky bottom action bar (enabled for page
+            mode below, mirroring the Alert detail's footer). This shortens the
+            header so more detail is readable on scroll. */}
+        {isPageMode && row && detail && detail.auditEvents.length > 0 ? (
+          <div className="pb-1 text-xs text-text-tertiary">
+            <Trans>Last activity {formatRelativeTime(detail.auditEvents[0]!.createdAt)}</Trans>
           </div>
         ) : null}
         {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): the status
@@ -4181,11 +4146,12 @@ export function ObligationQueueDetailDrawer({
           )
         }}
       />
-      {row && !isPageMode ? (
-        /* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil ne4Fd): the
-           standalone page moves the action cluster + "Last activity" up into
-           the hero (matching the design) and drops this bottom footer. The
-           /clients panel + sheet keep the footer. */
+      {row ? (
+        /* 2026-06-10 (Yuqi feedback #13): the sticky bottom action bar now
+           renders in PAGE mode too (was `!isPageMode`), matching the Alert
+           detail's footer — Last updated · Request input · Copy link on the
+           left, Assign · Snooze · Mark filed on the right. The page hero no
+           longer carries the action cluster (moved here). */
         /* 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
            footer chrome reinstated to match the alert drawer's
            sticky action bar (AlertDetailDrawer.tsx L955):
@@ -4196,7 +4162,15 @@ export function ObligationQueueDetailDrawer({
              • `px-12` — match header/body left margin.
            The pt-4 pb-6 vertical rhythm and `min-h-16` stay —
            those already mirror the alert drawer. */
-        <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t border-divider-subtle bg-background-canvas-warm px-12 pt-4 pb-6">
+        <div
+          className={cn(
+            'sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t border-divider-subtle px-12 pt-4 pb-6',
+            // Page mode sits on the gray body, so the bar is white paper; the
+            // panel/sheet keep the warm canvas. Both read as the committed
+            // action surface via the top border.
+            isPageMode ? 'bg-background-default' : 'bg-background-canvas-warm',
+          )}
+        >
           {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #4): footer now
               mirrors the alerts footer — quiet secondaries on the left
               (Last updated · Request input · Copy link), primary action
