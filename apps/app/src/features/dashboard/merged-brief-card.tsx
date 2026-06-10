@@ -10,6 +10,7 @@ import { DueDateLabel } from '@/components/primitives/due-date-label'
 import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { isPaymentOverdue, paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { ExtensionChip } from './extension-chip'
 
@@ -97,7 +98,7 @@ export function MergedBriefCard({
 
   return (
     <section
-      aria-label={t`Daily brief`}
+      aria-label={t`Priorities`}
       className="flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default px-[18px] py-3.5"
     >
       {/* Header — sparkles + title + the count-chip selector + collapse. */}
@@ -108,8 +109,10 @@ export function MergedBriefCard({
         >
           <SparklesIcon className="size-3.5 text-text-primary" />
         </span>
+        {/* "Priorities", not "Today's brief" — the card leads with overdue work,
+            so a "today" headline would lie about its own content (Yuqi). */}
         <h2 className="text-base leading-tight font-semibold text-text-primary">
-          <Trans>Today's brief</Trans>
+          <Trans>Priorities</Trans>
         </h2>
 
         {/* Status-scope segmented control borrowed verbatim from the /deadlines
@@ -234,6 +237,11 @@ function BriefRow({
     row.status === 'pending' ||
     row.status === 'in_progress' ||
     row.status === 'waiting_on_client'
+  // Payment-late is a SEPARATE obligation from the filing — it rides next to the
+  // status as its own chip, so the due column can stay the filing countdown that
+  // matches the action (Yuqi: two obligations, two homes).
+  const paymentLate = isPaymentOverdue(row.paymentDueDate, asOfDate)
+  const paymentLateDays = paymentOverdueDays(row.paymentDueDate, asOfDate)
   return (
     <button
       type="button"
@@ -262,20 +270,25 @@ function BriefRow({
       {/* Status / owner / due are each a fixed-width, LEFT-aligned column so
           they line up vertically across rows — a real table, not a right-pushed
           cluster whose x shifts with the status-pill width (Yuqi: obey columns). */}
-      <span className="flex w-[104px] shrink-0 items-center gap-1.5">
-        <ObligationStatusReadBadge status={row.status} className="h-5 text-caption-xs" />
-        {row.status === 'extended' ? <ExtensionChip /> : null}
+      <span className="flex w-[104px] shrink-0 flex-col items-start gap-1">
+        <span className="flex items-center gap-1.5">
+          <ObligationStatusReadBadge status={row.status} className="h-5 text-caption-xs" />
+          {row.status === 'extended' ? <ExtensionChip /> : null}
+        </span>
+        {paymentLate ? (
+          <span className="inline-flex items-center rounded bg-state-destructive-hover px-1.5 py-0.5 text-caption-xs font-medium text-text-destructive">
+            <Trans>Pay {paymentLateDays}d late</Trans>
+          </span>
+        ) : null}
       </span>
       <span className="flex w-6 shrink-0 items-center">
         <AssigneeAvatar size="xs" name={row.assigneeName} title={row.assigneeName ?? t`Unassigned`} />
       </span>
+      {/* Due = the FILING countdown (paymentDueDate nulled so payment-late doesn't
+          hijack it) — it now matches the action verb instead of describing a
+          different obligation (Yuqi). */}
       <span className="flex w-[124px] shrink-0 items-center">
-        <DueDateLabel
-          days={d}
-          status={row.status}
-          paymentDueDate={row.paymentDueDate}
-          asOfDate={asOfDate}
-        />
+        <DueDateLabel days={d} status={row.status} paymentDueDate={null} asOfDate={asOfDate} />
       </span>
     </button>
   )
