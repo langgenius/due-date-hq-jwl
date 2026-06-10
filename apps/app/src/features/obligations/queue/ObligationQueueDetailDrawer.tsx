@@ -80,6 +80,7 @@ import {
 } from '@/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
+import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import {
   type MemberAssigneeOption,
   type ObligationPrepStage,
@@ -2428,8 +2429,7 @@ export function ObligationQueueDetailDrawer({
                                 <span className="min-w-0 flex-1 text-sm leading-tight text-text-secondary">
                                   <span className="font-medium text-text-primary">{actor}</span>
                                   <span aria-hidden> · </span>
-                                  {(auditActionLabels as Record<string, string>)[event.action] ??
-                                    event.action}
+                                  {formatAuditActionLabel(event.action, auditActionLabels)}
                                 </span>
                                 <span className="shrink-0 font-mono text-[11px] tabular-nums text-text-tertiary">
                                   {formatRelativeTime(event.createdAt)}

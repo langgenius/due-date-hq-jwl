@@ -97,7 +97,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       clients: t`Up to 10 clients`,
       description: t`Starter monitoring for one owner.`,
       features: [
-        t`Pulse: live alerts and source rules`,
+        t`Alert: live alerts and source rules`,
         t`History: 30-day alert window`,
         t`Workflow: one-seat manual review`,
         t`Controls: manual changes only`,
@@ -116,7 +116,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       clients: t`Up to 100 clients`,
       description: t`Full-history monitoring for one owner.`,
       features: [
-        t`Pulse: live alerts and source rules`,
+        t`Alert: live alerts and source rules`,
         t`History: full alert record`,
         t`Workflow: one-owner review`,
         t`Controls: migration preview`,
@@ -136,7 +136,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       clients: t`Up to 300 clients`,
       description: t`Shared operations for a small team.`,
       features: [
-        t`Pulse: bulk alert actions`,
+        t`Alert: bulk alert actions`,
         t`History: full alert record`,
         t`Workflow: shared deadline work`,
         t`Controls: guided production imports`,
@@ -157,7 +157,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       clients: t`Up to 1,000 clients`,
       description: t`Manager controls for a larger team.`,
       features: [
-        t`Pulse: priority alert review`,
+        t`Alert: priority alert review`,
         t`History: full alert record`,
         t`Workflow: manager workload insights`,
         t`Controls: migration review + audit exports`,

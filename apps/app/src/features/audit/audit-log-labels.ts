@@ -56,7 +56,7 @@ export function useAuditActionLabels(): AuditActionLabels {
       obligationAnnualRolloverCreated: t`Annual rollover created`,
       readinessRequestSent: t`Materials request sent`,
       readinessRequestRevoked: t`Materials request revoked`,
-      readinessChecklistRegenerated: t`Materials checklist rebuilt`,
+      readinessChecklistRegenerated: t`Updated materials checklist`,
       readinessChecklistItemAiOverridden: t`Overrode AI suggestion`,
       readinessChecklistItemCreated: t`Materials item added`,
       readinessChecklistItemDeleted: t`Materials item removed`,

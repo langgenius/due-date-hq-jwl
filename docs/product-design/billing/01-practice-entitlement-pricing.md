@@ -112,9 +112,9 @@ seats, practice/workspace limits, and core feature bullets. The protected Billin
 does not show the embedded AI capability mini-card; AI entitlement copy remains in public
 pricing and the entitlement rules above.
 The core feature bullets should use the same four-row comparison structure across
-plans: Pulse, History, Workflow, and Controls. They should explain actual tier
+plans: Alert, History, Workflow, and Controls. They should explain actual tier
 differences rather than repeat the quota facts already shown above the divider:
-Free = live Pulse with a 30-day window and manual one-seat changes, Solo = full
+Free = live alerts with a 30-day window and manual one-seat changes, Solo = full
 alert record plus one-owner review and migration preview, Pro = bulk alert actions,
 shared deadline work, and guided production imports, Team = priority alert review,
 manager workload insights, guided migration review, and audit exports.

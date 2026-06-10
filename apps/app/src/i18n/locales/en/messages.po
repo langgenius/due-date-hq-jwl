@@ -2321,6 +2321,18 @@ msgstr "Alert: {0}"
 msgid "Alert: {tooltip}"
 msgstr "Alert: {tooltip}"
 
+#: src/routes/billing.tsx
+msgid "Alert: bulk alert actions"
+msgstr "Alert: bulk alert actions"
+
+#: src/routes/billing.tsx
+msgid "Alert: live alerts and source rules"
+msgstr "Alert: live alerts and source rules"
+
+#: src/routes/billing.tsx
+msgid "Alert: priority alert review"
+msgstr "Alert: priority alert review"
+
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertDetailDrawer.tsx
@@ -9058,10 +9070,6 @@ msgid "Materials checklist"
 msgstr "Materials checklist"
 
 #: src/features/audit/audit-log-labels.ts
-msgid "Materials checklist rebuilt"
-msgstr "Materials checklist rebuilt"
-
-#: src/features/audit/audit-log-labels.ts
 msgid "Materials item added"
 msgstr "Materials item added"
 
@@ -12184,18 +12192,6 @@ msgstr "Pulse alerts, reminders, calendar sync"
 #: src/routes/obligations.tsx
 msgid "Pulse-generated drafts live in Projected"
 msgstr "Pulse-generated drafts live in Projected"
-
-#: src/routes/billing.tsx
-msgid "Pulse: bulk alert actions"
-msgstr "Pulse: bulk alert actions"
-
-#: src/routes/billing.tsx
-msgid "Pulse: live alerts and source rules"
-msgstr "Pulse: live alerts and source rules"
-
-#: src/routes/billing.tsx
-msgid "Pulse: priority alert review"
-msgstr "Pulse: priority alert review"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Push"
@@ -16365,6 +16361,10 @@ msgstr "Update the active practice's name and timezone."
 #: src/routes/rules.library.tsx
 msgid "Updated"
 msgstr "Updated"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Updated materials checklist"
+msgstr "Updated materials checklist"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/obligations/queue/components/evidence.tsx

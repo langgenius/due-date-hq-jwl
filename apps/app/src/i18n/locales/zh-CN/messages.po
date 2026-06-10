@@ -2344,6 +2344,18 @@ msgstr "提醒：{0}"
 msgid "Alert: {tooltip}"
 msgstr "提醒：{tooltip}"
 
+#: src/routes/billing.tsx
+msgid "Alert: bulk alert actions"
+msgstr "提醒：批量提醒操作"
+
+#: src/routes/billing.tsx
+msgid "Alert: live alerts and source rules"
+msgstr "提醒：实时提醒和来源规则"
+
+#: src/routes/billing.tsx
+msgid "Alert: priority alert review"
+msgstr "提醒：优先提醒审核"
+
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertDetailDrawer.tsx
@@ -9113,10 +9125,6 @@ msgid "Materials checklist"
 msgstr "材料清单"
 
 #: src/features/audit/audit-log-labels.ts
-msgid "Materials checklist rebuilt"
-msgstr "材料清单已重建"
-
-#: src/features/audit/audit-log-labels.ts
 #, fuzzy
 msgid "Materials item added"
 msgstr "材料状态已变更"
@@ -12268,18 +12276,6 @@ msgstr "Pulse 提醒、提醒事项、日历同步"
 #: src/routes/obligations.tsx
 msgid "Pulse-generated drafts live in Projected"
 msgstr "Pulse 生成的草案位于「预估」中"
-
-#: src/routes/billing.tsx
-msgid "Pulse: bulk alert actions"
-msgstr "Pulse：批量提醒操作"
-
-#: src/routes/billing.tsx
-msgid "Pulse: live alerts and source rules"
-msgstr "Pulse：实时提醒和来源规则"
-
-#: src/routes/billing.tsx
-msgid "Pulse: priority alert review"
-msgstr "Pulse：优先提醒审核"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Push"
@@ -16463,6 +16459,10 @@ msgstr "更新当前事务所的名称和时区。"
 #: src/routes/rules.library.tsx
 msgid "Updated"
 msgstr "已更新"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Updated materials checklist"
+msgstr "已更新材料清单"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/obligations/queue/components/evidence.tsx

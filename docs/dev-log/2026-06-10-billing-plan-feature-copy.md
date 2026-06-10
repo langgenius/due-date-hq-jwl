@@ -6,12 +6,12 @@
 ## Change
 
 Rewrote the four visible `/billing` plan-card feature lists into the same four-row
-comparison structure: Pulse, History, Workflow, and Controls. The cards now describe
+comparison structure: Alert, History, Workflow, and Controls. The cards now describe
 actual functional differences instead of repeating client, workspace, and seat quota
 facts already shown above the divider.
 
-- Free: live Pulse, 30-day history, one-seat manual review, manual changes.
-- Solo: live Pulse, full history, one-owner review, migration preview.
+- Free: live alerts, 30-day history, one-seat manual review, manual changes.
+- Solo: live alerts, full history, one-owner review, migration preview.
 - Pro: bulk alert actions, full history, shared deadline work, guided production imports.
 - Team: priority alert review, full history, manager workload insights, migration review
   plus audit exports.
@@ -28,5 +28,5 @@ App Billing copy aligned with the implemented entitlement differences.
 - `pnpm --filter @duedatehq/app i18n:compile`
 - `git diff --check -- apps/app/src/routes/billing.tsx apps/app/src/i18n/locales/en/messages.po apps/app/src/i18n/locales/en/messages.ts apps/app/src/i18n/locales/zh-CN/messages.po apps/app/src/i18n/locales/zh-CN/messages.ts docs/product-design/billing/01-practice-entitlement-pricing.md docs/dev-log/2026-06-10-billing-plan-feature-copy.md`
 - Browser verification on `http://localhost:5173/billing`: all four cards render the
-  aligned Pulse / History / Workflow / Controls rows, old unstructured copy is absent,
+  aligned Alert / History / Workflow / Controls rows, old unstructured copy is absent,
   and the desktop plan grid shows no text truncation.
