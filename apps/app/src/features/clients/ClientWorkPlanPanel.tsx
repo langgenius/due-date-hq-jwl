@@ -1,14 +1,9 @@
-import { type ReactNode, useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ChevronDownIcon,
-  ChevronUpIcon,
   ClipboardListIcon,
-  ExternalLinkIcon,
-  EyeIcon,
-  LinkIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -33,24 +28,12 @@ import {
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
-import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
-import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
-import { formatDate } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatTaxCode } from '@/lib/tax-codes'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { DeadlineRow } from '@/features/obligations/queue/components/DeadlineRow'
 import {
@@ -155,59 +138,8 @@ const STATUS_SORT_INDEX: Record<string, number> = {
   not_applicable: 10,
 }
 
-// Inline sort-header button. Renders the label + a sort indicator
-// chevron when active. Click cycles asc → desc → null (handled by
-// the panel's `cycleSort`). When inactive, label is uppercase
-// tertiary; when active, label promotes to primary text with the
-// chevron next to it. Keeps the rest of the header row visually
-// quiet so it doesn't compete with the rows below.
-function FilingPlanSortHeader({
-  className,
-  active,
-  dir,
-  alignRight,
-  title,
-  onClick,
-  children,
-}: {
-  className?: string
-  active: boolean
-  dir: FilingPlanSortDir
-  alignRight?: boolean
-  title?: string
-  onClick: () => void
-  children: ReactNode
-}) {
-  return (
-    // 2026-05-26 (Yuqi /clients/[id] feedback #9 — "确认 header
-    // 样式"): brought into line with the canonical workbench-table
-    // header (TableHead primitive: `text-sm font-medium normal-case
-    // text-text-secondary`). Was `text-xs font-medium uppercase
-    // text-text-tertiary` — uppercase eyebrow style read as a meta
-    // label, not a column header. Now matches /deadlines + /clients
-    // + /rules/library table headers across the family.
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={cn(
-        'inline-flex cursor-pointer items-center gap-1 text-sm font-medium leading-5 outline-none focus-visible:text-text-primary',
-        alignRight ? 'justify-end' : 'text-left',
-        active ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary',
-        className,
-      )}
-    >
-      <span>{children}</span>
-      {active ? (
-        dir === 'asc' ? (
-          <ChevronUpIcon className="size-3" aria-hidden />
-        ) : (
-          <ChevronDownIcon className="size-3" aria-hidden />
-        )
-      ) : null}
-    </button>
-  )
-}
+// 2026-06-10 (Yuqi — DeadlineRow card-rows): FilingPlanSortHeader (the
+// table column-sort button) retired with the table.
 
 function sortObligations(
   list: readonly ObligationQueueRow[],
@@ -284,14 +216,9 @@ export function ClientWorkPlanPanel({
   // lives at the panel level so all year sections share the same
   // sort. Click a header → toggle (asc → desc → null). Default
   // (`field === null`) keeps the API order.
-  const [sort, setSort] = useState<FilingPlanSort>({ field: null, dir: 'asc' })
-  const cycleSort = useCallback((field: Exclude<FilingPlanSortField, null>) => {
-    setSort((prev) => {
-      if (prev.field !== field) return { field, dir: 'asc' }
-      if (prev.dir === 'asc') return { field, dir: 'desc' }
-      return { field: null, dir: 'asc' }
-    })
-  }, [])
+  // 2026-06-10 (Yuqi — DeadlineRow card-rows): the column-header sort affordance
+  // retired with the table; sort holds at API order (smart priority).
+  const [sort] = useState<FilingPlanSort>({ field: null, dir: 'asc' })
 
   // Multi-select state — a Set of obligation ids selected across all
   // year sections. The floating bulk action bar appears when
