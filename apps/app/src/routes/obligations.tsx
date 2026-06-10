@@ -573,7 +573,7 @@ const DAY_MS = 86_400_000
 const OBLIGATION_QUEUE_FORM_COL_WIDTH = 'w-[168px] min-w-[168px]'
 // Width of the Due column. Tokenized so the magic-number doesn't fight
 // long client-name wraps if the table layout shifts.
-const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'w-[110px]'
+const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'w-32'
 const NON_HIDEABLE_COLUMNS = new Set(['select'])
 // Columns that ship hidden by default and are opt-in via the
 // Columns dropdown. 12 columns is too much for skim-reading, so the
