@@ -1019,6 +1019,18 @@ export const liveRegulatorySourceAdapters = uniqueByFetchUrl(
   uniqueAdapters([...visibleRegulatorySourceAdapters]),
 )
 
+// Source ids the pulse ingest pipeline fetches AND extracts (excerpt-capped AI
+// input, .full drift sibling, browserless + idle alerting). The rules-scan path
+// (jobs/rules/reconcile.ts) must not touch them — it would double-fetch the
+// same URL each cadence and double-pay AI extraction on every change, with a
+// raw-HTML hash that also churns on markup noise. Ids dropped by
+// uniqueByFetchUrl are deliberately ABSENT from this set: drift detection is
+// keyed by snapshot.sourceId, so the rules-scan stays those ids' only
+// sourceId-keyed watcher.
+export const pulseManagedSourceIds: ReadonlySet<string> = new Set(
+  liveRegulatorySourceAdapters.map((adapter) => adapter.id),
+)
+
 function coverageSourceIdsForJurisdiction(
   jurisdiction: RuleJurisdiction,
   purpose: AlertSourcePurpose,

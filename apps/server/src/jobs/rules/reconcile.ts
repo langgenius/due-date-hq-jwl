@@ -16,7 +16,8 @@ import {
   type RuleSource,
 } from '@duedatehq/core/rules'
 import { announcementItemsFromSnapshotWithPdfLinks } from '@duedatehq/ingest'
-import { fetchTextSnapshot } from '@duedatehq/ingest/http'
+import { fetchTextSnapshot, normalizeSourceText, textExcerpt } from '@duedatehq/ingest/http'
+import { stripHtml } from '@duedatehq/ingest/selectors'
 import type { IngestCtx } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
 import { cachedConcreteDraftKey } from '../../procedures/rules/concrete-draft'
@@ -27,6 +28,7 @@ import {
   PULSE_SOURCE_FAILURE_RETRY_MS,
   suppressDedupeRehashMigration,
 } from '../pulse/ingest'
+import { pulseManagedSourceIds } from '../pulse/rule-source-adapters'
 import { recordPulseMetric } from '../pulse/metrics'
 import {
   RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE,
@@ -225,8 +227,10 @@ export async function enqueueRuleDateReconciliation(
 export async function enqueueDueRuleSourceScans(
   env: Pick<Env, 'DB' | 'PULSE_QUEUE'>,
   now: Date,
+  opts: { pulseManagedSourceIds?: ReadonlySet<string> } = {},
 ): Promise<{ queued: number }> {
   const sources = listRuleSources()
+  const pulseManaged = opts.pulseManagedSourceIds ?? pulseManagedSourceIds
   const weeklyGovernance = shouldRunWeeklyRuleSourceGovernance(now)
   const pulseOps = makePulseOpsRepo(createDb(env.DB))
   // One batched read+upsert for all rule sources instead of N serial
@@ -245,6 +249,13 @@ export async function enqueueDueRuleSourceScans(
   )
   const queueItems = sources.flatMap(
     (source): Array<{ source: RuleSource; reason: PulseRuleSourceScanMessage['reason'] }> => {
+      // The pulse ingest pipeline already fetches+extracts these ids — a second
+      // scan here would double-fetch and double-pay AI on every change. Their
+      // ensureSourceStates row above is still reconciled (registry pause
+      // semantics), only the scan fan-out skips. Skipping the governance branch
+      // too matters: its recordSourceSuccess would clobber the shared state
+      // row's nextCheckAt without fetching.
+      if (pulseManaged.has(source.id)) return []
       const state = states.get(source.id)
       if (!state || !state.enabled) return []
       if (sourceCanAutoScan(source)) {
@@ -269,12 +280,19 @@ export async function enqueueDueRuleSourceScans(
 export async function consumePulseRuleSourceScan(
   message: PulseRuleSourceScanMessage,
   env: Env,
+  opts: { pulseManagedSourceIds?: ReadonlySet<string> } = {},
 ): Promise<void> {
   const source = listRuleSources().find((item) => item.id === message.sourceId)
   const db = createDb(env.DB)
   const pulseOps = makePulseOpsRepo(db)
   if (!source) {
     recordPulseMetric('pulse.rule_source_scan.source_missing', { sourceId: message.sourceId })
+    return
+  }
+  // Drains in-flight messages cleanly across the deploy that hands these ids to
+  // the pulse pipeline, and guards any future manual producer.
+  if ((opts.pulseManagedSourceIds ?? pulseManagedSourceIds).has(source.id)) {
+    recordPulseMetric('pulse.rule_source_scan.pulse_managed_skip', { sourceId: source.id })
     return
   }
 
@@ -378,16 +396,36 @@ export async function consumePulseRuleSourceScan(
           )
         : [
             {
-              result: await pulseOps.createSourceSnapshot({
-                sourceId: source.id,
-                externalId: source.url,
-                title: `${source.title} official source snapshot`,
-                officialSourceUrl: source.url,
-                publishedAt: checkedAt,
-                fetchedAt: checkedAt,
-                contentHash: fetched.contentHash,
-                rawR2Key: fetched.r2Key,
-              }),
+              // Mirror parsedItemForSourceSnapshot (pulse path): hash + archive
+              // the stripped 6000-char excerpt with a .full R2 sibling, instead
+              // of the raw HTML body. The AI extract then reads <=6000 chars
+              // (was the FULL untruncated page), the drift check reads the
+              // sibling, and the stripped-text hash stops firing on markup
+              // attribute churn. externalId stays source.url — no
+              // dedupe-identity change. (fetchTextSnapshot's own raw archive
+              // remains as the audit-trail copy.)
+              result: await (async () => {
+                const fullText = normalizeSourceText(stripHtml(fetched.body))
+                const excerptText = textExcerpt(fullText)
+                const archived = await archivePulseRaw(env, {
+                  sourceId: source.id,
+                  externalId: source.url,
+                  fetchedAt: checkedAt,
+                  body: excerptText || `${source.title} official source snapshot`,
+                  contentType: 'text/plain; charset=utf-8',
+                  ...(fullText.length > excerptText.length ? { fullText } : {}),
+                })
+                return pulseOps.createSourceSnapshot({
+                  sourceId: source.id,
+                  externalId: source.url,
+                  title: `${source.title} official source snapshot`,
+                  officialSourceUrl: source.url,
+                  publishedAt: checkedAt,
+                  fetchedAt: checkedAt,
+                  contentHash: archived.contentHash,
+                  rawR2Key: archived.r2Key,
+                })
+              })(),
               suppressed: false,
             },
           ]

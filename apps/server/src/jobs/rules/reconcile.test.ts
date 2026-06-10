@@ -340,6 +340,84 @@ describe('rule source scan jobs', () => {
     })
   })
 
+  it('skips cadence-due scans for sources the pulse pipeline already watches', async () => {
+    const queueSend = vi.fn()
+    coreMocks.sources.splice(
+      0,
+      coreMocks.sources.length,
+      source({ id: 'ca.ftb_business_due_dates', cadence: 'daily' }),
+      source({ id: 'nm.unwatched_due_dates', cadence: 'daily' }),
+    )
+    dbMocks.pulseOpsRepo.ensureSourceState.mockResolvedValue({
+      enabled: true,
+      nextCheckAt: new Date('2026-05-25T09:00:00.000Z'),
+    })
+
+    const result = await enqueueDueRuleSourceScans(
+      env(queueSend),
+      new Date('2026-05-25T09:00:00.000Z'),
+      { pulseManagedSourceIds: new Set(['ca.ftb_business_due_dates']) },
+    )
+
+    expect(result).toEqual({ queued: 1 })
+    expect(queueSend).toHaveBeenCalledTimes(1)
+    expect(queueSend).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceId: 'nm.unwatched_due_dates' }),
+    )
+    // The shared state row is still reconciled for managed ids (registry pause
+    // semantics) — only the scan fan-out skips them.
+    expect(dbMocks.pulseOpsRepo.ensureSourceStates).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ sourceId: 'ca.ftb_business_due_dates' }),
+        expect.objectContaining({ sourceId: 'nm.unwatched_due_dates' }),
+      ]),
+      expect.any(Date),
+    )
+  })
+
+  it('keeps weekly governance away from pulse-managed sources', async () => {
+    const queueSend = vi.fn()
+    coreMocks.sources.splice(
+      0,
+      coreMocks.sources.length,
+      source({ id: 'managed-email-source', acquisitionMethod: 'email_subscription' }),
+    )
+
+    const insideWindow = await enqueueDueRuleSourceScans(
+      env(queueSend),
+      new Date('2026-05-25T09:00:00.000Z'),
+      { pulseManagedSourceIds: new Set(['managed-email-source']) },
+    )
+
+    expect(insideWindow).toEqual({ queued: 0 })
+    expect(queueSend).not.toHaveBeenCalled()
+  })
+
+  it('no-ops the scan consumer for a pulse-managed source', async () => {
+    const queueSend = vi.fn()
+
+    await consumePulseRuleSourceScan(
+      {
+        type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
+        sourceId: 'ca.ftb_business_due_dates',
+        reason: 'cadence_due',
+      },
+      env(queueSend) as Env,
+      { pulseManagedSourceIds: new Set(['ca.ftb_business_due_dates']) },
+    )
+
+    expect(fetchMocks.fetchTextSnapshot).not.toHaveBeenCalled()
+    expect(dbMocks.pulseOpsRepo.ensureSourceState).not.toHaveBeenCalled()
+    expect(dbMocks.pulseOpsRepo.createSourceSnapshot).not.toHaveBeenCalled()
+    expect(dbMocks.pulseOpsRepo.recordSourceSuccess).not.toHaveBeenCalled()
+    expect(dbMocks.pulseOpsRepo.recordSourceFailure).not.toHaveBeenCalled()
+    expect(queueSend).not.toHaveBeenCalled()
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'pulse.rule_source_scan.pulse_managed_skip',
+      { sourceId: 'ca.ftb_business_due_dates' },
+    )
+  })
+
   it('queues non-automated sources only during the weekly governance window', async () => {
     const queueSend = vi.fn()
     coreMocks.sources.splice(
@@ -402,6 +480,7 @@ describe('rule source scan jobs', () => {
       r2Key: 'raw/source.html',
       etag: 'etag-2',
       lastModified: null,
+      body: '<html><body><p>Returns are due April 15, 2026.</p></body></html>',
     })
 
     await consumePulseRuleSourceScan(
@@ -413,11 +492,22 @@ describe('rule source scan jobs', () => {
       env(queueSend) as Env,
     )
 
+    // The fallback snapshot now hashes + archives the stripped excerpt (not the
+    // raw HTML), mirroring the pulse path — the AI input is capped and markup
+    // churn stops minting "changes".
+    expect(pulseIngestMocks.archivePulseRaw).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        sourceId: 'ca.ftb_business_due_dates',
+        body: 'Returns are due April 15, 2026.',
+        contentType: 'text/plain; charset=utf-8',
+      }),
+    )
     expect(dbMocks.pulseOpsRepo.createSourceSnapshot).toHaveBeenCalledWith(
       expect.objectContaining({
         sourceId: 'ca.ftb_business_due_dates',
-        contentHash: 'content-hash-1',
-        rawR2Key: 'raw/source.html',
+        contentHash: 'archived-item-hash',
+        rawR2Key: 'pulse/item.txt',
       }),
     )
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
@@ -470,6 +560,7 @@ describe('rule source scan jobs', () => {
       r2Key: 'raw/source.html',
       etag: 'etag-2',
       lastModified: null,
+      body: '<html><body><p>Returns are due April 15, 2026.</p></body></html>',
     })
 
     await consumePulseRuleSourceScan(

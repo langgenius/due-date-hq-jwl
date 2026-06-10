@@ -22,6 +22,7 @@ import {
   listAlertSourceCoverage,
   liveRegulatorySourceAdapters,
   politeHostForAdapterId,
+  pulseManagedSourceIds,
   requiresReviewOnlyPulseAlert,
   ruleSourceAdapters,
   shouldForceReviewOnlyPulseAlert,
@@ -662,6 +663,20 @@ describe('rule source adapters', () => {
       ctx,
     )
     expect(smallItem!.fullText).toBeUndefined()
+  })
+
+  it('exposes the pulse-managed id set and keeps URL-deduped ids out of it', () => {
+    expect(pulseManagedSourceIds.size).toBe(liveRegulatorySourceAdapters.length)
+    for (const adapter of liveRegulatorySourceAdapters) {
+      expect(pulseManagedSourceIds.has(adapter.id)).toBe(true)
+    }
+    // Registry sources whose adapter was dropped by uniqueByFetchUrl must stay
+    // OUT of the set: the rules-scan is their only sourceId-keyed drift watcher.
+    expect(listRuleSources().some((source) => source.id === 'ny.tax_calendar.2026')).toBe(true)
+    expect(pulseManagedSourceIds.has('ny.tax_calendar.2026')).toBe(false)
+    expect(pulseManagedSourceIds.has('fed.irs_disaster_relief')).toBe(false)
+    // Spot-check a parser-backed basis source the pulse pipeline owns.
+    expect(pulseManagedSourceIds.has('ca.ftb_business_due_dates')).toBe(true)
   })
 
   it('resolves a polite host for every live adapter and null for unknown ids', () => {

@@ -24,6 +24,7 @@ import type {
 } from '@duedatehq/core/rules'
 import type { Env } from '../../env'
 import { createBrowserlessFetch } from '../../jobs/pulse/browserless'
+import { pulseFullTextR2Key } from '../../jobs/pulse/ingest'
 import { extractOfficialSourceText, SOURCE_WATCH_PLACEHOLDER_RE } from './source-text'
 
 export const RuleConcreteDraftPayloadSchema = RuleConcreteDraftSchema.omit({ aiOutputId: true })
@@ -814,7 +815,12 @@ export async function buildConcreteDraftSourceText(input: {
   )
 
   if (evidenceChunks.length === 0 && input.latestSourceSnapshot) {
-    const snapshotText = await readR2Text(input.env, input.latestSourceSnapshot.rawR2Key)
+    // Prefer the .full R2 sibling: pulse-pipeline snapshots archive a 6000-char
+    // excerpt as the main object, with the untruncated page beside it. Old
+    // snapshots without a sibling fall back to the main object exactly as before.
+    const snapshotText =
+      (await readR2Text(input.env, pulseFullTextR2Key(input.latestSourceSnapshot.rawR2Key))) ??
+      (await readR2Text(input.env, input.latestSourceSnapshot.rawR2Key))
     if (snapshotText) {
       hasSourceBackedText = true
       sourceSnapshotId = input.latestSourceSnapshot.id
