@@ -1571,6 +1571,9 @@ export function ObligationQueueDetailDrawer({
         className={cn(
           'relative flex flex-col px-12 transition-all duration-200',
           heroCollapsed ? 'gap-1 pt-3 pb-3' : 'gap-1.5 pt-10 pb-6',
+          // 2026-06-10 (Yuqi "this part all white background"): page hero is
+          // white paper; the gray wash starts at the tab content below.
+          isPageMode && 'bg-background-default',
           // 2026-06-09 (Yuqi "follow the alert detail responsive rule, page
           // width"): page mode centers its content at a max width within the
           // px-12 gutters, mirroring the Alert detail's `[&>*]:mx-auto
@@ -1868,8 +1871,11 @@ export function ObligationQueueDetailDrawer({
                 // on the standalone page the date strip is NOT sticky — it
                 // scrolls away with the content so the reading area grows; the
                 // collapsed hero keeps the title + dates' headline context.
+                // 2026-06-10 (Yuqi "this part all white background"): the date
+                // cards are part of the white hero region, not the gray content
+                // — full-bleed white band that abuts the header above.
                 isPageMode
-                  ? 'mb-2'
+                  ? '-mx-12 bg-background-default px-12 pb-5'
                   : panelLayout
                     ? // 2026-05-27 (Yuqi drawer parity): negative bleed
                       // updated -mx-8 → -mx-12 to match the body's new
@@ -1977,7 +1983,12 @@ export function ObligationQueueDetailDrawer({
             <div
               className={cn(
                 'sticky top-0 z-10 pt-3',
-                isPageMode ? 'bg-background-subtle pb-3' : '',
+                // 2026-06-10 (Yuqi "this part all white background" + #1 "no
+                // bottom padding"): the tab bar is the bottom edge of the white
+                // hero region — full-bleed white with symmetric pt/pb so the
+                // pinned bar reads as a clean band; the border-b hands off to
+                // the gray tab content below.
+                isPageMode ? '-mx-12 bg-background-default px-12 pb-3' : '',
               )}
             >
               {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
@@ -2163,7 +2174,7 @@ export function ObligationQueueDetailDrawer({
             </div>
             <TabsContent value="summary" key="summary-content">
               <motion.div
-                className="pt-6"
+                className="pt-4"
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
@@ -2533,7 +2544,7 @@ export function ObligationQueueDetailDrawer({
             </TabsContent>
             <TabsContent value="readiness" key="readiness-content">
               <motion.div
-                className="pt-6"
+                className="pt-4"
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
@@ -3356,7 +3367,7 @@ export function ObligationQueueDetailDrawer({
             </TabsContent>
             <TabsContent value="extension" key="extension-content">
               <motion.div
-                className="pt-6"
+                className="pt-4"
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
@@ -3737,7 +3748,7 @@ export function ObligationQueueDetailDrawer({
             </TabsContent>
             <TabsContent value="evidence" key="evidence-content">
               <motion.div
-                className="pt-6"
+                className="pt-4"
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
@@ -4064,7 +4075,7 @@ export function ObligationQueueDetailDrawer({
             {visibleTabs.has('audit') ? (
               <TabsContent value="audit" key="audit-content">
                 <motion.div
-                  className="pt-6"
+                  className="pt-4"
                   initial={{ x: 12, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}

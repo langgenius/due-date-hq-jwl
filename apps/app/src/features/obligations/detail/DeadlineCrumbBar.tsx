@@ -32,7 +32,7 @@ export function DeadlineCrumbBar({
     // 2026-06-09 (Yuqi "follow the alert detail responsive rule, page width"):
     // full-width border-b, content centered at the same ~1100px max width +
     // px-12 gutters as the hero/body so the breadcrumb aligns with the page.
-    <div className="border-b border-divider-subtle bg-background-default px-12 py-4">
+    <div className="flex h-14 items-center border-b border-divider-subtle bg-background-default px-12">
       <div className="mx-auto flex w-full max-w-[1100px] items-center gap-2">
         <Link
           to="/deadlines"
