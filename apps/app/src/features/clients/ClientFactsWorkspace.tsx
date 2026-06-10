@@ -903,10 +903,12 @@ export function ClientFactsWorkspace({
         // assignee pill) and the toolbar filter chip's "Owner" label
         // remain intact.
         header: () => (
-          // normal-case to match the sortable headers (Client / States / …) —
-          // without it this plain span inherits the table header's eyebrow
-          // `uppercase` and renders "ASSIGNEE", the lone uppercase column.
-          <span className="text-sm font-medium text-text-secondary normal-case">
+          // 2026-06-10 (Yuqi "follow Deadline's table"): plain span inherits
+          // the canonical TableHead eyebrow style (11/600 uppercase
+          // tracking-[0.5px]) — matches /deadlines' Assignee header and the
+          // now-uppercase sort-button labels, so the whole header row is one
+          // consistent uppercase rhythm.
+          <span>
             <Trans>Assignee</Trans>
           </span>
         ),
@@ -1159,9 +1161,13 @@ export function ClientFactsWorkspace({
                 // The table-container chrome overrides (rounded-lg +
                 // border) live on the outer card wrapper, where they
                 // wrap Table + Pagination together as one cohesive
-                // rounded card. Only `table-fixed` stays here as a
-                // table-layout concern.
-                className="table-fixed"
+                // rounded card. `table-fixed` is a table-layout concern.
+                // 2026-06-10 (Yuqi "follow Deadline's table"): the header
+                // recipe mirrors /deadlines' obligation-queue table
+                // (routes/obligations.tsx) — h-9 section-tinted header cells
+                // and UPPERCASE 11/600 tracking-[0.5px] sort-button labels,
+                // so the two workbench tables read identically.
+                className="table-fixed [&_th]:bg-background-section [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th_button]:!text-xs [&_th_button]:!font-semibold [&_th_button]:!tracking-[0.5px] [&_th_button]:!uppercase"
               >
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
