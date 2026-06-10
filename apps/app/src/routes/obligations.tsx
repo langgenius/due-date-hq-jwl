@@ -73,6 +73,7 @@ import {
   UserRoundIcon,
   MapPinIcon,
   ClockIcon,
+  ArrowRightIcon,
   XIcon,
 } from 'lucide-react'
 import {
@@ -12763,7 +12764,24 @@ function ObligationFiltersPopover({
           <FilterTrigger
             active={committedActiveCount > 0}
             leadingIcon={SlidersHorizontalIcon}
-            valueLabel={committedActiveCount > 0 ? String(committedActiveCount) : undefined}
+            {...(committedActiveCount > 0 ? { leadingIconColor: 'text-text-accent' } : {})}
+            // When filters are applied the trigger reads as ENGAGED at a
+            // glance: accent border + accent-tinted leading icon (the bg tint
+            // is the FilterTrigger's own `active` state). The count rides in a
+            // filled accent pill rather than the quiet muted-mono `valueLabel`,
+            // so "filters are on" is unmistakable from across the toolbar.
+            className={cn(
+              'font-semibold',
+              committedActiveCount > 0 &&
+                'border-state-accent-border text-text-accent data-[state=open]:border-state-accent-border',
+            )}
+            valueLabel={
+              committedActiveCount > 0 ? (
+                <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-state-accent-active px-1 font-mono text-caption-xs leading-none font-semibold tabular-nums text-text-inverted">
+                  {committedActiveCount}
+                </span>
+              ) : undefined
+            }
             hideChevron
             aria-label={t`Filters`}
           >
@@ -12780,15 +12798,17 @@ function ObligationFiltersPopover({
         align="end"
         className="w-[560px] gap-0 overflow-hidden rounded-xl p-0 shadow-overlay"
       >
-        {/* Header — title + applied count badge, with an Esc affordance. */}
+        {/* Header — title + staged-count "applied" pill, with an Esc
+            affordance (per `M5RWL`: title 13/600 + rounded-full subtle badge,
+            mono Esc chip on the right). */}
         <div className="flex items-center justify-between border-b border-divider-subtle px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <PopoverTitle className="text-sm font-semibold">
+            <PopoverTitle className="text-sm font-semibold text-text-primary">
               <Trans>Filters</Trans>
             </PopoverTitle>
             {stagedTotal > 0 ? (
-              <span className="inline-flex items-center rounded-full bg-background-subtle px-2 py-0.5 font-mono text-caption-xs font-medium tabular-nums text-text-secondary">
-                {stagedTotal}
+              <span className="inline-flex items-center rounded-full bg-background-subtle px-2 py-0.5 text-caption-xs font-medium tabular-nums text-text-secondary">
+                <Plural value={stagedTotal} one="# applied" other="# applied" />
               </span>
             ) : null}
           </div>
@@ -12849,6 +12869,7 @@ function ObligationFiltersPopover({
               emptyLabel={t`No matches`}
               mono={activeFacetTab.key === 'taxType'}
               onToggle={(value) => toggleFacet(activeFacetTab.key, value)}
+              onClear={() => setStage((p) => ({ ...p, [activeFacetTab.key]: [] }))}
             />
           ) : activeTab === 'condition' ? (
             <div className="flex flex-col gap-4 p-4">
@@ -12948,17 +12969,23 @@ function ObligationFiltersPopover({
         </div>
 
         {/* Footer — staged summary + Clear on the left, Cancel / Apply on the
-            right. Distinct section tint per `ZAciP`. */}
+            right (Apply is the clear dark primary with a trailing arrow, per
+            `ZAciP`/`IruSl`). Distinct section tint anchors the action band. */}
         <div className="flex items-center justify-between border-t border-divider-subtle bg-background-section px-4 py-2.5">
           <div className="flex items-center gap-2.5">
-            <span className="text-caption-xs text-text-tertiary">
-              <Plural value={stagedTotal} _0="No filters" one="# filter" other="# filters" />
+            <span className="text-caption-xs tabular-nums text-text-tertiary">
+              <Plural
+                value={stagedTotal}
+                _0="No filters staged"
+                one="# filter staged"
+                other="# filters staged"
+              />
             </span>
             {stagedTotal > 0 ? (
               <button
                 type="button"
                 onClick={() => setStage(emptyStage)}
-                className="cursor-pointer text-caption-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                className="cursor-pointer text-caption-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 <Trans>Reset</Trans>
               </button>
@@ -12970,6 +12997,7 @@ function ObligationFiltersPopover({
             </Button>
             <Button size="sm" onClick={apply}>
               <Trans>Apply</Trans>
+              <ArrowRightIcon data-icon="inline-end" />
             </Button>
           </div>
         </div>
@@ -12999,8 +13027,11 @@ function ObligationFilterTab({
       role="tab"
       aria-selected={active}
       onClick={onClick}
+      // Per `xrMoD`/`vjMXx`: icon (13px) + 12px label + count pill, with the
+      // active tab carrying a 2px bottom rule, bold dark label, and an inset
+      // negative margin so its rule sits flush on the strip's hairline.
       className={cn(
-        'inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        '-mb-px inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm outline-none transition-colors focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
         active
           ? 'border-text-primary font-semibold text-text-primary'
           : 'border-transparent font-medium text-text-secondary hover:text-text-primary',
@@ -13014,7 +13045,7 @@ function ObligationFilterTab({
       {count > 0 ? (
         <span
           className={cn(
-            'inline-flex items-center rounded-full px-1.5 font-mono text-[10px] font-medium tabular-nums',
+            'inline-flex items-center rounded-full px-1.5 py-px font-mono text-[10px] font-medium tabular-nums',
             active
               ? 'bg-text-primary text-text-inverted'
               : 'bg-background-subtle text-text-secondary',
@@ -13040,6 +13071,7 @@ function ObligationFacetSearchList({
   emptyLabel,
   mono,
   onToggle,
+  onClear,
 }: {
   options: readonly FilterOption[]
   selected: readonly string[]
@@ -13048,24 +13080,62 @@ function ObligationFacetSearchList({
   emptyLabel: string
   mono?: boolean
   onToggle: (value: string) => void
+  onClear: () => void
 }) {
+  const { t } = useLingui()
   const selectedSet = new Set(selected)
+  const selectedCount = selectedSet.size
   if (disabled) {
+    // Loading — three ghost rows that echo the search box + option-row rhythm.
     return (
-      <div className="flex flex-col gap-2 p-4">
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-7 w-full" />
-        <Skeleton className="h-7 w-full" />
+      <div className="flex flex-col gap-2.5 p-4">
+        <Skeleton className="h-9 w-full rounded-lg" />
+        <div className="flex flex-col gap-1.5 pt-1">
+          <Skeleton className="h-7 w-full rounded-md" />
+          <Skeleton className="h-7 w-5/6 rounded-md" />
+          <Skeleton className="h-7 w-2/3 rounded-md" />
+        </div>
       </div>
     )
   }
   if (options.length === 0) {
-    return <div className="px-4 py-10 text-center text-sm text-text-tertiary">{emptyLabel}</div>
+    // No options for this dimension at all (vs. the search-narrowed empty,
+    // which CommandEmpty handles).
+    return (
+      <div className="flex flex-col items-center gap-1 px-4 py-12 text-center">
+        <SearchIcon className="size-4 text-text-tertiary" aria-hidden />
+        <span className="text-sm text-text-tertiary">{emptyLabel}</span>
+      </div>
+    )
   }
   return (
     <Command className="bg-transparent">
       <CommandInput placeholder={searchPlaceholder} />
-      <CommandList className="max-h-[280px]">
+      {/* Dimension meta strip — "N selected · M options" + a per-dimension
+          Clear (canon's "3 of 24" / "Clear" affordance, `P199zN`). */}
+      <div className="flex items-center justify-between px-3 pt-2.5 pb-0.5">
+        <span className="text-caption-xs tabular-nums text-text-tertiary">
+          {selectedCount > 0 ? (
+            <Plural
+              value={selectedCount}
+              one={t`# selected · ${options.length} options`}
+              other={t`# selected · ${options.length} options`}
+            />
+          ) : (
+            <Plural value={options.length} one="# option" other="# options" />
+          )}
+        </span>
+        {selectedCount > 0 ? (
+          <button
+            type="button"
+            onClick={onClear}
+            className="cursor-pointer text-caption-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <Trans>Clear</Trans>
+          </button>
+        ) : null}
+      </div>
+      <CommandList className="max-h-[260px]">
         <CommandEmpty>{emptyLabel}</CommandEmpty>
         {options.map((option) => {
           const checked = selectedSet.has(option.value)
@@ -13074,19 +13144,28 @@ function ObligationFacetSearchList({
               key={option.value}
               value={`${option.label} ${option.value}`}
               onSelect={() => onToggle(option.value)}
+              // Selected rows carry a subtle wash (canon `hCgB8`) so the
+              // current picks read above the unselected options.
+              className={cn(checked && 'bg-background-subtle')}
             >
               <span
                 className={cn(
-                  'flex size-4 items-center justify-center rounded-sm border',
+                  'flex size-4 items-center justify-center rounded-sm border transition-colors',
                   checked
                     ? 'border-text-primary bg-text-primary text-text-inverted'
-                    : 'border-divider-regular',
+                    : 'border-divider-regular group-hover/command-item:border-text-tertiary',
                 )}
                 aria-hidden
               >
                 {checked ? <CheckIcon className="size-3" /> : null}
               </span>
-              <span className={cn('truncate', mono && 'font-mono text-caption-xs')}>
+              <span
+                className={cn(
+                  'truncate',
+                  checked ? 'font-medium text-text-primary' : 'text-text-secondary',
+                  mono && 'font-mono text-caption-xs',
+                )}
+              >
                 {option.label}
               </span>
               {typeof option.count === 'number' ? (
