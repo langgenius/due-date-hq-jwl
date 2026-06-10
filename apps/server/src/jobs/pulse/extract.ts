@@ -6,6 +6,7 @@ import { aiOutput, llmLog } from '@duedatehq/db/schema/ai'
 import type { Env } from '../../env'
 import { sourceTextContainsExcerpt } from '../../procedures/rules/concrete-draft'
 import { extractCanonicalEmailText } from './email-artifact'
+import { pulseFullTextR2Key } from './ingest'
 import { recordPulseAlert, recordPulseMetric } from './metrics'
 import { isThresholdAdvisorySource, shouldForceReviewOnlyPulseAlert } from './rule-source-adapters'
 
@@ -340,9 +341,17 @@ async function runPulseExtractionAfterMark(
   // a firm that adopts the rule later — from accepting it until it is re-verified.
   const reverifyRules = rulesBySourceId(snapshot.sourceId)
   const reverifyRuleIds = reverifyRules.map((rule) => rule.id)
+  // The archived AI-input object is capped at 6000 chars (textExcerpt), so a
+  // basis citation living deeper in the page (e.g. Pub. 15) would false-flag
+  // as drifted and durably block rule acceptance. Compare against the FULL
+  // stripped page text archived alongside the excerpt; older snapshots have
+  // no `.full` sibling — fall back to the excerpt text (prior behavior).
+  const fullRaw =
+    reverifyRules.length > 0 ? await env.R2_PULSE.get(pulseFullTextR2Key(snapshot.rawR2Key)) : null
+  const driftText = fullRaw ? await fullRaw.text() : rawText
   const driftRules = reverifyRules.filter((rule) => {
     const excerpt = ruleCitesSourceAsBasis(rule, snapshot.sourceId)
-    return excerpt !== null && !sourceTextContainsExcerpt(rawText, excerpt)
+    return excerpt !== null && !sourceTextContainsExcerpt(driftText, excerpt)
   })
   const recordRuleSourceDrift = async (pulseId: string): Promise<void> => {
     const detectedAt = new Date()

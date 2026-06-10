@@ -6,9 +6,11 @@ import type { SourceAdapter } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
 import { createBrowserlessFetch } from './browserless'
 import {
+  archivePulseRaw,
   consumePulseIngestSource,
   createPoliteFetch,
   enqueuePulseIngestScans,
+  pulseFullTextR2Key,
   runPulseIngest,
 } from './ingest'
 
@@ -537,5 +539,47 @@ describe('createPoliteFetch', () => {
     await politeFetch('https://comptroller.texas.gov/about/media-center/news/')
 
     expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('archivePulseRaw', () => {
+  const input = {
+    sourceId: 'fed.irs_pub_15_2026',
+    externalId: 'https://www.irs.gov/pub/irs-pdf/p15.pdf',
+    fetchedAt: new Date('2026-06-10T00:00:00.000Z'),
+    body: 'excerpt text',
+  }
+
+  it('archives the full-text sibling without changing the main key or hash', async () => {
+    const putA = vi.fn(async (_key: string, _value: unknown) => undefined)
+    const putB = vi.fn(async (_key: string, _value: unknown) => undefined)
+    const envA = { R2_PULSE: { put: putA } as unknown as R2Bucket }
+    const envB = { R2_PULSE: { put: putB } as unknown as R2Bucket }
+
+    const withoutFull = await archivePulseRaw(envA, input)
+    const withFull = await archivePulseRaw(envB, {
+      ...input,
+      fullText: 'excerpt text plus the rest of the page',
+    })
+
+    // contentHash and r2Key derive from body only — the sibling never
+    // re-snapshots existing sources.
+    expect(withFull).toEqual(withoutFull)
+    expect(putA).toHaveBeenCalledTimes(1)
+    expect(putB).toHaveBeenCalledTimes(2)
+    expect(putB.mock.calls[1]?.[0]).toBe(pulseFullTextR2Key(withFull.r2Key))
+    expect(putB.mock.calls[1]?.[1]).toBe('excerpt text plus the rest of the page')
+  })
+
+  it('skips the sibling when the full text adds nothing', async () => {
+    const put = vi.fn(async () => undefined)
+    await archivePulseRaw(
+      { R2_PULSE: { put } as unknown as R2Bucket },
+      {
+        ...input,
+        fullText: input.body,
+      },
+    )
+    expect(put).toHaveBeenCalledTimes(1)
   })
 })

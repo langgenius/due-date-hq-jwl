@@ -625,4 +625,41 @@ describe('rule source adapters', () => {
     expect(createRuleSourceAdapter(source).id).toBe('tx.medium_review_fixture')
     expect(requiresReviewOnlyPulseAlert(source.id)).toBe(false)
   })
+
+  it('caps the AI excerpt at 6000 chars while carrying the full stripped text for drift', async () => {
+    const basis = listRuleSources().find((candidate) => candidate.id === 'tx.franchise_forms_2026')!
+    const adapter = createRuleSourceAdapter(basis)
+    const ctx = {
+      fetch: async () => new Response(''),
+      async archiveRaw() {
+        return { r2Key: 'unused', contentHash: 'unused' }
+      },
+    }
+    const snapshot = (body: string) => ({
+      sourceId: basis.id,
+      fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+      contentHash: 'hash',
+      r2Key: 'raw.html',
+      contentType: 'text/html',
+      etag: null,
+      lastModified: null,
+      body,
+    })
+
+    const [bigItem] = await adapter.parse(
+      snapshot(`<html><body>${'x '.repeat(4000)}MARKER-BEYOND-CAP</body></html>`),
+      ctx,
+    )
+    expect(bigItem!.rawText).toHaveLength(6000)
+    expect(bigItem!.rawText).not.toContain('MARKER-BEYOND-CAP')
+    expect(bigItem!.fullText).toContain('MARKER-BEYOND-CAP')
+    expect(bigItem!.fullText!.startsWith(bigItem!.rawText)).toBe(true)
+
+    // A page that fits inside the excerpt carries no redundant full text.
+    const [smallItem] = await adapter.parse(
+      snapshot('<html><body>Franchise tax forms for 2026.</body></html>'),
+      ctx,
+    )
+    expect(smallItem!.fullText).toBeUndefined()
+  })
 })

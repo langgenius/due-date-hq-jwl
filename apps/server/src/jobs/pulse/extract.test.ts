@@ -191,6 +191,65 @@ describe('extractPulseSnapshot', () => {
     expect(repoMocks.apply).not.toHaveBeenCalled()
   })
 
+  it('compares drift against the full archived page text when the .full sibling exists', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(driftSnapshot('snapshot-full'))
+    aiMocks.extractPulse.mockResolvedValue(noRegulatoryChange)
+    coreMocks.rulesBySourceId.mockReturnValue([{ id: 'fed.1040.return.2025', jurisdiction: 'FED' }])
+    coreMocks.ruleCitesSourceAsBasis.mockReturnValue('Individual returns are due April 15.')
+    coreMocks.sourceTextContainsExcerpt.mockReturnValue(true)
+    const testEnv = env('EXCERPT TEXT')
+    const keyedGet = vi.fn(async (key: string) => ({
+      text: vi.fn(async () => (key.endsWith('.full') ? 'FULL PAGE TEXT' : 'EXCERPT TEXT')),
+    }))
+    testEnv.R2_PULSE = { get: keyedGet } as unknown as R2Bucket
+
+    const result = await extractPulseSnapshot(testEnv, 'snapshot-full')
+
+    expect(result.status).toBe('skipped')
+    // Drift compared against the un-truncated sibling, not the 6000-char excerpt.
+    expect(coreMocks.sourceTextContainsExcerpt).toHaveBeenCalledWith(
+      'FULL PAGE TEXT',
+      'Individual returns are due April 15.',
+    )
+    expect(keyedGet.mock.calls.map((call) => call[0])).toContain('raw/pub509.txt.full')
+    expect(repoMocks.upsertRuleSourceDriftState).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the excerpt text for legacy snapshots without a .full sibling', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(driftSnapshot('snapshot-legacy'))
+    aiMocks.extractPulse.mockResolvedValue(noRegulatoryChange)
+    coreMocks.rulesBySourceId.mockReturnValue([{ id: 'fed.1040.return.2025', jurisdiction: 'FED' }])
+    coreMocks.ruleCitesSourceAsBasis.mockReturnValue('Individual returns are due April 15.')
+    coreMocks.sourceTextContainsExcerpt.mockReturnValue(false)
+    const testEnv = env('A totally different page.')
+    const keyedGet = vi.fn(async (key: string) =>
+      key.endsWith('.full') ? null : { text: vi.fn(async () => 'A totally different page.') },
+    )
+    testEnv.R2_PULSE = { get: keyedGet } as unknown as R2Bucket
+
+    const result = await extractPulseSnapshot(testEnv, 'snapshot-legacy')
+
+    expect(result.status).toBe('created')
+    expect(coreMocks.sourceTextContainsExcerpt).toHaveBeenCalledWith(
+      'A totally different page.',
+      'Individual returns are due April 15.',
+    )
+    expect(repoMocks.upsertRuleSourceDriftState).toHaveBeenCalled()
+  })
+
+  it('skips the .full lookup when no verified rule cites the source', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(driftSnapshot('snapshot-norules'))
+    aiMocks.extractPulse.mockResolvedValue(noRegulatoryChange)
+    const testEnv = env()
+    const rawGet = vi.fn(async () => ({ text: vi.fn(async () => 'page text') }))
+    testEnv.R2_PULSE = { get: rawGet } as unknown as R2Bucket
+
+    await extractPulseSnapshot(testEnv, 'snapshot-norules')
+
+    // Only the main raw-text read — no sibling GET when the drift set is empty.
+    expect(rawGet).toHaveBeenCalledTimes(1)
+  })
+
   it('ignores a no_regulatory_change snapshot when cited basis excerpts still match', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue(driftSnapshot('snapshot-ok'))
     aiMocks.extractPulse.mockResolvedValue(noRegulatoryChange)

@@ -80,8 +80,12 @@ export function stableExternalId(url: string): string {
   return parsed.toString()
 }
 
+export function normalizeSourceText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim()
+}
+
 export function textExcerpt(text: string, max = 6000): string {
-  return text.replace(/\s+/g, ' ').trim().slice(0, max)
+  return normalizeSourceText(text).slice(0, max)
 }
 
 function contentDispositionHasPdfFilename(contentDisposition: string | null): boolean {

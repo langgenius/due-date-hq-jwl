@@ -14,7 +14,12 @@ import {
   type SourceAdapterKind,
 } from '@duedatehq/core/rules'
 import { announcementItemsFromSnapshotWithPdfLinks } from '@duedatehq/ingest'
-import { fetchTextSnapshot, stableExternalId, textExcerpt } from '@duedatehq/ingest/http'
+import {
+  fetchTextSnapshot,
+  normalizeSourceText,
+  stableExternalId,
+  textExcerpt,
+} from '@duedatehq/ingest/http'
 import { livePulseAdapters } from '@duedatehq/ingest/adapters'
 import { stripHtml } from '@duedatehq/ingest/selectors'
 import type { IngestCtx, ParsedItem, SourceAdapter } from '@duedatehq/ingest/types'
@@ -645,7 +650,8 @@ function parsedItemForSourceSnapshot(
   body: string,
   fetchedAt: Date,
 ): ParsedItem {
-  const text = textExcerpt(stripHtml(body))
+  const fullText = normalizeSourceText(stripHtml(body))
+  const text = textExcerpt(fullText)
   return {
     sourceId: source.id,
     externalId: stableExternalId(source.url),
@@ -653,6 +659,9 @@ function parsedItemForSourceSnapshot(
     publishedAt: fetchedAt,
     officialSourceUrl: source.url,
     rawText: text || sourceSnapshotTitle(source),
+    // Un-truncated page text for drift only — AI input and the contentHash
+    // dedupe key stay on the 6000-char excerpt.
+    ...(fullText.length > text.length ? { fullText } : {}),
     jurisdiction: source.jurisdiction,
   }
 }

@@ -100,6 +100,13 @@ function safePathPart(value: string): string {
   )
 }
 
+// Sibling R2 key holding the FULL stripped page text for the drift check.
+// Derivable from rawR2Key alone so the reader needs no new DB column; old
+// snapshots simply have no sibling and fall back to the excerpt.
+export function pulseFullTextR2Key(rawR2Key: string): string {
+  return `${rawR2Key}.full`
+}
+
 export async function archivePulseRaw(
   env: Pick<Env, 'R2_PULSE'>,
   input: {
@@ -108,6 +115,7 @@ export async function archivePulseRaw(
     fetchedAt: Date
     body: string
     contentType?: string | null
+    fullText?: string
   },
 ): Promise<{ r2Key: string; contentHash: string }> {
   const contentHash = await hashText(input.body)
@@ -127,6 +135,18 @@ export async function archivePulseRaw(
       contentHash,
     },
   })
+
+  if (input.fullText && input.fullText !== input.body) {
+    await env.R2_PULSE.put(pulseFullTextR2Key(r2Key), input.fullText, {
+      httpMetadata: { contentType: 'text/plain; charset=utf-8' },
+      customMetadata: {
+        sourceId: input.sourceId,
+        externalId: input.externalId,
+        fetchedAt: input.fetchedAt.toISOString(),
+        contentHash,
+      },
+    })
+  }
 
   return { r2Key, contentHash }
 }
@@ -279,6 +299,7 @@ async function ingestAdapter(
           fetchedAt: rawSnapshot.fetchedAt,
           body: item.rawText,
           contentType: 'text/plain; charset=utf-8',
+          ...(item.fullText ? { fullText: item.fullText } : {}),
         })
         const result = await repo.createSourceSnapshot({
           sourceId: item.sourceId,

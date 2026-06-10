@@ -20,6 +20,7 @@ export interface IngestCtx {
     fetchedAt: Date
     body: string
     contentType?: string | null
+    fullText?: string
   }): Promise<{ r2Key: string; contentHash: string }>
 }
 
@@ -42,6 +43,10 @@ export interface ParsedItem {
   publishedAt: Date
   officialSourceUrl: string
   rawText: string
+  // Full normalized page text (un-truncated) for the rule-source drift
+  // comparison. rawText stays the 6000-char excerpt fed to AI extraction and
+  // hashed for snapshot dedupe. Set only when the excerpt actually truncated.
+  fullText?: string
   jurisdiction?: string
 }
 
