@@ -5,6 +5,7 @@ import { generateAuditEvidencePackage } from './audit/package'
 import { consumeDashboardBriefRefresh } from './dashboard-brief/consumer'
 import { isDashboardBriefRefreshMessage } from './dashboard-brief/message'
 import { flushEmailOutbox } from './email/outbox'
+import { dispatchOpsAlert } from './ops-alerts'
 import { extractPulseSnapshot } from './pulse/extract'
 import { consumePulseIngestSource, isPulseIngestSourceMessage } from './pulse/ingest'
 import { recordPulseAlert } from './pulse/metrics'
@@ -95,14 +96,16 @@ function recordQueueRetry(body: unknown, error: unknown): void {
   )
 }
 
-function drainDeadLetterBatch(batch: MessageBatch): void {
+async function drainDeadLetterBatch(batch: MessageBatch, env: Env): Promise<void> {
   for (const message of batch.messages) {
-    recordPulseAlert('pulse.queue.dead_letter', {
+    const fields = {
       queue: batch.queue,
       messageType: queueMessageType(message.body),
       attempts: message.attempts,
       snapshotId: isPulseExtractMessage(message.body) ? message.body.snapshotId : null,
-    })
+    }
+    recordPulseAlert('pulse.queue.dead_letter', fields)
+    await dispatchOpsAlert(env, 'pulse.queue.dead_letter', fields)
     message.ack()
   }
 }
@@ -111,7 +114,7 @@ function drainDeadLetterBatch(batch: MessageBatch): void {
 // can be routed here without conflating job payloads.
 export async function queue(batch: MessageBatch, env: Env, _ctx: ExecutionContext): Promise<void> {
   if (isPulseDeadLetterQueue(batch.queue)) {
-    drainDeadLetterBatch(batch)
+    await drainDeadLetterBatch(batch, env)
     return
   }
   assertQueueDispatchable(batch)
@@ -125,10 +128,12 @@ const MAX_DISPATCH_ATTEMPTS = 3
 
 async function dispatchMessage(message: Message, env: Env): Promise<void> {
   if (message.attempts > MAX_DISPATCH_ATTEMPTS) {
-    recordPulseAlert('queue.dispatch.dropped', {
+    const fields = {
       messageType: queueMessageType(message.body),
       attempts: message.attempts,
-    })
+    }
+    recordPulseAlert('queue.dispatch.dropped', fields)
+    await dispatchOpsAlert(env, 'queue.dispatch.dropped', fields)
     message.ack()
     return
   }

@@ -2,6 +2,7 @@ import { createDb, firmSchema, makePulseOpsRepo, scoped } from '@duedatehq/db'
 import { eq } from 'drizzle-orm'
 import type { Env } from '../env'
 import { enqueueDashboardBriefRefresh } from './dashboard-brief/enqueue'
+import { dispatchOpsAlert } from './ops-alerts'
 import { enqueuePulseIngestScans } from './pulse/ingest'
 import { recordPulseAlert } from './pulse/metrics'
 import { dispatchDeadlineReminders } from './reminders/dispatch'
@@ -143,12 +144,14 @@ async function checkPulseExtractionHealth(env: Env, now: Date): Promise<void> {
   if (attempted < PULSE_HEALTH_MIN_ATTEMPTS) return
   const failureRate = failed / attempted
   if (failureRate < PULSE_HEALTH_FAILURE_RATE_THRESHOLD) return
-  recordPulseAlert('pulse.extract.failure_rate_high', {
+  const fields = {
     windowHours: PULSE_HEALTH_WINDOW_MS / (60 * 60 * 1000),
     attempted,
     failed,
     failureRate: Math.round(failureRate * 100) / 100,
-  })
+  }
+  recordPulseAlert('pulse.extract.failure_rate_high', fields)
+  await dispatchOpsAlert(env, 'pulse.extract.failure_rate_high', fields)
 }
 
 // Cron Trigger entry — fan out by cron expression in Phase 0.
@@ -196,13 +199,14 @@ export async function scheduled(
     result.status === 'rejected' ? [{ branch: branches[index]![0], reason: result.reason }] : [],
   )
   for (const { branch, reason } of failures) {
+    const errorMessage = reason instanceof Error ? reason.message : String(reason)
     console.error(
       JSON.stringify({
         type: 'cron.branch_failed',
         at: new Date().toISOString(),
         branch,
         scheduledTime: now.toISOString(),
-        error: reason instanceof Error ? reason.message : String(reason),
+        error: errorMessage,
         // Drizzle wraps the driver error ("Failed query: …") and the real D1
         // message only survives on .cause — without it a branch failure is
         // undiagnosable from logs (see the 2026-06-08 source-fetch stall).
@@ -215,6 +219,17 @@ export async function scheduled(
         stack: reason instanceof Error ? reason.stack : undefined,
       }),
     )
+    await dispatchOpsAlert(env, `cron.branch_failed.${branch}`, {
+      branch,
+      scheduledTime: now.toISOString(),
+      error: errorMessage,
+      cause:
+        reason instanceof Error && reason.cause !== undefined
+          ? reason.cause instanceof Error
+            ? reason.cause.message
+            : describeUnknownCause(reason.cause)
+          : null,
+    })
   }
   console.info(
     JSON.stringify({

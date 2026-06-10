@@ -1,6 +1,6 @@
 export type PulseMetricFields = Record<string, string | number | boolean | null>
 
-interface PulseSourceStateForMetrics {
+export interface PulseSourceStateForMetrics {
   sourceId: string
   tier: string
   jurisdiction: string
@@ -31,10 +31,13 @@ export function recordPulseAlert(name: string, fields: PulseMetricFields): void 
   )
 }
 
+// Returns the stale sources so the caller can fan a single aggregated
+// operator alert out of the per-source log lines.
 export function emitSourceIdleAlerts(
   sources: readonly PulseSourceStateForMetrics[],
   now: Date = new Date(),
-): void {
+): PulseSourceStateForMetrics[] {
+  const stale: PulseSourceStateForMetrics[] = []
   for (const source of sources) {
     if (!source.enabled || source.healthStatus === 'paused') continue
     const thresholdMs =
@@ -43,6 +46,7 @@ export function emitSourceIdleAlerts(
         : 12 * 60 * 60 * 1000
     const lastSuccessAt = source.lastSuccessAt?.getTime() ?? 0
     if (now.getTime() - lastSuccessAt <= thresholdMs) continue
+    stale.push(source)
     recordPulseAlert('pulse.ingest.last_success_stale', {
       sourceId: source.sourceId,
       tier: source.tier,
@@ -51,4 +55,5 @@ export function emitSourceIdleAlerts(
       lastSuccessAt: source.lastSuccessAt?.toISOString() ?? null,
     })
   }
+  return stale
 }

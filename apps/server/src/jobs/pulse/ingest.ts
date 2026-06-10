@@ -4,6 +4,7 @@ import { hashText } from '@duedatehq/ingest/http'
 import { RATE_LIMIT } from '@duedatehq/ingest/http'
 import type { IngestCtx, SourceAdapter } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
+import { dispatchOpsAlert, type OpsAlertEnv } from '../ops-alerts'
 import { createBrowserlessFetch } from './browserless'
 import { emitSourceIdleAlerts, recordPulseMetric } from './metrics'
 import { liveRegulatorySourceAdapters } from './rule-source-adapters'
@@ -430,7 +431,7 @@ export async function runPulseIngest(
 // full source set; it reflects prior runs' success times (independent of this tick's
 // not-yet-run fetches), so computing it pre-fetch is correct and not masked by the tick.
 export async function enqueuePulseIngestScans(
-  env: Pick<Env, 'DB' | 'PULSE_QUEUE'>,
+  env: Pick<Env, 'DB' | 'PULSE_QUEUE'> & OpsAlertEnv,
   adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
   now: Date = new Date(),
 ): Promise<{ queued: number }> {
@@ -467,10 +468,21 @@ export async function enqueuePulseIngestScans(
   )
 
   const activeSourceIds = new Set(adapters.map((adapter) => adapter.id))
-  emitSourceIdleAlerts(
+  const staleSources = emitSourceIdleAlerts(
     (await repo.listSourceStates()).filter((row) => activeSourceIds.has(row.sourceId)),
     now,
   )
+  if (staleSources.length > 0) {
+    // One aggregated operator email per dedupe window — the per-source
+    // pulse.alert log lines above stay for diagnosis.
+    await dispatchOpsAlert(env, 'pulse.ingest.sources_stale', {
+      staleCount: staleSources.length,
+      sample: staleSources
+        .slice(0, 10)
+        .map((source) => source.sourceId)
+        .join(', '),
+    })
+  }
   recordPulseMetric('pulse.ingest.enqueued', { queued: dueSourceIds.length })
   return { queued: dueSourceIds.length }
 }

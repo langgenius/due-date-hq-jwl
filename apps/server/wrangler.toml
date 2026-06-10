@@ -150,6 +150,11 @@ ENV = "staging"
 AUTH_URL = "https://app.due.langgenius.app"
 APP_URL = "https://app.due.langgenius.app"
 EMAIL_FROM = "noreply@langgenius.app"
+# Operator-grade alert sink (cron branch failures, stale-source watchdog, queue
+# dead-letters, extraction canary) — emailed via Resend, deduped 6h per alert
+# name. Empty disables the sink; alerts then only reach Workers Logs, which
+# nobody watches (the 2026-06-08 fetch stall ran 38h unnoticed that way).
+OPS_ALERT_EMAIL = ""
 GOOGLE_CLIENT_ID = "921927048644-ub9la8vt77v4p1fftn1tc3b1naeemh9h.apps.googleusercontent.com"
 AI_GATEWAY_ACCOUNT_ID = "8f7d374db5cb1f025b7f71e28b84c9bb"
 AI_GATEWAY_SLUG = "duedatehq"

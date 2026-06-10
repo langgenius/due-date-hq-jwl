@@ -29,7 +29,8 @@ const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
   return {
     repoMocks: repo,
     metricsMocks: {
-      emitSourceIdleAlerts: vi.fn(),
+      // Returns the stale-source list (used for the aggregated ops alert).
+      emitSourceIdleAlerts: vi.fn(() => []),
       recordPulseMetric: vi.fn(),
     },
     dbMocks: {

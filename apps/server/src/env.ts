@@ -83,6 +83,12 @@ export interface Env extends WorkerBindings, ServerEnv {
   AI_GATEWAY_FAST_REASONING_EFFORT: string
   /** Optional override for the global daily ceiling on system (no-firmId) AI calls. */
   AI_SYSTEM_DAILY_LIMIT?: string
+  /**
+   * Recipient for operator-grade alerts (cron branch failures, stale-source
+   * watchdog, queue dead-letters, extraction canary). Unset/empty disables the
+   * email sink — alerts then only reach Workers Logs, which nobody watches.
+   */
+  OPS_ALERT_EMAIL?: string
   /** "true" enables the public no-signup demo (`GET /api/demo`). Off unless set; always on in development. */
   ENABLE_PUBLIC_DEMO?: string
   VAPID_PUBLIC_KEY: string
