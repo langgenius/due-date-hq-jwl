@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CalendarRangeIcon } from 'lucide-react'
+import { CalendarRangeIcon, CheckIcon } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
@@ -77,6 +77,38 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
 
   const lateFlag = client.lateFilingCountLast12mo
 
+  // Legal entity (distinct from the tax `entityType`) — clean per-value labels;
+  // only shown when set (it's nullable + often unset, so we don't clutter the
+  // card with "Not on file" for a secondary field).
+  const legalEntityLabel = useMemo<string | null>(() => {
+    if (!client.legalEntity) return null
+    const labels: Record<string, string> = {
+      individual: t`Individual`,
+      sole_proprietorship: t`Sole proprietorship`,
+      single_member_llc: t`Single-member LLC`,
+      multi_member_llc: t`Multi-member LLC`,
+      partnership: t`Partnership`,
+      corporation: t`Corporation`,
+      trust: t`Trust`,
+      estate: t`Estate`,
+      nonprofit: t`Nonprofit`,
+      foreign_entity: t`Foreign entity`,
+      other: t`Other`,
+    }
+    return labels[client.legalEntity] ?? client.legalEntity
+  }, [client.legalEntity, t])
+
+  // Tax attributes — the real booleans that drive the deadline generator
+  // (deadline-category-suggestions.ts). Surfaced as honest on/off chips so the
+  // CPA can verify what this client's filings are computed from.
+  const taxAttributes = [
+    { label: t`Payroll`, on: client.hasPayroll },
+    { label: t`Sales tax`, on: client.hasSalesTax },
+    { label: t`1099 vendors`, on: client.has1099Vendors },
+    { label: t`K-1 activity`, on: client.hasK1Activity },
+    { label: t`Foreign accounts`, on: client.hasForeignAccounts },
+  ]
+
   return (
     // The Card primitive: size="sm" gives px-4/py-4 + gap-4; radius="md"
     // matches the dense rounded-lg used across the in-page surfaces.
@@ -115,6 +147,9 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
             }
           />
           <IdentityCell label={t`Owners`} value={ownerLabel} />
+          {legalEntityLabel ? (
+            <IdentityCell label={t`Legal entity`} value={legalEntityLabel} />
+          ) : null}
           <IdentityCell
             label={t`Client since`}
             value={clientSinceLabel}
@@ -139,6 +174,30 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
             }
           />
         </dl>
+        {/* Tax attributes — the booleans that drive the deadline generator.
+            Active = accent chip with a check; inactive = muted chip, so the
+            CPA reads the client's filing-relevant profile at a glance. */}
+        <div className="mt-3 flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
+          <span className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
+            <Trans>Tax attributes</Trans>
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {taxAttributes.map((attr) => (
+              <span
+                key={attr.label}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium',
+                  attr.on
+                    ? 'bg-state-accent-hover text-text-accent'
+                    : 'bg-background-section text-text-muted',
+                )}
+              >
+                {attr.on ? <CheckIcon aria-hidden className="size-3" /> : null}
+                {attr.label}
+              </span>
+            ))}
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
