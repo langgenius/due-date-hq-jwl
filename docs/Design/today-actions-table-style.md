@@ -1,9 +1,13 @@
-# /today — Actions-this-week table style
+# /today — Priority Actions table style
 
-Canonical style reference for the **Actions this week** table on `/today`
+Canonical style reference for the **Priority Actions** table on `/today`
 (`apps/app/src/features/dashboard/actions-list.tsx`). Noted down at Yuqi's
 request (2026-06-09 #12 "have you note down this table style? please do") so the
 treatment is reusable and doesn't drift.
+
+2026-06-10 scope update: this section is no longer limited to the 7-day
+`this_week` bucket. It renders the server-ranked `dashboard.load.topRows`
+shortlist, capped at 10, while preserving lifecycle-status grouping.
 
 This is the **white work table** — the focal surface on the dashboard. It reads
 as "your work," deliberately distinct from the gray **alert cards** above it
@@ -101,7 +105,7 @@ The table is **neutral by default**. Chromatic accent is rationed:
 
 ## Section header (above the table)
 
-`ACTIONS THIS WEEK` — **Register A** section title (see
+`PRIORITY ACTIONS` — **Register A** section title (see
 `section-header-style.md`): `text-[14px] font-semibold tracking-[0.4px]
 text-text-primary uppercase`. Both /today section titles (this + Alerts) share
 this primary-ink eyebrow. Trailed by an accent `<SparklesIcon>` that doubles as

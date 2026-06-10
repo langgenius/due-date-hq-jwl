@@ -1,4 +1,4 @@
-# Design brief: Dashboard "Actions this week" + Obligations differentiation
+# Design brief: Dashboard Priority Actions + Obligations differentiation
 
 > Produced by `/shape` on 2026-05-19, following a `/critique` of the
 > dashboard/obligations overlap. Locks the design direction for the
@@ -13,11 +13,17 @@
 
 ## 1. Feature summary
 
-Reshape the Dashboard from a capped table of obligations into a **verb-led action list** — a daily-standup view where every line is _something to do this week_, not a row in a spreadsheet. Obligations stays the data grid. The two pages become structurally different: Dashboard reads like Slack, Obligations reads like a CRM.
+Reshape the Dashboard from a capped table of obligations into a **verb-led action list** — a daily-standup view where every line is _the next work most worth handling_, not a row in a spreadsheet. Obligations stays the data grid. The two pages become structurally different: Dashboard reads like a work briefing, Obligations reads like a CRM.
+
+**2026-06-10 scope amendment:** `/today` now renders **Priority Actions** from
+`dashboard.load.topRows`, capped at 10. The list is no longer limited to the
+`this_week` bucket because CPA work often starts weeks before a due date. The
+table still keeps lifecycle-status grouping, and each group preserves Smart
+Priority order.
 
 ## 2. Primary user action
 
-A CPA firm owner or preparer opens the Dashboard at 8am and can answer **"what do I need to act on this week?"** in 5 seconds, by glancing at:
+A CPA firm owner or preparer opens the Dashboard at 8am and can answer **"what is the next work worth handling?"** in 5 seconds, by glancing at:
 
 1. Radar alerts that need a decision
 2. An aggregate exposure strip
@@ -52,7 +58,7 @@ Today · May 19                                              [Import clients]
 tile is the only path to /rules/pulse from this section. Header
 row now carries the h2 + monitoring chip alone.)
 
-ACTIONS THIS WEEK                                            All deadlines ↗
+PRIORITY ACTIONS                                             All deadlines ↗
   [3 In review]  [2 Blocked]  [4 Waiting on client]   ← summary tiles
                                                          (was exposure strip)
   › Confirm filing for Lakeview Medical Partners · 18d late · $4.3k
@@ -67,7 +73,7 @@ ACTIONS THIS WEEK                                            All deadlines ↗
 2. Alerts (boxed soft-destructive frame — the heaviest visual on
    the page because it's the only thing that demands an
    immediate decision)
-3. Actions this week heading + per-status summary tiles
+3. Priority Actions heading + per-status summary tiles
 4. Actions list (medium, single-line items, hover-to-expand)
 5. Footer link (small, muted)
 
@@ -79,16 +85,16 @@ No card containers around the actions list. No tab strip. No filters. No sort co
 
 Status names everywhere use the v2 vocabulary (`not_started · waiting_on_client · blocked · in_review · filed · completed`) per `project_status_taxonomy.md`. Completed and `not_applicable` rows are filtered out of the actions list — they're not actions.
 
-| State                             | What the user sees + feels                                                                                                                                                                                                       |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Default (loaded, has actions)** | Date header · NEEDS ATTENTION (when present) · exposure strip · 5–10 action lines · footer link. Quiet, scannable.                                                                                                               |
-| **Loading**                       | Skeleton: 3 skeleton lines under "Actions this week", no shimmer. Exposure strip shows `— need decision · $— at risk` with hairlines.                                                                                            |
-| **Empty (no actions this week)**  | Replace the list with a single calm line: _"You're caught up. Next deadline in 6 days."_ Show the exposure strip if there are still open items beyond this week, else hide it entirely. No celebration art — calm, not gamified. |
-| **No Radar alerts**               | NEEDS ATTENTION section hides entirely (no empty placeholder). Page starts at "This week's exposure."                                                                                                                            |
-| **Error**                         | One thin error strip above the actions list with a Retry link. Aggregate strip + Radar stay rendered with last-known data when available.                                                                                        |
-| **Action item expanded**          | The line grows in-place to ~80px. Shows reason (one sentence) + two buttons (primary: context-aware verb · secondary: "Open in Obligations →"). Other items dim slightly to give it focus.                                       |
-| **Action committed**              | Inline toast at the bottom: _"Marked filed. Undo (8s)."_ The committed item collapses and slides out (next item shifts up).                                                                                                      |
-| **Many actions (overflow)**       | Cap at 10 visible. If more exist, show `… 14 more in the queue → Open Obligations` as the footer link. Do not paginate the dashboard itself.                                                                                     |
+| State                             | What the user sees + feels                                                                                                                                                                       |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Default (loaded, has actions)** | Date header · NEEDS ATTENTION (when present) · exposure strip · up to 10 action lines · footer link. Quiet, scannable.                                                                           |
+| **Loading**                       | Skeleton: 3 skeleton lines under "Priority Actions", no shimmer. Exposure strip shows `— need decision · $— at risk` with hairlines.                                                             |
+| **Empty (no priority actions)**   | Replace the list with a single calm line. If there are no open obligations, show the import or setup path; otherwise route to the full deadlines queue. No celebration art — calm, not gamified. |
+| **No Radar alerts**               | NEEDS ATTENTION section hides entirely (no empty placeholder). Page starts at "This week's exposure."                                                                                            |
+| **Error**                         | One thin error strip above the actions list with a Retry link. Aggregate strip + Radar stay rendered with last-known data when available.                                                        |
+| **Action item expanded**          | The line grows in-place to ~80px. Shows reason (one sentence) + two buttons (primary: context-aware verb · secondary: "Open in Obligations →"). Other items dim slightly to give it focus.       |
+| **Action committed**              | Inline toast at the bottom: _"Marked filed. Undo (8s)."_ The committed item collapses and slides out (next item shifts up).                                                                      |
+| **Many actions (overflow)**       | Cap at 10 visible. If more exist, show `… 14 more in the queue → Open Obligations` as the footer link. Do not paginate the dashboard itself.                                                     |
 
 ## 6. Interaction model
 
@@ -128,7 +134,7 @@ Status names everywhere use the v2 vocabulary (`not_started · waiting_on_client
 
 - `NEEDS ATTENTION` (red, kept from current)
 - `THIS WEEK'S EXPOSURE`
-- `ACTIONS THIS WEEK`
+- `PRIORITY ACTIONS`
 
 **Aggregate strip format (mono numerals, hairline-separated):**
 `5 need your decision · $14,200 at risk · 2 blocked · 3 waiting on client`
@@ -180,7 +186,7 @@ The **action prompt is the existing `nextCheck` text** the current dashboard col
 | Dashboard = obligation rows or action items? | Action items (verb-led list, not table rows)                                                   |
 | Click target on a dashboard item             | Inline expansion (accordion) — no popover, no drawer, no nav                                   |
 | Smart Priority sort home                     | Both pages; Obligations defaults to **Due date asc** instead of Smart Priority                 |
-| Time-bucket tabs on Dashboard                | Drop entirely; "this week" is implicit scope                                                   |
+| Time-bucket tabs on Dashboard                | Drop entirely; Priority Actions uses the top open Smart Priority shortlist                     |
 | Aggregate exposure strip                     | Yes — new (`5 need decision · $14k at risk · 2 blocked · 3 waiting on client`)                 |
 | Status vocabulary                            | v2 6-state model (`not_started · waiting_on_client · blocked · in_review · filed · completed`) |
 | Action prompt source                         | Reuse existing `nextCheck` text — no new verb dictionary                                       |

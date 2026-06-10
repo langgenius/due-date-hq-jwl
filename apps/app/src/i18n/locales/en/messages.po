@@ -1606,8 +1606,8 @@ msgid "A specific compliance deadline generated from client facts and active pra
 msgstr "A specific compliance deadline generated from client facts and active practice rules. It is more structured than a generic task."
 
 #: src/features/dashboard/actions-list.tsx
-msgid "About Actions this week"
-msgstr "About Actions this week"
+msgid "About Priority Actions"
+msgstr "About Priority Actions"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Accept"
@@ -1747,10 +1747,6 @@ msgstr "Actions"
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "Actions for {0}"
 msgstr "Actions for {0}"
-
-#: src/features/dashboard/actions-list.tsx
-msgid "Actions this week"
-msgstr "Actions this week"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Activate rule"
@@ -5307,8 +5303,8 @@ msgid "CSV, XLS, or XLSX"
 msgstr "CSV, XLS, or XLSX"
 
 #: src/features/dashboard/actions-list.tsx
-msgid "Curated by Smart Priority — the work that needs your attention this week, not every deadline."
-msgstr "Curated by Smart Priority — the work that needs your attention this week, not every deadline."
+msgid "Curated by Smart Priority — the next work most worth handling, not every deadline."
+msgstr "Curated by Smart Priority — the next work most worth handling, not every deadline."
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Currency · number"
@@ -10183,6 +10179,10 @@ msgstr "No previous client"
 msgid "No prior-year equivalent — review cold."
 msgstr "No prior-year equivalent — review cold."
 
+#: src/features/dashboard/actions-list.tsx
+msgid "No priority actions right now."
+msgstr "No priority actions right now."
+
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "No problem — you can import your clients any time from Clients → Import. Here's what changes if you skip now:"
 msgstr "No problem — you can import your clients any time from Clients → Import. Here's what changes if you skip now:"
@@ -10522,10 +10522,6 @@ msgstr "Nothing applies until step 4. Every normalization is logged and reversib
 #: src/routes/splash.tsx
 msgid "Nothing changed while you were away — you're all caught up."
 msgstr "Nothing changed while you were away — you're all caught up."
-
-#: src/features/dashboard/actions-list.tsx
-msgid "Nothing due this week."
-msgstr "Nothing due this week."
 
 #: src/components/patterns/alerts-notifications-bell.tsx
 msgid "Nothing here."
@@ -12093,6 +12089,10 @@ msgstr "Prior year"
 #: src/routes/obligations.tsx
 msgid "Priority"
 msgstr "Priority"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "Priority Actions"
+msgstr "Priority Actions"
 
 #: src/features/alerts/lib/error-mapping.ts
 msgid "Priority alert matching and review confirmation require Team or above."
@@ -14970,8 +14970,8 @@ msgid "Status"
 msgstr "Status"
 
 #: src/features/dashboard/actions-list.tsx
-msgid "Status across this week's actions"
-msgstr "Status across this week's actions"
+msgid "Status across priority actions"
+msgstr "Status across priority actions"
 
 #. placeholder {0}: statusLabels[input.status]
 #. placeholder {0}: statusLabels[nextStatus]
@@ -17334,8 +17334,8 @@ msgid "Your subscription is confirmed and the plan is active."
 msgstr "Your subscription is confirmed and the plan is active."
 
 #: src/features/dashboard/actions-list.tsx
-msgid "Your top 10 deadlines due this week, ranked by Smart Priority and bucketed into Critical (act today), High (this week), and Upcoming. Subgroups inside each tier separate work you can start now from work waiting on the client."
-msgstr "Your top 10 deadlines due this week, ranked by Smart Priority and bucketed into Critical (act today), High (this week), and Upcoming. Subgroups inside each tier separate work you can start now from work waiting on the client."
+msgid "Your top 10 open deadlines, ranked by Smart Priority and grouped by workflow status. Each group keeps Smart Priority order."
+msgstr "Your top 10 open deadlines, ranked by Smart Priority and grouped by workflow status. Each group keeps Smart Priority order."
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Your uploaded file stays unchanged — this clean draft is used only after you import."

@@ -50,7 +50,7 @@ function topPriorityFactors(row: DashboardTopRow): string[] {
   return factors.map((f) => f.label)
 }
 
-// Dashboard v2 "Actions this week" — verb-led action queue.
+// Dashboard v2 "Priority Actions" — verb-led action queue.
 //
 // Behavior:
 //   - Each row has a chevron at the start (`>` collapsed → `v` expanded)
@@ -605,7 +605,6 @@ function DashboardActionsList({
   rows,
   asOfDate,
   isLoading,
-  totalThisWeek,
   totalOpen,
   canRunMigration,
   onOpenWizard,
@@ -626,11 +625,9 @@ function DashboardActionsList({
   rows: DashboardTopRow[]
   asOfDate: string | null
   isLoading: boolean
-  totalThisWeek: number
   // Total open obligations across the whole practice — used to split
-  // the empty state: zero rows in the queue means "import data";
-  // zero this week but rows elsewhere means "you're caught up,
-  // here's the rest."
+  // the empty state: zero rows in the priority queue means there is no
+  // open deadline work; rows elsewhere should still route to /deadlines.
   totalOpen: number
   canRunMigration: boolean
   // 2026-05-29 (Yuqi /today follow-up — "no clients vs no deadlines"):
@@ -697,10 +694,9 @@ function DashboardActionsList({
   // 2026-06-04 (Yuqi alignment fix): dropped the `px-3` wrapper.
   // The lifecycle strip now spans the same x-edges as the tier
   // section headers + ActionsTable wrapper below.
-  // 2026-06-04 round 6 (Yuqi "wire numbers correctly"): strip
-  // now uses `visible` (top 10 rows displayed in the table)
-  // instead of `rows` (up to 20 from server). Counts now match
-  // the rows the CPA actually sees below.
+  // 2026-06-10 (Yuqi /today CPA workflow): strip uses `visible`
+  // (top 10 rows displayed in the table) instead of `rows`
+  // (up to 20 from server). Counts match the rows the CPA sees.
   // 2026-06-04 round 15 (Yuqi "hide this for now"): strip render
   // commented out below. `summaryStrip` const + `void` cheat
   // kept so revival is a one-line uncomment without re-wiring
@@ -710,8 +706,8 @@ function DashboardActionsList({
 
   if (isLoading) {
     return (
-      <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-        <ActionsListHeader count={null} onOpenAll={onOpenAllObligations} />
+      <section aria-label={t`Priority Actions`} className="flex flex-col gap-3">
+        <ActionsListHeader onOpenAll={onOpenAllObligations} />
         <div className="flex flex-wrap gap-3">
           <Skeleton className="h-16 w-40" />
           <Skeleton className="h-16 w-40" />
@@ -728,19 +724,18 @@ function DashboardActionsList({
 
   if (visible.length === 0) {
     // Three empty states, in order of how they should be tested:
-    //   1. The practice has obligations beyond this week — show the
-    //      count and route to /deadlines. Avoids the "import again"
-    //      misread when the user already has data.
+    //   1. The practice has obligations elsewhere — route to /deadlines.
+    //      Avoids the "import again" misread when the user already has data.
     //   2. The practice has zero obligations AND no clients yet — keep
     //      the import CTA.
     //   3. Caught-up state (rows exist somewhere but Smart Priority
     //      filtered them all out).
     return (
-      <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-        <ActionsListHeader count={0} onOpenAll={onOpenAllObligations} />
+      <section aria-label={t`Priority Actions`} className="flex flex-col gap-3">
+        <ActionsListHeader onOpenAll={onOpenAllObligations} />
         {totalOpen > 0 ? (
           <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-secondary">
-            <Trans>Nothing due this week.</Trans>{' '}
+            <Trans>No priority actions right now.</Trans>{' '}
             <Button
               variant="link"
               size="sm"
@@ -834,8 +829,8 @@ function DashboardActionsList({
   }
 
   return (
-    <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-      <ActionsListHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
+    <section aria-label={t`Priority Actions`} className="flex flex-col gap-3">
+      <ActionsListHeader onOpenAll={onOpenAllObligations} />
       {/* 2026-06-04 round 15 (Yuqi page-feedback "hide this for
           now"): `<DashboardStatusLifecycleStrip>` render hidden.
           The strip + its scope caption + the new border tone work
@@ -870,17 +865,14 @@ function DashboardActionsList({
           dead-code suppression removed alongside the state machinery
           it was holding alive. */}
       {/* 2026-05-26 (Yuqi /today feedback): "… N more in the queue"
-          caption removed. The section already has a "View all
-          deadlines" link in its header (see ActionsListHeader); the
-          footer caption was duplicate-pointing to the same
-          destination. The truncation itself is communicated
-          implicitly — the count in the header tells the user how
-          many TOTAL deadlines exist this week. */}
+          caption removed. The section title links to /deadlines, so
+          a footer link would duplicate the same destination. The
+          shortlist cap is explained in the tooltip. */}
     </section>
   )
 }
 
-function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () => void }) {
+function ActionsListHeader({ onOpenAll }: { onOpenAll: () => void }) {
   const { t } = useLingui()
   return (
     // 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
@@ -890,7 +882,7 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
     // left, with the title/count/caption sharing one visual midline
     // (`items-center`, not `items-baseline`).
     // 2026-06-04 (Yuqi alignment fix — "not left aligned"): dropped
-    // `px-3` so the "Actions this week" header sits at the same
+    // `px-3` so the action header sits at the same
     // left edge as the lifecycle strip below, the tier headers
     // (Critical / High / Upcoming), and the ActionsTable wrapper.
     // The previous px-3 created an 8-12px stair-step between the
@@ -933,18 +925,18 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
           visual. Same micro-mark repeated on each row's rank
           chip so the table is unmistakably "smart". */}
       {/* 2026-06-04 round 16 (Yuqi page-feedback "align with
-          Actions this week"): restructured the heading column so
+          the action section"): restructured the heading column so
           the SparklesIcon sits OUTSIDE the inner h2 + p stack.
           The inner stack's left edge is the same as the heading
           text's left edge, so the "Curated by Smart Priority…"
-          paragraph now starts directly under "Actions this week"
+          paragraph now starts directly under the section title
           — not under the leading icon. Previously the p sat
           under the icon's left edge, creating an unintended
           indent against the heading text. */}
       {/* 2026-06-04 round 43 (Yuqi /today feedback #2 — "move the
-          icon to after Actions this week icon? and it is replacing
+          icon after the action title? and it is replacing
           i icon as the information tooltip"): Sparkles moved INLINE
-          INTO the h2, AFTER the "Actions this week" text. It now
+          INTO the h2, AFTER the section title text. It now
           doubles as the tooltip trigger that the InfoIcon used to
           carry — one accent-toned icon does both jobs:
             • Marks the section as Smart-Priority curated (the
@@ -976,14 +968,14 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
             }}
             className="rounded-sm underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
-            <Trans>Actions this week</Trans>
+            <Trans>Priority Actions</Trans>
           </Link>
           <Tooltip>
             <TooltipTrigger
               render={(props) => (
                 <button
                   type="button"
-                  aria-label={t`About Actions this week`}
+                  aria-label={t`About Priority Actions`}
                   className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   {...props}
                 >
@@ -1004,9 +996,8 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
                 </span>
                 <span className="border-t border-components-panel-border/60 pt-2 text-xs leading-relaxed font-normal text-components-tooltip-text/85">
                   <Trans>
-                    Your top 10 deadlines due this week, ranked by Smart Priority and bucketed into
-                    Critical (act today), High (this week), and Upcoming. Subgroups inside each tier
-                    separate work you can start now from work waiting on the client.
+                    Your top 10 open deadlines, ranked by Smart Priority and grouped by workflow
+                    status. Each group keeps Smart Priority order.
                   </Trans>
                 </span>
               </div>
@@ -1015,14 +1006,13 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
         </h2>
         <p className="text-sm text-text-tertiary">
           <Trans>
-            Curated by Smart Priority — the work that needs your attention this week, not every
-            deadline.
+            Curated by Smart Priority — the next work most worth handling, not every deadline.
           </Trans>
         </p>
       </div>
       {/* 2026-06-09 (Yuqi /today "hide"): the right-aligned "View all
-          deadlines" link is removed — the section title "Actions this week"
-          now navigates to the deadlines list. */}
+          deadlines" link is removed — the section title now navigates
+          to the deadlines list. */}
     </div>
   )
 }
@@ -1125,17 +1115,15 @@ function DashboardStatusLifecycleStrip({ rows }: { rows: DashboardTopRow[] }) {
     // rounded radius frame the cluster as a unit; the white fill
     // gives the per-cell content something to sit on rather than
     // floating against the page wash.
-    // 2026-06-04 round 14 (Yuqi page-feedback "so is this for
-    // Actions this week, or all deadlines?"): wrapped the strip
-    // with a small eyebrow caption so the scope is explicit at
-    // the glance, not implicit via the section header above.
-    // Strip is fed from `visible` (the top 10 rows of this
-    // week's actions); the caption names that scope directly.
+    // 2026-06-04 round 14 wrapped the strip with a small eyebrow
+    // caption so the scope is explicit at the glance, not implicit
+    // via the section header above. Strip is fed from `visible`
+    // (the top priority actions); the caption names that scope directly.
     // 11/600 uppercase tertiary matches the canonical column-
     // label tone shared across tables — same family signal.
     <div className="flex flex-col gap-1.5">
       <span className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
-        <Trans>Status across this week's actions</Trans>
+        <Trans>Status across priority actions</Trans>
       </span>
       <div className="flex flex-row flex-wrap overflow-hidden rounded-xl border border-divider-deep bg-background-default">
         {LIFECYCLE_CELLS.map((cell, index) => {

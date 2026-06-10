@@ -196,7 +196,6 @@ export function DashboardRoute() {
     dashboardQuery.dataUpdatedAt > 0 ? new Date(dashboardQuery.dataUpdatedAt).toISOString() : null
   const syncedLabel = syncedAtIso ? formatRelativeTime(syncedAtIso) : null
 
-  const triageTabs = data?.triageTabs ?? []
   const facets = data?.facets
 
   return (
@@ -522,9 +521,11 @@ export function DashboardRoute() {
         <DashboardActionsList
           isLoading={dashboardQuery.isLoading}
           asOfDate={data?.asOfDate ?? null}
-          // v2 scope is implicit "this week" per design brief — no time-bucket tabs.
-          rows={triageTabs.find((tab) => tab.key === 'this_week')?.rows ?? []}
-          totalThisWeek={triageTabs.find((tab) => tab.key === 'this_week')?.count ?? 0}
+          // 2026-06-10 (Yuqi /today CPA workflow): Today should surface
+          // the next best work across open deadlines, not wait until items
+          // enter the 7-day bucket. `topRows` is already the server-ranked
+          // Smart Priority shortlist; the component keeps status grouping.
+          rows={data?.topRows ?? []}
           totalOpen={data?.summary?.openObligationCount ?? 0}
           needDecisionCount={data?.summary?.needsReviewCount ?? 0}
           blockedCount={facets?.statuses.find((s) => s.value === 'blocked')?.count ?? 0}

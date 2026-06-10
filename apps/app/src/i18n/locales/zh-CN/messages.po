@@ -1625,8 +1625,8 @@ msgid "A specific compliance deadline generated from client facts and active pra
 msgstr "由客户事实和当前事务所已生效规则生成的具体合规截止日，比普通任务更结构化。"
 
 #: src/features/dashboard/actions-list.tsx
-msgid "About Actions this week"
-msgstr "关于本周事项"
+msgid "About Priority Actions"
+msgstr "关于优先操作"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Accept"
@@ -1766,10 +1766,6 @@ msgstr "操作"
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "Actions for {0}"
 msgstr "{0} 的操作"
-
-#: src/features/dashboard/actions-list.tsx
-msgid "Actions this week"
-msgstr "本周操作"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Activate rule"
@@ -5343,8 +5339,8 @@ msgid "CSV, XLS, or XLSX"
 msgstr "CSV、XLS 或 XLSX"
 
 #: src/features/dashboard/actions-list.tsx
-msgid "Curated by Smart Priority — the work that needs your attention this week, not every deadline."
-msgstr "由 Smart Priority 精选 — 本周需要你关注的工作，而非全部截止日期。"
+msgid "Curated by Smart Priority — the next work most worth handling, not every deadline."
+msgstr "由 Smart Priority 精选 — 接下来最值得处理的工作，而非全部截止日期。"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Currency · number"
@@ -10244,6 +10240,10 @@ msgstr "没有上一个客户"
 msgid "No prior-year equivalent — review cold."
 msgstr "没有上一年的对应规则 —— 需从零评审。"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "No priority actions right now."
+msgstr "当前没有优先操作。"
+
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "No problem — you can import your clients any time from Clients → Import. Here's what changes if you skip now:"
 msgstr "没问题 — 您可以随时从「客户 → 导入」导入客户。如果您现在跳过，以下内容将发生变化："
@@ -10587,10 +10587,6 @@ msgstr "在第 4 步之前不会应用任何更改。每项规范化都会记录
 #: src/routes/splash.tsx
 msgid "Nothing changed while you were away — you're all caught up."
 msgstr "您离开期间没有任何变化 — 一切都已处理完毕。"
-
-#: src/features/dashboard/actions-list.tsx
-msgid "Nothing due this week."
-msgstr "本周没有到期事项。"
 
 #: src/components/patterns/alerts-notifications-bell.tsx
 msgid "Nothing here."
@@ -12177,6 +12173,10 @@ msgstr "上一年度"
 #: src/routes/obligations.tsx
 msgid "Priority"
 msgstr "优先级"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "Priority Actions"
+msgstr "优先操作"
 
 #: src/features/alerts/lib/error-mapping.ts
 msgid "Priority alert matching and review confirmation require Team or above."
@@ -15064,8 +15064,8 @@ msgid "Status"
 msgstr "状态"
 
 #: src/features/dashboard/actions-list.tsx
-msgid "Status across this week's actions"
-msgstr "本周各项操作的状态"
+msgid "Status across priority actions"
+msgstr "优先操作状态"
 
 #. placeholder {0}: statusLabels[input.status]
 #. placeholder {0}: statusLabels[nextStatus]
@@ -17436,8 +17436,8 @@ msgid "Your subscription is confirmed and the plan is active."
 msgstr "订阅已确认，当前计划已生效。"
 
 #: src/features/dashboard/actions-list.tsx
-msgid "Your top 10 deadlines due this week, ranked by Smart Priority and bucketed into Critical (act today), High (this week), and Upcoming. Subgroups inside each tier separate work you can start now from work waiting on the client."
-msgstr "本周到期的前 10 项截止日期，按 Smart Priority 排序并分为“紧急”（今天处理）、“高”（本周处理）和“即将触发”。每个层级内的子分组将可立即开始的工作与等待客户回复的工作区分开。"
+msgid "Your top 10 open deadlines, ranked by Smart Priority and grouped by workflow status. Each group keeps Smart Priority order."
+msgstr "当前未完成的前 10 个截止日，按 Smart Priority 排序并按工作流状态分组。每个分组内保留 Smart Priority 顺序。"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Your uploaded file stays unchanged — this clean draft is used only after you import."
