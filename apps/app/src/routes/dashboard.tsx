@@ -25,7 +25,7 @@ import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
-import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
+import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
 // Import retained but commented out alongside the section mount.
 // Restore both when ChangesSinceLastSection is brought back.
 // import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
@@ -125,7 +125,6 @@ function cleanEntityIdFilters(values: readonly string[]): string[] {
   return cleanStringFilters(values).filter((value) => UUID_RE.test(value))
 }
 
-const BRIEF_DISMISSED_STORAGE_KEY = 'ddhq:dashboard:brief-dismissed'
 
 export function DashboardRoute() {
   const { t } = useLingui()
@@ -150,15 +149,6 @@ export function DashboardRoute() {
     void setDashboardParams({ scope: next })
   }
   const queryClient = useQueryClient()
-  // The Daily Brief is dismissable. We persist the dismissal keyed to
-  // the brief's generation
-  // stamp so closing it hides THIS brief but a freshly regenerated brief
-  // (new stamp) returns on its own. localStorage so the choice survives a
-  // reload within the day.
-  const [dismissedBriefKey, setDismissedBriefKey] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    return window.localStorage.getItem(BRIEF_DISMISSED_STORAGE_KEY)
-  })
   const dashboardAsOfDate = ISO_DATE_RE.test(asOfDate) ? asOfDate : null
   const clientQuery = useMemo(() => cleanEntityIdFilters(client), [client])
   const taxTypeQuery = useMemo(() => cleanStringFilters(taxType), [taxType])
@@ -414,33 +404,22 @@ export function DashboardRoute() {
                 errorCode: null,
               } as const)
             : null)
-        // Key the dismissal to the brief's generation stamp so a NEW brief
-        // (different stamp) reappears even after a prior one was closed.
-        const briefKey = brief?.generatedAt ?? brief?.status ?? null
-        if (brief && briefKey && dismissedBriefKey === briefKey) return null
+        // 2026-06-10 (Yuqi "turn Daily brief into jXPZ9"): the brief is now the
+        // MergedBrief — counts + the deadline queue grouped by time/stage/owner,
+        // collapsible in place. No AI sentence to regenerate and no dismiss
+        // (collapse replaces it). Priority Actions stays below for comparison.
         return (
-          <DailyBriefCard
+          <MergedBriefCard
             scope={scope}
             brief={brief}
-            recap={data?.recap ?? null}
-            concentration={data?.summary?.overdueConcentration ?? null}
-            todayCounts={{
-              overdueCount: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
-              waitingOnClientCount:
-                facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0,
-              dueThisWeekCount: data?.summary?.dueThisWeekCount ?? 0,
+            counts={{
+              overdue: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
+              endingToday: facets?.dueBuckets.find((b) => b.value === 'today')?.count ?? 0,
+              thisWeek: facets?.dueBuckets.find((b) => b.value === 'next_7_days')?.count ?? 0,
             }}
+            rows={data?.topRows ?? []}
+            asOfDate={data?.asOfDate ?? null}
             onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
-            onClose={
-              briefKey
-                ? () => {
-                    setDismissedBriefKey(briefKey)
-                    if (typeof window !== 'undefined') {
-                      window.localStorage.setItem(BRIEF_DISMISSED_STORAGE_KEY, briefKey)
-                    }
-                  }
-                : undefined
-            }
           />
         )
       })()}
