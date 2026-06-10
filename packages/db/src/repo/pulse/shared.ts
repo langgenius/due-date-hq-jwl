@@ -28,6 +28,11 @@ export const EVIDENCE_BATCH_SIZE = Math.floor(100 / 17)
 export const AUDIT_BATCH_SIZE = Math.floor(100 / 12)
 export const EMAIL_BATCH_SIZE = 1
 export const NOTIFICATION_BATCH_SIZE = Math.floor(100 / 10)
+// Reads/updates filtering `inArray(<id-col>, ids)` bind one param per id plus
+// a few scalars (firmId, pulseId, status list). 90 leaves headroom under D1's
+// 100-bound-param ceiling — mirrors OVERLAY_READ_BATCH_SIZE (repo/overlay.ts)
+// and the 90-id re-read in ensureSourceStates (repo/pulse/ops.ts).
+export const ID_FILTER_BATCH_SIZE = 90
 export const REVERT_WINDOW_MS = 24 * 60 * 60 * 1000
 export const PULSE_DUPLICATE_WINDOW_MS = 45 * 24 * 60 * 60 * 1000
 export const PULSE_DISMISS_DEFAULT_AUDIT_REASON = 'Dismissed from Pulse detail.'
@@ -1015,7 +1020,7 @@ export function compareAffected(a: PulseAffectedClientRow, b: PulseAffectedClien
   return a.clientName.localeCompare(b.clientName)
 }
 
-export function chunkRows<T>(rows: T[], size: number): T[][] {
+export function chunkRows<T>(rows: readonly T[], size: number): T[][] {
   const chunks: T[][] = []
   for (let i = 0; i < rows.length; i += size) chunks.push(rows.slice(i, i + size))
   return chunks

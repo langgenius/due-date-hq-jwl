@@ -53,6 +53,7 @@ import {
   EVIDENCE_BATCH_SIZE,
   EXCEPTION_APPLICATION_BATCH_SIZE,
   EXCEPTION_RULE_BATCH_SIZE,
+  ID_FILTER_BATCH_SIZE,
   OPEN_STATUSES,
   PULSE_DISMISS_DEFAULT_AUDIT_REASON,
   PULSE_HANDLED_ALERT_STATUSES,
@@ -379,37 +380,44 @@ export function makePulseRepo(db: Db, firmId: string) {
     const ruleIds = alert.reverifyRuleIds
     if (ruleIds.length === 0) return []
 
-    const rows = await db
-      .select({
-        obligationId: obligationInstance.id,
-        clientId: client.id,
-        clientName: client.name,
-        state: obligationInstance.jurisdiction,
-        county: client.county,
-        counties: clientFilingProfile.countiesJson,
-        entityType: client.entityType,
-        taxType: obligationInstance.taxType,
-        currentDueDate: obligationInstance.currentDueDate,
-        status: obligationInstance.status,
-      })
-      .from(obligationInstance)
-      .innerJoin(client, eq(obligationInstance.clientId, client.id))
-      .leftJoin(
-        clientFilingProfile,
-        eq(obligationInstance.clientFilingProfileId, clientFilingProfile.id),
-      )
-      .where(
-        and(
-          eq(obligationInstance.firmId, firmId),
-          eq(client.firmId, firmId),
-          inArray(obligationInstance.ruleId, ruleIds),
-          inArray(obligationInstance.status, OPEN_STATUSES),
-          // Exclude soft-deleted clients (see listCandidateRows).
-          isNull(client.deletedAt),
-          isNull(obligationInstance.supersededAt),
-        ),
-      )
-      .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
+    // Chunked: reverifyRuleIds is merged cumulatively into the pulse with no
+    // cap, so the id list is unbounded.
+    const rowGroups = await Promise.all(
+      chunkRows(ruleIds, ID_FILTER_BATCH_SIZE).map((chunk) =>
+        db
+          .select({
+            obligationId: obligationInstance.id,
+            clientId: client.id,
+            clientName: client.name,
+            state: obligationInstance.jurisdiction,
+            county: client.county,
+            counties: clientFilingProfile.countiesJson,
+            entityType: client.entityType,
+            taxType: obligationInstance.taxType,
+            currentDueDate: obligationInstance.currentDueDate,
+            status: obligationInstance.status,
+          })
+          .from(obligationInstance)
+          .innerJoin(client, eq(obligationInstance.clientId, client.id))
+          .leftJoin(
+            clientFilingProfile,
+            eq(obligationInstance.clientFilingProfileId, clientFilingProfile.id),
+          )
+          .where(
+            and(
+              eq(obligationInstance.firmId, firmId),
+              eq(client.firmId, firmId),
+              inArray(obligationInstance.ruleId, chunk),
+              inArray(obligationInstance.status, OPEN_STATUSES),
+              // Exclude soft-deleted clients (see listCandidateRows).
+              isNull(client.deletedAt),
+              isNull(obligationInstance.supersededAt),
+            ),
+          )
+          .orderBy(asc(obligationInstance.currentDueDate), asc(client.name)),
+      ),
+    )
+    const rows = rowGroups.flat()
 
     return (rows as CandidateRow[]).map((row) => ({
       obligationId: row.obligationId,
@@ -666,41 +674,55 @@ export function makePulseRepo(db: Db, firmId: string) {
   async function listSelectedRows(obligationIds: readonly string[]): Promise<CandidateRow[]> {
     if (obligationIds.length === 0) return []
 
-    return db
-      .select({
-        obligationId: obligationInstance.id,
-        clientId: client.id,
-        clientName: client.name,
-        state: obligationInstance.jurisdiction,
-        county: client.county,
-        counties: clientFilingProfile.countiesJson,
-        entityType: client.entityType,
-        taxType: obligationInstance.taxType,
-        currentDueDate: obligationInstance.currentDueDate,
-        status: obligationInstance.status,
-      })
-      .from(obligationInstance)
-      .innerJoin(client, eq(obligationInstance.clientId, client.id))
-      .leftJoin(
-        clientFilingProfile,
-        eq(obligationInstance.clientFilingProfileId, clientFilingProfile.id),
+    // Chunked: the contract allows 100 selected obligations, and N ids + the
+    // scalar binds would exceed D1's 100-bound-param ceiling in one statement.
+    const chunks = await Promise.all(
+      chunkRows(obligationIds, ID_FILTER_BATCH_SIZE).map((chunk) =>
+        db
+          .select({
+            obligationId: obligationInstance.id,
+            clientId: client.id,
+            clientName: client.name,
+            state: obligationInstance.jurisdiction,
+            county: client.county,
+            counties: clientFilingProfile.countiesJson,
+            entityType: client.entityType,
+            taxType: obligationInstance.taxType,
+            currentDueDate: obligationInstance.currentDueDate,
+            status: obligationInstance.status,
+          })
+          .from(obligationInstance)
+          .innerJoin(client, eq(obligationInstance.clientId, client.id))
+          .leftJoin(
+            clientFilingProfile,
+            eq(obligationInstance.clientFilingProfileId, clientFilingProfile.id),
+          )
+          .where(
+            and(
+              eq(obligationInstance.firmId, firmId),
+              eq(client.firmId, firmId),
+              inArray(obligationInstance.id, chunk),
+              // Exclude soft-deleted clients (see listCandidateRows). At apply time
+              // `listFreshEligibleRows` treats a now-missing row as a conflict, so a
+              // client deleted after selection surfaces the standard "list changed,
+              // refresh" guard instead of silently applying to a dead client. A
+              // superseded obligation drops out the same way — it must not be
+              // applyable once a reclassification soft-removed it.
+              isNull(client.deletedAt),
+              isNull(obligationInstance.supersededAt),
+            ),
+          )
+          .orderBy(asc(obligationInstance.currentDueDate), asc(client.name)),
+      ),
+    )
+    // Per-chunk ORDER BY is no longer a global order — restore it in JS.
+    return chunks
+      .flat()
+      .toSorted(
+        (a, b) =>
+          a.currentDueDate.getTime() - b.currentDueDate.getTime() ||
+          a.clientName.localeCompare(b.clientName),
       )
-      .where(
-        and(
-          eq(obligationInstance.firmId, firmId),
-          eq(client.firmId, firmId),
-          inArray(obligationInstance.id, obligationIds),
-          // Exclude soft-deleted clients (see listCandidateRows). At apply time
-          // `listFreshEligibleRows` treats a now-missing row as a conflict, so a
-          // client deleted after selection surfaces the standard "list changed,
-          // refresh" guard instead of silently applying to a dead client. A
-          // superseded obligation drops out the same way — it must not be
-          // applyable once a reclassification soft-removed it.
-          isNull(client.deletedAt),
-          isNull(obligationInstance.supersededAt),
-        ),
-      )
-      .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
   }
 
   async function listActiveApplicationIds(
@@ -709,20 +731,26 @@ export function makePulseRepo(db: Db, firmId: string) {
   ): Promise<Set<string>> {
     if (obligationIds.length === 0) return new Set()
 
-    const rows = await db
-      .select({ obligationId: pulseApplication.obligationInstanceId })
-      .from(pulseApplication)
-      .where(
-        and(
-          eq(pulseApplication.firmId, firmId),
-          eq(pulseApplication.pulseId, pulseId),
-          inArray(pulseApplication.obligationInstanceId, obligationIds),
-          isNull(pulseApplication.revertedAt),
-        ),
-      )
-      .orderBy(asc(pulseApplication.appliedAt))
+    // Chunked: one caller passes ALL open obligations in the alert's
+    // jurisdiction, which is unbounded.
+    const rowGroups = await Promise.all(
+      chunkRows(obligationIds, ID_FILTER_BATCH_SIZE).map((chunk) =>
+        db
+          .select({ obligationId: pulseApplication.obligationInstanceId })
+          .from(pulseApplication)
+          .where(
+            and(
+              eq(pulseApplication.firmId, firmId),
+              eq(pulseApplication.pulseId, pulseId),
+              inArray(pulseApplication.obligationInstanceId, chunk),
+              isNull(pulseApplication.revertedAt),
+            ),
+          )
+          .orderBy(asc(pulseApplication.appliedAt)),
+      ),
+    )
 
-    return new Set(rows.map((row) => row.obligationId))
+    return new Set(rowGroups.flat().map((row) => row.obligationId))
   }
 
   async function listRevertedApplicationIds(
@@ -731,23 +759,30 @@ export function makePulseRepo(db: Db, firmId: string) {
   ): Promise<Map<string, string>> {
     if (obligationIds.length === 0) return new Map()
 
-    const rows = await db
-      .select({
-        id: pulseApplication.id,
-        obligationId: pulseApplication.obligationInstanceId,
-      })
-      .from(pulseApplication)
-      .where(
-        and(
-          eq(pulseApplication.firmId, firmId),
-          eq(pulseApplication.pulseId, pulseId),
-          inArray(pulseApplication.obligationInstanceId, obligationIds),
-          isNotNull(pulseApplication.revertedAt),
-        ),
-      )
-      .orderBy(asc(pulseApplication.appliedAt))
+    // Chunks partition the id list, so all rows for one obligation arrive in
+    // one chunk and the intra-chunk appliedAt-ordered last-write-wins Map
+    // semantics are preserved.
+    const rowGroups = await Promise.all(
+      chunkRows(obligationIds, ID_FILTER_BATCH_SIZE).map((chunk) =>
+        db
+          .select({
+            id: pulseApplication.id,
+            obligationId: pulseApplication.obligationInstanceId,
+          })
+          .from(pulseApplication)
+          .where(
+            and(
+              eq(pulseApplication.firmId, firmId),
+              eq(pulseApplication.pulseId, pulseId),
+              inArray(pulseApplication.obligationInstanceId, chunk),
+              isNotNull(pulseApplication.revertedAt),
+            ),
+          )
+          .orderBy(asc(pulseApplication.appliedAt)),
+      ),
+    )
 
-    return new Map(rows.map((row) => [row.obligationId, row.id]))
+    return new Map(rowGroups.flat().map((row) => [row.obligationId, row.id]))
   }
 
   async function listFreshEligibleRows(
@@ -1195,19 +1230,26 @@ export function makePulseRepo(db: Db, firmId: string) {
      */
     async refreshMatchedCountsForObligations(obligationIds: string[]): Promise<void> {
       if (obligationIds.length === 0) return
-      const obligations = await db
-        .select({ jurisdiction: obligationInstance.jurisdiction })
-        .from(obligationInstance)
-        .where(
-          and(
-            eq(obligationInstance.firmId, firmId),
-            inArray(obligationInstance.id, obligationIds),
-            isNull(obligationInstance.supersededAt),
-          ),
-        )
-      const jurisdictions = [...new Set(obligations.map((row) => row.jurisdiction))].filter(
-        (value): value is string => value !== null,
+      // Chunked: rule-accept passes every freshly created obligation id —
+      // unbounded, and the caller's try/catch used to swallow the D1
+      // too-many-variables throw, leaving counts silently stale.
+      const obligationGroups = await Promise.all(
+        chunkRows(obligationIds, ID_FILTER_BATCH_SIZE).map((chunk) =>
+          db
+            .select({ jurisdiction: obligationInstance.jurisdiction })
+            .from(obligationInstance)
+            .where(
+              and(
+                eq(obligationInstance.firmId, firmId),
+                inArray(obligationInstance.id, chunk),
+                isNull(obligationInstance.supersededAt),
+              ),
+            ),
+        ),
       )
+      const jurisdictions = [
+        ...new Set(obligationGroups.flat().map((row) => row.jurisdiction)),
+      ].filter((value): value is string => value !== null)
       if (jurisdictions.length === 0) return
       const alertIdRows = await db
         .select({ id: pulseFirmAlert.id })
@@ -2182,31 +2224,41 @@ export function makePulseRepo(db: Db, firmId: string) {
       if (now.getTime() > firstAppliedAt.getTime() + REVERT_WINDOW_MS) {
         throw new PulseRepoError('revert_expired')
       }
-      const exceptionRows = await db
-        .select({
-          id: obligationExceptionApplication.id,
-          obligationId: obligationExceptionApplication.obligationInstanceId,
-          exceptionRuleId: obligationExceptionApplication.exceptionRuleId,
-          overrideDueDate: exceptionRule.overrideDueDate,
-        })
-        .from(obligationExceptionApplication)
-        .innerJoin(
-          exceptionRule,
-          eq(obligationExceptionApplication.exceptionRuleId, exceptionRule.id),
-        )
-        .where(
-          and(
-            eq(obligationExceptionApplication.firmId, firmId),
-            inArray(
-              obligationExceptionApplication.obligationInstanceId,
-              applications.map((row) => row.obligationId),
-            ),
-            isNull(obligationExceptionApplication.revertedAt),
-            eq(exceptionRule.sourcePulseId, alert.pulseId),
-            inArray(exceptionRule.status, ['verified', 'applied']),
-          ),
-        )
-        .orderBy(asc(obligationExceptionApplication.appliedAt))
+      // Chunked: applications accumulate across partial applies, so the id
+      // list is unbounded — an un-chunked select made a pulse with ~97+
+      // active applications permanently un-revertible (D1 param ceiling).
+      // Chunks partition by obligation id, so per-obligation last-write-wins
+      // (appliedAt order within a chunk) is preserved.
+      const exceptionRowGroups = await Promise.all(
+        chunkRows(
+          applications.map((row) => row.obligationId),
+          ID_FILTER_BATCH_SIZE,
+        ).map((chunk) =>
+          db
+            .select({
+              id: obligationExceptionApplication.id,
+              obligationId: obligationExceptionApplication.obligationInstanceId,
+              exceptionRuleId: obligationExceptionApplication.exceptionRuleId,
+              overrideDueDate: exceptionRule.overrideDueDate,
+            })
+            .from(obligationExceptionApplication)
+            .innerJoin(
+              exceptionRule,
+              eq(obligationExceptionApplication.exceptionRuleId, exceptionRule.id),
+            )
+            .where(
+              and(
+                eq(obligationExceptionApplication.firmId, firmId),
+                inArray(obligationExceptionApplication.obligationInstanceId, chunk),
+                isNull(obligationExceptionApplication.revertedAt),
+                eq(exceptionRule.sourcePulseId, alert.pulseId),
+                inArray(exceptionRule.status, ['verified', 'applied']),
+              ),
+            )
+            .orderBy(asc(obligationExceptionApplication.appliedAt)),
+        ),
+      )
+      const exceptionRows = exceptionRowGroups.flat()
       const exceptionByObligation = new Map(exceptionRows.map((row) => [row.obligationId, row]))
       if (
         applications.some((row) => {
@@ -2274,36 +2326,42 @@ export function makePulseRepo(db: Db, firmId: string) {
             ),
           ),
       )
-      queries.push(
-        db
-          .update(obligationExceptionApplication)
-          .set({ revertedAt: now, revertedByUserId: input.userId })
-          .where(
-            and(
-              eq(obligationExceptionApplication.firmId, firmId),
-              inArray(
-                obligationExceptionApplication.id,
-                exceptionRows.map((row) => row.id),
+      // Chunked updates stay inside the single atomic db.batch below, so the
+      // revert remains all-or-nothing.
+      for (const chunk of chunkRows(
+        exceptionRows.map((row) => row.id),
+        ID_FILTER_BATCH_SIZE,
+      )) {
+        queries.push(
+          db
+            .update(obligationExceptionApplication)
+            .set({ revertedAt: now, revertedByUserId: input.userId })
+            .where(
+              and(
+                eq(obligationExceptionApplication.firmId, firmId),
+                inArray(obligationExceptionApplication.id, chunk),
+                isNull(obligationExceptionApplication.revertedAt),
               ),
-              isNull(obligationExceptionApplication.revertedAt),
             ),
-          ),
-      )
-      queries.push(
-        db
-          .update(exceptionRule)
-          .set({ status: 'retracted' })
-          .where(
-            and(
-              eq(exceptionRule.firmId, firmId),
-              inArray(
-                exceptionRule.id,
-                Array.from(new Set(exceptionRows.map((row) => row.exceptionRuleId))),
+        )
+      }
+      for (const chunk of chunkRows(
+        Array.from(new Set(exceptionRows.map((row) => row.exceptionRuleId))),
+        ID_FILTER_BATCH_SIZE,
+      )) {
+        queries.push(
+          db
+            .update(exceptionRule)
+            .set({ status: 'retracted' })
+            .where(
+              and(
+                eq(exceptionRule.firmId, firmId),
+                inArray(exceptionRule.id, chunk),
+                eq(exceptionRule.sourcePulseId, alert.pulseId),
               ),
-              eq(exceptionRule.sourcePulseId, alert.pulseId),
             ),
-          ),
-      )
+        )
+      }
       for (const chunk of chunkRows(evidence, EVIDENCE_BATCH_SIZE)) {
         queries.push(db.insert(evidenceLink).values(chunk))
       }

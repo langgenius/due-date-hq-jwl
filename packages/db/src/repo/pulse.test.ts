@@ -1040,6 +1040,70 @@ describe('makePulseRepo', () => {
     ).toBe(true)
   })
 
+  it('reverts 100 applications by chunking the exception reads and updates', async () => {
+    // Locks the D1 100-bound-param fix: an un-chunked exception select (N+4
+    // params) or update (M+3) would throw at this size, making the pulse
+    // permanently un-revertible inside its 24h window.
+    const appliedAlert = {
+      ...ALERT,
+      alertStatus: 'applied' as const,
+      matchedCount: 0,
+      needsReviewCount: 0,
+    }
+    const overrideDueDate = new Date('2026-10-15T00:00:00.000Z')
+    const applications = Array.from({ length: 100 }, (_, i) => ({
+      id: `app-${i}`,
+      obligationId: `oi-${i}`,
+      clientId: `client-${i}`,
+      appliedAt: new Date('2026-04-15T18:30:00.000Z'),
+      beforeDueDate: new Date('2026-03-15T00:00:00.000Z'),
+      afterDueDate: overrideDueDate,
+      currentDueDate: overrideDueDate,
+    }))
+    const exceptionRowFor = (i: number) => ({
+      id: `oea-${i}`,
+      obligationId: `oi-${i}`,
+      exceptionRuleId: 'exception-1',
+      overrideDueDate,
+    })
+    const { db, batchStatements } = fakeDb([
+      [appliedAlert],
+      applications,
+      // exception select: two 90/10 id-chunks
+      applications.slice(0, 90).map((row, i) => exceptionRowFor(i)),
+      applications.slice(90).map((row, i) => exceptionRowFor(90 + i)),
+      [{ ...appliedAlert, alertStatus: 'matched' as const }],
+      [],
+      [],
+      [],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const result = await repo.revert({
+      alertId: 'alert-1',
+      userId: 'user-1',
+      now: new Date('2026-04-15T19:00:00.000Z'),
+    })
+
+    expect(result.revertedCount).toBe(100)
+    // 1 pulseApplication + 2 chunked obligationExceptionApplication +
+    // 1 exceptionRule + 1 pulseFirmAlert update inside the single atomic batch.
+    expect(batchStatements.filter((statement) => isKind(statement, 'update'))).toHaveLength(5)
+  })
+
+  it('chunks the jurisdiction lookup for >90 freshly created obligations', async () => {
+    const selectResponses = [[{ jurisdiction: 'CA' }], [{ jurisdiction: 'CA' }], []]
+    const { db } = fakeDb(selectResponses)
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await expect(
+      repo.refreshMatchedCountsForObligations(Array.from({ length: 91 }, (_, i) => `oi-${i}`)),
+    ).resolves.toBeUndefined()
+    // Two 90/1 id-chunks + the alert-id lookup — an un-chunked read would have
+    // issued a single >100-param select and consumed only the first response.
+    expect(selectResponses).toHaveLength(0)
+  })
+
   it('reactivates a historical reverted alert for re-apply', async () => {
     const revertedAlert = {
       ...ALERT,
