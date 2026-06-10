@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-09
 **Audience:** Implementation
-**Companion docs:** `_eng-brief-2026-06-09-status-bus-and-integrations.md`, `_active-card-states-spec-2026-06-09.md`, `_position-2026-06-09-milestone-strip.md`, `_eng-brief-2026-06-09-record-tab-storage-gap.md`
+**Companion docs:** `docs/product-design/deadlines/eng-brief-2026-06-09-status-bus-and-integrations.md`, `docs/product-design/deadlines/active-card-states-spec-2026-06-09.md`, `docs/product-design/deadlines/position-2026-06-09-milestone-strip.md`, `docs/product-design/deadlines/eng-brief-2026-06-09-record-tab-storage-gap.md`
 
 ## User direction
 
@@ -31,7 +31,7 @@ Total: **11 sprint weeks for a 2-engineer team**. Add 1 backend engineer for the
 
 ### Weeks 2-3: 6 stage variant builds
 
-Build each per `_active-card-states-spec-2026-06-09.md` per-state content matrix:
+Build each per `docs/product-design/deadlines/active-card-states-spec-2026-06-09.md` per-state content matrix:
 
 1. Not started — `Start preparing` primary CTA
 2. Waiting on client — `Send reminder` primary CTA (MWhnh design locked)
@@ -151,10 +151,10 @@ These are real product needs but not v1.5 ship-blockers. If a multi-user firm hi
 
 ## What this brief does NOT cover
 
-- File storage primitive (covered in `_eng-brief-2026-06-09-record-tab-storage-gap.md`) — required prerequisite for `/Record tab` work + Filed state's `View e-file receipt` ghost
+- File storage primitive (covered in `docs/product-design/deadlines/eng-brief-2026-06-09-record-tab-storage-gap.md`) — required prerequisite for `/Record tab` work + Filed state's `View e-file receipt` ghost
 - Status taxonomy 10→6 migration — required prerequisite per `project_status_taxonomy`
 - Tab structure changes — locked at 4 per `project_tab_count_locked`
-- Penalty engine — out of scope; documented in `_eng-brief-2026-06-09-deadline-detail-tabs.md`
+- Penalty engine — out of scope; documented in `docs/product-design/deadlines/eng-brief-2026-06-09-deadline-detail-tabs.md`
 
 ## New mutations engineering must ship across v1+v2
 
@@ -177,16 +177,16 @@ Listed in priority order:
 
 ## How to read this with the other briefs
 
-| For                                                   | Read                                                   |
-| ----------------------------------------------------- | ------------------------------------------------------ |
-| **High-level architecture**                           | This brief (you're here)                               |
-| **Status bus + cross-page propagation contract**      | `_eng-brief-2026-06-09-status-bus-and-integrations.md` |
-| **Per-stage UI content + backend wiring**             | `_active-card-states-spec-2026-06-09.md`               |
-| **Why the strip should be compact + integration map** | `_position-2026-06-09-milestone-strip.md`              |
-| **Record tab storage gap + new mutations needed**     | `_eng-brief-2026-06-09-record-tab-storage-gap.md`      |
-| **Tab structure constraint**                          | `project_tab_count_locked` memory                      |
-| **Status-is-observed-not-chosen design principle**    | `feedback_status_is_observed_not_chosen` memory        |
-| **Transition row pattern (audit/activity UI)**        | `reference_transition_row_pattern` memory              |
+| For                                                   | Read                                                                                |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **High-level architecture**                           | This brief (you're here)                                                            |
+| **Status bus + cross-page propagation contract**      | `docs/product-design/deadlines/eng-brief-2026-06-09-status-bus-and-integrations.md` |
+| **Per-stage UI content + backend wiring**             | `docs/product-design/deadlines/active-card-states-spec-2026-06-09.md`               |
+| **Why the strip should be compact + integration map** | `docs/product-design/deadlines/position-2026-06-09-milestone-strip.md`              |
+| **Record tab storage gap + new mutations needed**     | `docs/product-design/deadlines/eng-brief-2026-06-09-record-tab-storage-gap.md`      |
+| **Tab structure constraint**                          | `project_tab_count_locked` memory                                                   |
+| **Status-is-observed-not-chosen design principle**    | `feedback_status_is_observed_not_chosen` memory                                     |
+| **Transition row pattern (audit/activity UI)**        | `reference_transition_row_pattern` memory                                           |
 
 ## Sprint-by-sprint commitment
 

@@ -1,25 +1,25 @@
 # Roadmap — Deadlines workstreams, 2026-06-09
 
-Snapshot of the 4 concurrent workstreams on `/deadlines`, what's done, what's queued, and the dependencies between them. Companion to `_eng-brief-2026-06-09-deadline-detail-tabs.md` and `_spec-cluster2-detail-tabs.md`.
+Snapshot of the 4 concurrent workstreams on `/deadlines`, what's done, what's queued, and the dependencies between them. Companion to `docs/product-design/deadlines/eng-brief-2026-06-09-deadline-detail-tabs.md` and `docs/product-design/deadlines/spec-cluster2-detail-tabs.md`.
 
 ## TL;DR
 
 Four workstreams, currently entangled. The right order is taxonomy → list-page parity → detail-tab data → net-new tabs. The 18-item additions sit on top once primitives + data + parity are stable.
 
-| #   | Workstream                                                                                         | State                                                                   | Owner                               | Ready?                                    |
-| --- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------- |
-| 1   | Status taxonomy 10 → 6                                                                             | Mid-flight (10 values in enum; 2 already added)                         | Backend                             | Spec'd, not started in code               |
-| 2   | HuYeb list-page parity                                                                             | In progress on branch `design/deadlines-design-parity`                  | Yuqi worktree                       | 9 commits done, ~8 items left per HANDOFF |
-| 3   | Detail-tab data (5 `TODO(data)`)                                                                   | Spec'd, not started                                                     | Backend + Frontend                  | Spec ready in `_eng-brief-2026-06-09`     |
-| 4   | Risk **section** on Summary + Audit **section** on Evidence (NOT separate tabs — 4-tab model wins) | Pencil section refs `s0YOE` (Risk) + `K4Go6X` (Audit); code not started | Frontend + Backend (penalty engine) | Visual + engineering brief ready          |
+| #   | Workstream                                                                                         | State                                                                   | Owner                               | Ready?                                                                                     |
+| --- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1   | Status taxonomy 10 → 6                                                                             | Mid-flight (10 values in enum; 2 already added)                         | Backend                             | Spec'd, not started in code                                                                |
+| 2   | HuYeb list-page parity                                                                             | In progress on branch `design/deadlines-design-parity`                  | Yuqi worktree                       | 9 commits done, ~8 items left per HANDOFF                                                  |
+| 3   | Detail-tab data (5 `TODO(data)`)                                                                   | Spec'd, not started                                                     | Backend + Frontend                  | Spec ready in `docs/product-design/deadlines/eng-brief-2026-06-09-deadline-detail-tabs.md` |
+| 4   | Risk **section** on Summary + Audit **section** on Evidence (NOT separate tabs — 4-tab model wins) | Pencil section refs `s0YOE` (Risk) + `K4Go6X` (Audit); code not started | Frontend + Backend (penalty engine) | Visual + engineering brief ready                                                           |
 
 Plus three queued-but-not-blocked extras:
 
-| #   | Item                             | State                                                      | Ready? |
-| --- | -------------------------------- | ---------------------------------------------------------- | ------ |
-| 5   | Quick filters dropdown           | Spec'd in memory (`reference_quick_filters_spec`)          | Yes    |
-| 6   | 18-item tab additions (S1–V5)    | Spec'd in memory (`reference_deadline_tab_additions_spec`) | Yes    |
-| 7   | 6 reusable components extraction | Spec'd in `_spec-cluster2-detail-tabs.md`                  | Yes    |
+| #   | Item                             | State                                                                  | Ready? |
+| --- | -------------------------------- | ---------------------------------------------------------------------- | ------ |
+| 5   | Quick filters dropdown           | Spec'd in memory (`reference_quick_filters_spec`)                      | Yes    |
+| 6   | 18-item tab additions (S1–V5)    | Spec'd in memory (`reference_deadline_tab_additions_spec`)             | Yes    |
+| 7   | 6 reusable components extraction | Spec'd in `docs/product-design/deadlines/spec-cluster2-detail-tabs.md` | Yes    |
 
 ## Workstream 1 · Status taxonomy 10 → 6
 
@@ -99,7 +99,7 @@ Plus three queued-but-not-blocked extras:
 - L3366 — Extension: Prior-year extension/filing history
 - L3653 + L3684 — Evidence: Prior-year filing date
 
-**Contract additions (from `_eng-brief-2026-06-09`):**
+**Contract additions (from `docs/product-design/deadlines/eng-brief-2026-06-09-deadline-detail-tabs.md`):**
 
 - `obligation.expectedRefund: { totalCents, reconciledAt, components: [...] }`
 - `obligation.sourceDocs[]: { id, filename, sizeBytes, contentType, uploadedAt, uploaderId, downloadUrl, thumbnailUrl? }`
@@ -109,7 +109,7 @@ Plus three queued-but-not-blocked extras:
 
 **Effort:** Backend M (1 migration, 3 derived views), Frontend S (each consumer ≤2h). Total: 1 sprint week with a backend pair.
 
-**Reference:** `_eng-brief-2026-06-09-deadline-detail-tabs.md` Item 1.
+**Reference:** `docs/product-design/deadlines/eng-brief-2026-06-09-deadline-detail-tabs.md` Item 1.
 
 ---
 
@@ -151,7 +151,7 @@ Plus three queued-but-not-blocked extras:
 - Risk: Backend L (penalty engine + audit-risk scaffold) + Frontend M. 2–3 sprint weeks.
 - Audit: Backend M (filter endpoint + bundle generation) + Frontend M (virtualization + filters). 1.5–2 sprint weeks.
 
-**Reference:** `_eng-brief-2026-06-09-deadline-detail-tabs.md` Items 2 + 3. Memory: `reference_deadline_tab_additions_spec`.
+**Reference:** `docs/product-design/deadlines/eng-brief-2026-06-09-deadline-detail-tabs.md` Items 2 + 3. Memory: `reference_deadline_tab_additions_spec`.
 
 ---
 
@@ -160,7 +160,7 @@ Plus three queued-but-not-blocked extras:
 1. **Workstream 1 — Status taxonomy 10 → 6.** Foundation. Blocks #4 and parts of #2 / #3.
 2. **Workstream 2 — HuYeb list-page parity** (finish the ~8 remaining items). Highest user-facing visibility. Mostly independent of #1 except status pill colors.
 3. **Workstream 3 — 5 `TODO(data)` resolutions.** Parallel-safe. Unblocks 4 distinct UI features simultaneously.
-4. **6-component extraction** from `_spec-cluster2`. Foundation for tab implementations.
+4. **6-component extraction** from `docs/product-design/deadlines/spec-cluster2-detail-tabs.md`. Foundation for tab implementations.
 5. **Workstream 4a — Audit tab.** Smaller scope than Risk; permissions + filter API + virtualized timeline.
 6. **Workstream 4b — Risk tab.** Largest scope; penalty engine is net-new.
 7. **18-item additions (S1–V5)** from `reference_deadline_tab_additions_spec`. Lands on top of primitives + data + new tabs.
@@ -172,25 +172,25 @@ Cumulative: ~6–9 sprint weeks for a 2-eng team.
 
 - Quick filters dropdown (`reference_quick_filters_spec`)
 - 18 tab additions (`reference_deadline_tab_additions_spec`)
-- 6-component extraction (`_spec-cluster2-detail-tabs.md` final section)
+- 6-component extraction (`docs/product-design/deadlines/spec-cluster2-detail-tabs.md` final section)
 
 ## Out-of-scope explicit deferrals
 
-- Drawer → page promotion debate (current: drawer; Pencil: full page). Live-tabs implementation in `_spec-cluster2-detail-tabs.md` explicitly maps tab body content onto existing drawer; full-page rebuild deferred.
+- Drawer → page promotion debate (current: drawer; Pencil: full page). Live-tabs implementation in `docs/product-design/deadlines/spec-cluster2-detail-tabs.md` explicitly maps tab body content onto existing drawer; full-page rebuild deferred.
 - Bulk-select multi-obligation extension flow (M3 in spec). Single-deadline view doesn't surface this; will require alerts ↔ deadlines integration which is a separate workstream.
 
 ## Where each spec lives
 
-| Source                    | Location                                                       |
-| ------------------------- | -------------------------------------------------------------- |
-| Lifecycle migration brief | `docs/Design/obligation-lifecycle-design-brief.md`             |
-| Tab implementation spec   | `docs/dev-log/_spec-cluster2-detail-tabs.md`                   |
-| Engineering brief (top 3) | `docs/dev-log/_eng-brief-2026-06-09-deadline-detail-tabs.md`   |
-| 18-item tab additions     | memory `reference_deadline_tab_additions_spec`                 |
-| Quick filters dropdown    | memory `reference_quick_filters_spec`                          |
-| Status taxonomy contract  | memory `project_status_taxonomy`                               |
-| HuYeb parity work         | worktree `/Users/yuqi/dev/ddhq-deadlines-parity` + HANDOFF doc |
-| Pencil Risk tab           | `duedatehq_work.pen` frame `s0YOE`                             |
-| Pencil Audit tab          | `duedatehq_work.pen` frame `K4Go6X`                            |
+| Source                    | Location                                                                     |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| Lifecycle migration brief | `docs/Design/obligation-lifecycle-design-brief.md`                           |
+| Tab implementation spec   | `docs/product-design/deadlines/spec-cluster2-detail-tabs.md`                 |
+| Engineering brief (top 3) | `docs/product-design/deadlines/eng-brief-2026-06-09-deadline-detail-tabs.md` |
+| 18-item tab additions     | memory `reference_deadline_tab_additions_spec`                               |
+| Quick filters dropdown    | memory `reference_quick_filters_spec`                                        |
+| Status taxonomy contract  | memory `project_status_taxonomy`                                             |
+| HuYeb parity work         | worktree `/Users/yuqi/dev/ddhq-deadlines-parity` + HANDOFF doc               |
+| Pencil Risk tab           | `duedatehq_work.pen` frame `s0YOE`                                           |
+| Pencil Audit tab          | `duedatehq_work.pen` frame `K4Go6X`                                          |
 
 This doc is the single map. When in doubt, start here.

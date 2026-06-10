@@ -10,6 +10,10 @@
 
 `YYYY-MM-DD-<短标题>.md`，按日期排序。一天多条时追加序号或更具体的标题。
 
+只收**带日期前缀的事后记录**。前瞻性的工作文档（实现 spec、工程简报 eng-brief、
+roadmap、position memo 等）不属于这里——放到 `docs/product-design/<feature>/` 或
+`docs/PRD/`。
+
 ## 模板（建议）
 
 ```md

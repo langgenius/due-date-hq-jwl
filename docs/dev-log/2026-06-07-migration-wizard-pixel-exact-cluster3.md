@@ -7,7 +7,7 @@ Closed the remaining `TODO(pixel-exact)` markers across the migration wizard
 Pencil frames (`duedatehq_work.pen`, Cluster 3). The onboarding import sub-flow
 is the same shared wizard mounted at `/migration/new?source=onboarding`
 (`variant="route"`); the `/onboarding — import: *` frames are the OLD naming of
-this flow per `_spec-cluster3-migration.md`, so no duplicate components were
+this flow per `docs/product-design/migration-copilot/spec-cluster3-migration.md`, so no duplicate components were
 built — the Step 2-4 + success work applies to onboarding automatically.
 
 ## What shipped

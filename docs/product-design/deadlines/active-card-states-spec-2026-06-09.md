@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-09
 **Pencil reference:** `MWhnh` (Waiting on client variant + agents building 5 other state variants)
-**Backend audit companion:** `_eng-brief-2026-06-09-status-bus-and-integrations.md` + `reference_data_consistency_contract`
+**Backend audit companion:** `docs/product-design/deadlines/eng-brief-2026-06-09-status-bus-and-integrations.md` + `reference_data_consistency_contract`
 
 ## Card shell (constant across all 6 states)
 
@@ -169,5 +169,5 @@ In priority order (referenced in eng brief):
 - `reference_workflow_state_cascade` — per-stage cascade with action verbs
 - `reference_data_consistency_contract` — source-of-truth registry
 - `reference_record_tab_storage_gap` — what's blocked on file storage
-- `_eng-brief-2026-06-09-status-bus-and-integrations.md` — propagation contract
-- `_position-2026-06-09-milestone-strip.md` — strip-vs-panel position
+- `docs/product-design/deadlines/eng-brief-2026-06-09-status-bus-and-integrations.md` — propagation contract
+- `docs/product-design/deadlines/position-2026-06-09-milestone-strip.md` — strip-vs-panel position

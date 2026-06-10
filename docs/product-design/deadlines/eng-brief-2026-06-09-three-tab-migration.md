@@ -2,9 +2,9 @@
 
 Companion to:
 
-- `_roadmap-2026-06-09-deadlines-workstreams.md` (overall sequence)
-- `_eng-brief-2026-06-09-deadline-detail-tabs.md` (data/content for items 1–3)
-- `_spec-cluster2-detail-tabs.md` (tab implementation against existing drawer)
+- `docs/product-design/deadlines/roadmap-2026-06-09-deadlines-workstreams.md` (overall sequence)
+- `docs/product-design/deadlines/eng-brief-2026-06-09-deadline-detail-tabs.md` (data/content for items 1–3)
+- `docs/product-design/deadlines/spec-cluster2-detail-tabs.md` (tab implementation against existing drawer)
 - Memory `reference_deadline_tab_additions_spec` (full content contract)
 
 This brief is the **structural migration** from today's 4-panel drawer (`summary` / `readiness` / `extension` / `evidence`) to the canonical 4-tab page (`status` / `materials` / `record` / `audit`). It supersedes any "6-tab" or "3-tab" claims in earlier docs.

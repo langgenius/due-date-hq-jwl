@@ -6,7 +6,7 @@ right-rail drawer (`ObligationQueueDetailDrawer.tsx`), in the current blue
 `#155aef` / Geist visual language — NOT the green canvas theme. The canvas
 full-page chrome (icon sidebar, hero strip, 320/340px side rails) is out of
 scope; only each tab's body content + copy + field set was mapped onto the
-drawer's `<TabsContent>` panels. Spec: `docs/dev-log/_spec-cluster2-detail-tabs.md`.
+drawer's `<TabsContent>` panels. Spec: `docs/product-design/deadlines/spec-cluster2-detail-tabs.md`.
 
 Per the data rule, no contract schema / DB migration was added. Panels needing
 data not in the current contract render a clean minimal state with a

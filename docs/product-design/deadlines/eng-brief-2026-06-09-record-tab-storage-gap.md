@@ -2,8 +2,8 @@
 
 Companion to:
 
-- `_eng-brief-2026-06-09-three-tab-migration.md` (defines the 4-tab structure)
-- `_eng-brief-2026-06-09-deadline-detail-tabs.md` (defines the 18-item tab additions)
+- `docs/product-design/deadlines/eng-brief-2026-06-09-three-tab-migration.md` (defines the 4-tab structure)
+- `docs/product-design/deadlines/eng-brief-2026-06-09-deadline-detail-tabs.md` (defines the 18-item tab additions)
 - Memory: `reference_record_tab_storage_gap`
 
 ## TL;DR

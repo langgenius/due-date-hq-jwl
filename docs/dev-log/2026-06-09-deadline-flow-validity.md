@@ -48,7 +48,7 @@ The validity contract applies to every Pencil frame in the deadline lifecycle:
 
 ## NET-NEW items that ARE allowed (logged in eng brief)
 
-These are not fiction — they're contract additions explicitly logged in `_eng-brief-2026-06-09-v1-v2-ship-plan.md`:
+These are not fiction — they're contract additions explicitly logged in `docs/product-design/deadlines/eng-brief-2026-06-09-v1-v2-ship-plan.md`:
 
 1. `markAllReceivedForObligation(obligationId)` — bulk receive mutation for Waiting on client `Mark received` ghost
 2. `markWaivedForObligation(obligationId)` — for Blocked stage `Mark waived` ghost
@@ -92,5 +92,5 @@ A parallel Workflow audit is auditing every text node in the deadline-flow surfa
 - Memory `feedback_no_fiction_on_canvas` — the principle
 - Memory `reference_data_consistency_contract` — mock data registry
 - Memory `reference_record_tab_storage_gap` — storage gap details
-- Brief `_eng-brief-2026-06-09-v1-v2-ship-plan.md` — NET-NEW mutations engineering must ship
-- Brief `_eng-brief-2026-06-09-status-bus-and-integrations.md` — 18-touchpoint catalog with REAL/NET-NEW per surface
+- Brief `docs/product-design/deadlines/eng-brief-2026-06-09-v1-v2-ship-plan.md` — NET-NEW mutations engineering must ship
+- Brief `docs/product-design/deadlines/eng-brief-2026-06-09-status-bus-and-integrations.md` — 18-touchpoint catalog with REAL/NET-NEW per surface

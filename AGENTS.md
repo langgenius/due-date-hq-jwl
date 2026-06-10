@@ -26,6 +26,8 @@ Use pnpm with Node `>=22.19.0`.
 
 After each development task, update the relevant dev log and verify DESIGN.md/docs stay aligned with the implementation.
 
+Docs follow a three-layer contract. `docs/dev-file/` is current truth (architecture, interfaces, constraints); `docs/adr/` records formal decisions; `docs/dev-log/` is a dated historical journal (`YYYY-MM-DD-<slug>.md`) of how the code got here. Dev-log entries may describe superseded states — when one conflicts with code or `docs/dev-file/`, trust code and `dev-file`, and prefer the newest entry on a topic. Forward-looking working documents (implementation specs, engineering briefs, roadmaps, position memos) live under `docs/product-design/<feature>/` or `docs/PRD/`, never in `docs/dev-log/`.
+
 ## Coding Style & Naming Conventions
 
 Write TypeScript ESM with two-space indentation, single quotes, no semicolons, trailing commas, and 100-column formatting. Use `#*` imports inside apps and package exports for cross-package usage. React components use PascalCase, hooks use `useX`, utility files use kebab or descriptive lowercase names, and tests mirror the subject file name. Keep `packages/core` infrastructure-free and keep `packages/contracts` limited to contract/schema concerns.

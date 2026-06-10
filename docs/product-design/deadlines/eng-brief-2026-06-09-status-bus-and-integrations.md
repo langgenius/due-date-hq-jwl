@@ -103,7 +103,7 @@ Implementations grouped by priority. Each entry has: path · mode · file locati
 - Insert: a banner ABOVE the existing body content, below Hero
 - Data: server endpoint `alerts.predictTransitions(alertId)` → `Array<{ obligationId, from, to, triggerLabel }>`
 - Visual: accent-hover bg + left destructive stripe + workflow icon + `PREDICTED STATUS IMPACT` eyebrow + headline `Resolving this alert will transition 5 deadlines: Waiting on client → In review` + secondary meta + `Resolve & transition →` accent CTA
-- Pencil ref: spec inside `_eng-brief-2026-06-09-status-bus-and-integrations.md` (this doc)
+- Pencil ref: spec inside `docs/product-design/deadlines/eng-brief-2026-06-09-status-bus-and-integrations.md` (this doc)
 - Acceptance: banner appears when `predictTransitions().length > 0`; collapses to zero-height when empty
 
 **2. `/alerts/[id]` Linked-deadline row pill** (READ)
@@ -353,7 +353,7 @@ Build in parallel; all read from the bus.
 - Memory: `feedback_status_is_observed_not_chosen` — why no generic dropdown
 - Memory: `project_tab_count_locked` — tab structure constraint
 - Memory: `reference_record_tab_storage_gap` — what's blocked on file storage
-- Dev log: `_position-2026-06-09-milestone-strip.md` — the strip critique + integration map
+- Dev log: `docs/product-design/deadlines/position-2026-06-09-milestone-strip.md` — the strip critique + integration map
 
 ## End of brief
 

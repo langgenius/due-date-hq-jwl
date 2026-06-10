@@ -1,7 +1,7 @@
 # /deadlines detail + list — unification polish rounds (2026-06-09)
 
-Follow-on to `_deadline-detail-page-rzzww-2026-06-09.md` (initial detail rebuild)
-and `_deadlines-page-feedback-2026-06-09.md` (first list pass). Yuqi page
+Follow-on to `docs/dev-log/2026-06-09-deadline-detail-page-rzzww.md` (initial detail rebuild)
+and `docs/dev-log/2026-06-09-deadlines-page-feedback.md` (first list pass). Yuqi page
 feedback over several rounds; all page-mode / panel-closed guarded so `/clients`
 panel + sheet are untouched.
 

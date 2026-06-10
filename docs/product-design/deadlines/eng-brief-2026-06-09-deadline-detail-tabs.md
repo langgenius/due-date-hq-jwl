@@ -1,6 +1,6 @@
 # Engineering brief — Deadline detail tabs, 2026-06-09
 
-Pre-build brief for the three highest-impact items on the deadline-detail surface. Companion to `_spec-cluster2-detail-tabs.md` (existing-tabs implementation spec) and `~/.claude/projects/-Users-yuqi-dev-due-date-hq-jwl/memory/reference_deadline_tab_additions_spec.md` (full 18+2 item content contract).
+Pre-build brief for the three highest-impact items on the deadline-detail surface. Companion to `docs/product-design/deadlines/spec-cluster2-detail-tabs.md` (existing-tabs implementation spec) and `~/.claude/projects/-Users-yuqi-dev-due-date-hq-jwl/memory/reference_deadline_tab_additions_spec.md` (full 18+2 item content contract).
 
 ## Item 1 — Resolve the 5 `TODO(data)` contract additions
 
@@ -170,7 +170,7 @@ View: any team member. Export bundle: roles `partner` and `compliance_officer` o
 
 ## Cross-cutting prereqs
 
-1. **6-component extraction** from `_spec-cluster2-detail-tabs.md`. These compose into the new tabs above; build them first so Risk/Audit can stand on consistent primitives.
+1. **6-component extraction** from `docs/product-design/deadlines/spec-cluster2-detail-tabs.md`. These compose into the new tabs above; build them first so Risk/Audit can stand on consistent primitives.
 2. **Status taxonomy migration 8 → 6** (per `project_status_taxonomy` memory). Several spec items above assume the 6-state model; building Risk/Audit against the 8-state model and re-migrating later is wasted work.
 
 ## Order
