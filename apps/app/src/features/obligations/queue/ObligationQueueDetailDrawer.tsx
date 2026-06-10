@@ -1638,7 +1638,12 @@ export function ObligationQueueDetailDrawer({
         {row ? (
           <h2
             className={cn(
-              'pr-8 font-semibold tracking-[-0.4px] text-text-primary transition-all duration-200',
+              // 2026-06-10 (Yuqi "title doesn't shrink on collapse"): dropped
+              // `transition-all` here — transitioning `font-size` (made worse by
+              // line-clamp-1 flipping `display` to -webkit-box) left the
+              // computed size stuck at the start value, so the title never
+              // visually reached 16px. The size now switches instantly.
+              'pr-8 font-semibold tracking-[-0.4px] text-text-primary',
               heroCollapsed
                 ? 'line-clamp-1 text-[16px] leading-[1.3]'
                 : 'text-[22px] leading-[1.25]',
@@ -3759,10 +3764,7 @@ export function ObligationQueueDetailDrawer({
                       sets that expectation up-front so the gray-header
                       cards below aren't mistaken for a document vault. */}
                   <div className="flex items-start gap-2 rounded-lg bg-background-section px-3 py-2.5">
-                    <InfoIcon
-                      className="mt-px size-3.5 shrink-0 text-text-tertiary"
-                      aria-hidden
-                    />
+                    <InfoIcon className="mt-px size-3.5 shrink-0 text-text-tertiary" aria-hidden />
                     <p className="text-[12px] font-medium leading-snug text-text-tertiary">
                       <Trans>
                         Record tab is currently audit-trail + timestamps only. File storage for
@@ -3910,145 +3912,146 @@ export function ObligationQueueDetailDrawer({
                       the <details> below.
                       // TODO(data): prior-year filing date for the authority strip. */}
                   <DetailSectionCard title={<Trans>Authority</Trans>}>
-                  {detail.matchedRule ? (
-                    <AuthorityFactStrip
-                      facts={[
-                        ...(row.authority
-                          ? [
-                              {
-                                id: 'authority',
-                                label: <Trans>Authority</Trans>,
-                                value: row.authority,
-                                icon: <BookOpenIcon className="size-3.5" aria-hidden />,
-                              },
-                            ]
-                          : []),
-                        {
-                          id: 'rule',
-                          label: <Trans>Rule</Trans>,
-                          value: row.ruleVersion
-                            ? `${detail.matchedRule.id} · v${row.ruleVersion}`
-                            : detail.matchedRule.id,
-                        },
-                        {
-                          id: 'due',
-                          label: <Trans>Due</Trans>,
-                          value: formatDate(row.currentDueDate),
-                        },
-                        {
-                          id: 'prior-year',
-                          label: <Trans>Prior year</Trans>,
-                          // Design-only — there's no prior-year filing record
-                          // on the obligation detail today.
-                          // TODO(data): prior-year filing date.
-                          value: <span className="text-text-tertiary">—</span>,
-                        },
-                      ]}
-                      action={
-                        <TextLink
-                          variant="accent"
-                          className="font-semibold"
-                          render={
-                            <Link
-                              to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
-                            />
-                          }
-                        >
-                          <Trans>Open rule reference →</Trans>
-                        </TextLink>
-                      }
-                    />
-                  ) : null}
+                    {detail.matchedRule ? (
+                      <AuthorityFactStrip
+                        facts={[
+                          ...(row.authority
+                            ? [
+                                {
+                                  id: 'authority',
+                                  label: <Trans>Authority</Trans>,
+                                  value: row.authority,
+                                  icon: <BookOpenIcon className="size-3.5" aria-hidden />,
+                                },
+                              ]
+                            : []),
+                          {
+                            id: 'rule',
+                            label: <Trans>Rule</Trans>,
+                            value: row.ruleVersion
+                              ? `${detail.matchedRule.id} · v${row.ruleVersion}`
+                              : detail.matchedRule.id,
+                          },
+                          {
+                            id: 'due',
+                            label: <Trans>Due</Trans>,
+                            value: formatDate(row.currentDueDate),
+                          },
+                          {
+                            id: 'prior-year',
+                            label: <Trans>Prior year</Trans>,
+                            // Design-only — there's no prior-year filing record
+                            // on the obligation detail today.
+                            // TODO(data): prior-year filing date.
+                            value: <span className="text-text-tertiary">—</span>,
+                          },
+                        ]}
+                        action={
+                          <TextLink
+                            variant="accent"
+                            className="font-semibold"
+                            render={
+                              <Link
+                                to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
+                              />
+                            }
+                          >
+                            <Trans>Open rule reference →</Trans>
+                          </TextLink>
+                        }
+                      />
+                    ) : null}
 
-                  <details className="group border-t border-divider-subtle">
-                    <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
-                      <span>
-                        <Trans>Authority citation</Trans>
-                      </span>
-                      {detail.matchedRule ? (
-                        // 2026-05-25 (Yuqi Deadlines #13): rule-id chip
-                        // is now a real Link into /rules/library — Yuqi
-                        // asked "这个能点出去吗？". Clicking the chip
-                        // opens the library scoped to this rule via the
-                        // `?rule=` query param (the library page treats
-                        // unknown params gracefully when not yet
-                        // implemented; even then the user lands in the
-                        // right vicinity). stopPropagation on click so
-                        // the surrounding <summary> doesn't toggle the
-                        // <details> open/closed at the same time.
-                        <Badge
-                          variant="outline"
-                          className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover"
-                          render={
-                            <Link
-                              to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
-                              onClick={(event) => event.stopPropagation()}
-                              title={t`Open ${detail.matchedRule.id} in the rule library`}
-                            />
-                          }
-                        >
-                          {detail.matchedRule.id}
-                          {row?.ruleVersion ? ` · v${row.ruleVersion}` : ''}
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className="border-state-warning-border text-caption-xs normal-case tracking-normal text-text-warning"
-                        >
-                          <Trans>No rule bound</Trans>
-                        </Badge>
-                      )}
-                    </summary>
-                    <div className="grid gap-2 border-t border-divider-subtle py-3">
-                      {detail.matchedRule ? (
-                        <div className="grid gap-1">
-                          <p className="text-sm font-medium text-text-primary">
-                            {detail.matchedRule.title}
+                    <details className="group border-t border-divider-subtle">
+                      <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
+                        <span>
+                          <Trans>Authority citation</Trans>
+                        </span>
+                        {detail.matchedRule ? (
+                          // 2026-05-25 (Yuqi Deadlines #13): rule-id chip
+                          // is now a real Link into /rules/library — Yuqi
+                          // asked "这个能点出去吗？". Clicking the chip
+                          // opens the library scoped to this rule via the
+                          // `?rule=` query param (the library page treats
+                          // unknown params gracefully when not yet
+                          // implemented; even then the user lands in the
+                          // right vicinity). stopPropagation on click so
+                          // the surrounding <summary> doesn't toggle the
+                          // <details> open/closed at the same time.
+                          <Badge
+                            variant="outline"
+                            className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover"
+                            render={
+                              <Link
+                                to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
+                                onClick={(event) => event.stopPropagation()}
+                                title={t`Open ${detail.matchedRule.id} in the rule library`}
+                              />
+                            }
+                          >
+                            {detail.matchedRule.id}
+                            {row?.ruleVersion ? ` · v${row.ruleVersion}` : ''}
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="border-state-warning-border text-caption-xs normal-case tracking-normal text-text-warning"
+                          >
+                            <Trans>No rule bound</Trans>
+                          </Badge>
+                        )}
+                      </summary>
+                      <div className="grid gap-2 border-t border-divider-subtle py-3">
+                        {detail.matchedRule ? (
+                          <div className="grid gap-1">
+                            <p className="text-sm font-medium text-text-primary">
+                              {detail.matchedRule.title}
+                            </p>
+                            <p className="text-xs leading-snug text-text-secondary">
+                              {detail.matchedRule.defaultTip}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-xs leading-snug text-text-tertiary">
+                            <Trans>
+                              This deadline isn't bound to a rule. Deadlines without a source
+                              citation can't be defended in audit — bind it before relying on the
+                              date.
+                            </Trans>
                           </p>
-                          <p className="text-xs leading-snug text-text-secondary">
-                            {detail.matchedRule.defaultTip}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-xs leading-snug text-text-tertiary">
-                          <Trans>
-                            This deadline isn't bound to a rule. Deadlines without a source citation
-                            can't be defended in audit — bind it before relying on the date.
-                          </Trans>
-                        </p>
-                      )}
-                      {detail.matchedRule?.evidence.length ? (
-                        <div className="grid gap-2 pt-1">
-                          {detail.matchedRule.evidence.map((item) => (
-                            <div
-                              key={`${item.sourceId}-${item.summary}`}
-                              className="grid gap-1 rounded-lg border border-divider-subtle p-3"
-                            >
-                              <div className="flex items-baseline justify-between gap-2">
-                                <p className="text-sm font-medium text-text-primary">
-                                  {item.summary}
+                        )}
+                        {detail.matchedRule?.evidence.length ? (
+                          <div className="grid gap-2 pt-1">
+                            {detail.matchedRule.evidence.map((item) => (
+                              <div
+                                key={`${item.sourceId}-${item.summary}`}
+                                className="grid gap-1 rounded-lg border border-divider-subtle p-3"
+                              >
+                                <div className="flex items-baseline justify-between gap-2">
+                                  <p className="text-sm font-medium text-text-primary">
+                                    {item.summary}
+                                  </p>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-caption-xs uppercase tracking-wide"
+                                  >
+                                    {item.authorityRole}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs leading-snug text-text-secondary">
+                                  "{item.sourceExcerpt}"
                                 </p>
-                                <Badge
-                                  variant="outline"
-                                  className="text-caption-xs uppercase tracking-wide"
-                                >
-                                  {item.authorityRole}
-                                </Badge>
+                                <p className="text-caption text-text-tertiary">
+                                  <Trans>
+                                    Source #{item.sourceId} · retrieved {item.retrievedAt}
+                                  </Trans>
+                                </p>
                               </div>
-                              <p className="text-xs leading-snug text-text-secondary">
-                                "{item.sourceExcerpt}"
-                              </p>
-                              <p className="text-caption text-text-tertiary">
-                                <Trans>
-                                  Source #{item.sourceId} · retrieved {item.retrievedAt}
-                                </Trans>
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  </details>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    </details>
                   </DetailSectionCard>
                 </div>
               </motion.div>
