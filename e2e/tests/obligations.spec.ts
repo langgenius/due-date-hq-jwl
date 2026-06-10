@@ -153,13 +153,13 @@ test.describe('seeded obligations', () => {
     await obligationQueuePage.goto()
 
     await obligationQueuePage.openColumnsMenu()
-    await obligationQueuePage.columnVisibilityOption('Assignee').click()
-    await authenticatedPage.keyboard.press('Escape')
+    await obligationQueuePage.toggleColumn('Assignee')
+    await obligationQueuePage.dismissMenus()
     await expect(authenticatedPage).toHaveURL(/hide=[^&]*assigneeName/)
 
     await obligationQueuePage.openColumnsMenu()
-    await obligationQueuePage.columnVisibilityOption('Assignee').click()
-    await authenticatedPage.keyboard.press('Escape')
+    await obligationQueuePage.toggleColumn('Assignee')
+    await obligationQueuePage.dismissMenus()
     await expect(authenticatedPage).not.toHaveURL(/hide=[^&]*assigneeName/)
 
     await obligationQueuePage.search('Arbor')
@@ -177,11 +177,16 @@ test.describe('seeded obligations', () => {
       authenticatedPage.getByRole('cell', { name: 'Assigned to you (E2E Owner)' }),
     ).toBeVisible()
 
-    await bulkActions.getByRole('button', { name: 'Clear selection' }).click({ force: true })
+    // No force — if something intercepts the pointer again (e.g. a lingering
+    // menu backdrop) the failure should name the interceptor instead of
+    // silently clicking through to a dead overlay.
+    await bulkActions.getByRole('button', { name: 'Clear selection' }).click()
     await expect(bulkActions).toBeHidden()
     await obligationQueuePage.selectRow('Arbor & Vale LLC').click()
     await obligationQueuePage.selectRow('Northstar Dental Group').click()
-    await expect(bulkActions).toContainText('2 deadlines selected')
+    // The count renders in its own node, so textContent carries no space
+    // between "2" and "deadlines selected".
+    await expect(bulkActions).toContainText(/2\s*deadlines selected/)
 
     // "Export" moved into the bulk bar's "More" overflow menu (page-feedback
     // #12) and reads "Export selected" there.

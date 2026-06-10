@@ -68,9 +68,41 @@ export class ObligationQueuePage {
   }
 
   // Opens View ▸ Columns so callers can toggle `columnVisibilityOption`s.
+  // The Columns entry is a Base UI submenu trigger that opens on hover; its
+  // popup re-renders enough while opening that Playwright's actionability
+  // check never sees it stable ("element is not stable" → "detached").
+  // Dispatch the hover pointer event directly instead of a real hover.
   async openColumnsMenu() {
     await this.viewMenuButton.click()
-    await this.page.getByRole('menuitem', { name: /^Columns\b/ }).click()
+    const columnsTrigger = this.page.getByRole('menuitem', { name: /^Columns\b/ })
+    await columnsTrigger.waitFor({ state: 'visible' })
+    await columnsTrigger.dispatchEvent('pointermove')
+    await columnsTrigger.dispatchEvent('mousemove')
+    await this.page
+      .getByRole('menuitemcheckbox')
+      .first()
+      .waitFor({ state: 'visible', timeout: 10_000 })
+  }
+
+  // Toggle one column checkbox inside the open Columns submenu. Same
+  // stability story as `openColumnsMenu` — dispatch the click directly.
+  async toggleColumn(name: string) {
+    const option = this.columnVisibilityOption(name)
+    await option.waitFor({ state: 'visible' })
+    await option.dispatchEvent('click')
+  }
+
+  // Close whatever menu/submenu is open by clicking the page backdrop.
+  // Escape is unreliable here: the submenu was opened with synthetic
+  // pointer events, so real keyboard focus may have never entered it and
+  // the Base UI inert backdrop would otherwise linger and swallow every
+  // later pointer interaction on the page.
+  async dismissMenus() {
+    await this.page.mouse.click(5, 5)
+    await this.page
+      .locator('[data-base-ui-inert]')
+      .waitFor({ state: 'detached', timeout: 5_000 })
+      .catch(() => undefined)
   }
 
   statusSelectFor(clientName: string) {

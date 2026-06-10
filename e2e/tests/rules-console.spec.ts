@@ -41,7 +41,7 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await expect(authenticatedPage).toHaveURL(/\/rules\/library$/)
   await authenticatedPage.goto('/rules/library?filter=pending')
   await expect(authenticatedPage).toHaveURL(/\/rules\/library\?filter=pending/)
-  await expect(authenticatedPage.getByText('Rule library overview')).toBeVisible({
+  await expect(authenticatedPage.getByText('Total rules')).toBeVisible({
     timeout: 20_000,
   })
 })

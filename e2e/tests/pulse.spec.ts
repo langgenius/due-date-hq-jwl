@@ -49,9 +49,9 @@ test.describe('seeded Pulse alerts', () => {
     await obligationQueuePage.openColumnsMenu()
     const evidenceColumnOption = obligationQueuePage.columnVisibilityOption('Evidence')
     if ((await evidenceColumnOption.getAttribute('aria-checked')) !== 'true') {
-      await evidenceColumnOption.click()
+      await obligationQueuePage.toggleColumn('Evidence')
     }
-    await authenticatedPage.keyboard.press('Escape')
+    await obligationQueuePage.dismissMenus()
     const arborEvidenceButton = obligationQueuePage.rowFor('Arbor & Vale LLC').getByRole('button', {
       name: 'Open 1 evidence sources for Arbor & Vale LLC',
     })
