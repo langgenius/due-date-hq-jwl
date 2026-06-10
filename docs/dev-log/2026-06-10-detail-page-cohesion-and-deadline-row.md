@@ -125,6 +125,7 @@ type errors) — tidy follow-up.
 `waiting_on_client` deadline — so the whole waiting-state UI (active-stage card)
 was unverifiable. Diagnosed via a temporary in-handler `safeParse` that surfaced
 the exact Zod paths, then reverted it. Two root causes:
+
 1. **Request-checklist items** were stored as `{id,label}`, but
    `ReadinessChecklistItemSchema` requires `description/reason/sourceHint`
    (`.nullable()` — `undefined` fails). Fixed in `toReadinessRequestPublic`

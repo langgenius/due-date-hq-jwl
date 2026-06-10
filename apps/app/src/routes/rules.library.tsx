@@ -14,7 +14,6 @@ import {
   ChevronRightIcon,
   Circle,
   CircleCheck,
-  CircleSlash,
   ShieldCheck,
   ExternalLinkIcon,
   EyeIcon,
@@ -22,7 +21,6 @@ import {
   LibraryIcon,
   LinkIcon,
   Loader2,
-  MessageSquareText,
   PlusIcon,
   TriangleAlertIcon,
   RssIcon,
@@ -44,7 +42,6 @@ import type {
 // `RuleTier` isn't re-exported from the contracts package today —
 // infer it from the same union literal the schema uses.
 type RuleTier = ObligationRule['ruleTier']
-import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
@@ -59,13 +56,6 @@ import {
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@duedatehq/ui/components/ui/sheet'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
@@ -96,11 +86,7 @@ import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { StatBand } from '@/components/patterns/stat-band'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { SearchInput } from '@/components/primitives/search-input'
-import {
-  CandidateReviewSection,
-  RuleDetailCompact,
-  RuleDetailInline,
-} from '@/features/rules/rule-detail-drawer'
+import { CandidateReviewSection, RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
 import {
   ENTITY_KEYS,
   ENTITY_LABELS,
@@ -4456,8 +4442,7 @@ function RuleDetailHeroCard({
           {rule.title}
         </h2>
         <p className="text-[13px] font-medium text-text-secondary">
-          {rule.jurisdiction} · {rule.formName} ·{' '}
-          <Trans>Tax season {rule.applicableYear}</Trans>
+          {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
         </p>
         {rule.defaultTip ? (
           <p className="line-clamp-2 text-[13px] leading-relaxed text-text-secondary">
@@ -4483,103 +4468,6 @@ function RuleDetailHeroCard({
         </div>
       </div>
     </div>
-  )
-}
-
-// 2026-05-25 (Yuqi rule library #15, #16, #17): identity kicker
-// above the rule title. Replaces the dot-separated mono ID line
-// in RuleDetailInline (`fed.7004.extension.1065.2025`) that read
-// as a developer string — CPAs don't parse that vocabulary. The
-// kicker reads "FED · Form 7004 · TY 2025-2026 · Active" — human
-// shape with the same audit reference info, organized by what a
-// CPA scans for first. The full mono ID is kept at the end as a
-// quiet reference for audit / engineer use.
-function RuleDetailKicker({ rule }: { rule: ObligationRule }) {
-  return (
-    // 2026-05-25 (Yuqi rule library fourth pass #9): jurisdiction
-    // marker upgraded from the mono-text Badge to the StateBadge
-    // SVG primitive used everywhere else US-states surface in the
-    // app (the GroupHeaderRow above, Alerts page, alert drawer,
-    // /clients States column). One visual grammar for "this is a
-    // jurisdiction" instead of two parallel ones. The 2-letter
-    // code text follows the SVG so the chip remains keyboard-
-    // typable and the kicker reads at a glance.
-    // 2026-06-07 (Yuqi /rules detail pixel pass, Pencil DvLC9 Hero
-    // meta row): jurisdiction + impact pills lead the row, then the
-    // form/year context and the status marker. The jurisdiction is a
-    // soft-fill mono pill, the risk level an impact pill (high reads
-    // destructive, medium warning, low quiet) — matching the canvas.
-    <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
-      <Badge variant="secondary" shape="square">
-        {rule.jurisdiction}
-      </Badge>
-      <RuleImpactPill riskLevel={rule.riskLevel} />
-      <span className="font-medium text-text-secondary">{rule.formName}</span>
-      <span aria-hidden>·</span>
-      <span className="tabular-nums">
-        <Trans>TY {rule.taxYear}</Trans>
-        {rule.taxYear !== rule.applicableYear ? `–${rule.applicableYear}` : ''}
-      </span>
-      <span aria-hidden>·</span>
-      <RuleStatusKicker status={rule.status} />
-    </div>
-  )
-}
-
-// 2026-05-25 (Yuqi rule library #17): replace the green-dot + "Active"
-// treatment with an icon-led chip so rule status doesn't visually
-// collide with the obligation status icons we just iconified
-// app-wide. Active = CircleCheck (green), Needs review =
-// MessageSquareText (blue), Inactive/Rejected = CircleSlash (gray).
-function RuleStatusKicker({ status }: { status: ObligationRule['status'] }) {
-  if (status === 'candidate' || status === 'pending_review') {
-    return (
-      <span className={cn('inline-flex items-center gap-1', REVIEW_TEXT_CLS)}>
-        <MessageSquareText className="size-3.5" aria-hidden />
-        <span className="font-medium">
-          <Trans>Needs review</Trans>
-        </span>
-      </span>
-    )
-  }
-  if (status === 'deprecated' || status === 'archived' || status === 'rejected') {
-    return (
-      <span className="inline-flex items-center gap-1 text-text-tertiary">
-        <CircleSlash className="size-3.5" aria-hidden />
-        <span className="font-medium">
-          {status === 'rejected' ? <Trans>Rejected</Trans> : <Trans>Inactive</Trans>}
-        </span>
-      </span>
-    )
-  }
-  return (
-    <span className="inline-flex items-center gap-1 text-text-success">
-      <CircleCheck className="size-3.5" aria-hidden />
-      <span className="font-medium">
-        <Trans>Active</Trans>
-      </span>
-    </span>
-  )
-}
-
-// Impact pill for the rule-detail header meta row ("HIGH IMPACT"). Reads
-// the wired `riskLevel` onto the shared `Badge` primitive (`shape="square"`
-// — the canonical uppercase eyebrow-chip treatment the badge documents for
-// "jurisdiction kickers"): high → destructive tint, medium → warning, low →
-// quiet neutral. Replaces three hand-rolled tint spans.
-function RuleImpactPill({ riskLevel }: { riskLevel: ObligationRule['riskLevel'] }) {
-  const variant =
-    riskLevel === 'high' ? 'destructive' : riskLevel === 'med' ? 'warning' : 'secondary'
-  return (
-    <Badge variant={variant} shape="square">
-      {riskLevel === 'high' ? (
-        <Trans>High impact</Trans>
-      ) : riskLevel === 'med' ? (
-        <Trans>Medium impact</Trans>
-      ) : (
-        <Trans>Low impact</Trans>
-      )}
-    </Badge>
   )
 }
 

@@ -7795,7 +7795,6 @@ msgstr "高置信度"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/dashboard/needs-attention-card.tsx
-#: src/routes/rules.library.tsx
 msgid "High impact"
 msgstr "高影响"
 
@@ -8126,10 +8125,6 @@ msgstr "在您的客户列表中"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "In-app"
 msgstr "站内"
-
-#: src/routes/rules.library.tsx
-msgid "Inactive"
-msgstr "未生效"
 
 #: src/components/patterns/alerts-notifications-bell.tsx
 #: src/features/notifications/notifications-page.tsx
@@ -8866,10 +8861,6 @@ msgstr "低"
 msgid "Low confidence"
 msgstr "低置信度"
 
-#: src/routes/rules.library.tsx
-msgid "Low impact"
-msgstr "低影响"
-
 #: src/features/alerts/components/AlertCard.tsx
 msgid "LOW IMPACT"
 msgstr "低影响"
@@ -9254,10 +9245,6 @@ msgstr "中"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "MEDIUM"
 msgstr "中"
-
-#: src/routes/rules.library.tsx
-msgid "Medium impact"
-msgstr "中影响"
 
 #: src/features/alerts/components/AlertCard.tsx
 msgid "MEDIUM IMPACT"
@@ -16340,9 +16327,7 @@ msgid "TXT, CSV, or Excel"
 msgstr "TXT、CSV 或 Excel"
 
 #. placeholder {0}: row.taxYear - 1
-#. placeholder {0}: rule.taxYear
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-#: src/routes/rules.library.tsx
 msgid "TY {0}"
 msgstr "税年 {0}"
 

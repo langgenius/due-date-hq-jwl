@@ -18,9 +18,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
-import {
-  ObligationStatusReadBadge,
-} from '@/features/obligations/status-control'
+import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 
 import { DueDaysPill } from './primitives'
@@ -122,7 +120,8 @@ export function DeadlineRow({
     }
     switch (mode) {
       case 'inline-expand':
-        isExpanded ? onCollapse?.(deadline.id) : onExpand?.(deadline.id)
+        if (isExpanded) onCollapse?.(deadline.id)
+        else onExpand?.(deadline.id)
         break
       case 'navigate':
         goToSummary(event.metaKey || event.ctrlKey)
@@ -148,7 +147,8 @@ export function DeadlineRow({
       case 'Spacebar':
         event.preventDefault()
         if (mode === 'inline-expand') {
-          isExpanded ? onCollapse?.(deadline.id) : onExpand?.(deadline.id)
+          if (isExpanded) onCollapse?.(deadline.id)
+          else onExpand?.(deadline.id)
         } else {
           goToSummary()
         }
@@ -208,10 +208,7 @@ export function DeadlineRow({
         >
           <span className="flex items-center gap-1.5">
             {overdue ? (
-              <AlertTriangleIcon
-                className="size-3.5 shrink-0 text-text-destructive"
-                aria-hidden
-              />
+              <AlertTriangleIcon className="size-3.5 shrink-0 text-text-destructive" aria-hidden />
             ) : null}
             <TaxCodeBadge code={deadline.taxType} />
           </span>
@@ -406,11 +403,7 @@ function DeadlineRowExpansion({
       {/* Section D — actions (hidden read-only, §7.2). */}
       {canEdit ? (
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            disabled={isTerminal}
-            onClick={() => onMarkFiled?.(deadline.id)}
-          >
+          <Button size="sm" disabled={isTerminal} onClick={() => onMarkFiled?.(deadline.id)}>
             <CheckIcon data-icon="inline-start" />
             <Trans>Mark filed</Trans>
           </Button>

@@ -7760,7 +7760,6 @@ msgstr "High confidence"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/dashboard/needs-attention-card.tsx
-#: src/routes/rules.library.tsx
 msgid "High impact"
 msgstr "High impact"
 
@@ -8090,10 +8089,6 @@ msgstr "in your client list"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "In-app"
 msgstr "In-app"
-
-#: src/routes/rules.library.tsx
-msgid "Inactive"
-msgstr "Inactive"
 
 #: src/components/patterns/alerts-notifications-bell.tsx
 #: src/features/notifications/notifications-page.tsx
@@ -8825,10 +8820,6 @@ msgstr "LOW"
 msgid "Low confidence"
 msgstr "Low confidence"
 
-#: src/routes/rules.library.tsx
-msgid "Low impact"
-msgstr "Low impact"
-
 #: src/features/alerts/components/AlertCard.tsx
 msgid "LOW IMPACT"
 msgstr "LOW IMPACT"
@@ -9208,10 +9199,6 @@ msgstr "Medium"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "MEDIUM"
 msgstr "MEDIUM"
-
-#: src/routes/rules.library.tsx
-msgid "Medium impact"
-msgstr "Medium impact"
 
 #: src/features/alerts/components/AlertCard.tsx
 msgid "MEDIUM IMPACT"
@@ -16259,9 +16246,7 @@ msgid "TXT, CSV, or Excel"
 msgstr "TXT, CSV, or Excel"
 
 #. placeholder {0}: row.taxYear - 1
-#. placeholder {0}: rule.taxYear
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-#: src/routes/rules.library.tsx
 msgid "TY {0}"
 msgstr "TY {0}"
 

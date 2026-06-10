@@ -422,7 +422,11 @@ export function RuleDetailCompact({
         title={<Trans>Evidence</Trans>}
         meta={<Plural value={rule.evidence.length} one="# source" other="# sources" />}
         moreLabel={
-          <Plural value={restEvidence.length} one="View # more source" other="View # more sources" />
+          <Plural
+            value={restEvidence.length}
+            one="View # more source"
+            other="View # more sources"
+          />
         }
         summary={
           primaryEvidence ? (
@@ -579,7 +583,10 @@ function RuleImpactCard({ rule }: { rule: ObligationRule }) {
         entityRows.length > 0 ? (
           <dl className="flex flex-col gap-2 text-sm">
             {entityRows.map((row) => (
-              <FactRow key={row.key} label={isEntityKey(row.key) ? ENTITY_LABELS[row.key] : row.key}>
+              <FactRow
+                key={row.key}
+                label={isEntityKey(row.key) ? ENTITY_LABELS[row.key] : row.key}
+              >
                 <span className="font-semibold tabular-nums">{row.count}</span>
               </FactRow>
             ))}
@@ -674,9 +681,7 @@ function RulePracticeReviewCard({ rule }: { rule: ObligationRule }) {
   const queryClient = useQueryClient()
   const [body, setBody] = useState('')
   const [showNotes, setShowNotes] = useState(false)
-  const notesQuery = useQuery(
-    orpc.rules.listRuleNotes.queryOptions({ input: { ruleId: rule.id } }),
-  )
+  const notesQuery = useQuery(orpc.rules.listRuleNotes.queryOptions({ input: { ruleId: rule.id } }))
   const notes = notesQuery.data?.notes ?? []
   const addMutation = useMutation(
     orpc.rules.addRuleNote.mutationOptions({
@@ -876,7 +881,6 @@ function CandidateReviewForm({
   onActionComplete,
   chrome = 'card',
   confirmImpact = false,
-  reviewReason,
 }: {
   rule: ObligationRule
   reviewReason?: RuleReviewTaskReason
@@ -1782,7 +1786,9 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
   return (
     <DetailSectionCard
       title={<Trans>Applicability</Trans>}
-      headerRight={<Plural value={rule.entityApplicability.length} one="# entity" other="# entities" />}
+      headerRight={
+        <Plural value={rule.entityApplicability.length} one="# entity" other="# entities" />
+      }
     >
       <p className="text-sm text-text-primary">
         <Trans>
@@ -2114,16 +2120,6 @@ function AuthorityRoleBadge({ role }: { role: RuleEvidenceAuthorityRole }) {
       {RULE_AUTHORITY_ROLE_LABEL[role]}
     </Badge>
   )
-}
-
-function EvidenceLocator({ evidence }: { evidence: RuleEvidence }) {
-  const parts: string[] = []
-  if (evidence.locator.heading) parts.push(evidence.locator.heading)
-  if (evidence.locator.tableLabel) parts.push(`table: ${evidence.locator.tableLabel}`)
-  if (evidence.locator.rowLabel) parts.push(`row: ${evidence.locator.rowLabel}`)
-  if (evidence.locator.pdfPage !== undefined) parts.push(`p.${evidence.locator.pdfPage}`)
-  if (parts.length === 0) return null
-  return <p className="text-xs text-text-tertiary">{parts.join(' · ')}</p>
 }
 
 function VerificationSection({ rule }: { rule: ObligationRule }) {

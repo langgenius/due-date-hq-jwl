@@ -1,10 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import {
-  ChevronDownIcon,
-  ClipboardListIcon,
-} from 'lucide-react'
+import { ChevronDownIcon, ClipboardListIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { ObligationQueueRow } from '@duedatehq/contracts'
@@ -28,17 +25,14 @@ import {
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { DeadlineRow } from '@/features/obligations/queue/components/DeadlineRow'
 import {
   LIFECYCLE_V2_STATUSES,
-  ObligationQueueStatusControl,
   useLifecycleV2StatusLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
@@ -201,7 +195,6 @@ export function ClientWorkPlanPanel({
   onExpandFiling: (id: string) => void
   onCollapseFiling: () => void
 }) {
-  const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const { t } = useLingui()
   const queryClient = useQueryClient()
   // Current tax year = the calendar year just closed (the season being filed

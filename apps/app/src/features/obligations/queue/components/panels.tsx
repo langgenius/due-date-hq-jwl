@@ -1026,7 +1026,10 @@ export function PathToFilingSummary({
                     // done / active / skipped stages carry a glyph. The wrapper
                     // already paints the upcoming circle (white + border).
                     const isUpcoming =
-                      state !== 'done' && state !== 'active' && state !== 'skipped' && !overdueActive
+                      state !== 'done' &&
+                      state !== 'active' &&
+                      state !== 'skipped' &&
+                      !overdueActive
                     if (isUpcoming) return null
                     // 2026-05-26 (Yuqi feedback #8): align the stage
                     // icon set with the canonical STATUS_ICON map
@@ -2332,7 +2335,12 @@ export function ActiveStageDetailCard({
                 label: t`outstanding`,
                 dot: 'bg-state-warning-solid',
               },
-              { key: 'waived', count: readinessCounts.waived, label: t`waived`, dot: 'bg-text-muted' },
+              {
+                key: 'waived',
+                count: readinessCounts.waived,
+                label: t`waived`,
+                dot: 'bg-text-muted',
+              },
             ].map((chip) => (
               <span
                 key={chip.key}

@@ -2283,9 +2283,7 @@ export function ObligationQueueDetailDrawer({
                     </div>
                     {/* What's left to do — own gray-header card (Pencil `bmwHb`),
                         matching the rest of the panel's card system. */}
-                    {checklist.length > 0 &&
-                    row.status !== 'done' &&
-                    row.status !== 'completed' ? (
+                    {checklist.length > 0 && row.status !== 'done' && row.status !== 'completed' ? (
                       <DetailSectionCard
                         title={<Trans>What's left to do</Trans>}
                         headerRight={t`${checklist.filter((item) => item.status === 'received').length} of ${checklist.length} complete`}
@@ -2319,7 +2317,9 @@ export function ObligationQueueDetailDrawer({
                                   </span>
                                   {isDone && item.receivedAt ? (
                                     <span className="text-caption-xs text-text-tertiary">
-                                      <Trans>received {formatDate(item.receivedAt.slice(0, 10))}</Trans>
+                                      <Trans>
+                                        received {formatDate(item.receivedAt.slice(0, 10))}
+                                      </Trans>
                                     </span>
                                   ) : null}
                                 </span>

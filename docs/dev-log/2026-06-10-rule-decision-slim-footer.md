@@ -7,6 +7,7 @@ implementation carried the "Before you accept" aids (year-over-year + the AI
 concrete-draft panel) inside the footer, making it tall for source-defined rules.
 
 ## The split
+
 - New **`RuleBeforeAcceptCard`** (scroll card): year-over-year diff + AI-draft
   panel. Self-contained — its own `draftConcreteRule` mutation invalidates
   `listConcreteDrafts`; the route re-reads it → the footer's `concreteDraft` prop
@@ -19,6 +20,7 @@ concrete-draft panel) inside the footer, making it tall for source-defined rules
   and the batch stack).
 
 ## Regression fixes surfaced by the rules tests
+
 - Restored **`VerificationSection`** (Reviewed by / at) in the new card modal — it
   was lost in the earlier Sheet→Dialog conversion; reviewed-rule reviewer metadata
   is back.
