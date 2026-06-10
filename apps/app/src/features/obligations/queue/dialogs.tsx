@@ -268,9 +268,9 @@ export function SignatureReminderDialog({
               </p>
             ) : null}
             <div className="grid gap-1.5">
-              <label htmlFor="signature-reminder-subject" className="text-sm font-medium">
+              <FieldLabel htmlFor="signature-reminder-subject">
                 <Trans>Subject</Trans>
-              </label>
+              </FieldLabel>
               <Input
                 id="signature-reminder-subject"
                 value={subject}
@@ -281,9 +281,9 @@ export function SignatureReminderDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <label htmlFor="signature-reminder-body" className="text-sm font-medium">
+              <FieldLabel htmlFor="signature-reminder-body">
                 <Trans>Message</Trans>
-              </label>
+              </FieldLabel>
               <Textarea
                 id="signature-reminder-body"
                 rows={9}
@@ -476,9 +476,9 @@ export function BulkExtensionDialog({
               </p>
             ) : null}
             <div className="grid gap-1.5">
-              <label htmlFor="bulk-extension-memo" className="text-sm font-medium">
+              <FieldLabel htmlFor="bulk-extension-memo">
                 <Trans>Decision memo</Trans>
-              </label>
+              </FieldLabel>
               <Textarea
                 id="bulk-extension-memo"
                 rows={4}
@@ -487,9 +487,9 @@ export function BulkExtensionDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <label htmlFor="bulk-extension-source" className="text-sm font-medium">
+              <FieldLabel htmlFor="bulk-extension-source">
                 <Trans>Source (optional)</Trans>
-              </label>
+              </FieldLabel>
               <Input
                 id="bulk-extension-source"
                 value={source}
@@ -497,9 +497,9 @@ export function BulkExtensionDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-sm font-medium">
+              <FieldLabel>
                 <Trans>Internal target date</Trans>
-              </label>
+              </FieldLabel>
               <IsoDatePicker
                 value={internalTargetDate}
                 invalid={dateInvalid}

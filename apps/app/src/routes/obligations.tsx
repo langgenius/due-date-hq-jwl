@@ -2989,10 +2989,9 @@ export function ObligationQueueRoute() {
     ],
   )
 
-  // 2026-06-04 (Yuqi "infinite scroll, not pagination"): hand the FULL
-  // loaded buffer to TanStack and render it inside a scroll container.
-  // The prev/next page window + client-side slice is gone; the bottom
-  // IntersectionObserver sentinel grows the buffer via `fetchNextPage`.
+  // Hand the FULL loaded buffer to TanStack and render it inside a scroll
+  // container. The bottom IntersectionObserver sentinel grows the buffer via
+  // `fetchNextPage` (infinite scroll, not pagination).
   const table = useReactTable({
     data: orderedRows,
     columns,
@@ -4312,11 +4311,9 @@ export function ObligationQueueRoute() {
           ) : null}
 
           {isInitialLoading ? (
-            // Step 6 cont Q1.1/Q1.3: skeleton rows match the rest
-            // of the app's loading rhythm; role=status + aria-live
-            // for SR announce.
-            // 2026-06-07 (design replication VaJ5G): table-shaped skeleton — a
-            // header row + column-spaced body rows + trailing status pill — so
+            // Skeleton rows match the rest of the app's loading rhythm;
+            // role=status + aria-live for SR announce. Table-shaped skeleton —
+            // a header row + column-spaced body rows + trailing status pill — so
             // the loading state mirrors the real deadlines table instead of
             // generic bars. Responsive: a flex spacer absorbs the slack and
             // fixed cells shrink-0 so the shape holds across widths.
@@ -4457,12 +4454,11 @@ export function ObligationQueueRoute() {
                           return (
                             <TableHead
                               key={header.id}
-                              // 2026-06-08 (Pencil HuYeb /deadlines #4):
-                              // dropped the route-local sentence-case header
-                              // override so the column labels match the
-                              // canonical TableHead treatment used by the
-                              // Today / Alerts tables (11px semibold uppercase
-                              // tertiary eyebrow, left-aligned).
+                              // No route-local sentence-case header override —
+                              // the column labels match the canonical TableHead
+                              // treatment used by the Today / Alerts tables
+                              // (11px semibold uppercase tertiary eyebrow,
+                              // left-aligned).
                               className={cn(meta?.headerClassName)}
                               colSpan={header.colSpan}
                               aria-sort={obligationQueueColumnAriaSort(header.column.id, sort)}
@@ -5904,9 +5900,9 @@ function SignatureReminderDialog({
               </p>
             ) : null}
             <div className="grid gap-1.5">
-              <label htmlFor="signature-reminder-subject" className="text-sm font-medium">
+              <FieldLabel htmlFor="signature-reminder-subject">
                 <Trans>Subject</Trans>
-              </label>
+              </FieldLabel>
               <Input
                 id="signature-reminder-subject"
                 value={subject}
@@ -5917,9 +5913,9 @@ function SignatureReminderDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <label htmlFor="signature-reminder-body" className="text-sm font-medium">
+              <FieldLabel htmlFor="signature-reminder-body">
                 <Trans>Message</Trans>
-              </label>
+              </FieldLabel>
               <Textarea
                 id="signature-reminder-body"
                 rows={9}
@@ -6111,9 +6107,9 @@ function BulkExtensionDialog({
               </p>
             ) : null}
             <div className="grid gap-1.5">
-              <label htmlFor="bulk-extension-memo" className="text-sm font-medium">
+              <FieldLabel htmlFor="bulk-extension-memo">
                 <Trans>Decision memo</Trans>
-              </label>
+              </FieldLabel>
               <Textarea
                 id="bulk-extension-memo"
                 rows={4}
@@ -6122,9 +6118,9 @@ function BulkExtensionDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <label htmlFor="bulk-extension-source" className="text-sm font-medium">
+              <FieldLabel htmlFor="bulk-extension-source">
                 <Trans>Source (optional)</Trans>
-              </label>
+              </FieldLabel>
               <Input
                 id="bulk-extension-source"
                 value={source}
@@ -6132,9 +6128,9 @@ function BulkExtensionDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-sm font-medium">
+              <FieldLabel>
                 <Trans>Internal target date</Trans>
-              </label>
+              </FieldLabel>
               <IsoDatePicker
                 value={internalTargetDate}
                 invalid={dateInvalid}
