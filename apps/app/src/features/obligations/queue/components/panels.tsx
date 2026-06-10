@@ -740,31 +740,20 @@ export function FlatDateList({ row }: { row: ObligationQueueRow }) {
   )
 }
 
-// StatutoryDatesPanel — just the flat date list (2026-05-23). The
-// `YearStripTimeline` that used to sit above the list was dropped
-// per critique ("can remove the timeline for dates first"). It
-// duplicated the PathToFilingSummary at the top of the drawer (also
-// a spatial lifecycle view) and was redundant with the explicit
-// per-row dates here. Two timelines on the same drawer screen
-// competed for attention without adding signal. Component + its
-// `clamp01` helper were removed entirely; git history has them if
-// we ever need to revive the visualization for multi-year cycles.
+// StatutoryDatesPanel — just the flat date list. A timeline above the
+// list would duplicate the PathToFilingSummary at the top of the drawer
+// (also a spatial lifecycle view) and be redundant with the explicit
+// per-row dates here. Two timelines on the same drawer screen would
+// compete for attention without adding signal.
 
 export function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
   return <FlatDateList row={row} />
 }
 
-// `stageIndexForStatus` + `mineStageTimestamps` + `STAGE_ANCHOR_STATUSES`
-// retired 2026-05-21. The old 5-step funnel vocabulary (Scope /
-// Collecting / Preparing / Signature / Filed) was replaced by the
-// 6-status lifecycle timeline below — same audit-event mining logic,
-// new shape.
-
 // Horizontal milestone timeline — 6 lifecycle stages with circles +
-// connecting lines + labels. Replaces the prior collapsed disclosure
-// (which hid the most useful audit-defense info behind a click).
+// connecting lines + labels.
 //
-// Vocabulary (per 2026-05-21 design call) follows the lifecycle v2
+// Vocabulary follows the lifecycle v2
 // status names so the timeline reads the same as the queue's status
 // pills + the header status pill — no parallel "Scope / Collecting"
 // jargon to translate.
@@ -785,13 +774,11 @@ export function PathToFilingSummary({
 }) {
   const { t } = useLingui()
   const stages = useMemo(
-    // 2026-05-27 (Agent X3 milestone audit M-04): "Waiting" → "Waiting
-    // on client" so the strip matches the queue pill + drawer header
-    // pill + readiness overview headline + v2 label hook. Same row,
-    // one name across every milestone surface. The short form was a
-    // legacy convenience from when this strip was a tight 6-column
-    // grid; the column now has enough width to carry the full label
-    // and the consistency win outweighs the few pixels saved.
+    // "Waiting on client" (not the short "Waiting") so the strip matches
+    // the queue pill + drawer header pill + readiness overview headline +
+    // v2 label hook. One name across every milestone surface; the column
+    // has enough width to carry the full label and the consistency win
+    // outweighs the few pixels saved.
     () =>
       [
         { key: 'pending', label: t`Not started` },
@@ -810,7 +797,7 @@ export function PathToFilingSummary({
   // is still upcoming (the row's internal deadline IS the expected
   // file date). Other upcoming stages don't get a projection.
   const filedStageIndex = stages.findIndex((s) => s.key === 'done')
-  // OVERDUE only applies on PRE-TERMINAL stages (2026-05-21). Once a
+  // OVERDUE only applies on PRE-TERMINAL stages. Once a
   // row reaches Filed or Completed, the action has been taken —
   // calling the stage "OVERDUE" contradicts the green Filed pill in
   // the header and creates a confusing mixed signal (green pill +
@@ -818,10 +805,6 @@ export function PathToFilingSummary({
   // visible in the dates panel via the red `Internal due` value;
   // that's the right surface for "was this filed on time?"
   //
-  // 2026-05-24 (re-critique): hoisted `TIMELINE_TERMINAL_STAGE_KEYS`
-  // to module scope (alongside DUE_DAYS_TERMINAL_STATUSES) — the
-  // previous shape allocated a fresh Set on every render of this
-  // component without need.
   // Sub-status annotation for the ACTIVE stage. Derived from existing
   // schema fields — no migration needed:
   //   waiting_on_client → row.prepStage (waiting_on_client /
@@ -839,14 +822,11 @@ export function PathToFilingSummary({
     <div aria-label={t`Milestone timeline`} className="pb-1">
       <div className="grid grid-cols-6 gap-0">
         {stages.map((stage, i) => {
-          // 2026-05-24 (critique P1 — shape): the timeline used to
-          // render every stage before currentIndex as "done" (green
-          // tick), even ones the row never sat in. A row that goes
-          // Not started → In review directly would show Waiting and
-          // Blocked as ✓ completed — telling a history that didn't
-          // happen.
-          //
-          // Now the state map consults the audit-event stamps:
+          // The state map consults the audit-event stamps so stages the
+          // row never sat in aren't shown as "done". A row that goes
+          // Not started → In review directly must not show Waiting and
+          // Blocked as ✓ completed — that would tell a history that
+          // didn't happen.
           //   - `done`     past stage WITH a stamp → genuinely entered
           //   - `skipped`  past stage WITHOUT a stamp → bypassed
           //   - `active`   the row's current stage
@@ -866,8 +846,7 @@ export function PathToFilingSummary({
                   ? 'done'
                   : 'skipped'
                 : 'upcoming'
-          // Date resolution (milestone-timeline-prd.md §3, 2026-05-25
-          // Deadlines #23/#24/#25 doc-gap fix):
+          // Date resolution (milestone-timeline-prd.md §3):
           //   Done/Active     : audit-event stamp (first entry into stage)
           //   Stage 0 fallback: row.createdAt (the row was born here)
           //   Filed upcoming  : row.currentDueDate (the FIRM's deadline
@@ -907,26 +886,12 @@ export function PathToFilingSummary({
             state === 'active' && isPastInternalDue && !TIMELINE_TERMINAL_STAGE_KEYS.has(stage.key)
           return (
             <div key={stage.key} className="flex flex-col items-center gap-0.5">
-              {/* 2026-05-24 (Figma replica pass): milestone strip
-                  rebuilt to match the Figma’s rhythm:
-                    — Connectors switch from solid 2px bars to a
-                      DOTTED hairline so the strip reads as "stages on
-                      a thin track", not "stages connected by a pipe".
-                    — Completed circles drop the bold green fill
-                      in favour of a softer success-hover bg + a small
-                      green tick — less dominant per Yuqi’s "finished
-                      state looks too dominant" critique.
-                    — Active stage uses a stronger accent ring;
-                      the inner blue dot retired since the ring + bold
-                      stage label carries the active signal alone. */}
               <div className="flex w-full items-center gap-1">
                 <span
                   aria-hidden
                   className={cn(
-                    // 2026-06-10 (Yuqi "work on the detail page" / Qn4nX
-                    // StatusJourney): continuous SOLID track (was a dotted
-                    // hairline); entered edges fill accent up to the active
-                    // stage, the rest stays a neutral rule.
+                    // Continuous solid track; entered edges fill accent up to
+                    // the active stage, the rest stays a neutral rule.
                     'h-0 flex-1 border-t',
                     (() => {
                       if (i === 0) return 'opacity-0'
@@ -941,38 +906,19 @@ export function PathToFilingSummary({
                     })(),
                   )}
                 />
-                {/* 2026-05-26 (Yuqi /deadlines drawer #1, #2, #3):
-                    stage indicator now uses STAGE-SPECIFIC lucide
-                    icons so the milestone strip tells the story by
-                    icon identity, not just a generic check/dot.
-                      - Not started: CircleDashed
-                      - Waiting: Clock
-                      - Blocked: Lock
-                      - In review: Eye
-                      - Filed: FileCheck2
-                      - Completed: CheckCircle2
-                    State (done/active/skipped/upcoming) maps to
-                    tone instead:
-                      - done   = bg success-hover + text success-solid
-                      - active = bg accent-hover + text accent-solid + ring
-                      - skipped = dashed border + text tertiary
-                      - upcoming = empty bg + text tertiary
-                    This fixes #1 ("why no stage-specific icons"),
-                    #2 (Filed now has a visible icon + tone), and #3
-                    (Filed-active visually distinct from Completed-
-                    upcoming by both icon identity AND tone). */}
+                {/* The stage indicator uses STAGE-SPECIFIC lucide icons so the
+                    milestone strip tells the story by icon identity, not just
+                    a generic check/dot. State (done/active/skipped/upcoming)
+                    maps to tone instead. This keeps Filed visually distinct
+                    from Completed by both icon identity AND tone. */}
                 <span
                   aria-hidden
                   className={cn(
-                    // 2026-05-26 (Yuqi drawer feedback — "said there should not
-                    // be a bold border"): dropped the `ring-1` outer ring on
-                    // both `active` and `overdueActive` states. The border +
-                    // tint + icon identity were ALREADY conveying "this is the
-                    // current stage"; the extra ring layer was reading as a
-                    // double-bordered chip and shouting too hard against the
-                    // calmer done/upcoming neighbors.
-                    // 2026-06-10 (Yuqi "#5 反色" / Qn4nX StatusJourney): stage
-                    // circles are SOLID FILLED with white glyphs (not soft
+                    // No outer ring on `active`/`overdueActive`: the border +
+                    // tint + icon identity already convey "this is the current
+                    // stage"; an extra ring reads as a double-bordered chip and
+                    // shouts too hard against the calmer done/upcoming neighbors.
+                    // Stage circles are SOLID FILLED with white glyphs (not soft
                     // tints) — done/active read as filled chips, upcoming stays
                     // an empty outline ring.
                     'grid size-6 shrink-0 place-items-center rounded-full border',
@@ -988,25 +934,20 @@ export function PathToFilingSummary({
                   )}
                 >
                   {(() => {
-                    // 2026-06-10 (Yuqi #9): stages NOT yet reached render as an
-                    // empty circle (no icon), per Pencil `aNMRF` — only the
-                    // done / active / skipped stages carry a glyph. The wrapper
-                    // already paints the upcoming circle (white + border).
+                    // Stages NOT yet reached render as an empty circle (no
+                    // icon) — only the done / active / skipped stages carry a
+                    // glyph. The wrapper already paints the upcoming circle
+                    // (white + border).
                     const isUpcoming =
                       state !== 'done' &&
                       state !== 'active' &&
                       state !== 'skipped' &&
                       !overdueActive
                     if (isUpcoming) return null
-                    // 2026-05-26 (Yuqi feedback #8): align the stage
-                    // icon set with the canonical STATUS_ICON map
-                    // (status-control.tsx). The pending stage now
-                    // uses Loader (the canonical pending icon) rather
-                    // than CircleDashed — consistent with the row
+                    // The stage icon set aligns with the canonical STATUS_ICON
+                    // map (status-control.tsx). The pending stage uses Loader
+                    // (the canonical pending icon) — consistent with the row
                     // pill, the scope tabs, and the status dropdown.
-                    // Other stages were already aligned via their
-                    // status mapping; only `pending` was the
-                    // outlier here.
                     const StageIcon = (
                       stage.key === 'pending'
                         ? Loader
@@ -1027,12 +968,11 @@ export function PathToFilingSummary({
                   aria-hidden
                   className={cn(
                     'h-0 flex-1 border-t border-dotted',
-                    // 2026-05-24 (critique P1 — shape): the right-side
-                    // connector represents the edge into stage i+1.
-                    // Green only when BOTH stage i was entered (or
-                    // active) AND stage i+1 was entered (or active) —
-                    // i.e. the row actually crossed this edge. Skipped
-                    // stages on either end keep the edge muted.
+                    // The right-side connector represents the edge into
+                    // stage i+1. Emphasized only when BOTH stage i was
+                    // entered (or active) AND stage i+1 was entered (or
+                    // active) — i.e. the row actually crossed this edge.
+                    // Skipped stages on either end keep the edge muted.
                     (() => {
                       if (i === stages.length - 1) return 'opacity-0'
                       const thisEntered = state === 'done' || state === 'active'
@@ -1047,12 +987,10 @@ export function PathToFilingSummary({
                   )}
                 />
               </div>
-              {/* 2026-05-25 (Yuqi Deadlines #22): stage label
-                  dropped from text-caption (11px) to text-caption-xs
-                  (10px) to match the date below — the two sat at
-                  different scales and made the column feel
-                  unbalanced. Active state keeps font-medium for
-                  weight contrast. */}
+              {/* Stage label sits at text-caption-xs (10px) to match the
+                  date below — at different scales the column feels
+                  unbalanced. Active state keeps font-medium for weight
+                  contrast. */}
               <span
                 className={cn(
                   'mt-0.5 text-center text-caption-xs leading-tight',
@@ -1066,55 +1004,33 @@ export function PathToFilingSummary({
                 {stage.label}
               </span>
               {/* Date + state + sub-status grouped into a single block
-                  with a real gap from the stage label above. Earlier
-                  they were direct flex children with no separation, so
-                  the eye couldn't tell that the stage name (e.g.
-                  "Filed") and the date + Overdue/Active/Expected
-                  pill below it were two different units. Critique #16
-                  flagged this; wrapping them in a child flex column
-                  with `mt-2` + internal `gap-0.5` separates the stage
-                  label from its status detail.
-
-                  2026-05-23 (critique #2: "no alignment to the other
-                  states"): the inner block now renders for EVERY
-                  column with consistent height — empty columns
-                  reserve space via &nbsp; placeholders so the
-                  timeline reads as a level baseline across all six
-                  stages instead of a ragged active-tall / upcoming-
-                  short pattern. */}
-              {/* Date + Overdue label. 2026-05-24 cleanup:
-                    — Em-dash placeholders dropped. Stages with no
-                      date render a non-breaking space so the
-                      baseline stays consistent without "—" noise
-                      cluttering future stages.
-                    — "ACTIVE" word retired — it was redundant
-                      against the bold stage label + ring. Only
-                      "Overdue" (destructive, when the active stage
-                      is past internal due) and "Expected" (tertiary,
-                      when projecting the Filed milestone forward)
-                      still render. */}
-              {/* 2026-05-25 (Yuqi Deadlines #26): mt-1.5 (6px) gap
-                  between the stage label and the date block read
-                  as too loose — the date felt unrelated to the
-                  stage above it. Tightened to mt-1 (4px) so the
-                  pair reads as one unit. */}
+                  with a real gap from the stage label above, so the eye
+                  reads the stage name (e.g. "Filed") and the date +
+                  Overdue/Expected pill below it as two different units.
+                  The inner block renders for EVERY column with consistent
+                  height — empty columns reserve space via &nbsp;
+                  placeholders so the timeline reads as a level baseline
+                  across all six stages instead of a ragged active-tall /
+                  upcoming-short pattern. */}
+              {/* Date + Overdue label. Stages with no date render a
+                  non-breaking space so the baseline stays consistent
+                  without "—" noise. No "ACTIVE" word — it would be
+                  redundant against the bold stage label + ring. Only
+                  "Overdue" (destructive, when the active stage is past
+                  internal due) and "Expected" (tertiary, when projecting
+                  the Filed milestone forward) render. */}
               <div className="mt-1 flex w-full flex-col items-center gap-0.5">
                 <span
-                  // 2026-05-26 (Yuqi feedback #9): date smaller —
-                  // text-caption-xs (10px) → text-[9px] leading-none.
-                  // The stage label sits at caption-xs above, dates
-                  // were at the same scale making the column feel
-                  // even-weight. One step smaller gives the label
-                  // visual primacy and the date reads as meta.
+                  // Date is one step smaller (9px) than the stage label
+                  // (caption-xs) above so the label has visual primacy and
+                  // the date reads as meta.
                   className={cn(
                     'text-center text-[9px] tabular-nums leading-none',
                     state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
                   )}
-                  // 2026-05-25 (Yuqi Deadlines #23/#24/#25): hover hint
-                  // surfaces the date-resolution policy in plain
-                  // language for blank cells (skipped / non-Filed
-                  // upcoming). Stops the empty space reading as a
-                  // missing-data bug.
+                  // Hover hint surfaces the date-resolution policy in plain
+                  // language for blank cells (skipped / non-Filed upcoming),
+                  // so the empty space doesn't read as a missing-data bug.
                   title={emptyDateHint}
                 >
                   {(state === 'done' || state === 'active' || isExpected) && stamp
@@ -1122,24 +1038,17 @@ export function PathToFilingSummary({
                     : ' '}
                 </span>
                 {overdueActive ? (
-                  // 2026-05-26 (Yuqi sixty-seventh pass — context for
-                  // OVERDUE): the bare word "Overdue" answered "is
-                  // this late?" but not "late vs what?" Tied it back
-                  // to the canonical thing that's late — the FIRM'S
-                  // internal target date — so a CPA scanning the
-                  // strip sees both the urgency cue and the noun.
-                  // Hover spells out the exact days-late count + the
-                  // deadline date.
-                  // 2026-05-26 (Yuqi drawer feedback — "too much red on
-                  // the right panel"): demoted from text-text-destructive
-                  // to text-text-secondary. The destructive-toned In-
-                  // review CIRCLE above is already the red signal at
-                  // this stage; doubling it with red caption copy
-                  // underneath read as a shout. The word still says
-                  // "Past deadline" — readable in any tone.
+                  // "Past deadline" ties the late cue back to the canonical
+                  // thing that's late — the firm's internal target date — so
+                  // a CPA scanning the strip sees both the urgency cue and the
+                  // noun. Hover spells out the exact days-late count + the
+                  // deadline date. Toned to text-muted (not destructive): the
+                  // destructive-toned In-review circle above is already the
+                  // red signal at this stage; doubling it with red caption
+                  // copy underneath would read as a shout.
                   <span
-                    // 2026-06-10 (Yuqi #8): caption smaller than the date above
-                    // (8px vs 9px) + lighter (muted) so it reads as sub-meta.
+                    // Caption is smaller than the date above + lighter (muted)
+                    // so it reads as sub-meta.
                     className="text-center text-[9px] font-medium uppercase tracking-wide leading-tight text-text-muted"
                     title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days past deadline.`}
                   >
@@ -1226,9 +1135,6 @@ export function AuthorityResponsePanel({
               {rejectedAt ? <> · {formatDatePretty(rejectedAt.slice(0, 10))}</> : null}
             </p>
           </div>
-          {/* 2026-06-01: swapped hand-rolled destructive pill for
-              Badge variant="destructive". Soft red bg carries the
-              destructive tone; the explicit border is dropped. */}
           <Badge variant="destructive">
             <AlertTriangleIcon className="size-3" aria-hidden />
             <Trans>Rejected</Trans>
@@ -1291,9 +1197,6 @@ export function AuthorityResponsePanel({
             <Trans>Awaiting authority acceptance</Trans>
           </p>
         </div>
-        {/* 2026-06-01: swapped hand-rolled warning pill for
-            Badge variant="warning". Same soft amber background and
-            text token, with built-in icon sizing. */}
         <Badge variant="warning">
           <Clock className="size-3" aria-hidden />
           <Trans>Pending</Trans>
@@ -1375,10 +1278,9 @@ export function ActiveStageDetailCard({
   const { openDrawer } = useObligationDrawer()
   const stageIdx = timelineIndexForStatus(row.status)
   const stageKey: TimelineStageKey = TIMELINE_STAGE_KEYS[stageIdx] ?? 'pending'
-  // 2026-05-27 (Agent X3 milestone audit M-04): "Waiting" → "Waiting on
-  // client" so this card's header label matches the strip above it, the
-  // queue pill, and the v2 label hook. See PathToFilingSummary for the
-  // matching change on the strip.
+  // "Waiting on client" (not the short "Waiting") so this card's header
+  // label matches the strip above it, the queue pill, and the v2 label
+  // hook. See PathToFilingSummary for the matching label on the strip.
   const stageLabels: Record<TimelineStageKey, string> = {
     pending: t`Not started`,
     waiting_on_client: t`Waiting on client`,
@@ -1387,14 +1289,13 @@ export function ActiveStageDetailCard({
     done: t`Filed`,
     completed: t`Completed`,
   }
-  // 2026-05-23: A/B/C IA preview retired. Winning shape (Option D):
-  // the stage card carries WAITING header + a single one-line signal
+  // The stage card carries a WAITING header + a single one-line signal
   // ("3 docs outstanding · Open Client readiness →") + the primary
-  // "Mark client docs received" button. The full outstanding-docs
-  // panel is gone — that data lives on the Client readiness tab,
-  // not duplicated here. Sub-status reads "Awaiting client · N days
-  // so far" so the header is honest about *time elapsed*, not just
-  // a generic "waiting on docs" repeat of what the count line says.
+  // "Mark client docs received" button. There's no full outstanding-docs
+  // panel — that data lives on the Client readiness tab, not duplicated
+  // here. Sub-status reads "Awaiting client · N days so far" so the
+  // header is honest about *time elapsed*, not just a generic "waiting on
+  // docs" repeat of what the count line says.
   const isWaitingStage = stageKey === 'waiting_on_client'
   const isWaitingDocsCase = isWaitingStage && row.prepStage === 'waiting_on_client'
   // Outstanding docs count powers the inline signal in the Waiting
@@ -1408,8 +1309,8 @@ export function ActiveStageDetailCard({
     () => willReadinessChecklistBeFullyReceived(readinessChecklist, new Set<string>()),
     [readinessChecklist],
   )
-  // 2026-06-10 (Yuqi — Pencil `iTasJ` materials progress): big-number +
-  // received/outstanding/waived chips + green progress bar for the waiting card.
+  // Big-number + received/outstanding/waived chips + green progress bar
+  // for the waiting card.
   const readinessCounts = useMemo(() => {
     const total = readinessChecklist.length
     const received = readinessChecklist.filter((item) => item.status === 'received').length
@@ -1533,15 +1434,14 @@ export function ActiveStageDetailCard({
   const tasks: StageTask[] = useMemo(() => {
     switch (stageKey) {
       case 'pending':
-        // 2026-05-23 IA fix: Not Started used to offer a single primary
-        // "Start drafting the return" that jumped straight to In review,
-        // skipping Waiting entirely. Per the canonical CPA workflow
-        // (engagement → request docs → wait → receive → prep → review →
-        // file) most rows actually need a "Request docs from client"
-        // step first. Two explicit paths are honest about which
-        // situation applies: "Request documents from client" is the
-        // common case for brand-new rows, "Start drafting the return"
-        // is the rarer case where docs are already in hand.
+        // Not Started must not offer a single primary "Start drafting the
+        // return" that jumps straight to In review, skipping Waiting. Per
+        // the canonical CPA workflow (engagement → request docs → wait →
+        // receive → prep → review → file) most rows actually need a
+        // "Request docs from client" step first. Two explicit paths are
+        // honest about which situation applies: "Request documents from
+        // client" is the common case for brand-new rows, "Start drafting
+        // the return" is the rarer case where docs are already in hand.
         return [
           {
             id: 'engagement',
@@ -1606,11 +1506,10 @@ export function ActiveStageDetailCard({
             },
           ]
         }
-        // 2026-05-23: Option D shape — a primary mutation plus a
-        // quiet escape hatch for genuine blocker cases. The routing
-        // affordance (open Materials tab) moved into the inline
-        // signal line in the card body; the manual chase reminder
-        // dropped because "Send reminder" is the same action surfaced
+        // A primary mutation plus a quiet escape hatch for genuine blocker
+        // cases. The routing affordance (open Materials tab) lives in the
+        // inline signal line in the card body; there's no manual chase
+        // reminder because "Send reminder" is the same action surfaced
         // from the Materials tab itself.
         return [
           {
@@ -1677,9 +1576,9 @@ export function ActiveStageDetailCard({
             },
           ]
         }
-        // 2026-05-27: no 8879 routing task here. The app does not yet
-        // support sending or collecting client e-file authorization, so
-        // routing to Evidence from In review creates a dead-end workflow.
+        // No 8879 routing task here. The app does not yet support sending
+        // or collecting client e-file authorization, so routing to Evidence
+        // from In review creates a dead-end workflow.
         return [
           {
             id: 'file',
@@ -2058,13 +1957,13 @@ export function ActiveStageDetailCard({
   // AND in the payment route? Both map to the same milestone but
   // walk different sub-status pipelines.
   //
-  // 2026-05-24: also require that there's an ACTIVE sub-state before
-  // rendering the STEPS list. The drawer was showing a column of 4-6
-  // empty/dim sub-steps for a freshly-filed obligation that hadn't
-  // entered any e-file or payment sub-stage yet (e.g. a partnership
-  // return where status=done but efileState is null). Empty checklist
-  // reads as "nothing's happening" — the design (Figma node 109:13725)
-  // collapses the stage card to a compact info box in that case.
+  // Also require that there's an ACTIVE sub-state before rendering the
+  // STEPS list, otherwise the drawer shows a column of 4-6 empty/dim
+  // sub-steps for a freshly-filed obligation that hasn't entered any
+  // e-file or payment sub-stage yet (e.g. a partnership return where
+  // status=done but efileState is null). An empty checklist reads as
+  // "nothing's happening" — the design collapses the stage card to a
+  // compact info box in that case.
   const efileStateSet =
     row.efileState !== null && row.efileState !== undefined && row.efileState !== 'not_applicable'
   const paymentStateSet =
@@ -2078,14 +1977,12 @@ export function ActiveStageDetailCard({
   // but showing all six internal flags made normal rows look more
   // advanced than they really were.
   const showReviewPipeline = stageKey === 'review'
-  // 2026-05-26 (Yuqi sixty-seventh pass — structure the OVERDUE
-  // signal inside the card): when the active stage is past the
-  // firm's internal target date, surface that fact INSIDE the
-  // stage card body so a CPA reading "In review" / "Waiting" /
-  // "Blocked" sees the missed-deadline context next to the
-  // actions, not only on the milestone strip above. Terminal
-  // stages (Filed / Completed) don't get the banner — by then
-  // the work is closed and "Filed N days late" is the right
+  // When the active stage is past the firm's internal target date,
+  // surface that fact INSIDE the stage card body so a CPA reading
+  // "In review" / "Waiting" / "Blocked" sees the missed-deadline
+  // context next to the actions, not only on the milestone strip
+  // above. Terminal stages (Filed / Completed) don't get the banner —
+  // by then the work is closed and "Filed N days late" is the right
   // surface for the lateness story.
   const isPastInternalDue = row.daysUntilDue < 0
   const showOverdueBanner = isPastInternalDue && !TIMELINE_TERMINAL_STAGE_KEYS.has(stageKey)
@@ -2093,43 +1990,19 @@ export function ActiveStageDetailCard({
   return (
     <section
       aria-label={t`Active stage detail`}
-      // 2026-05-26 (Yuqi feedback #10): light tinted background
-      // (bg-background-section) instead of pure white. The card was
-      // reading as identical to the page surface; a soft tint gives
-      // it the "this is the deep-dive zone for the current stage"
-      // anchor without going full color.
-      // 2026-05-26 (Yuqi feedback — "too many lines going on. please
-      // restructure and look at the frontend ensure it is cleanly
-      // designed and implemented"): dropped the `border
-      // border-divider-subtle` ring. The right panel was stacking
-      // four near-rules in close proximity (status-strip bottom
-      // border + tab-bar baseline + this card's outline + inner Key
-      // dates outline). Keeping just the soft `bg-background-section`
-      // tint still anchors this as the "deep-dive zone for the
-      // current stage"; the tint vs the panel's white provides the
-      // separation without a rule.
+      // Light tinted background (bg-background-section) instead of pure
+      // white, with no border ring. A soft tint anchors this as the
+      // "deep-dive zone for the current stage" without going full color;
+      // the tint vs the panel's white provides separation without a rule.
+      // A border here would stack four near-rules in close proximity
+      // (status-strip bottom border + tab-bar baseline + this card's
+      // outline + inner Key dates outline).
       className="rounded-lg bg-background-section p-4"
     >
-      {/* Header: stage name + sub-status + when we entered this stage.
-          2026-05-23: dropped the uppercase tracking-wider treatment on
-          the stage label — at h3 weight it read as a section tag, not
-          a heading. Title-case + base text size lets "Waiting" /
-          "Blocked" / "In review" read as honest noun phrases, matching
-          the milestone strip labels above. Sub-status follows on the
-          same line with a thin dot separator. */}
-      {/* 2026-05-25 (Yuqi #27): stage label promoted from text-sm
-          (14px) to text-base (16px) — it's the h3 of this card and
-          was reading as inline chrome at the same size as the rest
-          of the body. The sub-status that follows stays at the
-          larger size too so the whole line reads as one heading.
-          The "Entered DATE" subline stays at text-xs as quiet meta. */}
-      {/* 2026-05-27 (Yuqi "onto the same line at Completed, space
-          between"): stage label + "Entered DATE" now sit on one
-          row with justify-between, the entered date pinned right. */}
-      {/* 2026-06-10 (Yuqi #10 — Pencil `iTasJ` eyebrow): the plain stage-label
-          heading becomes a canonical status pill + "Stage N of 6" + sub-status,
-          matching the design's eyebrow row and reusing ObligationStatusReadBadge
-          (the same pill the row + queue use). */}
+      {/* Header eyebrow row: a canonical status pill + "Stage N of 6" +
+          sub-status, with the "Entered DATE" pinned right on the same row.
+          Reuses ObligationStatusReadBadge (the same pill the row + queue
+          use). */}
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <ObligationStatusReadBadge status={row.status} />
@@ -2182,29 +2055,24 @@ export function ActiveStageDetailCard({
         </p>
       ) : null}
 
-      {/* 2026-05-26 (Yuqi sixty-seventh pass — overdue context):
-          the milestone strip's red "Past deadline" word answers "is
-          this late?" but the stage card below was silent on the
-          fact, so a CPA scanning the card had to infer urgency
-          from the strip. The banner ties the stage back to the
-          missed date with a real noun ("Filing was due …") and a
-          concrete days-late count + the two actionable verbs
-          (submit, file an extension). On terminal stages the
-          banner hides — once the work is closed, late-vs-on-time
-          is a quality stat, not a call-to-action. */}
+      {/* The milestone strip's "Past deadline" word answers "is this
+          late?" but the stage card needs to say so too, so a CPA scanning
+          the card doesn't have to infer urgency from the strip. The banner
+          ties the stage back to the missed date with a real noun ("Filing
+          was due …") and a concrete days-late count + the two actionable
+          verbs (submit, file an extension). On terminal stages the banner
+          hides — once the work is closed, late-vs-on-time is a quality
+          stat, not a call-to-action. */}
       {showOverdueBanner ? (
-        // 2026-05-26 (Yuqi drawer feedback — "too much red"): the
-        // filled red bg made the banner the loudest element on the
-        // panel, even after demoting the tile + caption. Switched to
-        // a neutral surface with the red AlertTriangle + red title
-        // line carrying the urgency cue; the action line drops to
-        // text-secondary so the eye lands on the urgent line first
-        // and the "what to do" reads as a calmer follow-up.
+        // A neutral surface (not a filled red bg, which would make the
+        // banner the loudest element on the panel): the red AlertTriangle
+        // + red title line carry the urgency cue, and the action line
+        // drops to text-secondary so the eye lands on the urgent line
+        // first and the "what to do" reads as a calmer follow-up.
         <div role="status" className="flex flex-col gap-0.5 leading-snug">
-          {/* 2026-06-10 (Yuqi "work on the detail page" — Qn4nX active card):
-              the overdue context reads as the active-stage headline + sub (like
-              the canonical "8 materials still outstanding." treatment), not a
-              white-on-white boxed callout inside the white WorkflowMilestoneCard. */}
+          {/* The overdue context reads as the active-stage headline + sub
+              (like the canonical "8 materials still outstanding." treatment),
+              not a white-on-white boxed callout inside the white card. */}
           <p className="text-[16px] font-semibold tracking-[-0.2px] text-text-primary">
             <Trans>
               Filing was due {formatDatePretty(row.currentDueDate.slice(0, 10))} —{' '}
@@ -2271,23 +2139,20 @@ export function ActiveStageDetailCard({
             )
           })()
         : null}
-      {/* 2026-05-23 Option D: the WaitingOutstandingDocs panel
-          (count header + bullet list of doc names) was retired here —
-          that data lives on the Materials tab, not duplicated in the
-          stage card. The card carries a one-line signal instead:
-          "N items outstanding · Check Materials →". Single-line, no
-          list, no panel chrome. The CPA who needs the actual document
-          inventory clicks through.
-
-          Verb 2026-05-23 (pass 2): "Open Materials" → "Check
-          Materials". "Open" reads as "open the tab"; "Check" reads as
-          "go review what's outstanding" — the CPA's actual intent
-          when the count is non-zero. */}
+      {/* There's no WaitingOutstandingDocs panel (count header + bullet
+          list of doc names) here — that data lives on the Materials tab,
+          not duplicated in the stage card. The card carries a one-line
+          signal instead: "N items outstanding · Check Materials →".
+          Single-line, no list, no panel chrome. The CPA who needs the
+          actual document inventory clicks through. The verb is "Check"
+          rather than "Open": "Open" reads as "open the tab"; "Check" reads
+          as "go review what's outstanding" — the CPA's actual intent when
+          the count is non-zero. */}
       {isWaitingDocsCase && readinessCounts.total > 0 ? (
-        // Pencil `X3lBEt` (Qn4nX) ActiveStageCard "Left": headline +
-        // big mono received count + received/outstanding/waived legend chips
-        // + a thin green segment bar, with the "Check materials" affordance
-        // below. Real counts from the checklist (no fiction).
+        // ActiveStageCard "Left": headline + big mono received count +
+        // received/outstanding/waived legend chips + a thin green segment
+        // bar, with the "Check materials" affordance below. Real counts
+        // from the checklist (no fiction).
         <div className="mt-3 flex flex-col gap-2.5">
           {/* Headline — 18/600/-0.4, the canonical "N materials still
               outstanding." treatment. Names the live blocker count, not
@@ -2412,13 +2277,10 @@ export function ActiveStageDetailCard({
           list indented beneath, and upcoming steps render as quiet
           empty circles. "Steps" (not "Pipeline") because CPAs say
           "what step am I on?" — pipeline reads as engineering jargon. */}
-      {/* 2026-05-25 (Yuqi #28, #29): Steps eyebrow was
-          text-caption-xs (10px) — sub-visible against the rest of
-          the card. Promoted to text-caption (11px) matching the
-          "Entered DATE" subline, so the eyebrow + the entered-date
-          line read at the same scale. Step list items inside ride
-          on text-sm so they're a clear tier below the stage h3
-          but legibly above the eyebrow. */}
+      {/* Steps eyebrow sits at text-caption (11px), matching the
+          "Entered DATE" subline so the two read at the same scale. Step
+          list items inside ride on text-sm so they're a clear tier below
+          the stage h3 but legibly above the eyebrow. */}
       {showEfilePipeline || showPaymentPipeline ? (
         <div className="mt-3 flex flex-col gap-2">
           <p className="text-caption font-medium uppercase tracking-wider text-text-tertiary">
@@ -2470,14 +2332,12 @@ export function ActiveStageDetailCard({
                         aria-hidden
                       />
                     ) : state === 'current' ? (
-                      // 2026-05-26 (Yuqi sixty-seventh pass — "looks
-                      // like radio checkbox"): replaced the ring +
-                      // inner-dot construction with a solid filled
-                      // disc. The previous shape was a textbook
-                      // selected-radio (border-2 ring around inner
-                      // dot) — readers tried to click it expecting a
-                      // form input. The new solid bullet reads as a
-                      // status marker, not an interactive choice.
+                      // A solid filled disc, not a ring + inner-dot
+                      // construction: the ring shape reads as a textbook
+                      // selected-radio (border-2 ring around inner dot), so
+                      // readers try to click it expecting a form input. The
+                      // solid bullet reads as a status marker, not an
+                      // interactive choice.
                       <span
                         aria-hidden
                         className="mt-1 size-2.5 shrink-0 rounded-full bg-accent-default"
@@ -2538,14 +2398,12 @@ export function ActiveStageDetailCard({
                         aria-hidden
                       />
                     ) : state === 'current' ? (
-                      // 2026-05-26 (Yuqi sixty-seventh pass — "looks
-                      // like radio checkbox"): replaced the ring +
-                      // inner-dot construction with a solid filled
-                      // disc. The previous shape was a textbook
-                      // selected-radio (border-2 ring around inner
-                      // dot) — readers tried to click it expecting a
-                      // form input. The new solid bullet reads as a
-                      // status marker, not an interactive choice.
+                      // A solid filled disc, not a ring + inner-dot
+                      // construction: the ring shape reads as a textbook
+                      // selected-radio (border-2 ring around inner dot), so
+                      // readers try to click it expecting a form input. The
+                      // solid bullet reads as a status marker, not an
+                      // interactive choice.
                       <span
                         aria-hidden
                         className="mt-1 size-2.5 shrink-0 rounded-full bg-accent-default"

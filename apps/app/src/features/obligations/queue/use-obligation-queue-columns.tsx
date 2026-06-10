@@ -337,9 +337,8 @@ export function useObligationQueueColumns(
         meta: { cellClassName: 'w-[90px]' },
       },
       {
-        // Owner column — surfaces who's on the hook for this row. Per
-        // docs/Design/ux-audit-2026-05-21.md P0 #3: triage of 47
-        // assigned rows is impossible without "is this mine?" The
+        // Owner column — surfaces who's on the hook for this row. Triage of
+        // many assigned rows is impossible without "is this mine?" The
         // existing assignee facet filter helps once you know to
         // filter; this column answers the question at-a-glance with
         // no filter step.

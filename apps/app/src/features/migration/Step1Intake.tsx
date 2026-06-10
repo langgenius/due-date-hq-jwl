@@ -463,13 +463,9 @@ export function Step1Intake({
       className={cn('flex flex-col', compact ? 'gap-4 py-3' : 'gap-6 pt-5 pb-5')}
       id="wizard-step1-body"
     >
-      {/* 2026-05-29 (Yuqi — "click to reupload?"): the OS file picker
-          input lives at the section root so it's always mounted —
-          both the empty-state dropzone AND the uploaded-state
-          DetectionHero card trigger it via the same fileInputRef.
-          Previously the input was nested inside the empty-state
-          dropzone, which meant the ref dangled in the uploaded
-          state. */}
+      {/* The OS file picker input lives at the section root so it's always
+          mounted — both the empty-state dropzone AND the uploaded-state
+          DetectionHero card trigger it via the same fileInputRef. */}
       <input
         ref={fileInputRef}
         type="file"
@@ -498,16 +494,13 @@ export function Step1Intake({
               selectedPresetLabel={selectedPresetLabel}
               parseError={intake.parseError}
               onRemove={handleRemoveFile}
-              // 2026-05-29 (Yuqi — "click to reupload?"): the uploaded
-              // card now accepts clicks to re-open the OS file picker.
-              // Threads through the same file-input ref used by the
-              // empty-state dropzone — see the always-mounted <input>
-              // below.
+              // The uploaded card accepts clicks to re-open the OS file
+              // picker. Threads through the same file-input ref used by the
+              // empty-state dropzone — see the always-mounted <input> below.
               onReupload={() => fileInputRef.current?.click()}
-              // 2026-06-07 (Cluster 3 — design Ni54l): "Use Generic CSV
-              // instead" recovery on the reject state. Clears any selected
-              // import preset and re-opens the picker so the file is
-              // re-attempted as a plain CSV/Excel parse.
+              // "Use Generic CSV instead" recovery on the reject state. Clears
+              // any selected import preset and re-opens the picker so the file
+              // is re-attempted as a plain CSV/Excel parse.
               onUseGenericCsv={() => {
                 onPreset(null)
                 onParseError(null)
@@ -526,19 +519,6 @@ export function Step1Intake({
             transition={STATE_TRANSITION}
             className="flex flex-col gap-6"
           >
-            {/* 2026-05-29 (R4 migration polish #6): the "Drop your
-                client file." h2 + "Any shape works. We'll figure
-                out the columns." sub-headline were a third title in
-                the orientation zone — the wizard frame's <header>
-                already says "Import clients" and the Stepper says
-                "Intake". The dropzone label below ("Drop a file or
-                click to browse" + the format/limit line) is the
-                actual affordance and covers the action. The "any
-                shape works" promise lives downstream: Step 2
-                (Mapping) is where the AI's column-detection result
-                shows up, which is where the reassurance becomes
-                observable rather than just promised. */}
-
             {/* Primary affordance — large, centered. ~60% of the wizard
                 body height via aspect ratio. Swaps to a textarea when
                 the user clicks "Paste a list instead". */}
@@ -563,12 +543,6 @@ export function Step1Intake({
                     )}
                   />
                 </div>
-                {/* 2026-05-31: swapped hand-rolled muted-link button for
-                    TextLink variant="muted" size="sm". Muted variant's
-                    text-text-muted/tertiary hover pair is the canonical
-                    quieter-than-accent inline-link treatment; tone shift
-                    from text-tertiary→text-accent at this site is
-                    acceptable in favor of consolidation. */}
                 <TextLink
                   variant="muted"
                   size="sm"
@@ -638,27 +612,14 @@ export function Step1Intake({
                 the visual hierarchy. Per-chip disclosure opens the
                 export guide only when the user explicitly toggles a chip
                 without uploading — the brief's "acknowledging I need help
-                exporting first" affordance.
-
-                2026-05-29 (R4 follow-up #2): dropped the `border-t` rule
-                that used to sit above this section. The motion.div
-                already has `gap-6` separating its children, which gives
-                enough vertical breathing room without a hard horizontal
-                line cutting the empty-state panel into two halves. */}
+                exporting first" affordance. */}
             <div className="flex flex-col gap-2">
-              {/* 2026-05-29 (R4 migration polish #9): clarified that
-                  the picker is only needed when auto-detection isn't
-                  going to fire (paste path, generic CSV, no logo
-                  signature). When a user drops a Drake export into
-                  the dropzone above, the source-manifest pipeline
-                  already detects it — the chip would have toggled
-                  itself. Telling the user that up front prevents
-                  the "did I already say Drake?" double-step.
-
-                  2026-05-29 (R4 follow-up #3): label was `text-xs`
-                  which read smaller than the dropzone helper line
-                  above and undersold the section. Bumped to
-                  `text-sm` so the picker prompt sits at body type. */}
+              {/* The picker is only needed when auto-detection isn't going to
+                  fire (paste path, generic CSV, no logo signature). When a
+                  user drops a Drake export into the dropzone above, the
+                  source-manifest pipeline already detects it — the chip would
+                  have toggled itself. Telling the user that up front prevents
+                  the "did I already say Drake?" double-step. */}
               <span className="text-sm text-text-tertiary">
                 <Trans>
                   Coming from a specific tool? (Optional — we auto-detect from uploaded files.)
@@ -707,25 +668,18 @@ export function Step1Intake({
         )}
       </AnimatePresence>
 
-      {/* 2026-05-29 (R4 migration polish, follow-up): SSN privacy
-          chip lifted out of the empty state so it ALSO renders in
-          the uploaded state. The chip is forward-looking
-          ("blocked before anything goes to the AI") — the AI runs
-          on Continue, which is after both states. Suppressed when
-          the destructive SSN-detected alert below takes over,
-          since the alert carries a stronger version of the same
-          claim with the specific column names. Also suppressed
-          for parse-error and submit-error states so it doesn't
-          compete with the error message.
+      {/* SSN privacy chip renders in BOTH the empty and uploaded states. The
+          chip is forward-looking ("blocked before anything goes to the AI") —
+          the AI runs on Continue, which is after both states. Suppressed when
+          the destructive SSN-detected alert below takes over, since the alert
+          carries a stronger version of the same claim with the specific column
+          names. Also suppressed for parse-error and submit-error states so it
+          doesn't compete with the error message.
 
-          2026-05-29 (R4 follow-up #4 — "ugly highlight"): dropped the
-          `bg-state-accent-hover-alt` + `ring-1 ring-state-accent-active-alt`
-          chip surface. The accent-tint background was loud enough to
-          read as a status banner, which then competed with the real
-          status banners (`<Alert>`) rendered below this region.
-          Privacy reassurance is information, not status — restyled as
-          a centered inline line with a small lock icon, no background,
-          no ring. Reads as a quiet footnote to the dropzone above. */}
+          Privacy reassurance is information, not status — a centered inline
+          line with a small lock icon, no background, no ring, so it doesn't
+          read as a status banner competing with the real `<Alert>` banners
+          rendered below. Reads as a quiet footnote to the dropzone above. */}
       {intake.ssnBlockedColumnIndexes.length === 0 && !intake.parseError && !intake.submitError ? (
         <p
           id="paste-hint"
@@ -765,11 +719,10 @@ export function Step1Intake({
         </Alert>
       ) : null}
 
-      {/* 2026-05-27: detection-mismatch is rendered as an Override
-          affordance inside the DetectionHero rather than a standalone
-          banner. The brief asks for a quiet "Wrong source? Override →"
-          link — this Alert remains as a fallback for the manual-vs-
-          detected mismatch case so the user keeps the explicit choice. */}
+      {/* Detection-mismatch is rendered as an Override affordance inside the
+          DetectionHero rather than a standalone banner. This Alert remains as
+          a fallback for the manual-vs-detected mismatch case so the user keeps
+          the explicit choice. */}
       {detectedPresetSuggestion && selectedPreset && hasIntake ? (
         <Alert role="status" aria-live="polite">
           <AlertTitle>
@@ -782,10 +735,6 @@ export function Step1Intake({
                 {selectedPresetLabel}.
               </Trans>
             </span>
-            {/* 2026-05-31: swapped the bespoke h-8 outlined chip for
-                Button variant="secondary" size="sm". The hand-rolled
-                border + bg + text-sm/font-medium recipe is exactly what
-                secondary+sm produces, so the override classes can go. */}
             <Button
               variant="secondary"
               size="sm"
@@ -835,11 +784,10 @@ interface DetectionHeroProps {
   selectedPresetLabel: string
   parseError: string | null
   onRemove: () => void
-  // 2026-05-29 (Yuqi — "click to reupload?"): opens the OS file
-  // picker; parent owns the hidden <input> ref so the same picker
-  // serves both empty and uploaded states.
+  // Opens the OS file picker; parent owns the hidden <input> ref so the same
+  // picker serves both empty and uploaded states.
   onReupload: () => void
-  // 2026-06-07 (Cluster 3 — design Ni54l): reject-state recovery.
+  // Reject-state recovery.
   onUseGenericCsv: () => void
   hasPreset: boolean
   compact: boolean
@@ -856,14 +804,10 @@ interface DetectionHeroProps {
  * stays cautious ("Looks like Drake or Lacerte — pick one.") with two
  * chips. If parsing failed: an error Alert renders in the slot.
  *
- * 2026-05-29 (R4 migration polish, follow-up): restructured to mirror
- * the empty-state dropzone shape. The empty state is a single centered
- * hero card (dashed border, ~160px tall, soft surface) — the uploaded
- * state was a left-aligned compact row + bold readout that read as a
- * different page. Now both states share the same shell: a centered card
- * with an icon at top, a hero readout, supporting file/source info, and
- * a quiet action link. The dashed→solid border swap is the only visual
- * difference — same surface, same alignment, same size, same rhythm.
+ * Mirrors the empty-state dropzone shape: both states share the same shell —
+ * a centered card with an icon at top, a hero readout, supporting file/source
+ * info, and a quiet action link. The dashed→solid border swap is the only
+ * visual difference — same surface, same alignment, same size, same rhythm.
  */
 function DetectionHero({
   fileName,
@@ -884,8 +828,7 @@ function DetectionHero({
   const fileSizeLabel = useMemo(() => formatBytes(sizeBytes), [sizeBytes])
 
   if (parseError) {
-    // 2026-06-07 (Cluster 3 — design Ni54l "file rejected"): the generic
-    // parse-error Alert was restyled to the design's reject callout —
+    // The generic parse-error Alert renders as a reject callout —
     // OctagonAlert icon + "Source format unrecognized" framing + a
     // "Use Generic CSV instead" recovery action.
     // TODO(data): the design also shows a structured "MISSING REQUIRED
@@ -926,14 +869,12 @@ function DetectionHero({
     )
   }
 
-  // 2026-05-29 (Yuqi — "click to reupload?"): the card is now a
-  // clickable button that re-opens the OS file picker so a user
-  // who realises they dropped the wrong file can swap it without
-  // first hitting Remove. Disabled while still reading so a mid-
-  // upload click doesn't race the parse. Keyboard activation
-  // (Enter/Space) mirrors the empty-state dropzone. The "Remove
-  // file" link below stays as a separate explicit affordance for
-  // the "just go back to empty" path.
+  // The card is a clickable button that re-opens the OS file picker so a user
+  // who realises they dropped the wrong file can swap it without first hitting
+  // Remove. Disabled while still reading so a mid-upload click doesn't race
+  // the parse. Keyboard activation (Enter/Space) mirrors the empty-state
+  // dropzone. The "Remove file" link below stays as a separate explicit
+  // affordance for the "just go back to empty" path.
   const cardInteractive = !isReadingFile
 
   return (
@@ -1085,12 +1026,10 @@ interface DetectionReadoutProps {
  * never drops below text-lg — this is the hero of the detection state.
  */
 function DetectionReadout({ productLabel, rowCount, compact }: DetectionReadoutProps) {
-  // 2026-05-27: we currently don't have entity-type/state counts wired
-  // through from the manifest in this scope — the brief's example
-  // "30 clients · 4 entity types · 12 states" requires fields we'd
-  // need to surface from intake-files.ts (out of scope). For now we
-  // show product · row count, which is the most truthful pair the
-  // current contract supports without expanding scope.
+  // Entity-type/state counts aren't wired through from the manifest — the
+  // "30 clients · 4 entity types · 12 states" shape would require fields
+  // surfaced from intake-files.ts. We show product · row count, the most
+  // truthful pair the current contract supports.
   return (
     <div className="flex flex-col gap-1">
       <p
@@ -1627,12 +1566,10 @@ function toPlainRecord(value: unknown): Record<string, unknown> | null {
 }
 
 /**
- * 2026-05-25 (Wizard #40 — i18n bug fix): `friendlyParseError` used to
- * return bare English strings, which then rendered untranslated into the
- * parse-error `<Alert>`. Now returns a Lingui `MessageDescriptor` produced
- * via the `msg` macro so callers can render through `i18n._()` at React
- * render time. Same shape as `unsupportedUploadMessageDescriptor` in
- * `intake-files.ts`.
+ * Returns a Lingui `MessageDescriptor` produced via the `msg` macro so
+ * callers can render through `i18n._()` at React render time — bare English
+ * strings would render untranslated into the parse-error `<Alert>`. Same
+ * shape as `unsupportedUploadMessageDescriptor` in `intake-files.ts`.
  */
 function friendlyParseErrorDescriptor(error: TabularParseError): MessageDescriptor {
   switch (error.code) {

@@ -117,20 +117,12 @@ function AuditEventDrawerContent({
                   "Overrode AI" pill surfaces F-023 reverse-provenance
                   (a user who edited a previously-AI value). Both are
                   optional — non-AI events show neither. */}
-              {/* 2026-05-31: swapped the hand-rolled eyebrow span for
-                  Badge shape="square" variant="info" — the design-system
-                  primitive now carries the rounded-sm + uppercase +
-                  tracking-wide treatment. info ≈ accent-subtle for the
-                  AI provenance chip. */}
               {event.actorType === 'ai' || event.actorType === 'ai_assisted' ? (
                 <Badge shape="square" variant="info">
                   <Astroid aria-hidden />
                   {event.actorType === 'ai' ? <Trans>AI</Trans> : <Trans>AI-assisted</Trans>}
                 </Badge>
               ) : null}
-              {/* 2026-05-31: swapped to Badge shape="square" variant="warning"
-                  — same square-eyebrow treatment, warning palette matches
-                  the prior bg-state-warning-hover + text-text-warning pair. */}
               {event.previousActorType === 'ai' && event.actorType === 'user' ? (
                 <Badge shape="square" variant="warning">
                   <Trans>Overrode AI suggestion</Trans>

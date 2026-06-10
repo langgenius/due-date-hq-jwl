@@ -2,13 +2,11 @@ import { useMemo } from 'react'
 
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 
-// 2026-05-27 (D16 — Agent ω, journey-audit drain): canonical
-// "as of" date hook for client surfaces (ClientDetailDrawer,
-// ClientPeekHoverCard, ClientSummaryStrip). Previously each surface
-// called `Date.now()` directly, which drifts from the firm's clock
-// when the practice operates in a different timezone (Pacific firm,
-// East-Coast server, etc.) — the "Xd late" reading could flip a day
-// either direction depending on the server's wall clock.
+// Canonical "as of" date hook for client surfaces (ClientDetailDrawer,
+// ClientPeekHoverCard, ClientSummaryStrip). Calling `Date.now()` directly
+// drifts from the firm's clock when the practice operates in a different
+// timezone (Pacific firm, East-Coast server, etc.) — the "Xd late" reading
+// could flip a day either direction depending on the server's wall clock.
 //
 // The hook mirrors the server's `dateInTimezone` (see
 // `apps/server/src/procedures/dashboard/index.ts`): take today's

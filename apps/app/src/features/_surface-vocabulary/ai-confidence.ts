@@ -1,20 +1,10 @@
 /**
  * Canonical AI confidence ladder for the whole product.
  *
- * 2026-05-26 (Step 9 AI Visibility Audit, F-002): before this helper,
- * the product had FIVE distinct threshold systems for the same
- * "AI confidence" concept:
- *   - AlertConfidencePill: 0.9 / 0.7 (success / info / destructive)
- *   - AlertCard: 0.85 / 0.5 (Low / Medium / High)
- *   - alert-tone.ts LOW_CONFIDENCE_THRESHOLD = 0.7
- *   - needs-attention-card LOW_CONFIDENCE_THRESHOLD = 0.7
- *   - migration-summary-view-model.ts: 0.8 / 0.5
- *   - Step2Mapping: 0.95 / 0.8
- *   - EvidenceDrawer: 0.95 / 0.8 / 0.5 (4 tiers)
- *
- * Yuqi flagged "same alert, two confidence shapes side by side"
- * (AlertDetailDrawer.tsx L538 comment). This module is the single
- * source of truth all surfaces should consume.
+ * This module is the single source of truth all surfaces should consume —
+ * without it the same "AI confidence" concept fragments into several
+ * divergent threshold systems (different cutoffs, different tier counts,
+ * "same alert, two confidence shapes side by side").
  *
  * Ladder rationale:
  *  - 0.5 is the "I'm not sure" floor — at half, the AI is no better

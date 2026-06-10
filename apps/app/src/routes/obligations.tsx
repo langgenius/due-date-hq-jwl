@@ -4477,57 +4477,16 @@ export function ObligationQueueRoute() {
                   within-group rows below welds same-client rows into
                   one visual block — group boundary lines stay so the
                   eye can find them. */}
-                  {/* 2026-05-25 (GitHub-density pass): row vertical
-                    padding py-2.5 → py-2. Each row reclaims ~4px,
-                    so over 17 rows the page shows ~70px more
-                    content per viewport. text-sm + py-2 still keeps
-                    enough vertical room to read multi-line client
-                    names with the existing line-clamp-2. */}
-                  {/* 2026-05-26 (Yuqi fifty-fourth pass — spacier row):
-                    cell padding py-2 → py-3. py-2 (8px) read as
-                    cramped at the new larger client-name type size;
-                    py-3 (12px) gives the row honest breathing room
-                    while still keeping density reasonable for the
-                    queue's primary scan. AffectedClientsTable
-                    (Alerts) stays at py-2 since that table sits
-                    inside a drawer with tighter chrome — different
-                    surface, different density. */}
-                  {/* 2026-06-04 (Yuqi table sweep): `bg-background-default`
-                    dropped — canonical default. Kept intentional
-                    deviations: `[&_td]:py-2 [&_td]:text-sm` (queue
-                    is a dense data scan, canonical py-4 + text-base
-                    forces fewer rows per laptop viewport), and
-                    `[&_tr]:hover:!bg-state-accent-hover` (this
-                    queue's hover is the SAME accent tint as the
-                    detail-panel selection, so hover = "where the
-                    panel will land" — overrides the canonical
-                    `bg-state-base-hover`). */}
-                  {/* 2026-06-04 round 23 (Yuqi "apply the style from
-                      Today's Action table to Deadline's table"):
-                      TableBody overrides REVERTED to inherit the
-                      canonical primitive defaults the same way
-                      /today's ActionsTable does.
-                        • Dropped `[&_td]:py-2 [&_td]:text-sm` —
-                          canonical px-5 py-4 + text-base now applies,
-                          giving rows the same generous breathing
-                          room as /today (rows will be ~24px taller
-                          than the previous dense queue; that's the
-                          family-consistency cost).
-                        • Dropped `[&_tr]:hover:!bg-state-accent-hover`
-                          — canonical `hover:bg-state-base-hover`
-                          applies. The accent-tinted hover was a
-                          /deadlines-only quirk; /today uses the
-                          base-hover tone and the two queues now
-                          share one hover vocabulary.
-                        • Kept `[&_tr]:even:bg-transparent` — the
-                          client-cluster welding (border-b-0 within
-                          a same-client group + continuous left rail)
-                          requires same-tone bg across cluster rows.
-                          Zebra striping by DOM position would tint
-                          cluster members differently and break the
-                          weld visual. /today doesn't have clusters,
-                          so it ships zebra striping ON; /deadlines
-                          opts out for cluster compatibility. */}
+                  {/* TableBody inherits the canonical primitive defaults the
+                      same way /today's ActionsTable does, so the two queues
+                      share one density + hover vocabulary. Keeps
+                      `[&_tr]:even:bg-transparent` — the client-cluster welding
+                      (border-b-0 within a same-client group + continuous left
+                      rail) requires same-tone bg across cluster rows. Zebra
+                      striping by DOM position would tint cluster members
+                      differently and break the weld visual; /today has no
+                      clusters so it ships zebra striping ON, /deadlines opts
+                      out for cluster compatibility. */}
                   <TableBody className="[&_tr]:even:bg-transparent">
                     {tableRows.length === 0 ? (
                       <TableRow>
@@ -4557,15 +4516,12 @@ export function ObligationQueueRoute() {
                       </TableRow>
                     ) : (
                       tableRows.map((tableRow) => {
-                        // 2026-05-26 (Yuqi Group-by wireframes — Sort by
-                        // Status / Client / Due date): section headers
-                        // are back, wired to the real map. Headers render
-                        // when `group === 'client' || group === 'filing'`;
-                        // due-date mode is a flat list (the map is empty
-                        // in that mode — see groupHeadersByFirstRowId above).
+                        // Section headers render when
+                        // `group === 'client' || group === 'filing'`; due-date
+                        // mode is a flat list (the map is empty in that mode —
+                        // see groupHeadersByFirstRowId above).
                         const groupHeader = groupHeadersByFirstRowId.get(tableRow.original.id)
-                        // 2026-05-26 (Yuqi sixty-second pass — generalized
-                        // collapse): collapse Set is keyed by groupKey.
+                        // Collapse Set is keyed by groupKey.
                         const rowGroupKey =
                           group === 'urgency'
                             ? urgencyBandOf(tableRow.original)
@@ -4585,34 +4541,25 @@ export function ObligationQueueRoute() {
                               collapsedQueueGroups.has(rowGroupKey)
                         if (isHiddenContinuation) return null
                         const suppressLeafRow = groupHeader && headerCollapsed
-                        // 2026-06-04 (Yuqi table sweep): on the group
-                        // header TableRow below, `border-b`,
-                        // `border-divider-subtle`, `hover:bg-state-base-hover`
-                        // ALL dropped — canonical TableRow ships them.
-                        // `bg-background-subtle/60` kept because the
-                        // group header is a quieter inset surface than
-                        // the canonical body.
+                        // The group header TableRow below inherits canonical
+                        // TableRow chrome; `bg-background-subtle` is kept
+                        // because the group header is a quieter inset surface
+                        // than the canonical body.
                         return (
                           <Fragment key={tableRow.id}>
                             {groupHeader ? (
-                              // 2026-06-05 (Yuqi DS alignment): group
-                              // header surface bumped from
-                              // bg-background-subtle/60 to fully opaque
-                              // bg-background-subtle, and padding bumped
-                              // from py-2 pl-3 pr-4 → px-5 py-2 so the
-                              // surface matches the canonical subgroup
-                              // divider on /today + /alerts.
+                              // Group header surface + px-5 py-2 padding match
+                              // the canonical subgroup divider on /today +
+                              // /alerts.
                               <TableRow className="bg-background-subtle">
-                                {/* 2026-06-09 (Yuqi page feedback #6 "red dot
-                                    align with form content"): the chevron now
-                                    lives in a w-10 slot matching the leading
-                                    select column, and the tone dot + label sit
-                                    behind a pl-3 that matches the Form cell's
-                                    padding — so the dot lines up vertically with
-                                    the form chips below it instead of floating
-                                    at the band's left edge. Cell padding drops
-                                    its left inset (pl-0) to let the slot do the
-                                    alignment. */}
+                                {/* The chevron lives in a w-10 slot matching the
+                                    leading select column, and the tone dot +
+                                    label sit behind a pl-3 that matches the Form
+                                    cell's padding — so the dot lines up
+                                    vertically with the form chips below it
+                                    instead of floating at the band's left edge.
+                                    Cell padding drops its left inset (pl-0) to
+                                    let the slot do the alignment. */}
                                 <TableCell
                                   colSpan={visibleColumnCount}
                                   className="py-1.5 pr-5 pl-0"
@@ -4638,17 +4585,12 @@ export function ObligationQueueRoute() {
                                         aria-hidden
                                       />
                                     </span>
-                                    {/* 2026-06-09 (Yuqi page feedback #3 "are the
-                                        styles used anywhere else?"): the "N late"
-                                        signal was a filled destructive Badge —
-                                        the same red-pill style as the Payment-late
-                                        chip in the rows below, so the band read as
-                                        yet another red badge. It's now plain
+                                    {/* The "N late" signal is plain
                                         destructive-tinted text in the count
-                                        cluster, and the right-aligned "≈Xd avg ·
-                                        N of TOTAL" meta is dropped (the avg was
-                                        derived noise; "N of TOTAL" duplicated the
-                                        count already shown). */}
+                                        cluster (not a filled destructive Badge,
+                                        which would read as yet another red badge
+                                        like the Payment-late chip in the rows
+                                        below). */}
                                     <span className="flex min-w-0 items-center gap-2">
                                       <span
                                         className={cn(
@@ -4663,13 +4605,11 @@ export function ObligationQueueRoute() {
                                         )}
                                         aria-hidden
                                       />
-                                      {/* 2026-06-09 (Yuqi "unify the table
-                                          design"): band label conformed to the
-                                          canonical eyebrow shared by /today +
-                                          /alerts — 11px/600/uppercase/
-                                          tracking-[0.5px]/tertiary (was 12px
-                                          primary tracking-wide). The leading
-                                          tone dot + count still carry urgency. */}
+                                      {/* Band label conforms to the canonical
+                                          eyebrow shared by /today + /alerts —
+                                          11px/600/uppercase/tracking-[0.5px]/
+                                          tertiary. The leading tone dot + count
+                                          still carry urgency. */}
                                       <span className="text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
                                         {groupHeader.label}
                                       </span>
@@ -4725,10 +4665,7 @@ export function ObligationQueueRoute() {
                                   // override the color below.
                                   // `group` lets per-cell affordances (e.g. the
                                   // client peek icon) fade in on row hover.
-                                  // 2026-05-26 (Yuqi /deadlines feedback —
-                                  // "row height in the expanded view different
-                                  // from the unexpanded row height"): added
-                                  // explicit fixed row height so rows with an
+                                  // Explicit fixed row height so rows with an
                                   // avatar (size-8 32px circle) and rows with
                                   // the `?` placeholder picker (also size-8)
                                   // render the SAME height regardless of cell
@@ -4737,24 +4674,15 @@ export function ObligationQueueRoute() {
                                   // height, which varied subtly per row
                                   // (different cell wrapping, different status
                                   // pill heights).
-                                  // 2026-05-26 (Yuqi cross-table element
-                                  // unify — "unify the deadline table, rule
-                                  // library table, and client table"): row
-                                  // height bumped h-12 (48px) → h-14 (56px)
-                                  // to match /clients (h-14) and /rules/library
-                                  // (h-14). All three workbench tables now
-                                  // share the same row pitch — scanning the
-                                  // queue feels identical to scanning the
-                                  // clients directory or the rules catalog.
-                                  // 2026-06-08 (Yuqi /deadlines ↔ /today
-                                  // table parity): row hover unified with
-                                  // /today's ActionsTable — `hover:!bg-
-                                  // background-subtle` (was the canonical
-                                  // `bg-state-base-hover` from the TableRow
-                                  // primitive). The `!` beats the primitive's
-                                  // hover so the two queues share one hover
-                                  // tone; the active-row accent fill still
-                                  // wins where set below.
+                                  // Row height h-14 (56px) matches /clients and
+                                  // /rules/library so all three workbench tables
+                                  // share the same row pitch.
+                                  // Row hover unified with /today's ActionsTable
+                                  // — `hover:!bg-background-subtle`; the `!`
+                                  // beats the TableRow primitive's
+                                  // `bg-state-base-hover` so the two queues share
+                                  // one hover tone, and the active-row accent
+                                  // fill still wins where set below.
                                   'h-14 group cursor-pointer border-l-2 border-l-transparent hover:!bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
                                   tableRow.original.id === explicitActiveRowId &&
                                     'bg-state-accent-hover-alt',
@@ -4762,16 +4690,15 @@ export function ObligationQueueRoute() {
                                   // same-client filings weld into a single block.
                                   // The last row of each group keeps the divider,
                                   // making group boundaries scannable.
-                                  // 2026-05-26 (Yuqi cross-table drift #13 —
-                                  // "weld or hairline?"): canonical rule —
-                                  // default behavior across /clients +
-                                  // /rules/library is the primitive's hairline
-                                  // between every row. Welding via `border-b-0`
-                                  // is an opt-in for surfaces with EXPLICIT
-                                  // logical sub-groups (this deadlines client
-                                  // cluster is the only current consumer). New
-                                  // table surfaces should NOT add weld logic
-                                  // unless they have a real sub-unit to express.
+                                  // Canonical rule: default behavior across
+                                  // /clients + /rules/library is the primitive's
+                                  // hairline between every row. Welding via
+                                  // `border-b-0` is an opt-in for surfaces with
+                                  // EXPLICIT logical sub-groups (this deadlines
+                                  // client cluster is the only current
+                                  // consumer). New table surfaces should NOT add
+                                  // weld logic unless they have a real sub-unit
+                                  // to express.
                                   withinGroupRowIds.has(tableRow.original.id) && 'border-b-0',
                                   // Continuous 2px left rail across every row
                                   // in a multi-row client cluster (group's
@@ -4824,25 +4751,18 @@ export function ObligationQueueRoute() {
                                   return (
                                     <TableCell
                                       key={cell.id}
-                                      // 2026-06-04 (Yuqi table sweep): explicit
-                                      // `align-middle` reinforcement removed —
-                                      // it's a canonical primitive default
-                                      // now, so the only way `meta?.cellClassName`
-                                      // wins is if a column explicitly sets
-                                      // align-top, which would be intentional.
+                                      // No explicit `align-middle`
+                                      // reinforcement — it's a canonical
+                                      // primitive default now, so
+                                      // `meta?.cellClassName` only wins if a
+                                      // column explicitly sets align-top.
                                       className={cn(
-                                        // 2026-06-08 (Yuqi /deadlines design
-                                        // parity): density toggle removed —
-                                        // the queue is always compact now, so
-                                        // the cell padding is hardcoded rather
-                                        // than gated on the (retired) `density`
-                                        // control.
-                                        // 2026-06-08 (Yuqi /deadlines ↔ /today
-                                        // table parity): vertical cell pad
-                                        // `py-1.5` → `py-3` to match /today's
-                                        // ActionsTableRow `[&_td]:py-3` row
-                                        // height. The two queues now read at
-                                        // the same row pitch.
+                                        // The queue is always compact, so the
+                                        // cell padding is hardcoded rather than
+                                        // gated on a density control. Vertical
+                                        // cell pad `py-3` matches /today's
+                                        // ActionsTableRow `[&_td]:py-3` so the
+                                        // two queues read at the same row pitch.
                                         'px-2 py-3',
                                         meta?.cellClassName,
                                         indentContinuationCell && 'pl-4',
@@ -4858,11 +4778,10 @@ export function ObligationQueueRoute() {
                         )
                       })
                     )}
-                    {/* 2026-06-04 (Yuqi infinite scroll): invisible
-                        sentinel row inside the same scroll container the
-                        user reads. When it nears the viewport the observer
-                        above prefetches the next page, so the buffer grows
-                        as the user scrolls instead of via prev/next. */}
+                    {/* Invisible sentinel row inside the same scroll container
+                        the user reads. When it nears the viewport the observer
+                        above prefetches the next page, so the buffer grows as
+                        the user scrolls. */}
                     {hasNextPage ? (
                       <TableRow
                         ref={loadMoreSentinelRef}
@@ -4875,16 +4794,6 @@ export function ObligationQueueRoute() {
                   </TableBody>
                 </Table>
               </div>
-              {/* 2026-06-05 (Yuqi page-feedback #10 — "we don't need
-                  this. It is a infinite scroll"): the bottom strip
-                  carrying "N deadlines · M clients · J K navigate ·
-                  Enter open · ? all" + Load-more button is removed.
-                  The scope tabs at the top already carry the per-
-                  status counts; the IntersectionObserver sentinel
-                  inside the scroll container above is the infinite-
-                  scroll trigger; and the global "?" help dialog
-                  surfaces the keyboard shortcuts. So this row was
-                  echoing chrome that lives elsewhere — drop it. */}
               {rows.length > 0 && hasNextPage ? (
                 // Load-more fallback for users whose viewport never
                 // scrolls (so the sentinel never fires). Tiny ghost
@@ -4901,12 +4810,6 @@ export function ObligationQueueRoute() {
                   </Button>
                 </div>
               ) : null}
-              {/* 2026-06-09 (Yuqi "the table bottom looks ugly"): the footer
-                  hint row was removed — it described a "triage drawer" + "Esc
-                  to close" flow that no longer exists (clicking a row now
-                  navigates to the full /deadlines/:ref detail page), so the
-                  copy was both inaccurate and cluttering the table's bottom
-                  edge. The card's bottom border now closes the table cleanly. */}
             </div>
           )}
         </div>
@@ -4915,10 +4818,9 @@ export function ObligationQueueRoute() {
           xl+; full-width stacked below the queue at narrower viewports.
           Only mounts when a row is selected; otherwise the queue gets
           the full page width. */}
-        {/* 2026-05-26 (Yuqi fifty-ninth pass — architectural parity with
-            Alerts panel): wrap in AnimatePresence + motion.div so the
-            panel uses the same paper-rises enter + dissolve exit motion
-            that /alerts uses. Two layered motion divs:
+        {/* Wrap in AnimatePresence + motion.div so the panel uses the same
+            paper-rises enter + dissolve exit motion that /alerts uses. Two
+            layered motion divs:
               • Outer: animates the flex slot's width (0 → 600px on xl+,
                 or full-width on narrower viewports). Fast (300ms) with
                 Apple's swiftOut curve so the column opens cleanly.
@@ -4926,13 +4828,9 @@ export function ObligationQueueRoute() {
                 so the paper rises into the open slot — the
                 "paper-on-a-desk" gesture per the inset-surface canonical.
             On EXIT the choreography reverses to a quick dissolve: paper
-            fades + slot closes simultaneously (no slide-down). Matches
-            Yuqi's reference exactly — Deadlines panel now opens/closes
-            with the same feel as Alerts. */}
+            fades + slot closes simultaneously (no slide-down). */}
         <AnimatePresence initial={false}>
           {activeDetailId ? (
-            // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-            //
             // The OUTER motion.div is the FLEX SLOT — it owns
             // width: 0 → 60%. Stable key so AnimatePresence
             // doesn't remount on row switch; the queue beside
@@ -4963,14 +4861,12 @@ export function ObligationQueueRoute() {
               initial={{ x: '100%', opacity: 0 }}
               animate={DETAIL_PANEL_OPEN_ANIM}
               exit={DETAIL_PANEL_CLOSE_ANIM}
-              // 2026-05-27 (Yuqi "draw 60%, table 40%, 但是每次都
-              // 占不满"): 60/40 split via flex-basis so both columns
-              // ALWAYS fill 100% of the available viewport. Drawer
-              // gets basis-3/5 (60%), table column has flex-1 so it
-              // takes the remaining 40%. AppShell cap dropped in
-              // tandem so the available width = full viewport (minus
-              // sidebar) at xl+. Below xl the drawer is full width
-              // (mobile sheet pattern).
+              // 60/40 split via flex-basis so both columns ALWAYS fill 100%
+              // of the available viewport. Drawer gets basis-3/5 (60%), table
+              // column has flex-1 so it takes the remaining 40%. AppShell cap
+              // dropped in tandem so the available width = full viewport (minus
+              // sidebar) at xl+. Below xl the drawer is full width (mobile
+              // sheet pattern).
               className="flex min-h-0 self-stretch overflow-hidden w-full xl:flex-1 xl:min-w-0"
             >
               <motion.div
@@ -5086,8 +4982,7 @@ export function ObligationQueueRoute() {
                         onValueChange={setExportDateEnd}
                       />
                     </div>
-                    {/* 2026-05-26 (step-6 ux-flow audit Q3.5): explain
-                        why the end date is invalid instead of just
+                    {/* Explain why the end date is invalid instead of just
                         coloring it red. */}
                     {isValidIsoDate(exportDateStart) &&
                     isValidIsoDate(exportDateEnd) &&
@@ -5108,17 +5003,14 @@ export function ObligationQueueRoute() {
                   onSelect={() => setExportScope('client')}
                 />
                 {exportScope === 'client' ? (
-                  // 2026-05-27 (audit-drain ζ Q3.4 — searchable
-                  // combobox): the prior shape was a flat
-                  // DropdownMenuRadioGroup, which forced a scroll-hunt
-                  // for any practice with > ~15 clients. Promoted to
-                  // the shared SearchableCombobox primitive — same
-                  // form-select visual but with typeahead, keyboard
-                  // narrowing, and an empty state when the search
-                  // returns no match. State / county are folded into
-                  // the row meta so partial typing ("CA", "Marin")
-                  // still surfaces the client. Sibling Specific-client
-                  // axis options stay an ExportAxisOption radio.
+                  // Shared SearchableCombobox primitive — same form-select
+                  // visual but with typeahead, keyboard narrowing, and an
+                  // empty state when the search returns no match (a flat
+                  // radio group forces a scroll-hunt for any practice with
+                  // > ~15 clients). State / county are folded into the row
+                  // meta so partial typing ("CA", "Marin") still surfaces the
+                  // client. Sibling Specific-client axis options stay an
+                  // ExportAxisOption radio.
                   <SearchableCombobox
                     id="export-client-combobox"
                     value={exportClientId}
@@ -5158,12 +5050,10 @@ export function ObligationQueueRoute() {
             </ExportAxis>
 
             <ExportAxis label={t`Recipient`}>
-              {/* 2026-05-26 (step-6 ux-flow audit Q3.2): Email-to-self
-                  and Email-to-teammate were disabled options with
-                  apologetic copy. A list where 2/3 choices are dead
-                  reads as a half-built product. Hidden until the
-                  email pipeline lands — Download stays as the single
-                  live option. Restore the disabled-with-tooltip
+              {/* Email-to-self and Email-to-teammate are hidden until the
+                  email pipeline lands — a list where 2/3 choices are dead
+                  reads as a half-built product, so Download stays as the
+                  single live option. Restore the disabled-with-tooltip
                   pattern once the backend mutation ships. */}
               <ExportAxisOption
                 selected={exportRecipient === 'download'}
@@ -5202,16 +5092,14 @@ export function ObligationQueueRoute() {
               <Trans>Mark selected extended</Trans>
             </DialogTitle>
             <DialogDescription>
-              {/* 2026-05-26 (step-6 ux-flow audit Q4.6): clarified
-                  that the memo is optional; if the user wants no
-                  audit-trail note they should know they can skip it. */}
+              {/* Clarify that the memo is optional — the user can skip it if
+                  they want no audit-trail note. */}
               <Trans>Add an optional memo to record why on the audit trail.</Trans>
             </DialogDescription>
           </DialogHeader>
-          {/* 2026-05-26 (step-6 ux-flow audit Q4.5): visible label
-              for SR users (placeholder alone disappears on type).
-              2026-06-01: switched to Field + FieldLabel so label/textarea
-              density matches the rest of the dialog forms. */}
+          {/* Visible label for SR users (placeholder alone disappears on
+              type). Field + FieldLabel so label/textarea density matches the
+              rest of the dialog forms. */}
           <Field>
             <FieldLabel htmlFor="extended-memo-textarea">
               <Trans>Memo</Trans>
@@ -5224,10 +5112,6 @@ export function ObligationQueueRoute() {
             />
           </Field>
           <DialogFooter>
-            {/* 2026-05-27 (σ cross-route audit D9): final outline →
-                ghost straggler in obligations.tsx. Step 6 cont X1
-                migrated Export / Penalty / Calendar-sync / etc., but
-                the extended-memo dialog flew under the radar. */}
             <Button variant="ghost" onClick={() => setExtendedMemoOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>
@@ -5368,31 +5252,20 @@ function ObligationQueueSortableHeader({
 }) {
   const direction = sort === ascSort ? 'asc' : sort === descSort ? 'desc' : false
 
-  // 2026-05-25 (Yuqi sort-arrow audit): the old sort indicator was a
-  // ghost Button with `ArrowUpDown` / `ArrowUp` / `ArrowDown` icons —
-  // bold arrow glyphs that read as navigation controls, not subtle
-  // sort hints. Yuqi flagged the chrome as "出戏" — too prominent for
-  // every column header.
-  //
-  // New shape:
-  //   - Header label + chevron are now ONE clickable region (the
-  //     sort pill, not a separate icon button).
+  // Sort indicator shape:
+  //   - Header label + chevron are ONE clickable region (the sort pill,
+  //     not a separate icon button).
   //   - The range filter trigger stays a sibling icon button. Keeping
   //     sort and filter as siblings avoids invalid nested button
   //     markup when this header renders inside a dropdown trigger.
   //   - Unsorted columns render a faint ChevronsUpDown so the
-  //     "this is sortable" affordance is always visible —
-  //     previously the column looked inert until you clicked,
-  //     which Yuqi flagged: "column sort is honest — chevrons
-  //     are faint until you sort, then show direction" (Yuqi
-  //     /deadlines redesign). The faint icon sits at
-  //     `text-text-tertiary/40` so it disappears against busy
-  //     content but resolves into a "click me to sort" hint on
-  //     scan.
-  //   - Sorted columns render a small ChevronUp / ChevronDown
-  //     inline in the accent color — quieter than the bold arrows
-  //     and matches the chevron vocabulary used elsewhere
-  //     (dropdowns, breadcrumbs, drawer triggers).
+  //     "this is sortable" affordance is always visible. The faint icon
+  //     sits at `text-text-tertiary/40` so it disappears against busy
+  //     content but resolves into a "click me to sort" hint on scan.
+  //   - Sorted columns render a small ChevronUp / ChevronDown inline in
+  //     the accent color — quieter than bold arrows and matches the
+  //     chevron vocabulary used elsewhere (dropdowns, breadcrumbs,
+  //     drawer triggers).
   const SortIcon = direction === 'asc' ? ChevronUp : direction === 'desc' ? ChevronDown : null
 
   return (
@@ -5407,23 +5280,11 @@ function ObligationQueueSortableHeader({
         }
         className={cn(
           'inline-flex min-w-0 cursor-pointer items-center gap-0.5 rounded px-1 py-0.5 text-left',
-          // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #2/#3): sortable
-          // button now matches the new TableHead canonical (text-sm
-          // sentence-case font-medium text-secondary). Previously the
-          // sortable header was rendering as a quieter `text-text-
-          // tertiary` than the row content — Yuqi flagged it as
-          // "wrong colour" because the column header read as fainter
-          // than the data it labeled. Bumping to text-secondary +
-          // dropping the uppercase/tracking caption treatment makes
-          // sortable and non-sortable headers indistinguishable in
-          // weight.
+          // Sortable button matches the TableHead canonical, so sortable and
+          // non-sortable headers are indistinguishable in weight (no
+          // uppercase/tracking caption treatment).
           'text-sm font-medium normal-case tracking-normal',
-          // 2026-06-09 (Yuqi page feedback #2 "why is this different colour
-          // to others?"): the sortable header sat at text-secondary and
-          // jumped to near-black text-primary when active, so the sorted
-          // column ("Internal due") read as a different, darker colour than
-          // every plain header (which sit at text-tertiary). Now the
-          // sortable label matches the plain-header tertiary at rest and
+          // The sortable label matches the plain-header tertiary at rest and
           // only nudges one tier to text-secondary on hover/active — the
           // accent-coloured sort chevron is the real "this column is sorted"
           // signal, so the label no longer needs to shout.
@@ -5446,13 +5307,11 @@ function ObligationQueueSortableHeader({
   )
 }
 
-// 2026-05-26 (Yuqi sixty-sixth pass — Unassigned `?` quick-pick):
-// the dashed-outline `?` in the Owner column is now a real
-// DropdownMenu trigger. Selecting a teammate calls
-// `clients.bulkUpdateAssignee` with a single-id payload — the
-// assignment lives on the CLIENT (not the obligation) per the
-// current schema, so picking a teammate on one row assigns ALL
-// of that client's deadlines to them. The footer copy spells
+// The dashed-outline `?` in the Owner column is a real DropdownMenu
+// trigger. Selecting a teammate calls `clients.bulkUpdateAssignee` with
+// a single-id payload — the assignment lives on the CLIENT (not the
+// obligation) per the current schema, so picking a teammate on one row
+// assigns ALL of that client's deadlines to them. The footer copy spells
 // that out so the scope isn't a surprise.
 //
 // Pattern matches the ClientFactsWorkspace H1 owner-pill picker
@@ -5504,17 +5363,11 @@ function AssigneeQuickPicker({
             onChange(next)
           }}
         >
-          {/* 2026-05-27 (Yuqi "assign是坏的" round 2): the actual
-              MenuGroupContext crash on this picker was the
-              DropdownMenuLabel rendered as a direct child of
-              DropdownMenuContent — Base UI's MenuPrimitive.GroupLabel
-              calls useMenuGroupRootContext() and throws when there
-              is no <Menu.Group> / <Menu.RadioGroup> ancestor.
-              bb12a8f4 moved the empty-state Item out (which Base UI
-              tolerates either way) but left the Label outside the
-              RadioGroup — the crash kept firing. Placing the Label
-              INSIDE the RadioGroup gives it the context it needs
-              and preserves the "Assign owner" header. */}
+          {/* The DropdownMenuLabel must live INSIDE the RadioGroup: Base UI's
+              MenuPrimitive.GroupLabel calls useMenuGroupRootContext() and
+              throws when there is no <Menu.Group> / <Menu.RadioGroup>
+              ancestor. Placing it inside gives it the context it needs and
+              preserves the "Assign owner" header. */}
           <DropdownMenuLabel className="text-caption-xs uppercase tracking-wide text-text-tertiary">
             <Trans>Assign owner</Trans>
           </DropdownMenuLabel>
@@ -5570,20 +5423,19 @@ function AssigneeQuickPicker({
   )
 }
 
-// 2026-05-24 (critique P0): terminal-state rows shouldn't surface
-// lateness as live debt. Once a row is `done` ("Filed"), `paid`
-// ("Filed" on payment-track rows), or `completed`, the row is
-// closed — "18 days late" alongside a "Filed" / "Completed" pill
-// reads as if there's still work to do. We render a muted internal-
-// due stat ("N days late" / "N days early") instead — quality signal,
-// not active red. Mirrors the same three statuses that
+// Terminal-state rows shouldn't surface lateness as live debt. Once a row
+// is `done` ("Filed"), `paid` ("Filed" on payment-track rows), or
+// `completed`, the row is closed — "18 days late" alongside a "Filed" /
+// "Completed" pill reads as if there's still work to do. We render a muted
+// internal-due stat ("N days late" / "N days early") instead — quality
+// signal, not active red. Mirrors the same three statuses that
 // `features/obligations/status-control.tsx` displays as "Filed" /
 // "Completed".
 //
-// 2026-05-29: `extended` stays out of this terminal set. The Extension
-// tab saves an internal target and the detail strip still shows that
-// target as active date context, so the queue cell must not collapse
-// to an em dash just because the row has an extension plan.
+// `extended` stays out of this terminal set. The Extension tab saves an
+// internal target and the detail strip still shows that target as active
+// date context, so the queue cell must not collapse to an em dash just
+// because the row has an extension plan.
 const DUE_DAYS_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
   'done',
   'paid',
@@ -5627,9 +5479,9 @@ export function urgencyBandOf(
   if (days <= 7) return 'this_week'
   return 'upcoming'
 }
-// 2026-05-24 (re-critique): stages whose `isPastInternalDue` red
-// ring should be suppressed in the milestone timeline. Lateness on
-// a Filed/Completed row is a quality stat, not active urgency.
+// Stages whose `isPastInternalDue` red ring should be suppressed in the
+// milestone timeline. Lateness on a Filed/Completed row is a quality stat,
+// not active urgency.
 // Keep the Internal due date column framed only as "relative to the
 // internal target", not "when the authority filing happened." Hoisted
 // from inside `PathToFilingSummary` so we don't allocate the Set every render.
@@ -5641,19 +5493,18 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
     // urgency tone, render as a muted line. Drop entirely when the
     // row landed exactly on its deadline — no signal there.
     //
-    // 2026-05-27 (Agent X3 milestone audit M-08): `not_applicable`
-    // is a closed state where lateness/earliness doesn't apply because
-    // the obligation never applied. Render a quiet em-dash so the column
-    // still reserves its baseline without claiming a filing event.
+    // `not_applicable` is a closed state where lateness/earliness doesn't
+    // apply because the obligation never applied. Render a quiet em-dash so
+    // the column still reserves its baseline without claiming a filing event.
     if (status === 'not_applicable' || days === 0) {
-      // 2026-06-01: canonical EmptyCellMark replaces hand-rolled em-dash —
-      // shares the same accessible "No data" label as other empty cells.
+      // Canonical EmptyCellMark shares the same accessible "No data" label
+      // as other empty cells.
       return <EmptyCellMark />
     }
     return (
-      // 2026-06-06 (Yuqi): this column compares only against the
-      // internal due date. Do not prefix terminal rows with "Filed";
-      // that mixes the status/action vocabulary into a due-date metric.
+      // This column compares only against the internal due date. Do not
+      // prefix terminal rows with "Filed"; that mixes the status/action
+      // vocabulary into a due-date metric.
       <span className="text-sm text-text-tertiary tabular-nums">
         {days < 0 ? (
           <Plural value={Math.abs(days)} one="# day late" other="# days late" />
@@ -5664,60 +5515,27 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
     )
   }
   const tone = dueDaysTone(days)
-  // 2026-05-25 (Yuqi Deadlines #7, #8): Internal-due always renders
-  // as `outline` regardless of urgency. The previous filled
-  // `destructive` / `warning` variants made this badge LOOK exactly
-  // like the Status pill ("In review", "Blocked") next to it —
-  // two filled badges, same row, different meanings, no visual
-  // separation. Now: dot carries the urgency signal (red for very
-  // late, amber for soon, neutral for future), and the outline
-  // chip itself stays calm so the eye reads Status pill (filled,
-  // workflow state) and Internal due (outline, deadline anchor)
-  // as different visual classes. Reduces the red overload on
-  // late+blocked+rejected rows at the same time.
+  // The due-days value reads as plain tinted text so it stays a different
+  // visual class from the filled Status pill ("In review", "Blocked") in the
+  // next column — urgency is carried by the text color (red for very late,
+  // amber for soon, neutral for future), which avoids a second filled badge
+  // on the same row and reduces the red overload on late+blocked+rejected
+  // rows.
   const tintedTextClass =
     tone.dot === 'error'
       ? 'text-text-destructive'
       : tone.dot === 'warning'
         ? 'text-text-warning'
         : 'text-text-primary'
-  // 2026-05-25 (Yuqi Deadlines follow-up): the days-late badge used a
-  // colored BadgeStatusDot (red/amber/neutral). The dot did double
-  // duty as both the urgency tone signal AND a generic "this is a
-  // status" mark — which collided visually with the Status pill in
-  // the next column (also dot-led). Swapped to a lucide Info icon for
-  // the days-late case ("you'll want to read this") and kept the dot
-  // for non-late states (future / today) where the tone is the only
-  // signal worth carrying. The Info icon inherits the tinted text
-  // color so red text + red icon read as a single urgency cluster
-  // without claiming "status pill" semantics.
   const isLate = days < 0
-  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #17): dropped the
-  // outline Badge wrapper. Yuqi questioned "is it necessary to put
-  // it in a badge pill?" — the row already carries the Status pill
-  // (filled, workflow state) in the next column, and a second
-  // bordered chip for due-days read as "two badges, same row,
-  // different meanings, what's a primary?" Now: dot + plain text,
-  // text-sm tabular-nums, urgency carried by text color (red /
-  // amber / neutral) and the leading dot/icon. Reads as a value
-  // ("3 days late"), not a control.
-  // 2026-05-26 (Yuqi sixty-eighth pass #6/#7): dropped the Info
-  // icon on late rows. The leading dot already carries the urgency
-  // tone (red for late, amber for soon, neutral for future) and the
-  // red text reinforces it — the Info icon was a third signal on
-  // the same axis. Cell gap bumped 1.5 → 2 so dot + value have a
-  // touch more breathing room.
+  // No badge pill, dot, Info icon, or flame glyph here — the row already
+  // carries the filled Status pill in the next column, and the tinted text
+  // color already carries the late-urgency signal. Extra markers were
+  // redundant signals on the same axis and added to the row's red overload.
+  // Reads as a value ("3 days late"), not a control.
   return (
     <span
       className={cn(
-        // 2026-05-27 (Yuqi "去掉这个点"): BadgeStatusDot removed
-        // entirely. The tinted text color already carries the
-        // urgency signal (text-text-destructive for late, etc.);
-        // the dot was redundant noise next to the date.
-        // 2026-06-09 (Yuqi page feedback #9 "remove all of the fire icon"):
-        // the leading flame glyph is gone. The tinted red text already
-        // carries the late-urgency signal; the flame was a second redundant
-        // marker on the same axis and added to the row's red overload.
         'inline-flex items-center gap-1 text-sm tabular-nums leading-tight',
         tintedTextClass,
       )}
@@ -5733,12 +5551,10 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
   )
 }
 
-// `RangeHeaderFilterDropdown` retired 2026-05-26 with the sixty-fifth
-// pass #5. The column-header range filter overlapped semantically
-// with the sort handle on the same header AND with the toolbar
-// "Past Due" / "Due this week" chips above. If we ever need a
-// generic numeric-range column filter again, restore from git
-// history (commit before 2026-05-26-deadlines-pass-65).
+// `RangeHeaderFilterDropdown` retired. The column-header range filter
+// overlapped semantically with the sort handle on the same header AND with
+// the toolbar "Past Due" / "Due this week" chips above. If we ever need a
+// generic numeric-range column filter again, restore from git history.
 
 // P0: editable email preview shared by the single ("Remind client to sign")
 // and bulk ("Remind to sign") flows. The CPA edits a TOKEN template
@@ -6184,12 +6000,11 @@ export function ObligationQueueDetailDrawer({
   // entirely in a follow-up that also updates the two callsites.
   onNeedsInput: _onNeedsInput,
   practiceAiEnabled: _practiceAiEnabled,
-  // `blockerCandidates` retired 2026-05-21 with the in-tab K-1 editor.
-  // Kept on the prop type so the route + provider call sites still
-  // compile; underscore-prefixed to silence eslint until we land the
-  // new blocker UX.
+  // `blockerCandidates` retired with the in-tab K-1 editor. Kept on the prop
+  // type so the route + provider call sites still compile; underscore-prefixed
+  // to silence eslint until we land the new blocker UX.
   blockerCandidates: _blockerCandidates,
-  // 2026-05-21: dual-mode. The /deadlines route renders the detail
+  // Dual-mode. The /deadlines route renders the detail
   // as a persistent right-side panel ('panel'). The ObligationDrawer-
   // Provider (dashboard / clients / pulse) still uses the modal-style
   // Sheet ('sheet'). Default 'sheet' preserves back-compat for any
@@ -6218,12 +6033,10 @@ export function ObligationQueueDetailDrawer({
   const legacyStatusLabels = useStatusLabels()
   const v2StatusLabels = useLifecycleV2StatusLabels()
   const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
-  // 2026-05-26 (step-6 ux-flow audit Q7.1): removed dead
-  // `_statusDropdownOptions` computation. The drawer-header status
-  // pill was retired and the dropdown-options value was being
-  // computed only to immediately `void` it. If the pill comes back,
-  // re-derive from LIFECYCLE_V2_STATUSES / ALL_STATUSES at that
-  // point — the cost is negligible.
+  // No `_statusDropdownOptions` computation — the drawer-header status pill
+  // was retired. If the pill comes back, re-derive from
+  // LIFECYCLE_V2_STATUSES / ALL_STATUSES at that point; the cost is
+  // negligible.
   const [extensionDraft, setExtensionDraft] = useState(() => emptyExtensionPlanDraft())
   const [taxYearDraft, setTaxYearDraft] = useState<{
     obligationId: string
@@ -6241,7 +6054,7 @@ export function ObligationQueueDetailDrawer({
   // mutation lifecycle without triggering a re-render.
   const prepStagePreviousRef = useRef<ObligationPrepStage | null>(null)
   const reviewStagePreviousRef = useRef<ObligationReviewStage | null>(null)
-  // Materials tab multi-select model (2026-05-23). Keyed by the
+  // Materials tab multi-select model. Keyed by the
   // checklist item id so the checklist action row can batch a
   // "Mark received" mutation across every selected row. Carries the
   // owning obligationId so the selection clears automatically when
@@ -6375,9 +6188,9 @@ export function ObligationQueueDetailDrawer({
   const latestInputRequestTitle = latestInputRequest
     ? t`Input requested from ${latestInputRequestRecipient} on ${formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)}`
     : undefined
-  // `obligationTypeLabels` lookup was retired with the header distill
-  // (2026-05-21) — the "FILING" badge it backed is gone. If a future
-  // surface wants the human label, re-add via `useObligationTypeLabels()`.
+  // `obligationTypeLabels` lookup was retired with the header distill — the
+  // "FILING" badge it backed is gone. If a future surface wants the human
+  // label, re-add via `useObligationTypeLabels()`.
   // Type-aware drawer surface: per PRD §3.1 different obligation types
   // expose different tabs. A `payment` row has no readiness checklist;
   // a `client_action` row has no deadline readiness surface.
@@ -6390,12 +6203,10 @@ export function ObligationQueueDetailDrawer({
   // (e.g. ?tab=extension on a payment row), bounce to the first tab
   // this type actually has. Otherwise the drawer body renders empty.
   //
-  // 2026-05-24 (useEffect audit): the previous shape ran this as a
-  // useEffect that ran post-render. Replaced with the React-
-  // recommended render-time adjustment pattern. `onTabChange` is
-  // idempotent (it just updates URL state), so calling it during
-  // render is safe — React bails out of the re-render when the URL
-  // already matches the requested value.
+  // Uses the React-recommended render-time adjustment pattern (not a
+  // post-render useEffect). `onTabChange` is idempotent (it just updates URL
+  // state), so calling it during render is safe — React bails out of the
+  // re-render when the URL already matches the requested value.
   const tabFallback =
     row && !isTabVisibleForType(activeTab, row.obligationType) ? (visibleTabsList[0] ?? null) : null
   if (tabFallback && tabFallback !== activeTab) {
@@ -6587,12 +6398,10 @@ export function ObligationQueueDetailDrawer({
     latestRequest.status === 'revoked' ||
     (correctionMaterialsMode &&
       (latestRequest.status === 'responded' || latestRequest.status === 'expired'))
-  // 2026-05-26 (Step 9 AI Visibility Audit F-020): surface the
-  // "degraded fallback list" signal as an inline banner above the
-  // checklist, not just a 4-second toast that disappears forever.
-  // The degraded flag IS the AI's "I'm not sure" state — losing
-  // it on render means the user can't tell a fallback-list run
-  // apart from a real run on a stale tab.
+  // Surface the "degraded fallback list" signal as an inline banner above
+  // the checklist, not just a transient toast. The degraded flag IS the AI's
+  // "I'm not sure" state — losing it on render means the user can't tell a
+  // fallback-list run apart from a real run on a stale tab.
   const checklistDegraded = Boolean(
     row &&
     autoGenerateChecklistQuery.data?.obligationId === row.id &&
@@ -6979,9 +6788,9 @@ export function ObligationQueueDetailDrawer({
       },
     }),
   )
-  // `updateBlockedByMutation` retired 2026-05-21 with the K-1 editor.
-  // The RPC procedure (orpc.obligations.updateBlockedBy) still ships;
-  // re-bind here when the new blocker UX lands.
+  // `updateBlockedByMutation` retired with the K-1 editor. The RPC procedure
+  // (orpc.obligations.updateBlockedBy) still ships; re-bind here when the new
+  // blocker UX lands.
   function updateDocumentChecklistItem(
     itemId: string,
     patch: {
@@ -7005,7 +6814,7 @@ export function ObligationQueueDetailDrawer({
     )
   }
 
-  // Materials multi-select handlers (2026-05-23). Toggling a row's
+  // Materials multi-select handlers. Toggling a row's
   // selection updates the local Set; the checklist action row shows
   // selected-item actions when itemIds.size > 0. The batch "Mark
   // received" calls the existing per-item update RPC for each selected
@@ -7265,67 +7074,30 @@ export function ObligationQueueDetailDrawer({
   const titleText = row?.clientName ?? null
   const drawerBody = (
     <>
-      {/* Header — flipped 2026-05-23. The drawer is a per-obligation
-          surface, so the obligation identity (Form 1040, Form 1120-S)
-          deserves the primary slot, not the client. Earlier shape
-          made client name the h2 and pushed the form code into a
-          tertiary line under it; CPAs scanning a drawer just opened
-          from "what is THIS row?" had to read three lines to know
-          which deadline they were looking at.
-
-          New shape:
+      {/* Header — the drawer is a per-obligation surface, so the obligation
+          identity (Form 1040, Form 1120-S) deserves the primary slot, not the
+          client. Shape:
             line 1: client name (clickable kicker) + close X
             line 2: Form code (h2) + status pill, on one row
             line 3: TY year · jurisdiction (compact secondary meta)
-          Internal/statutory deadlines moved into a dedicated 3-col
-          strip below the header (was: duplicated in dates panel). */}
-      {/* 2026-05-25 (Yuqi Deadlines #17): drawer header had py-4
-          (16px top + bottom), which made the title sit lower than
-          the page top — wasted real estate at the top of the
-          drawer. Reduced to py-3 (12px) so the form-code h2 reads
-          right at the top edge. */}
-      {/* 2026-05-26 (Yuqi drawer canonical — cross-drawer match):
-          header padding `px-5 py-3` → `px-12 py-10` per the drawer
-          canonical (see docs/Design/inset-surface-design-system.md
-          "Drawer canonical"). */}
-      {/* 2026-05-26 (Yuqi sixty-first pass — header tighter):
-          py-10 → py-6 (40px → 24px vertical). On the obligation
-          drawer the header carries the form-code h2 + flag chips +
-          meta line — about 80-100px of content. py-10 (40+40)
-          added 80px of dead chrome around it. py-6 (24+24) gives
-          enough breathing room without the panel reading as half-
-          empty before the body even starts. Alert drawer keeps
-          py-10 because its header has a state kicker + bigger h1
-          + chip row + description — more content earning more
-          vertical space. */}
-      {/* 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-          header padding aligned to AlertDetailDrawer.tsx L574
-          (`px-12 py-10`). Both right-rail drawers in the product
-          now share the same paper-document header rhythm — same
-          left margin top-to-bottom, same vertical breathing room
-          above the title. The earlier inset-followups tightening
-          (px-8 py-5) was reverted in favor of cross-drawer
-          consistency per Yuqi's "should match Alert detail"
-          instruction. */}
-      {/* 2026-05-27 (Yuqi "remove top padding"): header pt-10 → pt-4
-          so the title sits closer to the top of the drawer. Bottom
-          spacing kept (pb-10) for the breathing gap before tabs. */}
+          Internal/statutory deadlines live in a dedicated 3-col strip below
+          the header. Header padding (px-12) matches AlertDetailDrawer so both
+          right-rail drawers share the same paper-document header rhythm; pt-8
+          keeps the title near the top edge. */}
       <header className="relative flex flex-col gap-1.5 px-12 pt-8 pb-2">
         {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner.
 
-            2026-05-23: a copy-link icon button sits next to the close
-            button per Figma so the CPA can grab a deep-link to this
-            drawer (short obligation ref + tab) without scrolling to the
-            sticky footer. Both buttons live in the top-right corner
-            cluster. Sheet mode keeps the link-copy in the footer
-            since Radix already owns the corner there. */}
+            A copy-link icon button sits next to the close button so the CPA
+            can grab a deep-link to this drawer (short obligation ref + tab)
+            without scrolling to the sticky footer. Both buttons live in the
+            top-right corner cluster. Sheet mode keeps the link-copy in the
+            footer since Radix already owns the corner there. */}
         {mode === 'panel' && row ? (
-          // 2026-05-27 (Yuqi drawer parity): close-button cluster
-          // pinned at `right-3 top-3` to match AlertDetailDrawer's
-          // close affordance (AlertDetailDrawer.tsx L1112). Both
-          // drawers' close X now sit at the identical corner inset.
+          // Close-button cluster pinned at `right-3 top-3` to match
+          // AlertDetailDrawer's close affordance, so both drawers' close X
+          // sit at the identical corner inset.
           <div className="absolute right-3 top-3 flex items-center gap-0.5">
             <button
               type="button"
@@ -7379,13 +7151,10 @@ export function ObligationQueueDetailDrawer({
             onClick={() => {
               void navigate(`/clients/${encodeURIComponent(row.clientId)}`)
             }}
-            // 2026-05-26 (Yuqi feedback #14): client link bumped from
-            // text-xs / icon size-3 → text-sm / icon size-3.5, and the
-            // name from font-medium → font-semibold. The kicker was
-            // reading as quieter-than-form-title, but the client is
-            // the row's true primary identity (form is the secondary
-            // identifier). Bigger text gives the client the visual
-            // anchor it deserves.
+            // The client link reads at text-sm / font-semibold because the
+            // client is the row's true primary identity (the form is the
+            // secondary identifier), so it earns the visual anchor over the
+            // form title.
             className="group/clientlink inline-flex w-fit cursor-pointer items-center gap-1 rounded-sm pr-8 text-left text-sm text-text-secondary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <span className="font-semibold">{titleText}</span>
@@ -7408,28 +7177,14 @@ export function ObligationQueueDetailDrawer({
         ) : null}
         {row
           ? (() => {
-              // 2026-05-26 (Yuqi fifty-first pass — Figma-Make flag
-              // chips from design/deadlines-drawer-rework): the
-              // status pill names the workflow state ("Waiting on
-              // client") but doesn't carry overdue urgency or the
-              // exact blocked-by name. Three augmenting Badge chips
-              // appear next to the pill when relevant:
-              //   • Waiting on client — when status is
-              //     'waiting_on_client'
+              // The status pill names the workflow state ("Waiting on
+              // client") but doesn't carry overdue urgency or the exact
+              // blocked-by name. Augmenting Badge chips appear next to the
+              // pill when relevant:
+              //   • Waiting on client — when status is 'waiting_on_client'
               //   • Blocked — when status is 'blocked'
               //   • N days overdue — when daysUntilDue < 0 on a
               //     non-terminal row
-              // 2026-05-26 (Yuqi fifty-third pass — pill dedup wired):
-              // when a flag chip names the specific sub-state (waiting
-              // / blocked), pass `displayStatus='in_progress'` to the
-              // pill so it shows the generic verb-of-motion instead of
-              // repeating the chip's noun. Reads as:
-              //   pill: "In progress"  chip: "Waiting on client"
-              // (instead of "Waiting on client" twice). The dropdown
-              // still operates on the real `row.status` — displayStatus
-              // only affects the trigger's rendered label/icon/variant.
-              // Overdue chip doesn't trigger the dedup since "overdue"
-              // is a date concern, not a workflow state.
               const showWaitingChip = row.status === 'waiting_on_client'
               const showBlockedChip = row.status === 'blocked'
               // `pillDisplayStatus` retired with the drawer-header
@@ -7439,23 +7194,15 @@ export function ObligationQueueDetailDrawer({
               // doesn't exist on this surface.
               return (
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8">
-                  {/* 2026-05-26 (Yuqi feedback #12): h1 size matched
-                      to Alert's panel title — text-2xl. Was text-lg
-                      which read as a quieter "label" than the alert
-                      drawer's authoritative h1. Both drawers now use
-                      the same anchor weight. */}
+                  {/* h1 size matched to Alert's panel title (text-2xl) so
+                      both drawers use the same anchor weight. */}
                   <h2 className="text-2xl font-semibold leading-tight text-text-primary">
                     <TaxCodeLabel code={row.taxType} className="cursor-default" />
                   </h2>
-                  {/* 2026-05-26 (Yuqi feedback #4): dropped the drawer
-                      header's ObligationQueueStatusControl. With the
-                      table's Status column visible (per #8) AND
-                      interactive, the same control rendered TWICE on
-                      the same screen (once in the row, once in the
-                      drawer header) — "appeared again, bad UX." The
-                      table cell's pill is the canonical interactive
-                      affordance; the drawer header now just carries
-                      the form title + meta chip cluster. */}
+                  {/* No status control in the drawer header — the table's
+                      Status column is already visible AND interactive, so the
+                      cell's pill is the canonical affordance. The drawer
+                      header carries the form title + meta chip cluster only. */}
                   {showWaitingChip ? (
                     <Badge
                       variant="warning"
@@ -7491,18 +7238,11 @@ export function ObligationQueueDetailDrawer({
             })()
           : null}
         {row && (row.taxYear || row.jurisdiction || row.taxPeriodStart) ? (
-          // 2026-05-23: expanded meta line under h2 to surface the
-          // full tax-period context the Figma shows — jurisdiction,
-          // "Tax Year YYYY", and the period span (start — end).
-          // Earlier shape ("TY 2025 · FED") was terse to a fault: the
-          // CPA reading the drawer header had to open the dates panel
-          // to know which period was being filed. Spelling it out
-          // here makes the drawer self-contained as a header.
-          //
-          // 2026-05-25 (Yuqi Deadlines #15): meta line was text-xs
-          // (12px) — too quiet next to the now-text-xl form code
-          // title. Bumped to text-sm (14px) so the context reads
-          // as a real subtitle, not buried metadata.
+          // Meta line under h2 surfaces the full tax-period context —
+          // jurisdiction, "Tax Year YYYY", and the period span (start — end)
+          // — so the CPA doesn't have to open the dates panel to know which
+          // period is being filed. Makes the drawer self-contained as a
+          // header.
           <p className="flex flex-wrap items-baseline gap-x-2 text-sm text-text-tertiary">
             {row.jurisdiction ? (
               <>
@@ -7524,14 +7264,11 @@ export function ObligationQueueDetailDrawer({
             ) : null}
           </p>
         ) : null}
-        {/* 2026-05-23: dropped the canonical-forward-action row
-            (`ObligationDrawerStatusActions`) per critique. The
-            interactive `ObligationQueueStatusControl` chip above
-            already exposes every valid transition with one click;
-            adding a second forward-action button below it created
-            redundant affordances ("Start preparation" + "pending →
-            review" picker dropdown both go to the same place).
-            Status pill is the single source of truth now. */}
+        {/* No canonical-forward-action row (`ObligationDrawerStatusActions`)
+            — the interactive `ObligationQueueStatusControl` chip above
+            already exposes every valid transition with one click, so a second
+            forward-action button would be a redundant affordance. The status
+            pill is the single source of truth. */}
       </header>
       {/* Body — in panel mode the aside has fixed height, so this
           inner div owns the scrolling. That lets the snapshot block
@@ -7540,49 +7277,20 @@ export function ObligationQueueDetailDrawer({
           underneath. Sheet mode (mobile) keeps a single document
           scroll: SheetContent has overflow-y-auto, so we don't
           double-scroll here. */}
-      {/* 2026-05-26 (Yuqi /deadlines drawer): body top padding dropped
-          from pt-4 to 0. The sticky strip below used a `-mt-4` to
-          cancel the body padding — chrome cancelling chrome made
-          the layout hard to reason about. With pt-0, the strip
-          starts flush at the body top, and the area below the strip
-          gets its own real `pt-4` so it's visually a separate
-          unit (containing TabsList + tab content). */}
-      {/* 2026-05-26 (Yuqi drawer canonical): body padding `px-5 pb-5`
-          → `px-12 py-10` per the drawer canonical. Same paper-document
-          padding as AlertDetailDrawer body — left margin runs as one
-          line from header through body. */}
-      {/* 2026-05-26 (Yuqi forty-seventh pass — sticky-footer buffer):
-          body bottom padding bumped `py-10` → `pt-10 pb-24` to match
-          AlertDetailDrawer. Sticky footer (min-h-16 + py-4) was
-          covering the last content row when scrolled — 96px buffer
-          guarantees clean separation between bottom content and
-          action bar. */}
-      {/* 2026-05-26 (Yuqi forty-eighth pass — body flex wrapper):
-          body wrapper is now `flex flex-col gap-4` per drawer
-          canonical. Children get a consistent 16px gap between
-          them instead of each carrying its own `mb-*` margin.
-          Same shape as AlertDetailDrawer body so the two drawers
-          read with identical rhythm. */}
+      {/* Body wrapper is `flex flex-col gap-4` so children get a consistent
+          16px gap instead of each carrying its own `mb-*`. Same shape as
+          AlertDetailDrawer body so the two drawers read with identical
+          rhythm. */}
       <div
         className={cn(
-          // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-          // body padding aligned to AlertDetailDrawer.tsx L752
-          // (`px-12 pt-10 pb-24`). Same left margin as header/footer
-          // so the panel reads as one continuous paper-document
-          // surface edge-to-edge. The earlier inset-followups
-          // tightening (px-8 pt-0) was reverted for cross-drawer
-          // consistency; the body's pt-10 buffer mirrors the alert drawer's
-          // header → body breathing room.
-          // 2026-05-27 (Yuqi "remove padding-top"): pt-10 dropped.
+          // Body padding (px-12) matches header/footer so the panel reads as
+          // one continuous paper-document surface edge-to-edge.
           'flex flex-col gap-4 px-12 pb-12',
-          // 2026-05-26 (Yuqi feedback #1): added scrollbar-gutter:stable
-          // on the panel-mode body. Different tabs render different
-          // content heights (Summary is short, Materials is long).
-          // Without gutter:stable, the scrollbar appears/disappears
-          // on tab switch and shifts the content ~15px horizontally —
-          // reads as "panel width flickers." Reserving the scrollbar
-          // space holds the content steady regardless of which tab
-          // is active.
+          // scrollbar-gutter:stable on the panel-mode body: different tabs
+          // render different content heights (Summary is short, Materials is
+          // long). Without it, the scrollbar appears/disappears on tab switch
+          // and shifts the content ~15px horizontally — reads as "panel width
+          // flickers." Reserving the scrollbar space holds the content steady.
           mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]',
         )}
       >
@@ -7614,154 +7322,69 @@ export function ObligationQueueDetailDrawer({
               if (isObligationQueueDetailTab(value)) onTabChange(value)
             }}
           >
-            {/* 2026-05-25 (Yuqi Deadlines #30): the sticky block used
-                to host the full snapshot trio (PrimaryDeadlineStrip +
-                PathToFilingSummary + ActiveStageDetailCard). Yuqi's
-                #30 asked for a Summary tab that owns the milestone
-                story. Split the sticky block into two:
-                  • Sticky: PrimaryDeadlineStrip only — three anchor
-                    dates that CPAs check at every interaction. Always
-                    visible across every tab.
+            {/* The sticky block is split into two:
+                  • Sticky: PrimaryDeadlineStrip only — three anchor dates that
+                    CPAs check at every interaction, always visible across
+                    every tab.
                   • Summary tab (below): PathToFilingSummary +
-                    ActiveStageDetailCard — the deep-dive milestone
-                    + stage-context view. Has a labeled home now.
-
-                Net effect: the always-visible chrome is tighter
-                (just the dates), the milestone story has its own tab
-                that doesn't compete with Materials / Extension /
-                Evidence, and the URL ?tab=summary is shareable. */}
-            {/* 2026-05-26 (Yuqi obligation drawer): tightened the
-                sticky block's vertical padding so the band of
-                bg-background-subtle above the deadline cards isn't
-                a visible "gap" between the header and the strip.
-                Was pt-4 pb-3 (28px combined). Now pt-2 pb-2 (16px)
-                — strip still has breathing room from header edge
-                and from scrolling content below, just half the
-                visual weight. The negative -mt-4 still negates the
-                body container's pt-4, so the sticky block starts
-                flush at the body's top edge. */}
-            {/* 2026-05-26 (Yuqi /deadlines drawer): sticky strip now
-                starts flush at the body's top edge (body lost its
-                pt-4). Dropped the `-mt-4` negative margin that was
-                cancelling that padding. The bottom of the strip
-                gets a `border-b border-divider-subtle` so the
-                tabs/content area below reads as a distinct unit. */}
-            {/* 2026-05-26 (Yuqi inset-followups A): sticky-section
-                heading dropped its `border-b border-divider-subtle
-                bg-background-subtle`. The gray bg + bottom border were
-                framing the deadline strip as a separate "card" inside
-                the drawer body — fighting the flat surface treatment.
-                Now: just the sticky position + tight padding, no
-                visual weight beyond the content itself. Also bled
-                changed `-mx-12 px-12` → `-mx-8 px-8` to match the new
-                tightened body padding. */}
-            {/* 2026-05-26 follow-up: keep the flat treatment, but make
-                the sticky strip opaque. In the Materials tab, checklist
-                rows scroll under this band; a transparent sticky layer
-                lets document text show through the date tiles/gutters.
-                White surface + subtle bottom rule preserves the drawer
-                body feel while giving the sticky layer a real backing. */}
+                    ActiveStageDetailCard — the deep-dive milestone +
+                    stage-context view, with a labeled home.
+                So the always-visible chrome is tighter (just the dates), the
+                milestone story has its own tab that doesn't compete with
+                Materials / Extension / Evidence, and ?tab=summary is
+                shareable. */}
+            {/* The sticky strip is opaque: in the Materials tab, checklist
+                rows scroll under this band, and a transparent sticky layer
+                would let document text show through the date tiles/gutters. A
+                white surface + subtle bottom rule keeps the flat drawer-body
+                feel while giving the sticky layer a real backing. */}
             <div
               className={cn(
                 'flex flex-col gap-3',
                 mode === 'panel'
-                  ? // 2026-05-27 (Yuqi drawer parity): negative bleed
-                    // updated -mx-8 → -mx-12 to match the body's new
-                    // px-12 padding. Inside px-12 re-applies the
-                    // canonical inset, so the sticky strip's content
-                    // edge still aligns with the rest of the body.
+                  ? // Negative bleed (-mx-12) matches the body's px-12 padding;
+                    // re-applying px-12 inside keeps the sticky strip's content
+                    // edge aligned with the rest of the body.
                     'sticky top-0 z-20 -mx-12 border-b border-divider-subtle bg-background-default px-12 py-3'
                   : 'mb-4',
               )}
             >
-              {/* PrimaryDeadlineStrip (2026-05-23): the three dates the
-                  CPA actually checks first — Internal, Filing, Payment
-                  — promoted out of the bottom dates panel into a
-                  3-column strip at the top of the snapshot. Each
-                  column carries a one-word label + the date + a small
-                  state tag ("MISSED" if past, blank otherwise).
-                  Reading order: identity (header) → key dates (this
-                  strip) → tabs → tab content (Summary's milestone
-                  chevron + stage card lives one tab over).
-                  The remaining secondary dates (Statutory, Tax period,
-                  Created, Last touched, e-file timestamps) still live
-                  in the bottom FlatDateList under "Reference dates". */}
+              {/* PrimaryDeadlineStrip: the three dates the CPA checks first —
+                  Internal, Filing, Payment — in a 3-column strip at the top of
+                  the snapshot. Each column carries a one-word label + the date
+                  + a small state tag ("MISSED" if past, blank otherwise).
+                  Reading order: identity (header) → key dates (this strip) →
+                  tabs → tab content. The remaining secondary dates (Statutory,
+                  Tax period, Created, Last touched, e-file timestamps) live in
+                  the bottom FlatDateList under "Reference dates". */}
               <PrimaryDeadlineStrip row={row} />
-              {/* 2026-05-23: StatutoryDatesPanel moved OUT of this
-                  sticky snapshot block — relocated to AFTER the
-                  TabsContent so the tabs sit immediately under the
-                  stage card. The dates panel is reference info (most
-                  rows show the same date 4× anyway: Internal due =
-                  Statutory = Filing = Payment), so paying for it with
-                  prime vertical real estate above the tabs was the
-                  wrong trade. New reading order: identity → milestone
-                  → stage card → TABS → tab content → dates (scroll for
-                  reference). */}
-              {/* `ObligationForwardingPanel` removed 2026-05-21 — the
-                  "Forward to task · bright-studio-…@duedatehq.com · Phase 2"
-                  block was a feature stub crowding the drawer with chrome
-                  for capability that isn't shipping yet. Restore when the
-                  inbound-file routing actually goes live. */}
+              {/* StatutoryDatesPanel lives AFTER the TabsContent, not in this
+                  sticky snapshot block, so the tabs sit immediately under the
+                  stage card. The dates panel is reference info (most rows show
+                  the same date 4×: Internal due = Statutory = Filing =
+                  Payment), so it doesn't earn prime vertical real estate above
+                  the tabs. */}
+              {/* `ObligationForwardingPanel` removed — the "Forward to task ·
+                  …@duedatehq.com · Phase 2" block was a feature stub crowding
+                  the drawer with chrome for capability that isn't shipping yet.
+                  Restore when inbound-file routing goes live. */}
             </div>
-            {/* TabsList lives OUTSIDE the sticky snapshot block per
-                critique #4 ("shouldn't the tab belong to the
-                following information, not the top part information").
-                Pulled out so the tabs visually group with the
-                TabsContent they control, not with the milestones /
-                dates above. Tradeoff: tabs scroll away with the body
-                rather than staying pinned. In practice the CPA
-                rarely switches tabs mid-scroll on the same
-                obligation, so the visual clarity wins.
-
-                2026-05-23: dropped the `border-t` separator above. The
-                pill segmented control is visually self-contained
-                (rounded bg track + raised active item) — adding a top
-                rule above it made the tabs feel like the bottom of
-                the snapshot block above instead of the top of the tab
-                content below. */}
-            {/* 2026-05-25 (Yuqi Deadlines #9, #12, #16): wrapper
-                top padding was dropped after Yuqi flagged extra empty
-                space. 2026-05-25 (client detail side panel): add a
-                panel-only gap back under the sticky date strip so the
-                selected tab/focus ring does not visually tuck under
-                the date cards while the tab group still belongs to
-                the content below. */}
-            {/* 2026-05-26 (Yuqi /deadlines drawer): pt-3 → pt-4 so
-                TabsList + content area sit at a clean 16px gap
-                below the sticky strip's bottom border, reading as
-                a separate visual unit. */}
-            {/* 2026-05-26 (Yuqi fifty-fifth pass — drop double gap):
-                body wrapper now has `flex-col gap-4` (added in the
-                drawer canonical apply), which already provides 16px
-                between the sticky strip and this tabs container.
-                The extra `pt-4` here was stacking → 32px total
-                between strip and tabs ("weird top margin" per
-                Yuqi). Dropped. */}
-            {/* 2026-05-26 (Yuqi feedback — "the 4 tabs in the deadline
-                detail panel can be more obvious, … more obvious about
-                it is with the below information, not above"): inverted
-                the spacing rhythm so the tab bar visually belongs to
-                what's BELOW it.
-
-                Before: tabs sat ~8px below the sticky strip and ~24px
-                above the content (gap-2 from Tabs root + mt-4 on
-                TabsContent). That asymmetry made the bar read as the
-                bottom edge of the header block above.
-
-                After: `pt-3` on this wrapper (+ the Tabs root's
-                `gap-2`) opens a 20px buffer ABOVE the bar — enough
-                to separate it from the sticky strip without the
-                cavernous 32px the earlier `pt-6` produced (Yuqi
-                follow-up: "still strange padding and gap"). `mt-0`
-                on the TabsContent panels drops the gap below the
-                bar to just `gap-2`, so the bar still reads as the
-                leading edge of the tab content beneath. */}
+            {/* TabsList lives OUTSIDE the sticky snapshot block so the tabs
+                visually group with the TabsContent they control, not with the
+                milestones / dates above. Tradeoff: tabs scroll away with the
+                body rather than staying pinned, but the CPA rarely switches
+                tabs mid-scroll on the same obligation, so the visual clarity
+                wins. No `border-t` separator above — the pill segmented
+                control is visually self-contained (rounded bg track + raised
+                active item), and a top rule would make the tabs read as the
+                bottom of the snapshot block above instead of the top of the
+                tab content below. The `pt-3` here opens a buffer above the bar
+                while `mt-0` on the TabsContent panels keeps the gap below it
+                tight, so the bar reads as the leading edge of the tab content
+                beneath. */}
             <div className="sticky top-0 z-10 bg-background-default pt-3">
-              {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
-                  from design/deadlines-drawer-rework): tab bar
-                  switched from default pill segmented control to the
-                  line-variant underline bar. Each trigger leads with
-                  a lucide icon + label + context badge:
+              {/* Tab bar uses the line-variant underline bar. Each trigger
+                  leads with a lucide icon + label + context badge:
                     • Summary: no badge
                     • Materials: outstanding count (red destructive)
                       or all-received check (gray) when count == 0
@@ -7780,65 +7403,43 @@ export function ObligationQueueDetailDrawer({
                 return (
                   <TabsList
                     variant="line"
-                    // 2026-05-26 (Yuqi feedback #2): white bg on the
-                    // TabsList. The line-variant defaulted to transparent
-                    // which let the body's white still show through, but
-                    // when the sticky deadline strip above scrolls behind
-                    // the tabs they bled together visually. Explicit
-                    // white bg gives the tab bar a clear surface.
+                    // Explicit white bg on the TabsList: the line-variant
+                    // defaults to transparent, which would let the sticky
+                    // deadline strip bleed through visually when it scrolls
+                    // behind the tabs.
                     //
-                    // 2026-05-26 (Yuqi feedback — "justify content left"
-                    // + "remove the left right padding"): bar is now
-                    // `justify-start` so the four tabs hug the left
-                    // edge instead of distributing across the panel
-                    // (each TabsTrigger drops `flex-1` for the same
-                    // reason — see the trigger className below). Inter-
-                    // tab `gap-1` → `gap-6` opens 24px between tabs so
-                    // they remain individually scannable now that each
-                    // one no longer carries its own `px-2`.
+                    // `justify-start` so the four tabs hug the left edge
+                    // instead of distributing across the panel (each
+                    // TabsTrigger drops `flex-1` for the same reason — see the
+                    // trigger className below). `gap-6` opens 24px between tabs
+                    // so they stay individually scannable without per-tab px.
                     className="flex h-11 w-full justify-start gap-6 border-b border-divider-subtle bg-background-default text-sm"
                   >
-                    {/* 2026-05-26 (Yuqi feedback — "tabs can be more
-                        obvious, signalling people hey check these
-                        out" + "yes please" to pushing the active
-                        state further): every TabsTrigger now layers
-                        FOUR signals so the active tab pops without
-                        the bar abandoning the tab paradigm in favor
-                        of a segmented-control look:
-                          1. Inactive text: `text-text-secondary` —
-                             still visible enough to invite a click.
+                    {/* Every TabsTrigger layers four signals so the active
+                        tab pops without abandoning the tab paradigm for a
+                        segmented-control look:
+                          1. Inactive text: `text-text-secondary` — still
+                             visible enough to invite a click.
                           2. Active text: `text-text-primary` +
-                             `font-semibold` — strongest contrast
-                             jump from inactive (medium-weight
-                             secondary) to active (semibold primary).
-                          3. Active underline color: `accent-default`
-                             (matches the /clients/[id] tabs +
-                             /deadlines scope tabs), so the rule
-                             pops in the canonical brand accent
-                             instead of plain text-active black.
-                          4. Active underline position: primitive
-                             default (`bottom-[-5px]`) — floats ~5px
-                             below the trigger for 15-16px breathing
-                             room from the text descender (an earlier
-                             `bottom-0` pulled it too close — "the
-                             underline is so close to the text").
-                        Stayed with TABS (not segmented control)
-                        because the 4 panels are different sections
-                        of the SAME deadline (Summary / Materials /
-                        Extension / Evidence), not filters or scopes.
-                        Segmented control belongs to the /deadlines
-                        top-level scope tabs where each option
+                             `font-semibold` — strongest contrast jump.
+                          3. Active underline color: `accent-default` (matches
+                             the /clients/[id] tabs + /deadlines scope tabs).
+                          4. Active underline position: primitive default
+                             (`bottom-[-5px]`) — floats ~5px below the trigger
+                             for breathing room from the text descender.
+                        Stays with TABS (not segmented control) because the 4
+                        panels are different sections of the SAME deadline
+                        (Summary / Materials / Extension / Evidence), not
+                        filters or scopes. Segmented control belongs to the
+                        /deadlines top-level scope tabs where each option
                         re-filters the queue. */}
                     {visibleTabs.has('summary') ? (
-                      // 2026-05-26 (Yuqi seventieth pass #5): dropped
-                      // the leading Info icon. The "Summary" word is
-                      // self-explanatory; an info-glyph next to it
-                      // implied "click here for info ABOUT the
-                      // summary" rather than "this is the summary
-                      // tab." Other tabs (Materials, Extension,
-                      // Evidence) keep their icons because they
-                      // distinguish by purpose (paperclip /
-                      // calendar / file).
+                      // No leading icon on Summary — the word is
+                      // self-explanatory, and an info-glyph would imply "click
+                      // here for info ABOUT the summary" rather than "this is
+                      // the summary tab." Other tabs (Materials, Extension,
+                      // Evidence) keep their icons because they distinguish by
+                      // purpose (paperclip / calendar / file).
                       <TabsTrigger
                         value="summary"
                         className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
@@ -7856,13 +7457,11 @@ export function ObligationQueueDetailDrawer({
                         {outstandingMaterials > 0 ? (
                           <span
                             aria-label={t`${outstandingMaterials} outstanding`}
-                            // 2026-05-26 (Yuqi feedback #3): badge subtler.
-                            // Was solid destructive red with white text —
-                            // that loudness made every Materials tab with
-                            // outstanding items shout "danger." Now: light
-                            // accent tint (state-accent-hover-alt) with
-                            // accent-tinted text. Communicates "13 items
-                            // here" without alarm chrome.
+                            // Light accent tint (state-accent-hover-alt) with
+                            // accent-tinted text, not solid destructive red —
+                            // it communicates "13 items here" without making
+                            // every Materials tab with outstanding items shout
+                            // "danger."
                             className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-accent-hover-alt px-1 text-caption-xs font-medium leading-none tabular-nums text-text-accent"
                           >
                             {outstandingMaterials}
@@ -7894,8 +7493,8 @@ export function ObligationQueueDetailDrawer({
                         ) : null}
                       </TabsTrigger>
                     ) : null}
-                    {/* Risk tab removed 2026-05-21 — risk inputs live on the
-                        client detail page (ClientRiskInputsPanel) rather than
+                    {/* Risk tab removed — risk inputs live on the client
+                        detail page (ClientRiskInputsPanel) rather than
                         per-obligation. Surface kept on the schema for
                         back-compat with deep-links; the trigger and content
                         are unmounted. */}
@@ -7925,17 +7524,15 @@ export function ObligationQueueDetailDrawer({
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
               >
-                {/* Summary tab — milestone chevron + active-stage zoom.
-                  These were previously pinned in the sticky snapshot
-                  block (always-visible across every tab). Yuqi #30
-                  moved them into a dedicated tab so:
-                    - The drawer chrome is tighter (just the deadline
-                      strip stays sticky).
-                    - The milestone story has a labeled home that
-                      shares URL state with the rest of the surface
-                      (?tab=summary is shareable).
-                    - Materials / Extension / Evidence don't get the
-                      stage card pushing them below the fold. */}
+                {/* Summary tab — milestone chevron + active-stage zoom. These
+                  live in a dedicated tab (not pinned in the sticky snapshot
+                  block) so:
+                    - The drawer chrome is tighter (just the deadline strip
+                      stays sticky).
+                    - The milestone story has a labeled home that shares URL
+                      state (?tab=summary is shareable).
+                    - Materials / Extension / Evidence don't get the stage card
+                      pushing them below the fold. */}
                 <div className="grid gap-3">
                   <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
                   <AuthorityResponsePanel
@@ -8034,12 +7631,9 @@ export function ObligationQueueDetailDrawer({
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
               >
-                {/* 2026-05-26 (Yuqi sixty-sixth pass — Materials
-                    structural tighten, #13 "scattered"): outer gap
-                    bumped from gap-3 → gap-4 so each top-level
-                    block (overview, checklist, sent panel, tax
-                    year settings) reads as its own clear section
-                    instead of one long stack. Cross-tab default. */}
+                {/* Outer gap-4 so each top-level block (overview, checklist,
+                    sent panel, tax year settings) reads as its own clear
+                    section instead of one long stack. Cross-tab default. */}
                 <div className="grid gap-4">
                   {/* Top-of-tab summary — explains what readiness IS
                         + shows the at-a-glance state (PRD §3.2 says the
@@ -8089,39 +7683,27 @@ export function ObligationQueueDetailDrawer({
                       </div>
                     </div>
                   ) : null}
-                  {/* K-1 / parent-obligation blocker editor removed
-                    2026-05-21 — it surfaced as a full picker on every
-                    drawer open, even when not blocked. The queue row's
-                    <BlockedByChip> still shows when a blocker is set,
-                    so the signal isn't lost. A better re-home (header
-                    chip + on-demand picker, or auto-detected from
-                    related-entity rows) is parked for a later pass —
-                    see docs/Design/obligation-drawer-ux-audit-2026-05-21.md. */}
-                  {/* Action hierarchy — 2026-05-21 redesign:
+                  {/* K-1 / parent-obligation blocker editor removed — it
+                    surfaced as a full picker on every drawer open, even when
+                    not blocked. The queue row's <BlockedByChip> still shows
+                    when a blocker is set, so the signal isn't lost. A better
+                    re-home (header chip + on-demand picker, or auto-detected
+                    from related-entity rows) is parked for a later pass. */}
+                  {/* Action hierarchy:
                     - Empty checklist → single primary "Generate document
                       list" CTA. The other two buttons (Add item, Send to
                       client) are useless here, so they're hidden.
-                    - Populated checklist → "Send to client" is the
-                      primary CTA on its own line; "Add item" demoted
-                      to a quiet text+icon button next to the heading.
-                    The old version stacked all three buttons at equal
-                    weight regardless of state, so the actual workflow
-                    goal (send the request) had to fight Generate +
-                    Add item for the user's eye. */}
-                  {/* 2026-05-26 (Yuqi fifty-eighth pass — section title
-                    semantics): label was "Documents received" + count
-                    of `checklist.length` (TOTAL items). Yuqi flagged
-                    "Documents Received and Outstanding - what is the
-                    relationship? I don't understand" because the same
-                    "13" appeared in BOTH the header ("Documents
-                    received 13 items") AND the Outstanding subsection
-                    below ("Outstanding 13") — a contradiction (you
-                    can't have 13 received AND 13 outstanding when
-                    there's only 13 total).
-                    Fix: rename to "Materials checklist" — it's the
-                    SECTION TITLE for the checklist as a whole. The
-                    Outstanding/Received subsections inside (added
-                    in the forty-ninth pass) carry the actual
+                    - Populated checklist → "Send to client" is the primary CTA
+                      on its own line; "Add item" demoted to a quiet text+icon
+                      button next to the heading.
+                    Avoids stacking all three buttons at equal weight, where
+                    the actual workflow goal (send the request) would fight
+                    Generate + Add item for the user's eye. */}
+                  {/* Section title is "Materials checklist" (the title for the
+                    checklist as a whole) — NOT "Documents received" with a
+                    TOTAL-items count, which collided with the Outstanding
+                    subsection's count below and read as a contradiction. The
+                    Outstanding/Received subsections inside carry the actual
                     received-vs-outstanding split + their own counts.
                     Hierarchy now reads:
                       Materials checklist (13 total)
@@ -8282,15 +7864,12 @@ export function ObligationQueueDetailDrawer({
                       )
                     ) : (
                       <>
-                        {/* 2026-05-26 (Step 9 AI Visibility Audit F-020):
-                        when the auto-generated checklist came back
-                        with `degraded: true` the toast disappears in
-                        4 seconds but the user keeps using the
-                        fallback list. Surface the degraded state as
-                        an inline banner that stays as long as the
-                        fallback list is on screen — the AI's "I'm
-                        not sure" signal needs to be persistent,
-                        not transient. */}
+                        {/* When the auto-generated checklist comes back with
+                        `degraded: true`, surface it as an inline banner that
+                        stays as long as the fallback list is on screen — the
+                        AI's "I'm not sure" signal needs to be persistent, not
+                        a transient toast the user blows past while using the
+                        fallback list. */}
                         {checklistDegraded ? (
                           <div className="flex items-start gap-2 rounded-lg border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
                             <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
@@ -8302,22 +7881,15 @@ export function ObligationQueueDetailDrawer({
                             </span>
                           </div>
                         ) : null}
-                        {/* 2026-05-26 (Yuqi fifty-second pass — Materials
-                        Outstanding/Received split from
-                        design/deadlines-drawer-rework): checklist now
-                        renders as two labeled sections — Outstanding
-                        first (the work the CPA still owes the client),
-                        Received second (acknowledgement that the work
-                        is done). Empty "Outstanding" collapses to a
-                        quiet "All items received" line; empty
-                        "Received" hides the section entirely so the
-                        early-state checklist reads cleanly as one
-                        list. Section headings use the canonical
-                        body-section pattern (text-sm font-semibold).
-                        ChecklistItemRow handles its own
-                        received-style chrome based on item.status —
-                        the split is purely organizational, no new
-                        renderer needed. */}
+                        {/* Checklist renders as two labeled sections —
+                        Outstanding first (the work the CPA still owes the
+                        client), Received second (acknowledgement the work is
+                        done). Empty "Outstanding" collapses to a quiet "All
+                        items received" line; empty "Received" hides the
+                        section entirely so the early-state checklist reads
+                        cleanly as one list. ChecklistItemRow handles its own
+                        received-style chrome based on item.status — the split
+                        is purely organizational, no new renderer needed. */}
                         {(() => {
                           const outstandingItems = checklist.filter((i) => i.status !== 'received')
                           const receivedItems = checklist.filter((i) => i.status === 'received')
@@ -8357,40 +7929,29 @@ export function ObligationQueueDetailDrawer({
                               />
                             )
                           }
-                          // 2026-05-26 (Yuqi sixtieth pass — terminal-state
-                          // Materials framing): when the row is filed /
-                          // completed the checklist becomes an ARCHIVE,
-                          // not a to-do list. "Outstanding 13" on a
-                          // Filed row read as "13 items still to do"
-                          // when the work is closed — the items just
-                          // weren't ticked in the audit trail.
-                          // Terminal headings:
-                          //   • "Outstanding" → "Not in audit trail" —
-                          //     same items, but framed as "missing from
-                          //     the archive" not "still to be done."
-                          //   • "Received" → "Archived" — same items,
-                          //     historical record framing.
+                          // When the row is filed / completed the checklist is
+                          // an ARCHIVE, not a to-do list — "Outstanding 13" on
+                          // a Filed row would read as "13 items still to do"
+                          // when the work is closed (the items just weren't
+                          // ticked in the audit trail). Terminal headings:
+                          //   • "Outstanding" → "Not in audit trail" — same
+                          //     items, framed as "missing from the archive"
+                          //     not "still to be done."
+                          //   • "Received" → "Archived" — historical record
+                          //     framing.
                           const isTerminalRow = row.status === 'done' || row.status === 'completed'
                           return (
                             <div className="flex flex-col gap-4">
-                              {/* 2026-05-26 (Yuqi feedback #5): dropped the
-                              "This deadline has been filed" banner. The
-                              header status pill + the section title
-                              ("Not in audit trail" / "Archived") +
-                              ReadinessOverview's italic subline already
-                              tell the historical-record story 3x over;
-                              this green banner was a 4th. Removed. */}
-                              {/* 2026-05-26 (Yuqi seventieth pass #6,
-                                #9): Outstanding / Received are now
-                                small kicker sub-headers (text-
-                                caption-xs uppercase tracking-wider
-                                text-text-tertiary) — Yuqi's "needs
-                                review from Rule Library's table"
-                                reference. The Materials checklist
-                                h3 above is the section title; these
-                                are sub-section labels under it.
-                                Inner gap tightened from `gap-2 →
-                                gap-1.5` per #9. */}
+                              {/* No "This deadline has been filed" banner —
+                              the header status pill + the section title ("Not
+                              in audit trail" / "Archived") + ReadinessOverview's
+                              italic subline already tell the historical-record
+                              story; a banner would be a fourth telling. */}
+                              {/* Outstanding / Received are small kicker
+                                sub-headers (text-caption-xs uppercase
+                                tracking-wider text-text-tertiary). The
+                                Materials checklist h3 above is the section
+                                title; these are sub-section labels under it. */}
                               <section className="flex flex-col gap-1.5">
                                 <header className="flex items-baseline gap-1.5">
                                   <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
@@ -8574,14 +8135,13 @@ export function ObligationQueueDetailDrawer({
                       </div>
                     </section>
                   ) : null}
-                  {/* Tax year profile — relocated 2026-05-21 from the
-                    top of the tab (where it dominated daily-driver
-                    workflow) to a settings-style footer behind a
-                    disclosure. Auto-opens when the profile is
-                    incomplete (fiscal year selected without an end
-                    date), so a CPA who needs to fix it sees it
-                    surface naturally. Otherwise it stays collapsed —
-                    one-time setup that rarely needs revisiting. */}
+                  {/* Tax year profile lives in a settings-style footer behind
+                    a disclosure (not at the top of the tab, where it would
+                    dominate the daily-driver workflow). Auto-opens when the
+                    profile is incomplete (fiscal year selected without an end
+                    date), so a CPA who needs to fix it sees it surface
+                    naturally. Otherwise it stays collapsed — one-time setup
+                    that rarely needs revisiting. */}
                   {taxYearProfileEditable ? (
                     <details
                       className="mt-2 rounded-lg border border-divider-subtle"
@@ -8600,11 +8160,9 @@ export function ObligationQueueDetailDrawer({
                       </summary>
                       <div className="grid gap-2 border-t border-divider-subtle px-3 py-3">
                         <div className="grid gap-2 sm:grid-cols-[180px_1fr_auto]">
-                          {/* 2026-05-26 (Yuqi sixty-ninth pass #4):
-                              Tax year type binary toggle converted
-                              from Base UI Select → DropdownMenu so
-                              the interaction matches every other
-                              dropdown in the drawer (Sort-by /
+                          {/* Tax year type binary toggle uses a DropdownMenu
+                              (not a Base UI Select) so the interaction matches
+                              every other dropdown in the drawer (Sort-by /
                               Columns / export client picker). */}
                           <DropdownMenu>
                             <DropdownMenuTrigger
@@ -8685,12 +8243,6 @@ export function ObligationQueueDetailDrawer({
                             }
                             aria-busy={updateTaxYearProfileMutation.isPending || undefined}
                           >
-                            {/* 2026-05-27 (σ cross-route audit D10):
-                                Save in tax-year-profile drawer drifted
-                                from the cross-app mutation-button
-                                pattern — relabel only, no Loader2 + no
-                                aria-busy. Step 6 cont X2 canon: spinner
-                                + busy state + label-change together. */}
                             {updateTaxYearProfileMutation.isPending ? (
                               <Loader2 className="size-4 animate-spin" aria-hidden />
                             ) : null}
@@ -8733,16 +8285,10 @@ export function ObligationQueueDetailDrawer({
                       still be due by the original date.
                     </Trans>
                   </AlertPanel>
-                  {/* 2026-05-26 (Yuqi sixty-sixth pass — cross-tab
-                      visual unity): the "Example" panel previously
-                      wore a bordered card chrome
-                      (`rounded-lg border border-divider-regular`)
-                      that didn't appear anywhere else in the drawer.
-                      Summary uses self-framed components; Materials
-                      uses flat sections with `<h3>` headers. Now
-                      Extension also reads as a flat section — header
-                      + content, no extra card frame around the rule
-                      facts. */}
+                  {/* Extension reads as a flat section — header + content, no
+                      extra card frame around the rule facts — to match the
+                      rest of the drawer (Summary uses self-framed components,
+                      Materials uses flat sections with `<h3>` headers). */}
                   <section className="flex flex-col gap-2">
                     <header className="flex items-baseline gap-2">
                       <h3 className="text-sm font-semibold text-text-primary">
@@ -8871,27 +8417,19 @@ export function ObligationQueueDetailDrawer({
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
               >
-                {/* Evidence tab split into two visually-distinct sections
-                  (2026-05-21):
-                    - WORKPAPERS (top, default open): client-attached
-                      files and submissions. This is the daily-driver
-                      question — "what do we have on hand?"
+                {/* Evidence tab split into two visually-distinct sections:
+                    - WORKPAPERS (top, default open): client-attached files
+                      and submissions. This is the daily-driver question —
+                      "what do we have on hand?"
                     - AUTHORITY (bottom, collapsed): the deadline's
                       source-of-truth chain (matched rule + IRS / state
-                      citations). Used during audit defense, not day-
-                      to-day. Folded behind <details> so it doesn't
-                      compete with workpapers for the user's eye.
-                  Previously both were under one "Evidence" heading,
-                  which forced users to scroll past authority citations
-                  to find the workpapers they actually wanted. */}
+                      citations). Used during audit defense, not day-to-day.
+                      Folded behind <details> so it doesn't compete with
+                      workpapers for the user's eye. */}
                 <div className="grid gap-4">
-                  {/* 2026-05-26 (Yuqi sixty-sixth pass — cross-tab
-                      section heading unify): workpapers heading was
-                      `text-xs uppercase tracking-wider text-text-
-                      tertiary` (kicker style); every other tab uses
-                      `text-sm font-semibold text-text-primary` for
-                      section labels. Aligned so all 4 tabs share
-                      one heading vocabulary. */}
+                  {/* Workpapers heading uses `text-sm font-semibold
+                      text-text-primary` (not a kicker style) so all 4 tabs
+                      share one section-heading vocabulary. */}
                   <section
                     aria-labelledby="evidence-workpapers-heading"
                     className="flex flex-col gap-2"
@@ -8950,16 +8488,14 @@ export function ObligationQueueDetailDrawer({
                         <Trans>Authority citation</Trans>
                       </span>
                       {detail.matchedRule ? (
-                        // 2026-05-25 (Yuqi Deadlines #13): rule-id chip
-                        // is now a real Link into /rules/library — Yuqi
-                        // asked "这个能点出去吗？". Clicking the chip
-                        // opens the library scoped to this rule via the
-                        // `?rule=` query param (the library page treats
-                        // unknown params gracefully when not yet
-                        // implemented; even then the user lands in the
-                        // right vicinity). stopPropagation on click so
-                        // the surrounding <summary> doesn't toggle the
-                        // <details> open/closed at the same time.
+                        // Rule-id chip is a real Link into /rules/library:
+                        // clicking it opens the library scoped to this rule
+                        // via the `?rule=` query param (the library page
+                        // treats unknown params gracefully when not yet
+                        // implemented; even then the user lands in the right
+                        // vicinity). stopPropagation on click so the
+                        // surrounding <summary> doesn't toggle the <details>
+                        // open/closed at the same time.
                         <Badge
                           variant="outline"
                           className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover"
@@ -9038,13 +8574,11 @@ export function ObligationQueueDetailDrawer({
             </TabsContent>
           </Tabs>
         )}
-        {/* 2026-05-23: dates panel relocated here from the sticky
-            snapshot block above. The CPA scans reference dates AFTER
-            acting on the active surface (stage card + tabs), so they
-            land naturally at the bottom of the drawer body just above
-            the sticky footer. Small uppercase eyebrow gives it gentle
-            visual separation from the tab content above without
-            needing a full divider. */}
+        {/* Reference dates panel sits at the bottom of the drawer body, just
+            above the sticky footer — the CPA scans reference dates AFTER
+            acting on the active surface (stage card + tabs). A small uppercase
+            eyebrow gives it gentle separation from the tab content above
+            without needing a full divider. */}
         {row ? (
           <div className="mt-4 flex flex-col gap-2">
             <p className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
@@ -9131,21 +8665,15 @@ export function ObligationQueueDetailDrawer({
         }}
       />
       {row ? (
-        /* 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-           footer chrome reinstated to match the alert drawer's
-           sticky action bar (AlertDetailDrawer.tsx L955):
-             • `border-t-2 border-divider-regular` — committed
-               decision surface separator (vs. relying on body's
-               pb-24 alone, which read inconsistent between
-               drawers).
-             • `px-12` — match header/body left margin.
-           The pt-4 pb-6 vertical rhythm and `min-h-16` stay —
-           those already mirror the alert drawer. */
+        /* Footer chrome matches the alert drawer's sticky action bar:
+             • `border-t-2 border-divider-regular` — committed decision
+               surface separator (relying on the body's pb-24 alone read
+               inconsistent between drawers).
+             • `px-12` — match header/body left margin. */
         <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t-2 border-divider-regular bg-background-default px-12 pt-4 pb-6">
-          {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
-              vertically — label on line 1, timestamp on line 2.
-              Single-line layout was getting cramped at narrower
-              panel widths with the action cluster on the right. */}
+          {/* "Last updated" stacks vertically — label on line 1, timestamp
+              on line 2 — because a single line gets cramped at narrower panel
+              widths with the action cluster on the right. */}
           <span className="flex flex-col text-xs leading-tight text-text-tertiary">
             <span>
               <Trans>Last updated</Trans>
@@ -9213,30 +8741,20 @@ export function ObligationQueueDetailDrawer({
     return (
       <aside
         aria-label={titleText ?? t`Deadline detail`}
-        // 2026-05-26 (Yuqi forty-eighth pass — drawer canonical
-        // applied to obligation panel): chrome migrated to match
-        // AlertDetailDrawer's panel-mode aside exactly. Both
-        // drawers in the product now read as the same surface
-        // treatment from a CPA's perspective.
-        //   • `rounded-lg border` → `border-l` only — the panel
-        //     is a sibling COLUMN, not a floating card; the left
-        //     edge alone marks the boundary against the
-        //     table/list area. No corner radius lets it run
-        //     edge-to-edge of the viewport's vertical space.
-        //   • `bg-background-subtle` → `bg-background-default`
-        //     (white) — the panel reads as paper-on-the-desk per
+        // Chrome matches AlertDetailDrawer's panel-mode aside so both drawers
+        // read as the same surface treatment:
+        //   • `border-l` only — the panel is a sibling COLUMN, not a floating
+        //     card; the left edge alone marks the boundary against the
+        //     table/list area, and no corner radius lets it run edge-to-edge.
+        //   • `bg-background-default` (white) — reads as paper-on-the-desk per
         //     the inset-surface system, not as a darker tile.
-        //   • Added `relative min-h-0 overflow-hidden` so the
-        //     sticky header/footer don't bleed and the body's
-        //     own scroll surface establishes correctly.
-        //   • Added `shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]`
-        //     — soft left-edge shadow, gestural "paper lifted off
-        //     the desk" per the canonical.
-        // Inner snapshot is still pinned via sticky positioning
-        // (2026-05-21): the aside itself stops scrolling; only
-        // the tabs-content area scrolls underneath, so a user 30
-        // docs deep in the Readiness checklist still sees what
-        // row they're on.
+        //   • `relative min-h-0 overflow-hidden` so the sticky header/footer
+        //     don't bleed and the body's own scroll surface establishes.
+        //   • soft left-edge shadow — gestural "paper lifted off the desk".
+        // The inner snapshot stays pinned via sticky positioning: the aside
+        // itself stops scrolling, only the tabs-content area scrolls
+        // underneath, so a user 30 docs deep in the Readiness checklist still
+        // sees what row they're on.
         className="relative flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-subtle"
       >
         {drawerBody}
@@ -9285,9 +8803,8 @@ function DeadlineInputRequestDialog({
   const { t } = useLingui()
   const selectedRecipient =
     recipients.find((recipient) => recipient.assigneeId === selectedRecipientUserId) ?? null
-  // 2026-05-26 (step-6 ux-flow audit Q6.3): keep role-specific
-  // labels — collapsing manager/preparer/coordinator to "Team
-  // member" hid information the rest of the app exposes.
+  // Keep role-specific labels — collapsing manager/preparer/coordinator to
+  // "Team member" would hide information the rest of the app exposes.
   const roleLabels = {
     owner: t`Owner`,
     partner: t`Partner`,
@@ -9312,12 +8829,11 @@ function DeadlineInputRequestDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 px-6 py-5">
-          {/* 2026-05-26 (step-6 ux-flow audit Q6.1): the recipient label
-              is exposed via id so DropdownTriggerButton's aria-labelledby
-              still binds it for SR users.
-              2026-06-01: rows now ride Field + FieldLabel; the seat-warning
-              "Add an active owner…" uses FieldDescription tone="warning"
-              instead of a hand-rolled <p role=alert>. */}
+          {/* The recipient label is exposed via id so DropdownTriggerButton's
+              aria-labelledby binds it for SR users. Rows ride Field +
+              FieldLabel; the seat-warning "Add an active owner…" uses
+              FieldDescription tone="warning" instead of a hand-rolled
+              <p role=alert>. */}
           <Field>
             <FieldLabel id="deadline-input-request-recipient-label">
               <Trans>Recipient</Trans>
@@ -9454,10 +8970,10 @@ function AuthorityRejectionDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid min-h-0 gap-4 overflow-y-auto px-6 py-5">
-          {/* 2026-06-01: 4 fields migrated to Field + FieldLabel. Reason's
-              char counter rides FieldLabel as a trailing span — FieldLabel
-              already gap-2's children so no extra flex row needed; the
-              w-full + justify-between recipe keeps counter right-aligned. */}
+          {/* Reason's char counter rides FieldLabel as a trailing span —
+              FieldLabel already gap-2's children so no extra flex row is
+              needed; the w-full + justify-between recipe keeps the counter
+              right-aligned. */}
           <div className="grid gap-4 md:grid-cols-2">
             <Field>
               <FieldLabel htmlFor="authority-rejected-date">
@@ -9770,17 +9286,11 @@ function EmptyPanel({ children, className }: { children: ReactNode; className?: 
   )
 }
 
-// 2026-05-27 (Step 9 merge cleanup): the orphaned `_DeadlineTipPanel`
-// + `InsightStatusBadge` + `InsightCitationChips` cluster was retained
-// when the Risk tab was removed, surviving as `_`-prefixed dead code.
-// Step 9's AI-visibility audit explicitly flagged this as "fully wired
-// in the data layer but its React component is orphaned." The cluster
-// referenced symbols (`AiInsightPublic`, `FileSearchIcon`,
-// `UpgradeCtaButton`) that no longer exist in this file's import
-// graph, so the merge would not compile with them in place. If we
-// want to revive deadline-tip insights, restore from
-// `feat/step-9-ai-visibility-audit` and reintroduce the required
-// imports + a real mount point.
+// The `_DeadlineTipPanel` + `InsightStatusBadge` + `InsightCitationChips`
+// cluster was removed when the Risk tab went away. To revive deadline-tip
+// insights, restore from `feat/step-9-ai-visibility-audit` and reintroduce
+// the required imports (`AiInsightPublic`, `FileSearchIcon`,
+// `UpgradeCtaButton`) + a real mount point.
 function AlertPanel({ children }: { children: ReactNode }) {
   return (
     <div className="flex gap-2 rounded-lg border border-state-warning-hover-alt bg-state-warning-hover p-3 text-sm text-text-primary">
@@ -10138,9 +9648,8 @@ function ReadinessResponseStatusBadge({
   )
 }
 
-// `ObligationQueueAuditEventCard` retired 2026-05-21 with the
-// Audit/Timeline tab removal. Bring back when raw audit events
-// surface somewhere again.
+// `ObligationQueueAuditEventCard` retired with the Audit/Timeline tab
+// removal. Bring back when raw audit events surface somewhere again.
 
 function AuditSummaryRows({ rows }: { rows: AuditSummaryRow[] }) {
   if (rows.length === 0) return null
@@ -10165,9 +9674,9 @@ function DetailRow({ label, value }: { label: ReactNode; value: ReactNode }) {
   )
 }
 
-// `ObligationForwardingPanel` + `obligationForwardingAddress`
-// retired 2026-05-21 with the inbound-routing Phase-2 stub. Restore
-// when the email-thread-to-task pipeline actually ships.
+// `ObligationForwardingPanel` + `obligationForwardingAddress` retired with
+// the inbound-routing Phase-2 stub. Restore when the email-thread-to-task
+// pipeline ships.
 
 // Top-of-Readiness-tab overview. Answers in one read:
 //   1. IS THIS FILING READY? (binary headline — "Ready to prep" or
@@ -10198,15 +9707,12 @@ function ReadinessOverview({
   const responseCount = latestRequest?.responses.length ?? 0
   const readyResponseCount =
     latestRequest?.responses.filter((r) => r.status === 'ready').length ?? 0
-  // 2026-05-23: per-state copy reframe. The earlier "Ready to prep" /
-  // "Not ready" headlines worked in the Waiting case but read awkwardly
-  // in Blocked / In review (where readiness is a watch-list signal) and
-  // wrong in Filed / Completed (where the question is closed and the
-  // tab is an audit trail). The headline + subline now branch on the
-  // lifecycle STAGE first, then on the readiness enum within that
-  // stage — so the copy matches what the CPA is actually doing at
-  // each phase of the row's life. See the docs/dev-log entry for the
-  // full matrix.
+  // The headline + subline branch on the lifecycle STAGE first, then on the
+  // readiness enum within that stage — so the copy matches what the CPA is
+  // actually doing at each phase. A flat "Ready to prep" / "Not ready" reads
+  // awkwardly in Blocked / In review (where readiness is a watch-list signal)
+  // and wrong in Filed / Completed (where the question is closed and the tab
+  // is an audit trail). See the docs/dev-log entry for the full matrix.
   const { headline, subline }: { headline: string; subline: string } = (() => {
     // 1. Filed / Completed — historical record, audit trail mode.
     if (isTerminal) {
@@ -10216,12 +9722,9 @@ function ReadinessOverview({
           subline: t`No document checklist was attached to this filing.`,
         }
       }
-      // 2026-05-26 (Yuqi sixty-first pass — better terminal copy):
-      // "Audit trail captured 0 of 13 items as received" on a filed
-      // row read as either (a) we filed without any receipts (alarming)
-      // or (b) the audit trail is broken (also alarming). Reframe by
-      // ratio: complete archive vs partial vs untracked, with copy
-      // that matches each case honestly.
+      // Terminal copy branches by ratio (complete archive vs partial vs
+      // untracked) so a filed row with 0 received items doesn't read as
+      // "we filed without any receipts" or "the audit trail is broken."
       if (receivedCount === 0) {
         return {
           headline: t`Filed`,
@@ -10343,10 +9846,8 @@ function ReadinessOverview({
   // Terminal-state subline now renders as a description under the
   // "Materials checklist" heading instead of above it.
   if (isTerminal) return null
-  // 2026-05-23: tightened spacing per critique. Outer `py-2` dropped
-  // (parent grid already supplies vertical rhythm), icon shrunk
-  // size-6 → size-5, gap-3 → gap-2, removed the icon's mt-1 nudge.
-  // Headline is the only thing carrying section weight here; the
+  // Tight spacing (no outer py-2, the parent grid supplies vertical rhythm)
+  // because the headline is the only thing carrying section weight here — the
   // overview shouldn't take a third of the drawer's first screen.
   return (
     <div className="flex items-start gap-2">
@@ -10411,38 +9912,30 @@ function formatTaxPeriod(start: string | null | undefined, end: string | null | 
   return `${formatDate(startIso)} – ${formatDate(endIso)}`
 }
 
-// PrimaryDeadlineStrip — three-column row at the top of the snapshot
-// (2026-05-23). The three dates the CPA reaches for first — Internal,
-// Filing, Payment — promoted out of the bottom dates panel so they're
-// answer-at-a-glance instead of buried under "Reference dates". Each
-// column shows: small uppercase label / date in tabular-num / a small
-// state tag (MISSED in red when the date is in the past, otherwise
-// blank to keep the row quiet). Internal due is the primary CPA-
-// internal deadline; Filing is the statutory; Payment is the
-// authority-payment due.
+// PrimaryDeadlineStrip — the three dates the CPA reaches for first —
+// Internal, Filing, Payment — at the top of the snapshot so they're
+// answer-at-a-glance instead of buried under "Reference dates". Each column
+// shows: small uppercase label / date in tabular-num / a small state tag
+// (MISSED in red when the date is past, otherwise blank to keep the row
+// quiet). Internal due is the primary CPA-internal deadline; Filing is the
+// statutory; Payment is the authority-payment due.
 function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   const { i18n, t } = useLingui()
   const todayIso = todayIsoDate()
-  // 2026-05-26 (Yuqi fiftieth pass — Figma-Make hero from
-  // design/deadlines-drawer-rework): replaced the flat 3-column
-  // strip with a HERO (filing) + 2-column secondary (internal +
-  // payment) layout.
+  // HERO (filing) + 2-column secondary (internal + payment) layout.
   //
-  // Filing deadline is the date the IRS / state actually enforces,
-  // so it gets a full-width dark hero card with the date in text-xl
-  // and a "in N days" / "N days ago" countdown on the right. When
-  // the date is past (daysUntilDue < 0 on a non-terminal row), the
-  // hero flips to a red surface and the countdown becomes a
-  // "Missed" badge.
+  // Filing deadline is the date the IRS / state actually enforces, so it gets
+  // a full-width dark hero card with the date in text-xl and a "in N days" /
+  // "N days ago" countdown on the right. When the date is past
+  // (daysUntilDue < 0 on a non-terminal row), the hero flips to a red surface
+  // and the countdown becomes a "Missed" badge.
   //
-  // Internal target + Payment due are secondary anchors stacked
-  // below the hero in a 2-column grid with quiet bordered cards.
+  // Internal target + Payment due are secondary anchors stacked below the
+  // hero in a 2-column grid with quiet bordered cards.
   //
-  // Direction fix from the rework: Internal = the firm's earlier
-  // internal target — extensionInternalTargetDate when set; falls
-  // back to currentDueDate capped at <= filing so we never render
-  // internal LATER than the statutory anchor (the old shape could
-  // invert these).
+  // Internal = the firm's earlier internal target —
+  // extensionInternalTargetDate when set; falls back to currentDueDate capped
+  // at <= filing so we never render internal LATER than the statutory anchor.
   const filingIso = row.filingDueDate ?? row.baseDueDate
   const paymentIso = row.paymentDueDate ?? null
   const internalCandidate = row.extensionInternalTargetDate ?? row.currentDueDate ?? filingIso
@@ -10458,20 +9951,17 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
     return Math.round(ms / DAY_MS)
   }
   const filingDays = dayDiff(filingIso)
-  // 2026-05-26 (Yuqi sixty-first pass — compact terminal strip):
-  // when the row is filed AND internal + payment dates match the
-  // filing date (the common case for a clean filing), the original
-  // 3-card strip was 100+ px of dates that all said the same thing.
-  // Render a single compact one-liner instead — "Filed on
-  // 2026-03-16 · 70 days ago" — and skip the redundant Internal /
-  // Payment cards. Non-terminal rows + terminal rows with mixed
-  // dates keep the full strip.
-  // 2026-05-27 (phi journey audit J1): suppress the compact-terminal
-  // collapse when the payment is overdue. The compact strip hides the
-  // Payment tile (the dates all "match"), but a Filed-but-payment-
-  // overdue row REALLY DOES have a live signal on the payment leg
-  // that the user needs to see. Fall through to the full 3-tile
-  // strip so the Payment tile can paint destructive.
+  // When the row is filed AND internal + payment dates match the filing date
+  // (the common clean-filing case), render a single compact one-liner — "Filed
+  // on <date> · N days ago" — and skip the redundant Internal / Payment cards,
+  // since the 3-card strip would be 100+px of dates that all say the same
+  // thing. Non-terminal rows + terminal rows with mixed dates keep the full
+  // strip.
+  // Suppress the compact-terminal collapse when the payment is overdue: the
+  // compact strip hides the Payment tile (the dates all "match"), but a
+  // Filed-but-payment-overdue row really does have a live signal on the
+  // payment leg. Fall through to the full 3-tile strip so the Payment tile can
+  // paint destructive.
   const hasOverduePayment =
     paymentIso !== null && paymentIso < todayIso && row.status !== 'completed'
   const allTerminalDatesMatch =
@@ -10481,21 +9971,15 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
     (paymentIso === null || paymentIso === filingIso) &&
     !hasOverduePayment
   if (allTerminalDatesMatch) {
-    // 2026-05-26 (Yuqi feedback #3): dropped the full green chrome
-    // (border-state-success-border + bg-state-success-hover) from the
-    // compact hero. With the header status pill ALSO carrying the
-    // green Filed tone, having the hero strip + the Filed status pill
-    // BOTH paint green was "the green status appears three times."
-    // Hero is now a quiet divider-subtle bordered strip — date data
-    // only, with a small green ✓ icon as the state cue. The header
-    // pill is the single green-tone anchor.
+    // No green chrome on the compact hero — the header status pill is the
+    // single green-tone Filed anchor, so painting the hero strip green too
+    // would make the green status appear multiple times. The hero is a quiet
+    // strip with date data only and a small green ✓ icon as the state cue.
     return (
       <div
         aria-label={t`Filed on ${formatDate(filingIso)}`}
-        // 2026-05-26 (Yuqi feedback #13): dropped the rounded-lg
-        // border + bg. The compact hero is just info — date and
-        // relative time, no surface needed. Now an inline row of
-        // text with a leading green check, no frame.
+        // No frame on the compact hero — it's just info (date + relative
+        // time), an inline row of text with a leading green check.
         className="flex flex-wrap items-center justify-between gap-3 py-1"
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
@@ -10519,32 +10003,21 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
       </div>
     )
   }
-  // 2026-05-26 (Yuqi seventieth pass — deadline strip unified 3-col):
-  // dropped the HERO + 2-col secondary split (items #2, #3, #4, #14).
-  // The hero card was painting too much red on missed rows AND was
-  // visually disconnected from the two sub-tiles below it. Now ALL
-  // three deadlines share a single grid-cols-3 row with the same
-  // tile shape — Filing always FIRST so it reads as the primary
-  // anchor, then Internal, then Payment. The tile tone ladder
-  // carries urgency:
-  //   • Filing on a missed row → bordered red tone (destructive
-  //     border + tinted bg + red value). No hero-style filled
-  //     background.
+  // All three deadlines share a single grid-cols-3 row with the same tile
+  // shape — Filing always FIRST so it reads as the primary anchor, then
+  // Internal, then Payment. The tile tone ladder carries urgency:
+  //   • Filing on a missed row → bordered red tone (destructive border +
+  //     tinted bg + red value).
   //   • Filing on terminal → success tone.
   //   • Other tiles → neutral white with a small red value when the
   //     individual date is past.
-  // Date text reduced from `text-2xl` (hero) to `text-base` (item
-  // #2: too big). The "MISSED" word doesn't repeat as a separate
-  // badge inside the tile — the header pill carries that text
-  // (answers item #4 "what's the relationship"). The tile's tone
-  // (red border + tint) is the visual cue.
-  // 2026-05-27 (Yuqi screenshot — pill tone with payment-overdue rows):
-  // `'done'` (UI label "Filed") means the filing event has been
-  // satisfied but the payment may still be outstanding. The prior
-  // tone math painted the FILING tile red whenever the filing date
-  // was past AND the row wasn't terminal — but a `'done'` row IS
-  // satisfied on its filing milestone; the red signal belongs on
-  // payment-due. Split the "satisfied" check by milestone.
+  // The "MISSED" word doesn't repeat as a separate badge inside the tile —
+  // the header pill carries that text, and the tile's tone (red border +
+  // tint) is the visual cue.
+  // `'done'` (UI label "Filed") means the filing event is satisfied but the
+  // payment may still be outstanding, so the "satisfied" check is split by
+  // milestone — the FILING tile shouldn't paint red on a `'done'` row even
+  // though its filing date is past; the red signal belongs on payment-due.
   const filingSatisfied = isTerminal || row.status === 'done' || row.status === 'paid'
   const filingPast = filingIso !== null && filingIso < todayIso && !filingSatisfied
   // Internal target overdueness is moot once the filing is satisfied —
@@ -10554,14 +10027,12 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   // from showing a red "INTERNAL TARGET N DAYS OVERDUE" chip beside a
   // green "Filed" status pill — the conflict the audit (L10) flagged.
   const internalPast = internalIso !== null && internalIso < todayIso && !filingSatisfied
-  // 2026-05-27 (root-bug + phi J1 merge): payment-overdue isn't gated
-  // by `isTerminal` / filing-satisfied. A row that's been Filed
-  // (status='done') but whose payment date has slipped should STILL
-  // paint the Payment tile destructive — penalty interest accrues
-  // until the wire clears. Matches the canonical payment-terminal
-  // set: only `completed` and `not_applicable` suppress red on the
-  // payment tile. `'paid'` is legacy: technically means payment
-  // cleared, so don't repaint as overdue.
+  // Payment-overdue isn't gated by `isTerminal` / filing-satisfied. A row
+  // that's been Filed (status='done') but whose payment date has slipped
+  // should STILL paint the Payment tile destructive — penalty interest
+  // accrues until the wire clears. Only `completed` and `not_applicable`
+  // suppress red on the payment tile; `'paid'` is legacy and means payment
+  // cleared, so don't repaint it as overdue.
   const paymentPast =
     paymentIso !== null &&
     paymentIso < todayIso &&
@@ -10611,11 +10082,10 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   )
 }
 
-// 2026-05-26 (Yuqi seventieth pass): canonical tile for the unified
-// 3-column deadline strip. `tone` paints the surface (neutral white,
-// success-tinted, destructive-tinted); `valueTone` colors the date
-// itself (independent of surface so a non-terminal "internal target
-// past" row can show a red value on a neutral surface).
+// Canonical tile for the unified 3-column deadline strip. `tone` paints the
+// surface (neutral white, success-tinted, destructive-tinted); `valueTone`
+// colors the date itself (independent of surface so a non-terminal "internal
+// target past" row can show a red value on a neutral surface).
 function DeadlineTile({
   label,
   date,
@@ -10631,14 +10101,12 @@ function DeadlineTile({
   primary?: boolean
   lateLabel?: string
 }) {
-  // 2026-05-26 (Yuqi drawer feedback — "too much red on the right
-  // panel"): destructive tile drops the filled red bg in favour of a
-  // hairline red border + neutral surface. The header pill ("18 days
-  // overdue"), the milestone-strip In-review ring, AND the alert
-  // banner already carry the lateness signal; this tile filled all
-  // its real estate with red on top of those, stacking the alarm. A
-  // neutral surface with the date value in red (via `valueTone`) +
-  // the destructive border keeps the cue without flooding.
+  // The destructive tile uses a hairline red border + neutral surface (not a
+  // filled red bg): the header pill ("18 days overdue"), the milestone-strip
+  // In-review ring, AND the alert banner already carry the lateness signal, so
+  // a fully-red tile would stack the alarm. A neutral surface with the date
+  // value in red (via `valueTone`) + the destructive border keeps the cue
+  // without flooding.
   const surfaceClass =
     tone === 'success'
       ? 'border-state-success-border bg-state-success-hover'
@@ -10682,31 +10150,27 @@ function DeadlineTile({
   )
 }
 
-// FlatDateList — secondary dates only (2026-05-23). The three primary
-// dates the CPA reaches for first — Internal, Filing, Payment — now
-// live in the PrimaryDeadlineStrip at the top of the snapshot. This
-// list carries everything else (period + create/touched timestamps +
-// e-file pipeline timestamps) as a quiet reference surface under
-// "Reference dates" at the bottom of the drawer.
+// FlatDateList — secondary dates only. The three primary dates the CPA
+// reaches for first — Internal, Filing, Payment — live in the
+// PrimaryDeadlineStrip at the top of the snapshot. This list carries
+// everything else (period + create/touched timestamps + e-file pipeline
+// timestamps) as a quiet reference surface under "Reference dates" at the
+// bottom of the drawer.
 //
-// 2026-05-25 (Yuqi Deadlines #14): dropped the redundant `Statutory`
-// row. The PrimaryDeadlineStrip's `Filing deadline` resolves to
-// `row.filingDueDate ?? row.baseDueDate` — i.e. the same baseDueDate
-// when no separate filing date exists, which is most rows. Showing it
-// again under "Reference dates" was the duplication Yuqi flagged ("这
-// 个 dates 上面是不是已经显示了"). E-file pipeline timestamps and
-// tax period stay because they're not in the primary strip.
+// No `Statutory` row here — the PrimaryDeadlineStrip's `Filing deadline`
+// resolves to `row.filingDueDate ?? row.baseDueDate` (the same baseDueDate
+// when no separate filing date exists, which is most rows), so repeating it
+// under "Reference dates" would duplicate the strip. E-file pipeline
+// timestamps and tax period stay because they're not in the primary strip.
 function FlatDateList({ row }: { row: ObligationQueueRow }) {
   const { t } = useLingui()
   const dateRows = useMemo(
     () => [
-      // 2026-05-26 (86th pass, audit cross-cutting A): user-facing
-      // reference-date list now renders prose via `formatDatePretty`
-      // (e.g. "May 9, 2026") instead of ISO. The drawer is a panel
-      // the user reads; ISO format here undermines the canonical
-      // "finance-grade calm" feel. Queue row date column keeps
-      // `formatDate` because that's a dense triage table where ISO
-      // alignment + tabular-nums is the better trade.
+      // The reference-date list renders prose via `formatDatePretty` (e.g.
+      // "May 9, 2026") instead of ISO — the drawer is a panel the user reads,
+      // where ISO undermines the "finance-grade calm" feel. The queue row date
+      // column keeps `formatDate` because that's a dense triage table where
+      // ISO alignment + tabular-nums is the better trade.
       ...(row.efileSubmittedAt
         ? [
             {
@@ -10763,33 +10227,29 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
   )
 }
 
-// StatutoryDatesPanel — just the flat date list (2026-05-23). The
-// `YearStripTimeline` that used to sit above the list was dropped
-// per critique ("can remove the timeline for dates first"). It
-// duplicated the PathToFilingSummary at the top of the drawer (also
-// a spatial lifecycle view) and was redundant with the explicit
-// per-row dates here. Two timelines on the same drawer screen
-// competed for attention without adding signal. Component + its
-// `clamp01` helper were removed entirely; git history has them if
-// we ever need to revive the visualization for multi-year cycles.
+// StatutoryDatesPanel — just the flat date list. There's no
+// `YearStripTimeline` above the list: it duplicated the PathToFilingSummary at
+// the top of the drawer (also a spatial lifecycle view) and was redundant with
+// the explicit per-row dates here, so two timelines on the same screen
+// competed for attention without adding signal. The component + its `clamp01`
+// helper were removed entirely; git history has them if we ever need to revive
+// the visualization for multi-year cycles.
 function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
   return <FlatDateList row={row} />
 }
 
 // `stageIndexForStatus` + `mineStageTimestamps` + `STAGE_ANCHOR_STATUSES`
-// retired 2026-05-21. The old 5-step funnel vocabulary (Scope /
-// Collecting / Preparing / Signature / Filed) was replaced by the
-// 6-status lifecycle timeline below — same audit-event mining logic,
-// new shape.
+// retired. The old 5-step funnel vocabulary (Scope / Collecting / Preparing /
+// Signature / Filed) was replaced by the 6-status lifecycle timeline below —
+// same audit-event mining logic, new shape.
 
 // Horizontal milestone timeline — 6 lifecycle stages with circles +
 // connecting lines + labels. Replaces the prior collapsed disclosure
 // (which hid the most useful audit-defense info behind a click).
 //
-// Vocabulary (per 2026-05-21 design call) follows the lifecycle v2
-// status names so the timeline reads the same as the queue's status
-// pills + the header status pill — no parallel "Scope / Collecting"
-// jargon to translate.
+// Vocabulary follows the lifecycle v2 status names so the timeline reads the
+// same as the queue's status pills + the header status pill — no parallel
+// "Scope / Collecting" jargon to translate.
 //
 //   Not started → Waiting → Blocked → In review → Filed → Completed
 //
@@ -10806,13 +10266,9 @@ function PathToFilingSummary({
 }) {
   const { t } = useLingui()
   const stages = useMemo(
-    // 2026-05-27 (Agent X3 milestone audit M-04): "Waiting" → "Waiting
-    // on client" so the strip matches the queue pill + drawer header
-    // pill + readiness overview headline + v2 label hook. Same row,
-    // one name across every milestone surface. The short form was a
-    // legacy convenience from when this strip was a tight 6-column
-    // grid; the column now has enough width to carry the full label
-    // and the consistency win outweighs the few pixels saved.
+    // Use "Waiting on client" (not the short "Waiting") so the strip matches
+    // the queue pill + drawer header pill + readiness overview headline + v2
+    // label hook — one name across every milestone surface.
     () =>
       [
         { key: 'pending', label: t`Not started` },
@@ -10831,18 +10287,15 @@ function PathToFilingSummary({
   // is still upcoming (the row's internal deadline IS the expected
   // file date). Other upcoming stages don't get a projection.
   const filedStageIndex = stages.findIndex((s) => s.key === 'done')
-  // OVERDUE only applies on PRE-TERMINAL stages (2026-05-21). Once a
-  // row reaches Filed or Completed, the action has been taken —
-  // calling the stage "OVERDUE" contradicts the green Filed pill in
-  // the header and creates a confusing mixed signal (green pill +
-  // red ring on the same lifecycle moment). Lateness is still
-  // visible in the dates panel via the red `Internal due` value;
-  // that's the right surface for "was this filed on time?"
+  // OVERDUE only applies on PRE-TERMINAL stages. Once a row reaches Filed or
+  // Completed the action has been taken, so calling the stage "OVERDUE" would
+  // contradict the green Filed pill in the header and create a confusing mixed
+  // signal (green pill + red ring on the same lifecycle moment). Lateness is
+  // still visible in the dates panel via the red `Internal due` value — the
+  // right surface for "was this filed on time?"
   //
-  // 2026-05-24 (re-critique): hoisted `TIMELINE_TERMINAL_STAGE_KEYS`
-  // to module scope (alongside DUE_DAYS_TERMINAL_STATUSES) — the
-  // previous shape allocated a fresh Set on every render of this
-  // component without need.
+  // `TIMELINE_TERMINAL_STAGE_KEYS` is hoisted to module scope (alongside
+  // DUE_DAYS_TERMINAL_STATUSES) so it isn't reallocated on every render.
   // Sub-status annotation for the ACTIVE stage. Derived from existing
   // schema fields — no migration needed:
   //   waiting_on_client → row.prepStage (waiting_on_client /
@@ -10860,25 +10313,20 @@ function PathToFilingSummary({
     <div aria-label={t`Milestone timeline`} className="pb-1">
       <div className="grid grid-cols-6 gap-0">
         {stages.map((stage, i) => {
-          // 2026-05-24 (critique P1 — shape): the timeline used to
-          // render every stage before currentIndex as "done" (green
-          // tick), even ones the row never sat in. A row that goes
-          // Not started → In review directly would show Waiting and
-          // Blocked as ✓ completed — telling a history that didn't
-          // happen.
-          //
-          // Now the state map consults the audit-event stamps:
+          // The state map consults the audit-event stamps so the timeline
+          // never shows a stage the row never sat in as "done" (a row going
+          // Not started → In review directly must not show Waiting / Blocked
+          // as ✓ completed):
           //   - `done`     past stage WITH a stamp → genuinely entered
           //   - `skipped`  past stage WITHOUT a stamp → bypassed
           //   - `active`   the row's current stage
           //   - `upcoming` stage the row hasn't reached yet
-          // `skipped` renders as a smaller muted dot — visually
-          // distinct from both filled-success "done" and the empty
-          // ring of "upcoming."
+          // `skipped` renders as a smaller muted dot — visually distinct from
+          // both filled-success "done" and the empty ring of "upcoming."
           //
-          // Stage 0 is special: every row is born at "Not started" so
-          // an empty stamp there still counts as entered. The row's
-          // createdAt is the implicit stamp.
+          // Stage 0 is special: every row is born at "Not started" so an empty
+          // stamp there still counts as entered. The row's createdAt is the
+          // implicit stamp.
           const state: 'done' | 'skipped' | 'active' | 'upcoming' =
             i === currentIndex
               ? 'active'
@@ -10887,8 +10335,7 @@ function PathToFilingSummary({
                   ? 'done'
                   : 'skipped'
                 : 'upcoming'
-          // Date resolution (milestone-timeline-prd.md §3, 2026-05-25
-          // Deadlines #23/#24/#25 doc-gap fix):
+          // Date resolution (milestone-timeline-prd.md §3):
           //   Done/Active     : audit-event stamp (first entry into stage)
           //   Stage 0 fallback: row.createdAt (the row was born here)
           //   Filed upcoming  : row.currentDueDate (the FIRM's deadline
@@ -10928,28 +10375,25 @@ function PathToFilingSummary({
             state === 'active' && isPastInternalDue && !TIMELINE_TERMINAL_STAGE_KEYS.has(stage.key)
           return (
             <div key={stage.key} className="flex flex-col items-center gap-0.5">
-              {/* 2026-05-24 (Figma replica pass): milestone strip
-                  rebuilt to match the Figma’s rhythm:
-                    — Connectors switch from solid 2px bars to a
-                      DOTTED hairline so the strip reads as "stages on
-                      a thin track", not "stages connected by a pipe".
-                    — Completed circles drop the bold green fill
-                      in favour of a softer success-hover bg + a small
-                      green tick — less dominant per Yuqi’s "finished
-                      state looks too dominant" critique.
-                    — Active stage uses a stronger accent ring;
-                      the inner blue dot retired since the ring + bold
-                      stage label carries the active signal alone. */}
+              {/* Milestone strip rhythm:
+                    — Connectors are a DOTTED hairline (not solid 2px bars) so
+                      the strip reads as "stages on a thin track", not "stages
+                      connected by a pipe".
+                    — Completed circles use a soft success-hover bg + small
+                      green tick (not a bold green fill) so the finished state
+                      doesn't dominate.
+                    — Active stage uses a stronger accent ring; no inner dot,
+                      since the ring + bold stage label carry the active signal
+                      alone. */}
               <div className="flex w-full items-center gap-1">
                 <span
                   aria-hidden
                   className={cn(
                     'h-0 flex-1 border-t border-dotted',
-                    // 2026-05-24 (critique P1 — shape): the left-side
-                    // connector represents the edge into THIS stage.
-                    // Green only when both this stage and the prior
-                    // one were genuinely entered (or active) — so
-                    // skipped stages keep the edge muted on both sides.
+                    // The left-side connector represents the edge into THIS
+                    // stage. Green only when both this stage and the prior one
+                    // were genuinely entered (or active) — so skipped stages
+                    // keep the edge muted on both sides.
                     (() => {
                       if (i === 0) return 'opacity-0'
                       const thisEntered = state === 'done' || state === 'active'
@@ -10963,36 +10407,24 @@ function PathToFilingSummary({
                     })(),
                   )}
                 />
-                {/* 2026-05-26 (Yuqi /deadlines drawer #1, #2, #3):
-                    stage indicator now uses STAGE-SPECIFIC lucide
-                    icons so the milestone strip tells the story by
-                    icon identity, not just a generic check/dot.
-                      - Not started: CircleDashed
-                      - Waiting: Clock
-                      - Blocked: Lock
-                      - In review: Eye
-                      - Filed: FileCheck2
-                      - Completed: CheckCircle2
-                    State (done/active/skipped/upcoming) maps to
-                    tone instead:
+                {/* The stage indicator uses STAGE-SPECIFIC lucide icons so the
+                    milestone strip tells the story by icon identity, not just
+                    a generic check/dot. State (done/active/skipped/upcoming)
+                    maps to tone separately:
                       - done   = bg success-hover + text success-solid
                       - active = bg accent-hover + text accent-solid + ring
                       - skipped = dashed border + text tertiary
                       - upcoming = empty bg + text tertiary
-                    This fixes #1 ("why no stage-specific icons"),
-                    #2 (Filed now has a visible icon + tone), and #3
-                    (Filed-active visually distinct from Completed-
-                    upcoming by both icon identity AND tone). */}
+                    So a Filed-active stage stays visually distinct from a
+                    Completed-upcoming stage by both icon identity AND tone. */}
                 <span
                   aria-hidden
                   className={cn(
-                    // 2026-05-26 (Yuqi drawer feedback — "said there should not
-                    // be a bold border"): dropped the `ring-1` outer ring on
-                    // both `active` and `overdueActive` states. The border +
-                    // tint + icon identity were ALREADY conveying "this is the
-                    // current stage"; the extra ring layer was reading as a
-                    // double-bordered chip and shouting too hard against the
-                    // calmer done/upcoming neighbors.
+                    // No `ring-1` outer ring on `active` / `overdueActive` —
+                    // the border + tint + icon identity already convey "this is
+                    // the current stage", and an extra ring read as a
+                    // double-bordered chip shouting too hard against the calmer
+                    // done/upcoming neighbors.
                     'grid size-6 shrink-0 place-items-center rounded-full border',
                     state === 'done'
                       ? 'border-divider-regular bg-background-default text-text-secondary'
@@ -11006,15 +10438,10 @@ function PathToFilingSummary({
                   )}
                 >
                   {(() => {
-                    // 2026-05-26 (Yuqi feedback #8): align the stage
-                    // icon set with the canonical STATUS_ICON map
-                    // (status-control.tsx). The pending stage now
-                    // uses Loader (the canonical pending icon) rather
-                    // than CircleDashed — consistent with the row
+                    // The stage icon set aligns with the canonical STATUS_ICON
+                    // map (status-control.tsx) — e.g. the pending stage uses
+                    // Loader (not CircleDashed) so it's consistent with the row
                     // pill, the scope tabs, and the status dropdown.
-                    // Other stages were already aligned via their
-                    // status mapping; only `pending` was the
-                    // outlier here.
                     const StageIcon = (
                       stage.key === 'pending'
                         ? Loader
@@ -11035,12 +10462,11 @@ function PathToFilingSummary({
                   aria-hidden
                   className={cn(
                     'h-0 flex-1 border-t border-dotted',
-                    // 2026-05-24 (critique P1 — shape): the right-side
-                    // connector represents the edge into stage i+1.
-                    // Green only when BOTH stage i was entered (or
-                    // active) AND stage i+1 was entered (or active) —
-                    // i.e. the row actually crossed this edge. Skipped
-                    // stages on either end keep the edge muted.
+                    // The right-side connector represents the edge into stage
+                    // i+1. Green only when BOTH stage i was entered (or active)
+                    // AND stage i+1 was entered (or active) — i.e. the row
+                    // actually crossed this edge. Skipped stages on either end
+                    // keep the edge muted.
                     (() => {
                       if (i === stages.length - 1) return 'opacity-0'
                       const thisEntered = state === 'done' || state === 'active'
@@ -11055,12 +10481,9 @@ function PathToFilingSummary({
                   )}
                 />
               </div>
-              {/* 2026-05-25 (Yuqi Deadlines #22): stage label
-                  dropped from text-caption (11px) to text-caption-xs
-                  (10px) to match the date below — the two sat at
-                  different scales and made the column feel
-                  unbalanced. Active state keeps font-medium for
-                  weight contrast. */}
+              {/* Stage label is text-caption-xs (10px) to match the date
+                  below, so the column scales feel balanced. Active state keeps
+                  font-medium for weight contrast. */}
               <span
                 className={cn(
                   'mt-0.5 text-center text-caption-xs leading-tight',
@@ -11073,56 +10496,34 @@ function PathToFilingSummary({
               >
                 {stage.label}
               </span>
-              {/* Date + state + sub-status grouped into a single block
-                  with a real gap from the stage label above. Earlier
-                  they were direct flex children with no separation, so
-                  the eye couldn't tell that the stage name (e.g.
-                  "Filed") and the date + Overdue/Active/Expected
-                  pill below it were two different units. Critique #16
-                  flagged this; wrapping them in a child flex column
-                  with `mt-2` + internal `gap-0.5` separates the stage
-                  label from its status detail.
-
-                  2026-05-23 (critique #2: "no alignment to the other
-                  states"): the inner block now renders for EVERY
-                  column with consistent height — empty columns
-                  reserve space via &nbsp; placeholders so the
-                  timeline reads as a level baseline across all six
-                  stages instead of a ragged active-tall / upcoming-
-                  short pattern. */}
-              {/* Date + Overdue label. 2026-05-24 cleanup:
-                    — Em-dash placeholders dropped. Stages with no
-                      date render a non-breaking space so the
-                      baseline stays consistent without "—" noise
-                      cluttering future stages.
-                    — "ACTIVE" word retired — it was redundant
-                      against the bold stage label + ring. Only
-                      "Overdue" (destructive, when the active stage
-                      is past internal due) and "Expected" (tertiary,
-                      when projecting the Filed milestone forward)
-                      still render. */}
-              {/* 2026-05-25 (Yuqi Deadlines #26): mt-1.5 (6px) gap
-                  between the stage label and the date block read
-                  as too loose — the date felt unrelated to the
-                  stage above it. Tightened to mt-1 (4px) so the
-                  pair reads as one unit. */}
+              {/* Date + state + sub-status grouped into a single block with a
+                  gap from the stage label above (a child flex column with
+                  internal `gap-0.5`) so the stage name (e.g. "Filed") and the
+                  date + Overdue/Expected detail below read as two distinct
+                  units. The inner block renders for EVERY column with
+                  consistent height — empty columns reserve space via &nbsp;
+                  placeholders so the timeline reads as a level baseline across
+                  all six stages instead of a ragged active-tall /
+                  upcoming-short pattern. Stages with no date render a
+                  non-breaking space (not an em-dash) so the baseline stays
+                  consistent without "—" noise. No "ACTIVE" word — it's
+                  redundant against the bold stage label + ring; only "Overdue"
+                  (destructive, when the active stage is past internal due) and
+                  "Expected" (tertiary, projecting the Filed milestone forward)
+                  render. mt-1 keeps the date close enough to read as one unit
+                  with the stage label. */}
               <div className="mt-1 flex w-full flex-col items-center gap-0.5">
                 <span
-                  // 2026-05-26 (Yuqi feedback #9): date smaller —
-                  // text-caption-xs (10px) → text-[9px] leading-none.
-                  // The stage label sits at caption-xs above, dates
-                  // were at the same scale making the column feel
-                  // even-weight. One step smaller gives the label
-                  // visual primacy and the date reads as meta.
+                  // Date is text-[9px] — one step smaller than the
+                  // caption-xs stage label above, so the label keeps visual
+                  // primacy and the date reads as meta.
                   className={cn(
                     'text-center text-[9px] tabular-nums leading-none',
                     state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
                   )}
-                  // 2026-05-25 (Yuqi Deadlines #23/#24/#25): hover hint
-                  // surfaces the date-resolution policy in plain
-                  // language for blank cells (skipped / non-Filed
-                  // upcoming). Stops the empty space reading as a
-                  // missing-data bug.
+                  // Hover hint surfaces the date-resolution policy in plain
+                  // language for blank cells (skipped / non-Filed upcoming) so
+                  // the empty space doesn't read as a missing-data bug.
                   title={emptyDateHint}
                 >
                   {(state === 'done' || state === 'active' || isExpected) && stamp
@@ -11130,21 +10531,15 @@ function PathToFilingSummary({
                     : ' '}
                 </span>
                 {overdueActive ? (
-                  // 2026-05-26 (Yuqi sixty-seventh pass — context for
-                  // OVERDUE): the bare word "Overdue" answered "is
-                  // this late?" but not "late vs what?" Tied it back
-                  // to the canonical thing that's late — the FIRM'S
-                  // internal target date — so a CPA scanning the
-                  // strip sees both the urgency cue and the noun.
-                  // Hover spells out the exact days-late count + the
-                  // deadline date.
-                  // 2026-05-26 (Yuqi drawer feedback — "too much red on
-                  // the right panel"): demoted from text-text-destructive
-                  // to text-text-secondary. The destructive-toned In-
-                  // review CIRCLE above is already the red signal at
-                  // this stage; doubling it with red caption copy
-                  // underneath read as a shout. The word still says
-                  // "Past deadline" — readable in any tone.
+                  // The OVERDUE label ties back to the canonical thing that's
+                  // late — the FIRM'S internal target date — so a CPA scanning
+                  // the strip sees both the urgency cue and the noun; hover
+                  // spells out the exact days-late count + the deadline date.
+                  // Toned to text-text-secondary (not destructive): the
+                  // destructive-toned In-review CIRCLE above is already the red
+                  // signal at this stage, so red caption copy underneath would
+                  // read as a shout. The word still says "Past deadline" —
+                  // readable in any tone.
                   <span
                     className="text-center text-caption-xs font-medium uppercase tracking-wide leading-tight text-text-secondary"
                     title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days past deadline.`}
@@ -11232,9 +10627,6 @@ function AuthorityResponsePanel({
               {rejectedAt ? <> · {formatDatePretty(rejectedAt.slice(0, 10))}</> : null}
             </p>
           </div>
-          {/* 2026-06-01: swapped hand-rolled destructive pill for
-              Badge variant="destructive". Soft red bg carries the
-              destructive tone; the explicit border is dropped. */}
           <Badge variant="destructive">
             <AlertTriangleIcon className="size-3" aria-hidden />
             <Trans>Rejected</Trans>
@@ -11297,9 +10689,6 @@ function AuthorityResponsePanel({
             <Trans>Awaiting authority acceptance</Trans>
           </p>
         </div>
-        {/* 2026-06-01: swapped hand-rolled warning pill for
-            Badge variant="warning". Same soft amber background and
-            text token, with built-in icon sizing. */}
         <Badge variant="warning">
           <Clock className="size-3" aria-hidden />
           <Trans>Pending</Trans>
@@ -11575,11 +10964,11 @@ function pipelineStateOf<T extends string>(
   return 'upcoming'
 }
 
-// 2026-05-23: WaitingOutstandingDocs component retired with Option D.
-// The full panel (count header + bullet list of doc names + routing
-// button) duplicated content from the Client readiness tab. Replaced
-// inline in ActiveStageDetailCard with a one-line signal that links
-// to the tab; the tab owns the actual document inventory.
+// WaitingOutstandingDocs component retired. The full panel (count header +
+// bullet list of doc names + routing button) duplicated content from the
+// Client readiness tab. Replaced inline in ActiveStageDetailCard with a
+// one-line signal that links to the tab; the tab owns the actual document
+// inventory.
 
 function ActiveStageDetailCard({
   row,
@@ -11619,10 +11008,9 @@ function ActiveStageDetailCard({
   const { openDrawer } = useObligationDrawer()
   const stageIdx = timelineIndexForStatus(row.status)
   const stageKey: TimelineStageKey = TIMELINE_STAGE_KEYS[stageIdx] ?? 'pending'
-  // 2026-05-27 (Agent X3 milestone audit M-04): "Waiting" → "Waiting on
-  // client" so this card's header label matches the strip above it, the
-  // queue pill, and the v2 label hook. See PathToFilingSummary for the
-  // matching change on the strip.
+  // Use "Waiting on client" so this card's header label matches the strip
+  // above it, the queue pill, and the v2 label hook (see PathToFilingSummary
+  // for the matching label on the strip).
   const stageLabels: Record<TimelineStageKey, string> = {
     pending: t`Not started`,
     waiting_on_client: t`Waiting on client`,
@@ -11632,14 +11020,13 @@ function ActiveStageDetailCard({
     completed: t`Completed`,
   }
   const stageLabel = stageLabels[stageKey]
-  // 2026-05-23: A/B/C IA preview retired. Winning shape (Option D):
-  // the stage card carries WAITING header + a single one-line signal
-  // ("3 docs outstanding · Open Client readiness →") + the primary
-  // "Mark client docs received" button. The full outstanding-docs
-  // panel is gone — that data lives on the Client readiness tab,
-  // not duplicated here. Sub-status reads "Awaiting client · N days
-  // so far" so the header is honest about *time elapsed*, not just
-  // a generic "waiting on docs" repeat of what the count line says.
+  // The stage card carries a WAITING header + a single one-line signal
+  // ("3 docs outstanding · Open Client readiness →") + the primary "Mark
+  // client docs received" button. There's no full outstanding-docs panel —
+  // that data lives on the Client readiness tab, not duplicated here.
+  // Sub-status reads "Awaiting client · N days so far" so the header is honest
+  // about *time elapsed*, not just a generic "waiting on docs" repeat of the
+  // count line.
   const isWaitingStage = stageKey === 'waiting_on_client'
   const isWaitingDocsCase = isWaitingStage && row.prepStage === 'waiting_on_client'
   // Outstanding docs count powers the inline signal in the Waiting
@@ -11763,15 +11150,13 @@ function ActiveStageDetailCard({
   const tasks: StageTask[] = useMemo(() => {
     switch (stageKey) {
       case 'pending':
-        // 2026-05-23 IA fix: Not Started used to offer a single primary
-        // "Start drafting the return" that jumped straight to In review,
-        // skipping Waiting entirely. Per the canonical CPA workflow
-        // (engagement → request docs → wait → receive → prep → review →
-        // file) most rows actually need a "Request docs from client"
-        // step first. Two explicit paths are honest about which
-        // situation applies: "Request documents from client" is the
-        // common case for brand-new rows, "Start drafting the return"
-        // is the rarer case where docs are already in hand.
+        // Not Started offers two explicit paths instead of a single "Start
+        // drafting" that would jump straight to In review, skipping Waiting.
+        // Per the canonical CPA workflow (engagement → request docs → wait →
+        // receive → prep → review → file) most rows need a "Request docs from
+        // client" step first, so the paths are honest about which situation
+        // applies: "Request documents from client" for brand-new rows, "Start
+        // drafting the return" for the rarer case where docs are in hand.
         return [
           {
             id: 'engagement',
@@ -11836,12 +11221,11 @@ function ActiveStageDetailCard({
             },
           ]
         }
-        // 2026-05-23: Option D shape — a primary mutation plus a
-        // quiet escape hatch for genuine blocker cases. The routing
-        // affordance (open Materials tab) moved into the inline
-        // signal line in the card body; the manual chase reminder
-        // dropped because "Send reminder" is the same action surfaced
-        // from the Materials tab itself.
+        // A primary mutation plus a quiet escape hatch for genuine blocker
+        // cases. The routing affordance (open Materials tab) lives in the
+        // inline signal line in the card body; there's no manual chase
+        // reminder because "Send reminder" is the same action surfaced from
+        // the Materials tab itself.
         return [
           {
             id: 'received',
@@ -11907,9 +11291,9 @@ function ActiveStageDetailCard({
             },
           ]
         }
-        // 2026-05-27: no 8879 routing task here. The app does not yet
-        // support sending or collecting client e-file authorization, so
-        // routing to Evidence from In review creates a dead-end workflow.
+        // No 8879 routing task here — the app doesn't yet support sending or
+        // collecting client e-file authorization, so routing to Evidence from
+        // In review would create a dead-end workflow.
         return [
           {
             id: 'file',
@@ -12288,13 +11672,11 @@ function ActiveStageDetailCard({
   // AND in the payment route? Both map to the same milestone but
   // walk different sub-status pipelines.
   //
-  // 2026-05-24: also require that there's an ACTIVE sub-state before
-  // rendering the STEPS list. The drawer was showing a column of 4-6
-  // empty/dim sub-steps for a freshly-filed obligation that hadn't
-  // entered any e-file or payment sub-stage yet (e.g. a partnership
-  // return where status=done but efileState is null). Empty checklist
-  // reads as "nothing's happening" — the design (Figma node 109:13725)
-  // collapses the stage card to a compact info box in that case.
+  // Require an ACTIVE sub-state before rendering the STEPS list — otherwise a
+  // freshly-filed obligation that hasn't entered any e-file or payment
+  // sub-stage (e.g. a partnership return where status=done but efileState is
+  // null) shows a column of 4-6 empty/dim sub-steps that reads as "nothing's
+  // happening." In that case the stage card collapses to a compact info box.
   const efileStateSet =
     row.efileState !== null && row.efileState !== undefined && row.efileState !== 'not_applicable'
   const paymentStateSet =
@@ -12308,54 +11690,33 @@ function ActiveStageDetailCard({
   // but showing all six internal flags made normal rows look more
   // advanced than they really were.
   const showReviewPipeline = stageKey === 'review'
-  // 2026-05-26 (Yuqi sixty-seventh pass — structure the OVERDUE
-  // signal inside the card): when the active stage is past the
-  // firm's internal target date, surface that fact INSIDE the
-  // stage card body so a CPA reading "In review" / "Waiting" /
-  // "Blocked" sees the missed-deadline context next to the
-  // actions, not only on the milestone strip above. Terminal
-  // stages (Filed / Completed) don't get the banner — by then
-  // the work is closed and the Internal due date cell carries the
-  // historical lateness stat.
+  // When the active stage is past the firm's internal target date, surface
+  // that fact INSIDE the stage card body so a CPA reading "In review" /
+  // "Waiting" / "Blocked" sees the missed-deadline context next to the
+  // actions, not only on the milestone strip above. Terminal stages (Filed /
+  // Completed) don't get the banner — by then the work is closed and the
+  // Internal due date cell carries the historical lateness stat.
   const isPastInternalDue = row.daysUntilDue < 0
   const showOverdueBanner = isPastInternalDue && !TIMELINE_TERMINAL_STAGE_KEYS.has(stageKey)
   const daysPastDeadline = Math.abs(row.daysUntilDue)
   return (
     <section
       aria-label={t`Active stage detail`}
-      // 2026-05-26 (Yuqi feedback #10): light tinted background
-      // (bg-background-section) instead of pure white. The card was
-      // reading as identical to the page surface; a soft tint gives
-      // it the "this is the deep-dive zone for the current stage"
-      // anchor without going full color.
-      // 2026-05-26 (Yuqi feedback — "too many lines going on. please
-      // restructure and look at the frontend ensure it is cleanly
-      // designed and implemented"): dropped the `border
-      // border-divider-subtle` ring. The right panel was stacking
-      // four near-rules in close proximity (status-strip bottom
-      // border + tab-bar baseline + this card's outline + inner Key
-      // dates outline). Keeping just the soft `bg-background-section`
-      // tint still anchors this as the "deep-dive zone for the
-      // current stage"; the tint vs the panel's white provides the
-      // separation without a rule.
+      // Light tinted background (bg-background-section, not pure white) so the
+      // card reads as the "deep-dive zone for the current stage" without going
+      // full color. No `border` ring — the panel was already stacking four
+      // near-rules in close proximity (status-strip bottom border + tab-bar
+      // baseline + card outline + inner Key dates outline), and the tint vs the
+      // panel's white provides the separation without another rule.
       className="rounded-lg bg-background-section p-4"
     >
-      {/* Header: stage name + sub-status + when we entered this stage.
-          2026-05-23: dropped the uppercase tracking-wider treatment on
-          the stage label — at h3 weight it read as a section tag, not
-          a heading. Title-case + base text size lets "Waiting" /
-          "Blocked" / "In review" read as honest noun phrases, matching
-          the milestone strip labels above. Sub-status follows on the
-          same line with a thin dot separator. */}
-      {/* 2026-05-25 (Yuqi #27): stage label promoted from text-sm
-          (14px) to text-base (16px) — it's the h3 of this card and
-          was reading as inline chrome at the same size as the rest
-          of the body. The sub-status that follows stays at the
-          larger size too so the whole line reads as one heading.
-          The "Entered DATE" subline stays at text-xs as quiet meta. */}
-      {/* 2026-05-27 (Yuqi "onto the same line at Completed, space
-          between"): stage label + "Entered DATE" now sit on one
-          row with justify-between, the entered date pinned right. */}
+      {/* Header: stage name + sub-status + when we entered this stage. The
+          stage label is title-case at text-base (no uppercase tracking-wider)
+          so "Waiting" / "Blocked" / "In review" read as honest noun phrases
+          matching the milestone strip labels above, and as the h3 of this card
+          rather than inline chrome. The sub-status follows on the same line
+          with a thin dot separator; "Entered DATE" sits on the same row with
+          justify-between, pinned right, at text-xs quiet meta. */}
       <header className="flex items-baseline justify-between gap-3">
         <h3 className="flex flex-wrap items-baseline gap-x-1.5 text-base leading-tight">
           <span className="font-semibold text-text-primary">{stageLabel}</span>
@@ -12405,24 +11766,18 @@ function ActiveStageDetailCard({
         </p>
       ) : null}
 
-      {/* 2026-05-26 (Yuqi sixty-seventh pass — overdue context):
-          the milestone strip's red "Past deadline" word answers "is
-          this late?" but the stage card below was silent on the
-          fact, so a CPA scanning the card had to infer urgency
-          from the strip. The banner ties the stage back to the
-          missed date with a real noun ("Filing was due …") and a
-          concrete days-late count + the two actionable verbs
-          (submit, file an extension). On terminal stages the
-          banner hides — once the work is closed, late-vs-on-time
-          is a quality stat, not a call-to-action. */}
+      {/* The banner ties the stage back to the missed date with a real noun
+          ("Filing was due …") + a concrete days-late count + the two
+          actionable verbs (submit, file an extension), so a CPA scanning the
+          card doesn't have to infer urgency from the milestone strip alone. On
+          terminal stages the banner hides — once the work is closed,
+          late-vs-on-time is a quality stat, not a call-to-action. */}
       {showOverdueBanner ? (
-        // 2026-05-26 (Yuqi drawer feedback — "too much red"): the
-        // filled red bg made the banner the loudest element on the
-        // panel, even after demoting the tile + caption. Switched to
-        // a neutral surface with the red AlertTriangle + red title
-        // line carrying the urgency cue; the action line drops to
-        // text-secondary so the eye lands on the urgent line first
-        // and the "what to do" reads as a calmer follow-up.
+        // Neutral surface (not a filled red bg) so the banner isn't the
+        // loudest element on the panel: the red AlertTriangle + red title line
+        // carry the urgency cue, and the action line drops to text-secondary so
+        // the eye lands on the urgent line first and "what to do" reads as a
+        // calmer follow-up.
         <div
           role="status"
           className="mt-3 flex flex-col gap-0.5 rounded-lg border border-divider-regular bg-background-default px-3 py-2 text-sm leading-snug"
@@ -12493,18 +11848,14 @@ function ActiveStageDetailCard({
             )
           })()
         : null}
-      {/* 2026-05-23 Option D: the WaitingOutstandingDocs panel
-          (count header + bullet list of doc names) was retired here —
-          that data lives on the Materials tab, not duplicated in the
-          stage card. The card carries a one-line signal instead:
-          "N items outstanding · Check Materials →". Single-line, no
-          list, no panel chrome. The CPA who needs the actual document
-          inventory clicks through.
-
-          Verb 2026-05-23 (pass 2): "Open Materials" → "Check
-          Materials". "Open" reads as "open the tab"; "Check" reads as
-          "go review what's outstanding" — the CPA's actual intent
-          when the count is non-zero. */}
+      {/* No WaitingOutstandingDocs panel (count header + bullet list) here —
+          that data lives on the Materials tab, not duplicated in the stage
+          card. The card carries a one-line signal instead: "N items
+          outstanding · Check Materials →". The CPA who needs the actual
+          document inventory clicks through. The verb is "Check" not "Open" —
+          "Open" reads as "open the tab", "Check" reads as "go review what's
+          outstanding", which is the CPA's actual intent when the count is
+          non-zero. */}
       {isWaitingDocsCase && outstandingDocsCount > 0 ? (
         <button
           type="button"
@@ -12539,13 +11890,10 @@ function ActiveStageDetailCard({
           list indented beneath, and upcoming steps render as quiet
           empty circles. "Steps" (not "Pipeline") because CPAs say
           "what step am I on?" — pipeline reads as engineering jargon. */}
-      {/* 2026-05-25 (Yuqi #28, #29): Steps eyebrow was
-          text-caption-xs (10px) — sub-visible against the rest of
-          the card. Promoted to text-caption (11px) matching the
-          "Entered DATE" subline, so the eyebrow + the entered-date
-          line read at the same scale. Step list items inside ride
-          on text-sm so they're a clear tier below the stage h3
-          but legibly above the eyebrow. */}
+      {/* Steps eyebrow is text-caption (11px), matching the "Entered DATE"
+          subline so the two read at the same scale. Step list items inside
+          ride on text-sm — a clear tier below the stage h3 but legibly above
+          the eyebrow. */}
       {showEfilePipeline || showPaymentPipeline ? (
         <div className="mt-3 flex flex-col gap-2">
           <p className="text-caption font-medium uppercase tracking-wider text-text-tertiary">
@@ -12597,14 +11945,11 @@ function ActiveStageDetailCard({
                         aria-hidden
                       />
                     ) : state === 'current' ? (
-                      // 2026-05-26 (Yuqi sixty-seventh pass — "looks
-                      // like radio checkbox"): replaced the ring +
-                      // inner-dot construction with a solid filled
-                      // disc. The previous shape was a textbook
-                      // selected-radio (border-2 ring around inner
-                      // dot) — readers tried to click it expecting a
-                      // form input. The new solid bullet reads as a
-                      // status marker, not an interactive choice.
+                      // Solid filled disc (not a ring + inner-dot): a ring
+                      // around an inner dot reads as a textbook selected-radio,
+                      // so readers tried to click it expecting a form input.
+                      // The solid bullet reads as a status marker, not an
+                      // interactive choice.
                       <span
                         aria-hidden
                         className="mt-1 size-2.5 shrink-0 rounded-full bg-accent-default"
@@ -12665,14 +12010,11 @@ function ActiveStageDetailCard({
                         aria-hidden
                       />
                     ) : state === 'current' ? (
-                      // 2026-05-26 (Yuqi sixty-seventh pass — "looks
-                      // like radio checkbox"): replaced the ring +
-                      // inner-dot construction with a solid filled
-                      // disc. The previous shape was a textbook
-                      // selected-radio (border-2 ring around inner
-                      // dot) — readers tried to click it expecting a
-                      // form input. The new solid bullet reads as a
-                      // status marker, not an interactive choice.
+                      // Solid filled disc (not a ring + inner-dot): a ring
+                      // around an inner dot reads as a textbook selected-radio,
+                      // so readers tried to click it expecting a form input.
+                      // The solid bullet reads as a status marker, not an
+                      // interactive choice.
                       <span
                         aria-hidden
                         className="mt-1 size-2.5 shrink-0 rounded-full bg-accent-default"
@@ -12914,11 +12256,9 @@ const TIMELINE_STAGE_COUNT = 6
 // and blocked, or come back to in_review after a rejection), so we
 // stamp each stage at its FIRST entry rather than the latest.
 //
-// 2026-05-24 (re-critique): the previous shape took a `stageKeys`
-// param that looked like it controlled matching, but actually only
-// sized the array — matching was driven by `timelineIndexForStatus`.
-// Dropped the misleading argument; the array length is now an
-// explicit module constant aligned with the index function above.
+// No `stageKeys` param — it would look like it controlled matching but only
+// sized the array (matching is driven by `timelineIndexForStatus`). The array
+// length is an explicit module constant aligned with the index function above.
 function mineTimelineTimestamps(auditEvents: readonly AuditEventPublic[]): (string | null)[] {
   const sorted = [...auditEvents].toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
   const stamps: (string | null)[] = Array.from({ length: TIMELINE_STAGE_COUNT }, () => null)
@@ -12932,10 +12272,10 @@ function mineTimelineTimestamps(auditEvents: readonly AuditEventPublic[]): (stri
   return stamps
 }
 
-// `PathToFilingChevron` removed 2026-05-21 — at 440px panel width the
-// 5 × 4 = 20 text/icon elements were unreadable. `PathToFilingSummary`
-// replaces it in the snapshot block; full stage-by-stage history lives
-// on the Timeline tab via `ObligationTimeline`.
+// `PathToFilingChevron` removed — at 440px panel width its 5 × 4 = 20
+// text/icon elements were unreadable. `PathToFilingSummary` replaces it in the
+// snapshot block; full stage-by-stage history lives on the Timeline tab via
+// `ObligationTimeline`.
 
 function PenaltyInputDialog({
   row,
@@ -12985,13 +12325,11 @@ function PenaltyInputDialog({
     <Dialog open={row !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <DialogContent>
         <DialogHeader>
-          {/* 2026-05-27 (Step 6 cont Q5.4 — P3): title was generic
-              "Penalty inputs" with the client name buried in the
-              description. CPAs working through a list of clients in
-              one sitting open this dialog repeatedly — the title
-              should answer "whose penalty am I editing?" without a
-              second glance. Description retains the tax-code suffix
-              so the filing context is still legible. */}
+          {/* Title names the client so it answers "whose penalty am I
+              editing?" without a second glance — CPAs working through a list
+              of clients in one sitting open this dialog repeatedly. The
+              description retains the tax-code suffix so the filing context is
+              still legible. */}
           <DialogTitle>
             {row ? (
               <Trans>Penalty inputs for {row.clientName}</Trans>
@@ -13001,9 +12339,8 @@ function PenaltyInputDialog({
           </DialogTitle>
           <DialogDescription>{row ? formatTaxCode(row.taxType) : null}</DialogDescription>
         </DialogHeader>
-        {/* 2026-05-26 (step-6 ux-flow audit Q5.1/Q5.2): added real
-            <label> elements (placeholder alone disappears on type)
-            and inline helper text describing accepted formats. */}
+        {/* Real <label> elements (placeholder alone disappears on type) plus
+            inline helper text describing accepted formats. */}
         <div className="grid gap-3">
           <Field>
             <FieldLabel htmlFor="penalty-tax-due">
@@ -13044,9 +12381,8 @@ function PenaltyInputDialog({
           <Button variant="ghost" onClick={onClose}>
             <Trans>Cancel</Trans>
           </Button>
-          {/* 2026-05-26 (step-6 ux-flow audit Q5.3): disable save
-              when both inputs are empty (no-op write polluted the
-              audit log). */}
+          {/* Disable save when both inputs are empty — a no-op write polluted
+              the audit log. */}
           <Button
             onClick={save}
             disabled={
@@ -13075,25 +12411,22 @@ function parseOwnerCount(value: string): number | null {
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
 }
 
-// 2026-06-09 (Yuqi /deadlines production recreation): the
-// `ObligationQueueScopeTab` component was removed when the status scope-tab
-// strip was replaced by the toolbar's "All Status" dropdown. Status
-// filtering still writes the same `status` URL param from the dropdown.
+// `ObligationQueueScopeTab` was removed when the status scope-tab strip was
+// replaced by the toolbar's "All Status" dropdown. Status filtering still
+// writes the same `status` URL param from the dropdown.
 
-// 2026-06-08 (Yuqi /deadlines design parity): `ObligationQueueActionChip`
-// (the pill chrome for the 4 quick-filter chips — Past due / Due this week /
-// Needs evidence / Awaiting signature) was removed with those chips. Those
-// facets now live as pill sections inside `ObligationFiltersPopover` below.
+// `ObligationQueueActionChip` (the pill chrome for the 4 quick-filter chips —
+// Past due / Due this week / Needs evidence / Awaiting signature) was removed
+// with those chips. Those facets now live as pill sections inside
+// `ObligationFiltersPopover` below.
 
-// 2026-06-08 (Yuqi /deadlines design parity — "consolidate the filter
-// toolbar to match /alerts"): the four quick-filter chips (Past due /
-// Due this week / Needs evidence / Awaiting signature) plus the
-// per-column header filters (Filing / Client / State) all collapse into
-// ONE "Filters" popover, mirroring AlertsListPage's `AlertFiltersPopover`
-// (same FilterTrigger + SlidersHorizontal icon + active-count badge + the
-// labeled pill-section layout). Every section writes through the same
-// `setObligationQueueQuery` patch the relocated controls used — this is a
-// pure RELOCATION, the filter behavior is unchanged.
+// The four quick-filter chips (Past due / Due this week / Needs evidence /
+// Awaiting signature) plus the per-column header filters (Filing / Client /
+// State) all collapse into ONE "Filters" popover, mirroring AlertsListPage's
+// `AlertFiltersPopover` (same FilterTrigger + SlidersHorizontal icon +
+// active-count badge + labeled pill-section layout). Every section writes
+// through the same `setObligationQueueQuery` patch the relocated controls
+// used — this is a pure RELOCATION, the filter behavior is unchanged.
 function ObligationFiltersPopover({
   due,
   thisWeekFilterActive,
@@ -13365,11 +12698,10 @@ function ObligationMultiFilterSection({
 //   - currently blocked: shows the parent label + Clear button
 //   - not blocked, candidates available: shows a Select to set one
 //   - not blocked, no candidates loaded: minimal hint only
-// `ObligationBlockerSection` removed 2026-05-21 — the editor lived
-// inside the Readiness tab on every drawer open, even on rows that
-// weren't blocked. The queue row's <BlockedByChip> still surfaces the
-// state. A re-home is parked behind the design brainstorm; the
-// `updateBlockedBy` RPC procedure stays on the server.
+// `ObligationBlockerSection` removed — the editor lived inside the Readiness
+// tab on every drawer open, even on rows that weren't blocked. The queue row's
+// <BlockedByChip> still surfaces the state. A re-home is parked behind the
+// design brainstorm; the `updateBlockedBy` RPC procedure stays on the server.
 
 function ObligationQueueEmptyState({
   onOpenWizard,
@@ -13387,17 +12719,13 @@ function ObligationQueueEmptyState({
   // workspace may very well have data hidden by the filter).
   // Without filters: import-clients CTA (workspace is genuinely empty).
   return (
-    // 2026-05-28 (Yuqi /today polish — extended to /deadlines): empty
-    // state aligned with /today's Actions-this-week treatment —
-    // icon at top + split title/description + outline CTA. Dify Blue
-    // primary stays reserved for the one next action per surface, so
-    // the empty-state CTA renders as a quieter secondary button.
-    // 2026-06-07 (design replication, node mWn3M): the genuinely-empty queue now
-    // owns the surface with the prominent empty state (tinted calendar-clock
-    // icon-circle + larger title + wider copy). The CTA stays a quiet outline
-    // per the "Dify Blue reserved for the one next action" decision — the canvas
-    // dark-primary button is intentionally NOT adopted. The filtered case keeps
-    // the inline default treatment (data exists, just hidden).
+    // The genuinely-empty queue owns the surface with the prominent empty
+    // state (tinted calendar-clock icon-circle + larger title + wider copy),
+    // aligned with /today's Actions-this-week treatment. The CTA stays a quiet
+    // outline because Dify Blue is reserved for the one next action per surface
+    // (the canvas dark-primary button is intentionally NOT adopted). The
+    // filtered case keeps the inline default treatment (data exists, just
+    // hidden).
     <EmptyState
       variant={hasActiveFilters ? 'default' : 'prominent'}
       icon={hasActiveFilters ? CalendarDaysIcon : CalendarClockIcon}
@@ -13438,11 +12766,10 @@ function ObligationQueueEmptyState({
 function CalendarSyncPopover() {
   const { t } = useLingui()
   const [open, setOpen] = useState(false)
-  // 2026-05-27 (Step 6 cont Q8.2 — P0): Regenerate previously fired
-  // immediately on click, silently invalidating the user's iCal
-  // subscription on every device that had the old URL. Gate behind
-  // an AlertDialog mirroring the canonical /calendar pattern at
-  // `features/calendar/calendar-page.tsx:215-286` so the user sees
+  // Regenerate is gated behind an AlertDialog (mirroring the canonical
+  // /calendar pattern at `features/calendar/calendar-page.tsx:215-286`)
+  // because firing it immediately would silently invalidate the user's iCal
+  // subscription on every device that had the old URL — the user should see
   // the consequence before committing.
   const [regenerateConfirmOpen, setRegenerateConfirmOpen] = useState(false)
   const queryClient = useQueryClient()

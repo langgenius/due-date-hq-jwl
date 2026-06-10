@@ -1,6 +1,6 @@
 import { Fragment, useMemo } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon, RotateCwIcon, SparklesIcon, XIcon } from 'lucide-react'
+import { ExternalLinkIcon, RotateCwIcon, SunriseIcon, XIcon } from 'lucide-react'
 
 import type {
   DashboardBriefPublic,
@@ -94,11 +94,10 @@ export function DailyBriefCard({
         aria-label={t`Daily brief`}
         className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-background-section px-[18px] py-2.5"
       >
-        <span
-          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background-section"
-          aria-hidden
-        >
-          <SparklesIcon className="size-3.5 text-text-secondary" />
+        {/* Bare "daily" Sunrise glyph + a `·` dot before the title. */}
+        <SunriseIcon className="size-4 shrink-0 text-text-secondary" aria-hidden />
+        <span aria-hidden className="text-text-muted">
+          ·
         </span>
         <h2 className="text-base leading-tight font-semibold text-text-primary">
           <Trans>Daily Brief</Trans>
@@ -106,12 +105,16 @@ export function DailyBriefCard({
         <span className="min-w-0 truncate text-xs text-text-tertiary">
           <Trans>We couldn't generate today's brief.</Trans>
         </span>
-        {/* No "Failed" label (the message already says it failed); the retry
-            is a quiet "Regenerate brief" text button right after the message. */}
-        <TextLink variant="accent" onClick={onRefresh} className="shrink-0">
+        {/* Quiet neutral retry button (was an accent text-link, which read
+            loud/ugly next to the muted message). */}
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-background-default hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+        >
           <RotateCwIcon className="size-3.5" aria-hidden />
           <Trans>Regenerate brief</Trans>
-        </TextLink>
+        </button>
         <div className="flex flex-1 shrink-0 items-center justify-end gap-1">
           {onClose ? (
             <button
@@ -131,21 +134,20 @@ export function DailyBriefCard({
   return (
     <section
       aria-label={t`Daily brief`}
-      // 2026-06-10 (Yuqi "restrain borders and lines"): no hairline border —
-      // a calm gray fill (bg-background-section, matching the alert cards)
-      // defines the brief without a line. The sparkles icon carries the AI
-      // signal.
+      // No hairline border — a calm gray fill (bg-background-section,
+      // matching the alert cards) defines the brief without a line. The
+      // sparkles icon carries the AI signal.
       className="group flex flex-col gap-3 rounded-xl bg-background-section p-5"
     >
       {/* TopRow — Pencil tvSsP `header`: sparkles icon-wrap + "Daily Brief"
           (13/600) + freshness, with a labeled Regenerate button on the right. */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span
-            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background-section"
-            aria-hidden
-          >
-            <SparklesIcon className="size-4 text-text-secondary" />
+          {/* Bare Sunrise icon + a `·` dot before the title — a
+              sparkles-in-a-circle blended into the gray card. */}
+          <SunriseIcon className="size-4 shrink-0 text-text-secondary" aria-hidden />
+          <span aria-hidden className="text-text-muted">
+            ·
           </span>
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
             <h2 className="text-base leading-tight font-semibold text-text-primary">

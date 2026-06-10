@@ -26,9 +26,8 @@ import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
 import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
-// 2026-05-27 (Yuqi feedback round 1): import retained but commented out
-// alongside the section mount. Restore both when ChangesSinceLastSection
-// is brought back.
+// Import retained but commented out alongside the section mount.
+// Restore both when ChangesSinceLastSection is brought back.
 // import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
@@ -98,7 +97,7 @@ const dashboardSearchParamsParsers = {
   evidence: parseAsArrayOf(parseAsStringLiteral(DASHBOARD_EVIDENCE_FILTERS))
     .withDefault([])
     .withOptions(REPLACE_HISTORY_OPTIONS),
-  // Unified page scope (2026-06-10 "My work / Everyone"). ONE toggle
+  // Unified page scope ("My work / Everyone"). ONE toggle
   // drives the daily brief AND Priority Actions (rows, ranks, counts,
   // facets). `me` = effective assignee is the viewer, plus unassigned
   // rows — an unclaimed deadline never disappears from anyone's Today.
@@ -150,8 +149,9 @@ export function DashboardRoute() {
     rememberDashboardScope(next)
     void setDashboardParams({ scope: next })
   }
-  // 2026-06-08 (Yuqi /today #8 "able to close it"): the Daily Brief is
-  // dismissable. We persist the dismissal keyed to the brief's generation
+  const queryClient = useQueryClient()
+  // The Daily Brief is dismissable. We persist the dismissal keyed to
+  // the brief's generation
   // stamp so closing it hides THIS brief but a freshly regenerated brief
   // (new stamp) returns on its own. localStorage so the choice survives a
   // reload within the day.
@@ -190,17 +190,22 @@ export function DashboardRoute() {
         ? 4000
         : false,
   })
-  // 2026-06-10: the manual brief-refresh mutation is gone — the brief is a
-  // self-tending daily edition (regenerates on the firm-tz day rollover;
-  // failed/stale states self-heal server-side with backoff).
-  // 2026-05-29 (Yuqi /today follow-up — "empty state: no clients vs no
-  // deadlines"): a `totalOpen === 0` page used to render a single
-  // "No deadlines yet, import clients" CTA. That copy was right for
-  // a fresh practice but wrong for a practice that already imported
-  // and just doesn't have generated deadlines yet. We split with a
-  // cheap probe — `limit: 1` so the server returns at most one row,
-  // and we only look at .length to decide. The query result is
-  // shared across the page, so dropdowns / pickers that need a
+  const requestBriefRefresh = useMutation(
+    orpc.dashboard.requestBriefRefresh.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+      },
+      onError: (error) => {
+        toast.error(rpcErrorMessage(error) ?? t`Couldn't regenerate the brief. Try again.`)
+      },
+    }),
+  )
+  // A `totalOpen === 0` page distinguishes "no clients yet" from "has
+  // clients but no generated deadlines" — the "import clients" CTA is
+  // right for a fresh practice but wrong for one that already imported.
+  // We split with a cheap probe — `limit: 1` so the server returns at
+  // most one row, and we only look at .length to decide. The query
+  // result is shared across the page, so dropdowns / pickers that need a
   // client list share the same cache key.
   const clientsProbeQuery = useQuery({
     ...orpc.clients.listByFirm.queryOptions({ input: { limit: 1 } }),
@@ -209,10 +214,6 @@ export function DashboardRoute() {
   const hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
   const data = dashboardQuery.data
 
-  // 2026-06-03 (audit follow-up): greeting machinery removed
-  // entirely after the eyebrow simplification (Pencil VmcdD)
-  // dropped the personalized prefix. The `void` cheats that kept
-  // unused helpers alive went with them.
   const syncedAtIso =
     dashboardQuery.dataUpdatedAt > 0 ? new Date(dashboardQuery.dataUpdatedAt).toISOString() : null
   const syncedLabel = syncedAtIso ? formatRelativeTime(syncedAtIso) : null
@@ -220,120 +221,32 @@ export function DashboardRoute() {
   const facets = data?.facets
 
   return (
-    // 2026-05-25 (GitHub-density direction): page rhythm tightened
-    // gap-8 → gap-6 (header → sections), header h1 trimmed from
-    // text-2xl to text-xl. Yuqi's reference is GitHub's "useful,
-    // precise, tight" density — section anchors stay legible at
-    // scan distance without claiming a whole top-row of vertical
-    // real estate.
-    // 2026-05-25 (Yuqi page-title pass): outer container padding
-    // bumped top to pt-6 md:pt-8 (was uniform p-4 md:p-6) so the
-    // h1 has more breathing room from the top edge of the work
-    // surface. Other sides unchanged. Same standard now applied
-    // to /clients, /deadlines, /audit (see route files); the
-    // narrower pages /settings, /practice, /billing already use
-    // py-6 which reads correctly at their tighter width.
-    // 2026-05-27 (audit-drain X1 D18): tightened above-the-fold
-    // density. Outer gap-6 → gap-4 trims 24px of vertical between
-    // each of the four sections (header → changes-since →
-    // alerts → actions) — at 1440×900 this pulls the first
-    // overdue row up into the third visible band instead of
-    // landing below the fold once the new "Changes since" row is
-    // added. Top/bottom padding also stepped down one tier
-    // (pt-6/8 → pt-4/6, pb-4/6 → pb-3/5) so the H1 doesn't claim
-    // an outsize share of the work surface.
-    // 2026-05-27 (Yuqi feedback "bigger gap between Today title, Alerts
-    // section, and Actions this week"): gap-4 (16px) → gap-8 (32px) so
-    // the three top-level sections breathe. The number prefix in each
-    // heading + the gray date pattern works better with this rhythm.
-    // 2026-05-28 (Yuqi feedback — /today felt empty at wide
-    // viewports): bumped from max-w-page-wide (1100) to
-    // max-w-page-expanded (1440) so the page matches the rest
-    // of the workbench family (/clients, /clients/[id],
-    // /deadlines, /rules/library, /alerts, /alerts). At
-    // 1920px the alerts + actions sections now use 1440px of
-    // canvas instead of 1100px, removing ~340px of dead margin.
-    // 2026-05-29 (Yuqi /today follow-up — "gap smaller, apply to
-    // everywhere"): outer page gap stepped gap-8 → gap-6. The earlier
-    // gap-8 was added for a "bigger gap between Today title, Alerts,
-    // and Actions" round, but with section-internal gaps now at
-    // gap-3 (Alerts + Actions) the outer 32px read disproportionately
-    // loud against the 12px inside each section. gap-6 (24px) keeps
-    // the three top-level sections distinct while pulling the first
-    // content row up into the user's eye line.
-    /* 2026-06-03 (Pencil VmcdD Main frame): page chrome aligned
-       to Pencil exactly:
-         - outer padding [32, 64] at md+ via `px-16 py-8`; scales
-           down to `px-4 py-6` on mobile so the content breathes
-         - inter-section gap-8 (32px) matches Pencil's 32px between
-           PageHeader / Alerts / Actions — was gap-6 (24px)
-         - `max-w-page-expanded` (1440) caps the content area;
-           Pencil's 1920 mock is the canvas reference, not a
-           fixed-width target */
-    // 2026-06-04 round 4 (Yuqi feedback "Today's page should not
-    // be more than a screen long"): page gap-8 (32px) → gap-6
-    // (24px) and outer py-8 → py-6 so the eyebrow + Alerts +
-    // Actions header all live in the first viewport (~1080px) on
-    // a 1920×992 display. The table below scrolls but the
-    // navigational structure stays above the fold.
-    // 2026-06-04 round 14 (Yuqi page-feedback "bottom padding can
-    // be twice double bigger"): bottom padding pb-6 → pb-12 on both
-    // mobile and md+. Top stays at pt-6 so the H1 still hangs from
-    // the same top inset. The extra bottom breathing room keeps
-    // the last action row from feeling cramped against the
-    // viewport edge when the page is short enough not to scroll.
-    /* 2026-06-04 round 39 (Yuqi /today page feedback — "bigger gap
-       between Today title, Alerts, Actions this week"): outer section
-       gap bumped back to `gap-8` (32px) — the Pencil VmcdD spec.
-       Round 4 had tightened to gap-6 (24px) to fit everything above
-       the fold, but Yuqi found the three sections reading too close
-       together. 32px gives a clearer "three distinct sections"
-       hierarchy without losing too much vertical real estate. */
+    // Page chrome aligned to Pencil VmcdD: inter-section gap-8 (32px)
+    // between PageHeader / Alerts / Actions gives a clear "three distinct
+    // sections" hierarchy; `max-w-page-expanded` (1440) caps the content
+    // area so /today matches the workbench family (/clients, /deadlines,
+    // /rules/library, /alerts); generous pb-12 keeps the last action row
+    // from feeling cramped against the viewport edge when the page is
+    // short enough not to scroll.
     <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-6 pb-12 md:px-8 md:pt-6 md:pb-12">
-      {/* 2026-05-26 (Yuqi seventy-fourth pass — Today joins the
-          page-header family): the hand-rolled <header> is gone.
-          /today now routes through the same `<PageHeader>`
-          primitive as /clients, /deadlines, /alerts, and
-          /rules/library — date moves into the canonical pill
-          chip slot so it matches the family's "title + count
-          chip" shape, and the action cluster sits in the
-          `actions` prop. Future polish to the PageHeader
-          primitive propagates here automatically. */}
+      {/* /today routes through the same `<PageHeader>` primitive as
+          /clients, /deadlines, /alerts, and /rules/library — date sits
+          in the canonical pill chip slot so it matches the family's
+          "title + count chip" shape, and the action cluster sits in the
+          `actions` prop. Future polish to the PageHeader primitive
+          propagates here automatically. */}
       <PageHeader
-        // 2026-05-31 (Yuqi Pencil TV9xe — eyebrow row): personalized
-        // greeting + sync indicator above the H1. The eyebrow slot's
-        // default chrome is `uppercase tracking-eyebrow text-text-tertiary`
-        // (for breadcrumb-style eyebrows on other pages); on Today we
-        // override to a normal-case, body-weight sentence with the
-        // sync state painted in `text-text-success`. Tokens used
-        // throughout — `text-text-secondary`, `text-text-tertiary`,
-        // `text-text-success` — so a token tweak in
-        // `semantic-light.css` propagates here automatically.
-        // 2026-06-03 (Yuqi Pencil VmcdD — header simplification):
-        // greeting prefix dropped — the eyebrow now carries ONLY the
-        // sync state. Rationale: the personalised greeting was a
-        // social affordance, but the load on the eye is "is this
-        // data fresh?" The single success-toned chip answers that
-        // directly. Saves one row of vertical real estate, lets the
-        // big "Today" title read as the page's anchor.
         eyebrow={
-          // 2026-06-10 (Yuqi /today #5 "place besides my work/everyone, just
-          // an icon, hover shows synced"): the Synced indicator moved OUT of
-          // the eyebrow row and into the actions cluster as an icon + tooltip.
+          // No eyebrow row — the sync indicator moved into the actions
+          // cluster as an icon + tooltip, reclaiming a row of vertical
+          // space.
           undefined
         }
         title={
-          // 2026-06-04 round 3 (Yuqi feedback #6 "semibold, light
-          // font"): date weight `font-normal` → `font-semibold`
-          // and color steps DOWN to `text-text-tertiary`.
-          // 2026-06-04 round 18 (Yuqi page-feedback #2 "lighter" +
-          // #3 "closer"): date weight stepped back DOWN
-          // `font-semibold` → `font-normal` so it reads lighter
-          // against "Today" (the bold anchor). Title→date gap
-          // tightened `gap-3` (12px) → `gap-2` (8px) so the two
-          // sit as one tight word-pair, not as two separate
-          // pieces. "Today June 4" now reads as a single
-          // headline phrase.
+          // The title→date gap is tight (`gap-2`, 8px) and the date is
+          // `font-normal` so "Today June 4" reads as a single headline
+          // phrase, with the date sitting lighter than the bold "Today"
+          // anchor.
           <span className="inline-flex items-baseline gap-2">
             <Trans>Today</Trans>
             {dashboardQuery.isLoading ? (
@@ -341,8 +254,7 @@ export function DashboardRoute() {
                 <Trans>loading…</Trans>
               </span>
             ) : data?.asOfDate ? (
-              // 2026-06-08 (Yuqi #4 "medium 更浅的颜色"): date weight
-              // font-medium, color stepped to the lighter text-text-muted
+              // Date weight font-medium, color the lighter text-text-muted
               // so it sits clearly behind the bold "Today" anchor.
               <span className="text-2xl font-medium tabular-nums text-text-muted">
                 {formatTodayHeader(data.asOfDate)}
@@ -352,10 +264,9 @@ export function DashboardRoute() {
         }
         actions={
           <>
-            {/* 2026-06-10 (Yuqi /today #5 "just an icon, hover to show synced"):
-                the sync freshness indicator lives here as an icon-only affordance
-                beside the scope toggle — hover reveals "Synced …", click refetches.
-                Moved out of the eyebrow row to reclaim a row of vertical space. */}
+            {/* The sync freshness indicator lives here as an icon-only
+                affordance beside the scope toggle — hover reveals
+                "Synced …", click refetches. */}
             {syncedLabel ? (
               <Tooltip>
                 <TooltipTrigger
@@ -386,12 +297,12 @@ export function DashboardRoute() {
                 </TooltipContent>
               </Tooltip>
             ) : null}
-            {/* 2026-06-10 (My work / Everyone): ONE scope toggle for the
-                whole page — daily brief, Priority Actions rows/ranks, and
-                every count switch together. Lives in the header action
-                cluster (not on the brief card) precisely because it
-                governs more than the brief. "My work" = assigned to me +
-                unassigned; the choice is remembered per browser. */}
+            {/* ONE scope toggle for the whole page — daily brief, Priority
+                Actions rows/ranks, and every count switch together. Lives
+                in the header action cluster (not on the brief card)
+                precisely because it governs more than the brief. "My work"
+                = assigned to me + unassigned; the choice is remembered per
+                browser. */}
             <Segmented
               value={scope}
               onValueChange={setScope}
@@ -401,32 +312,22 @@ export function DashboardRoute() {
                 { value: 'firm', label: t`Everyone` },
               ]}
             />
-            {/* 2026-05-27 (Step 6 UX flows audit H2.6): the
-                keyboard shortcut help dialog opens on `?` but
-                that key was undiscoverable from the dashboard.
-                Tiny chip aligned with the action cluster gives
-                first-time keyboardists a path in; mouse users
-                can also click. Mirrors the bottom-of-queue
-                pattern in /deadlines. */}
+            {/* The keyboard shortcut help dialog opens on `?`; this tiny
+                chip in the action cluster makes that discoverable —
+                first-time keyboardists get a path in and mouse users can
+                click. Mirrors the bottom-of-queue pattern in /deadlines. */}
             <ShortcutHintChip compact className="hidden md:inline-flex" />
-            {/* 2026-06-08 (Yuqi /today ErW76): the PageHeader action
-                cluster was trimmed to a single control. "Add deadline"
-                was removed entirely (creation lives in the deadlines
-                surface, not the daily triage header). "Import clients"
-                collapsed from a labelled outline button to a compact
-                dark icon-only "+" — Pencil's header carries one filled
-                square affordance, not a row of outline buttons. The
-                permission guard + tooltip-via-aria-label are preserved,
-                so clicks still always produce feedback. */}
-            {/* 2026-06-10 (Yuqi "make the + sit more calmly"): the import
+            {/* The PageHeader action cluster is a single control. There's
+                no "Add deadline" here — creation lives in the deadlines
+                surface, not the daily triage header. The "Import clients"
                 affordance is an expand-on-hover pill — at rest a circle
                 with just the "+", on hover its WIDTH grows to reveal
                 "Import clients" (height fixed h-8 so the cluster never
-                jumps). Recolored from the bright primary-blue fill to a
-                CALM neutral bordered control (matches the search field's
-                hairline treatment): white fill, gray "+", border darkens
-                + a subtle gray wash on hover. Import is a setup task, not
-                a daily CTA, so it no longer needs the accent. */}
+                jumps). It's a CALM neutral bordered control (matches the
+                search field's hairline treatment) rather than an accent
+                fill, because import is a setup task, not a daily CTA. The
+                permission guard + tooltip-via-aria-label are preserved, so
+                clicks always produce feedback. */}
             <button
               type="button"
               className="group/import inline-flex h-8 items-center rounded-full border border-divider-regular bg-background-default px-2 text-text-secondary transition-all cursor-pointer [corner-shape:round] hover:border-divider-deep hover:bg-background-section hover:px-3.5 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default focus-visible:outline-none"
@@ -463,11 +364,10 @@ export function DashboardRoute() {
           <AlertDescription>
             {rpcErrorMessage(dashboardQuery.error) ??
               t`Check your network and try again. If this keeps happening, contact support.`}{' '}
-            {/* 2026-05-26 (Step 6 UX audit #30): retry uses the
-                canonical `<Button variant="link">` instead of an
-                ad-hoc `<button className="underline">`. Keeps
-                button-pattern consistent across the app and inherits
-                the link variant's focus-visible ring + hover state. */}
+            {/* Retry uses the canonical `<Button variant="link">` instead
+                of an ad-hoc `<button className="underline">` — keeps the
+                button pattern consistent across the app and inherits the
+                link variant's focus-visible ring + hover state. */}
             <Button
               type="button"
               variant="link"
@@ -481,19 +381,15 @@ export function DashboardRoute() {
         </Alert>
       ) : null}
 
-      {/* 2026-05-27 (audit-drain X1 D17): "Changes since last visit"
-          surface — addresses φ's J5 journey ("returned from
-          vacation"). Sits between PageHeader and Alerts because
-          it's a read-back ("here's what shifted while you were
-          away"), not live work. MVP uses localStorage for
-          last-seen tracking; upgrade path is a server-side
-          `lastDashboardVisitAt` on the user model (ω-territory
-          contract change). The section ships its own collapse
-          affordance so power users who don't want it can hide. */}
-      {/* 2026-05-27 (Yuqi feedback round 1): "hide changes since last
-          visit for now" — section mount commented out. Component
-          file kept (changes-since-last-section.tsx) for future
-          revisit. Restore by uncommenting the line below. */}
+      {/* "Changes since last visit" surface — a read-back ("here's what
+          shifted while you were away"), not live work, so it sits between
+          PageHeader and Alerts. MVP uses localStorage for last-seen
+          tracking; upgrade path is a server-side `lastDashboardVisitAt`
+          on the user model. The section ships its own collapse affordance
+          so power users who don't want it can hide it. */}
+      {/* Section mount commented out for now. Component file kept
+          (changes-since-last-section.tsx) for future revisit. Restore by
+          uncommenting the line below. */}
       {/* <ChangesSinceLastSection /> */}
 
       {/* Daily brief — server-generated AI narrative of the day with
@@ -501,11 +397,10 @@ export function DashboardRoute() {
           `dashboard.load` already returns `brief`; the card renders
           null when none exists (feature-off firms). */}
       {(() => {
-        // 2026-06-10 (My work / Everyone): at scope='me' a missing brief
-        // means "the server just enqueued your personal brief" (no cron
-        // generates those) — render the card in its generating state
-        // instead of nothing, so the scope switch visibly answers. Firm
-        // scope keeps the old behavior: no brief row → no card.
+        // At scope='me' a missing brief means "the server just enqueued
+        // your personal brief" (no cron generates those) — render the
+        // card in its generating state instead of nothing, so the scope
+        // switch visibly answers. Firm scope: no brief row → no card.
         const brief =
           data?.brief ??
           (scope === 'me' && data
@@ -550,25 +445,21 @@ export function DashboardRoute() {
         )
       })()}
 
-      {/* 2026-06-08 (Yuqi /today #2): the standalone "AT A GLANCE"
-          tile row (Pencil bAULB) was removed — Pencil VJbaH folds the
-          day's headline numbers into the Daily Brief bar (qYrr3) above,
-          so a separate four-tile strip duplicated that signal with extra
-          chrome. The brief now carries the at-a-glance role. */}
+      {/* No standalone "AT A GLANCE" tile row — the Daily Brief bar above
+          carries the day's headline numbers, so a separate four-tile
+          strip would duplicate that signal with extra chrome. */}
       <NeedsAttentionSection />
 
-      {/* 2026-05-25 (Yuqi #5): the standalone <ExposureStrip>
-          section was merged into <DashboardActionsList> as its
-          summary header. Both rendered "this week" scope, so two
-          sections one after the other split the same concept
-          across redundant chrome. Counts now pass through as props. */}
+      {/* The <ExposureStrip> summary lives inside <DashboardActionsList>
+          as its header rather than as a separate section — both render
+          "this week" scope, so two sections in a row would split the same
+          concept across redundant chrome. Counts pass through as props. */}
       <section>
         <DashboardActionsList
           isLoading={dashboardQuery.isLoading}
           asOfDate={data?.asOfDate ?? null}
-          // 2026-06-10 (Yuqi /today CPA workflow): Today should surface
-          // the next best work across open deadlines, not wait until items
-          // enter the 7-day bucket. `topRows` is already the server-ranked
+          // Today surfaces the next best work across open deadlines, not
+          // only items in the 7-day bucket. `topRows` is the server-ranked
           // Smart Priority shortlist; the component keeps status grouping.
           rows={data?.topRows ?? []}
           totalOpen={data?.summary?.openObligationCount ?? 0}
@@ -604,9 +495,3 @@ function formatTodayHeader(asOfDate: string): string {
     day: 'numeric',
   }).format(date)
 }
-
-// 2026-06-03 (audit follow-up): `formatTodayHeaderWithWeekday`,
-// `todayGreetingPrefix`, and `firstNameFromDisplay` removed. They
-// served the personalized greeting path the Pencil VmcdD pass
-// retired. Restore from git history if the greeting is ever
-// re-introduced.

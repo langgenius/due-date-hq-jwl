@@ -192,12 +192,10 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   )
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  // 2026-05-27 (step-6 audit #107): destructive primary used to fire
-  // on a single click — a misclick could soft-delete the practice
-  // before the user could react. Gate behind a typed-name confirm
-  // matching the well-known GitHub / Linear / Vercel pattern. The
-  // input is cleared every time the dialog closes so a re-open
-  // starts from a clean state.
+  // Gate the destructive primary behind a typed-name confirm (the
+  // GitHub / Linear / Vercel pattern) so a single misclick can't
+  // soft-delete the practice. The input is cleared every time the
+  // dialog closes so a re-open starts from a clean state.
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
   const [savedPriorityProfile, setSavedPriorityProfile] = useState(() =>
     clonePriorityProfile(initialPriorityProfile),
@@ -310,12 +308,10 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     event.preventDefault()
     const trimmed = name.trim()
     if (trimmed.length < 2) {
-      // 2026-05-27 (step-6 audit #108): boilerplate form-validation
-      // copy → CPA-tuned framing. The practice name is the firm's
-      // display name across all member surfaces, audit log, and
-      // hosted billing — leading with "your firm's display name"
-      // anchors the user instead of reading like generic input
-      // validation.
+      // CPA-tuned validation copy: the practice name is the firm's
+      // display name across all member surfaces, audit log, and hosted
+      // billing — leading with "your firm's display name" anchors the
+      // user instead of reading like generic input validation.
       const message = t`Practice name needs at least 2 characters — this is your firm's display name across DueDateHQ.`
       setError(message)
       toast.error(t`Couldn't update practice`, {
@@ -391,13 +387,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     priorityProfile.historyCapCount >= MIN_HISTORY_CAP_COUNT &&
     priorityProfile.historyCapCount <= MAX_HISTORY_CAP_COUNT
   const priorityDirty = !samePriorityProfile(priorityProfile, savedPriorityProfile)
-  // 2026-05-27 (step-6 audit #110): the preview button is disabled
-  // for two distinct reasons — (1) no open deadlines to score against
-  // or (2) the current weights/ranges don't pass validation. Before
-  // this change the tooltip only surfaced reason (1), so a user with
-  // a weight total of 105% saw a disabled button and no explanation.
-  // Surface whichever reason currently blocks the action, with
-  // invalid weights taking precedence (the user just changed it).
+  // The preview button is disabled for two distinct reasons — (1) no
+  // open deadlines to score against or (2) the current weights/ranges
+  // don't pass validation. Surface whichever reason currently blocks
+  // the action, with invalid weights taking precedence (the user just
+  // changed it) so a 105% weight total never shows a disabled button
+  // with no explanation.
   const previewDisabledReason = !priorityValid
     ? t`Fix the Smart Priority inputs above before previewing — weights must total 100% and ranges must be valid.`
     : firm.openObligationCount === 0
@@ -429,9 +424,8 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     history: t`Late filing history`,
     readiness: t`Materials pressure`,
   }
-  // 2026-06-07 (Pencil H1YSCd): one-line "why this factor" hints shown
-  // beside each weight slider so the tuner reads without a separate
-  // legend. Mirrors the canvas copy.
+  // One-line "why this factor" hints shown beside each weight slider so
+  // the tuner reads without a separate legend. Mirrors the canvas copy.
   const priorityFactorHints: Record<SmartPriorityFactorKey, string> = {
     urgency: t`Distance from the due date`,
     importance: t`Penalty / regulatory weight of the task`,
@@ -460,8 +454,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   ).length
 
   return (
-    // 2026-05-26 (86th pass, audit §16.1 P1): migrated custom
-    // breadcrumb + header block to canonical `<PageHeader>`. The
+    // Canonical `<PageHeader>` for the breadcrumb + header block. The
     // brand-tinted Building2 icon stays inside the title prop as a
     // leading flourish; the role badge moves to the `actions` slot.
     // The firm-summary wrapper keeps its `role="note"` so screen
@@ -514,7 +507,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 <Trans>Only the practice owner can change the practice name or timezone.</Trans>
               </PermissionInlineNotice>
             ) : null}
-            {/* 2026-06-01: four practice-profile fields now use Field +
+            {/* The practice-profile fields use Field +
                 FieldLabel/FieldDescription so label-input spacing matches
                 the rest of the form family and the recalc warning rides
                 FieldDescription tone="warning" (single source for the
@@ -565,11 +558,11 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   Changing this recalculates current deadline dates.
                 </Trans>
               </FieldDescription>
-              {/* 2026-05-27 (step-6 audit #113): make the one-way
-                  nature of the change explicit. Reducing the offset
-                  recalculates every open deadline forward; reverting
-                  the number doesn't restore the prior dates. Audit
-                  history (the historical record) is unaffected. */}
+              {/* Make the one-way nature of the change explicit.
+                  Reducing the offset recalculates every open deadline
+                  forward; reverting the number doesn't restore the prior
+                  dates. Audit history (the historical record) is
+                  unaffected. */}
               <FieldDescription tone="warning">
                 <Trans>
                   Note: changes can't be reverted automatically — adjusting this back later won't
@@ -592,10 +585,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               </FieldDescription>
             </Field>
             {error ? (
-              // 2026-06-01: hand-rolled `<p role=alert>` swapped for the
-              // canonical destructive Alert — same accessible role, but
-              // picks up the bordered alert chrome the rest of the app
-              // uses for form-level errors.
+              // Canonical destructive Alert — same accessible role as a
+              // `<p role=alert>`, but picks up the bordered alert chrome
+              // the rest of the app uses for form-level errors.
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
@@ -641,11 +633,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             <div className="grid gap-4">
               <div className="grid gap-3">
                 <div className="flex items-center justify-between gap-3">
-                  {/* 2026-05-25 (info-icon audit): dropped the
-                      duplicate `smartPriority` popover — the
-                      CardTitle 23 lines above already carries it
-                      via ConceptLabel. One explainer per
-                      concept per screen. */}
+                  {/* No `smartPriority` popover here — the CardTitle
+                      above already carries it via ConceptLabel. One
+                      explainer per concept per screen. */}
                   <div className="flex items-center gap-1.5">
                     <Label>
                       <Trans>Factor weights</Trans>
@@ -661,13 +651,11 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                     <Trans>Total</Trans> {weightTotal}%
                   </span>
                 </div>
-                {/* 2026-05-27 (step-6 audit #109): when the four
-                    weights don't sum to 100 the previous shape only
-                    showed the destructive-color "Total NNN%" pill,
-                    leaving the user to guess by how much to nudge.
-                    Spell out the delta and the direction so the fix
-                    is mechanical: "Reduce factors by 5% to balance"
-                    or "Add 5% across factors to balance". */}
+                {/* When the four weights don't sum to 100, spell out the
+                    delta and the direction so the fix is mechanical
+                    ("Reduce factors by 5% to balance" / "Add 5% across
+                    factors to balance") rather than leaving the user to
+                    guess from the destructive-color "Total NNN%" pill. */}
                 {weightTotal !== 100 ? (
                   <p className="text-xs leading-5 text-text-destructive">
                     {weightTotal > 100 ? (
@@ -681,13 +669,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                     )}
                   </p>
                 ) : null}
-                {/* 2026-06-07 (Pencil H1YSCd): weights moved from number
-                    inputs to draggable sliders. Each row carries the
+                {/* Weights are draggable sliders. Each row carries the
                     factor name, a one-line "why" hint, and the live value;
-                    the slider sits on a 0–100 scale. The number-keyboard
-                    affordance is preserved via the Slider's built-in
-                    arrow-key + Home/End handling, and the value readout
-                    stays as a focusable hidden input for screen readers. */}
+                    the slider sits on a 0–100 scale. Keyboard entry works
+                    via the Slider's built-in arrow-key + Home/End
+                    handling, and the value readout stays as a focusable
+                    hidden input for screen readers. */}
                 <div className="grid gap-5">
                   {PRIORITY_FACTOR_KEYS.map((key) => (
                     <div key={key} className="grid gap-2.5">
@@ -729,9 +716,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
-                {/* 2026-06-01: ConceptHelp lives inline as a child of
-                    FieldLabel — FieldLabel already gap-2's its children
-                    so no extra flex wrapper is needed. */}
+                {/* ConceptHelp lives inline as a child of FieldLabel —
+                    FieldLabel already gap-2's its children so no extra
+                    flex wrapper is needed. */}
                 <Field>
                   <FieldLabel htmlFor="priority-urgency-window">
                     <Trans>Urgency window</Trans>
@@ -958,14 +945,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             variant="destructive-secondary"
             onClick={() => setConfirmDelete(true)}
             disabled={!canDeletePractice || deleteMutation.isPending}
-            // Audit-drain ρ ROH-D13 (2026-05-27): the Delete button
-            // was silently disabled for any non-owner role — no
-            // tooltip explained why the destructive action was
-            // greyed out. Added the same `title` pattern used by
-            // the dashboard Import button so the user sees "owner
-            // permission required" on hover. The card title +
-            // description already explain WHAT the action does;
-            // this fills in WHO can do it.
+            // The Delete button is disabled for any non-owner role; the
+            // `title` (same pattern as the dashboard Import button)
+            // surfaces "owner permission required" on hover so the
+            // disabled state isn't silent. The card title + description
+            // already explain WHAT the action does; this fills in WHO
+            // can do it.
             title={canDeletePractice ? undefined : t`Deleting the practice requires owner access.`}
             aria-label={canDeletePractice ? undefined : t`Delete practice (owner access required)`}
           >
@@ -996,11 +981,10 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               </Trans>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {/* 2026-05-27 (step-6 audit #107): typed-name confirm. The
-              user must type the exact practice name before the
-              destructive action enables. The expected name is
-              displayed verbatim so the user can copy-confirm rather
-              than guess casing/spacing. */}
+          {/* Typed-name confirm: the user must type the exact practice
+              name before the destructive action enables. The expected
+              name is displayed verbatim so the user can copy-confirm
+              rather than guess casing/spacing. */}
           <Field>
             <FieldLabel htmlFor="delete-practice-confirm">
               <Trans>
@@ -1138,8 +1122,8 @@ function PriorityPreviewTable({
                     <span className="font-medium text-text-primary">
                       <TaxCodeLabel code={row.taxType} /> — {row.clientName}
                     </span>
-                    {/* 2026-05-25 (date format audit): route ISO dates
-                        through the canonical formatDate helper. */}
+                    {/* Route ISO dates through the canonical formatDate
+                        helper. */}
                     <span className="text-xs text-text-tertiary">
                       {formatDate(row.currentDueDate)}
                     </span>

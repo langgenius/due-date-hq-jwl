@@ -223,16 +223,14 @@ import type {
   USFirmTimezone,
 } from '@duedatehq/contracts'
 
-// 2026-06-01: `Kbd` is now exported from patterns/kbd — gallery uses the
-// canonical primitive directly instead of a local lookalike.
+// The gallery uses the canonical `Kbd` primitive from patterns/kbd
+// directly instead of a local lookalike.
 
 /**
  * `/preview` — a developer-facing component gallery for browsing the
  * DueDateHQ design system. Renders the live components with their real
  * tokens, hover states, focus rings, and motion. Unprotected — no auth
  * required so designers can poke at this without setting up a demo session.
- *
- * Authored 2026-05-31 (Yuqi component-library preview request).
  */
 
 // Color tokens we want to surface at the top — the semantic ones designers
@@ -810,8 +808,8 @@ export function PreviewRoute() {
               <Button variant="link">Link</Button>
             </Row>
             {/* On a gray section pane: secondary's white fill pops, tertiary
-                keeps its boundary via the new hairline (2026-06-09), ghost
-                stays invisible until hover — the three stay distinguishable. */}
+                keeps its boundary via the hairline, ghost stays invisible
+                until hover — the three stay distinguishable. */}
             <Row label="On gray surface" mono="bg-background-section">
               <div className="flex flex-wrap items-center gap-2 rounded-lg bg-background-section p-3">
                 <Button variant="secondary">Secondary</Button>
@@ -2362,9 +2360,6 @@ export function PreviewRoute() {
           >
             <Row label="ClientPeekHoverCard" mono="features/clients/ClientPeekHoverCard">
               <ClientPeekHoverCard clientId="cli_mock_acme">
-                {/* 2026-06-01: swapped hand-rolled accent-link
-                    button for TextLink primitive (variant="accent"
-                    size="sm"). */}
                 <TextLink variant="accent" size="sm">
                   Hover over Acme LLC (mock client id)
                 </TextLink>

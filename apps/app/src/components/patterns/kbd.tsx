@@ -52,7 +52,7 @@ export function ShortcutHintChip({
   compact = false,
 }: {
   className?: string
-  // 2026-06-10 (Yuqi toolbar polish): `compact` drops the "for shortcuts"
+  // `compact` drops the "for shortcuts"
   // label and renders just the `?` keycap (with an accessible name +
   // native tooltip), so a dense action cluster isn't carrying a sentence.
   compact?: boolean

@@ -38,24 +38,24 @@ export function EmptyState({
   title: ReactNode
   description?: ReactNode
   cta?: ReactNode
-  // 2026-06-07: optional content below the CTA — e.g. the "what gets recorded"
+  // Optional content below the CTA — e.g. the "what gets recorded"
   // chip strip on the /alerts/history empty state. Prominent variant only.
   footer?: ReactNode
   className?: string
   density?: 'default' | 'compact'
-  // 2026-06-07 (design replication): `variant="prominent"` is the full-surface
+  // `variant="prominent"` is the full-surface
   // empty state from the canvas — a solid-border card with a tinted icon-circle,
   // a larger title, wider supporting copy, and room for one or more CTAs. Used
   // when the empty state OWNS the surface (e.g. an empty /deadlines or /alerts
   // list). `default` stays the quiet inline treatment used app-wide; `compact`
   // drops the card chrome for table-cell / drawer embeds.
   variant?: 'default' | 'prominent'
-  // 2026-06-07 (design replication O3s4ie / rR9X1): prominent icon-circle tone.
+  // Prominent icon-circle tone.
   // `accent` is the blue tint (Pencil active /alerts empty — 88px #eff4ff circle,
   // #155aef icon); `neutral` is the quieter gray tint (Pencil /alerts/history
   // empty — 72px #f9fafb circle, #98a2b2 icon). Ignored outside `prominent`.
   iconTone?: 'accent' | 'neutral'
-  // 2026-06-07: when true the prominent card stretches to fill its parent's
+  // When true the prominent card stretches to fill its parent's
   // height and vertically centers its column — matches the canvas cards which
   // own the whole content area (fixed 600px on the canvas; `min-h` here so it
   // never collapses below the design height but can grow with the viewport).
@@ -75,7 +75,7 @@ export function EmptyState({
           'gap-3 rounded-lg border border-dashed border-divider-regular bg-background-default px-6 py-10',
         isProminent &&
           'gap-6 rounded-xl border border-divider-regular bg-background-default px-10 py-20',
-        // 2026-06-07: `fill` makes the prominent card own the whole content
+        // `fill` makes the prominent card own the whole content
         // area (canvas cards are 600px tall, vertically centered). `min-h`
         // keeps the design height as a floor; `justify-center` centers the
         // column the way the canvas frame does.

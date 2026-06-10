@@ -88,10 +88,6 @@ type NavConfig = {
   footer: NavItem[]
 }
 
-// 2026-06-01: `firmMonogram` removed — both call sites now route
-// through AssigneeAvatar (type='firm', shape='square'), which calls
-// initialsFromName internally and falls back to 'DD' for empty names.
-
 const NAV_ROLE_LABELS = {
   owner: msg`Owner`,
   partner: msg`Partner`,
@@ -110,12 +106,11 @@ function navItemTooltip(item: NavItem, disabled: boolean): string {
   return item.label
 }
 
-// 2026-06-10 (practice switcher removed): the sidebar header no longer
-// opens a practice switcher — multi-practice switching and the self-serve
-// "Add practice" dialog left the UI (the `firms.switchActive` /
-// `firms.create` procedures stay server-side; onboarding still drives
-// them). The header is now a STATIC workspace identity. It keeps the
-// Pencil v202hj §BrandHeader box metrics — fixed h-10, rounded-xl 1px
+// The sidebar header does not open a practice switcher — multi-practice
+// switching and the self-serve "Add practice" dialog are not in the UI
+// (the `firms.switchActive` / `firms.create` procedures stay server-side;
+// onboarding still drives them). The header is a STATIC workspace identity.
+// It keeps the Pencil v202hj §BrandHeader box metrics — fixed h-10, rounded-xl 1px
 // border, 32px monogram + practice name — minus the chevron and every
 // interactive affordance (cursor, hover border, focus ring, hotkey),
 // so expanded/collapsed layout behaves exactly as before: collapsing
@@ -123,7 +118,7 @@ function navItemTooltip(item: NavItem, disabled: boolean): string {
 // hides the name via its own group-collapsed:hidden.
 function FirmIdentityHeader({ firm }: { firm: FirmPublic }) {
   return (
-    // 2026-05-26 (Yuqi sidebar bug): `SidebarHeader` is a `flex
+    // `SidebarHeader` is a `flex
     // flex-col` wrapper with no grow constraint. `min-w-0 flex-1`
     // makes it expand to fill the header row so siblings the
     // app-shell may place beside it stay inside the sidebar
@@ -132,19 +127,19 @@ function FirmIdentityHeader({ firm }: { firm: FirmPublic }) {
     <SidebarHeader className="min-w-0 flex-1">
       <div
         title={firm.name}
-        className="flex h-10 w-full min-w-0 items-center gap-2.5 rounded-xl p-1"
+        className="flex h-10 w-full min-w-0 items-center gap-2 rounded-xl p-1"
       >
-        {/* 2026-06-09 (Yuqi follow-up — monogram restored to match
-            Pencil §BrandHeader): the 32px monogram tile renders in BOTH
-            modes — beside the name when expanded, and as the standalone
-            workspace identity in the collapsed rail. */}
+        {/* The workspace monogram is `sm` (28px) — same size as the
+            footer user avatar so the top + bottom of the rail bookend as a
+            matched pair. Shape stays SQUARE (org) vs the user's round
+            (person). Renders in both modes. */}
         <span className="flex shrink-0">
           <AssigneeAvatar
             name={firm.name}
             title={firm.name}
             type="firm"
             shape="square"
-            size="md"
+            size="sm"
             className="shrink-0"
           />
         </span>
@@ -183,9 +178,9 @@ function SidebarQuickFind() {
   const collapsedRail = collapsed && !isMobile
 
   return (
-    // 2026-06-09 (Yuqi "copy exactly from pencil" §QuickSearch): height
-    // 40 (h-10), padding [0,12] → px-3, gap 8 → gap-2, cornerRadius 8
-    // (rounded-lg), fill #f2f4f7 (bg-background-subtle). No wrapper
+    // Pencil §QuickSearch metrics: height 40 (h-10), padding [0,12] → px-3,
+    // gap 8 → gap-2, cornerRadius 8 (rounded-lg), fill #f2f4f7
+    // (bg-background-subtle). No wrapper
     // padding (the card panel's p-3 owns it) and no collapsed re-
     // centering: the metrics are identical in both modes. Collapsed only
     // drops the fill (Pencil §xiZyr QuickSearch is unfilled) and hides
@@ -198,7 +193,7 @@ function SidebarQuickFind() {
       aria-keyshortcuts="Meta+K Control+K"
       title={collapsedRail ? t`Quick find` : undefined}
       className={cn(
-        // 2026-06-10 (Yuqi "restrain borders and lines"): NO border on the
+        // NO border on the
         // search field — the white fill alone lifts it off the #f6f8fa
         // card. Hover is a subtle bg wash (same token as the nav rows),
         // not a border darken. Collapsed drops the fill so the icon
@@ -209,10 +204,11 @@ function SidebarQuickFind() {
         'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',
       )}
     >
-      <SearchIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-      {/* 13px — a step below the 15px nav labels so the search hint reads
-          quieter. Muted tone. */}
-      <span className="min-w-0 flex-1 truncate text-base group-data-[collapsed=true]/sidebar:hidden">
+      <SearchIcon className="size-4 shrink-0 text-text-muted" aria-hidden />
+      {/* 13px placeholder — a step below the 15px nav labels so the search
+          hint reads as a quiet prompt, not a heading. (Was an oversized
+          16px, which made the field look clunky.) */}
+      <span className="min-w-0 flex-1 truncate text-base text-text-muted group-data-[collapsed=true]/sidebar:hidden">
         {t`Quick find…`}
       </span>
       {/* ⌘K hint — plain muted mono text (no keycap box) so the field
@@ -224,30 +220,27 @@ function SidebarQuickFind() {
   )
 }
 
-// 2026-05-24 (critique P0): the sidebar Alerts badge previously read
-// from `notifications.unreadCount`. That bucket covers @-mentions,
-// status changes, system events — anything that lands in the unified
-// Inbox — while the Alerts sidebar entry and the Today "Alerts" strip
-// both scope to alert-source changes. Result: three
-// surfaces claiming the same word counted three different things
-// (2 sidebar, 3 Today, 4 Alerts history).
+// The sidebar Alerts badge does NOT read from `notifications.unreadCount`.
+// That bucket covers @-mentions, status changes, system events — anything
+// that lands in the unified Inbox — while the Alerts sidebar entry and the
+// Today "Alerts" strip both scope to alert-source changes. Mixing them
+// would have three surfaces claiming the same word count three different
+// things.
 //
-// 2026-05-24 (B2): the badge now uses the dedicated `pulse.activeCount`
-// endpoint — a true `COUNT(*)` against the same WHERE clause
-// `listAlerts` uses. The previous shape fetched up to 50 rows just to
-// call `.length` on the array, so any firm with more than 50 active
-// alerts saw "50" in the badge (silent truncation). The count endpoint
-// has no upper bound; Today's section still uses `listAlerts(50)`
-// because it needs the row contents to render the alert cards.
+// The badge uses the dedicated `pulse.activeCount` endpoint — a true
+// `COUNT(*)` against the same WHERE clause `listAlerts` uses. Fetching
+// up to 50 rows and calling `.length` would silently truncate to "50"
+// for any firm with more than 50 active alerts; the count endpoint has
+// no upper bound. Today's section still uses `listAlerts(50)` because it
+// needs the row contents to render the alert cards.
 //
-// 2026-05-29 (Alerts active/history split): keep this badge scoped to
-// the active queue. Alert history is now CPA-handled alerts and can
-// include applied / dismissed rows that should not inflate
+// Keep this badge scoped to the active queue. Alert history is CPA-handled
+// alerts and can include applied / dismissed rows that should not inflate
 // the sidebar's needs-attention count.
 //
-// 2026-06-08 (Yuqi "wire them correctly"): `useActiveAlertCount` now lives in
-// `features/alerts/api` and is shared by the sidebar badge, the /alerts header
-// pill, and the detail rail head — one authoritative count, so all three agree.
+// `useActiveAlertCount` lives in `features/alerts/api` and is shared by the
+// sidebar badge, the /alerts header pill, and the detail rail head — one
+// authoritative count, so all three agree.
 
 function useRuleLibraryPendingCount(): number {
   // Aggregate pending-review rule count across all jurisdictions for the
@@ -275,10 +268,9 @@ function useClientsCount(): number {
 
 function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
   const { t } = useLingui()
-  // 2026-05-24 (critique P0): switched from notifications.unreadCount
-  // (which mixed @-mentions and system notifications into the count)
-  // to useActiveAlertCount (alert-source only). Sidebar and Today now
-  // share one cache entry and report the same number.
+  // useActiveAlertCount is alert-source only (not notifications.unreadCount,
+  // which mixes @-mentions and system notifications into the count). Sidebar
+  // and Today share one cache entry and report the same number.
   const alertCount = useActiveAlertCount()
   const alertBadge = alertCount > 0 ? String(alertCount) : undefined
   const ruleReviewCount = useRuleLibraryPendingCount()
@@ -296,7 +288,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
     firm.openObligationCount > 0 ? String(firm.openObligationCount) : undefined
   return useMemo<NavConfig>(() => {
     if (navV2) {
-      // v2 IA per 2026-05-19 design mockup. Alerts is a top-level
+      // v2 IA. Alerts is a top-level
       // primary item (mirrored by the dashboard's NEEDS ATTENTION
       // surface). Coverage / Library consolidate under their own
       // group. Practice management gathers Team, Workload, Billing,
@@ -305,7 +297,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
       // Contacts and Payments aren't built yet — deferred until
       // those routes exist.
       return {
-        // 2026-05-20 layout: three standalone items above the RULE
+        // Three standalone items above the RULE
         // group — no "Operations" label. Order reads as the CPA's
         // morning routine: glance Today → triage Deadlines. The
         // Inbox lives behind the bell icon in the top-right utility
@@ -313,11 +305,10 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
         // popover; the expand icon there promotes to the full-page
         // Inbox at /notifications. Surfacing Inbox in the sidebar
         // too created two top-level destinations for the same thing.
-        // 2026-05-25 (Yuqi Today follow-up — sidebar icon set):
-        //   Today        → Calendar (plain calendar grid; Yuqi
-        //                   walked back the Calendar1 day-marker
-        //                   variant — the open grid reads cleaner
-        //                   at sidebar scale)
+        // Sidebar icon set:
+        //   Today        → Calendar (plain calendar grid, not the
+        //                   Calendar1 day-marker variant — the open
+        //                   grid reads cleaner at sidebar scale)
         //   Alerts       → Megaphone (a literal announcement vector,
         //                   matches the alert concept of "the system
         //                   is broadcasting at you")
@@ -363,10 +354,9 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
               ? { badge: ruleReviewBadge, badgeTooltip: t`${ruleReviewCount} rules pending review` }
               : {}),
           },
-          // 2026-06-08 (IA audit — "Sources in the sidebar"): the
-          // monitored-source health page (/rules/sources) was only
-          // reachable via a button on the Alerts page. Surface it in the
-          // rail next to Rule library — both belong to alert monitoring
+          // The monitored-source health page (/rules/sources) is
+          // surfaced in the rail next to Rule library — both belong
+          // to alert monitoring
           // (the system watches these sources and raises alerts when a
           // rule drifts). SatelliteDishIcon matches the Alerts feature's
           // existing Sources iconography (AlertsListPage, PulseToneIcon).
@@ -398,12 +388,11 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           },
         ],
         footer: [
-          // 2026-05-25 (Yuqi sidebar polish): "Alerts archive" was
-          // promoted out of the sidebar footer — it's a sub-page
-          // of /alerts (review what already happened on the same
-          // surface), not a peer of Audit log / Settings.
-          // Now lives as an "Archive" button inside the /alerts
-          // page header instead. See features/alerts/AlertsListPage.tsx.
+          // "Alerts archive" is not in the sidebar footer — it's a
+          // sub-page of /alerts (review what already happened on the
+          // same surface), not a peer of Audit log / Settings. It
+          // lives as an "Archive" button inside the /alerts page
+          // header instead. See features/alerts/AlertsListPage.tsx.
           { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
           { href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false },
         ],
@@ -412,8 +401,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
     // Legacy (default) sidebar.
     return {
       primary: [],
-      // 2026-05-25 (Yuqi Today follow-up — sidebar icon set): same
-      // four-icon swap as the navV2 branch above. Legacy nav stays in
+      // Same four-icon set as the navV2 branch above. Legacy nav stays in
       // sync so the iconography reads identically regardless of flag.
       operations: [
         { href: '/', label: t`Today`, icon: CalendarIcon, end: true },
@@ -523,11 +511,10 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
             ))}
           </NavGroupSection>
         ) : null}
-        {/* 2026-06-09 (Yuqi new design v202hj §ClientsLabel): the CLIENTS
-            eyebrow is back. It both labels the group and separates Clients
+        {/* The CLIENTS eyebrow both labels the group and separates Clients
             from the RULE group above (Rule library + Sources) — Clients is
             its own destination, not a rule. The label's own top padding
-            provides the break, so the earlier manual `mt-3` is gone. */}
+            provides the break. */}
         <NavGroupSection label={t`Clients`}>
           {items.practice.map((item) => (
             <NavMenuItem key={item.href} item={item} />
@@ -562,8 +549,7 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
         {items.footer.map((item) => (
           <NavMenuItem key={item.href} item={item} />
         ))}
-        {/* 2026-05-28 (Yuqi /today polish — bell back in sidebar):
-            Inbox bell sits with the rest of the footer's account-
+        {/* Inbox bell sits with the rest of the footer's account-
             level controls (Audit log, Settings). The bell renders
             its own sidebar-styled trigger inside `AlertsNotifications-
             Bell`, so we just drop it next to its siblings inside the
@@ -589,17 +575,15 @@ function NavGroupSection({
   className?: string
   children: ReactNode
 }) {
-  // 2026-05-25 (Yuqi #31): `muted` groups (today: Audit log +
-  // Settings) get pushed to the bottom of the sidebar via
-  // `mt-auto`. They're secondary nav — the eye expects to find
-  // them at the bottom of the rail, not directly under the primary
-  // groups. Without this they sit immediately under Clients with no
-  // separation.
-  // 2026-06-09 (Yuqi delicacy pass — rhythm & hairlines): the muted
-  // footer group (Audit log + Settings) now carries a faint hairline +
-  // top padding so it anchors the footer zone (the user chip below it
-  // drops its own divider, so there's ONE line, not two). The dimming
-  // moves onto the content so the hairline itself stays full-strength.
+  // `muted` groups (Audit log + Settings) get pushed to the bottom of
+  // the sidebar via `mt-auto`. They're secondary nav — the eye expects
+  // to find them at the bottom of the rail, not directly under the
+  // primary groups; without this they sit immediately under Clients with
+  // no separation.
+  // The muted footer group carries a faint hairline + top padding so it
+  // anchors the footer zone (the user chip below it drops its own
+  // divider, so there's ONE line, not two). The dimming moves onto the
+  // content so the hairline itself stays full-strength.
   return (
     <SidebarGroup
       className={cn(muted && 'mt-auto border-t border-divider-subtle pt-2.5', className)}
@@ -619,10 +603,9 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
   const badgeTone = item.badgeTone ?? 'urgent'
   const tooltipDisabled = !collapsed || isMobile
 
-  // 2026-05-26 (Yuqi sixty-ninth pass — "sidebar should stay
-  // expanded when I navigate"): on click, notify the sidebar
-  // context so the destination route's auto-collapse-on-panel-
-  // mount is absorbed. The user explicitly chose to be on a new
+  // On click, notify the sidebar context so the destination route's
+  // auto-collapse-on-panel-mount is absorbed and the rail stays
+  // expanded. The user explicitly chose to be on a new
   // page; landing there with the rail already collapsed would
   // contradict that intent. If they later click a row IN the new
   // page, auto-collapse fires normally — the absorber is a
@@ -677,8 +660,8 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
 }
 
 function NavItemBadge({ value, tone }: { value: string; tone: NonNullable<NavItem['badgeTone']> }) {
-  // 2026-05-26 (rebase reconciliation): origin/main's sidebar primitive
-  // doesn't export SidebarMenuBadgeDot. The badge alone carries the
+  // The sidebar primitive doesn't export SidebarMenuBadgeDot.
+  // The badge alone carries the
   // value + tone — the collapsed-mode dot can be reintroduced as a
   // follow-up if needed.
   return (

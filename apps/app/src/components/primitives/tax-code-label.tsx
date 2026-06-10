@@ -94,10 +94,8 @@ function TaxCodeBadge({
         render={(props) => (
           <Badge
             variant="outline"
-            // 2026-06-04 round 3 (Yuqi feedback #10 "Filing badge
-            // should use lighter weight"): `font-bold` (700) →
-            // `font-medium` (500). The mono face + the tight
-            // tracking already give the code chip enough
+            // `font-medium` (500), not bold: the mono face + the
+            // tight tracking already give the code chip enough
             // identity; bold made it shout next to the row's
             // body text.
             className={cn(

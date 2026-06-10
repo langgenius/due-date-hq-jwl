@@ -84,10 +84,9 @@ export function SurfaceSummaryStrip({
         )}
       </div>
       {detailHref && detailLabel ? (
-        // 2026-06-01: swap hand-rolled "text-text-accent hover:underline"
-        // Link for the canonical TextLink primitive (accent variant, default
-        // text-xs size). `shrink-0` is preserved as a layout-context override
-        // since the primitive lives inside a flex row that can collapse.
+        // TextLink primitive (accent variant, default text-xs size).
+        // `shrink-0` is a layout-context override since the primitive lives
+        // inside a flex row that can collapse.
         <TextLink
           variant="accent"
           size="default"

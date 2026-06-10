@@ -57,7 +57,7 @@ const OPEN_OBLIGATION_STATUSES: ObligationStatus[] = [
   'waiting_on_client',
   'review',
 ]
-// 2026-05-23: widened the list query to include terminal-state rows
+// The list query includes terminal-state rows
 // so the /clients list can render a DONE count column alongside OPEN.
 // Open rows still populate next-due tracking; done rows only bump the
 // done count (the summary builder distinguishes by status). For larger
@@ -126,14 +126,13 @@ export function ClientsRoute() {
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
   const canRunMigration = permission.can('migration.run')
-  // Audit-drain ρ ROH-D1 (2026-05-27): gate the "+ New client" split
-  // button so coordinator (read-only) sees disabled + tooltip instead
-  // of a dialog that 403s on submit. Server already enforces the
-  // mutation; this is the missing UI affordance.
+  // Gate the "+ New client" split button so coordinator (read-only)
+  // sees disabled + tooltip instead of a dialog that 403s on submit.
+  // Server already enforces the mutation; this is the UI affordance.
   const canCreateClient = permission.can('client.write')
-  // 2026-06-07 (design replication): the empty-state hero's "Add one
-  // manually" CTA opens the create dialog programmatically (hidden
-  // trigger). Controlled here so the hero can drive it.
+  // The empty-state hero's "Add one manually" CTA opens the create
+  // dialog programmatically (hidden trigger). Controlled here so the
+  // hero can drive it.
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const entityLabels = useEntityLabels()
   const [
@@ -223,11 +222,10 @@ export function ClientsRoute() {
     alertHistoryQuery.isLoading ||
     alertDetailsLoading
 
-  // 2026-05-24 (useEffect audit): cycle-list write moved into the
-  // row-click handler inside ClientFactsWorkspace. That writes
-  // sessionStorage only on actual navigation intent rather than on
-  // every filteredClients change, and removes one of the app's
-  // useEffect violations per the AGENTS.md rule.
+  // The cycle-list write lives in the row-click handler inside
+  // ClientFactsWorkspace, so it writes sessionStorage only on actual
+  // navigation intent rather than on every filteredClients change (and
+  // avoids a useEffect per the AGENTS.md rule).
   const createMutation = useMutation(
     orpc.clients.create.mutationOptions({
       onSuccess: (client) => {
@@ -277,16 +275,14 @@ export function ClientsRoute() {
 
   const hasSampleClients = clients.some((c) => c.isSample)
 
-  // 2026-05-26 (Yuqi /clients directory pivot brief): inline search
-  // handler. The `q` URL param flows through normalizeClientsQueryFilters
-  // → filters.search → filterClients haystack. Passing `null` when the
-  // value is empty clears the param entirely so shared URLs don't carry
-  // dangling `?q=` suffixes.
-  // 2026-05-27 (Yuqi step-8 data-finding audit — F-C01): rate-limit
-  // the URL write the same way /deadlines does. Every keystroke
-  // previously rewrote the address bar AND grew the history-replace
-  // stack on each character; rate-limiting batches the URL settle
-  // ~350ms after the user stops typing. The SearchInput `value`
+  // Inline search handler. The `q` URL param flows through
+  // normalizeClientsQueryFilters → filters.search → filterClients
+  // haystack. Passing `null` when the value is empty clears the param
+  // entirely so shared URLs don't carry dangling `?q=` suffixes.
+  // Rate-limit the URL write the same way /deadlines does: otherwise
+  // every keystroke rewrites the address bar AND grows the
+  // history-replace stack on each character. Rate-limiting batches the
+  // URL to settle ~350ms after the user stops typing. The SearchInput `value`
   // still binds to the URL-backed `searchQuery` (nuqs returns the
   // pending value optimistically during the rate-limit window — see
   // https://nuqs.dev/docs/options#limitUrlUpdates), so the visible
@@ -369,14 +365,11 @@ export function ClientsRoute() {
   )
 
   return (
-    // 2026-05-26 (Yuqi macro→micro audit, Fix #1 + Fix #6 / §2.1):
-    // /clients adopts the sticky-footer variant of the canonical
-    // outer container — same shape as /deadlines. Required by Phase 7
-    // (table-card frame + responsive page-size, §6) which assumes the
-    // parent column has a defined viewport-driven height so the inner
-    // card's `flex-1 min-h-0` rows-area can actually flex. Was Regular
-    // (`gap-6 pb-4 md:pb-6`); now Sticky-footer (`gap-4 pb-0
-    // xl:h-screen xl:overflow-hidden`).
+    // /clients uses the sticky-footer variant of the canonical outer
+    // container — same shape as /deadlines. The table-card frame +
+    // responsive page-size assumes the parent column has a defined
+    // viewport-driven height so the inner card's `flex-1 min-h-0`
+    // rows-area can actually flex.
     <div
       className={cn(
         'mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-0 md:px-8 md:pb-0',
@@ -387,25 +380,19 @@ export function ClientsRoute() {
         title={
           <span className="inline-flex items-center gap-2">
             <Trans>Clients</Trans>
-            {/* 2026-05-23: count chip next to the title gives a one-glance
-                "how many clients does this firm manage?" signal.
-                2026-05-26 (Yuqi /clients directory pivot brief): chip
-                copy drops the word "Client(s)" — the title already
-                says "Clients", a chip saying "47 Clients" reads as
-                repetitive. Matches the canonical title-chip pattern
-                (page-family-canonical §3) where the chip carries a
-                qualifier number only ("47") or noun+number when the
-                noun differs from the title (e.g. "17 open" on
-                /deadlines).
-                2026-05-27 (Step 6 UX audit #62): when any filter is
-                active the chip now shows "N of M" so the CPA can see
-                both the filtered subset AND the total at a glance.
-                Previously the chip kept the unfiltered total even
-                when 8 of 47 rows were visible, which made the chip
-                lie about the visible list. */}
-            {/* 2026-06-01: swapped hand-rolled count pill for
-                Badge primitive (variant="secondary" size="lg")
-                — canonical PageHeader-title count chip. */}
+            {/* Count chip next to the title gives a one-glance "how many
+                clients does this firm manage?" signal. The chip drops the
+                word "Client(s)" — the title already says "Clients", so a
+                chip saying "47 Clients" would read as repetitive. Matches
+                the canonical title-chip pattern (page-family-canonical §3)
+                where the chip carries a qualifier number only ("47") or
+                noun+number when the noun differs from the title (e.g. "17
+                open" on /deadlines). When any filter is active the chip
+                shows "N of M" so the CPA sees both the filtered subset AND
+                the total at a glance — keeping the unfiltered total would
+                make the chip lie about the visible list. */}
+            {/* Badge primitive (variant="secondary" size="lg") —
+                canonical PageHeader-title count chip. */}
             <Badge variant="secondary" size="lg" className="tabular-nums">
               {filteredClients.length === clients.length
                 ? clients.length
@@ -415,8 +402,7 @@ export function ClientsRoute() {
         }
         actions={
           <>
-            {/* 2026-05-27 (Step 6 UX flows audit H2.7): keyboard
-                shortcut chip — same as /today and /alerts.
+            {/* Keyboard shortcut chip — same as /today and /alerts.
                 Discoverability for `?` without forcing users to
                 guess which key opens the help dialog. */}
             <ShortcutHintChip className="hidden md:inline-flex" />
@@ -430,15 +416,12 @@ export function ClientsRoute() {
                 <Trans>Remove sample data</Trans>
               </Button>
             ) : null}
-            {/* 2026-05-25 (Yuqi /clients #2): the button opens migration
-                import history, not client archival. Keep the visible label
-                aligned with the drawer title so "Archive" does not read as
-                a destructive client action. */}
-            {/* 2026-05-27 (Step 6 UX audit #63): button has a visible
-                "Import history" label already; the duplicate `title`
-                tooltip just repeated the same text on hover. Dropped
-                the redundant title — `aria-label` stays for AT users
-                if the visible label ever becomes icon-only. */}
+            {/* The button opens migration import history, not client
+                archival. Keep the visible label aligned with the drawer
+                title so "Archive" does not read as a destructive client
+                action. No `title` tooltip (it would just repeat the
+                visible "Import history" label); `aria-label` stays for AT
+                users if the visible label ever becomes icon-only. */}
             <Button
               variant="outline"
               size="sm"
@@ -460,9 +443,8 @@ export function ClientsRoute() {
         }
       />
 
-      {/* 2026-05-26 (Stripe-bar /clarify pass — re-applied per Yuqi's
-          "address all" direction): inline tip surfaces when the firm
-          has fewer than 5 clients. Once the firm exceeds the
+      {/* Inline tip surfaces when the firm has fewer than 5 clients.
+          Once the firm exceeds the
           threshold the banner self-suppresses; if the CPA dismisses
           it sooner the localStorage key keeps it hidden across
           sessions. CTA is gated on canRunMigration so the link never
@@ -485,10 +467,9 @@ export function ClientsRoute() {
           <AlertDescription>
             {rpcErrorMessage(clientsQuery.error) ??
               t`Check your network and try again. If this keeps happening, contact support.`}{' '}
-            {/* 2026-05-26 (Step 6 UX audit #64): retry uses the canonical
-                `<Button variant="link">` instead of an ad-hoc
-                `<button className="underline">`. Same fix as the
-                dashboard error-alert in /today (Step 6 #30). */}
+            {/* Retry uses the canonical `<Button variant="link">`
+                instead of an ad-hoc `<button className="underline">` —
+                same as the dashboard error-alert in /today. */}
             <Button
               type="button"
               variant="link"
@@ -532,8 +513,8 @@ export function ClientsRoute() {
         onSampleData={canCreateClient ? () => seedSampleMutation.mutate({}) : undefined}
       />
 
-      {/* 2026-06-07 (design replication): controlled create dialog driven by
-          the empty-state hero's "Add one manually" CTA. Trigger is hidden —
+      {/* Controlled create dialog driven by the empty-state hero's
+          "Add one manually" CTA. Trigger is hidden —
           the directory's primary "+ New client" affordance still lives in
           the ClientsCreateSplitButton in the page header. */}
       <CreateClientDialog

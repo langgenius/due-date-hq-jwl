@@ -99,21 +99,12 @@ export function StateRuleActivationSelector({
 
   return (
     <div className="mt-5 flex flex-col gap-2.5">
-      {/* 2026-05-29 (R4 onboarding polish #5 + #6): the header used
-          to be a horizontal row — title block (eyebrow-styled
-          "STATE RULE COVERAGE (OPTIONAL)" + helper) on the left,
-          [Select all] [0/56] on the right. Two issues. (#5) The
-          eyebrow treatment didn't match the canonical <Label>
-          primitive used for "Practice name" and "Internal deadline
-          lead time" three lines above — same visual concept ("name
-          of this field"), three different stylings. (#6) At
-          max-w-[400px] the two right-side controls competed with
-          the two-line description for horizontal room and squashed
-          everything. Vertical layout puts the field name + helper
-          on top in the canonical Label style; the controls drop
-          below at full width with [Select all] taking the lead
-          edge and [0/56] anchoring the trailing edge — same visual
-          grammar as a typical settings row. */}
+      {/* Vertical header layout: the field name + helper sit on top in the
+          canonical Label style; the controls drop below at full width with
+          [Select all] taking the lead edge and [0/56] anchoring the trailing
+          edge — same visual grammar as a typical settings row. A horizontal
+          row would let the two controls compete with the two-line description
+          for horizontal room at max-w-[400px] and squash everything. */}
       <div className="flex flex-col gap-1.5">
         {/* Mirrors the canonical <Label> token (text-sm font-medium
             leading-none text-text-primary) — using a <p> instead of
@@ -167,10 +158,7 @@ export function StateRuleActivationSelector({
                         aria-label={selectedState ? t`${label}, selected` : label}
                         aria-pressed={selectedState}
                         style={{ gridRow: row, gridColumn: column }}
-                        // 2026-05-29 (R4 onboarding polish #8): tile
-                        // label was text-caption-xs (11px) + font-
-                        // semibold which read heavy against the
-                        // 28px tile. Dropped to text-[10px] +
+                        // Tile label is text-[10px] +
                         // font-medium so the 2-letter code reads
                         // as a state abbreviation, not a button
                         // label competing with the tile itself.
@@ -201,12 +189,10 @@ export function StateRuleActivationSelector({
       </div>
 
       {sourceDefinedReviewStates.length > 0 ? (
-        // 2026-05-26 (Step 7 onboarding F5-08): copy rewrite —
-        // "source-defined calendar" / "pending rules" was internal
-        // vocab a first-run user has no context for. New copy names
-        // the source ("state's own calendar") and uses the concrete
-        // verb "approve" instead of abstract "review". Size kept
-        // at text-sm (Step 7's text-[12px] arbitrary not canonical).
+        // Copy names the source ("state's own calendar") and uses the concrete
+        // verb "approve" instead of abstract "review" — "source-defined
+        // calendar" / "pending rules" is internal vocab a first-run user has
+        // no context for. Size is text-sm (canonical).
         <div className="rounded-lg border border-state-warning-hover-alt bg-state-warning-hover px-3 py-2 text-sm leading-relaxed text-text-secondary">
           <span className="font-medium text-text-primary">
             <Trans>Rule Library review required.</Trans>

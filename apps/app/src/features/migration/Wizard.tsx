@@ -102,14 +102,13 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
     clientCount: number
     obligationCount: number
   } | null>(null)
-  // 2026-06-07 (Cluster 3 — design uoNwI): the Applied success surface.
-  // Set on apply success; renders the full SuccessModal (hero + stats +
-  // 24h undo countdown + what-next) in place of the prior toast-only path.
+  // The Applied success surface. Set on apply success; renders the full
+  // SuccessModal (hero + stats + 24h undo countdown + what-next).
   const [successData, setSuccessData] = useState<SuccessModalData | null>(null)
   // Step 4 re-import dedup choice; default 'skip' matches the server default.
   const [duplicateHandling, setDuplicateHandling] = useState<DuplicateHandling>('skip')
-  // 2026-06-07 (Cluster 3 — design SLw8Q/dCUv7): the "Import history"
-  // header button opens the existing drawer in-place over the wizard.
+  // The "Import history" header button opens the existing drawer in-place
+  // over the wizard.
   const [importHistoryOpen, setImportHistoryOpen] = useState(false)
   // Guards one-time HYDRATE per resumed batch so user edits aren't clobbered.
   const hydratedBatchIdRef = useRef<string | null>(null)
@@ -505,12 +504,11 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
             clientCount: result.clientCount,
             obligationCount: result.obligationCount,
           })
-          // 2026-06-07 (Cluster 3 — design uoNwI): keep the brief genesis
-          // pulse as the "wow" beat, then reveal the full success modal
-          // instead of auto-navigating to the dashboard. The modal owns
-          // the next-step navigation (Open dashboard / Import another /
-          // Revert batch). The genesis.completed event still fires so any
-          // app-shell listeners can react.
+          // Keep the brief genesis pulse as the "wow" beat, then reveal the
+          // full success modal instead of auto-navigating to the dashboard.
+          // The modal owns the next-step navigation (Open dashboard / Import
+          // another / Revert batch). The genesis.completed event still fires
+          // so any app-shell listeners can react.
           const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
           window.setTimeout(
             () => {
@@ -571,12 +569,10 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
     }
   }, [state.intake.rawText])
 
-  // 2026-05-26 (Step 7 onboarding audit F6-27 considered):
-  // step-specific labels ("Review mapping" / "Clean values" /
-  // "Preview import") would preview the next phase, but
-  // Wizard.test.tsx looks for a literal "Continue" button on
-  // Steps 1-3. Documenting in the audit doc; copy change
-  // belongs in a single commit that also updates tests.
+  // Step-specific labels ("Review mapping" / "Clean values" / "Preview
+  // import") would preview the next phase, but Wizard.test.tsx looks for a
+  // literal "Continue" button on Steps 1-3 — any copy change must update the
+  // tests in the same commit.
   const continueLabel = useMemo(() => {
     if (state.step !== 4) return undefined
     return <Trans>Import &amp; Generate</Trans>
@@ -642,8 +638,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
           })
         },
         onSuccess: () => {
-          // 2026-05-25 (Wizard #40 — plural fix): same shape as
-          // the "Import complete" toast above — pluralise both
+          // Same shape as the "Import complete" toast above — pluralise both
           // sides so n=1 reads "1 client · 1 deadline".
           const undoClientPart = i18n._(
             plural(pendingRevert.clientCount, { one: '# client', other: '# clients' }),
@@ -805,8 +800,8 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
       </AlertDialog>
       <LiveGenesisOverlay genesis={genesis} />
 
-      {/* 2026-06-07 (Cluster 3 — design uoNwI): full Applied success surface,
-          shown once apply resolves. Owns the post-import navigation choices. */}
+      {/* Full Applied success surface, shown once apply resolves. Owns the
+          post-import navigation choices. */}
       {successData ? (
         <SuccessModal
           open
@@ -831,11 +826,10 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
         />
       ) : null}
 
-      {/* 2026-06-07 (Cluster 3): mount the drawer only while open. The
-          drawer's own hooks (useMigrationWizard, usePracticeTimezone)
-          assume the wider app providers; gating the mount keeps the
-          wizard renderable in isolation (tests mount <Wizard> directly,
-          without MigrationWizardProvider). */}
+      {/* Mount the drawer only while open. The drawer's own hooks
+          (useMigrationWizard, usePracticeTimezone) assume the wider app
+          providers; gating the mount keeps the wizard renderable in isolation
+          (tests mount <Wizard> directly, without MigrationWizardProvider). */}
       {importHistoryOpen ? (
         <ImportHistoryDrawer
           open={importHistoryOpen}
@@ -862,11 +856,10 @@ function LiveGenesisOverlay({
   // mounted at z-50; this genesis overlay sits *above* that so the
   // count + spinner stay visible while the wizard finalises.
   //
-  // 2026-05-26 (Step 7 onboarding audit F6-24): hierarchy inverted —
-  // the "wow" moment is seeing your clients land, deadlines are
-  // downstream. Client count is the headline pulse; deadlines is
-  // the supporting fact below. (Step 1-5 reaudit kept tabular-nums
-  // sans `font-mono` on similar metric counters across the app.)
+  // The "wow" moment is seeing your clients land, deadlines are downstream.
+  // Client count is the headline pulse; deadlines is the supporting fact
+  // below. (tabular-nums sans `font-mono` matches similar metric counters
+  // across the app.)
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-background-body/90 backdrop-blur-sm">
       <div className="grid gap-3 text-center">

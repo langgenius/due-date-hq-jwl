@@ -55,11 +55,10 @@ export function NotificationsPage() {
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
-  // 2026-05-27 (Yuqi step-8 data-finding audit — F-X14): notifications
-  // inbox is text-heavy (title + body free-text), capped at 50 rows,
-  // and previously had zero find affordance. SearchInput is wired to
-  // a `q` URL param so a shared `/notifications?q=Section%20199A`
-  // deep-link lands the recipient on the same filtered subset.
+  // Notifications inbox is text-heavy (title + body free-text), capped at 50
+  // rows. SearchInput is wired to a `q` URL param so a shared
+  // `/notifications?q=Section%20199A` deep-link lands the recipient on the
+  // same filtered subset.
   // Filtering is client-side over the loaded list — same shape as
   // /audit (q parser + client-side scan); backend support can come
   // later without churning the surface.
@@ -111,15 +110,13 @@ export function NotificationsPage() {
   // scans whatever has been loaded so far; "Load more" pulls the next page.
   const pages = notificationsQuery.data?.pages
   const notifications = useMemo(() => pages?.flatMap((page) => page.notifications) ?? [], [pages])
-  // 2026-05-26 (step-6 ux-flow audit F1.4): explicit
-  // notifications-have-unread check instead of `every(item =>
-  // item.readAt)` which returns true for [] (silently disabling
-  // the button on an empty list with no explanation).
+  // Explicit notifications-have-unread check instead of `every(item =>
+  // item.readAt)`, which returns true for [] (silently disabling the button on
+  // an empty list with no explanation).
   const hasUnread = notifications.some((item) => !item.readAt)
-  // 2026-05-27 (Yuqi step-8 data-finding audit — F-X14): client-side
-  // filter over title + body. Trimmed lower-case haystack lets a CPA
-  // narrow to a specific deadline / client / topic without the
-  // server roundtrip. Empty query is the identity (full list).
+  // Client-side filter over title + body. Trimmed lower-case haystack lets a
+  // CPA narrow to a specific deadline / client / topic without the server
+  // roundtrip. Empty query is the identity (full list).
   const filteredNotifications = useMemo(() => {
     const needle = searchQuery.trim().toLowerCase()
     if (!needle) return notifications
@@ -153,11 +150,10 @@ export function NotificationsPage() {
         }
       />
 
-      {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-X14):
-          inbox-level search input. Capped at the loaded 50; URL-
-          synced so a shared `/notifications?q=...` link lands the
-          recipient on the filtered subset. `/` hotkey wires through
-          the canonical primitive so the help dialog lists it. */}
+      {/* Inbox-level search input. Capped at the loaded 50; URL-synced so a
+          shared `/notifications?q=...` link lands the recipient on the
+          filtered subset. `/` hotkey wires through the canonical primitive so
+          the help dialog lists it. */}
       <div className="flex flex-wrap items-center gap-3">
         <SearchInput
           value={searchQuery}
@@ -201,10 +197,9 @@ export function NotificationsPage() {
       </div>
 
       <Card>
-        {/* 2026-05-24 (critique P2 — clarify): dropped the duplicate
-            "Inbox" CardTitle. The PageHeader above already names the
-            page; repeating it inside the only Card on the page just
-            tells the user the same word twice. */}
+        {/* No duplicate "Inbox" CardTitle — the PageHeader above already names
+            the page, so repeating it inside the only Card on the page tells
+            the user the same word twice. */}
         <CardContent className="grid gap-3 pt-6">
           {notificationsQuery.isError ? (
             <Alert variant="destructive">
@@ -218,9 +213,7 @@ export function NotificationsPage() {
             </Alert>
           ) : null}
 
-          {/* 2026-05-26 (step-6 ux-flow audit F1.3): loading state
-              was a silent blank Card. Skeleton rows match the rest
-              of the app's list-loading rhythm. */}
+          {/* Skeleton rows match the rest of the app's list-loading rhythm. */}
           {notificationsQuery.isLoading ? (
             <div
               className="grid gap-3"
@@ -235,13 +228,8 @@ export function NotificationsPage() {
           ) : null}
 
           {!notificationsQuery.isLoading && notifications.length === 0 ? (
-            /* 2026-05-26 (Step 7 onboarding audit F9-05): empty
-               state was title-only — no description telling
-               the user what would appear here. Compared to
-               every other shared EmptyState in the app, this
-               surface was the lone "title without context"
-               instance. Added a one-liner so the empty state
-               teaches the surface. */
+            /* A one-liner description so the empty state teaches the surface —
+               matching every other shared EmptyState in the app. */
             <EmptyState
               icon={InboxIcon}
               title={<Trans>No notifications yet.</Trans>}
@@ -253,11 +241,9 @@ export function NotificationsPage() {
             />
           ) : null}
 
-          {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-X14):
-              filtered-but-empty branch — distinct copy so the CPA
-              knows the inbox isn't empty, just narrowed to zero by
-              the active query. Matches the
-              `isEmpty / isFilteredEmpty` shape used on /alerts +
+          {/* Filtered-but-empty branch — distinct copy so the CPA knows the
+              inbox isn't empty, just narrowed to zero by the active query.
+              Matches the `isEmpty / isFilteredEmpty` shape used on /alerts +
               /deadlines. */}
           {!notificationsQuery.isLoading &&
           notifications.length > 0 &&
@@ -273,13 +259,9 @@ export function NotificationsPage() {
           ) : null}
 
           {filteredNotifications.map((item) => (
-            // 2026-06-01 (DS migration): hand-rolled `<article>` with
-            // conditional left-accent border → Card size="sm"
-            // radius="md" emphasis. The Card primitive ships the
-            // unread left-rail via data-emphasis so this row stops
-            // hand-rolling border recipes. role="article" preserves
-            // the document landmark for SR users (Card renders a
-            // <div> only).
+            // Card size="sm" radius="md" emphasis ships the unread left-rail
+            // via data-emphasis. role="article" preserves the document
+            // landmark for SR users (Card renders a <div> only).
             <Card
               key={item.id}
               role="article"
@@ -296,10 +278,9 @@ export function NotificationsPage() {
                     </h2>
                     <p className="text-sm text-text-secondary">{item.body}</p>
                   </div>
-                  {/* 2026-05-24 (critique P2 — clarify): scannable
-                      relative time ("2d ago") so the CPA can sweep the
-                      list without parsing ISO. Absolute timestamp
-                      `2026-05-01 02:50:00 PDT` lives on the tooltip. */}
+                  {/* Scannable relative time ("2d ago") so the CPA can sweep
+                      the list without parsing ISO. The absolute timestamp
+                      lives on the tooltip. */}
                   <RelativeTime
                     value={item.createdAt}
                     timeZone={practiceTimezone}
@@ -307,10 +288,9 @@ export function NotificationsPage() {
                   />
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  {/* 2026-05-24 (critique P2 — typeset): notification
-                      type label ("Deadline reminder", "Overdue",
-                      "Audit package") is readable English copy, not a
-                      code token. Drop `font-mono`. */}
+                  {/* Notification type label ("Deadline reminder", "Overdue",
+                      "Audit package") is readable English copy, not a code
+                      token — no `font-mono`. */}
                   <span className="text-xs text-text-tertiary">
                     {notificationTypeLabel(item.type)}
                   </span>

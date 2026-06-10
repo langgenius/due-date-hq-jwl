@@ -661,7 +661,7 @@ const sidebarMenuButtonVariants = cva(
     // (gap-3 — "icon与text之间的gap稍微大一点"), px-3, rounded-lg. Label
     // text-[16px]. Identical in both modes — collapsed re-centering is
     // gone (see below).
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-lg px-[11px] text-left text-[16px] font-normal text-text-secondary outline-none transition-colors',
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-[16px] font-normal text-text-secondary outline-none transition-colors',
     // 2026-06-09 (Yuqi "icons should be vertically center aligned" in the
     // collapsed rail): center the lone icon on the rail's centerline.
     // Drop the icon↔label gap and justify-center so the glyph isn't left-

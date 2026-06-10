@@ -25,13 +25,12 @@ export function roleLabel(role: MemberPublic['role'] | MemberManagedRole): strin
   return 'Coordinator'
 }
 
-// 2026-05-24 (critique /polish): privilege rank used to decide
-// whether a role change is a *downgrade*. Downgrades silently strip
-// access (sign-off, member admin, billing) and deserve a confirm
-// step; upgrades + sideways moves apply directly.
+// Privilege rank decides whether a role change is a *downgrade*. Downgrades
+// silently strip access (sign-off, member admin, billing) and deserve a
+// confirm step; upgrades + sideways moves apply directly.
 //
-// Owner sits at 100 because the role control here never targets it
-// (owner-only moves happen elsewhere). Coordinator is the floor.
+// Owner sits at 100 because the role control here never targets it (owner-only
+// moves happen elsewhere). Coordinator is the floor.
 const ROLE_PRIVILEGE_RANK: Record<MemberPublic['role'], number> = {
   owner: 100,
   partner: 80,
@@ -48,12 +47,10 @@ export function isRoleDowngrade(from: MemberPublic['role'], to: MemberManagedRol
 // DestructiveChangePreview so the confirm dialog reads as concrete
 // "X loses Y" rather than a generic "are you sure".
 //
-// 2026-05-24 (re-critique): the previous shape returned hardcoded
-// English strings, bypassing Lingui — the dialog headline + cancel
-// CTA translated, the impact lines didn't. The function now takes
-// an `i18n` instance and uses `msg` macros so the catalog extractor
-// finds every variant. Caller is `members-page.tsx` which gets
-// `i18n` via `useLingui()`.
+// Takes an `i18n` instance and uses `msg` macros so the catalog extractor
+// finds every variant — returning hardcoded English strings would bypass
+// Lingui and leave the impact lines untranslated. Caller is `members-page.tsx`
+// which gets `i18n` via `useLingui()`.
 export function roleDowngradeImpact(
   from: MemberPublic['role'],
   to: MemberManagedRole,

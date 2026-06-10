@@ -28,13 +28,12 @@ interface Step4Props {
  * The Import CTA is rendered in the WizardShell footer; this body owns the
  * counts, skipped-row visibility, and safety checks before `migration.apply`.
  *
- * 2026-06-07 (Cluster 3 — design YcJR4): the dry-run modal body uses a gray
- * (#f2f4f7 → bg-background-section) surface with white cards. The step root
- * full-bleeds a section-gray background over the wizard body and renders each
- * group as a white bordered card. The hero uses an inline divided 3-metric
- * grid; the dedup control is a segmented pill (Skip duplicates / Import as
- * new). The Applied-success surface (design uoNwI) is built in Wizard.tsx as
- * `SuccessModal` (see Wizard.tsx).
+ * The dry-run modal body uses a gray (#f2f4f7 → bg-background-section) surface
+ * with white cards. The step root full-bleeds a section-gray background over
+ * the wizard body and renders each group as a white bordered card. The hero
+ * uses an inline divided 3-metric grid; the dedup control is a segmented pill
+ * (Skip duplicates / Import as new). The Applied-success surface is built in
+ * Wizard.tsx as `SuccessModal`.
  */
 export function Step4Preview({
   summary,
@@ -60,13 +59,11 @@ export function Step4Preview({
   const conflicts = summary?.clientConflicts ?? []
 
   return (
-    // 2026-06-07 (Cluster 3 — design YcJR4): full-bleed the section-gray
-    // body over the wizard's px-4 body padding so the dry-run step reads as
-    // a gray surface with white cards (matching the canvas Modal body fill).
+    // Full-bleed the section-gray body over the wizard's px-4 body padding so
+    // the dry-run step reads as a gray surface with white cards.
     <div className="-mx-4 flex min-h-full flex-col gap-3.5 bg-background-section px-4 py-5">
-      {/* 2026-06-07 (Cluster 3 — design xotna): hero "READY TO IMPORT"
-          eyebrow + an inline divided 3-metric grid (clients to create /
-          already in list / deadlines to generate). */}
+      {/* Hero "READY TO IMPORT" eyebrow + an inline divided 3-metric grid
+          (clients to create / already in list / deadlines to generate). */}
       <div className="flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-5">
         <div className="flex flex-col gap-2">
           <span className="inline-flex items-center gap-1.5 text-caption-xs font-bold tracking-eyebrow text-text-success uppercase">
@@ -97,8 +94,7 @@ export function Step4Preview({
         </div>
       </div>
 
-      {/* 2026-05-26 (Step 7 onboarding audit F6-19): secondary
-          import facts (skipped / historical / rolled-forward) stay
+      {/* Secondary import facts (skipped / historical / rolled-forward) stay
           a quiet list below the hero metric grid. */}
       <ul className="flex flex-col gap-1.5 text-base empty:hidden">
         {skipped > 0 ? (
@@ -192,9 +188,8 @@ export function Step4Preview({
           aria-label={t`Clients already in your list`}
           className="flex flex-col gap-2.5 rounded-xl border border-divider-regular bg-background-default p-4"
         >
-          {/* 2026-06-07 (Cluster 3 — design xV6gf): header row pairs the
-              "Duplicates · N detected" title (copy icon) with the segmented
-              dedup control on the trailing edge. */}
+          {/* Header row pairs the "Duplicates · N detected" title (copy icon)
+              with the segmented dedup control on the trailing edge. */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="flex items-center gap-1.5 text-sm font-semibold text-text-primary">
               <CopyIcon className="size-3.5 text-text-secondary" aria-hidden />
@@ -233,13 +228,10 @@ export function Step4Preview({
         </section>
       ) : null}
 
-      {/* 2026-05-26 (Step 7 onboarding audit F6-20): heading was
-          "Safety" — so abstract it read as throat-clearing.
-          The three bullets are concrete reassurances ("undo
-          for 24h", "audit captures every AI decision", "no
-          emails sent"). Heading now names the moment ("Before
-          you import") so the bullets land as preconditions
-          rather than as a generic safety footer. */}
+      {/* The heading "Before you import" names the moment so the three
+          concrete reassurances ("undo for 24h", "audit captures every AI
+          decision", "no emails sent") land as preconditions rather than as a
+          generic safety footer. */}
       <section
         aria-label={t`Before you import`}
         className="flex flex-col gap-2 rounded-xl border border-divider-regular bg-background-default p-4"
@@ -256,10 +248,9 @@ export function Step4Preview({
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
             <Trans>This import can be undone for 24 hours and keeps an audit record</Trans>
           </li>
-          {/* 2026-05-25 (info-icon audit): unwrapped — the
-              bullet text already paraphrases the concept;
-              audit-trail detail belongs on the audit page,
-              not in a passing safety bullet. */}
+          {/* No info-icon — the bullet text already paraphrases the concept;
+              audit-trail detail belongs on the audit page, not in a passing
+              safety bullet. */}
           <li className="flex items-center gap-2">
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
             <Trans>Audit log captures every AI decision</Trans>
@@ -271,16 +262,9 @@ export function Step4Preview({
         </ul>
       </section>
 
-      {/* 2026-05-25 (Wizard #40 length fix): two trims here.
-          Title: "your deadline list" → "deadlines" (the CTA right
-          below this alert already says "Import & Generate", so
-          "your deadline list" is two redundant words).
-          Body: the original alert ran 38 words across two
-          sentences threading mappings, suggestions, rules, AND
-          listing every output type. Cut to one sentence naming
-          what `Import & Generate` produces — the user already
-          confirmed the inputs in Steps 2-3, restating them here
-          is noise. */}
+      {/* One sentence naming what `Import & Generate` produces — the user
+          already confirmed the inputs in Steps 2-3, so restating mappings /
+          suggestions / rules here is noise. */}
       <Alert role="status" aria-live="polite">
         <AlertTitle className="flex items-center gap-2">
           <ShieldCheckIcon className="size-4" aria-hidden />
@@ -357,22 +341,9 @@ export function Step4Preview({
       ) : null}
 
       {summary && summary.errors.length > 0 ? (
-        /* 2026-05-26 (step-1.5 reaudit): hand-rolled <section> with
-           `bg-components-badge-bg-red-soft` replaced with the canonical
-           `<Alert variant="destructive">` primitive. Visual delta is
-           the Alert primitive's leading destructive icon + the
-           components-badge → components-alert background swap. The
-           previous auditor's `848727dd` (C-deeper) ran exactly this
-           migration for 2 hand-rolled error blocks in obligations.tsx
-           but missed this third sibling in the migration wizard. */
         <Alert variant="destructive" data-slot="step4-bad-rows">
           <AlertTriangleIcon />
           <AlertTitle>
-            {/* 2026-05-25 (Wizard #40 cross-step polish): aligned
-                with the canonical "needs review" phrase used in
-                Step 2 + Step 3. "Needs attention" was the lone
-                outlier across 4 steps that all describe the same
-                concept. */}
             <Plural
               value={summary.errors.length}
               one="# row needs review"
@@ -384,20 +355,8 @@ export function Step4Preview({
             audit "good rows still flow through" without leaving the wizard.
             Cap with max-height + scroll so 1000-row imports stay usable.
           */}
-          {/* 2026-05-25 (Wizard #40 i18n bug): row marker was a
-              bare English `row N` <span> that never went through
-              Trans. Step 2's BadRowsPanel renders `Row`
-              (capitalised, Trans-wrapped) — aligning here so
-              both surfaces match. */}
-          {/* 2026-05-26 (Yuqi scrollbar audit): dropped
-              `max-h-[320px] overflow-y-auto pr-1`. Nested
-              inside the WizardShell body scroll — the inner
-              cap forced a second scrollbar with a 4px right
-              inset. Letting the ul flow into the wizard
-              body's scroll means one scroll wheel for the
-              whole step. The list is still inside a section
-              the user has to scroll to reach, so it's not in
-              the way at the top of the step. */}
+          {/* No inner scroll cap — letting the ul flow into the WizardShell
+              body's scroll keeps a single scrollbar for the whole step. */}
           <AlertDescription>
             <ul className="flex flex-col gap-1 text-base text-text-primary">
               {summary.errors.map((err) => (

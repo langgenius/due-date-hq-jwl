@@ -394,10 +394,9 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
       },
       onError: (error) => {
-        // 2026-05-24 (re-critique): replaced `window.alert()` with
-        // the app's `toast.error` so the failure message lands in
-        // the same surface the rest of the app uses, not a system-
-        // styled blocking dialog.
+        // Use the app's `toast.error` so the failure message lands in the same
+        // surface the rest of the app uses, not a system-styled blocking
+        // dialog.
         toast.error(t`Couldn't request export`, {
           description:
             rpcErrorMessage(error) ??
@@ -451,10 +450,9 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            {/* 2026-05-25 (info-icon audit): unwrapped — the
-                DialogDescription below already explains the
-                evidence bundle; the popover trigger was a
-                third copy on the same surface. */}
+            {/* No info-icon — the DialogDescription below already explains the
+                evidence bundle, so a popover trigger would be a third copy on
+                the same surface. */}
             <DialogTitle>
               <Trans>Audit evidence package</Trans>
             </DialogTitle>
@@ -484,10 +482,8 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
             )}
           </div>
           <DialogFooter>
-            {/* 2026-05-26 (step-6 ux-flow audit F4.1/F4.2/F4.3):
-                Cancel outline → ghost; download / request buttons
-                announce aria-busy + show Loader2 spinner while
-                pending. */}
+            {/* Download / request buttons announce aria-busy + show a Loader2
+                spinner while pending. */}
             <Button variant="ghost" onClick={() => setOpen(false)}>
               <Trans>Close</Trans>
             </Button>
@@ -592,18 +588,13 @@ export function AuditLogPage() {
       })),
     [entityTypeLabels, events],
   )
-  // 2026-05-26 (Yuqi step-8 data-finding audit — F-X06): the `q`
-  // URL parser has been declared since this page was built but never
-  // rendered as an input or written by any control — only read in
-  // `filtersActive` + `resetFilters`. Audit log is text-heavy (event
-  // description, entity name, actor email, IP) and the most common
-  // investigator question is "did anyone touch client X?" — exactly
-  // the question free-text search answers. Until the backend supports
-  // a `q` field on `audit.list`, we filter client-side over the
-  // already-loaded events (description + actor label + entity id),
-  // so the input works on the visible window without a backend
-  // contract change. The URL param is still single-source-of-truth
-  // for share-link fidelity.
+  // Audit log is text-heavy (event description, entity name, actor email, IP)
+  // and the most common investigator question is "did anyone touch client X?"
+  // — exactly what free-text search answers. Until the backend supports a `q`
+  // field on `audit.list`, we filter client-side over the already-loaded
+  // events (description + actor label + entity id), so the input works on the
+  // visible window without a backend contract change. The URL param is still
+  // single-source-of-truth for share-link fidelity.
   const trimmedSearch = query.q.trim().toLowerCase()
   const filteredEvents = useMemo(() => {
     if (trimmedSearch.length === 0) return events
@@ -685,13 +676,11 @@ export function AuditLogPage() {
 
   function goToNextPage() {
     const nextPageIndex = currentPageIndex + 1
-    // 2026-05-26 (Yuqi step-8 data-finding audit — F-X06): paginate
-    // over the *filtered* event window now that client-side `q`
-    // narrowing is active. Previously this advanced through every
-    // loaded event regardless of search — the next-page button would
-    // skip past filtered-out rows and land on a page that ignored
-    // the search input. When the user has narrowed and we still
-    // have raw events to load (auditQuery.hasNextPage), fetch them
+    // Paginate over the *filtered* event window, since client-side `q`
+    // narrowing is active. Advancing through every loaded event regardless of
+    // search would let the next-page button skip past filtered-out rows and
+    // land on a page that ignores the search input. When the user has narrowed
+    // and we still have raw events to load (auditQuery.hasNextPage), fetch them
     // so the client-side filter can scan the new batch.
     if (nextPageIndex * TABLE_PAGE_SIZE < filteredEvents.length) {
       setPageIndex(nextPageIndex)
@@ -738,13 +727,11 @@ export function AuditLogPage() {
   return (
     <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-4 md:px-6 md:pb-6">
       <PageHeader
-        // 2026-05-24 (critique P2 — clarify): dropped the "Settings"
-        // breadcrumb. Audit log is a top-level sidebar destination
-        // (and shows up that way in the demo screen); the crumb
-        // claimed a parent that the route doesn't actually have. The
-        // Settings landing page still links to /audit under
-        // Compliance, so users can navigate inbound from there — but
-        // that's a link, not a breadcrumb relationship.
+        // No "Settings" breadcrumb. Audit log is a top-level sidebar
+        // destination; a crumb would claim a parent that the route doesn't
+        // have. The Settings landing page still links to /audit under
+        // Compliance, so users can navigate inbound from there — but that's a
+        // link, not a breadcrumb relationship.
         title={
           <ConceptLabel concept="auditTrail">
             <Trans>Audit log</Trans>
@@ -782,13 +769,10 @@ export function AuditLogPage() {
           </CardAction>
         </CardHeader>
         <CardContent className="grid gap-3">
-          {/* 2026-05-26 (Yuqi step-8 data-finding audit — F-X06): the
-              `q` URL parser was declared but the input that drives it
-              was missing. Audit log is text-heavy and "did anyone
-              touch client X?" is the most common investigator query —
-              free-text search is the right lead control. Sits above
-              the structural-filter grid so it reads as the primary
-              affordance, mirroring /deadlines + /rules/library. */}
+          {/* Audit log is text-heavy and "did anyone touch client X?" is the
+              most common investigator query — free-text search is the right
+              lead control. Sits above the structural-filter grid so it reads
+              as the primary affordance, mirroring /deadlines + /rules/library. */}
           <SearchInput
             value={query.q}
             onChange={(next) => {
@@ -885,11 +869,9 @@ export function AuditLogPage() {
 
             <Button variant="outline" size="sm" onClick={resetFilters} disabled={!filtersActive}>
               <FilterIcon data-icon="inline-start" />
-              {/* 2026-05-26 (Yuqi step-8 data-finding audit — F-X01):
-                label changed "Reset" → "Clear filters" so the verb is
-                identical to /deadlines, /alerts, /clients, and
-                /rules/library. Cross-surface muscle memory: one label
-                means one thing across the workbench. */}
+              {/* "Clear filters" (not "Reset") so the verb is identical to
+                /deadlines, /alerts, /clients, and /rules/library. Cross-surface
+                muscle memory: one label means one thing across the workbench. */}
               <Trans>Clear filters</Trans>
             </Button>
           </div>
@@ -898,10 +880,9 @@ export function AuditLogPage() {
 
       <Card>
         <CardHeader>
-          {/* 2026-05-25 (info-icon audit): unwrapped — the
-              PageHeader at L596 already carries the auditTrail
-              popover; the card heading doesn't need a third
-              copy on the same page. */}
+          {/* No info-icon — the PageHeader already carries the auditTrail
+              popover, so the card heading doesn't need a third copy on the
+              same page. */}
           <CardTitle>
             <Trans>Event stream</Trans>
           </CardTitle>
@@ -925,14 +906,10 @@ export function AuditLogPage() {
           ) : null}
 
           {!auditQuery.isLoading && !auditQuery.isError && filteredEvents.length === 0 ? (
-            /* 2026-05-27 (step-6 ux-flow audit F9-02 chrome upgrade):
-               replaced the ad-hoc bordered div with the shared
-               EmptyState component so the chrome matches the rest of
-               the app's empty surfaces (dashed border, icon-on-top,
-               consistent typography scale). Filtered state gets a
-               Clear filters CTA — same affordance the toolbar carries
-               above so the user has an inline way to recover without
-               scrolling back up. */
+            /* Shared EmptyState component so the chrome matches the rest of
+               the app's empty surfaces. Filtered state gets a Clear filters
+               CTA — same affordance the toolbar carries above so the user has
+               an inline way to recover without scrolling back up. */
             <EmptyState
               icon={ScrollTextIcon}
               title={

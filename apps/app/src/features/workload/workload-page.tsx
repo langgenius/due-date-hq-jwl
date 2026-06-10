@@ -57,9 +57,7 @@ export function WorkloadPage() {
   })
 
   if (firmsQuery.isLoading) {
-    // 2026-05-26 (step-6 ux-flow audit F2.3): replaced the
-    // text-in-Card loading state with skeletons so the rhythm
-    // matches the rest of the app.
+    // Skeletons so the loading rhythm matches the rest of the app.
     return (
       <section
         className="grid gap-6 p-6"
@@ -87,11 +85,9 @@ export function WorkloadPage() {
         description={
           <>
             <Trans>Shared deadline operations for Pro, Team, and Enterprise plans.</Trans>
-            {/* 2026-05-24 (re-critique): the previous shape rendered
-                `As of 2026-05-24 · next 60 days` in monospace —
-                read as machine output, not prose. Pretty-printed
-                date + drop the `font-mono` so it sits naturally
-                under the description sentence. */}
+            {/* Pretty-printed date, no `font-mono`, so the "As of … · next N
+                days" line reads as prose under the description sentence rather
+                than machine output. */}
             <span className="mt-1 block text-caption text-text-muted">
               <Trans>
                 As of {formatDatePretty(asOfDate)} · next {windowDays} days
@@ -101,8 +97,7 @@ export function WorkloadPage() {
         }
         actions={
           <div className="flex items-center gap-2">
-            {/* Window picker — 7 / 14 / 30 day horizon for the load query.
-                2026-06-08 (unification): shared <Segmented> primitive. */}
+            {/* Window picker — 7 / 14 / 30 day horizon for the load query. */}
             <Segmented
               ariaLabel={t`Workload window`}
               value={String(windowDays)}
@@ -113,8 +108,7 @@ export function WorkloadPage() {
                 { value: '30', label: '30d' },
               ]}
             />
-            {/* 2026-05-26 (step-6 ux-flow audit F2.4): refresh button
-                now announces aria-busy + spins the icon while
+            {/* Refresh button announces aria-busy + spins the icon while
                 refetching so the user has a visible signal. */}
             <Button
               variant="outline"
@@ -134,9 +128,8 @@ export function WorkloadPage() {
       />
 
       {workloadQuery.isError ? (
-        // 2026-05-26 (step-6 ux-flow audit F2.2): converted from
-        // Card-as-error to canonical Alert variant=destructive for
-        // parity with /notifications + /opportunities.
+        // Alert variant=destructive for parity with /notifications +
+        // /opportunities.
         <Alert variant="destructive">
           <AlertTitle>
             <Trans>Couldn't load team workload</Trans>
@@ -183,9 +176,8 @@ export function WorkloadPage() {
           </CardAction>
         </CardHeader>
         <CardContent>
-          {/* 2026-05-26 (step-6 ux-flow audit F2.1): bordered text
-              loading block → skeleton rows for parity with the
-              rest of the app's list-loading rhythm. */}
+          {/* Skeleton rows for parity with the rest of the app's list-loading
+              rhythm. */}
           {workloadQuery.isLoading ? (
             <div
               className="grid gap-2"
@@ -200,8 +192,8 @@ export function WorkloadPage() {
           ) : data && data.rows.length > 0 ? (
             <WorkloadTable rows={data.rows} asOfDate={data.asOfDate} windowDays={data.windowDays} />
           ) : (
-            // 2026-05-26 (Step 7 F9-03): empty state gets icon + description
-            // so it reads as a polished surface, not bare title.
+            // Empty state gets icon + description so it reads as a polished
+            // surface, not a bare title.
             <EmptyState
               icon={ClipboardListIcon}
               title={<Trans>No open deadlines match the workload window.</Trans>}
@@ -323,10 +315,8 @@ function MetricCard({
     <Card size="sm" className="min-h-[104px]">
       <CardHeader>
         <CardTitle className="text-sm font-medium text-text-secondary">{label}</CardTitle>
-        {/* 2026-05-26 (step-6 ux-flow audit F2.5): undefined value
-            during loading was rendering "—" — read as data, not as
-            loading. Skeleton placeholder during loading; real
-            number once resolved. */}
+        {/* Skeleton placeholder during loading; real number once resolved. A
+            "—" during loading would read as data, not as loading. */}
         {value === undefined ? (
           <Skeleton className="mt-1 h-7 w-12" />
         ) : (
@@ -411,7 +401,7 @@ function WorkloadTable({
             />
             <NumericCell value={row.review} href={`${workloadRowHref(row)}&status=review`} />
             <TableCell>
-              {/* 2026-06-01: swapped hand-rolled track+fill divs for the Progress primitive (shared with members SeatStat / rules coverage). */}
+              {/* Progress primitive (shared with members SeatStat / rules coverage). */}
               <div className="flex items-center gap-2">
                 <Progress value={row.loadScore} className="flex-1" />
                 <span className="w-10 text-right text-xs tabular-nums text-text-secondary">
@@ -448,7 +438,7 @@ function NumericCell({
 }) {
   return (
     <TableCell className="text-right">
-      {/* 2026-06-01: TextLink primitive replaces the hand-rolled inline Link. Danger cells pass `text-text-destructive` className — single legit site, no destructive variant needed. */}
+      {/* Danger cells pass `text-text-destructive` className — single legit site, no destructive variant needed. */}
       <TextLink
         variant="muted"
         size="sm"

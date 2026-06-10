@@ -28,8 +28,7 @@ export function MigrationNewRoute() {
   const canRunMigration = permission.can('migration.run')
   const skipToDashboard = () => void navigate('/')
   const isOnboardingSource = params.get('source') === 'onboarding'
-  // 2026-05-29 (R4 migration polish #10): "should there be a back
-  // option?" — yes, but conditionally. When source=onboarding, the
+  // Back is conditional. When source=onboarding, the
   // logical chain is signup → onboarding (one-shot, now complete)
   // → migration; there's nothing to go back to (history-back would
   // hit /onboarding which redirects right back here). For other
@@ -68,13 +67,10 @@ export function MigrationNewRoute() {
   }
 
   if (!canRunMigration) {
-    // Audit-drain ρ ROH-D7 (2026-05-27): replaced the bespoke
-    // destructive Alert ("Owner or manager access required" —
-    // partner missing AND custom typography) with the canonical
-    // `<PermissionGate>` panel used everywhere else (Members,
-    // Billing, Audit). Same role-derivation pipeline, same
-    // return-to-Today CTA, no more drift when FIRM_PERMISSION_ROLES
-    // changes.
+    // Use the canonical `<PermissionGate>` panel (same as Members,
+    // Billing, Audit) rather than a bespoke destructive Alert: same
+    // role-derivation pipeline, same return-to-Today CTA, no drift when
+    // FIRM_PERMISSION_ROLES changes.
     return (
       <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 pt-8 pb-6 md:px-6">
         <MigrationActivationIntro
@@ -126,10 +122,9 @@ function ActivationWizard({
   onBack?: (() => void) | undefined
   onSkipToDashboard: () => void
 }) {
-  // 2026-06-07 (Cluster 3 — design iAJhJ): in the onboarding chain, "Skip
-  // for now" opens the comparison skip-confirmation modal instead of leaving
-  // immediately. Outside onboarding the wizard's own discard prompt handles
-  // the close.
+  // In the onboarding chain, "Skip for now" opens the comparison
+  // skip-confirmation modal instead of leaving immediately. Outside
+  // onboarding the wizard's own discard prompt handles the close.
   const [skipModalOpen, setSkipModalOpen] = useState(false)
 
   return (
@@ -190,18 +185,15 @@ function MigrationActivationIntro({
   return (
     <header className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 flex-1">
-        {/* 2026-05-29 (R4 migration polish #10): "← Back" surfaces on
-            the leading edge when there's a real previous surface to
-            return to. Suppressed when source=onboarding (one-shot
-            chain; history-back would loop). Visually nests above the
-            eyebrow so it reads as page-level navigation, not as a
-            second eyebrow. */}
+        {/* "← Back" surfaces on the leading edge when there's a real
+            previous surface to return to. Suppressed when
+            source=onboarding (one-shot chain; history-back would loop).
+            Visually nests above the eyebrow so it reads as page-level
+            navigation, not as a second eyebrow. */}
         {onBack ? (
-          // 2026-06-01: swapped hand-rolled back-link button for
-          // TextLink primitive (variant="muted"). Accepts the slightly
-          // quieter rest tone (text-text-muted vs the original
-          // text-text-tertiary) to consolidate on the canonical
-          // muted-link treatment.
+          // TextLink primitive (variant="muted") — the canonical
+          // muted-link treatment, with a slightly quieter rest tone
+          // (text-text-muted).
           <TextLink onClick={onBack} className="mb-2">
             <ArrowLeftIcon className="size-3.5" aria-hidden />
             <Trans>Back</Trans>
@@ -211,19 +203,13 @@ function MigrationActivationIntro({
           <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
           <Trans>PRACTICE ACTIVATION</Trans>
         </span>
-        {/* 2026-05-29 (R4 migration polish #4): H1 sized up to
-            text-2xl to match the entry-shell family (login uses
-            text-[26px], onboarding uses text-2xl; this page was
-            stuck at text-xl). Trailing period intentionally kept —
-            login ("Welcome to DueDateHQ.") and onboarding ("We
-            pre-filled a name from your account.") both end H1s with
-            a period as part of the entry-shell declarative voice.
-
-            2026-05-29 (R4 migration polish #3 + #5): copy tightened.
-            Old H1 named two verbs ("Import your clients and generate
-            deadlines.") that the description then re-listed. New H1
-            frames the page's purpose ("Activate your practice.")
-            mirroring the eyebrow; the description names the
+        {/* H1 is text-2xl to match the entry-shell family (login uses
+            text-[26px], onboarding uses text-2xl). Trailing period
+            intentionally kept — login ("Welcome to DueDateHQ.") and
+            onboarding ("We pre-filled a name from your account.") both
+            end H1s with a period as part of the entry-shell declarative
+            voice. The H1 frames the page's purpose ("Activate your
+            practice.") mirroring the eyebrow; the description names the
             outcomes once. */}
         <h1 className="mt-3 text-2xl font-semibold leading-[1.15] tracking-tight text-text-primary">
           <Trans>Activate your practice.</Trans>
@@ -233,19 +219,15 @@ function MigrationActivationIntro({
             Import your client list to generate deadlines and unlock the first Today risk view.
           </Trans>
         </p>
-        {/* 2026-05-29 (R4 follow-up — Yuqi "PRACTICE ACTIVATION should
-            still signal the three highlights we had"): the three
-            outcome chips (Import / Deadlines / Risk view) were removed
-            in the previous round because they competed visually with
-            the 4-step Stepper rendered inside the wizard card. The
-            user still wants the three outcomes to surface up here as
-            "what activation includes," just NOT in a step-shaped row.
-            Brought back as a quiet icon + label row at body type with
-            bullet separators — no rounded background, no count
-            slot, no fixed pill — so it reads as a description list,
-            not as numbered steps. Sits BELOW the descriptive
-            paragraph so it elaborates on "import / deadlines / risk
-            view" the sentence already named. */}
+        {/* The three outcome chips (Import / Deadlines / Risk view)
+            surface "what activation includes" but must NOT be in a
+            step-shaped row — that would compete visually with the
+            4-step Stepper rendered inside the wizard card. Rendered as
+            a quiet icon + label row at body type with bullet separators
+            — no rounded background, no count slot, no fixed pill — so it
+            reads as a description list, not as numbered steps. Sits
+            BELOW the descriptive paragraph so it elaborates on "import /
+            deadlines / risk view" the sentence already named. */}
         <div
           role="list"
           aria-label="Practice activation outcomes"
@@ -301,26 +283,22 @@ function MigrationActivationIntro({
         ) : null}
       </div>
 
-      {/* 2026-05-29 (R4 migration polish #2): "Skip for now" was
-          variant="outline" — bordered, filled, weight equal to
-          Continue inside the wizard frame below. That weight
-          encouraged users to read it as a primary action competing
-          with Continue. Dropped to ghost so it reads as a quiet
-          lateral exit. Tooltip stays — it carries the reassurance
-          about where to find import later. */}
+      {/* "Skip for now" is a ghost button, not outline: an outline's
+          weight (equal to Continue inside the wizard frame below) read
+          as a primary action competing with Continue. Ghost makes it a
+          quiet lateral exit. The tooltip carries the reassurance about
+          where to find import later. */}
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
               variant="ghost"
               size="sm"
-              // 2026-05-29 (Yuqi — "dimmed skip"): the ghost button still
-              // inherited `text-text-primary` on idle so Skip read at the
-              // same weight as page body copy and competed for the eye.
-              // Dropped to `text-text-tertiary` so the button reads as a
-              // quiet lateral escape. Hover keeps the canonical ghost
-              // background so the affordance still confirms when pointed
-              // at — only the resting state is dimmer.
+              // `text-text-tertiary` on idle so Skip reads as a quiet
+              // lateral escape rather than at the same weight as page
+              // body copy. Hover keeps the canonical ghost background so
+              // the affordance still confirms when pointed at — only the
+              // resting state is dimmer.
               className="w-fit shrink-0 text-text-tertiary"
               onClick={onSkip}
             >

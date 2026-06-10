@@ -72,14 +72,12 @@ interface Step2Props {
 /**
  * Step 2 — Mapping.
  *
- * 2026-05-27 (Yuqi banner-row redesign): every mapping row is a single
- * clickable banner. Tap the row to expand inline samples + data type.
- * The destination field has an always-visible inline "Change" text link;
- * confidence is plain text (no traffic-light dots / badges). Rows
- * needing attention (unmapped / low confidence) float to the top so
- * the user works the small set before scrolling past the auto-mapped
- * majority. The old "Review column details" toggle is gone — every
- * row is already its own review affordance.
+ * Every mapping row is a single clickable banner. Tap the row to expand inline
+ * samples + data type. The destination field has an always-visible inline
+ * "Change" text link; confidence is plain text (no traffic-light dots /
+ * badges). Rows needing attention (unmapped / low confidence) float to the top
+ * so the user works the small set before scrolling past the auto-mapped
+ * majority. Every row is its own review affordance.
  */
 export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRerun }: Step2Props) {
   const { t } = useLingui()
@@ -114,12 +112,10 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
     <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
-          {/* 2026-05-29 (Yuqi — wizard title hierarchy): step h2 from
-              text-lg → text-base. The wizard frame title "Import
-              clients" above is the MASTER for this card; each step's
-              h2 (here, on Step 3, and on Step 4) describes the
-              current step's outcome — child of the master. Sized
-              one notch down so the master title wins the visual
+          {/* The wizard frame title "Import clients" above is the MASTER for
+              this card; each step's h2 (here, on Step 3, and on Step 4)
+              describes the current step's outcome — child of the master. Sized
+              one notch down (text-base) so the master title wins the visual
               weight and the step h2 reads as a sub-section. */}
           <h2 className="text-base font-semibold text-text-primary">
             {mapping.status === 'fallback' ? (
@@ -134,13 +130,10 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           <p className="text-sm text-text-secondary tabular-nums">
             <MappingHeadline summary={summary} status={mapping.status} />
           </p>
-          {/* 2026-05-26 (Step 7 onboarding audit F6-14): the
-              override-label "Re-run AI with my overrides"
-              implies a stronger guarantee than the server gives
-              (overrides are passed as hints, not guaranteed
-              preserved). Softened to "Re-run AI (keep my
-              changes)" so the verb is clear and the parenthetical
-              describes the intent, not a contract. */}
+          {/* The label "Re-run AI (keep my changes)" deliberately avoids
+              "with my overrides" — overrides are passed as hints, not
+              guaranteed preserved, so the parenthetical describes the intent,
+              not a contract. */}
           <Button
             variant="outline"
             size="sm"
@@ -157,11 +150,10 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
         </div>
       </div>
 
-      {/* 2026-06-07 (Cluster 3 — design CDjph): count chips ("Auto-mapped /
-          Needs review / Skipped") + override hint. The single-sentence
-          MappingHeadline above stays for the test assertions + tabular
-          readout; these colored chips give the at-a-glance split the
-          canvas calls for. */}
+      {/* Count chips ("Auto-mapped / Needs review / Skipped") + override hint.
+          The single-sentence MappingHeadline above stays for the test
+          assertions + tabular readout; these colored chips give the
+          at-a-glance split. */}
       {mapping.status !== 'loading' ? <MappingPillStrip summary={summary} /> : null}
 
       {mapping.status === 'fallback' && mapping.fallback === 'heuristic' ? (
@@ -182,9 +174,8 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
         </Alert>
       ) : mapping.status === 'fallback' ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
-          {/* 2026-05-25 (Wizard #40 copy polish): alert titles
-              should be punchy — the AlertDescription below
-              already explains the fallback. */}
+          {/* Alert titles stay punchy — the AlertDescription below already
+              explains the fallback. */}
           <AlertTitle>
             <Trans>AI mapping unavailable</Trans>
           </AlertTitle>
@@ -233,13 +224,13 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           <Skeleton className="h-14 w-3/4" />
         </div>
       ) : (
-        // 2026-06-07 (Cluster 3 — design WVwAX): strict 4-column aligned
-        // layout (YOUR COLUMN / DUEDATEHQ FIELD / SAMPLE (FIRST ROW) /
-        // CONFIDENCE) inside a single bordered table card with a sticky-style
-        // header row. We keep the expandable banner-row interaction
-        // (aria-expanded toggle, inline Change link, expand-for-detail) that
-        // Step2Mapping.test.tsx asserts — the columns are now grid-aligned to
-        // the header so the table reads as one strict 4-col surface.
+        // Strict 4-column aligned layout (YOUR COLUMN / DUEDATEHQ FIELD /
+        // SAMPLE (FIRST ROW) / CONFIDENCE) inside a single bordered table card
+        // with a sticky-style header row. Keeps the expandable banner-row
+        // interaction (aria-expanded toggle, inline Change link,
+        // expand-for-detail) that Step2Mapping.test.tsx asserts — the columns
+        // are grid-aligned to the header so the table reads as one strict
+        // 4-col surface.
         <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-surface">
           <div
             aria-hidden
@@ -277,8 +268,8 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
         </div>
       )}
 
-      {/* 2026-06-07 (Cluster 3 — design J8kNo): "nothing applies until
-          step 4" reassurance line. Quiet inline note, green shield. */}
+      {/* "Nothing applies until step 4" reassurance line. Quiet inline note,
+          green shield. */}
       {mapping.status !== 'loading' ? (
         <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
           <ShieldCheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
@@ -320,13 +311,8 @@ function MappingPillStrip({ summary }: { summary: ReturnType<typeof buildMapping
 }
 
 /**
- * Single-sentence headline that replaces the old 5-tile SummaryMetric grid.
- *
- * 2026-05-27 (Yuqi): five tall colored tiles ("Columns used / Ignored /
- * Confidence / EIN / Exceptions") were the loudest thing on the step and
- * none of them were what the user needed to act on. Collapsed to one
- * quiet text-tertiary readout in the step header. The exact counts live
- * inside each banner row.
+ * Single-sentence headline. One quiet text-tertiary readout in the step
+ * header — the exact counts live inside each banner row.
  */
 function MappingHeadline({
   summary,
@@ -398,12 +384,12 @@ function MappingBannerRow({
         needsAttention && 'bg-components-badge-bg-warning-soft',
       )}
     >
-      {/* 2026-06-07 (Cluster 3 — design WVwAX row): the row header is a
-          strict 4-column grid aligned to the table head — source column
-          (170px), arrow gutter (28px), monospace destination field (200px),
-          flexible in-row first-row sample, right-aligned confidence pill —
-          followed by the chevron. The destination + sample are stacked under
-          the source column at mobile widths (sm: switches to the grid). */}
+      {/* The row header is a strict 4-column grid aligned to the table head —
+          source column (170px), arrow gutter (28px), monospace destination
+          field (200px), flexible in-row first-row sample, right-aligned
+          confidence pill — followed by the chevron. The destination + sample
+          are stacked under the source column at mobile widths (sm: switches to
+          the grid). */}
       <button
         type="button"
         aria-expanded={expanded}
@@ -671,9 +657,8 @@ function destinationDataTypeLabel(
   target: MappingTarget,
   t: ReturnType<typeof useLingui>['t'],
 ): ReactNode {
-  // 2026-06-01: route the IGNORE em-dash through the canonical
-  // EmptyCellMark primitive so screen readers announce "Ignored column"
-  // instead of "dash".
+  // Route the IGNORE em-dash through the canonical EmptyCellMark primitive so
+  // screen readers announce "Ignored column" instead of "dash".
   if (target === 'IGNORE') return <EmptyCellMark label={t`Ignored column`} />
 
   if (target === 'client.ein') return <Trans>EIN · ##-#######</Trans>
@@ -716,14 +701,10 @@ function destinationDataTypeLabel(
 function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
   const { t } = useLingui()
 
-  // 2026-05-26 (Step 7 onboarding audit F6-11): every variant
-  // here was `variant="destructive"` — including the success
-  // case ("AI Mapper"). All three states therefore rendered in
-  // the same red/orange tone, so the badge encoded zero state
-  // information visually. Mapped each state to its semantic
-  // variant: AI success → outline (calm, not destructive),
-  // template-fallback → outline (informational), all-ignore
-  // (manual) → destructive (genuine warning, action required).
+  // Each state maps to its semantic variant so the badge encodes state
+  // visually: AI success → outline (calm, not destructive),
+  // template-fallback → outline (informational), all-ignore (manual) →
+  // destructive (genuine warning, action required).
 
   if (mapping.status === 'fallback' && mapping.fallback === 'heuristic') {
     return (

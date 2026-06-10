@@ -75,32 +75,21 @@ export function Step3Normalize({
   return (
     <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-2">
-        {/* 2026-05-26 (Step 7 onboarding audit F6-16): "cleaned"
-            implied the source data was dirty — a passive
-            criticism of the user's roster. "Standardized" is
-            neutral and matches the step's own name
-            ("Normalize") with no value judgment.
+        {/* "Standardized" (not "cleaned") is neutral and matches the step's
+            own name ("Normalize") with no value judgment — "cleaned" implies
+            the source data was dirty.
 
-            2026-05-29 (Yuqi — wizard title hierarchy): step h2 from
-            text-lg → text-base; the wizard frame title "Import
-            clients" is now text-lg (master), and step h2s sit one
-            notch down as sub-sections. See Step 2 + WizardShell for
-            the same rationale. */}
+            Step h2 is text-base; the wizard frame title "Import clients" is
+            text-lg (master), and step h2s sit one notch down as sub-sections.
+            See Step 2 + WizardShell for the same rationale. */}
         <h2 className="text-base font-semibold text-text-primary">
           <Trans>AI standardized your values</Trans>
         </h2>
-        {/* 2026-05-29 (R4 migration polish, follow-up): the
-            file-stays-unchanged reassurance is a privacy claim
-            ("we don't mutate your source data") — same role as
-            Step 1's SSN-block chip. Aligned to the same shape so
-            privacy reassurance reads consistently across the
-            wizard.
-
-            2026-05-29 (R4 follow-up #4 — Yuqi "ugly highlight"):
-            dropped the accent-tint background + ring; matched
-            Step 1's revised plain-line treatment. Privacy is
-            information, not status — quiet inline line with a
-            small lock icon, no chip surface. */}
+        {/* The file-stays-unchanged reassurance is a privacy claim ("we don't
+            mutate your source data") — same role and shape as Step 1's
+            SSN-block chip, so privacy reassurance reads consistently across
+            the wizard. Privacy is information, not status — quiet inline line
+            with a small lock icon, no chip surface. */}
         <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
           <LockIcon className="size-3.5 shrink-0" aria-hidden />
           <Trans>
@@ -109,16 +98,15 @@ export function Step3Normalize({
         </p>
       </div>
 
-      {/* 2026-06-07 (Cluster 3 — design g8CrCZ): the canvas happy path draws
-          a flat FIELD/BEFORE/AFTER/STATUS table. We deliberately keep the
-          collapsible category model (entity / state / tax types), which
-          auto-opens categories needing review and stays collapsed when fully
-          matched — this routes attention without a wall of equal-weight rows
-          and is asserted by Step3Normalize.test.tsx (auto-expand, grouped
-          rows, status copy "Using Other" / "No state deadlines"). The
-          design's at-a-glance split is adopted via NormalizePillStrip
-          (JCrwD), the matrix toggle via MatrixDefaultsCard (daU2Q: Switch +
-          "Edit defaults"), and the reassurance line via F01v6 below.
+      {/* The happy path draws a flat FIELD/BEFORE/AFTER/STATUS table. We
+          deliberately keep the collapsible category model (entity / state /
+          tax types), which auto-opens categories needing review and stays
+          collapsed when fully matched — this routes attention without a wall
+          of equal-weight rows and is asserted by Step3Normalize.test.tsx
+          (auto-expand, grouped rows, status copy "Using Other" / "No state
+          deadlines"). The at-a-glance split is the NormalizePillStrip, the
+          matrix toggle the MatrixDefaultsCard (Switch + "Edit defaults"), and
+          the reassurance line below.
           TODO(data): an inline Step-3 "Re-run AI" (mirroring handleStep2Rerun
           against runNormalizerMutation) is not wired — surfaced in the
           report. */}
@@ -145,10 +133,9 @@ export function Step3Normalize({
             affectedClients={normalizationSummary.affectedExceptionClients}
           />
 
-          {/* 2026-06-07 (Cluster 3 — design JCrwD): count chips —
-              Auto-normalized / Confirm / Default Matrix + "Audit logged".
-              The prose SummaryReadout above stays for the detailed
-              readout; these chips give the at-a-glance split. */}
+          {/* Count chips — Auto-normalized / Confirm / Default Matrix +
+              "Audit logged". The prose SummaryReadout above stays for the
+              detailed readout; these chips give the at-a-glance split. */}
           {categories.length > 0 || matrixSummary.enabledCells > 0 ? (
             <NormalizePillStrip
               autoNormalized={Math.max(
@@ -170,8 +157,7 @@ export function Step3Normalize({
             onToggleApplyToAll={onToggleApplyToAll}
           />
 
-          {/* 2026-06-07 (Cluster 3 — design F01v6): "nothing applies until
-              step 4" reassurance line, green shield. */}
+          {/* "Nothing applies until step 4" reassurance line, green shield. */}
           <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
             <ShieldCheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
             <Trans>
@@ -525,9 +511,9 @@ function MatrixDefaultsCard({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {/* 2026-06-07 (Cluster 3 — design daU2Q): "Edit defaults" link to
-              the firm's default-matrix settings. stopPropagation so the
-              click doesn't toggle the card's expanded state. */}
+          {/* "Edit defaults" link to the firm's default-matrix settings.
+              stopPropagation so the click doesn't toggle the card's expanded
+              state. */}
           <TextLink
             variant="accent"
             className="gap-0.5"
@@ -628,22 +614,18 @@ function MatrixControls({
                   <span className="text-text-tertiary">·</span>
                   <Plural value={cell.appliedClientCount} one="# client" other="# clients" />
                 </span>
-                {/* 2026-05-26 (Step 7 onboarding audit F6-18):
-                    the checkbox label said "Use suggested
-                    filings" with no consequence on uncheck. A
-                    user toggling without a known outcome
-                    spirals into anxiety. Added a title-attr
-                    hint that says what unchecking means
-                    (skip these defaults, manual deadlines
-                    later for these clients). */}
+                {/* The title-attr hint says what unchecking means (skip these
+                    defaults, manual deadlines later for these clients) — the
+                    "Use suggested filings" label alone gives no consequence on
+                    uncheck, which leaves the user toggling without a known
+                    outcome. */}
                 <label
                   className="inline-flex cursor-pointer items-center gap-2 text-xs text-text-secondary"
                   data-apply-to-all-key={key}
                   aria-keyshortcuts="A"
                   title={t`Uncheck to skip these tax-type defaults. You'll need to add deadlines manually for these clients.`}
                 >
-                  {/* 2026-06-07 (Cluster 3 — design daU2Q): pill switch
-                      replaces the checkbox for the per-group apply toggle. */}
+                  {/* Pill switch for the per-group apply toggle. */}
                   <Switch checked={checked} onCheckedChange={(value) => onToggle(key, value)} />
                   <Trans>Use suggested filings</Trans>
                 </label>
@@ -663,17 +645,11 @@ function MatrixControls({
                   promptVersion={`matrix@${cell.matrixVersion}`}
                 />
                 {cell.needsReview ? (
-                  /* 2026-05-26 (Step 7 onboarding audit F6-17):
-                     the "Needs review" badge used the same calm
-                     soft-warning chrome as the adjacent
-                     "Verified" badge — so the two were visually
-                     near-identical even though "needs review"
-                     is an action requirement and "verified" is
-                     a footnote. Strengthened the warning treatment
-                     with a non-divider border so it actually
-                     reads as "you should look at this", while
-                     "Verified" keeps the calmer treatment as a
-                     passing reassurance. */
+                  /* The "Needs review" badge uses a strengthened warning
+                     treatment with a non-divider border so it reads as "you
+                     should look at this" — it's an action requirement, unlike
+                     the adjacent "Verified" badge which keeps the calmer
+                     treatment as a passing reassurance. */
                   <span className="inline-flex h-5 items-center gap-1 rounded-lg border border-state-warning-hover-alt bg-components-badge-bg-warning-soft px-1.5 text-xs font-medium text-text-primary">
                     <AlertTriangleIcon className="size-3" aria-hidden />
                     <Trans>Needs review</Trans>

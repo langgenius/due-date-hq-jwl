@@ -16,21 +16,11 @@ import { cn } from '@duedatehq/ui/lib/utils'
 /**
  * Settings IA — single source of truth.
  *
- * 2026-06-08 (IA audit — "unify the two divergent Settings navs"):
- * Previously `/settings` (settings.tsx) was a card-hub linking to
- * Practice/Members/Workload/Billing/Audit/Reminders/Notifications/Calendar,
- * while this sticky rail listed a DIFFERENT, non-overlapping set
- * (Profile/Team/Permissions/Reminders/Notifications/Billing) used only by
- * /settings/profile and /settings/permissions. The two never referenced
- * each other, so a user on /settings could not reach Profile or
- * Permissions, and a user on /settings/profile could not reach Practice,
- * Workload, Audit, or Calendar.
- *
- * The fix: this module now owns the complete, grouped list of every real
- * settings destination. Both surfaces consume `SETTINGS_NAV_SECTIONS`:
+ * This module owns the complete, grouped list of every real settings
+ * destination. Both surfaces consume `SETTINGS_NAV_SECTIONS` so they are
+ * guaranteed to list the same destinations:
  *   • the in-page rail (SettingsSubNav) renders the flat link list,
  *   • the /settings index hub (settings.tsx) renders the grouped cards.
- * They are now guaranteed to list the same destinations.
  *
  * Every `to` below is verified against router.tsx:
  *   Profile        → /settings/profile          (settings family)
@@ -41,8 +31,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *   Billing        → /billing
  *   Email Template → /reminders
  *
- * 2026-06-10 (settings trim): two former Automation entries are
- * deliberately absent from this registry:
+ * Two Automation entries are deliberately absent from this registry:
  *   • Notifications (/notifications/preferences) — parts of that surface
  *     are unbuilt; hidden from Settings until it ships. The route itself
  *     still exists.

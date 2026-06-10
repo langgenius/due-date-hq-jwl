@@ -137,7 +137,7 @@ export function DeadlineNavigatorRail({
   }, [rows, search, effectiveStatusFilter, statusLabels])
 
   return (
-    // 2026-06-10 (Yuqi responsive contract): rail is the xl/lg companion
+    // Rail is the xl/lg companion
     // column; below lg the master-detail collapses to detail-only (rail hidden,
     // so the detail gets full width — the crumb's "Deadlines" link returns to
     // the table). Width 340 (lg) → 380 (xl).

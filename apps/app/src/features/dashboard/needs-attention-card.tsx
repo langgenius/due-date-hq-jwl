@@ -227,9 +227,9 @@ function NeedsAttentionCard({
             the bottom row next to "N Clients" as a `<TaxCodeBadge>`
             so it shares the chrome + label format the Actions this
             week table uses. */}
-        {/* 2026-06-10 (Yuqi /today #4): ONE left-aligned meta cluster — the
-            date ("May 18") sits right after the form badge instead of being
-            pushed to the far right edge by a justify-between split. */}
+        {/* ONE left-aligned meta cluster — the date ("May 18") sits right
+            after the form badge instead of being pushed to the far right edge
+            by a justify-between split. */}
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {/* HIGH IMPACT — only renders for high-impact alerts. */}
           {severity.id === 'high' ? (
@@ -313,11 +313,10 @@ function NeedsAttentionCard({
           source holds a fixed width on the right, so the two always share a
           single line. */}
       <div className="flex items-center gap-x-2 border-t border-divider-subtle pt-3 text-xs">
-        {/* 2026-06-10 (Yuqi /today #2): the affected-clients signal leads
-            with the AVATAR stack, then the first client NAME + "+N more"
-            — not an "Affects N clients" label. Reads as "[av] Meridian +2
-            more". When nothing matched, a quiet muted "No clients matched"
-            with the users icon. */}
+        {/* The affected-clients signal leads with the AVATAR stack, then the
+            first client NAME + "+N more" — not an "Affects N clients" label.
+            Reads as "[av] Meridian +2 more". When nothing matched, a quiet
+            muted "No clients matched" with the users icon. */}
         {impacted > 0 ? (
           <span className="inline-flex min-w-0 shrink items-center gap-1.5 whitespace-nowrap">
             {avatars.length > 0 ? (

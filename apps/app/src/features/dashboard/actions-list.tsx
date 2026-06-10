@@ -24,7 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { DueDateLabel } from '@/components/primitives/due-date-label'
 import { formatDatePretty } from '@/lib/utils'
-import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
+import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
 import { ExtensionChip } from './extension-chip'
 import { LifecycleStripCell } from './lifecycle-strip-cell'
@@ -37,14 +37,6 @@ import { LifecycleStripCell } from './lifecycle-strip-cell'
 // available on the contract).
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { useCurrentUserId } from '@/lib/use-current-user-name'
-
-function topPriorityFactors(row: DashboardTopRow): string[] {
-  const factors = [...(row.smartPriority.factors ?? [])]
-    .filter((f) => f.contribution > 0)
-    .toSorted((a, b) => b.contribution - a.contribution)
-    .slice(0, 2)
-  return factors.map((f) => f.label)
-}
 
 // Dashboard v2 "Priority Actions" — verb-led action queue.
 //
@@ -211,7 +203,7 @@ function ActionsTable({
                 aria-hidden="false"
               >
                 <TableCell
-                  colSpan={7}
+                  colSpan={5}
                   className="bg-background-subtle px-[18px] py-1.5 text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase"
                 >
                   <StatusGroupLabel kind={currentStatusGroup} />
@@ -267,9 +259,6 @@ function ActionsTableRow({
   const currentUserId = useCurrentUserId()
   const isMine = currentUserId !== null && row.assigneeId === currentUserId
   const assigneeName = row.assigneeName
-  // All rows compute factors for the rank-cell tooltip, so every row
-  // can surface its Smart Priority rationale on hover.
-  const allRowFactors = topPriorityFactors(row)
   return (
     <TableRow
       onClick={onClick}
@@ -290,137 +279,43 @@ function ActionsTableRow({
       // still hides the due date.
       className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-3"
     >
-      {/* Plain mono rank with a sparkle for the top 3 only. The tooltip
-          on the rank text gives explainability — hover the number, see
-          the factors. The compact px override keeps the mono number
-          centered in the narrow rank column. */}
-      <TableCell className="pr-2 pl-[18px] text-left">
-        <Tooltip>
-          <TooltipTrigger
-            render={(props) => (
-              <span
-                {...props}
-                onClick={(e) => {
-                  props?.onClick?.(e)
-                  e.stopPropagation()
-                }}
-                className="inline-flex cursor-help items-center justify-center gap-1 font-mono text-xs font-semibold tabular-nums text-text-tertiary"
-              >
-                {row.smartPriority?.rank && row.smartPriority.rank <= 3 ? (
-                  <SparklesIcon className="size-2.5 shrink-0 text-text-accent" aria-hidden />
-                ) : null}
-                {row.smartPriority?.rank ? String(row.smartPriority.rank).padStart(2, '0') : '—'}
-              </span>
-            )}
-          />
-          <TooltipContent>
-            <div className="flex max-w-[260px] flex-col gap-1 text-left">
-              <span className="font-semibold">
-                <Trans>Smart Priority</Trans>
-                {row.smartPriority?.rank
-                  ? ` #${String(row.smartPriority.rank).padStart(2, '0')}`
-                  : ''}
-              </span>
-              {row.smartPriority?.factors && row.smartPriority.factors.length > 0 ? (
-                // B11: surface each factor's rawValue ("Due in 3 days",
-                // "Importance: high") + its source, not just the label —
-                // makes the rank legible instead of a bare number.
-                <div className="flex flex-col gap-0.5">
-                  {[...row.smartPriority.factors]
-                    .toSorted((a, b) => b.contribution - a.contribution)
-                    .slice(0, 4)
-                    .map((factor) => (
-                      <span key={factor.key} className="text-text-secondary">
-                        {factor.label}:{' '}
-                        <span className="text-text-tertiary">{factor.rawValue}</span>
-                      </span>
-                    ))}
-                </div>
-              ) : (
-                <span className="text-text-tertiary">
-                  <Trans>No specific priority factors flagged.</Trans>
-                </span>
-              )}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TableCell>
-      {/* Client column uses the quieter `text-text-tertiary` so the
-          action prompt owns the eye and the client name reads as the
-          "for which client?" context rather than competing for primary
-          attention. */}
-      <TableCell className="text-xs text-text-tertiary">{row.clientName}</TableCell>
-      <TableCell className="w-[400px]">
-        {/* The Why-now factor line surfaces Smart Priority reasoning
-            inline. The reason text is ALWAYS visible under the prompt —
-            it's the primary triage signal, not a hover-only extra. Only
-            the leading corner glyph fades in on row hover (it's a
-            decorative connector, not information); its `opacity-0`
-            reserves the slot so the text doesn't shift. */}
-        <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-normal text-text-secondary transition-colors group-hover:font-medium group-hover:text-text-primary">
+      {/* CLIENT + ACTION stacked into ONE column — client name on top
+          (primary ink), the action prompt below (quieter). A per-row STATUS
+          badge sits below and the owner avatar shrinks. */}
+      <TableCell className="w-[440px] pl-[18px]">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate text-sm font-medium text-text-primary">{row.clientName}</span>
+          <span className="truncate text-xs text-text-tertiary transition-colors group-hover:text-text-secondary">
             {prompt}
           </span>
-          {allRowFactors.length > 0 ? (
-            <span
-              className="relative inline-flex items-center text-xs text-text-tertiary"
-              title={allRowFactors.join(' · ')}
-            >
-              {/* Leading corner glyph (filled quarter-turn) signalling this is a
-                  follow-on reason for the prompt above. It sits at the line's
-                  LEFT edge (flush with the action title above); on row hover it
-                  fades in WHILE the "Why now:" text indents to its right, so the
-                  corner reads as a connector hanging off the prompt. At rest the
-                  icon is hidden and the text sits flush-left, so nothing shifts
-                  until hover. */}
-              <svg
-                viewBox="0 0 9 9"
-                className="absolute top-1/2 left-0 size-3 -translate-y-1/2 text-text-muted opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
-                fill="none"
-                aria-hidden
-              >
-                <path
-                  d="M0 2V0H1V2C1 5.03757 3.46243 7.5 6.5 7.5H8.5V8.5H6.5C2.91015 8.5 0 5.58985 0 2Z"
-                  fill="currentColor"
-                />
-              </svg>
-              <span className="truncate transition-[margin] duration-200 group-hover:ml-[18px] group-focus-visible:ml-[18px]">
-                <Trans>Why now:</Trans> {allRowFactors.join(' · ')}
-              </span>
-            </span>
-          ) : null}
         </div>
       </TableCell>
+      {/* FORM */}
       <TableCell>
         <TaxCodeBadge code={row.taxType} />
       </TableCell>
+      {/* STATUS — per-row workflow status badge. ExtensionChip rides along
+          since `extended` folds into the "Not started" group. */}
       <TableCell>
-        <ReadinessIndicator obligationType={row.obligationType} attached={row.evidenceCount} />
-      </TableCell>
-      {/* The status pill is replaced by the owner avatar. Rows already
-          sit under status group headers, so a per-row pill would repeat
-          information; "whose work is this?" is the missing signal.
-          ExtensionChip stays — `extended` folds into the "Not started"
-          group, so without the chip an extended row would be
-          indistinguishable from a plain pending one. */}
-      <TableCell>
-        <div className="flex flex-wrap items-center gap-2">
-          <AssigneeAvatar
-            name={assigneeName}
-            isMine={isMine}
-            title={
-              assigneeName === null
-                ? t`Unassigned`
-                : isMine
-                  ? // Local binding (not row.assigneeName) so the Lingui
-                    // placeholder is {assigneeName} — same message id the
-                    // deadlines queue already translates.
-                    t`Assigned to you (${assigneeName})`
-                  : assigneeName
-            }
-          />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-xs" />
           {row.status === 'extended' ? <ExtensionChip /> : null}
         </div>
+      </TableCell>
+      {/* OWNER — smaller avatar (xs / 20px). */}
+      <TableCell>
+        <AssigneeAvatar
+          size="xs"
+          name={assigneeName}
+          isMine={isMine}
+          title={
+            assigneeName === null
+              ? t`Unassigned`
+              : isMine
+                ? t`Assigned to you (${assigneeName})`
+                : assigneeName
+          }
+        />
       </TableCell>
       {/* DUE cell stacks: relative countdown + absolute internal due date.
           It's now the trailing cell (pr-[18px] gives the row's right inset);
@@ -739,8 +634,7 @@ function ActionsListHeader({
           opens the explanation tooltip on hover — so the header needs no
           separate Info icon. */}
       <div className="flex flex-col">
-        {/* 2026-06-10 (Yuqi "titles are disturbing — quieter"): demoted
-            eyebrow treatment shared with the Alerts h2 — 11px / 600 /
+        {/* Demoted eyebrow treatment shared with the Alerts h2 — 11px / 600 /
             muted tertiary / wider tracking. See section-header-style.md. */}
         <h2 className="flex items-center gap-1.5 text-xs font-semibold tracking-[0.6px] text-text-tertiary uppercase">
           {/* The title links to the full deadlines list (via onOpenAll). The
@@ -761,10 +655,10 @@ function ActionsListHeader({
                 <button
                   type="button"
                   aria-label={t`About Priority Actions`}
-                  className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="inline-flex size-3.5 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   {...props}
                 >
-                  <SparklesIcon className="size-3.5" aria-hidden />
+                  <SparklesIcon className="size-3" aria-hidden />
                 </button>
               )}
             />
@@ -802,9 +696,8 @@ function ActionsListHeader({
           </Trans>
         </p>
       </div>
-      {/* 2026-06-10 (Yuqi /today #6): explicit right-aligned "View all"
-          restored (the title is also a link, but the affordance was
-          requested back). Opens the full deadlines list via onOpenAll. */}
+      {/* Explicit right-aligned "View all" (the title is also a link). Opens
+          the full deadlines list via onOpenAll. */}
       <Link
         to="/deadlines"
         onClick={(event) => {

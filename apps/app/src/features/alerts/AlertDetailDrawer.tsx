@@ -54,9 +54,6 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
-// 2026-06-05 (pre-CI green-up): `EntityAuditActivityPanel` import
-// retired with the AlertActivitySection deletion above. Restore if
-// the per-alert audit timeline is ever re-mounted in the drawer.
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
@@ -70,11 +67,6 @@ import {
   isActiveAlert,
 } from './components/pulse-alert-chrome'
 import { AffectedClientsTable } from './components/AffectedClientsTable'
-// Step 9 retired `AlertConfidencePill` in favor of the canonical
-// 2026-06-05 (pre-CI green-up): the four pill imports below
-// (AlertConfidencePill, AlertSourceBadge, AlertSourceStatusBadge,
-// AlertStatusBadge) all went unused after the round 84/85 drawer
-// chrome refactor. Dropped to satisfy no-unused-vars.
 import { AlertStructuredFields } from './components/AlertStructuredFields'
 import { AlertTeamNotes } from './components/AlertTeamNotes'
 import { ReverifyRulesSection } from './components/ReverifyRulesSection'
@@ -121,44 +113,38 @@ interface AlertDetailDrawerProps {
   alertId: string | null
   onClose: () => void
   /**
-   * 2026-05-25 (Yuqi /alerts #9 — drawer → page panel):
-   * - `'sheet'` (default): legacy floating right-side Sheet with
-   *   backdrop. Used as the off-route fallback so callers that
-   *   open the drawer from outside /alerts (e.g. the
-   *   dashboard NeedsAttention card before it's been migrated)
-   *   still see a usable rendering.
-   * - `'panel'`: renders the same body as an inline `<aside>`
-   *   that the route's layout can drop into a flex sibling
-   *   column next to the alerts list. No backdrop, no
-   *   viewport-fixed positioning — the panel splits the page
-   *   like the obligation drawer on /deadlines.
+   * - `'sheet'` (default): floating right-side Sheet with backdrop. The
+   *   off-route fallback so callers that open the drawer from outside
+   *   /alerts (e.g. the dashboard NeedsAttention card) still see a usable
+   *   rendering.
+   * - `'panel'`: renders the same body as an inline `<aside>` that the
+   *   route's layout can drop into a flex sibling column next to the
+   *   alerts list. No backdrop, no viewport-fixed positioning — the panel
+   *   splits the page like the obligation drawer on /deadlines.
    */
   mode?: 'sheet' | 'panel'
   /**
-   * 2026-06-08 (Pencil ibEoz/BbQAK `BackStrip`): prev/next paging
-   * through the surrounding alert list + a "N of M" position read-out.
-   * Threaded from the list surface (which owns the sorted order). All
-   * optional — when absent the top-bar nav simply doesn't render.
+   * Prev/next paging through the surrounding alert list + a "N of M"
+   * position read-out. Threaded from the list surface (which owns the
+   * sorted order). All optional — when absent the top-bar nav simply
+   * doesn't render.
    */
   onPrev?: () => void
   onNext?: () => void
   position?: { index: number; total: number }
 }
 
-// 2026-05-25 (Yuqi critique B): the drawer used to compute its own
-// tone via `drawerTone(status, confidence)` while the dashboard
-// `NeedsAttentionCard` used a different per-impact formula — so the
-// same alert showed green outside and red inside. Both sites now
-// call `alertTone(alert)` so they always agree.
+// The drawer and the dashboard `NeedsAttentionCard` both call
+// `alertTone(alert)` so they always agree — computing tone two different
+// ways once made the same alert show green outside and red inside.
 
 /**
- * 2026-06-08 (Pencil ibEoz/BbQAK `Qla5h KeyChange`): the prominent
- * left-accent DEADLINE CHANGE card. Eyebrow + old→new date diff (with
- * the signed day delta) + a scope-facts line (jurisdiction/county,
- * affected forms, apply mode). Mirrors the date-diff treatment on the
- * /alerts list row (`PulseAlertRow`) so the two surfaces read as one
- * vocabulary. Every value is real `PulseDetail` data; it renders only
- * for due-date-overlay alerts that carry both dates.
+ * The prominent left-accent DEADLINE CHANGE card. Eyebrow + old→new date
+ * diff (with the signed day delta) + a scope-facts line. Mirrors the
+ * date-diff treatment on the /alerts list row (`PulseAlertRow`) so the
+ * two surfaces read as one vocabulary. Every value is real `PulseDetail`
+ * data; it renders only for due-date-overlay alerts that carry both
+ * dates.
  */
 function formatDeadlineDate(iso: string): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -179,11 +165,10 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
       new Date(`${oldIso}T00:00:00.000Z`).getTime()) /
       86_400_000,
   )
-  // 2026-06-10 (Yuqi — replicate Pencil `Qla5h KeyChange`): header pill +
-  // "Effective immediately"; mono diff row (old strike → new 18/700) with a
-  // GREEN delta (an extension is relief, not a penalty); the source summary;
-  // then a hairline meta row of AI-confidence · source · audit ledger. The
-  // scope/forms facts moved to the Extracted-facts grid (Pencil order).
+  // Header pill + "Effective immediately"; mono diff row (old strike →
+  // new 18/700) with a GREEN delta (an extension is relief, not a
+  // penalty); the source summary; then a hairline meta row of
+  // AI-confidence · source · audit ledger.
   const confPct = Math.round(detail.alert.confidence * 100)
   const confTone = aiConfidenceTier(detail.alert.confidence)
   const confClass =
@@ -282,19 +267,18 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
 }
 
 /**
- * 2026-06-08 (Aogxu parity Phase 1, task 1 — "What this means for your
- * practice"): the tinted value band that translates the raw date diff into
- * the firm-facing consequence. Renders only for an auto-applied due-date
- * overlay that actually matched clients, and only bullets we can derive
- * honestly from the record:
+ * The "What this means for your practice" tinted value band that
+ * translates the raw date diff into the firm-facing consequence. Renders
+ * only for an auto-applied due-date overlay that actually matched
+ * clients, and only bullets we can derive honestly from the record:
  *   • Bullet A — N clients gain ~M months of breathing room (the same day
  *     delta the hero card shows, expressed in months).
  *   • Bullet B — relief is automatic for the in-scope addresses (true
  *     because `actionMode === 'due_date_overlay'` ⇒ auto-applied).
- *   • Bullet C — payments postponed / no penalties accrue. ENABLED in Phase 3
- *     only when the AI-extracted deadline-shift facts say so: the relief covers
- *     'payment' deadlines AND penaltyRelief === true. Otherwise omitted (Phase 1
- *     behavior) — old alerts carry no such facts, so nothing changes for them.
+ *   • Bullet C — payments postponed / no penalties accrue. Shown only when
+ *     the AI-extracted deadline-shift facts say so: the relief covers
+ *     'payment' deadlines AND penaltyRelief === true. Otherwise omitted —
+ *     old alerts carry no such facts, so nothing changes for them.
  */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -336,9 +320,9 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
       : getJurisdictionName(detail.jurisdiction)
 
   return (
-    // 2026-06-09 (Yuqi alert-detail "too many boxes"): flattened — the gray
-    // box + padding are dropped now that this sits inside the white "The
-    // change" group card. Its Lightbulb header carries the delineation.
+    // Flattened — no gray box / padding, since this sits inside the white
+    // "The change" group card. Its Lightbulb header carries the
+    // delineation.
     <section className="flex flex-col gap-3">
       <header className="flex items-center gap-1.5">
         <LightbulbIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
@@ -390,12 +374,11 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
 }
 
 /**
- * 2026-06-08 (Pencil ibEoz/BbQAK `gRY5g Activity`): lifecycle timeline.
- * Each node is a real fact already on the record — received
- * (publishedAt + source + confidence), matched (impacted obligation
- * count + scope), reviewed (reviewedAt), and the current resolution
- * state derived from `status`. No fabricated events; a true per-alert
- * event feed would be a separate backend addition.
+ * Lifecycle timeline. Each node is a real fact already on the record —
+ * received (publishedAt + source + confidence), matched (impacted
+ * obligation count + scope), reviewed (reviewedAt), and the current
+ * resolution state derived from `status`. No fabricated events; a true
+ * per-alert event feed would be a separate backend addition.
  */
 function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
   const { t } = useLingui()
@@ -503,14 +486,11 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
 }
 
 /**
- * 2026-06-08 (Pencil ibEoz/BbQAK decision banners): the colored
- * top-of-panel status banner — amber "Pending your review", red
- * "Couldn't apply", green "Applied · undo". The design stacks all
- * three for reference; in code exactly one renders, picked from the
- * real alert state. Right-side meta (confidence, due-in,
- * confirmed-by-N-sources) is wired to real fields; the mock's
- * "rank #X of Y" + exact undo countdown + audit-ref strings are
- * omitted rather than fabricated.
+ * The colored top-of-panel status banner — amber "Pending your review",
+ * red "Couldn't apply", green "Applied · undo". Exactly one renders,
+ * picked from the real alert state. Right-side meta (confidence, due-in,
+ * confirmed-by-N-sources) is wired to real fields; "rank #X of Y" + exact
+ * undo countdown + audit-ref strings are omitted rather than fabricated.
  */
 function DecisionBanners({
   detail,
@@ -590,33 +570,29 @@ function DecisionBanners({
     )
   }
 
-  // 2026-06-08 (Yuqi alert-detail feedback #3 "more compact, colour cohesive"
-  // + #7 "remove" the description line + #8 "match Today's card"): the pending
-  // band is now a single compact row — warning icon + "Pending your review" on
-  // the left, and the confidence/due meta on the right in the SAME sans
-  // `conf 94% · due in 8 days` treatment the /today alert card uses (was a bold
-  // mono "Confidence 94"). The verbose "AI extracted…" sentence and the
-  // source-corroboration chip are dropped — the affected-clients table below
-  // already carries the confirm/exclude flow.
+  // The pending band is a single compact row — warning icon + "Pending
+  // your review" on the left, and the due meta on the right in the same
+  // sans treatment the /today alert card uses. The verbose "AI extracted…"
+  // sentence and the source-corroboration chip are dropped — the
+  // affected-clients table below already carries the confirm/exclude flow.
   if (
     alert.status === 'matched' &&
     alert.firmImpact !== 'no_current_match' &&
     detail.applyReadiness.status !== 'ready'
   ) {
-    // 2026-06-08 (Yuqi /alerts D3 "banner height matches the All/Unresolved
-    // segmented control in the rail"): the compact single-line band is pinned to
-    // the Segmented size="sm" track height (h-7) via DetailStatusBanner.
+    // The compact single-line band is pinned to the Segmented size="sm"
+    // track height (h-7) via DetailStatusBanner, matching the rail's
+    // All/Unresolved control.
     return (
       <DetailStatusBanner
         compact
         tone="warning"
         icon={CircleAlertIcon}
         title={<Trans>Pending your review</Trans>}
-        // 2026-06-08 (Yuqi "banner conf and the AI-confidence section say the
-        // same thing"): the confidence % is dropped from this banner — it lives
-        // in the dedicated "AI confidence" block below (which for low-confidence
-        // alerts is the prominent actionable warning). The banner now carries
-        // only status + the due-date timing.
+        // The confidence % is dropped from this banner — it lives in the
+        // dedicated "AI confidence" block below (which for low-confidence
+        // alerts is the prominent actionable warning), so the banner
+        // carries only status + the due-date timing (no duplication).
         note={
           dueInDays !== null && dueInDays >= 0 ? <span>{t`due in ${dueInDays} days`}</span> : null
         }
@@ -641,15 +617,15 @@ export function AlertDetailDrawer({
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const open = alertId !== null
-  // 2026-05-26 (Yuqi sidebar mental-model pass): same pattern as the
-  // /deadlines obligation drawer (see routes/obligations.tsx). When the
-  // alert drawer is open it needs horizontal room — auto-collapse
-  // the sidebar while open, restore on close. The user's persistent
-  // collapse preference (localStorage) is untouched; closing the drawer
-  // restores whatever they last chose. If a consumer renders this
-  // drawer outside SidebarProvider (e.g. the off-route
-  // `AlertDrawerProvider` mounted above AppShell in `_layout.tsx`),
-  // `useSidebar` would throw — gate with the safe context lookup.
+  // Same pattern as the /deadlines obligation drawer (see
+  // routes/obligations.tsx). When the alert drawer is open it needs
+  // horizontal room — auto-collapse the sidebar while open, restore on
+  // close. The user's persistent collapse preference (localStorage) is
+  // untouched; closing the drawer restores whatever they last chose. If a
+  // consumer renders this drawer outside SidebarProvider (e.g. the
+  // off-route `AlertDrawerProvider` mounted above AppShell in
+  // `_layout.tsx`), `useSidebar` would throw — gate with the safe context
+  // lookup.
   const sidebar = useOptionalSidebar()
   const setAutoCollapsed = sidebar?.setAutoCollapsed
   useEffect(() => {
@@ -660,11 +636,9 @@ export function AlertDetailDrawer({
     }
   }, [open, setAutoCollapsed])
 
-  // 2026-06-08 (Yuqi alert-detail feedback #4 "make the navigation better" +
-  // #5 "remove up/down arrow option"): with the ▲▼ buttons gone, ArrowUp /
-  // ArrowDown page prev/next through the surrounding list (the left rail
-  // remains the primary click navigator). Ignored while typing in a field so
-  // it never hijacks search/text input.
+  // ArrowUp / ArrowDown page prev/next through the surrounding list (the
+  // left rail remains the primary click navigator). Ignored while typing
+  // in a field so it never hijacks search/text input.
   useEffect(() => {
     if (!open || (!onPrev && !onNext)) return undefined
     const handler = (event: KeyboardEvent) => {
@@ -699,13 +673,12 @@ export function AlertDetailDrawer({
     null
   const invalidate = useAlertsInvalidation()
 
-  // 2026-06-03 (rule-change alert — "disable Mark reviewed until all
-  // reverify rules are re-verified"): a review_only drift / rule-change
-  // alert lists rules to re-verify (`detail.reverifyRuleIds`). The CPA
-  // must re-verify (accept) each one — which bumps the firm's adopted
-  // version + clears the rule's source-drift gate — BEFORE the alert can
-  // be marked reviewed. Otherwise "reviewed" would close the alert while
-  // the underlying rule is still stale. A reverify rule still needs work
+  // A review_only drift / rule-change alert lists rules to re-verify
+  // (`detail.reverifyRuleIds`). The CPA must re-verify (accept) each one —
+  // which bumps the firm's adopted version + clears the rule's
+  // source-drift gate — BEFORE the alert can be marked reviewed.
+  // Otherwise "reviewed" would close the alert while the underlying rule
+  // is still stale. A reverify rule still needs work
   // iff listRules surfaces a candidate / pending_review row for it (the
   // same row that renders the "Re-verify" action below). The query only
   // runs when the alert actually carries reverify rules; its key matches
@@ -732,14 +705,13 @@ export function AlertDetailDrawer({
   const [resetKey, setResetKey] = useState<string | null>(null)
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
   const [reviewNote, setReviewNote] = useState('')
-  // 2026-05-26 (F-041 — alert deadline-shift verification gate):
-  // Apply on a `due_date_overlay` alert opens a confirmation dialog
-  // that surfaces the AI-extracted dates, source excerpt, and a
-  // direct link to the official source. The CPA must tick "I have
-  // verified against the source" before the mutation fires. AI
-  // hallucinating a deadline shift = files late or early — the
-  // highest-liability failure mode in the product — so the Apply
-  // path now requires one explicit acknowledgement step.
+  // F-041 — alert deadline-shift verification gate. Apply on a
+  // `due_date_overlay` alert opens a confirmation dialog that surfaces the
+  // AI-extracted dates, source excerpt, and a direct link to the official
+  // source. The CPA must tick "I have verified against the source" before
+  // the mutation fires. AI hallucinating a deadline shift = files late or
+  // early — the highest-liability failure mode in the product — so the
+  // Apply path requires one explicit acknowledgement step.
   const [applyVerificationOpen, setApplyVerificationOpen] = useState(false)
   const [applyVerified, setApplyVerified] = useState(false)
 
@@ -831,9 +803,9 @@ export function AlertDetailDrawer({
     })
   }
 
-  // 2026-06-10 (Yuqi — Pencil `G24tQh` header Confirm/Exclude): bulk-exclude the
-  // currently-selected clients, folding each through the same excludeFromSelection
-  // reducer the per-row Exclude uses (so confirmed/excluded/selection stay coherent).
+  // Bulk-exclude the currently-selected clients, folding each through the
+  // same excludeFromSelection reducer the per-row Exclude uses (so
+  // confirmed/excluded/selection stay coherent).
   const handleExcludeSelected = () => {
     let nextState = { selection, confirmedReviewIds, excludedIds }
     for (const obligationId of selection) {
@@ -914,11 +886,11 @@ export function AlertDetailDrawer({
     orpc.pulse.markReviewed.mutationOptions({
       onSuccess: () => {
         toast.success(t`Alert marked reviewed`)
-        // 2026-06-09 (Yuqi "clicking Mark reviewed goes back to alert page —
-        // bad UX"): do NOT onClose() on review. Marking reviewed is a status
+        // Do NOT onClose() on review. Marking reviewed is a status
         // change, not a "done with this alert" exit — the CPA stays on the
-        // alert and the detail (status pill + action shelf) updates in place
-        // via invalidate(). Apply/dismiss still close (those resolve the alert).
+        // alert and the detail (status pill + action shelf) updates in
+        // place via invalidate(). Apply/dismiss still close (those resolve
+        // the alert).
         invalidate()
       },
       onError: (err) => {
@@ -955,15 +927,13 @@ export function AlertDetailDrawer({
         setReviewNote('')
         void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
         invalidate()
-        // 2026-05-26 (Step 6 UX audit #96): future tense "will be
-        // sent" suggested an action that hadn't happened yet, even
-        // though the API call already completed and queued the
-        // notifications server-side. Rephrased as a present-perfect
-        // status ("queued for…") so the toast describes the
-        // ACTUAL state of the world at toast-render time.
-        // ROH-D11 — was "owners and managers" hard-coded; the
-        // pulse.apply review-eligible role set is owner/partner/manager.
-        // Use the helper so the toast tracks FIRM_PERMISSION_ROLES.
+        // Present-perfect status ("queued for…") so the toast describes
+        // the ACTUAL state of the world at toast-render time — the API
+        // call already completed and queued the notifications
+        // server-side, so a future-tense "will be sent" would mislead.
+        // Use `requiredRolesLabel` (not a hard-coded "owners and
+        // managers") so the toast tracks the pulse.apply review-eligible
+        // role set.
         toast.success(t`Review requested`, {
           description: t`Notifications queued for ${requiredRolesLabel('pulse.apply')}.`,
         })
@@ -1124,29 +1094,25 @@ export function AlertDetailDrawer({
     )
   }
 
-  // 2026-05-25 (Yuqi /alerts #9 — drawer → page panel):
-  // outermost render shape is conditional on `mode`. The body
-  // (header + content + footer) is shared between both modes so
-  // every alert-detail surface — the floating Sheet (off-route
-  // legacy) AND the inline page panel on /alerts — uses
-  // identical content. Mirrors the obligation drawer pattern
-  // (see `ObligationQueueDetailDrawer` in routes/obligations.tsx)
-  // which already proves this works for cross-surface drawers
-  // that need both an in-route panel + a floating fallback.
-  // 2026-06-09 (Yuqi alert-detail "header collapses on scroll to leave more
-  // room for reading"): the hero header shrinks once the body scrolls past a
-  // small threshold — the big title drops to a single compact line and the
-  // summary dek + roomy padding fall away, reclaiming vertical space for the
-  // content below. Driven by the body scroll container's onScroll; the setter
+  // The outermost render shape is conditional on `mode`, but the body
+  // (header + content + footer) is shared between both modes so every
+  // alert-detail surface — the floating Sheet (off-route fallback) AND the
+  // inline page panel on /alerts — uses identical content. Mirrors the
+  // obligation drawer pattern (see `ObligationQueueDetailDrawer` in
+  // routes/obligations.tsx).
+  //
+  // The hero header shrinks once the body scrolls past a small threshold —
+  // the big title drops to a single compact line and the summary dek +
+  // roomy padding fall away, reclaiming vertical space for the content
+  // below. Driven by the body scroll container's onScroll; the setter
   // bails out when the boolean doesn't change so scrolling doesn't thrash
   // renders.
   const [headerCollapsed, setHeaderCollapsed] = useState(false)
 
-  // 2026-06-09 (Yuqi alert-detail "group into obvious sections"): the
-  // "Affected clients" group card renders only when it has real content —
-  // a client surface (overlay or review-only) OR an apply-permission notice
-  // OR the manager-review / ready-to-apply controls. Avoids an empty card on
-  // no-match / read-only alerts.
+  // The "Affected clients" group card renders only when it has real
+  // content — a client surface (overlay or review-only) OR an
+  // apply-permission notice OR the manager-review / ready-to-apply
+  // controls. Avoids an empty card on no-match / read-only alerts.
   const showClientsGroup =
     !!detail &&
     ((detail.alert.actionMode === 'due_date_overlay' &&
@@ -1157,25 +1123,15 @@ export function AlertDetailDrawer({
 
   const body = (
     <>
-      {/* 2026-06-08 (Pencil ibEoz/BbQAK `BackStrip`): top bar — back-to-
-          Alerts breadcrumb on the left, prev/next paging + "N of M"
-          position + close on the right. The close here is the single
-          close affordance (panel mode drops its absolute X; sheet mode
-          hides the primitive's). prev/next render only when the list
-          surface threads paging handlers. */}
-      {/* 2026-06-08 (Yuqi alert-detail feedback #2 "height should match the
-          left alert-list header" + #5 "remove up/down arrow option" + #4
-          "better navigation"): the top bar is height-matched to the rail's
-          ListHead (`py-3.5`), and the redundant ▲▼ paging buttons are gone —
-          the alert RAIL on the left is the navigator, so the bar just reads
-          "‹ Alerts … N of M … ✕". */}
-      {/* 2026-06-09 (Yuqi right-side measure, option B): chrome border spans the
-          full width (so the bar never looks cut off), but its content is capped
-          to the same 760px measure as the document below.
-          2026-06-09 (Yuqi alert-detail "align to the center"): the 760px measure
-          is now `mx-auto` so the top bar's back-link + position + close sit
-          centered over the same document column the header, body, and footer
-          share, instead of pinning to the left padding edge. */}
+      {/* Top bar — back-to-Alerts breadcrumb on the left, "N of M"
+          position + close on the right. This close is the single close
+          affordance (panel mode drops its absolute X; sheet mode hides the
+          primitive's). The alert RAIL on the left is the navigator, so
+          there are no ▲▼ paging buttons here. The chrome border spans the
+          full width (so the bar never looks cut off) but its content is
+          capped to the same 760px `mx-auto` measure as the document below,
+          so it sits centered over the same column the header/body/footer
+          share. */}
       <div className="flex h-[52px] shrink-0 items-center border-b border-divider-subtle px-12">
         <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3">
           <button
@@ -1204,32 +1160,16 @@ export function AlertDetailDrawer({
         </div>
       </div>
 
-      {/* 2026-05-26 (Yuqi thirty-seventh pass — panel padding spec):
-            header padding bumped to Yuqi's "right panel" spec:
-              • padding-inline: calc(var(--spacing) * 12)  → px-12 (48px)
-              • padding-block:  calc(var(--spacing) * 10)  → py-10 (40px)
-            Override SheetHeader's primitive default (px-6 py-5) so the
-            alert panel reads as a roomy paper-document surface, not as
-            a tight Sheet drawer. Header / body / footer all share the
-            same `px-12` inline so the left edge is one continuous
-            margin top-to-bottom. */}
-      {/* 2026-06-04 round 46 (Yuqi Pencil n9m9B — "follow the same
-          style as of Today page and Alert page"): Hero header
-          rebuilt to share the alert-card vocabulary used on /alerts
-          + /today summary cards. Reads as the BIG version of the
-          compact card — same severity pill + state pill + source ·
-          time chrome at the top, then 28/600 title, then 16/500
-          summary. Removes the legacy `Badge shape="square"`
-          jurisdiction kicker, the PulseStatusBadge / change-kind
-          Badge / PulseConfidencePill row, and the floating
-          PulsingDot — every signal now sits in the consolidated
-          meta row.
-          Padding follows Pencil n9m9B Hero spec (gap 18 → gap-4
-          + heavy outer padding via `px-12 py-10` from previous
-          round). */}
-      {/* 2026-06-08 (Pencil ibEoz/BbQAK decision banners): the colored
-          status band sits at the very top — full-bleed, above the
-          header meta + title — exactly one band for the alert's real
+      {/* Header padding overrides SheetHeader's primitive default
+          (px-6 py-5) with `px-12` so the alert panel reads as a roomy
+          paper-document surface, not a tight Sheet drawer. Header / body
+          / footer all share the same `px-12` inline so the left edge is
+          one continuous margin top-to-bottom. The Hero reads as the BIG
+          version of the compact /alerts + /today card — same severity
+          pill + state pill + source · time chrome, then title, then
+          summary — so every signal sits in one consolidated meta row. */}
+      {/* The colored status band sits at the very top — full-bleed, above
+          the header meta + title — exactly one band for the alert's real
           state (amber Pending / red Couldn't-apply / green Applied). */}
       {detail ? (
         <DecisionBanners
@@ -1240,17 +1180,10 @@ export function AlertDetailDrawer({
         />
       ) : null}
 
-      {/* Round 47 (Yuqi #1 — "reduce the bottom padding"): Hero
-          padding `py-10` → `pt-10 pb-6`. The summary line was
-          sitting on a 40px floor of dead space before the body
-          content started; cutting bottom padding tightens the
-          transition from Hero → first body section. */}
-      {/* 2026-06-09 (Yuqi alert-detail "light gray header background" + "remove
-          bottom border"): the hero header takes a soft gray fill
-          (bg-background-subtle) and drops its `border-b` hairline. The tonal
-          step from the gray header to the white body now carries the
-          separation on its own — no rule needed — and reads as a calmer,
-          document-style masthead. */}
+      {/* The hero header takes a soft gray fill (bg-background-subtle) and
+          drops its `border-b` hairline. The tonal step from the gray
+          header to the white body carries the separation on its own — no
+          rule needed — and reads as a calmer, document-style masthead. */}
       <SheetHeader
         className={cn(
           'bg-background-subtle px-12 transition-all duration-200 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
@@ -1262,11 +1195,8 @@ export function AlertDetailDrawer({
         ) : (
           (() => {
             const severity = impactBadgeFromAlert(detail.alert)
-            // 2026-06-04 round 68 (Yuqi "No Low impact or medium
-            // impact"): gate the impact pill to HIGH only — same
-            // rule applied to NeedsAttentionCard / PulseAlertRow /
-            // AlertCard in earlier rounds. The detail panel
-            // header is no longer the lone outlier.
+            // Gate the impact pill to HIGH only — the same rule
+            // NeedsAttentionCard / PulseAlertRow / AlertCard use.
             const showSeverityPill = severity.id === 'high'
             const actionPill = actionPillFromAlert(detail.alert)
             const actionLabel = actionPill
@@ -1277,41 +1207,22 @@ export function AlertDetailDrawer({
                   : t`Closed`
               : null
             return (
-              // 2026-06-04 round 68 (Yuqi "please do not waste
-              // space. space is precious"): drawer header gap
-              // dropped 16 → 8 so the meta strip, title, and dek
-              // pack tighter. Saved ~24px above the fold.
               <div className="flex flex-col gap-2">
                 {/* Meta row — severity (HIGH only) + state pill +
-                    change-kind + source · time + action pill.
-                    2026-06-04 round 68 (Yuqi "state badge is wrong
-                    and ugly"): state pill rebuilt to match the
-                    h-[22px] StatePill chrome used on /alerts list
-                    rows + dashboard card — `<StateBadge>` motif +
-                    Geist Mono 11/700 uppercase code. The dangling
-                    "Texas" full-name suffix (text-tertiary
-                    normal-case mid-pill) was the actual visual
-                    ugliness; dropped — the 2-letter code is
-                    enough, full name moves to a tooltip on hover.
-                    2026-06-04 round 68 (Yuqi "source status is
-                    different on the alert card and on the detail
-                    panel"): change-kind label uses the SAME
-                    `changeKindLabel` helper PulseAlertRow uses
-                    (not the drawer-specific
-                    `drawerChangeKindLabel` we had here) so the
-                    exact wording matches. */}
+                    change-kind + source · time + action pill. The
+                    change-kind label uses the SAME `changeKindLabel`
+                    helper PulseAlertRow uses (not a drawer-specific
+                    variant) so the exact wording matches across surfaces. */}
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* ACTIVE badge — 2026-06-09 (Yuqi "on alert detail page …
-                      active has an indication it is active"): flags the
-                      actionable due-date-overlay queue, mirroring the row badge. */}
+                  {/* ACTIVE badge — flags the actionable
+                      due-date-overlay queue, mirroring the row badge. */}
                   {isActiveAlert(detail.alert) ? (
                     <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded border border-state-success-border bg-state-success-hover px-2 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
                       <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
                       <Trans>Active</Trans>
                     </span>
                   ) : null}
-                  {/* 2026-06-08 (Pencil ibEoz header): impact pill reads
-                      "HIGH IMPACT" (not bare "HIGH"). */}
+                  {/* Impact pill reads "HIGH IMPACT" (not bare "HIGH"). */}
                   {showSeverityPill ? (
                     <span
                       className="inline-flex h-[22px] shrink-0 items-center rounded px-2 text-xs font-bold tracking-[0.7px] uppercase"
@@ -1320,9 +1231,9 @@ export function AlertDetailDrawer({
                       {t`HIGH IMPACT`}
                     </span>
                   ) : null}
-                  {/* 2026-06-08 (Yuqi "reuse components"): the shared
-                      JurisdictionLabel primitive — seal + mono code + full name,
-                      identical to the deadline detail header. */}
+                  {/* The shared JurisdictionLabel primitive — seal + mono
+                      code + full name, identical to the deadline detail
+                      header. */}
                   <JurisdictionLabel code={detail.alert.jurisdiction} />
                   <span className="inline-flex h-[22px] shrink-0 items-center rounded bg-state-accent-hover px-2 font-mono text-xs font-bold tracking-[0.7px] text-text-accent uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
@@ -1359,13 +1270,11 @@ export function AlertDetailDrawer({
                   </span>
                 </div>
 
-                {/* Title — 2026-06-04 round 68 (Yuqi "alert detail
-                    title can be slightly smaller"): 28 → 22, kept
-                    600 weight and tight leading. Drawer chrome
-                    above (top bar + meta strip) was claiming so
-                    much of the fold that the title pushed the
-                    Source Extract below it. 22px keeps the title
-                    as the lede without dominating the panel. */}
+                {/* Title at 22px (600 weight, tight leading). The drawer
+                    chrome above (top bar + meta strip) claims enough of
+                    the fold that a larger title would push the Source
+                    Extract below it; 22px keeps the title as the lede
+                    without dominating the panel. */}
                 <h2
                   className={cn(
                     'font-semibold leading-[1.25] tracking-[-0.4px] text-text-primary transition-all duration-200',
@@ -1390,31 +1299,12 @@ export function AlertDetailDrawer({
         )}
       </SheetHeader>
 
-      {/* 2026-05-25 (Yuqi Today #19): body gap reduced from gap-5
-            (20px) to gap-4 (16px) and vertical padding from py-5
-            to py-4 — denser scan rhythm so the drawer reads as
-            information-dense, not as a series of cards with air
-            between them. The CPA wants to see source → scope →
-            action without paging the whole drawer. */}
-      {/* 2026-05-26 (Yuqi thirty-second pass): body padding bumped
-          py-4 → py-5 so the drawer body matches the FactCard
-          inner padding (`px-6 py-5`). Consistent breathing room
-          across nested surfaces. */}
-      {/* 2026-05-26 (Yuqi thirty-seventh pass — panel padding spec):
-            body padding bumped to the right-panel spec:
-              • padding-inline: calc(var(--spacing) * 12)  → px-12 (48px)
-              • padding-block:  calc(var(--spacing) * 10)  → py-10 (40px)
-            Same margin as the header so the entire panel reads as
-            one continuous paper surface from edge to edge. */}
-      {/* 2026-05-26 (Yuqi forty-seventh pass — sticky-footer buffer):
-            body bottom padding bumped `py-10` → `pt-10 pb-24` (96px).
-            The sticky footer (min-h-16 + py-4 ≈ 64-80px) overlays
-            the body's bottom edge when scrolled — without extra
-            buffer the last content row gets hidden behind the
-            action bar. 96px = ~footer height + 32px breathing
-            room, so the CPA always sees both the last content and
-            the action bar with a clean gap between them. Top stays
-            py-10 (40px) — header → content rhythm doesn't change. */}
+      {/* Body shares the header's `px-12` so the whole panel reads as one
+          continuous paper surface from edge to edge. The large bottom
+          padding (`pb-24`, ~96px) buffers the sticky footer (≈64–80px
+          tall): it overlays the body's bottom edge when scrolled, so
+          without the buffer the last content row would hide behind the
+          action bar. */}
       <div
         onScroll={(event) => {
           const next = event.currentTarget.scrollTop > 16
@@ -1422,25 +1312,21 @@ export function AlertDetailDrawer({
         }}
         className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto bg-background-subtle px-12 pt-6 pb-24 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]"
       >
-        {/* 2026-06-08 (Pencil ibEoz order): SOURCE EXTRACT moved from
-            the top of the body down to just before Provenance — the
-            design leads with the decision banner + key change + facts +
-            affected clients, and keeps the verbatim quote as a
-            supporting anchor near the bottom. */}
+        {/* Body order leads with the decision banner + key change + facts
+            + affected clients, and keeps the verbatim SOURCE EXTRACT quote
+            as a supporting anchor near the bottom (just before
+            Provenance). */}
         {detailQuery.isError ? (
-          // 2026-05-26 (Yuqi twenty-ninth pass): icon removed from
-          // remaining drawer Alerts so the alert chrome is
-          // consistent — title + body only, no leading icon.
+          // No leading icon, so the drawer's alert chrome stays
+          // consistent — title + body only.
           <Alert variant="destructive">
             <AlertTitle>
               <Trans>Couldn't load this alert</Trans>
             </AlertTitle>
             <AlertDescription>
               {i18n._(alertErrorDescriptor(detailQuery.error))}{' '}
-              {/* 2026-05-27 (σ cross-route audit D8): raw underline
-                  button → canonical `<Button variant="link">`. Pairs
-                  with D5 in AlertsListPage — both alert retry sites
-                  now match dashboard/clients/obligations. */}
+              {/* Canonical `<Button variant="link">` so both alert retry
+                  sites match dashboard/clients/obligations. */}
               <Button
                 type="button"
                 variant="link"
@@ -1455,29 +1341,23 @@ export function AlertDetailDrawer({
         ) : null}
 
         {detail ? (
-          // 2026-06-09 (Yuqi alert-detail "group into obvious sections"): the
-          // body is a `gap-4` stack of up-to-four white group cards on the
-          // gray-wash body (see the per-group comment below). Kept out of
-          // flex-shrink so the scroll container owns the scroll height.
+          // The body is a `gap-4` stack of up-to-four white group cards on
+          // the gray-wash body (see the per-group comment below). Kept out
+          // of flex-shrink so the scroll container owns the scroll height.
           <div className="flex shrink-0 flex-col gap-4">
-            {/* 2026-06-09 (Yuqi alert-detail "too many boxes floating around —
-                group into obvious sections"): the former flat divide-y stack of
-                ~14 mixed flat-sections + floating tinted boxes is reorganised
-                into four white cards on the body's gray wash —
+            {/* The body is four white cards on the gray wash —
                   1. The change      (deadline shift + extracted facts + impact)
                   2. Affected clients (scope table + apply/review controls)
                   3. Source & confidence (warnings + source extract + provenance)
                   4. Activity         (lifecycle timeline + team notes)
                 No new section labels: each card's boundary + its existing inner
                 headers carry the grouping, so the panel reads as four obvious
-                blocks instead of a dozen disconnected boxes. Card radius 12
-                (canonical wrapper); white fill pops against the gray body. */}
+                blocks. Card radius 12 (canonical wrapper); white fill pops
+                against the gray body. */}
 
-            {/* GROUP 1 — The change. 2026-06-10 (Yuqi "keep the grouping, but
-                update the style"): the four group cards now use the canonical
-                Pencil BbQAK card chrome via <DetailSectionCard> — a gray
-                header band (13/600 title) + white px-5/py-4 body — replacing
-                the uppercase-eyebrow-in-p-6 treatment. */}
+            {/* GROUP 1 — The change. The group cards use the canonical
+                <DetailSectionCard> chrome — a gray header band (13/600
+                title) + white px-5/py-4 body. */}
             <DetailSectionCard title={<Trans>The change</Trans>}>
               {/* Pencil `Qla5h KeyChange`: the prominent deadline-change hero. */}
               <DeadlineChangeCard detail={detail} />
@@ -1499,12 +1379,11 @@ export function AlertDetailDrawer({
               <PracticeImpactSection detail={detail} />
             </DetailSectionCard>
 
-            {/* Rules to re-verify — the task list that clears the Mark-reviewed
-                gate (`reverifyIncomplete`, footer + 'A' shortcut). Dropped by the
-                rounds 70-85 design merge (b6876bf1) while the gate stayed; restored
-                2026-06-10 so the disabled CTA's "rules below" tooltip points at a
-                real surface again. Sits between The change and Affected clients —
-                it is the action the change demands. */}
+            {/* Rules to re-verify — the task list that clears the
+                Mark-reviewed gate (`reverifyIncomplete`, footer + 'A'
+                shortcut), so the disabled CTA's "rules below" tooltip
+                points at a real surface. Sits between The change and
+                Affected clients — it is the action the change demands. */}
             {detail.reverifyRuleIds.length > 0 ? (
               <ReverifyRulesSection
                 reverifyRuleIds={detail.reverifyRuleIds}
@@ -1796,11 +1675,9 @@ export function AlertDetailDrawer({
                   confTier === 'high' ? t`HIGH` : confTier === 'medium' ? t`MEDIUM` : t`LOW`
                 return (
                   <section className="flex flex-col gap-3">
-                    {/* 2026-06-08 (Aogxu parity Phase 1, task 4): the section
-                      title softens from "Provenance & confidence" to a plain-
-                      language read, and the layout splits LEFT confidence
-                      (modest %, tier label, one-line guidance) / RIGHT source
-                      + published + audit-ledger note. */}
+                    {/* The layout splits LEFT confidence (modest %, tier
+                      label, one-line guidance) / RIGHT source + published +
+                      audit-ledger note. */}
                     <header className="flex items-baseline justify-between">
                       <span className="text-sm font-semibold text-text-secondary">
                         <Trans>How confident we are · where this came from</Trans>
@@ -1884,59 +1761,20 @@ export function AlertDetailDrawer({
         ) : null}
       </div>
 
-      {/* 2026-05-25 (Yuqi Alerts second pass #12): action bar
-            promoted from a hairline-bordered footer to a real
-            committed surface — stronger top border, panel-section bg,
-            and the primary Apply button bumped to default size (was
-            sm). Reads as "this is where the decision happens" rather
-            than as continuation chrome. */}
-      {/* 2026-05-26 (Yuqi twentieth pass): footer made taller +
-          more prominent so the sticky action surface reads as
-          decision-grade chrome. `min-h-16` (was ~h-12 default) +
-          stronger top border + brighter `bg-background-default`
-          (white) so it visually separates from the gray
-          background-section the body content sat on. */}
-      {/* 2026-05-26 (Yuqi thirty-seventh pass — panel padding spec):
-            footer inline padding aligned with header/body (px-12, 48px)
-            so the left margin is one continuous line top-to-bottom.
-            Vertical stays compact (py-4) — the footer is a sticky
-            action bar, not a content surface, so 40px would balloon
-            it. */}
-      {/* 2026-05-26 (Yuqi feedback — "more bottom padding. also
-          apply universally to this kind of element/component"):
-          `py-4` → `pt-4 pb-6`. Mirrors the `SheetFooter` primitive
-          bump and the obligation drawer panel-mode footer so every
-          sticky action-strip across the app shares the same 16/24
-          vertical rhythm. */}
-      {/* 2026-06-04 round 48 (Yuqi push further — action shelf
-          rebuild per Pencil n9m9B): left cluster shows two
-          keyboard hints (`A` Apply / `D` Dismiss) +
-          divider + ledger note ("Every decision captured to audit
-          ledger") with a shield-check tone, mirroring n9m9B's
-          left "qCySM" frame. Right cluster keeps the canonical
-          `<DrawerActions>` button set so all the existing
-          permission-gated / mutation-state logic stays put. The
-          shelf grows to two rows of content + `pt-3 pb-5` so the
-          kbd row + buttons don't crowd vertically. */}
-      {/* 2026-06-08 (Yuqi alert-detail feedback #18 "should always be in one
-          line"): the footer no longer stacks the keyboard-hints row above the
-          action buttons. It's a single row — the hints + audit-ledger note on
-          the left (revealed only on wide panels where there's room), the
-          DrawerActions cluster filling the rest. */}
-      {/* 2026-06-08 (Yuqi alert-detail feedback #7 "double border"): the
-          `border-t-2 border-divider-regular` read as a heavy/double rule.
-          Softened to a single clean `border-t border-divider-subtle` —
-          matches the deadline detail footer (ObligationQueueDetailDrawer). */}
-      {/* 2026-06-08 (Yuqi "space between the description and actions"): the
-          gap between the left kbd-hints/audit-ledger note and the action cluster
-          bumped gap-4 → gap-8 so the note doesn't butt against the first button. */}
+      {/* Sticky action footer — a committed decision surface, not
+          continuation chrome: `min-h-16` + white `bg-background-default`
+          so it separates from the gray body. `px-12` shares the
+          header/body margin so the left edge is one continuous line. A
+          single `border-t border-divider-subtle` (not a heavy double
+          rule) matches the deadline detail footer. It's a single row —
+          the kbd hints (`A` Apply / `D` Dismiss) + audit-ledger note on
+          the left (revealed only on wide panels where there's room) and
+          the DrawerActions cluster filling the rest, with gap-8 between
+          them so the note doesn't butt against the first button. */}
       <SheetFooter className="min-h-16 flex-row items-center gap-8 border-t border-divider-subtle bg-background-default px-12 py-3 sm:flex-row">
-        {/* 2026-06-09 (Yuqi right-side measure, option B): footer chrome spans
-            full width; its actions cap to the 760px document measure.
-            2026-06-09 (Yuqi alert-detail "center placed"): the 760px measure is
-            now `mx-auto` so the footer action row sits centered under the
-            same document column the header + body share, instead of hugging
-            the left padding edge. */}
+        {/* The footer chrome spans full width; its actions cap to the
+            760px `mx-auto` document measure so the action row sits
+            centered under the same column the header + body share. */}
         <div className="mx-auto flex w-full max-w-[760px] flex-row items-center gap-8">
           {detail ? (
             <div className="hidden shrink-0 items-center gap-3.5 text-text-tertiary xl:flex">
@@ -2043,65 +1881,41 @@ export function AlertDetailDrawer({
   // The h2 inside the body satisfies a11y. The dialogs still
   // render as siblings since they're separate modal overlays.
   //
-  // 2026-05-25 (Yuqi panel polish): structural fixes —
-  //   • `h-full min-h-0` on the aside so the inner content can
-  //     scroll without growing the page (prevents the
-  //     left-and-right double-scroll Yuqi flagged).
-  //   • Close button (X) pinned top-right of the aside in
-  //     panel mode. Sheet mode gets one from the Sheet
-  //     primitive's `showCloseButton` automatically; panel
-  //     mode needs an explicit one so the close affordance is
-  //     obvious.
-  //   • Footer (SheetFooter) already has `mt-auto` from the
-  //     primitive — it pins to the bottom of the flex column
-  //     when middle content is short; when middle is long, the
-  //     middle scrolls underneath via its own overflow-y-auto.
+  // Structural notes —
+  //   • `h-full min-h-0` on the aside so the inner content can scroll
+  //     without growing the page (prevents a left-and-right
+  //     double-scroll).
+  //   • Panel mode needs an explicit close affordance (Sheet mode gets
+  //     one from the primitive's `showCloseButton` automatically).
+  //   • Footer (SheetFooter) has `mt-auto` from the primitive — it pins
+  //     to the bottom of the flex column when middle content is short;
+  //     when middle is long, the middle scrolls underneath via its own
+  //     overflow-y-auto.
   if (mode === 'panel') {
     if (!open) return null
     return (
       <>
         <aside
           aria-label={t`Alert detail`}
-          // 2026-05-26 (Yuqi /alerts follow-up #2): dropped
-          // the `rounded-lg border` panel chrome. With the frame,
-          // the inner body's vertical scrollbar appeared INSIDE
-          // the panel border — visually nested chrome that read
-          // as "a card with its own scrollbar" rather than a
-          // page column. Without the frame the panel reads as a
-          // sibling column to the alerts list, and its scrollbar
-          // sits flush with the column's right edge. A single
-          // left border keeps the visual divider against the
-          // list column. `overflow-hidden` retained on the aside
-          // so the sticky header/footer don't bleed into the
-          // body's scroll surface.
-          // 2026-06-08 (Yuqi alert-detail feedback #6 "white background, not
-          // gray"): the panel surface is WHITE — the alert detail is a flat
-          // calm-document on white (deadline detail = warm gray; alert detail
-          // = white). The earlier soft `#fafbfc` wash read as the wrong
-          // surface, so the (borderless) content sections now sit directly on
-          // `bg-background-default` and the SheetHeader/SheetFooter chrome
-          // reads continuous with them.
-          // 2026-06-08 (Yuqi /alerts D6 "fewer frames"): the panel's left
-          // border is dropped — the rail's own right border already separates
-          // the detail column from the list, so the extra hairline read as a
-          // redundant frame.
-          // 2026-06-09 (Yuqi "lets have side bar back to white"): the panel
-          // surface returns to WHITE, reverting the D12 #f2f2f2 wash and
-          // restoring the 2026-06-08 #6 decision — alert detail is a flat
-          // calm-document on white (deadline detail = warm gray; alert detail
-          // = white, the intentional divergence). The two flat blocks that D12
-          // had nudged to white-with-border (source-extract quote, "What this
-          // means…" band) go back to their borderless `bg-background-subtle`
-          // tint so they still read as distinct blocks against the white body.
-          // The panel still FILLS its column (`w-full`) so the surface reaches
-          // the viewport edge, and the document CONTENT inside stays capped to a
-          // 760px reading measure and CENTERED in the column (see the per-region
-          // `mx-auto max-w-[760px]` wrappers below).
+          // No panel frame/border: the rail's own right border already
+          // separates the detail column from the list, so an extra
+          // hairline reads as a redundant frame, and the body's scrollbar
+          // sits flush with the column's right edge instead of nested
+          // inside a border. `overflow-hidden` keeps the sticky
+          // header/footer from bleeding into the body's scroll surface.
+          // The panel surface is WHITE — alert detail is a flat
+          // calm-document on white (deadline detail = warm gray; the
+          // intentional divergence). The few tinted blocks (source-extract
+          // quote, "What this means…" band) stay on borderless
+          // `bg-background-subtle` so they still read as distinct against
+          // the white body. The panel FILLS its column (`w-full`) so the
+          // surface reaches the viewport edge, while the document CONTENT
+          // inside stays capped to a 760px reading measure and CENTERED via
+          // the per-region `mx-auto max-w-[760px]` wrappers.
           className="relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background-default shadow-subtle"
         >
-          {/* 2026-06-08: the close affordance moved into the body's
-              BackStrip top bar (with prev/next paging), so the
-              standalone absolute X is gone — one close, top-right. */}
+          {/* The only close affordance lives in the body's BackStrip top
+              bar (with prev/next paging) — one close, top-right. */}
           {body}
         </aside>
         {reviewRequestDialog}
@@ -2176,10 +1990,10 @@ export function DrawerActions({
   /** Dismiss is offered while the alert is still awaiting a decision. */
   canDismiss: boolean
   reviewedSetReady: boolean
-  // 2026-06-03 — true when this review_only alert still has rules that
-  // need re-verifying (a candidate / pending_review row in listRules).
-  // Gates the "Mark reviewed" button so the alert can't be closed before
-  // the underlying rule changes are accepted.
+  // True when this review_only alert still has rules that need
+  // re-verifying (a candidate / pending_review row in listRules). Gates
+  // the "Mark reviewed" button so the alert can't be closed before the
+  // underlying rule changes are accepted.
   reverifyIncomplete: boolean
   isMutating: boolean
   onApply: () => void
@@ -2208,21 +2022,15 @@ export function DrawerActions({
     firmImpact !== 'no_current_match' &&
     requiresDeadlineDetails
   return (
-    // 2026-06-08 (Yuqi alert-detail feedback #12 + #13): footer two-cluster
-    // layout. The LEFT cluster holds the secondary/reversal actions — Undo /
-    // Reactivate AND "Copy client email draft" (a supporting action, not a
-    // decision). The RIGHT cluster is the PRIMARY CTA group only — Request
-    // review + Apply / Apply reviewed — so the dominant decision sits flush
-    // right. `justify-between` splits the two groups; `ml-auto` is no longer
-    // needed because the right cluster is the trailing flex child.
-    // 2026-06-09 (Yuqi /alerts D9 "fill the footer width"): `w-full` so the
-    // cluster spans the whole footer and `justify-between` actually pushes the
-    // secondary (left) and primary (right) groups to opposite edges instead of
-    // bunching at the cluster's natural content width.
-    // 2026-06-10 (Yuqi "should ALWAYS be in one line"): the footer action row
-    // never wraps — flex-nowrap keeps the secondary cluster + primary CTA on a
-    // single line. The secondary group can shrink (min-w-0); the primary CTA
-    // stays shrink-0 so it's always fully visible flush-right.
+    // Footer two-cluster layout. The LEFT cluster holds the
+    // secondary/reversal actions — Undo / Reactivate AND "Copy client
+    // email draft" (a supporting action, not a decision). The RIGHT
+    // cluster is the PRIMARY CTA group only — Request review + Apply /
+    // Apply reviewed — so the dominant decision sits flush right. `w-full`
+    // + `justify-between` push the two groups to opposite edges. The row
+    // never wraps (flex-nowrap): the secondary group can shrink
+    // (min-w-0); the primary CTA stays shrink-0 so it's always fully
+    // visible flush-right.
     <div className="flex w-full flex-nowrap items-center justify-between gap-3">
       <div className="flex min-w-0 flex-nowrap items-center gap-2">
         {showRevert ? (
@@ -2250,10 +2058,9 @@ export function DrawerActions({
             <Trans>Reactivate / Re-apply</Trans>
           </Button>
         ) : null}
-        {/* 2026-06-08 (Yuqi alert-detail feedback #12 "Copy client email
-            draft — shorter"): the button is `size="sm"` (h-8) so it matches
-            the other footer action buttons rather than the taller default
-            primary CTA on the right. */}
+        {/* The button is `size="sm"` (h-8) so it matches the other footer
+            action buttons rather than the taller default primary CTA on
+            the right. */}
         {firmImpact !== 'no_current_match' ? (
           <Button variant="ghost" size="sm" disabled={isMutating} onClick={onCopyDraft}>
             <MailIcon data-icon="inline-start" />
@@ -2276,9 +2083,9 @@ export function DrawerActions({
             <Trans>Request review</Trans>
           </Button>
         ) : null}
-        {/* 2026-05-25 (Yuqi Alerts second pass #12): primary action
-            bumped from size="sm" to default. The other footer buttons
-            stay sm so this one reads as the dominant call-to-action. */}
+        {/* Primary action uses the default size while the other footer
+            buttons stay sm, so this one reads as the dominant
+            call-to-action. */}
         <Button
           variant={canRequestReview ? 'outline' : undefined}
           disabled={
@@ -2309,11 +2116,9 @@ export function DrawerActions({
           ) : selectionCount === 0 ? (
             <Trans>Select deadlines to apply</Trans>
           ) : (
-            // 2026-05-26 (Yuqi thirty-second pass): button text
-            // simplified to "Apply Deadline Exception" — drop the
-            // trailing "to N deadline(s)" count since the selection
-            // checkbox above already shows the count. Title case
-            // reads as a deliberate decision verb.
+            // No trailing "to N deadline(s)" count — the selection
+            // checkbox above already shows it. Title case reads as a
+            // deliberate decision verb.
             <Trans>Apply Deadline Exception</Trans>
           )}
         </Button>
@@ -2351,11 +2156,10 @@ function ManagerReviewPanel({
   onSave: () => void
 }) {
   return (
-    // 2026-06-01: muted Manager-review panel swapped to the canonical
-    // Card primitive (size="xs" tone="muted" radius="md"). The
-    // bg-background-section + border-divider-subtle + rounded-lg
-    // chrome is now Card's tone="muted" + radius="md"; xs density
-    // matches the original p-3.
+    // The muted Manager-review panel uses the canonical Card primitive:
+    // tone="muted" + radius="md" gives the bg-background-section +
+    // border-divider-subtle + rounded-lg chrome, and xs density matches
+    // the original p-3.
     <Card size="xs" tone="muted" radius="md">
       <CardContent className="grid gap-3">
         <header className="flex flex-wrap items-center justify-between gap-2">
@@ -2478,7 +2282,7 @@ function AlertReviewRequestDialog({
 }
 
 /**
- * 2026-05-26 (F-041 — alert deadline-shift verification gate).
+ * F-041 — alert deadline-shift verification gate.
  *
  * Confirmation dialog that intercepts the Apply mutation on a
  * `due_date_overlay` alert. Surfaces the three artifacts the CPA
@@ -2552,12 +2356,10 @@ function AlertApplyVerificationDialog({
           {/* Deadline shift — the consequential fact, displayed
               with the same warning-amber tone as AlertStructuredFields
               so the eye recognizes the same pattern across surfaces. */}
-          {/* 2026-06-01: deadline-shift summary panel swapped to the
-              canonical Card primitive (size="sm" tone="muted"
-              radius="md"). Same muted-section recipe as the manager
-              review panel at sm density (p-4 instead of p-3) — the
-              bg-background-section + border-divider-subtle chrome is
-              now Card's tone="muted" axis. */}
+          {/* The deadline-shift summary panel uses the canonical Card
+              primitive (tone="muted" + radius="md") — the same
+              muted-section recipe as the manager review panel, at sm
+              density. */}
           <Card size="sm" tone="muted" radius="md">
             <CardContent className="grid gap-3">
               <div className="flex flex-col gap-1">
@@ -2704,15 +2506,3 @@ function DetailHeaderSkeleton() {
     </div>
   )
 }
-
-// 2026-05-26 (Yuqi thirty-sixth pass): mirror of `changeKindLabel`
-// from AlertCard / AlertsListPage. Kept local-to-file
-// (matches the existing duplicated-label pattern in those two
-// files) so the panel header pill reads the same as the card
-// pill. If this label diverges across all three sites in the
-// future, promote to a shared util at
-// `apps/app/src/features/alerts/components/alert-change-kind.ts`.
-// 2026-06-05 (pre-CI green-up): `drawerChangeKindLabel` was a
-// drawer-local duplicate of the canonical `changeKindLabel` exported
-// from `components/PulseChangeKindChip.ts`. Deleted to satisfy
-// no-unused-vars; consumers reuse the canonical helper.

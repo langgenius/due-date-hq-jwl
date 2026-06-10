@@ -116,10 +116,9 @@ function EvidenceDrawer({
 }
 
 function EvidenceSummary({ request }: { request: OpenEvidenceInput | null }) {
-  // 2026-06-01: deadline summary tile swapped to Card primitive
-  // (size='sm' radius='md'). Dropped the uppercase eyebrow per
-  // DESIGN §9 — the row label now uses the canonical
-  // text-sm font-medium text-text-secondary section-label shape.
+  // Deadline summary tile is a Card primitive (size='sm' radius='md'). The row
+  // label uses the canonical text-sm font-medium text-text-secondary
+  // section-label shape (no uppercase eyebrow).
   return (
     <Card size="sm" radius="md">
       <CardContent className="grid gap-2">
@@ -146,12 +145,8 @@ function EvidenceTimeline({
   return (
     <section className="grid gap-3">
       <div className="flex items-center justify-between gap-3">
-        {/* 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN §9
-            "uppercase kicker deprecated" violation): swapped
-            `text-xs uppercase tracking-wider text-text-tertiary` for
-            the canonical `text-sm font-medium text-text-secondary`
-            section heading. Two h3s in this file (this one + L612-ish)
-            were the same shape — fixed by replace_all. */}
+        {/* Canonical `text-sm font-medium text-text-secondary` section
+            heading (uppercase kickers are deprecated). */}
         <h3 className="text-sm font-medium text-text-secondary">
           <Trans>What this evidence says</Trans>
         </h3>
@@ -179,12 +174,11 @@ function EvidenceCard({ item, focused }: { item: EvidencePublic; focused: boolea
   const practiceTimezone = usePracticeTimezone()
   const description = evidenceDescription(item)
   const details = evidenceDetails(item)
-  // 2026-06-01: evidence row swapped to Card primitive
-  // (size='sm' radius='md'). Focused state uses tone='accent-active'
-  // — the deeper accent border + hover bg variant Phase 3 added
-  // for selected/focused chrome. `interactive` is intentionally
-  // omitted because this article has no onClick handler; adding it
-  // would surface a misleading cursor-pointer + hover state.
+  // Evidence row is a Card primitive (size='sm' radius='md'). Focused state
+  // uses tone='accent-active' (deeper accent border + hover bg) for
+  // selected/focused chrome. `interactive` is intentionally omitted because
+  // this article has no onClick handler; adding it would surface a misleading
+  // cursor-pointer + hover state.
   return (
     <Card size="sm" radius="md" tone={focused ? 'accent-active' : 'default'}>
       <CardContent className="grid gap-3">
@@ -205,10 +199,9 @@ function EvidenceCard({ item, focused }: { item: EvidencePublic; focused: boolea
         </div>
         {details.length > 0 ? <EvidenceDetailList details={details} /> : null}
         {item.verbatimQuote ? (
-          // 2026-06-01: source-excerpt panel swapped to Card primitive
-          // (size='xs' tone='warning' radius='md'). Dropped uppercase
-          // eyebrow per DESIGN §9; replaced with the canonical
-          // text-sm font-medium text-text-secondary label.
+          // Source-excerpt panel is a Card primitive (size='xs'
+          // tone='warning' radius='md') with a canonical text-sm font-medium
+          // text-text-secondary label.
           <Card size="xs" tone="warning" radius="md">
             <CardContent className="grid gap-1">
               <p className="text-sm font-medium text-text-secondary">
@@ -257,10 +250,9 @@ type ReadableValue = {
 }
 
 function EvidenceDetailList({ details }: { details: EvidenceDetail[] }) {
-  // 2026-06-01: detail list swapped to Card primitive
-  // (size='xs' tone='muted' radius='md'). The <dl> stays inside
-  // CardContent so the description-list semantic is preserved while
-  // the muted-tinted panel chrome comes from Card.
+  // Detail list is a Card primitive (size='xs' tone='muted' radius='md'). The
+  // <dl> stays inside CardContent so the description-list semantic is
+  // preserved while the muted-tinted panel chrome comes from Card.
   return (
     <Card size="xs" tone="muted" radius="md">
       <CardContent>
@@ -275,8 +267,8 @@ function EvidenceDetailList({ details }: { details: EvidenceDetail[] }) {
 }
 
 function EvidenceDetailRow({ detail }: { detail: EvidenceDetail }) {
-  // 2026-06-01: row label uppercase eyebrow swapped for the canonical
-  // text-sm font-medium text-text-secondary label shape per DESIGN §9.
+  // Row label uses the canonical text-sm font-medium text-text-secondary
+  // shape (no uppercase eyebrow).
   return (
     <div className="grid gap-1 sm:grid-cols-[128px_1fr] sm:gap-3">
       <dt className="text-sm font-medium text-text-secondary">{detail.label}</dt>
@@ -298,12 +290,10 @@ function EvidenceSourceIcon({ sourceType }: { sourceType: string }) {
 
 function evidenceSourceLabel(sourceType: string): ReactNode {
   if (sourceType === 'verified_rule') return <Trans>Active practice rule</Trans>
-  // 2026-05-26 (Step 9 AI Visibility Audit F-011): "AI" prefix
-  // restored to the user-facing labels. The previous labels dropped
-  // the word AI from the most prominent provenance disclosure on
-  // this surface — readers without icon-literacy lost the cue
-  // entirely. The SparklesIcon stays as the icon affordance, but
-  // the label now reads the provenance honestly.
+  // The "AI" prefix stays on these user-facing labels — dropping it from the
+  // most prominent provenance disclosure on this surface loses the cue
+  // entirely for readers without icon-literacy. The SparklesIcon is the icon
+  // affordance, but the label reads the provenance honestly.
   if (sourceType === 'ai_mapper') return <Trans>AI import mapping</Trans>
   if (sourceType === 'ai_normalizer') return <Trans>AI import cleanup</Trans>
   if (sourceType === 'readiness_checklist_ai') return <Trans>AI materials checklist</Trans>
@@ -654,12 +644,8 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
   return (
     <section className="grid gap-3">
       <div className="flex items-center justify-between gap-3">
-        {/* 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN §9
-            "uppercase kicker deprecated" violation): swapped
-            `text-xs uppercase tracking-wider text-text-tertiary` for
-            the canonical `text-sm font-medium text-text-secondary`
-            section heading. Two h3s in this file (this one + L612-ish)
-            were the same shape — fixed by replace_all. */}
+        {/* Canonical `text-sm font-medium text-text-secondary` section
+            heading (uppercase kickers are deprecated). */}
         <h3 className="text-sm font-medium text-text-secondary">
           <Trans>Audit timeline</Trans>
         </h3>
@@ -675,10 +661,10 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
             const actionLabel = formatAuditActionLabel(event.action, actionLabels)
             const changeView = buildAuditChangeView(event, changeLabels, practiceTimezone)
             return (
-              // 2026-06-01: audit timeline row swapped to Card primitive
-              // (size='sm' radius='md'). The bordered, rounded-lg chrome
-              // matches the canonical dense in-drawer surface; <article>
-              // semantic is intentionally dropped — Card renders a <div>.
+              // Audit timeline row is a Card primitive (size='sm'
+              // radius='md') matching the dense in-drawer surface. The
+              // <article> semantic is intentionally dropped — Card renders a
+              // <div>.
               <Card key={event.id} size="sm" radius="md">
                 <CardContent className="grid gap-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">

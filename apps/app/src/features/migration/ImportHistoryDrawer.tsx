@@ -76,10 +76,9 @@ export function ImportHistoryDrawer({
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
   const permission = useFirmPermission()
-  // 2026-05-26 (Yuqi sidebar mental-model pass — consistency):
-  // 820-880px wide drawer — auto-collapse the sidebar while open,
-  // restore on close. Mounted inside /clients route which is inside
-  // AppShell, so `useSidebar` is always available.
+  // 820-880px wide drawer — auto-collapse the sidebar while open, restore on
+  // close. Mounted inside /clients route which is inside AppShell, so
+  // `useSidebar` is always available.
   const { setAutoCollapsed } = useSidebar()
   useEffect(() => {
     setAutoCollapsed(open)
@@ -179,9 +178,9 @@ export function ImportHistoryDrawer({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        {/* 2026-06-01: Sheet `flush` variant owns the canonical sectioned-drawer
-            recipe (gap-0 overflow-hidden p-0). Width overrides stay because
-            this drawer's 820–880px size is route-specific, not a default. */}
+        {/* Sheet `flush` variant owns the canonical sectioned-drawer recipe
+            (gap-0 overflow-hidden p-0). Width overrides stay because this
+            drawer's 820–880px size is route-specific, not a default. */}
         <SheetContent
           side="right"
           flush
@@ -220,9 +219,8 @@ export function ImportHistoryDrawer({
             ) : null}
 
             {!batchesQuery.isLoading && batches.length === 0 ? (
-              // 2026-06-01: swap the hand-rolled dashed-border empty box for the
-              // canonical EmptyState pattern at compact density (no section frame,
-              // since this already lives inside the drawer body).
+              // EmptyState pattern at compact density (no section frame, since
+              // this already lives inside the drawer body).
               <EmptyState
                 density="compact"
                 title={<Trans>No import batches yet</Trans>}
@@ -281,19 +279,11 @@ export function ImportHistoryDrawer({
                               <Trans>Revert until</Trans>:{' '}
                               {formatMigrationDate(batch.revertExpiresAt, practiceTimezone)}
                             </span>
-                            {/* 2026-05-27 (Step 7 onboarding audit
-                                F6-21): static `Revert until: <timestamp>`
-                                was the only undo cue on the drawer
-                                — the user had to mentally diff the
-                                timestamp against "now". Step 4's
-                                pre-import promise says "can be
-                                undone for 24 hours"; this is the
-                                post-import realisation of that
-                                promise. Added a live "Undo expires
-                                in Xh Ym" that ticks once a minute
-                                so the user can see the window
-                                shrinking. The Revert button below
-                                already disables on expiry. */}
+                            {/* Live "Undo expires in Xh Ym" that ticks once a
+                                minute so the user can see the window shrinking
+                                — a static timestamp would force the user to
+                                mentally diff against "now". The Revert button
+                                below already disables on expiry. */}
                             <RelativeUndoCountdown
                               revertExpiresAt={batch.revertExpiresAt}
                               status={batch.status}
@@ -542,11 +532,9 @@ function BatchClients({
   const clients = clientsQuery.data?.clients ?? []
   if (clientsQuery.isLoading) return <Skeleton className="h-16 w-full" />
   if (clients.length === 0) return null
-  // 2026-06-01: Card size="xs" tone="muted" radius="md" replaces the
-  // hand-rolled rounded-lg + divider-subtle + p-3 container. Card xs
-  // already sets py-3; CardContent supplies px-3. gap-2 stays for the
-  // dense row rhythm (Card xs default gap is gap-2, applied via the
-  // card flex column).
+  // Card xs already sets py-3; CardContent supplies px-3. gap-2 stays for the
+  // dense row rhythm (Card xs default gap is gap-2, applied via the card flex
+  // column).
   return (
     <Card size="xs" tone="muted" radius="md">
       <CardContent className="grid gap-2">

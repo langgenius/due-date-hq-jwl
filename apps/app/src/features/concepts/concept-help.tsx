@@ -29,10 +29,9 @@ type ConceptId =
   | 'migrationCopilot'
   | 'obligations'
   | 'triageQueue'
-  // 2026-05-26 (Step 9 AI Visibility Audit F-016): `aiWeeklyBrief`
-  // entry was registered but no consumer ever called
-  // `concept="aiWeeklyBrief"`. Removed until a surface lands so
-  // the union type doesn't fragment with ghost entries.
+  // Don't register a concept key until a surface actually consumes it — a
+  // ghost entry (e.g. an `aiWeeklyBrief` no one calls) only fragments the
+  // union type.
   | 'deadlineTip'
   | 'auditTrail'
   | 'obligationPreview'
@@ -213,11 +212,9 @@ export function ConceptHelp({
   const { t } = useLingui()
   const copy = useConceptCopy(concept)
   const label = triggerLabel ?? copy.title
-  // 2026-05-26 (Step 9 AI Visibility Audit F-026): AI-specific
-  // concepts swap CircleHelpIcon → Astroid on the trigger so the
-  // help popover's icon reinforces "this concept is about AI" before
-  // the user reads the popover body. Non-AI concepts keep the
-  // canonical question-mark.
+  // AI-specific concepts swap CircleHelpIcon → Astroid on the trigger so the
+  // help popover's icon reinforces "this concept is about AI" before the user
+  // reads the popover body. Non-AI concepts keep the canonical question-mark.
   const isAiConcept = concept === 'aiConfidence' || concept === 'deadlineTip'
   const TriggerIcon = isAiConcept ? Astroid : CircleHelpIcon
 
@@ -241,13 +238,10 @@ export function ConceptHelp({
       >
         <TriggerIcon className="size-3.5" aria-hidden />
       </PopoverTrigger>
-      {/* 2026-05-25 (Yuqi rule library #18): concept-help popovers
-          were rendering at text-xs (12px) which Yuqi flagged as too
-          small to read comfortably. Bumped to text-sm (14px) for the
-          description and widened to w-80 so longer concept blurbs
-          don't wrap to 4+ lines. The title primitive already
-          ships at a readable size; only the description body
-          needed the bump. */}
+      {/* Description body renders at text-sm (14px), widened to w-80 so longer
+          concept blurbs don't wrap to 4+ lines — text-xs was too small to read
+          comfortably. The title primitive already ships at a readable size;
+          only the description body needed the bump. */}
       <PopoverContent side={side} align={align} className="w-80 gap-2 p-3">
         <PopoverHeader>
           <PopoverTitle>{copy.title}</PopoverTitle>

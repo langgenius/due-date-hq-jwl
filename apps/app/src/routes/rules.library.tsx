@@ -3114,37 +3114,30 @@ function _GroupedRulesTable({
                   {ENTITY_COLUMN_LABELS[entity]}
                 </TableHead>
               ))}
-              {/* 2026-05-27 (Yuqi follow-up — "或者只写数字，和后一个
-                column的progressba写在一起"): the dedicated "Needs
-                review" column was redundant — every row's chip just
-                repeated the header copy ("9 need review"). Folded
-                the pending-review count into the Tier cell as a
-                number-only chip next to the gap chip + progress
-                bar. */}
+              {/* No dedicated "Needs review" column — every row's chip
+                would just repeat the header copy ("9 need review"). The
+                pending-review count is folded into the Tier cell as a
+                number-only chip next to the gap chip + progress bar. */}
               <TableHead className="hidden w-[140px] 2xl:table-cell">
-                {/* 2026-05-28 (Yuqi rename): "Tier" implied subscription
-                  tier; the actual values (Basic / Annual rolling /
-                  Exception / Applicability review) describe rule
-                  KIND, not tier level. Renamed to "Type" — the
-                  visible column label only; the internal RuleTier
-                  type + useRuleTierLabels helper stay since they
-                  match the contract field name `ruleTier`.
-                  2026-05-28 (Yuqi rules.library polish #7 — column
-                  shrink ladder): `w-[140px]` floors the Type column
-                  so it gives ground after Rule / Form when the
-                  viewport narrows. */}
+                {/* The visible label is "Type", not "Tier" — "Tier"
+                  implied a subscription tier, but the actual values
+                  (Basic / Annual rolling / Exception / Applicability
+                  review) describe rule KIND. Only the column label
+                  changes; the internal RuleTier type + useRuleTierLabels
+                  helper stay since they match the contract field name
+                  `ruleTier`. `w-[140px]` floors the Type column so it
+                  gives ground after Rule / Form when the viewport
+                  narrows. */}
                 <Trans>Type</Trans>
               </TableHead>
             </TableRow>
           </TableHeader>
-          {/* 2026-06-04 (Yuqi table sweep): zebra striping
-              (`even:bg-background-section/40` on canonical
-              TableRow) opted OUT here. The library interleaves
-              state group-header rows with rule data rows; zebra
-              based on DOM position would tint state headers and
-              rules inconsistently against their semantic role.
-              Tier-tinted rows (needsReview, focused, isOpen)
-              already supply per-row distinction. */}
+          {/* Zebra striping (`even:bg-background-section/40` on canonical
+              TableRow) is opted OUT here. The library interleaves state
+              group-header rows with rule data rows; zebra based on DOM
+              position would tint state headers and rules inconsistently
+              against their semantic role. Tier-tinted rows (needsReview,
+              focused, isOpen) already supply per-row distinction. */}
           <TableBody className="[&_tr]:even:bg-transparent">
             {groups.map((group) => {
               const isExpanded = expanded.has(group.jurisdiction)
@@ -3185,14 +3178,12 @@ function _GroupedRulesTable({
                             : selectedInSection === rulesInGroup.length
                               ? 'all'
                               : 'some'
-                        // 2026-05-28 (Yuqi /rules/library polish #9):
-                        // when the scope tab already selects ONE
-                        // status family, the sub-section header
-                        // inside the jurisdiction would just restate
-                        // it ("NEEDS REVIEW 10" under the Needs review
-                        // scope). Hide the header row in that case;
-                        // the rules still render inline beneath the
-                        // jurisdiction title.
+                        // When the scope tab already selects ONE status
+                        // family, the sub-section header inside the
+                        // jurisdiction would just restate it ("NEEDS REVIEW
+                        // 10" under the Needs review scope). Hide the
+                        // header row in that case; the rules still render
+                        // inline beneath the jurisdiction title.
                         const hideSectionHeader =
                           (activeScope === 'review' && statusKey === 'needs_review') ||
                           (activeScope === 'active' && statusKey === 'active')
@@ -3264,18 +3255,14 @@ function _GroupedRulesTable({
                 </Fragment>
               )
             })}
-            {/* 2026-05-26 (Yuqi rule library deferred batch — /clarify):
-              the bare "No rules and no coverage data yet." row has
-              been retired — `RulesLibraryEmptyState` now renders
-              ABOVE this table when `groups.length === 0` (see the
+            {/* The empty state isn't a table row — `RulesLibraryEmptyState`
+              renders ABOVE this table when `groups.length === 0` (see the
               parent route). */}
-            {/* 2026-05-27 (Yuqi rule library rework — infinite scroll
-                sentinel): an invisible TR holds the IntersectionObserver
-                target so the observer fires inside the same scroll
-                container the user is reading. Rendered ABOVE the
-                fallback "Load more" row so observer-driven prefetch
-                runs without ever showing the button on a healthy
-                connection. */}
+            {/* An invisible TR holds the IntersectionObserver target so
+                the observer fires inside the same scroll container the
+                user is reading. Rendered ABOVE the fallback "Load more"
+                row so observer-driven prefetch runs without ever showing
+                the button on a healthy connection. */}
             {hasMoreGroups ? (
               <TableRow
                 ref={loadMoreSentinelRef}
@@ -3287,14 +3274,13 @@ function _GroupedRulesTable({
             ) : null}
           </TableBody>
         </Table>
-        {/* 2026-05-27 (Yuqi rule library rework — Load more fallback):
-            replaces the prev/next page footer. The IntersectionObserver
-            above carries the common path; this button is the explicit
-            keyboard/touch-accessible fallback for users who don't auto-
-            scroll (e.g. keyboard-only navigation with focus pinned in
-            the toolbar). When `hasMoreGroups` is false, the entire
-            footer disappears so the catalog's "last row" reads as a
-            clean stop instead of a disabled chrome strip. */}
+        {/* The IntersectionObserver above carries the common path; this
+            "Load more" button is the explicit keyboard/touch-accessible
+            fallback for users who don't auto-scroll (e.g. keyboard-only
+            navigation with focus pinned in the toolbar). When
+            `hasMoreGroups` is false, the entire footer disappears so the
+            catalog's "last row" reads as a clean stop instead of a
+            disabled chrome strip. */}
         {hasMoreGroups ? (
           <div className="flex shrink-0 flex-col items-center gap-1 border-t border-divider-subtle bg-background-default px-2 py-4">
             <Button variant="outline" size="sm" onClick={onLoadMore}>
@@ -3322,7 +3308,6 @@ function GroupHeaderRow({
   group: JurisdictionGroup
   expanded: boolean
   onToggle: (jur: RuleJurisdiction) => void
-  // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
   // J/K nav lights up the focused row with a 2px accent inset rail
   // + matching subtle bg, mirroring /deadlines' focused-row
   // treatment.
@@ -3335,25 +3320,18 @@ function GroupHeaderRow({
         // "don't like state header to be gray"). Anchors by
         // typography (bigger semibold name) alone.
         //
-        // 2026-05-28 (Yuqi /rules/library polish #6 — "当列表展开
-        // 的时候，现在有点难分清每个state"): added a 2px deep top
-        // border that paints over the previous row's faint
+        // A 2px deep top border paints over the previous row's faint
         // `border-b divider-subtle`. The combined ~2.5px solid line
-        // gives a clear visual break between an expanded
-        // jurisdiction's rule rows and the NEXT jurisdiction header,
-        // so the eye can find the next state at a glance even after
-        // a long scroll-through of expanded rules. The first
-        // GroupHeaderRow in the table doesn't need the top border
-        // (no preceding content to separate from), but rendering it
-        // there is harmless — the sticky TableHeader sits above it
-        // anyway. `border-t-2 border-divider-deep` chosen so the
-        // line lands at deep-gray (#171717 / 0.14 alpha) rather than
-        // pulling the page tint; it has to win against the rule
-        // row's border-b without competing with row text.
-        // 2026-06-04 (Yuqi table sweep): `hover:bg-state-base-hover`
-        // dropped — canonical row default. `h-14 cursor-pointer
-        // border-t-2 border-divider-deep` kept — the deep top
-        // border is the state-boundary cue.
+        // gives a clear visual break between an expanded jurisdiction's
+        // rule rows and the NEXT jurisdiction header, so the eye can find
+        // the next state at a glance even after a long scroll-through of
+        // expanded rules. The first GroupHeaderRow in the table doesn't
+        // need the top border (no preceding content to separate from),
+        // but rendering it there is harmless — the sticky TableHeader
+        // sits above it anyway. `border-t-2 border-divider-deep` lands at
+        // deep-gray (#171717 / 0.14 alpha) rather than pulling the page
+        // tint; it has to win against the rule row's border-b without
+        // competing with row text.
         'h-14 cursor-pointer border-t-2 border-divider-deep',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
@@ -3381,16 +3359,12 @@ function GroupHeaderRow({
             )}
             aria-hidden
           />
-          {/* 2026-05-27 (Yuqi follow-up — bordered pill style, "看不见
-              呀"): first pass used `border-divider-subtle` (4% alpha)
-              which was too faint to read as a contained pill. Bumped
-              to `border-divider-deep` (14% alpha) so the border
-              actually defines the chip the way Yuqi's reference image
-              showed. */}
-          {/* 2026-05-29 (Yuqi /clients round 1 — "remove the state
-              icon everywhere"): SVG StateBadge dropped from the
-              jurisdiction header pill. The bordered pill alone
-              carries the identity. */}
+          {/* The pill uses `border-divider-deep` (14% alpha), not
+              `border-divider-subtle` (4%) which is too faint to read as
+              a contained pill — the deeper border actually defines the
+              chip. */}
+          {/* No SVG StateBadge in the jurisdiction header pill — the
+              bordered pill alone carries the identity. */}
           <span className="inline-flex items-center rounded-lg border border-divider-deep bg-background-subtle px-1.5 py-0.5">
             <span className="text-caption-xs uppercase tracking-wider text-text-secondary">
               {group.jurisdiction}
@@ -3426,22 +3400,17 @@ function GroupHeaderRow({
         )
       })}
       <TableCell className="hidden py-2 2xl:table-cell">
-        {/* 2026-05-27 (Yuqi follow-up — "数字应该写在右边" + brown
-            tone unify): the per-row chip moved to the RIGHT of the
-            progress bar. The bar paints active (green) LEFT → review
-            RIGHT; positioning the count after the bar spatially
-            anchors the number to the side of the bar it actually
-            represents. Switched the chip tone to brown (sienna text
-            + mustard dot) so every "needs review" indicator on the
-            page shares one color — matches the top progress bar's
-            updated segment and the row-bar's review segment.
-            2026-05-28 (Yuqi /rules/library polish #13 — "Basic /
-            Enterprise … left aligned, 并且和 Progress bar left align"):
-            dropped `justify-end`. The progress bar + count now sit at
-            the LEFT edge of the Tier cell, matching the Type label's
-            left edge in rule rows below. The two visuals — progress
-            bar above + Type label below — read as one stacked
-            column anchored to the same vertical line. */}
+        {/* The per-row count sits to the RIGHT of the progress bar. The
+            bar paints active (green) LEFT → review RIGHT; positioning the
+            count after the bar spatially anchors the number to the side
+            of the bar it represents. The chip tone is brown (sienna text
+            + mustard dot) so every "needs review" indicator on the page
+            shares one color — matching the top progress bar's review
+            segment and the row-bar's review segment. The progress bar +
+            count sit at the LEFT edge of the Tier cell, matching the Type
+            label's left edge in rule rows below, so the two visuals
+            (progress bar above + Type label below) read as one stacked
+            column on the same vertical line. */}
         <div className="flex items-center gap-3">
           <CountDotChip
             count={group.gapEntities.length}
@@ -3450,17 +3419,15 @@ function GroupHeaderRow({
             label={<Plural value={group.gapEntities.length} one="# missing" other="# missing" />}
           />
           <RuleStatusBar rules={group.rules} />
-          {/* 2026-05-28 (Yuqi /rules/library polish #8 — "数字应该
-              是固定width" + polish #9 fully-active mirror): the
-              trailing count slot has a fixed width so 1-digit,
-              2-digit, and 3-digit values keep their right edge
-              aligned across rows. `tabular-nums` handles digit-glyph
-              widths, but the dot + gap span shifts horizontally
-              without a width floor. The outer `w-9 justify-end`
-              wrapper keeps the chip's right edge stable so progress
-              bars above the count line up cleanly column-by-column.
-              Needs-review rows use review tone; fully-active rows
-              use success tone instead of leaving the slot empty. */}
+          {/* The trailing count slot has a fixed width so 1-, 2-, and
+              3-digit values keep their right edge aligned across rows.
+              `tabular-nums` handles digit-glyph widths, but the dot + gap
+              span would shift horizontally without a width floor. The
+              outer `w-9 justify-end` wrapper keeps the chip's right edge
+              stable so progress bars above the count line up cleanly
+              column-by-column. Needs-review rows use review tone;
+              fully-active rows use success tone instead of leaving the
+              slot empty. */}
           <span className="inline-flex w-9 justify-end">
             {group.pendingReviewCount > 0 ? (
               <span
@@ -3515,23 +3482,20 @@ function RuleTableRow({
   // affordance honest.
   selectable: boolean
   selected: boolean
-  // 2026-05-28 (Yuqi /rules/library polish #15): true when the
-  // rule drawer is currently open for THIS rule (i.e. `?rule=<id>`
-  // matches this row). Drives the bg-accent-tint + 2px accent rail
+  // True when the rule drawer is currently open for THIS rule (i.e.
+  // `?rule=<id>` matches this row). Drives the bg-accent-tint + 2px accent rail
   // "the drawer is on this rule" visual treatment. Distinct from
   // `selected` (bulk-review checkbox state) so the two states never
   // conflate.
   isOpen: boolean
-  // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
   // J/K nav focus indicator. Paints a 2px accent inset rail +
   // subtle bg to mark "Enter opens THIS rule."
   focused: boolean
   onSelectChange: (next: boolean) => void
   onClick: (rule: ObligationRule) => void
 }) {
-  // 2026-05-27 (audit-drain beta-rules): the row's two aria-labels
-  // (`Open rule details for …`, `Select … for batch review`) were
-  // hardcoded English. Wired into useLingui so SR copy is translated.
+  // The row's two aria-labels (`Open rule details for …`, `Select … for
+  // batch review`) go through useLingui so SR copy is translated.
   const { t } = useLingui()
   // Memo-set for O(1) applicability lookup per entity column.
   const applicabilitySet = useMemo(
@@ -3544,19 +3508,16 @@ function RuleTableRow({
   // tax" → "Individual income tax". Reads cleaner; the column
   // doesn't look like the same word repeating down the page.
   const displayTitle = stripJurisdictionPrefix(rule.title, jurisLabel)
-  // 2026-05-27 (Yuqi IA pass — differentiate NEEDS REVIEW vs ACTIVE
-  // rows): the section header above already declares which status
-  // group the rows belong to, but visually the rows themselves read
-  // identically across both sections. CPAs scanning a long expanded
-  // jurisdiction lose track of "which rows still need me." Fix: rows
-  // in the needs-review status group carry a subtle warning surface
-  // tint (`bg-state-warning-hover/40`) — light enough to stay calm
-  // (no border-left stripe; per design-system: stripes are banned),
-  // strong enough to distinguish at a glance from active rows that
-  // sit on the default background. The hover override remains
-  // (`hover:bg-state-base-hover`) so hover still reads as
-  // interactive, just from a tinted resting state. Active /
-  // verified / archived rows are unchanged.
+  // The section header above declares which status group the rows belong
+  // to, but the rows themselves would read identically across both
+  // sections, so CPAs scanning a long expanded jurisdiction lose track of
+  // "which rows still need me." Rows in the needs-review status group
+  // carry a subtle warning surface tint — light enough to stay calm (no
+  // border-left stripe; per design-system, stripes are banned), strong
+  // enough to distinguish at a glance from active rows on the default
+  // background. The hover override remains (`hover:bg-state-base-hover`)
+  // so hover still reads as interactive, just from a tinted resting
+  // state. Active / verified / archived rows are unchanged.
   const needsReviewRow = statusGroupOf(rule.status) === 'needs_review'
   return (
     // `group` so the title and the trailing chevron can react to
@@ -3565,31 +3526,24 @@ function RuleTableRow({
     // that the title itself is the link target.
     <TableRow
       className={cn(
-        // 2026-05-26 (Stripe-bar /polish pass): h-14 row height
-        // matches the rest of the family.
-        // 2026-05-26 (Stripe Phase B per-row ⋯): `group/row` so the
-        // canonical RowActionsMenu's hover-reveal selector
-        // (`group-hover/row:opacity-100`) keys off this row's hover
-        // state. Replaces the bare `group` so the named group token
-        // matches /clients list rows + /clients/[id] filing-plan
-        // rows for cross-surface consistency.
-        // 2026-06-04 (Yuqi table sweep): `hover:bg-state-base-hover`
-        // dropped — canonical row default.
+        // h-14 row height matches the rest of the family. `group/row` so
+        // the canonical RowActionsMenu's hover-reveal selector
+        // (`group-hover/row:opacity-100`) keys off this row's hover state;
+        // the named group token matches /clients list rows + /clients/[id]
+        // filing-plan rows for cross-surface consistency.
         'group/row h-14 cursor-pointer',
-        // 2026-05-28 (Yuqi /rules/library polish #2 — same orange
-        // shift as the top callout pill): needs-review row tint
-        // moved from yellow-50 to orange-50 for the warm-brown read.
+        // Needs-review row tint is orange-50 (warm-brown read), matching
+        // the top callout pill.
         needsReviewRow && 'bg-[var(--color-util-colors-orange-50)]/60',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
-        // 2026-05-28 (Yuqi /rules/library polish #15 — "如果一个row
-        // 被点开，那需要indicate它expanded了"): when the rule drawer
-        // is open for this row, paint the accent-tint bg + 2px left
-        // accent rail. Mirrors the focused-state inset rail
-        // vocabulary so the eye learns one indicator; the accent
-        // tint wins over `focused` so "the drawer is on this rule"
-        // reads distinct from "this row is keyboard-focused." Uses
-        // its own `isOpen` prop so it never conflates with bulk-
-        // select state (`selected`, driven by the row checkbox).
+        // When the rule drawer is open for this row, paint the
+        // accent-tint bg + 2px left accent rail. Mirrors the
+        // focused-state inset rail vocabulary so the eye learns one
+        // indicator; the accent tint wins over `focused` so "the drawer
+        // is on this rule" reads distinct from "this row is
+        // keyboard-focused." Uses its own `isOpen` prop so it never
+        // conflates with bulk-select state (`selected`, driven by the row
+        // checkbox).
         isOpen &&
           'bg-state-accent-active-alt shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
@@ -3602,24 +3556,15 @@ function RuleTableRow({
           label, then the title sits after the checkbox slot. The same
           slot is reserved for non-selectable active rows so titles
           stay aligned across sections. */}
-      {/* 2026-05-26 (Yuqi cross-table unify — "Deadlines text-sm ·
-          Clients text-base · Rules library text-sm … visually make
-          them similar"): primary identity title is now text-base
-          regular weight (was text-sm font-medium). Matches /clients
-          + /deadlines so all three workbench tables share the same
-          canonical title scale. Tier label + meta below stay text-xs
-          so the title still reads as the primary anchor.
-          2026-05-28 (Yuqi /rules/library polish #11 — "Rule是最重
-          要的"): added `font-medium` + `text-text-primary` so the
-          Rule cell carries more visual weight than the surrounding
-          Form / Type / progress cells. Rule reads as the row's
-          anchor at scan distance. Form + Tier cells stay at the
-          text-xs secondary weight so the eye lands on Rule first. */}
+      {/* The primary identity title is text-base, matching /clients +
+          /deadlines so all three workbench tables share the same
+          canonical title scale. `font-medium` + `text-text-primary` give
+          the Rule cell more visual weight than the surrounding Form /
+          Type / progress cells, so Rule reads as the row's anchor at scan
+          distance. Form + Tier cells stay text-xs secondary so the eye
+          lands on Rule first. */}
       <TableCell className="!pl-9 min-h-10 whitespace-normal py-2 text-base font-medium text-text-primary">
-        {/* 2026-05-26 (Yuqi follow-up — "the checkbox and text do not
-            middle align. The dot and the text do not middle align"):
-            outer flex is now `items-center` (was `items-start` with a
-            `pt-1.5` shim on the inner slot). Single source of vertical
+        {/* Outer flex is `items-center` — single source of vertical
             alignment for the whole row: leading slot, title, and any
             hover-revealed status word all sit on one baseline. */}
         <div className="flex min-w-0 items-center gap-2">
@@ -3642,15 +3587,12 @@ function RuleTableRow({
               </span>
             </span>
           ) : (
-            // 2026-05-28 (Yuqi /rules/library polish #10 — "hover
-            // active row的时候不显示Active小字，前面的bullet point变
-            // 成绿色"): for ACTIVE rows, the resting state shows a
-            // neutral gray dot (calm "established"). On hover the
-            // dot recolors to success green so the row visually
-            // confirms its active status without spilling a
-            // textual "Active" label that adds noise. Non-success
-            // tones (destructive / review / muted) still surface
-            // their short status label on hover since those carry
+            // For ACTIVE rows, the resting state shows a neutral gray dot
+            // (calm "established"). On hover the dot recolors to success
+            // green so the row visually confirms its active status without
+            // spilling a textual "Active" label that adds noise.
+            // Non-success tones (destructive / review / muted) still
+            // surface their short status label on hover since those carry
             // signal the dot color alone doesn't.
             (() => {
               const tone = STATUS_TONE[rule.status]
@@ -3693,14 +3635,12 @@ function RuleTableRow({
           <EntityApplicabilityCell applies={applicabilitySet.has(entity)} status={rule.status} />
         </TableCell>
       ))}
-      {/* 2026-05-28 (Yuqi /rules/library polish #14 — "right arrow
-          也不需要，很多余"): the trailing chevron was redundant
-          decoration alongside the ⋯ RowActionsMenu and the
-          row-level hover bg. Removed so the Type label sits in its
-          own column without the visual noise of a permanent 30%
-          chevron. Keyboard/touch affordance now lives in the row's
-          hover bg + the ⋯ menu. Left-aligned so the Type label
-          stacks with the progress bar column above. */}
+      {/* No trailing chevron — it would be redundant decoration alongside
+          the ⋯ RowActionsMenu and the row-level hover bg. The Type label
+          sits in its own column without the visual noise of a permanent
+          30% chevron; the open affordance lives in the row's hover bg +
+          the ⋯ menu. Left-aligned so the Type label stacks with the
+          progress bar column above. */}
       <TableCell className="hidden py-2 2xl:table-cell">
         <div className="flex items-center gap-2 text-xs text-text-secondary">
           <span>{tierLabels[rule.ruleTier]}</span>
@@ -3757,7 +3697,6 @@ function GapTableRow({
 }: {
   group: JurisdictionGroup
   entity: EntityKey
-  // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
   // J/K nav focus indicator. The gap row already carries a left
   // destructive rail; when focused we swap to an accent rail so
   // "focus" reads stronger than "missing".
@@ -3824,9 +3763,8 @@ function GapTableRow({
 // Status section header — sub-section inside an expanded jurisdiction
 // ---------------------------------------------------------------------------
 
-// 2026-05-26 (Yuqi cross-table drift #12 — "Status section header
-// visual"): this NEEDS REVIEW / ACTIVE / MISSING band is Rule-library-
-// only. The pattern (tinted label + count + tri-state batch checkbox
+// This NEEDS REVIEW / ACTIVE / MISSING band is Rule-library-only.
+// The pattern (tinted label + count + tri-state batch checkbox
 // + collapse chevron) exists because the rule library is the only
 // surface that does state-grouped batch review. /deadlines groups by
 // client (no batch axis), /clients is a flat directory (no grouping).
@@ -3850,9 +3788,8 @@ function StatusSectionHeaderRow({
   selectAllState?: 'all' | 'some' | 'none'
   onToggleSelectAll?: () => void
 }) {
-  // 2026-05-27 (audit-drain beta-rules): the section-header select-all
-  // checkbox's aria-label was hardcoded English. Hook into useLingui
-  // so non-EN firms hear the translated bulk-review affordance.
+  // The section-header select-all checkbox's aria-label goes through
+  // useLingui so non-EN firms hear the translated bulk-review affordance.
   const { t } = useLingui()
   const hasSelectAll = selectAllState !== undefined && onToggleSelectAll !== undefined
   // Section header inside an expanded jurisdiction. The TITLE itself
@@ -3863,24 +3800,15 @@ function StatusSectionHeaderRow({
   // reads as one tinted line, not a label + colored badge.
   return (
     <TableRow className="hover:bg-transparent">
-      {/* 2026-05-25 (Yuqi rule library #10, #11 + second-pass #1):
-          the checkbox slot now sits at the SAME x-position as the
-          chevron in the state row above (i.e. the cell's natural
-          p-3 left padding). NEEDS REVIEW and ACTIVE labels share
-          one left edge with each other AND with the chevron above
-          — "everything to the left." When the checkbox is absent
-          (ACTIVE section), the w-4 placeholder reserves the slot
-          so the label x-position stays constant across section
-          headers. */}
-      {/* 2026-05-25 (Yuqi rule library fourth pass #1 — "everything
-          to the left"): added explicit `pl-3 text-left` so the
-          section header label x-position is anchored to the
-          cell's left padding regardless of any primitive
-          `text-center` defaults inherited via colSpan. The flex
-          row inside already left-aligns its content; the
-          additional cell-level overrides defend against the
-          colspan cell defaulting to centered alignment when the
-          column widths shift. */}
+      {/* The checkbox slot sits at the SAME x-position as the chevron in
+          the state row above (the cell's natural p-3 left padding), so
+          NEEDS REVIEW and ACTIVE labels share one left edge with each
+          other AND with the chevron above. When the checkbox is absent
+          (ACTIVE section), the w-4 placeholder reserves the slot so the
+          label x-position stays constant across section headers. The
+          explicit `pl-3 text-left` anchors the label x-position to the
+          cell's left padding regardless of any primitive `text-center`
+          defaults inherited via colSpan. */}
       <TableCell colSpan={RULES_TABLE_COLUMN_COUNT} className="pb-1 pt-3 pl-3 text-left">
         <div className="flex items-center gap-2">
           <span className="inline-flex w-4 shrink-0 items-center justify-center" aria-hidden>
@@ -3938,21 +3866,18 @@ function SearchResultsTable({
   onRuleClick,
   focusedRowId,
 }: {
-  // 2026-05-28 (Yuqi /rules/library polish #15): same `activeRuleId`
-  // thread as `GroupedRulesTable` so the "drawer is on this row"
-  // treatment carries over to search results.
+  // Same `activeRuleId` thread as `GroupedRulesTable` so the "drawer is
+  // on this row" treatment carries over to search results.
   activeRuleId: string | null
   rules: ObligationRule[]
   query: string
   onRuleClick: (rule: ObligationRule) => void
-  // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
   // J/K row nav focus id threaded down so the matching search-result
   // row paints a focus ring. Search results carry only rule rows
   // (no groups, no gaps), so we only check `rule:<id>` matches.
   focusedRowId: string | null
 }) {
-  // 2026-05-27 (audit-drain beta-rules): the search-result row's
-  // aria-label was hardcoded English. Wired into useLingui.
+  // The search-result row's aria-label goes through useLingui.
   const { t } = useLingui()
   const tierLabels = useRuleTierLabels()
   return (
@@ -3966,13 +3891,10 @@ function SearchResultsTable({
           />
         </span>
       </div>
-      {/* 2026-05-26 (Yuqi sixty-ninth pass — Rule library #2/#3):
-          flat-rules table headers stripped of the kicker style
-          overrides so they inherit the TableHead primitive default
-          (sm-medium normal-case, matches /deadlines + /alerts).
-          2026-05-26 (Yuqi rule library deferred batch — /distill):
-          7 per-entity columns dropped to match the grouped view.
-          Search results now read Rule / Jurisdiction / Form / Tier;
+      {/* Flat-rules table headers carry no kicker style overrides, so
+          they inherit the TableHead primitive default (sm-medium
+          normal-case, matches /deadlines + /alerts). Only 4 columns —
+          Rule / Jurisdiction / Form / Tier — to match the grouped view;
           per-rule applicability lives in the rule-detail Dialog. */}
       <Table>
         <TableHeader>

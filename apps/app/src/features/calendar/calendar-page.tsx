@@ -164,13 +164,12 @@ export function CalendarPage() {
     },
   ]
 
-  // 2026-05-24 (re-critique): Regenerate URL and Disable feed are
-  // both hard-to-undo — the old URL is silently invalidated, breaking
-  // any Google/Apple/Outlook subscription that was already pointing
-  // at it. Stage these actions through an AlertDialog +
-  // DestructiveChangePreview so the user understands the blast
-  // radius before the mutation fires. Enable / privacy-swap stay
-  // direct: they're additive, easy to reverse.
+  // Regenerate URL and Disable feed are both hard-to-undo — the old URL is
+  // silently invalidated, breaking any Google/Apple/Outlook subscription that
+  // was already pointing at it. Stage these actions through an AlertDialog +
+  // DestructiveChangePreview so the user understands the blast radius before
+  // the mutation fires. Enable / privacy-swap stay direct: they're additive,
+  // easy to reverse.
   const [pendingRegenerate, setPendingRegenerate] = useState<{
     id: string
     title: string
@@ -283,9 +282,8 @@ export function CalendarPage() {
                 }
               }}
             >
-              {/* 2026-05-26 (step-6 ux-flow audit F7.3): added
-                  Loader2 spinner on the pending Regenerate action
-                  so the user has a visible signal. */}
+              {/* Loader2 spinner on the pending Regenerate action so the user
+                  has a visible signal. */}
               {regenerateMutation.isPending ? (
                 <>
                   <Loader2 data-icon="inline-start" className="animate-spin" />
@@ -356,8 +354,7 @@ export function CalendarPage() {
                 }
               }}
             >
-              {/* 2026-05-26 (step-6 ux-flow audit F7.4): Loader2
-                  spinner on the pending Disable action. */}
+              {/* Loader2 spinner on the pending Disable action. */}
               {disableMutation.isPending ? (
                 <>
                   <Loader2 data-icon="inline-start" className="animate-spin" />
@@ -384,9 +381,6 @@ export function CalendarPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 text-sm text-text-secondary md:grid-cols-3">
-          {/* 2026-05-26 (step-6 ux-flow audit F7.2): replaced
-              ASCII `->` with the proper Unicode arrow `→` for
-              consistency with the rest of the app's typography. */}
           <IntegrationNote title={t`Google Calendar`} body={t`Other calendars → From URL`} />
           <IntegrationNote title={t`Apple Calendar`} body={t`Open the Apple Calendar link`} />
           <IntegrationNote title={t`Outlook`} body={t`Subscribe from web calendar URL`} />
@@ -448,12 +442,11 @@ function CalendarSubscriptionCard({
       </CardHeader>
       <CardContent>
         {config.locked ? (
-          // Audit-drain ρ ROH-D4 (2026-05-27): dropped the hard-coded
-          // `notice` override ("Only owners and managers…") — partner
-          // was missing from the copy even though `firm.calendar.manage`
-          // includes partner. Letting PermissionObscuredContent derive
-          // the required-role text from `requiredRolesForFirmPermission`
-          // keeps the surface in sync with the enum forever.
+          // No hard-coded `notice` override: PermissionObscuredContent derives
+          // the required-role text from `requiredRolesForFirmPermission`,
+          // which keeps the surface in sync with the enum (a hard-coded "Only
+          // owners and managers…" string would drop partner, even though
+          // `firm.calendar.manage` includes partner).
           <PermissionObscuredContent
             locked
             permission="firm.calendar.manage"
@@ -464,15 +457,11 @@ function CalendarSubscriptionCard({
           </PermissionObscuredContent>
         ) : (
           <div className="grid gap-4">
-            {/* 2026-05-24 (critique /polish): privacy-mode dropdown
-                used to render even when there was no active feed.
-                Combined with the "Enable redacted feed / Enable full
-                feed" pair below, the user saw a dropdown AND two
-                buttons that did effectively the same thing — three
-                ways to pick the same value. Show the dropdown only
-                when a subscription is already active (where it's
-                the swap-mode control). Pre-subscription the buttons
-                are the sole choice. */}
+            {/* Show the privacy-mode dropdown only when a subscription is
+                already active (where it's the swap-mode control).
+                Pre-subscription the "Enable redacted / Enable full" buttons
+                are the sole choice — rendering the dropdown too would give
+                three ways to pick the same value. */}
             {activeSubscription ? (
               <div className="grid gap-2">
                 <span className="text-sm font-medium text-text-primary">
@@ -500,14 +489,11 @@ function CalendarSubscriptionCard({
               </div>
             ) : null}
 
-            {/* 2026-05-24 (re-critique): the metadata strip used to
-                always show "Privacy mode: Redacted client names" even
-                when no subscription existed, which implied a privacy
-                mode WAS set on a feed that didn't yet exist. Now the
-                privacy row only renders when a subscription is on
-                file. Created / Last accessed stay always-visible —
-                "Not enabled" / "Never" carry the right signal for
-                them. */}
+            {/* The privacy row only renders when a subscription is on file —
+                showing "Privacy mode: Redacted client names" with no
+                subscription implies a privacy mode was set on a feed that
+                doesn't exist. Created / Last accessed stay always-visible —
+                "Not enabled" / "Never" carry the right signal for them. */}
             <div className="grid gap-1 rounded-lg border border-divider-regular bg-background-subtle p-3">
               {subscription ? (
                 <IntegrationKeyValueRow

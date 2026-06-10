@@ -115,27 +115,21 @@ type ClientFactsWorkspaceProps = {
   onOwnerFilterChange: (value: string[]) => void
   onImport: () => void
   canImport: boolean
-  // 2026-06-07 (design replication, Pencil jQFBx/T4eNmw): the prominent
-  // empty-state hero offers an "Add one manually" CTA alongside Import.
-  // Optional so callers that don't wire a create flow fall back to the
-  // import-only hero.
+  // The prominent empty-state hero offers an "Add one manually" CTA
+  // alongside Import. Optional so callers that don't wire a create flow
+  // fall back to the import-only hero.
   onCreateClient?: (() => void) | undefined
   canCreate?: boolean | undefined
   // Onboarding "Load sample data" chip in the empty-state hero.
   onSampleData?: (() => void) | undefined
 }
 
-// 2026-05-26 (Yuqi macro→micro audit, Fix #6 / §3.4): /clients adopts
-// the /deadlines responsive page-size pattern so the table fills the
-// visible viewport instead of paginating at a fixed 25 regardless of
-// monitor height. Constants mirror obligations.tsx so both surfaces
-// share the same row-fit math.
-// 2026-05-26 (Stripe-level Phase A / §S8): row height bumped from
-// h-12 (48px) to h-14 (56px) — the "premium-feeling" Stripe rhythm
-// per the critique. The +8px per row gives the dense client list
-// more breathing room without changing the rendered cell content.
-// Constant updated in tandem so the responsive page-size math still
-// accurately measures rows-that-fit (was 49 = 48 + 1px border).
+// /clients adopts the /deadlines responsive page-size pattern so the
+// table fills the visible viewport instead of paginating at a fixed
+// count regardless of monitor height. Constants mirror obligations.tsx
+// so both surfaces share the same row-fit math.
+// Row height is h-14 (56px). The constant must stay in sync so the
+// responsive page-size math accurately measures rows-that-fit.
 const CLIENTS_ROW_HEIGHT_PX = 57 // h-14 + 1px border
 const CLIENTS_PAGE_SIZE_MIN = 8
 const CLIENTS_PAGE_SIZE_MAX = 50
@@ -189,16 +183,8 @@ function useClientsResponsivePageSize(): [number, (element: HTMLElement | null) 
 
 /**
  * `TabSection` — canonical section primitive for the client detail
- * tabs (Work / Client info / Discover / Activity).
- *
- * 2026-05-24: introduced to unify what used to be three different
- * section vocabularies on this page:
- *   - Work tab's Filing plan rolled its own h2 + subtitle inline
- *   - Client info / Discover used `DetailSection` (collapsible
- *     disclosure with chevron, summary on the right, body hidden
- *     until expanded)
- *   - Activity tab mixed `DetailSection` with one ad-hoc
- *     `SectionFrame` for the Notes block
+ * tabs (Work / Client info / Discover / Activity). Unifies the section
+ * vocabulary across all four tabs so the body reads as one surface.
  *
  * The Figma reference (node 109:13725) shows the Work tab's flat
  * pattern as the canonical: h2 (text-base / semibold / primary) +
@@ -227,15 +213,12 @@ export function TabSection({
   children: ReactNode
 }) {
   return (
-    // 2026-05-28 (Yuqi /clients/[id] polish — section header
-    // alignment): added `pl-3` (12px) to the header row so the
-    // section heading line aligns with the canonical 12px content
-    // gutter used elsewhere in the workbench (sidebar menu items,
-    // rule rows, etc). Actions cluster on the right pushes in by
-    // the same 12px so the header stays visually balanced. Outer
-    // `gap-3` between heading and children kept as the standard
-    // section vertical rhythm — same value used by other sections
-    // on the page so the rhythm reads consistent.
+    // `pl-3` (12px) on the header row aligns the section heading with
+    // the canonical 12px content gutter used elsewhere in the workbench
+    // (sidebar menu items, rule rows, etc). The actions cluster pushes
+    // in by the same 12px so the header stays visually balanced. Outer
+    // `gap-3` is the standard section vertical rhythm shared with other
+    // sections on the page.
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pl-3">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -251,13 +234,6 @@ export function TabSection({
     </section>
   )
 }
-
-// `DetailSection` (collapsible disclosure) retired 2026-05-24 in
-// favour of the flat <TabSection> primitive above. Sections on the
-// client detail page no longer collapse — the four tabs share one
-// heading style so the body reads as a single consistent surface.
-// Git history has the prior implementation if a future surface
-// needs a disclosure pattern again (e.g. on an admin-only screen).
 
 /**
  * Primary filing state — the marked-primary profile if present, else
@@ -321,15 +297,11 @@ function NextDueRelativeLabel({ iso }: { iso: string }) {
     return <span className="text-text-tertiary">{iso}</span>
   }
   const days = Math.ceil((dueTs - Date.now()) / 86_400_000)
-  // 2026-05-26 (Yuqi /clients feedback #4 — "data can be even more
-  // obvious"): bumped the relative-due label to `text-sm font-semibold`
-  // (was inheriting cell defaults, ~text-xs regular). The next-due
-  // date is the PRIMARY scannable data on the directory — it's the
-  // single most important thing a CPA reads per row. Making it the
-  // row's loudest cell value matches its importance. Destructive +
-  // warning tones unchanged.
-  // 2026-05-26 (cross-table element unify): copy matches /deadlines
-  // DUE column — verbose "# days late" / "# days" form.
+  // The relative-due label is `text-sm font-semibold`. The next-due
+  // date is the PRIMARY scannable data on the directory — the single
+  // most important thing a CPA reads per row — so it's the row's
+  // loudest cell value. Copy matches the /deadlines DUE column —
+  // verbose "# days late" / "# days" form.
   if (days < 0) {
     return (
       <span className="whitespace-nowrap text-sm font-semibold text-text-destructive tabular-nums">
@@ -364,15 +336,11 @@ export function ClientFilingStateChips({ client }: { client: ClientPublic }) {
   const [primary, ...others] = states
   const visibleOthers = others.slice(0, 2)
   const overflow = others.length - visibleOthers.length
-  // 2026-05-29 (Yuqi /clients round 1 — "ensure the state badge is in
-  // the unified consistent state badge style (with a border). and
-  // remove the state icon everywhere in the software"): dropped the
-  // SVG StateBadge glyph and switched to the canonical
-  // `Badge variant="outline"` pill the entity badge uses two cells
-  // over. Each state code now reads as a uniform bordered pill —
-  // primary, additional, and overflow ("+N") all share the same
-  // chrome so the meta-row reads as one consistent identity strip
-  // instead of "framed primary + bare flag motifs."
+  // State codes use the canonical `Badge variant="outline"` pill the
+  // entity badge uses two cells over. Each state code reads as a
+  // uniform bordered pill — primary, additional, and overflow ("+N")
+  // all share the same chrome so the meta-row reads as one consistent
+  // identity strip.
   return (
     <div
       className="flex flex-wrap items-center gap-1.5"
@@ -402,8 +370,8 @@ export function ClientFilingStateChips({ client }: { client: ClientPublic }) {
 }
 
 /**
- * 2026-05-23: column-header SORT button. Wraps the label + a sort-
- * arrow icon in a single click target so the whole label is clickable
+ * Column-header SORT button. Wraps the label + a sort-arrow icon in a
+ * single click target so the whole label is clickable
  * to cycle sort (asc → desc → cleared). Visually distinct from the
  * separate filter funnel icon (`tableHeaderFilterIconTrigger`) that
  * sits beside it — sort and filter are two controls, two clicks, no
@@ -437,24 +405,20 @@ function ColumnSortHeader({
       title={sortLabel}
       data-active={sortState !== false ? true : undefined}
       className={cn(
-        // 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3): retired
-        // uppercase + tracking-wider kicker style; family canonical
-        // (page-family-canonical §6) specifies sortable headers use
-        // sm + normal-case + text-secondary so they read as labels,
-        // not eyebrows. Matches /deadlines + /alerts table headers.
+        // Sortable headers use sm + normal-case + text-secondary so
+        // they read as labels, not eyebrows. Matches /deadlines +
+        // /alerts table headers.
         '-mx-1 inline-flex h-7 cursor-pointer items-center gap-1 rounded-lg px-1 text-sm font-medium whitespace-nowrap text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:text-text-primary',
         align === 'right' && 'justify-end',
       )}
     >
       <span className="truncate">{label}</span>
-      {/* 2026-05-26 (Yuqi /clients feedback #2 — "remove the sort by
-          icon"): idle (sortState=false) no longer renders the
-          ArrowUpDownIcon. The header itself still functions as a
-          click-to-sort button (cursor-pointer + hover bg), but the
-          dual-chevron icon was visual noise on a directory where the
-          user rarely re-sorts. Active states still render the up/down
-          arrow so the user always sees WHICH column is sorted + in
-          which direction. */}
+      {/* Idle (sortState=false) renders no icon — the header still
+          functions as a click-to-sort button (cursor-pointer + hover
+          bg), but the dual-chevron icon was visual noise on a directory
+          where the user rarely re-sorts. Active states render the
+          up/down arrow so the user always sees WHICH column is sorted +
+          in which direction. */}
       {sortState === 'asc' ? (
         <ArrowUpIcon className="size-3 shrink-0" aria-hidden />
       ) : sortState === 'desc' ? (
@@ -482,11 +446,6 @@ export function ClientFactsWorkspace({
   onEntityFilterChange,
   onStateFilterChange,
   onOwnerFilterChange,
-  // 2026-05-26 (Yuqi /clients directory pivot brief): retired
-  // `onAlertFilterChange` consumer (was driving the alert hits
-  // StatTile click). Prop still typed for caller stability; will
-  // be removed end-to-end in a follow-up cleanup pass when the
-  // route's `handleAlertFilterChange` retires too.
   onImport,
   canImport,
   onCreateClient,
@@ -497,30 +456,23 @@ export function ClientFactsWorkspace({
   const navigate = useNavigate()
   const currentUserName = useCurrentUserName()
   const { openDrawer: openClientDrawer } = useClientDrawer()
-  // 2026-05-26 (Stripe Phase B per-row ⋯): hoisted above the columns
-  // useMemo because the rowActions column declares this in its deps
-  // array. Previously declared further down (after the React Table
-  // hook), but the deps eval order forces it earlier in the closure.
+  // Declared above the columns useMemo because the rowActions column
+  // references this in its deps array; the deps eval order forces it
+  // earlier in the closure.
   const handleOpenClientDetail = useCallback(
     (clientId: string) => {
-      // 2026-05-24 (useEffect audit): persist the currently-visible
-      // client order to sessionStorage at navigation time so the
-      // detail page can offer prev/next cycling across the same
-      // filter subset.
-      // 2026-05-24 (merge): adopted the `clientDetailPath()` helper
-      // for the readable /clients/<slug>-<id> URL. Falls back to the
-      // raw id when the client isn't in the current list.
+      // Persist the currently-visible client order to sessionStorage at
+      // navigation time so the detail page can offer prev/next cycling
+      // across the same filter subset.
+      // Uses the `clientDetailPath()` helper for the readable
+      // /clients/<slug>-<id> URL. Falls back to the raw id when the
+      // client isn't in the current list.
       writeClientCycleList(filteredClients.map((client) => client.id))
       const client = clients.find((candidate) => candidate.id === clientId)
       void navigate(client ? clientDetailPath(client) : `/clients/${clientId}`)
     },
     [clients, filteredClients, navigate],
   )
-  // 2026-05-25 (Yuqi /clients #8): header-filter open-state retired
-  // with the move of all filter dropdowns into the ClientsFilterToolbar
-  // strip above the table. Each toolbar trigger now manages its own
-  // uncontrolled open state, so we no longer need to coordinate
-  // mutual-exclusion at the table level.
   const clientOptions = useMemo<FilterOption[]>(
     () =>
       clients
@@ -541,9 +493,9 @@ export function ClientFactsWorkspace({
       count: counts.get(state) ?? 0,
     }))
   }, [clients, factsModel.stateOptions])
-  // 2026-05-23: entity options for the new ENTITY column filter
-  // dropdown. Counts how many clients sit at each entity type so the
-  // dropdown shows "S corp · 7" / "LLC · 5" etc.
+  // Entity options for the ENTITY column filter dropdown. Counts how
+  // many clients sit at each entity type so the dropdown shows
+  // "S corp · 7" / "LLC · 5" etc.
   const entityOptions = useMemo<FilterOption[]>(() => {
     const counts = new Map<ClientEntityType, number>()
     for (const client of clients) {
@@ -573,30 +525,26 @@ export function ClientFactsWorkspace({
         return a.label.localeCompare(b.label)
       })
   }, [clients, t])
-  // Column order per the 2026-05-21 product review (with L-7
-  // "Other states" merged into the unified States column 2026-05-22):
+  // Column order ("Other states" is merged into the unified States
+  // column):
   //
   //   Client · States (primary + others inline) ·
   //   Next due (date + form + readiness) ·
   //   # Services · # Open · Owner (avatar)
   //
-  // Source column was dropped — provenance trivia, not a reason to
+  // Source column is dropped — provenance trivia, not a reason to
   // pick a row. The filter param + filter pipeline are still wired
   // for deep links but no longer surface as a column header.
-  // Readiness chip moves from a standalone column into the Next due
-  // composite cell — see ClientsActionStrip's Needs facts banner for
-  // the actionable filter entry.
+  // Readiness chip lives in the Next due composite cell — see
+  // ClientsActionStrip's Needs facts banner for the actionable filter
+  // entry.
   const columns = useMemo<ColumnDef<ClientPublic>[]>(
     () => [
       {
         accessorKey: 'name',
-        // 2026-05-25 (Yuqi /clients #8): filter funnel removed from
-        // the column header — was an icon-only TableHeaderMultiFilter
-        // sitting on the right edge of every filterable column. All
-        // four filters (Client / States / Entity / Owner) now live in
+        // All four filters (Client / States / Entity / Owner) live in
         // a single ToolbarFilters row above the table, matching the
-        // Alerts page rhythm. Column header keeps only the sort
-        // arrow.
+        // Alerts page rhythm. Column headers keep only the sort arrow.
         header: ({ column }) => (
           <ColumnSortHeader
             label={t`Client`}
@@ -609,32 +557,20 @@ export function ClientFactsWorkspace({
           const readiness = factsModel.readinessById.get(row.original.id)
           return (
             <div className="flex min-w-0 items-center gap-2">
-              {/* L-6 (2026-05-22): dropped the entity-type sub-line that
-                  lived under the client name. Entity is already
-                  filterable via the column header dropdown + visible on
-                  the detail page header chip; surfacing it under every
-                  list row was redundant noise.
-                  L-5 (2026-05-23): readiness chip moves into this row so
-                  the page-level scan sees identity + setup state
-                  together. The Next-due cell then carries ONLY urgency
-                  (a single tone-coded line). */}
+              {/* No entity-type sub-line under the client name: entity
+                  is already filterable via the column dropdown + visible
+                  on the detail page header chip, so surfacing it under
+                  every list row was redundant noise. The readiness chip
+                  lives in this row so the page-level scan sees identity +
+                  setup state together; the Next-due cell then carries
+                  ONLY urgency (a single tone-coded line). */}
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                {/* 2026-05-26 (Yuqi follow-up — "client name is so
-                    big"): bumped back down from text-lg → text-base.
-                    The text-lg bump landed earlier in the day and
-                    immediately read as too loud on the list grid.
-                    text-base still scales above the other body cells
-                    (which inherit text-sm) so it reads as primary
-                    identity without dominating the row.
-                    2026-05-26 (Yuqi cross-table unify — "Deadlines
-                    text-sm · Clients text-base · Rules library text-sm.
-                    maybe have clients text-base size as regular
-                    weight"): dropped `font-medium`. The medium weight
-                    was making text-base feel heavy; regular weight at
-                    text-base reads as primary identity (larger than
-                    text-sm meta) without shouting. Same treatment now
-                    applied to Deadlines + Rules library so all three
-                    workbench tables share one canonical title scale. */}
+                {/* Client name is text-base regular: it scales above
+                    the other body cells (which inherit text-sm) so it
+                    reads as primary identity without dominating the row,
+                    while regular weight keeps it from feeling heavy.
+                    Deadlines + Rules library share this canonical title
+                    scale. */}
                 <span className="truncate text-base text-text-primary group-hover:underline">
                   {row.original.name}
                 </span>
@@ -652,11 +588,11 @@ export function ClientFactsWorkspace({
                   the full page; this opens the read-only drawer for a
                   fast "is this the right client?" glance. ⌘-click on
                   the row is also wired below for a power-user shortcut.
-                  2026-05-28 (audit P3-5): added `group-focus-within`
-                  so the button reveals when a sibling control inside
-                  the row receives focus, not only when the eye itself
-                  is focused. Keyboard navigation now surfaces the
-                  affordance as soon as the row enters focus. */}
+                  `group-focus-within` reveals the button when a sibling
+                  control inside the row receives focus, not only when
+                  the eye itself is focused, so keyboard navigation
+                  surfaces the affordance as soon as the row enters
+                  focus. */}
               <ClientPeekHoverCard clientId={row.original.id}>
                 <button
                   type="button"
@@ -693,15 +629,10 @@ export function ClientFactsWorkspace({
         // duplicated header space + forced the user's eye to track both.
         // See `docs/Design/clients-list-and-detail-critique-2026-05-22.md`
         // L-7 for the rationale.
-        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor): the
-        // state cell used to render `<StateBadge>` SVG glyphs +
-        // 2-letter code text.
-        // 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
-        // everywhere"): swept to the bordered `Badge variant="outline"`
-        // pill so every state code reads identically to the Entity
-        // badge two cells over. The SVG decorative flag is gone; the
-        // pill is the identity. Same chrome applied to additional and
-        // overflow chips so the row reads as one consistent strip.
+        // The state cell uses the bordered `Badge variant="outline"`
+        // pill so every state code reads identically to the Entity badge
+        // two cells over. Same chrome applied to additional and overflow
+        // chips so the row reads as one consistent strip.
         cell: ({ row }) => {
           const primary = getPrimaryFilingState(row.original)
           if (!primary) {
@@ -733,22 +664,16 @@ export function ClientFactsWorkspace({
           )
         },
         meta: {
-          // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
-          // tightened 220px → 120px now that the cell is
-          // `[StateBadge] [2-letter code]` instead of a full-name pill.
-          // Brings /clients column rhythm in line with /deadlines'
-          // `w-[90px]` state column (slightly wider here only because
-          // /clients also surfaces up to 2 additional-state SVG
+          // Width brings /clients column rhythm in line with
+          // /deadlines' `w-[90px]` state column (slightly wider here
+          // only because /clients also surfaces up to 2 additional-state
           // badges + the overflow "+N" chip on the same row).
           headerClassName: CLIENTS_COL_WIDTH.state,
           cellClassName: CLIENTS_COL_WIDTH.state,
         },
       },
       {
-        // 2026-05-23: ENTITY column returns as its own column per the
-        // design mock. Was previously a sub-line under the client name
-        // (L-6 retired it), then a header-only filter with no body
-        // rendering. Now it gets a single chip per row showing the
+        // ENTITY column renders a single chip per row showing the
         // entity type (LLC / S corp / Partnership / …) so the CPA can
         // scan "what kind of return am I looking at?" without opening
         // the client.
@@ -760,13 +685,10 @@ export function ClientFactsWorkspace({
             onToggle={() => column.toggleSorting()}
           />
         ),
-        // 2026-05-25 (Yuqi /clients #6): entity badge unified with
-        // the detail-page header chip (line ~1893). Was `rounded-sm
-        // font-normal tabular-nums`, now matches detail's `text-xs`
+        // Entity badge matches the detail-page header chip's `text-xs`
         // shape so the same identity fact reads the same way on both
-        // surfaces. tabular-nums dropped — entity labels aren't
-        // numeric ("S corp", "LLC"), the tabular-nums override was a
-        // copy-paste artifact from the dot column next door.
+        // surfaces. No tabular-nums — entity labels aren't numeric
+        // ("S corp", "LLC").
         cell: ({ row }) => (
           <Badge variant="outline" className="text-xs font-normal">
             {entityLabels[row.original.entityType]}
@@ -778,16 +700,12 @@ export function ClientFactsWorkspace({
         },
       },
       {
-        // 2026-05-23 design pass: NEXT DUE cell becomes a 2-line composite
-        // and absorbs the standalone STATUS column.
-        //   Line 1: relative urgency ("In 2 days" / "8d late") with the
-        //           same tone semantics as before.
-        //   Line 2: ISO calendar date (YYYY-MM-DD) so the CPA can read
-        //           the absolute deadline without hovering.
+        // NEXT DUE is a 2-line composite cell that absorbs status:
+        //   Line 1: relative urgency ("In 2 days" / "8d late").
+        //   Line 2: calendar date so the CPA can read the absolute
+        //           deadline without hovering.
         //   Inline: status pill next to the date — answers "Xd late, but
-        //           why?" without a separate column.
-        // The standalone STATUS column (added 2026-05-23, retired same
-        // day) is gone; the inline pill is its replacement.
+        //           why?" without a separate STATUS column.
         id: 'nextDue',
         accessorFn: (client) =>
           obligationSummariesByClient.get(client.id)?.nextDueDate ?? undefined,
@@ -810,28 +728,21 @@ export function ClientFactsWorkspace({
             <div className="flex min-w-0 flex-col gap-0.5">
               <NextDueRelativeLabel iso={summary.nextDueDate} />
               <div className="flex flex-wrap items-center gap-1.5">
-                {/* 2026-05-26 (Yuqi cross-table audit): exact-date
-                    secondary line bumped `text-text-tertiary`
-                    → `text-text-secondary` to match the /deadlines
-                    queue row treatment. One tone for the same job.
-                    2026-05-26 (Yuqi cross-table element unify): dropped
-                    `font-mono` + raw ISO. Same reasoning as the drawer
-                    DeadlineTile fix — mono numbers read as "code/
-                    identifier-y" when these are just dates. Now uses
-                    `formatDate()` for the same prose date format
-                    /deadlines uses (e.g. "May 8") + `tabular-nums` for
-                    column alignment without the mono treatment. */}
+                {/* Exact-date secondary line uses `text-text-secondary`
+                    to match the /deadlines queue row treatment — one
+                    tone for the same job. Uses `formatDate()` for the
+                    prose date format /deadlines uses (e.g. "May 8")
+                    rather than mono raw ISO (mono numbers read as
+                    "code/identifier-y" when these are just dates),
+                    plus `tabular-nums` for column alignment. */}
                 <span className="text-caption tabular-nums text-text-secondary">
                   {formatDate(summary.nextDueDate)}
                 </span>
                 {summary.nextDueStatus ? (
-                  // 2026-05-26 (Yuqi cross-table element unify): status
-                  // pill renders at the canonical ObligationStatusReadBadge
-                  // default size. Previously this site shrank it to
-                  // `px-1.5 py-0 text-caption-xs font-normal` — same
-                  // semantic chip as /deadlines, but visibly smaller
-                  // than the queue's status pill. One status → one
-                  // pill size across the product.
+                  // Status pill renders at the canonical
+                  // ObligationStatusReadBadge default size — one status →
+                  // one pill size across the product, so it matches the
+                  // /deadlines queue's status pill.
                   <ObligationStatusReadBadge status={summary.nextDueStatus} />
                 ) : null}
               </div>
@@ -843,11 +754,9 @@ export function ClientFactsWorkspace({
           cellClassName: CLIENTS_COL_WIDTH.nextDue,
         },
       },
-      // 2026-05-26 (Yuqi follow-up — "bring back services"): the
-      // brief had retired this column; Yuqi reversed that call.
-      // Column restored to its prior shape — hidden by default
-      // (via columnVisibility below), accessible via the column-
-      // toggle UI for the CPA who actively reviews scope-of-work.
+      // Services column is hidden by default (via columnVisibility
+      // below) but accessible via the column-toggle UI for the CPA who
+      // actively reviews scope-of-work.
       {
         id: 'servicesCount',
         header: () => <span>{t`Services`}</span>,
@@ -861,9 +770,7 @@ export function ClientFactsWorkspace({
           // ambiguous (rules library? filing plan tab?); the row's
           // own click handler opens the client detail, which is the
           // right place to see services in context.
-          // 2026-05-26 (Yuqi /clients feedback #3 — "left align"):
-          // dropped `block text-right` + `font-mono`. Numeric cells
-          // are now left-aligned + sans-serif tabular-nums.
+          // Numeric cells are left-aligned + sans-serif tabular-nums.
           return (
             <span
               className="tabular-nums text-text-primary"
@@ -874,11 +781,10 @@ export function ClientFactsWorkspace({
           )
         },
         meta: {
-          // 2026-05-26 (Yuqi /clients feedback #3 — "left align"):
-          // numeric columns left-aligned to match /deadlines + /rules/
-          // library family. Right-aligned numbers read as a balance
-          // sheet; left-aligned matches the rest of the workbench
-          // tables and the canonical TableCell default.
+          // Numeric columns are left-aligned to match the /deadlines +
+          // /rules/library family. Right-aligned numbers read as a
+          // balance sheet; left-aligned matches the rest of the
+          // workbench tables and the canonical TableCell default.
           headerClassName: CLIENTS_COL_WIDTH.services,
           cellClassName: CLIENTS_COL_WIDTH.services,
         },
@@ -913,9 +819,7 @@ export function ClientFactsWorkspace({
             return <EmptyCellMark label={t`No open deadlines`} />
           }
           // Count becomes a deep link into the queue pre-filtered to
-          // this client. 2026-05-26 (Yuqi feedback #3): dropped
-          // `block text-right` — left-aligned numeric matches the
-          // table family.
+          // this client. Left-aligned numeric matches the table family.
           return (
             <Link
               to={`/deadlines?client=${row.original.id}`}
@@ -928,26 +832,23 @@ export function ClientFactsWorkspace({
           )
         },
         meta: {
-          // 2026-05-26 (Yuqi /clients feedback #3 — "left align"):
-          // numeric columns left-aligned to match the rest of the
+          // Numeric columns are left-aligned to match the rest of the
           // workbench tables.
           headerClassName: CLIENTS_COL_WIDTH.open,
           cellClassName: CLIENTS_COL_WIDTH.open,
         },
       },
       {
-        // 2026-05-23: DONE column added per design mock. Counts
-        // obligations whose status is done/completed (terminal states).
-        // Built from the widened obligations query that now includes
-        // those statuses alongside the open ones — see route
+        // Counts obligations whose status is done/completed (terminal
+        // states). Built from the widened obligations query that
+        // includes those statuses alongside the open ones — see route
         // CLIENTS_LIST_OBLIGATION_STATUSES. Plain count, no deep link
         // (we don't have a routed view for closed obligations yet; the
         // client detail's Activity tab is the right destination when
         // we add that link).
-        // 2026-05-26 (browser comment): renamed `Filed YTD` →
-        // `Filed` because this summary is status-based, not a true
-        // year-to-date audit timestamp filter. It counts rows already
-        // in the user-facing Filed or Completed terminal states.
+        // Labeled `Filed` (not `Filed YTD`) because this summary is
+        // status-based, not a year-to-date audit timestamp filter — it
+        // counts rows already in the Filed or Completed terminal states.
         id: 'doneObligations',
         header: ({ column }) => (
           <ColumnSortHeader
@@ -970,17 +871,15 @@ export function ClientFactsWorkspace({
               ? t`1 filed or completed deadline for this client`
               : t`${count} filed or completed deadlines for this client`
           if (count === 0) {
-            // 2026-05-26 (merge with main): keep left-aligned (our
-            // Yuqi feedback #3) but adopt main's `title` const above
-            // for the singular/plural tooltip copy.
+            // Left-aligned, using the `title` const above for the
+            // singular/plural tooltip copy.
             return (
               <span className="tabular-nums text-text-tertiary" title={title}>
                 0
               </span>
             )
           }
-          // 2026-05-26 (Yuqi feedback #3): left-aligned numeric matches
-          // the table family.
+          // Left-aligned numeric matches the table family.
           return (
             <span className="tabular-nums text-text-secondary" title={title}>
               {count}
@@ -988,8 +887,7 @@ export function ClientFactsWorkspace({
           )
         },
         meta: {
-          // 2026-05-26 (Yuqi /clients feedback #3 — "left align"):
-          // numeric columns left-aligned to match the rest of the
+          // Numeric columns are left-aligned to match the rest of the
           // workbench tables.
           headerClassName: CLIENTS_COL_WIDTH.done,
           cellClassName: CLIENTS_COL_WIDTH.done,
@@ -997,28 +895,22 @@ export function ClientFactsWorkspace({
       },
       {
         accessorKey: 'assigneeName',
-        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
-        // column label realigned to /deadlines' "Assignee" (route
-        // obligations.tsx line ~2022 — `header: () => <span>{t`Assignee`}</span>`).
-        // The cell already renders an `<AssigneeAvatar>`-shaped
-        // primitive (`<ClientAssigneeAvatar>`), so the header noun
-        // and the cell motif now agree across both workbench tables.
-        // Note: the underlying RPC field stays `assigneeName`; only
-        // the header copy changed, so the existing client-detail
-        // "Owner" treatment (which sits alongside an editable
+        // Column label is "Assignee" to match /deadlines, and the cell
+        // renders the `<AssigneeAvatar>` primitive, so header noun and
+        // cell motif agree across both workbench tables. The underlying
+        // RPC field stays `assigneeName`; only the header copy differs,
+        // so the client-detail "Owner" treatment (alongside an editable
         // assignee pill) and the toolbar filter chip's "Owner" label
-        // remain intact — those surfaces aren't part of this
-        // cross-table column comparison.
+        // remain intact.
         header: () => (
           <span className="text-sm font-medium text-text-secondary">
             <Trans>Assignee</Trans>
           </span>
         ),
         cell: ({ row }) => {
-          // 2026-06-01: ClientAssigneeAvatar shim removed — its only
-          // remaining job was the isMine accent + title construction,
-          // which is short enough to inline here. The unassigned branch
-          // now lives inside the AssigneeAvatar primitive (null name).
+          // The isMine accent + title construction are inlined here.
+          // The unassigned branch lives inside the AssigneeAvatar
+          // primitive (null name).
           const name = row.original.assigneeName
           const isMine =
             currentUserName !== null &&
@@ -1033,10 +925,10 @@ export function ClientFactsWorkspace({
         },
       },
       {
-        // 2026-05-26 (Stripe Phase B — per-row ⋯): canonical row-action
-        // menu lives at the trailing edge of every row, mirroring how
-        // Stripe's Transactions table exposes per-row affordances.
-        // Hidden until row-hover so the table reads clean at rest;
+        // Canonical row-action menu lives at the trailing edge of every
+        // row, mirroring how Stripe's Transactions table exposes per-row
+        // affordances. Hidden until row-hover so the table reads clean
+        // at rest;
         // becomes visible (and tab-focusable) the moment the user
         // gestures at the row. Stops propagation to the row's
         // open-detail click handler so the ⋯ surface is its own
@@ -1094,24 +986,18 @@ export function ClientFactsWorkspace({
     ],
   )
 
-  // 2026-05-26 (Yuqi /clients directory pivot brief): the local
-  // `atRiskActive`/`waitingActive` state + the `visibleClients`
-  // narrowing memo were driven by the StatTile strip toggle. The
-  // strip retired (triage signals belong on /today + /deadlines);
-  // the local narrowing it powered also retires. The table now
-  // consumes `filteredClients` directly — URL-backed filters
-  // (states / entity / owner / search) are the only narrowing
-  // controls on /clients.
+  // The table consumes `filteredClients` directly — URL-backed filters
+  // (states / entity / owner / search) are the only narrowing controls
+  // on /clients.
 
-  // 2026-05-23: column sort state for the new sort-arrow indicators
+  // Column sort state for the sort-arrow indicators
   // (CLIENT / STATES / ENTITY / NEXT DUE / OPEN / FILED). Default sort
   // is unset so rows render in the API's `due_asc` order — clicking
   // a header opts in. Stored locally because sort feels transient (a
   // "show me by ___" gesture) rather than something to deep-link.
   const [sorting, setSorting] = useState<SortingState>([])
-  // 2026-05-26 (Yuqi macro→micro audit, Fix #6 / §3.4): responsive
-  // page-size — the table-card observes its own clientHeight via
-  // ResizeObserver, then `table.setPageSize` consumes the result on
+  // Responsive page-size — the table-card observes its own clientHeight
+  // via ResizeObserver, then `table.setPageSize` consumes the result on
   // every change so the page-count UI stays accurate as the viewport
   // changes. Mirrors the /deadlines hook + setter pair.
   const [responsivePageSize, setTableCardElement] = useClientsResponsivePageSize()
@@ -1142,10 +1028,10 @@ export function ClientFactsWorkspace({
         servicesCount: false,
       },
       pagination: {
-        // 2026-05-26: pageSize seeded from the responsive-page-size
-        // hook's floor (CLIENTS_PAGE_SIZE_MIN). The hook overrides on
-        // mount via useEffect below once the table-card measures its
-        // own clientHeight.
+        // pageSize is seeded from the responsive-page-size hook's floor
+        // (CLIENTS_PAGE_SIZE_MIN). The hook overrides on mount via
+        // useEffect below once the table-card measures its own
+        // clientHeight.
         pageIndex: 0,
         pageSize: CLIENTS_PAGE_SIZE_MIN,
       },
@@ -1194,15 +1080,12 @@ export function ClientFactsWorkspace({
         />
       ) : null}
 
-      {/* 2026-05-25 (Yuqi /clients #8): toolbar filter row above the
-          table — same rhythm as /alerts, where the filter
-          dropdowns live in their own row above the alert list. Was
-          previously inline funnel icons on each column header (one
-          per filter), which read as random table chrome rather than
-          a deliberate filter band. The toolbar version surfaces all
-          four filters in one scannable strip; column headers keep
-          only the sort arrow. A Reset button on the right clears
-          every filter at once. */}
+      {/* Toolbar filter row above the table — same rhythm as /alerts,
+          where the filter dropdowns live in their own row above the
+          alert list. This surfaces all four filters in one scannable
+          strip (rather than inline funnel icons per column header);
+          column headers keep only the sort arrow. A Reset button on the
+          right clears every filter at once. */}
       <ClientsFilterToolbar
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
@@ -1220,8 +1103,7 @@ export function ClientFactsWorkspace({
         onOwnerFilterChange={onOwnerFilterChange}
       />
 
-      {/* 2026-05-26 (Yuqi macro→micro audit, Fix #6 / §3.4): table
-          re-framed in the canonical bordered card with `flex-1
+      {/* Table is framed in the canonical bordered card with `flex-1
           min-h-0` rows-area + pinned pagination footer. Mirrors
           /deadlines so /clients renders identically. Outer container
           in routes/clients.tsx is height-constrained at xl so this
@@ -1232,10 +1114,9 @@ export function ClientFactsWorkspace({
           ClientTableEmptyRow doesn't sit inside a doubly-bordered
           shell. */}
       {clients.length === 0 && !isLoading ? (
-        // 2026-06-07 (design replication, Pencil jQFBx + T4eNmw): the quiet
-        // inline EmptyState is replaced by the prominent full-surface hero
-        // — integration-logo strip, headline, Import/Add CTAs, outcomes
-        // strip, and the sample-data tour chip.
+        // The prominent full-surface hero — integration-logo strip,
+        // headline, Import/Add CTAs, outcomes strip, and the
+        // sample-data tour chip.
         <ClientsEmptyState
           onImport={onImport}
           canImport={canImport}
@@ -1244,53 +1125,41 @@ export function ClientFactsWorkspace({
           onSampleData={onSampleData}
         />
       ) : (
-        // 2026-05-26 (Yuqi cross-table chrome unify): canonical
-        // workbench-table card frame. Same recipe as /deadlines +
-        // /rules/library — `rounded-lg border border-divider-subtle
-        // overflow-hidden bg-background-default/50`. The inner div
-        // is just for the flex split between the Table block and
-        // the Pagination footer; the rounded card frame lives here
-        // on the outer wrapper so it spans both.
+        // Canonical workbench-table card frame. Same recipe as
+        // /deadlines + /rules/library. The inner div is just for the
+        // flex split between the Table block and the Pagination footer;
+        // the rounded card frame lives here on the outer wrapper so it
+        // spans both.
         <div
           ref={setTableCardElement}
-          // 2026-06-04 round 16 (Yuqi "lighter border"): /clients
-          // outer card border settled at `divider-regular` (8%
-          // alpha) — the visible-but-quiet canonical tone.
+          // Outer card border is `divider-regular` (8% alpha) — the
+          // visible-but-quiet canonical tone.
           className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-divider-regular"
         >
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {isLoading ? (
               <ClientTableSkeleton />
             ) : (
-              // 2026-05-26 (Yuqi cross-page audit — align /clients to
-              // the canonical workbench-table chrome shared with
-              // /rules/library + /deadlines):
-              //   - Card chrome (rounded-lg + border + bg) moved DOWN
-              //     to `data-slot="table-container"` via Tailwind
-              //     arbitrary-selector chain. Eliminates the nested-
-              //     wrapper layer mismatch that caused rounded-corner
-              //     slivers when the thead had a different bg.
+              // Canonical workbench-table chrome shared with
+              // /rules/library + /deadlines:
+              //   - Card chrome (rounded-lg + border + bg) lives on
+              //     `data-slot="table-container"` via a Tailwind
+              //     arbitrary-selector chain. This eliminates the
+              //     nested-wrapper layer mismatch that caused rounded-
+              //     corner slivers when the thead had a different bg.
               //   - TableHeader override → `!bg-background-default-dimmed`
               //     to match the same dimmed gray Deadlines + Rule
               //     library use. The primitive default
               //     (`bg-background-subtle`) reads lighter and broke
               //     the family.
               <Table
-                // 2026-05-26 (Yuqi cross-table chrome unify): the
-                // table-container chrome overrides (rounded-lg +
-                // border) moved UP to the outer card wrapper, where
-                // they wrap Table + Pagination together as one
-                // cohesive rounded card. Only `table-fixed` stays
-                // here as a table-layout concern.
+                // The table-container chrome overrides (rounded-lg +
+                // border) live on the outer card wrapper, where they
+                // wrap Table + Pagination together as one cohesive
+                // rounded card. Only `table-fixed` stays here as a
+                // table-layout concern.
                 className="table-fixed"
               >
-                {/* 2026-06-04 (Yuqi table sweep): header `hover:bg-transparent`
-                    + the per-head `text-sm font-medium normal-case
-                    tracking-normal text-text-secondary` override
-                    REMOVED — the canonical primitive ships the header
-                    transparent-hover + 11/600 uppercase column-label
-                    style. /clients reads as the same family as
-                    /today, /deadlines, /audit etc. */}
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
@@ -1307,33 +1176,19 @@ export function ClientFactsWorkspace({
                     </TableRow>
                   ))}
                 </TableHeader>
-                {/* 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
-                    TableBody adopts the canonical /deadlines body chrome:
-                      • `bg-background-default` — solid white body so the
-                        primitive's `bg-background-default/50` alpha that
-                        the OUTER card paints doesn't bleed through row
-                        content
+                {/* TableBody uses the canonical /deadlines body chrome:
                       • `[&_td]:text-sm` — body text matches /deadlines'
                         sm scan-size
-                      • `[&_td]:py-2` — same 8px cell padding (kept from
-                        the previous /clients density pass)
+                      • `[&_td]:py-2` — 8px cell padding (Clients list is
+                        a dense scan surface)
                       • `[&_tr]:hover:!bg-state-accent-hover` — accent-
                         tone hover so the row tints with the same color
                         the optional detail panel would use when opened
                         (one visual language for "you're about to act on
                         this row")
-                    The previously-applied `[&_tr]:border-b-0` is removed
-                    so the primitive's default `border-b border-divider-
-                    subtle` (TableRow, packages/ui/.../table.tsx) restores
-                    the row hairlines /deadlines has been shipping. This
-                    is the structural change Yuqi flagged in the brief
-                    ("Missing row dividers between client rows"). */}
-                {/* 2026-06-04 (Yuqi table sweep): `bg-background-default`
-                    dropped — canonical body default. Kept compact
-                    cell padding `[&_td]:py-2 [&_td]:text-sm` (Clients
-                    list is a dense scan surface) and the accent-tone
-                    hover override (matches /deadlines: hover tint =
-                    detail-panel selection tint). */}
+                    Row hairlines come from the primitive's default
+                    `border-b border-divider-subtle` (TableRow,
+                    packages/ui/.../table.tsx). */}
                 <TableBody className="[&_td]:py-2 [&_td]:text-sm [&_tr]:hover:!bg-state-accent-hover">
                   {table.getRowModel().rows.length > 0 ? (
                     table.getRowModel().rows.map((row) => (
@@ -1342,21 +1197,19 @@ export function ClientFactsWorkspace({
                         role="button"
                         tabIndex={0}
                         aria-label={t`Open client detail for ${row.original.name}`}
-                        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity
-                        // refactor): dropped the per-row
-                        // `hover:bg-state-base-hover` so the TableBody-
-                        // level `[&_tr]:hover:!bg-state-accent-hover`
-                        // wins. Focus-visible still uses the base-hover
-                        // tone so keyboard navigation reads as a
-                        // distinct state from mouse hover. Matches
-                        // /deadlines row-styling layering exactly
-                        // (obligations.tsx ~line 3780-3810).
-                        // 2026-06-10 (handoff Surface 3): the selected-row
-                        // pattern is `fill state-accent-hover + 2px left accent
-                        // stroke` (matches the rules table `Z0Q8Yk` + alert
-                        // AffectedClients selected rows). The TableBody supplies
-                        // the fill on hover; the inset 2px shadow adds the left
-                        // accent bar without shifting layout (border would).
+                        // No per-row hover bg so the TableBody-level
+                        // `[&_tr]:hover:!bg-state-accent-hover` wins.
+                        // Focus-visible uses the base-hover tone so
+                        // keyboard navigation reads as a distinct state
+                        // from mouse hover. Matches /deadlines row-styling
+                        // layering exactly.
+                        // The selected-row pattern is `fill
+                        // state-accent-hover + 2px left accent stroke`
+                        // (matches the rules table + alert AffectedClients
+                        // selected rows). The TableBody supplies the fill
+                        // on hover; the inset 2px shadow adds the left
+                        // accent bar without shifting layout (border
+                        // would).
                         className="group/row h-14 cursor-pointer outline-none hover:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:bg-state-base-hover focus-visible:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                         onClick={(event) => {
                           // ⌘-click (macOS) / Ctrl-click (Win/Linux) opens
@@ -1396,12 +1249,9 @@ export function ClientFactsWorkspace({
               top border. Always rendered when there's >1 page; the
               flex-shrink-0 keeps it pinned at the bottom of the card
               while the rows-area scrolls.
-              2026-05-26 (Yuqi feedback — "polish everything in
-              table-container"): aligned padding to canonical (§6
-              `--space-pagination-y` = py-6, `--space-cell-x` = px-2)
-              so /clients matches /deadlines exactly. Was `px-3 py-2`
-              (slim toolbar feel); now `px-2 py-6` (deliberate card
-              footer with breathing room). */}
+              Padding is canonical (`--space-pagination-y` = py-6,
+              `--space-cell-x` = px-2) so /clients matches /deadlines
+              exactly — a deliberate card footer with breathing room. */}
           {table.getPageCount() > 1 ? (
             <div className="flex shrink-0 items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-6 text-xs text-text-tertiary">
               <span>
@@ -1455,13 +1305,12 @@ function handleClientRowKeyDown(
 }
 
 /**
- * 2026-05-25 (Yuqi /clients #8): toolbar filter row above the
- * /clients table. Lifts the four column-header funnel filters
- * (Client / States / Entity / Owner) into one scannable strip,
- * matching the /alerts rhythm. Each filter is a toolbar-
- * trigger TableHeaderMultiFilter (wide outline button with the
- * label inline + a count chip when active). Reset on the right
- * clears every filter at once.
+ * Toolbar filter row above the /clients table. Surfaces the four
+ * filters (Client / States / Entity / Owner) in one scannable strip,
+ * matching the /alerts rhythm. Each filter is a toolbar-trigger
+ * TableHeaderMultiFilter (wide outline button with the label inline +
+ * a count chip when active). Reset on the right clears every filter at
+ * once.
  */
 function ClientsFilterToolbar({
   searchQuery,
@@ -1502,34 +1351,23 @@ function ClientsFilterToolbar({
     entityFilter.length > 0 ||
     ownerFilter.length > 0
 
-  // 2026-05-26 (cross-table drift #5 + Step 8 F-X02/F-X03):
-  // /clients now uses the canonical collapsible-search pattern shared
-  // with /deadlines and /rules/library. Ghost-icon at rest, expands
-  // inline into the canonical `SearchInput` primitive on click OR on
-  // `/` hotkey. Step 8 migrated FROM hand-rolled `<Input type="search">`
-  // + bespoke XIcon clear + raw window keydown TO the SearchInput
-  // primitive; HEAD then wrapped the primitive in a collapsible
-  // `ClientsSearchControl` so the icon-only rest state matches
-  // Yuqi's later directive. Both fixes preserved.
+  // /clients uses the canonical collapsible-search pattern shared with
+  // /deadlines and /rules/library. Ghost-icon at rest, expands inline
+  // into the canonical `SearchInput` primitive on click OR on `/`
+  // hotkey.
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
 
-  // 2026-05-26 (Yuqi /clients feedback #1 — "search at the right
-  // end"): toolbar layout split into two clusters separated by
-  // `flex-1` spacer.
+  // Toolbar layout splits into two clusters separated by a `flex-1`
+  // spacer:
   //   • LEFT: filter dropdowns (Client / States / Entity / Owner) +
   //     Reset link — primary "narrow the directory" controls
-  //   • RIGHT: collapsible search icon — moved here from the left to
-  //     match the canonical "filters on the left, search on the right"
-  //     reading order. The icon stays ghost-only at rest; expands
-  //     into the input on click or `/` hotkey.
+  //   • RIGHT: collapsible search icon — matches the canonical
+  //     "filters on the left, search on the right" reading order. The
+  //     icon stays ghost-only at rest; expands into the input on click
+  //     or `/` hotkey.
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {/* Step 8 added an inline-always SearchInput at the toolbar start;
-          HEAD's collapsible icon pattern (ClientsSearchControl, rendered
-          later in the toolbar) is the newer design Yuqi requested.
-          Dropped Step 8's inline duplicate — the SearchInput primitive
-          IS used, just wrapped in the collapsible affordance. */}
       <TableHeaderMultiFilter
         trigger="toolbar"
         label={t`Client`}
@@ -1573,14 +1411,12 @@ function ClientsFilterToolbar({
         size="sm"
         disabled={!filtersActive}
         onClick={() => {
-          // 2026-05-26 (Yuqi /clients directory pivot brief): Reset
-          // clears search alongside the structural filters so the
-          // CPA returns to the full directory in one click.
-          // 2026-05-26 (Yuqi step-8 data-finding audit — F-X01/F-X12):
-          // label changed from "Reset" to "Clear filters" to align
-          // with /deadlines, /alerts, and /rules/library. "Reset"
-          // implied broader scope (density, columns, etc.) than the
-          // affordance actually has — only filters get cleared.
+          // Clears search alongside the structural filters so the CPA
+          // returns to the full directory in one click.
+          // Labeled "Clear filters" (not "Reset") to align with
+          // /deadlines, /alerts, and /rules/library — "Reset" implied
+          // broader scope (density, columns, etc.) than the affordance
+          // actually has, since only filters get cleared.
           onSearchChange('')
           onClientFilterChange([])
           onStateFilterChange([])
@@ -1604,8 +1440,7 @@ function ClientsFilterToolbar({
   )
 }
 
-// 2026-05-26 (Yuqi cross-table drift #5 — "fix search affordances"):
-// collapsible search control for `/clients`. Renders as a ghost icon
+// Collapsible search control for `/clients`. Renders as a ghost icon
 // button at rest; expands inline into the canonical `SearchInput` on
 // click or `/` hotkey. Open state is lifted to the parent so the `/`
 // hotkey can expand → focus in one gesture. Mirrors /deadlines
@@ -1671,14 +1506,11 @@ function ClientsSearchControl({
   }
   return (
     <div className="relative w-full md:w-56 md:flex-none">
-      {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-X05 sibling
-          on /clients): collapsed magnifier announces "Filter clients"
-          via aria-label above, but the expanded input previously
-          said "Search clients" — same accessible-name drift the
-          /deadlines fix (F-X05) corrected. Aligning to "Filter
-          clients" so screen-reader users hear one control name
-          regardless of collapsed/expanded state. Placeholder still
-          carries the field hint ("name or EIN") for sighted users. */}
+      {/* Both the collapsed magnifier and the expanded input use the
+          "Filter clients" aria-label so screen-reader users hear one
+          control name regardless of collapsed/expanded state. The
+          placeholder carries the field hint ("name or EIN") for sighted
+          users. */}
       <SearchInput
         ref={inputRef}
         value={value}
@@ -1805,13 +1637,11 @@ function ClientsActionStrip({
   needsFactsCount: number
   onFixNeedsFacts: () => void
 }) {
-  // 2026-05-26 (Yuqi /clients directory pivot brief): the 3-tile
-  // StatTile strip (At risk / Waiting on client / Alert hits) is
-  // retired. /clients is now a directory-first surface; the
-  // triage signals belong on /today and /deadlines where
-  // dollar-exposure context is also present. The needs-facts
-  // banner stays — it's actionable setup work specific to the
-  // directory itself, not a triage tile.
+  // /clients is a directory-first surface, so only the needs-facts
+  // banner renders here — it's actionable setup work specific to the
+  // directory itself, not a triage tile. Triage signals (at risk /
+  // waiting on client / alert hits) belong on /today and /deadlines
+  // where dollar-exposure context is also present.
   const hasBanner = needsFactsCount > 0
   if (isLoading) return <ClientsActionStripSkeleton />
   if (!hasBanner) return null
@@ -1843,20 +1673,16 @@ function ClientsActionStrip({
   )
 }
 
-// 2026-05-26 (Yuqi /clients directory pivot brief): skeleton scoped
-// to the needs-facts banner only. The 3-tile skeleton retired with
-// the StatTile strip. `ClientsStatTile` + `ClientsStatTileSkeleton`
-// also retired — they were only used by the strip.
+// Skeleton scoped to the needs-facts banner only.
 function ClientsActionStripSkeleton() {
   return <Skeleton className="h-10 w-full" aria-busy="true" />
 }
 
 function ClientTableSkeleton() {
-  // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor): skeleton
-  // column widths track the live-table widths exactly so the loading
-  // shimmer doesn't shift the layout when real rows mount.
-  // 2026-05-28 (audit P3-1): widths now reference the shared
-  // `CLIENTS_COL_WIDTH` const so live + skeleton can't drift.
+  // Skeleton column widths track the live-table widths exactly so the
+  // loading shimmer doesn't shift the layout when real rows mount.
+  // Widths reference the shared `CLIENTS_COL_WIDTH` const so live +
+  // skeleton can't drift.
   const columns = [
     { id: 'client', className: CLIENTS_COL_WIDTH.client, header: 'w-14', cell: 'w-32' },
     { id: 'states', className: CLIENTS_COL_WIDTH.state, header: 'w-14', cell: 'w-16' },
@@ -1872,25 +1698,21 @@ function ClientTableSkeleton() {
     },
   ] as const
   return (
-    // 2026-05-26 (Yuqi cross-page audit): skeleton matches the live
-    // table's chrome — card frame on table-container, dimmed-gray
-    // header bg.
+    // Skeleton matches the live table's chrome — card frame on
+    // table-container, dimmed-gray header bg.
     <Table
       className={cn(
         'table-fixed',
         '[&_[data-slot=table-container]]:overflow-hidden',
         '[&_[data-slot=table-container]]:rounded-lg',
         '[&_[data-slot=table-container]]:border',
-        // 2026-06-04 round 16: skeleton border matches the live
-        // table's canonical tone (`divider-regular`).
+        // Skeleton border matches the live table's canonical tone
+        // (`divider-regular`).
         '[&_[data-slot=table-container]]:border-divider-regular',
         '[&_[data-slot=table-container]]:bg-background-default',
       )}
       aria-busy="true"
     >
-      {/* 2026-06-04 (Yuqi table sweep): skeleton header overrides
-          dropped — canonical primitive ships the right column-label
-          style; `bg-background-default` body bg dropped. */}
       <TableHeader>
         <TableRow>
           {columns.map((column) => (
@@ -1938,14 +1760,6 @@ function ClientTableEmptyRow({ colSpan }: { colSpan: number }) {
  * /clients shows a muted person icon while /deadlines opens an inline
  * picker (different IA per surface).
  */
-// 2026-06-01: ClientAssigneeAvatar shim removed — the unassigned
-// branch is now handled inside the shared AssigneeAvatar primitive
-// (passing `name={null}` renders the muted person silhouette).
-// 2026-05-26 (Yuqi cross-table drift #10 — "Owner/Assignee avatar
-// size + initials hash consistency"): the ASSIGNEE_TINTS palette + FNV
-// hash that used to live inline here moved to `@/lib/assignee-tint` so
-// /deadlines AssigneeAvatar can resolve the same per-name tint. Same
-// person, same color, on every surface.
 
 function ClientReadinessBadge({
   readiness,
@@ -1954,11 +1768,9 @@ function ClientReadinessBadge({
   readiness: ClientReadiness | undefined
   compact: boolean
 }) {
-  // 2026-05-25 (status-pill audit #4): dropped the inner
-  // `BadgeStatusDot`. Chip fill already carries the tone (warning
-  // amber / success green); the leading dot doubled the signal
-  // and broke the canonical "filled chip → no dot" rule from the
-  // status-pill audit §3.3.
+  // No inner `BadgeStatusDot`: the chip fill already carries the tone
+  // (warning amber / success green), so a leading dot would double the
+  // signal — the canonical "filled chip → no dot" rule.
   if (readiness?.status === 'needs_facts') {
     return (
       <Badge variant="warning" className="text-xs">

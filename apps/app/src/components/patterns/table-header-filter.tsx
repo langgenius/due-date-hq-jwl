@@ -27,7 +27,7 @@ export interface TableFilterOption {
 interface TableHeaderMultiFilterProps {
   // 'toolbar' = wide button with label inline (above-the-table strips)
   // 'header'  = compact uppercase header trigger (legacy column header)
-  // 'icon'    = funnel icon button only (2026-05-23: pairs with a
+  // 'icon'    = funnel icon button only (pairs with a
   //             separate sort-arrow control so filter and sort are
   //             visually distinct click targets on the same header cell)
   trigger?: 'toolbar' | 'header' | 'icon'
@@ -85,13 +85,10 @@ function TableHeaderMultiFilter({
         disabled: disabled ?? false,
       })
     ) : (
-      // 2026-05-26 (Yuqi macro→micro audit, Fix #5 / §3.1): toolbar
-      // trigger now uses the canonical `FilterTrigger` primitive so
+      // Toolbar trigger uses the canonical `FilterTrigger` primitive so
       // /clients filter dropdowns read identically to /deadlines and
       // /alerts (32px h-8, accent border+bg when active, divider
-      // border+default bg at rest). Previously the toolbar variant
-      // rendered a `Button variant="accent"|"outline"` with its own
-      // ChevronDown — visually adjacent but inconsistent.
+      // border+default bg at rest).
       <FilterTrigger active={selectedCount > 0} disabled={disabled} className="max-w-52">
         <span className="truncate">{label}</span>
         {selectedCount > 0 ? (
@@ -124,11 +121,8 @@ function TableHeaderMultiFilter({
         {searchable ? (
           <>
             <div className="p-2">
-              {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-HF02
-                  + F-X08): raw `<Input>` previously had no leading
-                  search icon and no inline clear-X. The canonical
-                  SearchInput primitive is the right adopt, but the
-                  popover has different needs:
+              {/* The canonical SearchInput primitive is the right adopt,
+                  but the popover has different needs:
                    • Escape must bubble so the dropdown closes; the
                      primitive captures Escape to clear instead.
                    • No `/` hotkey wiring — the popover only exists
@@ -149,7 +143,7 @@ function TableHeaderMultiFilter({
                   placeholder={searchPlaceholder ?? label}
                   value={optionSearch}
                   onChange={(event) => setOptionSearch(event.target.value)}
-                  // 2026-05-24 (interaction audit): let Escape bubble so
+                  // Let Escape bubble so
                   // the parent dropdown closes on Esc instead of trapping
                   // the user inside the search box. Letter-key typing is
                   // still swallowed so global J/K-style shortcuts don't
@@ -203,14 +197,12 @@ function TableHeaderMultiFilter({
             )
           })
         )}
-        {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-HF01):
-            surface the silent 16-selection cap. Previously the 17th
-            checkbox just rendered `disabled` with no explanation;
+        {/* Surface the silent 16-selection cap: without this, the 17th
+            checkbox just renders `disabled` with no explanation, and
             CPAs hitting the limit on a long facet list (>=16 clients
-            / states selected) couldn't tell why the next box wouldn't
-            tick. Inline footer note explains the cap and points at
-            the path forward (refine the visible list with the
-            popover search). */}
+            / states selected) can't tell why the next box won't tick.
+            Inline footer note explains the cap and points at the path
+            forward (refine the visible list with the popover search). */}
         {atSelectionLimit ? (
           <>
             <DropdownMenuSeparator />
@@ -238,15 +230,13 @@ function tableHeaderFilterTrigger({
       type="button"
       disabled={disabled}
       data-active={activeCount > 0 ? true : undefined}
-      // 2026-05-26 (Yuqi /deadlines #5): dropped explicit
-      // `text-xs font-medium tracking-wider uppercase text-text-tertiary`
-      // — those should INHERIT from the parent <th>'s Table primitive
-      // styles (which set `text-xs font-medium tracking-eyebrow
-      // uppercase text-text-tertiary`). Setting them locally with
-      // `tracking-wider` (=0.05em) made the Client column header
-      // render at a slightly different letter-spacing than the
-      // sibling SortableHeader columns. Now the trigger inherits,
-      // every column header reads at the same typographic spec.
+      // No explicit type styles here — they INHERIT from the parent
+      // <th>'s Table primitive styles (which set `text-xs font-medium
+      // tracking-eyebrow uppercase text-text-tertiary`). Setting them
+      // locally with `tracking-wider` (=0.05em) made the Client column
+      // header render at a slightly different letter-spacing than the
+      // sibling SortableHeader columns. Inheriting keeps every column
+      // header at the same typographic spec.
       className="-mx-2 inline-flex h-7 max-w-40 cursor-pointer items-center gap-1 rounded-lg px-2 whitespace-nowrap outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-50 data-[active=true]:text-text-accent"
     >
       <span className="truncate">{label}</span>
@@ -261,7 +251,7 @@ function tableHeaderFilterTrigger({
 }
 
 /**
- * 2026-05-23: icon-only filter trigger. Used on table column headers
+ * Icon-only filter trigger. Used on table column headers
  * where the LABEL is its own click target for sort, and the FUNNEL
  * icon is the separate click target for filter. Keeps the two
  * concerns distinct visually so a user clicking the column name

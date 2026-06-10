@@ -97,13 +97,10 @@ type MemberActionTarget = {
 const INVITE_MEMBER_HOTKEY = 'Mod+I'
 const INVITE_MEMBER_ARIA_SHORTCUTS = 'Meta+I Control+I'
 
-// 2026-05-27 (step-6 audit F6.5): per-role scope summary used inside
-// the invite-role <SelectItem>. CPA-vocabulary: Partner = principal
-// authority; Manager = review + sign-off; Preparer = assigned client
-// work; Coordinator = scheduling + intake but no preparation.
-// Partner copy must not promise billing or member management — both are
-// owner-only (FIRM_PERMISSION_ROLES), and this dialog is the promise the
-// invitee is onboarded against.
+// Per-role scope summary used inside the invite-role <SelectItem>.
+// CPA-vocabulary: Partner = principal authority; Manager = review + sign-off;
+// Preparer = assigned client work; Coordinator = scheduling + intake but no
+// preparation.
 // Uses `msg` + `i18n._` so the catalog extractor picks up every
 // variant (parameterized `t` inside a helper bypasses extraction).
 function inviteRoleDescription(role: MemberManagedRole, i18n: I18n): string {
@@ -174,31 +171,27 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   const queryClient = useQueryClient()
   const [inviteOpen, setInviteOpen] = useState(false)
   const [pendingRemoval, setPendingRemoval] = useState<MemberActionTarget | null>(null)
-  // 2026-05-24 (critique /polish): role-change used to apply
-  // instantly on dropdown pick — a misclick could drop a partner
-  // down to coordinator with no recovery (downgrades silently strip
-  // sign-off, member admin, billing access). Gate downgrades behind
-  // an AlertDialog confirm following the existing pendingRemoval
-  // pattern. Upgrades and sideways moves apply directly.
+  // Gate downgrades behind an AlertDialog confirm (following the pendingRemoval
+  // pattern) — applying a role change instantly on dropdown pick means a
+  // misclick could drop a partner to coordinator with no recovery, since
+  // downgrades silently strip sign-off, member admin, billing access. Upgrades
+  // and sideways moves apply directly.
   const [pendingRoleChange, setPendingRoleChange] = useState<{
     member: MemberActionTarget
     fromRole: MemberPublic['role']
     toRole: MemberManagedRole
   } | null>(null)
-  // 2026-05-24 (re-critique): cancel-invitation used to fire on
-  // a single text-button click — no confirm, no preview, no undo.
-  // The recipient may be checking their inbox right now. Gate
-  // behind a small confirm so an accidental click on the
-  // table-cell-sized link doesn't pull the rug out from under them.
+  // Gate cancel-invitation behind a small confirm so an accidental click on
+  // the table-cell-sized link doesn't pull the rug out from under a recipient
+  // who may be checking their inbox right now — there's no preview or undo.
   const [pendingInvitationCancel, setPendingInvitationCancel] = useState<{
     invitationId: string
     inviteeLabel: string
   } | null>(null)
-  // 2026-05-24 (re-critique): suspend is reversible (Reactivate is
-  // right next to it in the menu) but the suspended member is
-  // silently locked out until they hit the login screen and see an
-  // error — wrong-person suspends turn into Saturday-morning panic
-  // calls. Reactivate stays direct (additive, no harm).
+  // Suspend is reversible (Reactivate is right next to it in the menu) but the
+  // suspended member is silently locked out until they hit the login screen
+  // and see an error — wrong-person suspends turn into Saturday-morning panic
+  // calls, so it gets a confirm. Reactivate stays direct (additive, no harm).
   const [pendingSuspend, setPendingSuspend] = useState<MemberPublic | null>(null)
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
   const inviteShortcutLabel = formatShortcutForDisplay(INVITE_MEMBER_HOTKEY)
@@ -309,14 +302,11 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         }
       />
 
-      {/* 2026-06-01: stat strip migrated to canonical StatTile per
-          design-system sweep. The four hand-rolled tiles (SeatStat +
-          KpiStat ×3) collapse onto the shared primitive; the SeatStat
-          composes a hairline Progress underneath for the used-seats
-          bar. Outer divider-grid chrome drops because each StatTile
-          owns its own bordered card. The detail string each tile used
-          to carry is now stacked under the canonical label so the data
-          stays in view without re-creating chrome. */}
+      {/* Stat strip is four StatTiles (SeatStat + KpiStat ×3); SeatStat
+          composes a hairline Progress underneath for the used-seats bar. No
+          outer divider-grid chrome because each StatTile owns its own bordered
+          card. Each tile's detail string stacks under the canonical label so
+          the data stays in view. */}
       <section className="grid gap-3 md:grid-cols-4" aria-label={t`Members summary`}>
         <SeatStat data={data} />
         <StatTile
@@ -379,8 +369,8 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
           members={data.members}
           firmTimezone={firmTimezone}
           onRoleChange={(memberId, role) => {
-            // 2026-05-24 (critique /polish): downgrades go through a
-            // confirm dialog; upgrades + sideways apply directly.
+            // Downgrades go through a confirm dialog; upgrades + sideways
+            // apply directly.
             const member = data.members.find((candidate) => candidate.id === memberId)
             if (!member) return
             if (isRoleDowngrade(member.role, role)) {
@@ -493,10 +483,9 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 2026-05-24 (critique /polish): downgrade confirm. Mirrors
-          the Remove dialog above — same DestructiveChangePreview,
-          same destructive-primary CTA. Upgrades skip this gate
-          entirely (instant apply via the dropdown). */}
+      {/* Downgrade confirm. Mirrors the Remove dialog above — same
+          DestructiveChangePreview, same destructive-primary CTA. Upgrades skip
+          this gate entirely (instant apply via the dropdown). */}
       <AlertDialog
         open={pendingRoleChange !== null}
         onOpenChange={(open) => {
@@ -566,11 +555,10 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 2026-05-24 (re-critique): suspend-access confirm. Reactivate
-          is right next to it in the dropdown so the action is fully
-          reversible, but the suspended member learns about it from
-          a confusing login error — naming them in the dialog forces
-          the admin to check the right row. */}
+      {/* Suspend-access confirm. Reactivate is right next to it in the
+          dropdown so the action is fully reversible, but the suspended member
+          learns about it from a confusing login error — naming them in the
+          dialog forces the admin to check the right row. */}
       <AlertDialog
         open={pendingSuspend !== null}
         onOpenChange={(open) => {
@@ -616,11 +604,11 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 2026-05-24 (re-critique): small confirm before cancelling an
-          invitation. Uses a plain description instead of the heavy
-          DestructiveChangePreview — cancel-invite isn't on the same
-          severity tier as Remove / Downgrade, but a confirm prevents
-          accidental misclicks on the inline text-button. */}
+      {/* Small confirm before cancelling an invitation. Uses a plain
+          description instead of the heavy DestructiveChangePreview —
+          cancel-invite isn't on the same severity tier as Remove / Downgrade,
+          but a confirm prevents accidental misclicks on the inline
+          text-button. */}
       <AlertDialog
         open={pendingInvitationCancel !== null}
         onOpenChange={(open) => {
@@ -669,12 +657,10 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   )
 }
 
-// 2026-06-01: SeatStat now composes the canonical StatTile + Progress
-// primitives. The "used / limit" magnitude lives in StatTile's value
-// slot (rendered through the canonical text-xl tone); the available-
-// seats hint stacks under the label, and a hairline Progress sits
-// beneath the tile for the used-seats fill. KpiStat helper dropped —
-// the three sibling tiles now use StatTile directly inline.
+// SeatStat composes StatTile + Progress. The "used / limit" magnitude lives in
+// StatTile's value slot (canonical text-xl tone); the available-seats hint
+// stacks under the label, and a hairline Progress sits beneath the tile for
+// the used-seats fill.
 function SeatStat({ data }: { data: MembersListOutput }) {
   const usedPct = data.seatLimit > 0 ? Math.min((data.usedSeats / data.seatLimit) * 100, 100) : 0
   return (
@@ -736,19 +722,13 @@ function MembersSectionHeader({
   action?: string
 }) {
   return (
-    // 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN §9
-    // "uppercase kicker deprecated" violation): `font-medium
-    // tracking-eyebrow uppercase` swapped for the canonical
-    // `text-sm font-medium text-text-secondary` sub-section label.
-    // Outer text-xs preserved for the right-side metadata that follows
-    // (count chip + descriptor); the heading itself reads as a real
-    // sub-section title in sentence case.
+    // The heading is a `text-sm font-medium text-text-secondary` sentence-case
+    // sub-section label (uppercase kickers are deprecated). Outer text-xs is
+    // for the right-side metadata that follows (count chip + descriptor).
     <div className="flex min-h-7 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
       <h2 className="text-sm font-medium text-text-secondary">{title}</h2>
-      {/* 2026-06-01: count chip migrated from hand-rolled h-[18px]
-          micro-pill to the canonical Badge primitive (`variant='outline'`,
-          `shape='square'`, `size='sm'`). Matches the new tab-count /
-          provenance chip recipe. */}
+      {/* Count chip — Badge primitive matching the tab-count / provenance chip
+          recipe. */}
       <Badge variant="outline" shape="square" size="sm" className="tabular-nums">
         {count}
       </Badge>
@@ -785,14 +765,12 @@ function ActiveMembersTable({
             <TableHead className="w-44">Role</TableHead>
             <TableHead className="w-32">Status</TableHead>
             <TableHead className="w-44">Joined</TableHead>
-            {/* 2026-05-24 (critique /polish): "Last active" column
-                used to render "Not recorded" on every row because
-                the server isn't tracking last-active yet. A column
-                of "Not recorded" eats horizontal real estate to
-                tell the user nothing. Hide it until real data lands;
-                restore the <TableHead className="w-28">Last active
-                </TableHead> + matching cell when the backend grows
-                a `lastActiveAt` field. */}
+            {/* "Last active" column is hidden until real data lands — the
+                server isn't tracking last-active yet, and a column of "Not
+                recorded" eats horizontal real estate to tell the user nothing.
+                Restore the <TableHead className="w-28">Last active</TableHead>
+                + matching cell when the backend grows a `lastActiveAt`
+                field. */}
             <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
@@ -817,12 +795,10 @@ function ActiveMembersTable({
                 <TableCell className="py-1.5">
                   <MemberStatusPill status={member.status} />
                 </TableCell>
-                {/* 2026-05-24 (critique P2 — clarify): JOINED used
-                    to read `2026-05-01 01:10:00 PDT` — engineering-
-                    precise but unparseable at a glance. Use relative
-                    time ("3 weeks ago"); exact value lives on the
-                    tooltip via <RelativeTime>. Drop font-mono — this
-                    column reads as recency, not as data. */}
+                {/* JOINED uses relative time ("3 weeks ago") — an
+                    engineering-precise timestamp is unparseable at a glance.
+                    The exact value lives on the tooltip via <RelativeTime>. No
+                    font-mono — this column reads as recency, not as data. */}
                 <TableCell className="py-1.5 text-xs whitespace-nowrap text-text-muted">
                   <RelativeTime value={member.createdAt} timeZone={firmTimezone} />
                 </TableCell>
@@ -916,12 +892,10 @@ function PendingInvitationsTable({
                 </span>
               </TableCell>
               <TableCell className="py-2">
-                {/* 2026-06-01: Resend / Cancel migrated from raw
-                    `<button>` text links to canonical TextLink
-                    primitives. Resend = accent variant (the affirmative
-                    re-action), Cancel = muted secondary (the quiet
-                    backup affordance). Both keep the disabled-while-busy
-                    semantics through the underlying Base UI primitive. */}
+                {/* Resend = accent variant (the affirmative re-action),
+                    Cancel = muted secondary (the quiet backup affordance).
+                    Both keep the disabled-while-busy semantics through the
+                    underlying Base UI primitive. */}
                 <div className="flex flex-col items-start gap-0.5">
                   <TextLink
                     variant="accent"
@@ -952,14 +926,11 @@ function PendingInvitationsTable({
 function MemberIdentity({ member }: { member: MemberPublic }) {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      {/* 2026-06-01: migrated from a hand-rolled `<span>` avatar wrapper
-          to the consolidated AssigneeAvatar primitive. Same size-6
-          ('sm') footprint, same image-or-initials behavior, and the
-          shared initialsFromName helper is wired through the primitive
-          so the "S vs SM" drift documented in the prior comment can't
-          come back. `title` carries the name for the tooltip; aria
-          metadata lives on the avatar so the sibling text-name reads
-          naturally and the avatar stays decorative. */}
+      {/* AssigneeAvatar primitive at size-6 ('sm'). The shared
+          initialsFromName helper is wired through the primitive so "S vs SM"
+          initials drift can't come back. `title` carries the name for the
+          tooltip; aria metadata lives on the avatar so the sibling text-name
+          reads naturally and the avatar stays decorative. */}
       <AssigneeAvatar name={member.name} image={member.image} size="sm" title={member.name} />
       <span
         className={cn(
@@ -1020,17 +991,11 @@ function RoleDisplay({ role }: { role: MemberPublic['role'] | MemberManagedRole 
   )
 }
 
-// 2026-05-25 (status-pill audit §4 #5): MemberStatusPill was
-// `outline` + `warning` dot for active (amber dot on a non-amber
-// concept) and `secondary` + `disabled` for suspended; the
-// invitation pill was a fully-filled `success` / `warning` chip
-// with a redundant dot. The two pills coexist in the same table,
-// so "Suspended" (secondary fill) and "Expired" (warning fill)
-// looked like they belonged to different families. Unified to
-// the audit's preferred shape: `outline` chip + tone-colored
-// dot (filled chip + dot is redundant per §3.3). Tones now
-// follow the §3.1 ladder: success = healthy, info = active work,
-// warning = external pause, disabled = dormant.
+// MemberStatusPill and the invitation pill coexist in the same table, so they
+// share one shape — `outline` chip + tone-colored dot (a filled chip + dot is
+// redundant) — to avoid looking like different families. Tones follow the
+// ladder: success = healthy, info = active work, warning = external pause,
+// disabled = dormant.
 function MemberStatusPill({ status }: { status: MemberPublic['status'] }) {
   const suspended = status === 'suspended'
   return (
@@ -1066,11 +1031,9 @@ function MemberActionsMenu({
 }) {
   return (
     <DropdownMenu>
-      {/* 2026-06-01: RowActionsMenu doesn't yet support this mixed action
-          menu shape, so the canonical ellipsis chrome stays inline — but
-          the hand-rolled `size-7 rounded-lg
-          ...hover:bg-state-base-hover` recipe migrates onto the shared
-          Button primitive at `variant='ghost' size='icon-xs'`. */}
+      {/* RowActionsMenu doesn't yet support this mixed action menu shape, so
+          the ellipsis chrome stays inline on the shared Button primitive
+          (`variant='ghost' size='icon-xs'`). */}
       <DropdownMenuTrigger
         render={
           <Button variant="ghost" size="icon-xs" disabled={disabled}>
@@ -1123,10 +1086,8 @@ function InviteMemberDialog({
       onSuccess: (next) => {
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
         void queryClient.invalidateQueries({ queryKey: membersKey })
-        // 2026-05-26 (step-6 ux-flow audit F6.1): the previous
-        // shape closed the dialog silently — the user had no
-        // confirmation the invite went out. Now toast.success
-        // names the invitee so the action lands.
+        // toast.success names the invitee so the action lands — closing the
+        // dialog silently leaves the user no confirmation the invite went out.
         const sentTo = email.trim()
         toast.success(t`Invite sent to ${sentTo}`)
         setEmail('')
@@ -1153,11 +1114,9 @@ function InviteMemberDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4">
-          {/* 2026-06-01: hand-rolled `<div grid gap-1.5>` + bare
-              `<Label>` form rows migrated to the canonical Field +
-              FieldLabel primitive. The role row also picks up
-              FieldDescription so the "Owner stays read-only…" helper
-              text formally associates with the role select. */}
+          {/* Field + FieldLabel primitives for the form rows. The role row
+              also picks up FieldDescription so the "Owner stays read-only…"
+              helper text formally associates with the role select. */}
           <Field>
             <FieldLabel htmlFor="invite-email">
               <Trans>Work email</Trans>
@@ -1187,11 +1146,8 @@ function InviteMemberDialog({
               <SelectTrigger id="invite-role" className="w-full">
                 <SelectValue>{roleLabel(role)}</SelectValue>
               </SelectTrigger>
-              {/* 2026-05-27 (step-6 audit F6.5): each role item now
-                  carries a one-line scope summary so the user choosing
-                  the role sees WHICH role does WHAT inline. Previously
-                  the helper line below described all roles generically
-                  and was divorced from the picker. */}
+              {/* Each role item carries a one-line scope summary so the user
+                  choosing the role sees WHICH role does WHAT inline. */}
               <SelectContent align="start">
                 <SelectGroup>
                   {MANAGED_ROLES.map((item) => (
@@ -1214,11 +1170,8 @@ function InviteMemberDialog({
             </FieldDescription>
           </Field>
           {inviteMutation.isError ? (
-            // 2026-05-26 (step-6 ux-flow audit F6.4): converted
-            // raw <p role=alert> to canonical Alert primitive +
-            // routed the message through rpcErrorMessage so the
-            // user gets a readable string instead of a raw RPC
-            // error code.
+            // Message routed through rpcErrorMessage so the user gets a
+            // readable string instead of a raw RPC error code.
             <Alert variant="destructive">
               <AlertTitle>
                 <Trans>Couldn't send invite</Trans>
@@ -1230,12 +1183,10 @@ function InviteMemberDialog({
             </Alert>
           ) : null}
           {seatsFull ? (
-            // 2026-06-01: hand-rolled `<p role=alert>` warning text
-            // migrated to the canonical Alert primitive at `variant=
-            // 'warning'`. Same role + id targeting (the Invite trigger
-            // still aria-describedby's this node), but the visual lands
-            // in the same chrome as the sibling invite-error Alert just
-            // above so the dialog now reads as one consistent surface.
+            // Alert primitive at `variant='warning'`. Keeps the id targeting
+            // (the Invite trigger aria-describedby's this node) and lands in
+            // the same chrome as the sibling invite-error Alert above so the
+            // dialog reads as one consistent surface.
             <Alert id="members-seat-limit-note" variant="warning" className="text-sm">
               <AlertDescription>
                 <Trans>No seats are available. Upgrade or suspend a member before inviting.</Trans>
@@ -1243,9 +1194,8 @@ function InviteMemberDialog({
             </Alert>
           ) : null}
           <DialogFooter>
-            {/* 2026-05-26 (step-6 ux-flow audit F6.2/F6.3): cancel
-                outline → ghost; send-invite announces aria-busy +
-                shows Loader2 spinner while pending. */}
+            {/* Send-invite announces aria-busy + shows a Loader2 spinner while
+                pending. */}
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               <Trans>Cancel</Trans>
             </Button>

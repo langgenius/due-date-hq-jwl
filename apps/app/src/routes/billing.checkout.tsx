@@ -238,13 +238,11 @@ export function BillingCheckoutRoute() {
         : currentFirm.plan === 'pro'
           ? t`Pro`
           : t`Solo`
-  // 2026-05-27 (Step 7 onboarding audit F8-04 — bonus): the
-  // checkout screen previously read as a static "Confirm Pro 3
-  // seats" page — it didn't acknowledge that an existing customer
-  // is actually upgrading FROM something. A small delta line under
-  // the H1 ("Solo (1 seat) → Pro (3 seats)") shows the change at
-  // a glance. Only renders when an active subscription exists so
-  // first-time checkouts stay clean.
+  // A small delta line under the H1 ("Solo (1 seat) → Pro (3 seats)")
+  // shows the upgrade FROM/TO at a glance, so the checkout screen
+  // doesn't read as a static "Confirm Pro 3 seats" page that ignores
+  // that an existing customer is upgrading from something. Only renders
+  // when an active subscription exists so first-time checkouts stay clean.
   const currentPlanSeatLimit =
     currentFirm.plan === 'firm'
       ? 10
@@ -275,24 +273,17 @@ export function BillingCheckoutRoute() {
   }
 
   return (
-    // 2026-05-26 (86th pass, audit §16.1 P1): migrated custom
-    // `<header>` (Back-link + branded icon + h1 + Badge cluster) to
-    // canonical `<PageHeader>` with a breadcrumb back to `/billing`.
+    // Canonical `<PageHeader>` with a breadcrumb back to `/billing`.
     // Branded CreditCard icon stays inline with the title as a
     // leading flourish; "Secure checkout" Badge moves to actions.
-    //
-    // Also dropped `gap-5` → `gap-4` to align with §16.16 canonical
-    // spacing scale (audit P2 swept here since the file was open).
     <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-8 pb-6 md:px-6">
       <PageHeader
         breadcrumbs={[{ label: t`Billing`, to: '/billing' }, { label: t`Confirm checkout` }]}
         title={
-          // 2026-05-27 (Step 7 onboarding audit F8-01 — P0): the H1
-          // was a generic "Confirm checkout" while the plan name
-          // sat only inside the Plan summary card below. Promote
-          // the selected plan + interval into the title so the
-          // user sees what they're confirming at the top of the
-          // page (matches Stripe / Linear / Notion patterns).
+          // The selected plan + interval live in the title (not just in
+          // the Plan summary card below) so the user sees what they're
+          // confirming at the top of the page (matches Stripe / Linear /
+          // Notion patterns).
           <span className="inline-flex min-w-0 items-center gap-3">
             <span
               aria-hidden
@@ -313,11 +304,10 @@ export function BillingCheckoutRoute() {
           <Trans>Review the practice subscription before opening secure checkout.</Trans>
         }
         actions={
-          // 2026-05-26 (Step 7 F8-02): "Secure checkout" badge gets a
-          // LockIcon + gap-1.5 so it reads as a trust signal, not as
-          // a routine info chip. Kept inside `PageHeader.actions` —
-          // Step 7's branch had refactored out of PageHeader entirely,
-          // but the shared primitive is the canonical wrapper.
+          // "Secure checkout" badge gets a LockIcon + gap-1.5 so it
+          // reads as a trust signal, not as a routine info chip. Kept
+          // inside `PageHeader.actions` — the shared primitive is the
+          // canonical wrapper.
           <Badge variant="info" className="gap-1.5">
             <LockIcon className="size-3" aria-hidden />
             <Trans>Secure checkout</Trans>
@@ -325,8 +315,7 @@ export function BillingCheckoutRoute() {
         }
       />
 
-      {/* 2026-05-27 (Step 7 onboarding audit F8-04 — bonus):
-          "Solo (1 seat) → Pro (3 seats)" delta. The actual seat
+      {/* "Solo (1 seat) → Pro (3 seats)" delta. The actual seat
           allocation comes from the plan view itself; the current-
           plan seat limit is derived from `currentFirm.plan`. */}
       {shouldShowDelta ? (
@@ -492,11 +481,9 @@ export function BillingCheckoutRoute() {
             <Button variant="outline" onClick={() => void navigate('/billing')}>
               <Trans>Choose another plan</Trans>
             </Button>
-            {/* 2026-05-26 (Step 7 onboarding audit F8-06): the
-                primary CTA opens Stripe via `window.location.assign`,
-                but the button copy didn't disclose the redirect.
-                Added an inline note so the user expects to leave
-                the app and land on Stripe. Standard pattern for
+            {/* The primary CTA opens Stripe via `window.location.assign`.
+                This inline note discloses the redirect so the user expects
+                to leave the app and land on Stripe — standard pattern for
                 external-handoff buttons. */}
             <p className="flex w-full items-center gap-1.5 text-xs text-text-tertiary">
               <ExternalLinkIcon className="size-3" aria-hidden />
@@ -516,11 +503,10 @@ export function BillingCheckoutRoute() {
         <Card size="sm">
           <CardHeader>
             <CardTitle>
-              {/* 2026-05-27 (Step 7 F8-03 — P2): "Practice context"
-                  was vague — the card lists the active practice
-                  name, current plan, and seat/practice limits, so
-                  it's really "what's on file for this practice".
-                  Rename to make the card scannable at a glance. */}
+              {/* The card lists the active practice name, current plan,
+                  and seat/practice limits — i.e. "what's on file for this
+                  practice" — so the title names that directly rather than
+                  the vaguer "Practice context". */}
               <Trans>Your current practice</Trans>
             </CardTitle>
             <CardDescription>

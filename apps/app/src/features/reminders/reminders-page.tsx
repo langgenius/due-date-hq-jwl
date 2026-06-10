@@ -197,11 +197,8 @@ function TemplatesPanel({
       </CardHeader>
       <CardContent>
         {loading ? (
-          // 2026-05-27 (σ cross-route audit D7): swapped four raw
-          // "Loading templates…" / "Loading recent delivery…" etc.
-          // paragraphs across this module for skeleton row stacks
-          // shaped to the eventual table row. Matches the queue /
-          // audit / opportunities skeleton register.
+          // Skeleton row stacks shaped to the eventual table row, matching the
+          // queue / audit / opportunities skeleton register.
           <div className="grid gap-2" aria-busy="true">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
@@ -288,10 +285,8 @@ function RecentSendsPanel({
             <Skeleton className="h-12 w-full" />
           </div>
         ) : reminders.length === 0 ? (
-          // 2026-05-27 (σ cross-route audit D4): bordered `<p>` →
-          // canonical EmptyState. Sibling Upcoming reminders panel
-          // already used EmptyState; this module was internally
-          // inconsistent.
+          // Canonical EmptyState — same as the sibling Upcoming reminders
+          // panel.
           <EmptyState title={<Trans>No reminder deliveries have been recorded yet.</Trans>} />
         ) : (
           <Table>
@@ -332,9 +327,8 @@ function RecentSendsPanel({
                     </div>
                   </TableCell>
                   <TableCell>{statusBadge(item.deliveryStatus)}</TableCell>
-                  {/* 2026-05-24 (critique /polish): same RelativeTime
-                      treatment as the suppression card and the Inbox
-                      / Members table. */}
+                  {/* Same RelativeTime treatment as the suppression card and
+                      the Inbox / Members table. */}
                   <TableCell>
                     <RelativeTime
                       value={item.createdAt}
@@ -407,20 +401,17 @@ function TemplateDialog({
             <span className="font-medium text-text-primary">
               <Trans>Body</Trans>
             </span>
-            {/* 2026-05-26 (step-6 ux-flow audit F5.2): retired
-                font-mono on the reminder email body — email-template
-                copy is human prose, not code. Matches the recent
-                font-mono purge passes. */}
+            {/* No font-mono on the reminder email body — email-template copy
+                is human prose, not code. */}
             <Textarea
               value={bodyText}
               onChange={(event) => setBodyText(event.target.value)}
               className="min-h-40"
             />
           </label>
-          {/* 2026-06-01: hand-rolled <label> flex justify-between row →
-              Field horizontal + FieldLabel + trailing Switch. Field
-              primitive owns the gap, label↔control wiring, and click
-              target; we keep the status-dot / pause-icon glyph inline. */}
+          {/* Field horizontal + FieldLabel + trailing Switch. The Field
+              primitive owns the gap, label↔control wiring, and click target;
+              the status-dot / pause-icon glyph stays inline. */}
           <Field
             orientation="horizontal"
             className="rounded-lg border border-divider-subtle p-3 text-sm"
@@ -438,9 +429,8 @@ function TemplateDialog({
             <Switch id="reminder-template-active" checked={active} onCheckedChange={setActive} />
           </Field>
           <DialogFooter>
-            {/* 2026-05-26 (step-6 ux-flow audit F5.1/F5.3): cancel
-                outline → ghost; save announces aria-busy + shows
-                Loader2 spinner while pending. */}
+            {/* Save announces aria-busy + shows a Loader2 spinner while
+                pending. */}
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               <Trans>Cancel</Trans>
             </Button>

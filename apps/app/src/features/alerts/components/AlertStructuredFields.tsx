@@ -230,20 +230,15 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
         </div>
       ) : null}
 
-      {/* 2026-06-08 (Yuqi alert-detail feedback #16 "remove"): the
-          right-aligned source link above the fact grid is dropped — the
-          source is already named in the header meta, the Provenance section,
-          and the Authority cell, so this was a redundant fourth instance. */}
-
       {/* Pencil ibEoz `noWOa`: the fact grid keeps its OWN 1px border +
           radius-8 inside the section (the section itself is borderless;
           the surrounding panel + dividers carry the outer structure). */}
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-divider-subtle bg-divider-subtle sm:grid-cols-4">
         {cells.map((cell) => (
-          // 2026-06-10 (Yuqi — Pencil `b4syg` ExtractedFacts cell): padding
-          // [10,20] (px-5 py-2.5), 11/600 uppercase tertiary label over a
-          // 13/normal primary value. The grid's gap-px + divider bg draw the
-          // right-/row-hairlines the Pencil shows between cells.
+          // ExtractedFacts cell: padding [10,20] (px-5 py-2.5), 11/600
+          // uppercase tertiary label over a 13/normal primary value. The
+          // grid's gap-px + divider bg draw the right-/row-hairlines between
+          // cells.
           <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-5 py-2.5">
             <span className="text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
               {cell.label}

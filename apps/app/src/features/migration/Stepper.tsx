@@ -9,12 +9,9 @@ import type { StepIndex } from './state'
  *
  * Display-only — clicking does NOT jump steps (avoids data pollution).
  *
- * 2026-05-25 (Yuqi #35, #36): dropped `font-mono` + `uppercase` from
- * step labels — those read as code, not as wizard navigation. Now
- * sentence-case `text-sm`, matching the body type elsewhere in the
- * app. Centered the row inside its track (was left-aligned), so
- * the visual rhythm matches the wizard's centered content area
- * below. "Dry-Run" → "Dry run" to match the sentence-case treatment.
+ * Step labels are sentence-case `text-sm` (no `font-mono` / `uppercase`,
+ * which read as code rather than wizard navigation), matching the body type
+ * elsewhere in the app.
  */
 const STEP_LABELS: ReadonlyArray<{ index: StepIndex; key: string; label: ReactNode }> = [
   { index: 1, key: 'intake', label: <Trans>Intake</Trans> },
@@ -28,34 +25,19 @@ export function Stepper({ current }: { current: StepIndex }) {
   return (
     <ol
       role="list"
-      // 2026-05-25 (Yuqi Wizard #40 — i18n bug fix): aria-label was
-      // bare English "Wizard steps"; routed through `t\`` so it
-      // translates with the rest of the wizard.
+      // Routed through `t\`` so the aria-label translates with the rest of
+      // the wizard.
       aria-label={t`Wizard steps`}
-      // 2026-05-29 (R4 migration polish #7): the stepper used to be
-      // `justify-center gap-2` with `w-6` fixed connector lines —
-      // the steps clustered in the middle of the wizard frame and
-      // the connectors became decorative ticks rather than a real
-      // progress rail. Now `justify-between gap-3` lets each step
-      // anchor to its column and the connectors flex to fill the
-      // remaining space. The track now reads as one continuous
-      // path across the full width.
+      // No `border-b`: the wizard header (above) already carries one border-b
+      // separating the title from progress; a second rule between the Stepper
+      // and body content reads as "boxes inside boxes." The Stepper flows into
+      // the body, and the body's px-4 padding (in WizardShell) keeps the
+      // active step pill, the header title, and the dropzone on the same left
+      // edge.
       //
-      // 2026-05-29 (R4 follow-up #1 + #5): dropped the `border-b`. The
-      // wizard header (above) already carries one border-b separating
-      // the title from progress; stacking a second rule between the
-      // Stepper and body content read as "boxes inside boxes." The
-      // Stepper now flows into the body, and the body's horizontal
-      // padding was retuned to `px-4` (in WizardShell) so the active
-      // step pill, the header title, and the dropzone all share the
-      // same left edge — see feedback #5 ("alignment between the
-      // title, the progress bar, and the drop zone").
-      // 2026-06-07 (Cluster 3 — pill stepper, design SLw8Q/dCUv7): the
-      // bordered rounded-lg chips + flex connector rail were restyled
-      // to rounded-full pills with numbered circles + ChevronRight
-      // separators, matching the canvas. Active = filled accent pill;
-      // completed = green-tint pill with a check; pending = quiet
-      // hairline pill. Still display-only (no click-to-jump).
+      // Rounded-full pills with numbered circles + ChevronRight separators.
+      // Active = filled accent pill; completed = green-tint pill with a check;
+      // pending = quiet hairline pill. Display-only (no click-to-jump).
       className="flex h-12 items-center gap-2 px-4"
     >
       {STEP_LABELS.map((step, idx) => {
