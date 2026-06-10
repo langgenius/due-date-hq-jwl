@@ -138,6 +138,8 @@ export interface PulseSourceSnapshotRow {
   fetchedAt: Date
   contentHash: string
   rawR2Key: string
+  // NULL = web fetch, 'inbound_email' = email worker (never auto-approves).
+  ingestMethod: string | null
   parseStatus: 'pending_extract' | 'extracting' | 'extracted' | 'duplicate' | 'failed' | 'ignored'
   pulseId: string | null
   aiOutputId: string | null

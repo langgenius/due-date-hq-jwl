@@ -22,6 +22,27 @@ function normalizeWhitespace(value: string): string {
     .trim()
 }
 
+const ARTIFACT_MARKERS = [
+  CANONICAL_EMAIL_TEXT_BEGIN,
+  CANONICAL_EMAIL_TEXT_END,
+  RAW_EMAIL_ARTIFACT_BEGIN,
+  RAW_EMAIL_ARTIFACT_END,
+] as const
+
+/**
+ * A crafted email body containing a literal marker line could otherwise close
+ * the canonical section early (extractCanonicalEmailText slices on indexOf),
+ * truncating what the extractor sees. Break the exact match while keeping the
+ * text readable in the archive.
+ */
+function neutralizeArtifactMarkers(value: string): string {
+  let out = value
+  for (const marker of ARTIFACT_MARKERS) {
+    out = out.replaceAll(marker, marker.replaceAll('---', '~~~'))
+  }
+  return out
+}
+
 function addressLabel(value: Email['from'] | Email['to']): string | null {
   if (!value) return null
   const entries = Array.isArray(value) ? value : [value]
@@ -71,12 +92,20 @@ export function buildEmailCanonicalText(input: {
   const links = extractUrls(bodyText)
   const sections = [
     CANONICAL_EMAIL_TEXT_BEGIN,
-    headerLines.join('\n'),
-    links.length > 0 ? ['Links:', ...links.map((url) => `- ${url}`)].join('\n') : null,
-    'Body:',
-    bodyText,
+    // Header values and body are attacker-influenced — neutralize any embedded
+    // marker lines so they cannot fake a section boundary.
+    neutralizeArtifactMarkers(
+      [
+        headerLines.join('\n'),
+        links.length > 0 ? ['Links:', ...links.map((url) => `- ${url}`)].join('\n') : null,
+        'Body:',
+        bodyText,
+      ]
+        .filter((section): section is string => Boolean(section))
+        .join('\n\n'),
+    ),
     CANONICAL_EMAIL_TEXT_END,
-  ].filter((section): section is string => Boolean(section))
+  ]
   return sections.join('\n\n')
 }
 

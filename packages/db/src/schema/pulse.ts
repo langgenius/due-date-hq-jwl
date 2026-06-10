@@ -168,6 +168,9 @@ export const pulseSourceSnapshot = sqliteTable(
     fetchedAt: integer('fetched_at', { mode: 'timestamp_ms' }).notNull(),
     contentHash: text('content_hash').notNull(),
     rawR2Key: text('raw_r2_key').notNull(),
+    // How the snapshot entered: NULL = web fetch, 'inbound_email' = email
+    // worker. Email-sourced pulses never auto-approve (extract.ts).
+    ingestMethod: text('ingest_method'),
     parseStatus: text('parse_status', {
       enum: PULSE_SOURCE_SNAPSHOT_STATUSES,
     })

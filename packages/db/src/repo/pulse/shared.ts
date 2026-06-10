@@ -229,6 +229,9 @@ export interface PulseSourceSnapshotInput {
   fetchedAt: Date
   contentHash: string
   rawR2Key: string
+  // NULL/absent = web fetch; 'inbound_email' = the email worker. Email-sourced
+  // pulses never auto-approve (extract.ts).
+  ingestMethod?: string
 }
 
 export interface PulseSourceSnapshotRow {
@@ -241,6 +244,7 @@ export interface PulseSourceSnapshotRow {
   fetchedAt: Date
   contentHash: string
   rawR2Key: string
+  ingestMethod: string | null
   parseStatus: PulseSourceSnapshotStatus
   pulseId: string | null
   aiOutputId: string | null
@@ -763,6 +767,7 @@ export function toSnapshot(row: PulseSourceSnapshot): PulseSourceSnapshotRow {
     fetchedAt: row.fetchedAt,
     contentHash: row.contentHash,
     rawR2Key: row.rawR2Key,
+    ingestMethod: row.ingestMethod,
     parseStatus: row.parseStatus,
     pulseId: row.pulseId,
     aiOutputId: row.aiOutputId,

@@ -63,6 +63,10 @@ function inboundMessage(input: {
     to: input.to ?? 'pulse-ingest+ny-email-services@duedatehq.com',
     headers: new Headers({
       subject: 'NY Tax Department update',
+      // Cloudflare Email Routing prepends this on every delivered message —
+      // the default fixture models authenticated official mail. Spoof tests
+      // override it.
+      'authentication-results': 'mx.cloudflare.net; dkim=pass; spf=pass; dmarc=pass',
       ...input.headers,
     }),
     raw: new Response(raw).body!,
@@ -163,12 +167,11 @@ describe('ingestGovDeliveryEmail', () => {
     expect(archivedBody).toContain('grandfather=\r\ning protection')
   })
 
-  it('routes fallback inbox mail by official list id or canonical NY URL', async () => {
+  it('routes fallback inbox mail by official list id when the sender domain is official', async () => {
     const queueSend = vi.fn()
     await ingestGovDeliveryEmail(
       env(queueSend),
       inboundMessage({
-        from: 'Updates <updates@example.test>',
         to: 'pulse-ingest@duedatehq.com',
         headers: {
           'list-id': '<tax.ny.gov.public.govdelivery.com>',
@@ -180,9 +183,79 @@ describe('ingestGovDeliveryEmail', () => {
       expect.objectContaining({
         sourceId: 'ny.email_services',
         officialSourceUrl: 'https://www.tax.ny.gov/news/2026/relief.htm',
+        ingestMethod: 'inbound_email',
       }),
     )
     expect(queueSend).toHaveBeenCalledTimes(1)
+  })
+
+  it('demotes list-id-matched mail whose sender domain is not official (spoof)', async () => {
+    // Body signals (list-id, canonical URL, account code) are attacker-
+    // controlled — without an official From domain the mail must not be
+    // attributed to the official source, no matter what else matches.
+    const queueSend = vi.fn()
+    const result = await ingestGovDeliveryEmail(
+      env(queueSend),
+      inboundMessage({
+        from: 'Updates <updates@example.test>',
+        to: 'pulse-ingest@duedatehq.com',
+        headers: {
+          'list-id': '<tax.ny.gov.public.govdelivery.com>',
+        },
+      }),
+    )
+
+    expect(result).toMatchObject({ matched: false, queued: false })
+    expect(repoMocks.createSourceSnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceId: 'govdelivery.inbound.unmatched' }),
+    )
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith('pulse.govdelivery.auth_reject', {
+      sourceId: 'ny.email_services',
+      reason: 'sender_domain_mismatch',
+    })
+  })
+
+  it('demotes matched mail without passing auth verdicts when auth is required', async () => {
+    const queueSend = vi.fn()
+    const result = await ingestGovDeliveryEmail(
+      env(queueSend),
+      inboundMessage({
+        headers: { 'authentication-results': 'mx.cloudflare.net; dkim=fail; spf=softfail' },
+      }),
+    )
+
+    expect(result).toMatchObject({ matched: false, queued: false })
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith('pulse.govdelivery.auth_reject', {
+      sourceId: 'ny.email_services',
+      reason: 'no_passing_auth_verdict',
+    })
+  })
+
+  it('demotes matched mail with a DMARC failure even when auth is not required', async () => {
+    const queueSend = vi.fn()
+    const result = await ingestGovDeliveryEmail(
+      { ...env(queueSend), PULSE_EMAIL_REQUIRE_AUTH: 'false' },
+      inboundMessage({
+        headers: {
+          'authentication-results': 'mx.cloudflare.net; dkim=pass; spf=pass; dmarc=fail',
+        },
+      }),
+    )
+
+    expect(result).toMatchObject({ matched: false, queued: false })
+  })
+
+  it('keeps domain-matched mail without auth headers when auth requirement is off', async () => {
+    const queueSend = vi.fn()
+    const message = inboundMessage({})
+    message.headers.delete('authentication-results')
+
+    const result = await ingestGovDeliveryEmail(
+      { ...env(queueSend), PULSE_EMAIL_REQUIRE_AUTH: 'false' },
+      message,
+    )
+
+    expect(result).toMatchObject({ matched: true, queued: true })
   })
 
   it('routes plus-addressed Ohio Tax Alert mail to the Ohio temporary announcement source', async () => {

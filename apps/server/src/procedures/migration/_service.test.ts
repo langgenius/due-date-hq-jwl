@@ -980,7 +980,7 @@ function buildAi(rawResult?: unknown): AI {
   }
 
   const extractPulse: AI['extractPulse'] = async (input) =>
-    runPrompt('pulse-extract@v3', input, PulseExtractOutputSchema)
+    runPrompt('pulse-extract@v4', input, PulseExtractOutputSchema)
 
   // 2026-06-05 (pre-CI green-up): morning-sweep was added to the AI
   // facade after these test stubs were written. Stub via runPrompt
@@ -1037,7 +1037,7 @@ const taxTypeMissRunPrompt: AI['runPrompt'] = async (name, _input, schema) => {
 
 function buildTaxTypeMissAi(): AI {
   const extractPulse: AI['extractPulse'] = async (input) =>
-    taxTypeMissRunPrompt('pulse-extract@v3', input, PulseExtractOutputSchema)
+    taxTypeMissRunPrompt('pulse-extract@v4', input, PulseExtractOutputSchema)
 
   const summarizeMorningSweep: AI['summarizeMorningSweep'] = async (input, routing) =>
     taxTypeMissRunPrompt('morning-sweep@v1', input, MorningSweepOutputSchema, routing)
@@ -1137,7 +1137,7 @@ function buildCountingMigrationAi(): {
   }
 
   const extractPulse: AI['extractPulse'] = async (input) =>
-    runPrompt('pulse-extract@v3', input, PulseExtractOutputSchema)
+    runPrompt('pulse-extract@v4', input, PulseExtractOutputSchema)
 
   const summarizeMorningSweep: AI['summarizeMorningSweep'] = async (input, routing) =>
     runPrompt('morning-sweep@v1', input, MorningSweepOutputSchema, routing)

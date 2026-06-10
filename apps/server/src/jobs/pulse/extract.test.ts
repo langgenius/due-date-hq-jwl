@@ -1089,6 +1089,26 @@ describe('extractPulseSnapshot — confidence gating & race-safe de-duplication'
     )
   })
 
+  it('quarantines email-sourced extracts regardless of confidence (review only)', async () => {
+    // A crafted email matched to an official source must never auto-approve a
+    // deadline_shift — same payload via web fetch (test above) stays approved.
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      ...snapshot,
+      id: 'snapshot-email',
+      sourceId: 'ny.email_services',
+      ingestMethod: 'inbound_email',
+    })
+    aiMocks.extractPulse.mockResolvedValue(regChange(0.95))
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-email')
+
+    expect(result.status).toBe('created')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'quarantined', actionMode: 'review_only' }),
+    )
+    expect(repoMocks.refreshFirmAlertsForApprovedPulse).not.toHaveBeenCalled()
+  })
+
   it('folds onto the survivor when the keyed insert loses the race', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
     aiMocks.extractPulse.mockResolvedValue(regChange(0.8))

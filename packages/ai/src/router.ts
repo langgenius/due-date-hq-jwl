@@ -29,7 +29,7 @@ export function taskKindForPrompt(prompt: PromptName): AiTaskKind {
     return 'migration'
   }
   if (prompt === 'brief@v1') return 'brief'
-  if (prompt === 'pulse-extract@v3') return 'pulse'
+  if (prompt === 'pulse-extract@v4') return 'pulse'
   if (prompt === 'rule-concrete-draft@v1' || prompt === 'rule-concrete-draft@v2') return 'insight'
   if (prompt === 'readiness-checklist@v1') return 'readiness'
   return 'insight'

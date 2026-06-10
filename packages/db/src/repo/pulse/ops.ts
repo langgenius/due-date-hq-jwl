@@ -1012,6 +1012,7 @@ export function makePulseOpsRepo(db: Db) {
         fetchedAt: input.fetchedAt,
         contentHash: input.contentHash,
         rawR2Key: input.rawR2Key,
+        ingestMethod: input.ingestMethod ?? null,
         parseStatus: 'pending_extract',
       }
 

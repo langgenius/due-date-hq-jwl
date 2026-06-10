@@ -89,6 +89,13 @@ export interface Env extends WorkerBindings, ServerEnv {
    * email sink — alerts then only reach Workers Logs, which nobody watches.
    */
   OPS_ALERT_EMAIL?: string
+  /**
+   * Inbound email attribution gate: unless set to "false", a matched official
+   * email source additionally requires a passing DKIM/SPF verdict (and no
+   * DMARC failure) from the Authentication-Results header before its mail can
+   * queue extraction. Failing mail demotes to the unmatched (ignored) bucket.
+   */
+  PULSE_EMAIL_REQUIRE_AUTH?: string
   /** "true" enables the public no-signup demo (`GET /api/demo`). Off unless set; always on in development. */
   ENABLE_PUBLIC_DEMO?: string
   VAPID_PUBLIC_KEY: string

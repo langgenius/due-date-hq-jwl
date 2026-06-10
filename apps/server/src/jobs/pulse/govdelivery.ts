@@ -3,6 +3,7 @@ import { listRuleSources, type RuleSource } from '@duedatehq/core/rules'
 import { hashText } from '@duedatehq/ingest/http'
 import PostalMime from 'postal-mime'
 import type { Env } from '../../env'
+import { dispatchOpsAlert, type OpsAlertEnv } from '../ops-alerts'
 import { buildEmailArchiveArtifact, buildEmailCanonicalText } from './email-artifact'
 import { archivePulseRaw, type PulseExtractQueueMessage } from './ingest'
 import { recordPulseMetric } from './metrics'
@@ -180,6 +181,59 @@ function senderMatchesSource(
   )
 }
 
+export interface EmailAuthVerdicts {
+  present: boolean
+  dkimPass: boolean
+  spfPass: boolean
+  dmarcFail: boolean
+}
+
+/**
+ * Read the Authentication-Results header Cloudflare Email Routing prepends.
+ * Cloudflare rejects mail failing BOTH SPF and DKIM and enforces the sender's
+ * DMARC policy at the edge — but a no-DMARC domain with a spoofed From: still
+ * reaches the worker, so the verdicts must be read per message. Parsed
+ * defensively: header formats vary by intermediary.
+ */
+export function readAuthVerdicts(headers: Headers): EmailAuthVerdicts {
+  const value = headers.get('authentication-results')?.toLowerCase() ?? ''
+  return {
+    present: value.length > 0,
+    dkimPass: /\bdkim=pass\b/.test(value),
+    spfPass: /\bspf=pass\b/.test(value),
+    dmarcFail: /\bdmarc=fail\b/.test(value),
+  }
+}
+
+/**
+ * Transport-level attribution gate for a MATCHED official source: the From /
+ * envelope domain must be one of the source's registered sender domains (body
+ * signals — account codes, canonical URLs, plus-addresses — are attacker-
+ * controlled and can no longer attribute alone), and when
+ * PULSE_EMAIL_REQUIRE_AUTH is on (default) the message must carry a passing
+ * DKIM or SPF verdict and no DMARC failure. Failing mail is demoted to the
+ * unmatched bucket (stored ignored, never queued) instead of dropped, so a
+ * header-format change degrades to silence-with-evidence, not data loss.
+ */
+function emailAttributionTrusted(input: {
+  source: InboundEmailRuleSource
+  message: InboundEmailMessage
+  requireAuth: boolean
+}): { trusted: boolean; reason: string | null } {
+  if (!senderMatchesSource(input.source, input.message)) {
+    return { trusted: false, reason: 'sender_domain_mismatch' }
+  }
+  const verdicts = readAuthVerdicts(input.message.headers)
+  if (verdicts.dmarcFail) return { trusted: false, reason: 'dmarc_fail' }
+  if (input.requireAuth) {
+    if (!verdicts.present) return { trusted: false, reason: 'auth_results_missing' }
+    if (!verdicts.dkimPass && !verdicts.spfPass) {
+      return { trusted: false, reason: 'no_passing_auth_verdict' }
+    }
+  }
+  return { trusted: true, reason: null }
+}
+
 function listIdMatchesSource(source: InboundEmailRuleSource, headers: Headers): boolean {
   const listId = headers.get('list-id')?.toLowerCase() ?? ''
   if (!listId) return false
@@ -309,7 +363,7 @@ function resolveInboundEmailSource(
 }
 
 export async function ingestGovDeliveryEmail(
-  env: Pick<Env, 'DB' | 'R2_PULSE' | 'PULSE_QUEUE'>,
+  env: Pick<Env, 'DB' | 'R2_PULSE' | 'PULSE_QUEUE' | 'PULSE_EMAIL_REQUIRE_AUTH'> & OpsAlertEnv,
   message: InboundEmailMessage,
 ): Promise<{ inserted: boolean; matched: boolean; queued: boolean; snapshotId: string }> {
   const rawBuffer = await new Response(message.raw).arrayBuffer()
@@ -328,7 +382,36 @@ export async function ingestGovDeliveryEmail(
   const subject = parsedEmail.subject?.trim() || fallbackSubject
   const contentHash = await hashText(archivedBody)
   const externalId = extractExternalId(message.headers, `govdelivery:${contentHash.slice(0, 24)}`)
-  const resolution = resolveInboundEmailSource(message, canonicalText)
+  let resolution = resolveInboundEmailSource(message, canonicalText)
+  if (resolution.matched && resolution.source) {
+    const trust = emailAttributionTrusted({
+      source: resolution.source,
+      message,
+      // Default ON: opt out only by setting the var to "false".
+      requireAuth: env.PULSE_EMAIL_REQUIRE_AUTH !== 'false',
+    })
+    if (!trust.trusted) {
+      // Visible evidence for spoof attempts (and for legitimate mail broken by
+      // an upstream header change — the failure mode the 06-08 stall taught us
+      // to never leave silent).
+      await dispatchOpsAlert(env, 'pulse.email.auth_reject', {
+        sourceId: resolution.source.id,
+        from: message.from,
+        reason: trust.reason ?? 'unknown',
+      })
+      recordPulseMetric('pulse.govdelivery.auth_reject', {
+        sourceId: resolution.source.id,
+        reason: trust.reason ?? 'unknown',
+      })
+      resolution = {
+        source: null,
+        sourceId: UNMATCHED_SOURCE_ID,
+        officialSourceUrl: extractFirstUrl(canonicalText),
+        jurisdiction: inferJurisdiction(`${fallbackSubject}\n${canonicalText}`),
+        matched: false,
+      }
+    }
+  }
   const archived = await archivePulseRaw(env, {
     sourceId: resolution.sourceId,
     externalId,
@@ -356,6 +439,7 @@ export async function ingestGovDeliveryEmail(
     fetchedAt: now,
     contentHash: archived.contentHash,
     rawR2Key: archived.r2Key,
+    ingestMethod: 'inbound_email',
   })
   const queued = result.inserted && resolution.matched && !establishingBaseline
   if (result.inserted && !resolution.matched) {

@@ -180,6 +180,11 @@ AI_SYSTEM_DAILY_LIMIT = "1500"
 # "Try a live demo" button appears. The demo session is server-enforced read-only.
 ENABLE_PUBLIC_DEMO = "false"
 PULSE_BROWSERLESS_URL = "https://production-sfo.browserless.io/content"
+# Inbound email attribution gate (jobs/pulse/govdelivery.ts): matched official
+# sources require sender-domain + passing DKIM/SPF verdicts before their mail
+# can queue extraction. Set to "false" only to debug legitimate mail being
+# rejected (the pulse.email.auth_reject ops alert names the failing reason).
+PULSE_EMAIL_REQUIRE_AUTH = "true"
 # The old 400-failures were a client bug (invalid fields sent to /content),
 # fixed in browserless.ts. Re-add IDs here only for sources that genuinely need
 # a headless browser. mt/pa render their newsroom list client-side (JS), so a

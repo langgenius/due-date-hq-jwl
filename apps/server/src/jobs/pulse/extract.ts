@@ -76,7 +76,7 @@ export function pulseAlertMinRelevantAt(now: Date): Date {
 const PULSE_MIN_ALERT_CONFIDENCE = 0.3
 const PULSE_PUBLISH_CONFIDENCE = 0.5
 
-// Scope backstop behind the pulse-extract@v3 prompt exclusions: form/summary
+// Scope backstop behind the pulse-extract@v4 prompt exclusions: form/summary
 // signals that an extracted "deadline" is an internal agency program window
 // (grant, clinic, advisory council, job posting) rather than a taxpayer
 // filing/payment obligation — e.g. the LITC matching-grant and IRSAC council
@@ -528,12 +528,18 @@ async function runPulseExtractionAfterMark(
     return { pulseId: null, status: 'skipped' }
   }
 
-  const actionMode = shouldForceReviewOnlyPulseAlert({
-    sourceId: snapshot.sourceId,
-    changeKind: result.result.changeKind,
-  })
-    ? 'review_only'
-    : result.result.actionMode
+  // Email-sourced snapshots never auto-approve: a crafted email matched to an
+  // official source could otherwise mint a high-confidence deadline_shift that
+  // fans out to firms. Same sourceId via web fetch keeps today's behavior.
+  const isEmailSourced = snapshot.ingestMethod === 'inbound_email'
+  const actionMode =
+    isEmailSourced ||
+    shouldForceReviewOnlyPulseAlert({
+      sourceId: snapshot.sourceId,
+      changeKind: result.result.changeKind,
+    })
+      ? 'review_only'
+      : result.result.actionMode
   const parsedJurisdiction = normalizeExtractJurisdiction(
     snapshot.sourceId,
     result.result.jurisdiction,
@@ -542,7 +548,7 @@ async function runPulseExtractionAfterMark(
   // duplicate fold should promote a quarantined survivor (see
   // applyDuplicateExtractToPulse).
   const pulseStatus =
-    result.result.confidence < PULSE_PUBLISH_CONFIDENCE
+    isEmailSourced || result.result.confidence < PULSE_PUBLISH_CONFIDENCE
       ? ('quarantined' as const)
       : ('approved' as const)
 
