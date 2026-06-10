@@ -493,11 +493,13 @@ function RuleImpactCard({ rule }: { rule: ObligationRule }) {
   })
   const impact = impactQuery.data ?? null
   const count = impact?.estimatedObligationCount ?? null
+  const clientCount = impact?.affectedClientCount ?? 0
   const entityRows = impact?.entityCounts ?? []
   return (
     <DisclosureCard
       title={<Trans>Impact</Trans>}
       meta={<Trans>Estimated</Trans>}
+      moreLabel={<Trans>View breakdown</Trans>}
       summary={
         impactQuery.isLoading ? (
           <Skeleton className="h-4 w-2/3" />
@@ -506,12 +508,14 @@ function RuleImpactCard({ rule }: { rule: ObligationRule }) {
             <Trans>Impact preview unavailable.</Trans>
           </p>
         ) : count !== null && count > 0 ? (
+          // irBJ8 Impact line — real affected-clients + obligation counts (the
+          // canvas's "+X% coverage" is dropped: no coverage-lift metric exists).
           <p className="text-sm text-text-primary">
-            <Plural
-              value={count}
-              one="Activates this rule → ~# new obligation across your current clients."
-              other="Activates this rule → ~# new obligations across your current clients."
-            />
+            <Trans>
+              Activates this rule for{' '}
+              <Plural value={clientCount} one="# client" other="# clients" /> →{' '}
+              <Plural value={count} one="# new obligation" other="# new obligations" />
+            </Trans>
           </p>
         ) : (
           <p className="text-sm text-text-secondary">

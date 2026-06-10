@@ -722,6 +722,9 @@ export const RuleBulkImpactPreviewSchema = z.object({
   }),
   sourceCount: z.number().int().nonnegative(),
   estimatedObligationCount: z.number().int().nonnegative(),
+  // 2026-06-10 (irBJ8 Impact card): distinct clients that would get ≥1 new
+  // obligation if the accept-ready rules are activated ("Activates for N clients").
+  affectedClientCount: z.number().int().nonnegative(),
 })
 export type RuleBulkImpactPreview = z.infer<typeof RuleBulkImpactPreviewSchema>
 

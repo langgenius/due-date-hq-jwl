@@ -911,6 +911,9 @@ async function previewBulkImpactForSelections(
 
   const clients = await scoped.clients.listByFirm({ limit: 500 })
   let estimatedObligationCount = 0
+  // Distinct clients that would get ≥1 obligation — the "Activates for N clients"
+  // figure on the rule-detail Impact card (irBJ8).
+  const affectedClientIds = new Set<string>()
   for (const client of clients) {
     for (const rule of ready) {
       const jurisdictionMatches = rule.jurisdiction === 'FED' || rule.jurisdiction === client.state
@@ -931,10 +934,12 @@ async function previewBulkImpactForSelections(
         },
         rules: [rule],
       })
-      estimatedObligationCount += previews.filter(
+      const matched = previews.filter(
         (preview) =>
           preview.dueDate && isOnOrAfterDateOnly(preview.dueDate, tenant.monitoringStartDate),
       ).length
+      if (matched > 0) affectedClientIds.add(client.id)
+      estimatedObligationCount += matched
     }
   }
 
@@ -966,6 +971,7 @@ async function previewBulkImpactForSelections(
     classificationCounts,
     sourceCount: sourceIds.size,
     estimatedObligationCount,
+    affectedClientCount: affectedClientIds.size,
   }
 }
 

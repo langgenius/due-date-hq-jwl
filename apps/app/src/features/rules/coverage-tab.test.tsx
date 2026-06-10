@@ -468,6 +468,7 @@ beforeEach(() => {
     formCounts: [{ key: 'Form 540', count: 1 }],
     reviewReasonCounts: [],
     estimatedObligationCount: 1,
+    affectedClientCount: 1,
   })
   rpcMocks.previewBulkRuleImpactMutationFn.mockReset()
   rpcMocks.previewBulkRuleImpactMutationFn.mockResolvedValue({
@@ -481,6 +482,7 @@ beforeEach(() => {
     classificationCounts: { new: 1, date_only: 0, substantive: 0 },
     sourceCount: 1,
     estimatedObligationCount: 1,
+    affectedClientCount: 1,
   })
   rpcMocks.bulkAcceptTemplatesMutationFn.mockReset()
   rpcMocks.bulkAcceptTemplatesMutationFn.mockResolvedValue({ accepted: [], skipped: [] })

@@ -548,6 +548,7 @@ beforeEach(() => {
     classificationCounts: { new: 1, date_only: 0, substantive: 0 },
     sourceCount: 1,
     estimatedObligationCount: 1,
+    affectedClientCount: 1,
   })
   rpcMocks.previewBulkRuleImpactQueryFn.mockReset()
   rpcMocks.previewBulkRuleImpactQueryFn.mockResolvedValue({
@@ -561,6 +562,7 @@ beforeEach(() => {
     classificationCounts: { new: 2, date_only: 0, substantive: 0 },
     sourceCount: 1,
     estimatedObligationCount: 2,
+    affectedClientCount: 2,
   })
   rpcMocks.bulkAcceptTemplatesMutationFn.mockReset()
   rpcMocks.bulkAcceptTemplatesMutationFn.mockResolvedValue({ accepted: [], skipped: [] })
