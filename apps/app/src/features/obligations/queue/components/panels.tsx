@@ -1417,7 +1417,6 @@ export function ActiveStageDetailCard({
     done: t`Filed`,
     completed: t`Completed`,
   }
-  const stageLabel = stageLabels[stageKey]
   // 2026-05-23: A/B/C IA preview retired. Winning shape (Option D):
   // the stage card carries WAITING header + a single one-line signal
   // ("3 docs outstanding · Open Client readiness →") + the primary
@@ -2150,18 +2149,25 @@ export function ActiveStageDetailCard({
       {/* 2026-05-27 (Yuqi "onto the same line at Completed, space
           between"): stage label + "Entered DATE" now sit on one
           row with justify-between, the entered date pinned right. */}
-      <header className="flex items-baseline justify-between gap-3">
-        <h3 className="flex flex-wrap items-baseline gap-x-1.5 text-base leading-tight">
-          <span className="font-semibold text-text-primary">{stageLabel}</span>
+      {/* 2026-06-10 (Yuqi #10 — Pencil `iTasJ` eyebrow): the plain stage-label
+          heading becomes a canonical status pill + "Stage N of 6" + sub-status,
+          matching the design's eyebrow row and reusing ObligationStatusReadBadge
+          (the same pill the row + queue use). */}
+      <header className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <ObligationStatusReadBadge status={row.status} />
+          <span className="text-[11px] font-medium tabular-nums text-text-tertiary">
+            {t`Stage ${stageIdx + 1} of ${TIMELINE_STAGE_KEYS.length}`}
+          </span>
           {subStatus ? (
             <>
-              <span aria-hidden className="text-text-tertiary">
+              <span aria-hidden className="text-[11px] text-text-tertiary">
                 ·
               </span>
-              <span className="text-text-secondary">{subStatus}</span>
+              <span className="text-[11px] font-medium text-text-secondary">{subStatus}</span>
             </>
           ) : null}
-        </h3>
+        </div>
         <div className="flex shrink-0 items-center gap-2">
           {row.status === 'completed' ? (
             <span

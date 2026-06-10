@@ -77,3 +77,9 @@ Spec: `docs/Design/deadline-row-interaction.md` (committed alongside).
   the left, Assign · Snooze · Mark filed on the right. The page hero dropped its
   top action cluster (moved to the bar), shortening the header so more detail is
   readable. Footer surface is white in page mode (gray body), warm in panel.
+- **#10 active-stage eyebrow (Pencil `iTasJ`)**: the plain stage-label heading on
+  `ActiveStageDetailCard` became the design's eyebrow row — a canonical
+  `ObligationStatusReadBadge` status pill + "Stage N of 6" + sub-status (reusing
+  the same pill the row/queue use). (Materials progress block landed earlier;
+  action-stack restyle + BLOCKING panel still pending — needs a loading waiting
+  deadline w/ checklist to verify.)
