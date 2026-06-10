@@ -903,7 +903,10 @@ export function ClientFactsWorkspace({
         // assignee pill) and the toolbar filter chip's "Owner" label
         // remain intact.
         header: () => (
-          <span className="text-sm font-medium text-text-secondary">
+          // normal-case to match the sortable headers (Client / States / …) —
+          // without it this plain span inherits the table header's eyebrow
+          // `uppercase` and renders "ASSIGNEE", the lone uppercase column.
+          <span className="text-sm font-medium text-text-secondary normal-case">
             <Trans>Assignee</Trans>
           </span>
         ),
