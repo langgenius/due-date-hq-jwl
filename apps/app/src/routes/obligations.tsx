@@ -211,6 +211,7 @@ import {
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
   ObligationStatusReadBadge,
+  STATUS_ICON_COLOR,
   useLifecycleV2StatusLabels,
   useStatusLabels,
   type ObligationStatus,
@@ -4162,13 +4163,11 @@ export function ObligationQueueRoute() {
               // Full-page mode: table rows scroll behind the bar, so it needs
               // an opaque fill. In the panel-open split nothing scrolls behind
               // it, so it stays transparent over the inset surface.
-              // 2026-06-09 (Yuqi "when sticky on top when scroll, it should have
-              // a same top padding as the page padding"): the bar carries the
-              // route container's top padding (pt-6 = 24px) INSIDE itself,
-              // cancelled at rest by -mt-6 so resting spacing is unchanged.
-              // When pinned, that pt-6 band (page-bg white) becomes the top
-              // padding above the toolbar so rows never butt the viewport edge.
-              !panelOpenIntent && 'bg-background-default -mt-6 pt-6',
+              // 2026-06-09 (Yuqi "search bar cropped"): the earlier -mt-6/pt-6
+              // sticky-top-padding hack pulled the toolbar (and the focused
+              // search field's ring) up under the page header, clipping it.
+              // Reverted to a clean sticky top-0 fill — no negative margin.
+              !panelOpenIntent && 'bg-background-default',
             )}
           >
             {/* 2026-06-09 (Yuqi /deadlines production recreation): the
@@ -4177,6 +4176,52 @@ export function ObligationQueueRoute() {
                 production design: Search · All Status · Quick filters ……
                 kebab · columns. The status scope (tabs) is now an "All
                 Status" dropdown writing the same `status` URL param. */}
+            {/* 2026-06-09 (Yuqi "follow this style for the status selection"):
+                the All Status dropdown is replaced by a horizontal status
+                scope pill-strip — a leading "Status" label + a segmented
+                control of All + each present status (colored dot + count). It
+                writes the same `status` URL param. Scrolls horizontally on
+                narrow viewports; hidden in the panel-open split. */}
+            {!panelOpenIntent ? (
+              <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <span className="inline-flex shrink-0 items-center gap-1.5 pr-0.5 text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
+                  <ListChecksIcon className="size-3.5" aria-hidden />
+                  <Trans>Status</Trans>
+                </span>
+                <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-divider-subtle bg-background-subtle p-1">
+                  <button
+                    type="button"
+                    data-active={activeScope === 'all'}
+                    onClick={() => void setObligationQueueQuery({ status: null })}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-accent"
+                  >
+                    <Trans>All</Trans>
+                    <span className="tabular-nums text-text-tertiary">{scopeTotal}</span>
+                  </button>
+                  {visibleScopeStatuses.map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      data-active={activeScope === status}
+                      onClick={() => void setObligationQueueQuery({ status: [status] })}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
+                    >
+                      <span
+                        className={cn(
+                          'size-1.5 shrink-0 rounded-full bg-current',
+                          STATUS_ICON_COLOR[status],
+                        )}
+                        aria-hidden
+                      />
+                      <span className="whitespace-nowrap">{statusLabels[status]}</span>
+                      <span className="tabular-nums text-text-tertiary">
+                        {statusFacetCounts.get(status) ?? 0}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="flex flex-wrap items-center gap-2 pb-3">
               {/* Search — primary lookup across client / form / assignee. */}
               <label className="inline-flex h-9 w-full min-w-0 shrink items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt sm:w-[320px]">
@@ -4199,56 +4244,8 @@ export function ObligationQueueRoute() {
                   className="min-w-0 flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-tertiary"
                 />
               </label>
-              {/* All Status — single dropdown pill replacing the scope-tab
-                  strip. Writes the same `status` param; trigger shows the
-                  active scope label + count. */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <FilterTrigger noLeadingIcon active={activeScope !== 'all'}>
-                      <span>
-                        {activeScope === 'all' ? (
-                          <Trans>All Status</Trans>
-                        ) : (
-                          statusLabels[activeScope]
-                        )}
-                      </span>
-                      <span className="tabular-nums text-text-tertiary">
-                        {activeScope === 'all'
-                          ? scopeTotal
-                          : (statusFacetCounts.get(activeScope) ?? 0)}
-                      </span>
-                    </FilterTrigger>
-                  }
-                />
-                <DropdownMenuContent align="start" className="min-w-[208px]">
-                  <DropdownMenuRadioGroup
-                    value={activeScope}
-                    onValueChange={(next) => {
-                      if (next === 'all') {
-                        void setObligationQueueQuery({ status: null })
-                      } else if (isObligationStatus(next)) {
-                        void setObligationQueueQuery({ status: [next] })
-                      }
-                    }}
-                  >
-                    <DropdownMenuRadioItem value="all">
-                      <span className="flex-1">
-                        <Trans>All Status</Trans>
-                      </span>
-                      <span className="tabular-nums text-text-tertiary">{scopeTotal}</span>
-                    </DropdownMenuRadioItem>
-                    {visibleScopeStatuses.map((status) => (
-                      <DropdownMenuRadioItem key={status} value={status}>
-                        <span className="flex-1">{statusLabels[status]}</span>
-                        <span className="tabular-nums text-text-tertiary">
-                          {statusFacetCounts.get(status) ?? 0}
-                        </span>
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* All Status dropdown removed 2026-06-09 — replaced by the
+                  status scope pill-strip row above (same `status` param). */}
               {/* Quick filters — the consolidated facet popover (Due /
                   Evidence / Awaiting signature / Filing / Client / State). */}
               {panelOpenIntent ? null : (
@@ -5406,30 +5403,12 @@ export function ObligationQueueRoute() {
                   </Button>
                 </div>
               ) : null}
-              {/* 2026-06-09 (Yuqi /deadlines production recreation): footer
-                  hint row — names the row-click + keyboard affordances that
-                  drive the triage drawer. Hidden when empty or in the
-                  panel-open split (the rail carries its own navigation). */}
-              {!panelOpenIntent && rows.length > 0 ? (
-                <p className="flex flex-wrap items-center gap-1.5 px-1 pt-3 text-caption-xs text-text-tertiary">
-                  <Trans>Click any row to open the triage drawer</Trans>
-                  <span aria-hidden>·</span>
-                  <Trans>
-                    Press{' '}
-                    <kbd className="rounded-[4px] border border-divider-regular bg-background-subtle px-1 font-sans text-text-secondary">
-                      ↵
-                    </kbd>{' '}
-                    to jump to the full page
-                  </Trans>
-                  <span aria-hidden>·</span>
-                  <Trans>
-                    <kbd className="rounded-[4px] border border-divider-regular bg-background-subtle px-1 font-sans text-text-secondary">
-                      Esc
-                    </kbd>{' '}
-                    to close
-                  </Trans>
-                </p>
-              ) : null}
+              {/* 2026-06-09 (Yuqi "the table bottom looks ugly"): the footer
+                  hint row was removed — it described a "triage drawer" + "Esc
+                  to close" flow that no longer exists (clicking a row now
+                  navigates to the full /deadlines/:ref detail page), so the
+                  copy was both inaccurate and cluttering the table's bottom
+                  edge. The card's bottom border now closes the table cleanly. */}
             </div>
           )}
         </div>

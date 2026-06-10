@@ -1,8 +1,14 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { SearchIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, ListFilterIcon, SearchIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import type { ObligationQueueDetailTab, ObligationQueueRow } from '@duedatehq/contracts'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
@@ -38,6 +44,21 @@ function formatRailDate(iso: string): string {
 // Terminal statuses don't carry an active countdown — lateness is a
 // quality stat there, not a call to action (mirrors DueDaysPill).
 const RELATIVE_SUPPRESSED_STATUSES = new Set<ObligationStatus>(['completed', 'not_applicable'])
+
+// Canonical urgency order for the status filter menu (action-needed first),
+// mirroring the queue's "Sort by Status" ordering.
+const STATUS_FILTER_ORDER: readonly ObligationStatus[] = [
+  'pending',
+  'blocked',
+  'waiting_on_client',
+  'in_progress',
+  'review',
+  'extended',
+  'done',
+  'paid',
+  'completed',
+  'not_applicable',
+]
 
 function relativeDueLabel(row: ObligationQueueRow): {
   text: string
@@ -76,17 +97,40 @@ export function DeadlineNavigatorRail({
   const { t } = useLingui()
   const statusLabels = useStatusLabels()
   const [search, setSearch] = useState('')
+  // 2026-06-09 (Yuqi "Deadline page needs filter of different status"):
+  // optional client-side status filter over the loaded rail rows. `all` shows
+  // everything; otherwise only rows in the chosen status. Composes with search.
+  const [statusFilter, setStatusFilter] = useState<ObligationStatus | 'all'>('all')
+
+  // Statuses present in the loaded set, with counts, in canonical urgency order
+  // — the menu only offers statuses that actually exist in the rail.
+  const statusOptions = useMemo(() => {
+    const counts = new Map<ObligationStatus, number>()
+    for (const row of rows) counts.set(row.status, (counts.get(row.status) ?? 0) + 1)
+    return STATUS_FILTER_ORDER.filter((status) => counts.has(status)).map((status) => ({
+      status,
+      count: counts.get(status) ?? 0,
+    }))
+  }, [rows])
+
+  // If the active status filter no longer exists in the loaded set (e.g. the
+  // list changed), fall back to showing all so the rail never reads empty.
+  const effectiveStatusFilter =
+    statusFilter !== 'all' && !statusOptions.some((option) => option.status === statusFilter)
+      ? 'all'
+      : statusFilter
 
   const filteredRows = useMemo(() => {
     const needle = search.trim().toLowerCase()
-    if (!needle) return rows
     return rows.filter((row) => {
+      if (effectiveStatusFilter !== 'all' && row.status !== effectiveStatusFilter) return false
+      if (!needle) return true
       const haystack = [row.clientName, row.formName ?? '', row.taxType, statusLabels[row.status]]
         .join(' ')
         .toLowerCase()
       return haystack.includes(needle)
     })
-  }, [rows, search, statusLabels])
+  }, [rows, search, effectiveStatusFilter, statusLabels])
 
   return (
     <aside className="flex h-full w-[380px] shrink-0 flex-col border-r border-divider-subtle bg-background-default">
@@ -102,7 +146,8 @@ export function DeadlineNavigatorRail({
         ) : null}
       </div>
 
-      {/* FilterRow — client-side search across the loaded rows (rzzww `kEi6B`). */}
+      {/* FilterRow — client-side search + optional status filter over the
+          loaded rows (rzzww `kEi6B`). */}
       <div className="flex items-center gap-1.5 border-b border-divider-subtle px-4 py-2.5">
         <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
         <input
@@ -113,6 +158,52 @@ export function DeadlineNavigatorRail({
           aria-label={t`Search deadlines`}
           className="min-w-0 flex-1 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
         />
+        {/* Optional status filter. Trigger surfaces the active status label so
+            it's clear the rail is filtered; "All statuses" clears it. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <button
+                type="button"
+                aria-label={t`Filter by status`}
+                className={cn(
+                  'inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-caption-xs font-medium outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                  effectiveStatusFilter === 'all'
+                    ? 'text-text-tertiary hover:text-text-secondary'
+                    : 'text-text-accent',
+                )}
+              >
+                <ListFilterIcon className="size-3.5 shrink-0" aria-hidden />
+                {effectiveStatusFilter !== 'all' ? (
+                  <span className="max-w-[110px] truncate">
+                    {statusLabels[effectiveStatusFilter]}
+                  </span>
+                ) : null}
+                <ChevronDownIcon className="size-3 shrink-0" aria-hidden />
+              </button>
+            }
+          />
+          <DropdownMenuContent align="end" className="min-w-[200px]">
+            <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+              <span className="flex-1">
+                <Trans>All statuses</Trans>
+              </span>
+              <span className="tabular-nums text-text-tertiary">{rows.length}</span>
+              {effectiveStatusFilter === 'all' ? (
+                <CheckIcon className="size-3.5 text-text-accent" aria-hidden />
+              ) : null}
+            </DropdownMenuItem>
+            {statusOptions.map(({ status, count }) => (
+              <DropdownMenuItem key={status} onClick={() => setStatusFilter(status)}>
+                <span className="flex-1 truncate">{statusLabels[status]}</span>
+                <span className="tabular-nums text-text-tertiary">{count}</span>
+                {effectiveStatusFilter === status ? (
+                  <CheckIcon className="size-3.5 text-text-accent" aria-hidden />
+                ) : null}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* ListBody */}
