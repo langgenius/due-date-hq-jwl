@@ -129,7 +129,7 @@ export function PageHeader({
           ) : null}
           {description ? (
             // Step 1-5 reaudit canonicalized `text-description` (13px)
-            // to replace the arbitrary `text-[13px]` main still uses.
+            // to replace the arbitrary `text-base` main still uses.
             <p className="max-w-[1080px] text-description leading-5 text-text-secondary">
               {description}
             </p>

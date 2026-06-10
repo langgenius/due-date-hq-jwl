@@ -79,7 +79,7 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
           {notes.map((note) => (
             <li key={note.id} className="flex flex-col gap-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-[13px] font-medium text-text-primary">{note.authorName}</span>
+                <span className="text-base font-medium text-text-primary">{note.authorName}</span>
                 <span className="text-xs text-text-tertiary tabular-nums">
                   {formatRelativeTime(note.createdAt)}
                 </span>
@@ -91,14 +91,14 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
                   <Trans>Reply</Trans>
                 </button>
               </div>
-              <p className="text-[13px] leading-[1.5] whitespace-pre-wrap text-text-secondary">
+              <p className="text-base leading-[1.5] whitespace-pre-wrap text-text-secondary">
                 {note.body}
               </p>
             </li>
           ))}
         </ol>
       ) : (
-        <p className="text-[13px] text-text-tertiary">
+        <p className="text-base text-text-tertiary">
           <Trans>No team notes yet. Add the first one for your colleagues.</Trans>
         </p>
       )}

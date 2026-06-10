@@ -14,7 +14,7 @@ import { alertImpactLevel } from '../lib/impact-level'
  *
  * ## Subgroup divider band / day-group header
  *   `bg-background-subtle px-5 py-2`
- *   `text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase`
+ *   `text-sm font-semibold tracking-[0.5px] text-text-secondary uppercase`
  *   - 12/secondary — readable but quiet.
  *   - Same tokens on ActionsTable's subgroup divider AND
  *     PulseAlertList's day-group header.
@@ -30,7 +30,7 @@ import { alertImpactLevel } from '../lib/impact-level'
  *     /alerts, `text-text-muted` on /today card)
  *   - State: circular 16px `<StateBadge>` motif + 12/700 mono code
  *     (no bg, no padding)
- *   - Severity: HIGH-only, `h-[22px] rounded-[4px] px-2 text-[11px]
+ *   - Severity: HIGH-only, `h-[22px] rounded-[4px] px-2 text-xs
  *     font-bold tracking-[0.7px] uppercase` + colors from
  *     `impactBadgeFromAlert`
  *   - Action pill (change-action amber, separate from status):

@@ -835,7 +835,7 @@ function OverviewRecentChangesCard({
         <button
           type="button"
           onClick={onViewAll}
-          className="group/viewall inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg text-[13px] font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="group/viewall inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg text-base font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <Trans>View all changes</Trans>
           <ArrowRightIcon
@@ -930,7 +930,7 @@ function OverviewCaughtUpCard({
   onMonitorSources: () => void
 }) {
   const linkClass =
-    'group/link inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg text-[13px] font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
+    'group/link inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg text-base font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
   const linkArrowClass =
     'size-3.5 transition-transform duration-150 group-hover/link:translate-x-0.5'
   return (
@@ -4244,7 +4244,7 @@ function RuleDetailHeroCard({
         ) : (
           <CircleCheck aria-hidden className="size-3.5 shrink-0 text-text-success" />
         )}
-        <span className="text-[13px] font-semibold text-text-primary">
+        <span className="text-base font-semibold text-text-primary">
           {isReviewable ? <Trans>Rule under review</Trans> : <Trans>Active rule</Trans>}
         </span>
         {isReviewable ? (
@@ -4258,11 +4258,12 @@ function RuleDetailHeroCard({
         <h2 className="text-[22px] leading-tight font-bold tracking-tight text-text-primary">
           {rule.title}
         </h2>
-        <p className="text-[13px] font-medium text-text-secondary">
-          {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
+        <p className="text-base font-medium text-text-secondary">
+          {rule.jurisdiction} · {rule.formName} ·{' '}
+          <Trans>Tax season {rule.applicableYear}</Trans>
         </p>
         {rule.defaultTip ? (
-          <p className="line-clamp-2 text-[13px] leading-relaxed text-text-secondary">
+          <p className="line-clamp-2 text-base leading-relaxed text-text-secondary">
             {rule.defaultTip}
           </p>
         ) : null}
@@ -4586,7 +4587,7 @@ function BulkReviewListModal({
             <DialogTitle className="text-lg font-semibold text-text-primary">
               <Trans>Bulk review</Trans>
             </DialogTitle>
-            <p className="text-[13px] text-text-tertiary">
+            <p className="text-base text-text-tertiary">
               <Plural value={rules.length} one="# rule selected" other="# rules selected" />
             </p>
           </div>

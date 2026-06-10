@@ -240,9 +240,9 @@ export function AlertCard({
                       {severityLabel}
                     </span>
                   ) : null}
-                  {/* Source size pinned to `text-[13px]` — sits refined
+                  {/* Source size pinned to `text-base` — sits refined
                       between the 11px timestamp/facts and the 18px title. */}
-                  <span className="truncate text-[13px] font-medium text-text-secondary">
+                  <span className="truncate text-base font-medium text-text-secondary">
                     {alert.source}
                   </span>
                 </div>
@@ -277,7 +277,7 @@ export function AlertCard({
                     size="xs"
                     style={{ width: 16, height: 16 }}
                   />
-                  <span className="font-mono text-[12px] font-bold tracking-[0.7px] text-text-secondary uppercase">
+                  <span className="font-mono text-sm font-bold tracking-[0.7px] text-text-secondary uppercase">
                     {alert.jurisdiction}
                   </span>
                 </span>

@@ -35,17 +35,17 @@ export function DeadlineCrumbBar({
       <div className="mx-auto flex w-full max-w-[1100px] items-center gap-2">
         <Link
           to="/deadlines"
-          className="inline-flex items-center gap-1 text-[13px] font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
+          className="inline-flex items-center gap-1 text-base font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
         >
           <ChevronLeftIcon className="size-3.5 shrink-0" aria-hidden />
           <Trans>Deadlines</Trans>
         </Link>
         {current ? (
           <>
-            <span className="text-[13px] font-medium text-text-muted" aria-hidden>
+            <span className="text-base font-medium text-text-muted" aria-hidden>
               /
             </span>
-            <span className="truncate text-[13px] font-semibold text-text-primary">{current}</span>
+            <span className="truncate text-base font-semibold text-text-primary">{current}</span>
           </>
         ) : null}
 
@@ -74,7 +74,7 @@ function CrumbNavButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-text-secondary outline-none transition-colors',
+        'inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-base font-medium text-text-secondary outline-none transition-colors',
         'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'disabled:cursor-not-allowed disabled:text-text-muted disabled:hover:bg-transparent',
       )}

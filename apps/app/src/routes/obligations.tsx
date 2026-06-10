@@ -3824,7 +3824,7 @@ export function ObligationQueueRoute() {
                     type="button"
                     data-active={activeScope === 'all'}
                     onClick={() => void setObligationQueueQuery({ status: null })}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-accent"
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-base font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-accent"
                   >
                     <Trans>All</Trans>
                     <span className="tabular-nums text-text-tertiary">{scopeTotal}</span>
@@ -3835,7 +3835,7 @@ export function ObligationQueueRoute() {
                       type="button"
                       data-active={activeScope === status}
                       onClick={() => void setObligationQueueQuery({ status: [status] })}
-                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-base font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
                     >
                       <span
                         className={cn(
@@ -3872,7 +3872,7 @@ export function ObligationQueueRoute() {
                   }}
                   placeholder={t`Search client, form, or assignee`}
                   aria-label={t`Search client, form, or assignee`}
-                  className="min-w-0 flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-tertiary"
+                  className="min-w-0 flex-1 bg-transparent text-base text-text-primary outline-none placeholder:text-text-tertiary"
                 />
               </label>
               {/* Quick filters — the consolidated facet popover (Due /
@@ -4426,7 +4426,7 @@ export function ObligationQueueRoute() {
                     one family with /today's ActionsTable. `whitespace-normal` +
                     `break-words` because /deadlines columns carry longer
                     multi-word content (client name, why-now) that benefits from
-                    wrapping. Body cells render at 13px (`[&_td]:text-[13px]`),
+                    wrapping. Body cells render at 13px (`[&_td]:text-base`),
                     matching /today's ActionsTable + /alerts' AlertCard body
                     text. The interactive header triggers (sortable +
                     faceted-filter buttons) reset text-transform/size, so the
@@ -4438,7 +4438,7 @@ export function ObligationQueueRoute() {
                     (not the <thead>) so its top corners can round
                     (`rounded-t[lr]`) — the gray header reads as the rounded top
                     of a sheet, while the rows below stay frameless. */}
-                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-[12px] [&_thead_tr_th:last-child]:rounded-tr-[12px] [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-[11px] [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_th_button]:!tracking-[0.5px] [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-[13px]">
+                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-[12px] [&_thead_tr_th:last-child]:rounded-tr-[12px] [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-xs [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_th_button]:!tracking-[0.5px] [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-base">
                   {/* Header (select-all + sort/filter controls) pins so column
                       labels stay visible as the buffer scrolls. In the
                       panel-open split it sticks to top-0 of its own scroll
@@ -4674,10 +4674,10 @@ export function ObligationQueueRoute() {
                                           tracking-[0.5px]/tertiary (was 12px
                                           primary tracking-wide). The leading
                                           tone dot + count still carry urgency. */}
-                                      <span className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+                                      <span className="text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
                                         {groupHeader.label}
                                       </span>
-                                      <span className="text-[11px] tracking-[0.5px] text-text-tertiary uppercase tabular-nums">
+                                      <span className="text-xs tracking-[0.5px] text-text-tertiary uppercase tabular-nums">
                                         <Plural
                                           value={groupHeader.count}
                                           one="# deadline"
@@ -13311,7 +13311,7 @@ function ObligationFilterPill({
       disabled={disabled}
       aria-pressed={active}
       className={cn(
-        'inline-flex h-7 max-w-full cursor-pointer items-center rounded-lg border px-2.5 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex h-7 max-w-full cursor-pointer items-center rounded-lg border px-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
         active
           ? 'border-state-accent-border bg-state-accent-hover text-text-accent'
           : 'border-divider-subtle text-text-secondary hover:bg-state-base-hover',

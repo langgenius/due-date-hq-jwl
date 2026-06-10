@@ -245,7 +245,7 @@ function DisclosureCard({
   return (
     <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
       <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
-        <h3 className="text-[13px] font-semibold text-text-primary">{title}</h3>
+        <h3 className="text-base font-semibold text-text-primary">{title}</h3>
         {meta != null ? (
           <span className="ml-auto truncate text-caption font-medium text-text-tertiary">
             {meta}
@@ -265,7 +265,7 @@ function DisclosureCard({
               type="button"
               onClick={() => setExpanded((value) => !value)}
               aria-expanded={expanded}
-              className="inline-flex w-fit cursor-pointer items-center gap-1 rounded-md text-[13px] font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex w-fit cursor-pointer items-center gap-1 rounded-md text-base font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               {expanded ? (lessLabel ?? t`Show less`) : (moreLabel ?? t`Read more`)}
               <ChevronDownIcon
@@ -290,7 +290,7 @@ function FactChip({ label, value }: { label: string; value: React.ReactNode }) {
       <span className="text-caption-xs font-bold tracking-wide text-text-muted uppercase">
         {label}
       </span>
-      <span className="min-w-0 truncate text-[13px] font-medium text-text-primary">{value}</span>
+      <span className="min-w-0 truncate text-base font-medium text-text-primary">{value}</span>
     </span>
   )
 }
@@ -644,7 +644,7 @@ function RuleBeforeAcceptCard({
   return (
     <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
       <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
-        <h3 className="text-[13px] font-semibold text-text-primary">
+        <h3 className="text-base font-semibold text-text-primary">
           <Trans>Before you accept</Trans>
         </h3>
       </div>
@@ -699,7 +699,7 @@ function RulePracticeReviewCard({ rule }: { rule: ObligationRule }) {
   return (
     <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
       <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
-        <h3 className="text-[13px] font-semibold text-text-primary">
+        <h3 className="text-base font-semibold text-text-primary">
           <Trans>Practice review</Trans>
         </h3>
         <span className="ml-auto text-caption font-medium text-text-tertiary">
@@ -721,7 +721,7 @@ function RulePracticeReviewCard({ rule }: { rule: ObligationRule }) {
               type="button"
               onClick={() => setShowNotes((value) => !value)}
               aria-expanded={showNotes}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-md text-[13px] font-medium text-text-accent outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex cursor-pointer items-center gap-1 rounded-md text-base font-medium text-text-accent outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <Plural value={notes.length} one="View # team note" other="View # team notes" />
               <ChevronDownIcon
@@ -730,7 +730,7 @@ function RulePracticeReviewCard({ rule }: { rule: ObligationRule }) {
               />
             </button>
           ) : (
-            <span className="text-[13px] text-text-muted">
+            <span className="text-base text-text-muted">
               <Trans>No team notes yet</Trans>
             </span>
           )}
@@ -756,7 +756,7 @@ function RulePracticeReviewCard({ rule }: { rule: ObligationRule }) {
             {notes.map((note) => (
               <li key={note.id} className="flex flex-col gap-0.5">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-[13px] font-semibold text-text-primary">
+                  <span className="text-base font-semibold text-text-primary">
                     {note.authorName}
                   </span>
                   <span className="text-caption text-text-muted">
@@ -1294,7 +1294,7 @@ export function RuleAcceptErrorDialog({
         </div>
         <div className="flex flex-col gap-3.5 px-[22px] py-5">
           <div className="flex flex-col gap-1.5">
-            <p className="text-[13px] font-medium leading-relaxed text-text-secondary">
+            <p className="text-base font-medium leading-relaxed text-text-secondary">
               {error.message}
             </p>
             <p className="text-xs text-text-tertiary">
@@ -1374,7 +1374,7 @@ function ConfirmImpactDialog({
             <DialogTitle className="text-lg font-semibold text-text-primary">
               <Trans>Confirm accept</Trans>
             </DialogTitle>
-            <p className="text-[13px] text-text-tertiary">
+            <p className="text-base text-text-tertiary">
               <Trans>
                 Accepting activates this rule for client filings in{' '}
                 {jurisdictionLabel(rule.jurisdiction)}.
@@ -1530,7 +1530,7 @@ function RejectReasonDialog({
             <DialogTitle className="text-lg font-semibold text-text-primary">
               <Trans>Reject rule</Trans>
             </DialogTitle>
-            <p className="truncate text-[13px] text-text-tertiary" title={rule.title}>
+            <p className="truncate text-base text-text-tertiary" title={rule.title}>
               {rule.title}
             </p>
           </div>

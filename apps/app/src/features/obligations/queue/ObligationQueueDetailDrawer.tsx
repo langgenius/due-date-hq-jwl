@@ -2414,7 +2414,7 @@ export function ObligationQueueDetailDrawer({
                                   <span aria-hidden> · </span>
                                   {formatAuditActionLabel(event.action, auditActionLabels)}
                                 </span>
-                                <span className="shrink-0 font-mono text-[11px] tabular-nums text-text-tertiary">
+                                <span className="shrink-0 font-mono text-xs tabular-nums text-text-tertiary">
                                   {formatRelativeTime(event.createdAt)}
                                 </span>
                               </li>

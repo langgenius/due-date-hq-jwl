@@ -379,7 +379,7 @@ function PulseAlertRow({
             <TooltipTrigger
               render={(props) => (
                 <span
-                  className="w-fit cursor-help text-[13px] font-medium text-text-primary outline-none"
+                  className="w-fit cursor-help text-base font-medium text-text-primary outline-none"
                   {...props}
                 >
                   {railDate}

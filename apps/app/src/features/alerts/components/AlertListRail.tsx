@@ -146,7 +146,7 @@ export function AlertListRail({
             onChange={(event) => setSearch(event.target.value)}
             placeholder={t`Search alerts`}
             aria-label={t`Search alerts`}
-            className="min-w-0 flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-muted"
+            className="min-w-0 flex-1 bg-transparent text-base text-text-primary outline-none placeholder:text-text-muted"
           />
         </label>
       </div>
@@ -154,7 +154,7 @@ export function AlertListRail({
       {/* ListBody — compact items, the open one accented. */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         {visible.length === 0 ? (
-          <p className="px-[18px] py-10 text-center text-[13px] text-text-tertiary">
+          <p className="px-[18px] py-10 text-center text-base text-text-tertiary">
             <Trans>No alerts match.</Trans>
           </p>
         ) : (

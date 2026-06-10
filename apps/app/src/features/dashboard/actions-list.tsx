@@ -742,7 +742,7 @@ function ActionsListHeader({
         {/* 2026-06-10 (Yuqi "titles are disturbing — quieter"): demoted
             eyebrow treatment shared with the Alerts h2 — 11px / 600 /
             muted tertiary / wider tracking. See section-header-style.md. */}
-        <h2 className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.6px] text-text-tertiary uppercase">
+        <h2 className="flex items-center gap-1.5 text-xs font-semibold tracking-[0.6px] text-text-tertiary uppercase">
           {/* The title links to the full deadlines list (via onOpenAll). The
               Sparkles tooltip stays a non-link sibling. */}
           <Link
@@ -773,7 +773,7 @@ function ActionsListHeader({
                 so it reads as a designed mini-popover. */}
             <TooltipContent className="items-stretch">
               <div className="flex max-w-[300px] flex-col gap-2 text-left">
-                <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-components-tooltip-text">
+                <span className="inline-flex items-center gap-1.5 text-base font-semibold text-components-tooltip-text">
                   <SparklesIcon className="size-3.5 shrink-0 text-text-accent" aria-hidden />
                   <Trans>What's in this list</Trans>
                 </span>

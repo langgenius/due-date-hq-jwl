@@ -261,7 +261,7 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
       )}
       <p
         id="morning-sweep-panel-title"
-        className="line-clamp-1 min-w-0 flex-1 text-[13px] text-text-secondary"
+        className="line-clamp-1 min-w-0 flex-1 text-base text-text-secondary"
         aria-live="polite"
       >
         {isLoading ? <Trans>Brewing your briefing…</Trans> : headline}

@@ -310,7 +310,7 @@ function NeedsAttentionCard({
               drawer). `dedupeTitleSource` strips a leading source prefix so the
               bottom source link doesn't echo it. */}
           <h3
-            className="line-clamp-2 min-w-0 text-[14px] font-semibold leading-[1.3] text-text-primary"
+            className="line-clamp-2 min-w-0 text-base font-semibold leading-[1.3] text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}

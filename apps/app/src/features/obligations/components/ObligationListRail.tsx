@@ -65,7 +65,7 @@ export function ObligationListRail({
             <Plural value={overdueCount} one="# overdue" other="# overdue" />
           </CountPill>
         ) : (
-          <span className="text-[12px] font-medium text-text-tertiary tabular-nums">
+          <span className="text-sm font-medium text-text-tertiary tabular-nums">
             <Plural value={rows.length} one="# open" other="# open" />
           </span>
         )}
@@ -81,7 +81,7 @@ export function ObligationListRail({
             onChange={(event) => setSearch(event.target.value)}
             placeholder={t`Search deadlines`}
             aria-label={t`Search deadlines`}
-            className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-text-primary outline-none placeholder:text-text-muted"
+            className="min-w-0 flex-1 bg-transparent text-base font-medium text-text-primary outline-none placeholder:text-text-muted"
           />
         </label>
       </div>
@@ -89,7 +89,7 @@ export function ObligationListRail({
       {/* ListBody — compact items, the open one accented. */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         {visible.length === 0 ? (
-          <p className="px-[18px] py-10 text-center text-[13px] text-text-tertiary">
+          <p className="px-[18px] py-10 text-center text-base text-text-tertiary">
             <Trans>No deadlines match.</Trans>
           </p>
         ) : (
@@ -106,7 +106,7 @@ export function ObligationListRail({
               <button
                 type="button"
                 onClick={onLoadMore}
-                className="w-full cursor-pointer py-3 text-center text-[13px] font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover"
+                className="w-full cursor-pointer py-3 text-center text-base font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover"
               >
                 <Trans>Load more</Trans>
               </button>
@@ -157,7 +157,7 @@ function RailItem({
     >
       {/* Due column (64px). */}
       <div className="flex w-[64px] shrink-0 flex-col gap-0.5">
-        <span className="text-[12px] font-medium text-text-primary tabular-nums">{dueLabel}</span>
+        <span className="text-sm font-medium text-text-primary tabular-nums">{dueLabel}</span>
         <span
           className={cn(
             'text-caption-xs font-medium tabular-nums',
@@ -179,7 +179,7 @@ function RailItem({
           ) : null}
           <TaxCodeBadge code={row.taxType} />
         </div>
-        <span className="truncate text-[13px] font-medium text-text-primary">{row.clientName}</span>
+        <span className="truncate text-base font-medium text-text-primary">{row.clientName}</span>
         <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-xs" />
       </div>
     </button>

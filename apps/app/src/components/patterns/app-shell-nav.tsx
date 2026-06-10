@@ -214,7 +214,7 @@ function SidebarQuickFind() {
       <SearchIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
       {/* 13px — a step below the 15px nav labels so the search hint reads
           quieter. Muted tone. */}
-      <span className="min-w-0 flex-1 truncate text-[13px] group-data-[collapsed=true]/sidebar:hidden">
+      <span className="min-w-0 flex-1 truncate text-base group-data-[collapsed=true]/sidebar:hidden">
         {t`Quick find…`}
       </span>
       {/* ⌘K hint via the canonical <Kbd> keycap — same component the

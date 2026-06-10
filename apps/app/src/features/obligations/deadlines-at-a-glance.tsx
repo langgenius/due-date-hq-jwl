@@ -234,7 +234,7 @@ function NarrativeTile({
     //   • eyebrow label → `text-xs font-semibold tracking-[0.4px]
     //     text-text-tertiary uppercase` (matches the card's change-kind /
     //     meta eyebrow)
-    //   • headline → `text-[14px] font-semibold leading-[1.3]
+    //   • headline → `text-base font-semibold leading-[1.3]
     //     text-text-primary` (matches the card's title h3)
     //   • sub line → `text-xs text-text-secondary` (matches the card's
     //     affects-clients line)
@@ -269,7 +269,7 @@ function NarrativeTile({
           </>
         ) : (
           <>
-            <span className="text-[14px] font-semibold leading-[1.3] text-text-primary">
+            <span className="text-base font-semibold leading-[1.3] text-text-primary">
               {headline}
             </span>
             <span className="text-xs leading-snug text-text-secondary">{sub}</span>

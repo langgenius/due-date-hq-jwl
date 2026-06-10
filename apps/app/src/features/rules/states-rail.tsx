@@ -268,7 +268,7 @@ function RailNavRow({
     >
       <span className="flex items-center gap-2.5">
         <Icon className="size-[15px] shrink-0 text-text-secondary" aria-hidden />
-        <span className="min-w-0 truncate text-[13px] font-medium text-text-secondary">
+        <span className="min-w-0 truncate text-base font-medium text-text-secondary">
           {label}
         </span>
         {inlineMeta}
@@ -330,7 +330,7 @@ function RailRow({
       />
       <span
         className={cn(
-          'min-w-0 flex-1 truncate text-[13px]',
+          'min-w-0 flex-1 truncate text-base',
           accentSelected
             ? 'font-bold text-text-accent'
             : selected

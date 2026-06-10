@@ -58,9 +58,9 @@ export function DetailStatusBanner({
         )}
       >
         <Icon className={cn('size-4 shrink-0', c.text)} aria-hidden />
-        <span className={cn('text-[13px] font-semibold', c.text)}>{title}</span>
+        <span className={cn('text-base font-semibold', c.text)}>{title}</span>
         {note ? (
-          <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-text-tertiary tabular-nums">
+          <span className="ml-auto flex shrink-0 items-center gap-1.5 text-sm font-medium text-text-tertiary tabular-nums">
             {note}
           </span>
         ) : null}
@@ -77,9 +77,9 @@ export function DetailStatusBanner({
     >
       <Icon className={cn('mt-0.5 size-4 shrink-0', c.text)} aria-hidden />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className={cn('text-[13px] font-semibold', c.text)}>{title}</span>
+        <span className={cn('text-base font-semibold', c.text)}>{title}</span>
         {description ? (
-          <span className="text-[12px] leading-[1.5] text-text-tertiary">{description}</span>
+          <span className="text-sm leading-[1.5] text-text-tertiary">{description}</span>
         ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

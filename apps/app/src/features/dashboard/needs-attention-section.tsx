@@ -140,7 +140,7 @@ function NeedsAttentionSection() {
             tertiary ink / wider tracking — so they orient without the
             heavy 14px dark-ink band competing with the content below.
             See docs/Design/section-header-style.md. */}
-        <h2 className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.6px] text-text-tertiary uppercase">
+        <h2 className="flex items-center gap-2 text-xs font-semibold tracking-[0.6px] text-text-tertiary uppercase">
           {/* The title word links to /alerts; the count badge + MonitoringChip
               stay as non-link siblings. */}
           <Link

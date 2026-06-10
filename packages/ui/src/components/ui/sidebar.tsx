@@ -872,7 +872,7 @@ export function SidebarMenuBadge({
   //     row's right edge via `ml-auto`. Same chrome as collapsed, just
   //     full-size and aligned.
   const pillBaseExpanded =
-    'pointer-events-none inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 font-mono text-[11px] font-medium tabular-nums leading-none'
+    'pointer-events-none inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 font-mono text-xs font-medium tabular-nums leading-none'
   const expandedPos = 'ml-auto'
   // 2026-05-27 (Yuqi feedback "just a red dot is enough"): collapsed
   // mode reverts to a bare dot indicator — no digit, no border. The

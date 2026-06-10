@@ -273,7 +273,7 @@ function DeadlineNavigatorRow({
     >
       {/* TimeColumn (rzzww `wdyv4`) */}
       <div className="flex w-[60px] shrink-0 flex-col gap-0.5">
-        <span className="text-[13px] font-medium text-text-primary tabular-nums">
+        <span className="text-base font-medium text-text-primary tabular-nums">
           {formatRailDate(row.currentDueDate)}
         </span>
         {showRelative ? (
