@@ -92,3 +92,8 @@ Spec: `docs/Design/deadline-row-interaction.md` (committed alongside).
   (`min-w-0`); the primary CTA cluster is `shrink-0` so it's always flush-right
   and fully visible. The alert right panel already carries `bg-background-subtle`
   (gray wash, white cards pop) per Pencil `irBJ8`.
+- **"What's left to do" → own card (Yuqi "the style is different")**: pulled the
+  checklist OUT of the white workflow box (where it was a bare uppercase eyebrow)
+  into its own gray-header `DetailSectionCard` ("N of M complete" right-meta),
+  matching Pencil `bmwHb` + the rest of the panel's card system. The workflow
+  card stays the headerless hero (stepper + active-stage), per Pencil `Y8xrR`.

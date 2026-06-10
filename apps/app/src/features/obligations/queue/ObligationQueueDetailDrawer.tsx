@@ -2177,77 +2177,11 @@ export function ObligationQueueDetailDrawer({
                       }
                     >
                       <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
-                      {/* Cluster 2 (Summary design `d4YrtC > xOO3r`): a condensed
-                      "What's left to do" mirror of the materials checklist.
-                      Read-only here — the full editable checklist lives on
-                      the Materials tab. Received rows use a filled accent
-                      box + muted text; outstanding rows an empty box. The
-                      "Manage in Materials →" link routes the user to the
-                      tab that owns the source of truth instead of
-                      duplicating the editor. */}
-                      {checklist.length > 0 &&
-                      row.status !== 'done' &&
-                      row.status !== 'completed' ? (
-                        <section className="flex flex-col gap-2.5">
-                          <div className="flex items-center justify-between gap-2">
-                            <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
-                              <Trans>What's left to do</Trans>
-                            </h3>
-                            <span className="text-caption text-text-secondary">
-                              <Trans>
-                                {checklist.filter((item) => item.status === 'received').length} of{' '}
-                                {checklist.length} complete
-                              </Trans>
-                            </span>
-                          </div>
-                          <ul className="grid gap-2.5">
-                            {checklist.slice(0, 6).map((item) => {
-                              const isDone = item.status === 'received'
-                              return (
-                                <li key={item.id} className="flex items-start gap-3">
-                                  <span
-                                    className={cn(
-                                      'mt-px flex size-[18px] shrink-0 items-center justify-center rounded-sm border',
-                                      isDone
-                                        ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
-                                        : 'border-divider-regular bg-background-default',
-                                    )}
-                                    aria-hidden
-                                  >
-                                    {isDone ? <CheckIcon className="size-3" /> : null}
-                                  </span>
-                                  <span className="grid min-w-0 gap-0.5">
-                                    <span
-                                      className={cn(
-                                        'text-sm leading-tight',
-                                        isDone
-                                          ? 'text-text-secondary line-through decoration-text-tertiary/40'
-                                          : 'text-text-primary',
-                                      )}
-                                    >
-                                      {item.label}
-                                    </span>
-                                    {isDone && item.receivedAt ? (
-                                      <span className="text-caption-xs text-text-tertiary">
-                                        <Trans>
-                                          received {formatDate(item.receivedAt.slice(0, 10))}
-                                        </Trans>
-                                      </span>
-                                    ) : null}
-                                  </span>
-                                </li>
-                              )
-                            })}
-                          </ul>
-                          <TextLink
-                            variant="accent"
-                            className="w-fit"
-                            onClick={() => onTabChange('readiness')}
-                          >
-                            <Trans>Manage in Materials →</Trans>
-                          </TextLink>
-                        </section>
-                      ) : null}
+                      {/* 2026-06-10 (Yuqi "the style is different"): the
+                          "What's left to do" checklist moved OUT of this white
+                          workflow box into its own gray-header DetailSectionCard
+                          (below, Pencil `bmwHb`) so it matches the rest of the
+                          panel's card system instead of a bare uppercase eyebrow. */}
                       {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
                       rzzww + no-fiction rule): the "Expected refund" card
                       ($4,210 + withholding breakdown) and the "Source docs"
@@ -2347,6 +2281,61 @@ export function ObligationQueueDetailDrawer({
                         }}
                       />
                     </div>
+                    {/* What's left to do — own gray-header card (Pencil `bmwHb`),
+                        matching the rest of the panel's card system. */}
+                    {checklist.length > 0 &&
+                    row.status !== 'done' &&
+                    row.status !== 'completed' ? (
+                      <DetailSectionCard
+                        title={<Trans>What's left to do</Trans>}
+                        headerRight={t`${checklist.filter((item) => item.status === 'received').length} of ${checklist.length} complete`}
+                      >
+                        <ul className="grid gap-2.5">
+                          {checklist.slice(0, 6).map((item) => {
+                            const isDone = item.status === 'received'
+                            return (
+                              <li key={item.id} className="flex items-start gap-3">
+                                <span
+                                  className={cn(
+                                    'mt-px flex size-[18px] shrink-0 items-center justify-center rounded-sm border',
+                                    isDone
+                                      ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
+                                      : 'border-divider-regular bg-background-default',
+                                  )}
+                                  aria-hidden
+                                >
+                                  {isDone ? <CheckIcon className="size-3" /> : null}
+                                </span>
+                                <span className="grid min-w-0 gap-0.5">
+                                  <span
+                                    className={cn(
+                                      'text-sm leading-tight',
+                                      isDone
+                                        ? 'text-text-secondary line-through decoration-text-tertiary/40'
+                                        : 'text-text-primary',
+                                    )}
+                                  >
+                                    {item.label}
+                                  </span>
+                                  {isDone && item.receivedAt ? (
+                                    <span className="text-caption-xs text-text-tertiary">
+                                      <Trans>received {formatDate(item.receivedAt.slice(0, 10))}</Trans>
+                                    </span>
+                                  ) : null}
+                                </span>
+                              </li>
+                            )
+                          })}
+                        </ul>
+                        <TextLink
+                          variant="accent"
+                          className="w-fit"
+                          onClick={() => onTabChange('readiness')}
+                        >
+                          <Trans>Manage in Materials →</Trans>
+                        </TextLink>
+                      </DetailSectionCard>
+                    ) : null}
                     {/* Recent activity — last few audit-feed entries, with a
                         link out to the full Timeline tab. */}
                     {/* 2026-06-10 (Yuqi — replicate Pencil `qSa9z` Recent
