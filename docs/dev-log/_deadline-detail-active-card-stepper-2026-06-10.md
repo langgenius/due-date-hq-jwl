@@ -24,6 +24,13 @@ WorkflowMilestoneCard. Restyled to the canonical active-card treatment: a 15px
 semibold headline + a muted sub-line ("Submit the return now, or file an
 extension if eligible."), no box chrome.
 
+## Stepper connectors — continuous solid track
+
+The inter-stage connectors were dotted hairlines (an older Figma pass). Switched
+to a continuous SOLID `border-t`; entered edges fill `border-state-accent-solid`
+up to the active stage, the rest stay a neutral `border-divider-regular` rule —
+matching the canonical StatusJourney track.
+
 ## Verified
 
 `tsgo --noEmit` clean. Live (`/deadlines/000000000003`): "Not started" solid

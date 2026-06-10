@@ -923,12 +923,11 @@ export function PathToFilingSummary({
                 <span
                   aria-hidden
                   className={cn(
-                    'h-0 flex-1 border-t border-dotted',
-                    // 2026-05-24 (critique P1 — shape): the left-side
-                    // connector represents the edge into THIS stage.
-                    // Green only when both this stage and the prior
-                    // one were genuinely entered (or active) — so
-                    // skipped stages keep the edge muted on both sides.
+                    // 2026-06-10 (Yuqi "work on the detail page" / Qn4nX
+                    // StatusJourney): continuous SOLID track (was a dotted
+                    // hairline); entered edges fill accent up to the active
+                    // stage, the rest stays a neutral rule.
+                    'h-0 flex-1 border-t',
                     (() => {
                       if (i === 0) return 'opacity-0'
                       const thisEntered = state === 'done' || state === 'active'
@@ -937,7 +936,7 @@ export function PathToFilingSummary({
                         prevIdx === currentIndex ||
                         (prevIdx < currentIndex && (prevIdx === 0 || stamps[prevIdx] !== null))
                       return thisEntered && prevEntered
-                        ? 'border-divider-strong'
+                        ? 'border-state-accent-solid'
                         : 'border-divider-regular'
                     })(),
                   )}
