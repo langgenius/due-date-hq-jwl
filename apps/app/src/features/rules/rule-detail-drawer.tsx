@@ -38,7 +38,7 @@ import { EntityAuditActivityPanel } from '@/features/audit/entity-audit-activity
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
@@ -284,6 +284,18 @@ function DisclosureCard({
   )
 }
 
+/** Labeled summary chip (irBJ8 Applicability ENTITY · FILES · EFFECTIVE). */
+function FactChip({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-background-subtle px-2.5 py-1">
+      <span className="text-caption-xs font-bold tracking-wide text-text-muted uppercase">
+        {label}
+      </span>
+      <span className="min-w-0 truncate text-[13px] font-medium text-text-primary">{value}</span>
+    </span>
+  )
+}
+
 /** Key/value row for a disclosure-card detail grid. */
 function FactRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -324,22 +336,19 @@ export function RuleDetailCompact({
   // (CandidateReviewSection) is the always-expanded commit footer.
   return (
     <div className="flex min-w-0 flex-col gap-3">
-      {/* Applicability — one-line summary; detail = full facts grid. */}
+      {/* Applicability — 3 labeled chips (irBJ8); detail = full facts grid. */}
       <DisclosureCard
         title={<Trans>Applicability</Trans>}
-        meta={<Plural value={rule.entityApplicability.length} one="# entity" other="# entities" />}
+        meta={<Trans>Verify before Accept</Trans>}
+        moreLabel={<Trans>Show all fields</Trans>}
         summary={
-          <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-text-primary">
-            <JurisdictionCode code={rule.jurisdiction} />
-            <span>{entitySummary}</span>
-            <span aria-hidden className="text-text-tertiary">
-              ·
-            </span>
-            <span className="text-text-secondary">{rule.formName}</span>
-            <span aria-hidden className="text-text-tertiary">
-              ·
-            </span>
-            <span className="text-text-secondary">{formatEnumLabel(rule.eventType)}</span>
+          <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+            <FactChip label={t`Entity`} value={entitySummary} />
+            <FactChip label={t`Files`} value={rule.formName} />
+            <FactChip
+              label={t`Effective`}
+              value={formatDatePretty(rule.verifiedAt, { alwaysShowYear: true })}
+            />
           </div>
         }
         detail={
@@ -356,14 +365,20 @@ export function RuleDetailCompact({
         }
       />
 
-      {/* Due date — summary = humanized logic; detail = extension policy. */}
+      {/* Due date logic — humanized summary in a highlighted block (irBJ8);
+          detail = extension policy. */}
       <DisclosureCard
-        title={<Trans>Due date</Trans>}
-        meta={formatEnumLabel(rule.dueDateLogic.kind)}
-        summary={<p className="text-sm text-text-primary">{dueDateSummary}</p>}
+        title={<Trans>Due date logic</Trans>}
+        meta={<span className="font-mono">{rule.dueDateLogic.kind}</span>}
+        moreLabel={<Trans>View extension rules</Trans>}
+        summary={
+          <div className="rounded-lg bg-background-subtle px-3.5 py-3 text-sm text-text-primary">
+            {dueDateSummary}
+          </div>
+        }
         detail={
           <div className="flex flex-col gap-1.5">
-            <span className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
+            <span className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
               <Trans>Extension</Trans>
             </span>
             <div className="text-sm">
@@ -377,6 +392,9 @@ export function RuleDetailCompact({
       <DisclosureCard
         title={<Trans>Evidence</Trans>}
         meta={<Plural value={rule.evidence.length} one="# source" other="# sources" />}
+        moreLabel={
+          <Plural value={restEvidence.length} one="View # more source" other="View # more sources" />
+        }
         summary={
           primaryEvidence ? (
             <RuleEvidenceCard
@@ -416,6 +434,7 @@ export function RuleDetailCompact({
       <DisclosureCard
         title={<Trans>Activity</Trans>}
         meta={<span className="font-mono tabular-nums">v{rule.version}</span>}
+        moreLabel={<Trans>Show all events</Trans>}
         summary={
           <p className="text-sm text-text-secondary">
             <Trans>

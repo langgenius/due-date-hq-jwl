@@ -40,3 +40,20 @@ affected-client count or a coverage-lift %, so rendering them would be fiction.
 
 Verified live: the modal now shows, in order — Rule under review · Applicability ·
 Due date · Evidence · **Impact** · Activity · Practice review · Decision.
+
+## Card chrome → irBJ8 (right-slots, chips, labels)
+
+Refined `RuleDetailCompact`'s cards to the `irBJ8` spec:
+- **Applicability**: right-slot "Verify before Accept"; summary = 3 labeled
+  `FactChip`s (ENTITY · FILES · EFFECTIVE) instead of an inline line;
+  read-more "Show all fields".
+- **Due date logic**: title (was "Due date"); right-slot = the raw mono kind
+  (`source_defined_calendar` / `fixed_date`); summary wrapped in a highlighted
+  `bg-subtle` block; read-more "View extension rules".
+- **Evidence**: read-more "View N more source(s)".
+- **Activity**: read-more "Show all events".
+
+Verified live. tsgo clean. Still open vs irBJ8: a concrete "Due {date}" block for
+fixed_date rules, the evidence code·name·desc row chrome, a SEPARATE Practice-
+review note card, the sticky Decision footer, and the affected-clients + team-
+notes data (backend).
