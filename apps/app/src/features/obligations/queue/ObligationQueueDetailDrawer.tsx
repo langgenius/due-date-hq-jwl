@@ -2434,7 +2434,7 @@ export function ObligationQueueDetailDrawer({
                       canonical body is single-column, so Ownership + Linked-from
                       fold to a full-width 2-up footer row below the cards (the
                       prior right rail is gone). */}
-                  <aside className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                  <aside className="grid w-full grid-cols-1 items-start gap-4 sm:grid-cols-2">
                     <section className="flex flex-col gap-3 rounded-xl border border-divider-subtle bg-background-default p-4">
                       <h3 className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
                         <Trans>Ownership</Trans>
