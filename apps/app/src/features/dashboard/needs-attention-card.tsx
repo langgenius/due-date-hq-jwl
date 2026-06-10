@@ -500,21 +500,23 @@ function NeedsAttentionCard({
             noise alerts recede. */}
         <span
           className={cn(
-            'inline-flex min-w-0 items-center gap-1',
-            impacted > 0 ? 'text-text-secondary' : 'text-text-muted',
+            // 2026-06-10 (Yuqi /today #3 "better show affected clients when
+            // there ARE clients"): the affected-clients line is the row's
+            // priority signal, so it holds `shrink-0` and never truncates —
+            // the fixed-width source (right) is what gives way on tight cards.
+            'inline-flex shrink-0 items-center gap-1 whitespace-nowrap',
+            impacted > 0 ? 'font-medium text-text-secondary' : 'text-text-muted',
           )}
         >
           {/* 2026-06-08 (Yuqi /alerts #4 "love this icon, apply to all"):
               Users icon for the affected-clients line, unified with the
               /alerts AlertCard + PulseAlertRow. */}
           <UsersIcon className="size-3 shrink-0" aria-hidden />
-          <span className="truncate">
-            {impacted > 0 ? (
-              <Plural value={impacted} one="Affects # client" other="Affects # clients" />
-            ) : (
-              <Trans>No clients matched</Trans>
-            )}
-          </span>
+          {impacted > 0 ? (
+            <Plural value={impacted} one="Affects # client" other="Affects # clients" />
+          ) : (
+            <Trans>No clients matched</Trans>
+          )}
         </span>
 
         {/* 2026-06-09 (Yuqi /today "avatar only when clients affected"): gate
@@ -592,14 +594,14 @@ function NeedsAttentionCard({
           <TooltipTrigger
             render={(props) => (
               <span
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-xs font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary"
+                className="inline-flex min-w-0 max-w-[160px] cursor-pointer items-center gap-1 text-xs font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary"
                 onClick={(event) => {
                   event.stopPropagation()
                   window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
                 }}
                 {...props}
               >
-                <span className="block w-[150px] truncate text-right">{alert.source}</span>
+                <span className="truncate text-right">{alert.source}</span>
               </span>
             )}
           />

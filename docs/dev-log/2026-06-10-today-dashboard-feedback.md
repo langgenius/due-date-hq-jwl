@@ -51,3 +51,16 @@ Verified live on /today: LIVE pill bg #ecfdf3, Daily Brief bg #fff + #1018281f b
   a `cursor-help` + `title` tooltip — "{N} of {M} expected source documents
   attached for this filing" — so the ratio's meaning is discoverable. Verified
   ("0 of 2 expected source documents attached for this filing").
+
+## Wave 4 — #3 affected-clients priority
+
+- **#3** (`needs-attention-card.tsx`): "how to better show affected clients when
+  there ARE clients." The #2 pass had let the affects-line truncate (it clipped to
+  "Affects…"), burying the very signal #3 cares about. Reprioritized: the
+  affected-clients line is now `shrink-0 whitespace-nowrap` (+ `font-medium` when
+  clients are matched) so "Affects N clients" always reads in full with its
+  avatars; the **source** instead became the give-way element (`min-w-0
+  max-w-[160px]` + truncate). Net: affects-line always full, source truncates on
+  tight cards — both #2 (source caps + truncates, shares the line) and #3 (clients
+  shown clearly) satisfied. Verified live ("Affects 1 client" / "No clients
+  matched" read fully).
