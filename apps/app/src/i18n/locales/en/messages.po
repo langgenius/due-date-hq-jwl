@@ -10083,6 +10083,10 @@ msgstr "No deadline categories match."
 msgid "No deadline overlay will be applied"
 msgstr "No deadline overlay will be applied"
 
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "No deadline pressure right now."
+msgstr "No deadline pressure right now."
+
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "No deadlines due in the next 7 days"
 msgstr "No deadlines due in the next 7 days"
@@ -11292,6 +11296,12 @@ msgstr "Over your client limit"
 #: src/routes/obligations.tsx
 msgid "Overdue"
 msgstr "Overdue"
+
+#. placeholder {0}: concentration.count
+#. placeholder {1}: concentration.overdueTotal
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Overdue work is concentrated in {formLabel} ({0} of {1})"
+msgstr "Overdue work is concentrated in {formLabel} ({0} of {1})"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Overridden"
@@ -16838,6 +16848,7 @@ msgid "View breakdown"
 msgstr "View breakdown"
 
 #: src/features/dashboard/actions-list.tsx
+#: src/features/dashboard/daily-brief-card.tsx
 msgid "View deadlines"
 msgstr "View deadlines"
 

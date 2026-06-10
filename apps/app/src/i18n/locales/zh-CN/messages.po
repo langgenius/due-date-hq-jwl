@@ -10130,6 +10130,10 @@ msgstr "没有匹配的截止日类别。"
 msgid "No deadline overlay will be applied"
 msgstr "不会应用截止日覆盖"
 
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "No deadline pressure right now."
+msgstr "当前没有截止压力。"
+
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "No deadlines due in the next 7 days"
 msgstr "未来 7 天内没有到期的截止日期"
@@ -11349,6 +11353,12 @@ msgstr "已超出客户数上限"
 #: src/routes/obligations.tsx
 msgid "Overdue"
 msgstr "已逾期"
+
+#. placeholder {0}: concentration.count
+#. placeholder {1}: concentration.overdueTotal
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Overdue work is concentrated in {formLabel} ({0} of {1})"
+msgstr "逾期工作集中在 {formLabel}（{0}/{1} 件）"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Overridden"
@@ -16922,6 +16932,7 @@ msgid "View breakdown"
 msgstr "查看明细"
 
 #: src/features/dashboard/actions-list.tsx
+#: src/features/dashboard/daily-brief-card.tsx
 msgid "View deadlines"
 msgstr "查看截止日期"
 

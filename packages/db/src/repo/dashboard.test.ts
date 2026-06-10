@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   composeDashboardLoad,
   isSameUtcDay,
+  resolveOverdueConcentration,
   resolveRecapAnchor,
   severityForDueDate,
   type DashboardLoadInput,
@@ -12,6 +13,37 @@ const AS_OF = '2026-04-28'
 function due(date: string): Date {
   return new Date(`${date}T00:00:00.000Z`)
 }
+
+// 2026-06-10 (firm-scope Today line): the overdue cluster is reported by
+// FORM TYPE only (never by member), ties break alphabetically for a
+// stable line, and zero overdue yields null.
+describe('overdue concentration', () => {
+  it('picks the top form type and totals the scoped overdue', () => {
+    expect(
+      resolveOverdueConcentration(
+        new Map([
+          ['federal_1120', 3],
+          ['ny_ct3', 1],
+        ]),
+      ),
+    ).toEqual({ taxType: 'federal_1120', count: 3, overdueTotal: 4 })
+  })
+
+  it('breaks ties on the alphabetically-first tax type', () => {
+    expect(
+      resolveOverdueConcentration(
+        new Map([
+          ['ny_ct3', 2],
+          ['ca_100', 2],
+        ]),
+      ),
+    ).toEqual({ taxType: 'ca_100', count: 2, overdueTotal: 4 })
+  })
+
+  it('returns null with nothing overdue', () => {
+    expect(resolveOverdueConcentration(new Map())).toBeNull()
+  })
+})
 
 // 2026-06-10 (Daily Brief "Yesterday" row): the recap anchor must be the
 // most recent EARLIER-day visit — surviving today's own rollover stamp via
@@ -163,6 +195,7 @@ describe('dashboard aggregation', () => {
     expect(result.summary).toEqual({
       openObligationCount: 4,
       firmOpenObligationCount: 4,
+      overdueConcentration: { taxType: 'ca_100', count: 1, overdueTotal: 1 },
       dueThisWeekCount: 3,
       needsReviewCount: 1,
       evidenceGapCount: 3,

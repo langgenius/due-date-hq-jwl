@@ -3,13 +3,19 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
-import type { DashboardBriefPublic, DashboardRecap } from '@duedatehq/contracts'
+import type {
+  DashboardBriefPublic,
+  DashboardBriefScope,
+  DashboardRecap,
+  DashboardSummary,
+} from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatRelativeTime } from '@/lib/utils'
+import { formatTaxCode } from '@/lib/tax-codes'
 import { parseBriefText } from './brief-text'
 
 type DashboardBriefCitation = NonNullable<DashboardBriefPublic['citations']>[number]
@@ -36,35 +42,49 @@ export interface DailyBriefTodayCounts {
  * Citation `[n]` tokens resolve to accent chips deep-linking back to the
  * obligation (evidence traceability, not decoration).
  *
+ * 2026-06-10 (Yuqi — firm scope goes deterministic): at scope='firm' the
+ * Today line is NOT an AI sentence. The Everyone reader is supervising,
+ * not executing — their line is "where does the overdue work cluster",
+ * expressed by FORM TYPE only (never by member name) from
+ * summary.overdueConcentration, plus the count chips. No AI call, no
+ * freshness chip, no refresh affordance at firm scope; firm-scope brief
+ * generation is retired server-side (cron fan-out removed, consumer
+ * drops firm messages). The personal scope keeps the AI sentence.
+ *
  * Card chrome stays Pencil `qYrr3` (accent-tinted, hairline-free, calm
  * title row with one freshness dot). Renders nothing only when there is
  * neither a brief nor a recap (initial load / feature-off firms).
  */
 export function DailyBriefCard({
+  scope,
   brief,
   recap,
   todayCounts,
+  concentration,
   onRefresh,
   refreshing,
   onOpenObligation,
   onClose,
 }: {
+  scope: DashboardBriefScope
   brief: DashboardBriefPublic | null
   recap: DashboardRecap | null
   todayCounts: DailyBriefTodayCounts
+  concentration: DashboardSummary['overdueConcentration']
   onRefresh: () => void
   refreshing: boolean
   onOpenObligation: (obligationId: string) => void
   onClose?: (() => void) | undefined
 }) {
   const { t } = useLingui()
-  if (!brief && !recap) return null
+  const aiEnabled = scope === 'me'
+  if (!brief && !recap && !(scope === 'firm' && concentration)) return null
 
-  const isPending = brief?.status === 'pending' || refreshing
+  const isPending = aiEnabled && (brief?.status === 'pending' || refreshing)
   // Refresh is only meaningful once a brief exists in some terminal-ish
   // state; while it's generating the status label shows the spinner, and
   // with no brief at all the Today row carries its own Generate link.
-  const canRefresh = brief !== null && !isPending
+  const canRefresh = aiEnabled && brief !== null && !isPending
 
   return (
     <section
@@ -82,7 +102,7 @@ export function DailyBriefCard({
           <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
             <Trans>Daily Brief</Trans>
           </h2>
-          {brief ? (
+          {aiEnabled && brief ? (
             <BriefFreshness
               brief={brief}
               pending={isPending}
@@ -137,12 +157,16 @@ export function DailyBriefCard({
           <Trans>Today</Trans>
         </BriefRowLabel>
         <div className="flex min-w-0 flex-col gap-0.5">
-          <TodayLine
-            brief={brief}
-            pending={isPending}
-            onRefresh={onRefresh}
-            onOpenObligation={onOpenObligation}
-          />
+          {aiEnabled ? (
+            <TodayLine
+              brief={brief}
+              pending={isPending}
+              onRefresh={onRefresh}
+              onOpenObligation={onOpenObligation}
+            />
+          ) : (
+            <FirmTodayLine concentration={concentration} counts={todayCounts} />
+          )}
           <TodayCountsLine counts={todayCounts} />
         </div>
       </div>
@@ -316,6 +340,48 @@ function TodayLine({
       ) : null}
     </p>
   )
+}
+
+/**
+ * Firm-scope Today line — fully deterministic, supervisory voice. Says
+ * where the overdue work CLUSTERS by form type ("Overdue concentrated in
+ * Form 1120 (3 of 5)") and deliberately never names a member. Renders
+ * only when there is a real cluster (≥2 of one form); scattered overdue
+ * is already carried by the count chips below. All-quiet collapses to
+ * one muted line so the row never sits empty.
+ */
+function FirmTodayLine({
+  concentration,
+  counts,
+}: {
+  concentration: DashboardSummary['overdueConcentration']
+  counts: DailyBriefTodayCounts
+}) {
+  if (concentration && concentration.count >= 2) {
+    const formLabel = formatTaxCode(concentration.taxType)
+    return (
+      <p className="min-w-0 text-sm leading-[1.5] font-medium text-text-primary">
+        <Trans>
+          Overdue work is concentrated in {formLabel} ({concentration.count} of{' '}
+          {concentration.overdueTotal})
+        </Trans>{' '}
+        <Link to="/deadlines" className="text-text-accent underline-offset-2 hover:underline">
+          <Trans>View deadlines</Trans>
+        </Link>
+      </p>
+    )
+  }
+  const allQuiet =
+    counts.overdueCount === 0 && counts.waitingOnClientCount === 0 && counts.dueThisWeekCount === 0
+  if (allQuiet) {
+    return (
+      <p className="text-sm leading-[1.5] text-text-tertiary">
+        <Trans>No deadline pressure right now.</Trans>
+      </p>
+    )
+  }
+  // Scattered or light overdue — the count chips below carry the signal.
+  return null
 }
 
 /** Scoped workload counts under the AI sentence — only non-zero render. */

@@ -47,3 +47,16 @@ Full worktree stack (own D1 + migrations + demo seed + injected audit
 events): splash recap → stamp rollover → brief Yesterday row on the same
 anchor; filed/paid split, alerts link, due-date moves; Everyone-scope counts
 switch; AI-failed inline retry with the deterministic rows intact.
+
+## Follow-up (same day): firm scope goes fully deterministic
+
+Yuqi: the Everyone reader is supervising, not executing — and the firm view
+must not single out members. So at scope='firm' the Today line is now
+`summary.overdueConcentration`: "Overdue work is concentrated in {form} (N of
+M)" by FORM TYPE only (ties break alphabetically; hidden when no form has ≥2
+overdue; all-quiet collapses to one muted line). No AI sentence, no freshness
+chip, no refresh at firm scope. Server-side, firm-scope brief generation is
+retired: the daily cron fan-out (plus its weekend critical-risk probe) is
+removed and the consumer drops scope='firm' messages, which also turns the
+client-procedure data-change enqueues into no-ops. Personal ('me') briefs are
+unchanged.

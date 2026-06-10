@@ -6,7 +6,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Env } from '../env'
 import { dashboardBriefDebounceKey } from './dashboard-brief/enqueue'
-import { shouldEnqueueScheduledDashboardBrief } from './cron'
 import { assertQueueDispatchable, isPulseDeadLetterQueue, queue, queueMessageType } from './queue'
 
 function batch(messages: Array<{ body?: unknown }>) {
@@ -193,22 +192,5 @@ describe('queue consumer', () => {
     })
     expect(first).toBe(second)
     expect(first).toBe('dashboard-brief:debounce:firm_1:firm:firm')
-  })
-
-  it('skips scheduled dashboard briefs on weekends unless risk is critical', () => {
-    expect(
-      shouldEnqueueScheduledDashboardBrief({
-        timezone: 'UTC',
-        now: new Date('2026-04-25T07:00:00.000Z'),
-        hasCriticalRisk: false,
-      }),
-    ).toBe(false)
-    expect(
-      shouldEnqueueScheduledDashboardBrief({
-        timezone: 'UTC',
-        now: new Date('2026-04-25T07:00:00.000Z'),
-        hasCriticalRisk: true,
-      }),
-    ).toBe(true)
   })
 })

@@ -166,6 +166,13 @@ async function refreshDashboardBrief(
   message: DashboardBriefRefreshMessage,
   env: Env,
 ): Promise<void> {
+  // 2026-06-10 (firm-scope Today line went deterministic): the Everyone
+  // view no longer renders an AI sentence, so firm-scope briefs are never
+  // displayed. Drop the work at the consumer — the data-change enqueues
+  // scattered across client/obligation procedures become cheap no-ops
+  // without touching each callsite. Personal ('me') briefs still
+  // self-heal on view.
+  if (message.scope === 'firm') return
   const firm = await loadFirmContext(env, message.firmId)
   if (!firm) return
 

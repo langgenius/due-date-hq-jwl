@@ -175,6 +175,9 @@ export interface DashboardLoadResult {
     // Always firm-wide (unscoped), even when `scope: 'me'` — feeds the
     // "your queue is clear, the firm still has N" empty-state split.
     firmOpenObligationCount: number
+    // Scoped: which form type the overdue work clusters in (form-level
+    // only — never a member-level signal). Null when nothing is overdue.
+    overdueConcentration: { taxType: string; count: number; overdueTotal: number } | null
     dueThisWeekCount: number
     needsReviewCount: number
     evidenceGapCount: number
@@ -207,6 +210,24 @@ export interface DashboardRecap {
 
 function parseDateOnly(date: string): Date {
   return new Date(`${date}T00:00:00.000Z`)
+}
+
+// Top overdue form type within the current scope — the deterministic
+// "risk is concentrated in …" signal for the firm-scope Today line. Ties
+// break on the alphabetically-first tax type so the line is stable
+// across reloads. Null when nothing is overdue.
+export function resolveOverdueConcentration(
+  overdueByTaxType: ReadonlyMap<string, number>,
+): { taxType: string; count: number; overdueTotal: number } | null {
+  let top: { taxType: string; count: number } | null = null
+  let overdueTotal = 0
+  for (const [taxType, count] of overdueByTaxType) {
+    overdueTotal += count
+    if (!top || count > top.count || (count === top.count && taxType < top.taxType)) {
+      top = { taxType, count }
+    }
+  }
+  return top ? { ...top, overdueTotal } : null
 }
 
 // UTC calendar-day comparison. The visit rollover + recap anchor use UTC
@@ -445,6 +466,10 @@ export function composeDashboardLoad(
   let accruedPenaltyReadyCount = 0
   let accruedPenaltyNeedsInputCount = 0
   let accruedPenaltyUnsupportedCount = 0
+  // 2026-06-10 (firm-scope Today line): which FORM TYPE the overdue work
+  // clusters in — deliberately a form-level signal, never a person-level
+  // one (the firm view must not single out members).
+  const overdueByTaxType = new Map<string, number>()
   const asOf = parseDateOnly(input.asOfDate).getTime()
   const topRowDrafts: Array<Omit<DashboardTopRow, 'smartPriority'>> = []
 
@@ -452,6 +477,9 @@ export function composeDashboardLoad(
     const days = daysUntilDueFromDate(row.currentDueDate, input.asOfDate)
     const inUrgentWindow = days <= windowDays
     const isOverdue = days < 0
+    if (isOverdue) {
+      overdueByTaxType.set(row.taxType, (overdueByTaxType.get(row.taxType) ?? 0) + 1)
+    }
     const evidence = evidenceByObligation.get(row.obligationId) ?? []
     const accrued = estimateAccruedPenalty(
       {
@@ -533,6 +561,7 @@ export function composeDashboardLoad(
     summary: {
       openObligationCount: scopedRows.length,
       firmOpenObligationCount: rows.length,
+      overdueConcentration: resolveOverdueConcentration(overdueByTaxType),
       dueThisWeekCount,
       needsReviewCount,
       evidenceGapCount,

@@ -1456,6 +1456,7 @@ describe('@duedatehq/contracts', () => {
       summary: {
         openObligationCount: 1,
         firmOpenObligationCount: 1,
+        overdueConcentration: { taxType: 'ca_llc_annual_tax', count: 1, overdueTotal: 1 },
         dueThisWeekCount: 1,
         needsReviewCount: 0,
         evidenceGapCount: 0,

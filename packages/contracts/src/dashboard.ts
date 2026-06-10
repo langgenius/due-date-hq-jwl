@@ -90,6 +90,16 @@ export const DashboardSummarySchema = z.object({
   // Firm-wide open count, never scoped — when scope='me' empties the
   // personal queue, this drives the "firm still has N" empty state.
   firmOpenObligationCount: z.number().int().min(0),
+  // 2026-06-10 (firm-scope Today line): which form type the scoped
+  // overdue work clusters in. Deliberately form-level, never
+  // member-level — the Everyone view must not single people out.
+  overdueConcentration: z
+    .object({
+      taxType: z.string().min(1),
+      count: z.number().int().min(1),
+      overdueTotal: z.number().int().min(1),
+    })
+    .nullable(),
   dueThisWeekCount: z.number().int().min(0),
   needsReviewCount: z.number().int().min(0),
   evidenceGapCount: z.number().int().min(0),

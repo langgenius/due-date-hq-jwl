@@ -144,6 +144,9 @@ export interface DashboardLoadResult {
     // the personal queue this still says whether the rest of the firm has
     // open work (drives the "you're clear, firm has N" empty state).
     firmOpenObligationCount: number
+    // Scoped: which form type the overdue work clusters in. Form-level
+    // only by design — the firm view must never single out members.
+    overdueConcentration: { taxType: string; count: number; overdueTotal: number } | null
     dueThisWeekCount: number
     needsReviewCount: number
     evidenceGapCount: number
