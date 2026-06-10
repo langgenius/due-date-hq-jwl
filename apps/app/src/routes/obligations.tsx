@@ -3797,7 +3797,7 @@ export function ObligationQueueRoute() {
           <div
             ref={filterBarRef}
             className={cn(
-              'sticky top-0 z-20 flex flex-col gap-1.5 border-b border-divider-subtle',
+              'sticky top-0 z-20 flex flex-col gap-1.5',
               // Full-page mode: table rows scroll behind the bar, so it needs
               // an opaque fill. In the panel-open split nothing scrolls behind
               // it, so it stays transparent over the inset surface.
@@ -3814,16 +3814,12 @@ export function ObligationQueueRoute() {
                 narrow viewports; hidden in the panel-open split. */}
             {!panelOpenIntent ? (
               <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <span className="inline-flex shrink-0 items-center gap-1.5 pr-0.5 text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
-                  <ListChecksIcon className="size-3.5" aria-hidden />
-                  <Trans>Status</Trans>
-                </span>
-                <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-divider-subtle bg-background-subtle p-1">
+                <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-background-subtle p-1">
                   <button
                     type="button"
                     data-active={activeScope === 'all'}
                     onClick={() => void setObligationQueueQuery({ status: null })}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-base font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-accent"
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-accent"
                   >
                     <Trans>All</Trans>
                     <span className="tabular-nums text-text-tertiary">{scopeTotal}</span>
@@ -3834,7 +3830,7 @@ export function ObligationQueueRoute() {
                       type="button"
                       data-active={activeScope === status}
                       onClick={() => void setObligationQueueQuery({ status: [status] })}
-                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-base font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
                     >
                       <span
                         className={cn(
