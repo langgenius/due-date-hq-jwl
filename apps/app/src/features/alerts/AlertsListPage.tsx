@@ -36,7 +36,6 @@ import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -224,10 +223,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   //     actionable work).
   //   • 'review' = `review_only` alerts (informational, just need a look).
   // Active-only affordance (history has its own handled-status filter).
-  // 2026-06-09 (Yuqi "Review is before active"): Review leads the toggle and is
-  // the default queue (it's the larger, always-populated set; the Active queue
-  // is often empty until a due-date/client-impacting alert lands).
-  const [workQueue, setWorkQueue] = useState<'active' | 'review'>('review')
+  // 2026-06-10: Active leads the toggle and is the default queue so the first
+  // screen prioritizes actionable due-date/client-impacting alerts.
+  const [workQueue, setWorkQueue] = useState<'active' | 'review'>('active')
 
   // 2026-06-07 (Pencil g5kKJQ — bulk selection): local selection set
   // of alert ids. Drives the per-row checkboxes, the BulkSelectStrip's
@@ -970,7 +968,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 {/* 2026-06-09 (Yuqi "add a toggle between review and active"):
                     the primary work-queue switch leads the toolbar on the
                     active list — Active = actionable due-date alerts, Review =
-                    review-only. Counts ride in the labels. Suppressed in
+                    review-only. Active leads by default; counts ride in the labels. Suppressed in
                     history (which slices by handled status instead). */}
                 {!historyMode ? (
                   <Segmented
@@ -980,23 +978,23 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     onValueChange={setWorkQueue}
                     options={[
                       {
-                        value: 'review',
-                        label: (
-                          <span className="inline-flex items-center gap-1.5">
-                            <Trans>Review</Trans>
-                            <span className="tabular-nums text-text-tertiary">
-                              {workQueueCounts.review}
-                            </span>
-                          </span>
-                        ),
-                      },
-                      {
                         value: 'active',
                         label: (
                           <span className="inline-flex items-center gap-1.5">
                             <Trans>Active</Trans>
                             <span className="tabular-nums text-text-tertiary">
                               {workQueueCounts.active}
+                            </span>
+                          </span>
+                        ),
+                      },
+                      {
+                        value: 'review',
+                        label: (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Trans>Review</Trans>
+                            <span className="tabular-nums text-text-tertiary">
+                              {workQueueCounts.review}
                             </span>
                           </span>
                         ),
@@ -2028,10 +2026,7 @@ function SkeletonAlertRow() {
             aria-hidden
             className="h-[22px] w-14 rounded-[4px] motion-reduce:animate-none"
           />
-          <Skeleton
-            aria-hidden
-            className="h-[22px] w-20 rounded-sm motion-reduce:animate-none"
-          />
+          <Skeleton aria-hidden className="h-[22px] w-20 rounded-sm motion-reduce:animate-none" />
           <span className="flex-1" aria-hidden />
           <Skeleton aria-hidden className="h-3 w-24 rounded-full motion-reduce:animate-none" />
         </div>

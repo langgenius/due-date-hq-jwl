@@ -116,23 +116,23 @@ export function AlertListRail({
             onValueChange={onWorkQueueChange}
             options={[
               {
-                value: 'review',
-                label: (
-                  <span className="inline-flex items-center gap-1">
-                    <Trans>Review</Trans>
-                    <span className="tabular-nums text-text-tertiary">
-                      {workQueueCounts?.review ?? 0}
-                    </span>
-                  </span>
-                ),
-              },
-              {
                 value: 'active',
                 label: (
                   <span className="inline-flex items-center gap-1">
                     <Trans>Active</Trans>
                     <span className="tabular-nums text-text-tertiary">
                       {workQueueCounts?.active ?? 0}
+                    </span>
+                  </span>
+                ),
+              },
+              {
+                value: 'review',
+                label: (
+                  <span className="inline-flex items-center gap-1">
+                    <Trans>Review</Trans>
+                    <span className="tabular-nums text-text-tertiary">
+                      {workQueueCounts?.review ?? 0}
                     </span>
                   </span>
                 ),

@@ -4,8 +4,9 @@ A run of Yuqi page-feedback on the alerts surface (list + detail + dashboard
 cards). No contract/data changes. Verified live; `tsgo` clean.
 
 ## Alerts list (`AlertsListPage`, `PulseAlertRow`, `AlertListRail`)
-- **Review ⇄ Active work-queue toggle** — segmented control (Review first,
-  default Review) splitting the list into two queues via `isActiveAlert`
+
+- **Active ⇄ Review work-queue toggle** — segmented control (Active first,
+  default Active) splitting the list into two queues via `isActiveAlert`
   (`pulse-alert-chrome.ts`): Active = needs action (due-date overlay /
   deadline-shift **or** flags clients), Review = informational. Counts in the
   labels. Echoed in the detail rail so you can switch queues mid-review.
@@ -24,13 +25,16 @@ cards). No contract/data changes. Verified live; `tsgo` clean.
   "no alerts match these filters" line.
 
 ## Alert detail drawer (`AlertDetailDrawer`)
+
 - **Mark reviewed no longer closes the drawer** — it's a status change, not an
   exit; the detail updates in place via invalidate. (Apply/dismiss still close.)
 
 ## History (`AlertHistoryView`, `alerts.history.tsx`)
+
 - Width unified to the active list (`md:px-8`, was `md:px-16`).
 
 ## Batch actions unified (`floating-action-bar` consumers)
+
 - The alerts bulk bar now renders through the canonical `FloatingActionBar`
   (`tone="elevated"`, bottom-12 / z-40) — the same bottom-center floating pill
   /deadlines, /rules, /clients use (was a hand-rolled `motion.div` at a

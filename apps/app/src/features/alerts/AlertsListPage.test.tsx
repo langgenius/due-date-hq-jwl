@@ -347,6 +347,46 @@ describe('AlertsListPage source health display', () => {
   })
 })
 
+describe('AlertsListPage work queue toggle', () => {
+  it('defaults to Active first and switches to Review-only alerts on request', async () => {
+    const activeDetail = alertDetail()
+    const reviewOnlyAlert = listAlert({
+      id: '23232323-2323-4232-8232-232323232323',
+      pulseId: '45454545-4545-4454-8454-454545454545',
+      title: 'Review-only source update',
+      changeKind: 'form_instruction',
+      actionMode: 'review_only',
+      firmImpact: 'review_only',
+      matchedCount: 0,
+      needsReviewCount: 0,
+      applyReadiness: { status: 'not_applicable', missing: [] },
+    })
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({
+      alerts: [reviewOnlyAlert, activeDetail.alert],
+      nextCursor: null,
+    })
+    rpcMocks.getDetailsBatchQueryFn.mockResolvedValue({ details: [activeDetail] })
+
+    await render(<AlertsListPage embedded />)
+
+    await waitForText('Seeded CA relief')
+    expect(document.body.textContent).not.toContain('Review-only source update')
+    const queueButtons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('[aria-label="Alert work queue"] button'),
+    )
+    expect(queueButtons[0]?.textContent).toContain('Active')
+    expect(queueButtons[0]?.getAttribute('aria-pressed')).toBe('true')
+    expect(queueButtons[1]?.textContent).toContain('Review')
+
+    await act(async () => {
+      queueButtons[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    await waitForText('Review-only source update')
+    expect(document.body.textContent).not.toContain('Seeded CA relief')
+  })
+})
+
 describe('AlertsListPage affected-client batching', () => {
   // 2026-06-05 (post-merge): rounds 70-85 reshaped the alert row
   // chrome — the i90PZ list-row layout shows count-only
