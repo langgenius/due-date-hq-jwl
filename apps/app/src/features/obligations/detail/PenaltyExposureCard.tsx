@@ -3,6 +3,7 @@ import { ExternalLinkIcon } from 'lucide-react'
 import type { ObligationQueueRow } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { formatCents } from '@/lib/utils'
 
 const MONTHS = [
@@ -65,25 +66,26 @@ export function PenaltyExposureCard({ row }: { row: ObligationQueueRow }) {
   const items = projected.length > 0 ? projected : accrued
 
   return (
-    <section className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
-      {/* Header band */}
-      <div className="flex h-9 items-center gap-2 bg-background-subtle px-5">
-        <h3 className="text-[13px] font-semibold text-text-primary">
-          <Trans>Penalty exposure</Trans>
-        </h3>
-        {primarySource ? (
+    // Pencil `u2jxP`: the shared <DetailSectionCard> chrome (gray #f9fafb header
+    // band + "View schedule →" link). `flush` because the body owns its own
+    // padding + the needs-input / 2-column variants.
+    <DetailSectionCard
+      title={<Trans>Penalty exposure</Trans>}
+      headerRight={
+        primarySource ? (
           <a
             href={primarySource.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto inline-flex items-center gap-1 text-caption font-medium text-text-accent outline-none hover:underline focus-visible:underline"
+            className="inline-flex items-center gap-1 font-medium text-text-accent outline-none hover:underline focus-visible:underline"
           >
             <Trans>View schedule</Trans>
             <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
           </a>
-        ) : null}
-      </div>
-
+        ) : undefined
+      }
+      flush
+    >
       {!hasExposure ? (
         // Needs-input honest empty state.
         <div className="flex flex-col gap-1.5 px-5 py-4">
@@ -191,6 +193,6 @@ export function PenaltyExposureCard({ row }: { row: ObligationQueueRow }) {
           </div>
         </div>
       )}
-    </section>
+    </DetailSectionCard>
   )
 }

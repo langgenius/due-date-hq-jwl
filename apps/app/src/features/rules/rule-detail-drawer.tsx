@@ -40,6 +40,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import {
@@ -179,10 +180,7 @@ function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
   // archived events, keyed by entityType 'rule' + the rule id. Closes the
   // "Rule library row → version history" surface gap.
   return (
-    <section className="flex flex-col gap-3 border-t border-divider-subtle pt-4">
-      <RuleSectionHeading>
-        <Trans>Version history</Trans>
-      </RuleSectionHeading>
+    <DetailSectionCard title={<Trans>Version history</Trans>}>
       <EntityAuditActivityPanel
         entityType="rule"
         entityId={rule.id}
@@ -191,7 +189,7 @@ function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
           <Trans>Edits, version bumps, and review decisions for this rule will appear here.</Trans>
         }
       />
-    </section>
+    </DetailSectionCard>
   )
 }
 
@@ -1484,11 +1482,11 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
   //     payment" instead of "· also payment") so the suffix reads
   //     as a sentence.
   return (
-    <section className="flex flex-col gap-3">
-      <RuleSectionHeading>
-        <Trans>Applicability</Trans>
-      </RuleSectionHeading>
-      <p className="text-base text-text-primary">
+    <DetailSectionCard
+      title={<Trans>Applicability</Trans>}
+      headerRight={<Plural value={rule.entityApplicability.length} one="# entity" other="# entities" />}
+    >
+      <p className="text-sm text-text-primary">
         <Trans>
           Applies to {formatEntityApplicability(rule.entityApplicability)} in{' '}
           <JurisdictionCode code={rule.jurisdiction} />
@@ -1518,7 +1516,7 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
             : `${rule.taxYear}–${rule.applicableYear}`}
         </span>
       </div>
-    </section>
+    </DetailSectionCard>
   )
 }
 
@@ -1552,12 +1550,9 @@ function DueDateLogicSection({ rule }: { rule: ObligationRule }) {
   // before reading the answer. Padding tightened so the answer
   // sits closer to the label.
   return (
-    <section className="flex flex-col gap-3">
-      <RuleSectionHeading>
-        <Trans>When it's due</Trans>
-      </RuleSectionHeading>
-      <p className="text-base text-text-primary">{summary}</p>
-    </section>
+    <DetailSectionCard title={<Trans>When it's due</Trans>}>
+      <p className="text-sm text-text-primary">{summary}</p>
+    </DetailSectionCard>
   )
 }
 
@@ -1573,13 +1568,10 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
   const { extensionPolicy } = rule
   const durationMonths = extensionPolicy.durationMonths
   return (
-    <section className="flex flex-col gap-3">
-      <RuleSectionHeading>
-        <Trans>Extension</Trans>
-      </RuleSectionHeading>
+    <DetailSectionCard title={<Trans>Extension</Trans>}>
       {extensionPolicy.available ? (
         <div className="flex flex-col gap-2">
-          <p className="text-base text-text-primary">
+          <p className="text-sm text-text-primary">
             <Trans>An extension can be filed for this deadline.</Trans>
           </p>
           <div className="grid grid-cols-[88px_1fr] gap-x-3 gap-y-1.5 text-sm">
@@ -1623,7 +1615,7 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
-          <p className="text-base text-text-primary">
+          <p className="text-sm text-text-primary">
             <Trans>This deadline cannot be extended.</Trans>
           </p>
           {extensionPolicy.notes ? (
@@ -1631,7 +1623,7 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
           ) : null}
         </div>
       )}
-    </section>
+    </DetailSectionCard>
   )
 }
 
@@ -1698,15 +1690,10 @@ function EvidenceSection({
   sourceLookup: ReadonlyMap<string, RuleSource>
 }) {
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex items-baseline justify-between">
-        <RuleSectionHeading>
-          <Trans>Evidence</Trans>
-        </RuleSectionHeading>
-        <span className="font-mono text-xs tabular-nums text-text-tertiary">
-          {rule.evidence.length}
-        </span>
-      </div>
+    <DetailSectionCard
+      title={<Trans>Evidence</Trans>}
+      headerRight={<span className="font-mono tabular-nums">{rule.evidence.length}</span>}
+    >
       <div className="flex flex-col gap-2">
         {rule.evidence.map((evidence) => (
           <RuleEvidenceCard
@@ -1716,7 +1703,7 @@ function EvidenceSection({
           />
         ))}
       </div>
-    </section>
+    </DetailSectionCard>
   )
 }
 
@@ -1832,11 +1819,8 @@ function VerificationSection({ rule }: { rule: ObligationRule }) {
   if (!rule.reviewedAt) return null
 
   return (
-    <section className="flex flex-col gap-3 border-t border-divider-subtle pt-4">
-      <RuleSectionHeading>
-        <Trans>Practice review</Trans>
-      </RuleSectionHeading>
-      <div className="grid grid-cols-[88px_1fr] gap-y-1 text-xs">
+    <DetailSectionCard title={<Trans>Practice review</Trans>}>
+      <div className="grid grid-cols-[88px_1fr] gap-y-1 text-sm">
         <span className="text-text-tertiary">
           <Trans>Reviewed by</Trans>
         </span>
@@ -1850,6 +1834,6 @@ function VerificationSection({ rule }: { rule: ObligationRule }) {
           {formatDateTimeWithTimezone(rule.reviewedAt, practiceTimezone)}
         </span>
       </div>
-    </section>
+    </DetailSectionCard>
   )
 }
