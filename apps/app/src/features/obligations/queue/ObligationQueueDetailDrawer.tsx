@@ -1961,7 +1961,15 @@ export function ObligationQueueDetailDrawer({
                 reads as part of the page, not a banded strip. The TabsList's own
                 bottom hairline still anchors the bar; the page wash behind it is
                 the same warm canvas, so there's no visible seam. */}
-            <div className="sticky top-0 z-10 pt-3">
+            <div
+              className={cn(
+                'sticky top-0 z-10 pt-3',
+                // Page-mode tab bar needs an opaque fill — the stepper/content
+                // scrolls behind it when pinned, so a transparent bar bleeds
+                // (Yuqi: "the tabs don't have a background?").
+                isPageMode ? 'bg-background-subtle pb-3' : '',
+              )}
+            >
               {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
                   from design/deadlines-drawer-rework): tab bar
                   switched from default pill segmented control to the
