@@ -111,6 +111,9 @@ vi.mock('../pulse/ingest', () => ({
   // fetchTextSnapshot is mocked separately, so ctx.fetch is never invoked here;
   // the wrapper just needs to return a function (pass the fetch through).
   createPoliteFetch: (fn: typeof fetch) => fn,
+  // Must mirror the real constant: the failure path computes
+  // Math.min(cadence, PULSE_SOURCE_FAILURE_RETRY_MS) — undefined would be NaN.
+  PULSE_SOURCE_FAILURE_RETRY_MS: 15 * 60 * 1000,
 }))
 
 vi.mock('../pulse/metrics', () => ({
@@ -410,6 +413,38 @@ describe('rule source scan jobs', () => {
       }),
     )
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
+  })
+
+  it("caps a failed scan's retry at 15 minutes instead of the full cadence", async () => {
+    coreMocks.sources.splice(
+      0,
+      coreMocks.sources.length,
+      source({ id: 'quarterly-source', cadence: 'quarterly' }),
+    )
+    fetchMocks.fetchTextSnapshot.mockRejectedValue(
+      new Error('fetch_timeout: https://example.gov exceeded 30000ms'),
+    )
+    const before = Date.now()
+
+    await consumePulseRuleSourceScan(
+      {
+        type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
+        sourceId: 'quarterly-source',
+        reason: 'cadence_due',
+      },
+      env(vi.fn()) as Env,
+    )
+
+    const failure = dbMocks.pulseOpsRepo.recordSourceFailure.mock.calls[0]?.[0] as {
+      sourceId: string
+      nextCheckAt: Date
+      error: string
+    }
+    expect(failure.sourceId).toBe('quarterly-source')
+    expect(failure.error).toContain('fetch_timeout')
+    const retryMs = failure.nextCheckAt.getTime() - before
+    expect(retryMs).toBeGreaterThan(0)
+    expect(retryMs).toBeLessThanOrEqual(15 * 60 * 1000 + 2000)
   })
 
   it('baselines a newly monitored Rule Library source without Pulse extraction', async () => {

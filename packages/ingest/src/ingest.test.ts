@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { PDFDocument, StandardFonts } from 'pdf-lib'
-import { fetchTextSnapshot, hashText } from './http'
+import { fetchTextSnapshot, hashText, withFetchTimeout } from './http'
 import { runFixtureAdapter, sourceFixtureBodies } from './fixtures'
 import {
   caFtbNewsroomAdapter,
@@ -666,5 +666,38 @@ describe('@duedatehq/ingest', () => {
         res.text(),
       ),
     ).resolves.toBe('browserless')
+  })
+})
+
+describe('withFetchTimeout', () => {
+  it('aborts a hung origin fetch and reports fetch_timeout', async () => {
+    vi.useFakeTimers()
+    try {
+      const hung = (_input: string | URL | Request, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new Error('aborted')))
+        })
+      const pending = withFetchTimeout(hung, 30_000)('https://hung.example.gov/page')
+      const assertion = expect(pending).rejects.toThrow(
+        'fetch_timeout: https://hung.example.gov/page exceeded 30000ms',
+      )
+      await vi.advanceTimersByTimeAsync(30_000)
+      await assertion
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('passes the response through and clears the watchdog on success', async () => {
+    const timed = withFetchTimeout(async () => new Response('ok'))
+    const response = await timed('https://fast.example.gov/page')
+    await expect(response.text()).resolves.toBe('ok')
+  })
+
+  it('rethrows non-timeout failures untouched', async () => {
+    const timed = withFetchTimeout(async () => {
+      throw new Error('boom')
+    })
+    await expect(timed('https://broken.example.gov/page')).rejects.toThrow('boom')
   })
 })

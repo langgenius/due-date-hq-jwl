@@ -1,6 +1,6 @@
 import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import { createSourceFetcherRegistry } from '@duedatehq/ingest'
-import { hashText } from '@duedatehq/ingest/http'
+import { hashText, withFetchTimeout } from '@duedatehq/ingest/http'
 import { RATE_LIMIT } from '@duedatehq/ingest/http'
 import type { IngestCtx, SourceAdapter } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
@@ -15,6 +15,11 @@ export interface PulseExtractQueueMessage {
 }
 
 export const PULSE_INGEST_SOURCE_MESSAGE_TYPE = 'pulse.ingest.source'
+
+// Failed sources retry on this cap instead of their full cadence — without it
+// one transient failure parks a slow-cadence source for its whole interval
+// (up to 90 days for quarterly rule sources).
+export const PULSE_SOURCE_FAILURE_RETRY_MS = 15 * 60 * 1000
 
 // One message per *due* source, enqueued by the cron path (`enqueuePulseIngestScans`)
 // and consumed one-source-per-invocation (`consumePulseIngestSource`). This keeps the
@@ -172,6 +177,9 @@ function resolveFetcherForAdapter(
 export function createPoliteFetch(fetchImpl: typeof fetch): typeof fetch {
   const locks = new Map<string, Promise<void>>()
   const lastFetchAt = new Map<string, number>()
+  // The watchdog starts after the per-host politeness queue releases, so
+  // serialized 30s/host waits never count against the request's own budget.
+  const timedFetch = withFetchTimeout(fetchImpl)
 
   return (async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
     const url =
@@ -184,7 +192,7 @@ export function createPoliteFetch(fetchImpl: typeof fetch): typeof fetch {
         previous.catch(() => undefined).then(() => undefined),
       )
       await previous
-      return fetchImpl(input, init)
+      return timedFetch(input, init)
     }
 
     const run = previous.then(async () => {
@@ -198,7 +206,7 @@ export function createPoliteFetch(fetchImpl: typeof fetch): typeof fetch {
       run.catch(() => undefined).then(() => undefined),
     )
     await run
-    return fetchImpl(input, init)
+    return timedFetch(input, init)
   }) as typeof fetch
 }
 
@@ -347,7 +355,10 @@ async function ingestAdapter(
     await repo.recordSourceFailure({
       sourceId: adapter.id,
       checkedAt,
-      nextCheckAt: nextCheckAt(checkedAt, Math.min(adapter.cronIntervalMs, 15 * 60 * 1000)),
+      nextCheckAt: nextCheckAt(
+        checkedAt,
+        Math.min(adapter.cronIntervalMs, PULSE_SOURCE_FAILURE_RETRY_MS),
+      ),
       error: error instanceof Error ? error.message : 'Pulse ingest failed.',
     })
     recordPulseMetric('pulse.ingest.fetch_result', {

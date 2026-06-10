@@ -1,4 +1,5 @@
 import type { IngestFetch } from '@duedatehq/ingest'
+import { withFetchTimeout } from '@duedatehq/ingest/http'
 
 export interface BrowserlessConfig {
   endpoint?: string | undefined
@@ -95,10 +96,13 @@ function responseFromBrowserlessPayload(payload: unknown, response: Response): R
 export function createBrowserlessFetch(config: BrowserlessConfig): IngestFetch | null {
   if (!config.endpoint) return null
   const endpoint = browserlessEndpoint(config)
+  // Browserless renders the target page server-side (its own goto budget is
+  // ~30s), so the proxied request gets a roomier watchdog than direct fetches.
+  const timedFetch = withFetchTimeout(fetch, 60_000)
 
   return async (input, init) => {
     const targetUrl = input instanceof URL ? input.toString() : input
-    const response = await fetch(endpoint, {
+    const response = await timedFetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

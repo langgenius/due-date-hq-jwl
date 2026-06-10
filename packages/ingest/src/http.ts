@@ -34,6 +34,35 @@ export const RATE_LIMIT = {
   backoffOn429Ms: 15 * 60_000,
 } as const
 
+export const FETCH_TIMEOUT_MS = 30_000
+
+// Per-request watchdog for every outbound origin fetch. Without it a hung
+// origin stalls the queue invocation until the runtime hard-kills it — the
+// caller's catch never runs, recordSourceFailure is skipped, and the message
+// re-enqueues forever. Manual AbortController + setTimeout (the
+// packages/ai gateway idiom) so the timer is always cleared once the
+// response settles.
+export function withFetchTimeout(
+  fetchImpl: (input: string | URL | Request, init?: RequestInit) => Promise<Response>,
+  timeoutMs: number = FETCH_TIMEOUT_MS,
+): (input: string | URL | Request, init?: RequestInit) => Promise<Response> {
+  return async (input, init) => {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+      return await fetchImpl(input, { ...init, signal: controller.signal })
+    } catch (error) {
+      if (controller.signal.aborted) {
+        const url = input instanceof Request ? input.url : String(input)
+        throw new Error(`fetch_timeout: ${url} exceeded ${timeoutMs}ms`, { cause: error })
+      }
+      throw error
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+}
+
 const ROBOTS_CACHE_TTL_MS = 24 * 60 * 60 * 1000
 const robotsCache = new Map<string, { checkedAt: number; body: string | null }>()
 

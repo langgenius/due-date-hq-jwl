@@ -23,7 +23,7 @@ import {
   cachedConcreteDraftKey,
   RULE_CONCRETE_DRAFT_PROMPT,
 } from '../../procedures/rules/concrete-draft'
-import { archivePulseRaw, createPoliteFetch } from '../pulse/ingest'
+import { archivePulseRaw, createPoliteFetch, PULSE_SOURCE_FAILURE_RETRY_MS } from '../pulse/ingest'
 import { recordPulseMetric } from '../pulse/metrics'
 import {
   RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE,
@@ -424,7 +424,12 @@ export async function consumePulseRuleSourceScan(
     const messageText = error instanceof Error ? error.message : 'Rule source scan failed.'
     await pulseOps.recordSourceFailure({
       sourceId: source.id,
-      nextCheckAt: nextCheckAt(new Date(), source),
+      // Cap the failure retry like the pulse-ingest path: rescheduling on the
+      // source's full cadence parked a quarterly source for 90 days after one
+      // transient failure (docs/dev-log/2026-06-01-alert-pipeline-recovery.md).
+      nextCheckAt: new Date(
+        Date.now() + Math.min(sourceCadenceMs(source), PULSE_SOURCE_FAILURE_RETRY_MS),
+      ),
       error: messageText,
     })
     recordPulseMetric('pulse.rule_source_scan.source_failed', {
