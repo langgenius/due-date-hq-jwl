@@ -4372,7 +4372,7 @@ function RuleDetailPanel({
       <DialogContent
         showCloseButton
         aria-label={t`Rule detail`}
-        className="flex max-h-[90vh] w-[min(980px,calc(100vw-2rem))] max-w-[980px] flex-col gap-0 overflow-hidden bg-background-subtle p-0"
+        className="flex max-h-[90vh] w-[min(980px,calc(100vw-2rem))] max-w-[980px] flex-col gap-0 overflow-hidden bg-background-section p-0"
       >
         {/* Visible title lives in the hero card; this satisfies the Dialog's
             a11y label without duplicating it on screen. */}
@@ -4417,8 +4417,8 @@ function RuleDetailHeroCard({
   const confidence = concreteDraft?.draft?.confidence ?? null
   const aiPct = confidence !== null ? Math.round(confidence * 100) : null
   return (
-    <div className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
-      <div className="flex h-9 items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5">
+    <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+      <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
         {isReviewable ? (
           <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0 text-text-warning" />
         ) : (

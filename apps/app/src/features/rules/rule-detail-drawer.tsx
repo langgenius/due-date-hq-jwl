@@ -244,8 +244,8 @@ function DisclosureCard({
   const { t } = useLingui()
   const [expanded, setExpanded] = useState(false)
   return (
-    <section className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
-      <div className="flex h-9 items-center gap-2 bg-background-subtle px-5">
+    <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+      <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
         <h3 className="text-[13px] font-semibold text-text-primary">{title}</h3>
         {meta != null ? (
           <span className="ml-auto truncate text-caption font-medium text-text-tertiary">
@@ -287,7 +287,7 @@ function DisclosureCard({
 /** Labeled summary chip (irBJ8 Applicability ENTITY · FILES · EFFECTIVE). */
 function FactChip({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-md bg-background-subtle px-2.5 py-1">
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-background-section px-2.5 py-1">
       <span className="text-caption-xs font-bold tracking-wide text-text-muted uppercase">
         {label}
       </span>
@@ -372,7 +372,7 @@ export function RuleDetailCompact({
         meta={<span className="font-mono">{rule.dueDateLogic.kind}</span>}
         moreLabel={<Trans>View extension rules</Trans>}
         summary={
-          <div className="rounded-lg bg-background-subtle px-3.5 py-3 text-sm text-text-primary">
+          <div className="rounded-lg bg-background-section px-3.5 py-3 text-sm text-text-primary">
             {dueDateSummary}
           </div>
         }
