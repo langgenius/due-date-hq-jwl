@@ -20,6 +20,7 @@ the noted prior decisions; cross-reference `alert-card-design.md`,
 
 Each /today section title is the link to its full surface, and the separate
 right-aligned "View all" link is removed:
+
 - "Alerts" → `/alerts`
 - "Actions this week" → the deadlines list
 
@@ -42,7 +43,7 @@ gray; do not assume parity).
 
 - **Surface**: gray-wash body (`bg-background-subtle`) + gray header (no bottom
   border) carrying **white group cards** (`rounded-[12px] border
-  border-divider-subtle bg-background-default p-6`).
+border-divider-subtle bg-background-default p-6`).
 - **Four groups, each with an eyebrow `<h3>`** (11/600 uppercase tracking-[0.5px]
   tertiary): **The change · Affected clients · Source & confidence · Activity &
   notes**. Card boundaries + the eyebrow + inner sub-headers form a clean
@@ -52,7 +53,7 @@ gray; do not assume parity).
   heading for the E2E heading specs. The group is visibility-guarded
   (`showClientsGroup`) so it never renders empty.
 - **Collapsing header**: the gray masthead shrinks on body scroll (title 22→16px
-  + 1-line clamp, summary hidden, padding reduced) to free reading room.
+  - 1-line clamp, summary hidden, padding reduced) to free reading room.
 - Header / body / footer / BackStrip all share a **760px centered** content
   measure (`mx-auto`), chrome spans full width.
 - **Corners**: canonical scale only (12 wrapper / 8 box·button·table / 4 compact

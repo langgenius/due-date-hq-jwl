@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -1334,8 +1334,7 @@ export function RulesLibraryRoute() {
     let covered = 0
     for (const row of coverageRows) {
       const hasGap = ENTITY_KEYS.some(
-        (e) =>
-          row.entityCoverage[e] === 'none' && row.entitySourceCoverage[e] !== 'not_applicable',
+        (e) => row.entityCoverage[e] === 'none' && row.entitySourceCoverage[e] !== 'not_applicable',
       )
       if (!hasGap) covered++
     }
@@ -1435,7 +1434,9 @@ export function RulesLibraryRoute() {
             ? Date.parse(r.reviewedAt)
             : 0
           : Date.parse(r.verifiedAt)
-      return [...result].sort((a, b) => (dir === 'desc' ? stamp(b) - stamp(a) : stamp(a) - stamp(b)))
+      return [...result].toSorted((a, b) =>
+        dir === 'desc' ? stamp(b) - stamp(a) : stamp(a) - stamp(b),
+      )
     }
     return result.toSorted(compareByStatusGroupPriority)
   }, [selectedGroup, activeScope, activeEntity, search, tableFilter])
@@ -1452,7 +1453,7 @@ export function RulesLibraryRoute() {
         label: formatRuleTypeLabel(value, selectedGroup.jurisdiction),
         count,
       }))
-      .sort((a, b) => a.label.localeCompare(b.label))
+      .toSorted((a, b) => a.label.localeCompare(b.label))
   }, [selectedGroup])
   // Scoped progress-bar status counts for the selected jurisdiction.
   const jurisdictionStatusCounts = useMemo<Record<RuleStatus, number> | null>(() => {
@@ -1650,7 +1651,7 @@ export function RulesLibraryRoute() {
     )
   }, [rules, selectedRuleIds])
 
-  const openBatchReview = useCallback(() => {
+  const _openBatchReview = useCallback(() => {
     if (selectedReviewRules.length === 0) return
     batchAcceptedRuleIdsRef.current = new Set()
     autoExpandAfterBatchRef.current = new Set()
@@ -1804,7 +1805,7 @@ export function RulesLibraryRoute() {
   // Start the batch review queue with everything that's pending. The
   // header button is the "I just want to clear my review queue" path
   // (CPA opens the page, hits Start review, walks through 459 cards).
-  const startReviewAll = useCallback(() => {
+  const _startReviewAll = useCallback(() => {
     if (allReviewableRuleIds.length === 0) return
     batchAcceptedRuleIdsRef.current = new Set()
     autoExpandAfterBatchRef.current = new Set()
@@ -1822,7 +1823,7 @@ export function RulesLibraryRoute() {
   // shell's `actions` slot. Replaces the prior standalone PageActions
   // row (which left a ~48px dead zone between the title and the next
   // content block).
-  const reviewCount = allReviewableRuleIds.length
+  const _reviewCount = allReviewableRuleIds.length
   const currentBatchReviewRuleId =
     batchReviewIndex === null ? null : (batchReviewRuleIds?.[batchReviewIndex] ?? null)
   const currentBatchReviewRule = currentBatchReviewRuleId
@@ -1873,9 +1874,7 @@ export function RulesLibraryRoute() {
             <PulsingDot
               tone={railSources.healthy ? 'success' : 'warning'}
               active={false}
-              label={
-                railSources.healthy ? t`All sources healthy` : t`Some sources need attention`
-              }
+              label={railSources.healthy ? t`All sources healthy` : t`Some sources need attention`}
             />
             <span className="tabular-nums text-text-tertiary">{railSources.count}</span>
           </span>
@@ -2425,38 +2424,36 @@ export function RulesLibraryRoute() {
                   </div>
                 </div>
               </>
+            ) : // Overview (Pencil O0pyRO). Reads from the same wired `rules`
+            // the jurisdiction tables consume; no banner, hero, status
+            // card, scope tabs, or grouped table here.
+            //
+            //  - loading            → stats-band skeleton
+            //  - queue clear (0 pending, `whr8M`) → "all caught up" card
+            //    ABOVE the stats band (a clear queue reads as the reward)
+            //  - otherwise (`O0pyRO`) → stats band ABOVE the flush Recent
+            //    changes feed
+            statsLoading ? (
+              <StatBand loading stats={overviewStats} ariaLabel={t`Rule library summary`} />
+            ) : totalPendingReview === 0 ? (
+              <>
+                <OverviewCaughtUpCard
+                  lastReviewedRelative={lastReviewedRelative}
+                  onViewDecisions={handleViewAllChanges}
+                  onMonitorSources={handleMonitorSources}
+                />
+                <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
+              </>
             ) : (
-              // Overview (Pencil O0pyRO). Reads from the same wired `rules`
-              // the jurisdiction tables consume; no banner, hero, status
-              // card, scope tabs, or grouped table here.
-              //
-              //  - loading            → stats-band skeleton
-              //  - queue clear (0 pending, `whr8M`) → "all caught up" card
-              //    ABOVE the stats band (a clear queue reads as the reward)
-              //  - otherwise (`O0pyRO`) → stats band ABOVE the flush Recent
-              //    changes feed
-              statsLoading ? (
-                <StatBand loading stats={overviewStats} ariaLabel={t`Rule library summary`} />
-              ) : totalPendingReview === 0 ? (
-                <>
-                  <OverviewCaughtUpCard
-                    lastReviewedRelative={lastReviewedRelative}
-                    onViewDecisions={handleViewAllChanges}
-                    onMonitorSources={handleMonitorSources}
-                  />
-                  <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
-                </>
-              ) : (
-                <>
-                  <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
-                  <OverviewRecentChangesCard
-                    rules={recentChanges}
-                    changedTotal={changedLast30}
-                    onRuleClick={handleRuleClick}
-                    onViewAll={handleViewAllChanges}
-                  />
-                </>
-              )
+              <>
+                <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
+                <OverviewRecentChangesCard
+                  rules={recentChanges}
+                  changedTotal={changedLast30}
+                  onRuleClick={handleRuleClick}
+                  onViewAll={handleViewAllChanges}
+                />
+              </>
             )}
           </div>
         </div>
@@ -2620,7 +2617,7 @@ type ProgressSegment = {
   text: string
 }
 
-function RuleReviewProgressBar(
+function _RuleReviewProgressBar(
   props:
     | { loading: true; statusCounts?: never }
     | { loading?: false; statusCounts: Record<RuleStatus, number> },
@@ -3044,7 +3041,7 @@ function RowNavHints() {
 // Uses the canonical `EmptyState` primitive shared with /deadlines +
 // /clients + /alerts; renders inside the table-card frame so the
 // chrome stays consistent across full / empty states.
-function RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
+function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
       <EmptyState
@@ -3074,7 +3071,7 @@ function RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
   )
 }
 
-function MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
+function _MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
       <EmptyState
@@ -3101,7 +3098,7 @@ function MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
 // Grouped rules table — the main visualization
 // ---------------------------------------------------------------------------
 
-function GroupedRulesTable({
+function _GroupedRulesTable({
   activeScope,
   activeRuleId,
   groups,
@@ -4500,7 +4497,8 @@ function RuleStatusKicker({ status }: { status: ObligationRule['status'] }) {
 // "jurisdiction kickers"): high → destructive tint, medium → warning, low →
 // quiet neutral. Replaces three hand-rolled tint spans.
 function RuleImpactPill({ riskLevel }: { riskLevel: ObligationRule['riskLevel'] }) {
-  const variant = riskLevel === 'high' ? 'destructive' : riskLevel === 'med' ? 'warning' : 'secondary'
+  const variant =
+    riskLevel === 'high' ? 'destructive' : riskLevel === 'med' ? 'warning' : 'secondary'
   return (
     <Badge variant={variant} shape="square">
       {riskLevel === 'high' ? (
@@ -4850,7 +4848,12 @@ function BulkReviewListModal({
                     aria-hidden
                     className="size-1.5 shrink-0 rounded-full bg-state-accent-solid"
                   />
-                  <div className={cn('flex min-w-0 flex-1 flex-col gap-0.5', isExcluded && 'opacity-45')}>
+                  <div
+                    className={cn(
+                      'flex min-w-0 flex-1 flex-col gap-0.5',
+                      isExcluded && 'opacity-45',
+                    )}
+                  >
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="inline-flex shrink-0 items-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-tertiary">
                         {rule.jurisdiction}

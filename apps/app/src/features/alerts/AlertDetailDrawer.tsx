@@ -1552,8 +1552,7 @@ export function AlertDetailDrawer({
 
                 {/* Review-only (rule-change / source-drift): read-only blast
                     radius — which clients have open obligations on the rule. */}
-                {detail.alert.actionMode === 'review_only' &&
-                detail.affectedClients.length > 0 ? (
+                {detail.alert.actionMode === 'review_only' && detail.affectedClients.length > 0 ? (
                   <section className="flex flex-col gap-3">
                     <AffectedClientsTable
                       rows={detail.affectedClients}
@@ -1569,10 +1568,7 @@ export function AlertDetailDrawer({
                 ) : null}
 
                 {detail.alert.firmImpact !== 'no_current_match' && !canApply ? (
-                  <PermissionInlineNotice
-                    permission="pulse.apply"
-                    currentRole={permissions.role}
-                  />
+                  <PermissionInlineNotice permission="pulse.apply" currentRole={permissions.role} />
                 ) : null}
 
                 {detail.alert.actionMode === 'due_date_overlay' &&
@@ -1739,7 +1735,7 @@ export function AlertDetailDrawer({
                 </section>
               ) : null}
 
-            {/* Round 47 (Yuqi #5 — "fulfill the content and make it
+              {/* Round 47 (Yuqi #5 — "fulfill the content and make it
                 information rich"): PROVENANCE & CONFIDENCE section
                 per Pencil n9m9B. The Hero meta row carries
                 source · time as a quick caption; this section
@@ -1752,90 +1748,90 @@ export function AlertDetailDrawer({
                     action shelf left cluster.
                 Sits at the tail of the body so the CPA's eye lands
                 on it just before the sticky action shelf. */}
-            {(() => {
-              const confPct = Math.round(detail.alert.confidence * 100)
-              const confTier = aiConfidenceTier(detail.alert.confidence)
-              const confToneClass =
-                confTier === 'high'
-                  ? 'text-text-success'
-                  : confTier === 'medium'
-                    ? 'text-text-tertiary'
-                    : 'text-text-destructive'
-              const confTierLabel =
-                confTier === 'high' ? t`HIGH` : confTier === 'medium' ? t`MEDIUM` : t`LOW`
-              return (
-                <section className="flex flex-col gap-3">
-                  {/* 2026-06-08 (Aogxu parity Phase 1, task 4): the section
+              {(() => {
+                const confPct = Math.round(detail.alert.confidence * 100)
+                const confTier = aiConfidenceTier(detail.alert.confidence)
+                const confToneClass =
+                  confTier === 'high'
+                    ? 'text-text-success'
+                    : confTier === 'medium'
+                      ? 'text-text-tertiary'
+                      : 'text-text-destructive'
+                const confTierLabel =
+                  confTier === 'high' ? t`HIGH` : confTier === 'medium' ? t`MEDIUM` : t`LOW`
+                return (
+                  <section className="flex flex-col gap-3">
+                    {/* 2026-06-08 (Aogxu parity Phase 1, task 4): the section
                       title softens from "Provenance & confidence" to a plain-
                       language read, and the layout splits LEFT confidence
                       (modest %, tier label, one-line guidance) / RIGHT source
                       + published + audit-ledger note. */}
-                  <header className="flex items-baseline justify-between">
-                    <span className="text-[12px] font-semibold text-text-secondary">
-                      <Trans>How confident we are · where this came from</Trans>
-                    </span>
-                  </header>
-                  <div className="grid grid-cols-[1fr_1fr] gap-3">
-                    {/* Confidence cell */}
-                    <div className="flex flex-col gap-1.5 border-r border-divider-subtle pr-6">
-                      <div className="flex items-baseline gap-2">
-                        <span className={cn('text-xl font-semibold tabular-nums', confToneClass)}>
-                          {confPct}%
-                        </span>
-                        <span
-                          className={cn(
-                            'text-xs font-semibold tracking-wide uppercase',
-                            confToneClass,
+                    <header className="flex items-baseline justify-between">
+                      <span className="text-[12px] font-semibold text-text-secondary">
+                        <Trans>How confident we are · where this came from</Trans>
+                      </span>
+                    </header>
+                    <div className="grid grid-cols-[1fr_1fr] gap-3">
+                      {/* Confidence cell */}
+                      <div className="flex flex-col gap-1.5 border-r border-divider-subtle pr-6">
+                        <div className="flex items-baseline gap-2">
+                          <span className={cn('text-xl font-semibold tabular-nums', confToneClass)}>
+                            {confPct}%
+                          </span>
+                          <span
+                            className={cn(
+                              'text-xs font-semibold tracking-wide uppercase',
+                              confToneClass,
+                            )}
+                          >
+                            <Trans>{confTierLabel} confidence</Trans>
+                          </span>
+                        </div>
+                        <p className="text-xs text-text-tertiary">
+                          {confTier === 'low' ? (
+                            <Trans>
+                              Verify the extract panel matches the official source before applying.
+                            </Trans>
+                          ) : confTier === 'medium' ? (
+                            <Trans>Quick-confirm the extracted fields look right.</Trans>
+                          ) : (
+                            <Trans>Model is confident — review and apply when ready.</Trans>
                           )}
-                        >
-                          <Trans>{confTierLabel} confidence</Trans>
+                        </p>
+                      </div>
+                      {/* Source / tags cell */}
+                      <div className="flex flex-col gap-1 pl-2 text-xs">
+                        <span className="text-text-secondary">
+                          <Trans>From</Trans>{' '}
+                          {detail.alert.sourceUrl ? (
+                            <TextLink
+                              variant="accent"
+                              render={
+                                <a href={detail.alert.sourceUrl} target="_blank" rel="noreferrer" />
+                              }
+                            >
+                              {detail.alert.source} ↗
+                            </TextLink>
+                          ) : (
+                            <span className="font-medium text-text-primary">
+                              {detail.alert.source}
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-text-tertiary">
+                          <Trans>Published</Trans>{' '}
+                          <span className="tabular-nums">
+                            {formatRelativeTime(detail.alert.publishedAt)}
+                          </span>
+                        </span>
+                        <span className="text-text-tertiary">
+                          <Trans>Audit ledger: every change is logged</Trans>
                         </span>
                       </div>
-                      <p className="text-xs text-text-tertiary">
-                        {confTier === 'low' ? (
-                          <Trans>
-                            Verify the extract panel matches the official source before applying.
-                          </Trans>
-                        ) : confTier === 'medium' ? (
-                          <Trans>Quick-confirm the extracted fields look right.</Trans>
-                        ) : (
-                          <Trans>Model is confident — review and apply when ready.</Trans>
-                        )}
-                      </p>
                     </div>
-                    {/* Source / tags cell */}
-                    <div className="flex flex-col gap-1 pl-2 text-xs">
-                      <span className="text-text-secondary">
-                        <Trans>From</Trans>{' '}
-                        {detail.alert.sourceUrl ? (
-                          <TextLink
-                            variant="accent"
-                            render={
-                              <a href={detail.alert.sourceUrl} target="_blank" rel="noreferrer" />
-                            }
-                          >
-                            {detail.alert.source} ↗
-                          </TextLink>
-                        ) : (
-                          <span className="font-medium text-text-primary">
-                            {detail.alert.source}
-                          </span>
-                        )}
-                      </span>
-                      <span className="text-text-tertiary">
-                        <Trans>Published</Trans>{' '}
-                        <span className="tabular-nums">
-                          {formatRelativeTime(detail.alert.publishedAt)}
-                        </span>
-                      </span>
-                      <span className="text-text-tertiary">
-                        <Trans>Audit ledger: every change is logged</Trans>
-                      </span>
-                    </div>
-                  </div>
-                </section>
-              )
-            })()}
+                  </section>
+                )
+              })()}
             </DetailSectionCard>
 
             {/* GROUP 4 — Activity & notes: lifecycle timeline + team notes. */}

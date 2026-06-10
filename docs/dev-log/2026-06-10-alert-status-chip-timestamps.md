@@ -23,7 +23,7 @@ So this is purely contract + mapper plumbing across the ports/adapters layers.
 ## Change (the full chain — alert row is a structural twin in 3 places)
 
 - **`packages/ports/src/pulse.ts`** `PulseAlertRow` — added `dismissedAt: Date | null`
-  + `appliedAt: Date | null` (the canonical boundary type).
+  - `appliedAt: Date | null` (the canonical boundary type).
 - **`packages/db/src/repo/pulse/shared.ts`** — `AlertJoinedRow` gets optional
   `dismissedAt?: Date | null` + `appliedAt?: number | null` (only the detail query
   selects them; list producers omit them). `PulseAlertRow` gets the fields.

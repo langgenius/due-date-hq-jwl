@@ -14,7 +14,10 @@ export function RulesTemporaryRoute() {
       title={t`Temporary rules`}
       wide
       contentClassName="gap-8 md:px-8"
-      breadcrumbs={[{ label: t`Rule library`, to: '/rules/library' }, { label: t`Temporary rules` }]}
+      breadcrumbs={[
+        { label: t`Rule library`, to: '/rules/library' },
+        { label: t`Temporary rules` },
+      ]}
     >
       <TemporaryRulesTab />
     </RulesPageShell>

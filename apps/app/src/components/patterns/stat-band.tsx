@@ -94,7 +94,10 @@ export function StatBand({
             </span>
             {stat.sub != null ? (
               <span
-                className={cn('truncate text-sm font-medium', stat.subClass ?? 'text-text-tertiary')}
+                className={cn(
+                  'truncate text-sm font-medium',
+                  stat.subClass ?? 'text-text-tertiary',
+                )}
               >
                 {stat.sub}
               </span>
@@ -113,7 +116,12 @@ export function StatBand({
 
         if (stat.href) {
           return (
-            <Link key={stat.key} to={stat.href} aria-label={stat.ariaLabel} className={interactiveClass}>
+            <Link
+              key={stat.key}
+              to={stat.href}
+              aria-label={stat.ariaLabel}
+              className={interactiveClass}
+            >
               {body}
             </Link>
           )

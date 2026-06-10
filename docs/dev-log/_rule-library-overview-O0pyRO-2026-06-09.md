@@ -11,7 +11,7 @@ untouched.
 The Overview is now the clean dashboard the mock shows — and **only** that:
 
 1. **Header** — eyebrow now reads `● Live · Federal + N states · N sources
-   monitored` (was `Federal + N states · N sources active`). Title is **Rule
+monitored` (was `Federal + N states · N sources active`). Title is **Rule
    library** with a **"N rules across M jurisdictions"** subtitle (was "Rule
    library overview", no subtitle). Primary CTA relabeled **Add rule** (was "Add
    new rule"). Reuses the shared `PageHeader`.
@@ -139,7 +139,7 @@ designs and interactions." Two systemic gaps:
 
 1. **Type scale was undersized.** This app remaps Tailwind's named sizes
    (`text-xs`=11, `text-sm`=12, `text-base`=14, `text-lg`=16, `text-xl`=18,
-   `text-2xl`=28). My round-1/2 components were authored with *default*-Tailwind
+   `text-2xl`=28). My round-1/2 components were authored with _default_-Tailwind
    assumptions (`text-sm`=14), so titles/meta/dates rendered one notch small vs
    the Pencil px. Fixed to the mock's literal px throughout: Recent-changes
    header 18→**20**, row title 12→**14**, meta/date 11→**12**; stats-band eyebrow
@@ -172,6 +172,7 @@ Inspected the Rule Library pages against the app's canonical page conventions
 position, text size.
 
 **Primary (`/rules/library`)**
+
 - **Eyebrow 13→11px.** Round 4 bumped the status eyebrow to 13px for Pencil
   fidelity, but /deadlines + /today status eyebrows are **11px** (they inherit
   PageHeader's `text-caption`, only overriding case/tracking). Reverted to 11px
@@ -186,6 +187,7 @@ position, text size.
   title.
 
 **Secondary (`/rules/temporary`, `/rules/preview`)**
+
 - Both used the **default** narrow shell (1100px / `gap-6` / `md:px-6`) while
   `/rules/sources`, `/rules/library`, and `/rules/pulse` are all `wide` (1440) +
   `gap-8` + `md:px-8`. Added `wide` + `contentClassName="gap-8 md:px-8"` to both,
@@ -206,9 +208,10 @@ correct component … if the layout has appeared somewhere else, use the same
 layout/token/component."
 
 **Macro layout — centered Dialog → right-side `Sheet` drawer.** The rule detail
-was the app's *only* centered modal; every other entity detail (Alert / Client /
+was the app's _only_ centered modal; every other entity detail (Alert / Client /
 Obligation / Audit-event / Evidence) opens as a right-side `Sheet`. Converted
 `RuleDetailPanel` to the canonical flush `Sheet`:
+
 - `<SheetContent side="right" flush>` with the same `w-[min(720/840/900px)]`
   width ramp the deadline-detail drawer (`ObligationQueueDetailDrawer`) uses;
   `flush` is the primitive's own `gap-0 overflow-hidden p-0` recipe.
@@ -218,6 +221,7 @@ Obligation / Audit-event / Evidence) opens as a right-side `Sheet`. Converted
   height. Review actions (Accept / Reject / Generate draft) preserved.
 
 **Element reuse inside the panel.**
+
 - **Effective-date banner**: bespoke amber strip (`border-l-[3px]` + hand-rolled
   text) → shared **`Alert` variant="warning"** — now the same callout component
   as the "Needs CPA review" `Alert` in the body, not a one-off.
@@ -227,7 +231,7 @@ Obligation / Audit-event / Evidence) opens as a right-side `Sheet`. Converted
   impact high/med/low → `destructive`/`warning`/`secondary`.
 
 `tsgo` clean. (Already-shared, left as-is: the body's `Alert`, `Badge`, evidence
-cards.) Remaining bespoke chips on the *table/overview* — the oJL8o SEVERITY /
+cards.) Remaining bespoke chips on the _table/overview_ — the oJL8o SEVERITY /
 STATUS pills, the recent-changes change-kind pill — were intentionally matched to
 the oJL8o mock; consolidating those onto `Badge shape="square"` too is a sensible
 next step but changes mock-specified visuals, so flagged rather than changed
@@ -291,7 +295,7 @@ Show less, independently. `tsgo` clean.
 
 **Not done (flagged):** the main rule-detail **Sheet** still renders
 `RuleDetailInline` (the fuller view with MatchedPulse / Needs-CPA-review Alert /
-Provenance / Verification + a *sticky* decision footer). Swapping it to the
+Provenance / Verification + a _sticky_ decision footer). Swapping it to the
 card-stack means a footer-dedup decision + dropping those extra sections, so it's
 a deliberate follow-up rather than a silent change. Alert §1 / Deadline §2 from
 the amendments brief are separate workstreams (schema/contract migrations, open
@@ -348,10 +352,11 @@ checkbox should bulk-"review". The distinction was misleading — the oJL8o tabl
 had an always-on leading checkbox and **no chevron**, so "how do I review this?"
 was ambiguous. Pencil Screen A (`x7C2k` in `GHObe`) shows the answer: rows are
 `status dot · title · meta · chevron-right`, single-click opens, and the open row
-reads accent-hover + a 2px left accent bar — checkboxes are *not* the prominent
+reads accent-hover + a 2px left accent bar — checkboxes are _not_ the prominent
 affordance.
 
 Reworked `JurisdictionRuleRow` to that model:
+
 - **Trailing chevron-right** on every row — the unambiguous "this row opens the
   rule" affordance; brightens + nudges +2px on hover, turns accent on the open row.
 - **Checkbox demoted to secondary** (Linear/Gmail pattern): a quiet status dot at
@@ -386,7 +391,7 @@ clears prior errors so Retry re-runs cleanly. Registered in the `/preview` galle
 
 **Did NOT build the in-flight modal (`Wp5e0`).** Its 5-step progress list,
 "Streaming server events · started 00:03 ago", and the error dialog's "Step 3 of
-5 · Write deadline changes" / "Reference req_… · Logged to audit" are all fiction
+5 · Write deadline changes" / "Reference req\_… · Logged to audit" are all fiction
 for a single RPC with no streamed step state (and a rolled-back failure isn't
 audit-logged). The honest in-flight is the existing loading toast + disabled
 "Accepting…" button, which stays. Flagged for the designer rather than fabricated.
@@ -414,7 +419,7 @@ small honest deltas to match the canvas:
 Verified live: the Reject dialog opens with the octagon-x icon + the four reason
 chips. `tsgo` clean.
 
-**Flow G (`Oaey3`, bulk modal) NOT built — flagged.** It's a *list-based* bulk
+**Flow G (`Oaey3`, bulk modal) NOT built — flagged.** It's a _list-based_ bulk
 modal (selected-rules list + per-row edit + batch note + Accept/Reject N), which
 conflicts with the live `BatchReviewModal` (a one-card-at-a-time walkthrough), and
 its impact strip mixes real metrics (new obligations, affected clients) with
@@ -459,6 +464,7 @@ risk signal — both live in this block. A bulk list modal (`Oaey3` / option a)
 wouldn't show this per rule; it'd move to the per-row drill-down, so a bulk
 "Accept N" needs per-row readiness/risk flags (and must exclude not-ready rules)
 or it'd let a reviewer activate rules that can't yet generate deadlines.
+
 - Dead code from the Overview restructure + this rework (`GroupedRulesTable`,
   `RuleReviewProgressBar`, `RulesLibraryEmptyState`, `MissingRulesEmptyState`,
   `startReviewAll`) remains — `tsgo` is clean (`noUnusedLocals` off), but a
@@ -476,6 +482,7 @@ readiness reasons), and year-over-year `classificationCounts`; `bulkAcceptTempla
 activates only the ready rules.
 
 Anatomy (matches the canvas, minus fiction):
+
 - **Header** — layers icon + "Bulk review" + "N rules selected".
 - **Rule list** — one row per selected rule: include-checkbox · status dot · code
   badge + title + type · **per-row readiness/risk flag** (`Ready` green, or the real
@@ -492,7 +499,8 @@ Anatomy (matches the canvas, minus fiction):
 
 Wiring: `BulkReviewBar` → `setBulkListOpen(true)`; bar hides while open; `onOpenRule`
 closes the modal + routes to the single-rule takeover; `onComplete` clears selection
-+ invalidates rules/obligations/audit/dashboard.
+
+- invalidates rules/obligations/audit/dashboard.
 
 Verified live (10 AL rules): modal opens, every row flags **"Needs AI draft review"**,
 impact reads **0 ready · 0 est. deadlines · 10 skipped**, footer gates **Accept 0**

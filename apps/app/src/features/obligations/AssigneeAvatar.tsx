@@ -153,7 +153,10 @@ export function AssigneeAvatar({
         aria-hidden
         translate="no"
         title={title}
-        className={cn(baseClasses, 'rounded-lg border border-white/15 bg-brand-primary text-text-inverted')}
+        className={cn(
+          baseClasses,
+          'rounded-lg border border-white/15 bg-brand-primary text-text-inverted',
+        )}
       >
         {initials || 'DD'}
       </span>

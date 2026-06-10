@@ -40,7 +40,9 @@ export function RelatedRuleRow({
           </span>
           <span className="truncate text-sm text-text-secondary">{name}</span>
         </span>
-        <span className="text-sm font-medium leading-relaxed text-text-tertiary">{description}</span>
+        <span className="text-sm font-medium leading-relaxed text-text-tertiary">
+          {description}
+        </span>
       </span>
       <ChevronRightIcon
         aria-hidden

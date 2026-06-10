@@ -3,6 +3,7 @@
 **Date:** 2026-06-10
 **Source design file:** `~/Desktop/duedatehq_work.pen`
 **Companion docs:**
+
 - `docs/dev-log/2026-06-09-alert-deadline-rule-detail-amendments.md` — execution brief (per-section instructions, contract migrations)
 - `docs/Design/rule-library-review-flow.md` — rule library design source-of-truth
 
@@ -26,25 +27,26 @@ This index is the master catalog. Every Pencil screen that needs engineering wor
 **Companion modal:** `ly7p0` (Impact preview)
 **State variants:** `kpPeW · b7fa5Y · AAMn4 · M5UKQ`
 
-| Screen | Pencil ID | Status | Code target |
-|---|---|---|---|
-| Right panel (8 sections) | `BbQAK` | 🟢 | `apps/app/src/features/alerts/AlertDetailDrawer.tsx` |
-| KeyChange hero with status chip + plain summary + meta strip | inside `BbQAK` (`Qla5h`) | 🟢 | KeyChange section inside the drawer |
-| ExtractedFacts grid (8 cells) | inside `BbQAK` (`b4syg`) | 🟢 | `AlertStructuredFields.tsx` (likely existing) |
-| AffectedClients (table + selection + match pills) | inside `BbQAK` (`G24tQh`) | 🟢 | `AffectedClientsTable.tsx` (existing — verify match-pill copy is "High match", not "Confirmed") |
-| SourceExtract (cite + quote) | inside `BbQAK` (`c0Vxc`) | 🟢 | new component or section inside drawer |
-| Activity timeline (4 events) | inside `BbQAK` (`gRY5g`) | 🟢 | new component inside drawer |
-| Notes (bubbles + composer) | inside `BbQAK` (`H410cj`) | 🟢 | new component inside drawer |
-| Related rules section | inside `BbQAK` (`Related rules` card) | 🟡 needs schema migration first | new component; **schema gap — see dev-log §1.4** |
-| Decision footer (Apply · Customize · Dismiss + audit signature) | inside `BbQAK` (`Decision` card) | 🟢 | `DecisionActions.tsx` (new component, Pencil ref `fJtAo`) |
-| Impact preview confirmation modal | `ly7p0` | 🟢 | new `AlertImpactPreviewDialog.tsx` |
-| Empty + error states (0 clients, low confidence, source fetch fail) | `kpPeW` | 🟢 | conditional render in each section |
-| Interactive states (hover · focus · loading · disabled) | `b7fa5Y` | 🟢 | engineering inherits via styled primitives |
-| Overflow + truncation states | `AAMn4` | 🟢 | engineering inherits via CSS truncation |
-| Narrow viewport (768px) | `M5UKQ` | 🟢 | responsive — CSS media queries |
-| Keyboard focus order + ARIA | `M5UKQ` (right column) | 🟢 | engineering spec only |
+| Screen                                                              | Pencil ID                             | Status                          | Code target                                                                                     |
+| ------------------------------------------------------------------- | ------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Right panel (8 sections)                                            | `BbQAK`                               | 🟢                              | `apps/app/src/features/alerts/AlertDetailDrawer.tsx`                                            |
+| KeyChange hero with status chip + plain summary + meta strip        | inside `BbQAK` (`Qla5h`)              | 🟢                              | KeyChange section inside the drawer                                                             |
+| ExtractedFacts grid (8 cells)                                       | inside `BbQAK` (`b4syg`)              | 🟢                              | `AlertStructuredFields.tsx` (likely existing)                                                   |
+| AffectedClients (table + selection + match pills)                   | inside `BbQAK` (`G24tQh`)             | 🟢                              | `AffectedClientsTable.tsx` (existing — verify match-pill copy is "High match", not "Confirmed") |
+| SourceExtract (cite + quote)                                        | inside `BbQAK` (`c0Vxc`)              | 🟢                              | new component or section inside drawer                                                          |
+| Activity timeline (4 events)                                        | inside `BbQAK` (`gRY5g`)              | 🟢                              | new component inside drawer                                                                     |
+| Notes (bubbles + composer)                                          | inside `BbQAK` (`H410cj`)             | 🟢                              | new component inside drawer                                                                     |
+| Related rules section                                               | inside `BbQAK` (`Related rules` card) | 🟡 needs schema migration first | new component; **schema gap — see dev-log §1.4**                                                |
+| Decision footer (Apply · Customize · Dismiss + audit signature)     | inside `BbQAK` (`Decision` card)      | 🟢                              | `DecisionActions.tsx` (new component, Pencil ref `fJtAo`)                                       |
+| Impact preview confirmation modal                                   | `ly7p0`                               | 🟢                              | new `AlertImpactPreviewDialog.tsx`                                                              |
+| Empty + error states (0 clients, low confidence, source fetch fail) | `kpPeW`                               | 🟢                              | conditional render in each section                                                              |
+| Interactive states (hover · focus · loading · disabled)             | `b7fa5Y`                              | 🟢                              | engineering inherits via styled primitives                                                      |
+| Overflow + truncation states                                        | `AAMn4`                               | 🟢                              | engineering inherits via CSS truncation                                                         |
+| Narrow viewport (768px)                                             | `M5UKQ`                               | 🟢                              | responsive — CSS media queries                                                                  |
+| Keyboard focus order + ARIA                                         | `M5UKQ` (right column)                | 🟢                              | engineering spec only                                                                           |
 
 **Dependencies:**
+
 - Contract migration: `dismissedAt` + `appliedAt` exposed in `PulseAlertPublic` (`packages/contracts/src/pulse.ts:136-172`). Required for the status chip timestamp suffix. See dev-log §1.3.
 - DB schema for Related rules — new join table. Defer to v1.1 if scope-pressured.
 
@@ -56,21 +58,22 @@ This index is the master catalog. Every Pencil screen that needs engineering wor
 **Tab family:** `rzzww · HThur · DeZE3 · g8Bna2`
 **Page chrome:** `kWbdW`
 
-| Screen | Pencil ID | Status | Code target |
-|---|---|---|---|
-| Page chrome (Crumb · Hero · TabsBar · Body) | `kWbdW` | 🟢 | `apps/app/src/features/deadlines/[id]/page.tsx` (or similar) |
-| Status tab — left column (Workflow hero + Recent activity + Penalty + What's left + Decision) | `Y8xrR` | 🟢 | `StatusTab.tsx` |
-| Workflow milestone card (hero) | `K2yVqt` in `Y8xrR` | 🟡 missing bar header — see audit notes | `WorkflowMilestoneCard.tsx` |
-| Recent activity card | `qSa9z` in `Y8xrR` | 🟢 | `RecentActivityCard.tsx` |
-| Penalty exposure card | `u2jxP` in `Y8xrR` | 🟢 | `PenaltyExposureCard.tsx` |
-| What's left to do card | `bmwHb` in `Y8xrR` | 🟢 | `WhatsLeftCard.tsx` |
-| Decision footer (Mark filed · Request extension · Reassign + audit signature) | `IOGF4` in `Y8xrR` | 🟢 | `DeadlineDecisionFooter.tsx` (uses `DecisionActions` component) |
-| Materials tab body | `rzzww` (Materials canonical) | 🟢 | `MaterialsTab.tsx` |
-| Status tab body | `HThur` | 🟢 | `StatusTab.tsx` |
-| Record tab body | `DeZE3` | 🟢 (with honest empty state) | `RecordTab.tsx` — see dev-log §2.2 storage gap |
-| Audit tab body | `g8Bna2` | 🟢 | `AuditTab.tsx` |
+| Screen                                                                                        | Pencil ID                     | Status                                  | Code target                                                     |
+| --------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------------------- | --------------------------------------------------------------- |
+| Page chrome (Crumb · Hero · TabsBar · Body)                                                   | `kWbdW`                       | 🟢                                      | `apps/app/src/features/deadlines/[id]/page.tsx` (or similar)    |
+| Status tab — left column (Workflow hero + Recent activity + Penalty + What's left + Decision) | `Y8xrR`                       | 🟢                                      | `StatusTab.tsx`                                                 |
+| Workflow milestone card (hero)                                                                | `K2yVqt` in `Y8xrR`           | 🟡 missing bar header — see audit notes | `WorkflowMilestoneCard.tsx`                                     |
+| Recent activity card                                                                          | `qSa9z` in `Y8xrR`            | 🟢                                      | `RecentActivityCard.tsx`                                        |
+| Penalty exposure card                                                                         | `u2jxP` in `Y8xrR`            | 🟢                                      | `PenaltyExposureCard.tsx`                                       |
+| What's left to do card                                                                        | `bmwHb` in `Y8xrR`            | 🟢                                      | `WhatsLeftCard.tsx`                                             |
+| Decision footer (Mark filed · Request extension · Reassign + audit signature)                 | `IOGF4` in `Y8xrR`            | 🟢                                      | `DeadlineDecisionFooter.tsx` (uses `DecisionActions` component) |
+| Materials tab body                                                                            | `rzzww` (Materials canonical) | 🟢                                      | `MaterialsTab.tsx`                                              |
+| Status tab body                                                                               | `HThur`                       | 🟢                                      | `StatusTab.tsx`                                                 |
+| Record tab body                                                                               | `DeZE3`                       | 🟢 (with honest empty state)            | `RecordTab.tsx` — see dev-log §2.2 storage gap                  |
+| Audit tab body                                                                                | `g8Bna2`                      | 🟢                                      | `AuditTab.tsx`                                                  |
 
 **Dependencies:**
+
 - DeadlineStatusChip variant of `AlertStatusChip` — new state set: `On track · At risk · Overdue · Filed · Extension requested`. Same component, different label/color mapping.
 - K2yVqt bar header restructure — flagged for follow-up turn (was deferred this round).
 
@@ -82,16 +85,17 @@ This index is the master catalog. Every Pencil screen that needs engineering wor
 **Detail variants:** `tZ0BB · thUSa · WWEtF · PFkmy`
 **Empty state:** `T4eNmw`
 
-| Screen | Pencil ID | Status | Code target |
-|---|---|---|---|
-| Clients list page (header + KPI strip + filter row + table + selected-row pattern) | `rOSHx` | 🟢 | `apps/app/src/routes/clients/index.tsx` |
-| Empty state (no clients yet) | `T4eNmw` | 🟢 | conditional render |
-| Client detail — primary (PageHeader + Body) | `tZ0BB` | 🟢 | `apps/app/src/routes/clients/[id].tsx` |
-| Client detail — sticky-rail variant | `thUSa` | 🟢 | alt layout if/when needed |
-| Client detail — deadline drawer overlay | `WWEtF` | 🟢 | `ClientDeadlineDrawer.tsx` |
-| Client detail — inline row expansion | `PFkmy` | 🟢 | inline expand behavior on deadlines table |
+| Screen                                                                             | Pencil ID | Status | Code target                               |
+| ---------------------------------------------------------------------------------- | --------- | ------ | ----------------------------------------- |
+| Clients list page (header + KPI strip + filter row + table + selected-row pattern) | `rOSHx`   | 🟢     | `apps/app/src/routes/clients/index.tsx`   |
+| Empty state (no clients yet)                                                       | `T4eNmw`  | 🟢     | conditional render                        |
+| Client detail — primary (PageHeader + Body)                                        | `tZ0BB`   | 🟢     | `apps/app/src/routes/clients/[id].tsx`    |
+| Client detail — sticky-rail variant                                                | `thUSa`   | 🟢     | alt layout if/when needed                 |
+| Client detail — deadline drawer overlay                                            | `WWEtF`   | 🟢     | `ClientDeadlineDrawer.tsx`                |
+| Client detail — inline row expansion                                               | `PFkmy`   | 🟢     | inline expand behavior on deadlines table |
 
 **Notes:**
+
 - ClientsTable selected-row pattern: `fill:$ddhq-state-accent-hover · stroke {left:2}:$ddhq-state-accent-solid`. Matches `Z0Q8Yk` (rules table) and `BbQAK` AffectedClients selected rows.
 - Floating-card sidebar pattern (280w, cornerRadius 12, padding-20 screen gutter) applied across all variants.
 
@@ -110,44 +114,45 @@ This is the most-changed surface. Multiple views, modals, and states.
 
 ### Sub-surface 4a — Overview tab
 
-| Screen | Pencil ID | Status | Code target |
-|---|---|---|---|
-| Page chrome (header · tabs · body) | `GLnAJ` | 🟢 | `apps/app/src/features/rules/index.tsx` (or rename `coverage-tab.tsx`) |
-| Tab strip (Overview · Review (12) · Sources · Audit) | inside `GLnAJ` | 🟢 | `RulesPageTabs.tsx` |
-| 4-KPI strip (Total · Coverage · Pending · Recent) | inside `GLnAJ` | 🟢 | `RulesKpiStrip.tsx` |
-| Recent changes card | inside `GLnAJ` | 🟢 | `RecentRuleChangesCard.tsx` |
+| Screen                                               | Pencil ID      | Status | Code target                                                            |
+| ---------------------------------------------------- | -------------- | ------ | ---------------------------------------------------------------------- |
+| Page chrome (header · tabs · body)                   | `GLnAJ`        | 🟢     | `apps/app/src/features/rules/index.tsx` (or rename `coverage-tab.tsx`) |
+| Tab strip (Overview · Review (12) · Sources · Audit) | inside `GLnAJ` | 🟢     | `RulesPageTabs.tsx`                                                    |
+| 4-KPI strip (Total · Coverage · Pending · Recent)    | inside `GLnAJ` | 🟢     | `RulesKpiStrip.tsx`                                                    |
+| Recent changes card                                  | inside `GLnAJ` | 🟢     | `RecentRuleChangesCard.tsx`                                            |
 
 ### Sub-surface 4b — Review tab (Queue mode, master-detail)
 
-| Screen | Pencil ID | Status | Code target |
-|---|---|---|---|
-| Page layout (coverage strip + filter chips + queue + detail) | `O0pyRO` | 🟢 | `RulesReviewQueue.tsx` |
-| Coverage strip (h48, 4 counts + view toggle + Review all) | inside `O0pyRO` (`Z3J97T`) | 🟢 | `CoverageStrip.tsx` |
-| Filter chip row | inside `O0pyRO` (`s6eqHe`) | 🟢 | `RuleFilterChips.tsx` |
-| Rule queue list card | inside `O0pyRO` (`lVweK`) | 🟢 | `RuleQueueList.tsx` |
-| Selected-row pattern | `s0brvg` in queue | 🟢 | inherits canonical (accent-hover + 2px accent left stroke) |
-| Inline rule detail (8 cards, summary-first) | `N2X10V` OR inside `O0pyRO` (`BbK6Q`) | 🟢 | `RuleDetailPanel.tsx` (rebuild of `RuleDetailCompact`) |
+| Screen                                                       | Pencil ID                             | Status | Code target                                                |
+| ------------------------------------------------------------ | ------------------------------------- | ------ | ---------------------------------------------------------- |
+| Page layout (coverage strip + filter chips + queue + detail) | `O0pyRO`                              | 🟢     | `RulesReviewQueue.tsx`                                     |
+| Coverage strip (h48, 4 counts + view toggle + Review all)    | inside `O0pyRO` (`Z3J97T`)            | 🟢     | `CoverageStrip.tsx`                                        |
+| Filter chip row                                              | inside `O0pyRO` (`s6eqHe`)            | 🟢     | `RuleFilterChips.tsx`                                      |
+| Rule queue list card                                         | inside `O0pyRO` (`lVweK`)             | 🟢     | `RuleQueueList.tsx`                                        |
+| Selected-row pattern                                         | `s0brvg` in queue                     | 🟢     | inherits canonical (accent-hover + 2px accent left stroke) |
+| Inline rule detail (8 cards, summary-first)                  | `N2X10V` OR inside `O0pyRO` (`BbK6Q`) | 🟢     | `RuleDetailPanel.tsx` (rebuild of `RuleDetailCompact`)     |
 
 ### Sub-surface 4c — Review tab (Stream mode)
 
-| Screen | Pencil ID | Status | Code target |
-|---|---|---|---|
-| Stream layout (coverage + filter + scrolling stream body) | `dPICW` | 🟢 | `RulesReviewStream.tsx` |
-| Per-rule summary card (inline Accept/Reject) | inside `dPICW` (Rule 1-4) | 🟢 | `RuleStreamCard.tsx` |
-| Multi-select state (checkbox in bar + sticky footer) | inside `dPICW` (selected variant + `J8c71i` footer) | 🟢 | `RuleStreamMultiSelectFooter.tsx` |
-| `Select multiple` toggle | inside `dPICW` filter row (`icLl6`) | 🟢 | engineering wires the toggle to controlled state |
+| Screen                                                    | Pencil ID                                           | Status | Code target                                      |
+| --------------------------------------------------------- | --------------------------------------------------- | ------ | ------------------------------------------------ |
+| Stream layout (coverage + filter + scrolling stream body) | `dPICW`                                             | 🟢     | `RulesReviewStream.tsx`                          |
+| Per-rule summary card (inline Accept/Reject)              | inside `dPICW` (Rule 1-4)                           | 🟢     | `RuleStreamCard.tsx`                             |
+| Multi-select state (checkbox in bar + sticky footer)      | inside `dPICW` (selected variant + `J8c71i` footer) | 🟢     | `RuleStreamMultiSelectFooter.tsx`                |
+| `Select multiple` toggle                                  | inside `dPICW` filter row (`icLl6`)                 | 🟢     | engineering wires the toggle to controlled state |
 
 ### Sub-surface 4d — Modals + post-action
 
-| Screen | Pencil ID | Status | Code target |
-|---|---|---|---|
-| Bulk review modal (simplified, with Reject) | text-only in `docs/Design/rule-library-review-flow.md` § "Screen G" | 🔴 not mocked | `BulkReviewModal.tsx` refactor of existing |
-| Accept impact confirmation modal | text-only in `docs/Design/rule-library-review-flow.md` § "Screen D" | 🔴 not mocked | new `AcceptRuleDialog.tsx` |
-| Reject reason dialog | text-only in `docs/Design/rule-library-review-flow.md` § "Screen E" | 🔴 not mocked | new `RejectRuleDialog.tsx` |
-| Post-accept success state | text-only in `docs/Design/rule-library-review-flow.md` § "Screen F" | 🔴 not mocked | in-place card update + toast |
-| Read-more reveal pattern | text-only | 🔴 not mocked | conditional render inside `RuleDetailPanel` |
+| Screen                                      | Pencil ID                                                           | Status        | Code target                                 |
+| ------------------------------------------- | ------------------------------------------------------------------- | ------------- | ------------------------------------------- |
+| Bulk review modal (simplified, with Reject) | text-only in `docs/Design/rule-library-review-flow.md` § "Screen G" | 🔴 not mocked | `BulkReviewModal.tsx` refactor of existing  |
+| Accept impact confirmation modal            | text-only in `docs/Design/rule-library-review-flow.md` § "Screen D" | 🔴 not mocked | new `AcceptRuleDialog.tsx`                  |
+| Reject reason dialog                        | text-only in `docs/Design/rule-library-review-flow.md` § "Screen E" | 🔴 not mocked | new `RejectRuleDialog.tsx`                  |
+| Post-accept success state                   | text-only in `docs/Design/rule-library-review-flow.md` § "Screen F" | 🔴 not mocked | in-place card update + toast                |
+| Read-more reveal pattern                    | text-only                                                           | 🔴 not mocked | conditional render inside `RuleDetailPanel` |
 
 **Engineering note:** For the 5 🔴 items above, the patterns are well-established by analogy:
+
 - Accept modal → follow `ly7p0` (Impact preview) pattern
 - Reject dialog → follow Alert's reject pattern (octagon-x destructive header + reason chips + free-text note)
 - Post-accept success → swap `AlertStatusChip awaiting` (`w4DBr`) → `AlertStatusChip applied` (`b75I5W`)
@@ -161,13 +166,14 @@ If you want me to mock these next turn instead of leaving as text-only, say so.
 
 **Canvas:** `lLC46`
 
-| Component | Pencil ID | Variants | Code target |
-|---|---|---|---|
+| Component         | Pencil ID                                         | Variants                                                                     | Code target                                         |
+| ----------------- | ------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------- |
 | `AlertStatusChip` | `w4DBr · b75I5W · GzVzj · g770iB · Cirrk · OMxu3` | 6 (awaiting · applied · dismissed · partially_applied · reverted · reviewed) | `apps/app/src/components/AlertStatusChip.tsx` (NEW) |
-| `RelatedRuleRow` | `G0zYC` | 1 | `apps/app/src/components/RelatedRuleRow.tsx` (NEW) |
-| `DecisionActions` | `fJtAo` | 1 (Apply / Customize / Dismiss) | `apps/app/src/components/DecisionActions.tsx` (NEW) |
+| `RelatedRuleRow`  | `G0zYC`                                           | 1                                                                            | `apps/app/src/components/RelatedRuleRow.tsx` (NEW)  |
+| `DecisionActions` | `fJtAo`                                           | 1 (Apply / Customize / Dismiss)                                              | `apps/app/src/components/DecisionActions.tsx` (NEW) |
 
 **Engineering contract:** each Pencil component above has the canonical chrome documented. React translation:
+
 - Take props from the Pencil node names (e.g. `AlertStatusChip` props: `status` · `timestamp` · `size?`)
 - Reuse for `DeadlineStatusChip` (same component, different status enum mapping)
 - Reuse for `RuleStatusChip` (same component, different status enum mapping)
@@ -176,12 +182,12 @@ If you want me to mock these next turn instead of leaving as text-only, say so.
 
 ## States designed (apply across all surfaces)
 
-| State family | Pencil ID | What it covers |
-|---|---|---|
-| Empty + Error | `kpPeW` | 0-clients · low-confidence · source-fetch-failed · 0-events · 0-notes |
-| Interactive (hover · focus · disabled · loading) | `b7fa5Y` | Primary button matrix · secondary button matrix · composer states · loading skeletons · link hovers |
-| Overflow + Truncation | `AAMn4` | Long client name · long note body · long source quote · long extracted-facts value · @mention chip · selection toolbar variants |
-| Narrow viewport (768px) + a11y | `M5UKQ` | Mobile reflow · keyboard tab order · ARIA contract |
+| State family                                     | Pencil ID | What it covers                                                                                                                  |
+| ------------------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Empty + Error                                    | `kpPeW`   | 0-clients · low-confidence · source-fetch-failed · 0-events · 0-notes                                                           |
+| Interactive (hover · focus · disabled · loading) | `b7fa5Y`  | Primary button matrix · secondary button matrix · composer states · loading skeletons · link hovers                             |
+| Overflow + Truncation                            | `AAMn4`   | Long client name · long note body · long source quote · long extracted-facts value · @mention chip · selection toolbar variants |
+| Narrow viewport (768px) + a11y                   | `M5UKQ`   | Mobile reflow · keyboard tab order · ARIA contract                                                                              |
 
 **Engineering action:** these are reference specs for CSS/component implementation. They're not separate routes — they're variant states of the existing surfaces. Engineering reuses the canonical chrome and conditionally renders empty/error states based on data.
 
@@ -191,14 +197,14 @@ If you want me to mock these next turn instead of leaving as text-only, say so.
 
 Live tracker for open questions. Status as of 2026-06-10:
 
-| # | Note | Status |
-|---|---|---|
-| 1 | ExtractedFacts partial extraction (em-dash + tooltip) | 🔴 OPEN — product decision needed (surface or strip) |
-| 2 | ExtractedFacts per-field confidence ticks | 🔴 OPEN — product decision needed (transparency vs visual calm) |
-| 3 | AffectedClients 0-matches state | 🟢 DESIGNED at `kpPeW` |
-| 4 | "Confirmed" pill semantics | 🟢 FIXED — renamed to "High match" |
-| 5 | Pill contrast | 🟢 FIXED — token swap + hex bug repaired |
-| 6 | "View 3 more" hover state | 🟡 FLAG FOR ENG — hover state not designable in static |
+| #   | Note                                                  | Status                                                          |
+| --- | ----------------------------------------------------- | --------------------------------------------------------------- |
+| 1   | ExtractedFacts partial extraction (em-dash + tooltip) | 🔴 OPEN — product decision needed (surface or strip)            |
+| 2   | ExtractedFacts per-field confidence ticks             | 🔴 OPEN — product decision needed (transparency vs visual calm) |
+| 3   | AffectedClients 0-matches state                       | 🟢 DESIGNED at `kpPeW`                                          |
+| 4   | "Confirmed" pill semantics                            | 🟢 FIXED — renamed to "High match"                              |
+| 5   | Pill contrast                                         | 🟢 FIXED — token swap + hex bug repaired                        |
+| 6   | "View 3 more" hover state                             | 🟡 FLAG FOR ENG — hover state not designable in static          |
 
 ---
 
@@ -258,6 +264,7 @@ These unlock everything downstream. No user-visible UX change yet.
 ## Files Claude Code will touch (per phase)
 
 ### Phase 1
+
 ```
 apps/app/src/components/AlertStatusChip.tsx          [NEW]
 apps/app/src/components/RelatedRuleRow.tsx           [NEW]
@@ -268,6 +275,7 @@ apps/app/src/features/deadlines/**                   [token sweep]
 ```
 
 ### Phase 2
+
 ```
 apps/app/src/features/alerts/AlertDetailDrawer.tsx   [MODIFY heavily]
 apps/app/src/features/alerts/components/AlertStatusBadge.tsx [RENAME/REFACTOR to AlertStatusChip]
@@ -275,6 +283,7 @@ apps/app/src/server/routers/alerts.ts                [MODIFY — add dismissAler
 ```
 
 ### Phase 3
+
 ```
 apps/app/src/features/rules/coverage-tab.tsx         [REFACTOR — add tabs, Overview body]
 apps/app/src/features/rules/components/RulesKpiStrip.tsx [NEW]
@@ -282,6 +291,7 @@ apps/app/src/features/rules/components/RecentRuleChangesCard.tsx [NEW]
 ```
 
 ### Phase 4
+
 ```
 apps/app/src/features/rules/rule-detail-drawer.tsx   [REBUILD — summary-first card-stack]
 apps/app/src/features/rules/coverage-tab.tsx         [MODIFY — Review tab routing]
@@ -292,6 +302,7 @@ apps/app/src/features/rules/components/RuleFilterChips.tsx [NEW]
 ```
 
 ### Phase 5
+
 ```
 apps/app/src/features/rules/components/RulesReviewStream.tsx [NEW]
 apps/app/src/features/rules/components/RuleStreamCard.tsx [NEW]
@@ -302,6 +313,7 @@ apps/app/src/features/rules/components/RejectRuleDialog.tsx [NEW]
 ```
 
 ### Phase 6
+
 ```
 packages/db/src/schema/pulse.ts                      [MODIFY — Related rules join table]
 packages/contracts/src/pulse.ts                      [MODIFY — Related rules field]
@@ -314,6 +326,7 @@ apps/app/src/features/alerts/components/RelatedRulesSection.tsx [NEW]
 ## Done-when (master checklist)
 
 ### Foundation
+
 - [ ] `AlertStatusChip` React component renders 6 variants
 - [ ] `RelatedRuleRow` React component renders
 - [ ] `DecisionActions` React component renders (Apply · Customize · Dismiss slots)
@@ -321,6 +334,7 @@ apps/app/src/features/alerts/components/RelatedRulesSection.tsx [NEW]
 - [ ] Deadline detail card chrome — 0 hex leaks, all tokens
 
 ### Alert detail
+
 - [ ] `D` keyboard shortcut dismisses
 - [ ] Dismiss button visible in footer
 - [ ] Status chip shows `Awaiting decision · 2h` / `Applied · Mar 4` / `Dismissed · Mar 5`
@@ -328,11 +342,13 @@ apps/app/src/features/alerts/components/RelatedRulesSection.tsx [NEW]
 - [ ] Plain-language summary rendered
 
 ### Rule library Overview
+
 - [ ] Tabs: Overview · Review (12) · Sources · Audit
 - [ ] 4 KPI cards in strip
 - [ ] Recent changes feed renders
 
 ### Rule library Review (Queue)
+
 - [ ] `?ruleId=` URL routing works
 - [ ] Coverage strip + filter chips render
 - [ ] Click rule row → right column takes over with detail
@@ -341,17 +357,20 @@ apps/app/src/features/alerts/components/RelatedRulesSection.tsx [NEW]
 - [ ] Accept / Reject / Skip actions work
 
 ### Rule library Review (Stream)
+
 - [ ] Toggle between Queue and Stream
 - [ ] Per-card Accept/Reject inline
 - [ ] Multi-select mode with sticky footer
 - [ ] Bulk Accept N / Reject N work
 
 ### Rule library modals
+
 - [ ] Accept confirmation modal (with impact preview)
 - [ ] Reject reason dialog (preset chips + free-text)
 - [ ] Bulk review modal (simplified — add Reject + per-rule mini-edit)
 
 ### States
+
 - [ ] Empty + error states render per design
 - [ ] Hover/focus/disabled/loading states match `b7fa5Y`
 - [ ] Truncation + overflow handled per `AAMn4`
@@ -359,6 +378,7 @@ apps/app/src/features/alerts/components/RelatedRulesSection.tsx [NEW]
 - [ ] Keyboard nav order matches `M5UKQ` spec
 
 ### Audit cleanup (zjwn8)
+
 - [ ] Match pill renamed to "High match" everywhere
 - [ ] Match pill contrast verified WCAG AA in all themes
 - [ ] 0-matches empty state rendered when matchedClients.length === 0
@@ -368,15 +388,15 @@ apps/app/src/features/alerts/components/RelatedRulesSection.tsx [NEW]
 
 ## What's still in design backlog (not shipping in this round)
 
-| Item | Why deferred | When to revisit |
-|---|---|---|
-| Map view / list-map toggle for rule library | Decided NO — see Design doc § "Map view verdict" | If 3+ users explicitly ask |
-| Related rules section in alert detail | Schema work + linker is its own project | v1.1 |
-| Client comms template (pre-drafted email/Slack after alert applied) | Scope creep | v1.1 |
-| Geographic rule analysis page (`/rules/coverage`) | No clear demand | If reviewers ask |
-| Per-field confidence ticks on ExtractedFacts | Product decision needed | v1.1 after b7fa5Y a11y ships |
-| Partial extraction state (em-dash + tooltip) | Product decision needed | v1.1 |
-| `awaiting_decision` rename of DB `matched` status | Cosmetic; display-only rename suffices | If product wants semantic clarity |
+| Item                                                                | Why deferred                                     | When to revisit                   |
+| ------------------------------------------------------------------- | ------------------------------------------------ | --------------------------------- |
+| Map view / list-map toggle for rule library                         | Decided NO — see Design doc § "Map view verdict" | If 3+ users explicitly ask        |
+| Related rules section in alert detail                               | Schema work + linker is its own project          | v1.1                              |
+| Client comms template (pre-drafted email/Slack after alert applied) | Scope creep                                      | v1.1                              |
+| Geographic rule analysis page (`/rules/coverage`)                   | No clear demand                                  | If reviewers ask                  |
+| Per-field confidence ticks on ExtractedFacts                        | Product decision needed                          | v1.1 after b7fa5Y a11y ships      |
+| Partial extraction state (em-dash + tooltip)                        | Product decision needed                          | v1.1                              |
+| `awaiting_decision` rename of DB `matched` status                   | Cosmetic; display-only rename suffices           | If product wants semantic clarity |
 
 ---
 
@@ -384,30 +404,30 @@ apps/app/src/features/alerts/components/RelatedRulesSection.tsx [NEW]
 
 For when Claude Code (or any engineer) needs to find a design fast:
 
-| Pencil node | Surface | Type |
-|---|---|---|
-| `BbQAK` | Alert detail right panel | Page section |
-| `ly7p0` | Alert Impact preview modal | Modal |
-| `kpPeW` | Alert empty + error states | State spec |
-| `b7fa5Y` | Alert interactive states | State spec |
-| `AAMn4` | Alert overflow + truncation | State spec |
-| `M5UKQ` | Alert narrow viewport + a11y | State spec |
-| `lLC46` | Pencil component library | Components |
-| `Y8xrR` | Deadline Status tab left column | Page section |
-| `rzzww` | Deadline Materials tab | Page |
-| `HThur` | Deadline Status tab | Page |
-| `DeZE3` | Deadline Record tab | Page |
-| `g8Bna2` | Deadline Audit tab | Page |
-| `kWbdW` | Deadline detail page chrome | Page chrome |
-| `tZ0BB` | Client detail canonical | Page |
-| `thUSa · WWEtF · PFkmy` | Client detail variants | Page variants |
-| `rOSHx` | Clients list | Page |
-| `T4eNmw` | Clients empty state | Page (empty) |
-| `GLnAJ` | Rule library Overview tab | Page |
-| `O0pyRO` | Rule library Review (Queue) | Page |
-| `dPICW` | Rule library Review (Stream) | Page |
-| `N2X10V` | Rule library inline detail panel | Page section |
-| `qgiTf` | Rule library alternate (STALE — do not ship) | (none) |
+| Pencil node             | Surface                                      | Type          |
+| ----------------------- | -------------------------------------------- | ------------- |
+| `BbQAK`                 | Alert detail right panel                     | Page section  |
+| `ly7p0`                 | Alert Impact preview modal                   | Modal         |
+| `kpPeW`                 | Alert empty + error states                   | State spec    |
+| `b7fa5Y`                | Alert interactive states                     | State spec    |
+| `AAMn4`                 | Alert overflow + truncation                  | State spec    |
+| `M5UKQ`                 | Alert narrow viewport + a11y                 | State spec    |
+| `lLC46`                 | Pencil component library                     | Components    |
+| `Y8xrR`                 | Deadline Status tab left column              | Page section  |
+| `rzzww`                 | Deadline Materials tab                       | Page          |
+| `HThur`                 | Deadline Status tab                          | Page          |
+| `DeZE3`                 | Deadline Record tab                          | Page          |
+| `g8Bna2`                | Deadline Audit tab                           | Page          |
+| `kWbdW`                 | Deadline detail page chrome                  | Page chrome   |
+| `tZ0BB`                 | Client detail canonical                      | Page          |
+| `thUSa · WWEtF · PFkmy` | Client detail variants                       | Page variants |
+| `rOSHx`                 | Clients list                                 | Page          |
+| `T4eNmw`                | Clients empty state                          | Page (empty)  |
+| `GLnAJ`                 | Rule library Overview tab                    | Page          |
+| `O0pyRO`                | Rule library Review (Queue)                  | Page          |
+| `dPICW`                 | Rule library Review (Stream)                 | Page          |
+| `N2X10V`                | Rule library inline detail panel             | Page section  |
+| `qgiTf`                 | Rule library alternate (STALE — do not ship) | (none)        |
 
 ---
 
@@ -444,60 +464,61 @@ All colors are CSS variables defined in `packages/ui/src/preset.css`. Use the to
 
 ### Surface tokens
 
-| Token | Light value | Dark value | Used for |
-|---|---|---|---|
-| `$ddhq-bg-body` | `#FAFBFC` | `#0B0F14` | Outer page background |
-| `$ddhq-bg-default` | `#FFFFFF` | `#11161D` | Card/panel surface |
-| `$ddhq-bg-subtle` | `#F4F5F7` | `#1A2029` | Card bar header, button hover |
-| `$ddhq-bg-section` | `#F0F1F3` | `#1D232C` | Sectioned inset (used in some inputs) |
+| Token              | Light value | Dark value | Used for                              |
+| ------------------ | ----------- | ---------- | ------------------------------------- |
+| `$ddhq-bg-body`    | `#FAFBFC`   | `#0B0F14`  | Outer page background                 |
+| `$ddhq-bg-default` | `#FFFFFF`   | `#11161D`  | Card/panel surface                    |
+| `$ddhq-bg-subtle`  | `#F4F5F7`   | `#1A2029`  | Card bar header, button hover         |
+| `$ddhq-bg-section` | `#F0F1F3`   | `#1D232C`  | Sectioned inset (used in some inputs) |
 
 ### Stroke / divider tokens
 
-| Token | Used for |
-|---|---|
-| `$ddhq-divider-subtle` | Card borders, row separators, hairlines (DEFAULT divider) |
-| `$ddhq-divider-regular` | Slightly stronger — input borders, button outlines |
+| Token                   | Used for                                                  |
+| ----------------------- | --------------------------------------------------------- |
+| `$ddhq-divider-subtle`  | Card borders, row separators, hairlines (DEFAULT divider) |
+| `$ddhq-divider-regular` | Slightly stronger — input borders, button outlines        |
 
 ### Text tokens
 
-| Token | Used for |
-|---|---|
-| `$ddhq-text-primary` | Headings, primary body text |
-| `$ddhq-text-secondary` | Secondary body text, button labels |
-| `$ddhq-text-tertiary` | Captions, meta info, dim labels |
-| `$ddhq-text-muted` | Eyebrow labels, placeholder text, deep-dim |
-| `$ddhq-text-accent` | Links (same color as state-accent-solid in most themes) |
-| `$ddhq-text-success` | Success-tier text (green) |
-| `$ddhq-text-destructive` | Error/destructive text (red) |
+| Token                    | Used for                                                |
+| ------------------------ | ------------------------------------------------------- |
+| `$ddhq-text-primary`     | Headings, primary body text                             |
+| `$ddhq-text-secondary`   | Secondary body text, button labels                      |
+| `$ddhq-text-tertiary`    | Captions, meta info, dim labels                         |
+| `$ddhq-text-muted`       | Eyebrow labels, placeholder text, deep-dim              |
+| `$ddhq-text-accent`      | Links (same color as state-accent-solid in most themes) |
+| `$ddhq-text-success`     | Success-tier text (green)                               |
+| `$ddhq-text-destructive` | Error/destructive text (red)                            |
 
 ### State tokens (accent / success / warning / destructive)
 
 Each tier has 3 levels: `solid` (filled bg / vibrant), `hover` (light tint bg), `text` (foreground on hover bg).
 
-| Tier | solid | hover | text |
-|---|---|---|---|
-| accent (blue) | `$ddhq-state-accent-solid` | `$ddhq-state-accent-hover` | `$ddhq-state-accent-solid` (text equivalent) |
-| success (green) | `$ddhq-state-success-solid` | `$ddhq-state-success-hover` | `$ddhq-text-success` |
-| warning (orange/amber) | `$ddhq-state-warning-solid` | `$ddhq-state-warning-hover` | `$ddhq-state-warning-text` |
-| destructive (red) | `$ddhq-state-destructive-solid` | `$ddhq-state-destructive-hover` | `$ddhq-state-destructive-text` |
+| Tier                   | solid                           | hover                           | text                                         |
+| ---------------------- | ------------------------------- | ------------------------------- | -------------------------------------------- |
+| accent (blue)          | `$ddhq-state-accent-solid`      | `$ddhq-state-accent-hover`      | `$ddhq-state-accent-solid` (text equivalent) |
+| success (green)        | `$ddhq-state-success-solid`     | `$ddhq-state-success-hover`     | `$ddhq-text-success`                         |
+| warning (orange/amber) | `$ddhq-state-warning-solid`     | `$ddhq-state-warning-hover`     | `$ddhq-state-warning-text`                   |
+| destructive (red)      | `$ddhq-state-destructive-solid` | `$ddhq-state-destructive-hover` | `$ddhq-state-destructive-text`               |
 
 **Usage pattern for status pills** (chip with bg + icon + text):
+
 ```css
-background: var(--ddhq-state-{tier}-hover);  /* light tint */
-color: var(--ddhq-{tier}-text);              /* foreground */
+background: var(--ddhq-state-{tier}-hover); /* light tint */
+color: var(--ddhq-{tier}-text); /* foreground */
 border-radius: 999px;
 padding: 3px 10px;
 ```
 
 ### CornerRadius scale (LOCKED — no freelance values)
 
-| Token | Use |
-|---|---|
-| `0` | Inner sections, flush elements |
-| `4` | Compact controls (cell labels in grids) |
-| `8` | Buttons, inputs, table chrome, badges |
-| `12` | Cards, wrappers, dialogs |
-| `999` | Pills, chips, avatars |
+| Token | Use                                     |
+| ----- | --------------------------------------- |
+| `0`   | Inner sections, flush elements          |
+| `4`   | Compact controls (cell labels in grids) |
+| `8`   | Buttons, inputs, table chrome, badges   |
+| `12`  | Cards, wrappers, dialogs                |
+| `999` | Pills, chips, avatars                   |
 
 NO 6, 10, 14, 16 — those are AI-generated freelance values that fail review.
 
@@ -597,77 +618,94 @@ border-top: 1px solid var(--ddhq-divider-subtle); /* skip on first row */
 ### Props
 
 ```ts
-import { PulseFirmAlertStatus } from '@/contracts/pulse';
+import { PulseFirmAlertStatus } from '@/contracts/pulse'
 
 export interface AlertStatusChipProps {
   /** Lifecycle status from PulseAlertPublic */
-  status: PulseFirmAlertStatus | 'awaiting_decision';
+  status: PulseFirmAlertStatus | 'awaiting_decision'
   /** Optional timestamp for the suffix (e.g. "2h ago", "Mar 4") */
-  timestamp?: Date | number;
+  timestamp?: Date | number
   /** Optional override for the timestamp format */
-  formatTimestamp?: (ts: Date | number) => string;
+  formatTimestamp?: (ts: Date | number) => string
   /** Visual size — defaults to 'sm' */
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md'
   /** Override the default label per status (rare) */
-  label?: string;
+  label?: string
   /** Override the default icon per status (rare) */
-  icon?: LucideIcon;
+  icon?: LucideIcon
 }
 ```
 
 ### Status → visual mapping
 
 ```ts
-const STATUS_MAP: Record<string, { label: string; icon: LucideIcon; tier: 'warning' | 'success' | 'neutral' | 'accent' }> = {
+const STATUS_MAP: Record<
+  string,
+  { label: string; icon: LucideIcon; tier: 'warning' | 'success' | 'neutral' | 'accent' }
+> = {
   matched: { label: 'Awaiting decision', icon: Clock3, tier: 'warning' },
-  awaiting_decision: { label: 'Awaiting decision', icon: Clock3, tier: 'warning' },  // alias
+  awaiting_decision: { label: 'Awaiting decision', icon: Clock3, tier: 'warning' }, // alias
   applied: { label: 'Applied', icon: CheckCheck, tier: 'success' },
   dismissed: { label: 'Dismissed', icon: Undo2, tier: 'neutral' },
   partially_applied: { label: 'Partially applied', icon: CircleDot, tier: 'warning' },
-  reverted: { label: 'Reverted', icon: RotateCcw, tier: 'neutral' },  // with outline
+  reverted: { label: 'Reverted', icon: RotateCcw, tier: 'neutral' }, // with outline
   reviewed: { label: 'Reviewed', icon: BadgeCheck, tier: 'success' },
-};
+}
 ```
 
 ### Implementation skeleton
 
 ```tsx
-export function AlertStatusChip({ status, timestamp, formatTimestamp, size = 'sm', label, icon }: AlertStatusChipProps) {
-  const config = STATUS_MAP[status];
-  const Icon = icon ?? config.icon;
-  const displayLabel = label ?? config.label;
+export function AlertStatusChip({
+  status,
+  timestamp,
+  formatTimestamp,
+  size = 'sm',
+  label,
+  icon,
+}: AlertStatusChipProps) {
+  const config = STATUS_MAP[status]
+  const Icon = icon ?? config.icon
+  const displayLabel = label ?? config.label
 
   const tierClasses = {
     warning: 'bg-[var(--ddhq-state-warning-hover)] text-[var(--ddhq-state-warning-text)]',
     success: 'bg-[var(--ddhq-state-success-hover)] text-[var(--ddhq-text-success)]',
-    accent:  'bg-[var(--ddhq-state-accent-hover)] text-[var(--ddhq-state-accent-solid)]',
+    accent: 'bg-[var(--ddhq-state-accent-hover)] text-[var(--ddhq-state-accent-solid)]',
     neutral: 'bg-[var(--ddhq-bg-subtle)] text-[var(--ddhq-text-tertiary)]',
-  }[config.tier];
+  }[config.tier]
 
-  const sizeClasses = size === 'sm'
-    ? 'h-[18px] px-[10px] py-[3px] text-[11px] gap-[5px]'
-    : 'h-[24px] px-[12px] py-[4px] text-[12px] gap-[6px]';
+  const sizeClasses =
+    size === 'sm'
+      ? 'h-[18px] px-[10px] py-[3px] text-[11px] gap-[5px]'
+      : 'h-[24px] px-[12px] py-[4px] text-[12px] gap-[6px]'
 
-  const suffix = timestamp ? ` · ${formatTimestamp?.(timestamp) ?? defaultFormat(timestamp)}` : '';
+  const suffix = timestamp ? ` · ${formatTimestamp?.(timestamp) ?? defaultFormat(timestamp)}` : ''
 
   return (
-    <span className={`inline-flex items-center rounded-full font-semibold ${tierClasses} ${sizeClasses}`} role="status">
+    <span
+      className={`inline-flex items-center rounded-full font-semibold ${tierClasses} ${sizeClasses}`}
+      role="status"
+    >
       <Icon size={size === 'sm' ? 11 : 13} aria-hidden />
-      <span>{displayLabel}{suffix}</span>
+      <span>
+        {displayLabel}
+        {suffix}
+      </span>
     </span>
-  );
+  )
 }
 
 function defaultFormat(ts: Date | number): string {
-  const date = typeof ts === 'number' ? new Date(ts) : ts;
-  const now = Date.now();
-  const diff = (now - date.getTime()) / 1000; // seconds
+  const date = typeof ts === 'number' ? new Date(ts) : ts
+  const now = Date.now()
+  const diff = (now - date.getTime()) / 1000 // seconds
 
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`;
-  return format(date, 'MMM d');
+  if (diff < 60) return 'just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`
+  return format(date, 'MMM d')
 }
 ```
 
@@ -720,42 +758,47 @@ describe('AlertStatusChip', () => {
 export interface DecisionActionsProps {
   /** Primary action (filled accent button) */
   primary: {
-    label: string;
-    icon?: LucideIcon;
-    onClick: () => void;
-    disabled?: boolean;
-    loading?: boolean;
-  };
+    label: string
+    icon?: LucideIcon
+    onClick: () => void
+    disabled?: boolean
+    loading?: boolean
+  }
   /** Optional secondary action (outline button) */
   secondary?: {
-    label: string;
-    icon?: LucideIcon;
-    onClick: () => void;
-    disabled?: boolean;
-  };
+    label: string
+    icon?: LucideIcon
+    onClick: () => void
+    disabled?: boolean
+  }
   /** Optional tertiary action (text link) */
   tertiary?: {
-    label: string;
-    icon?: LucideIcon;
-    onClick: () => void;
-  };
+    label: string
+    icon?: LucideIcon
+    onClick: () => void
+  }
   /** Variant: 'horizontal' (alert/rule) or 'horizontal-with-tertiary-right' (deadline) */
-  variant?: 'horizontal' | 'horizontal-with-tertiary-right';
+  variant?: 'horizontal' | 'horizontal-with-tertiary-right'
 }
 ```
 
 ### Layout (matches Pencil `fJtAo`)
 
 ```tsx
-export function DecisionActions({ primary, secondary, tertiary, variant = 'horizontal' }: DecisionActionsProps) {
+export function DecisionActions({
+  primary,
+  secondary,
+  tertiary,
+  variant = 'horizontal',
+}: DecisionActionsProps) {
   return (
     <div className="flex items-center gap-[10px] w-full">
       <Button kind="primary" {...primary} />
       {secondary && <Button kind="secondary" {...secondary} />}
-      <div className="flex-1" />  {/* spacer */}
+      <div className="flex-1" /> {/* spacer */}
       {tertiary && <TextLink {...tertiary} />}
     </div>
-  );
+  )
 }
 ```
 
@@ -788,22 +831,28 @@ it('shows loading spinner on primary when loading=true', () => { ... });
 ```ts
 export interface RelatedRuleRowProps {
   /** Rule code (e.g. "CA FTB-2026-12") */
-  code: string;
+  code: string
   /** Short name */
-  name: string;
+  name: string
   /** Description (1-2 line, truncates) */
-  description: string;
+  description: string
   /** Relation tier */
-  relation?: 'mirror' | 'safeharbor' | 'overlap';
+  relation?: 'mirror' | 'safeharbor' | 'overlap'
   /** Click handler — navigates to rule detail */
-  onClick: () => void;
+  onClick: () => void
 }
 ```
 
 ### Visual spec
 
 ```tsx
-export function RelatedRuleRow({ code, name, description, relation, onClick }: RelatedRuleRowProps) {
+export function RelatedRuleRow({
+  code,
+  name,
+  description,
+  relation,
+  onClick,
+}: RelatedRuleRowProps) {
   return (
     <button
       onClick={onClick}
@@ -814,7 +863,9 @@ export function RelatedRuleRow({ code, name, description, relation, onClick }: R
       </div>
       <div className="flex-1 flex flex-col gap-[2px] text-left">
         <div className="flex items-center gap-[6px]">
-          <span className="font-mono text-[12px] font-semibold text-[var(--ddhq-text-primary)]">{code}</span>
+          <span className="font-mono text-[12px] font-semibold text-[var(--ddhq-text-primary)]">
+            {code}
+          </span>
           <span className="text-[12px] text-[var(--ddhq-text-muted)]">·</span>
           <span className="text-[12px] text-[var(--ddhq-text-secondary)]">{name}</span>
         </div>
@@ -824,7 +875,7 @@ export function RelatedRuleRow({ code, name, description, relation, onClick }: R
         <ChevronRightIcon size={14} className="text-[var(--ddhq-text-muted)]" aria-hidden />
       </div>
     </button>
-  );
+  )
 }
 ```
 
@@ -838,22 +889,24 @@ export function RelatedRuleRow({ code, name, description, relation, onClick }: R
 **Router file:** `apps/app/src/server/routers/alerts.ts`
 
 ```ts
-import { z } from 'zod';
-import { protectedProcedure, router } from '@/server/trpc';
-import { eq } from 'drizzle-orm';
-import { pulseFirmAlert } from '@/db/schema/pulse';
+import { z } from 'zod'
+import { protectedProcedure, router } from '@/server/trpc'
+import { eq } from 'drizzle-orm'
+import { pulseFirmAlert } from '@/db/schema/pulse'
 
 export const alertsRouter = router({
   // ... existing procedures
 
   dismissAlert: protectedProcedure
-    .input(z.object({
-      alertId: z.string().uuid(),
-      reason: z.string().max(500).optional(),
-    }))
+    .input(
+      z.object({
+        alertId: z.string().uuid(),
+        reason: z.string().max(500).optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const { db, session } = ctx;
-      const now = Date.now();
+      const { db, session } = ctx
+      const now = Date.now()
 
       const [updated] = await db
         .update(pulseFirmAlert)
@@ -864,10 +917,10 @@ export const alertsRouter = router({
           reviewNote: input.reason,
         })
         .where(eq(pulseFirmAlert.id, input.alertId))
-        .returning();
+        .returning()
 
       if (!updated) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Alert not found' });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Alert not found' })
       }
 
       // Emit audit log event
@@ -876,11 +929,11 @@ export const alertsRouter = router({
         entityId: input.alertId,
         actor: session.userId,
         metadata: { reason: input.reason },
-      });
+      })
 
-      return updated;
+      return updated
     }),
-});
+})
 ```
 
 ### F.2 — Contract schema additions (Phase 1)
@@ -895,12 +948,12 @@ export const PulseAlertPublic = z.object({
   status: PulseFirmAlertStatusSchema,
   summary: z.string().min(1),
   // ADD THESE:
-  dismissedAt: z.number().int().nullable(),   // epoch ms
-  appliedAt: z.number().int().nullable(),     // epoch ms (note: lives on pulseApplication in DB; resolver must JOIN)
-  dismissedBy: z.string().uuid().nullable(),  // user ID
-});
+  dismissedAt: z.number().int().nullable(), // epoch ms
+  appliedAt: z.number().int().nullable(), // epoch ms (note: lives on pulseApplication in DB; resolver must JOIN)
+  dismissedBy: z.string().uuid().nullable(), // user ID
+})
 
-export type PulseAlertPublic = z.infer<typeof PulseAlertPublic>;
+export type PulseAlertPublic = z.infer<typeof PulseAlertPublic>
 ```
 
 **Resolver update** — where the alert detail is queried, JOIN to `pulseApplication` to fetch `appliedAt`:
@@ -912,11 +965,13 @@ const alert = await db
     dismissedAt: pulseFirmAlert.dismissedAt,
     dismissedBy: pulseFirmAlert.dismissedBy,
     // appliedAt from earliest pulseApplication entry for this alert
-    appliedAt: sql<number | null>`(SELECT MIN(applied_at) FROM pulse_application WHERE alert_id = ${pulseFirmAlert.id})`,
+    appliedAt: sql<
+      number | null
+    >`(SELECT MIN(applied_at) FROM pulse_application WHERE alert_id = ${pulseFirmAlert.id})`,
   })
   .from(pulseFirmAlert)
   .where(eq(pulseFirmAlert.id, alertId))
-  .limit(1);
+  .limit(1)
 ```
 
 ---
@@ -925,30 +980,32 @@ const alert = await db
 
 Replace these literal hex values everywhere they appear in `apps/app/src/**`:
 
-| Hex (raw) | Token |
-|---|---|
-| `#ffffff` body surface | `var(--ddhq-bg-default)` |
-| `#fafafa` / `#f9f9f9` page bg | `var(--ddhq-bg-body)` |
-| `#f2f4f7` / `#f4f5f7` subtle bg | `var(--ddhq-bg-subtle)` |
-| `#101828` text-primary | `var(--ddhq-text-primary)` |
-| `#354052` text-secondary | `var(--ddhq-text-secondary)` |
-| `#676f83` text-tertiary | `var(--ddhq-text-tertiary)` |
-| `#98a2b2` text-muted | `var(--ddhq-text-muted)` |
-| `#155aef` accent-solid | `var(--ddhq-state-accent-solid)` |
-| `#eff4ff` accent-hover | `var(--ddhq-state-accent-hover)` |
-| `#f04438` destructive-solid | `var(--ddhq-state-destructive-solid)` |
-| `#ecfdf3` success-hover | `var(--ddhq-state-success-hover)` |
-| `#079455` success-solid | `var(--ddhq-state-success-solid)` |
-| `#fffaeb` warning-hover | `var(--ddhq-state-warning-hover)` |
-| `#fdb022` warning-solid | `var(--ddhq-state-warning-solid)` |
-| `#e9e9e9` divider | `var(--ddhq-divider-subtle)` |
-| `#d4d4d4` stronger divider | `var(--ddhq-divider-regular)` |
+| Hex (raw)                       | Token                                 |
+| ------------------------------- | ------------------------------------- |
+| `#ffffff` body surface          | `var(--ddhq-bg-default)`              |
+| `#fafafa` / `#f9f9f9` page bg   | `var(--ddhq-bg-body)`                 |
+| `#f2f4f7` / `#f4f5f7` subtle bg | `var(--ddhq-bg-subtle)`               |
+| `#101828` text-primary          | `var(--ddhq-text-primary)`            |
+| `#354052` text-secondary        | `var(--ddhq-text-secondary)`          |
+| `#676f83` text-tertiary         | `var(--ddhq-text-tertiary)`           |
+| `#98a2b2` text-muted            | `var(--ddhq-text-muted)`              |
+| `#155aef` accent-solid          | `var(--ddhq-state-accent-solid)`      |
+| `#eff4ff` accent-hover          | `var(--ddhq-state-accent-hover)`      |
+| `#f04438` destructive-solid     | `var(--ddhq-state-destructive-solid)` |
+| `#ecfdf3` success-hover         | `var(--ddhq-state-success-hover)`     |
+| `#079455` success-solid         | `var(--ddhq-state-success-solid)`     |
+| `#fffaeb` warning-hover         | `var(--ddhq-state-warning-hover)`     |
+| `#fdb022` warning-solid         | `var(--ddhq-state-warning-solid)`     |
+| `#e9e9e9` divider               | `var(--ddhq-divider-subtle)`          |
+| `#d4d4d4` stronger divider      | `var(--ddhq-divider-regular)`         |
 
 **Allowed exceptions** (keep as hex):
+
 - `#ffffff` ON colored buttons (white-on-accent text) — locked in design system, this is white not theme-aware
 - Per-client brand avatar colors (e.g. `#EEF2FF/#4338CA` for "AC" tile) — these are intentional per-client identity, not theme colors
 
 **Find-replace pattern for engineers:**
+
 ```bash
 # Example sweep
 rg --type tsx '#f9f9f9' apps/app/src/features/deadlines/
@@ -962,6 +1019,7 @@ rg --type tsx '#f9f9f9' apps/app/src/features/deadlines/
 ### H.1 — Implementing the Dismiss button (§1.2 in dev-log)
 
 **Files to touch:**
+
 - `apps/app/src/features/alerts/AlertDetailDrawer.tsx`
 - `apps/app/src/server/routers/alerts.ts` (mutation from §F.1)
 
@@ -973,11 +1031,11 @@ rg --type tsx '#f9f9f9' apps/app/src/features/deadlines/
    ```tsx
    const dismissMutation = trpc.alerts.dismissAlert.useMutation({
      onSuccess: () => {
-       toast.success('Alert dismissed');
-       onClose?.();
-       queryClient.invalidateQueries(['alerts']);
+       toast.success('Alert dismissed')
+       onClose?.()
+       queryClient.invalidateQueries(['alerts'])
      },
-   });
+   })
    ```
 4. Add the keyboard handler:
    ```tsx
@@ -985,13 +1043,13 @@ rg --type tsx '#f9f9f9' apps/app/src/features/deadlines/
      const handler = (e: KeyboardEvent) => {
        if (e.key === 'd' || e.key === 'D') {
          if (!isInputFocused()) {
-           dismissMutation.mutate({ alertId: alert.id });
+           dismissMutation.mutate({ alertId: alert.id })
          }
        }
-     };
-     window.addEventListener('keydown', handler);
-     return () => window.removeEventListener('keydown', handler);
-   }, [alert.id]);
+     }
+     window.addEventListener('keydown', handler)
+     return () => window.removeEventListener('keydown', handler)
+   }, [alert.id])
    ```
 5. Add the Dismiss button to the SheetFooter (next to existing Apply button):
    ```tsx
@@ -1010,6 +1068,7 @@ rg --type tsx '#f9f9f9' apps/app/src/features/deadlines/
 ### H.2 — Adding `AlertStatusChip` to the alert detail header
 
 **Files to touch:**
+
 - `apps/app/src/features/alerts/components/AlertStatusBadge.tsx` (rename to `AlertStatusChip.tsx`, refactor)
 - `apps/app/src/features/alerts/AlertDetailDrawer.tsx` (place in header)
 
@@ -1019,6 +1078,7 @@ rg --type tsx '#f9f9f9' apps/app/src/features/deadlines/
 2. Build `AlertStatusChip` per spec §C above
 3. Delete the old `AlertStatusBadge.tsx` (or rename to the chip)
 4. In the drawer header, where the existing badge renders, swap:
+
    ```tsx
    // BEFORE
    <AlertStatusBadge status={alert.status} />
@@ -1034,6 +1094,7 @@ rg --type tsx '#f9f9f9' apps/app/src/features/deadlines/
      }
    />
    ```
+
 5. Smoke test all 6 variants in storybook or by manually triggering each state
 6. Verify WCAG AA contrast in light + dark themes
 
@@ -1050,16 +1111,23 @@ Create a reusable `<SectionCard>` primitive:
 ```tsx
 // apps/app/src/features/rules/components/SectionCard.tsx
 interface SectionCardProps {
-  title: string;
-  rightSlot?: React.ReactNode;
-  defaultExpanded?: boolean;
-  expandable?: boolean;
-  summary?: React.ReactNode;
-  children: React.ReactNode;
+  title: string
+  rightSlot?: React.ReactNode
+  defaultExpanded?: boolean
+  expandable?: boolean
+  summary?: React.ReactNode
+  children: React.ReactNode
 }
 
-export function SectionCard({ title, rightSlot, defaultExpanded = false, expandable = true, summary, children }: SectionCardProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
+export function SectionCard({
+  title,
+  rightSlot,
+  defaultExpanded = false,
+  expandable = true,
+  summary,
+  children,
+}: SectionCardProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded)
 
   return (
     <article className="rounded-[12px] border border-[var(--ddhq-divider-subtle)] bg-[var(--ddhq-bg-default)] overflow-hidden flex flex-col">
@@ -1071,14 +1139,17 @@ export function SectionCard({ title, rightSlot, defaultExpanded = false, expanda
       <div className="px-5 py-4 flex flex-col gap-[10px]">
         {expandable ? (expanded ? children : summary) : children}
         {expandable && summary && (
-          <button onClick={() => setExpanded(!expanded)} className="text-[12px] font-semibold text-[var(--ddhq-state-accent-solid)] flex items-center gap-[5px]">
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-[12px] font-semibold text-[var(--ddhq-state-accent-solid)] flex items-center gap-[5px]"
+          >
             {expanded ? 'Show less' : 'Read more'}
             {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
         )}
       </div>
     </article>
-  );
+  )
 }
 ```
 
@@ -1258,16 +1329,17 @@ For deadline card chrome cleanup:
 
 **Specifically:**
 
-| If you're rendering... | Use... | Not... |
-|---|---|---|
-| A lifecycle status pill (Awaiting / Applied / etc.) | `<AlertStatusChip>` (§C) | A new `<StatusBadge>` |
-| A footer with Apply / Customize / Dismiss | `<DecisionActions>` (§D) | Three separate buttons in a row |
-| A cross-reference row (code + name + description + chevron) | `<RelatedRuleRow>` (§E) | A custom div |
-| A sectioned card with bar header + content | `<SectionCard>` (§H.3 spec) | Manual div + h3 |
-| A page-level dialog with header + body + footer | shadcn `<Dialog>` + your content | Manual modal divs |
-| A drawer that slides from the right | shadcn `<Sheet>` | Manual fixed positioning |
+| If you're rendering...                                      | Use...                           | Not...                          |
+| ----------------------------------------------------------- | -------------------------------- | ------------------------------- |
+| A lifecycle status pill (Awaiting / Applied / etc.)         | `<AlertStatusChip>` (§C)         | A new `<StatusBadge>`           |
+| A footer with Apply / Customize / Dismiss                   | `<DecisionActions>` (§D)         | Three separate buttons in a row |
+| A cross-reference row (code + name + description + chevron) | `<RelatedRuleRow>` (§E)          | A custom div                    |
+| A sectioned card with bar header + content                  | `<SectionCard>` (§H.3 spec)      | Manual div + h3                 |
+| A page-level dialog with header + body + footer             | shadcn `<Dialog>` + your content | Manual modal divs               |
+| A drawer that slides from the right                         | shadcn `<Sheet>`                 | Manual fixed positioning        |
 
 **If you create something new, the dev-log entry must answer:**
+
 - Why didn't an existing component fit?
 - What did you extend or copy from?
 - Where will it be reused next?
@@ -1275,6 +1347,7 @@ For deadline card chrome cleanup:
 If you can't answer those, you shouldn't be creating it.
 
 **Specifically refuse:**
+
 - Creating a second status chip implementation when `AlertStatusChip` already covers 6 lifecycle states
 - Creating a second decision footer when `DecisionActions` exists
 - Creating a "rule-flavored" chip / row / card when the alert-flavored one works visually (semantically rebrand via component name alias if needed: `export const RuleStatusChip = AlertStatusChip;`)

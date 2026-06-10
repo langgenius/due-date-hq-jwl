@@ -68,7 +68,7 @@ const ACCEPT_RULE_SUCCESS_TOAST_STYLE: CSSProperties = {
   borderColor: 'var(--state-success-hover-alt)',
   color: 'var(--text-success)',
 }
-const ACCEPT_RULE_ERROR_TOAST_STYLE: CSSProperties = {
+const _ACCEPT_RULE_ERROR_TOAST_STYLE: CSSProperties = {
   background: 'var(--state-destructive-hover)',
   borderColor: 'var(--state-destructive-hover-alt)',
   color: 'var(--text-destructive)',
@@ -260,7 +260,9 @@ function DisclosureCard({
         {detail != null ? (
           <>
             {expanded ? (
-              <div className="flex flex-col gap-3 border-t border-divider-subtle pt-3">{detail}</div>
+              <div className="flex flex-col gap-3 border-t border-divider-subtle pt-3">
+                {detail}
+              </div>
             ) : null}
             <button
               type="button"
@@ -407,7 +409,9 @@ export function RuleDetailCompact({
         meta={<span className="font-mono tabular-nums">v{rule.version}</span>}
         summary={
           <p className="text-sm text-text-secondary">
-            <Trans>Currently on version {rule.version}. Expand for the full edit + review history.</Trans>
+            <Trans>
+              Currently on version {rule.version}. Expand for the full edit + review history.
+            </Trans>
           </p>
         }
         detail={
@@ -416,7 +420,9 @@ export function RuleDetailCompact({
             entityId={rule.id}
             emptyTitle={<Trans>No audited rule changes yet</Trans>}
             emptyDescription={
-              <Trans>Edits, version bumps, and review decisions for this rule will appear here.</Trans>
+              <Trans>
+                Edits, version bumps, and review decisions for this rule will appear here.
+              </Trans>
             }
           />
         }

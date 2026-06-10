@@ -48,15 +48,15 @@ This dev-log packages three parallel detail-surface amendments into one executio
 
 **Content (from design):**
 
-| Slot | Content |
-|---|---|
-| Bar title | `Decision` |
-| Bar right chip | `2h since alert created` — warning-hover bg / warning-text fg |
-| Summary line | `Apply will shift 2 client deadlines from Apr 15 → Oct 15 and re-anchor 3 dependent tasks.` Geist 13/normal text-secondary |
-| Primary | `Apply to {N} confirmed clients` (accent-solid fill, check icon, white text 14/600) |
-| Secondary | `Customize per client` (outline, sliders-horizontal icon, primary text 14/500) |
-| Tertiary | `Dismiss alert` (text link, x icon 12, text-tertiary) |
-| Footer note | `lock-keyhole` + `Decisions are signed by your user account and logged in the audit ledger.` |
+| Slot           | Content                                                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Bar title      | `Decision`                                                                                                                 |
+| Bar right chip | `2h since alert created` — warning-hover bg / warning-text fg                                                              |
+| Summary line   | `Apply will shift 2 client deadlines from Apr 15 → Oct 15 and re-anchor 3 dependent tasks.` Geist 13/normal text-secondary |
+| Primary        | `Apply to {N} confirmed clients` (accent-solid fill, check icon, white text 14/600)                                        |
+| Secondary      | `Customize per client` (outline, sliders-horizontal icon, primary text 14/500)                                             |
+| Tertiary       | `Dismiss alert` (text link, x icon 12, text-tertiary)                                                                      |
+| Footer note    | `lock-keyhole` + `Decisions are signed by your user account and logged in the audit ledger.`                               |
 
 **Open question:** the existing `<SheetFooter>` at `AlertDetailDrawer.tsx:1742-1804` already hosts `Apply Deadline Exception`, `Apply reviewed set`, `Mark reviewed`, etc. Decide:
 
@@ -103,14 +103,14 @@ This dev-log packages three parallel detail-surface amendments into one executio
 
 **Pencil refs (status variants):**
 
-| Variant | Component ID |
-|---|---|
-| Awaiting decision | `w4DBr` |
-| Applied | `b75I5W` |
-| Dismissed | `GzVzj` |
-| Partially applied | `g770iB` |
-| Reverted | `Cirrk` |
-| Reviewed | `OMxu3` |
+| Variant           | Component ID |
+| ----------------- | ------------ |
+| Awaiting decision | `w4DBr`      |
+| Applied           | `b75I5W`     |
+| Dismissed         | `GzVzj`      |
+| Partially applied | `g770iB`     |
+| Reverted          | `Cirrk`      |
+| Reviewed          | `OMxu3`      |
 
 These are Pencil components — scaffold the React equivalent as a single `<AlertStatusChip status={...} timestamp={...} />` that switches color tokens + icon + label based on status.
 
@@ -234,6 +234,7 @@ See companion doc: `docs/Design/rule-library-review-flow.md` for the full flow s
 4. The coverage map becomes a header strip at the top of the page (or moves to a collapsed sidebar) — doesn't disappear, just relocates.
 
 **Migration risk:** medium. URL routing + state preservation. Test:
+
 - Browser back button after opening a rule
 - Direct URL with `?ruleId=` loads the right rule
 - Multi-tab navigation
@@ -338,41 +339,41 @@ You can run multiple Claude Code sessions concurrently on this brief — IF and 
 
 ### File ownership per section
 
-| Section | Files touched | Disjoint from |
-|---|---|---|
-| §1.1 Decision section (alert) | `apps/app/src/features/alerts/AlertDetailDrawer.tsx`<br>NEW `apps/app/src/features/alerts/components/DecisionActions.tsx` | §2, §3, §1.4 |
-| §1.2 Dismiss handler | `apps/app/src/features/alerts/AlertDetailDrawer.tsx`<br>`apps/app/src/server/routers/alerts.ts` (or equivalent) | §2, §3 |
-| §1.3 Status chip + contract | `packages/contracts/src/pulse.ts`<br>`apps/app/src/features/alerts/components/AlertStatusBadge.tsx` (rename → `AlertStatusChip.tsx`)<br>API resolver that returns alert detail | §2, §3.1, §3.2 |
-| §1.4 Related rules | `packages/db/src/schema/pulse.ts` (NEW join table)<br>`packages/contracts/src/pulse.ts`<br>NEW `apps/app/src/features/alerts/components/RelatedRulesSection.tsx`<br>NEW `apps/app/src/features/alerts/components/RelatedRuleRow.tsx` | §2, §3 |
-| §1.5 Component scaffolds | NEW `apps/app/src/features/alerts/components/*.tsx` only | §2, §3 |
-| §2.1 Deadline card chrome | `apps/app/src/features/deadlines/**` (audit + token sweep) | §1, §3 |
-| §2.2 Deadline detail tabs | `apps/app/src/features/deadlines/**/StatusTab.tsx`<br>`MaterialsTab.tsx`, `RecordTab.tsx`, `AuditTab.tsx` | §1, §3 |
-| §3.1 Widen Sheet | `apps/app/src/features/rules/rule-detail-drawer.tsx` (width prop only) | §1, §2 |
-| §3.2 Right-column takeover | `apps/app/src/features/rules/coverage-tab.tsx`<br>`apps/app/src/features/rules/rule-detail-drawer.tsx` | §1, §2 |
-| §3.3 Refactor BulkReviewModal | `apps/app/src/features/rules/coverage-tab.tsx` (BulkReviewModal section) | §1, §2.1, §2.2 |
-| §3.4 Rebuild RuleDetailCompact | `apps/app/src/features/rules/rule-detail-drawer.tsx`<br>NEW `apps/app/src/features/rules/components/*.tsx` | §1, §2 |
+| Section                        | Files touched                                                                                                                                                                                                                        | Disjoint from  |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
+| §1.1 Decision section (alert)  | `apps/app/src/features/alerts/AlertDetailDrawer.tsx`<br>NEW `apps/app/src/features/alerts/components/DecisionActions.tsx`                                                                                                            | §2, §3, §1.4   |
+| §1.2 Dismiss handler           | `apps/app/src/features/alerts/AlertDetailDrawer.tsx`<br>`apps/app/src/server/routers/alerts.ts` (or equivalent)                                                                                                                      | §2, §3         |
+| §1.3 Status chip + contract    | `packages/contracts/src/pulse.ts`<br>`apps/app/src/features/alerts/components/AlertStatusBadge.tsx` (rename → `AlertStatusChip.tsx`)<br>API resolver that returns alert detail                                                       | §2, §3.1, §3.2 |
+| §1.4 Related rules             | `packages/db/src/schema/pulse.ts` (NEW join table)<br>`packages/contracts/src/pulse.ts`<br>NEW `apps/app/src/features/alerts/components/RelatedRulesSection.tsx`<br>NEW `apps/app/src/features/alerts/components/RelatedRuleRow.tsx` | §2, §3         |
+| §1.5 Component scaffolds       | NEW `apps/app/src/features/alerts/components/*.tsx` only                                                                                                                                                                             | §2, §3         |
+| §2.1 Deadline card chrome      | `apps/app/src/features/deadlines/**` (audit + token sweep)                                                                                                                                                                           | §1, §3         |
+| §2.2 Deadline detail tabs      | `apps/app/src/features/deadlines/**/StatusTab.tsx`<br>`MaterialsTab.tsx`, `RecordTab.tsx`, `AuditTab.tsx`                                                                                                                            | §1, §3         |
+| §3.1 Widen Sheet               | `apps/app/src/features/rules/rule-detail-drawer.tsx` (width prop only)                                                                                                                                                               | §1, §2         |
+| §3.2 Right-column takeover     | `apps/app/src/features/rules/coverage-tab.tsx`<br>`apps/app/src/features/rules/rule-detail-drawer.tsx`                                                                                                                               | §1, §2         |
+| §3.3 Refactor BulkReviewModal  | `apps/app/src/features/rules/coverage-tab.tsx` (BulkReviewModal section)                                                                                                                                                             | §1, §2.1, §2.2 |
+| §3.4 Rebuild RuleDetailCompact | `apps/app/src/features/rules/rule-detail-drawer.tsx`<br>NEW `apps/app/src/features/rules/components/*.tsx`                                                                                                                           | §1, §2         |
 
 ### Safe parallelization combinations
 
 **2 sessions running concurrently — pick one from each column:**
 
-| Session A (alert/rules) | Session B (different surface) |
-|---|---|
-| §1.1 Decision section | §2.1 or §2.2 (deadline) or §3.1 (rule sheet widen) |
-| §1.2 Dismiss handler | §2.* or §3.* (any rule work) |
-| §1.3 Status chip + contract | §2.* (deadline) — NOT §3 (rule work also reads `PulseAlertPublic`-style schemas; check first) |
-| §1.4 Related rules | §2.* or §3.4 (rule rebuild touches different files) |
-| §1.5 Component scaffolds | Any §2 or §3 |
-| **§3.4 Rebuild RuleDetailCompact** (the big one) | **§1.1 or §1.2** (alert work is disjoint) |
+| Session A (alert/rules)                          | Session B (different surface)                                                                  |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| §1.1 Decision section                            | §2.1 or §2.2 (deadline) or §3.1 (rule sheet widen)                                             |
+| §1.2 Dismiss handler                             | §2._ or §3._ (any rule work)                                                                   |
+| §1.3 Status chip + contract                      | §2.\* (deadline) — NOT §3 (rule work also reads `PulseAlertPublic`-style schemas; check first) |
+| §1.4 Related rules                               | §2.\* or §3.4 (rule rebuild touches different files)                                           |
+| §1.5 Component scaffolds                         | Any §2 or §3                                                                                   |
+| **§3.4 Rebuild RuleDetailCompact** (the big one) | **§1.1 or §1.2** (alert work is disjoint)                                                      |
 
 **3 sessions running concurrently — pick disjoint trios:**
 
-| Session A | Session B | Session C | Risk |
-|---|---|---|---|
-| §1.2 Dismiss handler | §2.1 Deadline chrome | §3.4 Rebuild RuleDetailCompact | ✅ low |
-| §1.3 Status chip | §2.2 Deadline tabs | §3.3 Refactor BulkReviewModal | ✅ low |
-| §1.1 Decision section | §2.1 | §3.1 Widen Sheet | ✅ low |
-| §1.4 Related rules | §3.4 | (any §2) | ⚠️ medium — §1.4 + §3.4 may both touch component scaffolds; coordinate |
+| Session A             | Session B            | Session C                      | Risk                                                                   |
+| --------------------- | -------------------- | ------------------------------ | ---------------------------------------------------------------------- |
+| §1.2 Dismiss handler  | §2.1 Deadline chrome | §3.4 Rebuild RuleDetailCompact | ✅ low                                                                 |
+| §1.3 Status chip      | §2.2 Deadline tabs   | §3.3 Refactor BulkReviewModal  | ✅ low                                                                 |
+| §1.1 Decision section | §2.1                 | §3.1 Widen Sheet               | ✅ low                                                                 |
+| §1.4 Related rules    | §3.4                 | (any §2)                       | ⚠️ medium — §1.4 + §3.4 may both touch component scaffolds; coordinate |
 
 ### What CAN'T be parallelized
 
@@ -538,13 +539,15 @@ The question was whether to add a list/map toggle to the rule library page (pari
 **Verdict: no.** Both are pattern parity moves without a real job-to-be-done.
 
 Reasoning:
-1. **Alerts are events, rules are applicability.** The map metaphor fits events naturally (they happen *somewhere*); for rules it's borrowed clothing.
+
+1. **Alerts are events, rules are applicability.** The map metaphor fits events naturally (they happen _somewhere_); for rules it's borrowed clothing.
 2. **The reviewer's job is sequential.** "What's pending review?" is a queue question, not a map question.
 3. **The coverage map already exists** in the right column as the default state. Promoting it to a top-level toggle would create redundancy.
 4. **The right column is already double-booked** (rule detail when selected, coverage map when not). Adding a queue-only mode makes three states of one column.
 5. **Maps are for analysis, not action.** Build a dedicated `/rules/coverage` analytics page if/when 3+ users ask for one. Don't pre-build it inside the reviewer workflow.
 
 What to ship instead:
+
 - **Click-to-filter from the coverage map** — click a state tile → queue rail filters to that jurisdiction. Best of both worlds, zero new screens.
 - **Semantic bridges** between alerts and rules:
   - Alert detail: "**N affected rules in this jurisdiction →**" link → opens rule library filtered to those rules.
@@ -582,6 +585,7 @@ Contract migration required for the timestamped status chip. Land this BEFORE sh
 Replaces the original. Items above the line are blocking; below the line are nice-to-have.
 
 **Blocking (must ship for v1):**
+
 - [ ] §1.1 Decision section landed (Apply / Customize / Dismiss visible)
 - [ ] §1.2 Dismiss handler wired (`D` shortcut works, button exists)
 - [ ] §1.3 Status chip renders 6 variants with timestamp suffix
@@ -595,6 +599,7 @@ Replaces the original. Items above the line are blocking; below the line are nic
 - [ ] Coverage map moves to header strip on rule-detail takeover
 
 **Nice-to-have (v1.1+):**
+
 - [ ] §1.4 Related rules section + schema + UI
 - [ ] Click-to-filter from coverage map → queue rail
 - [ ] Semantic bridges: alert "N affected rules" link, rule "N pending alerts" badge

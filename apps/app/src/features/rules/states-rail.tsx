@@ -119,9 +119,7 @@ export function JurisdictionRail({
           type="button"
           onClick={() => setReviewOnly((v) => !v)}
           aria-pressed={reviewOnly}
-          title={
-            reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
-          }
+          title={reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`}
           aria-label={
             reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
           }

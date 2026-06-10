@@ -76,7 +76,11 @@ const STATUS_PILL: Record<
   (typeof STATUS_TONE)[RuleStatus],
   { dot: string; text: string; bg: string }
 > = {
-  success: { dot: 'bg-state-success-solid', text: 'text-text-success', bg: 'bg-state-success-hover' },
+  success: {
+    dot: 'bg-state-success-solid',
+    text: 'text-text-success',
+    bg: 'bg-state-success-hover',
+  },
   review: {
     dot: 'bg-state-warning-solid',
     text: 'text-text-warning',
@@ -449,7 +453,7 @@ export function JurisdictionRuleTable({
 function JurisdictionRuleRow({
   rule,
   jurisdictionLabel: jurisLabel,
-  tierLabels,
+  tierLabels: _tierLabels,
   selectable,
   selected,
   active,
@@ -512,7 +516,9 @@ function JurisdictionRuleRow({
                 className={cn(
                   'absolute size-1.5 rounded-full transition-opacity',
                   tone === 'review' ? 'bg-state-accent-solid' : 'bg-divider-regular',
-                  selected ? 'opacity-0' : 'group-hover/row:opacity-0 group-focus-within/row:opacity-0',
+                  selected
+                    ? 'opacity-0'
+                    : 'group-hover/row:opacity-0 group-focus-within/row:opacity-0',
                 )}
               />
               <span

@@ -49,12 +49,12 @@ force-expand, which no longer happens).
 
 ## Verified (dev preview, `data-collapsed`)
 
-| Action | Result |
-| --- | --- |
-| Land on Today `/` | expanded |
-| Nav → `/alerts` | collapsed |
-| Nav → back to Today | expanded |
-| Manual toggle on Today | collapsed (override holds) |
-| Nav → `/clients` | collapsed |
-| Nav → back to Today | expanded (override cleared, no leak) |
-| Hard reload on `/alerts` | collapsed (seed, no flash) |
+| Action                   | Result                               |
+| ------------------------ | ------------------------------------ |
+| Land on Today `/`        | expanded                             |
+| Nav → `/alerts`          | collapsed                            |
+| Nav → back to Today      | expanded                             |
+| Manual toggle on Today   | collapsed (override holds)           |
+| Nav → `/clients`         | collapsed                            |
+| Nav → back to Today      | expanded (override cleared, no leak) |
+| Hard reload on `/alerts` | collapsed (seed, no flash)           |

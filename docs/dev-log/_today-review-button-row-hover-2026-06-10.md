@@ -24,7 +24,7 @@ there's already an assigned lighter-hover token — `--background-default-hover`
 alias (`background-section` + `background-default-hover` already point there). No
 new variable. The canonical `<TableRow>` hover (`state-base-hover`) is
 semi-transparent and was deliberately NOT used here: this row masks the due date
-behind the Review CTA with a left-fading gradient, which needs an *opaque* tone —
+behind the Review CTA with a left-fading gradient, which needs an _opaque_ tone —
 so the gradient `from-background-subtle` was moved to `from-background-default-hover`
 to track the new hover.
 

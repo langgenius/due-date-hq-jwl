@@ -8,12 +8,12 @@ content**.
 
 ## Before (four divergent implementations)
 
-| Surface | Component | Drift |
-| --- | --- | --- |
-| `/clients/[id]` | `ClientSummaryStrip` → `StatTile` ×3 | separate `rounded-md` interactive tiles, value-above-label, `text-xl` |
-| `/rules/sources` | `SourcesKpiStrip` (bespoke) | one `rounded-xl` bordered card, **mono** values, vertical hairline dividers, `font-bold`/`text-muted` eyebrow, no sub |
-| `/rules/library` (overview) | `OverviewStatsBand` (route-local) | borderless band, top/bottom hairlines, 32px values, colored subs |
-| `/alerts/history` | inline grid cards | separate `rounded-xl` cards in a 2→3→6 grid, `text-[22px]` values |
+| Surface                     | Component                            | Drift                                                                                                                 |
+| --------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `/clients/[id]`             | `ClientSummaryStrip` → `StatTile` ×3 | separate `rounded-md` interactive tiles, value-above-label, `text-xl`                                                 |
+| `/rules/sources`            | `SourcesKpiStrip` (bespoke)          | one `rounded-xl` bordered card, **mono** values, vertical hairline dividers, `font-bold`/`text-muted` eyebrow, no sub |
+| `/rules/library` (overview) | `OverviewStatsBand` (route-local)    | borderless band, top/bottom hairlines, 32px values, colored subs                                                      |
+| `/alerts/history`           | inline grid cards                    | separate `rounded-xl` cards in a 2→3→6 grid, `text-[22px]` values                                                     |
 
 The rule-library overview's `OverviewStatsBand` was the newest (synced to Pencil
 `O0pyRO` `p0WeNy` earlier today) and the cleanest, so it became the canonical.
@@ -59,6 +59,7 @@ Migrations:
   the band has no card border at all.
 
 Verified live (all four routes render the identical band, no console errors):
+
 - `/rules/library` overview — unchanged canonical.
 - `/rules/sources` — 397 · 474 · 0 · **1** (red).
 - `/alerts/history` — 7 · 2 · 1 · 0 · 1 with colored subs.
@@ -80,7 +81,7 @@ were brought up to it with **real** subs — no fiction:
 
 - `ClientSummaryStrip` — Next filing → `Due {date}` (warning tone when overdue);
   Blocked → `Needs attention`/`None blocked`; Open filing → `{n} payment
-  overdue`/`Payments current`/`Nothing open`. Pulls `paymentOverdueCount` (already
+overdue`/`Payments current`/`Nothing open`. Pulls `paymentOverdueCount` (already
   computed by `useClientNextDue`) and an overdue check on `currentDueDate`.
 - `SourcesKpiStrip` — Feeds → `{n} paused`/`All active` (from `counts.paused`);
   Rules derived → `From {feeds} feeds`; Fetched 24h → `of {feeds} feeds`; Failed
@@ -91,7 +92,7 @@ blocked` / `3 · 1 payment overdue` (warning); /rules/sources reads `397 · All
 active` / `474 · From 397 feeds` / `0 · of 397 feeds` / `1 · Needs attention`
 (red). All four bands now share the eyebrow · 32px value · colored-sub rhythm.
 
-## Round 3 — the actual `/clients` *list* summary (`ClientsKpiStrip`)
+## Round 3 — the actual `/clients` _list_ summary (`ClientsKpiStrip`)
 
 "Client page" meant the `/clients` **directory list**, not `/clients/[id]`. Its
 summary (`ClientsKpiStrip` in `ClientFactsWorkspace.tsx`) was still a bespoke

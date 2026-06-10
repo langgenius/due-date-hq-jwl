@@ -3,7 +3,7 @@
 The floating sidebar card was disappearing into the page: its `#f6f8fa` fill is
 near-white, the work surface behind it is white, and the card's shadow was a
 near-invisible `4%` / 2px. Worst in the hover-peek state, where the card overflows
-*on top of* white content with nothing to separate it. UX only, no data changes.
+_on top of_ white content with nothing to separate it. UX only, no data changes.
 `packages/ui/src/components/ui/sidebar.tsx`.
 
 ## Fix

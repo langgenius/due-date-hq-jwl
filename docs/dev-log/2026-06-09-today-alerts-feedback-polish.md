@@ -7,6 +7,7 @@ regroup; no contract or data changes. Verified live in the dev preview.
 ## Dashboard `/`
 
 **Actions this week** (`features/dashboard/actions-list.tsx`)
+
 - "Why now" reason line shows by **default**; only the leading corner glyph is
   hover-revealed. The glyph is `absolute`-positioned in the cell's left gutter
   so the prompt + reason lines stay **flush-left in both rest and hover** (no
@@ -20,6 +21,7 @@ regroup; no contract or data changes. Verified live in the dev preview.
   `onOpenAll`); the redundant right-aligned "View all deadlines" link removed.
 
 **Alert card** (`features/dashboard/needs-attention-card.tsx`)
+
 - Confidence read-out (`conf N%`) + its separator: hidden at rest, fade in on
   card hover (opacity reserves width, tier color resolves on hover).
 - Client avatars gated on real impact (`impacted > 0`), not just the presence of
@@ -29,19 +31,23 @@ regroup; no contract or data changes. Verified live in the dev preview.
 - Removed the hover **border** — hover is carried by the background step alone.
 
 **Alerts section** (`features/dashboard/needs-attention-section.tsx`)
+
 - Section title "Alerts" links to `/alerts`; the right-aligned "View all" link
   removed (dropped now-unused `useNavigate` / `TextLink`).
 
 **Monitoring chip** (`features/alerts/components/MonitoringChip.tsx`, shared)
+
 - Label tone dropped to `text-muted` (applies to both /today + /alerts).
 
 ## /alerts list
 
 **Toolbar** (`features/alerts/AlertsListPage.tsx`)
+
 - Removed the sticky filter toolbar's bottom border (page-wash fill + padding
   carry the separation).
 
 **Row** (`features/alerts/components/PulseAlertRow.tsx`)
+
 - Day-divider date label stepped `text-secondary` → `text-tertiary` (lighter).
 - Condensed the row's type system: dropped the lone 10px size and the `bold`
   weight tier (semibold is the heaviest), unified eyebrow tracking to `0.3px`,
@@ -69,6 +75,7 @@ regroup; no contract or data changes. Verified live in the dev preview.
   `rounded-sm` (4px) for the kbd chips; group cards use the 12px wrapper radius.
 
 ## Notes
+
 - The grouping went through one design fork: "white cards on gray wash, 4
   groups". Labels were first omitted then re-added at Yuqi's request.
 - Canonical design record: `docs/Design/today-alerts-feedback-amendments-2026-06-09.md`.

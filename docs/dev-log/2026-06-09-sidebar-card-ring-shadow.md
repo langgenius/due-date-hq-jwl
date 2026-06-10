@@ -21,8 +21,9 @@ comes from shadow alone:
 ## Glass experiment — tried and reverted
 
 Explored an iOS-26-style frosted-glass treatment (translucent fill + `backdrop-blur`
-+ `backdrop-saturate`). Reverted: glass needs busy/colorful content behind it to
-register, but the rail only overlaps content during the transient hover-peek, and
-that content is a calm white work surface — so the frost was imperceptible. Making
-it visible would require heavy blur/transparency that degrades nav-text contrast.
-Not a fit for this app's flat, calm aesthetic. No glass code remains.
+
+- `backdrop-saturate`). Reverted: glass needs busy/colorful content behind it to
+  register, but the rail only overlaps content during the transient hover-peek, and
+  that content is a calm white work surface — so the frost was imperceptible. Making
+  it visible would require heavy blur/transparency that degrades nav-text contrast.
+  Not a fit for this app's flat, calm aesthetic. No glass code remains.
