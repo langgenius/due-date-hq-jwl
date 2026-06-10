@@ -4226,11 +4226,16 @@ export function ObligationQueueDetailDrawer({
            those already mirror the alert drawer. */
         <div
           className={cn(
-            'sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t border-divider-subtle px-12 pt-4 pb-6',
+            'sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t border-divider-regular px-12 pt-4 pb-6',
             // Page mode sits on the gray body, so the bar is white paper; the
             // panel/sheet keep the warm canvas. Both read as the committed
             // action surface via the top border.
-            isPageMode ? 'bg-background-default' : 'bg-background-canvas-warm',
+            // 2026-06-10 (Yuqi #12 "不够醒目"): in page mode the bar gets a
+            // restrained upward lift-shadow (blur 4) so the committed action
+            // surface reads clearly above the gray content as it scrolls under.
+            isPageMode
+              ? 'bg-background-default shadow-[0_-2px_4px_-2px_rgb(15_23_42_/_0.08)]'
+              : 'bg-background-canvas-warm',
           )}
         >
           {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #4): footer now

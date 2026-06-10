@@ -13,7 +13,12 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
-import { useStatusLabels, type ObligationStatus } from '@/features/obligations/status-control'
+import {
+  STATUS_ICON,
+  STATUS_ICON_COLOR,
+  useStatusLabels,
+  type ObligationStatus,
+} from '@/features/obligations/status-control'
 
 const MONTHS = [
   'Jan',
@@ -252,6 +257,7 @@ function DeadlineNavigatorRow({
   const relative = relativeDueLabel(row)
   const showRelative = !RELATIVE_SUPPRESSED_STATUSES.has(row.status)
   const title = row.formName ?? row.taxType
+  const StatusIcon = STATUS_ICON[row.status]
 
   return (
     <Link
@@ -291,7 +297,17 @@ function DeadlineNavigatorRow({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center justify-between gap-2 pb-0.5">
           <TaxCodeBadge code={row.taxType} className="px-1.5 py-0.5 text-caption-xs" />
-          <span className="shrink-0 text-[11px] font-medium text-text-tertiary">{statusLabel}</span>
+          {/* 2026-06-10 (Yuqi #10): status reads as an icon; the active
+              (currently-viewed) row expands it to icon + label. */}
+          <span className="flex shrink-0 items-center gap-1" title={statusLabel}>
+            <StatusIcon
+              className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[row.status])}
+              aria-hidden
+            />
+            {active ? (
+              <span className="text-[11px] font-medium text-text-tertiary">{statusLabel}</span>
+            ) : null}
+          </span>
         </div>
         <span className="line-clamp-2 text-[15px] font-medium leading-snug text-text-primary">
           {title}
