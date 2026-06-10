@@ -3,6 +3,7 @@
 Operational CLI utilities (docs/dev-file/08 §1).
 
 - `check-dep-direction.mjs` — enforces the dependency DAG in docs/dev-file/08 §6. Wired into `pnpm check:deps`.
+- `check-token-discipline.mjs` — freezes Tailwind token drift: flags new arbitrary `text-[Npx]` (≤15px), hardcoded hex colors, and freelance `rounded-[Npx]` in `apps/app/src` + `packages/ui/src`. Pre-login auth/onboarding surfaces are exempt; pre-existing debt is grandfathered in `token-discipline-baseline.txt` (see docs/Design/token-audit-2026-06-10.md). Wired into `pnpm check:tokens`; run `pnpm check:tokens --update` only when REMOVING baseline entries.
 - `ensure-cloudflare-queues.mjs` — reads Queue producer/consumer/DLQ names from
   `apps/server/wrangler.toml` and creates any missing Cloudflare Queues before deploy. Wired into
   `pnpm cf:ensure-queues` and `workspace-deploy`.

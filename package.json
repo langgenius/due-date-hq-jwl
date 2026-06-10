@@ -18,6 +18,7 @@
     "prepare": "vp config",
     "secrets:scan": "gitleaks detect --source . --no-git --redact",
     "check:deps": "node scripts/check-dep-direction.mjs",
+    "check:tokens": "node scripts/check-token-discipline.mjs",
     "rules:check-sources": "tsx scripts/check-rule-sources.ts",
     "rules:backfill-concrete-draft-source-text": "tsx scripts/backfill-concrete-draft-citations.ts",
     "pulse:email:smoke": "node scripts/pulse-inbound-email-smoke.mjs",
