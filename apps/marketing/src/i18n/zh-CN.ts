@@ -29,6 +29,7 @@ const zhCN: LandingCopy = {
       'DueDateHQ 是为美国 CPA 团队打造的截止日智能工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源 —— 全部归并在一个键盘优先、为周一 5 分钟分诊设计的控制台里。',
     primaryCta: '打开工作台',
     secondaryCta: '查看工作流',
+    demoCta: '试用在线 Demo',
     trust: [
       { label: '不用黑盒 AI' },
       { label: '每个数字都有出处' },

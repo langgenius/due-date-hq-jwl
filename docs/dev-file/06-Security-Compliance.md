@@ -423,7 +423,7 @@ per-plan `aiDailyRunLimit` + `AI_SYSTEM_DAILY_LIMIT` 预算层兜底（`packages
 | P1   | 单租户数据错乱 / Auth 异常 / AI 发出合规红线内容 | 1 小时响应 · 24 小时缓解               |
 | P2   | 个别 feature 故障                                | 次工作日响应                           |
 
-响应步骤：Detect（Sentry 告警 / 用户上报）→ Contain（Wrangler rollback 或 feature flag off）→ Eradicate → Recover → Lessons（写 `docs/incidents/YYYYMMDD-<slug>.md`）。
+响应步骤：Detect（Workers Logs / ops alert email / 用户上报）→ Contain（Wrangler rollback 或 feature flag off）→ Eradicate → Recover → Lessons（写 `docs/incidents/YYYYMMDD-<slug>.md`）。
 
 ---
 

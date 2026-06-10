@@ -292,7 +292,7 @@ export type MigrationListErrorsInput = z.infer<typeof MigrationListErrorsInputSc
  *   user must override manually before Step 2 will accept Continue.
  *
  * Surfaced on `runMapper` / `confirmMapping` outputs so the UI fallback
- * banner ([02-ux §5.4]) and PostHog cost dashboards can react without
+ * banner ([02-ux §5.4]) and cost dashboards can react without
  * inspecting trace data.
  */
 export const MapperFallbackSchema = z

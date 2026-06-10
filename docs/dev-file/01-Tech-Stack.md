@@ -48,8 +48,7 @@
 | **Embedding**           | AI SDK embedding provider + Cloudflare Vectorize                                        | 模型由 `packages/ai` 路由确认；结果写入 Vectorize                                                                                                                                                      |
 | **AI tracing**          | AI SDK usage/telemetry + Cloudflare AI Gateway Dashboard + internal `ai_output` trace   | 不再引入第三方 tracing SDK；prompt 版本 / token / latency / guard result 写入内部 trace payload                                                                                                        |
 | **邮件**                | Resend（出站，React Email 模板）+ postal-mime（入站解析）                               | fetch API；Worker 可跑；Phase 0 的用户通知完全走 email + in-app toast（不做 Web Push）。入站：Pulse email_subscription 源（GovDelivery）经 Email Routing 进 Worker `email()` handler，postal-mime 解析 |
-| **监控**                | Sentry（Cloudflare Workers SDK）+ Workers Logs（Logpush）                               | 错误 + 性能 + 日志                                                                                                                                                                                     |
-| **产品分析**            | PostHog Cloud（JS SDK）                                                                 | Web Vitals + 核心激活/漏斗事件                                                                                                                                                                         |
+| **监控**                | Workers Logs（Logpush）                                                                 | 错误 + 日志；Sentry/PostHog 已于 2026-06-10 移除（依赖与 env 均已删）                                                                                                                                  |
 | **测试**                | Vitest + `@cloudflare/vitest-pool-workers` + Playwright + msw                           | 单测跑在 Workers runtime；E2E 跨浏览器                                                                                                                                                                 |
 | **菜单栏壳（Phase 2）** | Tauri 2 + Rust                                                                          | 跨平台；~1 MB 体积                                                                                                                                                                                     |
 
@@ -61,14 +60,14 @@
 
 ### 2.1 为什么 Cloudflare SaaS Worker + Astro Marketing，而非 Vercel + Next.js
 
-| 维度                        | 现方案（CF SaaS Worker + Astro marketing）                                                         | 旧方案（Vercel + Next.js）                                          |
-| --------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| 部署供应商                  | Cloudflare（Workers + D1 + KV + R2 + Queues + Vectorize + AI Gateway）+ Resend + Sentry = **3 家** | Vercel + Neon + Upstash + Inngest + R2 + Resend + Sentry = **7 家** |
-| dev / prod runtime 一致     | miniflare = Workers 完全一致                                                                       | Vercel Edge vs Node local 经常踩坑                                  |
-| 全球 PoP                    | 300+                                                                                               | 北美为主                                                            |
-| 成本（MVP）                 | ~$5–10/mo                                                                                          | ~$70/mo                                                             |
-| SPA 回访体验（chunk cache） | 秒开                                                                                               | 同级                                                                |
-| SEO 公开页                  | 强：`apps/marketing` Astro 静态 HTML / OG / sitemap                                                | 强                                                                  |
+| 维度                        | 现方案（CF SaaS Worker + Astro marketing）                                                | 旧方案（Vercel + Next.js）                                          |
+| --------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 部署供应商                  | Cloudflare（Workers + D1 + KV + R2 + Queues + Vectorize + AI Gateway）+ Resend = **2 家** | Vercel + Neon + Upstash + Inngest + R2 + Resend + Sentry = **7 家** |
+| dev / prod runtime 一致     | miniflare = Workers 完全一致                                                              | Vercel Edge vs Node local 经常踩坑                                  |
+| 全球 PoP                    | 300+                                                                                      | 北美为主                                                            |
+| 成本（MVP）                 | ~$5–10/mo                                                                                 | ~$70/mo                                                             |
+| SPA 回访体验（chunk cache） | 秒开                                                                                      | 同级                                                                |
+| SEO 公开页                  | 强：`apps/marketing` Astro 静态 HTML / OG / sitemap                                       | 强                                                                  |
 
 结论：**对回头率驱动的目标用户**，CF Worker + SPA 方案在产品 app 上体验与成本双优；公开 SEO 不塞进 app，而由 Astro 静态站承接。Install 体验（原 PWA 场景）推迟到 Phase 2 的 Tauri menu bar widget 统一覆盖。
 
@@ -91,7 +90,7 @@
 - **D1 / Edge Runtime 原生兼容**（Prisma 需要 Accelerate）
 - 裸 SQL + 类型推导都强；Overlay Engine（派生 `current_due_date`）需要直写 SQL
 - Bundle 体积小（对 Worker 体积敏感场景有正向影响）
-- 迁移 SQL 手写在 `packages/db/migrations`（编号 + meta journal），由 `wrangler d1 migrations apply` 应用；`drizzle-kit` 保留 D1 方言配置与 `db:generate` 兜底，不作为日常迁移生成器
+- 迁移 SQL 手写在 `packages/db/migrations`（编号 SQL），由 `wrangler d1 migrations apply` 应用；drizzle-kit / `db:generate` / `migrations/meta` journal 已于 2026-06-10 移除，迁移一律手写
 
 ### 2.4 为什么 better-auth 而非 Auth.js
 
@@ -257,7 +256,6 @@ catalog:
 
   # ── db ──
   drizzle-orm: 0.45.2
-  drizzle-kit: 0.31.10
 
   # ── ai ──
   ai: 6.0.169
@@ -267,8 +265,6 @@ catalog:
   resend: 6.12.2
   postal-mime: 2.7.4
   '@react-email/components': 1.0.12
-  '@sentry/cloudflare': 10.50.0
-  posthog-js: 1.372.5
 
   # ── cloudflare ──
   wrangler: 4.86.0

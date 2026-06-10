@@ -105,10 +105,6 @@ packages/
 
 Useful docs:
 
-- [Project modules](./docs/project-modules/README.md) for the current product and
-  implementation map.
-- [User and module manual](./docs/project-modules/14-user-manual.md) for product
-  surfaces and common workflows.
 - [Technical overview](./docs/dev-file/00-Overview.md) for architecture and phase
   context.
 - [Tech stack](./docs/dev-file/01-Tech-Stack.md) for deeper technology decisions.

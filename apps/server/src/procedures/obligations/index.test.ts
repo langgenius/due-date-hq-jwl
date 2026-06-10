@@ -456,8 +456,6 @@ function makeContext(input: {
     VAPID_PUBLIC_KEY: 'test-vapid-public',
     VAPID_PRIVATE_KEY: 'test-vapid-private',
     VAPID_SUBJECT: 'mailto:test@app.test',
-    SENTRY_DSN: '',
-    POSTHOG_KEY: '',
   }
   const member = input.actor ?? makeMember()
   const recipient = input.recipient ?? null

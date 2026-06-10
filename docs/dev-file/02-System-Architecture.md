@@ -330,8 +330,6 @@ Queue consumer → SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► P
 | AI SDK providers（via Cloudflare AI Gateway）                              | 模型执行 / fallback | §01.5                 |
 | Resend                                                                     | 邮件                | email_outbox 重试     |
 | Browserless（仅 `PULSE_BROWSERLESS_SOURCE_IDS` 白名单的 JS 渲染 Pulse 源） | headless 抓取       | 11 §4 / source health |
-| Sentry                                                                     | 错误上报            | 无降级（非关键路径）  |
-| PostHog                                                                    | 产品事件            | 失败吞掉不影响功能    |
 
 所有 Cloudflare 原生服务（D1 / KV / R2 / Queues / Vectorize / AI Gateway）**不算外部依赖**，它们是 Worker 的 binding。
 

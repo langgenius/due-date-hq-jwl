@@ -97,6 +97,7 @@ export interface HeroCopy {
   description: string
   primaryCta: string
   secondaryCta: string
+  demoCta: string
   trust: HeroTrustItem[]
   surface: HeroSurfaceCopy
 }

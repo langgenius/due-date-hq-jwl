@@ -41,13 +41,6 @@ allowBuilds:
 overrides:
   vite: 'catalog:'
   vitest: 'catalog:'
-  # drizzle-kit 0.31.10 still ships @esbuild-kit/* as a leftover
-  # fallback even though its primary loader is now `tsx`. The "-"
-  # value tells pnpm to omit the dependency entirely (pnpm 10+),
-  # which silences the deprecation warnings without breaking
-  # drizzle-kit since it no longer reads them on the happy path.
-  '@esbuild-kit/esm-loader': '-'
-  '@esbuild-kit/core-utils': '-'
 
 # Silence peer-range mismatches caused by the alias: the alias points
 # at a 0.1.x package while plugins declare peers like `vite: ^8`.
@@ -155,7 +148,6 @@ catalog:
 
   # ───────── db ─────────
   drizzle-orm: 0.45.2
-  drizzle-kit: 0.31.10
 
   # ───────── ai ─────────
   ai: 6.0.191
@@ -178,8 +170,6 @@ catalog:
   resend: 6.12.3
   postal-mime: 2.7.4
   '@react-email/components': 1.0.12
-  '@sentry/cloudflare': 10.53.1
-  posthog-js: 1.376.0
 
   # ───────── cloudflare ─────────
   wrangler: 4.94.0

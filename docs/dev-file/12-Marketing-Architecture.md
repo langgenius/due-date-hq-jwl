@@ -64,7 +64,7 @@ Homepage 只讲一个 offer：
   `GET /api/demo` 由 `apps/server` 签发短时只读 demo session（预置演示 firm，写操作 server 端
   全部拒绝）后 302 进 app；marketing 侧只是一个 `<a href>`，不持有任何 demo 凭据。staging/prod
   开启前提：该环境 D1 已 seed demo firm，且 server 设 `ENABLE_PUBLIC_DEMO=true`、marketing 设
-  `PUBLIC_ENABLE_DEMO=true`。注意：该按钮文案目前是英文硬编码，未进 marketing i18n dictionary。
+  `PUBLIC_ENABLE_DEMO=true`。按钮文案走 marketing i18n dictionary（`hero.demoCta`，2026-06-10 接线）。
 
 首屏视觉必须直接展示产品工作台状态：截止日风险、截止日队列、证据来源、Pulse 变更。禁止纯装饰渐变、抽象插画、漂浮卡片堆叠。
 
@@ -179,10 +179,10 @@ Marketing 只埋公开站事件，不读取 app session。
 当前 plans 实配：Solo / Pro / Team 均为 `checkout`，Enterprise 为 `contact`
 （mailto）；暂无套餐使用 `app`，但 `hrefKind: 'app'` 分支仍在组件中保留。
 
-事件命名不进 Lingui catalog。PostHog 尚未接入 marketing（marketing 与 app 代码中均无
-posthog 引用），先保留 data attribute 和文档契约。
+事件命名不进 Lingui catalog。分析 SDK 未接入（posthog-js 依赖已于 2026-06-10 连同
+Sentry 一起移除），data attribute 仅作为事件契约保留，待选型后接线。
 
-> **跨子域身份缝合**：`due.langgenius.app` 与 `app.due.langgenius.app` 是不同 origin，PostHog 默认会生成两个独立 `distinct_id`，导致 `marketing.*_cta.clicked → app 注册` 漏斗断裂。接入 PostHog 时必须做一件事：marketing 侧在 CTA `href` 拼接 `?ph_did={posthog.get_distinct_id()}`，app 侧首屏读取 `ph_did` 后调用 `posthog.identify(ph_did)` 合并身份。在 PostHog 真正接入前，本节只承诺事件契约不承诺漏斗闭环。
+> **跨子域身份缝合**：`due.langgenius.app` 与 `app.due.langgenius.app` 是不同 origin，任何分析工具默认都会生成两个独立访客 id，导致 `marketing.*_cta.clicked → app 注册` 漏斗断裂。未来接入分析 SDK 时必须做一件事：marketing 侧在 CTA `href` 传访客 id，app 侧首屏 identify 合并身份。在真正接入前，本节只承诺事件契约不承诺漏斗闭环。
 
 ---
 

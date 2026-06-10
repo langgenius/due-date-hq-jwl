@@ -94,8 +94,6 @@ export interface Env extends WorkerBindings, ServerEnv {
   VAPID_PUBLIC_KEY: string
   VAPID_PRIVATE_KEY: string
   VAPID_SUBJECT: string
-  SENTRY_DSN: string
-  POSTHOG_KEY: string
 }
 
 export function validateServerEnv(runtimeEnv: ServerEnvInput): ServerEnv {

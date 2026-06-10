@@ -33,7 +33,7 @@ duedatehq/
 │   ├── PRD/                       # 产品需求文档
 │   ├── Design/                    # 设计系统与界面 spec
 │   ├── ops/                       # Runbook / 演练报告
-│   └── IA/ · html/ · pitch-deck/ · project-modules/ · report/   # 信息架构 / 早期调研与演示等历史资产
+│   └── IA/ · html/ · pitch-deck/ · report/                          # 信息架构 / 早期调研与演示等历史资产
 ├── scripts/                        # 运维 CLI（check-dep-direction / check-rule-sources / backfill-* / smoke 工具）
 ├── e2e/                            # Playwright E2E（tests / fixtures / pages，见 §8）
 ├── mock/                           # GENERATED demo.sql（packages/db/seed/generate-demo.ts 产出，勿手改）
@@ -346,7 +346,7 @@ packages/db/
 │   ├── evidence-writer.ts
 │   ├── reminder-linkage.ts
 │   └── types.ts
-├── migrations/                      # 手写 SQL（wrangler d1 migrations apply 应用；drizzle-kit 仅备用）
+├── migrations/                      # 手写 SQL（wrangler d1 migrations apply 应用；drizzle-kit 已移除）
 ├── seed/
 │   ├── demo.ts                     # seed:demo 入口：把根目录 mock/demo.sql 应用到本地 D1
 │   └── generate-demo.ts            # demo 数据生成器 → 产出 mock/demo.sql（NOW=2026-06-02，勿手改 demo.sql）
@@ -357,7 +357,7 @@ packages/db/
 **约束：**
 
 - `exports` 暴露 `.`（根入口）/ `scoped` / `client` / `audit-writer` / `evidence-writer` / `reminder-linkage` / `types`；schema 导入要显式 `@duedatehq/db/schema/<domain>`（只给 migration / seed / writer 内部用）；repo / tenant 类型由 `@duedatehq/ports/<domain>` 定义，`@duedatehq/db/types` 仅做兼容转出
-- `schema/auth.ts` 不再通过 `@better-auth/cli generate` 自动覆盖；它包含手工维护的 `(organization_id, user_id)` unique index、`member.status` 附加字段，以及与 `firm_profile` 配套的身份层约束。后续 schema 变更：手写 migration SQL（`packages/db/migrations/`）+ 同步更新 `schema/*.ts`，由 wrangler 应用；`pnpm db:generate`（drizzle-kit）仅作备用，不是默认路径。
+- `schema/auth.ts` 不再通过 `@better-auth/cli generate` 自动覆盖；它包含手工维护的 `(organization_id, user_id)` unique index、`member.status` 附加字段，以及与 `firm_profile` 配套的身份层约束。后续 schema 变更：手写 migration SQL（`packages/db/migrations/`）+ 同步更新 `schema/*.ts`，由 wrangler 应用；drizzle-kit 与 `db:generate` 已于 2026-06-10 移除。
 - `schema/firm.ts` 是业务租户层；`firm_profile.id` 复用 `organization.id`，业务表统一用 `firm_id -> firm_profile.id`。
 - `repo/client-filing-profiles.ts` 是客户多州报税事实的唯一写入口；`client.state/county`
   由 primary profile mirror，不作为规则生成事实来源。
@@ -543,7 +543,6 @@ packages/core
     "test:e2e": "playwright test",
     "format": "vp fmt --check",
     "format:fix": "vp fmt --write",
-    "db:generate": "pnpm --filter @duedatehq/db db:generate",
     "db:migrate:local": "pnpm --dir apps/server exec wrangler d1 migrations apply DB --local --config wrangler.toml",
     "db:migrate:remote": "pnpm --dir apps/server exec wrangler d1 migrations apply DB --remote --config wrangler.toml",
     "db:seed:demo": "pnpm --filter @duedatehq/db seed:demo",

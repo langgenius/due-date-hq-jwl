@@ -244,7 +244,7 @@ feature 语义留在 members vertical 内。
 | Form state   | **TanStack Form** + Zod Standard Schema     | 复杂 client-side 表单；简单 native submit 表单可保留本地 handler，不引入全局 form 状态                                                                                         |
 | UI state     | **Zustand**                                 | 预留依赖，当前 0 个 store——Cmd-K 开关 / drawer 堆栈 / Evidence 目标全部由 app-level context provider（keyboard-shell、`*DrawerProvider`）承载；若引入 store，**不超 3 个**     |
 | Hook helpers | **foxact**                                  | 只在 app 层用 deep import 引入明确收益的 hook，例如客户端 search debounce；不下沉到 `packages/ui`                                                                              |
-| Feature flag | **PostHog JS SDK**                          | 运行时开关                                                                                                                                                                     |
+| Feature flag | 环境变量（Worker）+ 代码常量                | posthog-js 已于 2026-06-10 移除；前端运行时开关方案未定                                                                                                                        |
 
 Today（dashboard）约束：不维护本地 fake risk rows / queue stats / pulse items。
 `apps/app/src/routes/dashboard.tsx` 直接消费 `useQuery(orpc.dashboard.load.queryOptions(...))`，

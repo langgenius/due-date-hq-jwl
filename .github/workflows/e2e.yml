@@ -60,8 +60,6 @@ jobs:
           VAPID_PUBLIC_KEY=
           VAPID_PRIVATE_KEY=
           VAPID_SUBJECT=mailto:ops@duedatehq.test
-          SENTRY_DSN=
-          POSTHOG_KEY=
           STRIPE_SECRET_KEY=stripe_e2e_secret
           STRIPE_WEBHOOK_SECRET=stripe_e2e_webhook_secret
           STRIPE_PRICE_FIRM_MONTHLY=

@@ -25,7 +25,6 @@
     "@duedatehq/ports": "workspace:*",
     "@orpc/contract": "catalog:",
     "@orpc/server": "catalog:",
-    "@sentry/cloudflare": "catalog:",
     "@t3-oss/env-core": "catalog:",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",

@@ -84,7 +84,7 @@ Lingui drift gate 的步骤是：`vp run @duedatehq/app#i18n:extract`（`lingui 
 node scripts/ensure-cloudflare-queues.mjs apps/server/wrangler.toml --dry-run
 ```
 
-后续自动化项：better-auth 迁移、Sentry release / sourcemap、生产只读 smoke、marketing SEO smoke、rollback runbook。
+后续自动化项：better-auth 迁移、生产只读 smoke、marketing SEO smoke、rollback runbook。
 Worker 失败时优先 `wrangler rollback`；若已应用 DB migration，只能回滚到仍兼容新 schema 的上一版
 Worker，禁止依赖删列式 rollback。
 Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgenius.app` 的 auth / RPC。
@@ -95,8 +95,7 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
   `packages/db/src/schema/*.ts`；由 Wrangler 应用——`pnpm db:migrate:local` /
   `pnpm db:migrate:remote`（`apps/server/wrangler.toml` 的 `migrations_dir =
 "../../packages/db/migrations"`，已应用记录由 wrangler 自己的 `d1_migrations` 表跟踪）。
-  `pnpm db:generate`（`drizzle-kit generate`）script 仍存在但不在既定流程内；
-  `migrations/meta/` 的 drizzle journal 已不再维护（条目停在 0055 且有缺号）。
+  drizzle-kit、`db:generate` 与 `migrations/meta/` journal 已于 2026-06-10 移除；迁移一律手写。
 - 所有 production migration 必须 forward-compatible：新增 nullable/default 字段、先双写、后读新字段、最后单独 release 清理旧字段。
 - 禁止在同一 release 中 `DROP COLUMN` / 重命名热字段 / 收紧 NOT NULL，除非已有 backfill + 双版本兼容窗口。
 - 每个 destructive migration 必须附 `docs/ops/runbooks/d1-migration-rollback-<slug>.md`，写清 Time Travel 恢复点、数据导出、验证 SQL 和业务降级方式。
@@ -168,22 +167,22 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
 
 ### 4.1 三件套
 
-| 维度     | 工具                                                                                    | 接入点                                                                                           |
-| -------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| 错误     | **Sentry**（`@sentry/cloudflare`）                                                      | Worker `fetch` / `scheduled` / `queue` 入口 wrap；前端 SPA 入口 init                             |
-| 日志     | **Workers Logs + Logpush**                                                              | 结构化 JSON `console.log({ level, msg, firmId, ... })`；Logpush 到 R2 保留 90 天                 |
-| Trace    | **AI SDK telemetry + internal AI trace payload** + Sentry Performance（HTTP / DB 抽样） | `packages/ai` 统一生成 usage / latency / guard metadata，写内部日志并可接 OpenTelemetry exporter |
-| 指标     | **Cloudflare Analytics Engine**                                                         | 关键业务事件（dashboard_view / pulse_apply / migration_import / rpc_latency）                    |
-| 产品分析 | **PostHog**                                                                             | `web-vitals` + 关键埋点（`pay_intent_click` / `evidence_open` / ...）                            |
+| 维度     | 工具                                             | 接入点                                                                                           |
+| -------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| 错误     | **Workers Logs**（结构化 console.log）           | 全入口；Sentry 已于 2026-06-10 移除（依赖与 env 已删）                                           |
+| 日志     | **Workers Logs + Logpush**                       | 结构化 JSON `console.log({ level, msg, firmId, ... })`；Logpush 到 R2 保留 90 天                 |
+| Trace    | **AI SDK telemetry + internal AI trace payload** | `packages/ai` 统一生成 usage / latency / guard metadata，写内部日志并可接 OpenTelemetry exporter |
+| 指标     | **Cloudflare Analytics Engine**                  | 关键业务事件（dashboard_view / pulse_apply / migration_import / rpc_latency）                    |
+| 产品分析 | 未接入（posthog-js 已于 2026-06-10 移除）        | 事件契约见 12 §2.5；选型待定                                                                     |
 
 ### 4.2 关键 SLO / 告警
 
 | 指标                  | 阈值             | 告警                                             |
 | --------------------- | ---------------- | ------------------------------------------------ |
-| Dashboard P95 latency | > 1.5s           | Sentry Slack                                     |
-| Worker error rate     | > 1% / 5min      | Sentry Slack                                     |
+| Dashboard P95 latency | > 1.5s           | ops alert email（OPS_ALERT_EMAIL）               |
+| Worker error rate     | > 1% / 5min      | ops alert email（OPS_ALERT_EMAIL）               |
 | D1 query P95          | > 200ms          | Logpush 查询 + Slack                             |
-| AI fail rate          | > 5% / hour      | Workers Logs / Sentry / Analytics Engine → Slack |
+| AI fail rate          | > 5% / hour      | Workers Logs / Analytics Engine → ops alert mail |
 | Dashboard Brief DLQ   | 任意消息进入 DLQ | 参照 `docs/ops/dashboard-brief-queue-runbook.md` |
 | Email outbox stuck    | 未 flush > 5min  | Queue consumer 告警                              |
 | Pulse ingest idle     | Cron 未运行 > 2h | Cron health check                                |
@@ -367,7 +366,7 @@ E2E 默认在 CI 对每个 push / PR 全量跑本地 Worker；打 staging 用 `E
 
 ## 7. Feature Flags
 
-- **PostHog Feature Flags**（前端）+ 环境变量（Worker）
+- 环境变量（Worker）+ 代码常量；前端 flag 方案未定（PostHog 已于 2026-06-10 移除）
 - 约定：`ff_<phase>_<name>`，如 `ff_p1_ask_duedatehq`
 - Kill switch：Worker 内用 `env.FF_AI_ENABLED === 'true'` 一键关闭 AI 调用（模型成本失控时）
 - 移除时机：flag 开启 4 周稳定后移除代码
@@ -399,7 +398,7 @@ wrangler queues producer send due-date-hq-email-staging '{"type":"test"}' --loca
 
 ## 10. 性能监控 SLO
 
-详见 §00 §8 "关键性能目标"。Sentry Performance 抽样 10%，重点 transaction：
+详见 §00 §8 "关键性能目标"。重点 transaction（经 Workers Logs / Analytics Engine 观测）：
 
 - `rpc.dashboard.load`
 - `rpc.obligations.query`

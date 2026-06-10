@@ -36,7 +36,7 @@ const { t } = Astro.props
 
 <script is:inline define:vars={{ id: 'marketing.workflow_section.viewed' }}>
   // Lightweight viewport tracker for the workflow event contract.
-  // No PostHog SDK yet — emit a CustomEvent that downstream tooling can pick up.
+  // No analytics SDK wired — emit a CustomEvent that downstream tooling can pick up.
   if (typeof IntersectionObserver !== 'undefined') {
     const target = document.getElementById('workflow')
     if (target) {

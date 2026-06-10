@@ -85,8 +85,6 @@ packages/
 
 重要文档：
 
-- [项目模块文档](./docs/project-modules/README.md)：当前产品和实现地图。
-- [用户与模块使用手册](./docs/project-modules/14-user-manual.md)：产品界面与常见工作流。
 - [技术总览](./docs/dev-file/00-Overview.md)：架构和阶段口径。
 - [技术栈](./docs/dev-file/01-Tech-Stack.md)：更完整的技术选型与理由。
 - [架构决策](./docs/adr/README.md)：主要技术决策和取舍。

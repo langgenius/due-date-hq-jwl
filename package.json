@@ -21,7 +21,6 @@
     "rules:check-sources": "tsx scripts/check-rule-sources.ts",
     "rules:backfill-concrete-draft-source-text": "tsx scripts/backfill-concrete-draft-citations.ts",
     "pulse:email:smoke": "node scripts/pulse-inbound-email-smoke.mjs",
-    "db:generate": "pnpm --filter @duedatehq/db db:generate",
     "db:migrate:local": "pnpm --dir apps/server exec wrangler d1 migrations apply DB --local --config wrangler.toml",
     "db:migrate:remote": "pnpm --dir apps/server exec wrangler d1 migrations apply DB --remote --config wrangler.toml",
     "db:seed:demo": "pnpm --filter @duedatehq/db seed:demo",

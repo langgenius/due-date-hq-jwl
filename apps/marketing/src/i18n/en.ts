@@ -29,6 +29,7 @@ const en: LandingCopy = {
       'DueDateHQ is the deadline intelligence workbench for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source — in one keyboard-first console built for the Monday 5-minute triage.',
     primaryCta: 'Open the workbench',
     secondaryCta: 'See the workflow',
+    demoCta: 'Try a live demo',
     trust: [
       { label: 'No black-box AI' },
       { label: 'Cites every number' },
