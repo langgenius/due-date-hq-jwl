@@ -209,18 +209,31 @@ function BriefRow({
   const d = daysUntil(row.currentDueDate, asOf)
   // Action verb inline — the lingui `t` macro must stay in component scope;
   // passing it into a helper compiles fine (tsgo) but returns "" at runtime.
+  // Verb is STAGE-FIRST: a return in review/blocked has already gathered its
+  // docs, so status must win over the evidence check — otherwise an in-review
+  // row wrongly reads "Attach the source document". evidenceCount only drives
+  // the verb in the early doc-gathering stages.
   const verb =
     row.status === 'waiting_on_client'
       ? t`Follow up with the client for documents`
-      : row.evidenceCount === 0
-        ? t`Attach the source document`
-        : row.status === 'review'
-          ? t`Review the prepared return and sign off`
-          : d <= 0
-            ? t`Confirm filing or payment status`
-            : d <= 2
-              ? t`Final-check owner, source, and cutoff`
-              : t`Re-verify the source still applies`
+      : row.status === 'review'
+        ? t`Review the prepared return and sign off`
+        : row.status === 'blocked'
+          ? t`Clear the blocker to proceed`
+          : row.evidenceCount === 0
+            ? t`Attach the source document`
+            : d <= 0
+              ? t`Confirm filing or payment status`
+              : d <= 2
+                ? t`Final-check owner, source, and cutoff`
+                : t`Re-verify the source still applies`
+  // Readiness (Docs N/M) only matters while still gathering source docs — hide
+  // it once prep is done (review/blocked/filed/…) so an in-review row doesn't
+  // contradict itself with a "Docs 0/3" reading.
+  const showReadiness =
+    row.status === 'pending' ||
+    row.status === 'in_progress' ||
+    row.status === 'waiting_on_client'
   return (
     <button
       type="button"
@@ -237,11 +250,13 @@ function BriefRow({
         <span className="truncate text-sm font-medium text-text-primary">{row.clientName}</span>
         <span className="flex min-w-0 items-center gap-1.5 text-caption text-text-tertiary">
           <span className="truncate">{verb}</span>
-          <ReadinessIndicator
-            obligationType={row.obligationType}
-            attached={row.evidenceCount}
-            className="shrink-0"
-          />
+          {showReadiness ? (
+            <ReadinessIndicator
+              obligationType={row.obligationType}
+              attached={row.evidenceCount}
+              className="shrink-0"
+            />
+          ) : null}
         </span>
       </span>
       {/* Status / owner / due are each a fixed-width, LEFT-aligned column so
