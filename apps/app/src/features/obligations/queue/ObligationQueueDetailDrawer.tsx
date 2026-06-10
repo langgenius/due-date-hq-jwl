@@ -2204,7 +2204,12 @@ export function ObligationQueueDetailDrawer({
                     <div
                       className={
                         isPageMode
-                          ? 'flex flex-col gap-4 rounded-[12px] border border-divider-subtle bg-background-default p-6'
+                          ? // 2026-06-10 (Yuqi #5 "反色 — 不要白背景不要border"):
+                            // the milestone stepper no longer sits in a white
+                            // bordered box; it reads directly on the gray content
+                            // wash. The active-stage card below carries its own
+                            // (bolder) chrome instead.
+                            'flex flex-col gap-4'
                           : 'contents'
                       }
                     >
@@ -2235,83 +2240,95 @@ export function ObligationQueueDetailDrawer({
                         onRecordRejection={openAuthorityRejectionDialog}
                         onChangeTab={(nextTab) => onTabChange(nextTab)}
                       />
-                      <ActiveStageDetailCard
-                        row={row}
-                        auditEvents={detail.auditEvents}
-                        readinessChecklist={detail.readinessChecklist}
-                        onChangeTab={(nextTab) => onTabChange(nextTab)}
-                        onChangeStatus={(nextStatus) =>
-                          changeStatus(row.id, nextStatus, row.status)
+                      {/* 2026-06-10 (Yuqi #6 "更加大胆一点"): the active-stage
+                          card gets its own bold white card so the current
+                          actionable stage stands out against the gray content
+                          (the stepper above stays bare per #5). */}
+                      <div
+                        className={
+                          isPageMode
+                            ? 'rounded-[12px] border border-divider-regular bg-background-default p-5'
+                            : 'contents'
                         }
-                        onConfirmAcceptance={() =>
-                          markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
-                        }
-                        onRecordRejection={openAuthorityRejectionDialog}
-                        onChangePrepStage={(nextPrepStage) => {
-                          // Capture the previous value so the success toast can
-                          // offer an Undo that fires the reverse mutation. No-op
-                          // clicks (same value) still let the request through —
-                          // the server short-circuits and emits a zero-uuid
-                          // auditId, but the toast logic uses the captured
-                          // previous to decide whether to show Undo.
-                          prepStagePreviousRef.current = row.prepStage
-                          updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
-                        }}
-                        onChangeReviewStage={(nextReviewStage) => {
-                          reviewStagePreviousRef.current = row.reviewStage
-                          updateReviewStageMutation.mutate({
-                            id: row.id,
-                            reviewStage: nextReviewStage,
-                          })
-                        }}
-                        onMarkSigned={() => {
-                          // Advance the e-file pipeline; success toast offers an
-                          // Undo that reverts to authorization_requested (the
-                          // only state mark-signed fires from). Same per-call
-                          // onSuccess + Undo split as `changeStatus`.
-                          updateEfileStateMutation.mutate(
-                            { id: row.id, efileState: 'authorization_signed' },
-                            {
-                              onSuccess: (result) => {
-                                toast.success(t`Marked 8879 signed`, {
-                                  description: t`Audit ${result.auditId.slice(0, 8)}`,
-                                  action: {
-                                    label: t`Undo`,
-                                    onClick: () =>
-                                      updateEfileStateMutation.mutate({
-                                        id: row.id,
-                                        efileState: 'authorization_requested',
-                                      }),
-                                  },
-                                })
+                      >
+                        <ActiveStageDetailCard
+                          row={row}
+                          auditEvents={detail.auditEvents}
+                          readinessChecklist={detail.readinessChecklist}
+                          onChangeTab={(nextTab) => onTabChange(nextTab)}
+                          onChangeStatus={(nextStatus) =>
+                            changeStatus(row.id, nextStatus, row.status)
+                          }
+                          onConfirmAcceptance={() =>
+                            markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
+                          }
+                          onRecordRejection={openAuthorityRejectionDialog}
+                          onChangePrepStage={(nextPrepStage) => {
+                            // Capture the previous value so the success toast can
+                            // offer an Undo that fires the reverse mutation. No-op
+                            // clicks (same value) still let the request through —
+                            // the server short-circuits and emits a zero-uuid
+                            // auditId, but the toast logic uses the captured
+                            // previous to decide whether to show Undo.
+                            prepStagePreviousRef.current = row.prepStage
+                            updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
+                          }}
+                          onChangeReviewStage={(nextReviewStage) => {
+                            reviewStagePreviousRef.current = row.reviewStage
+                            updateReviewStageMutation.mutate({
+                              id: row.id,
+                              reviewStage: nextReviewStage,
+                            })
+                          }}
+                          onMarkSigned={() => {
+                            // Advance the e-file pipeline; success toast offers an
+                            // Undo that reverts to authorization_requested (the
+                            // only state mark-signed fires from). Same per-call
+                            // onSuccess + Undo split as `changeStatus`.
+                            updateEfileStateMutation.mutate(
+                              { id: row.id, efileState: 'authorization_signed' },
+                              {
+                                onSuccess: (result) => {
+                                  toast.success(t`Marked 8879 signed`, {
+                                    description: t`Audit ${result.auditId.slice(0, 8)}`,
+                                    action: {
+                                      label: t`Undo`,
+                                      onClick: () =>
+                                        updateEfileStateMutation.mutate({
+                                          id: row.id,
+                                          efileState: 'authorization_requested',
+                                        }),
+                                    },
+                                  })
+                                },
                               },
-                            },
-                          )
-                        }}
-                        onRemindSignature={() => setRemindDialogOpen(true)}
-                        onSubmitEfile={() => {
-                          // Signed → e-filed. Undo reverts to
-                          // authorization_signed (where submit fires from).
-                          updateEfileStateMutation.mutate(
-                            { id: row.id, efileState: 'submitted' },
-                            {
-                              onSuccess: (result) => {
-                                toast.success(t`Marked e-filed`, {
-                                  description: t`Audit ${result.auditId.slice(0, 8)}`,
-                                  action: {
-                                    label: t`Undo`,
-                                    onClick: () =>
-                                      updateEfileStateMutation.mutate({
-                                        id: row.id,
-                                        efileState: 'authorization_signed',
-                                      }),
-                                  },
-                                })
+                            )
+                          }}
+                          onRemindSignature={() => setRemindDialogOpen(true)}
+                          onSubmitEfile={() => {
+                            // Signed → e-filed. Undo reverts to
+                            // authorization_signed (where submit fires from).
+                            updateEfileStateMutation.mutate(
+                              { id: row.id, efileState: 'submitted' },
+                              {
+                                onSuccess: (result) => {
+                                  toast.success(t`Marked e-filed`, {
+                                    description: t`Audit ${result.auditId.slice(0, 8)}`,
+                                    action: {
+                                      label: t`Undo`,
+                                      onClick: () =>
+                                        updateEfileStateMutation.mutate({
+                                          id: row.id,
+                                          efileState: 'authorization_signed',
+                                        }),
+                                    },
+                                  })
+                                },
                               },
-                            },
-                          )
-                        }}
-                      />
+                            )
+                          }}
+                        />
+                      </div>
                     </div>
                     {/* What's left to do — own gray-header card (Pencil `bmwHb`),
                         matching the rest of the panel's card system. */}
@@ -2395,11 +2412,13 @@ export function ObligationQueueDetailDrawer({
                               <li
                                 key={event.id}
                                 className={cn(
-                                  'flex items-center gap-3 px-5 py-3.5',
+                                  // 2026-06-10 (Yuqi #7): thinner activity rows.
+                                  'flex items-center gap-2.5 px-5 py-2.5',
                                   index > 0 && 'border-t border-divider-subtle',
                                 )}
                               >
-                                <AssigneeAvatar name={actor} title={actor} size="sm" />
+                                {/* 2026-06-10 (Yuqi #8): smaller avatar (xs/20px). */}
+                                <AssigneeAvatar name={actor} title={actor} size="xs" />
                                 <span className="min-w-0 flex-1 text-sm leading-tight text-text-secondary">
                                   <span className="font-medium text-text-primary">{actor}</span>
                                   <span aria-hidden> · </span>
