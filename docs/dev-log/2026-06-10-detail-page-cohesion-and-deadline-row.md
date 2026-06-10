@@ -68,3 +68,7 @@ Spec: `docs/Design/deadline-row-interaction.md` (committed alongside).
   than the 9px date above) + `text-muted` (lighter).
 - **#9 unreached stages**: stages not yet reached render as an empty circle (no
   glyph), per Pencil `aNMRF` — only done / active / skipped carry an icon.
+- **#5 tidy / #6 displaced**: the header chip row dropped its trailing
+  `items-baseline` meta span (duplicated the "Tax year · period" line above and
+  sat baseline-misaligned against the h-6 chips). Reduced to just the
+  JurisdictionLabel seal, aligned with the chip row.

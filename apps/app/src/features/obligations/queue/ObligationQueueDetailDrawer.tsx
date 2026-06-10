@@ -1727,24 +1727,12 @@ export function ObligationQueueDetailDrawer({
                 <Trans>Input requested</Trans>
               </Badge>
             ) : null}
-            {row.jurisdiction || row.taxYear || (row.taxPeriodStart && row.taxPeriodEnd) ? (
-              <span className="inline-flex flex-wrap items-baseline gap-x-2 text-text-tertiary">
-                {/* 2026-06-08 (Yuqi parity + "reuse components"): the shared
-                    JurisdictionLabel primitive — the same seal + code + full
-                    name the alerts detail header uses. */}
-                {row.jurisdiction ? <JurisdictionLabel code={row.jurisdiction} /> : null}
-                {row.taxYear ? (
-                  <span className="tabular-nums font-semibold text-text-primary">
-                    <Trans>Tax Year {row.taxYear}</Trans>
-                  </span>
-                ) : null}
-                {row.taxPeriodStart && row.taxPeriodEnd ? (
-                  <span className="tabular-nums text-text-secondary">
-                    {formatDate(row.taxPeriodStart)} — {formatDate(row.taxPeriodEnd)}
-                  </span>
-                ) : null}
-              </span>
-            ) : null}
+            {/* 2026-06-10 (Yuqi #5 tidy + #6 displaced): the trailing meta span
+                duplicated the "Tax year · period" line above AND its
+                items-baseline alignment left the text vertically offset from
+                the h-6 chips. Reduced to just the shared JurisdictionLabel seal
+                (the one fact not shown elsewhere), aligned with the chip row. */}
+            {row.jurisdiction ? <JurisdictionLabel code={row.jurisdiction} /> : null}
           </div>
         ) : null}
         {/* 2026-05-23: dropped the canonical-forward-action row
