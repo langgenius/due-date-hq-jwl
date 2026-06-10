@@ -1408,7 +1408,7 @@ export function ClientDetailWorkspace({
               blockerCandidates={[]}
             />
           ) : (
-            <ClientDetailRail client={client} openCount={workPlan.openCount} />
+            <ClientDetailRail client={client} />
           )}
         </aside>
       </div>
@@ -1471,18 +1471,19 @@ export function ClientDetailWorkspace({
  * persistent right rail. Renders only cards backed by real data.
  *
  * Data sourcing:
- *   - Snapshot › Open deadlines → live (`openCount`).
  *   - Contacts → live primary contact + email when present
  *     (buildClientHeaderContactItems); honest "No contacts yet" empty
  *     state otherwise. Never fabricated.
  *
- * Removed (no contract field backs them — invented compliance figures
- * are a trust bug): Snapshot Filed-YTD / Outstanding-tasks / Last-filed,
- * and the entire Engagement card (retainer, engagement letter, renews).
- * Restore once the underlying fields ship. Per-contact Compose is also
- * gone until a messages.send RPC exists.
+ * Removed: the Snapshot card (2026-06-10, Yuqi) — its only live stat
+ * ("N Open deadlines") duplicated ClientSummaryStrip's "Open filing" slot
+ * (one-purpose-per-panel). Earlier removals (no contract field backs them —
+ * invented compliance figures are a trust bug): Snapshot Filed-YTD /
+ * Outstanding-tasks / Last-filed, and the entire Engagement card (retainer,
+ * engagement letter, renews). Restore once the underlying fields ship.
+ * Per-contact Compose is also gone until a messages.send RPC exists.
  */
-function ClientDetailRail({ client, openCount }: { client: ClientPublic; openCount: number }) {
+function ClientDetailRail({ client }: { client: ClientPublic }) {
   const { t } = useLingui()
   const contactItems = useMemo(() => buildClientHeaderContactItems(client), [client])
   const primaryContactName = contactItems.find((item) => item.kind === 'contact')?.value ?? null
@@ -1503,24 +1504,14 @@ function ClientDetailRail({ client, openCount }: { client: ClientPublic; openCou
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-[18px] overflow-y-auto">
-      {/* Snapshot card. Only `openCount` is a real, computed value.
-          Filed-YTD / outstanding-tasks / last-filed and the entire
-          Engagement card (retainer, engagement letter, renewal) were
-          removed because no contract field backs them — showing
-          invented compliance figures is a trust bug. Restore those
-          rows once the underlying fields ship. */}
-      <section className="flex flex-col gap-[14px] rounded-xl border border-divider-regular bg-background-default p-[18px]">
-        <RailSectionLabel>{t`SNAPSHOT`}</RailSectionLabel>
-        <div className="flex flex-col gap-0.5">
-          <span className="text-4xl font-semibold leading-none tracking-tight text-text-primary tabular-nums">
-            {openCount}
-          </span>
-          <span className="text-xs text-text-secondary">
-            <Trans>Open deadlines</Trans>
-          </span>
-        </div>
-      </section>
-
+      {/* Snapshot card removed 2026-06-10 (Yuqi): its only live stat was
+          `openCount` ("N Open deadlines"), which duplicated the full-width
+          ClientSummaryStrip's "Open filing" slot sitting right beside it — a
+          one-purpose-per-panel violation, and the strip carries it richer
+          ("· N payment overdue"). The strip owns the at-a-glance counts; the
+          rail's job is Contacts at rest + the obligation detail on row-click.
+          (Filed-YTD / outstanding-tasks / last-filed + the Engagement card
+          were already removed earlier as unbacked-by-contract.) */}
       {/* Contacts card */}
       <section className="flex flex-col gap-[14px] rounded-xl border border-divider-regular bg-background-default p-[18px]">
         <RailSectionLabel>{t`CONTACTS`}</RailSectionLabel>
