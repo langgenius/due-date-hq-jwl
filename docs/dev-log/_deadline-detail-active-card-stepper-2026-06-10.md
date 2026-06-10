@@ -7,6 +7,7 @@ canonical Qn4nX active card, fixed in `panels.tsx`:
 
 `PathToFilingSummary` stage circles were soft-tinted (accent-hover bg + accent
 text). The canonical `StatusJourney` uses SOLID FILLED circles with white glyphs:
+
 - done → `bg-state-accent-solid text-text-inverted`
 - active → `bg-state-accent-solid text-text-inverted`
 - active + overdue → `bg-state-destructive-solid text-text-inverted`

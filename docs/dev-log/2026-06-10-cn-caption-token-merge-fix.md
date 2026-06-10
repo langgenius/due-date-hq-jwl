@@ -4,6 +4,7 @@ Yuqi (pointing at the DeadlineNavigatorRail status filter rendering "Not started
 far too large): "怎么这么大的字？token呢".
 
 ## Root cause
+
 `cn` (`packages/ui/src/lib/utils.ts`) was a bare `twMerge(clsx(...))` with no
 config. The design system defines two CUSTOM font-size tokens — `text-caption`
 (11px) and `text-caption-xs` (10px) — that stock tailwind-merge doesn't recognize.
@@ -19,6 +20,7 @@ go through tailwind-merge — which is why the badge was 10px but the adjacent
 filter trigger was 16px.)
 
 ## Fix
+
 `extendTailwindMerge` to register both tokens in the `font-size` class group:
 
     const twMerge = extendTailwindMerge({

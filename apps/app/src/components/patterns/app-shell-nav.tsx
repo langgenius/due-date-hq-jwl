@@ -125,10 +125,7 @@ function FirmIdentityHeader({ firm }: { firm: FirmPublic }) {
     // boundary. Collapsed mode overrides with `w-auto flex-none`
     // in the parent.
     <SidebarHeader className="min-w-0 flex-1">
-      <div
-        title={firm.name}
-        className="flex h-10 w-full min-w-0 items-center gap-2 rounded-xl p-1"
-      >
+      <div title={firm.name} className="flex h-10 w-full min-w-0 items-center gap-2 rounded-xl p-1">
         {/* The workspace monogram is `sm` (28px) — same size as the
             footer user avatar so the top + bottom of the rail bookend as a
             matched pair. Shape stays SQUARE (org) vs the user's round

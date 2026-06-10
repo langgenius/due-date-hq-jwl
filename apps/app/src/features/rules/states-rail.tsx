@@ -268,17 +268,13 @@ function RailNavRow({
     >
       <span className="flex items-center gap-2.5">
         <Icon className="size-[15px] shrink-0 text-text-secondary" aria-hidden />
-        <span className="min-w-0 truncate text-base font-medium text-text-secondary">
-          {label}
-        </span>
+        <span className="min-w-0 truncate text-base font-medium text-text-secondary">{label}</span>
         {inlineMeta}
         <span className="flex-1" />
         {trailing}
       </span>
       {subtext ? (
-        <span className="truncate pl-[25px] text-xs font-medium text-text-tertiary">
-          {subtext}
-        </span>
+        <span className="truncate pl-[25px] text-xs font-medium text-text-tertiary">{subtext}</span>
       ) : null}
     </Link>
   )

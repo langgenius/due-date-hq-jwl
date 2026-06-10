@@ -11,15 +11,16 @@ This brief brings the polished Pencil designs for the remaining auth + onboardin
 
 ## Scope
 
-| Route | Status | Pencil node | Action |
-|---|---|---|---|
-| `/login` | ✅ Done | `pW6pK` | **No changes.** Reference only. |
-| `/two-factor` | Implemented, needs polish | `uu9SI` | Update card per design. |
-| `/accept-invite` | Implemented, needs polish | `e3FyUB` | Update card per design. |
-| `/onboarding` | Implemented, needs polish | `E76U6Q` | Update card per design. |
-| `/auth/magic-link-sent` | **Missing** | `S2xaP` | **Build new route.** |
+| Route                   | Status                    | Pencil node | Action                          |
+| ----------------------- | ------------------------- | ----------- | ------------------------------- |
+| `/login`                | ✅ Done                   | `pW6pK`     | **No changes.** Reference only. |
+| `/two-factor`           | Implemented, needs polish | `uu9SI`     | Update card per design.         |
+| `/accept-invite`        | Implemented, needs polish | `e3FyUB`    | Update card per design.         |
+| `/onboarding`           | Implemented, needs polish | `E76U6Q`    | Update card per design.         |
+| `/auth/magic-link-sent` | **Missing**               | `S2xaP`     | **Build new route.**            |
 
 **Out of scope (do NOT touch):**
+
 - `apps/server/src/auth.ts` — auth backend (better-auth, Cloudflare D1)
 - Any auth endpoint or session logic
 - `_entry-layout.tsx` (`EntryShell`) — shared shell already in production
@@ -49,23 +50,23 @@ These rules govern every screen in this brief.
 
 ### 3. Token mapping (Pencil → Tailwind)
 
-| Pencil variable | Tailwind utility (or class) |
-|---|---|
-| `$ddhq-bg-body` | `bg-bg-canvas` |
-| `$ddhq-bg-default` | `bg-background-default` |
-| `$ddhq-bg-subtle` | `bg-bg-subtle` |
-| `$ddhq-text-primary` | `text-text-primary` |
-| `$ddhq-text-secondary` | `text-text-secondary` |
-| `$ddhq-text-tertiary` | `text-text-tertiary` |
-| `$ddhq-text-muted` | `text-text-muted` |
-| `$ddhq-text-accent` | `text-text-accent` |
-| `$ddhq-text-success` | `text-status-done` (or `text-state-success-*` — match neighbors) |
-| `$ddhq-divider-subtle` | `border-divider-subtle` |
-| `$ddhq-divider-regular` | `border-divider-regular` |
-| `$ddhq-state-accent-solid` | `bg-state-accent-solid` (button); use the `<Button>` primitive when possible |
-| `$ddhq-state-warning-solid` | `bg-state-warning-solid` / `bg-status-attention` |
-| `Geist 16px / weight 500 / -0.3 tracking` | `text-base font-medium tracking-[-0.3px]` |
-| `JetBrains Mono` | `font-mono` |
+| Pencil variable                           | Tailwind utility (or class)                                                  |
+| ----------------------------------------- | ---------------------------------------------------------------------------- |
+| `$ddhq-bg-body`                           | `bg-bg-canvas`                                                               |
+| `$ddhq-bg-default`                        | `bg-background-default`                                                      |
+| `$ddhq-bg-subtle`                         | `bg-bg-subtle`                                                               |
+| `$ddhq-text-primary`                      | `text-text-primary`                                                          |
+| `$ddhq-text-secondary`                    | `text-text-secondary`                                                        |
+| `$ddhq-text-tertiary`                     | `text-text-tertiary`                                                         |
+| `$ddhq-text-muted`                        | `text-text-muted`                                                            |
+| `$ddhq-text-accent`                       | `text-text-accent`                                                           |
+| `$ddhq-text-success`                      | `text-status-done` (or `text-state-success-*` — match neighbors)             |
+| `$ddhq-divider-subtle`                    | `border-divider-subtle`                                                      |
+| `$ddhq-divider-regular`                   | `border-divider-regular`                                                     |
+| `$ddhq-state-accent-solid`                | `bg-state-accent-solid` (button); use the `<Button>` primitive when possible |
+| `$ddhq-state-warning-solid`               | `bg-state-warning-solid` / `bg-status-attention`                             |
+| `Geist 16px / weight 500 / -0.3 tracking` | `text-base font-medium tracking-[-0.3px]`                                    |
+| `JetBrains Mono`                          | `font-mono`                                                                  |
 
 **Rule:** Use Tailwind utilities mapped to CSS vars. **Do not hardcode hex colors** (except for brand logos: Google's 4-color G, Microsoft's 4-square — those are already in `login.tsx` as `GoogleIcon` / `MicrosoftIcon` SVG components, extract them to a shared file if more than one route needs them).
 
@@ -82,7 +83,7 @@ These rules govern every screen in this brief.
 
 ### 5. Voice
 
-Direct, declarative, friendly. *"We page you when it matters."* not *"Best-in-class observability layer."* Avoid invented metrics, customer counts, dollar amounts, named testimonials, or press citations — none of those trace to anything real. If you need example data, use the existing demo client placeholders (`hudson`, `patel`, `kim`, `mercer`).
+Direct, declarative, friendly. _"We page you when it matters."_ not _"Best-in-class observability layer."_ Avoid invented metrics, customer counts, dollar amounts, named testimonials, or press citations — none of those trace to anything real. If you need example data, use the existing demo client placeholders (`hudson`, `patel`, `kim`, `mercer`).
 
 > Memory ref: `feedback_no_fiction_on_canvas.md`
 
@@ -98,8 +99,8 @@ Direct, declarative, friendly. *"We page you when it matters."* not *"Best-in-cl
 
 **Update card content to match Pencil `uu9SI`:**
 
-1. **Heading** — `"Enter your 2FA code"` *(existing copy — keep)*
-2. **Subhead** — `"Open your authenticator app and enter the 6 digits you see for DueDateHQ."` *(existing copy — keep)*
+1. **Heading** — `"Enter your 2FA code"` _(existing copy — keep)_
+2. **Subhead** — `"Open your authenticator app and enter the 6 digits you see for DueDateHQ."` _(existing copy — keep)_
 3. **Code-input row** — render **six separate digit cells** instead of a single `<input type="text">`. Spec per cell:
    - `w-14 h-16 rounded-xl border border-divider-regular bg-background-default flex items-center justify-center`
    - Active (focused) cell gets `border-state-accent-solid ring-2 ring-state-accent-active-alt`
@@ -108,11 +109,11 @@ Direct, declarative, friendly. *"We page you when it matters."* not *"Best-in-cl
    - Implementation tip: one hidden `<input>` for the actual value + six `<span>` overlays driven by index; or a controlled array of six `<input maxLength={1}>` with arrow-key + paste handling. Either is fine — keep auto-advance and paste-distributes-across-cells.
 4. **Above the cells** — small label row, left side only:
    - `text-xs font-semibold text-text-secondary` reading `"Verification code"`
-   - **No masked-email hint on the right** — there is no email send for TOTP, so claiming "sent to m***@whitmore.cpa" would be fiction. Leave the right side empty, or render a `text-[11px] italic text-text-muted` factual helper like `"6-digit code from your authenticator app"` (this matches the existing route's helper at `two-factor.tsx:107-110`).
+   - **No masked-email hint on the right** — there is no email send for TOTP, so claiming "sent to m\*\*\*@whitmore.cpa" would be fiction. Leave the right side empty, or render a `text-[11px] italic text-text-muted` factual helper like `"6-digit code from your authenticator app"` (this matches the existing route's helper at `two-factor.tsx:107-110`).
 5. **Below the cells** — **no resend countdown.** Replace with a single italic hint row + the backup-code escape:
    - Left: small clock icon (`size-3 text-text-muted`) + `text-[11px] italic text-text-tertiary` reading `"Codes refresh every 30 seconds in your authenticator app."`
    - Right: text-link to the existing recovery escape — `<button>` styled `text-xs font-semibold text-text-accent` reading `"Use a backup code"`. **Wire it to whatever the current route does today** (the existing route is at `two-factor.tsx:138-148`; it's a `mailto:` to support). If/when backup-code login is exposed through better-auth, this link gets pointed at it.
-6. **Primary CTA** — `"Verify and continue"` *(existing copy — keep)*. Full-width below. Auto-submits when the 6th cell fills.
+6. **Primary CTA** — `"Verify and continue"` _(existing copy — keep)_. Full-width below. Auto-submits when the 6th cell fills.
 7. **Shadow** — remove any heavy `shadow-[...]` on the card. Border + bg is enough.
 
 ### B. `/accept-invite` — polish (Pencil `e3FyUB`)
@@ -139,7 +140,7 @@ Direct, declarative, friendly. *"We page you when it matters."* not *"Best-in-cl
 
 **File:** `apps/app/src/routes/onboarding.tsx`
 
-**Keep:** loader (gates on missing `activeOrganizationId`), the `activateOrCreateOnboardingFirm` mutation, all 5 fields, all field validation, the post-success redirect. **Real fields stay** — practice name, monitoring start date, internal deadline offset, time zone, state rule activation. The Pencil mock's "firm name / team size / obligation focus" was *illustrative of the visual rhythm*, not a schema swap. Per Q2 we render `Step 1 of 3 · Practice` using the canonical `ONBOARDING_STEPS` array already in the file.
+**Keep:** loader (gates on missing `activeOrganizationId`), the `activateOrCreateOnboardingFirm` mutation, all 5 fields, all field validation, the post-success redirect. **Real fields stay** — practice name, monitoring start date, internal deadline offset, time zone, state rule activation. The Pencil mock's "firm name / team size / obligation focus" was _illustrative of the visual rhythm_, not a schema swap. Per Q2 we render `Step 1 of 3 · Practice` using the canonical `ONBOARDING_STEPS` array already in the file.
 
 **Update card to match Pencil `E76U6Q`:**
 
@@ -149,8 +150,8 @@ Direct, declarative, friendly. *"We page you when it matters."* not *"Best-in-cl
    - Then a 3-dot tracker: three `size-1.5 rounded-full` dots; index 0 (Practice — active) is `bg-state-accent-solid`, the other two are `bg-bg-subtle`
    - Trailing label: `text-[11px] font-medium text-text-secondary` showing `ONBOARDING_STEPS[ACTIVE_STEP_INDEX]` (i.e. `"Practice"`)
    - Optional tiny secondary line below the row: `text-[11px] italic text-text-muted` reading `"Then: rules, then clients."` (paraphrases steps 2 + 3, which live at `/migration/new`).
-2. **Heading** — `"Set up your practice"` *(existing copy — keep)*
-3. **Subhead** — `"Five fields the engine needs before it can schedule anything. Edit anytime in Settings."` *(existing copy — keep)*
+2. **Heading** — `"Set up your practice"` _(existing copy — keep)_
+3. **Subhead** — `"Five fields the engine needs before it can schedule anything. Edit anytime in Settings."` _(existing copy — keep)_
 4. **Field rhythm** — every field group:
    - Label `<label className="text-xs font-semibold text-text-secondary">…</label>` + a `text-[11px] italic text-text-muted` helper on the right (the existing route already uses a `FieldHeaderRow` component with this shape — extend it, don't replace it)
    - Inputs (`<Input>`, `<IsoDatePicker>`, `<FirmTimezoneSelect>`, `<StateRuleActivationSelector>`) use the existing components. Only update the wrapper styling to match the login rhythm — `h-12 rounded-xl border border-divider-regular bg-background-default px-3.5 text-sm` on the underlying `<input>` if it's not already this.
@@ -158,7 +159,7 @@ Direct, declarative, friendly. *"We page you when it matters."* not *"Best-in-cl
 6. **Multi-select chip styling** (when used inside the state selector or elsewhere):
    - Inactive: `inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 py-1.5 text-xs font-medium text-text-secondary`
    - Active: `bg-state-accent-solid text-text-primary-on-surface border-transparent` with a leading `<CheckIcon className="size-3" />`
-7. **Primary CTA** — `"Create practice · activate jurisdictions"` *(existing copy — keep)* with `<ArrowRightIcon />`. Existing handler.
+7. **Primary CTA** — `"Create practice · activate jurisdictions"` _(existing copy — keep)_ with `<ArrowRightIcon />`. Existing handler.
 8. **Skip link** — per Q4. Below the CTA, centered. `<button type="button">` styled as a text link:
    - Copy: `"I'll set this up later — start with the defaults"`
    - `className="mt-2 self-center text-xs font-medium italic text-text-tertiary underline underline-offset-4 decoration-divider-regular hover:text-text-secondary hover:decoration-text-tertiary"`
@@ -191,12 +192,14 @@ Direct, declarative, friendly. *"We page you when it matters."* not *"Best-in-cl
 Add this **as a child of `EntryShell`** (not standalone like `/login`). Register the `routeSummaries.magicLinkSent` entry alongside the other summaries in the same file.
 
 **Loader** (`magicLinkSentLoader`) — mirror the no-validation convention used by `/accept-invite` at `accept-invite.tsx:73`:
+
 - Read `?email=` from the URL via `request.url`.
 - If missing or not a syntactically-valid email, `redirect('/login')`.
 - No session check (signed-out users land here legitimately).
 - Return `{ email }` for the component.
 
 **Mutations:** none on mount. The two actions on the page both call existing functions:
+
 - **Resend** → `sendEmailSignInCode(email)` from `apps/app/src/lib/auth.ts:121-128`. Throws on error (handle with a sonner toast). **Rate limit: 3 calls per 60 seconds** (`packages/auth/src/index.ts:29-31`) — see countdown spec below.
 - **Change email** → `navigate('/login?email=' + encodeURIComponent(email))` — back to `/login` with the email prefilled.
 
@@ -236,7 +239,7 @@ In the existing `/login` OTP-step view (when `codeSent === true` in `login.tsx:6
 </Link>
 ```
 
-This is the only edit to `login.tsx` that the brief sanctions — it's a single 6-line addition, additive, no behavioral change to the inline OTP path. Update the "login.tsx diff should be empty" item in the DoD accordingly: *"login.tsx diff is one addition: the 'I'll wait for the email' link on the OTP step."*
+This is the only edit to `login.tsx` that the brief sanctions — it's a single 6-line addition, additive, no behavioral change to the inline OTP path. Update the "login.tsx diff should be empty" item in the DoD accordingly: _"login.tsx diff is one addition: the 'I'll wait for the email' link on the OTP step."_
 
 ---
 
@@ -282,13 +285,13 @@ All four open questions are answered. Each answer is now grounded in actual code
 
 **Implications for Section A (`/two-factor` polish):**
 
-- ❌ **Remove "Resend in 0:42"** from the design — TOTP has no resend. The space below the OTP cells should read something like a one-line italic hint instead: *"Codes refresh every 30 seconds in your authenticator app."* (Pull from the same `useLingui` source as the existing route.)
+- ❌ **Remove "Resend in 0:42"** from the design — TOTP has no resend. The space below the OTP cells should read something like a one-line italic hint instead: _"Codes refresh every 30 seconds in your authenticator app."_ (Pull from the same `useLingui` source as the existing route.)
 - ✅ **Keep** the "Use backup code instead" link. The existing route already has a recovery escape — a `mailto:` to support at line 138-148. Wire the new link to whatever the current route does today; don't invent a different escape path.
 - ✅ **Heading + subhead** — use the existing copy verbatim (the current code is intentional):
   - Heading: `"Enter your 2FA code"`
   - Subhead: `"Open your authenticator app and enter the 6 digits you see for DueDateHQ."`
 - ✅ **Cells**: 6 numeric cells (input mode `numeric`, `autoComplete="one-time-code"`).
-- ❌ **Remove the "sent to m***@whitmore.cpa" masked-email hint** — there's no email send for TOTP. Replace with a quieter hint pointing to the user's account email *only if* the existing route already shows the account (otherwise omit).
+- ❌ **Remove the "sent to m\***@whitmore.cpa" masked-email hint\** — there's no email send for TOTP. Replace with a quieter hint pointing to the user's account email *only if\* the existing route already shows the account (otherwise omit).
 
 ### Q2 → **3 steps. Keep the current ones.**
 
@@ -304,7 +307,7 @@ All four open questions are answered. Each answer is now grounded in actual code
 **Implications for Section C (`/onboarding` polish):**
 
 - ✅ **Render the 3-step indicator with the real step names.** Source the array from `ONBOARDING_STEPS` (don't hardcode). Three dots, first filled `bg-state-accent-solid`, others `bg-bg-subtle`. Label reads `"Step 1 of 3 · Practice"`.
-- ✅ **Keep the existing 5 fields:** practice name, monitoring start date, internal deadline offset, time zone, state rule activation. **Do not** replace them with the Pencil mock's fictional "firm name / team size / obligation focus" fields. The mock illustrates the *visual rhythm*, not the schema.
+- ✅ **Keep the existing 5 fields:** practice name, monitoring start date, internal deadline offset, time zone, state rule activation. **Do not** replace them with the Pencil mock's fictional "firm name / team size / obligation focus" fields. The mock illustrates the _visual rhythm_, not the schema.
 - ✅ **Field labels stay verbatim** (the current code is intentional):
   - `"Practice name"` / "required, 2+ characters"
   - `"Monitoring start date"` / "ISO date"
@@ -332,17 +335,18 @@ All four open questions are answered. Each answer is now grounded in actual code
 - **Skip link spec:**
   - Below the primary CTA, centered. `text-xs font-medium italic text-text-tertiary underline-offset-2 hover:text-text-secondary` with the actionable word as a `<button type="button">` (don't use `<a>`).
   - Copy: `"I'll set this up later — start with the defaults"`
-  - Behavior: calls the same `activateOrCreateOnboardingFirm` mutation with the *current* defaults (which the form already computes on render — they're sitting in the form state if untouched). No new mutation needed.
+  - Behavior: calls the same `activateOrCreateOnboardingFirm` mutation with the _current_ defaults (which the form already computes on render — they're sitting in the form state if untouched). No new mutation needed.
   - Toast on success: `"Practice created with defaults. You can edit anything in Settings → Practice."` (sonner).
   - Same redirect as the primary CTA: `postOnboardingTarget(result, redirectTo)` → typically `/migration/new?source=onboarding`.
 
 ---
 
-*References — files to read before starting:*  
-- `apps/app/src/routes/login.tsx` (canonical pattern)  
-- `apps/app/src/routes/_entry-layout.tsx` (shared shell)  
-- `apps/app/src/features/auth/entry-brand-lockup.tsx`  
-- `apps/app/src/features/auth/email-otp-sign-in-form.tsx`  
-- `apps/app/src/lib/auth.ts` (client wrappers — *no* changes; just read)  
-- `apps/app/src/router.tsx` (where the new route gets registered)  
+_References — files to read before starting:_
+
+- `apps/app/src/routes/login.tsx` (canonical pattern)
+- `apps/app/src/routes/_entry-layout.tsx` (shared shell)
+- `apps/app/src/features/auth/entry-brand-lockup.tsx`
+- `apps/app/src/features/auth/email-otp-sign-in-form.tsx`
+- `apps/app/src/lib/auth.ts` (client wrappers — _no_ changes; just read)
+- `apps/app/src/router.tsx` (where the new route gets registered)
 - `packages/ui/src/styles/tokens/semantic-light.css` (token names)

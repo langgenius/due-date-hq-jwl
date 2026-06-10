@@ -27,9 +27,7 @@ const UPDATE = process.argv.includes('--update')
 // drift can't grow; the baseline shrinks as the audit items get cleaned up.
 // Signature is path+token (line-number-independent, survives edits above it).
 const baseline = new Set(
-  existsSync(BASELINE_FILE)
-    ? readFileSync(BASELINE_FILE, 'utf8').split('\n').filter(Boolean)
-    : [],
+  existsSync(BASELINE_FILE) ? readFileSync(BASELINE_FILE, 'utf8').split('\n').filter(Boolean) : [],
 )
 
 // Pre-login surfaces use a deliberately different (softer/larger) scale.
@@ -52,7 +50,8 @@ const EXCEPTIONS = [
 ]
 
 const FONT = /text-\[(\d+)px\]/g
-const HEX = /(?:bg|text|border|ring|fill|stroke|from|to|via|outline|decoration|shadow)-\[#[0-9a-fA-F]{3,8}\]/
+const HEX =
+  /(?:bg|text|border|ring|fill|stroke|from|to|via|outline|decoration|shadow)-\[#[0-9a-fA-F]{3,8}\]/
 const RADIUS = /rounded(?:-[a-z]+)?-\[\d+px\]/
 
 const violations = []
@@ -104,7 +103,7 @@ function walk(dir) {
 for (const s of SCAN) walk(join(ROOT, s))
 
 if (UPDATE) {
-  const sigs = [...new Set(violations.map((v) => v.sig))].sort()
+  const sigs = [...new Set(violations.map((v) => v.sig))].toSorted((a, b) => a.localeCompare(b))
   writeFileSync(BASELINE_FILE, sigs.join('\n') + '\n')
   console.log(`✓ token-discipline: wrote baseline of ${sigs.length} grandfathered signature(s)`)
   process.exit(0)
@@ -124,5 +123,7 @@ if (fresh.length > 0) {
 const stale = baseline.size - new Set(violations.map((v) => v.sig)).size
 console.log(
   `✓ token-discipline: no new violations` +
-    (stale > 0 ? ` (${stale} baseline entr${stale === 1 ? 'y' : 'ies'} now fixed — run --update to shrink)` : ''),
+    (stale > 0
+      ? ` (${stale} baseline entr${stale === 1 ? 'y' : 'ies'} now fixed — run --update to shrink)`
+      : ''),
 )

@@ -664,9 +664,7 @@ function PulseAlertRow({
                   <span className="text-xs font-semibold text-text-accent tabular-nums">
                     +{reason.points}
                   </span>
-                  <span className="text-xs font-semibold text-text-secondary">
-                    {reason.label}
-                  </span>
+                  <span className="text-xs font-semibold text-text-secondary">{reason.label}</span>
                 </span>
               ))}
             </div>

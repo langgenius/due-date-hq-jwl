@@ -3,16 +3,18 @@
 **Who/why:** Yuqi — "polish the login flow and onboarding." Phase 2 brings the
 onboarding firm-setup (`E76U6Q`) and rule-review prompt (`U8eGg`) into the new
 full-bleed auth language. Decisions taken via AskUserQuestion:
+
 - Firm setup → **polish the real fields** (no fabricated data).
 - Rule review → **polish + wire into the flow**.
 
 ## Firm setup (`E76U6Q`) — `routes/onboarding.tsx`
 
 Rebuilt on the shared `CenteredAuthScreen` (brand bar + status pill + trust line
-+ footer) with a `STEP 1 OF 3` dot indicator and a rounded-20 card. **Standalone
-route** now (decoupled from `EntryShell`, like the auth screens).
 
-The canvas shows *Team size* + *"What do you file most?"* — neither is in the
+- footer) with a `STEP 1 OF 3` dot indicator and a rounded-20 card. **Standalone
+  route** now (decoupled from `EntryShell`, like the auth screens).
+
+The canvas shows _Team size_ + _"What do you file most?"_ — neither is in the
 data model, so per the no-fiction rule the form keeps the **real engine fields**
 (practice name, monitoring start date, internal deadline offset, timezone, state
 rule activation) restyled into the new shell. All mutations

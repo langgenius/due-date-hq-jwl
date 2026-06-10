@@ -6,6 +6,7 @@ has no Extension tab, so the legacy `<TabsContent value="extension">` never show
 
 Folded the apply-extension action into the **Status tab** (page mode) as a
 `DetailSectionCard` "Extension", placed after Penalty exposure:
+
 - Rule summary line (form name + "defers filing, not payment").
 - Apply form reusing the EXISTING `extensionDraft` state + `saveExtensionDecision`
   mutation (extended filing deadline when no duration rule, internal target date,

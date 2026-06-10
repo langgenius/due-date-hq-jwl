@@ -17,6 +17,7 @@ Verified at mobile (375) and tablet (768): rail hidden, date cards stack/flow,
 hero + workflow card + footer all readable full-width.
 
 ## Known follow-up
+
 Page gutters stay `px-12` at all widths — slightly generous on phones; a
 `px-5 sm:px-12` step (with matching `-mx` on the full-bleed date strip / tab bar)
 is a future polish, deferred to keep this pass low-risk.

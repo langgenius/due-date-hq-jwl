@@ -13,12 +13,12 @@ This doc is the SOURCE OF TRUTH for what `/clients/:clientId` should be when pol
 
 A CPA opens `/clients/:clientId` to answer one of four jobs:
 
-| Job | Frequency | Implied layout need |
-|---|---|---|
-| **A. "What needs my attention on this client today?"** | Multiple times daily | Prominent at-a-glance status — KPI band + alerts banner above the fold |
-| **B. "Work on a specific deadline / filing"** | Multiple times daily | Filings list → click → inline expand OR navigate to deadline detail |
-| **C. "Update client setup (jurisdictions, classification, owner)"** | Weekly | Setup tab with editable section cards |
-| **D. "Audit / history — when did X happen?"** | Monthly | History tab with audit log + AI summary |
+| Job                                                                 | Frequency            | Implied layout need                                                    |
+| ------------------------------------------------------------------- | -------------------- | ---------------------------------------------------------------------- |
+| **A. "What needs my attention on this client today?"**              | Multiple times daily | Prominent at-a-glance status — KPI band + alerts banner above the fold |
+| **B. "Work on a specific deadline / filing"**                       | Multiple times daily | Filings list → click → inline expand OR navigate to deadline detail    |
+| **C. "Update client setup (jurisdictions, classification, owner)"** | Weekly               | Setup tab with editable section cards                                  |
+| **D. "Audit / history — when did X happen?"**                       | Monthly              | History tab with audit log + AI summary                                |
 
 A through D map cleanly to the four regions of an ideal client detail page: **above the fold · Work tab · Setup tab · History tab**. The existing `ClientDetailWorkspace` already follows this structure. The ideal version polishes it.
 
@@ -71,15 +71,15 @@ Four elements, in order, above the first tab:
 
 **File:** `apps/app/src/components/patterns/page-header.tsx:34-150`
 
-| Prop | Value |
-|---|---|
-| `breadcrumbs` | `[{href:'/clients', label:'Clients'}, {label: client.name}]` |
-| `eyebrow` | None — the breadcrumb is the eyebrow |
-| `title` | `client.name` (e.g. "Hudson & Wells LLP") |
-| `metaRow` | A flex-wrap row of identity chips: `Entity · Form 1065 · EIN 47-2901835 · NY · Partner: Mira Robinson` — each chip uses the canonical chip chrome `bg-subtle · cornerRadius:999 · padding:[3,10]` with icon |
-| `description` | None (client has no tagline) |
-| `actions` | `[<EditClientButton />, <ReverifyButton />, <ExportButton />]` |
-| `aside` (NEW) | `<HealthChip status={client.healthStatus} />` — small `success/warning/destructive` chip at right end of title row |
+| Prop          | Value                                                                                                                                                                                                       |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `breadcrumbs` | `[{href:'/clients', label:'Clients'}, {label: client.name}]`                                                                                                                                                |
+| `eyebrow`     | None — the breadcrumb is the eyebrow                                                                                                                                                                        |
+| `title`       | `client.name` (e.g. "Hudson & Wells LLP")                                                                                                                                                                   |
+| `metaRow`     | A flex-wrap row of identity chips: `Entity · Form 1065 · EIN 47-2901835 · NY · Partner: Mira Robinson` — each chip uses the canonical chip chrome `bg-subtle · cornerRadius:999 · padding:[3,10]` with icon |
+| `description` | None (client has no tagline)                                                                                                                                                                                |
+| `actions`     | `[<EditClientButton />, <ReverifyButton />, <ExportButton />]`                                                                                                                                              |
+| `aside` (NEW) | `<HealthChip status={client.healthStatus} />` — small `success/warning/destructive` chip at right end of title row                                                                                          |
 
 **Why aside slot is new:** the existing PageHeader has no right-aligned visual cue. The health chip is the most-glanced piece of state on this page — it should sit at the title level. Add an `aside?: ReactNode` prop to PageHeader (small change, doesn't break existing usage).
 
@@ -89,7 +89,7 @@ Four elements, in order, above the first tab:
 
 Persistent, read-only one-line preview of the client's notes. Click to open the inline editor. Keep as-is.
 
-If notes are empty: render placeholder *"Add internal notes about this client — visible to your team only"* with `+ Add note` link.
+If notes are empty: render placeholder _"Add internal notes about this client — visible to your team only"_ with `+ Add note` link.
 
 ### 3. `<ClientActiveAlertsSection>`
 
@@ -105,11 +105,11 @@ Each alert row: `triangle-alert` icon + alert title + `View →` link to `/alert
 
 Three slots, no card chrome (`border-y` only):
 
-| Slot | Eyebrow | Value | Sub | Tone | Click |
-|---|---|---|---|---|---|
-| 1 | NEXT FILING | `Form 568 · Mar 16` | "9 days · Mira Robinson" | Neutral (or warning if <7 days) | Opens the filing — calls `setExpanded(filingId)` to expand the row in Work tab |
-| 2 | BLOCKED | `0` (or N) | "in review / on client" | Destructive if > 0 | Filters Work tab to blocked status |
-| 3 | OPEN FILINGS | `8` | "across 3 jurisdictions" | Neutral | Filters Work tab to all open |
+| Slot | Eyebrow      | Value               | Sub                      | Tone                            | Click                                                                          |
+| ---- | ------------ | ------------------- | ------------------------ | ------------------------------- | ------------------------------------------------------------------------------ |
+| 1    | NEXT FILING  | `Form 568 · Mar 16` | "9 days · Mira Robinson" | Neutral (or warning if <7 days) | Opens the filing — calls `setExpanded(filingId)` to expand the row in Work tab |
+| 2    | BLOCKED      | `0` (or N)          | "in review / on client"  | Destructive if > 0              | Filters Work tab to blocked status                                             |
+| 3    | OPEN FILINGS | `8`                 | "across 3 jurisdictions" | Neutral                         | Filters Work tab to all open                                                   |
 
 **Don't add a 4th slot.** Per `client-detail-page-layout.md` §5.B.
 
@@ -206,23 +206,23 @@ Read-only audit + AI insights. Loaded lazily.
 
 ## Quick actions — what's reachable in one click
 
-| Action | Affordance | Location |
-|---|---|---|
-| Edit client identity | `Edit` button | PageHeader actions |
-| Reverify (rerun coverage detection) | `Reverify` button | PageHeader actions |
-| Export client data (CSV) | `Export` button | PageHeader actions |
-| View notes (full) | Click `ClientNotesStrip` | Above the fold |
-| Add internal note | `+ Add note` link | Above the fold (when empty) OR inside notes editor |
-| See most-pressing filing | Click `NEXT FILING` stat | StatBand → expands the filing row in Work tab |
-| Triage blocked filings | Click `BLOCKED` stat | StatBand → filters Work tab to `?status=blocked` |
-| Browse all open filings | Click `OPEN FILINGS` stat | StatBand → filters Work tab to all open |
-| Switch to a specific filing | Click any row title | Navigates to `/deadlines/:id/summary` |
-| Peek at a filing inline | Click any row body | Expands inline (per deadline-row-interaction) |
-| Mark a filing done | `Mark filed` button in expanded row | Calls `obligations.updateStatus` |
-| Reassign owner of a filing | `Reassign` button → popover | Calls `obligations.assign` |
-| Update tax classification | Click `Edit` on Compliance posture card (Setup tab) | Inline editor |
-| View audit history | Switch to History tab | — |
-| Open an active alert affecting this client | Click `View →` in `ClientActiveAlertsSection` | Navigates to `/alerts/:id` |
+| Action                                     | Affordance                                          | Location                                           |
+| ------------------------------------------ | --------------------------------------------------- | -------------------------------------------------- |
+| Edit client identity                       | `Edit` button                                       | PageHeader actions                                 |
+| Reverify (rerun coverage detection)        | `Reverify` button                                   | PageHeader actions                                 |
+| Export client data (CSV)                   | `Export` button                                     | PageHeader actions                                 |
+| View notes (full)                          | Click `ClientNotesStrip`                            | Above the fold                                     |
+| Add internal note                          | `+ Add note` link                                   | Above the fold (when empty) OR inside notes editor |
+| See most-pressing filing                   | Click `NEXT FILING` stat                            | StatBand → expands the filing row in Work tab      |
+| Triage blocked filings                     | Click `BLOCKED` stat                                | StatBand → filters Work tab to `?status=blocked`   |
+| Browse all open filings                    | Click `OPEN FILINGS` stat                           | StatBand → filters Work tab to all open            |
+| Switch to a specific filing                | Click any row title                                 | Navigates to `/deadlines/:id/summary`              |
+| Peek at a filing inline                    | Click any row body                                  | Expands inline (per deadline-row-interaction)      |
+| Mark a filing done                         | `Mark filed` button in expanded row                 | Calls `obligations.updateStatus`                   |
+| Reassign owner of a filing                 | `Reassign` button → popover                         | Calls `obligations.assign`                         |
+| Update tax classification                  | Click `Edit` on Compliance posture card (Setup tab) | Inline editor                                      |
+| View audit history                         | Switch to History tab                               | —                                                  |
+| Open an active alert affecting this client | Click `View →` in `ClientActiveAlertsSection`       | Navigates to `/alerts/:id`                         |
 
 Every high-frequency job is **one click** from above the fold. Every low-frequency job is **two clicks** (one tab switch + one action).
 
@@ -232,14 +232,14 @@ Every high-frequency job is **one click** from above the fold. Every low-frequen
 
 All filter / expansion / tab state lives in URL params (via `nuqs`).
 
-| Param | Default | Effect |
-|---|---|---|
-| `tab` | `'work'` | Active tab — `work` / `setup` / `history` |
-| `expanded` | `''` | Currently expanded filing row in Work tab |
-| `status` | `[]` | Status filter chip in Work tab — array `?status=blocked,waiting_on_client` |
-| `assigneeNames` | `[]` | Owner filter chip in Work tab |
-| `year` | current FY | Tax year filter in Work tab |
-| `search` | `''` | Search query in Work tab |
+| Param           | Default    | Effect                                                                     |
+| --------------- | ---------- | -------------------------------------------------------------------------- |
+| `tab`           | `'work'`   | Active tab — `work` / `setup` / `history`                                  |
+| `expanded`      | `''`       | Currently expanded filing row in Work tab                                  |
+| `status`        | `[]`       | Status filter chip in Work tab — array `?status=blocked,waiting_on_client` |
+| `assigneeNames` | `[]`       | Owner filter chip in Work tab                                              |
+| `year`          | current FY | Tax year filter in Work tab                                                |
+| `search`        | `''`       | Search query in Work tab                                                   |
 
 `useQueryStates` setup in `ClientDetailWorkspace`:
 
@@ -262,17 +262,17 @@ const [filters, setFilters] = useQueryStates({
 
 To avoid scope drift, here's what's explicitly out of scope:
 
-| Anti-feature | Why we don't ship |
-|---|---|
-| Master-detail with client navigator rail | `/clients` list is the navigator; the detail is a destination, not a workspace |
-| Card grid layout for filings | Tables earn the job (see `clients-card-vs-table` discussion in the design doc index) |
-| Kanban view of filings by status | Single-client deadlines don't need Kanban; the table sort handles it |
-| Multi-client toggle / "compare two clients" view | Out of scope; rare job; build only if 3+ partners ask |
-| Pipeline / opportunity tracking | This is `/opportunities` — keep separate |
-| Custom dashboards per client | Premature; do for v1 with the canonical layout |
-| Chat panel / direct messaging to client | Belongs in `/alerts` or future comms surface, not here |
-| Time tracking widgets | Out of scope — there's no time tracking model |
-| Document repository | `Setup` tab → defer to when a documents feature exists; no fictional UI |
+| Anti-feature                                     | Why we don't ship                                                                    |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Master-detail with client navigator rail         | `/clients` list is the navigator; the detail is a destination, not a workspace       |
+| Card grid layout for filings                     | Tables earn the job (see `clients-card-vs-table` discussion in the design doc index) |
+| Kanban view of filings by status                 | Single-client deadlines don't need Kanban; the table sort handles it                 |
+| Multi-client toggle / "compare two clients" view | Out of scope; rare job; build only if 3+ partners ask                                |
+| Pipeline / opportunity tracking                  | This is `/opportunities` — keep separate                                             |
+| Custom dashboards per client                     | Premature; do for v1 with the canonical layout                                       |
+| Chat panel / direct messaging to client          | Belongs in `/alerts` or future comms surface, not here                               |
+| Time tracking widgets                            | Out of scope — there's no time tracking model                                        |
+| Document repository                              | `Setup` tab → defer to when a documents feature exists; no fictional UI              |
 
 ---
 
@@ -287,6 +287,7 @@ To avoid scope drift, here's what's explicitly out of scope:
 7. Everything else — quiet, scannable, supporting
 
 A user with 8 seconds on this page should know:
+
 - Whose client this is
 - Is it healthy
 - What's the most pressing thing
@@ -298,21 +299,21 @@ That's the test.
 
 ## Comparison: what the existing code already does ✅ vs. needs to add 🟡
 
-| Element | Existing | Needs add |
-|---|---|---|
-| PageHeader with breadcrumb + title + metaRow + actions | ✅ |  |
-| `aside` slot for HealthChip on PageHeader |  | 🟡 small PageHeader extension |
-| ClientNotesStrip | ✅ |  |
-| ClientActiveAlertsSection | ✅ |  |
-| ClientSummaryStrip (3-slot StatBand) | ✅ |  |
-| 3 tabs (Work / Setup / History) | ✅ |  |
-| Work tab filings table | ✅ via `ClientWorkPlanPanel` |  |
-| `<DeadlineRow mode="inline-expand">` rows |  | 🟡 swap existing rows for new component (per deadline-row-interaction doc) |
-| Filter chips on Work tab (status / owner / year / search) | Partial | 🟡 audit + complete |
-| Setup tab compliance / tax / jurisdictions / risk / import cards | ✅ |  |
-| Setup tab Primary contact card |  | 🟡 NEW — use existing `client.primaryPhone` + `client.email` |
-| History tab AI summary + audit log | ✅ |  |
-| URL state for tab + expanded + filters | Partial (some via Tanstack Router) | 🟡 audit + unify via `nuqs` |
+| Element                                                          | Existing                           | Needs add                                                                  |
+| ---------------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------- |
+| PageHeader with breadcrumb + title + metaRow + actions           | ✅                                 |                                                                            |
+| `aside` slot for HealthChip on PageHeader                        |                                    | 🟡 small PageHeader extension                                              |
+| ClientNotesStrip                                                 | ✅                                 |                                                                            |
+| ClientActiveAlertsSection                                        | ✅                                 |                                                                            |
+| ClientSummaryStrip (3-slot StatBand)                             | ✅                                 |                                                                            |
+| 3 tabs (Work / Setup / History)                                  | ✅                                 |                                                                            |
+| Work tab filings table                                           | ✅ via `ClientWorkPlanPanel`       |                                                                            |
+| `<DeadlineRow mode="inline-expand">` rows                        |                                    | 🟡 swap existing rows for new component (per deadline-row-interaction doc) |
+| Filter chips on Work tab (status / owner / year / search)        | Partial                            | 🟡 audit + complete                                                        |
+| Setup tab compliance / tax / jurisdictions / risk / import cards | ✅                                 |                                                                            |
+| Setup tab Primary contact card                                   |                                    | 🟡 NEW — use existing `client.primaryPhone` + `client.email`               |
+| History tab AI summary + audit log                               | ✅                                 |                                                                            |
+| URL state for tab + expanded + filters                           | Partial (some via Tanstack Router) | 🟡 audit + unify via `nuqs`                                                |
 
 **~80% already exists.** The ideal version is mostly: refine `ClientWorkPlanPanel` to use `<DeadlineRow mode="inline-expand">` + add the Primary contact section + add the `aside` slot.
 

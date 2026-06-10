@@ -19,7 +19,7 @@ Yuqi 8-item `/` feedback batch + "daily brief 修改成 Node ID: tvSsP".
     4 waiting / Deadlines · 1 EOD / Sweep · 2 changes) and **Sources** row need real
     dashboard counts + citation source-labels — omitted pending that data wiring
     rather than faking counts.
-  - NOTE: the brief's *success* state is LLM-generated and fails locally, so only
+  - NOTE: the brief's _success_ state is LLM-generated and fails locally, so only
     the failed-banner surface + the LIVE pill are screenshot-verified; the success
     header chrome is tsgo-verified code.
 
@@ -60,7 +60,7 @@ Verified live on /today: LIVE pill bg #ecfdf3, Daily Brief bg #fff + #1018281f b
   affected-clients line is now `shrink-0 whitespace-nowrap` (+ `font-medium` when
   clients are matched) so "Affects N clients" always reads in full with its
   avatars; the **source** instead became the give-way element (`min-w-0
-  max-w-[160px]` + truncate). Net: affects-line always full, source truncates on
+max-w-[160px]` + truncate). Net: affects-line always full, source truncates on
   tight cards — both #2 (source caps + truncates, shares the line) and #3 (clients
   shown clearly) satisfied. Verified live ("Affects 1 client" / "No clients
   matched" read fully).

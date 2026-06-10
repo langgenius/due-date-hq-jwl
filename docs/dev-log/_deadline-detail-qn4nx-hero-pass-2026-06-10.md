@@ -7,7 +7,7 @@ real render — the live hero was structurally off, not tinted.)
 
 Tab structure stays at the **locked 4 tabs** (Status·Materials·Record·Audit,
 Status first). Qn4nX's 3-tab / Materials-first bar is treated as a stale mock —
-we match its *visual styling*, not its tab set (per Yuqi's call).
+we match its _visual styling_, not its tab set (per Yuqi's call).
 
 ## Changes (`ObligationQueueDetailDrawer.tsx`, page mode)
 

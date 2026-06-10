@@ -303,19 +303,13 @@ export function AlertHistoryView() {
             <TableBody>
               {historyQuery.isLoading ? (
                 <TableRow className="even:bg-transparent hover:bg-transparent">
-                  <TableCell
-                    colSpan={5}
-                    className="py-10 text-center text-base text-text-tertiary"
-                  >
+                  <TableCell colSpan={5} className="py-10 text-center text-base text-text-tertiary">
                     <Trans>Loading handled alerts…</Trans>
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow className="even:bg-transparent hover:bg-transparent">
-                  <TableCell
-                    colSpan={5}
-                    className="py-10 text-center text-base text-text-tertiary"
-                  >
+                  <TableCell colSpan={5} className="py-10 text-center text-base text-text-tertiary">
                     <Trans>No handled alerts match this view.</Trans>
                   </TableCell>
                 </TableRow>
@@ -446,10 +440,7 @@ function HistoryRow({
       {/* ALERT — table-fixed column + truncation so the row never overflows. */}
       <TableCell className="overflow-hidden">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span
-            className="truncate text-base font-semibold text-text-primary"
-            title={alert.title}
-          >
+          <span className="truncate text-base font-semibold text-text-primary" title={alert.title}>
             {alert.title}
           </span>
           <span className="flex min-w-0 items-center gap-2 truncate text-xs text-text-tertiary">

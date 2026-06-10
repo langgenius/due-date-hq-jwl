@@ -4,7 +4,7 @@ Closing out the Qn4nX feedback batch.
 
 ## #10 — rail status as icon (expand on active)
 
-`DeadlineNavigatorRail` rows showed the full status *label* text. Now each row
+`DeadlineNavigatorRail` rows showed the full status _label_ text. Now each row
 shows the canonical status **icon** (`STATUS_ICON` tinted via
 `STATUS_ICON_COLOR`); only the **active** (currently-viewed) row expands it to
 icon + label. Keeps the rail scannable and reserves the text for where you are.

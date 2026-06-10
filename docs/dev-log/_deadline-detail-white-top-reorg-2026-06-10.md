@@ -9,11 +9,11 @@ rows, smaller avatar, rail icon states, footer prominence) follows separately.
 ## White top region / gray content (Qn4nX split)
 
 Qn4nX's hero (incl. date cards) and tab bar are white paper; only the tab
-*content* sits on the gray wash. Implemented without moving the date strip:
+_content_ sits on the gray wash. Implemented without moving the date strip:
 
 - **Hero header** → `bg-background-default` (page mode).
 - **Date strip** → full-bleed white band (`-mx-12 bg-background-default px-12
-  pb-5`) that abuts the header (was `mb-2` on the gray body).
+pb-5`) that abuts the header (was `mb-2` on the gray body).
 - **Sticky tab bar** → full-bleed white (`-mx-12 bg-background-default px-12`)
   with symmetric `pt-3 pb-3` (addresses #1 "no bottom padding"); its `border-b`
   hands off to the gray content below.

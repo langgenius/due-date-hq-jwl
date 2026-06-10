@@ -41,8 +41,8 @@ What shipped — only the data that already exists on the obligation detail:
   workpapers and signed documents is on the roadmap."
 - **"Evidence to close out filing"** (the 1/4 artefact-check hero) → `DetailSectionCard`,
   with the `complete / total` count moved to `headerRight`. Copy clarified that the
-  four checks are *derived from the e-file pipeline state + workpaper count, not from
-  stored files*. (`EvidenceArtifactStatusGrid` data is unchanged — already derive-only.)
+  four checks are _derived from the e-file pipeline state + workpaper count, not from
+  stored files_. (`EvidenceArtifactStatusGrid` data is unchanged — already derive-only.)
 - **Workpapers** → `DetailSectionCard`. Count + the existing "Add workpaper" CTA
   (still a coming-soon `toast.info` stub — upload ingest isn't wired) moved to
   `headerRight`. Body renders the **real** `detail.evidence` list, or the honest

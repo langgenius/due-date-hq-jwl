@@ -3,7 +3,7 @@
 **Who/why:** Automated comment-hygiene pass (Claude) trimming verbose dated
 change-history comments from source files across the dashboard, migration,
 calendar, audit, concepts, settings, members, firm, evidence, onboarding,
-notifications, reminders, workload, and _surface-vocabulary feature dirs.
+notifications, reminders, workload, and \_surface-vocabulary feature dirs.
 Pure dated narration (`// 2026-05-23: dropped X`) was deleted; mixed comments
 had their date/attribution/"changed-from-X" prose stripped while the WHY
 (constraints, footguns, non-obvious rationale) was kept and rewritten to

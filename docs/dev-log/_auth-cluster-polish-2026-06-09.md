@@ -25,7 +25,7 @@ screens stop re-inlining the same chrome:
 
 - **`/two-factor`** (`uu9SI`) — rebuilt on `CenteredAuthScreen` + `AuthCard` +
   `OtpInput`. Verify mutation + auto-submit-on-6-digits unchanged. Copy is
-  truthful for TOTP (the code is *generated*, not "sent"); "Lost your
+  truthful for TOTP (the code is _generated_, not "sent"); "Lost your
   authenticator?" is the live escape (recovery-code branch still deferred);
   "Not your device? Sign out" is wired to `signOut`.
 - **`/accept-invite`** (`e3FyUB`) — rebuilt on the shared shell. Signed-in view

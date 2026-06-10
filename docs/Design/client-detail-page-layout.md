@@ -18,16 +18,16 @@ This doc maps every Pencil section in `M7Ady4` to an existing React component. W
 
 ## 1. Existing detail-page primitives (use these — DO NOT recreate)
 
-| Pencil concept | Existing React component | File | Reuse for |
-|---|---|---|---|
-| Page header (crumb + title + meta + actions) | `<PageHeader>` | `apps/app/src/components/patterns/page-header.tsx:34-150` | Hero block in M7Ady4 |
-| Section card with bar header (h36 bg-subtle + body) | `<DetailSectionCard>` | `apps/app/src/components/patterns/detail-section-card.tsx:19-62` | Every body section in M7Ady4 |
-| 3-slot stat strip (border-y, no card) | `<StatBand>` | `apps/app/src/components/patterns/stat-band.tsx:62-150` | Snapshot KPI strip in M7Ady4 |
-| Single KPI tile (rounded-lg border) | `<StatTile>` | `apps/app/src/components/patterns/stat-tile.tsx:75-199` | If you need single KPI cards instead of the band |
-| Per-name avatar with tint | `<AssigneeAvatar>` | `apps/app/src/features/obligations/AssigneeAvatar.tsx` | Every avatar in M7Ady4 (client tile, deadline owner, contact rows) |
-| Status badge | `<Badge>` from `@duedatehq/ui` with variant + `<AlertStatusChip>` / `ObligationStatusReadBadge` | `apps/app/src/features/alerts/components/AlertStatusChip.tsx` and obligation surfaces | Status pills on rows |
-| Row actions kebab | `<RowActionsMenu>` | `apps/app/src/components/patterns/row-actions-menu.tsx` | The kebab icon at the right of contact / deadline rows |
-| Crumb bar (master-detail) | `<DeadlineCrumbBar>` (deadline-specific; pattern reusable) | `apps/app/src/features/obligations/detail/DeadlineCrumbBar.tsx:15-59` | If we want prev/next client nav at the top — currently NOT in client detail |
+| Pencil concept                                      | Existing React component                                                                        | File                                                                                  | Reuse for                                                                   |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Page header (crumb + title + meta + actions)        | `<PageHeader>`                                                                                  | `apps/app/src/components/patterns/page-header.tsx:34-150`                             | Hero block in M7Ady4                                                        |
+| Section card with bar header (h36 bg-subtle + body) | `<DetailSectionCard>`                                                                           | `apps/app/src/components/patterns/detail-section-card.tsx:19-62`                      | Every body section in M7Ady4                                                |
+| 3-slot stat strip (border-y, no card)               | `<StatBand>`                                                                                    | `apps/app/src/components/patterns/stat-band.tsx:62-150`                               | Snapshot KPI strip in M7Ady4                                                |
+| Single KPI tile (rounded-lg border)                 | `<StatTile>`                                                                                    | `apps/app/src/components/patterns/stat-tile.tsx:75-199`                               | If you need single KPI cards instead of the band                            |
+| Per-name avatar with tint                           | `<AssigneeAvatar>`                                                                              | `apps/app/src/features/obligations/AssigneeAvatar.tsx`                                | Every avatar in M7Ady4 (client tile, deadline owner, contact rows)          |
+| Status badge                                        | `<Badge>` from `@duedatehq/ui` with variant + `<AlertStatusChip>` / `ObligationStatusReadBadge` | `apps/app/src/features/alerts/components/AlertStatusChip.tsx` and obligation surfaces | Status pills on rows                                                        |
+| Row actions kebab                                   | `<RowActionsMenu>`                                                                              | `apps/app/src/components/patterns/row-actions-menu.tsx`                               | The kebab icon at the right of contact / deadline rows                      |
+| Crumb bar (master-detail)                           | `<DeadlineCrumbBar>` (deadline-specific; pattern reusable)                                      | `apps/app/src/features/obligations/detail/DeadlineCrumbBar.tsx:15-59`                 | If we want prev/next client nav at the top — currently NOT in client detail |
 
 **Token classes** are documented in `docs/dev-log/2026-06-10-design-handoff-index.md` §A. Do not invent new tokens.
 
@@ -75,18 +75,18 @@ This doc maps every Pencil section in `M7Ady4` to an existing React component. W
 
 ## 3. Pencil ↔ React mapping (M7Ady4 → ClientDetailWorkspace)
 
-| M7Ady4 section | Pencil ID | What it should render as in React |
-|---|---|---|
-| Icon rail (56w) | `bvF62` | Existing app shell sidebar (already wraps every route — NOT part of the client detail component) |
-| Client list pane (380w) | `luI9n` | **DOES NOT EXIST in code today.** Client detail today is full-width with NO list pane. Either build it as a new component OR drop it from the design (recommended — see §4). |
-| Crumb (h48) | inside `CurLo` | `<PageHeader breadcrumbs={[/clients, /clients/:id]}>` ← reuse PageHeader's built-in crumb |
-| Hero (title + meta tile + chips + Healthy chip) | inside `CurLo` | `<PageHeader title={client.name} metaRow={…}>` with: PageHeader handles title + meta + actions. Add the brand tile + health chip as `<PageHeader>` slot extensions OR as a sub-component slotted into the eyebrow row. |
-| Meta strip (4 stats: Onboarded · Last activity · Open · Filed) | inside `CurLo/Hero` | `<StatBand>` — but StatBand renders 3 slots, not 4. See §5.B for the fix. |
-| Tabs bar | inside `CurLo` | Existing `<Tabs>` with tabs **`work` / `setup` / `history`** (not Pencil's `Deadlines/Engagements/Documents/Contacts/Audit log`) — see §5.D |
-| Snapshot card (4 KPI cells in card) | `Ogl5M` | `<StatBand>` (border-y, not boxed) — replace the boxed card with the band pattern; OR use 4 `<StatTile>` instances if a boxed look is desired |
-| Deadlines card (with table inside) | `ez3Za` | `<DetailSectionCard title="Filings" headerRight={…}>` wrapping a hand-rolled `<Table>` — see `ClientWorkPlanPanel` for the pattern |
-| Recent activity card (timeline) | `HMBb1` | `<DetailSectionCard title="Recent activity">` + custom timeline body (no existing timeline primitive found) |
-| Contacts card (3 contacts) | `Ui9eX` | **DIVERGENT.** No contacts table exists. See §5.C |
+| M7Ady4 section                                                 | Pencil ID           | What it should render as in React                                                                                                                                                                                      |
+| -------------------------------------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Icon rail (56w)                                                | `bvF62`             | Existing app shell sidebar (already wraps every route — NOT part of the client detail component)                                                                                                                       |
+| Client list pane (380w)                                        | `luI9n`             | **DOES NOT EXIST in code today.** Client detail today is full-width with NO list pane. Either build it as a new component OR drop it from the design (recommended — see §4).                                           |
+| Crumb (h48)                                                    | inside `CurLo`      | `<PageHeader breadcrumbs={[/clients, /clients/:id]}>` ← reuse PageHeader's built-in crumb                                                                                                                              |
+| Hero (title + meta tile + chips + Healthy chip)                | inside `CurLo`      | `<PageHeader title={client.name} metaRow={…}>` with: PageHeader handles title + meta + actions. Add the brand tile + health chip as `<PageHeader>` slot extensions OR as a sub-component slotted into the eyebrow row. |
+| Meta strip (4 stats: Onboarded · Last activity · Open · Filed) | inside `CurLo/Hero` | `<StatBand>` — but StatBand renders 3 slots, not 4. See §5.B for the fix.                                                                                                                                              |
+| Tabs bar                                                       | inside `CurLo`      | Existing `<Tabs>` with tabs **`work` / `setup` / `history`** (not Pencil's `Deadlines/Engagements/Documents/Contacts/Audit log`) — see §5.D                                                                            |
+| Snapshot card (4 KPI cells in card)                            | `Ogl5M`             | `<StatBand>` (border-y, not boxed) — replace the boxed card with the band pattern; OR use 4 `<StatTile>` instances if a boxed look is desired                                                                          |
+| Deadlines card (with table inside)                             | `ez3Za`             | `<DetailSectionCard title="Filings" headerRight={…}>` wrapping a hand-rolled `<Table>` — see `ClientWorkPlanPanel` for the pattern                                                                                     |
+| Recent activity card (timeline)                                | `HMBb1`             | `<DetailSectionCard title="Recent activity">` + custom timeline body (no existing timeline primitive found)                                                                                                            |
+| Contacts card (3 contacts)                                     | `Ui9eX`             | **DIVERGENT.** No contacts table exists. See §5.C                                                                                                                                                                      |
 
 ---
 
@@ -96,10 +96,10 @@ The Pencil M7Ady4 uses a 380w **client list pane on the left** (master-detail li
 
 **Two options:**
 
-| Option | Behavior | Cost |
-|---|---|---|
-| **A — Drop the list pane** | Match existing `ClientDetailWorkspace`: full-width, no list pane. Navigation back to `/clients` via crumb. | Zero — matches existing code |
-| **B — Add the list pane** | Build new `<ClientNavigatorRail>` mirroring `<DeadlineNavigatorRail>` (`apps/app/src/features/obligations/detail/DeadlineNavigatorRail.tsx` — referenced in `deadline-detail.tsx:34-149`). Use `trpc.clients.list` for the data. | New component + new route variant `/clients/:id` with rail vs. `/clients/:id?full=true` |
+| Option                     | Behavior                                                                                                                                                                                                                         | Cost                                                                                    |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **A — Drop the list pane** | Match existing `ClientDetailWorkspace`: full-width, no list pane. Navigation back to `/clients` via crumb.                                                                                                                       | Zero — matches existing code                                                            |
+| **B — Add the list pane**  | Build new `<ClientNavigatorRail>` mirroring `<DeadlineNavigatorRail>` (`apps/app/src/features/obligations/detail/DeadlineNavigatorRail.tsx` — referenced in `deadline-detail.tsx:34-149`). Use `trpc.clients.list` for the data. | New component + new route variant `/clients/:id` with rail vs. `/clients/:id?full=true` |
 
 **Recommendation:** **Option A for v1**. Master-detail with rail is a meaningful UX upgrade but it's its own scope. Ship the canonical detail content first; rail is v1.1.
 
@@ -124,7 +124,7 @@ The Pencil M7Ady4 uses a 380w **client list pane on the left** (master-detail li
 // apps/app/src/components/patterns/page-header.tsx — extension
 export interface PageHeaderProps {
   // ... existing
-  aside?: React.ReactNode   // NEW: right-aligned visual (brand tile, status chip, etc.)
+  aside?: React.ReactNode // NEW: right-aligned visual (brand tile, status chip, etc.)
 }
 ```
 
@@ -143,11 +143,11 @@ export interface PageHeaderProps {
 
 **Fix:** **Use the existing 3 slots, don't add a 4th.** The Pencil should be updated to match:
 
-| Pencil label | Code label (existing) | Source field |
-|---|---|---|
-| Open deadlines | Open filings | `client.openObligationsCount` (or similar — verify in `ClientPublic`) |
-| At risk / Blocked | Blocked | `client.blockedObligationsCount` |
-| Next due | Next filing | derive from earliest `currentDueDate` |
+| Pencil label      | Code label (existing) | Source field                                                          |
+| ----------------- | --------------------- | --------------------------------------------------------------------- |
+| Open deadlines    | Open filings          | `client.openObligationsCount` (or similar — verify in `ClientPublic`) |
+| At risk / Blocked | Blocked               | `client.blockedObligationsCount`                                      |
+| Next due          | Next filing           | derive from earliest `currentDueDate`                                 |
 
 **Drop:** `ONBOARDED` and `LAST ACTIVITY` — they're nice-to-have but not in the existing summary strip and don't justify a 4th slot. If product wants them, propose a separate doc.
 
@@ -163,29 +163,24 @@ export interface PageHeaderProps {
 
 **Fix — three options:**
 
-| Option | Behavior | Cost |
-|---|---|---|
-| **A — Drop the contacts section** | Remove from Pencil and React. Email + phone live in PageHeader meta or in Setup tab. | Zero — matches existing data |
+| Option                                | Behavior                                                                                                          | Cost                         |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| **A — Drop the contacts section**     | Remove from Pencil and React. Email + phone live in PageHeader meta or in Setup tab.                              | Zero — matches existing data |
 | **B — Render single primary contact** | Show ONE contact row using existing `primaryPhone` + `email`. Title the section "Primary contact" not "Contacts". | Zero — matches existing data |
-| **C — Add contacts table** | Backend schema work: new `client_contacts` table + contract + mutations. Then frontend renders. | BACKEND — defer per §1 |
+| **C — Add contacts table**            | Backend schema work: new `client_contacts` table + contract + mutations. Then frontend renders.                   | BACKEND — defer per §1       |
 
 **Recommendation:** **Option B for v1.** Single primary contact row matches the existing data model. If multiple contacts are needed, propose a separate ticket with schema work.
 
 ```tsx
-<DetailSectionCard
-  title="Primary contact"
-  headerRight={canEdit && <button>Edit →</button>}
->
+<DetailSectionCard title="Primary contact" headerRight={canEdit && <button>Edit →</button>}>
   <div className="flex items-center gap-3">
-    <AssigneeAvatar
-      name={client.primaryContactName ?? client.name}
-      size="md"
-      type="human"
-    />
+    <AssigneeAvatar name={client.primaryContactName ?? client.name} size="md" type="human" />
     <div className="flex flex-col gap-0.5">
       <span className="text-sm font-semibold">{client.primaryContactName}</span>
       <div className="flex items-center gap-3 text-xs text-text-tertiary">
-        <a href={`mailto:${client.email}`} className="hover:underline">{client.email}</a>
+        <a href={`mailto:${client.email}`} className="hover:underline">
+          {client.email}
+        </a>
         {client.primaryPhone && <span className="font-mono">{client.primaryPhone}</span>}
       </div>
     </div>
@@ -205,13 +200,13 @@ If `primaryContactName` doesn't exist on `ClientPublic`, default to the client n
 
 **Fix:** **Use the existing 3 tabs.** Map Pencil sections to existing tabs:
 
-| Pencil tab | Map to existing tab | Renders |
-|---|---|---|
-| Deadlines | **Work** | Filings table (deadlines) via `<ClientWorkPlanPanel>` — already there |
-| Contacts | **Setup** → add a `<DetailSectionCard title="Primary contact">` | Primary contact (per 5.C) |
-| Documents | **Setup** → add a `<DetailSectionCard title="Documents">` | If a documents feature exists, otherwise drop |
-| Engagements | **Setup** → add a `<DetailSectionCard title="Engagements">` | If engagement tracking exists, otherwise drop |
-| Audit log | **History** | Already lazy-loaded via `<AuditLog>` — already there |
+| Pencil tab  | Map to existing tab                                             | Renders                                                               |
+| ----------- | --------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Deadlines   | **Work**                                                        | Filings table (deadlines) via `<ClientWorkPlanPanel>` — already there |
+| Contacts    | **Setup** → add a `<DetailSectionCard title="Primary contact">` | Primary contact (per 5.C)                                             |
+| Documents   | **Setup** → add a `<DetailSectionCard title="Documents">`       | If a documents feature exists, otherwise drop                         |
+| Engagements | **Setup** → add a `<DetailSectionCard title="Engagements">`     | If engagement tracking exists, otherwise drop                         |
+| Audit log   | **History**                                                     | Already lazy-loaded via `<AuditLog>` — already there                  |
 
 **Don't:** add new tabs without backend feature support. Tabs imply a feature exists. Empty tabs read as broken.
 
@@ -268,14 +263,14 @@ Based on existing `ClientDetailWorkspace` + the divergence fixes above:
 
 The Pencil mockup is a **vision board**, not a 1:1 spec. The four divergences above mean Pencil needs updates:
 
-| Pencil change | Reason |
-|---|---|
-| Drop the client list pane (or move to v1.1) | Existing client detail is full-width — §4 |
-| Replace custom hero with PageHeader treatment | PageHeader exists, don't duplicate — §5.A |
-| Change meta strip from boxed card → border-y band (3 slots) | StatBand pattern — §5.B |
-| Rename "Contacts" card → "Primary contact" with 1 row | No contacts table — §5.C |
-| Rename tabs to Work · Setup · History | Existing tabs — §5.D |
-| Move "Deadlines" section to be the body of the Work tab (no card wrapper around it — it IS the tab content) | Matches `ClientWorkPlanPanel` |
+| Pencil change                                                                                               | Reason                                    |
+| ----------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Drop the client list pane (or move to v1.1)                                                                 | Existing client detail is full-width — §4 |
+| Replace custom hero with PageHeader treatment                                                               | PageHeader exists, don't duplicate — §5.A |
+| Change meta strip from boxed card → border-y band (3 slots)                                                 | StatBand pattern — §5.B                   |
+| Rename "Contacts" card → "Primary contact" with 1 row                                                       | No contacts table — §5.C                  |
+| Rename tabs to Work · Setup · History                                                                       | Existing tabs — §5.D                      |
+| Move "Deadlines" section to be the body of the Work tab (no card wrapper around it — it IS the tab content) | Matches `ClientWorkPlanPanel`             |
 
 After these edits, M7Ady4 will be a faithful representation of what the React renders. Until then, **engineering reads this doc, not the Pencil mockup.**
 
@@ -327,11 +322,11 @@ The user asked: "all detail pages should follow the same layout."
 
 Three detail pages live in this app:
 
-| Page | Wrapper | Layout primitives used |
-|---|---|---|
-| `/alerts/:id` | `AlertDetailDrawer.tsx` | `DetailSectionCard` × N + `DeadlineChangeCard` + `AlertStatusChip` |
-| `/deadlines/:obligationRef` | `deadline-detail.tsx` + `ObligationQueueDetailDrawer` | `DeadlineCrumbBar` + tabs + `DetailSectionCard` × N |
-| `/clients/:clientId` | `ClientDetailWorkspace.tsx` | `PageHeader` + `ClientSummaryStrip` (StatBand) + tabs + `DetailSectionCard` × N |
+| Page                        | Wrapper                                               | Layout primitives used                                                          |
+| --------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `/alerts/:id`               | `AlertDetailDrawer.tsx`                               | `DetailSectionCard` × N + `DeadlineChangeCard` + `AlertStatusChip`              |
+| `/deadlines/:obligationRef` | `deadline-detail.tsx` + `ObligationQueueDetailDrawer` | `DeadlineCrumbBar` + tabs + `DetailSectionCard` × N                             |
+| `/clients/:clientId`        | `ClientDetailWorkspace.tsx`                           | `PageHeader` + `ClientSummaryStrip` (StatBand) + tabs + `DetailSectionCard` × N |
 
 **The shared layout is the section-card pattern.** Every detail page uses `<DetailSectionCard>` for content sections. That's the consistency thread.
 
@@ -442,6 +437,7 @@ Each `<DetailSectionCard>` in Setup should match the canonical chrome. Audit and
 The Pencil `M7Ady4` is **not the best I can do**. It was built using canonical chrome RULES but without reading the codebase. The actual codebase already has `<PageHeader>`, `<DetailSectionCard>`, `<StatBand>`, `<StatTile>`, `<AssigneeAvatar>`, `<ClientSummaryStrip>`, `<ClientNotesStrip>`, `<ClientActiveAlertsSection>`, and `<ClientWorkPlanPanel>` — all of which a faithful design would compose.
 
 The 4 divergences (§5) are:
+
 1. Custom hero duplicates `<PageHeader>`
 2. Meta strip uses 4 slots when existing has 3
 3. Contacts section is fictional (no contacts table)

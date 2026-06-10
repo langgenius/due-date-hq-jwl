@@ -749,10 +749,7 @@ export function KpiStrip({
               {stat.value}
             </span>
             <span
-              className={cn(
-                'truncate text-xs font-medium',
-                stat.subClass ?? 'text-text-secondary',
-              )}
+              className={cn('truncate text-xs font-medium', stat.subClass ?? 'text-text-secondary')}
             >
               {stat.sub}
             </span>

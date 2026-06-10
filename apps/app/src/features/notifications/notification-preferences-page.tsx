@@ -207,9 +207,7 @@ function ChannelsCard({
               </span>
               {/* TODO(data): the verified delivery address is not on the
                   notification-preference contract. */}
-              <span className="font-mono text-xs text-text-secondary">
-                jules@brightline.com
-              </span>
+              <span className="font-mono text-xs text-text-secondary">jules@brightline.com</span>
               <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 text-caption-xs font-semibold text-text-accent">
                 <Trans>Verified</Trans>
               </span>

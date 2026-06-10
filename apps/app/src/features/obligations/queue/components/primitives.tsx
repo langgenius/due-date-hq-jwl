@@ -84,10 +84,7 @@ export function DueDaysPill({ days, status }: { days: number; status: Obligation
   const isLate = days < 0
   return (
     <span
-      className={cn(
-        'inline-flex items-center text-sm tabular-nums leading-tight',
-        tintedTextClass,
-      )}
+      className={cn('inline-flex items-center text-sm tabular-nums leading-tight', tintedTextClass)}
     >
       {days === 0 ? (
         <Trans>Today</Trans>
