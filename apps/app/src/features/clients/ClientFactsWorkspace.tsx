@@ -1356,7 +1356,13 @@ export function ClientFactsWorkspace({
                         // distinct state from mouse hover. Matches
                         // /deadlines row-styling layering exactly
                         // (obligations.tsx ~line 3780-3810).
-                        className="group/row h-14 cursor-pointer outline-none focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+                        // 2026-06-10 (handoff Surface 3): the selected-row
+                        // pattern is `fill state-accent-hover + 2px left accent
+                        // stroke` (matches the rules table `Z0Q8Yk` + alert
+                        // AffectedClients selected rows). The TableBody supplies
+                        // the fill on hover; the inset 2px shadow adds the left
+                        // accent bar without shifting layout (border would).
+                        className="group/row h-14 cursor-pointer outline-none hover:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:bg-state-base-hover focus-visible:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                         onClick={(event) => {
                           // ⌘-click (macOS) / Ctrl-click (Win/Linux) opens
                           // the read-only drawer for a quick glance without
