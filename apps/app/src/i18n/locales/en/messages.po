@@ -3654,10 +3654,6 @@ msgstr "Change owner — currently unassigned"
 msgid "Change owner — currently you ({name})"
 msgstr "Change owner — currently you ({name})"
 
-#: src/features/members/members-page.tsx
-msgid "Change role"
-msgstr "Change role"
-
 #. placeholder {0}: row.clientName
 #: src/features/obligations/status-control.tsx
 msgid "Change status for {0}"
@@ -3967,10 +3963,6 @@ msgstr "Cleared from {before}"
 #: src/routes/obligations.tsx
 msgid "Click any row to open the triage drawer"
 msgstr "Click any row to open the triage drawer"
-
-#: src/features/members/members-page.tsx
-msgid "Click more to change role, suspend, or remove"
-msgstr "Click more to change role, suspend, or remove"
 
 #: src/routes/dashboard.tsx
 msgid "Click to refresh"
@@ -16651,6 +16643,10 @@ msgstr "Use only when you already have all client documents. Sends the row strai
 #: src/features/migration/Step1Intake.tsx
 msgid "Use Reports > Report Manager > Tax return data only when you need a custom column report."
 msgstr "Use Reports > Report Manager > Tax return data only when you need a custom column report."
+
+#: src/features/members/members-page.tsx
+msgid "Use Role to change access; more to suspend or remove"
+msgstr "Use Role to change access; more to suspend or remove"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Use suggested filings"

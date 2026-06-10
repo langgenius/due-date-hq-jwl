@@ -3682,10 +3682,6 @@ msgstr "更改负责人 — 当前未分配"
 msgid "Change owner — currently you ({name})"
 msgstr "更改负责人 — 当前为你（{name}）"
 
-#: src/features/members/members-page.tsx
-msgid "Change role"
-msgstr "更改角色"
-
 #. placeholder {0}: row.clientName
 #: src/features/obligations/status-control.tsx
 msgid "Change status for {0}"
@@ -3997,10 +3993,6 @@ msgstr "已清空，原值为 {before}"
 #: src/routes/obligations.tsx
 msgid "Click any row to open the triage drawer"
 msgstr "点击任意行打开分诊抽屉"
-
-#: src/features/members/members-page.tsx
-msgid "Click more to change role, suspend, or remove"
-msgstr "点击更多以更改角色、暂停或移除"
 
 #: src/routes/dashboard.tsx
 msgid "Click to refresh"
@@ -16749,6 +16741,10 @@ msgstr "仅当已收齐所有客户文件时使用。直接将该行送至「审
 #: src/features/migration/Step1Intake.tsx
 msgid "Use Reports > Report Manager > Tax return data only when you need a custom column report."
 msgstr "只有在需要自定义列报表时，才使用 Reports > Report Manager > Tax return data。"
+
+#: src/features/members/members-page.tsx
+msgid "Use Role to change access; more to suspend or remove"
+msgstr "使用「角色」更改访问权限;暂停或移除请使用「⋯」菜单"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Use suggested filings"
