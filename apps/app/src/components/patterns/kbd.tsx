@@ -71,7 +71,10 @@ export function ShortcutHintChip({
       <Button
         type="button"
         variant="ghost"
-        size="xs"
+        // size="sm" → h-8, matching the toolbar's `+` import button and the
+        // My-work/Everyone toggle it sits beside (Yuqi: same height as toggle
+        // and +). The `?` keycap inside stays its own 18px glyph, centered.
+        size="sm"
         onClick={() => openShortcutHelp()}
         aria-label={t`Keyboard shortcuts`}
         title={t`Keyboard shortcuts`}
@@ -85,7 +88,9 @@ export function ShortcutHintChip({
     <Button
       type="button"
       variant="ghost"
-      size="xs"
+      // size="sm" → h-8, matching the toolbar's `+` import button and the
+      // My-work/Everyone toggle (Yuqi: same height as toggle + `+`).
+      size="sm"
       onClick={() => openShortcutHelp()}
       className={cn('rounded-lg text-text-tertiary hover:text-text-secondary', className)}
     >
