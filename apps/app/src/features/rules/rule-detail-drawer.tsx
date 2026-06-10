@@ -315,6 +315,7 @@ export function RuleDetailCompact({
   deferQueryInvalidation = false,
   confirmImpact = false,
   hideDecision = false,
+  hideReviewAids = false,
   onActionComplete,
   reviewReason,
 }: {
@@ -327,6 +328,11 @@ export function RuleDetailCompact({
   confirmImpact?: boolean
   /** Omit the Decision footer — the modal renders it as a sticky footer instead. */
   hideDecision?: boolean
+  /** Omit the per-rule Practice-review note composer. Bulk surfaces own the note
+      workflow at the batch level (their own shared note), so the per-rule note
+      textarea is suppressed there. The Before-you-accept AI-draft panel stays —
+      it's the accept gate. */
+  hideReviewAids?: boolean
   onActionComplete?: () => void | Promise<void>
 }) {
   const { t } = useLingui()
@@ -454,8 +460,9 @@ export function RuleDetailCompact({
         <RuleImpactCard rule={rule} />
       ) : null}
 
-      {/* Practice review — team-note composer + thread (irBJ8). Review only. */}
-      {rule.status === 'candidate' || rule.status === 'pending_review' ? (
+      {/* Practice review — team-note composer + thread (irBJ8). Review only;
+          hidden on bulk surfaces (they own the note workflow). */}
+      {!hideReviewAids && (rule.status === 'candidate' || rule.status === 'pending_review') ? (
         <RulePracticeReviewCard rule={rule} />
       ) : null}
 
@@ -484,6 +491,23 @@ export function RuleDetailCompact({
           />
         }
       />
+
+      {/* Reviewed-rule metadata (Reviewed by / at) — self-gates on
+          reviewedAt, so candidates (not yet reviewed) skip it. Restores the
+          old Sheet body's VerificationSection in the new card modal. */}
+      <VerificationSection rule={rule} />
+
+      {/* Before you accept — pre-accept checks (year-over-year + AI draft),
+          lifted out of the slim Decision footer (irBJ8). Review context only.
+          (Kept on bulk surfaces too — the AI-draft panel is the accept gate.) */}
+      {rule.status === 'candidate' || rule.status === 'pending_review' ? (
+        <RuleBeforeAcceptCard
+          rule={rule}
+          concreteDraft={concreteDraft ?? null}
+          concreteDraftLoading={concreteDraftLoading}
+          {...(reviewReason !== undefined ? { reviewReason } : {})}
+        />
+      ) : null}
 
       {/* Decision — the always-expanded commit footer. Omitted when the
           modal renders it as a sticky footer (hideDecision). */}
@@ -563,6 +587,79 @@ function RuleImpactCard({ rule }: { rule: ObligationRule }) {
         ) : undefined
       }
     />
+  )
+}
+
+/**
+ * `RuleBeforeAcceptCard` — the "Before you accept" pre-accept checks lifted OUT
+ * of the Decision footer (irBJ8 keeps the footer slim). Year-over-year diff +
+ * (source-defined only) the AI concrete-draft panel. Self-contained: its own
+ * `draftConcreteRule` mutation invalidates `listConcreteDrafts`, which the route
+ * re-reads → the footer's `concreteDraft` prop updates → Accept unlocks. So the
+ * footer's accept gating needs no wiring change. Review-context rules only.
+ */
+function RuleBeforeAcceptCard({
+  rule,
+  concreteDraft,
+  concreteDraftLoading = false,
+  reviewReason,
+}: {
+  rule: ObligationRule
+  concreteDraft: RuleConcreteDraftCacheEntry | null
+  concreteDraftLoading?: boolean
+  reviewReason?: RuleReviewTaskReason
+}) {
+  const { t } = useLingui()
+  const queryClient = useQueryClient()
+  const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
+  const reviewSourceId = rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? ''
+  const draft = concreteDraft?.draft ?? null
+  const draftMutation = useMutation(
+    orpc.rules.draftConcreteRule.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: orpc.rules.listConcreteDrafts.key() })
+        toast.success(t`Draft generated`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't generate draft`, {
+          description: rpcErrorMessage(error) ?? t`Try again, or skip this rule for now.`,
+        })
+      },
+    }),
+  )
+  function requestDraft() {
+    if (!sourceDefined || reviewSourceId.length === 0 || draftMutation.isPending) return
+    draftMutation.mutate({ ruleId: rule.id, sourceId: reviewSourceId })
+  }
+  const draftPanelMessage =
+    sourceDefined && reviewSourceId.length === 0
+      ? t`This source-defined rule is missing an official source.`
+      : sourceDefined && !draft && !concreteDraftLoading
+        ? t`AI concrete draft is not ready.`
+        : null
+  return (
+    <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+      <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
+        <h3 className="text-[13px] font-semibold text-text-primary">
+          <Trans>Before you accept</Trans>
+        </h3>
+      </div>
+      <div className="flex flex-col gap-2 px-5 py-4">
+        <RuleYearDiff
+          ruleId={rule.id}
+          expectedVersion={rule.version}
+          {...(reviewReason !== undefined ? { reason: reviewReason } : {})}
+        />
+        {sourceDefined ? (
+          <AiDraftReviewPanel
+            draft={draft}
+            errorMessage={draftPanelMessage}
+            generating={(concreteDraftLoading || draftMutation.isPending) && !draft}
+            {...(reviewSourceId.length > 0 ? { onGenerateDraft: requestDraft } : {})}
+          />
+        ) : null}
+      </div>
+    </section>
   )
 }
 
@@ -934,30 +1031,10 @@ function CandidateReviewForm({
       onError: handleAcceptError,
     }),
   )
-  // 2026-05-26 (Yuqi /critique — P0-3): when the AI concrete
-  // draft isn't ready, the user used to be stuck — disabled
-  // Accept + Skip = infinite "come back later" loop across 456+
-  // rules. Now: `draftConcreteRule` mutation surfaced inline so
-  // the user can trigger generation right from the review card.
-  // On success, invalidate `listConcreteDrafts` so the new draft
-  // surfaces in the panel; the disabled Accept then unlocks.
-  const draftMutation = useMutation(
-    orpc.rules.draftConcreteRule.mutationOptions({
-      onSuccess: () => {
-        void queryClient.invalidateQueries({ queryKey: orpc.rules.listConcreteDrafts.key() })
-        toast.success(t`Draft generated`)
-      },
-      onError: (error) => {
-        toast.error(t`Couldn't generate draft`, {
-          description: rpcErrorMessage(error) ?? t`Try again, or skip this rule for now.`,
-        })
-      },
-    }),
-  )
-  function requestDraft() {
-    if (!sourceDefined || reviewSourceId.length === 0 || draftMutation.isPending) return
-    draftMutation.mutate({ ruleId: rule.id, sourceId: reviewSourceId })
-  }
+  // The `draftConcreteRule` generate mutation now lives in `RuleBeforeAcceptCard`
+  // (the pre-accept checks moved out of this slim footer, irBJ8). Accept stays
+  // gated on `draft` from the `concreteDraft` prop, which the route re-reads
+  // after that card's generate invalidates `listConcreteDrafts`.
 
   // 2026-05-26 (Yuqi /critique — P2-2): preview the rule's impact
   // so the Practice review explainer can show the actual count of
@@ -1076,31 +1153,11 @@ function CandidateReviewForm({
           />
         </p>
       ) : null}
-      {/* Pre-accept checks — grouped under one quiet label so the section
-          reads context → checks → decide, instead of two cards floating
-          between the explanation and the action buttons. The year-over-year
-          diff flags whether this is a new/changed rule vs last year; the AI
-          concrete draft (source-defined rules only) is the due-date logic
-          that Accept is gated on. */}
-      <div className="flex flex-col gap-2">
-        <span className="text-caption-xs font-semibold tracking-eyebrow text-text-muted uppercase">
-          <Trans>Before you accept</Trans>
-        </span>
-        <RuleYearDiff
-          ruleId={rule.id}
-          expectedVersion={rule.version}
-          {...(reviewReason !== undefined ? { reason: reviewReason } : {})}
-        />
-        {sourceDefined ? (
-          <AiDraftReviewPanel
-            draft={draft}
-            errorMessage={draftPanelMessage}
-            generating={(concreteDraftLoading || draftMutation.isPending) && !draft}
-            {...(reviewSourceId.length > 0 ? { onGenerateDraft: requestDraft } : {})}
-          />
-        ) : null}
-      </div>
-
+      {/* Pre-accept checks (year-over-year + AI draft) now live in the
+          `RuleBeforeAcceptCard` scroll card above — the footer stays slim
+          (irBJ8). Accept's draft gating is unchanged: it reads `draft` from the
+          `concreteDraft` prop, which the route re-reads after that card's
+          generate invalidates `listConcreteDrafts`. */}
       <div className="flex justify-end gap-2">
         {/* Reject is available in every review context — the single-rule
             detail AND the batch walkthrough (2026-06-10, Yuqi: "keep the
@@ -1127,6 +1184,13 @@ function CandidateReviewForm({
         >
           <Trans>Accept rule</Trans>
         </Button>
+      </div>
+      {/* Signed line (irBJ8 footer foot) — the decision is audit-logged. The
+          canvas's "signed by {name}" is dropped: there's no signer until the
+          decision is actually recorded, so naming one up front would be fiction. */}
+      <div className="flex items-center gap-1.5 border-t border-divider-subtle pt-3 text-xs text-text-muted">
+        <ShieldCheckIcon aria-hidden className="size-3.5 shrink-0" />
+        <Trans>Decisions are recorded in the audit ledger.</Trans>
       </div>
       {confirmImpact ? (
         <ConfirmImpactDialog

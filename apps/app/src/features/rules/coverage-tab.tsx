@@ -2565,6 +2565,7 @@ function RulePanel({
           concreteDraft={concreteDraft}
           concreteDraftLoading={concreteDraftLoading}
           onActionComplete={onActionComplete}
+          hideReviewAids
           {...(reviewReason !== undefined ? { reviewReason } : {})}
         />
       </div>

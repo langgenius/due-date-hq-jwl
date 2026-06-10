@@ -141,6 +141,19 @@ vi.mock('@/lib/rpc', () => ({
           queryFn: rpcMocks.listConcreteDraftsQueryFn,
         }),
       },
+      listRuleNotes: {
+        key: () => ['rules', 'listRuleNotes'],
+        queryOptions: ({ input }: { input: unknown }) => ({
+          queryKey: ['rules', 'listRuleNotes', input],
+          queryFn: async () => ({ notes: [] }),
+        }),
+      },
+      addRuleNote: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: vi.fn(),
+          ...options,
+        }),
+      },
       draftConcreteRule: {
         mutationOptions: (options: Record<string, unknown>) => ({
           mutationFn: rpcMocks.draftConcreteRuleMutationFn,
