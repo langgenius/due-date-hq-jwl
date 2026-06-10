@@ -6,8 +6,10 @@ import {
   useRef,
   useState,
   type ComponentProps,
+  type ComponentType,
   type MouseEvent,
   type ReactNode,
+  type SVGProps,
 } from 'react'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
@@ -69,6 +71,8 @@ import {
   SearchIcon,
   SlidersHorizontalIcon,
   UserRoundIcon,
+  MapPinIcon,
+  ClockIcon,
   XIcon,
 } from 'lucide-react'
 import {
@@ -153,6 +157,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@duedatehq/ui/components/ui/command'
 import {
   Popover,
   PopoverContent,
@@ -1667,6 +1678,19 @@ export function ObligationQueueRoute() {
         count: option.count,
       })) ?? EMPTY_FACET_OPTIONS,
     [facetsQuery.data?.taxTypes],
+  )
+  // Assignee + county facets feed the new faceted Filter sheet (the flat
+  // popover never surfaced them). Both come straight off the same facets RPC
+  // with real counts, so they scale through the per-facet typeahead like every
+  // other dimension. Assignee filtering writes the `assignees` param by NAME
+  // (the query maps it to `assigneeNames`), so the facet value IS the name.
+  const assigneeOptions = useMemo<FilterOption[]>(
+    () => facetsQuery.data?.assigneeNames.map(facetOptionToFilterOption) ?? EMPTY_FACET_OPTIONS,
+    [facetsQuery.data?.assigneeNames],
+  )
+  const countyOptions = useMemo<FilterOption[]>(
+    () => facetsQuery.data?.counties.map(facetOptionToFilterOption) ?? EMPTY_FACET_OPTIONS,
+    [facetsQuery.data?.counties],
   )
   // No `statusOptions` here: the status scope tabs at the top of the toolbar
   // own status filtering (there is no per-column STATUS header filter).
@@ -3870,13 +3894,15 @@ export function ObligationQueueRoute() {
                   className="min-w-0 flex-1 bg-transparent text-base text-text-primary outline-none placeholder:text-text-tertiary"
                 />
               </label>
-              {/* Quick filters — the consolidated facet popover (Due /
-                  Evidence / Awaiting signature / Filing / Client / State). */}
+              {/* Filter sheet — one button (with an active-count badge) opens a
+                  faceted popover (header · tab strip · per-facet typeahead body ·
+                  Reset/Apply footer). Each dimension is a searchable checkbox
+                  list so it scales past a wall of chips. Saved-view presets live
+                  inside the sheet's tab strip, never in the toolbar. */}
               {panelOpenIntent ? null : (
                 <ObligationFiltersPopover
                   due={due}
                   thisWeekFilterActive={thisWeekFilterActive}
-                  daysMin={daysMin}
                   daysMax={daysMax}
                   evidence={evidence}
                   awaitingSignature={awaitingSignature}
@@ -3886,6 +3912,10 @@ export function ObligationQueueRoute() {
                   clientSelected={clientQuery}
                   stateOptions={stateOptions}
                   stateSelected={stateQuery}
+                  assigneeOptions={assigneeOptions}
+                  assigneeSelected={assigneeQuery}
+                  countyOptions={countyOptions}
+                  countySelected={countyQuery}
                   filtersDisabled={filtersDisabled}
                   onPatch={(patch) => void setObligationQueueQuery(patch)}
                 />
@@ -4100,6 +4130,31 @@ export function ObligationQueueRoute() {
                 </div>
               )}
             </div>
+            {/* Active-filter chips — one removable chip per applied facet,
+                rendered inline under the toolbar (Pencil `AzLvC`). Each reads
+                from the same URL params the sheet writes; the ✕ emits the
+                canonical clear patch. Hidden in the panel-open split (the
+                narrow toolbar there has no room) and when nothing is set. */}
+            {panelOpenIntent ? null : (
+              <ObligationActiveFilterChips
+                due={due}
+                thisWeekFilterActive={thisWeekFilterActive}
+                evidence={evidence}
+                awaitingSignature={awaitingSignature}
+                taxTypeSelected={taxTypeQuery}
+                taxTypeOptions={taxTypeOptions}
+                clientSelected={clientQuery}
+                clientOptions={clientOptions}
+                stateSelected={stateQuery}
+                stateOptions={stateOptions}
+                assigneeSelected={assigneeQuery}
+                assigneeOptions={assigneeOptions}
+                countySelected={countyQuery}
+                countyOptions={countyOptions}
+                onPatch={(patch) => void setObligationQueueQuery(patch)}
+                onClearAll={resetObligationQueue}
+              />
+            )}
           </div>
 
           {selectedIds.length > 0 ? (
@@ -12416,17 +12471,56 @@ function parseOwnerCount(value: string): number | null {
 // with those chips. Those facets now live as pill sections inside
 // `ObligationFiltersPopover` below.
 
-// The four quick-filter chips (Past due / Due this week / Needs evidence /
-// Awaiting signature) plus the per-column header filters (Filing / Client /
-// State) all collapse into ONE "Filters" popover, mirroring AlertsListPage's
-// `AlertFiltersPopover` (same FilterTrigger + SlidersHorizontal icon +
-// active-count badge + labeled pill-section layout). Every section writes
-// through the same `setObligationQueueQuery` patch the relocated controls
-// used — this is a pure RELOCATION, the filter behavior is unchanged.
+// ── Faceted Filter sheet ────────────────────────────────────────────────
+//
+// One toolbar button (active-count badge) opens a popover SHEET that matches
+// the Pencil "B · Minimal" canon (node `MdCKL`): a header (title + Esc), a
+// vertical tab strip of facet dimensions + a Saved-views tab, a searchable
+// body (per-facet typeahead checkbox list, so each dimension scales past a
+// wall of chips), and a Reset/Apply footer. Selections are STAGED locally and
+// only committed to the URL on Apply; Reset clears the stage. The flat-chip
+// popover this replaces dumped every form + every client at once and didn't
+// scale to a 50-form / 200-client practice.
+//
+// Param contract is unchanged — Apply emits the same `setObligationQueueQuery`
+// patch the old controls used (`taxType` / `client` / `state` / `assignees` /
+// `county` arrays, `due`/`daysMax` for the Due window, `evidence`/
+// `awaitingSignature` for Condition). The active chips below the toolbar read
+// from those same params.
+
+// Multi-select facet dimensions backed by an array URL param + a facets-RPC
+// option list. Single-axis facets (Due window, Condition) are handled
+// separately because they don't write an array param.
+type ObligationFacetKey = 'taxType' | 'client' | 'state' | 'assignees' | 'county'
+
+// The locally STAGED selection while the sheet is open — committed to the URL
+// only on Apply. `due` / `evidence` carry the same string-literal unions as
+// their URL params so Apply can emit them straight through.
+interface ObligationFilterStage {
+  due: (typeof DUE_FILTERS)[number] | null
+  daysMax: number | null
+  evidence: (typeof EVIDENCE_FILTERS)[number] | null
+  awaitingSignature: boolean | null
+  taxType: string[]
+  client: string[]
+  state: string[]
+  assignees: string[]
+  county: string[]
+}
+
+// One saved-view preset surfaced inside the sheet's "Saved views" tab. Each
+// preset is a thin shortcut that stages the SAME facet fields — no new param
+// contract, no fiction.
+interface ObligationFilterPreset {
+  id: string
+  label: string
+  description: string
+  patch: Partial<ObligationFilterStage>
+}
+
 function ObligationFiltersPopover({
   due,
   thisWeekFilterActive,
-  daysMin,
   daysMax,
   evidence,
   awaitingSignature,
@@ -12436,14 +12530,17 @@ function ObligationFiltersPopover({
   clientSelected,
   stateOptions,
   stateSelected,
+  assigneeOptions,
+  assigneeSelected,
+  countyOptions,
+  countySelected,
   filtersDisabled,
   onPatch,
 }: {
-  due: string | null
+  due: (typeof DUE_FILTERS)[number] | null
   thisWeekFilterActive: boolean
-  daysMin: number | null
   daysMax: number | null
-  evidence: string | null
+  evidence: (typeof EVIDENCE_FILTERS)[number] | null
   awaitingSignature: boolean | null
   taxTypeOptions: readonly FilterOption[]
   taxTypeSelected: readonly string[]
@@ -12451,6 +12548,10 @@ function ObligationFiltersPopover({
   clientSelected: readonly string[]
   stateOptions: readonly FilterOption[]
   stateSelected: readonly string[]
+  assigneeOptions: readonly FilterOption[]
+  assigneeSelected: readonly string[]
+  countyOptions: readonly FilterOption[]
+  countySelected: readonly string[]
   filtersDisabled: boolean
   // Patch type mirrors the nuqs `setObligationQueueQuery` setter — every
   // param accepts `null` to clear it back to its default (the array facets
@@ -12459,159 +12560,545 @@ function ObligationFiltersPopover({
   onPatch: (patch: ObligationQueueQueryPatch) => void
 }) {
   const { t } = useLingui()
-  // Active-facet count drives the trigger badge — one per active facet:
-  // Due (overdue OR this-week), needs-evidence, awaiting-signature, and
-  // one each for any non-empty Filing / Client / State multi-select.
-  const dueActive = due === 'overdue' || thisWeekFilterActive
-  const activeCount =
-    (dueActive ? 1 : 0) +
+  const [open, setOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<ObligationFacetKey | 'condition' | 'saved'>('taxType')
+
+  // Snapshot the committed URL state into a local stage when the sheet opens,
+  // so the user can pick freely and only commit on Apply (or discard on close).
+  const committedStage = useMemo<ObligationFilterStage>(
+    () => ({
+      due,
+      daysMax: thisWeekFilterActive ? daysMax : null,
+      evidence,
+      awaitingSignature,
+      taxType: [...taxTypeSelected],
+      client: [...clientSelected],
+      state: [...stateSelected],
+      assignees: [...assigneeSelected],
+      county: [...countySelected],
+    }),
+    [
+      due,
+      thisWeekFilterActive,
+      daysMax,
+      evidence,
+      awaitingSignature,
+      taxTypeSelected,
+      clientSelected,
+      stateSelected,
+      assigneeSelected,
+      countySelected,
+    ],
+  )
+  const [stage, setStage] = useState<ObligationFilterStage>(committedStage)
+  // Re-seed the stage every time the sheet opens so a discarded edit doesn't
+  // leak into the next session.
+  useEffect(() => {
+    if (open) setStage(committedStage)
+  }, [open, committedStage])
+
+  const stageThisWeekActive = stage.due === null && stage.daysMax === THIS_WEEK_MAX_DAYS
+  const stageDueActive = stage.due === 'overdue' || stageThisWeekActive
+  const facetSelected: Record<ObligationFacetKey, string[]> = {
+    taxType: stage.taxType,
+    client: stage.client,
+    state: stage.state,
+    assignees: stage.assignees,
+    county: stage.county,
+  }
+  const facetCounts: Record<ObligationFacetKey, number> = {
+    taxType: stage.taxType.length,
+    client: stage.client.length,
+    state: stage.state.length,
+    assignees: stage.assignees.length,
+    county: stage.county.length,
+  }
+  const conditionCount =
+    (stageDueActive ? 1 : 0) +
+    (stage.evidence === 'needs' ? 1 : 0) +
+    (stage.awaitingSignature === true ? 1 : 0)
+  const stagedTotal = conditionCount + Object.values(facetCounts).reduce((sum, n) => sum + n, 0)
+
+  // Active-facet count on the TRIGGER reflects COMMITTED state (one per active
+  // dimension), so the badge doesn't flicker while the user stages edits.
+  const committedDueActive = due === 'overdue' || thisWeekFilterActive
+  const committedActiveCount =
+    (committedDueActive ? 1 : 0) +
     (evidence === 'needs' ? 1 : 0) +
     (awaitingSignature === true ? 1 : 0) +
     (taxTypeSelected.length > 0 ? 1 : 0) +
     (clientSelected.length > 0 ? 1 : 0) +
-    (stateSelected.length > 0 ? 1 : 0)
+    (stateSelected.length > 0 ? 1 : 0) +
+    (assigneeSelected.length > 0 ? 1 : 0) +
+    (countySelected.length > 0 ? 1 : 0)
 
-  // Toggle one option in a multi-select facet, emitting the canonical
-  // `[] → null` patch the column-header filters used.
-  const toggleMulti = (
-    key: 'taxType' | 'client' | 'state',
-    selected: readonly string[],
-    value: string,
-  ) => {
-    const next = selected.includes(value)
-      ? selected.filter((v) => v !== value)
-      : [...selected, value]
-    onPatch({ [key]: next.length > 0 ? next : null, obligation: null, row: null })
+  const toggleFacet = (key: ObligationFacetKey, value: string) => {
+    setStage((prev) => {
+      const current = prev[key]
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value]
+      return { ...prev, [key]: next }
+    })
   }
 
+  const emptyStage: ObligationFilterStage = {
+    due: null,
+    daysMax: null,
+    evidence: null,
+    awaitingSignature: null,
+    taxType: [],
+    client: [],
+    state: [],
+    assignees: [],
+    county: [],
+  }
+
+  // Apply commits the stage as a single patch. Empty selections clear back to
+  // the parser default (`null`), exactly the `[] → null` reset the old
+  // column-header filters relied on.
+  const apply = () => {
+    onPatch({
+      due: stage.due,
+      // Due-this-week writes daysMax; clear daysMin either way (the only other
+      // axis sharing that param). Past-due (`due`) and this-week are mutually
+      // exclusive in the UI, mirroring `nextThisWeekFilterPatch`.
+      daysMin: null,
+      daysMax: stage.daysMax,
+      dueWithin: null,
+      evidence: stage.evidence,
+      awaitingSignature: stage.awaitingSignature,
+      taxType: stage.taxType.length > 0 ? stage.taxType : null,
+      client: stage.client.length > 0 ? stage.client : null,
+      state: stage.state.length > 0 ? stage.state : null,
+      assignees: stage.assignees.length > 0 ? stage.assignees : null,
+      county: stage.county.length > 0 ? stage.county : null,
+      obligation: null,
+      row: null,
+    })
+    setOpen(false)
+  }
+
+  // Tab strip — facet dimensions + a Condition lens + a Saved-views tab.
+  const facetTabs: {
+    key: ObligationFacetKey
+    label: string
+    icon: ComponentType<SVGProps<SVGSVGElement>>
+    options: readonly FilterOption[]
+    searchPlaceholder: string
+  }[] = [
+    {
+      key: 'taxType',
+      label: t`Form`,
+      icon: FileTextIcon,
+      options: taxTypeOptions,
+      searchPlaceholder: t`Search forms…`,
+    },
+    {
+      key: 'client',
+      label: t`Client`,
+      icon: UserRoundIcon,
+      options: clientOptions,
+      searchPlaceholder: t`Search clients…`,
+    },
+    {
+      key: 'state',
+      label: t`State`,
+      icon: MapPinIcon,
+      options: stateOptions,
+      searchPlaceholder: t`Search states…`,
+    },
+    {
+      key: 'assignees',
+      label: t`Assignee`,
+      icon: UserRoundIcon,
+      options: assigneeOptions,
+      searchPlaceholder: t`Search assignees…`,
+    },
+    {
+      key: 'county',
+      label: t`County`,
+      icon: MapPinIcon,
+      options: countyOptions,
+      searchPlaceholder: t`Search counties…`,
+    },
+  ]
+
+  // Presets are thin shortcuts over the same facet params — no fiction, no new
+  // contract. The Condition presets reuse the real `evidence` / `awaitingSig`
+  // params; the Due preset reuses `due` / `daysMax`.
+  const presets: ObligationFilterPreset[] = [
+    {
+      id: 'overdue',
+      label: t`Past due`,
+      description: t`Deadlines already past their internal due date`,
+      patch: { due: 'overdue', daysMax: null },
+    },
+    {
+      id: 'this-week',
+      label: t`Due this week`,
+      description: t`Next ${THIS_WEEK_MAX_DAYS} days`,
+      patch: { due: null, daysMax: THIS_WEEK_MAX_DAYS },
+    },
+    {
+      id: 'needs-evidence',
+      label: t`Needs evidence`,
+      description: t`Missing a workpaper or supporting document`,
+      patch: { evidence: 'needs' },
+    },
+    {
+      id: 'awaiting-signature',
+      label: t`Awaiting signature`,
+      description: t`Filed returns still waiting on the client's 8879`,
+      patch: { awaitingSignature: true },
+    },
+  ]
+
+  const activeFacetTab = facetTabs.find((tab) => tab.key === activeTab)
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
           <FilterTrigger
-            active={activeCount > 0}
+            active={committedActiveCount > 0}
             leadingIcon={SlidersHorizontalIcon}
-            valueLabel={activeCount > 0 ? String(activeCount) : undefined}
-            aria-label={t`Quick filters`}
+            valueLabel={committedActiveCount > 0 ? String(committedActiveCount) : undefined}
+            hideChevron
+            aria-label={t`Filters`}
           >
             <span>
-              <Trans>Quick filters</Trans>
+              <Trans>Filter</Trans>
             </span>
           </FilterTrigger>
         }
       />
-      <PopoverContent align="end" className="w-[300px] p-3">
-        <div className="flex max-h-[420px] flex-col gap-3.5 overflow-y-auto">
-          {/* Due — single-select (radio) pills. Past due / Due this week
-              are the same date axis, so picking one clears the other. */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
-              <Trans>Due</Trans>
-            </span>
-            <div className="flex flex-wrap gap-1">
-              <ObligationFilterPill
-                active={!dueActive}
-                onClick={() => onPatch({ due: null, daysMin: null, daysMax: null })}
-              >
-                <Trans>Any</Trans>
-              </ObligationFilterPill>
-              <ObligationFilterPill
-                active={due === 'overdue'}
-                onClick={() =>
-                  onPatch({
-                    due: due === 'overdue' ? null : 'overdue',
-                    daysMin: null,
-                    daysMax: null,
-                  })
-                }
-              >
-                <Trans>Past due</Trans>
-              </ObligationFilterPill>
-              <ObligationFilterPill
-                active={thisWeekFilterActive}
-                onClick={() => onPatch({ ...nextThisWeekFilterPatch(daysMin, daysMax), due: null })}
-              >
-                <Trans>Due this week</Trans>
-              </ObligationFilterPill>
-            </div>
+      {/* Sheet shell — p-0/gap-0 so the four bands (header · tab strip · body ·
+          footer) own their own padding + hairlines, mirroring `MdCKL`. The
+          blur-24 outer shadow is the design's allowed floating-popover lift. */}
+      <PopoverContent
+        align="end"
+        className="w-[560px] gap-0 overflow-hidden rounded-xl p-0 shadow-overlay"
+      >
+        {/* Header — title + applied count badge, with an Esc affordance. */}
+        <div className="flex items-center justify-between border-b border-divider-subtle px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <PopoverTitle className="text-sm font-semibold">
+              <Trans>Filters</Trans>
+            </PopoverTitle>
+            {stagedTotal > 0 ? (
+              <span className="inline-flex items-center rounded-full bg-background-subtle px-2 py-0.5 font-mono text-caption-xs font-medium tabular-nums text-text-secondary">
+                {stagedTotal}
+              </span>
+            ) : null}
           </div>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="inline-flex cursor-pointer items-center rounded-sm border border-divider-subtle bg-background-section px-1.5 py-0.5 font-mono text-caption-xs font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            aria-label={t`Close filters`}
+          >
+            Esc
+          </button>
+        </div>
 
-          {/* Needs evidence + Awaiting signature — orthogonal toggles. */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
-              <Trans>Other</Trans>
-            </span>
-            <div className="flex flex-wrap gap-1">
-              <ObligationFilterPill
-                active={evidence === 'needs'}
-                onClick={() => onPatch({ evidence: evidence === 'needs' ? null : 'needs' })}
-              >
-                <Trans>Needs evidence</Trans>
-              </ObligationFilterPill>
-              <ObligationFilterPill
-                active={awaitingSignature === true}
-                onClick={() => onPatch({ awaitingSignature: awaitingSignature ? null : true })}
-              >
-                <Trans>Awaiting signature</Trans>
-              </ObligationFilterPill>
+        {/* Tab strip — facet dimensions + Condition + Saved views. Active tab
+            carries the bottom rule + count badge. */}
+        <div
+          role="tablist"
+          aria-label={t`Filter dimensions`}
+          className="flex items-center gap-0.5 overflow-x-auto border-b border-divider-subtle px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {facetTabs.map((tab) => (
+            <ObligationFilterTab
+              key={tab.key}
+              icon={tab.icon}
+              label={tab.label}
+              count={facetCounts[tab.key]}
+              active={activeTab === tab.key}
+              onClick={() => setActiveTab(tab.key)}
+            />
+          ))}
+          <ObligationFilterTab
+            icon={ClockIcon}
+            label={t`Condition`}
+            count={conditionCount}
+            active={activeTab === 'condition'}
+            onClick={() => setActiveTab('condition')}
+          />
+          <ObligationFilterTab
+            icon={LayersIcon}
+            label={t`Saved views`}
+            count={0}
+            active={activeTab === 'saved'}
+            onClick={() => setActiveTab('saved')}
+          />
+        </div>
+
+        {/* Body — the active tab's content. Facet tabs render a searchable
+            checkbox list; Condition renders single/toggle pills; Saved views
+            renders the preset list. */}
+        <div className="min-h-[260px]">
+          {activeFacetTab ? (
+            <ObligationFacetSearchList
+              key={activeFacetTab.key}
+              options={activeFacetTab.options}
+              selected={facetSelected[activeFacetTab.key]}
+              disabled={filtersDisabled}
+              searchPlaceholder={activeFacetTab.searchPlaceholder}
+              emptyLabel={t`No matches`}
+              mono={activeFacetTab.key === 'taxType'}
+              onToggle={(value) => toggleFacet(activeFacetTab.key, value)}
+            />
+          ) : activeTab === 'condition' ? (
+            <div className="flex flex-col gap-4 p-4">
+              {/* Due window — single-select. Past due / Due this week share the
+                  date axis, so picking one clears the other. */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+                  <Trans>Due window</Trans>
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  <ObligationFilterPill
+                    active={!stageDueActive}
+                    onClick={() => setStage((p) => ({ ...p, due: null, daysMax: null }))}
+                  >
+                    <Trans>Any</Trans>
+                  </ObligationFilterPill>
+                  <ObligationFilterPill
+                    active={stage.due === 'overdue'}
+                    onClick={() =>
+                      setStage((p) => ({
+                        ...p,
+                        due: p.due === 'overdue' ? null : 'overdue',
+                        daysMax: null,
+                      }))
+                    }
+                  >
+                    <Trans>Past due</Trans>
+                  </ObligationFilterPill>
+                  <ObligationFilterPill
+                    active={stageThisWeekActive}
+                    onClick={() =>
+                      setStage((p) => ({
+                        ...p,
+                        due: null,
+                        daysMax: stageThisWeekActive ? null : THIS_WEEK_MAX_DAYS,
+                      }))
+                    }
+                  >
+                    <Trans>Due this week</Trans>
+                  </ObligationFilterPill>
+                </div>
+              </div>
+
+              {/* Needs evidence + Awaiting signature — orthogonal toggles. */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+                  <Trans>Triage</Trans>
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  <ObligationFilterPill
+                    active={stage.evidence === 'needs'}
+                    onClick={() =>
+                      setStage((p) => ({
+                        ...p,
+                        evidence: p.evidence === 'needs' ? null : 'needs',
+                      }))
+                    }
+                  >
+                    <Trans>Needs evidence</Trans>
+                  </ObligationFilterPill>
+                  <ObligationFilterPill
+                    active={stage.awaitingSignature === true}
+                    onClick={() =>
+                      setStage((p) => ({
+                        ...p,
+                        awaitingSignature: p.awaitingSignature ? null : true,
+                      }))
+                    }
+                  >
+                    <Trans>Awaiting signature</Trans>
+                  </ObligationFilterPill>
+                </div>
+              </div>
             </div>
+          ) : (
+            // Saved views — preset shortcuts that stage the same facet params.
+            <div className="flex flex-col gap-1 p-3">
+              <span className="px-1 pb-1 text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+                <Trans>Presets</Trans>
+              </span>
+              {presets.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => setStage((p) => ({ ...p, ...preset.patch }))}
+                  className="flex cursor-pointer items-start gap-2.5 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                >
+                  <LayersIcon className="mt-0.5 size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                  <span className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium text-text-primary">{preset.label}</span>
+                    <span className="text-caption-xs text-text-tertiary">{preset.description}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer — staged summary + Clear on the left, Cancel / Apply on the
+            right. Distinct section tint per `ZAciP`. */}
+        <div className="flex items-center justify-between border-t border-divider-subtle bg-background-section px-4 py-2.5">
+          <div className="flex items-center gap-2.5">
+            <span className="text-caption-xs text-text-tertiary">
+              <Plural value={stagedTotal} _0="No filters" one="# filter" other="# filters" />
+            </span>
+            {stagedTotal > 0 ? (
+              <button
+                type="button"
+                onClick={() => setStage(emptyStage)}
+                className="cursor-pointer text-caption-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              >
+                <Trans>Reset</Trans>
+              </button>
+            ) : null}
           </div>
-
-          {/* Filing — multi-select (taxType). Reuses the FILING column
-              header's `taxTypeOptions` facet source. */}
-          <ObligationMultiFilterSection
-            label={t`Filing`}
-            options={taxTypeOptions}
-            selected={taxTypeSelected}
-            disabled={filtersDisabled}
-            onToggle={(value) => toggleMulti('taxType', taxTypeSelected, value)}
-          />
-
-          {/* Client — multi-select. Reuses the CLIENT column header's
-              `clientOptions` facet source. */}
-          <ObligationMultiFilterSection
-            label={t`Client`}
-            options={clientOptions}
-            selected={clientSelected}
-            disabled={filtersDisabled}
-            onToggle={(value) => toggleMulti('client', clientSelected, value)}
-          />
-
-          {/* State — multi-select. Reuses the STATE column header's
-              `stateOptions` facet source. */}
-          <ObligationMultiFilterSection
-            label={t`State`}
-            options={stateOptions}
-            selected={stateSelected}
-            disabled={filtersDisabled}
-            onToggle={(value) => toggleMulti('state', stateSelected, value)}
-          />
-
-          {activeCount > 0 ? (
-            <TextLink
-              variant="accent"
-              className="self-start"
-              onClick={() =>
-                onPatch({
-                  due: null,
-                  daysMin: null,
-                  daysMax: null,
-                  evidence: null,
-                  awaitingSignature: null,
-                  taxType: null,
-                  client: null,
-                  state: null,
-                  obligation: null,
-                  row: null,
-                })
-              }
-            >
-              <Trans>Clear these filters</Trans>
-            </TextLink>
-          ) : null}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button size="sm" onClick={apply}>
+              <Trans>Apply</Trans>
+            </Button>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
+  )
+}
+
+// One tab in the Filter sheet's dimension strip — icon + label + optional
+// count badge, with the active tab carrying a 2px bottom rule (per `xrMoD`).
+function ObligationFilterTab({
+  icon: Icon,
+  label,
+  count,
+  active,
+  onClick,
+}: {
+  icon: ComponentType<SVGProps<SVGSVGElement>>
+  label: string
+  count: number
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cn(
+        'inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        active
+          ? 'border-text-primary font-semibold text-text-primary'
+          : 'border-transparent font-medium text-text-secondary hover:text-text-primary',
+      )}
+    >
+      <Icon
+        className={cn('size-3.5 shrink-0', active ? 'text-text-primary' : 'text-text-tertiary')}
+        aria-hidden
+      />
+      <span>{label}</span>
+      {count > 0 ? (
+        <span
+          className={cn(
+            'inline-flex items-center rounded-full px-1.5 font-mono text-[10px] font-medium tabular-nums',
+            active
+              ? 'bg-text-primary text-text-inverted'
+              : 'bg-background-subtle text-text-secondary',
+          )}
+        >
+          {count}
+        </span>
+      ) : null}
+    </button>
+  )
+}
+
+// A searchable checkbox list for one facet dimension — a cmdk `Command`
+// typeahead that narrows the option rows + a leading checkbox + a trailing
+// per-value count (from the facets RPC). This is what lets each dimension
+// scale to many values instead of rendering a flat wall of chips. Reuses the
+// same Command primitive the export-client picker / command palette use.
+function ObligationFacetSearchList({
+  options,
+  selected,
+  disabled,
+  searchPlaceholder,
+  emptyLabel,
+  mono,
+  onToggle,
+}: {
+  options: readonly FilterOption[]
+  selected: readonly string[]
+  disabled: boolean
+  searchPlaceholder: string
+  emptyLabel: string
+  mono?: boolean
+  onToggle: (value: string) => void
+}) {
+  const selectedSet = new Set(selected)
+  if (disabled) {
+    return (
+      <div className="flex flex-col gap-2 p-4">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-7 w-full" />
+        <Skeleton className="h-7 w-full" />
+      </div>
+    )
+  }
+  if (options.length === 0) {
+    return <div className="px-4 py-10 text-center text-sm text-text-tertiary">{emptyLabel}</div>
+  }
+  return (
+    <Command className="bg-transparent">
+      <CommandInput placeholder={searchPlaceholder} />
+      <CommandList className="max-h-[280px]">
+        <CommandEmpty>{emptyLabel}</CommandEmpty>
+        {options.map((option) => {
+          const checked = selectedSet.has(option.value)
+          return (
+            <CommandItem
+              key={option.value}
+              value={`${option.label} ${option.value}`}
+              onSelect={() => onToggle(option.value)}
+            >
+              <span
+                className={cn(
+                  'flex size-4 items-center justify-center rounded-sm border',
+                  checked
+                    ? 'border-text-primary bg-text-primary text-text-inverted'
+                    : 'border-divider-regular',
+                )}
+                aria-hidden
+              >
+                {checked ? <CheckIcon className="size-3" /> : null}
+              </span>
+              <span className={cn('truncate', mono && 'font-mono text-caption-xs')}>
+                {option.label}
+              </span>
+              {typeof option.count === 'number' ? (
+                <span className="text-caption-xs tabular-nums text-text-tertiary">
+                  {option.count}
+                </span>
+              ) : null}
+            </CommandItem>
+          )
+        })}
+      </CommandList>
+    </Command>
   )
 }
 
@@ -12647,41 +13134,161 @@ function ObligationFilterPill({
   )
 }
 
-// A multi-select facet inside the Filters popover — an uppercase label
-// over a wrap of toggle pills. Used for Filing / Client / State, each
-// reusing the same option array the retired column-header filter used.
-function ObligationMultiFilterSection({
-  label,
-  options,
-  selected,
-  disabled,
-  onToggle,
+// Active-filter chips — one removable chip per applied facet value, rendered
+// inline under the toolbar (Pencil `AzLvC`). Each chip carries a dimension
+// eyebrow ("Form ·") + the human label, and a ✕ that emits the canonical clear
+// patch for just that value. Reads from the same URL params the sheet writes,
+// so chips and sheet stay in lock-step. A trailing "Clear all" resets the
+// queue. Returns null when nothing is applied.
+function ObligationActiveFilterChips({
+  due,
+  thisWeekFilterActive,
+  evidence,
+  awaitingSignature,
+  taxTypeSelected,
+  taxTypeOptions,
+  clientSelected,
+  clientOptions,
+  stateSelected,
+  stateOptions,
+  assigneeSelected,
+  assigneeOptions,
+  countySelected,
+  countyOptions,
+  onPatch,
+  onClearAll,
 }: {
-  label: string
-  options: readonly FilterOption[]
-  selected: readonly string[]
-  disabled?: boolean | undefined
-  onToggle: (value: string) => void
+  due: string | null
+  thisWeekFilterActive: boolean
+  evidence: string | null
+  awaitingSignature: boolean | null
+  taxTypeSelected: readonly string[]
+  taxTypeOptions: readonly FilterOption[]
+  clientSelected: readonly string[]
+  clientOptions: readonly FilterOption[]
+  stateSelected: readonly string[]
+  stateOptions: readonly FilterOption[]
+  assigneeSelected: readonly string[]
+  assigneeOptions: readonly FilterOption[]
+  countySelected: readonly string[]
+  countyOptions: readonly FilterOption[]
+  onPatch: (patch: ObligationQueueQueryPatch) => void
+  onClearAll: () => void
 }) {
-  if (options.length === 0) return null
-  const selectedSet = new Set(selected)
+  const { t } = useLingui()
+
+  // Resolve a facet value to its display label via the option list, falling
+  // back to the raw value if the facet hasn't loaded yet.
+  const labelOf = (options: readonly FilterOption[], value: string) =>
+    options.find((option) => option.value === value)?.label ?? value
+
+  // Remove one value from an array facet, emitting the `[] → null` reset when
+  // it was the last selection.
+  const removeFacet = (key: ObligationFacetKey, selected: readonly string[], value: string) => {
+    const next = selected.filter((v) => v !== value)
+    onPatch({ [key]: next.length > 0 ? next : null, obligation: null, row: null })
+  }
+
+  type ChipDescriptor = { key: string; dimension: string; label: string; onRemove: () => void }
+  const chips: ChipDescriptor[] = []
+
+  if (due === 'overdue') {
+    chips.push({
+      key: 'due-overdue',
+      dimension: t`Due`,
+      label: t`Past due`,
+      onRemove: () => onPatch({ due: null, daysMin: null, daysMax: null }),
+    })
+  } else if (thisWeekFilterActive) {
+    chips.push({
+      key: 'due-week',
+      dimension: t`Due`,
+      label: t`Due this week`,
+      onRemove: () => onPatch({ due: null, daysMin: null, daysMax: null }),
+    })
+  }
+  if (evidence === 'needs') {
+    chips.push({
+      key: 'evidence',
+      dimension: t`Condition`,
+      label: t`Needs evidence`,
+      onRemove: () => onPatch({ evidence: null }),
+    })
+  }
+  if (awaitingSignature === true) {
+    chips.push({
+      key: 'awaiting-signature',
+      dimension: t`Condition`,
+      label: t`Awaiting signature`,
+      onRemove: () => onPatch({ awaitingSignature: null }),
+    })
+  }
+  for (const value of taxTypeSelected) {
+    chips.push({
+      key: `taxType-${value}`,
+      dimension: t`Form`,
+      label: labelOf(taxTypeOptions, value),
+      onRemove: () => removeFacet('taxType', taxTypeSelected, value),
+    })
+  }
+  for (const value of clientSelected) {
+    chips.push({
+      key: `client-${value}`,
+      dimension: t`Client`,
+      label: labelOf(clientOptions, value),
+      onRemove: () => removeFacet('client', clientSelected, value),
+    })
+  }
+  for (const value of stateSelected) {
+    chips.push({
+      key: `state-${value}`,
+      dimension: t`State`,
+      label: labelOf(stateOptions, value),
+      onRemove: () => removeFacet('state', stateSelected, value),
+    })
+  }
+  for (const value of assigneeSelected) {
+    chips.push({
+      key: `assignee-${value}`,
+      dimension: t`Assignee`,
+      label: labelOf(assigneeOptions, value),
+      onRemove: () => removeFacet('assignees', assigneeSelected, value),
+    })
+  }
+  for (const value of countySelected) {
+    chips.push({
+      key: `county-${value}`,
+      dimension: t`County`,
+      label: labelOf(countyOptions, value),
+      onRemove: () => removeFacet('county', countySelected, value),
+    })
+  }
+
+  if (chips.length === 0) return null
+
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
-        {label}
-      </span>
-      <div className="flex flex-wrap gap-1">
-        {options.map((option) => (
-          <ObligationFilterPill
-            key={option.value}
-            active={selectedSet.has(option.value)}
-            disabled={disabled}
-            onClick={() => onToggle(option.value)}
+    <div className="flex flex-wrap items-center gap-1.5 pb-3">
+      {chips.map((chip) => (
+        <span
+          key={chip.key}
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default py-1 pr-1 pl-2.5 text-caption-xs"
+        >
+          <span className="text-text-muted">{chip.dimension}</span>
+          <span className="text-text-muted">·</span>
+          <span className="truncate font-medium text-text-primary">{chip.label}</span>
+          <button
+            type="button"
+            onClick={chip.onRemove}
+            aria-label={t`Remove ${chip.label} filter`}
+            className="inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-full text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
-            {option.label}
-          </ObligationFilterPill>
-        ))}
-      </div>
+            <XIcon className="size-3" aria-hidden />
+          </button>
+        </span>
+      ))}
+      <TextLink variant="secondary" className="ml-1 font-medium" onClick={onClearAll}>
+        <Trans>Clear all</Trans>
+      </TextLink>
     </div>
   )
 }
