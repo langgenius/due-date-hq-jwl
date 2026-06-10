@@ -490,13 +490,17 @@ function NeedsAttentionCard({
       {/* Bottom meta — Pencil VxRyF `skQVb`: top hairline divider, then
           "Affects N client" + overlapping client-initial avatars · conf%
           — spacer — source link. Wraps on narrow screens (no overflow). */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-t border-divider-subtle pt-3 text-xs">
+      {/* 2026-06-10 (Yuqi /today #2 "source 固定宽度, 和 client match 同一行,
+          正确截断"): the bottom-meta row no longer wraps — the affected-clients
+          line can shrink (min-w-0 + truncate) while the source holds a fixed
+          width on the right, so the two always share a single line. */}
+      <div className="flex items-center gap-x-2 border-t border-divider-subtle pt-3 text-xs">
         {/* Affects-clients line. Yuqi #5: icon + label share ONE color.
             #6: when nothing matched, both step to the lighter muted tone so
             noise alerts recede. */}
         <span
           className={cn(
-            'inline-flex items-center gap-1',
+            'inline-flex min-w-0 items-center gap-1',
             impacted > 0 ? 'text-text-secondary' : 'text-text-muted',
           )}
         >
@@ -504,11 +508,13 @@ function NeedsAttentionCard({
               Users icon for the affected-clients line, unified with the
               /alerts AlertCard + PulseAlertRow. */}
           <UsersIcon className="size-3 shrink-0" aria-hidden />
-          {impacted > 0 ? (
-            <Plural value={impacted} one="Affects # client" other="Affects # clients" />
-          ) : (
-            <Trans>No clients matched</Trans>
-          )}
+          <span className="truncate">
+            {impacted > 0 ? (
+              <Plural value={impacted} one="Affects # client" other="Affects # clients" />
+            ) : (
+              <Trans>No clients matched</Trans>
+            )}
+          </span>
         </span>
 
         {/* 2026-06-09 (Yuqi /today "avatar only when clients affected"): gate
@@ -516,7 +522,7 @@ function NeedsAttentionCard({
             affected-client names. When nothing matched (impacted === 0) the
             row reads "No clients matched" with no avatars trailing it. */}
         {impacted > 0 && avatars.length > 0 ? (
-          <span className="flex items-center pl-0.5">
+          <span className="flex shrink-0 items-center pl-0.5">
             {avatars.map((avatar, index) => (
               <Tooltip key={avatar.name}>
                 <TooltipTrigger
@@ -563,7 +569,7 @@ function NeedsAttentionCard({
             rest and fades in on card hover. opacity-0 reserves the layout width
             so the row doesn't shift; the tier color still resolves on hover via
             confidenceHoverToneClass. */}
-        <span className="inline-flex items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+        <span className="inline-flex shrink-0 items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
           <span aria-hidden className="text-text-muted">
             ·
           </span>
@@ -593,7 +599,7 @@ function NeedsAttentionCard({
                 }}
                 {...props}
               >
-                <span className="max-w-[160px] truncate">{alert.source}</span>
+                <span className="block w-[150px] truncate text-right">{alert.source}</span>
               </span>
             )}
           />

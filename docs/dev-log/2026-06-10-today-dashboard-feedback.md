@@ -33,3 +33,21 @@ Verified live on /today: LIVE pill bg #ecfdf3, Daily Brief bg #fff + #1018281f b
   ("Synced just now" / "Synced {age}"); click still refetches, spins while
   fetching. Reclaims a row of vertical space; the big "Today" title now anchors
   the top edge. Verified live.
+
+## Wave 3 — #2 source truncation, #7 hover corner, #8 Docs tooltip
+
+- **#2** (`needs-attention-card.tsx`): the alert-card bottom-meta row no longer
+  wraps — `flex-wrap` dropped; the affected-clients line gets `min-w-0` + a
+  `truncate` child, and the source span holds a **fixed `w-[150px]` + truncate**
+  on the right. So "Affects N clients" and the source always share one line, with
+  the affects-line truncating first under pressure. Avatars + confidence get
+  `shrink-0` so only the affects-line compresses. Verified live.
+- **#7** (`actions-list.tsx`): the Why-now corner glyph moved from the gutter
+  (`-left-3`) to the line's left edge (flush with the action title) and grew to
+  `size-3`; on row hover it fades in WHILE "Why now:" indents `ml-[18px]` to its
+  right (transition-[margin]). At rest: hidden icon, text flush-left (approved
+  default). Verified live.
+- **#8** (`readiness-indicator.tsx`, shared primitive): the "Docs N/M" chip gains
+  a `cursor-help` + `title` tooltip — "{N} of {M} expected source documents
+  attached for this filing" — so the ratio's meaning is discoverable. Verified
+  ("0 of 2 expected source documents attached for this filing").

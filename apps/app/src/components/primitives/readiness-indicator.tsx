@@ -1,4 +1,4 @@
-import { Plural, Trans } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationType } from '@duedatehq/contracts/shared/enums'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -44,6 +44,7 @@ function ReadinessIndicator({
   verified?: number | undefined
   className?: string
 }) {
+  const { t } = useLingui()
   const total = READINESS_TOTAL[obligationType] ?? 0
   // Suppress the chip entirely for obligation types that don't
   // gather client docs (deposit / internal_review). The CPA
@@ -72,9 +73,13 @@ function ReadinessIndicator({
   return (
     <span
       className={cn(
-        'inline-flex min-w-0 items-center gap-1.5 text-xs font-medium tabular-nums',
+        'inline-flex min-w-0 cursor-help items-center gap-1.5 text-xs font-medium tabular-nums',
         className,
       )}
+      // 2026-06-10 (Yuqi /today #8 "Docs 0/3 到底代表了什么?"): spell out the
+      // ratio on hover — it's source documents attached vs. expected for this
+      // filing, so a CPA scanning the column knows what the count tracks.
+      title={t`${attached} of ${total} expected source documents attached for this filing`}
     >
       {/* 2026-06-08 (Yuqi "docs 前面不要圆圈表示了"): the per-doc dots
           were removed — the "Docs N/M" count already names the gap, and the

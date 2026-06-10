@@ -500,17 +500,18 @@ function ActionsTableRow({
               className="relative inline-flex items-center text-xs text-text-tertiary"
               title={allRowFactors.join(' · ')}
             >
-              {/* Leading corner glyph (9×9 filled quarter-turn) signalling this
-                  is a follow-on reason for the prompt above.
-                  2026-06-09 (Yuqi "default the corner icon is hidden, hence the
-                  2 lines left-align"): the glyph is pulled OUT of the text flow —
-                  `absolute -left-3` parks it in the cell's px-5 (20px) left
-                  gutter — so the "Why now:" text sits flush-left with the prompt
-                  by default (icon hidden, no indent). On row hover the glyph
-                  fades in within the gutter without shifting the text. */}
+              {/* Leading corner glyph (filled quarter-turn) signalling this is a
+                  follow-on reason for the prompt above.
+                  2026-06-10 (Yuqi /today #7 "hover 时 corner icon 出现在 why now 前面,
+                  和 action title 左对齐, why now 要缩进"): the glyph now sits at the
+                  line's LEFT edge (flush with the action title above), and on row
+                  hover it fades in WHILE the "Why now:" text indents to its right —
+                  so the corner reads as a connector hanging off the prompt. At rest
+                  the icon is hidden and the text sits flush-left (the approved
+                  default), so nothing shifts until hover. */}
               <svg
                 viewBox="0 0 9 9"
-                className="absolute top-1/2 -left-3 size-[5px] -translate-y-1/2 text-text-muted opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+                className="absolute top-1/2 left-0 size-3 -translate-y-1/2 text-text-muted opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
                 fill="none"
                 aria-hidden
               >
@@ -519,7 +520,7 @@ function ActionsTableRow({
                   fill="currentColor"
                 />
               </svg>
-              <span className="truncate">
+              <span className="truncate transition-[margin] duration-200 group-hover:ml-[18px] group-focus-visible:ml-[18px]">
                 <Trans>Why now:</Trans> {allRowFactors.join(' · ')}
               </span>
             </span>
