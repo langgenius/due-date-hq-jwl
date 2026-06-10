@@ -849,8 +849,12 @@ export function makePulseOpsRepo(db: Db) {
         )
 
       if (newRows.length > 0) {
-        // 7 columns per row; stay well under D1's bound-parameter ceiling.
-        const inserts = chunkRows(newRows, 12).map((chunk) =>
+        // Drizzle binds 9 params per row, not the 7 explicit fields: baseline_mode's
+        // .default() and updated_at's $onUpdate are bound too. 12-row chunks hit 108
+        // params and threw D1's 100-param ceiling on every tick once a deploy added
+        // ≥12 sources at once (the 2026-06-08 relief backfill), freezing all fetching.
+        // floor(100/9) = 11; use 10 to keep headroom if a column is added later.
+        const inserts = chunkRows(newRows, 10).map((chunk) =>
           db.insert(pulseSourceState).values(chunk).onConflictDoNothing({
             target: pulseSourceState.sourceId,
           }),

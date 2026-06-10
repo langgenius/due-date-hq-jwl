@@ -160,6 +160,16 @@ async function checkPulseExtractionHealth(env: Env, now: Date): Promise<void> {
 // logged per-branch as `cron.branch_failed` console.error lines (visible in
 // `wrangler tail` / Workers Observability) so a stalled sub-pipeline is
 // diagnosable instead of invisible.
+// Non-Error causes (drizzle sometimes attaches plain objects) must never crash
+// the failure logger itself, so serialization is best-effort.
+function describeUnknownCause(cause: unknown): string {
+  try {
+    return JSON.stringify(cause) ?? typeof cause
+  } catch {
+    return typeof cause
+  }
+}
+
 export async function scheduled(
   controller: ScheduledController,
   env: Env,
@@ -193,6 +203,15 @@ export async function scheduled(
         branch,
         scheduledTime: now.toISOString(),
         error: reason instanceof Error ? reason.message : String(reason),
+        // Drizzle wraps the driver error ("Failed query: …") and the real D1
+        // message only survives on .cause — without it a branch failure is
+        // undiagnosable from logs (see the 2026-06-08 source-fetch stall).
+        cause:
+          reason instanceof Error && reason.cause !== undefined
+            ? reason.cause instanceof Error
+              ? reason.cause.message
+              : describeUnknownCause(reason.cause)
+            : undefined,
         stack: reason instanceof Error ? reason.stack : undefined,
       }),
     )
