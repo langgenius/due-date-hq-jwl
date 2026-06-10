@@ -83,3 +83,12 @@ Spec: `docs/Design/deadline-row-interaction.md` (committed alongside).
   the same pill the row/queue use). (Materials progress block landed earlier;
   action-stack restyle + BLOCKING panel still pending — needs a loading waiting
   deadline w/ checklist to verify.)
+
+## Follow-up — alert detail footer one-line (Yuqi "should ALWAYS be in one line")
+
+- `DrawerActions` dropped `flex-wrap` (outer row + secondary cluster) → the
+  footer's secondary actions (Copy draft · Dismiss) + primary CTA (Mark
+  reviewed / Apply) now stay on a single line. Secondary group can shrink
+  (`min-w-0`); the primary CTA cluster is `shrink-0` so it's always flush-right
+  and fully visible. The alert right panel already carries `bg-background-subtle`
+  (gray wash, white cards pop) per Pencil `irBJ8`.

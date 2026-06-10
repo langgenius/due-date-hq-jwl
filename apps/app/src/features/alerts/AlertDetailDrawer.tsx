@@ -2184,8 +2184,12 @@ export function DrawerActions({
     // cluster spans the whole footer and `justify-between` actually pushes the
     // secondary (left) and primary (right) groups to opposite edges instead of
     // bunching at the cluster's natural content width.
-    <div className="flex w-full flex-wrap items-center justify-between gap-2">
-      <div className="flex flex-wrap items-center gap-2">
+    // 2026-06-10 (Yuqi "should ALWAYS be in one line"): the footer action row
+    // never wraps — flex-nowrap keeps the secondary cluster + primary CTA on a
+    // single line. The secondary group can shrink (min-w-0); the primary CTA
+    // stays shrink-0 so it's always fully visible flush-right.
+    <div className="flex w-full flex-nowrap items-center justify-between gap-3">
+      <div className="flex min-w-0 flex-nowrap items-center gap-2">
         {showRevert ? (
           <Button
             variant="outline"
@@ -2230,7 +2234,7 @@ export function DrawerActions({
           </Button>
         ) : null}
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         {canRequestReview ? (
           <Button size="sm" disabled={isMutating} onClick={onRequestReview}>
             <MessageSquareIcon data-icon="inline-start" />
