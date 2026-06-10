@@ -2384,7 +2384,7 @@ export function ObligationQueueRoute() {
             : null
           const clientSubtitle = stateName ? `${entityLabel} · ${stateName}` : entityLabel
           return (
-            <div className="flex min-w-0 items-center gap-1.5">
+            <div className="flex min-w-44 items-center gap-1.5">
               <div
                 className="flex min-w-0 flex-1 flex-col"
                 onClick={handleClientNameClick}
@@ -2400,7 +2400,7 @@ export function ObligationQueueRoute() {
                     // steps up to semibold so the selection still reads. 15px
                     // so it anchors the row a touch more strongly over the
                     // secondary cells.
-                    'line-clamp-1 min-w-0 text-[16px] leading-tight text-text-primary',
+                    'line-clamp-1 min-w-0 text-sm leading-tight text-text-primary',
                     tableRow.original.id === explicitActiveRowId ? 'font-semibold' : 'font-medium',
                   )}
                   title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
@@ -5346,7 +5346,9 @@ function ObligationQueueSortableHeader({
       >
         <span className="truncate">{label}</span>
         {SortIcon ? (
-          <SortIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
+          // 2026-06-10 (Yuqi "为什么是蓝色的"): the active-sort chevron reads
+          // neutral, not accent-blue — its presence + direction is the signal.
+          <SortIcon className="size-3 shrink-0 text-text-secondary" aria-hidden />
         ) : (
           <ChevronsUpDown
             className="size-3 shrink-0 text-text-tertiary/40 transition-colors group-hover:text-text-tertiary"
