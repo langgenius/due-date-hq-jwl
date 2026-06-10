@@ -261,11 +261,13 @@ test.describe('with a second managed teammate', () => {
     if (!teammate) return
 
     await membersPage.goto()
-    await membersPage.openMemberActions(teammate.email)
-    await membersPage.page.getByRole('menuitem', { name: 'Change role' }).click()
-    // Seeded teammate is a Preparer. Downgrading to Coordinator is
-    // the one available downgrade and triggers the confirm gate.
-    await membersPage.page.getByRole('menuitem', { name: 'Coordinator' }).click()
+    // 2026-06-10 (members polish): "Change role" left the ⋯ actions menu —
+    // each managed member row carries an inline Role select instead ("Use
+    // Role to change access; more to suspend or remove"). Seeded teammate
+    // is a Preparer; downgrading to Coordinator is the one available
+    // downgrade and triggers the confirm gate.
+    await membersPage.memberRowFor(teammate.email).getByRole('combobox').click()
+    await membersPage.page.getByRole('option', { name: 'Coordinator' }).click()
 
     const dialog = membersPage.downgradeRoleDialog()
     await expect(dialog).toBeVisible()

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 import type { I18n } from '@lingui/core'
-import { AlertTriangleIcon, EllipsisIcon, Loader2, PlusIcon, ShieldCheckIcon } from 'lucide-react'
+import { AlertTriangleIcon, EllipsisIcon, Loader2, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import type {
   MemberInvitationPublic,
@@ -39,9 +39,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Field, FieldDescription, FieldLabel } from '@duedatehq/ui/components/ui/field'
@@ -372,7 +369,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
           title={t`Active members`}
           count={data.members.length}
           note={t`owner read-only · self read-only`}
-          action={t`Click more to change role, suspend, or remove`}
+          action={t`Use Role to change access; more to suspend or remove`}
         />
         <ActiveMembersTable
           members={data.members}
@@ -832,7 +829,6 @@ function ActiveMembersTable({
                     onSuspend={onSuspend}
                     onReactivate={onReactivate}
                     onRemove={onRemove}
-                    onRoleChange={onRoleChange}
                   />
                 </TableCell>
               </TableRow>
@@ -1057,20 +1053,18 @@ function MemberActionsMenu({
   onSuspend,
   onReactivate,
   onRemove,
-  onRoleChange,
 }: {
   member: MemberPublic
   disabled: boolean
   onSuspend: (member: MemberPublic) => void
   onReactivate: (member: MemberPublic) => void
   onRemove: (member: MemberActionTarget) => void
-  onRoleChange: (memberId: string, role: MemberManagedRole) => void
 }) {
   return (
     <DropdownMenu>
-      {/* 2026-06-01: RowActionsMenu doesn't yet support nested submenu
-          items (the "Change role" sub-trigger), so the canonical ellipsis
-          chrome stays inline — but the hand-rolled `size-7 rounded-lg
+      {/* 2026-06-01: RowActionsMenu doesn't yet support this mixed action
+          menu shape, so the canonical ellipsis chrome stays inline — but
+          the hand-rolled `size-7 rounded-lg
           ...hover:bg-state-base-hover` recipe migrates onto the shared
           Button primitive at `variant='ghost' size='icon-xs'`. */}
       <DropdownMenuTrigger
@@ -1084,21 +1078,6 @@ function MemberActionsMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-[220px]">
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Trans>Change role</Trans>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-[180px]">
-            {MANAGED_ROLES.map((role) => (
-              <DropdownMenuItem key={role} onClick={() => onRoleChange(member.id, role)}>
-                {roleLabel(role)}
-                {member.role === role ? (
-                  <ShieldCheckIcon className="ml-auto size-3.5 text-text-accent" aria-hidden />
-                ) : null}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
         {member.status === 'suspended' ? (
           <DropdownMenuItem onClick={() => onReactivate(member)}>
             <Trans>Reactivate access</Trans>

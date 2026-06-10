@@ -14,6 +14,7 @@ import { MembersPageRoute } from './members-page'
 const rpcMocks = vi.hoisted(() => ({
   listMineQueryFn: vi.fn(),
   membersListQueryFn: vi.fn(),
+  mutationFn: vi.fn(),
 }))
 
 vi.mock('@/lib/rpc', () => ({
@@ -27,14 +28,42 @@ vi.mock('@/lib/rpc', () => ({
       },
     },
     members: {
+      key: () => ['members'],
       listCurrent: {
         queryOptions: () => ({
           queryKey: ['members', 'listCurrent'],
           queryFn: rpcMocks.membersListQueryFn,
         }),
+        queryKey: () => ['members', 'listCurrent'],
+      },
+      updateRole: {
+        mutationOptions: () => ({ mutationFn: rpcMocks.mutationFn }),
+      },
+      suspend: {
+        mutationOptions: () => ({ mutationFn: rpcMocks.mutationFn }),
+      },
+      reactivate: {
+        mutationOptions: () => ({ mutationFn: rpcMocks.mutationFn }),
+      },
+      remove: {
+        mutationOptions: () => ({ mutationFn: rpcMocks.mutationFn }),
+      },
+      resendInvitation: {
+        mutationOptions: () => ({ mutationFn: rpcMocks.mutationFn }),
+      },
+      cancelInvitation: {
+        mutationOptions: () => ({ mutationFn: rpcMocks.mutationFn }),
+      },
+      invite: {
+        mutationOptions: () => ({ mutationFn: rpcMocks.mutationFn }),
       },
     },
   },
+}))
+
+vi.mock('@/components/patterns/keyboard-shell/hooks', () => ({
+  useAppHotkey: vi.fn(),
+  useKeyboardShortcutsBlocked: () => false,
 }))
 
 declare global {
@@ -106,6 +135,7 @@ beforeEach(() => {
   bootstrapI18n()
   rpcMocks.listMineQueryFn.mockReset()
   rpcMocks.membersListQueryFn.mockReset()
+  rpcMocks.mutationFn.mockReset()
 })
 
 afterEach(() => {
@@ -130,5 +160,55 @@ describe('MembersPageRoute permissions', () => {
     expect(document.body.textContent).toContain('Owner permission required')
     expect(document.body.textContent).toContain('Current role: Manager')
     expect(rpcMocks.membersListQueryFn).not.toHaveBeenCalled()
+  })
+
+  it('keeps role changes in the Role column instead of the more menu', async () => {
+    rpcMocks.listMineQueryFn.mockResolvedValue([firm({ role: 'owner', seatLimit: 3 })])
+    rpcMocks.membersListQueryFn.mockResolvedValue({
+      seatLimit: 3,
+      usedSeats: 2,
+      availableSeats: 1,
+      members: [
+        {
+          id: 'member_owner',
+          userId: 'user_owner',
+          name: 'Olivia Owner',
+          email: 'owner@example.com',
+          image: null,
+          role: 'owner',
+          status: 'active',
+          isCurrentUser: true,
+          createdAt: '2026-05-03T00:00:00.000Z',
+        },
+        {
+          id: 'member_manager',
+          userId: 'user_manager',
+          name: 'Maya Manager',
+          email: 'maya@example.com',
+          image: null,
+          role: 'manager',
+          status: 'active',
+          isCurrentUser: false,
+          createdAt: '2026-05-04T00:00:00.000Z',
+        },
+      ],
+      invitations: [],
+    })
+
+    await render(<MembersPageRoute />)
+    await waitForText('maya@example.com')
+
+    const moreTrigger = Array.from(document.querySelectorAll('button')).find(
+      (button) => button.textContent?.includes('Open member actions') && !button.disabled,
+    )
+    expect(moreTrigger).toBeDefined()
+
+    await act(async () => {
+      moreTrigger?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    await waitForText('Suspend access')
+    expect(document.body.textContent).toContain('Remove from practice')
+    expect(document.body.textContent).not.toContain('Change role')
   })
 })
