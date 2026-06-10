@@ -1506,64 +1506,28 @@ export function ObligationQueueDetailDrawer({
             )
           })()
         : null}
-      {/* Header — flipped 2026-05-23. The drawer is a per-obligation
-          surface, so the obligation identity (Form 1040, Form 1120-S)
-          deserves the primary slot, not the client. Earlier shape
-          made client name the h2 and pushed the form code into a
-          tertiary line under it; CPAs scanning a drawer just opened
-          from "what is THIS row?" had to read three lines to know
-          which deadline they were looking at.
+      {/* Header. The drawer is a per-obligation surface, so the
+          obligation identity (Form 1040, Form 1120-S) deserves the
+          primary slot, not the client — CPAs scanning a drawer just
+          opened from "what is THIS row?" shouldn't have to read three
+          lines to know which deadline they're looking at.
 
-          New shape:
+          Shape:
             line 1: client name (clickable kicker) + close X
             line 2: Form code (h2) + status pill, on one row
             line 3: TY year · jurisdiction (compact secondary meta)
-          Internal/statutory deadlines moved into a dedicated 3-col
-          strip below the header (was: duplicated in dates panel). */}
-      {/* 2026-05-25 (Yuqi Deadlines #17): drawer header had py-4
-          (16px top + bottom), which made the title sit lower than
-          the page top — wasted real estate at the top of the
-          drawer. Reduced to py-3 (12px) so the form-code h2 reads
-          right at the top edge. */}
-      {/* 2026-05-26 (Yuqi drawer canonical — cross-drawer match):
-          header padding `px-5 py-3` → `px-12 py-10` per the drawer
-          canonical (see docs/Design/inset-surface-design-system.md
-          "Drawer canonical"). */}
-      {/* 2026-05-26 (Yuqi sixty-first pass — header tighter):
-          py-10 → py-6 (40px → 24px vertical). On the obligation
-          drawer the header carries the form-code h2 + flag chips +
-          meta line — about 80-100px of content. py-10 (40+40)
-          added 80px of dead chrome around it. py-6 (24+24) gives
-          enough breathing room without the panel reading as half-
-          empty before the body even starts. Alert drawer keeps
-          py-10 because its header has a state kicker + bigger h1
-          + chip row + description — more content earning more
-          vertical space. */}
-      {/* 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-          header padding aligned to AlertDetailDrawer.tsx L574
-          (`px-12 py-10`). Both right-rail drawers in the product
-          now share the same paper-document header rhythm — same
-          left margin top-to-bottom, same vertical breathing room
-          above the title. The earlier inset-followups tightening
-          (px-8 py-5) was reverted in favor of cross-drawer
-          consistency per Yuqi's "should match Alert detail"
-          instruction. */}
-      {/* 2026-05-27 (Yuqi "remove top padding"): header pt-10 → pt-4
-          so the title sits closer to the top of the drawer. Bottom
-          spacing kept (pb-10) for the breathing gap before tabs. */}
-      {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #3): header rhythm
-          aligned to the alerts SheetHeader (`px-12 pt-10 pb-6`) so both
-          right-rail drawers share the same paper-document header spacing.
-          The corner close X (parity #4) still anchors this header. */}
+          Internal/statutory deadlines live in a dedicated 3-col strip
+          below the header (not duplicated in the dates panel).
+          Header padding (`px-12 pt-10 pb-6`) matches AlertDetailDrawer so
+          both right-rail drawers share the same paper-document rhythm. */}
       <header
         className={cn(
           'relative flex flex-col px-12 transition-all duration-200',
           heroCollapsed ? 'gap-1 pt-3 pb-3' : 'gap-1.5 pt-10 pb-6',
-          // 2026-06-10 (Yuqi "this part all white background"): page hero is
-          // white paper; the gray wash starts at the tab content below.
+          // Page hero is white paper; the gray wash starts at the tab
+          // content below.
           isPageMode && 'bg-background-default',
-          // 2026-06-09 (Yuqi "follow the alert detail responsive rule, page
-          // width"): page mode centers its content at a max width within the
+          // Page mode centers its content at a max width within the
           // px-12 gutters, mirroring the Alert detail's `[&>*]:mx-auto
           // max-w-[760px]` rule — scaled to ~1100px for the two-column
           // (content + 340px rail) deadline layout.
@@ -1573,12 +1537,8 @@ export function ObligationQueueDetailDrawer({
         {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner.
-
-            2026-06-08 (Pencil HuYeb /deadlines detail): the corner cluster
-            collapses to the close X only. The deep-link copy moved fully to
-            the sticky footer ("Copy link to this deadline") — the design
-            稿 puts the Assign / Snooze / Mark-as-filed actions in this
-            corner instead (rendered on the status row below). */}
+            The corner cluster is the close X only; the deep-link copy
+            lives in the sticky footer ("Copy link to this deadline"). */}
         {mode === 'panel' ? (
           <button
             type="button"
@@ -1589,26 +1549,10 @@ export function ObligationQueueDetailDrawer({
             <XIcon className="size-4" aria-hidden />
           </button>
         ) : null}
-        {/* 2026-06-10 (Yuqi feedback #13 + #1): the action cluster (Copy link ·
-            Assign · Snooze · Mark filed) + "Last activity" stamp moved OUT of
-            the hero into the shared sticky bottom action bar (enabled for page
-            mode below, mirroring the Alert detail's footer). This shortens the
-            header so more detail is readable on scroll. */}
-        {/* 2026-06-10 (Yuqi "looked at Qn4nX"): the "Last activity" stamp is NOT
-            in the Qn4nX hero — the eyebrow is just "Tax year · period". Removed
-            from the page hero; the activity story lives in the Status tab's
+        {/* Eyebrow is just the tax year · period meta. The action cluster
+            (Copy link · Assign · Snooze · Mark filed) lives in the sticky
+            bottom action bar; the activity story lives in the Status tab's
             Recent activity card + the Audit tab. */}
-        {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): the status
-            dot + label that used to lead this row is gone — the new top
-            status banner carries the status, mirroring the alerts detail.
-            The row keeps only the tax year · period meta. The Assign /
-            Snooze / Mark-as-filed cluster moved to the sticky footer
-            (parity #4) so primary actions are right-aligned at the bottom
-            like the alerts footer.
-            2026-06-08 (Yuqi "still very different to the alerts detail"): the
-            monospaced `obligation_id` is dropped — the alerts detail exposes no
-            internal id, and a raw db id in mono was both noise and a mono-
-            restraint violation. */}
         {row && row.taxYear && !heroCollapsed ? (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pr-10 text-sm text-text-tertiary">
             <span>
@@ -1622,19 +1566,15 @@ export function ObligationQueueDetailDrawer({
             </span>
           </div>
         ) : null}
-        {/* 2026-06-08 (Pencil HuYeb /deadlines detail): the form title sits
-            on its own line; the standalone client kicker link was folded
-            into the household chip in the row below per the design稿. */}
+        {/* The form title sits on its own line; the client link lives in
+            the household chip in the row below. */}
         {row ? (
           <h2
             className={cn(
-              // 2026-06-10 (Yuqi "title doesn't shrink on collapse"): dropped
-              // `transition-all` here — transitioning `font-size` (made worse by
-              // line-clamp-1 flipping `display` to -webkit-box) left the
-              // computed size stuck at the start value, so the title never
-              // visually reached 16px. The size now switches instantly.
-              // 2026-06-10 (Yuqi "looked at Qn4nX"): expanded title matches the
-              // Qn4nX hero — 26px / 600 / -0.6 tracking.
+              // No `transition-all` here — transitioning `font-size` (made
+              // worse by line-clamp-1 flipping `display` to -webkit-box) left
+              // the computed size stuck at the start value, so the title never
+              // visually reached 16px. The size switches instantly instead.
               'pr-8 font-semibold text-text-primary',
               heroCollapsed
                 ? 'line-clamp-1 text-[16px] leading-[1.3] tracking-[-0.3px]'
@@ -1647,17 +1587,14 @@ export function ObligationQueueDetailDrawer({
             })()}
           </h2>
         ) : null}
-        {/* 2026-06-08 (Pencil HuYeb /deadlines detail): single chip row
-            under the title — a clickable client-household chip (navigates
-            to the client), the canonical status badge (subsumes the old
-            waiting/blocked flag chips), the input-requested flag, and the
-            jurisdiction / tax-year / period meta. */}
+        {/* Single chip row under the title — the canonical status badge,
+            the jurisdiction seal, a clickable client-household chip
+            (navigates to the client), and the input-requested flag. */}
         {row && !heroCollapsed ? (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8 text-sm">
-            {/* 2026-06-10 (Yuqi "looked at Qn4nX"): the status pill LEADS the
-                meta strip, then the jurisdiction seal, then the client chip —
-                matching Qn4nX's StatusPill · FED · client order (was
-                client-first, which buried the status). */}
+            {/* The status pill LEADS the meta strip, then the jurisdiction
+                seal, then the client chip — leading with the client would
+                bury the status. */}
             <ObligationStatusReadBadge
               status={row.status}
               className="h-6 text-caption-xs uppercase tracking-wide"
@@ -1700,14 +1637,6 @@ export function ObligationQueueDetailDrawer({
             ) : null}
           </div>
         ) : null}
-        {/* 2026-05-23: dropped the canonical-forward-action row
-            (`ObligationDrawerStatusActions`) per critique. The
-            interactive `ObligationQueueStatusControl` chip above
-            already exposes every valid transition with one click;
-            adding a second forward-action button below it created
-            redundant affordances ("Start preparation" + "pending →
-            review" picker dropdown both go to the same place).
-            Status pill is the single source of truth now. */}
       </header>
       {/* Body — in panel mode the aside has fixed height, so this
           inner div owns the scrolling. That lets the snapshot block
@@ -1716,56 +1645,22 @@ export function ObligationQueueDetailDrawer({
           underneath. Sheet mode (mobile) keeps a single document
           scroll: SheetContent has overflow-y-auto, so we don't
           double-scroll here. */}
-      {/* 2026-05-26 (Yuqi /deadlines drawer): body top padding dropped
-          from pt-4 to 0. The sticky strip below used a `-mt-4` to
-          cancel the body padding — chrome cancelling chrome made
-          the layout hard to reason about. With pt-0, the strip
-          starts flush at the body top, and the area below the strip
-          gets its own real `pt-4` so it's visually a separate
-          unit (containing TabsList + tab content). */}
-      {/* 2026-05-26 (Yuqi drawer canonical): body padding `px-5 pb-5`
-          → `px-12 py-10` per the drawer canonical. Same paper-document
-          padding as AlertDetailDrawer body — left margin runs as one
-          line from header through body. */}
-      {/* 2026-05-26 (Yuqi forty-seventh pass — sticky-footer buffer):
-          body bottom padding bumped `py-10` → `pt-10 pb-24` to match
-          AlertDetailDrawer. Sticky footer (min-h-16 + py-4) was
-          covering the last content row when scrolled — 96px buffer
-          guarantees clean separation between bottom content and
-          action bar. */}
-      {/* 2026-05-26 (Yuqi forty-eighth pass — body flex wrapper):
-          body wrapper is now `flex flex-col gap-4` per drawer
-          canonical. Children get a consistent 16px gap between
-          them instead of each carrying its own `mb-*` margin.
-          Same shape as AlertDetailDrawer body so the two drawers
-          read with identical rhythm. */}
       <div
         className={cn(
-          // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-          // body padding aligned to AlertDetailDrawer.tsx L752
-          // (`px-12 pt-10 pb-24`). Same left margin as header/footer
-          // so the panel reads as one continuous paper-document
-          // surface edge-to-edge. The earlier inset-followups
-          // tightening (px-8 pt-0) was reverted for cross-drawer
-          // consistency; the body's pt-10 buffer mirrors the alert drawer's
-          // header → body breathing room.
-          // 2026-05-27 (Yuqi "remove padding-top"): pt-10 dropped.
-          // 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #3): body gap-4 →
-          // gap-6 and pb-12 → pb-24 to match the alerts body rhythm
-          // (`px-12 pb-24`) and clear the sticky footer.
+          // Same px-12 left margin as header/footer so the panel reads as
+          // one continuous paper-document surface; pb-24 clears the sticky
+          // footer.
           'flex flex-col gap-6 px-12 pb-24',
-          // 2026-05-26 (Yuqi feedback #1): added scrollbar-gutter:stable
-          // on the panel-mode body. Different tabs render different
-          // content heights (Summary is short, Materials is long).
-          // Without gutter:stable, the scrollbar appears/disappears
-          // on tab switch and shifts the content ~15px horizontally —
-          // reads as "panel width flickers." Reserving the scrollbar
-          // space holds the content steady regardless of which tab
-          // is active.
+          // scrollbar-gutter:stable on the panel-mode body. Different tabs
+          // render different content heights (Summary is short, Materials
+          // is long). Without gutter:stable, the scrollbar appears/
+          // disappears on tab switch and shifts the content ~15px
+          // horizontally — reads as "panel width flickers." Reserving the
+          // scrollbar space holds the content steady regardless of which
+          // tab is active.
           panelLayout && 'flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]',
-          // 2026-06-09 (Yuqi "follow the alert detail responsive rule, page
-          // width"): center body content at the same ~1100px max width as the
-          // hero so the page reads as one column on wide viewports.
+          // Center body content at the same ~1100px max width as the hero
+          // so the page reads as one column on wide viewports.
           isPageMode && '[&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[1100px]',
         )}
         onScroll={
@@ -1782,8 +1677,6 @@ export function ObligationQueueDetailDrawer({
             <Trans>Loading deadline detail…</Trans>
           </EmptyPanel>
         ) : detailQuery.isError || !detail || !row ? (
-          // Step 1-5 reaudit Alert primitive + Step 6 UX #147
-          // Button-link retry.
           <Alert variant="destructive">
             <AlertDescription>
               <Trans>Couldn't load deadline detail.</Trans>{' '}
@@ -1805,195 +1698,79 @@ export function ObligationQueueDetailDrawer({
               if (isObligationQueueDetailTab(value)) onTabChange(value)
             }}
           >
-            {/* 2026-05-25 (Yuqi Deadlines #30): the sticky block used
-                to host the full snapshot trio (PrimaryDeadlineStrip +
-                PathToFilingSummary + ActiveStageDetailCard). Yuqi's
-                #30 asked for a Summary tab that owns the milestone
-                story. Split the sticky block into two:
-                  • Sticky: PrimaryDeadlineStrip only — three anchor
-                    dates that CPAs check at every interaction. Always
-                    visible across every tab.
-                  • Summary tab (below): PathToFilingSummary +
-                    ActiveStageDetailCard — the deep-dive milestone
-                    + stage-context view. Has a labeled home now.
+            {/* The sticky block hosts PrimaryDeadlineStrip only — three
+                anchor dates that CPAs check at every interaction, kept
+                visible across every tab. The milestone story
+                (PathToFilingSummary + ActiveStageDetailCard) lives in the
+                Summary tab so it doesn't compete with Materials / Evidence
+                and the URL ?tab=summary is shareable.
 
-                Net effect: the always-visible chrome is tighter
-                (just the dates), the milestone story has its own tab
-                that doesn't compete with Materials / Extension /
-                Evidence, and the URL ?tab=summary is shareable. */}
-            {/* 2026-05-26 (Yuqi obligation drawer): tightened the
-                sticky block's vertical padding so the band of
-                bg-background-subtle above the deadline cards isn't
-                a visible "gap" between the header and the strip.
-                Was pt-4 pb-3 (28px combined). Now pt-2 pb-2 (16px)
-                — strip still has breathing room from header edge
-                and from scrolling content below, just half the
-                visual weight. The negative -mt-4 still negates the
-                body container's pt-4, so the sticky block starts
-                flush at the body's top edge. */}
-            {/* 2026-05-26 (Yuqi /deadlines drawer): sticky strip now
-                starts flush at the body's top edge (body lost its
-                pt-4). Dropped the `-mt-4` negative margin that was
-                cancelling that padding. The bottom of the strip
-                gets a `border-b border-divider-subtle` so the
-                tabs/content area below reads as a distinct unit. */}
-            {/* 2026-05-26 (Yuqi inset-followups A): sticky-section
-                heading dropped its `border-b border-divider-subtle
-                bg-background-subtle`. The gray bg + bottom border were
-                framing the deadline strip as a separate "card" inside
-                the drawer body — fighting the flat surface treatment.
-                Now: just the sticky position + tight padding, no
-                visual weight beyond the content itself. Also bled
-                changed `-mx-12 px-12` → `-mx-8 px-8` to match the new
-                tightened body padding. */}
-            {/* 2026-05-26 follow-up: keep the flat treatment, but make
-                the sticky strip opaque. In the Materials tab, checklist
-                rows scroll under this band; a transparent sticky layer
-                lets document text show through the date tiles/gutters.
-                White surface + subtle bottom rule preserves the drawer
-                body feel while giving the sticky layer a real backing. */}
+                The sticky strip is opaque on purpose: checklist rows scroll
+                under this band in the Materials tab, and a transparent
+                sticky layer would let document text bleed through the date
+                tiles/gutters. */}
             <div
               className={cn(
                 'flex flex-col gap-3',
-                // 2026-06-09 (Yuqi "header too tall, reading space limited"):
-                // on the standalone page the date strip is NOT sticky — it
-                // scrolls away with the content so the reading area grows; the
-                // collapsed hero keeps the title + dates' headline context.
-                // 2026-06-10 (Yuqi "this part all white background"): the date
-                // cards are part of the white hero region, not the gray content
-                // — full-bleed white band that abuts the header above.
+                // On the standalone page the date strip is NOT sticky — it
+                // scrolls away with the content so the reading area grows;
+                // the collapsed hero keeps the title + dates' headline
+                // context. The date cards are part of the white hero region,
+                // not the gray content — a full-bleed white band abutting
+                // the header above.
                 isPageMode
                   ? '-mx-12 bg-background-default px-12 pb-5'
                   : panelLayout
-                    ? // 2026-05-27 (Yuqi drawer parity): negative bleed
-                      // updated -mx-8 → -mx-12 to match the body's new
-                      // px-12 padding. Inside px-12 re-applies the
-                      // canonical inset, so the sticky strip's content
-                      // edge still aligns with the rest of the body.
+                    ? // Negative -mx-12 bleeds to the body edge, then px-12
+                      // re-applies the canonical inset so the sticky strip's
+                      // content edge still aligns with the rest of the body.
                       'sticky top-0 z-20 -mx-12 bg-background-canvas-warm px-12 py-3'
                     : 'mb-4',
               )}
             >
-              {/* PrimaryDeadlineStrip (2026-05-23): the three dates the
-                  CPA actually checks first — Internal, Filing, Payment
-                  — promoted out of the bottom dates panel into a
-                  3-column strip at the top of the snapshot. Each
-                  column carries a one-word label + the date + a small
-                  state tag ("MISSED" if past, blank otherwise).
-                  Reading order: identity (header) → key dates (this
-                  strip) → tabs → tab content (Summary's milestone
-                  chevron + stage card lives one tab over).
-                  The remaining secondary dates (Statutory, Tax period,
-                  Created, Last touched, e-file timestamps) still live
-                  in the bottom FlatDateList under "Reference dates". */}
+              {/* PrimaryDeadlineStrip: the three dates the CPA checks first
+                  — Internal, Filing, Payment — in a 3-column strip. Each
+                  column carries a one-word label + the date + a small state
+                  tag ("MISSED" if past, blank otherwise). The remaining
+                  secondary dates (Statutory, Tax period, Created, Last
+                  touched, e-file timestamps) live in the bottom FlatDateList
+                  under "Reference dates", after the TabsContent, since most
+                  rows show the same date 4× (Internal = Statutory = Filing =
+                  Payment) and don't earn prime real estate above the tabs. */}
               <PrimaryDeadlineStrip row={row} variant={isPageMode ? 'cards' : 'flat'} />
-              {/* 2026-05-23: StatutoryDatesPanel moved OUT of this
-                  sticky snapshot block — relocated to AFTER the
-                  TabsContent so the tabs sit immediately under the
-                  stage card. The dates panel is reference info (most
-                  rows show the same date 4× anyway: Internal due =
-                  Statutory = Filing = Payment), so paying for it with
-                  prime vertical real estate above the tabs was the
-                  wrong trade. New reading order: identity → milestone
-                  → stage card → TABS → tab content → dates (scroll for
-                  reference). */}
-              {/* `ObligationForwardingPanel` removed 2026-05-21 — the
-                  "Forward to task · bright-studio-…@duedatehq.com · Phase 2"
-                  block was a feature stub crowding the drawer with chrome
-                  for capability that isn't shipping yet. Restore when the
-                  inbound-file routing actually goes live. */}
+              {/* `ObligationForwardingPanel` is removed — the
+                  "Forward to task · …@duedatehq.com · Phase 2" block was a
+                  feature stub crowding the drawer with chrome for capability
+                  that isn't shipping yet. Restore when the inbound-file
+                  routing actually goes live. */}
             </div>
-            {/* TabsList lives OUTSIDE the sticky snapshot block per
-                critique #4 ("shouldn't the tab belong to the
-                following information, not the top part information").
-                Pulled out so the tabs visually group with the
-                TabsContent they control, not with the milestones /
-                dates above. Tradeoff: tabs scroll away with the body
-                rather than staying pinned. In practice the CPA
-                rarely switches tabs mid-scroll on the same
-                obligation, so the visual clarity wins.
-
-                2026-05-23: dropped the `border-t` separator above. The
-                pill segmented control is visually self-contained
-                (rounded bg track + raised active item) — adding a top
-                rule above it made the tabs feel like the bottom of
-                the snapshot block above instead of the top of the tab
-                content below. */}
-            {/* 2026-05-25 (Yuqi Deadlines #9, #12, #16): wrapper
-                top padding was dropped after Yuqi flagged extra empty
-                space. 2026-05-25 (client detail side panel): add a
-                panel-only gap back under the sticky date strip so the
-                selected tab/focus ring does not visually tuck under
-                the date cards while the tab group still belongs to
-                the content below. */}
-            {/* 2026-05-26 (Yuqi /deadlines drawer): pt-3 → pt-4 so
-                TabsList + content area sit at a clean 16px gap
-                below the sticky strip's bottom border, reading as
-                a separate visual unit. */}
-            {/* 2026-05-26 (Yuqi fifty-fifth pass — drop double gap):
-                body wrapper now has `flex-col gap-4` (added in the
-                drawer canonical apply), which already provides 16px
-                between the sticky strip and this tabs container.
-                The extra `pt-4` here was stacking → 32px total
-                between strip and tabs ("weird top margin" per
-                Yuqi). Dropped. */}
-            {/* 2026-05-26 (Yuqi feedback — "the 4 tabs in the deadline
-                detail panel can be more obvious, … more obvious about
-                it is with the below information, not above"): inverted
-                the spacing rhythm so the tab bar visually belongs to
-                what's BELOW it.
-
-                Before: tabs sat ~8px below the sticky strip and ~24px
-                above the content (gap-2 from Tabs root + mt-4 on
-                TabsContent). That asymmetry made the bar read as the
-                bottom edge of the header block above.
-
-                After: `pt-3` on this wrapper (+ the Tabs root's
-                `gap-2`) opens a 20px buffer ABOVE the bar — enough
-                to separate it from the sticky strip without the
-                cavernous 32px the earlier `pt-6` produced (Yuqi
-                follow-up: "still strange padding and gap"). `mt-0`
-                on the TabsContent panels drops the gap below the
-                bar to just `gap-2`, so the bar still reads as the
-                leading edge of the tab content beneath. */}
-            {/* 2026-06-10 (Yuqi /deadlines detail "remove background"): the
-                sticky tab bar drops its `bg-background-canvas-warm` fill so it
-                reads as part of the page, not a banded strip. The TabsList's own
-                bottom hairline still anchors the bar; the page wash behind it is
-                the same warm canvas, so there's no visible seam.
-                2026-06-10 (Yuqi "inspect scroll/sticky" + "sticky on top should
-                have page-consistent top AND bottom padding"): in PAGE mode the
-                tab content scrolls directly behind this bar, so a transparent
-                fill let rows bleed through it when pinned (the overlap). Restore
-                an opaque page-matching fill (bg-background-subtle) and give it
-                symmetric pt/pb so the pinned bar reads as a clean band. Panel/
-                sheet (/clients) keep the seamless warm-canvas look. */}
+            {/* TabsList lives OUTSIDE the sticky snapshot block so the tabs
+                visually group with the TabsContent they control, not with
+                the milestones / dates above. Tradeoff: tabs scroll away with
+                the body rather than staying pinned — acceptable since the CPA
+                rarely switches tabs mid-scroll on the same obligation.
+                The tab bar is itself sticky. In PAGE mode the tab content
+                scrolls directly behind it, so it needs an opaque page-matching
+                fill (otherwise rows bleed through when pinned); panel/sheet
+                (/clients) keep the seamless warm-canvas look. */}
             <div
               className={cn(
                 'sticky top-0 z-10 pt-3',
-                // 2026-06-10 (Yuqi "this part all white background" + #1 "no
-                // bottom padding"): the tab bar is the bottom edge of the white
+                // In page mode the tab bar is the bottom edge of the white
                 // hero region — full-bleed white with symmetric pt/pb so the
                 // pinned bar reads as a clean band; the border-b hands off to
                 // the gray tab content below.
                 isPageMode ? '-mx-12 bg-background-default px-12 pb-3' : '',
               )}
             >
-              {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
-                  from design/deadlines-drawer-rework): tab bar
-                  switched from default pill segmented control to the
-                  line-variant underline bar. Each trigger leads with
-                  a lucide icon + label + context badge:
+              {/* Line-variant underline tab bar. Each trigger leads with a
+                  lucide icon + label + context badge:
                     • Summary: no badge
-                    • Materials: outstanding count (red destructive)
-                      or all-received check (gray) when count == 0
+                    • Materials: outstanding count, or all-received check
+                      when count == 0
                     • Extension: accent check when row has a saved
                       extension decision
-                    • Evidence: workpaper count (gray placeholder)
-                  TabsTrigger primitive already wires aria-selected +
-                  focus-visible ring per shadcn defaults; we stretch
-                  to `flex-1` so the four tabs distribute full-width
-                  across the drawer. */}
+                    • Evidence: workpaper count */}
               {(() => {
                 const outstandingMaterials = checklist.filter(
                   (i) => i.status !== 'received' && i.status !== 'waived',
@@ -2004,71 +1781,28 @@ export function ObligationQueueDetailDrawer({
                 return (
                   <TabsList
                     variant="line"
-                    // 2026-05-26 (Yuqi feedback #2): white bg on the
-                    // TabsList. The line-variant defaulted to transparent
-                    // which let the body's white still show through, but
-                    // when the sticky deadline strip above scrolls behind
-                    // the tabs they bled together visually. Explicit
-                    // white bg gives the tab bar a clear surface.
-                    //
-                    // 2026-05-26 (Yuqi feedback — "justify content left"
-                    // + "remove the left right padding"): bar is now
-                    // `justify-start` so the four tabs hug the left
-                    // edge instead of distributing across the panel
-                    // (each TabsTrigger drops `flex-1` for the same
-                    // reason — see the trigger className below). Inter-
-                    // tab `gap-1` → `gap-6` opens 24px between tabs so
-                    // they remain individually scannable now that each
-                    // one no longer carries its own `px-2`.
                     className="flex h-11 w-full justify-start gap-6 border-b border-divider-subtle text-sm"
                   >
-                    {/* 2026-05-26 (Yuqi feedback — "tabs can be more
-                        obvious, signalling people hey check these
-                        out" + "yes please" to pushing the active
-                        state further): every TabsTrigger now layers
-                        FOUR signals so the active tab pops without
-                        the bar abandoning the tab paradigm in favor
-                        of a segmented-control look:
-                          1. Inactive text: `text-text-secondary` —
-                             still visible enough to invite a click.
-                          2. Active text: `text-text-primary` +
-                             `font-semibold` — strongest contrast
-                             jump from inactive (medium-weight
-                             secondary) to active (semibold primary).
-                          3. Active underline color: `accent-default`
-                             (matches the /clients/[id] tabs +
-                             /deadlines scope tabs), so the rule
-                             pops in the canonical brand accent
-                             instead of plain text-active black.
-                          4. Active underline position: primitive
-                             default (`bottom-[-5px]`) — floats ~5px
-                             below the trigger for 15-16px breathing
-                             room from the text descender (an earlier
-                             `bottom-0` pulled it too close — "the
-                             underline is so close to the text").
-                        Stayed with TABS (not segmented control)
-                        because the 4 panels are different sections
-                        of the SAME deadline (Summary / Materials /
-                        Extension / Evidence), not filters or scopes.
-                        Segmented control belongs to the /deadlines
-                        top-level scope tabs where each option
-                        re-filters the queue. */}
+                    {/* These are TABS, not a segmented control: the panels
+                        are different sections of the SAME deadline (Summary /
+                        Materials / Extension / Evidence), not filters or
+                        scopes. The segmented control belongs to the
+                        /deadlines top-level scope tabs where each option
+                        re-filters the queue. The active tab stacks signals
+                        (semibold primary text + accent underline) so it pops
+                        without reading as a segmented control. */}
                     {visibleTabs.has('summary') ? (
-                      // 2026-05-26 (Yuqi seventieth pass #5): dropped
-                      // the leading Info icon. The "Summary" word is
-                      // self-explanatory; an info-glyph next to it
-                      // implied "click here for info ABOUT the
-                      // summary" rather than "this is the summary
-                      // tab." Other tabs (Materials, Extension,
-                      // Evidence) keep their icons because they
-                      // distinguish by purpose (paperclip /
-                      // calendar / file).
+                      // The Summary tab carries no leading icon — the word is
+                      // self-explanatory, and an info-glyph implied "info
+                      // ABOUT the summary" rather than "this is the summary
+                      // tab." The other tabs keep icons because they
+                      // distinguish by purpose (paperclip / calendar / file).
                       <TabsTrigger
                         value="summary"
                         className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
                       >
-                        {/* rzzww: the milestone/workflow home is labelled
-                            "Status" on the standalone page. */}
+                        {/* The milestone/workflow home is labelled "Status"
+                            on the standalone page. */}
                         {isPageMode ? <Trans>Status</Trans> : <Trans>Summary</Trans>}
                       </TabsTrigger>
                     ) : null}
@@ -2082,13 +1816,9 @@ export function ObligationQueueDetailDrawer({
                         {outstandingMaterials > 0 ? (
                           <span
                             aria-label={t`${outstandingMaterials} outstanding`}
-                            // 2026-05-26 (Yuqi feedback #3): badge subtler.
-                            // Was solid destructive red with white text —
-                            // that loudness made every Materials tab with
-                            // outstanding items shout "danger." Now: light
-                            // accent tint (state-accent-hover-alt) with
-                            // accent-tinted text. Communicates "13 items
-                            // here" without alarm chrome.
+                            // Light accent tint, not destructive red — the
+                            // badge communicates the outstanding count without
+                            // making every Materials tab shout "danger."
                             className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-accent-hover-alt px-1 text-caption-xs font-medium leading-none tabular-nums text-text-accent"
                           >
                             {outstandingMaterials}
@@ -2120,18 +1850,17 @@ export function ObligationQueueDetailDrawer({
                         ) : null}
                       </TabsTrigger>
                     ) : null}
-                    {/* Risk tab removed 2026-05-21 — risk inputs live on the
-                        client detail page (ClientRiskInputsPanel) rather than
-                        per-obligation. Surface kept on the schema for
-                        back-compat with deep-links; the trigger and content
-                        are unmounted. */}
+                    {/* No Risk tab — risk inputs live on the client detail
+                        page (ClientRiskInputsPanel) rather than per-obligation.
+                        The surface is kept on the schema for back-compat with
+                        deep-links; the trigger and content are unmounted. */}
                     {visibleTabs.has('evidence') ? (
                       <TabsTrigger
                         value="evidence"
                         className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
                       >
                         <FileTextIcon className="size-3.5" aria-hidden />
-                        {/* rzzww: the evidence/workpaper surface is labelled
+                        {/* The evidence/workpaper surface is labelled
                             "Record" on the standalone page. */}
                         {isPageMode ? <Trans>Record</Trans> : <Trans>Evidence</Trans>}
                         <span
@@ -2142,11 +1871,9 @@ export function ObligationQueueDetailDrawer({
                         </span>
                       </TabsTrigger>
                     ) : null}
-                    {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
-                        rzzww): the Audit tab gets its own trigger on the
-                        standalone page (it was a dead deep-link before). The
-                        content wires the milestone-grouped ObligationTimeline
-                        fed by the real audit feed. */}
+                    {/* The Audit tab gets its own trigger on the standalone
+                        page. The content wires the milestone-grouped
+                        ObligationTimeline fed by the real audit feed. */}
                     {visibleTabs.has('audit') ? (
                       <TabsTrigger
                         value="audit"
@@ -2167,58 +1894,40 @@ export function ObligationQueueDetailDrawer({
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
               >
-                {/* Summary tab — milestone chevron + active-stage zoom.
-                  These were previously pinned in the sticky snapshot
-                  block (always-visible across every tab). Yuqi #30
-                  moved them into a dedicated tab so:
-                    - The drawer chrome is tighter (just the deadline
-                      strip stays sticky).
-                    - The milestone story has a labeled home that
-                      shares URL state with the rest of the surface
-                      (?tab=summary is shareable).
-                    - Materials / Extension / Evidence don't get the
-                      stage card pushing them below the fold. */}
-                {/* 2026-06-10 (Yuqi "the actual design is like this" — Pencil
-                    Qn4nX `hMaQD`): the Status tab is a SINGLE column of stacked
-                    cards — WorkflowMilestoneCard (stepper + active stage +
-                    blocking) → Recent activity → Penalty exposure. The earlier
-                    two-column Ownership/Linked-from rail is folded to a full-width
-                    footer row at the bottom. */}
+                {/* Summary (Status) tab — the milestone story lives here, in
+                    a dedicated tab rather than pinned in the sticky snapshot
+                    block, so the drawer chrome stays tight (just the deadline
+                    strip is sticky), Materials / Extension / Evidence don't
+                    get the stage card pushing them below the fold, and the
+                    URL ?tab=summary is shareable. The tab is a SINGLE column
+                    of stacked cards — WorkflowMilestoneCard (stepper + active
+                    stage + blocking) → Recent activity → Penalty exposure —
+                    with Ownership/Linked-from as a full-width footer row. */}
                 <div className="flex flex-col gap-4">
                   <div className={cn('grid min-w-0 flex-1', isPageMode ? 'gap-4' : 'gap-3')}>
-                    {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
-                        ne4Fd): page mode groups the milestone stepper +
-                        what's-left + active-stage card into one white card (the
-                        design's workflow card on the gray body). Panel/sheet
-                        keep them as flat siblings via `contents`. */}
+                    {/* Page mode groups the milestone stepper + active-stage
+                        card + blocking into one white workflow card on the
+                        gray body. Panel/sheet keep them as flat siblings via
+                        `contents`. */}
                     <div
                       className={
                         isPageMode
-                          ? // 2026-06-10 (Yuqi "actual design" — Pencil Qn4nX
-                            // `CorQi` WorkflowMilestoneCard): the stepper, active
-                            // stage, and blocking live in ONE white card,
-                            // separated by internal divider lines (not gaps) —
-                            // StatusJourney │ ActiveStageCard │ NextMovePanel.
+                          ? // The stepper, active stage, and blocking live in
+                            // ONE white card, separated by internal divider
+                            // lines (not gaps) — StatusJourney │ ActiveStageCard
+                            // │ NextMovePanel.
                             'flex flex-col divide-y divide-divider-subtle rounded-xl border border-divider-subtle bg-background-default px-5 py-4 [&>*]:py-4 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0'
                           : 'contents'
                       }
                     >
                       <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
-                      {/* 2026-06-10 (Yuqi "the style is different"): the
-                          "What's left to do" checklist moved OUT of this white
-                          workflow box into its own gray-header DetailSectionCard
-                          (below, Pencil `bmwHb`) so it matches the rest of the
-                          panel's card system instead of a bare uppercase eyebrow. */}
-                      {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
-                      rzzww + no-fiction rule): the "Expected refund" card
-                      ($4,210 + withholding breakdown) and the "Source docs"
-                      card's fake "+ Add file" affordance were removed. Both
-                      were hardcoded placeholders with no backing contract
-                      field — banned by the no-fiction-on-canvas rule. The
-                      rzzww Status tab carries the real Penalty exposure card
-                      instead (driven by row.penaltyBreakdown), added
-                      separately. Real source-document attachments return
-                      when the ingest pipeline + contract fields land. */}
+                      {/* No "Expected refund" or "Source docs + Add file"
+                          cards here — both were hardcoded placeholders with no
+                          backing contract field, banned by the
+                          no-fiction-on-canvas rule. Penalty exposure (driven by
+                          row.penaltyBreakdown) is the real card. Source-document
+                          attachments return when the ingest pipeline + contract
+                          fields land. */}
                       <AuthorityResponsePanel
                         row={row}
                         auditEvents={detail.auditEvents}
@@ -2307,11 +2016,11 @@ export function ObligationQueueDetailDrawer({
                           )
                         }}
                       />
-                      {/* 2026-06-10 (Yuqi (a) — Qn4nX CorQi `WdFB4` NextMovePanel):
-                          "What's left to do" lives INSIDE the WorkflowMilestoneCard
-                          as a divider-separated section (the wrapper's divide-y
-                          paints the top rule), not a nested card. Plain section,
-                          small uppercase eyebrow — matches the canonical. */}
+                      {/* "What's left to do" lives INSIDE the
+                          WorkflowMilestoneCard as a divider-separated section
+                          (the wrapper's divide-y paints the top rule), not a
+                          nested card — a plain section with a small uppercase
+                          eyebrow. */}
                       {checklist.length > 0 &&
                       row.status !== 'done' &&
                       row.status !== 'completed' ? (
@@ -2373,12 +2082,9 @@ export function ObligationQueueDetailDrawer({
                         </div>
                       ) : null}
                     </div>
-                    {/* Recent activity — last few audit-feed entries, with a
-                        link out to the full Timeline tab. */}
-                    {/* 2026-06-10 (Yuqi — replicate Pencil `qSa9z` Recent
-                        activity): the shared <DetailSectionCard> chrome (gray
-                        header band + "View all → Record" link) over flush rows
-                        with top hairlines + mono timestamps. */}
+                    {/* Recent activity — last few audit-feed entries in the
+                        shared DetailSectionCard chrome, with a link out to the
+                        full Timeline tab. */}
                     {detail.auditEvents.length > 0 ? (
                       <DetailSectionCard
                         title={<Trans>Recent activity</Trans>}
@@ -2400,12 +2106,10 @@ export function ObligationQueueDetailDrawer({
                               <li
                                 key={event.id}
                                 className={cn(
-                                  // 2026-06-10 (Yuqi #7): thinner activity rows.
                                   'flex items-center gap-2.5 px-5 py-2.5',
                                   index > 0 && 'border-t border-divider-subtle',
                                 )}
                               >
-                                {/* 2026-06-10 (Yuqi #8): smaller avatar (xs/20px). */}
                                 <AssigneeAvatar name={actor} title={actor} size="xs" />
                                 <span className="min-w-0 flex-1 text-sm leading-tight text-text-secondary">
                                   <span className="font-medium text-text-primary">{actor}</span>
@@ -2421,20 +2125,18 @@ export function ObligationQueueDetailDrawer({
                         </ul>
                       </DetailSectionCard>
                     ) : null}
-                    {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
-                        rzzww): Penalty exposure card, driven entirely by the
-                        real penalty-engine output on the row. Self-hides when
-                        no exposure applies. Page-only so the /clients drawer
+                    {/* Penalty exposure card, driven entirely by the real
+                        penalty-engine output on the row. Self-hides when no
+                        exposure applies. Page-only so the /clients drawer
                         summary is unchanged. */}
                     {isPageMode ? <PenaltyExposureCard row={row} /> : null}
-                    {/* 2026-06-10 (Yuqi (c) — fold Extension into Status): the
-                        decideExtension flow (Form 7004/4868) is unreachable in
-                        page mode (no Extension tab in the locked 4-tab bar), so
-                        the apply-extension action is folded here as a Status-tab
-                        card. Reuses the same extensionDraft + saveExtensionDecision
-                        as the legacy Extension tab; no fiction (real rule fields
-                        only). Shows when a rule allows an extension or one is
-                        already on file. */}
+                    {/* The decideExtension flow (Form 7004/4868) has no tab in
+                        page mode (the 4-tab bar drops Extension), so the
+                        apply-extension action is folded here as a Status-tab
+                        card. Reuses the same extensionDraft +
+                        saveExtensionDecision as the panel/sheet Extension tab.
+                        Shows when a rule allows an extension or one is already
+                        on file. */}
                     {isPageMode &&
                     (extensionPolicy?.available || Boolean(row.extensionDecidedAt)) ? (
                       <DetailSectionCard
@@ -2584,10 +2286,9 @@ export function ObligationQueueDetailDrawer({
                       </DetailSectionCard>
                     ) : null}
                   </div>
-                  {/* 2026-06-10 (Yuqi "actual design" — Pencil Qn4nX): the
-                      canonical body is single-column, so Ownership + Linked-from
-                      fold to a full-width 2-up footer row below the cards (the
-                      prior right rail is gone). */}
+                  {/* The body is single-column, so Ownership + Linked-from sit
+                      as a full-width 2-up footer row below the cards (no right
+                      rail). */}
                   <aside className="grid w-full grid-cols-1 items-start gap-4 sm:grid-cols-2">
                     <section className="flex flex-col gap-3 rounded-xl border border-divider-subtle bg-background-default p-4">
                       <h3 className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
@@ -2715,12 +2416,6 @@ export function ObligationQueueDetailDrawer({
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
               >
-                {/* 2026-05-26 (Yuqi sixty-sixth pass — Materials
-                    structural tighten, #13 "scattered"): outer gap
-                    bumped from gap-3 → gap-4 so each top-level
-                    block (overview, checklist, sent panel, tax
-                    year settings) reads as its own clear section
-                    instead of one long stack. Cross-tab default. */}
                 <div className="grid gap-4">
                   {/* Top-of-tab summary — explains what readiness IS
                         + shows the at-a-glance state (PRD §3.2 says the
@@ -2734,10 +2429,9 @@ export function ObligationQueueDetailDrawer({
                     checklistCount={checklist.length}
                     receivedCount={checklist.filter((item) => item.status === 'received').length}
                   />
-                  {/* Cluster 2 (Materials design `AYpfU` MatHeader): progress
-                      bar + 3-dot legend. received = `received`; outstanding =
-                      `missing` + `needs_review`; waived = `waived` (CPA marked
-                      not-applicable this year). */}
+                  {/* Progress bar + 3-dot legend. received = `received`;
+                      outstanding = `missing` + `needs_review`; waived =
+                      `waived` (CPA marked not-applicable this year). */}
                   {checklist.length > 0 ? (
                     <MaterialsProgressLegend
                       counts={{
@@ -2785,54 +2479,30 @@ export function ObligationQueueDetailDrawer({
                       </div>
                     </div>
                   ) : null}
-                  {/* K-1 / parent-obligation blocker editor removed
-                    2026-05-21 — it surfaced as a full picker on every
-                    drawer open, even when not blocked. The queue row's
-                    <BlockedByChip> still shows when a blocker is set,
-                    so the signal isn't lost. A better re-home (header
-                    chip + on-demand picker, or auto-detected from
-                    related-entity rows) is parked for a later pass —
-                    see docs/Design/obligation-drawer-ux-audit-2026-05-21.md. */}
-                  {/* Action hierarchy — 2026-05-21 redesign:
+                  {/* No K-1 / parent-obligation blocker editor here — it used
+                    to surface as a full picker on every drawer open, even when
+                    not blocked. The queue row's <BlockedByChip> still shows
+                    when a blocker is set, so the signal isn't lost. A better
+                    re-home (header chip + on-demand picker, or auto-detected
+                    from related-entity rows) is parked for a later pass — see
+                    docs/Design/obligation-drawer-ux-audit-2026-05-21.md. */}
+                  {/* Action hierarchy:
                     - Empty checklist → single primary "Generate document
-                      list" CTA. The other two buttons (Add item, Send to
-                      client) are useless here, so they're hidden.
-                    - Populated checklist → "Send to client" is the
-                      primary CTA on its own line; "Add item" demoted
-                      to a quiet text+icon button next to the heading.
-                    The old version stacked all three buttons at equal
-                    weight regardless of state, so the actual workflow
-                    goal (send the request) had to fight Generate +
-                    Add item for the user's eye. */}
-                  {/* 2026-05-26 (Yuqi fifty-eighth pass — section title
-                    semantics): label was "Documents received" + count
-                    of `checklist.length` (TOTAL items). Yuqi flagged
-                    "Documents Received and Outstanding - what is the
-                    relationship? I don't understand" because the same
-                    "13" appeared in BOTH the header ("Documents
-                    received 13 items") AND the Outstanding subsection
-                    below ("Outstanding 13") — a contradiction (you
-                    can't have 13 received AND 13 outstanding when
-                    there's only 13 total).
-                    Fix: rename to "Materials checklist" — it's the
-                    SECTION TITLE for the checklist as a whole. The
-                    Outstanding/Received subsections inside (added
-                    in the forty-ninth pass) carry the actual
-                    received-vs-outstanding split + their own counts.
-                    Hierarchy now reads:
+                      list" CTA; Add-item and Send-to-client are hidden since
+                      they're useless with nothing to act on.
+                    - Populated checklist → "Send to client" is the primary CTA
+                      on its own line; "Add item" is demoted to a quiet
+                      text+icon button next to the heading.
+                    Stacking all three at equal weight would let Generate +
+                    Add-item fight the real workflow goal (send the request)
+                    for the user's eye. */}
+                  {/* The section title is "Materials checklist" (not "Documents
+                    received") because it names the checklist as a whole; the
+                    Outstanding/Received subsections inside carry the actual
+                    split + their own counts:
                       Materials checklist (13 total)
                         ├ Outstanding (N items)
-                        └ Received (M items, M + N = 13)
-                */}
-                  {/* 2026-06-10 (cohesion pass): the Materials checklist
-                      section now wraps in the canonical <DetailSectionCard>
-                      so it reads as a gray-header card matching the rest of
-                      the panel (alert / deadline / rule detail). Title +
-                      checklistReference badge sit in the header band; the
-                      select-all + Add-item cluster moves to `headerRight`;
-                      the terminal-state description sub-line moves into the
-                      card body (the header band is single-row). Behavior is
-                      unchanged — chrome only. */}
+                        └ Received (M items, M + N = 13) */}
                   <DetailSectionCard
                     title={
                       <span className="flex items-center gap-2">
@@ -2986,15 +2656,12 @@ export function ObligationQueueDetailDrawer({
                       )
                     ) : (
                       <>
-                        {/* 2026-05-26 (Step 9 AI Visibility Audit F-020):
-                        when the auto-generated checklist came back
-                        with `degraded: true` the toast disappears in
-                        4 seconds but the user keeps using the
-                        fallback list. Surface the degraded state as
-                        an inline banner that stays as long as the
-                        fallback list is on screen — the AI's "I'm
-                        not sure" signal needs to be persistent,
-                        not transient. */}
+                        {/* When the auto-generated checklist comes back with
+                        `degraded: true`, the toast disappears in 4 seconds but
+                        the user keeps using the fallback list. Surface the
+                        degraded state as an inline banner that stays as long as
+                        the fallback list is on screen — the AI's "I'm not sure"
+                        signal needs to be persistent, not transient. */}
                         {checklistDegraded ? (
                           <div className="flex items-start gap-2 rounded-lg border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
                             <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
@@ -3006,22 +2673,15 @@ export function ObligationQueueDetailDrawer({
                             </span>
                           </div>
                         ) : null}
-                        {/* 2026-05-26 (Yuqi fifty-second pass — Materials
-                        Outstanding/Received split from
-                        design/deadlines-drawer-rework): checklist now
-                        renders as two labeled sections — Outstanding
-                        first (the work the CPA still owes the client),
-                        Received second (acknowledgement that the work
-                        is done). Empty "Outstanding" collapses to a
-                        quiet "All items received" line; empty
-                        "Received" hides the section entirely so the
-                        early-state checklist reads cleanly as one
-                        list. Section headings use the canonical
-                        body-section pattern (text-sm font-semibold).
-                        ChecklistItemRow handles its own
-                        received-style chrome based on item.status —
-                        the split is purely organizational, no new
-                        renderer needed. */}
+                        {/* The checklist renders as two labeled sections —
+                        Outstanding first (the work the CPA still owes the
+                        client), Received second (acknowledgement the work is
+                        done). Empty "Outstanding" collapses to a quiet "All
+                        items received" line; empty "Received" hides the section
+                        entirely so the early-state checklist reads cleanly as
+                        one list. ChecklistItemRow handles its own received-style
+                        chrome based on item.status — the split is purely
+                        organizational, no new renderer needed. */}
                         {(() => {
                           const outstandingItems = checklist.filter(
                             (i) => i.status !== 'received' && i.status !== 'waived',
@@ -3064,40 +2724,22 @@ export function ObligationQueueDetailDrawer({
                               />
                             )
                           }
-                          // 2026-05-26 (Yuqi sixtieth pass — terminal-state
-                          // Materials framing): when the row is filed /
-                          // completed the checklist becomes an ARCHIVE,
-                          // not a to-do list. "Outstanding 13" on a
-                          // Filed row read as "13 items still to do"
-                          // when the work is closed — the items just
-                          // weren't ticked in the audit trail.
-                          // Terminal headings:
-                          //   • "Outstanding" → "Not in audit trail" —
-                          //     same items, but framed as "missing from
-                          //     the archive" not "still to be done."
-                          //   • "Received" → "Archived" — same items,
-                          //     historical record framing.
+                          // When the row is filed / completed the checklist is
+                          // an ARCHIVE, not a to-do list — "Outstanding 13" on a
+                          // Filed row would read as "13 items still to do" when
+                          // the work is closed (the items just weren't ticked in
+                          // the audit trail). So terminal rows relabel the
+                          // headings:
+                          //   • "Outstanding" → "Not in audit trail" — framed
+                          //     as "missing from the archive," not "still to do."
+                          //   • "Received" → "Archived" — historical-record
+                          //     framing.
                           const isTerminalRow = row.status === 'done' || row.status === 'completed'
                           return (
                             <div className="flex flex-col gap-4">
-                              {/* 2026-05-26 (Yuqi feedback #5): dropped the
-                              "This deadline has been filed" banner. The
-                              header status pill + the section title
-                              ("Not in audit trail" / "Archived") +
-                              ReadinessOverview's italic subline already
-                              tell the historical-record story 3x over;
-                              this green banner was a 4th. Removed. */}
-                              {/* 2026-05-26 (Yuqi seventieth pass #6,
-                                #9): Outstanding / Received are now
-                                small kicker sub-headers (text-
-                                caption-xs uppercase tracking-wider
-                                text-text-tertiary) — Yuqi's "needs
-                                review from Rule Library's table"
-                                reference. The Materials checklist
-                                h3 above is the section title; these
-                                are sub-section labels under it.
-                                Inner gap tightened from `gap-2 →
-                                gap-1.5` per #9. */}
+                              {/* Outstanding / Received are small kicker
+                                sub-headers under the "Materials checklist"
+                                section title above. */}
                               <section className="flex flex-col gap-1.5">
                                 <header className="flex items-baseline gap-1.5">
                                   <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
@@ -3388,14 +3030,13 @@ export function ObligationQueueDetailDrawer({
                       </ul>
                     </section>
                   ) : null}
-                  {/* Tax year profile — relocated 2026-05-21 from the
-                    top of the tab (where it dominated daily-driver
-                    workflow) to a settings-style footer behind a
-                    disclosure. Auto-opens when the profile is
-                    incomplete (fiscal year selected without an end
-                    date), so a CPA who needs to fix it sees it
-                    surface naturally. Otherwise it stays collapsed —
-                    one-time setup that rarely needs revisiting. */}
+                  {/* Tax year profile — a settings-style footer behind a
+                    disclosure rather than at the top of the tab, where it
+                    would dominate the daily-driver workflow. Auto-opens when
+                    the profile is incomplete (fiscal year selected without an
+                    end date) so a CPA who needs to fix it sees it surface
+                    naturally; otherwise it stays collapsed, as it's one-time
+                    setup that rarely needs revisiting. */}
                   {taxYearProfileEditable ? (
                     <details
                       className="mt-2 border-t border-divider-subtle"
@@ -3414,12 +3055,10 @@ export function ObligationQueueDetailDrawer({
                       </summary>
                       <div className="grid gap-2 border-t border-divider-subtle py-3">
                         <div className="grid gap-2 sm:grid-cols-[180px_1fr_auto]">
-                          {/* 2026-05-26 (Yuqi sixty-ninth pass #4):
-                              Tax year type binary toggle converted
-                              from Base UI Select → DropdownMenu so
-                              the interaction matches every other
-                              dropdown in the drawer (Sort-by /
-                              Columns / export client picker). */}
+                          {/* Tax year type uses a DropdownMenu (not a Base UI
+                              Select) so the interaction matches every other
+                              dropdown in the drawer (Sort-by / Columns / export
+                              client picker). */}
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               render={
@@ -3499,12 +3138,9 @@ export function ObligationQueueDetailDrawer({
                             }
                             aria-busy={updateTaxYearProfileMutation.isPending || undefined}
                           >
-                            {/* 2026-05-27 (σ cross-route audit D10):
-                                Save in tax-year-profile drawer drifted
-                                from the cross-app mutation-button
-                                pattern — relabel only, no Loader2 + no
-                                aria-busy. Step 6 cont X2 canon: spinner
-                                + busy state + label-change together. */}
+                            {/* Canonical mutation-button pattern: spinner +
+                                aria-busy + label-change together (not just a
+                                relabel). */}
                             {updateTaxYearProfileMutation.isPending ? (
                               <Loader2 className="size-4 animate-spin" aria-hidden />
                             ) : null}
@@ -3539,13 +3175,10 @@ export function ObligationQueueDetailDrawer({
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
               >
                 <div className="grid gap-4">
-                  {/* 2026-06-08 (Pencil HuYeb /deadlines detail — Extension
-                      tab): the matched-rule facts render as a Form 7004
-                      card — title + citation + "Open rule", the
+                  {/* The matched-rule facts render as one authoritative
+                      reference card — title + citation + "Open rule", the
                       defers-filing-not-payment warning, a POLICY/FORM facts
-                      grid, and the rule notes — replacing the earlier flat
-                      DetailRow list so the rule reads as one authoritative
-                      reference card. */}
+                      grid, and the rule notes. */}
                   {(() => {
                     const extensionFormName =
                       extensionPolicy?.formName ?? row.extensionFormName ?? null
@@ -3789,8 +3422,7 @@ export function ObligationQueueDetailDrawer({
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
               >
-                {/* Evidence tab split into two visually-distinct sections
-                  (2026-05-21):
+                {/* Evidence tab split into two visually-distinct sections:
                     - WORKPAPERS (top, default open): client-attached
                       files and submissions. This is the daily-driver
                       question — "what do we have on hand?"
@@ -3803,12 +3435,11 @@ export function ObligationQueueDetailDrawer({
                   which forced users to scroll past authority citations
                   to find the workpapers they actually wanted. */}
                 <div className="grid gap-4">
-                  {/* 2026-06-10 (cohesion pass — no-fiction honesty bar):
-                      the Record tab ships only audit-trail + timestamps +
-                      derived artefact checks today. File storage for
-                      workpapers and signed documents is NOT wired (the
-                      "Add workpaper" CTA is a coming-soon stub). This bar
-                      sets that expectation up-front so the gray-header
+                  {/* No-fiction honesty bar: the Record tab ships only
+                      audit-trail + timestamps + derived artefact checks today.
+                      File storage for workpapers and signed documents is NOT
+                      wired (the "Add workpaper" CTA is a coming-soon stub).
+                      This bar sets that expectation up-front so the gray-header
                       cards below aren't mistaken for a document vault. */}
                   <div className="flex items-start gap-2 rounded-lg bg-background-section px-3 py-2.5">
                     <InfoIcon className="mt-px size-3.5 shrink-0 text-text-tertiary" aria-hidden />
@@ -3819,12 +3450,11 @@ export function ObligationQueueDetailDrawer({
                       </Trans>
                     </p>
                   </div>
-                  {/* Cluster 2 (Evidence design `KsbdI > H3xJg`): the 1/4
-                      artefact-checks hero. The four artefacts that prove a
-                      return is filed, accepted, and signed off are derived
-                      from EXISTING fields — workpaper count, row.status,
-                      and the e-file pipeline state (`row.efileState`) — so
-                      no new contract field is invented. */}
+                  {/* The artefact-checks hero. The four artefacts that prove a
+                      return is filed, accepted, and signed off are derived from
+                      EXISTING fields — workpaper count, row.status, and the
+                      e-file pipeline state (`row.efileState`) — so no new
+                      contract field is invented (no-fiction rule). */}
                   {(() => {
                     const efile = row.efileState ?? 'not_applicable'
                     const isFiled =
@@ -3896,13 +3526,6 @@ export function ObligationQueueDetailDrawer({
                       </DetailSectionCard>
                     )
                   })()}
-                  {/* 2026-05-26 (Yuqi sixty-sixth pass — cross-tab
-                      section heading unify): workpapers heading was
-                      `text-xs uppercase tracking-wider text-text-
-                      tertiary` (kicker style); every other tab uses
-                      `text-sm font-semibold text-text-primary` for
-                      section labels. Aligned so all 4 tabs share
-                      one heading vocabulary. */}
                   <DetailSectionCard
                     title={<Trans>Workpapers</Trans>}
                     headerRight={
@@ -3911,9 +3534,9 @@ export function ObligationQueueDetailDrawer({
                           <span className="tabular-nums">{detail.evidence.length}</span>
                         ) : null}
                         {/* Stub CTA so the workpapers section isn't a dead
-                            end (audit L11). Upload pipeline isn't wired yet,
-                            so the click acknowledges + sets expectation
-                            without losing the user. */}
+                            end. The upload pipeline isn't wired yet, so the
+                            click acknowledges + sets expectation without losing
+                            the user. */}
                         <Button
                           type="button"
                           variant="outline"
@@ -3946,18 +3569,14 @@ export function ObligationQueueDetailDrawer({
                     )}
                   </DetailSectionCard>
 
-                  {/* 2026-06-10 (cohesion pass): authority facts + the
-                      folded citation excerpts now share one <DetailSectionCard>
-                      ("Authority") so the source-of-truth chain reads as a
-                      gray-header card matching the rest of the tab. All data
-                      is real (detail.matchedRule / row.authority); PRIOR YEAR
+                  {/* Authority facts + the folded citation excerpts share one
+                      <DetailSectionCard> ("Authority"): the headline facts are
+                      an always-visible quiet strip, and the verbose per-source
+                      excerpts stay folded in the <details> below. All data is
+                      real (detail.matchedRule / row.authority); PRIOR YEAR
                       stays a `—` placeholder (no prior-year filing record yet,
                       explicitly not faked).
-                      Cluster 2 (Evidence design `KsbdI > FXD1b`): promote the
-                      headline authority facts to an always-visible quiet
-                      strip. The verbose per-source excerpts stay folded in
-                      the <details> below.
-                      // TODO(data): prior-year filing date for the authority strip. */}
+                      TODO(data): prior-year filing date for the authority strip. */}
                   <DetailSectionCard title={<Trans>Authority</Trans>}>
                     {detail.matchedRule ? (
                       <AuthorityFactStrip
@@ -4015,16 +3634,13 @@ export function ObligationQueueDetailDrawer({
                           <Trans>Authority citation</Trans>
                         </span>
                         {detail.matchedRule ? (
-                          // 2026-05-25 (Yuqi Deadlines #13): rule-id chip
-                          // is now a real Link into /rules/library — Yuqi
-                          // asked "这个能点出去吗？". Clicking the chip
-                          // opens the library scoped to this rule via the
-                          // `?rule=` query param (the library page treats
-                          // unknown params gracefully when not yet
-                          // implemented; even then the user lands in the
-                          // right vicinity). stopPropagation on click so
-                          // the surrounding <summary> doesn't toggle the
-                          // <details> open/closed at the same time.
+                          // The rule-id chip is a real Link into
+                          // /rules/library scoped to this rule via the `?rule=`
+                          // query param (the library page treats unknown params
+                          // gracefully, so the user still lands in the right
+                          // vicinity). stopPropagation on click so the
+                          // surrounding <summary> doesn't toggle the <details>
+                          // open/closed at the same time.
                           <Badge
                             variant="outline"
                             className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover"
@@ -4103,11 +3719,10 @@ export function ObligationQueueDetailDrawer({
                 </div>
               </motion.div>
             </TabsContent>
-            {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil rzzww):
-                Audit tab. Renders the milestone-grouped ObligationTimeline
-                from the real audit feed (was a dead deep-link before). Only
-                mounts when the tab is visible (page mode / types that expose
-                it) so the panel/sheet surfaces are unchanged. */}
+            {/* Audit tab. Renders the milestone-grouped ObligationTimeline
+                from the real audit feed. Only mounts when the tab is visible
+                (page mode / types that expose it) so the panel/sheet surfaces
+                are unchanged. */}
             {visibleTabs.has('audit') ? (
               <TabsContent value="audit" key="audit-content">
                 <motion.div
@@ -4133,13 +3748,11 @@ export function ObligationQueueDetailDrawer({
             ) : null}
           </Tabs>
         )}
-        {/* 2026-05-23: dates panel relocated here from the sticky
-            snapshot block above. The CPA scans reference dates AFTER
-            acting on the active surface (stage card + tabs), so they
-            land naturally at the bottom of the drawer body just above
-            the sticky footer. Small uppercase eyebrow gives it gentle
-            visual separation from the tab content above without
-            needing a full divider. */}
+        {/* Reference dates live at the bottom of the drawer body, just above
+            the sticky footer: the CPA scans them AFTER acting on the active
+            surface (stage card + tabs). The small uppercase eyebrow gives
+            gentle separation from the tab content above without a full
+            divider. */}
         {row ? (
           <div className="mt-4 flex flex-col gap-2">
             <p className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
@@ -4226,45 +3839,25 @@ export function ObligationQueueDetailDrawer({
         }}
       />
       {row ? (
-        /* 2026-06-10 (Yuqi feedback #13): the sticky bottom action bar now
-           renders in PAGE mode too (was `!isPageMode`), matching the Alert
-           detail's footer — Last updated · Request input · Copy link on the
-           left, Assign · Snooze · Mark filed on the right. The page hero no
-           longer carries the action cluster (moved here). */
-        /* 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-           footer chrome reinstated to match the alert drawer's
-           sticky action bar (AlertDetailDrawer.tsx L955):
-             • `border-t-2 border-divider-regular` — committed
-               decision surface separator (vs. relying on body's
-               pb-24 alone, which read inconsistent between
-               drawers).
-             • `px-12` — match header/body left margin.
-           The pt-4 pb-6 vertical rhythm and `min-h-16` stay —
-           those already mirror the alert drawer. */
+        /* The sticky bottom action bar mirrors the Alert detail's footer:
+           Last updated · Request input · Copy link on the left, Assign ·
+           Snooze · Mark filed on the right. Rendered in every mode (including
+           page), so the hero doesn't carry the action cluster. The top border
+           marks it as the committed decision surface. */
         <div
           className={cn(
             'sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t border-divider-regular px-12 pt-4 pb-6',
             // Page mode sits on the gray body, so the bar is white paper; the
             // panel/sheet keep the warm canvas. Both read as the committed
-            // action surface via the top border.
-            // 2026-06-10 (Yuqi #12 "不够醒目"): in page mode the bar gets a
-            // restrained upward lift-shadow (blur 4) so the committed action
-            // surface reads clearly above the gray content as it scrolls under.
+            // action surface via the top border. In page mode the bar also
+            // gets a restrained upward lift-shadow (blur 4) so it reads
+            // clearly above the gray content as it scrolls under.
             isPageMode
               ? 'bg-background-default shadow-[0_-2px_4px_-2px_rgb(15_23_42_/_0.08)]'
               : 'bg-background-canvas-warm',
           )}
         >
-          {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #4): footer now
-              mirrors the alerts footer — quiet secondaries on the left
-              (Last updated · Request input · Copy link), primary action
-              cluster on the right (Assign · Snooze · Mark as filed), moved
-              out of the header. The corner close X keeps the close path,
-              so the footer's duplicate "Close" text button is dropped to
-              avoid crowding the action row. */}
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-            {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
-                vertically — label on line 1, timestamp on line 2. */}
             <span className="flex flex-col text-xs leading-tight text-text-tertiary">
               <span>
                 <Trans>Last updated</Trans>
@@ -4336,34 +3929,21 @@ export function ObligationQueueDetailDrawer({
     return (
       <aside
         aria-label={titleText ?? t`Deadline detail`}
-        // 2026-05-26 (Yuqi forty-eighth pass — drawer canonical
-        // applied to obligation panel): chrome migrated to match
-        // AlertDetailDrawer's panel-mode aside exactly. Both
-        // drawers in the product now read as the same surface
-        // treatment from a CPA's perspective.
-        //   • `rounded-lg border` → `border-l` only — the panel
-        //     is a sibling COLUMN, not a floating card; the left
-        //     edge alone marks the boundary against the
-        //     table/list area. No corner radius lets it run
-        //     edge-to-edge of the viewport's vertical space.
-        //   • `bg-background-subtle` → `bg-background-default`
-        //     (white) — the panel reads as paper-on-the-desk per
-        //     the inset-surface system, not as a darker tile.
-        //   • Added `relative min-h-0 overflow-hidden` so the
-        //     sticky header/footer don't bleed and the body's
-        //     own scroll surface establishes correctly.
-        //   • Added `shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]`
-        //     — soft left-edge shadow, gestural "paper lifted off
-        //     the desk" per the canonical.
-        // Inner snapshot is still pinned via sticky positioning
-        // (2026-05-21): the aside itself stops scrolling; only
-        // the tabs-content area scrolls underneath, so a user 30
-        // docs deep in the Readiness checklist still sees what
-        // row they're on.
+        // Panel-mode aside chrome matches AlertDetailDrawer's:
+        //   • `border-l` only (no rounded border) — the panel is a sibling
+        //     COLUMN, not a floating card, so it runs edge-to-edge of the
+        //     viewport's vertical space.
+        //   • white bg — reads as paper-on-the-desk per the inset-surface
+        //     system, not a darker tile.
+        //   • `relative min-h-0 overflow-hidden` so the sticky header/footer
+        //     don't bleed and the body's own scroll surface establishes
+        //     correctly.
+        // The aside itself stops scrolling; only the tabs-content area scrolls
+        // underneath, so a user 30 docs deep in the Readiness checklist still
+        // sees which row they're on.
         className={cn(
           'relative flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden',
-          // 2026-06-09 (Yuqi /deadlines detail rebuild — unify with Alert
-          // detail): page mode adopts the Alert detail's gray body
+          // Page mode adopts the Alert detail's gray body
           // (bg-background-subtle) so the white bordered cards read with the
           // same contrast. The /clients panel keeps its lifted warm paper +
           // left border + shadow.
