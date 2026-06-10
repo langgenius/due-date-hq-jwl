@@ -239,7 +239,7 @@ export function AlertHistoryView() {
               onChange={(event) => setSearch(event.target.value)}
               placeholder={t`Search handled alerts`}
               aria-label={t`Search handled alerts`}
-              className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-text-primary outline-none placeholder:text-text-muted"
+              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-text-muted"
             />
           </label>
         </div>
@@ -254,13 +254,13 @@ export function AlertHistoryView() {
               aria-label={t`Select all`}
               className="size-4 rounded-[4px]"
             />
-            <span className="text-[13px] font-semibold text-text-accent tabular-nums">
+            <span className="text-sm font-semibold text-text-accent tabular-nums">
               <Plural value={selected.size} one="# alert selected" other="# alerts selected" />
             </span>
             <button
               type="button"
               onClick={() => setSelected(new Set())}
-              className="cursor-pointer text-[13px] font-medium text-text-accent underline-offset-2 hover:underline"
+              className="cursor-pointer text-sm font-medium text-text-accent underline-offset-2 hover:underline"
             >
               <Trans>Clear</Trans>
             </button>
@@ -305,7 +305,7 @@ export function AlertHistoryView() {
                 <TableRow className="even:bg-transparent hover:bg-transparent">
                   <TableCell
                     colSpan={5}
-                    className="py-10 text-center text-[13px] text-text-tertiary"
+                    className="py-10 text-center text-sm text-text-tertiary"
                   >
                     <Trans>Loading handled alerts…</Trans>
                   </TableCell>
@@ -314,7 +314,7 @@ export function AlertHistoryView() {
                 <TableRow className="even:bg-transparent hover:bg-transparent">
                   <TableCell
                     colSpan={5}
-                    className="py-10 text-center text-[13px] text-text-tertiary"
+                    className="py-10 text-center text-sm text-text-tertiary"
                   >
                     <Trans>No handled alerts match this view.</Trans>
                   </TableCell>
@@ -447,7 +447,7 @@ function HistoryRow({
       <TableCell className="overflow-hidden">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span
-            className="truncate text-[13px] font-semibold text-text-primary"
+            className="truncate text-sm font-semibold text-text-primary"
             title={alert.title}
           >
             {alert.title}

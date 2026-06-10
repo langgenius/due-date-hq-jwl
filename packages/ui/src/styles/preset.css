@@ -36,7 +36,12 @@
     [data-slot='sidebar-menu-badge'],
     [data-slot='sidebar-menu-tag']
   ) {
-  animation: sidebar-rail-content-in 120ms cubic-bezier(0.2, 0, 0, 1) 35ms both;
+  /* 2026-06-09 (Yuqi "make the collapse/expand smoother"): the label /
+     count fade is delayed (160ms) and lengthened (200ms) so it eases in
+     during the SECOND half of the 360ms width grow — labels stay hidden
+     while the rail widens (no truncated-text flash mid-transition), then
+     settle as it reaches full width. */
+  animation: sidebar-rail-content-in 200ms cubic-bezier(0.2, 0, 0, 1) 160ms both;
 }
 
 [data-slot='sidebar'][data-collapsed='true'] [data-slot='sidebar-menu-badge-dot'] {
@@ -114,8 +119,11 @@
    * these contexts. Centralizing as two tokens means a single
    * change here updates every caption at once.
    *
-   *   text-caption    → 11px (60 sites — inline metadata, tabular gutters)
-   *   text-caption-xs → 10px (86 sites — eyebrow labels, dense badges)
+   *   text-caption    → 10px (unified 2026-06-10 — Yuqi "unify text caption to
+   *                      10px": the 11px tier was retired so caption is ONE size,
+   *                      10px. `text-caption` and `text-caption-xs` now render
+   *                      identically; both names are kept as aliases.)
+   *   text-caption-xs → 10px (eyebrow labels, dense badges)
    *
    * Both default line-height is set per Tailwind v4's
    * `--text-*--line-height` convention so common pairings (uppercase
@@ -124,8 +132,8 @@
    * `leading-3` / `leading-4` continue to win — the explicit class
    * overrides the implicit per-size line-height.
    * ----------------------------------------------------------------- */
-  --text-caption: 11px;
-  --text-caption--line-height: 16px;
+  --text-caption: 10px;
+  --text-caption--line-height: 14px;
   --text-caption-xs: 10px;
   --text-caption-xs--line-height: 14px;
 

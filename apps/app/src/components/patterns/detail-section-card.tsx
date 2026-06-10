@@ -44,7 +44,7 @@ export function DetailSectionCard({
       <header className="flex min-h-9 items-center gap-2 bg-background-section px-5 py-2.5">
         {/* <h3> (not a span) so each section is a real heading — accessible and
             satisfies getByRole('heading', …) specs. */}
-        <h3 className="text-[13px] font-semibold text-text-primary">{title}</h3>
+        <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
         {headerRight ? (
           <>
             <span className="flex-1" />

@@ -405,7 +405,7 @@ function ProductStory() {
           DueDateHQ
         </span>
         <span aria-hidden className="h-3.5 w-px bg-divider-regular" />
-        <span className="text-[13px] font-medium italic tracking-[-0.1px] text-text-tertiary">
+        <span className="text-sm font-medium italic tracking-[-0.1px] text-text-tertiary">
           <Trans>for CPA firms</Trans>
         </span>
       </div>

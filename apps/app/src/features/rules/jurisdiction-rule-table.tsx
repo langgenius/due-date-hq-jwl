@@ -556,7 +556,7 @@ function JurisdictionRuleRow({
             <span className="inline-flex shrink-0 items-center justify-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
               {rule.jurisdiction}
             </span>
-            <span className="min-w-0 truncate text-[13px] font-semibold text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-focus-within/row:underline">
+            <span className="min-w-0 truncate text-sm font-semibold text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-focus-within/row:underline">
               {displayTitle}
             </span>
           </div>

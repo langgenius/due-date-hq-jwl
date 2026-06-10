@@ -467,7 +467,7 @@ function TypesMatrixCard({
                     <row.icon className="size-3.5" aria-hidden />
                   </span>
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="text-[13px] font-semibold text-text-primary">{row.name}</span>
+                    <span className="text-sm font-semibold text-text-primary">{row.name}</span>
                     <span className="truncate text-caption text-text-secondary">{row.detail}</span>
                   </div>
                 </div>
@@ -608,11 +608,11 @@ function QuietHoursCard() {
             <Trans>Time range</Trans>
           </span>
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-[13px] text-text-primary">
+            <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-sm text-text-primary">
               19:00
             </span>
             <span className="text-text-tertiary">→</span>
-            <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-[13px] text-text-primary">
+            <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-sm text-text-primary">
               07:30
             </span>
             <span className="inline-flex items-center rounded-lg bg-background-subtle px-2.5 py-1.5 font-mono text-caption text-text-secondary">

@@ -444,7 +444,7 @@ export function DashboardRoute() {
               }
             >
               <PlusIcon className="size-3.5 shrink-0" />
-              <span className="max-w-0 overflow-hidden text-[13px] font-medium whitespace-nowrap opacity-0 transition-all group-hover/import:ml-1.5 group-hover/import:max-w-[120px] group-hover/import:opacity-100">
+              <span className="max-w-0 overflow-hidden text-sm font-medium whitespace-nowrap opacity-0 transition-all group-hover/import:ml-1.5 group-hover/import:max-w-[120px] group-hover/import:opacity-100">
                 <Trans>Import clients</Trans>
               </span>
             </button>

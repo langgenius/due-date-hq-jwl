@@ -248,7 +248,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             <span className="text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase">
               {cell.label}
             </span>
-            <span className="min-w-0 truncate text-[13px] font-normal text-text-primary">
+            <span className="min-w-0 truncate text-sm font-normal text-text-primary">
               {cell.value}
             </span>
           </div>

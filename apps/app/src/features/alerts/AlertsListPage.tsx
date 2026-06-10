@@ -610,7 +610,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         // "View history" promoted from a text link → outline Button
         // shape so the action cluster reads as actions, not soft
         // links. Description survives via the primitive's description
-        // prop, picking up the canonical text-[13px] leading-5
+        // prop, picking up the canonical text-sm leading-5
         // instead of the hand-rolled text-md.
         <PageHeader
           title={
@@ -1015,7 +1015,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder={t`Search alerts`}
-                    className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-text-primary outline-none placeholder:text-text-muted"
+                    className="min-w-0 flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-text-muted"
                     aria-label={t`Search alerts`}
                   />
                 </label>
@@ -1026,7 +1026,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     the pin on; this chip (plus Reset and any explicit Time
                     choice) is how it turns off. */}
                 {morningSweep?.active ? (
-                  <span className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-state-accent-border bg-state-accent-hover px-3 text-[13px] font-medium text-text-accent">
+                  <span className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-state-accent-border bg-state-accent-hover px-3 text-sm font-medium text-text-accent">
                     <CoffeeIcon className="size-3.5" aria-hidden />
                     <Trans>Morning sweep · last 24h</Trans>
                     <button
@@ -1082,7 +1082,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         sits at the START of the right cluster — right after the
                         spacer, ahead of Filters / State / Sort (was buried after
                         State, beside Reset). */}
-                    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-[13px] font-medium text-text-secondary select-none">
+                    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-sm font-medium text-text-secondary select-none">
                       <Checkbox
                         checked={showSuggestedAction}
                         onCheckedChange={(next) => setShowSuggestedAction(next)}

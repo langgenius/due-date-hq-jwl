@@ -169,7 +169,7 @@ export function SettingsSubNav({ className }: { className?: string }) {
           end={end ?? false}
           className={({ isActive }) =>
             cn(
-              'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
+              'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               isActive
                 ? 'bg-state-accent-hover text-text-accent'

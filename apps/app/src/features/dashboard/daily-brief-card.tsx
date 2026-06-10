@@ -100,7 +100,7 @@ export function DailyBriefCard({
         >
           <SparklesIcon className="size-3.5 text-text-secondary" />
         </span>
-        <h2 className="text-[13px] leading-tight font-semibold text-text-primary">
+        <h2 className="text-sm leading-tight font-semibold text-text-primary">
           <Trans>Daily Brief</Trans>
         </h2>
         <span className="min-w-0 truncate text-xs text-text-tertiary">
@@ -147,7 +147,7 @@ export function DailyBriefCard({
             <SparklesIcon className="size-4 text-text-secondary" />
           </span>
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
-            <h2 className="text-[13px] leading-tight font-semibold text-text-primary">
+            <h2 className="text-sm leading-tight font-semibold text-text-primary">
               <Trans>Daily Brief</Trans>
             </h2>
             <BriefFreshness

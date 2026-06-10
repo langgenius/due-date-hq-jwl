@@ -259,7 +259,7 @@ export function SettingsPermissionsRoute() {
         <div className="flex items-start gap-3 rounded-xl border border-divider-regular bg-background-section px-4 py-3">
           <InfoIcon className="mt-0.5 size-4 shrink-0 text-text-muted" aria-hidden />
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-text-primary">
+            <p className="text-sm font-semibold text-text-primary">
               {isOwner ? (
                 <Trans>Owner has every permission</Trans>
               ) : (
@@ -313,7 +313,7 @@ export function SettingsPermissionsRoute() {
                       <scope.Icon className="size-4" />
                     </span>
                     <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-[13px] font-semibold text-text-primary">
+                      <span className="text-sm font-semibold text-text-primary">
                         {i18n._(scope.label)}
                       </span>
                       <span className="truncate text-caption text-text-tertiary">

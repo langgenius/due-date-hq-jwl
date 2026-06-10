@@ -192,7 +192,7 @@ export function SettingsProfileRoute() {
               {initialsFromName(displayName || email)}
             </span>
             <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <p className="text-[13px] font-semibold text-text-primary">
+              <p className="text-sm font-semibold text-text-primary">
                 <Trans>Profile photo</Trans>
               </p>
               <p className="text-xs text-text-secondary">
@@ -258,7 +258,7 @@ export function SettingsProfileRoute() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-[13px] font-medium text-text-primary">
+                    <span className="text-sm font-medium text-text-primary">
                       <Trans>Two-factor authentication</Trans>
                     </span>
                     {status.twoFactorEnabled ? (
@@ -330,7 +330,7 @@ export function SettingsProfileRoute() {
               {/* Sessions */}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[13px] font-medium text-text-primary">
+                  <span className="text-sm font-medium text-text-primary">
                     <Trans>Active sessions</Trans>
                   </span>
                   <span className="text-xs text-text-secondary">
@@ -364,7 +364,7 @@ export function SettingsProfileRoute() {
                     </span>
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="truncate text-[13px] font-medium text-text-primary">
+                        <span className="truncate text-sm font-medium text-text-primary">
                           {s.userAgent || <Trans>Unknown browser</Trans>}
                         </span>
                         {s.isCurrent ? (
@@ -378,7 +378,7 @@ export function SettingsProfileRoute() {
                       </span>
                     </div>
                     {s.isCurrent ? (
-                      <span aria-hidden className="text-[13px] text-text-muted">
+                      <span aria-hidden className="text-sm text-text-muted">
                         —
                       </span>
                     ) : (
@@ -444,7 +444,7 @@ export function SettingsProfileRoute() {
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-[13px] font-medium text-text-primary">
+              <span className="text-sm font-medium text-text-primary">
                 <Trans>Export all my data</Trans>
               </span>
               <span className="text-xs text-text-secondary">
@@ -462,7 +462,7 @@ export function SettingsProfileRoute() {
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-[13px] font-semibold text-text-destructive">
+              <span className="text-sm font-semibold text-text-destructive">
                 <Trans>Delete account</Trans>
               </span>
               <span className="text-xs text-text-secondary">
@@ -676,7 +676,7 @@ function ReadonlyValue({
     >
       <span
         className={cn(
-          'truncate text-[13px] font-medium',
+          'truncate text-sm font-medium',
           muted ? 'text-text-secondary' : 'text-text-primary',
         )}
       >

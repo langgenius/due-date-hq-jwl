@@ -438,10 +438,10 @@ function EmailPreview({ subject, bodyText }: { subject: string; bodyText: string
         </p>
       </div>
       <div className="flex flex-col gap-3 px-5 py-[18px]">
-        <p className="text-[13px] leading-relaxed whitespace-pre-wrap text-text-primary">
+        <p className="text-sm leading-relaxed whitespace-pre-wrap text-text-primary">
           {applyVars(bodyText)}
         </p>
-        <span className="inline-flex w-fit items-center gap-2 rounded-lg bg-state-accent-solid px-[18px] py-2.5 text-[13px] font-semibold text-text-inverted">
+        <span className="inline-flex w-fit items-center gap-2 rounded-lg bg-state-accent-solid px-[18px] py-2.5 text-sm font-semibold text-text-inverted">
           <Trans>Open secure portal</Trans>
           <ArrowRightIcon className="size-3" aria-hidden />
         </span>
