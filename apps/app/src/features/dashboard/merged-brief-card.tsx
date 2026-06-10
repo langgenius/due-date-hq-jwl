@@ -260,15 +260,17 @@ function BriefRow({
           />
         </span>
       </span>
-      <span className="flex shrink-0 items-center gap-1.5">
+      {/* Status / owner / due are each a fixed-width, LEFT-aligned column so
+          they line up vertically across rows — a real table, not a right-pushed
+          cluster whose x shifts with the status-pill width (Yuqi: obey columns). */}
+      <span className="flex w-[104px] shrink-0 items-center gap-1.5">
         <ObligationStatusReadBadge status={row.status} className="h-5 text-caption-xs" />
         {row.status === 'extended' ? <ExtensionChip /> : null}
       </span>
-      <AssigneeAvatar size="xs" name={row.assigneeName} title={row.assigneeName ?? t`Unassigned`} />
-      {/* Due — single-line relative/late label, fixed-width + right-aligned so
-          the right edge is a clean column instead of a ragged two-line stack
-          (Yuqi: was messy). The exact date lives one click away in the queue. */}
-      <span className="flex w-[124px] shrink-0 justify-end">
+      <span className="flex w-6 shrink-0 items-center">
+        <AssigneeAvatar size="xs" name={row.assigneeName} title={row.assigneeName ?? t`Unassigned`} />
+      </span>
+      <span className="flex w-[124px] shrink-0 items-center">
         <DueDateLabel
           days={d}
           status={row.status}
