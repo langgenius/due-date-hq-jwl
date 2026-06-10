@@ -48,11 +48,9 @@ function DueDateLabel({
   // the unpaid payment. When both apply, render the payment chip.
   if (paymentLate) {
     return (
-      // 2026-06-04 round 10 (Yuqi "internal due can be medium
-      // weight"): all DueDateLabel render variants now share
-      // `font-medium` weight. Body weight reads as content-tier
-      // emphasis without competing with the row's primary
-      // anchors (Action / Client).
+      // All DueDateLabel render variants share `font-medium` weight. Body
+      // weight reads as content-tier emphasis without competing with the
+      // row's primary anchors (Action / Client).
       <span
         className={cn(
           'inline-flex shrink-0 items-baseline whitespace-nowrap text-sm font-medium tabular-nums text-text-destructive',
@@ -123,8 +121,8 @@ function daysUntilDue(dueDate: string, asOfDate: string | null): number {
   return Math.round((due - as) / (1000 * 60 * 60 * 24))
 }
 
-// 2026-06-03 (Yuqi /today polish round 2): hint that suppresses the
-// label when there is nothing to say. `null` short-circuits when:
+// Hint that suppresses the label when there is nothing to say.
+// `null` short-circuits when:
 //   • Row is terminal AND days === 0 — "filed today" doesn't add
 //     info; suppress and let the status chip carry the signal.
 function hasMeaningfulLabel(days: number, status: ObligationStatus): boolean {

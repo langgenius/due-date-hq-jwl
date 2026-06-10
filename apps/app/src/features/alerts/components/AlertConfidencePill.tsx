@@ -12,19 +12,13 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
  *   medium — neutral outline chip
  *   high   — info-blue accent chip
  *
- * 2026-05-26 (Layer C — interactive primitive coverage): extracted from
- * two byte-identical inline JSX blocks across `AlertDetailDrawer` and
- * `AlertCard` so the three variants live in exactly one file. The
- * drawer historically only renders Medium and High (callers gate Low
- * out), so this component is *purely* a presentation primitive — every
- * caller still makes its own decision about when to render Low.
+ * This is *purely* a presentation primitive — every caller makes its
+ * own decision about when to render Low (the drawer, for instance, only
+ * renders Medium and High).
  *
- * 2026-06-01: collapsed three hand-rolled `<span>` rounded-full chips
- * into the canonical Badge primitive (warning / outline / info
- * variants on the default pill shape). Dropped the bespoke
- * uppercase/tracking-wide chrome — Badge's default register matches
- * the rest of the surface chip vocabulary now (info / warning chips
- * across PageHeader use the same default treatment).
+ * The three tones use the canonical Badge primitive (warning / outline /
+ * info variants on the default pill shape) so the chrome matches the
+ * rest of the surface chip vocabulary.
  */
 export function AlertConfidencePill({ confidence }: { confidence: 'low' | 'medium' | 'high' }) {
   if (confidence === 'low') {

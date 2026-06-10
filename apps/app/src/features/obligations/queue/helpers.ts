@@ -83,20 +83,17 @@ export async function copyTextToClipboard(value: string): Promise<void> {
   }
 }
 
-// 2026-05-26 (Yuqi feedback — responsive page size pivot): page size
-// now derived from the ACTUAL scroll container height, not window
-// height. The window-height heuristic overshot when the page chrome
-// was tall (e.g. filter bar wrapping two lines) and undershot when
-// the panel was open eating side space but not vertical. Measuring
-// the container with ResizeObserver gives the true "how much room
-// do I have for rows" answer.
+// Page size is derived from the ACTUAL scroll container height, not
+// window height. A window-height heuristic would overshoot when the
+// page chrome is tall (e.g. filter bar wrapping two lines) and
+// undershoot when the panel is open eating side space but not
+// vertical. Measuring the container with ResizeObserver gives the
+// true "how much room do I have for rows" answer.
 //
-// 2026-05-26 (Yuqi feedback — "refactor the page structure or table
-// structure/pagination framing"): the measurement target moved from
-// the queue column to the table-card. The table-card is a bordered
-// frame that contains ONLY the Table + Pagination — no filter bars,
-// no page header. So the chrome budget shrinks dramatically and
-// becomes stable (no longer drifts when the filter bar wraps).
+// The measurement target is the table-card, a bordered frame that
+// contains ONLY the Table + Pagination — no filter bars, no page
+// header. So the chrome budget is small and stable (it doesn't drift
+// when the filter bar wraps).
 //
 // Chrome subtracted from the table-card's clientHeight:
 //   - TableHeader                ≈ 40px (h-12 with cell padding + border)
@@ -427,17 +424,10 @@ export function hiddenFromColumnVisibility(visibility: VisibilityState): string[
     .map(([columnId]) => columnId)
 }
 
-// `integerFromInput` retired 2026-05-26 with the sixty-fifth pass #5
-// RangeHeaderFilterDropdown removal — only the dropdown's onCommit
-// callback ever called this helper.
-
 export function daysFilterValue(value: number | null): number | undefined {
   if (value === null || !Number.isSafeInteger(value)) return undefined
   return Math.min(DAYS_FILTER_MAX, Math.max(DAYS_FILTER_MIN, value))
 }
-
-// `inputValueFromNumber` retired 2026-05-26 with RangeHeaderFilter-
-// Dropdown removal — only the dropdown's draft-input state needed it.
 
 export function columnLabel(columnId: string, labels: Record<string, string>): string {
   return labels[columnId] ?? columnId
@@ -639,12 +629,12 @@ export function daysUntilEffectiveInternalDueDate(
   return Math.round(ms / DAY_MS)
 }
 
-// 2026-05-24 (re-critique): stages whose `isPastInternalDue` red
-// ring should be suppressed in the milestone timeline. Lateness on
-// a Filed/Completed row is a quality stat, not an active urgency —
-// the dates panel shows the red Internal due value, that's the
-// surface for "was this filed on time?". Hoisted from inside
-// `PathToFilingSummary` so we don't allocate the Set every render.
+// Stages whose `isPastInternalDue` red ring is suppressed in the
+// milestone timeline. Lateness on a Filed/Completed row is a quality
+// stat, not an active urgency — the dates panel shows the red
+// Internal due value, that's the surface for "was this filed on
+// time?". Hoisted out of `PathToFilingSummary` so we don't allocate
+// the Set every render.
 
 export function formatTaxPeriod(
   start: string | null | undefined,
@@ -661,10 +651,10 @@ export function formatTaxPeriod(
   return `${formatDate(startIso)} – ${formatDate(endIso)}`
 }
 
-// PrimaryDeadlineStrip — three-column row at the top of the snapshot
-// (2026-05-23). The three dates the CPA reaches for first — Internal,
-// Filing, Payment — promoted out of the bottom dates panel so they're
-// answer-at-a-glance instead of buried under "Reference dates". Each
+// PrimaryDeadlineStrip — three-column row at the top of the snapshot.
+// The three dates the CPA reaches for first — Internal, Filing,
+// Payment — sit here instead of buried under "Reference dates" so
+// they're answer-at-a-glance. Each
 // column shows: small uppercase label / date in tabular-num / a small
 // state tag (MISSED in red when the date is in the past, otherwise
 // blank to keep the row quiet). Internal due is the primary CPA-
@@ -836,12 +826,6 @@ export function pipelineStateOf<T extends string>(
   return 'upcoming'
 }
 
-// 2026-05-23: WaitingOutstandingDocs component retired with Option D.
-// The full panel (count header + bullet list of doc names + routing
-// button) duplicated content from the Client readiness tab. Replaced
-// inline in ActiveStageDetailCard with a one-line signal that links
-// to the tab; the tab owns the actual document inventory.
-
 export function subStatusForActiveStage(
   row: ObligationQueueRow,
   t: (strings: TemplateStringsArray, ...keys: unknown[]) => string,
@@ -925,11 +909,6 @@ export function mineTimelineTimestamps(
   }
   return stamps
 }
-
-// `PathToFilingChevron` removed 2026-05-21 — at 440px panel width the
-// 5 × 4 = 20 text/icon elements were unreadable. `PathToFilingSummary`
-// replaces it in the snapshot block; full stage-by-stage history lives
-// on the Timeline tab via `ObligationTimeline`.
 
 export function parseMoneyCents(value: string): number | null {
   const normalized = value.trim().replace(/[$,\s]/g, '')

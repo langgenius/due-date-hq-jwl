@@ -41,13 +41,10 @@ export function ClientCycleArrows({ currentClientId }: { currentClientId: string
   const navigate = useNavigate()
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
 
-  // 2026-05-24 (useEffect audit): the previous shape kept a
-  // useState seeded from sessionStorage and a useEffect that
-  // re-read on every currentClientId change. Both were redundant —
-  // `readClientCycleList()` is a cheap sessionStorage read, and
-  // the useMemo below is keyed on `currentClientId` already, so
-  // re-evaluating inline gives the same result without the state +
-  // effect ping-pong (and matches the project's no-useEffect rule).
+  // `readClientCycleList()` is a cheap sessionStorage read and this
+  // useMemo is keyed on `currentClientId`, so re-evaluating inline
+  // avoids a useState + useEffect ping-pong (and matches the project's
+  // no-useEffect rule).
   const neighbors = useMemo(
     () => neighborsInClientCycle(readClientCycleList(), currentClientId),
     [currentClientId],
@@ -77,12 +74,10 @@ export function ClientCycleArrows({ currentClientId }: { currentClientId: string
     void navigate(client ? clientDetailPath(client) : `/clients/${neighbors.next}`)
   }, [clientById, navigate, neighbors.next])
 
-  // 2026-05-24 (useEffect audit): the previous shape hand-rolled a
-  // window-level keydown listener via useEffect. useAppHotkey is
-  // the project's canonical primitive — it threads through the
-  // shortcuts-blocked context, ignores editable targets, and
-  // wires cleanup automatically. Mirrors the obligations queue's
-  // J/K contract.
+  // useAppHotkey is the project's canonical primitive — it threads
+  // through the shortcuts-blocked context, ignores editable targets,
+  // and wires cleanup automatically (no hand-rolled window keydown
+  // listener). Mirrors the obligations queue's J/K contract.
   useAppHotkey(
     'J',
     () => {

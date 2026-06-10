@@ -135,10 +135,9 @@ export async function prepareUploadFile(file: File): Promise<PreparedUpload> {
   })
 }
 
-// 2026-05-25 (Wizard #40 — MessageDescriptor refactor): the
-// upload-rejection messages are now returned as MessageDescriptors
-// so they translate at the React render boundary. Callers in
-// React land (Step1Intake) pass the descriptor through `i18n._()`;
+// The upload-rejection messages are returned as MessageDescriptors so
+// they translate at the React render boundary. Callers in React land
+// (Step1Intake) pass the descriptor through `i18n._()`;
 // non-React callers (the Error message + manifest warnings)
 // continue to receive the English fallback via the legacy
 // `unsupportedUploadMessage` wrapper below, which renders the

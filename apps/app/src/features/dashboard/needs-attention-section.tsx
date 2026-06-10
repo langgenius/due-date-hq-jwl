@@ -16,36 +16,27 @@ import {
 import { MonitoringChip } from '@/features/alerts/components/MonitoringChip'
 import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 
-// 2026-05-31 (Yuqi Pencil Sq0EX): NeedsAttentionOverflowCard is no
-// longer used in this section — the "View all" section link below
-// the grid replaces the per-card overflow tile. The export is
-// retained from the card module for any future callers.
 import { NeedsAttentionCard } from './needs-attention-card'
 
 // Dashboard "Alerts" section — promotes state-policy Alerts (the
 // product's wedge: "a rule changed → here are the affected clients")
 // to a first-class row.
 //
-// 2026-06-03 (Yuqi B): the section now has two clearly different
-// weights. When alerts are live it is the page's loudest block — a
-// destructive-tinted hero card row. When the feed is calm it collapses
-// to a single quiet status line (no tinted box), so an empty alerts
-// state stops claiming hero real estate it hasn't earned. Previously
-// the empty state rendered the same large tinted panel + dashed
-// "No active alerts" banner as the live state, which read as the most
-// important thing on the page even when nothing needed review.
+// The section has two clearly different weights. When alerts are live
+// it is the page's loudest block — a destructive-tinted hero card row.
+// When the feed is calm it collapses to a single quiet status line (no
+// tinted box), so an empty alerts state stops claiming hero real estate
+// it hasn't earned.
 
-// 2026-05-31 (Yuqi Pencil Sq0EX): grid widened from 2 to 3 cards
-// in the wide-viewport row so the Today alerts surface mirrors the
-// 3-card composition in the design. Overflow continues to expose
-// the View all link below the grid; the per-card overflow column
-// is dropped (the Pencil design uses a section-level link).
+// Grid is 3 cards wide in the wide-viewport row so the Today alerts
+// surface mirrors the 3-card composition in the design. Overflow
+// surfaces via the View all link below the grid (the design uses a
+// section-level link rather than a per-card overflow column).
 const VISIBLE_ALERTS = 3
 const NATIONAL_MONITORING_JURISDICTION_COUNT = 52
 
-// 2026-05-24 (critique P0): aligned with the sidebar's
-// `TODAY_ALERTS_LIMIT` so this page and the sidebar Alerts badge share
-// a single React Query cache entry.
+// Aligned with the sidebar's `TODAY_ALERTS_LIMIT` so this page and the
+// sidebar Alerts badge share a single React Query cache entry.
 const TODAY_ALERTS_LIMIT = 50
 
 function NeedsAttentionSection() {
@@ -131,87 +122,27 @@ function NeedsAttentionSection() {
   return (
     <section
       aria-label={t`Alerts`}
-      // 2026-05-26 (Yuqi sixty-ninth pass — "背景太浅了，看不出"):
-      // alert-state background bumped from `/25` (basically
-      // invisible) to a real solid `bg-state-destructive-hover`
-      // + a destructive border so the panel actually reads as
-      // "this is the alerts zone." Empty-state keeps the
-      // neutral tint but adds a subtle border so the section
-      // still has a shape on the page.
-      // 2026-05-26 (Yuqi follow-up — "remove the border"): dropped
-      // `border` + border-color rules. The destructive bg-tint
-      // (when alerts are live) and the section bg (when empty)
-      // already give the panel its shape against the page wash;
-      // the explicit border was just doubling the boundary.
-      // 2026-05-27 (audit-drain X1 D18 + Yuqi cross-route consistency):
-      // empty-state and alerts-loaded paths now have different
-      // outer styling. Alerts-loaded keeps the destructive-tinted
-      // padded box (`p-3` + `gap-2.5` + `bg-state-destructive-hover`)
-      // because the urgent rows earn that weight. Empty state drops
-      // ALL outer styling — the inner `StatusBanner` primitive
-      // provides its own dashed border, bg, and padding (matching
-      // /rules/pulse and /clients), so wrapping it in a second
-      // tinted padded box was double chrome. This compresses the
-      // empty section more aggressively than D18's `gap-2 px-3 py-2`
-      // while also unifying with the canonical StatusBanner shape.
-      // 2026-05-28 (Yuqi /today polish): always set `gap-4` so the
-      // section heading + body have the same rhythm as Actions this
-      // 2026-05-31 (Yuqi DS-first revision): destructive-toned
-      // panel wash dropped. The previous `bg-state-destructive-hover
-      // p-3 rounded-xl` painted the entire section red whenever
-      // any alert was present — even for low-severity informational
-      // alerts. That's a section-level urgency signal that the
-      // design system doesn't have a pattern for (Card primitive
-      // is per-block, not per-section), and it inconsistent with
-      // the un-washed Actions-this-week section below.
-      //
-      // Per-alert urgency now lives where it belongs — on the
-      // individual `<NeedsAttentionCard>` chrome (the
-      // LowConfidenceBadge, the source-link icon, the card's
-      // hover state) — and the section reads as a regular
-      // gap-rhythm section like every other one on /today.
-      // 2026-06-04 round 4 (Yuqi feedback "Today's page should not
-      // be more than a screen long"): section internal gap-4 →
-      // gap-3 to keep the alerts row + cards above the fold.
+      // No section-level destructive wash: painting the whole section
+      // red whenever any alert is present is a section-level urgency
+      // signal the design system has no pattern for (Card is per-block,
+      // not per-section), and it's inconsistent with the un-washed
+      // Actions-this-week section below. Per-alert urgency lives on the
+      // individual `<NeedsAttentionCard>` chrome (the LowConfidenceBadge,
+      // the source-link icon, the card's hover state) — the section
+      // reads as a regular gap-rhythm section like every other one on
+      // /today.
       className="flex flex-col gap-3"
     >
-      {/* 2026-05-31 (Yuqi DS-first revision): `px-3` now applied
-          unconditionally — the outer destructive-toned wash was
-          dropped, so the conditional padding compensation for the
-          alerts-present case is no longer needed. The h2 left
-          edge aligns with Actions-this-week's h2 in both states. */}
-      {/* 2026-06-03 (Yuqi Pencil VmcdD — alerts header): split into
-          a `justify-between` row carrying the h2 + chips cluster on
-          the left and a quiet "View all" TextLink on the right.
-          The count chip switches from a bare number to "{N} active"
-          with a leading `<BadgeStatusDot tone="error" />` so the
-          live-state read matches the monitoring chip's dot+text
-          shape. */}
-      {/* 2026-06-03 (Yuqi /critique pass — Reviewer panel
-          P3 microcopy): count chip "{N} active" → "{N} urgent".
-          "Active" was vague (active vs inactive? active in what
-          sense?); "urgent" matches the alert's semantic load
-          ("you need to act on these") and parallels the Due-this-
-          week section's "{N} due" chip below — both sections now
-          signal urgency with a single specific word in the chip
-          slot. */}
-      {/* 2026-06-04 round 6 (Yuqi "alerts, actions this week title
-          should be 大标题Today的下一级"): h2 stepped down from
-          text-2xl (matching Today h1) → text-xl (one tier below).
-          The section h2's are second-tier titles under the page
-          h1, NOT same-tier; this resets the hierarchy. */}
       <div className="flex items-center justify-between gap-3">
-        {/* 2026-06-09 (Yuqi "primary colour Alerts title"): section eyebrow
-            tone settled at text-text-primary (gray-900) — supersedes the
-            earlier muted/disabled experiments. Both /today section titles
-            (Alerts + Actions this week) now share this canonical
-            14/600/0.4px-uppercase + primary-ink treatment; see
-            docs/Design/section-header-style.md. */}
-        <h2 className="flex items-center gap-2 text-[14px] font-semibold tracking-[0.4px] text-text-primary uppercase">
-          {/* 2026-06-09 (Yuqi /today "click Alerts go to alerts page"): the
-              title word links to /alerts; the count badge + MonitoringChip stay
-              as non-link siblings. Replaces the removed right-aligned "View
-              all" TextLink. */}
+        {/* 2026-06-10 (Yuqi "the ALERTS / PRIORITY ACTIONS titles are
+            disturbing — keep for UX but quieter"): both /today section
+            titles share a DEMOTED eyebrow treatment — 11px / 600 / muted
+            tertiary ink / wider tracking — so they orient without the
+            heavy 14px dark-ink band competing with the content below.
+            See docs/Design/section-header-style.md. */}
+        <h2 className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.6px] text-text-tertiary uppercase">
+          {/* The title word links to /alerts; the count badge + MonitoringChip
+              stay as non-link siblings. */}
           <Link
             to="/alerts"
             className="rounded-sm underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
@@ -219,70 +150,31 @@ function NeedsAttentionSection() {
             <Trans>Alerts</Trans>
           </Link>
           {totalAlertCount > 0 ? (
-            // 2026-06-04 round 45 (Yuqi /today feedback #2 — "just
-            // write a number, [8]"): the count chip drops the
-            // "urgent" word. The destructive bg already signals
-            // urgency; the literal word was redundant. Bare count
-            // reads cleaner at a glance.
-            //
-            // 2026-06-04 round 49 (Yuqi /today #1 — "remove the
-            // dot"): BadgeStatusDot dropped from the urgent-count
-            // pill. The destructive bg already signals urgency; the
-            // leading dot was redundant chrome inside a tight
-            // numeric chip. Bare count reads at-a-glance from
-            // further away.
-            // 2026-06-04 round 81 (Yuqi #3 "gray, default kind of
-            // numbering"): count chip dropped from `destructive`
-            // (red) to `outline` (gray). The number is a scope
-            // signal, not an urgency one — the destructive red
-            // was claiming alarm semantics that the PulsingDot +
-            // card chrome already carry.
+            // Bare count in a gray `outline` chip: the number is a scope
+            // signal, not an urgency one — the PulsingDot + card chrome
+            // already carry the alarm semantics.
             <Badge variant="outline" className="tabular-nums">
               <span>{totalAlertCount}</span>
             </Badge>
           ) : null}
           {hasNationalMonitoringCoverage ? (
-            // 2026-06-09 (Yuqi /alerts #2 "should be the same as you have on
-            // today page"): the Monitoring chip is now the shared
-            // `<MonitoringChip>` so /today + /alerts render identically. The
-            // passive (no `to`) variant keeps /today's cursor-help + the
-            // "National policy watch" explainer tooltip.
+            // Shared `<MonitoringChip>` so /today + /alerts render
+            // identically. The passive (no `to`) variant keeps the
+            // cursor-help + "National policy watch" explainer tooltip.
             <MonitoringChip />
           ) : null}
         </h2>
-        {/* 2026-06-09 (Yuqi /today "hide"): the right-aligned "View all"
-            TextLink is removed — the section title "Alerts" now navigates to
-            /alerts, so the duplicate affordance is gone. */}
       </div>
 
       {totalAlertCount > 0 ? (
-        // 2026-05-27 (Yuqi — "怎么会变成这样vertical"): restored
-        // the horizontal grid layout. Two alert cards sit side-by-side
-        // with a fixed 160px overflow column when there are extra
-        // alerts. The full-width vertical stack read as a cramped
-        // mini-inbox; the grid lets Today's alerts sit as parallel
-        // tiles like the rest of the dashboard surfaces.
-        // 2026-05-28 (cherry-pick conflict resolve): kept Yuqi's
-        // deterministic grid over the earlier flex-wrap try — the
-        // grid + 160px overflow column is the authored intent.
-        // 2026-05-31 (Yuqi Pencil Sq0EX): grid bumped to support
-        // 3 cards side by side. The overflow column previously
-        // sat as a 160px sibling column; now overflow surfaces via
-        // a section-level "View all" link below the grid (see
-        // below) so all three card slots stay equal-width. The
-        // fragment groups the grid + view-all link as siblings
-        // under the same ternary branch.
-        // 2026-05-31 (Yuqi DS-first revision): both the cards grid
-        // and the view-all link now carry `px-3` since the outer
-        // panel wash + its compensating padding were removed. Same
-        // gutter rhythm as Actions-this-week below — sections look
-        // consistent across the page.
+        // Horizontal grid: up to 3 alert cards sit as equal-width
+        // parallel tiles like the rest of the dashboard surfaces.
+        // Overflow surfaces via the section-level "View all" link.
         <>
           <div
             className={cn(
-              // 2026-06-04 (Yuqi alignment fix): dropped `px-3` on
-              // the cards grid so card left edges align with the
-              // section header above, the page H1, and the
+              // No `px-3` on the cards grid so card left edges align with
+              // the section header above, the page H1, and the
               // ActionsTable wrapper below.
               'grid items-stretch gap-3',
               alerts.length === 1 && 'grid-cols-1',
@@ -300,10 +192,6 @@ function NeedsAttentionSection() {
               </div>
             ))}
           </div>
-          {/* 2026-06-03 (Yuqi Pencil VmcdD): bottom "View all" link
-              moved up into the section header (see top of the
-              <section>). Removing the duplicate here so there's a
-              single right-aligned affordance per section. */}
         </>
       ) : null}
     </section>

@@ -370,7 +370,7 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
-        'group/sidebar relative hidden h-svh shrink-0 transition-[width] duration-300 ease-apple motion-reduce:transition-none md:block',
+        'group/sidebar relative hidden h-svh shrink-0 transition-[width] duration-[360ms] ease-apple motion-reduce:transition-none md:block',
         className,
       )}
       style={{ width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
@@ -433,7 +433,10 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           inset. */}
       <div
         className={cn(
-          'absolute inset-y-3 left-3 z-30 flex flex-col gap-1.5 overflow-hidden rounded-xl bg-background-sidebar-card p-2.5 transition-[width,box-shadow] duration-300 ease-apple motion-reduce:transition-none',
+          // 2026-06-09 (Yuqi "精致" / refinement): finer 1.5px icon
+          // strokes across every rail glyph (Lucide defaults to 2px,
+          // which reads heavy) — a more delicate, elegant icon set.
+          'absolute inset-y-3 left-3 z-30 flex flex-col gap-1 overflow-hidden rounded-xl bg-background-sidebar-card p-2.5 [&_svg]:[stroke-width:1.5] transition-[width,box-shadow] duration-[360ms] ease-apple motion-reduce:transition-none',
           // No hard border ("no board"). Separation comes from a soft
           // 1px ring-shadow (defines every edge subtly, no hard line)
           // plus a blur lift — gentle when docked, prominent when the
@@ -517,11 +520,11 @@ export function SidebarFooter({ className, ...props }: React.ComponentProps<'div
     <div
       data-slot="sidebar-footer"
       className={cn(
-        // 2026-06-09 (Yuqi "unify expanded/collapsed padding"): no
-        // horizontal padding (the card panel's `p-3` owns it) and no
-        // per-mode override. `pt-3` (Pencil UserFooter padding-top 12)
-        // sits the user row 12px below the top divider in both modes.
-        'flex shrink-0 flex-col border-t border-divider-regular pt-3',
+        // 2026-06-09 (Yuqi delicacy pass): the footer-zone hairline now
+        // lives above the Audit/Settings group (see NavGroupSection
+        // `muted`), so the user chip drops its own divider to avoid a
+        // double line — just `pt-2` of breathing room below Settings.
+        'flex shrink-0 flex-col pt-2',
         className,
       )}
       {...props}
@@ -580,7 +583,7 @@ export function SidebarGroupLabel({ className, ...props }: React.ComponentProps<
         // 2026-06-09 (Yuqi sidebar parity — §RuleLabel / §ClientsLabel):
         // height 30, padding [14,12,4,12] → pt-3.5 pb-1 px-3, text 10px /
         // 600 / 1.2px tracking, #676f83 (text-tertiary).
-        'flex h-[30px] shrink-0 items-center px-3 pt-3.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-tertiary',
+        'flex h-7 shrink-0 items-center px-3 pt-2.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-tertiary',
         // Collapsed: the frame KEEPS its 30px height + padding (no
         // height collapse → no layout jump). The text is hidden and a
         // centered 19×1.5px hairline (#CCCCCC → divider-deep) is drawn
@@ -658,7 +661,7 @@ const sidebarMenuButtonVariants = cva(
     // (gap-3 — "icon与text之间的gap稍微大一点"), px-3, rounded-lg. Label
     // text-[15px]. Identical in both modes — collapsed re-centering is
     // gone (see below).
-    'group/menu-button peer/menu-button relative flex h-9 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-lg px-[11px] text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-lg px-[11px] text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
     // 2026-06-09 (Yuqi "icons should be vertically center aligned" in the
     // collapsed rail): center the lone icon on the rail's centerline.
     // Drop the icon↔label gap and justify-center so the glyph isn't left-
@@ -668,16 +671,17 @@ const sidebarMenuButtonVariants = cva(
     // #f6f8fa card) so the wash reads as a quiet step on the card;
     // selected state below uses the explicit accent tint so route
     // wayfinding stays distinct from row hover.
-    'hover:bg-background-sidebar-hover hover:text-text-primary',
+    "hover:bg-background-sidebar-hover hover:text-text-primary hover:[&_svg:not([class*='text-'])]:text-text-secondary",
     'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
     'disabled:pointer-events-none disabled:opacity-50',
     'aria-disabled:pointer-events-none aria-disabled:opacity-50',
-    // 2026-06-09 (Yuqi sidebar parity — match Pencil): inactive nav
-    // icons sit at the SAME tone as their labels (text-secondary
-    // #354052), per Pencil §Sidebar where icon and label share one
-    // color. Active + muted states override this below / via the
-    // group's opacity.
-    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-text-secondary",
+    // 2026-06-09 (Yuqi delicacy pass): a refined two-tone hierarchy —
+    // inactive icons sit a step QUIETER than their labels (icon
+    // text-tertiary #676f83 vs label text-secondary #354052). On row
+    // hover both lift together (label → text-primary, icon →
+    // text-secondary) — a delicate brighten, eased via [&_svg]
+    // transition-colors. Active state overrides to accent below.
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:transition-colors [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-text-tertiary",
     // Active state has two valid sources: (1) react-router's NavLink renders
     // `aria-current="page"` automatically, and (2) any consumer that passes
     // `isActive` to SidebarMenuButton sets `data-active="true"`. Either flips
@@ -707,7 +711,7 @@ const sidebarMenuButtonVariants = cva(
     // like one coordinated motion. (Was 150ms ease-out — too
     // fast against the 300ms aside transition, labels popped
     // before the rail finished moving.)
-    '[&>span:nth-child(2)]:transition-[opacity,max-width] [&>span:nth-child(2)]:duration-240 [&>span:nth-child(2)]:ease-apple',
+    '[&>span:nth-child(2)]:transition-[opacity,max-width] [&>span:nth-child(2)]:duration-[360ms] [&>span:nth-child(2)]:ease-apple',
     // 2026-06-09 (Yuqi "unify expanded/collapsed padding" + "copy
     // exactly from pencil"): the button KEEPS its full metrics in
     // collapsed mode — same h-10, same px-3, same gap-2.5. It is no
@@ -892,11 +896,10 @@ export function SidebarMenuBadge({
         className={cn(
           pillBaseExpanded,
           expandedPos,
-          // 2026-06-09 (Yuqi sidebar floating-card pass): reference counts
-          // sit at text-tertiary (#676f83) per Pencil §Sidebar — a step
-          // quieter than the #354052 label, so the number reads as a fact
-          // rather than competing with the destination name.
-          'bg-background-subtle text-text-tertiary',
+          // 2026-06-09 (Yuqi delicacy pass): reference counts are bare
+          // tabular numbers (no pill) in the muted tone (#98a2b2) — the
+          // quietest layer, reading as delicate metadata beside the label.
+          'text-text-muted',
           collapsedPos,
           className,
         )}
@@ -917,7 +920,11 @@ export function SidebarMenuBadge({
         // active route. `group/menu-button` lives on the SidebarMenuButton
         // ancestor, so the badge reads the row's active state (NavLink's
         // aria-current OR the data-active prop).
-        'bg-background-subtle text-text-tertiary',
+        // Default: a bare tertiary number (no pill), a touch more present
+        // than the muted inventory counts since alerts warrant attention.
+        // When its row is the active route it becomes the red solid pill
+        // (the rounded-full + px-1 come from pillBaseExpanded).
+        'text-text-tertiary',
         'group-data-[active=true]/menu-button:bg-state-destructive-solid group-data-[active=true]/menu-button:text-text-inverted',
         'group-aria-[current=page]/menu-button:bg-state-destructive-solid group-aria-[current=page]/menu-button:text-text-inverted',
         collapsedPos,
@@ -1023,7 +1030,7 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
         // focus-within (which lingered visible after a nav click left
         // focus on the link). Keyboard `focus-visible` on the handle
         // itself still reveals it so a focused control is never hidden.
-        'absolute top-1/2 z-40 hidden size-6 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-background-default text-text-tertiary opacity-0 outline-none transition-[left,opacity,background-color,color] duration-300 ease-apple motion-reduce:transition-none',
+        'absolute top-1/2 z-40 hidden size-6 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-background-default text-text-tertiary opacity-0 outline-none transition-[left,opacity,background-color,color] duration-[360ms] ease-apple motion-reduce:transition-none',
         'hover:bg-background-default-hover hover:text-text-secondary',
         'focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'group-hover/sidebar:opacity-100',

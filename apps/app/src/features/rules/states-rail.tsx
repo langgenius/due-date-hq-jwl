@@ -16,8 +16,7 @@ import { SearchInput } from '@/components/primitives/search-input'
 
 /**
  * `JurisdictionRail` — the left master pane of the Rule Library
- * (2026-06-04, Yuqi rule-library master–detail pivot; restyled
- * 2026-06-07 to the canonical Pencil `O0pyRO` PH-SecondarySidebar).
+ * (canonical Pencil `O0pyRO` PH-SecondarySidebar).
  *
  * Renders a searchable jurisdiction list: an "Overview" entry (the All
  * jurisdictions surface), a pinned FEDERAL section, then the states A–Z

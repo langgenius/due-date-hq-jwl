@@ -67,10 +67,9 @@ function TaxCodeLabel({
  * primary read for the column (rules console preview, generation row,
  * dashboard ActionsTable FILING column).
  *
- * 2026-06-03 (Pencil VmcdD `fc` chip spec): chip chrome restyled to
- * a true code-chip:
+ * Chip chrome is a true code-chip:
  *   • `bg-background-subtle` (soft surface, not white)
- *   • `font-mono` (JetBrains Mono) + `font-bold` (700) at `text-xs`
+ *   • `font-mono` (JetBrains Mono) + `font-medium` (500) at `text-xs`
  *   • `rounded-sm` — between pill and square — matches Pencil's
  *     5px corner radius on form-code chips
  *   • `px-3 py-1` (Pencil's [4, 12])

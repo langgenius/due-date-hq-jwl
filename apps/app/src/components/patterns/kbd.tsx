@@ -16,11 +16,9 @@ import { useKeyboardShell } from './keyboard-shell'
  * Wrap each key in its own `<Kbd>`. For multi-key hints render an
  * inline list rather than a single Kbd with a slash.
  *
- * 2026-06-01: exported alongside `KbdHint` + `ShortcutHintChip` so the
- * three single-key inline-glyph call sites (email-otp-sign-in-form,
- * WizardShell esc hint, preview's GalleryKbd) stop hand-rolling the
- * same `<kbd>` recipe. Comment in preview.tsx already called out
- * that Kbd wasn't exported.
+ * Exported alongside `KbdHint` + `ShortcutHintChip` so single-key
+ * inline-glyph call sites (email-otp-sign-in-form, WizardShell esc hint,
+ * preview's GalleryKbd) share one `<kbd>` recipe.
  */
 export function Kbd({ children, className }: { children: ReactNode; className?: string }) {
   return (
@@ -48,22 +46,16 @@ export function Kbd({ children, className }: { children: ReactNode; className?: 
  * The chip is keyboard-accessible (Enter/Space activate via native
  * <button>), focus-visible-ringed, and quiet enough not to compete
  * with primary actions in the same cluster.
- *
- * 2026-05-27 (Step 6 UX flows audit H1.4 / H2.6 / H2.7).
  */
 export function ShortcutHintChip({ className }: { className?: string }) {
   const { openShortcutHelp } = useKeyboardShell()
-  // 2026-05-27 (Yuqi feedback round 2):
-  //   • "not following the design system button" → use `<Button>` primitive
-  //     with `variant="ghost" size="xs"` (h-7, text-xs)
-  //   • "where's text? just be small text" → bring "for shortcuts" back,
-  //     small. (Earlier I removed it entirely after the "too big" feedback;
-  //     the right answer was smaller, not gone.)
-  // 2026-06-09 (Yuqi #7 "hover — why no rounded corner?"): the xs Button's
-  // 6px radius under `[corner-shape:squircle]` flattens the corners so the
-  // ghost hover-fill read as a sharp rectangle. Bumped to `rounded-lg` (8px)
-  // so the hover chip reads as a clearly-rounded affordance in the header
-  // cluster.
+  // Uses the `<Button>` primitive with `variant="ghost" size="xs"` (h-7,
+  // text-xs) and a small "for shortcuts" label.
+  //
+  // The xs Button's 6px radius under `[corner-shape:squircle]` flattens the
+  // corners so the ghost hover-fill reads as a sharp rectangle. `rounded-lg`
+  // (8px) makes the hover chip read as a clearly-rounded affordance in the
+  // header cluster.
   return (
     <Button
       type="button"

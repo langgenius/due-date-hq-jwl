@@ -4,13 +4,10 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
  * `MorningSweepContext` — shared on/off state for the "My morning sweep"
  * saved view on /rules/pulse.
  *
- * 2026-06-04 round 38 (Yuqi feedback item 10 — "My morning sweep can be
- * beside Sources, Alert history button"): the button used to live in the
- * filter pill row inside `AlertsListPage`, alongside Severity / Change
- * types / etc. Yuqi flagged that a SAVED VIEW (a preset combination of
- * filters) is page-level navigation rather than a single filter facet —
- * it belongs in the page-header actions cluster (next to Sources / Alert
- * history), not in the filter row.
+ * A SAVED VIEW (a preset combination of filters) is page-level
+ * navigation rather than a single filter facet, so its button belongs
+ * in the page-header actions cluster (next to Sources / Alert history),
+ * not in the filter row.
  *
  * The complication: the toggle's "active" state has to drive the alert
  * list's filter logic, but the button needs to render in the route shell
@@ -38,15 +35,12 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
  * untouched.
  */
 /**
- * 2026-06-04 round 52 (Yuqi "can you click it and it inserts a side
- * panel or a panel before the alert list about the digest"): context
- * expanded with `digestOpen` + `toggleDigest`. The trigger button in
- * the page-header actions cluster now opens the inline digest panel
- * (instead of a modal Dialog) and `AlertsListPage` reads `digestOpen`
- * to render the briefing card above the alerts list. `active` /
- * `toggle` for the filter-override still live alongside so the
- * panel's "Show me just these alerts" CTA can keep applying the
- * preset.
+ * `digestOpen` + `toggleDigest`: the trigger button in the page-header
+ * actions cluster opens the inline digest panel (not a modal Dialog)
+ * and `AlertsListPage` reads `digestOpen` to render the briefing card
+ * above the alerts list. `active` / `toggle` for the filter-override
+ * live alongside so the panel's "Show me just these alerts" CTA can
+ * apply the preset.
  */
 export type MorningSweepValue = {
   active: boolean

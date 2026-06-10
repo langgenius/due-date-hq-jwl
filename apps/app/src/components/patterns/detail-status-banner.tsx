@@ -8,16 +8,13 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * detail (DecisionBanners) and the deadline detail. One band, picked from real
  * state, sitting flush at the top of the panel under the page header.
  *
- * 2026-06-08 (Yuqi "ensure all elements are sustainable and reusing
- * components"): both panels had hand-rolled their own copies of this band — the
- * deadline detail's overdue/done/pending banner and the alert detail's
- * error/applied/pending banners were four near-identical inline divs. This is
- * the single implementation they share.
+ * The single implementation both panels share — the deadline detail's
+ * overdue/done/pending banner and the alert detail's error/applied/pending
+ * banners are otherwise four near-identical inline divs.
  *
  * Two layouts:
  *   • compact — the h-10 single-line form (title left, optional `note` right).
  *     Used for the steady-state "pending review" / "past deadline" bands.
- *     (Was h-7; Yuqi 2026-06-08 "too thin, slightly taller".)
  *   • stacked (default) — icon + title + `description`, with an optional
  *     right-side `action` (e.g. Retry / Undo). Used for the richer error /
  *     applied states.

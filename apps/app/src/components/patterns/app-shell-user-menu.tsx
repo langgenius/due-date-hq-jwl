@@ -206,29 +206,21 @@ function UserMenuTrigger({
 
   return (
     <DropdownMenu>
-      {/* 2026-05-25 (Yuqi Today #29): the trigger was a bare
-          avatar — initials only, no name. Hard to know who the
-          current account belongs to without opening the menu.
-          Promoted to "avatar + name" so the trigger reads as a
-          legible account chip. Name is truncated so a long display
-          name doesn't overflow the sidebar footer.
-          2026-05-25 (Yuqi rail alignment fix): in collapsed mode
-          the trigger now shrinks to just the 32×32 avatar
-          (matching the firm-switcher, bell, and toggle hit-box)
-          and the name span hides. Previously the name was
-          leaking past the 56px rail (the "S" of "Sarah" was
-          visible to the right of the avatar). */}
+      {/* The trigger is an avatar + name so it reads as a legible account
+          chip without opening the menu. Name is truncated so a long display
+          name doesn't overflow the sidebar footer. In collapsed mode the
+          trigger shrinks to just the 32×32 avatar (matching the
+          firm-switcher, bell, and toggle hit-box) and the name span hides, so
+          nothing leaks past the 56px rail. */}
       <DropdownMenuTrigger
         render={
           <button
             type="button"
             aria-label={accountLabel}
             className={cn(
-              // 2026-06-09 (Yuqi "unify expanded/collapsed padding"):
-              // keeps px-1 in both modes (Pencil UserFooter padding 4 →
-              // avatar at 16px). No collapsed size override — only the
-              // name span hides, the avatar stays put and centers in the
-              // narrow card via the symmetric padding.
+              // Keeps px-1 in both modes (avatar at 16px). No collapsed size
+              // override — only the name span hides, the avatar stays put and
+              // centers in the narrow card via the symmetric padding.
               'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2.5 rounded-lg px-1.5 py-2.5 outline-none transition-[background-color,color]',
               'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0',
               'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
@@ -237,11 +229,9 @@ function UserMenuTrigger({
         }
       >
         <UserAvatar user={user} />
-        {/* 2026-06-09 (Yuqi follow-up — match Pencil §UserFooter): the
-            chip is a two-line identity stack (display name + workspace
-            name) with a chevron affordance, replacing the single-line
-            name. Both the stack and chevron hide in the collapsed rail,
-            leaving just the avatar. */}
+        {/* The chip is a two-line identity stack (display name + workspace
+            name) with a chevron affordance. Both the stack and chevron hide
+            in the collapsed rail, leaving just the avatar. */}
         <span className="flex min-w-0 flex-1 flex-col text-left leading-tight group-data-[collapsed=true]/sidebar:hidden">
           <span className="truncate text-sm font-semibold text-text-primary">
             {displayName}
@@ -256,20 +246,16 @@ function UserMenuTrigger({
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-64">
-        {/* 2026-05-25 (Yuqi caps fix): this block was using
-            <DropdownMenuLabel>, which bakes in
-            `text-caption-xs font-medium tracking-wider uppercase` via
-            overlayLabelClassName (see packages/ui/src/lib/overlay.ts).
-            That's the right primitive for section kickers like
-            "PRACTICES" or "Map column to…" — short labels that
-            head a group of items. It is NOT right for the user
-            identity block, where it caused name + email +
-            "Owner at …" to all inherit text-transform: uppercase
-            ("SARAH MARTINEZ" / "SARAH.DEMO@DUEDATEHQ.TEST" /
-            "OWNER AT BRIGHTLINE DEMO CPA" — emails especially
-            should never render uppercase). Replaced with a plain
-            div wrapper inside the group so the inner spans pick
-            up their own type tokens without inherited transform. */}
+        {/* This block uses a plain div wrapper, NOT <DropdownMenuLabel>, which
+            bakes in `text-caption-xs font-medium tracking-wider uppercase` via
+            overlayLabelClassName (see packages/ui/src/lib/overlay.ts). That's
+            the right primitive for section kickers like "PRACTICES" or "Map
+            column to…" — short labels that head a group of items. It is NOT
+            right for the user identity block, where it would force name +
+            email + "Owner at …" to inherit text-transform: uppercase (emails
+            especially should never render uppercase). The plain div lets the
+            inner spans pick up their own type tokens without inherited
+            transform. */}
         <DropdownMenuGroup>
           <div className="flex flex-col gap-0.5 px-3 pt-1.5 pb-2 text-left">
             <span className="truncate text-sm font-medium text-text-primary">{displayName}</span>
@@ -378,11 +364,10 @@ function DemoAccountMenuItems({
 }
 
 function UserAvatar({ user }: { user: AuthUser }) {
-  // 2026-06-01: image-vs-initials fallback routed through
-  // AssigneeAvatar (type='human', size='sm' = 28px). `isMine` paints
-  // the canonical accent-tint bg that the previous hand-rolled
-  // <span> baked in directly. The primitive owns the <img>-on-load-
-  // error → initials fallback path now.
+  // The image-vs-initials fallback routes through AssigneeAvatar
+  // (type='human', size='sm' = 28px). `isMine` paints the canonical
+  // accent-tint bg. The primitive owns the <img>-on-load-error →
+  // initials fallback path.
   return (
     <AssigneeAvatar
       name={user.name || user.email}

@@ -49,20 +49,16 @@ export const DENSITY_OPTIONS = [
 export const DEFAULT_SORT: ObligationQueueSort = 'smart_priority'
 
 export const DEFAULT_DENSITY: ObligationQueueDensity = 'comfortable'
-// 2026-05-26 (Yuqi /deadlines #2): explicit "Group by" mode. Default
-// `due` keeps the chronological flat list the current product
-// optimises for. `client` clusters rows under client section
-// headers (with aggregate metadata). `status` clusters by status
-// (Blocked / Waiting on client / In review / Filed / Not started).
-// 2026-05-26 (Yuqi follow-up — "remove group by status, since there
-// is already the top tab switch between status"): Status is no
-// longer a Group-by option. The scope-tab band above the table
-// already filters by status (All / Past due / This week / Not started
-// / Waiting on client / Blocked / In review / Filed), so adding it
-// as a grouping axis was a redundant control. Group-by now offers
-// only "Due date" (default flat list) and "Client" (per-client
-// cluster headers). Legacy URLs with `?group=status` fall back to
-// the default `due` via nuqs's `parseAsStringLiteral` rejection.
+// Explicit "Group by" mode. Default `due` keeps the chronological
+// flat list the product optimises for. `client` clusters rows under
+// client section headers (with aggregate metadata).
+//
+// Status is deliberately not a Group-by option: the scope-tab band
+// above the table already filters by status (All / Past due / This
+// week / Not started / Waiting on client / Blocked / In review /
+// Filed), so a status grouping axis would be a redundant control.
+// Legacy URLs with `?group=status` fall back to the default `due`
+// via nuqs's `parseAsStringLiteral` rejection.
 
 export const GROUP_OPTIONS = ['due', 'client'] as const
 
@@ -88,10 +84,9 @@ export const INITIAL_CURSOR: ObligationQueueCursor = null
 
 export const PAGE_SIZE = 50
 // Client-side pagination window over the cumulative useInfiniteQuery
-// buffer. The page size is now derived from the viewport height
-// (2026-05-26, /deadlines sixty-fifth pass #14) so the table fills
-// the screen with as many rows as fit and the user never gets a
-// "half-full page above the pagination footer" view on short
+// buffer. The page size is derived from the viewport height so the
+// table fills the screen with as many rows as fit and the user never
+// gets a "half-full page above the pagination footer" view on short
 // monitors or a "scroll to see anything" view on tall monitors.
 // See `useResponsivePageSize` below — the floor/ceil + per-row
 // estimate live there. The constants here are clamp bounds so the
@@ -103,24 +98,12 @@ export const CLIENT_PAGE_SIZE_MIN = 8
 export const CLIENT_PAGE_SIZE_MAX = 40
 // Estimated per-row height in the current rendering. 56px = h-14
 // (the canonical workbench-table row height shared with /clients +
-// /rules/library after the 2026-05-26 cross-table element unify
-// pass). Was 48 briefly during a tighter-density experiment; bumped
-// back so all three tables share the same row pitch. If row chrome
-// changes again, re-measure with a quick `getBoundingClientRect().
-// height` test and adjust — undershooting fills the viewport
-// partially, overshooting scrolls.
+// /rules/library) so all three tables share the same row pitch. If
+// row chrome changes, re-measure with a quick
+// `getBoundingClientRect().height` test and adjust — undershooting
+// fills the viewport partially, overshooting scrolls.
 
 export const CLIENT_ROW_HEIGHT_PX = 56
-// Page chrome above + below the rows: page header + breadcrumb +
-// filter scope-tabs + filter action-chips + table header + pagination
-// footer + page bottom padding ≈ 320-360px. We pick 360 to leave
-// a small buffer so the last row is never clipped under the
-// footer. If the chrome grows or shrinks materially, tune here.
-// PAGE_CHROME_PX retired 2026-05-26 — responsive page size now
-// measures the scroll container's clientHeight directly, see
-// useResponsivePageSize. INSIDE_CHROME_PX replaces this constant
-// (defined near the hook).
-
 export const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 
 export const DAYS_FILTER_MIN = -3650
@@ -132,9 +115,6 @@ export const THIS_WEEK_MAX_DAYS = 7
 export const INSIDE_CHROME_PX = 96
 
 export const DAY_MS = 86_400_000
-// OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME retired 2026-05-26 with the
-// sixty-fifth pass #17 DueDaysPill cleanup — the Badge wrapper was
-// dropped so the shared text-xs token is no longer in use.
 // Width of the Due column. Tokenized so the magic-number doesn't fight
 // long client-name wraps if the table layout shifts.
 
@@ -142,13 +122,12 @@ export const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'min-w-[148px]'
 
 export const NON_HIDEABLE_COLUMNS = new Set(['select'])
 // Columns that ship hidden by default and are opt-in via the
-// Columns dropdown. The default visible set was trimmed to 6
-// (2026-05-21) — Select · Client · Form · Status · Due · Owner —
-// per design call: 12 columns is too much for skim-reading, and
-// power users can opt into the rest from the Columns menu. Smart
-// Priority is hidden by default but the queue still sorts by it
-// (sort=smart_priority); enable it from the menu when you want
-// the tier label rendered as a cell.
+// Columns dropdown. The default visible set is 6 — Select · Client ·
+// Form · Status · Due · Owner — because 12 columns is too much for
+// skim-reading, and power users can opt into the rest from the
+// Columns menu. Smart Priority is hidden by default but the queue
+// still sorts by it (sort=smart_priority); enable it from the menu
+// when you want the tier label rendered as a cell.
 
 export const DEFAULT_HIDDEN_COLUMN_IDS = [
   'smartPriority',
@@ -158,25 +137,15 @@ export const DEFAULT_HIDDEN_COLUMN_IDS = [
   'daysUntilDue',
   'evidenceCount',
 ] as const
-// Columns that auto-collapse when the detail panel is open.
-// 2026-05-25 (Yuqi Deadlines #11): widened the auto-hide set to
-// keep only Client + Internal Due in the queue while the drawer is
-// open. Status / Priority / Days-until-due all repeat information
-// the drawer header / body already surfaces for the focused
-// obligation, and the queue here only needs to support row-to-row
-// navigation — name + when-it's-due. State / County / Tax type /
-// Assignee / Evidence were already in the auto-hide set from the
-// earlier 2026-05-21 panel-fit pass for the same reason (panel
-// header carries them). On close, the user's saved column choices
-// come back because we strip the auto-hidden set from the saved
-// `hidden` URL state before persisting (see onColumnVisibilityChange).
-// 2026-05-26 (Yuqi feedback #8): the auto-hide set when the right
-// panel is open shrunk significantly. Yuqi's call: task/deadline
-// (taxType + daysUntilDue) and status should stay visible alongside
-// the client name so the table still tells the row's primary story
-// even with a 600px panel claiming half the width. Now only the
+// Columns that auto-collapse when the detail panel is open. Only the
 // secondary / state-cluster columns auto-hide; the row anchor
-// (Client + Form + Due + Status) survives the panel-open layout.
+// (Client + Form + Due + Status) survives the panel-open layout so
+// the table still tells the row's primary story even with a 600px
+// panel claiming half the width, while the row-to-row navigation only
+// needs name + when-it's-due. On close, the user's saved column
+// choices come back because we strip the auto-hidden set from the
+// saved `hidden` URL state before persisting (see
+// onColumnVisibilityChange).
 
 export const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
   'clientState',
@@ -189,22 +158,20 @@ export const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
 export const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
 
-// 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-// the obligation detail panel now shares the alerts panel's
-// width contract and motion choreography. The flex slot opens
-// from 0 → 60% (matching the alerts panel in
+// The obligation detail panel shares the alerts panel's width
+// contract and motion choreography (match AlertDetailDrawer). The
+// flex slot opens from 0 → 60% (matching the alerts panel in
 // AlertsListPage.tsx L838-867), the inner surface rises from
 // y:'100%' → 0 on enter, dissolves opacity → 0 on exit. Same
 // ease-apple curve, same durations as the alert drawer so the
 // two right-rail panels read as siblings.
 
 export const DETAIL_SWIFT_EASE = [0.32, 0.72, 0, 1] as const
-// 2026-05-27 (Yuqi feedback "remove width:60%" + "responsive也都
-//是没有的"): dropped the hardcoded width animation. Sizing is now
-// CSS-class driven (responsive: full width on narrow, 3/5 at xl+,
-// max-capped so ultra-wide doesn't bloat the drawer past usefulness).
-// Animation switched from width-interpolation to x-transform so the
-// slide-in works regardless of the final width value.
+// Sizing is CSS-class driven (responsive: full width on narrow, 3/5
+// at xl+, max-capped so ultra-wide doesn't bloat the drawer past
+// usefulness). Animation uses x-transform rather than
+// width-interpolation so the slide-in works regardless of the final
+// width value.
 
 export const DETAIL_PANEL_OPEN_ANIM = {
   x: 0,
@@ -217,12 +184,11 @@ export const DETAIL_PANEL_CLOSE_ANIM = {
   opacity: 0,
   transition: { duration: 0.28, ease: DETAIL_SWIFT_EASE },
 } as const
-// 2026-05-27 (Yuqi drawer parity): paper-rise enter matches
-// AlertDetailDrawer's inner choreography (y:100%→0, 0.64s
-// duration, 0.14s delay) — the surface visibly extrudes from
-// below the slot. Exit collapses to opacity-only dissolve
-// (0.22s) so the slot closes underneath without a slide-down
-// mirror motion.
+// Paper-rise enter matches AlertDetailDrawer's inner choreography
+// (y:100%→0, 0.64s duration, 0.14s delay) — the surface visibly
+// extrudes from below the slot. Exit collapses to opacity-only
+// dissolve (0.22s) so the slot closes underneath without a
+// slide-down mirror motion.
 
 export const DETAIL_PANEL_INNER_RISE_ANIM = {
   y: 0,
@@ -233,11 +199,10 @@ export const DETAIL_PANEL_INNER_FADE_ANIM = {
   opacity: 0,
   transition: { duration: 0.22, ease: DETAIL_SWIFT_EASE },
 } as const
-// 2026-05-26 (Yuqi seventieth pass #1 — row-switch should be a
-// SMALL animation, not big): drop the x-translation on the
-// content swap entirely and tighten the duration. Open/close
-// still uses the bigger width + paper-rise animations above; only
-// the row-to-row content transition is the quick crossfade.
+// The row-to-row content swap is a quick crossfade (no
+// x-translation, short duration) — a small animation, not big.
+// Open/close still uses the bigger width + paper-rise animations
+// above; only the content transition is the quick crossfade.
 
 export const DETAIL_PANEL_CONTENT_ENTER_ANIM = {
   opacity: 1,
@@ -445,8 +410,7 @@ export const TIMELINE_STAGE_COUNT = 6
 // and blocked, or come back to in_review after a rejection), so we
 // stamp each stage at its FIRST entry rather than the latest.
 //
-// 2026-05-24 (re-critique): the previous shape took a `stageKeys`
-// param that looked like it controlled matching, but actually only
-// sized the array — matching was driven by `timelineIndexForStatus`.
-// Dropped the misleading argument; the array length is now an
-// explicit module constant aligned with the index function above.
+// Matching is driven by `timelineIndexForStatus`; the array length
+// is an explicit module constant aligned with the index function
+// above (rather than a `stageKeys` param that would look like it
+// controlled matching but only sized the array).

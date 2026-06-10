@@ -21,16 +21,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 // Each button uses the canonical `<Button>` primitive so chrome
 // (radius, hover, focus ring) propagates from the design system.
 //
-// 2026-06-04 round 42 (Yuqi "the buttons look ugly tho"): chrome
-// dropped from `variant="outline"` + `size-8` to `variant="ghost"`
-// + `size-7` + ghost text/bg tints. The outline borders read as
-// three loud 1px rectangles sitting on top of the alert card —
-// "ugly" was an accurate description. The ghost variant has no
-// border, no fill at rest; hover paints a quiet `state-base-hover`
-// tint behind just the icon. Smaller icon (`size-3` instead of
-// `size-3.5`) drops another bit of visual weight. The hover-only
-// reveal pattern + ghost chrome together make these read as
-// "available actions" rather than "things to click NOW".
+// The buttons use `variant="ghost"` + `size-7` + ghost text/bg tints:
+// no border, no fill at rest; hover paints a quiet `state-base-hover`
+// tint behind just the icon. Outline borders would read as three loud
+// 1px rectangles on top of the alert card. The hover-only reveal
+// pattern + ghost chrome together make these read as "available
+// actions" rather than "things to click NOW".
 //
 // Buttons whose handler is undefined render as disabled — the row's
 // column width stays stable across alerts in different terminal

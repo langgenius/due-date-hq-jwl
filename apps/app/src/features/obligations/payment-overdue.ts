@@ -1,15 +1,14 @@
-// 2026-05-27 (φ journey-audit + ω D12 merge): canonical payment-overdue
-// helpers. Two signatures land here from two waves:
+// Canonical payment-overdue helpers. Two public signatures:
 //
-// - φ wave-6: object-based (takes obligation + today timestamp).
-//   Filters by PAYMENT_TERMINAL_STATUSES ('completed', 'not_applicable').
+// - object-based (takes obligation + today timestamp). Filters by
+//   PAYMENT_TERMINAL_STATUSES ('completed', 'not_applicable').
 //   Used by client-side peek/drawer/strip.
-// - ω wave-7: string-based (takes paymentDueDate + asOfDate strings).
-//   Used by the dashboard "Needs attention" RowMeta which only has the
-//   ISO strings the contract emits.
+// - string-based (takes paymentDueDate + asOfDate strings). Used by
+//   the dashboard "Needs attention" RowMeta which only has the ISO
+//   strings the contract emits.
 //
-// Both exports live here. Internal `paymentOverdueDaysFromDates` does
-// the date math once; the two public signatures wrap it.
+// Internal `paymentOverdueDaysFromDates` does the date math once; the
+// two public signatures wrap it.
 //
 // Anti-pattern #1 from the product model: extension/filing ≠ payment.
 // A row whose filing is done (status='done'/'paid') can still be

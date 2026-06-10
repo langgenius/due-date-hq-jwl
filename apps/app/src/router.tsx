@@ -281,8 +281,7 @@ async function protectedLoader(args: LoaderFunctionArgs) {
   const consumedLocale = applyRequestLocaleHandoff(url)
   if (!session) {
     const pathAndQuery = pathAndQueryWithoutLocale(url)
-    // 2026-06-05 (Yuqi "i don't want to login, to see the demo space"):
-    // in dev mode (Vite `import.meta.env.DEV`) we auto-bootstrap a demo
+    // In dev mode (Vite `import.meta.env.DEV`) we auto-bootstrap a demo
     // session via the server's existing `/api/e2e/demo-login` endpoint
     // instead of redirecting to `/login`. The endpoint signs you in as
     // the Pro Plan demo CPA (firm `mock_firm_plan_pro` — seeded with
@@ -346,11 +345,10 @@ export function createAppRouter() {
       ErrorBoundary: RouteErrorBoundary,
       children: [
         {
-          // 2026-06-09 (Yuqi — pW6pK split-screen redesign): /login is now a
-          // standalone full-bleed route that owns its own chrome (two-column
-          // split + dedicated footer), so it sits OUTSIDE the EntryShell layout
-          // — it no longer wants the shared header/footer. Every other entry
-          // surface keeps EntryShell below.
+          // /login is a standalone full-bleed route that owns its own chrome
+          // (two-column split + dedicated footer), so it sits OUTSIDE the
+          // EntryShell layout — it doesn't want the shared header/footer.
+          // Every other entry surface keeps EntryShell below.
           path: '/login',
           loader: guestLoader,
           handle: routeHandle(routeSummaries.login),
@@ -362,46 +360,53 @@ export function createAppRouter() {
           },
         },
         {
+          // /two-factor is also a standalone full-bleed route (brand bar +
+          // trust line + footer via CenteredAuthScreen), so it sits outside
+          // EntryShell too.
+          path: '/two-factor',
+          loader: twoFactorLoader,
+          handle: routeHandle(routeSummaries.twoFactor),
+          HydrateFallback: EntryRouteHydrateFallback,
+          lazy: async () => {
+            const { TwoFactorRoute } = await import('@/routes/two-factor')
+
+            return { Component: TwoFactorRoute }
+          },
+        },
+        {
+          // /accept-invite is a standalone full-bleed route too
+          // (CenteredAuthScreen chrome).
+          path: '/accept-invite',
+          loader: acceptInviteLoader,
+          handle: routeHandle(routeSummaries.acceptInvite),
+          HydrateFallback: EntryRouteHydrateFallback,
+          lazy: async () => {
+            const { AcceptInviteRoute } = await import('@/routes/accept-invite')
+
+            return { Component: AcceptInviteRoute }
+          },
+        },
+        {
+          // /onboarding is a standalone full-bleed route (CenteredAuthScreen
+          // chrome), so it sits outside EntryShell too. EntryShell wraps only
+          // /migration/new and /readiness/:token.
+          path: '/onboarding',
+          loader: onboardingLoader,
+          handle: routeHandle(routeSummaries.onboarding),
+          HydrateFallback: EntryRouteHydrateFallback,
+          lazy: async () => {
+            const { OnboardingRoute } = await import('@/routes/onboarding')
+
+            return { Component: OnboardingRoute }
+          },
+        },
+        {
           // Pathless layout route — renders the shared "entry" chrome
           // (header / footer / locale switcher) once for every page users
           // see before reaching the dashboard shell. Each child owns its
-          // session-state loader independently. See `docs/dev-log/
-          // 2026-04-26-entry-shell-extraction.md` for the naming rationale.
+          // session-state loader independently.
           Component: EntryShell,
           children: [
-            {
-              path: '/two-factor',
-              loader: twoFactorLoader,
-              handle: routeHandle(routeSummaries.twoFactor),
-              HydrateFallback: EntryRouteHydrateFallback,
-              lazy: async () => {
-                const { TwoFactorRoute } = await import('@/routes/two-factor')
-
-                return { Component: TwoFactorRoute }
-              },
-            },
-            {
-              path: '/accept-invite',
-              loader: acceptInviteLoader,
-              handle: routeHandle(routeSummaries.acceptInvite),
-              HydrateFallback: EntryRouteHydrateFallback,
-              lazy: async () => {
-                const { AcceptInviteRoute } = await import('@/routes/accept-invite')
-
-                return { Component: AcceptInviteRoute }
-              },
-            },
-            {
-              path: '/onboarding',
-              loader: onboardingLoader,
-              handle: routeHandle(routeSummaries.onboarding),
-              HydrateFallback: EntryRouteHydrateFallback,
-              lazy: async () => {
-                const { OnboardingRoute } = await import('@/routes/onboarding')
-
-                return { Component: OnboardingRoute }
-              },
-            },
             {
               path: '/migration/new',
               loader: migrationActivationLoader,
@@ -524,10 +529,9 @@ export function createAppRouter() {
               },
             },
             {
-              // 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil rzzww):
-              // `/deadlines/:ref` is now its own master-detail PAGE
-              // (navigator rail + detail), not the table route's side-panel.
-              // The plain `/deadlines` above still renders the table.
+              // `/deadlines/:ref` is its own master-detail PAGE (navigator
+              // rail + detail), not the table route's side-panel. The plain
+              // `/deadlines` above still renders the table.
               path: 'deadlines/:obligationRef',
               handle: routeHandle(routeSummaries.deadlines),
               HydrateFallback: RouteHydrateFallback,

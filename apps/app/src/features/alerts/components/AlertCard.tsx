@@ -72,8 +72,7 @@ interface AlertCardProps {
 
 // Single Alert row used by /alerts (Alerts).
 //
-// 2026-06-04 (Pencil jykZH / ZkXFr redesign): the card body is a
-// single vertical stack — a top meta row (severity pill + source +
+// The card body is a single vertical stack — a top meta row (severity pill + source +
 // timestamp + action-status pill), a title row (StateBadge pill +
 // title + workflow status word), the AI summary, and a 4-column
 // facts panel — followed by the impact row (clients-affected count,
@@ -97,17 +96,14 @@ export function AlertCard({
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
 
-  // 2026-05-25 (Yuqi /alerts fourth pass #2): LIST the actual
-  // affected-client names on the card instead of a bare "5 clients
-  // may be affected" summary.
-  // 2026-06-01: the rows are now batch-loaded by the parent
-  // (AlertsListPage) via a single `getDetailsBatch` call and passed in
-  // as a prop. Previously each card fired its own `getDetail`, so a
-  // 50-alert list opened 50 parallel detail requests on render.
+  // LIST the actual affected-client names on the card instead of a bare
+  // "5 clients may be affected" summary. The rows are batch-loaded by
+  // the parent (AlertsListPage) via a single `getDetailsBatch` call and
+  // passed in as a prop, so a 50-alert list doesn't open 50 parallel
+  // `getDetail` requests on render.
   const allAffectedNames = affectedClients
-  // 2026-05-26 (Yuqi seventeenth pass #1): collect each unique
-  // client's name AND whether the alert flags them for review.
-  // Needs-review clients sort to the FRONT of the visible list so
+  // Collect each unique client's name AND whether the alert flags them
+  // for review. Needs-review clients sort to the FRONT of the visible list so
   // the row matching the trailing "N flagged for review" count is
   // the first one the CPA sees. Eligible / already-applied
   // clients trail.
@@ -125,23 +121,21 @@ export function AlertCard({
   uniqueClients.sort((a, b) => Number(b.needsReview) - Number(a.needsReview))
   const visibleClients = uniqueClients.slice(0, VISIBLE_CLIENT_NAMES)
   const overflowNames = Math.max(uniqueClients.length - visibleClients.length, 0)
-  // 2026-05-26 (Yuqi /alerts follow-up #10): 3-tier qualitative
-  // confidence (LOW / MEDIUM / HIGH) instead of numeric AI XX%.
-  // Card background tone follows the level: LOW gets the destructive
-  // tint (review urgency), MEDIUM gets a faint warning tint, HIGH
-  // stays clean.
-  // 2026-05-26 (Step 9 AI Visibility Audit F-002): thresholds now
-  // sourced from the canonical `aiConfidenceTier` helper so every
-  // surface in the product agrees on the same 0.5 / 0.85 ladder.
+  // 3-tier qualitative confidence (LOW / MEDIUM / HIGH) instead of
+  // numeric AI XX%. Card background tone follows the level: LOW gets the
+  // destructive tint (review urgency), MEDIUM gets a faint warning tint,
+  // HIGH stays clean. Thresholds are sourced from the canonical
+  // `aiConfidenceTier` helper so every surface in the product agrees on
+  // the same 0.5 / 0.85 ladder.
   const confidenceLevel = aiConfidenceTier(alert.confidence)
   const lowConfidence = confidenceLevel === 'low'
   const mediumConfidence = confidenceLevel === 'medium'
   const showReadinessChip = showReadiness && alert.status === 'matched'
-  // 2026-06-05 (Affecting facts cell): the alert-level `forms` list now rides
-  // on PulseAlertPublic (plumbed through toAlert / toAlertPublic), so the
-  // "Affecting" cell renders the first parsed form (human label via
-  // formatTaxCode) plus an "(N more)" overflow when the change touches several forms
-  // — no per-card detail fetch. Empty forms fall back to the `—` placeholder.
+  // The alert-level `forms` list rides on PulseAlertPublic (plumbed
+  // through toAlert / toAlertPublic), so the "Affecting" cell renders
+  // the first parsed form (human label via formatTaxCode) plus an "(N
+  // more)" overflow when the change touches several forms — no per-card
+  // detail fetch. Empty forms fall back to the `—` placeholder.
   const firstForm = alert.forms[0]
   const moreFormsCount = Math.max(alert.forms.length - 1, 0)
 
@@ -151,14 +145,12 @@ export function AlertCard({
       onReview()
     }
   }
-  // 2026-06-04 round 17 (Yuqi page-feedback "click from this to
-  // enter the Alert page view — this clicked alert should be
-  // selected"): when the user lands on /alerts with a pre-selected
-  // alertId (e.g. clicked a /today NeedsAttentionCard → DrawerProvider
-  // navigates to ?alert=<id>), the matching card receives
-  // `active={true}` and the selected chrome paints. BUT the alert may
-  // be far down the list — scroll it into view automatically on first
-  // activate so the wayfinding loop closes.
+  // When the user lands on /alerts with a pre-selected alertId (e.g.
+  // clicked a /today NeedsAttentionCard → DrawerProvider navigates to
+  // ?alert=<id>), the matching card receives `active={true}` and the
+  // selected chrome paints. The alert may be far down the list — scroll
+  // it into view automatically on first activate so the wayfinding loop
+  // closes.
   const cardRef = useRef<HTMLElement | null>(null)
   useEffect(() => {
     if (!active) return
@@ -174,38 +166,34 @@ export function AlertCard({
       onClick={onReview}
       onKeyDown={handleCardKeyDown}
       className={cn(
-        // 2026-06-04 round 40 (Yuqi "左右 padding 可以更多"): asymmetric
-        // padding — vertical `py-3` (12px), horizontal `px-5` (20px).
-        // 2026-06-04 round 32 (Pencil ZkXFr): rounded-xl, no resting
-        // border (the white card defines its own edge against the gray
-        // page wash via the round-25 bg inversion below). Outer flex
-        // gap-0 since the body is a single child column.
+        // Asymmetric padding — vertical `py-3` (12px), horizontal `px-5`
+        // (20px). rounded-xl, no resting border (the white card defines
+        // its own edge against the gray page wash via the bg inversion
+        // below). Outer flex gap-0 since the body is a single child
+        // column.
         'group/alert-card relative flex cursor-pointer items-start gap-0 rounded-xl px-5 py-3 transition-[opacity,background-color,border-color]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
-          ? // 2026-06-04 round 41 (Yuqi "hover 背景蓝色也不是很美丽"):
-            // active uses the lighter blue tint (`state-accent-hover`)
+          ? // Active uses the lighter blue tint (`state-accent-hover`)
             // plus a 1px accent-blue inset ring as the "this row is
             // open in the panel" cue. Inset ring (not a border) avoids
             // a 1px layout shift when toggling active.
             'bg-state-accent-hover shadow-[inset_0_0_0_1px_var(--color-state-accent-active-alt)]'
           : cn(
               // Resting: white card, no border, no ring. Hover paints a
-              // subtle inset ring on the same white bg (round 41 — the
-              // earlier blue/gray bg hovers read as too heavy / collided
-              // with the page wash). White card gains a quiet edge on
-              // hover; inset ring avoids the 1px layout shift.
+              // subtle inset ring on the same white bg. White card gains
+              // a quiet edge on hover; inset ring avoids the 1px layout
+              // shift.
               'bg-background-default hover:ring-1 hover:ring-inset hover:ring-divider-regular',
               compactClients && 'opacity-70 hover:opacity-100',
             ),
         compact && 'p-2.5',
       )}
     >
-      {/* 2026-06-04 round 23 / round 31 (Pencil jykZH / ZkXFr): the
-          card body is a single vertical stack with gap-2. Top meta row,
-          title row, summary, and facts panel render from the IIFE below
-          (they share the severity / action / open-status helpers); the
-          impact row and functional footer follow. */}
+      {/* The card body is a single vertical stack with gap-2. Top meta
+          row, title row, summary, and facts panel render from the IIFE
+          below (they share the severity / action / open-status helpers);
+          the impact row and functional footer follow. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         {(() => {
           const severity = impactBadgeFromAlert(alert)
@@ -240,11 +228,10 @@ export function AlertCard({
                   timestamp + action-status pill on the right. */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
-                  {/* Round 66 + 84: severity gated to HIGH only (LOW /
-                      MEDIUM render nothing; absence IS the signal),
-                      pill chrome aligned to canonical
-                      h-[22px] rounded-[4px] px-2 text-caption font-bold
-                      tracking-[0.7px] uppercase (rounds 66/84). */}
+                  {/* Severity gated to HIGH only (LOW / MEDIUM render
+                      nothing; absence IS the signal), pill chrome aligned
+                      to canonical h-[22px] rounded-[4px] px-2 text-caption
+                      font-bold tracking-[0.7px] uppercase. */}
                   {severity.id === 'high' ? (
                     <span
                       className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-caption font-bold tracking-[0.7px] uppercase"
@@ -274,17 +261,16 @@ export function AlertCard({
                 </div>
               </div>
 
-              {/* Title row — 2026-06-04 round 39 (Yuqi item 7): the
-                  StateBadge flag motif and the two-letter code are
-                  wrapped in ONE bordered pill (gap-1) so the flag reads
-                  as the icon and the code as the label. Title 18/600;
+              {/* Title row — the StateBadge flag motif and the two-letter
+                  code are wrapped in ONE bordered pill (gap-1) so the flag
+                  reads as the icon and the code as the label. Title 18/600;
                   the workflow status word ("Open"/"Applied"/…) follows
                   via a flex-1 spacer. */}
               <div className="flex items-center gap-2">
-                {/* Round 77 + 84: state pill aligned to canonical —
-                    no bg, no padding, 16px circular motif, 12/700
-                    mono code with tracking-[0.7px]. Same primitive
-                    across /today + /alerts + drawer. */}
+                {/* State pill aligned to canonical — no bg, no padding,
+                    16px circular motif, 12/700 mono code with
+                    tracking-[0.7px]. Same primitive across /today +
+                    /alerts + drawer. */}
                 <span className="inline-flex h-[22px] shrink-0 items-center gap-1">
                   <StateBadge
                     code={alert.jurisdiction}
@@ -320,10 +306,8 @@ export function AlertCard({
                 </p>
               ) : null}
 
-              {/* Facts panel R2kul — 2026-06-04 round 36, item 6;
-                  2026-06-05 rewire: 3 columns WHAT CHANGED / AFFECTING /
-                  PUBLISHED (the old First Application + Transition
-                  placeholder cells were dropped).
+              {/* Facts panel R2kul — 3 columns WHAT CHANGED / AFFECTING /
+                  PUBLISHED.
                   • WHAT CHANGED → changeKindLabel(alert.changeKind)
                   • AFFECTING    → first parsed form (human label) + "(N more)"
                     overflow; `—` when the alert carries no form scope.
@@ -366,7 +350,7 @@ export function AlertCard({
           )
         })()}
 
-        {/* Impact content — 2026-05-25/26 (Yuqi /alerts): the impact
+        {/* Impact content — the impact
             line LISTS the affected client names instead of collapsing
             them to a count. Up to 3 names render as chips inline; the
             tail folds to `+N more`. Falls back to a review-only sentence
@@ -398,8 +382,7 @@ export function AlertCard({
               {visibleClients.length > 0 ? ':' : '.'}
             </span>
             {visibleClients.map((client) => {
-              // 2026-05-26 (Yuqi /alerts sixth pass #2): client chip
-              // leads with an entity icon — `Building2` for business
+              // Client chip leads with an entity icon — `Building2` for business
               // clients (LLC / Inc / Corp / Co / Ltd suffixes),
               // `UserRound` for individuals. Needs-review clients get a
               // trailing AlertCircle so the "needs your attention" signal
@@ -515,9 +498,8 @@ export function AlertCard({
   )
 }
 
-// 2026-05-26 (Yuqi /alerts sixth pass #2): until the server adds
-// `entityKind` to PulseAffectedClient, classify business vs.
-// individual by the canonical legal-suffix patterns in the name.
+// Until the server adds `entityKind` to PulseAffectedClient, classify
+// business vs. individual by the canonical legal-suffix patterns in the name.
 // Word-boundaried matching + case-insensitive — "Hudson & Wells LLC"
 // → enterprise; "John Smith" → individual; "Acme Corp" → enterprise.
 // Punctuation tolerated for `Co.` and `P.C.`. False negatives

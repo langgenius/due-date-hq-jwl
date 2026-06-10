@@ -16,15 +16,11 @@ import { formatRelativeTime } from '@/lib/utils'
 import { changeKindLabel } from './PulseChangeKindChip'
 
 /**
- * 2026-06-08 (Pencil ibEoz `DOga0 List Pane`): the 380px alert-list
- * secondary sidebar shown on the full-page detail layout — its own
- * `Alerts · N active` head, an All / Unresolved segmented control +
- * search, and a compact-item body (60px time column + badge meta-row +
- * two-line title). The open alert's item carries the 2px left accent.
- *
- * This is the SECONDARY-SIDEBAR framing of the detail page; the prior
- * implementation rendered the full card list beside a slide-over
- * panel, which was the wrong skeleton.
+ * The 380px alert-list secondary sidebar shown on the full-page detail
+ * layout — its own `Alerts · N active` head, an All / Unresolved
+ * segmented control + search, and a compact-item body (60px time column
+ * + badge meta-row + two-line title). The open alert's item carries the
+ * 2px left accent.
  */
 
 export function AlertListRail({
@@ -40,9 +36,8 @@ export function AlertListRail({
   activeId: string | null
   onSelect: (alertId: string) => void
   onCloseDetail?: () => void
-  // 2026-06-09 (Yuqi "on alert detail page, there should be a toggle of review
-  // and active as well"): the work-queue toggle is echoed in the rail head so
-  // you can switch queues while stepping through a detail. Wired to the page's
+  // The work-queue toggle is echoed in the rail head so you can switch
+  // queues while stepping through a detail. Wired to the page's
   // workQueue state; omit to hide it.
   workQueue?: 'active' | 'review'
   onWorkQueueChange?: (queue: 'active' | 'review') => void
@@ -60,11 +55,10 @@ export function AlertListRail({
   // to this rail (which are capped at the list limit).
   const activeCount = useActiveAlertCount()
 
-  // 2026-06-09 (Yuqi /alerts D10): the All/Unresolved segmented is removed from
-  // the rail — every alert in the active queue is already unresolved, so the
-  // toggle was a near-no-op here (it lives on the main list page where the
-  // distinction matters). The rail now filters by search only, and the search
-  // owns the full filter bar.
+  // The rail has no All/Unresolved segmented — every alert in the active
+  // queue is already unresolved, so the toggle is a near-no-op here (it
+  // lives on the main list page where the distinction matters). The rail
+  // filters by search only, and the search owns the full filter bar.
   const query = search.trim().toLowerCase()
   const visible = useMemo(
     () =>
@@ -81,10 +75,9 @@ export function AlertListRail({
     <div className="flex h-full w-[380px] shrink-0 flex-col border-r border-divider-subtle bg-background-default">
       {/* ListHead — "Alerts · N active". */}
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
-        {/* 2026-06-08 (Yuqi /alerts G "make the Alerts title navigate back to
-            the list"): the head title closes the open detail and returns to the
-            /alerts list. Rendered as a button when a close handler is wired;
-            falls back to a plain label otherwise. */}
+        {/* The head title closes the open detail and returns to the
+            /alerts list. Rendered as a button when a close handler is
+            wired; falls back to a plain label otherwise. */}
         {onCloseDetail ? (
           <button
             type="button"
@@ -142,8 +135,8 @@ export function AlertListRail({
         </div>
       ) : null}
 
-      {/* FilterRow — full-width search (the All/Unresolved segmented was removed,
-          see D10 above). */}
+      {/* FilterRow — full-width search (no All/Unresolved segmented,
+          see note above). */}
       <div className="flex shrink-0 items-center gap-2 border-b border-divider-subtle px-4 py-2.5">
         <label className="inline-flex h-7 w-full items-center gap-2 rounded-lg px-2 text-text-muted transition-colors focus-within:bg-state-base-hover hover:bg-state-base-hover">
           <SearchIcon className="size-3.5 shrink-0" aria-hidden />
@@ -215,15 +208,13 @@ function RailItem({
       aria-label={t`Alert: ${alert.title}`}
       className={cn(
         // `border-b-divider-subtle` (bottom-only color) so it doesn't
-        // override the left accent below.
-        // 2026-06-08 (Yuqi "左边 list 太密密麻麻"): roomier item padding
-        // (py-4) + a touch more column gap so the rail breathes.
+        // override the left accent below. Roomier item padding (py-4) +
+        // a touch more column gap so the rail breathes.
         'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-[background-color,opacity]',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
-        // 2026-06-08 (Yuqi /alerts F "non-active items dimmed more so the open
-        // one stands out"): the whole inactive row drops to opacity-60 (badges
-        // included) and lifts back to full strength on hover; the active row
-        // stays opacity-100 with its 2px left accent.
+        // The whole inactive row drops to opacity-60 (badges included)
+        // and lifts back to full strength on hover; the active row stays
+        // opacity-100 with its 2px left accent.
         active
           ? 'border-l-2 border-l-state-accent-solid bg-[#fafbfc] opacity-100'
           : 'border-l-2 border-l-transparent opacity-60 hover:bg-state-base-hover hover:opacity-100',
@@ -241,25 +232,21 @@ function RailItem({
       {/* Content — badge meta row + 2-line title. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          {/* 2026-06-09 (Yuqi "remove the circular state badge"): plain
-              bordered 2-letter code; the StateBadge seal is dropped, matching
-              the /alerts row. */}
+          {/* Plain bordered 2-letter code (no StateBadge seal),
+              matching the /alerts row. */}
           <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-caption font-semibold text-text-secondary uppercase">
             {alert.jurisdiction}
           </span>
           {form ? <TaxCodeBadge code={form} /> : null}
-          {/* 2026-06-08 (Yuqi feedback #14 "same style as Today's alert"):
-              change-kind matches the /today card's treatment — sans
-              font-semibold tracking-[0.4px] text-tertiary (was font-bold
-              text-muted). */}
+          {/* Change-kind matches the /today card's treatment — sans
+              font-semibold tracking-[0.4px] text-tertiary. */}
           <span className="text-caption-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>
-        {/* 2026-06-08 (Yuqi /alerts D2 "non-active items read dimmer so
-            the selected one stands out"): the active item's title is
-            text-primary; non-active titles drop to text-tertiary. The 2px
-            left accent on the active row is kept. */}
+        {/* The active item's title is text-primary; non-active titles
+            drop to text-tertiary. The 2px left accent on the active row
+            is kept. */}
         <span
           className={cn(
             'line-clamp-2 text-sm font-medium leading-[1.35]',

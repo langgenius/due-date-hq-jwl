@@ -9,12 +9,10 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * LowConfidenceBadge — canonical "AI extracted this with low confidence,
  * review before applying" badge.
  *
- * 2026-05-25 (Yuqi Today #2): originally inlined inside the
- * NeedsAttentionCard on the dashboard with a `bg-state-warning-hover`
- * pill + Astroid icon + uppercase tracked text. Yuqi flagged it as
- * the canonical shape we want for *all* low-confidence signals across
- * the product. Promoted to a primitive so future consumers reference
- * one component instead of hand-rolling the same visual.
+ * The canonical shape for *all* low-confidence signals across the
+ * product (a `bg-state-warning-hover` pill + Astroid icon + uppercase
+ * tracked text) so consumers reference one component instead of
+ * hand-rolling the same visual.
  *
  * ## When to use this
  * The badge says "the AI is unsure — don't trust this fact without a
@@ -55,13 +53,10 @@ import { cn } from '@duedatehq/ui/lib/utils'
  */
 export function LowConfidenceBadge({ className }: { className?: string }) {
   const { t } = useLingui()
-  // 2026-06-04 (Yuqi feedback #5 — "why does only this one has Low
-  // Confidence?"): wrapped in `<Tooltip>` so the badge explains
-  // itself on hover. Previously the badge appeared without context;
-  // a CPA scanning the row didn't know WHY THIS alert was flagged
-  // (vs. its siblings without the badge) — the rationale is "the
-  // AI's extraction confidence on this alert fell below the
-  // canonical 0.5 threshold."
+  // Wrapped in `<Tooltip>` so the badge explains itself on hover — a CPA
+  // scanning the row needs to know WHY THIS alert was flagged (vs. its
+  // siblings without the badge): the AI's extraction confidence on this
+  // alert fell below the canonical 0.5 threshold.
   return (
     <Tooltip>
       <TooltipTrigger
@@ -76,13 +71,11 @@ export function LowConfidenceBadge({ className }: { className?: string }) {
           </Badge>
         )}
       />
-      {/* 2026-06-04 round 11 (Yuqi "you never answered - what does
-          Low Confidence do"): tooltip rewritten to state HONEST
-          current behavior. The badge is informational only — it
-          doesn't block Apply today. Its job is to prompt the CPA
-          to manually verify the extracted facts against the
-          source. Blocking logic (require sign-off before Apply,
-          route to a review queue) is roadmapped but not built. */}
+      {/* The tooltip states the honest current behavior. The badge is
+          informational only — it doesn't block Apply today. Its job is to
+          prompt the CPA to manually verify the extracted facts against the
+          source. Blocking logic (require sign-off before Apply, route to a
+          review queue) is roadmapped but not built. */}
       <TooltipContent>{t`AI extraction confidence below 50%. Verify the extracted details against the source before trusting them. This is a visual warning only — it does not currently block Apply, but you should double-check before applying.`}</TooltipContent>
     </Tooltip>
   )

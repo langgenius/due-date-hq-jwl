@@ -78,13 +78,11 @@ export function RulesPageShell({
   compact?: boolean
   lockViewport?: boolean
   /**
-   * 2026-05-26 (Yuqi rule library width): opt out of the
-   * `max-w-page-wide` (1100px) cap and let the content fill the
-   * outer 1440px cap from `app-shell.tsx`. Matches the /deadlines
-   * page where the table benefits from the extra horizontal room
-   * (jurisdiction + 7 entity columns + tier + chevrons). Default
-   * stays at 1100px so /alerts and /rules/coverage are
-   * unaffected.
+   * Opt out of the `max-w-page-wide` (1100px) cap and let the content
+   * fill the outer 1440px cap from `app-shell.tsx`. Matches the
+   * /deadlines page where the table benefits from the extra horizontal
+   * room (jurisdiction + 7 entity columns + tier + chevrons). Default
+   * stays at 1100px so /alerts and /rules/coverage are unaffected.
    */
   wide?: boolean
   contentClassName?: string
@@ -99,19 +97,13 @@ export function RulesPageShell({
         which felt "stuck" at the boundary. Drawer + settings shells
         still trap (different intent). */}
       <div className={cn('min-h-0 flex-1', lockViewport ? 'overflow-hidden' : 'overflow-y-auto')}>
-        {/* 2026-05-26 (Yuqi /alerts fifth pass — B#1): page chrome
-            now mirrors `/today` exactly — `mx-auto max-w-page-wide`
-            cap + responsive padding (`px-4 md:px-6 pt-6 md:pt-8 pb-4
-            md:pb-6`). Previously the shell used fixed `px-6 py-6`
-            with no width cap, which read denser than every other
-            page in the app. Yuqi asked for the same minimal feel
-            as /today; this is that one-line change. */}
+        {/* Page chrome mirrors `/today` — `mx-auto max-w-page-wide` cap +
+            responsive padding — so it reads as the same minimal surface
+            as every other page in the app rather than a denser outlier. */}
         <div
           className={cn(
-            // 2026-06-08 (Yuqi "page title at the same position across pages"):
-            // top padding pt-8 → pt-6 (24px) so RulesPageShell pages (/alerts,
-            // /rules) sit at the same title height as /today + /deadlines (both
-            // pt-6). Was the 8px-lower outlier.
+            // pt-6 (24px) so RulesPageShell pages (/alerts, /rules) sit at
+            // the same title height as /today + /deadlines (both pt-6).
             'mx-auto flex w-full flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pb-6',
             wide ? 'max-w-page-expanded' : 'max-w-page-wide',
             lockViewport && 'h-full min-h-0',
@@ -167,10 +159,8 @@ export function FilterChips<T extends string>({
   value: T
   onValueChange: (value: T) => void
 }) {
-  // 2026-06-08 (Yuqi button rework — FLAT language): these single-select
-  // chips were hand-rolled on `Button variant=secondary`. Replaced with
-  // the shared <Segmented> primitive so every single-select toggle in the
-  // product reads the same. Counts ride inside each option's label.
+  // Uses the shared <Segmented> primitive so every single-select toggle in
+  // the product reads the same. Counts ride inside each option's label.
   return (
     <Segmented<T>
       value={value}
@@ -248,9 +238,6 @@ export function HealthBadge({ health }: { health: RuleSource['healthStatus'] }) 
     paused: t`Paused`,
   }
   const tone = tones[normalized]
-  // 2026-06-01: dropped h-[22px] arbitrary height + rounded-full + text-xs
-  // overrides — Badge's default size (h-5, pill-rounded, text-xs) covers
-  // the intended geometry directly.
   return (
     <Badge variant="outline">
       <BadgeStatusDot tone={tone} className="size-1.5" />

@@ -166,22 +166,12 @@ function NeedsAttentionCard({
       .slice(0, 2)
       .toUpperCase(),
   }))
-  // 2026-06-05 (pre-CI green-up): `confidencePct` + `confidenceToneCls`
-  // went unused after the round 81 inline source treatment.
-  // Deleted (rather than prefixed with `_`) because this project's
-  // eslint config forbids dangling underscores. If the round 19
-  // confidence pill is ever restored, re-derive both from
-  // `alert.confidence` at the call site.
-  // 2026-06-04 round 42 (Yuqi /today ↔ /alerts consistency #1 —
-  // "has severity pill and state badge please"): mirror the
-  // AlertCard severity-pill + StateBadge vocabulary so the
-  // dashboard summary and the alerts list speak the same visual
-  // language. `impactBadgeFromAlert` is the shared helper from
-  // pulse-alert-chrome so the tier mapping stays canonical.
-  // 2026-06-06: tier now reflects REAL client impact
-  // (matchedCount + needsReviewCount) instead of inverted AI
-  // confidence — same swap applied across every alert badge.
-  // Only the high-impact tier renders a (red) severity pill, per VxRyF.
+  // Mirror the AlertCard severity-pill + StateBadge vocabulary so the
+  // dashboard summary and the alerts list speak the same visual language.
+  // `impactBadgeFromAlert` is the shared helper from pulse-alert-chrome so
+  // the tier mapping stays canonical. The tier reflects REAL client impact
+  // (matchedCount + needsReviewCount), not inverted AI confidence. Only the
+  // high-impact tier renders a (red) severity pill.
   const severity = impactBadgeFromAlert(alert)
 
   // Pencil X3j4nt TimeColumn shows "2h ago" + an absolute "14:32"
@@ -198,9 +188,9 @@ function NeedsAttentionCard({
       }).format(new Date(alert.publishedAt))
     : ''
 
-  // 2026-05-25 (Yuqi #47): clicking this card opens the alert drawer
-  // in-place on the dashboard (via `useAlertDrawer().openDrawer`) —
-  // not a navigation to /alerts. This is intentional:
+  // Clicking this card opens the alert drawer in-place on the dashboard
+  // (via `useAlertDrawer().openDrawer`) — not a navigation to /alerts.
+  // This is intentional:
   //   • Alert review is list-driven and quick (1-3 min per alert).
   //     Keeping the user on Today lets them sweep through the 2-3
   //     cards without losing place.
@@ -217,152 +207,28 @@ function NeedsAttentionCard({
       onClick={onReview}
       aria-label={t`Open Pulse alert details: ${alert.title}`}
       className={cn(
-        // 2026-06-04 (Yuqi feedback #1+#6): two adjustments off the
-        // 2026-06-04 first pass —
-        //   • Dropped `justify-between` so the affected-clients
-        //     row sits CLOSE to the title block (item #6 "client
-        //     list can be close to top"). Previously the
-        //     justify-between pushed the clients to the bottom
-        //     edge for fixed-height parity, but Yuqi found that
-        //     made the bottom feel empty.
-        //   • Reduced internal gap-3 → gap-2 (12px → 8px) so
-        //     title + source + clients sit tighter together.
-        //   • Dropped CARD_MIN_HEIGHT — with the content packed
-        //     to the top, cards size to their content, and a
-        //     short card no longer floats below taller siblings.
-        //     Grid `items-stretch` (parent) still equalizes
-        //     visible heights when sibling cards are visible.
-        // 2026-06-04 round 3 (Yuqi feedback #2 "closer"):
-        // outer gap-2 (8px) → gap-1.5 (6px) so title / source meta
-        // / clients pack even tighter. The card was reading as
-        // 3 separated rows; now reads as a single block.
-        // 2026-06-04 round 11 (Yuqi "remove shadow. hate them"):
-        // dropped `shadow-xs` resting + `hover:shadow-sm`. The
-        // bg tint + rounded radius carry the card identity at
-        // rest; hover bg shift carries the interactivity cue.
-        // No drop shadow chrome.
-        //
-        // 2026-06-04 round 38 (Yuqi consistency audit /today vs
-        // /alerts): chrome tone unified with AlertCard.
-        // Resting was `bg-background-section` (#f9fafb gray-50)
-        // which sits on the `bg-background-inset` page wash
-        // (#f4f4f4) — only 1–2 RGB units of differential, so the
-        // card chrome was nearly INVISIBLE against the wash. The
-        // /alerts card flipped to white-on-gray for exactly this
-        // reason (see AlertCard "Pencil's mock has a WHITE Main
-        // bg + gray cards … our SidebarInset is gray, so the
-        // analog has to invert: white cards on the gray page
-        // wash"). Same reasoning applies here — this card surfaces
-        // the SAME alert data type as the /alerts list, and the
-        // surrounding chrome (SidebarInset gray wash) is the same.
-        // So:
-        //   • Resting → `bg-background-default` (white) — high
-        //     contrast against the wash, clear card edge without
-        //     a border.
-        //   • Hover  → `bg-background-subtle` (#f2f4f7) — same
-        //     "lift toward gray" affordance /alerts uses.
-        // The dashboard's other sections (Actions list, Changes
-        // since) already use white card chrome; this brings the
-        // alerts tile into the same family.
-        // 2026-06-04 round 45 (Yuqi /today feedback #1+#3): outer
-        // column gap `gap-1.5` (6px) → `gap-2` (8px) and corner
-        // `rounded-xl` (16px) → `rounded-xl` (24px). Both nudges
-        // are small but read as a softer, more deliberate card.
-        // Round 60 (X3j4nt sizing) + round 62 (Yuqi 7-item card
-        // feedback): outer gap bumped `gap-4` (16) → `gap-5` (20)
-        // per Item 1 — the time row was sitting too close to the
-        // head/title block beneath it.
-        // 2026-06-04 round 63 (Yuqi correction: "sorry, this should
-        // be the Today's alert card design. Node ID: vi3aw"): card
-        // rebuilt to Pencil `vi3aw` (496×161) spec — NOT X3j4nt.
-        // vi3aw is a simpler card with no CLIENT EFFECT inset panel
-        // and no separate time row above the head — instead the
-        // head row reads `[severity][form pill][state pill]` on the
-        // LEFT and `[relative time][absolute time]` justified to the
-        // RIGHT. Beneath that: title 16/600 + source caption
-        // 14/500. At the very bottom: building icon + "N Clients".
-        //   - container: rounded-[12px] bg-#f9fafb, padding [16,20]
-        //   - outer gap 16 (gap-4) between J4INTw (head + subject)
-        //     and QzvZa (clients line)
-        //   - J4INTw inner gap 8 between top row and subject
-        // 2026-06-04 round 69 (Yuqi "white background default"):
-        // reverted round 68's transparent-at-rest experiment.
-        // Card at rest is `bg-background-default` (white) — the
-        // canonical card chrome that reads as "this is its own
-        // surface, click me." Hover steps to `bg-background-section`
-        // (the same direction round 67 had). The transparent
-        // experiment made cards disappear into the page wash;
-        // user wanted them to feel like distinct cards again.
-        // 2026-06-04 round 72 (Yuqi #4 "bigger gap in between row"):
-        // outer card gap-3 (12px) → gap-4 (16px). With the bottom
-        // row's TaxCodeBadge added in round 71 the card has 3
-        // distinct content blocks (meta strip / subject / clients
-        // + form pill); 16px gives each block clear breathing room.
-        // 2026-06-04 round 80 (Yuqi #1 "if there is client
-        // effect, it is in a slightly darker gray"): card bg is
-        // now conditional on whether the alert has matched
-        // clients:
-        //   • impacted > 0  → `bg-background-section` (slightly
-        //                      darker gray) — flags rows the
-        //                      CPA actually needs to act on
-        //   • impacted === 0 → `bg-background-default` (white)
-        //                      — quieter rest for noise that
-        //                      doesn't match any client
-        // Hover unifies to `bg-background-subtle` either way so
-        // the affordance still reads in both cases.
-        // 2026-06-08 (Yuqi "还是很粗糙，没有重点"): the card is now a
-        // single, uniform surface that LIFTS off the page. Pencil VxRyF
-        // geometry exactly — radius 14, padding 18, gap 16. In the app's
-        // tinted-page / white-card model a clean white fill + one 8%
-        // hairline (border-divider-subtle, the design's #10182814) gives
-        // the crisp edge the low page-to-card contrast can't. The earlier
-        // `impacted ? gray : white` split made the *important* cards
-        // recede into the wash — removed; impact is carried by the High-
-        // impact pill + "Affects N clients", not by a receding fill.
-        // 2026-06-08 (Yuqi "alert card needs a different colour to the
-        // action table"): alert cards take the source VxRyF gray fill
-        // (#f9fafb = bg-background-section) while the Actions table stays
-        // white. Different surface colors split the two regions and let
-        // the white table — your work — read as the focal point.
-        // 2026-06-09 (Yuqi #9 "hover to show border"): a transparent
-        // border at rest keeps geometry fixed; on hover a divider hairline
-        // fades in alongside the bg step so the card reads as "liftable."
+        // A single uniform surface that lifts off the page. Alert cards
+        // take the gray fill (bg-background-section) while the Actions
+        // table stays white: different surface colors split the two
+        // regions and let the white table — the CPA's work — read as the
+        // focal point. Impact is carried by the High-impact pill +
+        // "Affects N clients", not by a receding fill. No drop shadow.
         'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-4 rounded-xl bg-background-section p-[18px] text-left',
-        // 2026-06-09 (Yuqi /today "hover do not show border"): the hover border
-        // hairline is dropped — hover is carried by the bg step alone.
+        // Hover is carried by the bg step alone (no border hairline).
         'transition-colors duration-200 hover:bg-background-subtle',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}
     >
-      {/* J4INTw — Pencil's outer block holding the head row + the
-          subject stack.
-          2026-06-04 round 67 (Yuqi audit "ensure only a selected
-          number of text styles are used. colours are unified"):
-          inner gap dropped 12 → 8 (gap-3 → gap-2) to tighten the
-          relationship between the meta row and the subject block.
-          Outer card gap also dropped 16 → 12 (above). Card now
-          reads as 2 tight content blocks (meta+subject / clients)
-          instead of 3 separated rows. */}
+      {/* Outer block holding the head row + the subject stack. */}
       <div className="flex min-w-0 flex-col gap-2">
         {/* Top row — meta strip. LEFT (severity + state pill) +
-            RIGHT (relative + absolute time).
-            2026-06-04 round 67 (Yuqi #3 "tighter"): head row gap
-            dropped 12 → 8 (gap-3 → gap-2) so the LEFT/RIGHT
-            clusters sit closer.
-            2026-06-04 round 67 (Yuqi #4 form-pill move): FORM PILL
-            removed from this row. It now lives in the bottom row
-            next to "N Clients" as a `<TaxCodeBadge>` so it shares
-            the chrome + label format the Actions this week table
-            uses. */}
+            RIGHT (relative + absolute time). The form pill lives in
+            the bottom row next to "N Clients" as a `<TaxCodeBadge>`
+            so it shares the chrome + label format the Actions this
+            week table uses. */}
         <div className="flex min-w-0 items-center justify-between gap-2">
-          {/* LEFT cluster — pill row.
-              2026-06-04 round 71 (Yuqi #3 batch2 "bigger gap"):
-              gap-2 (8px) → gap-3 (12px) between severity / state
-              / form pills. After removing the state pill's bg +
-              padding, the badges no longer have their own
-              breathing room — the inter-pill gap has to carry
-              it. */}
+          {/* LEFT cluster — pill row. */}
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             {/* HIGH IMPACT — Pencil VxRyF red pill (#FEE4E2 bg / #B42318
                 text → destructive tokens). Full words "High impact", not
@@ -396,12 +262,10 @@ function NeedsAttentionCard({
               <TooltipContent>{alert.jurisdiction}</TooltipContent>
             </Tooltip>
 
-            {/* FORM badge — gray-filled code chip. 2026-06-09 (Yuqi #4 "are we
-                always using monospace? replace all with monospace, like the one
-                in the alert table"): dropped the `font-sans`/`tracking-normal`
-                override so the form code inherits TaxCodeBadge's canonical
-                `font-mono tracking-tight` — same mono treatment the /alerts
-                table rows use. Only the scale (#11) + padding stay overridden. */}
+            {/* FORM badge — gray-filled code chip. The form code inherits
+                TaxCodeBadge's canonical `font-mono tracking-tight` — same mono
+                treatment the /alerts table rows use; only the scale + padding
+                are overridden. */}
             {alertForm ? (
               <TaxCodeBadge
                 code={alertForm}
@@ -410,22 +274,16 @@ function NeedsAttentionCard({
             ) : null}
 
             {/* CHANGE KIND — e.g. "DEADLINE SHIFTED", plain label. Neutral
-                (two-color rule) + card font (#11).
-                2026-06-09 (Yuqi /today "hide on default, show on hover"): the
-                change-kind label is invisible at rest and fades in on card
-                hover. opacity-0 reserves its width so the meta row doesn't
-                reflow.
-                2026-06-09 (Yuqi /today "gray. hover shows gray"): on hover it
-                stays the muted gray tone — no accent-tone switch. */}
+                (two-color rule). Invisible at rest and fades in on card hover;
+                opacity-0 reserves its width so the meta row doesn't reflow. On
+                hover it stays the muted gray tone — no accent-tone switch. */}
             <span className="shrink-0 text-caption font-semibold tracking-[0.4px] text-text-tertiary uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               {changeKindLabel(alert.changeKind)}
             </span>
           </div>
 
-          {/* RIGHT cluster — round 81 (Yuqi #1 "remove time here"):
-              absolute time (`09:00`) dropped. Only relative time
-              ("2h ago" / "Jun 4") renders inline. Exact time is
-              still surfaced via tooltip if the user needs it
+          {/* RIGHT cluster — only relative time ("2h ago" / "Jun 4")
+              renders inline; exact time is surfaced via tooltip
               (mirrors the /alerts row pattern). */}
           <Tooltip>
             <TooltipTrigger
@@ -442,27 +300,15 @@ function NeedsAttentionCard({
           </Tooltip>
         </div>
 
-        {/* Subject `PMVb6` — title + source caption.
-            2026-06-04 round 64 (Yuqi #6 "h3 slightly smaller"):
-            title nudged 16 → 15px. Still the loudest line on the
-            card but no longer crowding the subject block.
-            2026-06-04 round 64 (Yuqi #3 "smaller, and hover to
-            have a link to the source"): source text dropped from
-            14 → 12.5px and wrapped in a Tooltip that surfaces the
-            full source URL on hover. The span gets cursor-pointer
-            + onClick→window.open(sourceUrl) so clicking the source
-            opens the official authority page in a new tab. We
-            stopPropagation so the card's onReview doesn't also
-            fire. */}
+        {/* Subject — title + source caption. The source is wrapped in a
+            Tooltip that surfaces the full source URL on hover; the span gets
+            cursor-pointer + onClick→window.open(sourceUrl) so clicking it
+            opens the official authority page in a new tab, with
+            stopPropagation so the card's onReview doesn't also fire. */}
         <div className="flex min-w-0 flex-col gap-1">
-          {/* Title — Pencil VxRyF 16/600 (kept at 15px for small-screen
-              density). `dedupeTitleSource` still strips a leading source
-              prefix so the bottom source link doesn't echo it. */}
-          {/* 2026-06-08 (Yuqi audit #3 "do not show details on the outside
-              card"): the summary body line was removed — the title is the
-              card's signal; the full summary lives in the alert drawer. */}
-          {/* 2026-06-08 (Yuqi /today #5 "1px or 2px bigger"): title bumped
-              14px → 15px so it reads as the card's clear anchor line. */}
+          {/* Title — the card's signal (the full summary lives in the alert
+              drawer). `dedupeTitleSource` strips a leading source prefix so the
+              bottom source link doesn't echo it. */}
           <h3
             className="line-clamp-2 min-w-0 text-[14px] font-semibold leading-[1.3] text-text-primary"
             title={alert.title}
@@ -472,29 +318,25 @@ function NeedsAttentionCard({
         </div>
       </div>
 
-      {/* Bottom meta — Pencil VxRyF `skQVb`: top hairline divider, then
-          "Affects N client" + overlapping client-initial avatars · conf%
-          — spacer — source link. Wraps on narrow screens (no overflow). */}
-      {/* 2026-06-10 (Yuqi /today #2 "source 固定宽度, 和 client match 同一行,
-          正确截断"): the bottom-meta row no longer wraps — the affected-clients
-          line can shrink (min-w-0 + truncate) while the source holds a fixed
-          width on the right, so the two always share a single line. */}
+      {/* Bottom meta — top hairline divider, then "Affects N client" +
+          overlapping client-initial avatars · conf% — spacer — source link.
+          The row doesn't wrap: the affected-clients line can shrink while the
+          source holds a fixed width on the right, so the two always share a
+          single line. */}
       <div className="flex items-center gap-x-2 border-t border-divider-subtle pt-3 text-xs">
         {/* Affects-clients line. Yuqi #5: icon + label share ONE color.
             #6: when nothing matched, both step to the lighter muted tone so
             noise alerts recede. */}
         <span
           className={cn(
-            // 2026-06-10 (Yuqi /today #3 "better show affected clients when
-            // there ARE clients"): the affected-clients line is the row's
-            // priority signal, so it holds `shrink-0` and never truncates —
-            // the fixed-width source (right) is what gives way on tight cards.
+            // The affected-clients line is the row's priority signal, so it
+            // holds `shrink-0` and never truncates — the fixed-width source
+            // (right) is what gives way on tight cards.
             'inline-flex shrink-0 items-center gap-1 whitespace-nowrap',
             impacted > 0 ? 'font-medium text-text-secondary' : 'text-text-muted',
           )}
         >
-          {/* 2026-06-08 (Yuqi /alerts #4 "love this icon, apply to all"):
-              Users icon for the affected-clients line, unified with the
+          {/* Users icon for the affected-clients line, unified with the
               /alerts AlertCard + PulseAlertRow. */}
           <UsersIcon className="size-3 shrink-0" aria-hidden />
           {impacted > 0 ? (
@@ -504,9 +346,8 @@ function NeedsAttentionCard({
           )}
         </span>
 
-        {/* 2026-06-09 (Yuqi /today "avatar only when clients affected"): gate
-            the avatar stack on real client impact, not just the presence of
-            affected-client names. When nothing matched (impacted === 0) the
+        {/* Gate the avatar stack on real client impact, not just the presence
+            of affected-client names. When nothing matched (impacted === 0) the
             row reads "No clients matched" with no avatars trailing it. */}
         {impacted > 0 && avatars.length > 0 ? (
           <span className="flex shrink-0 items-center pl-0.5">
@@ -516,18 +357,12 @@ function NeedsAttentionCard({
                   render={(props) => (
                     <span
                       className={cn(
-                        // One neutral tone + the card's font (#11). Initials
-                        // carry identity; the full name is on hover (#10).
-                        // 2026-06-08 (Yuqi /today #4 "client avatar darker
-                        // colour"): fill stepped gray-100 → gray-200 and the
-                        // initials to text-primary so the avatars read against
-                        // the card's gray-50 surface instead of dissolving in.
-                        // 2026-06-09 (Yuqi #10 "slightly darker border than the
-                        // avatar background", then "lighter border"): the
-                        // separating ring is a faint rim just below the #e9ebf0
-                        // fill — settled at #e2e5ea (lighter than the first
-                        // #d7dbe2 try) so the rim reads without darkening the
-                        // overlap gap.
+                        // One neutral tone + the card's font. Initials carry
+                        // identity; the full name is on hover. The fill +
+                        // text-primary initials read against the card's gray
+                        // surface instead of dissolving in; the separating ring
+                        // is a faint rim just below the fill so it reads without
+                        // darkening the overlap gap.
                         'inline-flex size-5 items-center justify-center rounded-full bg-[#e9ebf0] text-caption-xs font-semibold text-text-primary ring-[1.5px] ring-[#e2e5ea] outline-none',
                         index > 0 && '-ml-1.5',
                       )}
@@ -551,11 +386,10 @@ function NeedsAttentionCard({
           </span>
         ) : null}
 
-        {/* 2026-06-09 (Yuqi /today "confidence only on hover"): the
-            confidence read-out (and its leading dot separator) is invisible at
-            rest and fades in on card hover. opacity-0 reserves the layout width
-            so the row doesn't shift; the tier color still resolves on hover via
-            confidenceHoverToneClass. */}
+        {/* The confidence read-out (and its leading dot separator) is
+            invisible at rest and fades in on card hover. opacity-0 reserves
+            the layout width so the row doesn't shift; the tier color resolves
+            on hover via confidenceHoverToneClass. */}
         <span className="inline-flex shrink-0 items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
           <span aria-hidden className="text-text-muted">
             ·

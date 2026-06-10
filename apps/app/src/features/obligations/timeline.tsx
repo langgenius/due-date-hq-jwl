@@ -19,12 +19,11 @@ import { LIFECYCLE_V2_STATUSES, isObligationStatus, type ObligationStatus } from
 // status, every milestone surface (queue pill, drawer header pill, strip,
 // stage card, AND this vertical journal) must land on the SAME milestone.
 //
-// 2026-05-27 (Agent X3 milestone audit M-03/M-05/M-07/M-09/W-1): pre-fix,
-// this map was missing `not_applicable`, `in_progress`, `extended` (they
-// fell into "Other activity" — telling the CPA the row's currently-active
-// review stage never happened) AND mapped `paid → completed` (wrong:
-// `paid` collapses into the FILED milestone, not Completed — see PRD §2).
-// See docs/Design/milestone-audit.md for the full matrix.
+// `paid` collapses into the FILED milestone, not Completed (see PRD
+// §2). `not_applicable`, `in_progress`, and `extended` must map to a
+// real milestone rather than falling into "Other activity", which
+// would tell the CPA the row's currently-active review stage never
+// happened. See docs/Design/milestone-audit.md for the full matrix.
 const MILESTONE_MAP: Record<ObligationStatus, ObligationStatus> = {
   pending: 'pending',
   not_applicable: 'pending',
@@ -159,12 +158,11 @@ function MilestoneNode({
             {label}
           </span>
           {isCurrent ? (
-            // 2026-06-01: swap hand-rolled accent-bordered eyebrow pill for the
-            // Badge primitive (variant="outline" + shape="square"). The
-            // primitive owns the uppercase tracking + rounded-sm chrome; the
-            // className override only re-tints the border and text from the
-            // outline default (border-divider-regular / text-text-secondary)
-            // to the accent tone that distinguishes the active timeline phase.
+            // Badge primitive (variant="outline" + shape="square") owns the
+            // uppercase tracking + rounded-sm chrome; the className override
+            // only re-tints the border and text from the outline default
+            // (border-divider-regular / text-text-secondary) to the accent
+            // tone that distinguishes the active timeline phase.
             <Badge
               variant="outline"
               shape="square"

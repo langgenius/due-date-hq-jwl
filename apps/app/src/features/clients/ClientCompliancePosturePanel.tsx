@@ -8,10 +8,9 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
  * `ClientCompliancePosturePanel` — surfaces the client-level data the
- * schema already carries but the page didn't render until now.
+ * schema already carries.
  *
- * Per the audit (`docs/Design/ux-audit-2026-05-21.md` Client detail
- * section) the `ClientPublic` shape stores compliance-relevant identity
+ * The `ClientPublic` shape stores compliance-relevant identity
  * fields (EIN value, tax-year type + fiscal year end, owner counts,
  * late-filing count, engagement date) that should be visible without
  * opening an edit form.
@@ -79,21 +78,20 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
   const lateFlag = client.lateFilingCountLast12mo
 
   return (
-    // 2026-06-01: swapped hand-rolled `<section className="rounded-lg border…">`
-    // chrome for the Card primitive (size="sm" gives px-4/py-4 + gap-4;
-    // radius="md" matches the dense rounded-lg used across the in-page
-    // surfaces). CardContent owns the inner padding so the inner grid
-    // no longer needs its own `p-4`.
+    // The Card primitive: size="sm" gives px-4/py-4 + gap-4; radius="md"
+    // matches the dense rounded-lg used across the in-page surfaces.
+    // CardContent owns the inner padding so the inner grid doesn't need
+    // its own `p-4`.
     <Card size="sm" radius="md" role="region" aria-label={t`Compliance posture`}>
       <CardContent>
         {/* Identity row — four facts the CPA copies most often.
-            2026-05-24: stayed at 2-col across all viewports. The
-            previous `lg:grid-cols-4` overflowed when the obligation
-            drawer was open on /clients/[id] (the right-rail panel
-            steals ~480px of body width, so the "lg" media query was
-            triggering at viewport-lg but rendering in a sub-lg
-            container). 2-col is comfortable at every supported
-            width and the labels still read in one scan. */}
+            Stays at 2-col across all viewports: `lg:grid-cols-4`
+            overflowed when the obligation drawer was open on
+            /clients/[id] (the right-rail panel steals ~480px of body
+            width, so the "lg" media query triggered at viewport-lg but
+            rendered in a sub-lg container). 2-col is comfortable at
+            every supported width and the labels still read in one
+            scan. */}
         <dl className="grid gap-3 sm:grid-cols-2">
           <IdentityCell
             label={t`Federal EIN`}

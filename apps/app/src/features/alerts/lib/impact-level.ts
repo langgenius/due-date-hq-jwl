@@ -11,11 +11,9 @@ import type { PulseAlertPublic } from '@duedatehq/contracts'
  * (`impactBadgeFromAlert` in pulse-alert-chrome.ts) and the
  * "highest impact" sort (AlertsListPage), so the two always agree.
  *
- * 2026-06-05: replaces the old confidence-derived "severity" badge,
- * which mislabeled INVERTED AI confidence as IMPACT (low confidence →
- * "HIGH IMPACT"). Confidence still drives its own surfaces (the
- * pulsing-dot tone, the drawer confidence pill, the low-confidence
- * banner) — it just no longer masquerades as client impact.
+ * Impact is distinct from AI confidence: confidence drives its own
+ * surfaces (the pulsing-dot tone, the drawer confidence pill, the
+ * low-confidence banner) and must not masquerade as client impact.
  *
  * Thresholds live here, in one place — tune freely:
  *   • high   — 5+ impacted obligations

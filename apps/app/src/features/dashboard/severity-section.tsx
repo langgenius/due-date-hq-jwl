@@ -5,8 +5,7 @@ import type { DashboardSeverity } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-// Top-level severity tier shown on /today. Per Yuqi's 2026-06-04
-// triage redesign:
+// Top-level severity tier shown on /today:
 //   • Critical → "Act today or risk missing the deadline"
 //   • High     → "Move this week to stay ahead"
 //   • Upcoming → "On your radar — not urgent yet"
@@ -69,19 +68,11 @@ function SeveritySectionHeader({
 }) {
   const copy = useTierCopy()[tier]
   return (
-    // 2026-06-04 (Yuqi alignment fix): removed `px-3` so the tier
-    // header's left edge sits at the page padding edge — same as
-    // the table's outer wrapper directly below it. Section
-    // headers + table outer border align; cells inside the table
-    // get their own `px-5` inner padding.
-    // 2026-06-04 round 3 (Yuqi feedback #9 "bad layout and
-    // position"): restructured so tier label + count chip sit as
-    // an h3 on row 1, with the plain-language explainer as a
-    // SUBTITLE on row 2. Previously the explainer was
-    // inline-baseline'd next to the chip — it read as a footnote
-    // squeezed between the chip and the right slot, and the
-    // truncation kicked in at every viewport below ~1280px.
-    // Vertical stack keeps both lines fully visible.
+    // No `px-3` so the tier header's left edge aligns with the table's
+    // outer wrapper directly below it. Tier label + count chip sit as an
+    // h3 on row 1, with the plain-language explainer as a subtitle on row
+    // 2 — a vertical stack keeps both lines fully visible rather than
+    // truncating the explainer next to the chip on narrow viewports.
     <div className="flex items-start justify-between gap-3">
       <div className="flex min-w-0 flex-col gap-0.5">
         <h3 className="flex items-center gap-2 text-base font-semibold tracking-tight text-text-primary">

@@ -12,12 +12,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * strip, future routes that need a similar "label + magnitude"
  * cluster).
  *
- * Replaces (audit P0 cross-surface #1, see `docs/Design/ui-audit-2026-05-25.md`):
- *  - `apps/app/src/features/opportunities/opportunities-page.tsx`
- *    `OpportunitiesStatTile` (text-2xl variant)
- *  - `apps/app/src/features/dashboard/actions-list.tsx`
- *    `ActionsSummaryTile` (text-lg variant, with Link wrapper)
- *
  * Visual contract (per DESIGN.md §3.2 Tile value role):
  *  - Frame: `rounded-lg border border-divider-subtle bg-background-default px-4 py-3`
  *  - Value: `text-xl font-semibold leading-tight tabular-nums tracking-tight`,
@@ -56,10 +50,9 @@ export type StatTileTone = 'neutral' | 'critical' | 'muted'
  * Callers can override the tone for metrics where "up" is good
  * (revenue, completed) by passing `toneOverride`.
  *
- * 2026-05-31 (Yuqi Pencil /today AvFsh round): trend slot added per
- * design — the dashboard summary tiles ("In review", "Blocked",
- * "Waiting on client") gain a week-over-week pill to keep momentum
- * visible without leaving the section.
+ * The dashboard summary tiles ("In review", "Blocked", "Waiting on
+ * client") use this pill to keep week-over-week momentum visible
+ * without leaving the section.
  */
 export interface StatTileTrend {
   /** Signed delta vs the prior period. */
@@ -99,15 +92,8 @@ export function StatTile({
   /** Optional week-over-week trend pill rendered beneath the label. */
   trend?: StatTileTrend | undefined
 }) {
-  // 2026-05-26 (audit cross-surface P0 #1): value scale aligned with
-  // DESIGN.md §3.2 "Tile value" canonical row — text-xl / font-semibold
-  // / leading-tight / tabular-nums / tracking-tight. Two pre-existing
-  // implementations drifted off-canonical (Opportunities went text-2xl
-  // because the rule-library shape "felt thin"; dashboard went text-lg
-  // because text-xl competed with the inline-h1 at text-xl — that
-  // collision is itself an open audit finding, T1). Unifying on the
-  // DESIGN.md canonical resolves the drift; downstream the dashboard
-  // h1 fix (audit T1) restores the proper title/value scale ratio.
+  // Value scale aligned with DESIGN.md §3.2 "Tile value" canonical row —
+  // text-xl / font-semibold / leading-tight / tabular-nums / tracking-tight.
   const valueClass = cn(
     'text-xl font-semibold leading-tight tabular-nums tracking-tight',
     tone === 'critical' && 'text-text-destructive',
@@ -133,13 +119,10 @@ export function StatTile({
   // (delta sign → tone) is the common case; callers can override
   // when "up" is good for that metric.
   //
-  // 2026-05-31 (Yuqi DS-first revision): pill now uses the
-  // canonical `<Badge>` primitive instead of a hand-rolled
-  // rounded-full + bg/text-tone span. Tone → Badge variant map:
-  // success/warning are direct; "muted" maps to `secondary` (the
-  // design system's gray-soft fill). Skipping `tabular-nums` →
-  // Badge handles font sizing; we add it via className for the
-  // delta number specifically.
+  // The pill uses the canonical `<Badge>` primitive. Tone → Badge variant
+  // map: success/warning are direct; "muted" maps to `secondary` (the
+  // design system's gray-soft fill). Badge handles font sizing; we add
+  // `tabular-nums` via className for the delta number specifically.
   let trendPill: ReactNode = null
   if (trend) {
     const sign = trend.delta > 0 ? 'up' : trend.delta < 0 ? 'down' : 'flat'

@@ -333,9 +333,9 @@ StateBadge.displayName = 'StateBadge'
  * uppercased code itself when no name is registered, so layout never
  * collapses to an empty string.
  *
- * 2026-05-26 (Yuqi /alerts follow-up): exported so the alerts
- * table's jurisdiction chip can render `[seal] CA · California` without
- * each call site hand-rolling its own state-name map.
+ * Exported so the alerts table's jurisdiction chip can render
+ * `[seal] CA · California` without each call site hand-rolling its own
+ * state-name map.
  */
 export function getJurisdictionName(code: string): string {
   const upper = code.toUpperCase()

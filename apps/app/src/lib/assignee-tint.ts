@@ -3,14 +3,6 @@
  * avatar across the app (/clients directory column, /deadlines Owner
  * column, the client-detail header pill) so the same person reads with
  * the same tint everywhere.
- *
- * Extracted 2026-05-26 (Yuqi cross-table drift #10 — "Owner/Assignee
- * avatar size + initials hash consistency"). Before this module, the
- * tint table lived inside `ClientFactsWorkspace.tsx` and was only
- * applied on the /clients surface — /deadlines `AssigneeAvatar` fell
- * back to a single `bg-background-subtle` neutral, so "AR" and "KP"
- * looked identical on the deadlines queue. Now both surfaces share
- * the hash + palette.
  */
 
 // Six muted background+text pairings. Picked to feel like assignee

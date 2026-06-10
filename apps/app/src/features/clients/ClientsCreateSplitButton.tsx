@@ -55,7 +55,6 @@ export function ClientsCreateSplitButton({
    * but `routes/clients.tsx` now wires `permission.can('client.write')`
    * so coordinator (read-only role) sees the button disabled with a
    * tooltip instead of a 403 after submitting the dialog.
-   * Audit-drain ρ ROH-D1, 2026-05-27.
    */
   canCreate?: boolean
 }) {

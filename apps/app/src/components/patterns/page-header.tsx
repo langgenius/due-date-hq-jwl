@@ -108,9 +108,8 @@ export function PageHeader({
     // inside the title column, hosting chip-cluster content like
     // "Owner · Entity · State" for surfaces with overgrown header
     // chrome. Renders only when metaRow is provided.
-    /* 2026-06-04 round 49 (Yuqi /today #2 — "closer"): outer
-       header vertical rhythm `gap-3` (12px) → `gap-2` (8px) so the
-       eyebrow row sits TIGHTER against the title block. */
+    /* Outer header vertical rhythm `gap-2` (8px) so the eyebrow row sits
+       tight against the title block. */
     <header className={cn('flex flex-col gap-2', className)}>
       {eyebrowRow}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
@@ -118,13 +117,10 @@ export function PageHeader({
           {/* `min-w-0` so the title block can shrink when the actions
               cluster sits beside it at lg+ and the page narrows
               (e.g. right drawer opens). */}
-          {/* 2026-05-28 (Yuqi /clients/[id] polish — "标题被cropped"):
-              `leading-7` (28px) was too tight for `text-2xl` (24px)
-              at Inter's actual ascender height. Capital letters
-              like "B" / "A" had their very top 1-2px clipped by
-              the parent's intrinsic flex-row baseline. Bumped to
-              `leading-8` (32px) so glyph ascenders have room. No
-              other dimension change — the gap-2 to metaRow stays. */}
+          {/* `leading-7` (28px) is too tight for `text-2xl` (24px) at Inter's
+              actual ascender height — capital letters like "B" / "A" get their
+              very top 1-2px clipped by the parent's intrinsic flex-row
+              baseline. `leading-8` (32px) gives glyph ascenders room. */}
           <h1 className="min-w-0 text-2xl leading-8 font-semibold text-text-primary">{title}</h1>
           {metaRow ? (
             <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-xs leading-5 text-text-secondary">

@@ -48,11 +48,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *       { label: t`Archive`, icon: ArchiveIcon, destructive: true, onSelect: archive },
  *     ]}
  *   />
- *
- * 2026-05-26 (Stripe-level Phase B): canonical row-action primitive
- * per docs/Design/stripe-level-critique-2026-05-26.md §S2. Wired on
- * /clients list rows, /clients/[id] filing-plan rows, and
- * /rules/library rule rows in the same pass.
  */
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>

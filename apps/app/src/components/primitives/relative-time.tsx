@@ -1,7 +1,7 @@
 import { formatDateTimeWithTimezone, formatRelativeTime } from '@/lib/utils'
 
-// 2026-05-24 (critique P2 — clarify): canonical pair for surfaces
-// where a CPA scans for recency (Inbox, member LAST ACTIVE / JOINED,
+// Canonical pair for surfaces where a CPA scans for recency (Inbox,
+// member LAST ACTIVE / JOINED,
 // any "received at" / "last update" tail). Renders a scannable
 // "2 days ago" / "3h ago" / "just now" string with the full
 // `YYYY-MM-DD HH:MM:SS TZ` value as a `title` tooltip — so no

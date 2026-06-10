@@ -65,22 +65,18 @@ export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id
   }
 
   return (
-    // 2026-05-26 (Yuqi /clients/[id] header restructure — "restructure
-    // the header section of the client-detail"): root span gets
-    // `min-w-0` + the inner name span gets `truncate` so when the
-    // right-panel-open layout shrinks the H1 column to a narrow
-    // width, the title ellipsizes on one line instead of wrapping
-    // onto 2–3 lines. The chevron button stays inline-aligned and
-    // shrink-0 so it never gets clipped.
+    // Root span gets `min-w-0` + the inner name span gets `truncate`
+    // so when the right-panel-open layout shrinks the H1 column to a
+    // narrow width, the title ellipsizes on one line instead of
+    // wrapping onto 2–3 lines. The chevron button stays inline-aligned
+    // and shrink-0 so it never gets clipped.
     <span className="inline-flex min-w-0 items-center gap-1">
       <span className="truncate">{client.name}</span>
       <Popover open={open} onOpenChange={setOpen}>
-        {/* 2026-06-01: swapped hand-rolled size-7 button for the
-            Button primitive (ghost / icon-xs gives the same size-7
-            footprint with shared hover + focus-ring tokens). The
-            ChevronDownIcon keeps an explicit `size-5` so the chevron
-            stays the larger H1-scale glyph rather than the icon-xs
-            default of size-3. */}
+        {/* Button primitive (ghost / icon-xs gives a size-7 footprint
+            with shared hover + focus-ring tokens). The ChevronDownIcon
+            keeps an explicit `size-5` so the chevron stays the larger
+            H1-scale glyph rather than the icon-xs default of size-3. */}
         <PopoverTrigger
           render={
             <Button

@@ -363,9 +363,8 @@ export function ClientDetailWorkspace({
     'expanded',
     parseAsString.withDefault(''),
   )
-  // 2026-05-26 (Yuqi tab-body follow-ups, Task 1): wire 1/2/3 as
-  // hotkeys for the three tabs. Mirrors the J/K cycle pattern in
-  // ClientCycleArrows — uses `useAppHotkey` (the project's canonical
+  // Wire 1/2/3 as hotkeys for the three tabs. Mirrors the J/K cycle
+  // pattern in ClientCycleArrows — uses `useAppHotkey` (the project's canonical
   // hotkey primitive), gates on `useKeyboardShortcutsBlocked` so the
   // shortcuts stay quiet inside text inputs / dialogs / drawers, and
   // registers `meta` so each shortcut shows up in the global
@@ -845,12 +844,9 @@ export function ClientDetailWorkspace({
                     <Trans>Add notes</Trans>
                   </Button>
                 ) : null}
-                {/* 2026-05-26 (Yuqi follow-up — "1/9 does not belong
-                    to the client detail"): ClientCycleArrows moved
-                    OUT of the actions cluster up to the eyebrowAside
-                    slot. Actions now only carry the page-level
-                    controls scoped to this client (overflow ⋯ +
-                    Add deadline). */}
+                {/* ClientCycleArrows lives in the eyebrowAside slot,
+                    not here. Actions carry only the page-level controls
+                    scoped to this client (overflow ⋯ + Add deadline). */}
                 <ClientHeaderOverflowMenu
                   clientId={client.id}
                   clientName={client.name}
@@ -882,23 +878,12 @@ export function ClientDetailWorkspace({
           {/* Body — client-context content. The outer xl:flex-row
             split (one wrapper above) already separates this from the
             right-rail obligation panel, so this section just renders
-            the column-of-content inline.
-            2026-05-28 (Yuqi /clients/[id] polish — "client name下面
-            很空"): ClientContactMetaRow moved UP into the PageHeader
-            `metaRow` slot above so the identity row sits tight
-            against the H1 (gap-2 internal) instead of the body
-            section's `gap-4`. */}
+            the column-of-content inline. ClientContactMetaRow lives in
+            the PageHeader `metaRow` slot above (not here) so the
+            identity row sits tight against the H1. */}
           <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
-            {/* Provenance (Imported / Manual) lived here briefly during
-                the D-2 transition. Dropped 2026-05-22 per design call —
-                low-signal: most clients are Manual by default, and the
-                Imported chip never changed a CPA's behavior. The
-                migration history is still discoverable from the
-                /clients header Import-history drawer. */}
-
-            {/* 2026-05-26 (Stripe-bar /clarify pass — re-applied per
-                Yuqi's "address all" direction): inline tip pairs the
-                needs-facts signal with a dismissable CTA. The H1 chip
+            {/* Inline tip pairs the needs-facts signal with a
+                dismissable CTA. The H1 chip
                 still surfaces "Add filing state" but the banner gives
                 CPAs an "act now / dismiss for later" path without
                 leaving the chip looming. Per-client dismissKey keeps
@@ -912,8 +897,7 @@ export function ClientDetailWorkspace({
               />
             ) : null}
 
-            {/* 2026-06-01 (Yuqi /clients/[id] critique — IA part 2):
-                Notes strip lives above the alerts band — notes are
+            {/* Notes strip lives above the alerts band — notes are
                 *persistent context* that anyone interacting with this
                 client should glance at (preferred call window,
                 sensitivities, history). Reads as identity context,
@@ -939,14 +923,12 @@ export function ClientDetailWorkspace({
 
             <ClientSummaryStrip clientId={client.id} obligations={obligations} />
 
-            {/* 4-tab body (2026-05-22). Replaces the V14 stacked-
-                sections shape. Reasoning in
-                docs/Design/client-page-information-architecture.md
-                v2 + the dev-log for this commit. Short version:
-                content grew past the point where a flat list of
-                collapsibles reads cleanly, and "compliance posture"
-                turned out to be client info (identity facts), not
-                daily work. Tabs separate the three jobs cleanly:
+            {/* Tabbed body. Reasoning in
+                docs/Design/client-page-information-architecture.md.
+                Content grew past the point where a flat list of
+                collapsibles reads cleanly, and "compliance posture" is
+                client info (identity facts), not daily work. Tabs
+                separate the three jobs cleanly:
                   • Work       — what do they owe right now?
                   • Client info — who is this client?
                   • Activity   — what happened recently? (lazy) */}
@@ -957,76 +939,62 @@ export function ClientDetailWorkspace({
                   void setActiveTab(value)
                 }
               }}
-              // 2026-05-26 (Yuqi feedback #12-14): Tabs root becomes
-              // its own flex column inside the workspace. TabsList sits
-              // shrink-0 at the top; the active TabsContent fills the
-              // remaining height with its own overflow-y-auto. Without
-              // this, the whole detail page scrolls as one (the bug
-              // Yuqi flagged — "一整页一起滑动是不对的").
+              // Tabs root is its own flex column inside the workspace.
+              // TabsList sits shrink-0 at the top; the active
+              // TabsContent fills the remaining height with its own
+              // overflow-y-auto. Without this, the whole detail page
+              // scrolls as one.
               className="flex min-h-0 flex-1 flex-col"
             >
-              {/* 2026-05-26 (Yuqi feedback #6 + #7): tab bar matches
-                  the /deadlines scope-tabs visual — left-aligned,
-                  hug-content triggers (no flex-1), transparent
-                  background, single hairline border. Drops the
-                  background-default that Yuqi flagged ("why is there
-                  a background?"). The primitive's `variant="line"`
-                  already provides the underline-on-active treatment.
-                  Triggers are overridden below to drop the
-                  primitive's `flex-1` so each tab hugs its label
-                  (matches /deadlines instead of spreading full-width). */}
-              {/* 2026-05-26 (Yuqi follow-up — "Deadline's Status
-                  scopes animation and interaction" applied to detail
-                  tabs): retired the primitive's CSS-only
-                  `data-active:after:` underline and replaced with a
-                  single `<motion.span layoutId>` rendered inside
-                  whichever trigger is active. Framer Motion smoothly
-                  slides the underline between tabs on click (spring
-                  500 / damping 38) — the same pattern that powers
-                  /deadlines `ObligationQueueScopeTab`. Active text
-                  swaps back to `text-text-primary` per the parallel
-                  "revert titles to black" pass; the moving underline
-                  carries the active signal. Inactive triggers gain a
-                  transparent 2px bottom border that turns
-                  `divider-deep` on hover so the row reads warm at
-                  rest, matching /deadlines hover symmetry. */}
-              {/* 2026-05-26 (Yuqi /clients/[id] feedback #8 — "double
-                  underline"): dropped the `border-b border-divider-regular`
-                  baseline on TabsList. The active tab's motion.span at
-                  `-bottom-0.5` was painting an accent underline + the
-                  list's 1px gray border-b right next to each other =
-                  two visible lines stacked. Without the list border,
-                  the active accent line is the only visible underline;
+              {/* Tab bar matches the /deadlines scope-tabs visual —
+                  left-aligned, hug-content triggers (no flex-1),
+                  transparent background, single hairline border. The
+                  primitive's `variant="line"` provides the
+                  underline-on-active treatment. Triggers are overridden
+                  below to drop the primitive's `flex-1` so each tab hugs
+                  its label (matches /deadlines instead of spreading
+                  full-width). */}
+              {/* Active-tab underline is a single `<motion.span
+                  layoutId>` rendered inside whichever trigger is active,
+                  not the primitive's CSS-only `data-active:after:`.
+                  Framer Motion smoothly slides the underline between
+                  tabs on click (spring 500 / damping 38) — the same
+                  pattern that powers /deadlines
+                  `ObligationQueueScopeTab`. Active text stays
+                  `text-text-primary`; the moving underline carries the
+                  active signal. Inactive triggers gain a transparent
+                  2px bottom border that turns `divider-deep` on hover so
+                  the row reads warm at rest, matching /deadlines hover
+                  symmetry. */}
+              {/* No `border-b border-divider-regular` baseline on
+                  TabsList: the active tab's motion.span at `-bottom-0.5`
+                  plus the list's 1px gray border-b would paint two
+                  visible lines stacked. Without the list border, the
+                  active accent line is the only visible underline;
                   inactive tab hover still gets its own `border-b-2`
                   via `ClientDetailTabTrigger`. */}
               <TabsList
                 variant="line"
                 className="flex shrink-0 gap-1 overflow-x-auto bg-transparent px-0 text-base"
               >
-                {/* 2026-05-26 (Yuqi feedback — "add icons for each
-                    of them"): leading lucide glyph per tab. Matches
-                    the deadline drawer's tab bar (paperclip /
-                    calendar / file) and gives the row a stronger
-                    "scan me" affordance — the icons help the CPA
-                    recognize the destination before they read the
-                    word.
-                    Sizes match the deadline drawer at `size-3.5` so
-                    glyph weight stays consistent across surfaces.
+                {/* Leading lucide glyph per tab. Matches the deadline
+                    drawer's tab bar (paperclip / calendar / file) and
+                    gives the row a stronger "scan me" affordance — the
+                    icons help the CPA recognize the destination before
+                    they read the word. Sizes match the deadline drawer
+                    at `size-3.5` so glyph weight stays consistent across
+                    surfaces.
 
-                    2026-06-01 (Yuqi /clients/[id] critique — IA
-                    labels): tab labels renamed to honor what's
-                    actually inside each tab. URL keys (`?tab=work`
-                    etc.) stay stable for backwards compat — only
-                    the visible label changes.
+                    Tab labels honor what's actually inside each tab. URL
+                    keys (`?tab=work` etc.) stay stable for backwards
+                    compat — only the visible label changes.
                       • work          → "Filing plan"
-                          (was "Work" — narrowed to match the single
-                          ClientWorkPlanPanel inside)
+                          (the single ClientWorkPlanPanel inside)
                       • info          → "Setup"
-                          (was "Client info" — 5 sections of
-                          tax-setup data, not contact info)
+                          (5 sections of tax-setup data, not contact info)
                       • activity      → "History"
-                          (was "Activity" — read-mode history once
-                          Notes moves out to a slide-in panel)
+                          (read-mode history; Notes lives in a slide-in
+                          panel)
                 */}
                 <ClientDetailTabTrigger value="work" activeTab={activeTab} compact={panelOpen}>
                   <ClipboardListIcon className="size-3.5" aria-hidden />
@@ -1039,19 +1007,17 @@ export function ClientDetailWorkspace({
                   <span data-tab-label>
                     <Trans>Setup</Trans>
                   </span>
-                  {/* 2026-05-26 (Yuqi post-revamp critique P2 / §5):
-                      dot → count chip. The dot signaled "something
-                      is missing" but didn't say HOW MUCH. A count
-                      bubble surfaces the magnitude at the tab bar
-                      so the CPA can decide whether to switch tabs
-                      before clicking through. Tone matches the
-                      readiness chip (warning, not destructive) per
-                      §3.7 canonical color reservation. */}
+                  {/* Count chip, not a dot: a dot signals "something is
+                      missing" but not HOW MUCH. A count bubble surfaces
+                      the magnitude at the tab bar so the CPA can decide
+                      whether to switch tabs before clicking through.
+                      Tone matches the readiness chip (warning, not
+                      destructive) per §3.7 canonical color
+                      reservation. */}
                   {readiness && readiness.missingRequiredFacts.length > 0 ? (
-                    // 2026-06-01: hand-rolled h-4 min-w-4 count bubble
-                    // swapped for Badge size='sm' warning. Audit P2-2's
-                    // accessible-name (title + aria-label) stays so AT
-                    // users still hear "# required fact(s) missing".
+                    // Badge size='sm' warning carries an accessible name
+                    // (title + aria-label) so AT users hear "# required
+                    // fact(s) missing".
                     <Badge
                       variant="warning"
                       size="sm"
@@ -1066,24 +1032,23 @@ export function ClientDetailWorkspace({
                 <ClientDetailTabTrigger value="activity" activeTab={activeTab} compact={panelOpen}>
                   <ActivityIcon className="size-3.5" aria-hidden />
                   <span data-tab-label>
-                    {/* 2026-06-01: "Activity" → "History" once Notes
-                        moves to its own slide-in panel. The tab
-                        becomes coherently read-mode (AI summary +
-                        Activity log = the story of what's happened),
-                        no longer mixing a write-mode Notes block. */}
+                    {/* "History", not "Activity": Notes lives in its
+                        own slide-in panel, so this tab is coherently
+                        read-mode (AI summary + Activity log = the story
+                        of what's happened), not mixing a write-mode
+                        Notes block. */}
                     <Trans>History</Trans>
                   </span>
                 </ClientDetailTabTrigger>
               </TabsList>
 
-              {/* 2026-05-26 (Yuqi feedback #14): each TabsContent
-                  owns its own overflow-y-auto so the tab body scrolls
-                  INDEPENDENTLY of the rest of the page (PageHeader,
-                  ContactMetaRow, alerts, summary, tab bar stay
-                  pinned). Matches /deadlines's "queue column scrolls,
-                  surrounding chrome stays put" mechanism. The bottom
-                  padding gives the last row breathing room from the
-                  viewport edge. */}
+              {/* Each TabsContent owns its own overflow-y-auto so the
+                  tab body scrolls INDEPENDENTLY of the rest of the page
+                  (PageHeader, ContactMetaRow, alerts, summary, tab bar
+                  stay pinned). Matches /deadlines's "queue column
+                  scrolls, surrounding chrome stays put" mechanism. The
+                  bottom padding gives the last row breathing room from
+                  the viewport edge. */}
               <TabsContent
                 value="work"
                 className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
@@ -1102,12 +1067,10 @@ export function ClientDetailWorkspace({
                 />
               </TabsContent>
 
-              {/* 2026-05-24: every tab below uses <TabSection> for its
-                  section heading so all four tabs share one visual
-                  language (h2 + subtitle, no disclosure, no nested
-                  card frame around the section block itself). The
-                  DetailSection collapsible pattern + the ad-hoc
-                  SectionFrame "Notes" block both retired here. */}
+              {/* Every tab below uses <TabSection> for its section
+                  heading so all tabs share one visual language (h2 +
+                  subtitle, no disclosure, no nested card frame around
+                  the section block itself). */}
               <TabsContent
                 value="info"
                 className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
@@ -1216,17 +1179,12 @@ export function ClientDetailWorkspace({
                       ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
                       : t`Auto-drafted from recent activity`
                   }
-                  // 2026-05-26 (Yuqi /clients/[id] feedback #6+#7 —
-                  // "pull this out and put with the Client Summary
-                  // title, then the bar can be removed"): the AI
-                  // status badge + Refresh button cluster used to
-                  // live as its own right-aligned bar INSIDE the
-                  // panel body. Hoisted up to the TabSection's
-                  // `actions` slot so the badge + Refresh sit on
-                  // the same row as the section title; the redundant
-                  // inner bar is dropped (see
-                  // `ClientRiskSummaryPanel` below — it no longer
-                  // renders that header strip).
+                  // The AI status badge + Refresh button cluster lives
+                  // in the TabSection's `actions` slot so the badge +
+                  // Refresh sit on the same row as the section title
+                  // (not as a separate bar inside the panel body — see
+                  // `ClientRiskSummaryPanel` below, which doesn't render
+                  // that header strip).
                   actions={
                     <>
                       {/* Only badge a real generated insight (or a failure).
@@ -1254,13 +1212,11 @@ export function ClientDetailWorkspace({
                           )}
                         </Button>
                       ) : null}
-                      {/* 2026-05-28 (Yuqi /clients/[id] polish): removed
-                          the `<UpgradeCtaButton />` upsell from the
-                          Client summary (AI) section header. The
-                          orange Pro upsell pulled the eye away from
-                          the section's actual content. Practices
-                          without AI just see no Refresh button next
-                          to the InsightStatusBadge in this slot;
+                      {/* No `<UpgradeCtaButton />` upsell in this
+                          section header — the orange Pro upsell pulled
+                          the eye away from the section's actual content.
+                          Practices without AI just see no Refresh button
+                          next to the InsightStatusBadge in this slot;
                           billing surface up-sells elsewhere. */}
                     </>
                   }
@@ -1274,26 +1230,15 @@ export function ClientDetailWorkspace({
                   </div>
                 </TabSection>
 
-                {/* 2026-06-01 (Yuqi /clients/[id] critique — IA):
-                    Notes block lifted out of the History tab body
-                    to a dedicated slide-in panel anchored in the
-                    PageHeader actions cluster (`<ClientNotesPanel>`
-                    above). Notes is a write-mode interaction that
-                    didn't share the read-mode rhythm of this tab.
-                    Removing it lets History read coherently as
-                    "the story of what's happened" — AI summary +
-                    audit log. */}
-
                 <TabSection
                   title={t`Activity log`}
                   summary={t`Recent audited changes for this client record`}
                 >
-                  {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3):
-                      ClientActivityPanel now owns its own canonical
-                      outer frame internally (one frame, divide-y
-                      rows), matching the AI summary + Notes section
-                      treatment on this tab. No extra wrapper needed
-                      here — would double-frame. */}
+                  {/* ClientActivityPanel owns its own canonical outer
+                      frame internally (one frame, divide-y rows),
+                      matching the AI summary section treatment on this
+                      tab. No extra wrapper needed here — would
+                      double-frame. */}
                   <ClientActivityPanel
                     events={auditQuery.data?.events ?? []}
                     canReadAudit={canReadAudit}
@@ -1312,14 +1257,12 @@ export function ClientDetailWorkspace({
             inside the body) so opening an obligation pushes the
             PageHeader, summary strip, alerts, AND the filing plan
             all left at once. */}
-        {/* 2026-05-26: CSS-only slide-in. Earlier in this session we
-            tried AnimatePresence + motion.div animating width 0→600
-            but the interaction with this flex-row + items-stretch
-            parent settled at stuck intermediate widths under React
-            19's concurrent renders — the entry-animation never
-            reliably reached the 600px target. We rolled back to a
-            snap-mount, then brought the slide-in back via a native
-            CSS transition on `width` (no motion library involved).
+        {/* CSS-only slide-in. AnimatePresence + motion.div animating
+            width 0→600 settled at stuck intermediate widths under React
+            19's concurrent renders inside this flex-row + items-stretch
+            parent — the entry-animation never reliably reached the
+            600px target. A native CSS transition on `width` (no motion
+            library) sidesteps that.
             Shape:
               • At xl+: aside is ALWAYS mounted (so the width
                 transition has a stable element to animate). Width
@@ -1334,8 +1277,7 @@ export function ClientDetailWorkspace({
                 because it isn't the dominant axis here).
             CSS sidesteps React 19's reconciliation entirely and is
             stable across renders. */}
-        {/* 2026-06-07 (Pencil tZ0BB + thUSa — /clients/[id] pixel
-            pass): the right rail reconciles both detail nodes into one
+        {/* The right rail reconciles both detail nodes into one
             responsive surface. At rest (no obligation selected) the
             aside hosts the persistent Snapshot / Engagement / Contacts
             rail at a fixed 320px on xl+, stacked full-width below xl.
@@ -1420,8 +1362,7 @@ export function ClientDetailWorkspace({
           to tab+scroll instead because the sheet's entityType
           fallback is a link button that would loop back here. */}
       <FixNeedsFactsSheet open={fixSheetOpen} onOpenChange={setFixSheetOpen} clients={[client]} />
-      {/* 2026-06-01 (Yuqi /clients/[id] critique — IA part 2): the
-          controlled Notes slide-in panel. Mounted once at the
+      {/* The controlled Notes slide-in panel. Mounted once at the
           workspace's root so multiple affordances (strip, header
           "Add notes" CTA, future keyboard shortcut) all open the
           same instance via `setNotesOpen(true)`. The Sheet is
@@ -1438,21 +1379,21 @@ export function ClientDetailWorkspace({
 }
 
 /**
- * 2026-06-07 (Pencil tZ0BB + thUSa — /clients/[id] pixel pass):
- * persistent right rail. Renders only cards backed by real data.
+ * Persistent right rail. Renders only cards backed by real data.
  *
  * Data sourcing:
  *   - Contacts → live primary contact + email when present
  *     (buildClientHeaderContactItems); honest "No contacts yet" empty
  *     state otherwise. Never fabricated.
  *
- * Removed: the Snapshot card (2026-06-10, Yuqi) — its only live stat
- * ("N Open deadlines") duplicated ClientSummaryStrip's "Open filing" slot
- * (one-purpose-per-panel). Earlier removals (no contract field backs them —
- * invented compliance figures are a trust bug): Snapshot Filed-YTD /
- * Outstanding-tasks / Last-filed, and the entire Engagement card (retainer,
- * engagement letter, renews). Restore once the underlying fields ship.
- * Per-contact Compose is also gone until a messages.send RPC exists.
+ * No Snapshot card: its only live stat ("N Open deadlines") would
+ * duplicate ClientSummaryStrip's "Open filing" slot
+ * (one-purpose-per-panel). Other cards stay out until a contract field
+ * backs them — invented compliance figures are a trust bug: Snapshot
+ * Filed-YTD / Outstanding-tasks / Last-filed, and the entire Engagement
+ * card (retainer, engagement letter, renews). Restore once the
+ * underlying fields ship. Per-contact Compose stays out until a
+ * messages.send RPC exists.
  */
 function ClientDetailRail({ client }: { client: ClientPublic }) {
   const { t } = useLingui()
@@ -1475,14 +1416,12 @@ function ClientDetailRail({ client }: { client: ClientPublic }) {
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-[18px] overflow-y-auto">
-      {/* Snapshot card removed 2026-06-10 (Yuqi): its only live stat was
-          `openCount` ("N Open deadlines"), which duplicated the full-width
-          ClientSummaryStrip's "Open filing" slot sitting right beside it — a
-          one-purpose-per-panel violation, and the strip carries it richer
-          ("· N payment overdue"). The strip owns the at-a-glance counts; the
-          rail's job is Contacts at rest + the obligation detail on row-click.
-          (Filed-YTD / outstanding-tasks / last-filed + the Engagement card
-          were already removed earlier as unbacked-by-contract.) */}
+      {/* No Snapshot card: its only live stat would be `openCount` ("N
+          Open deadlines"), which the full-width ClientSummaryStrip's
+          "Open filing" slot beside it already carries richer ("· N
+          payment overdue") — a one-purpose-per-panel concern. The strip
+          owns the at-a-glance counts; the rail's job is Contacts at rest
+          + the obligation detail on row-click. */}
       {/* Contacts card */}
       <section className="flex flex-col gap-[14px] rounded-xl border border-divider-regular bg-background-default p-[18px]">
         <RailSectionLabel>{t`CONTACTS`}</RailSectionLabel>
@@ -1558,26 +1497,22 @@ function ClientDetailTabTrigger({
   return (
     <TabsTrigger
       value={value}
-      // 2026-05-26 (Yuqi /clients/[id] feedback — "still having this
-      // double line"): the underlying TabsTrigger primitive carries
-      // pill-segmented defaults (`data-active:bg-…`,
-      // `data-active:shadow-xs`, `rounded-lg border border-transparent`,
-      // plus an `::after` pseudo-element underline at `bottom-[-5px]`
-      // gated on `variant=line`). Even though this consumer wants a
-      // pure underline-style tab, those defaults kept painting — the
-      // active "Work" tab was showing the motion.span accent line
-      // AND a second line below it from the primitive's after-pseudo
-      // shadow leakage. Adding explicit `!bg-transparent !shadow-none
-      // !rounded-none after:!opacity-0` strips ALL primitive active
-      // chrome so only the motion.span underline (and the bold text)
-      // remain.
-      // 2026-05-28 (Yuqi follow-up — "tabs are hard to know they can be
-      // clicked"): inactive triggers now get a subtle bg fill on hover
-      // (`hover:bg-state-base-hover-alt`) in addition to the existing
-      // text + underline transitions. The bg change is a stronger
-      // affordance — text-color shifts alone were too subtle on the
-      // workbench's gray-tinted page background. The active state stays
-      // chrome-free (bold text + the motion underline carry it).
+      // The underlying TabsTrigger primitive carries pill-segmented
+      // defaults (`data-active:bg-…`, `data-active:shadow-xs`,
+      // `rounded-lg border border-transparent`, plus an `::after`
+      // pseudo-element underline at `bottom-[-5px]` gated on
+      // `variant=line`). This consumer wants a pure underline-style tab,
+      // so the explicit `!bg-transparent !shadow-none !rounded-none
+      // after:!opacity-0` strips ALL primitive active chrome — otherwise
+      // the active tab shows the motion.span accent line AND a second
+      // line below it from the primitive's after-pseudo shadow leakage.
+      // Only the motion.span underline (and the bold text) remain.
+      // Inactive triggers get a subtle bg fill on hover
+      // (`hover:bg-state-base-hover-alt`) on top of the text + underline
+      // transitions — a stronger affordance than text-color shifts
+      // alone, which were too subtle on the workbench's gray-tinted page
+      // background. The active state stays chrome-free (bold text + the
+      // motion underline carry it).
       className={cn(
         'relative -mb-px !flex-none shrink-0 items-center gap-1.5 !rounded-lg !border-0 !bg-transparent px-3 py-1.5 text-base whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
         active
@@ -1635,9 +1570,8 @@ function ClientActiveAlertsSection({
       className="rounded-lg border border-divider-regular bg-background-default p-4"
     >
       <header className="flex items-baseline justify-between gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft/40 px-4 py-2.5">
-        {/* 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3): retired
-            uppercase kicker; canonical section heading is sm-semibold
-            sentence-case (page-family-canonical §9). */}
+        {/* Canonical section heading is sm-semibold sentence-case (no
+            uppercase kicker) per page-family-canonical §9. */}
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-text-warning">
           <MegaphoneIcon className="size-3.5" aria-hidden />
           <Trans>Active alerts for this client</Trans>
@@ -1714,12 +1648,9 @@ function ClientActiveAlertsExtensionCard({
  * Overflow menu (`···`) in the header action cluster. Hosts the
  * lower-priority actions that don't belong on the primary button row.
  *
- * Today there's one real action: **View audit log** (routes to
- * `/audit` filtered by this client). Previously the menu also listed
- * **Pin to sidebar**, **Download client PDF**, and **Edit client
- * info** as "coming soon" toasts — Yuqi flagged those as dead
- * affordances on 2026-05-24 ("don't put nonworking things"). They've
- * been removed until the real implementations land.
+ * There's one real action: **View audit log** (routes to `/audit`
+ * filtered by this client). No "coming soon" affordances live here —
+ * only working actions belong in the menu.
  *
  * If the user can't read audit logs the whole dropdown collapses
  * (returns `null`) so we don't render an empty `···` button.
@@ -1737,15 +1668,14 @@ function ClientHeaderOverflowMenu({
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  // 2026-06-02 (browser comment): destructive client removal stays in the
-  // overflow, but now uses the direct "Delete" verb and red menu variant.
+  // Destructive client removal lives in the overflow, using the direct
+  // "Delete" verb and red menu variant.
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          // 2026-05-26 (Yuqi feedback #2 — "icon button 怎么不是正方形"):
-          // switched from size="sm" (which sets h-8 with horizontal padding,
-          // producing a rectangle) to size="icon-sm" (h-8 w-8, true square).
+          // size="icon-sm" (h-8 w-8, true square) rather than size="sm"
+          // (h-8 with horizontal padding, which produces a rectangle).
           <Button variant="outline" size="icon-sm" aria-label={t`More client actions`}>
             <MoreHorizontalIcon className="size-4" aria-hidden />
           </Button>
@@ -1792,9 +1722,9 @@ function ClientActivityPanel({
         icon={ClipboardCheckIcon}
         title={<Trans>Audit access is role-gated</Trans>}
         description={
-          // Audit-drain ρ ROH-D5-clients (2026-05-27): added "partners"
-          // to match `FIRM_PERMISSION_ROLES['audit.read']`. Same drift
-          // as the `/audit` route description.
+          // Includes "partners" to match
+          // `FIRM_PERMISSION_ROLES['audit.read']`, matching the `/audit`
+          // route description.
           <Trans>Owners, partners, managers, and preparers can inspect client activity.</Trans>
         }
       />
@@ -1819,16 +1749,12 @@ function ClientActivityPanel({
       />
     )
   }
-  // 2026-05-26 (Yuqi tab-body follow-ups, Task 3 — Activity tab
-  // section-frame unification): rows used to be individual
-  // `rounded-lg border bg-background-section` cards inside a grid
-  // gap. That gave the Activity log a third visual dialect on the
-  // Activity tab (vs AI summary's outer-frame + Notes' outer-frame).
-  // Snapped to the canonical pattern: ONE outer canonical frame
-  // (`rounded-lg border-divider-regular bg-background-default`)
-  // with `divide-y` between rows. Now matches the AI summary +
-  // Notes treatment on the same tab, and the page-family-canonical
-  // §9 rule (one section, one frame).
+  // Canonical pattern: ONE outer canonical frame
+  // (`rounded-lg border-divider-regular bg-background-default`) with
+  // `divide-y` between rows, rather than individual `rounded-lg border
+  // bg-background-section` cards in a grid gap. Matches the AI summary
+  // treatment on the same tab, and the page-family-canonical §9 rule
+  // (one section, one frame).
   return (
     <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
       <ul className="divide-y divide-divider-subtle">
@@ -1852,19 +1778,14 @@ function ClientActivityPanel({
   )
 }
 
-// ClientOwnerHeaderPill (2026-05-23, rewired 2026-05-24).
-// Inline chip variant of the assignee avatar — paired with the
-// assignee's name so the H1 chip cluster can answer "whose client?"
-// without a separate Team tile in the summary strip.
+// ClientOwnerHeaderPill — inline chip variant of the assignee avatar,
+// paired with the assignee's name so the H1 chip cluster can answer
+// "whose client?" without a separate Team tile in the summary strip.
 //
-// 2026-05-24 (Yuqi caught a dead affordance): the pill is now a
-// real DropdownMenu trigger that picks an assignee from the firm's
-// assignable members + an "Unassigned" option. Clicking the pill
-// opens the list; selecting fires `clients.bulkUpdateAssignee` with
-// `[client.id]` and an `assigneeId` (or `null` for unassigned).
-// Previously the pill rendered as a non-interactive `<span>` that
-// LOOKED tappable but did nothing — pure UI lie. Now every
-// affordance does what the user expects.
+// The pill is a real DropdownMenu trigger that picks an assignee from
+// the firm's assignable members + an "Unassigned" option. Clicking the
+// pill opens the list; selecting fires `clients.bulkUpdateAssignee`
+// with `[client.id]` and an `assigneeId` (or `null` for unassigned).
 function ClientOwnerHeaderPill({
   assigneeId,
   name,
@@ -1891,13 +1812,12 @@ function ClientOwnerHeaderPill({
       : isMine
         ? t`Change owner — currently you (${name})`
         : t`Change owner — currently ${name}`
-  // 2026-05-24: use the client's `assigneeId` directly instead of
-  // reverse-looking up by name. The H1 pill renders an abbreviated
-  // name ("A. Rivera") while assignableMembers returns full names
-  // ("Avery Patel"), so the previous name-based match always failed
-  // and the radio group fell back to "Unassigned" — making the
-  // trigger and the checked item disagree. Looking up by id is the
-  // source of truth.
+  // Use the client's `assigneeId` directly instead of reverse-looking
+  // up by name. The H1 pill renders an abbreviated name ("A. Rivera")
+  // while assignableMembers returns full names ("Avery Patel"), so a
+  // name-based match would always fail and the radio group would fall
+  // back to "Unassigned" — making the trigger and the checked item
+  // disagree. Looking up by id is the source of truth.
   //
   // If the current assigneeId isn't in the assignable list (e.g.,
   // the member left the firm but the row still references them),
@@ -1912,23 +1832,18 @@ function ClientOwnerHeaderPill({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          // 2026-05-26 (Yuqi feedback #5 — "可以更大，现在点击 area 太小"):
-          // pill expanded to a real click target. Was a tiny chip
-          // (px-2 py-0.5, text-xs, 4×4px avatar, 3×3px chevron). Now
-          // h-7 (28px) + size-5 avatar + size-3.5 chevron.
-          // Same shape rules as other owner pills used in /deadlines
-          // queue cells so the picker reads as a real interactive
-          // control.
+          // Pill is a real click target: h-7 (28px) + size-5 avatar +
+          // size-3.5 chevron. Same shape rules as other owner pills
+          // used in /deadlines queue cells so the picker reads as a real
+          // interactive control.
           //
-          // 2026-05-28 (Yuqi /clients/[id] polish — "左边的padding
-          // 和上下一样，右边保持现在的"): horizontal padding made
-          // asymmetric — `pl-1 pr-2.5` (4px left, 10px right) so the
-          // avatar circle has the same 4px breathing room from the
-          // pill's left edge that it already has from the top + bottom
-          // edges (the h-7 / size-5 differential = 4px inset top + 4px
-          // bottom). Right side keeps the original 10px so the chevron
-          // doesn't feel cramped against the pill border. The 6px gap
-          // between avatar + label + chevron is unchanged.
+          // Horizontal padding is asymmetric — `pl-1 pr-2.5` (4px left,
+          // 10px right) so the avatar circle has the same 4px breathing
+          // room from the pill's left edge that it already has from the
+          // top + bottom edges (the h-7 / size-5 differential = 4px
+          // inset top + 4px bottom). The right side keeps 10px so the
+          // chevron doesn't feel cramped against the pill border. The
+          // 6px gap between avatar + label + chevron is unchanged.
           <button
             type="button"
             aria-label={triggerLabel}
@@ -1939,10 +1854,9 @@ function ClientOwnerHeaderPill({
               name === null ? 'text-text-secondary' : 'text-text-primary',
             )}
           >
-            {/* 2026-06-01: hand-rolled size-5 avatar circles
-                consolidated onto the shared AssigneeAvatar primitive
-                (size='xs'). Same null-name → Unassigned glyph branch +
-                isMine accent tint live inside the primitive now. */}
+            {/* Shared AssigneeAvatar primitive (size='xs'). The
+                null-name → Unassigned glyph branch + isMine accent tint
+                live inside the primitive. */}
             {name === null ? (
               <>
                 <AssigneeAvatar name={null} size="xs" title={triggerLabel} />
@@ -1970,8 +1884,8 @@ function ClientOwnerHeaderPill({
           <DropdownMenuRadioItem value="__unassigned__">
             {/* Avatar slot — size='xs' (size-5) so the Unassigned row
                 shares one visual rhythm with the member rows below.
-                2026-06-01: hand-rolled circle swapped for AssigneeAvatar
-                primitive (null name = Unassigned glyph). */}
+                AssigneeAvatar with null name renders the Unassigned
+                glyph. */}
             <AssigneeAvatar name={null} size="xs" title={t`Unassigned`} />
             <span>
               <Trans>Unassigned</Trans>
@@ -1989,10 +1903,9 @@ function ClientOwnerHeaderPill({
               disabled
               title={t`This member is no longer on the team`}
             >
-              {/* 2026-06-01: stale-assignee chip swapped to AssigneeAvatar
-                  (size='xs'). The primitive picks the same per-name tint
-                  via getAssigneeTint and falls back to the unassigned
-                  glyph when name is null. */}
+              {/* AssigneeAvatar (size='xs') picks the per-name tint via
+                  getAssigneeTint and falls back to the unassigned glyph
+                  when name is null. */}
               <AssigneeAvatar name={name} size="xs" title={name ?? t`Former teammate`} />
               <span className="truncate text-text-tertiary">
                 {name ?? <Trans>Former teammate</Trans>}
@@ -2002,20 +1915,18 @@ function ClientOwnerHeaderPill({
               </span>
             </DropdownMenuRadioItem>
           ) : null}
-          {/* 2026-05-27 (Yuqi runtime error fix "Route failed: Base UI:
-              MenuGroupContext is missing"): empty-state `DropdownMenuItem`
-              was nested inside the RadioGroup — Base UI strict-mode
-              requires RadioGroup children to all be RadioItems. The
-              Separator + empty-state Item now live OUTSIDE the
-              RadioGroup. Member RadioItems stay inside. */}
+          {/* Base UI strict-mode requires RadioGroup children to all be
+              RadioItems (nesting a `DropdownMenuItem` inside throws
+              "MenuGroupContext is missing"). The Separator + empty-state
+              Item live OUTSIDE the RadioGroup; member RadioItems stay
+              inside. */}
           {assignableMembers.map((member) => {
             const isCurrentUser =
               currentUserName !== null &&
               member.name.trim().toLowerCase() === currentUserName.toLowerCase()
             return (
               <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
-                {/* 2026-06-01: member avatars consolidated onto
-                    AssigneeAvatar (size='xs', isMine for current user
+                {/* AssigneeAvatar (size='xs', isMine for current user
                     accent tint). */}
                 <AssigneeAvatar
                   name={member.name}
@@ -2069,39 +1980,26 @@ function ClientContactMetaRow({
   entityLabel: string
   ownerSlot: ReactNode
 }) {
-  // 2026-05-26 (Yuqi macro→micro audit, Fix #11 / §2.4): the row now
-  // also carries the identity chips that used to clutter the title
-  // cluster — entity badge, owner pill, filing-state chips. They
-  // were 4-5 elements jammed into the H1 row; per canonical the
-  // title gets 1 chip max, the rest of the identity moves here.
+  // The row carries the identity chips — entity badge, owner pill,
+  // filing-state chips — that would otherwise clutter the title
+  // cluster; per canonical the title gets 1 chip max, the rest of the
+  // identity lives here.
   //
-  // 2026-05-26 (rebase): merged with main's `buildClientHeaderContactItems`
-  // builder pattern. The builder pre-resolves contact / email /
-  // phone / address items (filtering out malformed migration data
-  // like the literal `primary_phone` column name). We render the
-  // identity chips FIRST (badge → owner → states), then the
-  // builder-produced contact items. Row is unconditionally
-  // rendered now (was hidden when items.length === 0) because the
+  // `buildClientHeaderContactItems` pre-resolves contact / email /
+  // phone / address items (filtering out malformed migration data like
+  // the literal `primary_phone` column name). We render the identity
+  // chips FIRST (badge → owner → states), then the builder-produced
+  // contact items. The row is rendered unconditionally because the
   // entity badge always has content.
   const items = buildClientHeaderContactItems(client)
   return (
     <div className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-text-tertiary">
-      {/* 2026-05-26 (Yuqi follow-up — "LLC and the assignee are
-          weirdly positioned and put together"): the entity badge
-          was rendering at the default Badge size (h-5 / 20px tall,
-          rounded-full but very thin), sitting next to the owner
-          pill which is h-7 (28px). The 8px height delta made them
-          look mismatched in scale even though they shared
-          rounded-full chrome. Bumped the entity badge to a
-          custom shape that matches the owner pill exactly —
-          h-7, px-3, same border + bg + text size — so the two
-          pills read as one coherent meta row. Gap tightened
-          gap-x-3 → gap-x-2 since the pills are now visually
-          related siblings rather than two ill-matched chips. */}
-      {/* 2026-06-01: entity-kind chip routed through Badge outline lg.
-          h-7 override stays as className because the entity pill needs
-          to match the adjacent owner pill's 28px height exactly (lg's
-          baseline is h-6). */}
+      {/* Entity-kind chip routed through Badge outline lg, with an h-7
+          className override: the entity pill must match the adjacent
+          owner pill's 28px height exactly (lg's baseline is h-6, and the
+          owner pill is h-7), so the two read as one coherent meta row.
+          The gap is gap-x-2 since the pills are visually related
+          siblings. */}
       <Badge
         variant="outline"
         shape="pill"

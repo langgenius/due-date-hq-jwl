@@ -102,8 +102,7 @@ export function DeadlineNavigatorRail({
   const { t } = useLingui()
   const statusLabels = useStatusLabels()
   const [search, setSearch] = useState('')
-  // 2026-06-09 (Yuqi "Deadline page needs filter of different status"):
-  // optional client-side status filter over the loaded rail rows. `all` shows
+  // Optional client-side status filter over the loaded rail rows. `all` shows
   // everything; otherwise only rows in the chosen status. Composes with search.
   const [statusFilter, setStatusFilter] = useState<ObligationStatus | 'all'>('all')
 
@@ -297,8 +296,8 @@ function DeadlineNavigatorRow({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center justify-between gap-2 pb-0.5">
           <TaxCodeBadge code={row.taxType} className="px-1.5 py-0.5 text-caption-xs" />
-          {/* 2026-06-10 (Yuqi #10): status reads as an icon; the active
-              (currently-viewed) row expands it to icon + label. */}
+          {/* Status reads as an icon; the active (currently-viewed)
+              row expands it to icon + label. */}
           <span className="flex shrink-0 items-center gap-1" title={statusLabel}>
             <StatusIcon
               className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[row.status])}

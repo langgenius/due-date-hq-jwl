@@ -251,12 +251,9 @@ export function CreateClientDialog({
             <Trans>Create client</Trans>
           </DialogTitle>
           <DialogDescription>
-            {/* 2026-05-27 (Step 6 UX audit #73): copy used to read
-                "Add a manual client record to the active practice
-                directory." — formal phrasing ("manual record",
-                "active practice directory") for a routine action.
-                CPAs add clients constantly; the dialog should sound
-                like the action they're doing. */}
+            {/* Plain phrasing: CPAs add clients constantly, so the
+                dialog should sound like the routine action they're
+                doing, not formal record-keeping language. */}
             <Trans>Add a client to this practice.</Trans>
           </DialogDescription>
         </DialogHeader>
@@ -276,10 +273,9 @@ export function CreateClientDialog({
                     <FieldLabel htmlFor="client-name">
                       <Trans>Client name</Trans>
                     </FieldLabel>
-                    {/* 2026-05-26 (Step 6 UX audit #81): autoFocus on
-                        the first field so users opening the dialog
-                        can immediately start typing the client name
-                        without an extra click. Standard dialog UX. */}
+                    {/* autoFocus on the first field so users opening
+                        the dialog can immediately start typing the
+                        client name without an extra click. */}
                     <Input
                       id="client-name"
                       name={field.name}
@@ -328,13 +324,10 @@ export function CreateClientDialog({
                     <FieldLabel htmlFor="client-ein">
                       <Trans>EIN</Trans>
                     </FieldLabel>
-                    {/* 2026-05-27 (Step 6 UX audit #74): placeholder
-                        used to be `12-3456789`, which reads as a
-                        real-looking EIN — a user could legitimately
-                        wonder if it was the EIN already on file or a
-                        suggestion. Swapped the trailing 7 digits for
-                        Xs so the placeholder reads as "format
-                        example" not "valid number." */}
+                    {/* Placeholder uses Xs for the trailing 7 digits
+                        (`12-XXXXXXX`) so it reads as a "format example"
+                        rather than a real-looking EIN that a user might
+                        mistake for the number already on file. */}
                     <Input
                       id="client-ein"
                       name={field.name}
@@ -355,15 +348,11 @@ export function CreateClientDialog({
                     <FieldLabel htmlFor="client-state">
                       <Trans>State</Trans>
                     </FieldLabel>
-                    {/* 2026-05-27 (Step 6 UX audit #75): CSS used to
-                        render the field as uppercase while the stored
-                        value preserved whatever case the user typed.
-                        If a user typed "ca" they saw "CA" and assumed
-                        the value matched what was stored — but a
-                        copy-out, validation re-display, or eventual
-                        non-CSS surface would expose the lowercase
-                        original. Uppercase the value on change so
-                        what-you-see matches what-you-store. */}
+                    {/* Uppercase the value on change (not just via CSS)
+                        so what-you-see matches what-you-store. CSS-only
+                        uppercasing would let a "ca" entry display as
+                        "CA" while a copy-out, validation re-display, or
+                        non-CSS surface exposes the lowercase original. */}
                     <Input
                       id="client-state"
                       name={field.name}
@@ -419,10 +408,9 @@ export function CreateClientDialog({
                 )}
               </form.Field>
               <Field>
-                {/* 2026-05-27 (Yuqi quick-fix batch — "Owner → Assignee"):
-                    field labels the `assigneeId` input — same data point
-                    the /clients table calls "Assignee" and /deadlines
-                    calls "Assignee". One vocabulary across the surface. */}
+                {/* Labels the `assigneeId` input "Assignee" — the same
+                    vocabulary the /clients table and /deadlines use for
+                    this data point. */}
                 <FieldLabel htmlFor="client-assignee-trigger">
                   <Trans>Assignee</Trans>
                 </FieldLabel>
@@ -514,15 +502,14 @@ export function CreateClientDialog({
 
             <form.Field name="notes">
               {(field) => {
-                // 2026-05-27 (Step 6 UX audit #80): the Notes textarea
-                // is validated against a 5000-character ceiling but
-                // didn't surface the count anywhere — users typing a
-                // long note had no signal until submit. Inline counter
-                // appears alongside the label once the user starts
-                // typing; flips to destructive tone when over the
-                // limit so the constraint reads as actionable, not
-                // surprise rejection. Stays silent at zero so the
-                // empty state isn't noisier than it needs to be.
+                // The Notes textarea is validated against a
+                // 5000-character ceiling. Inline counter appears
+                // alongside the label once the user starts typing so
+                // they get a signal before submit; flips to destructive
+                // tone when over the limit so the constraint reads as
+                // actionable, not surprise rejection. Stays silent at
+                // zero so the empty state isn't noisier than it needs to
+                // be.
                 const noteLength = field.state.value.length
                 const noteMax = 5000
                 const overLimit = noteLength > noteMax
@@ -561,11 +548,10 @@ export function CreateClientDialog({
           </FieldGroup>
 
           <DialogFooter>
-            {/* 2026-05-27 (Step 6 UX #77 / σ cross-route D13): Cancel
-                was `variant="outline"`, same weight as the primary
-                action. Wave-1 X1 sweep landed the canonical "dialog
-                Cancel uses ghost" pattern; both ν and σ landed the
-                same fix here. Ghost lets Create stay the eye anchor. */}
+            {/* Cancel uses ghost (the canonical "dialog Cancel uses
+                ghost" pattern) so Create stays the eye anchor — not
+                outline, which would give it the same weight as the
+                primary action. */}
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>

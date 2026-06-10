@@ -12,20 +12,15 @@ import { useAppHotkey } from '@/components/patterns/keyboard-shell'
 /**
  * Canonical search bar for page-level table filtering.
  *
- * Extracted 2026-05-25 (Yuqi cross-surface directive: "ensure the
- * search pattern on each page is the same"). Before this primitive,
- * `/rules/library`, `/deadlines`, and `/clients` each rolled their
- * own search input — different heights (h-8 / h-9), different icon
- * sizes (size-3.5 / size-4), different padding (left-2.5 / left-3),
- * different clear affordance handling. Now there's one source of
- * truth so a CPA's muscle memory for "press /" or "click the X
+ * One source of truth across `/rules/library`, `/deadlines`, and
+ * `/clients` so a CPA's muscle memory for "press /" or "click the X
  * to clear" works identically everywhere.
  *
  * Behavior:
  *  - h-9 (36px) with the SearchIcon at left-2.5 and an inline `X` clear
- *    button on the right when there's a value. (2026-06-09 Yuqi settled on
- *    "all search bars 36px" — they sit at the same height as the delicate
- *    h-9 FilterTrigger pills they share toolbar rows with.)
+ *    button on the right when there's a value. (36px so they sit at the
+ *    same height as the h-9 FilterTrigger pills they share toolbar rows
+ *    with.)
  *  - `Escape` clears the value (and blurs if the consumer wires the
  *    ref).
  *  - Placeholder styled as text-secondary (not tertiary) so it
@@ -57,11 +52,10 @@ export const SearchInput = forwardRef(function SearchInput(
     onFocus?: () => void
     onBlur?: () => void
     /**
-     * 2026-05-26 (Yuqi cross-product search audit, Phase 1): optional
-     * `/` (or any) hotkey to focus this input + render a discoverable
-     * kbd hint chip inside the input on the right when the value is
-     * empty. Slack / Linear / GitHub all use `/` for "focus the page
-     * filter"; standardising it here lets every consumer opt in with
+     * Optional `/` (or any) hotkey to focus this input + render a
+     * discoverable kbd hint chip inside the input on the right when the
+     * value is empty. Slack / Linear / GitHub all use `/` for "focus the
+     * page filter"; standardising it here lets every consumer opt in with
      * one prop instead of hand-rolling the hotkey + the hint.
      *
      * Pass `hotkeyMeta` so the global shortcut help dialog can list

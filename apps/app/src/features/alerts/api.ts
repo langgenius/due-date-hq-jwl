@@ -69,14 +69,10 @@ export function useAlertsInvalidation(): () => void {
 }
 
 /**
- * 2026-06-04 round 50 — Phase 2 morning sweep AI summary endpoint.
- * Queries the server-side LLM briefing. Cache-friendly: server
- * caches per (firmId, day-bucket) so the same firm gets one LLM
- * call per UTC day; the React Query cache here keeps the dialog
- * snappy on repeat opens.
- *
- * (Pre-rename naming was `usePulseMorningSweepQueryOptions`; renamed
- * to match the round-86 directory-rename's `useAlerts*` convention.)
+ * Morning sweep AI summary endpoint. Queries the server-side LLM
+ * briefing. Cache-friendly: server caches per (firmId, day-bucket) so
+ * the same firm gets one LLM call per UTC day; the React Query cache
+ * here keeps the dialog snappy on repeat opens.
  */
 export function useAlertsMorningSweepQueryOptions() {
   return {

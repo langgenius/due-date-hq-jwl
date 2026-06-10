@@ -11,12 +11,9 @@ import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 /**
  * MonitoringChip — the "Monitoring: Federal · 50 States · DC" status chip.
  *
- * 2026-06-09 (Yuqi /alerts #2 "should be the same as you have on today page"):
- * extracted so `/today` (NeedsAttentionSection header) and `/alerts` (page
- * header title row) render the SAME chip — same dot + label + ghost-badge
- * treatment — instead of two hand-rolled variants that had drifted (the
- * /alerts copy was a bigger 13px Link with a trailing chevron; /today was a
- * 10px passive Badge). One component → no future drift.
+ * `/today` (NeedsAttentionSection header) and `/alerts` (page header
+ * title row) render the SAME chip — same dot + label + ghost-badge
+ * treatment — from this one component so the two can't drift.
  *
  * Variants:
  *   • passive (default, `/today`): non-interactive Badge, `cursor-help`,
@@ -61,9 +58,8 @@ export function MonitoringChip({
     </>
   )
   const badgeClass = cn(
-    // 2026-06-10 (Yuqi /today #1 "writes LIVE in a green pill, hover shows
-    // monitoring"): the chip is now a compact green "LIVE" pill; the full
-    // monitoring scope (Federal · 50 States · DC) moved into the hover tooltip.
+    // Compact green "LIVE" pill; the full monitoring scope (Federal ·
+    // 50 States · DC) lives in the hover tooltip.
     'gap-1.5 rounded-full border border-state-success-border bg-state-success-hover px-2 py-0.5 text-caption font-semibold uppercase tracking-[0.4px] text-text-success',
     to ? 'cursor-pointer transition-colors hover:bg-state-success-active' : 'cursor-help',
     className,

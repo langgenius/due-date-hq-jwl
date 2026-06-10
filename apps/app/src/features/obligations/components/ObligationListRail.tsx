@@ -11,15 +11,15 @@ import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 
 /**
- * 2026-06-08 (Yuqi "standardize on compact rail"): the 380px deadline
- * secondary sidebar shown on the full-page /deadlines detail layout —
- * mirrors the /alerts `AlertListRail` so the master-detail pattern reads
- * the same across the product. Its own `Deadlines · N overdue` head, a
- * search, and a compact-item body (due column + state/form badges +
- * client + status). The open deadline's item carries the 2px left accent.
+ * The 380px deadline secondary sidebar shown on the full-page
+ * /deadlines detail layout — mirrors the /alerts `AlertListRail` so
+ * the master-detail pattern reads the same across the product. Its
+ * own `Deadlines · N overdue` head, a search, and a compact-item body
+ * (due column + state/form badges + client + status). The open
+ * deadline's item carries the 2px left accent.
  *
- * Replaces the prior "table shrinks beside the detail" split: when a
- * deadline is open the full table is hidden and this rail is the list.
+ * When a deadline is open the full table is hidden and this rail is
+ * the list.
  */
 export function ObligationListRail({
   rows,

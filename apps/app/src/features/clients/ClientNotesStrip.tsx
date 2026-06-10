@@ -63,8 +63,7 @@ export function ClientNotesStrip({
   if (notes.length === 0) return null
 
   return (
-    // 2026-06-01 (Yuqi /clients/[id] critique — IA part 2): Card
-    // primitive with the muted tone + xs size + md radius gives a
+    // Card primitive with the muted tone + xs size + md radius gives a
     // quiet contextual surface. No `!important` overrides — every
     // class is either a primitive default or a layout addition
     // (flex direction + items alignment for the inner row).

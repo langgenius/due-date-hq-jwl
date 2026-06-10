@@ -1,7 +1,7 @@
-// 2026-05-27 (audit-drain X1, D17): "Changes since last visit" surface.
+// "Changes since last visit" surface.
 //
-// Mission (from φ's journey-audit J5 — "returned from vacation"): a
-// CPA who walked away on Friday afternoon and lands back on Tuesday
+// Mission ("returned from vacation"): a CPA who walked away on Friday
+// afternoon and lands back on Tuesday
 // morning has no surface that says "here's what shifted while you
 // were away." The queue doesn't differentiate "old" vs "since you
 // last looked"; the audit log shows everything across the practice
@@ -246,28 +246,18 @@ function ChangesSinceLastSection() {
     )
   }
 
-  // 2026-05-27 (X1 D17): suppress the section entirely on errors —
-  // a "couldn't load changes" panel above the Actions row is
-  // strictly worse than just hiding the read-back. The audit log
-  // page is the canonical surface for failures.
+  // Suppress the section entirely on errors — a "couldn't load changes"
+  // panel above the Actions row is strictly worse than just hiding the
+  // read-back. The audit log page is the canonical surface for failures.
   if (auditQuery.isError) return null
 
   return (
     <section
       aria-label={t`Changes since last visit`}
-      // 2026-05-27 (X1 D17): visually quiet by design. Uses the
-      // page's neutral surface tone (no destructive tint) so it
-      // reads as informational, not as another alert zone. Same
-      // rounded-xl/p-3 rhythm as the Alerts section keeps the
-      // page's vertical cadence consistent.
-      // 2026-06-04 round 42 (Yuqi consistency audit follow-up #3 —
-      // "yes please"): card bg unified with the NeedsAttentionCard
-      // + AlertCard family. `bg-background-section` (#f9fafb
-      // gray-50) was sitting only 2 RGB units off the page wash
-      // (#f4f4f4 gray-100) — visually invisible chrome. Stepped to
-      // `bg-background-default` (white) so the section reads as
-      // a distinct card on the gray wash, matching the rest of
-      // the dashboard's white-card-on-gray pattern.
+      // Visually quiet by design — no destructive tint, so it reads as
+      // informational, not as another alert zone. White card on the gray
+      // page wash matches the rest of the dashboard's white-card-on-gray
+      // pattern; the rounded-xl/p-3 rhythm matches the Alerts section.
       className="flex flex-col gap-2 rounded-xl bg-background-default p-3"
     >
       <div className="flex items-center justify-between gap-3">
@@ -324,12 +314,9 @@ function ChangesSinceLastSection() {
               showing everything. */}
           {auditQuery.data && (auditQuery.data.events.length ?? 0) > MAX_VISIBLE_EVENTS ? (
             <li className="pt-2">
-              {/* 2026-05-31 (Yuqi DS-first revision): hand-rolled
-                  muted-underline link replaced with the canonical
-                  `<TextLink>` primitive. `hover:underline` is kept
-                  as a className addition because the muted variant
-                  intentionally has no underline-on-hover — same
-                  affordance the original site carried. */}
+              {/* Canonical `<TextLink>` primitive. `hover:underline` is
+                  kept as a className addition because the muted variant
+                  intentionally has no underline-on-hover. */}
               <TextLink
                 variant="muted"
                 size="default"

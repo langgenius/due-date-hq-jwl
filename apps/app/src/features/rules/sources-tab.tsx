@@ -228,13 +228,6 @@ export function SourcesTab() {
           active-count badge + chevron; SOURCE auto-fills the remaining space
           and shrinks first on narrower viewports.
         */}
-        {/* 2026-06-04 (Yuqi table sweep): `bg-background-subtle` on
-            TableHeader + `hover:bg-transparent` on the header row
-            REMOVED — canonical primitive ships `bg-background-section`
-            (slightly lighter than the old subtle tone, but the
-            family-correct header inset) + transparent header-row
-            hover. /rules/sources now reads as the same family as
-            /today, /deadlines, /clients. */}
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
@@ -278,7 +271,6 @@ export function SourcesTab() {
                 />
               </TableHead>
               <TableHead className="w-[112px] px-2">WATCH</TableHead>
-              {/* 2026-06-01: dropped uppercase/eyebrow override per DESIGN §9 — TableHead default already carries the canonical column-header type. */}
               <TableHead className="w-[92px] px-2">LAST CHECKED</TableHead>
               <TableHead className="w-[72px] px-0" />
             </TableRow>
@@ -297,7 +289,7 @@ export function SourcesTab() {
             {visibleRows.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={7}>
-                  {/* 2026-06-01: hand-rolled empty cell → EmptyState density='compact'. Drops the section-frame chrome so the message reads centered inside the table body. */}
+                  {/* EmptyState density='compact' drops the section-frame chrome so the message reads centered inside the table body. */}
                   <EmptyState
                     density="compact"
                     title={
@@ -607,9 +599,7 @@ function SourceRow({
       tabIndex={-1}
       onClick={openSource}
       onKeyDown={handleKeyDown}
-      // 2026-06-04 (Yuqi table sweep): `hover:bg-state-base-hover`
-      // dropped — canonical row default. `h-10 cursor-pointer`
-      // kept (compact source row + interactivity).
+      // `h-10 cursor-pointer` — compact source row + interactivity.
       className="h-10 cursor-pointer"
     >
       <TableCell className="px-4 py-1.5">

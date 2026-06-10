@@ -4,10 +4,7 @@ import { CalendarPlusIcon } from 'lucide-react'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 
 // Small "Extended" chip surfaced on rows that have a legally-
-// recognized extension applied (Form 4868/7004). Per the 2026-06-04
-// triage redesign (item 1.5):
-//
-//   "extension 给紧迫度降噪(已合法延期的退出"今天起火"带,缴税面不归零)"
+// recognized extension applied (Form 4868/7004).
 //
 // The chip's presence on a row signals to the triage logic that the
 // FILING side should be demoted from Critical → High; the row's

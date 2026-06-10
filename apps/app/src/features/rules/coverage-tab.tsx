@@ -786,9 +786,8 @@ export function CoverageTab({
 
   return (
     <div className={cn('flex flex-col gap-6', fitViewport && 'min-h-0 flex-1')}>
-      {/* StatsStrip removed 2026-05-21 per docs/Design/ux-audit-2026-05-21.md
-        P0 #5 — the active/pending/jurisdiction counts already render in
-        `CoverageSummaryStrip` at the page top (drillable). Repeating
+      {/* No StatsStrip here — the active/pending/jurisdiction counts already
+        render in `CoverageSummaryStrip` at the page top (drillable). Repeating
         them here read as "this designer hasn't decided." */}
 
       <section className={cn('flex flex-col gap-3', fitViewport && 'min-h-0 flex-1')}>
@@ -799,12 +798,9 @@ export function CoverageTab({
         {!panelOpen ? (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              {/* 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN
-                  §9 "uppercase kicker deprecated" violation): dropped
-                  `text-xs uppercase tracking-eyebrow font-semibold`
-                  for the canonical `text-sm font-medium text-text-primary`
-                  section heading scale. Sentence case keeps the rest
-                  of the rules library reading as one coherent surface. */}
+              {/* Canonical `text-sm font-medium text-text-primary` section
+                  heading scale. Sentence case keeps the rest of the rules
+                  library reading as one coherent surface. */}
               <h2 className="text-sm font-medium text-text-primary">
                 <Trans>Entity coverage</Trans>
               </h2>
@@ -918,14 +914,9 @@ export function CoverageTab({
                     : 'max-h-[clamp(420px,calc(100svh-12rem),920px)] overscroll-auto',
                 )}
               >
-                {/* 2026-06-04 (Yuqi table sweep): TableHead text-xs
-                    font-medium text-text-secondary overrides removed
-                    — primitive now defaults to 11/600 uppercase
-                    tertiary, the canonical column-label style. The
-                    sticky `bg-background-section` is kept on
-                    TableHeader to opt out of the alpha-50 header tone
-                    when stickied (solid bg is required so body rows
-                    don't bleed through during scroll). */}
+                {/* The sticky `bg-background-section` on TableHeader opts out
+                    of the alpha-50 header tone when stickied (solid bg is
+                    required so body rows don't bleed through during scroll). */}
                 <Table>
                   <TableHeader className="sticky top-0 z-10 bg-background-section">
                     {/* Single-row header — the group-eyebrow strip ("Rules"
@@ -1059,22 +1050,11 @@ export function CoverageTab({
   )
 }
 
-// StatsStrip + Stat removed 2026-05-21 — counts now live in the page-
-// level CoverageSummaryStrip + SourcesSummaryStrip (rules.library.tsx).
-// See docs/Design/ux-audit-2026-05-21.md P0 #5.
-
-// 2026-05-26 (Yuqi cross-product search audit): the previous local
-// SearchInput implementation shadowed the canonical primitive name
-// and drifted in 4 dimensions: size-3.5 icon (vs canonical size-4),
-// pl-8 (vs pl-9), `type="search"` which stacks the browser's
-// native clear button on top of our chrome, and no inline X clear
-// button + no Escape-to-clear. Now a thin wrapper around the
-// shared primitive so the rule-library coverage tab + batch-review
-// modal cards match every other search across the product.
-// 2026-05-26 (Yuqi cross-product search audit, Phase 1): placeholder
-// changed "Search jurisdictions or rules…" → "Filter jurisdictions
-// or rules…". Page-level filter, not entity search. `hotkey="/"`
-// activates the primitive's page-search hotkey convention.
+// A thin wrapper around the shared SearchInput primitive so the rule-library
+// coverage tab + batch-review modal cards match every other search across the
+// product. Placeholder reads "Filter jurisdictions or rules…" — this is a
+// page-level filter, not entity search. `hotkey="/"` activates the primitive's
+// page-search hotkey convention.
 function SearchInput({
   value,
   onChange,
@@ -1259,12 +1239,9 @@ function CoverageRow({
 
   return (
     <Fragment>
-      {/* 2026-06-04 (Yuqi table sweep): `transition-colors` removed
-          (canonical row default), `hover:bg-background-subtle/40`
-          replaced with primitive hover inheritance. `h-12` kept
-          because this coverage matrix is a deliberately compact
-          surface — the canonical `py-4` (40px+ rows) would force a
-          tall scroll on a 50+ jurisdiction list. Expanded row keeps
+      {/* `h-12` because this coverage matrix is a deliberately compact
+          surface — the canonical `py-4` (40px+ rows) would force a tall
+          scroll on a 50+ jurisdiction list. Expanded row keeps
           `border-b-0 hover:bg-transparent` because the expand panel
           fuses to the row below. */}
       <TableRow
@@ -1686,9 +1663,9 @@ function RuleSelectionCheckbox({
       aria-label={selection.label}
       checked={selection.checked}
       onClick={(event) => event.stopPropagation()}
-      // 2026-05-24 (interaction audit): let Escape bubble so it can
-      // close a parent drawer or dialog. Stopping every key (including
-      // Escape) trapped users inside the checkbox column.
+      // Let Escape bubble so it can close a parent drawer or dialog.
+      // Stopping every key (including Escape) trapped users inside the
+      // checkbox column.
       onKeyDown={(event) => {
         if (event.key === 'Escape') return
         event.stopPropagation()
@@ -2059,16 +2036,9 @@ function RuleQueueModeToggle({
   onModeChange: (mode: RuleQueueMode) => void
 }) {
   const { t } = useLingui()
-  // 2026-05-26 (Layer C follow-up — segmented control unification):
-  // Migrated from a hand-rolled `<div role="tablist">` + two `<button
-  // role="tab">` blocks to the `<Tabs>` primitive from
-  // `@duedatehq/ui/components/ui/tabs`. The primitive handles
-  // aria-selected via `data-active`, keyboard arrow-key navigation
-  // between tabs, and the canonical `bg-components-segmented-*`
-  // palette. Panel content stays rendered externally by the caller
-  // based on the same `mode` value — Tabs.Root works fine as a
-  // controller-only without `<TabsContent>` (a11y story is equivalent
-  // since the old version had no aria-controls relationship either).
+  // Panel content stays rendered externally by the caller based on the
+  // same `mode` value, so Tabs.Root is used controller-only without
+  // `<TabsContent>`.
   return (
     <Tabs
       value={mode}
@@ -2166,13 +2136,12 @@ function BulkReviewDrawer({
 }) {
   const { t } = useLingui()
   const hiddenRuleCount = Math.max(0, selectedRules.length - 8)
-  // 2026-05-26 (Yuqi sidebar mental-model pass): same pattern as the
-  // /deadlines obligation drawer. While this 720px bulk-review sheet
-  // is open, auto-collapse the sidebar to give it horizontal room;
-  // restore the user's persistent preference on close. BulkReviewDrawer
-  // normally renders inside AppShell, but unit tests and isolated route
-  // harnesses mount the coverage tab without SidebarProvider. In those
-  // environments the sidebar pressure behavior is a no-op.
+  // Same pattern as the /deadlines obligation drawer. While this 720px
+  // bulk-review sheet is open, auto-collapse the sidebar to give it
+  // horizontal room; restore the user's persistent preference on close.
+  // BulkReviewDrawer normally renders inside AppShell, but unit tests and
+  // isolated route harnesses mount the coverage tab without SidebarProvider.
+  // In those environments the sidebar pressure behavior is a no-op.
   const sidebar = useOptionalSidebar()
   const setAutoCollapsed = sidebar?.setAutoCollapsed
   useEffect(() => {
@@ -2553,9 +2522,8 @@ function RulePanel({
       {/* keyed by rule.id so React mounts a fresh subtree per rule;
         the `animate-in fade-in` (Tailwind animate) plays a quick
         fade as the user advances through the queue.
-        2026-05-24 (interaction audit): `motion-reduce:animate-none`
-        suppresses the fade for users with `prefers-reduced-motion:
-        reduce`. */}
+        `motion-reduce:animate-none` suppresses the fade for users with
+        `prefers-reduced-motion: reduce`. */}
       <div
         key={rule.id}
         className="flex-1 overflow-y-auto px-4 py-3 animate-in fade-in duration-150 motion-reduce:animate-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -2579,7 +2547,6 @@ function RulePanel({
  * still has source gaps.
  */
 function SourceCountBadge({ count, attention }: { count: number; attention?: boolean }) {
-  // 2026-06-01: hand-rolled size-6 circular pills → Badge size='circle'.
   // `secondary` tone for zero (muted gray), `warning` for jurisdictions
   // with source gaps, `success` for healthy coverage.
   if (count === 0) {
@@ -2626,10 +2593,6 @@ function coverageCellStateFromSourceState(
   return fallback === 'none' ? null : fallback
 }
 
-// 2026-05-27 (audit-drain beta-rules — coverage-tab i18n drift): each
-// `title=` + `sr-only` label was hardcoded English. Promoted to `t`...``
-// so non-EN firms see translated entity glyphs in the coverage table.
-// Hook into useLingui so the labels flow through the catalog.
 function EntityCellContent({ state }: { state: RuleSourceCoverageStatus }) {
   const { t } = useLingui()
   if (state === 'rule_active') {
@@ -2691,11 +2654,6 @@ function EntityCellContent({ state }: { state: RuleSourceCoverageStatus }) {
   )
 }
 
-// 2026-05-27 (audit-drain beta-rules — coverage-tab i18n drift): the
-// labels feeding the drill-in button's aria-label (sole call site at
-// `aria-label={t`Open ${fullName} … ${labelForSourceState(state)}`}`)
-// were plain English. Pass the lingui `t` macro so each branch returns
-// a translated short label instead.
 function labelForSourceState(
   state: RuleSourceCoverageStatus,
   t: ReturnType<typeof useLingui>['t'],

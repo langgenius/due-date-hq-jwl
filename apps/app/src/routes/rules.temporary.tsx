@@ -6,10 +6,10 @@ import { TemporaryRulesTab } from '@/features/rules/temporary-rules-tab'
 export function RulesTemporaryRoute() {
   const { t } = useLingui()
   return (
-    // 2026-06-09 (design-universe audit): align with /rules/sources +
-    // /rules/library — `wide` (max-w-page-expanded, 1440), 32px section gap
-    // + horizontal padding, and a breadcrumb back to the library so this
-    // rail-reached page reads like its siblings, not a narrower outlier.
+    // Aligns with /rules/sources + /rules/library — `wide`
+    // (max-w-page-expanded, 1440), 32px section gap + horizontal padding,
+    // and a breadcrumb back to the library so this rail-reached page reads
+    // like its siblings, not a narrower outlier.
     <RulesPageShell
       title={t`Temporary rules`}
       wide

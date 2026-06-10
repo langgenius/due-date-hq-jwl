@@ -20,41 +20,9 @@ import { changeKindLabel } from './PulseChangeKindChip'
  * PulseFormRevisedCard — exact recreation of Pencil node `ZkXFr`
  * (the "Form Revised" master used inside jykZH).
  *
- * 2026-06-04 round 32 (Yuqi "check the padding - margin - border -
- * rounded corners - layout again"): ZkXFr was REVISED since my
- * round-28 build. Re-audit of the latest resolveVariables JSON
- * caught these deltas:
- *
- *   • cornerRadius 20 → **16** (`rounded-xl`).
- *   • padding 24 → **20** (`p-5`).
- *   • Outer gap 20 → **8** (`gap-2`) between sections
- *     c4OFh (meta) / eMmjH (title) / iKzA1 (facts+impact).
- *   • iKzA1 internal gap dropped to **0** — facts (R2kul) sits
- *     directly above impact (I1qCj9); breathing room comes from
- *     impact's own `padding: [10, 0, 2, 0]` (pt-2.5 pb-0.5).
- *   • Facts panel R2kul kept `rounded-xl` + `bg-#f9fafb`
- *     (bg-background-section).
- *   • Cell strokes (`border-divider-regular` left borders on
- *     cells 2-4) REMOVED in the latest Pencil — cells are
- *     visually separated by the cell padding alone.
- *   • Cell widths: WHAT CHANGED (500) + AFFECTING (500) +
- *     FIRST YEAR (200) + TRANSITION (200) → `grid-cols-[5fr_5fr_2fr_2fr]`.
- *   • SCHEMA DIFF cell RENAMED to **AFFECTING** and now shows form
- *     code pills (JetBrains Mono 12/700, bg-background-section,
- *     rounded-5, padding [4, 12], stroke divider-regular).
- *   • WHAT CHANGED row gains a leading **NEW badge** after the new
- *     form code — amber #92400E bg, white Geist Mono 10/700 ls 0.7
- *     text, rounded-full, padding [4, 9], slightly rotated.
- *   • Title row (eMmjH) is now ONE inline cluster `sAnr3` (gap-8)
- *     containing CA pill + title + Open. The `justify-between`
- *     framing left/right was kept at the eMmjH level but with
- *     a single child it doesn't surface; visually the cluster
- *     packs left, "Open" sits right after the title text.
- *
- * Data wiring (unchanged from round 30): every visible value
- * comes from `alert` props via the shared `pulse-alert-chrome`
- * helpers, with `facts` carrying the form-revision-specific
- * payload that the contract doesn't yet expose.
+ * Data wiring: every visible value comes from `alert` props via the
+ * shared `pulse-alert-chrome` helpers, with `facts` carrying the
+ * form-revision-specific payload that the contract doesn't yet expose.
  */
 
 interface PulseFormRevisedFacts {
@@ -81,12 +49,10 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
   const detailQuery = useQuery(useAlertDetailQueryOptions(alert.id))
   const firstForm = detailQuery.data?.forms?.[0]
 
-  // 2026-06-08 (Yuqi /alerts #5 "give High Impact Alerts the HIGH IMPACT
-  // badge"): the impact pill is gated to HIGH only — matching AlertCard
-  // (rounds 66/84: "LOW / MEDIUM render nothing; absence IS the signal").
-  // The form-revised card previously always rendered a pill, so quiet
-  // form updates wore a noisy "LOW IMPACT" badge; now only the genuinely
-  // high-impact ones carry the red HIGH IMPACT chip.
+  // The impact pill is gated to HIGH only — matching AlertCard ("LOW /
+  // MEDIUM render nothing; absence IS the signal"). Only the genuinely
+  // high-impact alerts carry the red HIGH IMPACT chip; quiet form
+  // updates wear no badge.
   const severityLabel = t`HIGH IMPACT`
   const actionLabel = actionPill
     ? actionPill.id === 'needs-action'

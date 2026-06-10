@@ -51,25 +51,17 @@ export function ObligationQueueSortableHeader({
 }) {
   const direction = sort === ascSort ? 'asc' : sort === descSort ? 'desc' : false
 
-  // 2026-05-25 (Yuqi sort-arrow audit): the old sort indicator was a
-  // ghost Button with `ArrowUpDown` / `ArrowUp` / `ArrowDown` icons —
-  // bold arrow glyphs that read as navigation controls, not subtle
-  // sort hints. Yuqi flagged the chrome as "出戏" — too prominent for
-  // every column header.
-  //
-  // New shape:
-  //   - Header label + chevron are now ONE clickable region (the
-  //     sort pill, not a separate icon button).
+  // Sort affordance shape:
+  //   - Header label + chevron are ONE clickable region (the sort
+  //     pill, not a separate icon button) so the subtle chevron reads
+  //     as a sort hint rather than a navigation control.
   //   - The range filter trigger stays a sibling icon button. Keeping
   //     sort and filter as siblings avoids invalid nested button
   //     markup when this header renders inside a dropdown trigger.
   //   - Unsorted columns render a faint ChevronsUpDown so the
-  //     "this is sortable" affordance is always visible —
-  //     previously the column looked inert until you clicked,
-  //     which Yuqi flagged: "column sort is honest — chevrons
-  //     are faint until you sort, then show direction" (Yuqi
-  //     /deadlines redesign). The faint icon sits at
-  //     `text-text-tertiary/40` so it disappears against busy
+  //     "this is sortable" affordance is always visible (the column
+  //     would otherwise look inert until you clicked). The faint icon
+  //     sits at `text-text-tertiary/40` so it disappears against busy
   //     content but resolves into a "click me to sort" hint on
   //     scan.
   //   - Sorted columns render a small ChevronUp / ChevronDown
@@ -90,16 +82,10 @@ export function ObligationQueueSortableHeader({
         }
         className={cn(
           'inline-flex min-w-0 cursor-pointer items-center gap-0.5 rounded px-1 py-0.5 text-left',
-          // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #2/#3): sortable
-          // button now matches the new TableHead canonical (text-sm
-          // sentence-case font-medium text-secondary). Previously the
-          // sortable header was rendering as a quieter `text-text-
-          // tertiary` than the row content — Yuqi flagged it as
-          // "wrong colour" because the column header read as fainter
-          // than the data it labeled. Bumping to text-secondary +
-          // dropping the uppercase/tracking caption treatment makes
-          // sortable and non-sortable headers indistinguishable in
-          // weight.
+          // Sortable button matches the TableHead canonical (text-sm
+          // sentence-case font-medium text-secondary) so the column
+          // header isn't fainter than the data it labels, and sortable
+          // and non-sortable headers are indistinguishable in weight.
           'text-sm font-medium normal-case tracking-normal',
           'text-text-secondary hover:text-text-primary',
           'data-[active=true]:text-text-primary',
@@ -121,9 +107,8 @@ export function ObligationQueueSortableHeader({
   )
 }
 
-// 2026-05-26 (Yuqi sixty-sixth pass — Unassigned `?` quick-pick):
-// the dashed-outline `?` in the Owner column is now a real
-// DropdownMenu trigger. Selecting a teammate calls
+// The dashed-outline `?` in the Owner column is a real DropdownMenu
+// trigger. Selecting a teammate calls
 // `clients.bulkUpdateAssignee` with a single-id payload — the
 // assignment lives on the CLIENT (not the obligation) per the
 // current schema, so picking a teammate on one row assigns ALL
@@ -180,17 +165,12 @@ export function AssigneeQuickPicker({
             onChange(next)
           }}
         >
-          {/* 2026-05-27 (Yuqi "assign是坏的" round 2): the actual
-              MenuGroupContext crash on this picker was the
-              DropdownMenuLabel rendered as a direct child of
-              DropdownMenuContent — Base UI's MenuPrimitive.GroupLabel
-              calls useMenuGroupRootContext() and throws when there
-              is no <Menu.Group> / <Menu.RadioGroup> ancestor.
-              bb12a8f4 moved the empty-state Item out (which Base UI
-              tolerates either way) but left the Label outside the
-              RadioGroup — the crash kept firing. Placing the Label
-              INSIDE the RadioGroup gives it the context it needs
-              and preserves the "Assign owner" header. */}
+          {/* The DropdownMenuLabel must live INSIDE the RadioGroup:
+              Base UI's MenuPrimitive.GroupLabel calls
+              useMenuGroupRootContext() and throws when there is no
+              <Menu.Group> / <Menu.RadioGroup> ancestor. Keeping it in
+              the RadioGroup gives it the context it needs and
+              preserves the "Assign owner" header. */}
           <DropdownMenuLabel className="text-caption-xs uppercase tracking-wide text-text-tertiary">
             <Trans>Assign owner</Trans>
           </DropdownMenuLabel>
@@ -246,20 +226,19 @@ export function AssigneeQuickPicker({
   )
 }
 
-// 2026-05-24 (critique P0): terminal-state rows shouldn't surface
-// lateness as live debt. Once a row is `done` ("Filed"), `paid`
-// ("Filed" on payment-track rows), or `completed`, the row is
-// closed — "18 days late" alongside a "Filed" / "Completed" pill
-// reads as if there's still work to do. We render a muted
-// "Filed N days late" / "Filed N days early" stat instead —
-// quality signal, not active red. Mirrors the same three statuses
-// that `features/obligations/status-control.tsx` displays as
+// Terminal-state rows shouldn't surface lateness as live debt. Once
+// a row is `done` ("Filed"), `paid` ("Filed" on payment-track rows),
+// or `completed`, the row is closed — "18 days late" alongside a
+// "Filed" / "Completed" pill reads as if there's still work to do. We
+// render a muted "Filed N days late" / "Filed N days early" stat
+// instead — quality signal, not active red. Mirrors the same three
+// statuses that `features/obligations/status-control.tsx` displays as
 // "Filed" / "Completed".
 //
-// 2026-05-29: `extended` stays out of this terminal set. The Extension
-// tab saves an internal target and the detail strip still shows that
-// target as active date context, so the queue cell must not collapse
-// to an em dash just because the row has an extension plan.
+// `extended` stays out of this terminal set. The Extension tab saves
+// an internal target and the detail strip still shows that target as
+// active date context, so the queue cell must not collapse to an em
+// dash just because the row has an extension plan.
 
 export function ObligationQueueSearchControl({
   inputRef,
@@ -270,10 +249,9 @@ export function ObligationQueueSearchControl({
 }: {
   inputRef: React.RefObject<HTMLInputElement | null>
   value: string
-  // 2026-05-24 (re-critique): lifted from local state to a controlled
-  // prop so the route's `/` hotkey can expand the collapsed control
-  // before deferring focus. The button-click expand path and the
-  // hotkey path now share the same setter.
+  // Controlled prop (not local state) so the route's `/` hotkey can
+  // expand the collapsed control before deferring focus. The
+  // button-click expand path and the hotkey path share the same setter.
   open: boolean
   onOpenChange: (next: boolean) => void
   onChange: (next: string) => void
@@ -281,10 +259,8 @@ export function ObligationQueueSearchControl({
   const { t } = useLingui()
   const isOpen = open || value.length > 0
   const setOpen = onOpenChange
-  // 2026-05-24 (useEffect audit): the previous shape attached a
-  // window-style focus listener to the input ref via useEffect. The
-  // Input component already exposes an `onFocus` prop — moved the
-  // open-on-focus signal there, removing one useEffect violation.
+  // The open-on-focus signal rides the Input's `onFocus` prop rather
+  // than a useEffect-attached focus listener on the ref.
   if (!isOpen) {
     return (
       <Button
@@ -302,22 +278,16 @@ export function ObligationQueueSearchControl({
       </Button>
     )
   }
-  // 2026-05-26 (Yuqi cross-product search audit): expanded state now
-  // delegates to the canonical SearchInput primitive. Previously the
-  // expanded state hand-rolled an h-8 Input with bespoke clear button
-  // + Escape logic — which drifted from /rules/library's h-9
-  // SearchInput. Now both surfaces share the exact same chrome when
-  // expanded; deadlines keeps the toolbar-density collapse pattern
-  // because Yuqi #2 specifically designed for it (densest table
-  // surface needs room).
+  // The expanded state delegates to the canonical SearchInput
+  // primitive so deadlines and /rules/library share the exact same
+  // chrome when expanded. Deadlines keeps the toolbar-density collapse
+  // pattern because this is the densest table surface and needs the room.
   return (
     <div className="relative mb-1.5 w-full md:w-56 md:flex-none">
-      {/* 2026-05-26 (Yuqi step-8 data-finding audit — F-X05): placeholder
-          changed "Filter clients" → "Filter deadlines" to align with
-          the expanded state's ariaLabel and the collapsed-state
-          aria-label. The input matches client name + obligation title
-          + rule name; the prior placeholder named just one of those
-          axes which understated the input's reach. */}
+      {/* Placeholder reads "Filter deadlines" to align with the
+          expanded and collapsed aria-labels. The input matches client
+          name + obligation title + rule name, so naming just one axis
+          would understate the input's reach. */}
       <SearchInput
         ref={inputRef}
         value={value}
@@ -351,26 +321,22 @@ export function ObligationQueueScopeTab({
   count: number
   active: boolean
   onClick: () => void
-  // 2026-05-25 (Yuqi status icon pass): scope tabs now lead with a
-  // lucide status icon when the tab maps to a lifecycle status (the
-  // 6 v2 scope tabs). `icon` is the lucide component, `iconColor`
-  // is the tailwind text-color class. The "All" tab passes neither
-  // and renders without a leading mark.
-  // 2026-05-25 (status-pill audit §4 #8): the prior `dotTone`
-  // fallback (BadgeStatusDot) was removed — icon-led badges are
-  // canonical per audit §3.3, and every status-mapped tab already
-  // provides an icon.
+  // Scope tabs lead with a lucide status icon when the tab maps to a
+  // lifecycle status (the 6 v2 scope tabs). `icon` is the lucide
+  // component, `iconColor` is the tailwind text-color class. The
+  // "All" tab passes neither and renders without a leading mark.
+  // There's no dot fallback — icon-led badges are canonical and every
+  // status-mapped tab provides an icon.
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
   iconColor?: string
   compact?: boolean
 }) {
-  // 2026-05-26 (Yuqi inset-followups G — smooth slide transition):
-  // dropped the per-tab `border-b-2` and replaced it with a single
-  // shared underline rendered via `layoutId="scope-tab-underline"`.
-  // Framer Motion smoothly slides the underline between tabs when a
-  // new one becomes active — no more jumpy "underline disappears
-  // here, reappears there" feel. Inactive tabs render a transparent
-  // 2px bottom border for hover state symmetry.
+  // A single shared underline rendered via
+  // `layoutId="scope-tab-underline"` (not a per-tab `border-b-2`) so
+  // Framer Motion slides it between tabs when a new one becomes
+  // active, avoiding a jumpy "underline disappears here, reappears
+  // there" feel. Inactive tabs render a transparent 2px bottom border
+  // for hover state symmetry.
   const hideLabel = compact && Boolean(Icon)
   return (
     <button
@@ -379,14 +345,12 @@ export function ObligationQueueScopeTab({
       aria-label={hideLabel ? label : undefined}
       title={hideLabel ? label : undefined}
       onClick={onClick}
-      // 2026-06-04 round 21 (Yuqi Pencil h4bQ2 — Deadlines): tab
-      // padding shape rebuilt to match the Pencil `Row` spec —
-      // `py-3` (12px vertical, no horizontal) so the inter-tab
-      // gap-6 on the parent nav does the spacing work, and the
-      // active text steps from `text-text-primary` to
-      // `text-state-accent-solid` (blue) so Pencil's
-      // "active tab in blue" pattern reads on screen. Inactive
-      // tabs keep their hover-deepen-border affordance.
+      // Tab padding matches the Pencil `Row` spec — `py-3` (12px
+      // vertical, no horizontal) so the inter-tab gap-6 on the parent
+      // nav does the spacing work, and the active text steps from
+      // `text-text-primary` to `text-state-accent-solid` (blue) for
+      // the "active tab in blue" pattern. Inactive tabs keep their
+      // hover-deepen-border affordance.
       className={cn(
         'relative -mb-px flex shrink-0 cursor-pointer items-center gap-1.5 py-3 text-base whitespace-nowrap transition-colors',
         active
@@ -428,11 +392,9 @@ export function ObligationQueueActionChip({
   onClick: () => void
   children: ReactNode
 }) {
-  // 2026-05-25 (Yuqi Deadlines #2): click target was 22px tall
-  // (px-2.5 py-0.5 text-xs) — too small for filter chips that are
-  // primary triage affordances. Bumped to ~30px (px-3 py-1 text-sm)
-  // so the hit zone matches a real button and the label reads as
-  // body text instead of meta caption.
+  // Click target is ~30px (px-3 py-1 text-sm) so these filter chips —
+  // primary triage affordances — have a hit zone that matches a real
+  // button and a label that reads as body text instead of meta caption.
   return (
     <button
       type="button"
@@ -458,11 +420,6 @@ export function ObligationQueueActionChip({
 //   - currently blocked: shows the parent label + Clear button
 //   - not blocked, candidates available: shows a Select to set one
 //   - not blocked, no candidates loaded: minimal hint only
-// `ObligationBlockerSection` removed 2026-05-21 — the editor lived
-// inside the Readiness tab on every drawer open, even on rows that
-// weren't blocked. The queue row's <BlockedByChip> still surfaces the
-// state. A re-home is parked behind the design brainstorm; the
-// `updateBlockedBy` RPC procedure stays on the server.
 
 export function ObligationQueueEmptyState({
   onOpenWizard,
@@ -480,8 +437,7 @@ export function ObligationQueueEmptyState({
   // workspace may very well have data hidden by the filter).
   // Without filters: import-clients CTA (workspace is genuinely empty).
   return (
-    // 2026-05-28 (Yuqi /today polish — extended to /deadlines): empty
-    // state aligned with /today's Actions-this-week treatment —
+    // Empty state aligned with /today's Actions-this-week treatment —
     // icon at top + split title/description + outline CTA. Dify Blue
     // primary stays reserved for the one next action per surface, so
     // the empty-state CTA renders as a quieter secondary button.

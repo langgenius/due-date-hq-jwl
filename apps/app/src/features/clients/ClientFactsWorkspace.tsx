@@ -91,23 +91,18 @@ type ClientFactsWorkspaceProps = {
   clients: ClientPublic[]
   filteredClients: ClientPublic[]
   factsModel: ClientFactsModel
-  // 2026-05-23: entity labels (LLC / S corp / Partnership / …) flow in
-  // from the route so the workspace can render them in the new ENTITY
-  // column without depending on the route module (avoids a circular
-  // import — route imports workspace).
+  // Entity labels (LLC / S corp / Partnership / …) flow in from the
+  // route so the workspace can render them in the ENTITY column without
+  // depending on the route module (avoids a circular import — route
+  // imports workspace).
   entityLabels: Record<ClientEntityType, string>
   isLoading: boolean
-  // 2026-05-26 (Yuqi /clients directory pivot brief): search wiring.
-  // `searchQuery` is the current URL-backed `q` value; the workspace
-  // surfaces it via the toolbar's search input. `onSearchChange` writes
-  // back to the URL on every keystroke (the route debounces if needed).
+  // Search wiring. `searchQuery` is the current URL-backed `q` value;
+  // the workspace surfaces it via the toolbar's search input.
+  // `onSearchChange` writes back to the URL on every keystroke (the
+  // route debounces if needed).
   searchQuery: string
   onSearchChange: (value: string) => void
-  // `readinessFilter`, `sourceFilter`, `alertFilter` and their
-  // `on*Change` handlers used to live here as planned-for filter inputs
-  // — they were always passed by the route but never consumed in the
-  // workspace body. Removed 2026-05-27 (audit P3-2). If those filter
-  // surfaces come back, re-add the prop alongside the actual consumer.
   clientFilter: readonly string[]
   entityFilter: readonly ClientEntityType[]
   stateFilter: readonly string[]

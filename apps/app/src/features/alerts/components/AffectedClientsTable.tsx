@@ -81,53 +81,32 @@ export function AffectedClientsTable({
     onChangeSelection(toggleSelection(selection, row.obligationId))
   }
 
-  // 2026-05-26 (Yuqi /alerts third pass #11): per-row "Confirm
-  // applies" checkbox moved out of the grid into a confirmation
-  // Dialog. Applying a relief that the AI flagged as needs_review
-  // is a real consequence (deadline shifts that touch the client's
-  // workflow) — the inline checkbox treated it as a casual toggle.
-  // Now: clicking "Confirm applies" opens a Dialog asking the CPA
-  // to confirm explicitly. The action requires both gestures (open
-  // the dialog + click Confirm) which gives the "double confirm"
-  // shape Yuqi asked for. Unconfirming is a single click on the
-  // same row — confirming the negative path doesn't need a dialog.
+  // Per-row "Confirm applies" goes through a confirmation Dialog rather
+  // than an inline checkbox: applying a relief the AI flagged as
+  // needs_review is a real consequence (deadline shifts that touch the
+  // client's workflow). Clicking "Confirm applies" opens a Dialog asking
+  // the CPA to confirm explicitly, so the action requires both gestures
+  // (open the dialog + click Confirm) — a deliberate double-confirm.
+  // Unconfirming is a single click on the same row — the negative path
+  // doesn't need a dialog.
   const [confirmTarget, setConfirmTarget] = useState<PulseAffectedClient | null>(null)
   const navigate = useNavigate()
   return (
     <>
-      {/* 2026-05-26 (Yuqi /alerts third pass #9): outer
-          rounded-lg border + overflow-hidden so the table reads
-          as one clipped surface — corners and the bottom row
-          line up to the same radius. Previously the raw <Table>
-          had its own square corners and was sitting flush
-          against the drawer body without a containing chrome. */}
-      {/* 2026-05-26 (Yuqi forty-fourth pass — table chrome match):
-          AffectedClientsTable is now visually identical to the
-          /deadlines obligations table.
-            • Body cells: `[&_td]:py-2 [&_td]:text-sm` matches
-              `TableBody` in obligations.tsx:2874 (py-2 row density
-              + canonical body text-sm).
-            • Header heights stay h-10 — same as obligations queue
-              header.
-            • Client name explicitly `text-sm font-medium
-              leading-tight text-text-primary` (see TableCell below)
-              so it renders identically to the obligations row
-              client name, not just relying on inherited text-sm
-              from the cell. */}
-      {/* 2026-06-04 (Yuqi table sweep): TableHead h-10 text-left
-          text-sm overrides removed — primitive ships the canonical
-          column-label style now. TableBody [&_td]:py-2 [&_td]:text-sm
-          override kept because this is a dense overlay table where
-          the canonical py-4 reads too tall; opt-in to compact cells
-          via the body selector. */}
-      {/* 2026-06-04 round 16 (Yuqi "lighter border"): outer
-          wrapper border settled at `divider-regular` (8% alpha
-          — visible-but-quiet sweet spot) after a brief deep-tone
-          overshoot. Matches the new canonical wrapper recipe. */}
-      {/* 2026-06-04 round 78 (Yuqi "finish the partially done first"
-          — detail panel #5): outer frame `rounded-lg` (6px) →
-          `rounded-[12px]` to match ActionsTable's canonical card
-          radius. Border token already at `divider-regular`. */}
+      {/* Outer border + overflow-hidden so the table reads as one
+          clipped surface — corners and the bottom row line up to the
+          same radius. AffectedClientsTable is visually identical to the
+          /deadlines obligations table:
+            • Body cells: `[&_td]:py-2 [&_td]:text-sm` matches obligations'
+              `TableBody` (py-2 row density + canonical body text-sm). The
+              compact-cell override is kept because this is a dense overlay
+              table where the canonical py-4 reads too tall.
+            • Header heights stay h-10 — same as obligations queue header.
+            • Client name explicitly `text-sm font-medium leading-tight
+              text-text-primary` (see TableCell below) so it renders
+              identically to the obligations row client name, not just
+              relying on inherited text-sm from the cell.
+          `rounded-[12px]` matches ActionsTable's canonical card radius. */}
       <div className="overflow-hidden rounded-[12px] border border-divider-regular">
         <Table>
           <TableHeader>
@@ -146,10 +125,9 @@ export function AffectedClientsTable({
               <TableHead>{t`Form`}</TableHead>
               {isReview ? null : (
                 <>
-                  {/* 2026-06-08 (Aogxu parity Phase 1, task 2): the single
-                      stacked "Due date change" cell splits into two columns —
-                      OLD DEADLINE (struck-through) + NEW DEADLINE — so the
-                      before/after reads across the row instead of stacked. */}
+                  {/* OLD DEADLINE (struck-through) + NEW DEADLINE in two
+                      columns so the before/after reads across the row
+                      instead of stacked. */}
                   <TableHead>{t`Old deadline`}</TableHead>
                   <TableHead>{t`New deadline`}</TableHead>
                   <TableHead>{t`Match`}</TableHead>
@@ -167,15 +145,13 @@ export function AffectedClientsTable({
                 <TableRow
                   key={row.obligationId}
                   data-status={row.matchStatus}
-                  // 2026-05-26 (Yuqi thirty-first pass #7): row click
-                  // semantics inverted. Clicking anywhere on the
-                  // row now TOGGLES the checkbox (the dominant
-                  // action: select clients to apply). Navigation to
-                  // the deadline detail happens via the hover-revealed
-                  // arrow button on the right edge of the row.
-                  // 2026-06-03: the 'review' variant has no select/apply
-                  // columns, so a row click navigates straight to the
-                  // deadline detail instead of toggling selection.
+                  // Clicking anywhere on the row TOGGLES the checkbox
+                  // (the dominant action: select clients to apply).
+                  // Navigation to the deadline detail happens via the
+                  // hover-revealed arrow button on the right edge of the
+                  // row. The 'review' variant has no select/apply columns,
+                  // so there a row click navigates straight to the deadline
+                  // detail instead of toggling selection.
                   onClick={() =>
                     isReview
                       ? void navigate(deadlineDetailHref({ obligationId: row.obligationId }))
@@ -204,37 +180,30 @@ export function AffectedClientsTable({
                       />
                     </TableCell>
                   )}
-                  {/* 2026-05-26 (Yuqi /alerts third pass #8):
-                      jurisdiction cell collapsed to the bare
-                      2-letter code — no SVG state badge, no full
-                      state name. Reasoning: the drawer header
-                      already shows the alert's jurisdiction with
-                      the full chip; repeating the same treatment
-                      per row was loud and pushed the client name
-                      to a smaller font. CA / NY / TX / FL read
-                      instantly to a CPA without the flag motif. */}
+                  {/* Jurisdiction cell collapsed to the bare 2-letter
+                      code — no SVG state badge, no full state name. The
+                      drawer header already shows the alert's jurisdiction
+                      with the full chip; repeating the same treatment per
+                      row is loud and pushes the client name to a smaller
+                      font. CA / NY / TX / FL read instantly to a CPA
+                      without the flag motif. */}
                   <TableCell className="min-w-0 whitespace-normal">
                     <div className="flex flex-col gap-0.5">
-                      {/* 2026-05-26 (Yuqi forty-fourth pass — client
-                          name match): explicit `text-sm font-medium
-                          leading-tight text-text-primary` so it
-                          renders identically to the obligations
-                          queue client-name column (see
-                          obligations.tsx ClientNameCell). Same SIZE
-                          + same WEIGHT + same line-height + same
-                          color, so the CPA reads the Affected
-                          Clients table as "the deadlines table,
-                          just filtered to this alert's scope". */}
+                      {/* Explicit `text-sm font-medium leading-tight
+                          text-text-primary` so it renders identically to
+                          the obligations queue client-name column (see
+                          obligations.tsx ClientNameCell). Same SIZE +
+                          WEIGHT + line-height + color, so the CPA reads
+                          the Affected Clients table as "the deadlines
+                          table, just filtered to this alert's scope". */}
                       <span className="break-words text-sm font-medium leading-tight text-text-primary">
                         {row.clientName}
                       </span>
                       <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                        {/* 2026-06-01: state code now uses canonical
-                            Badge primitive (variant=outline, shape=square,
-                            size=sm) so it matches the bordered-pill state
-                            chip rolled out across /clients in the
-                            2026-05-29 sweep — no more hand-rolled
-                            uppercase span. */}
+                        {/* State code uses the canonical Badge primitive
+                            (variant=outline, shape=square, size=sm) so it
+                            matches the bordered-pill state chip used across
+                            /clients. */}
                         {row.state ? (
                           <Badge variant="outline" shape="square" size="sm">
                             {row.state}
@@ -249,9 +218,8 @@ export function AffectedClientsTable({
                   <TableCell className="text-text-secondary">
                     <TaxCodeLabel code={row.taxType} />
                   </TableCell>
-                  {/* 2026-06-08 (Aogxu parity Phase 1, task 2): old → new split
-                      into two columns. OLD is struck-through tertiary; NEW is
-                      the live medium-weight primary value. */}
+                  {/* Old → new split into two columns. OLD is struck-through
+                      tertiary; NEW is the live medium-weight primary value. */}
                   {isReview ? null : (
                     <>
                       <TableCell>
@@ -268,13 +236,11 @@ export function AffectedClientsTable({
                   )}
                   {isReview ? null : (
                     <TableCell className="relative">
-                      {/* 2026-05-26 (Yuqi thirty-first pass #7): the
-                        hover-arrow is now an actual button — click
-                        navigates to the deadline detail. Pre-row
-                        click toggles the checkbox (dominant
-                        action); the arrow handles the secondary
-                        "open deadline detail" path. Surfaces on row
-                        hover via group/affected-row. */}
+                      {/* The hover-arrow is an actual button — click
+                        navigates to the deadline detail. The row click
+                        toggles the checkbox (dominant action); the arrow
+                        handles the secondary "open deadline detail" path.
+                        Surfaces on row hover via group/affected-row. */}
                       <button
                         type="button"
                         onClick={(event) => {
@@ -288,20 +254,11 @@ export function AffectedClientsTable({
                       </button>
                       <div className="flex flex-col items-start gap-1.5">
                         <MatchStatusBadge row={row} />
-                        {/* 2026-05-26 (Yuqi thirty-first pass #2):
-                          Confirm-applies button promoted from text
-                          link → real outline button with explicit
-                          frame. Reads as a decisive action on a
-                          row that the AI flagged as needing human
-                          review — the previous underlined text
-                          treatment was too easy to miss. */}
-                        {/* 2026-06-01: Confirm / Unconfirm row buttons
-                            moved to canonical Button primitive
-                            (accent + secondary, size=xs). Hand-rolled
-                            h-7 chip frames replaced — accent variant
-                            maps onto the previous state-accent-solid
-                            frame and secondary maps onto the outline
-                            revert affordance. */}
+                        {/* Confirm-applies is a real outline button with
+                            an explicit frame so it reads as a decisive
+                            action on a row the AI flagged as needing human
+                            review. Confirm / Unconfirm use the canonical
+                            Button primitive (accent + secondary, size=xs). */}
                         {row.matchStatus === 'needs_review' ? (
                           reviewConfirmed ? (
                             <Button

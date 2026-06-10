@@ -16,6 +16,8 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { CenteredAuthScreen } from '@/features/auth/auth-chrome'
+import { RuleReviewPrompt } from '@/features/onboarding/rule-review-prompt'
 import { StateRuleActivationSelector } from '@/features/onboarding/state-rule-activation-selector'
 import { FirmTimezoneSelect, resolveUSFirmTimezone } from '@/features/firm/timezone-select'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
@@ -25,15 +27,9 @@ import { activateOrCreateOnboardingFirm, postOnboardingTarget } from './onboardi
 
 const MIN_NAME_LENGTH = 2
 const DEFAULT_FIRM_TIMEZONE = 'America/New_York'
+const ONBOARDING_STEP_COUNT = 3
 
 type OnboardingLoaderData = { user: AuthUser }
-
-// The redesign (Pencil E76U6Q) frames firm setup as step 1 of a three-beat
-// flow (Practice → Rules → Clients). Steps 2 and 3 are the migration importer
-// at /migration/new, which `handleSubmit` already navigates to once the firm is
-// created — so the indicator is a true progress affordance, not decoration.
-const ONBOARDING_STEPS = ['Practice', 'Rules', 'Clients'] as const
-const ACTIVE_STEP_INDEX = 0
 
 function isInAppPath(value: string | null): value is string {
   return !!value && value.startsWith('/') && !value.startsWith('//')
@@ -58,53 +54,30 @@ function todayInTimezone(timezone: string, date = new Date()): string {
   return `${year}-${month}-${day}`
 }
 
-function StepIndicator({
-  steps,
-  activeIndex,
-}: {
-  steps: readonly (typeof ONBOARDING_STEPS)[number][]
-  activeIndex: number
-}) {
-  const { t } = useLingui()
-  const stepLabels: Record<(typeof ONBOARDING_STEPS)[number], string> = {
-    Practice: t`Practice`,
-    Rules: t`Rules`,
-    Clients: t`Clients`,
-  }
+// Step dots — matches the E76U6Q "STEP 1 OF 3" affordance. Steps 2 and 3 are the
+// migration importer at /migration/new (chained from handleSubmit), so this is a
+// real progress indicator, not decoration.
+function StepDots({ step, total }: { step: number; total: number }) {
   return (
-    <ol className="flex shrink-0 items-center gap-2">
-      {steps.map((step, index) => {
-        const active = index === activeIndex
-        return (
-          <li key={step} className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <span
-                aria-hidden
-                className={cn(
-                  'flex size-[18px] items-center justify-center rounded-full border font-mono text-[10px] font-bold tabular-nums',
-                  active
-                    ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
-                    : 'border-divider-regular bg-background-default text-text-muted',
-                )}
-              >
-                {index + 1}
-              </span>
-              <span
-                className={cn(
-                  'text-caption',
-                  active ? 'font-semibold text-text-primary' : 'font-medium text-text-muted',
-                )}
-              >
-                {stepLabels[step]}
-              </span>
-            </div>
-            {index < steps.length - 1 ? (
-              <span aria-hidden className="h-px w-6 shrink-0 bg-divider-regular" />
-            ) : null}
-          </li>
-        )
-      })}
-    </ol>
+    <div className="flex items-center gap-3.5">
+      <span className="text-[11px] font-semibold tracking-[1.4px] text-text-tertiary uppercase">
+        <Trans>
+          Step {step} of {total}
+        </Trans>
+      </span>
+      <div className="flex items-center gap-1.5">
+        {Array.from({ length: total }).map((_, index) => (
+          <span
+            key={index}
+            aria-hidden
+            className={cn(
+              'size-1.5 rounded-full',
+              index + 1 === step ? 'bg-state-accent-solid' : 'bg-divider-regular',
+            )}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -118,15 +91,12 @@ function FieldHeaderRow({
   htmlFor: string
 }) {
   return (
-    <div className="flex items-center gap-1.5">
-      <FieldLabel
-        htmlFor={htmlFor}
-        className="whitespace-nowrap text-[13px] font-semibold text-text-primary"
-      >
+    <div className="flex items-center gap-2">
+      <FieldLabel htmlFor={htmlFor} className="text-xs font-semibold text-text-secondary">
         {label}
       </FieldLabel>
       <span aria-hidden className="h-px flex-1" />
-      <span className="shrink-0 text-caption font-medium text-text-muted">{hint}</span>
+      <span className="shrink-0 text-[11px] font-medium italic text-text-muted">{hint}</span>
     </div>
   )
 }
@@ -158,6 +128,11 @@ export function OnboardingRoute() {
   const today = todayInTimezone(timezone)
   const [monitoringStartDate, setMonitoringStartDate] = useState(today)
   const [selectedRuleStates, setSelectedRuleStates] = useState<RuleGenerationState[]>([])
+  // Step 2 (rule review) data — set after creation when jurisdictions need a
+  // source-defined-calendar review. Null while on the firm-setup step.
+  const [review, setReview] = useState<{ jurisdictions: string[]; totalActivated: number } | null>(
+    null,
+  )
   const monitoringStartDateInvalid =
     !isValidIsoDate(monitoringStartDate) || monitoringStartDate > today
 
@@ -205,6 +180,16 @@ export function OnboardingRoute() {
       .then(async (result) => {
         await queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         await queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+        // If activation flagged jurisdictions for source-defined-calendar
+        // review, pause on step 2 (the rule-review prompt) before the importer.
+        const activation = result.kind === 'created' ? result.ruleActivation : null
+        if (activation && activation.reviewRequiredCount > 0) {
+          setReview({
+            jurisdictions: activation.reviewRequiredJurisdictions,
+            totalActivated: activation.activatedCount,
+          })
+          return
+        }
         await navigate(postOnboardingTarget(result, redirectTo), { replace: true })
       })
       .catch((err: unknown) => {
@@ -218,147 +203,159 @@ export function OnboardingRoute() {
       .finally(() => setIsSubmitting(false))
   }
 
-  return (
-    <div className="flex w-full max-w-[720px] flex-col gap-6">
-      <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-3">
-        <div className="flex items-center gap-2.5">
-          <span
-            aria-hidden
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-text-primary font-mono text-[11px] font-bold text-text-inverted"
-          >
-            DDHQ
-          </span>
-          <span className="text-sm font-semibold text-text-primary">DueDateHQ</span>
-        </div>
-        <div className="ms-auto">
-          <StepIndicator steps={ONBOARDING_STEPS} activeIndex={ACTIVE_STEP_INDEX} />
-        </div>
-      </div>
-
-      <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-text-primary">
-          <Trans>Set up your practice</Trans>
-        </h1>
-        <p className="max-w-prose text-sm font-medium leading-relaxed text-text-tertiary">
-          <Trans>
-            Five fields the engine needs before it can schedule anything. Edit anytime in Settings.
-          </Trans>
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} noValidate className="contents">
-        <div className="flex flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default p-5 sm:px-7 sm:py-[22px]">
-          <Field>
-            <FieldHeaderRow
-              htmlFor="practice-name"
-              label={t`Practice name`}
-              hint={t`required, 2+ characters`}
-            />
-            <Input
-              id="practice-name"
-              name="name"
-              autoFocus
-              autoComplete="organization"
-              required
-              minLength={MIN_NAME_LENGTH}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder={t`e.g. Brightline CPA`}
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? 'practice-name-error' : undefined}
-            />
-            {error ? <FieldError id="practice-name-error">{error}</FieldError> : null}
-          </Field>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field>
-              <FieldHeaderRow
-                htmlFor="monitoring-start-date"
-                label={t`Monitoring start date`}
-                hint={t`ISO date`}
-              />
-              <IsoDatePicker
-                id="monitoring-start-date"
-                value={monitoringStartDate}
-                maxIsoDate={today}
-                invalid={monitoringStartDateInvalid}
-                ariaLabel={t`Select monitoring start date`}
-                onValueChange={setMonitoringStartDate}
-              />
-              {monitoringStartDateInvalid ? (
-                <FieldError>
-                  <Trans>Monitoring start date cannot be in the future.</Trans>
-                </FieldError>
-              ) : null}
-            </Field>
-
-            <Field>
-              <FieldHeaderRow
-                htmlFor="internal-deadline-offset"
-                label={t`Internal deadline offset`}
-                hint={t`days before the official due date`}
-              />
-              <Input
-                id="internal-deadline-offset"
-                name="internalDeadlineOffsetDays"
-                type="number"
-                min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
-                max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
-                step={1}
-                value={internalDeadlineOffsetDays}
-                onChange={(event) =>
-                  setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
-                }
-              />
-            </Field>
-          </div>
-
-          <Field>
-            <FieldHeaderRow
-              htmlFor="firm-timezone"
-              label={t`Time zone`}
-              hint={t`drives when alerts and digests send`}
-            />
-            <FirmTimezoneSelect id="firm-timezone" value={timezone} onValueChange={setTimezone} />
-          </Field>
-
-          <StateRuleActivationSelector
-            selected={selectedRuleStates}
-            onChange={setSelectedRuleStates}
+  // Step 2 — rule review (only when activation flagged jurisdictions). The firm
+  // is already created at this point, so there's no "back"; both actions move
+  // forward (review the rules now, or skip to the client importer).
+  if (review) {
+    return (
+      <CenteredAuthScreen>
+        <div className="flex w-full max-w-[720px] flex-col items-center gap-7">
+          <StepDots step={2} total={ONBOARDING_STEP_COUNT} />
+          <RuleReviewPrompt
+            totalRulesActivated={review.totalActivated}
+            jurisdictions={review.jurisdictions.map((code) => ({ code }))}
+            onReview={() => void navigate('/rules/library')}
+            onSkip={() => void navigate('/migration/new?source=onboarding', { replace: true })}
           />
         </div>
+      </CenteredAuthScreen>
+    )
+  }
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-caption font-medium text-text-muted">
-            <Trans>
-              DueDateHQ will create filing plans from the first applicable deadline on or after your
-              monitoring start date. By continuing you agree to the Terms and Privacy Policy.
-            </Trans>
-          </p>
-          <Button
-            type="submit"
-            className="shrink-0 gap-1.5 px-7"
-            disabled={submitting || monitoringStartDateInvalid}
-            aria-busy={submitting}
-          >
-            {submitting ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" aria-hidden />
-                <span>
+  return (
+    <CenteredAuthScreen>
+      <div className="flex w-full max-w-[560px] flex-col items-center gap-7">
+        <StepDots step={1} total={ONBOARDING_STEP_COUNT} />
+
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex w-full flex-col gap-7 rounded-[20px] border border-divider-subtle bg-background-default px-6 py-10 lg:px-14 lg:py-12"
+        >
+          {/* Heading */}
+          <div className="flex flex-col gap-2">
+            <h1 className="text-[32px] font-semibold leading-tight tracking-[-0.6px] text-text-primary">
+              <Trans>Set up your practice</Trans>
+            </h1>
+            <p className="text-sm font-medium leading-normal text-text-tertiary">
+              <Trans>
+                A few details the engine needs before it can schedule anything. You can change any
+                of this later in Settings.
+              </Trans>
+            </p>
+          </div>
+
+          {/* Fields */}
+          <div className="flex flex-col gap-5">
+            <Field>
+              <FieldHeaderRow
+                htmlFor="practice-name"
+                label={t`Practice name`}
+                hint={t`required, 2+ characters`}
+              />
+              <Input
+                id="practice-name"
+                name="name"
+                autoFocus
+                autoComplete="organization"
+                required
+                minLength={MIN_NAME_LENGTH}
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder={t`e.g. Brightline CPA`}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? 'practice-name-error' : undefined}
+              />
+              {error ? <FieldError id="practice-name-error">{error}</FieldError> : null}
+            </Field>
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <Field>
+                <FieldHeaderRow
+                  htmlFor="monitoring-start-date"
+                  label={t`Monitoring start date`}
+                  hint={t`ISO date`}
+                />
+                <IsoDatePicker
+                  id="monitoring-start-date"
+                  value={monitoringStartDate}
+                  maxIsoDate={today}
+                  invalid={monitoringStartDateInvalid}
+                  ariaLabel={t`Select monitoring start date`}
+                  onValueChange={setMonitoringStartDate}
+                />
+                {monitoringStartDateInvalid ? (
+                  <FieldError>
+                    <Trans>Monitoring start date cannot be in the future.</Trans>
+                  </FieldError>
+                ) : null}
+              </Field>
+
+              <Field>
+                <FieldHeaderRow
+                  htmlFor="internal-deadline-offset"
+                  label={t`Internal deadline offset`}
+                  hint={t`days early`}
+                />
+                <Input
+                  id="internal-deadline-offset"
+                  name="internalDeadlineOffsetDays"
+                  type="number"
+                  min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
+                  max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
+                  step={1}
+                  value={internalDeadlineOffsetDays}
+                  onChange={(event) =>
+                    setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
+                  }
+                />
+              </Field>
+            </div>
+
+            <Field>
+              <FieldHeaderRow
+                htmlFor="firm-timezone"
+                label={t`Time zone`}
+                hint={t`drives alert + digest timing`}
+              />
+              <FirmTimezoneSelect id="firm-timezone" value={timezone} onValueChange={setTimezone} />
+            </Field>
+
+            <StateRuleActivationSelector
+              selected={selectedRuleStates}
+              onChange={setSelectedRuleStates}
+            />
+          </div>
+
+          {/* CTA */}
+          <div className="flex flex-col gap-3">
+            <Button
+              type="submit"
+              className="h-12 w-full justify-center gap-2 rounded-[10px] font-semibold"
+              disabled={submitting || monitoringStartDateInvalid}
+              aria-busy={submitting}
+            >
+              {submitting ? (
+                <>
+                  <Loader2Icon className="size-4 animate-spin" aria-hidden />
                   <Trans>Setting up your practice…</Trans>
-                </span>
-              </>
-            ) : (
-              <>
-                <span>
-                  <Trans>Create practice · activate jurisdictions</Trans>
-                </span>
-                <ArrowRightIcon className="size-3.5" aria-hidden />
-              </>
-            )}
-          </Button>
-        </div>
-      </form>
-    </div>
+                </>
+              ) : (
+                <>
+                  <Trans>Create practice &amp; activate jurisdictions</Trans>
+                  <ArrowRightIcon className="size-4" aria-hidden />
+                </>
+              )}
+            </Button>
+            <p className="text-center text-[11px] font-medium leading-relaxed text-text-muted">
+              <Trans>
+                DueDateHQ schedules filing plans from the first applicable deadline on or after your
+                monitoring start date. By continuing you agree to the Terms and Privacy Policy.
+              </Trans>
+            </p>
+          </div>
+        </form>
+      </div>
+    </CenteredAuthScreen>
   )
 }

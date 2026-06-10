@@ -10,7 +10,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
 // Pencil the map sits in a split body with the alerts list on the
 // right (~458px) and the map on the left (~982px).
 //
-// Implementation note (2026-06-04 first cut):
 // This is a stylized state-grid map, NOT a real geographic map. A
 // real Mapbox / Leaflet integration is a much bigger lift —
 // library decision, GeoJSON, projection choice, hit-testing — and
@@ -124,13 +123,9 @@ function PulseAlertsMap({
     <div className="flex flex-col gap-3">
       {/* FED tile + legend */}
       <div className="flex items-center justify-between gap-3">
-        {/* Federal tile — 2026-06-04 round 78 audit (Yuqi
-            "Map view's <PulseAlertsMap> jurisdiction-tile chrome
-            consistency"): radius dropped `rounded-lg` (8px) →
-            `rounded-lg` (6px) to match the state-grid tiles below.
-            The two-radius mix was reading as two different
-            primitives even though they're both jurisdiction
-            selectors. */}
+        {/* Federal tile — `rounded-lg` to match the state-grid tiles
+            below, so the two jurisdiction selectors read as one
+            primitive. */}
         <button
           type="button"
           onClick={() => onSelect(selectedJurisdiction === 'FED' ? null : 'FED')}

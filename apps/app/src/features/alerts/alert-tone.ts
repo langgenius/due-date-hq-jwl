@@ -25,12 +25,6 @@ import type { PulsingDotTone } from './components/PulsingDot'
  *   urgency, not AI quality. See pulse-vocabulary.md §"severity
  *   scale" for the original argument.
  *
- * 2026-05-25: Phase 1 of the 89-item review unified three drift-y
- * implementations (NeedsAttentionCard / AlertCard /
- * AlertDetailDrawer) onto this helper. The drawer's old helper
- * incorrectly mapped low confidence to `error` (red) — preserved
- * accidentally in this file's first revision. Corrected on the
- * same day after re-reading pulse-vocabulary.md.
  */
 
 // Per pulse-vocabulary.md: confidence < LOW_THRESHOLD demotes urgent

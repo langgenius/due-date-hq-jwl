@@ -12,8 +12,7 @@ interface AlertDrawerProviderProps {
  * Mounts the Alert detail drawer state once at the app shell so any
  * descendant can imperatively `openDrawer(id)`.
  *
- * 2026-05-25 (Yuqi /alerts #9 — drawer → page panel):
- * mirrors the obligation-drawer pattern. Two route categories:
+ * Mirrors the obligation-drawer pattern. Two route categories:
  *
  * 1. **Workspaces** (`/alerts`, `/alerts/history`) —
  *    these own a panel mount inline in their layout. The provider

@@ -730,9 +730,9 @@ export function CreateObligationDialog({
   trigger?: ReactElement
   defaultClientId?: string
   onCreated?: (obligationId: string) => void
-  // 2026-06-09 (Yuqi /deadlines production recreation): optional controlled
-  // open, so the split "Add deadline" button (main click + dropdown "Add one
-  // deadline" item) can both drive this one dialog. Uncontrolled by default.
+  // Optional controlled open, so the split "Add deadline" button (main click
+  // + dropdown "Add one deadline" item) can both drive this one dialog.
+  // Uncontrolled by default.
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
@@ -1024,18 +1024,15 @@ export function CreateObligationDialog({
         <DialogTrigger
           render={
             trigger ?? (
-              // 2026-06-04 round 69 (Yuqi "buttons - lighter
-              // border. style closer to the dropdown button"):
-              // default variant → outline. The "Add deadline"
-              // trigger sits next to dropdown filter triggers
-              // (Time range / Severity / Sort by) which all use a
-              // lighter `border-divider-regular` outline pattern.
-              // The filled-solid primary `default` variant
-              // out-shouted the filters AND drew the eye to the
-              // wrong corner of the toolbar (it's a discovery
-              // button, not the page's destination CTA). Outline
-              // gives it the same visual weight as the dropdowns
-              // so the toolbar reads as a uniform action strip.
+              // The "Add deadline" trigger uses the outline variant.
+              // It sits next to dropdown filter triggers (Time range /
+              // Severity / Sort by) which all use a lighter
+              // `border-divider-regular` outline pattern. A filled-solid
+              // primary variant would out-shout the filters and draw the
+              // eye to the wrong corner of the toolbar (it's a discovery
+              // button, not the page's destination CTA). Outline gives it
+              // the same visual weight as the dropdowns so the toolbar
+              // reads as a uniform action strip.
               <Button type="button" variant="outline" size="sm">
                 <PlusIcon data-icon="inline-start" />
                 {/* Keep the visible copy in the CPA-facing "deadline"
@@ -1102,20 +1099,15 @@ export function CreateObligationDialog({
                         <Trans>Locked to this client because you opened from their page.</Trans>
                       </span>
                     ) : (
-                      // 2026-05-25 (Yuqi Today #29): `self-start` pins
-                      // this affordance to the left edge of the field
-                      // column. Without it, the Field's flex layout
-                      // was placing the chip centered relative to
-                      // its content row (or filling width by default
-                      // in some browsers) — Yuqi flagged it sitting
-                      // off to the right of the input above. Sits
-                      // flush under the combobox now, as a quiet
-                      // secondary affordance.
-                      // 2026-06-01: swap hand-rolled accent-link button for
-                      // the TextLink primitive (variant="accent"). The
-                      // primitive owns accent tone + underline-on-hover +
-                      // focus ring; self-start is layout context for the
-                      // Field column, so it stays via className.
+                      // `self-start` pins this affordance to the left edge
+                      // of the field column. Without it, the Field's flex
+                      // layout places the chip centered relative to its
+                      // content row (or filling width by default in some
+                      // browsers) instead of flush under the combobox.
+                      // The TextLink primitive (variant="accent") owns
+                      // accent tone + underline-on-hover + focus ring;
+                      // self-start is layout context for the Field column,
+                      // so it stays via className.
                       <TextLink
                         variant="accent"
                         onClick={() => setCreateClientOpen(true)}
@@ -1376,8 +1368,6 @@ export function CreateObligationDialog({
             </FieldGroup>
 
             <DialogFooter>
-              {/* 2026-05-27 (σ cross-route audit D14): outline → ghost.
-                  Matches D13 sibling sweep in CreateClientDialog. */}
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                 <Trans>Cancel</Trans>
               </Button>
@@ -1392,12 +1382,8 @@ export function CreateObligationDialog({
                 }
                 aria-busy={createMutation.isPending || undefined}
               >
-                {/* 2026-05-27 (σ cross-route audit D11): added Loader2
-                    spinner during pending to match the cross-app
-                    mutation-button pattern. The existing "Adding…"
-                    label was carrying the in-flight signal solo;
-                    Step 6 cont X2 set the canon as Loader2 + label
-                    text together. */}
+                {/* Loader2 spinner during pending matches the cross-app
+                    mutation-button pattern: spinner + label text together. */}
                 {createMutation.isPending ? (
                   <Loader2Icon className="size-4 animate-spin" aria-hidden />
                 ) : null}

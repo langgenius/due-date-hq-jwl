@@ -56,9 +56,8 @@ import {
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024
 
-// 2026-05-27 (Step 1 IA reduction): calm ease-out curve for
-// empty→detection state swap. ~280ms, no bounce. Matches the
-// brief's confident-typewriter motion principle.
+// Calm ease-out curve for the empty→detection state swap. ~280ms, no
+// bounce. Matches the brief's confident-typewriter motion principle.
 const STATE_TRANSITION = {
   duration: 0.28,
   ease: [0.32, 0.72, 0, 1] as [number, number, number, number],
@@ -181,9 +180,7 @@ interface Step1Props {
  * Empty state: dominant dropzone + quiet paste swap + collapsed source chips.
  * Detection state: compact file card + hero detection readout + continue.
  *
- * 2026-05-27 (Yuqi — Step 1 bold IA reduction): collapsed five competing zones
- * (heading, paste textarea, upload dropzone, ten source chips, eight-bullet
- * export guide) into two states. The export guide is now a per-chip
+ * Step 1 collapses to two states. The export guide is a per-chip
  * progressive disclosure — only shown when a user clicks a chip without
  * having uploaded anything yet ("I need help exporting first"). Detection
  * surfaces as a single tabular-num readout, not a banner footnote.
@@ -208,13 +205,13 @@ export function Step1Intake({
   const [isFileDragActive, setIsFileDragActive] = useState(false)
   const [isReadingFile, setIsReadingFile] = useState(false)
   const [detectedPresetSuggestion, setDetectedPresetSuggestion] = useState<PresetId | null>(null)
-  // 2026-05-27: paste mode is opt-in. Empty state shows dropzone by default;
-  // user clicks "Paste a list instead →" to swap to the textarea. We do NOT
-  // show both side-by-side — the brief is one primary affordance per state.
+  // Paste mode is opt-in. Empty state shows the dropzone by default;
+  // user clicks "Paste a list instead →" to swap to the textarea. Never
+  // both side-by-side — one primary affordance per state.
   const [pasteMode, setPasteMode] = useState(false)
-  // 2026-05-27: collapsed export-guide disclosure per chip. Only opens
-  // when the user explicitly asks ("I need help exporting first") in
-  // the empty state — never auto-expands.
+  // Export-guide disclosure per chip. Only opens when the user explicitly
+  // asks ("I need help exporting first") in the empty state — never
+  // auto-expands.
   const [openGuidePreset, setOpenGuidePreset] = useState<PresetId | null>(null)
   const compact = density === 'compact'
   const selectedPreset = intake.preset

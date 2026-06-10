@@ -37,11 +37,6 @@ const ObligationDrawerContext = createContext<ObligationDrawerContextValue | nul
  *    so the obligation opens in the canonical queue workspace with
  *    the right panel showing.
  *
- * That unification (2026-05-22) collapsed three render shapes into
- * one: previously dashboard / Alerts / Cmd+K opened the drawer as a
- * Sheet over their pages. Now the queue is the canonical workspace,
- * and pickers route there.
- *
  * **Limited context outside the queue.** When the panel renders on
  * `/clients/[id]`, the K-1 blocked-by picker has no
  * `blockerCandidates` and the `onNeedsInput` penalty dialog is a
@@ -60,9 +55,9 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
   // renders `<ObligationQueueDetailDrawer mode="panel" ... />` in
   // its own layout column.
   //
-  // 2026-05-22 design call: routes that are *workspaces for
-  // obligations* (the queue, a client's filing plan) own the panel
-  // inline. Routes that are *pickers* (the dashboard — surface what
+  // Routes that are *workspaces for obligations* (the queue, a
+  // client's filing plan) own the panel inline. Routes that are
+  // *pickers* (the dashboard — surface what
   // to act on, then send the user to the workspace) navigate to
   // `/deadlines/<short-ref>` instead. The destination for obligation
   // viewing is always `/deadlines` with the right panel showing;
@@ -91,8 +86,7 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
       }
       // Route doesn't own a panel mount. Navigate to the canonical
       // surface so the obligation always renders in a route layout,
-      // never as a floating Sheet. This is the new unified rule
-      // (2026-05-22 IA pass).
+      // never as a floating Sheet.
       void navigate(deadlineDetailHref({ obligationId }), { state: { obligationId } })
     },
     [isQueueRoute, location.search, navigate, routeOwnsPanel],

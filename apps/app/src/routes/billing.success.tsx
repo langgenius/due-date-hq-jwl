@@ -27,11 +27,10 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { billingSearchParamsParsers } from '@/features/billing/model'
 import { useBillingSubscriptions, useCurrentFirm } from '@/features/billing/use-billing-data'
 
-// 2026-05-27 (step-6 audit #119): time-to-give-up-polling threshold.
-// After this many milliseconds with no webhook activation we surface
-// a "still confirming" state with a manual refresh + support hint so
-// the user isn't stranded on an infinite spinner if a Stripe webhook
-// silently dropped.
+// Time-to-give-up-polling threshold. After this many milliseconds with no
+// webhook activation we surface a "still confirming" state with a manual
+// refresh + support hint so the user isn't stranded on an infinite spinner
+// if a Stripe webhook silently dropped.
 const ACTIVATION_TIMEOUT_MS = 60_000
 
 export function BillingSuccessRoute() {
@@ -44,10 +43,9 @@ export function BillingSuccessRoute() {
   )
   const activated = currentFirm?.plan === expectedPlan && activeSubscription?.plan === expectedPlan
   const statusError = firmsQuery.isError || subscriptionsQuery.isError
-  // 2026-05-27 (step-6 audit #119): flip to "timed out" state after
-  // 60s of polling without confirmation. The polling continues in
-  // the background — the timeout only changes the messaging to give
-  // the user an explicit refresh CTA + support path.
+  // Flip to "timed out" state after 60s of polling without confirmation.
+  // The polling continues in the background — the timeout only changes the
+  // messaging to give the user an explicit refresh CTA + support path.
   const [activationTimedOut, setActivationTimedOut] = useState(false)
   useEffect(() => {
     if (activated || statusError) return undefined
@@ -74,12 +72,10 @@ export function BillingSuccessRoute() {
           : activeSubscription?.plan
 
   return (
-    // 2026-05-26 (86th pass, audit §16.1 P1): migrated custom
-    // `<header><h1>` block to canonical `<PageHeader>`. Billing
-    // family already uses PageHeader on `/billing`; the post-checkout
-    // confirmation pages should match for shared family identity.
-    // Breadcrumb back to `/billing` so users have a clear path out
-    // of the confirmation flow.
+    // Uses the canonical `<PageHeader>`. The billing family uses PageHeader
+    // on `/billing`; the post-checkout confirmation pages match it for shared
+    // family identity. Breadcrumb back to `/billing` so users have a clear
+    // path out of the confirmation flow.
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <PageHeader
         breadcrumbs={[{ label: t`Billing`, to: '/billing' }, { label: t`Payment confirmation` }]}
@@ -138,11 +134,10 @@ export function BillingSuccessRoute() {
               </AlertDescription>
             </Alert>
           ) : activationTimedOut ? (
-            // 2026-05-27 (step-6 audit #119): after 60s with no
-            // activation, swap the friendly "still checking" alert
-            // for a clearer "this is taking longer than usual"
-            // message with a manual refresh CTA and a contact-support
-            // line. Polling continues in the background.
+            // After 60s with no activation, swap the friendly "still checking"
+            // alert for a clearer "this is taking longer than usual" message
+            // with a manual refresh CTA and a contact-support line. Polling
+            // continues in the background.
             <Alert variant="warning">
               <AlertTriangleIcon />
               <AlertTitle>
@@ -185,12 +180,11 @@ export function BillingSuccessRoute() {
           ) : null}
         </CardContent>
         <CardFooter className="gap-2 border-t border-divider-regular">
-          {/* 2026-05-27 (step-6 audit #121): the post-checkout user
-              wants to get back to work, not verify the line items —
-              "Go to Today" is now the primary CTA (filled), "Open
-              billing" demotes to outline. The verification path stays
-              one click away for anyone who lands here intentionally
-              to inspect invoices. */}
+          {/* The post-checkout user wants to get back to work, not verify the
+              line items — "Go to Today" is the primary CTA (filled), "Open
+              billing" demotes to outline. The verification path stays one
+              click away for anyone who lands here intentionally to inspect
+              invoices. */}
           <Button render={<Link to="/" />}>
             <Trans>Go to Today</Trans>
             <ArrowRightIcon data-icon="inline-end" />

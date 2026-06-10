@@ -66,8 +66,8 @@ export function DeadlinesAtAGlance({
 }) {
   const { t } = useLingui()
 
-  // 2026-06-08 (Yuqi — full-page scroll): collapse this card row as the page
-  // scrolls (hysteresis: collapse >40px, expand <8px). The whole /deadlines
+  // Collapse this card row as the page scrolls (hysteresis: collapse
+  // >40px, expand <8px). The whole /deadlines
   // page now scrolls as one (the table no longer has its own scroll), so the
   // nearest scrollable ancestor is the app-shell main — found at mount. The
   // row only renders when the detail panel is closed, which is exactly when
@@ -227,20 +227,17 @@ function NarrativeTile({
   ariaLabel: string
 }) {
   return (
-    // 2026-06-08 (Yuqi /deadlines tile ↔ /today alert-card parity): every
-    // element + text token below is matched to the /today alert card
-    // (needs-attention-card.tsx) so the two surfaces read as one system —
+    // Every element + text token below is matched to the /today alert
+    // card (needs-attention-card.tsx) so the two surfaces read as one system —
     //   • card chrome → `rounded-xl bg-background-section p-[18px]` +
     //     `hover:bg-background-subtle transition-colors duration-200`
-    //     (was `rounded-xl … px-5 py-4 hover:bg-background-section-burn`)
     //   • eyebrow label → `text-caption font-semibold tracking-[0.4px]
     //     text-text-tertiary uppercase` (matches the card's change-kind /
-    //     meta eyebrow; was `font-bold tracking-[0.8px] text-text-muted`)
+    //     meta eyebrow)
     //   • headline → `text-[14px] font-semibold leading-[1.3]
-    //     text-text-primary` (matches the card's title h3; was `text-sm …
-    //     leading-snug`)
+    //     text-text-primary` (matches the card's title h3)
     //   • sub line → `text-xs text-text-secondary` (matches the card's
-    //     affects-clients line; was `text-text-tertiary leading-snug`)
+    //     affects-clients line)
     // The tone icon-chip keeps the `bg-state-{tone}-hover text-text-{tone}`
     // token pair the card's High-impact pill already uses.
     <button

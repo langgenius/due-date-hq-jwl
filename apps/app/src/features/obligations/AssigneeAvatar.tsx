@@ -12,25 +12,16 @@ import { cn } from '@/lib/utils'
 // row" cue without an extra YOU chip. Name lives in the title
 // (tooltip) so the column stays compact.
 //
-// Sizing history (kept inline because callers regularly ask "why 32?"):
-//   2026-05-25 (Yuqi Deadlines #1) — bumped 24 → 28px after the 24px
-//   circle read as cramped at scan distance ("avatar 有点太挤了").
-//   2026-05-26 (sixty-fifth pass #10) — bumped 28 → 32 + text-sm; the
-//   28px circle read as "too small" next to the row's text-base
-//   client name. 32px now matches the Today dashboard's owner avatar
-//   and lines up as a proper row-anchor icon.
-//   2026-05-26 (cross-table drift #10) — non-self path resolves a
-//   per-name tint via the shared `getAssigneeTint` helper. /clients
-//   already did this; the deadlines queue was where "AR" and "KP"
-//   read as identical at scan distance. Now same person → same color
-//   → same visual identity across every owner column in the app.
+// The non-self path resolves a per-name tint via the shared
+// `getAssigneeTint` helper so the same person → same color → same
+// visual identity across every owner column in the app.
 //
-// 2026-06-01 (consolidated avatar primitive): added `size`, `type`,
-// `image`, and null-name support so 8+ hand-rolled circular avatars
+// Consolidated avatar primitive with `size`, `type`, `image`, and
+// null-name support so 8+ hand-rolled circular avatars
 // (audit-log-table, members-page, ClientDetailWorkspace ×4,
 // ClientFactsWorkspace, app-shell-user-menu, app-shell-nav firm
-// switcher) can collapse onto this primitive. The defaults match the
-// old behavior (size='md', type='human', name required).
+// switcher) can collapse onto this primitive. The defaults are
+// size='md', type='human', name required.
 //
 // Variant map:
 //   size='xs' → size-5 (20px), text-[10px], icon size-3
@@ -55,12 +46,6 @@ import { cn } from '@/lib/utils'
 //   image (optional) → renders <img> inside the same shape-aware
 //   wrapper with overflow-hidden; on load error, falls back to
 //   initials (or unassigned glyph if `name === null`).
-//
-// 2026-06-01 (patterns migration): size='sm' bumped 24→28px so the
-// app-shell user-menu avatar (size-7) can drop its hand-rolled
-// branch. Added size='lg' (40px) for the firm-switcher expanded
-// monogram tile. Added shape='square' + type='firm' so workspace
-// monograms can render through the same primitive as people avatars.
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg'
 type AvatarType = 'human' | 'ai' | 'unassigned' | 'firm'
 type AvatarShape = 'round' | 'square'
@@ -141,11 +126,9 @@ export function AssigneeAvatar({
 
   // Firm/workspace monogram — always paired with shape='square'
   // typically. Brand-primary fill + inverted text matches the
-  // app-shell firm switcher visual.
-  // 2026-06-09 (Yuqi sidebar polish): the company monogram gets a
-  // slightly larger corner (rounded-lg, up from the square default
-  // rounded-lg) and a faint light hairline (border-white/15) so the
-  // dark tile reads a touch softer / lifted against the rail.
+  // app-shell firm switcher visual. The company monogram gets a
+  // faint light hairline (border-white/15) so the dark tile reads a
+  // touch softer / lifted against the rail.
   const initials = initialsFromName(name ?? '')
   if (resolvedType === 'firm') {
     return (

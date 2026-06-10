@@ -1,31 +1,28 @@
 import { type ReactNode } from 'react'
-import { Link } from 'react-router'
 import { Trans } from '@lingui/react/macro'
 import { ArrowRightIcon, InfoIcon } from 'lucide-react'
 
-import { Badge } from '@duedatehq/ui/components/ui/badge'
-import { Button } from '@duedatehq/ui/components/ui/button'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 
-// Maps the Pencil `U8eGg` — /onboarding rule-review prompt. This is a
-// NET-NEW onboarding step: the current `/onboarding` route (apps/app/src/
-// routes/onboarding.tsx) is a single firm-setup page with no second
-// "review jurisdictions" beat. The data it needs (per-jurisdiction
-// source-defined-calendar review state, blocked-deadline counts) is partly
-// modelled today via `sourceDefinedCalendarReviewStates` in
-// state-rule-activation-selector.tsx, but the activated-rule counts and
-// per-source breakdown are not yet surfaced by any contract — flagged
-// TODO(data) below.
+// Maps the Pencil `U8eGg` — /onboarding rule-review prompt, step 2 of the
+// onboarding flow (Practice → Rules → Clients). Rendered inside the onboarding
+// shell so it shares the firm-setup chrome (brand bar + step dots + footer).
+//
+// Honesty note: the activation contract (RuleOnboardingActivationOutput) gives
+// the real review jurisdictions + total activated count, but NOT per-jurisdiction
+// rules/blocked breakdowns. Those stats are therefore OPTIONAL here and omitted
+// when absent rather than fabricated — the canvas's "28 rules · 6 blocked" rows
+// await an activation-summary contract. TODO(data): surface per-jurisdiction
+// counts and render them.
 
-// TODO(data): replace with the activation-summary contract once it exists.
-// `activateOnboardingJurisdictions` already runs server-side; this shape is
-// what its summary output would carry per jurisdiction needing review.
 export interface JurisdictionReviewItem {
   code: string
-  authority: string
-  rulesActivated: number
-  blockedCount: number
-  detail: string
+  /** Optional rich stats — render only when the contract provides them. */
+  rulesActivated?: number
+  blockedCount?: number
+  authority?: string
+  detail?: string
 }
 
 interface RuleReviewPromptProps {
@@ -36,51 +33,48 @@ interface RuleReviewPromptProps {
   onReview?: (() => void) | undefined
 }
 
-function ReviewRow({
-  item,
-  last,
-  onReview,
-}: {
-  item: JurisdictionReviewItem
-  last: boolean
-  onReview?: (() => void) | undefined
-}) {
+function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean }) {
   return (
     <div
-      className={
-        last
-          ? 'flex items-center gap-3.5 px-5 py-4'
-          : 'flex items-center gap-3.5 border-b border-divider-regular px-5 py-4'
-      }
+      className={cn(
+        'flex items-center gap-3.5 px-[22px] py-4',
+        !last && 'border-b border-divider-subtle',
+      )}
     >
-      <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-state-warning-hover-alt bg-state-warning-hover text-description font-bold text-text-warning">
+      <span className="grid size-[42px] shrink-0 place-items-center rounded-lg border border-state-warning-active bg-state-warning-hover text-[13px] font-bold text-text-warning">
         {item.code}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-text-primary">{jurisdictionLabel(item.code)}</span>
-          <span aria-hidden className="text-text-muted">
-            ·
+          <span className="text-sm font-semibold text-text-primary">
+            {jurisdictionLabel(item.code)}
           </span>
-          <span className="text-caption text-text-tertiary">
-            <Trans>{item.rulesActivated} rules activated</Trans>
-          </span>
-          <Badge variant="destructive" size="sm" className="font-bold">
-            <Trans>{item.blockedCount} blocked</Trans>
-          </Badge>
+          {item.rulesActivated != null ? (
+            <>
+              <span aria-hidden className="text-text-muted">
+                ·
+              </span>
+              <span className="text-xs font-medium text-text-tertiary">
+                <Trans>{item.rulesActivated} rules activated</Trans>
+              </span>
+            </>
+          ) : null}
+          {item.blockedCount != null ? (
+            <span className="rounded-full bg-state-destructive-hover-alt px-2 py-0.5 text-[10px] font-bold text-text-destructive">
+              <Trans>{item.blockedCount} blocked</Trans>
+            </span>
+          ) : null}
         </div>
-        <p className="text-caption leading-relaxed text-text-tertiary">{item.detail}</p>
+        <p className="text-[11px] font-medium leading-relaxed text-text-tertiary">
+          {item.detail ?? (
+            <Trans>Source-defined calendar — confirm before deadlines generate for clients.</Trans>
+          )}
+        </p>
       </div>
-      <Button
-        variant="outline"
-        size="sm"
-        className="shrink-0"
-        render={onReview ? undefined : <Link to="/rules/library" />}
-        onClick={onReview}
-      >
+      <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-3.5 py-2 text-[13px] font-semibold text-text-secondary">
         <Trans>Review</Trans>
-        <ArrowRightIcon data-icon="inline-end" />
-      </Button>
+        <ArrowRightIcon className="size-3 text-text-tertiary" aria-hidden />
+      </span>
     </div>
   )
 }
@@ -93,19 +87,18 @@ export function RuleReviewPrompt({
   onReview,
 }: RuleReviewPromptProps): ReactNode {
   const reviewCount = jurisdictions.length
-  const blockedTotal = jurisdictions.reduce((sum, item) => sum + item.blockedCount, 0)
   const codeList = jurisdictions.map((item) => item.code).join(' + ')
 
   return (
     <div className="flex w-full max-w-[720px] flex-col gap-6">
       {/* Heading */}
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
+        <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-text-primary">
           <Trans>
             {reviewCount} jurisdiction{reviewCount === 1 ? '' : 's'} need a quick review
           </Trans>
         </h1>
-        <p className="text-sm leading-relaxed text-text-secondary">
+        <p className="text-sm font-medium leading-relaxed text-text-tertiary">
           <Trans>
             You activated {totalRulesActivated} rules. For {codeList}, our source-defined calendars
             need your eyes before they generate deadlines for your clients. A few minutes here saves
@@ -115,60 +108,56 @@ export function RuleReviewPrompt({
       </div>
 
       {/* Card */}
-      <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
-        <div className="flex items-center gap-2.5 border-b border-divider-regular px-5 py-4">
-          <span className="font-semibold text-text-primary">
+      <div className="overflow-hidden rounded-[14px] border border-divider-subtle bg-background-default">
+        <div className="flex items-center gap-2.5 border-b border-divider-subtle px-[22px] py-4">
+          <span className="text-sm font-semibold text-text-primary">
             <Trans>Jurisdictions awaiting calendar review</Trans>
           </span>
           <div className="flex-1" />
-          <Badge variant="warning" className="font-bold">
-            <Trans>
-              {reviewCount} to review · {blockedTotal} deadlines blocked
-            </Trans>
-          </Badge>
+          <span className="rounded-full border border-state-warning-active bg-state-warning-hover px-2.5 py-0.5 text-[11px] font-bold text-text-warning">
+            <Trans>{reviewCount} to review</Trans>
+          </span>
         </div>
 
         {jurisdictions.map((item, index) => (
-          <ReviewRow
-            key={item.code}
-            item={item}
-            last={index === jurisdictions.length - 1}
-            onReview={onReview}
-          />
+          <ReviewRow key={item.code} item={item} last={index === jurisdictions.length - 1} />
         ))}
 
-        <div className="flex items-center gap-2 border-t border-divider-regular bg-background-section px-5 py-3">
-          <InfoIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-          <p className="text-caption leading-relaxed text-text-tertiary">
-            <Trans>
-              You can also skip this for now and review rules later from the Rule Library.
-            </Trans>
+        <div className="flex items-center gap-2 bg-bg-subtle px-[22px] py-3">
+          <InfoIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+          <p className="text-xs font-medium leading-relaxed text-text-tertiary">
+            <Trans>You can also skip this and review rules later from the Rule Library.</Trans>
           </p>
         </div>
       </div>
 
       {/* Actions */}
       <div className="flex flex-wrap items-center gap-2.5">
-        {/* TODO(data): "skip" / "back" / "review" wiring depends on how the
-            onboarding flow adopts a multi-step shape (see report). When
-            rendered standalone, the Review CTA deep-links to Rule Library. */}
-        <Button
-          variant="ghost"
-          render={onSkip ? undefined : <Link to="/migration/new?source=onboarding" />}
+        <button
+          type="button"
           onClick={onSkip}
+          className="rounded-lg px-3.5 py-2.5 text-[13px] font-semibold text-text-tertiary transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <Trans>Skip and import clients first</Trans>
-        </Button>
+        </button>
         <div className="flex-1" />
         {onBack ? (
-          <Button variant="outline" onClick={onBack}>
+          <button
+            type="button"
+            onClick={onBack}
+            className="rounded-lg border border-divider-subtle bg-background-default px-4 py-2.5 text-[13px] font-semibold text-text-secondary transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
             <Trans>Back</Trans>
-          </Button>
+          </button>
         ) : null}
-        <Button render={onReview ? undefined : <Link to="/rules/library" />} onClick={onReview}>
+        <button
+          type="button"
+          onClick={onReview}
+          className="flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-5 py-2.5 text-[13px] font-semibold text-text-primary-on-surface transition-colors hover:bg-components-button-primary-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
           <Trans>Review {codeList} now</Trans>
-          <ArrowRightIcon data-icon="inline-end" />
-        </Button>
+          <ArrowRightIcon className="size-3.5" aria-hidden />
+        </button>
       </div>
     </div>
   )

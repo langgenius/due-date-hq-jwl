@@ -11,9 +11,6 @@
  * Usage:
  *   <EmptyCellMark />
  *   <EmptyCellMark label="No opportunities" />
- *
- * 2026-05-26 (Stripe-level Phase A): canonical empty-cell primitive
- * per docs/Design/stripe-level-critique-2026-05-26.md §S10.
  */
 export function EmptyCellMark({ label }: { label?: string }) {
   return (

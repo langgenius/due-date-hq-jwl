@@ -92,13 +92,11 @@ export function jurisdictionLabel(jurisdiction: string): string {
 // ---------------------------------------------------------------------------
 // Shared rule-library model — entity + status maps and small pure helpers.
 //
-// Lifted out of routes/rules.library.tsx (2026-06-04, Yuqi rule-library
-// master–detail pivot) so the new states-rail + per-jurisdiction table
-// feature components can share the exact same entity ordering, status
-// tones, and title-stripping logic as the route WITHOUT importing back
-// from the route module (which would create a circular dependency — the
-// route imports those feature components). Behaviour is identical to the
-// previous in-route definitions; only the home moved.
+// Lives here rather than in routes/rules.library.tsx so the states-rail +
+// per-jurisdiction table feature components can share the exact same entity
+// ordering, status tones, and title-stripping logic as the route WITHOUT
+// importing back from the route module (which would create a circular
+// dependency — the route imports those feature components).
 // ---------------------------------------------------------------------------
 
 export type EntityKey = keyof RuleCoverageRow['entityCoverage']
@@ -395,12 +393,11 @@ export const RULE_AUTHORITY_ROLE_LABEL: Record<RuleEvidenceAuthorityRole, string
   early_warning: 'Early warn',
 }
 
-// 2026-05-26 (Yuqi /critique — P1-4): tooltip-friendly explainer
-// for each authority role. The labels above are short for chip
-// real estate; these strings spell out what each role means so a
-// first-timer hovering the chip understands the classification.
-// Stays in plain English (no jargon) so the explainer doesn't
-// itself need an explainer.
+// Tooltip-friendly explainer for each authority role. The labels above
+// are short for chip real estate; these strings spell out what each role
+// means so a first-timer hovering the chip understands the classification.
+// Stays in plain English (no jargon) so the explainer doesn't itself need
+// an explainer.
 export const RULE_AUTHORITY_ROLE_DESCRIPTION: Record<RuleEvidenceAuthorityRole, string> = {
   basis: 'Primary source — the authority this rule is based on.',
   cross_check: 'Supporting source that confirms the primary basis.',

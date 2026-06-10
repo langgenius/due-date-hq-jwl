@@ -13,11 +13,11 @@ import { formatRelativeTime } from '@/lib/utils'
 import { useAlertNotesInvalidation, useAlertNotesQueryOptions } from '../api'
 
 /**
- * 2026-06-08 (Pencil Aogxu §7 "Team notes"): internal discussion threaded on
- * an alert. Any firm member can read + add. The list shows author + relative
- * time + body with a quiet inline Reply affordance (v1: prefixes the composer
- * with an "@author" mention — the backend stores notes flat). The composer at
- * the bottom is a Textarea + "Add note" button, disabled while empty / saving.
+ * Internal discussion threaded on an alert. Any firm member can read +
+ * add. The list shows author + relative time + body with a quiet inline
+ * Reply affordance (v1: prefixes the composer with an "@author" mention
+ * — the backend stores notes flat). The composer at the bottom is a
+ * Textarea + "Add note" button, disabled while empty / saving.
  *
  * Matches the flat calm-document section style of the surrounding drawer body:
  * sentence-case header in `text-xs font-semibold text-text-secondary`.

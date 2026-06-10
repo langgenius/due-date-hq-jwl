@@ -14,13 +14,12 @@ import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 /**
  * /alerts/history — the closed-alerts archive.
  *
- * 2026-06-08 (Pencil hFOEo `zROUm PageHeader`): the route header now
- * mirrors the design — an `Alerts › Alert history` breadcrumb, the title
- * carrying the rolling 90-day date-range context (`· Mar 9 – Jun 7, 2026`),
- * a `N handled alerts · last 90 days` meta line, and a single **Export**
- * action (CSV of the loaded handled alerts). The earlier `Active alerts` +
- * `Sources` cluster is dropped: the back-to-active path is already the
- * breadcrumb, and the design's header carries only Export.
+ * The route header is an `Alerts › Alert history` breadcrumb, a title
+ * carrying the rolling 90-day date-range context, a `N handled alerts ·
+ * last 90 days` meta line, and a single **Export** action (CSV of the
+ * loaded handled alerts). There is no `Active alerts` + `Sources` cluster:
+ * the back-to-active path is already the breadcrumb, so the header carries
+ * only Export.
  *
  * The handled count comes from the same history query the view runs
  * (React Query dedupes on the shared key), so the header and table never
@@ -98,16 +97,14 @@ export function AlertsHistoryRoute() {
           ? t`${handledCount} handled alerts · last 90 days`
           : t`Handled alerts · last 90 days`
       }
-      // 2026-05-26 (Yuqi /alerts seventh pass): same viewport-lock as
-      // /alerts so the history list scrolls inside its own column.
+      // Same viewport-lock as /alerts so the history list scrolls inside its
+      // own column.
       lockViewport
-      // 2026-06-04 round 81 (Yuqi "page width should be unified"): `wide`
-      // so the archive caps at the same width as /alerts active.
+      // `wide` so the archive caps at the same width as /alerts active.
       wide
       contentClassName={cn(
-        // 2026-06-09 (Yuqi "Alert history page is having a different width"):
-        // match the active /alerts shell exactly — `md:px-8` (was md:px-16,
-        // which left the archive 32px narrower on each side).
+        // Match the active /alerts shell exactly — `md:px-8`, so the archive
+        // is not narrower on each side.
         'gap-8 md:px-8 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
         panelOpen && '!pb-0 md:!pb-0',
       )}

@@ -13,11 +13,10 @@ import type { ObligationQueueDetailTab } from '@duedatehq/contracts/obligation-q
 // Order matters — the array is the visible tab order, and the first
 // entry is the default-on tab when the URL doesn't pin one.
 //
-// 2026-05-25 (Yuqi Deadlines #30): `summary` is now the default-
-// first tab for every type that has a meaningful milestone story
-// (filing / payment / deposit / information). Internal-review +
-// client-action rows skip Summary because their milestone chevron
-// is trivial (1-2 stages).
+// `summary` is the default-first tab for every type that has a
+// meaningful milestone story (filing / payment / deposit /
+// information). Internal-review + client-action rows skip Summary
+// because their milestone chevron is trivial (1-2 stages).
 const DEFAULT_TABS = [
   'summary',
   'readiness',
@@ -68,14 +67,12 @@ function useObligationTypeLabels(): ObligationTypeLabels {
   const { t } = useLingui()
   return useMemo(
     () => ({
-      // 2026-06-03 (Yuqi /critique pass — Reviewer panel finding P0
-      // "three-fil collision"): user-facing label for the canonical
-      // type renamed `Filing` → `Return`. DB enum value stays
-      // `'filing'` (canonical per PDF §3.1 — same pattern as DB
-      // `obligation` vs UI `Deadline`). CPAs say "this is a 1065
-      // return" not "this is a filing"; renaming the label also
-      // removes the head-on collision with the `Filed` status pill
-      // and (when wired) a `Form` column showing "1120-S".
+      // User-facing label for the canonical type is `Return`, not
+      // `Filing`. DB enum value stays `'filing'` (canonical per PDF
+      // §3.1 — same pattern as DB `obligation` vs UI `Deadline`).
+      // CPAs say "this is a 1065 return" not "this is a filing"; the
+      // label also avoids a head-on collision with the `Filed` status
+      // pill and (when wired) a `Form` column showing "1120-S".
       filing: t`Return`,
       payment: t`Payment`,
       deposit: t`Deposit`,

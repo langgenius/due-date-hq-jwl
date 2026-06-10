@@ -68,25 +68,20 @@ export function ClientDetailRoute() {
   }
 
   return (
-    // 2026-05-26 (Yuqi feedback #11-#14 — "scrolling mechanism should
-    // follow Deadline expanded"): outer container moves to the
-    // canonical sticky-footer variant (matches /deadlines + /clients
-    // list). At xl+ the page IS the viewport — `h-screen
-    // overflow-hidden` — so the workspace can host its own scroll
-    // container internally. Below xl, the page falls back to natural
-    // content-driven scrolling (the workspace stays usable on mobile
-    // / tablet without locked viewport math).
+    // The outer container uses the canonical sticky-footer variant (matches
+    // /deadlines + /clients list). At xl+ the page IS the viewport — `h-screen
+    // overflow-hidden` — so the workspace can host its own scroll container
+    // internally. Below xl, the page falls back to natural content-driven
+    // scrolling (the workspace stays usable on mobile / tablet without locked
+    // viewport math).
     //
-    // 2026-05-26 (Yuqi follow-up — "reference the responsive and
-    // width to Deadline's expanded right panel"): dropped the
-    // `mx-auto max-w-page-wide` 1100px cap. With the 600px right
-    // panel open + a 24px gap, the left column would shrink to
-    // ~480px on the cap and the H1 ("Riverbend Draft Client")
-    // would wrap onto 3 lines. /deadlines doesn't cap — it uses
-    // the full available width minus the sidebar — and at a
-    // 1920px viewport the left column lands at ~1240px when the
-    // panel is open. Matching that contract: container is now
-    // `flex w-full flex-col` with horizontal padding only.
+    // No `mx-auto max-w-page-wide` 1100px cap: with the 600px right panel open
+    // + a 24px gap, the left column would shrink to ~480px on the cap and the
+    // H1 ("Riverbend Draft Client") would wrap onto 3 lines. /deadlines doesn't
+    // cap — it uses the full available width minus the sidebar — and at a
+    // 1920px viewport the left column lands at ~1240px when the panel is open.
+    // Matching that contract: container is `flex w-full flex-col` with
+    // horizontal padding only.
     <div
       className={cn(
         'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
@@ -94,12 +89,11 @@ export function ClientDetailRoute() {
       )}
     >
       {isLoading ? (
-        // 2026-05-27 (Step 6 UX audit #71): loading state used to be a
-        // generic stack of three blocks (8/40/64) that read the same
-        // as the dashboard loader. Domain-specific skeleton mirrors
-        // the real client-detail shape — title + caption + identity
-        // chips, then the summary tile row, then the body workspace.
-        // Reduces the visual jolt when the real layout paints.
+        // Domain-specific skeleton mirrors the real client-detail shape —
+        // title + caption + identity chips, then the summary tile row, then
+        // the body workspace — rather than a generic stack of three blocks
+        // (8/40/64) that reads the same as the dashboard loader. Reduces the
+        // visual jolt when the real layout paints.
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Skeleton className="h-7 w-64 rounded-lg" />
@@ -138,12 +132,10 @@ export function ClientDetailRoute() {
             <span>
               <Trans>This client may have been deleted or you may not have access.</Trans>
             </span>
-            {/* 2026-05-27 (Step 6 UX audit #68): "Client not found" used
-                to only offer "Back to clients" — a one-way exit. If
-                the absence is a transient (stale cache, network blip)
-                the CPA had to navigate away and back to retry.
-                Refresh re-runs the same query; Back-to-clients stays
-                as the navigational escape hatch. */}
+            {/* If the absence is transient (stale cache, network blip) the
+                CPA needs a way to retry without navigating away and back.
+                Refresh re-runs the same query; Back-to-clients stays as the
+                navigational escape hatch. */}
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"

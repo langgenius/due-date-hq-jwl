@@ -11,12 +11,11 @@ import { SettingsShell, useSettingsNavSections } from '@/features/settings/setti
 /**
  * Workspace settings hub — the /settings index.
  *
- * 2026-06-08 (IA audit — "unify the two divergent Settings navs"): this
- * page now renders inside `SettingsShell`, the same sticky-rail scaffold
- * used by /settings/profile and /settings/permissions. Previously this
- * was a standalone card-hub whose destination set did NOT overlap with
- * the rail, so a user here could not reach Profile or Permissions, and a
- * user on a rail page could not reach Practice/Workload/Audit/Calendar.
+ * This page renders inside `SettingsShell`, the same sticky-rail scaffold
+ * used by /settings/profile and /settings/permissions, so the settings nav
+ * is unified: a standalone card-hub whose destination set did NOT overlap
+ * with the rail meant a user here could not reach Profile or Permissions,
+ * and a user on a rail page could not reach Practice/Workload/Audit/Calendar.
  *
  * Both surfaces now consume one registry — `useSettingsNavSections` — so:
  *   • the rail (left) lists every settings destination, including Profile

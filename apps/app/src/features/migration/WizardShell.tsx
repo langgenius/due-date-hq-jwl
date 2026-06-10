@@ -130,51 +130,23 @@ function WizardFrame({
   )
 
   return (
-    // 2026-05-25 (Yuqi Wizard #37): converged the outer frame's
-    // border radius + border token onto the canonical Dialog
-    // primitive (`rounded-lg`, `border-components-panel-border`).
-    // The wizard still bypasses Dialog's `p-6` body padding because
-    // it owns its own header / stepper / body / footer layout — the
-    // p-3 here is just the outer chrome, so each region can pad
-    // independently. Same family, different layout role.
+    // The outer frame uses the canonical Dialog primitive's radius +
+    // border token (`rounded-lg`, `border-components-panel-border`) but
+    // bypasses Dialog's `p-6` body padding because it owns its own header
+    // / stepper / body / footer layout — the p-3 here is just the outer
+    // chrome, so each region can pad independently.
     <div
       className={cn(
         'flex w-full flex-col gap-0 overflow-hidden rounded-lg border border-components-panel-border bg-components-panel-bg p-3 shadow-overlay',
         layout === 'route' ? 'min-h-0 flex-none' : 'max-h-[calc(100vh-4rem)]',
       )}
     >
-      {/* 2026-05-26 (Step 7 onboarding audit F6-25): this sr-only
-          block duplicated the DialogTitle + DialogDescription
-          announced at the parent Dialog. Screen readers were
-          announcing the step + description twice. Removed the
-          inner block; the route shell's heading carries the
-          same signal for the route variant. */}
-
-      {/* 2026-05-25 (Yuqi #32, #33, #34, #39): header was a
-          monospace breadcrumb "Import / Step N / 4" with a mystery
-          green dot. Three problems:
-          - The green dot had no meaning (Yuqi #32, #39).
-          - `font-mono` made "Import" read as a code path, not as
-            the wizard's actual title (#33).
-          - The "Step N / 4" breadcrumb duplicated the Stepper
-            below — same info, two surfaces (#34, #36).
-          Fixed: dropped the dot, drop the breadcrumb, set
-          "Import" as a real `font-semibold` title in regular case.
-          Step progress lives in the Stepper below as the single
-          source of truth.
-
-          2026-05-29 (Yuqi — wizard title hierarchy): bumped from
-          `text-base` to `text-lg`. The wizard title is the MASTER
-          for this card (each step's h2 below describes the current
-          step's outcome — child content). With both sitting at the
-          same weight, the master must be the larger of the two.
-          Previously: wizard title text-base + step h2 text-lg made
-          step content visually outrank the section title, so a
-          first-time user reading top-to-bottom thought "AI prepared
-          your columns" was the page title and "Import clients" was
-          a kicker. Step h2s now sit at text-base (see Step 2/3/4),
-          so the hierarchy reads page-H1 (text-2xl) > wizard title
-          (text-lg) > step h2 (text-base). */}
+      {/* The wizard title is the MASTER for this card (each step's h2
+          below describes the current step's outcome — child content), so
+          it sits at `text-lg`: the hierarchy reads page-H1 (text-2xl) >
+          wizard title (text-lg) > step h2 (text-base). Step progress
+          lives in the Stepper below as the single source of truth, not a
+          breadcrumb. */}
       <header
         className={cn(
           'flex shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-4',
@@ -189,9 +161,8 @@ function WizardFrame({
           </ConceptLabel>
         </h2>
         <div className="flex items-center gap-2">
-          {/* 2026-06-07 (Cluster 3 — design SLw8Q/dCUv7): "Import history"
-              ghost button present in every migration frame's header.
-              Opens the existing ImportHistoryDrawer when the parent
+          {/* "Import history" ghost button present in every migration
+              frame's header. Opens the ImportHistoryDrawer when the parent
               supplies a handler. */}
           {onOpenImportHistory ? (
             <Button
@@ -207,9 +178,8 @@ function WizardFrame({
           ) : null}
           {showCloseControl ? (
             <>
-              {/* 2026-06-01: route hand-rolled `<kbd>` + label span through the
-                canonical KbdHint pattern. The sm:inline-flex breakpoint
-                continues to gate the hint on wider viewports. */}
+              {/* Canonical KbdHint pattern. The sm:inline-flex breakpoint
+                gates the hint to wider viewports. */}
               <KbdHint
                 className="hidden sm:inline-flex"
                 items={[
@@ -240,36 +210,21 @@ function WizardFrame({
           <ProcessingOverlay transition={transition} />
         </div>
       ) : (
-        // 2026-05-29 (R4 follow-up #5 — "alignment between the title,
-        // the progress bar, and the drop zone"): body was `px-6` while
-        // header, Stepper, and footer all sat at `px-4`. That offset
-        // made the dropzone inset 8px deeper than the active step pill
-        // and the wizard title above, breaking the vertical visual
-        // line down the leading edge. Aligned body to `px-4` so the
-        // dropzone's left edge stacks with "Import clients" + the
-        // step-1 pill.
+        // Body sits at `px-4` (matching header, Stepper, and footer) so
+        // the dropzone's left edge stacks with the wizard title + the
+        // step-1 pill down the leading edge.
         <div className="relative min-h-0 flex-1 overflow-y-auto px-4" aria-busy={busy || undefined}>
           {children}
         </div>
       )}
 
-      {/* 2026-05-25 (Yuqi Today #28): Back button drops its
-          ArrowLeftIcon. Yuqi flagged "back button does not need an
-          icon" — the label "Back" already says where the click
-          goes; the icon was redundant chrome that made the back/
-          continue buttons read as a pair of weighted arrows, not as
-          a primary/secondary action pair. Continue keeps its
-          forward arrow because there it functions as a "this is the
-          next step" cue (and rotates on hover toward Step+1).
-          Both buttons now route through the canonical Button size
-          tokens (variant default for Continue, outline for Back).
-
-          2026-05-26 (Step 7 onboarding audit F6-22): hide the
-          Back button entirely on Step 1 (was disabled-visible).
-          A disabled control on the first step reads as a dead
-          affordance — and the disabled grey button stole visual
-          weight from the active Continue. Cleaner to render
-          `null` when there's nowhere to go back to. */}
+      {/* Back has no icon — the label already says where the click goes,
+          and a pair of weighted arrows would read as two equal actions
+          rather than a primary/secondary pair. Continue keeps its forward
+          arrow as a "next step" cue. The Back button is hidden entirely on
+          Step 1 (rather than disabled-visible) — a disabled control on the
+          first step reads as a dead affordance and steals weight from the
+          active Continue. */}
       <footer className="flex h-12 shrink-0 items-center justify-end gap-4 border-divider-subtle px-4">
         {step > 1 && onBack ? (
           <Button variant="outline" size="lg" onClick={onBack} disabled={busy || backDisabled}>
@@ -354,12 +309,10 @@ export function WizardShell({ open, onClose, confirmOnClose, ...frameProps }: Wi
         <AlertDialog open={confirming} onOpenChange={setConfirming}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              {/* 2026-05-26 (Step 7 onboarding audit F6-23):
-                  "Discard import?" implied destruction of
-                  something the user had committed — but the
-                  user hasn't *imported* yet, they're still
-                  inside the wizard. Renamed to "Leave without
-                  importing?" so the verb matches the state. */}
+              {/* "Leave without importing?" — the user hasn't imported
+                  yet (they're still inside the wizard), so the verb matches
+                  the state rather than implying destruction of committed
+                  work. */}
               <AlertDialogTitle>
                 <Trans>Leave without importing?</Trans>
               </AlertDialogTitle>
@@ -424,12 +377,10 @@ export function WizardRouteShell({
         <AlertDialog open={confirming} onOpenChange={setConfirming}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              {/* 2026-05-26 (Step 7 onboarding audit F6-23):
-                  "Discard import?" implied destruction of
-                  something the user had committed — but the
-                  user hasn't *imported* yet, they're still
-                  inside the wizard. Renamed to "Leave without
-                  importing?" so the verb matches the state. */}
+              {/* "Leave without importing?" — the user hasn't imported
+                  yet (they're still inside the wizard), so the verb matches
+                  the state rather than implying destruction of committed
+                  work. */}
               <AlertDialogTitle>
                 <Trans>Leave without importing?</Trans>
               </AlertDialogTitle>
@@ -460,14 +411,12 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
   return (
     <div className="absolute inset-0 overflow-y-auto bg-components-panel-bg/85">
       <div className="grid min-h-full place-items-center px-6 py-6">
-        {/* 2026-05-31: processing-overlay modal swapped from hand-rolled
-            `section` with accent border + bg to Card size="sm" tone="accent".
-            Card's gap-4 replaces the explicit mt-4 spacing between
-            header/progress/steps; px-4 supplies horizontal padding (size=sm
-            only provides py-4). role="status" + aria-live="polite" remain
-            on the Card div so the live-region announcement is preserved;
-            max-w-[520px] + shadow-overlay stay as overlay-context overrides
-            per the migration brief. */}
+        {/* Processing-overlay modal uses Card size="sm" tone="accent".
+            Card's gap-4 supplies the spacing between header/progress/steps;
+            px-4 adds horizontal padding (size=sm only provides py-4).
+            role="status" + aria-live="polite" on the Card div preserve the
+            live-region announcement; max-w-[520px] + shadow-overlay are
+            overlay-context overrides. */}
         <Card
           role="status"
           aria-live="polite"
@@ -502,12 +451,9 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
             {copy.steps.map((step, index) => {
               const complete = index < activeIndex
               const active = index === activeIndex
-              // 2026-05-25 (Yuqi critique #32, #39): the stepper bullet
-              // was a bare green dot with no aria-label. Hovering told
-              // the user nothing about why it was green. Now each step
-              // marker carries an explicit accessibility label so the
-              // tooltip + screen reader read "Step N — completed /
-              // in progress / pending".
+              // Each step marker carries an explicit accessibility label so
+              // the tooltip + screen reader read "Step N — completed / in
+              // progress / pending".
               const stateLabel = complete ? 'Completed' : active ? 'In progress' : 'Pending'
               return (
                 <li
@@ -612,8 +558,6 @@ function transitionCopy(phase: WizardTransitionPhase): {
       }
     case 'import':
       return {
-        // 2026-05-25 (Wizard #40 copy polish): same trim as
-        // Step 4 alert — "your deadline list" → "deadlines".
         title: <Trans>Generating deadlines…</Trans>,
         description: <Trans>Creating clients, deadlines, evidence links, and audit records.</Trans>,
         steps: [

@@ -13,12 +13,10 @@ import { useMorningSweep } from './MorningSweepContext'
 /**
  * `MorningSweepDialog` — AI-style daily briefing surface.
  *
- * 2026-06-04 round 49 (Yuqi "My morning sweep can be an AI generated
- * summary of the Alerts"): replaces the silent toggle behavior of
- * `MorningSweepHeaderButton`. Clicking the button now opens this
- * Dialog with a generated summary of the last 24 hours' alerts and
- * a "Show me just these alerts" CTA that applies the canonical
- * Morning-sweep filter preset (last 24h + needs action).
+ * Clicking the button opens this Dialog with a generated summary of
+ * the last 24 hours' alerts and a "Show me just these alerts" CTA that
+ * applies the canonical Morning-sweep filter preset (last 24h + needs
+ * action).
  *
  * Phase architecture:
  *   • **Phase 1 (this commit):** client-side mock summary. Template
@@ -137,12 +135,10 @@ function composeBriefing(alerts: PulseAlertPublic[], firmName: string | null): B
  * Inline panel that renders above the alerts list when the user
  * clicks the morning sweep button.
  *
- * 2026-06-04 round 52 (Yuqi "can you click it and it inserts a side
- * panel or a panel before the alert list about the digest"):
- * replaces the previous Dialog wrapper. The panel reads its open
- * state from `MorningSweepContext.digestOpen` so both the header
- * button (toggles open) and the panel's own × button (closes) write
- * to the same state. Renders nothing when closed — callers can drop
+ * The panel reads its open state from `MorningSweepContext.digestOpen`
+ * so both the header button (toggles open) and the panel's own ×
+ * button (closes) write to the same state. Renders nothing when
+ * closed — callers can drop
  * `<MorningSweepPanel />` unconditionally above their list and it
  * only takes layout when the user has asked to see the briefing.
  */
@@ -155,17 +151,16 @@ export function MorningSweepPanel() {
 function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
   const { t } = useLingui()
   const sweep = useMorningSweep()
-  // 2026-06-04 round 50: server-side AI summary (Phase 2). The
-  // alerts list query is retained as a fallback when the server
-  // call is loading, errors, or returns 'fallback' source — we
-  // can still render the client-side template so the dialog never
-  // shows an empty body.
+  // Server-side AI summary. The alerts list query is retained as a
+  // fallback when the server call is loading, errors, or returns
+  // 'fallback' source — we can still render the client-side template
+  // so the dialog never shows an empty body.
   const summaryQuery = useQuery(useAlertsMorningSweepQueryOptions())
   const alertsQuery = useQuery(useAlertsListQueryOptions(100))
-  // 2026-06-05 (pre-CI green-up): pin the fallback list to the alerts
-  // query DATA reference (memoize the dereference) so the useMemo
-  // below depends on a stable identity instead of a freshly-allocated
-  // array on every render. Satisfies react-hooks/exhaustive-deps.
+  // Pin the fallback list to the alerts query DATA reference (memoize
+  // the dereference) so the useMemo below depends on a stable identity
+  // instead of a freshly-allocated array on every render. Satisfies
+  // react-hooks/exhaustive-deps.
   const alerts = useMemo(() => alertsQuery.data?.alerts ?? [], [alertsQuery.data?.alerts])
   const clientFallback = useMemo(() => composeBriefing(alerts, null), [alerts])
   // Prefer the server briefing; fall back to client template when
@@ -176,15 +171,15 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
   // local clientFallback is loading / network-error states.
   const briefing = summaryQuery.data?.briefing ?? null
   const briefingSource = summaryQuery.data?.source ?? null
-  // 2026-06-05 (pre-CI green-up): `generatedAt` no longer surfaced
-  // in the dialog body; if a "Last generated …" caption is added,
-  // re-read `summaryQuery.data?.generatedAt` at that call site.
+  // `generatedAt` is not surfaced in the dialog body; if a "Last
+  // generated …" caption is added, re-read `summaryQuery.data?.generatedAt`
+  // at that call site.
 
   const applyFilter = () => {
     if (sweep && !sweep.active) sweep.toggle()
-    // 2026-06-04 round 52: closing the panel after Apply lets the
-    // newly-filtered alerts list take over the viewport — the user
-    // got their briefing, now they're working the queue.
+    // Closing the panel after Apply lets the newly-filtered alerts
+    // list take over the viewport — the user got their briefing, now
+    // they're working the queue.
     onClose()
   }
 
@@ -241,13 +236,12 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
         windowAlerts: clientFallback.windowAlerts,
       }
 
-  // 2026-06-04 round 54 (Yuqi "just a single line. you don't need
-  // a title"): panel reduced to a single horizontal row. Sparkle
-  // icon + the briefing's HEADLINE (one paragraph, no bullets, no
-  // top-3 list) + a compact "Show me" action + close. No title,
-  // no subtitle, no provenance chip — the icon IS the AI signal
-  // and the headline IS the content. Truncates with `line-clamp-1`
-  // so the row stays a true single line at any viewport width.
+  // Single horizontal row: Sparkle icon + the briefing's HEADLINE (one
+  // paragraph, no bullets, no top-3 list) + a compact "Show me" action
+  // + close. No title, no subtitle, no provenance chip — the icon IS
+  // the AI signal and the headline IS the content. Truncates with
+  // `line-clamp-1` so the row stays a true single line at any viewport
+  // width.
   const headline =
     renderBriefing.paragraphs[0] ??
     (briefingSource === 'fallback' ? t`AI summarisation unavailable.` : t`Brewing your briefing…`)
@@ -257,10 +251,9 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
       aria-labelledby="morning-sweep-panel-title"
       className="flex items-center gap-3 rounded-xl bg-state-accent-hover px-4 py-2.5"
     >
-      {/* Round 83 (Yuqi #21 "brewing your briefing - icon should
-          be the coffee"): leading icon flips from Sparkles to
-          Coffee while the brewing message is showing. Once the
-          briefing arrives the Sparkles (AI signal) takes over. */}
+      {/* Leading icon is Coffee while the brewing message is showing.
+          Once the briefing arrives the Sparkles (AI signal) takes
+          over. */}
       {isLoading ? (
         <CoffeeIcon className="size-4 shrink-0 text-text-accent" aria-hidden />
       ) : (

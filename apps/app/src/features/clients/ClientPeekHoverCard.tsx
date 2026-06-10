@@ -88,10 +88,9 @@ const EMPTY_OBLIGATIONS = [] as const
 function ClientPeekBody({ clientId }: { clientId: string }) {
   const { t } = useLingui()
   const entityLabels = useEntityLabels()
-  // 2026-05-27 (D16 — Agent ω, journey-audit drain): replaced
-  // PeekNextDue's `Date.now()` with the firm's "as of" anchor so the
-  // hover-card's "Xd late" matches the rest of the surfaces (which
-  // already calendar-pin off this hook).
+  // The firm's "as of" anchor (not `Date.now()`) so the hover-card's
+  // "Xd late" matches the rest of the surfaces (which calendar-pin off
+  // this hook).
   const asOfDate = useFirmAsOfDate()
 
   // Data fetching only fires when the popover actually mounts — Base
@@ -136,13 +135,9 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
       {/* Identity */}
       <div className="flex min-w-0 flex-col gap-1">
         <span className="truncate text-sm font-semibold text-text-primary">{client.name}</span>
-        {/* 2026-05-27 (Yuqi feedback "some informations are repeating
-            in this peek client detail tooltip"): entity type
-            ("Partnership") was rendered twice — here as the subtitle
-            prefix and below as a chip in the identity row. Dropped
-            from the subtitle; the chip row carries it now. Subtitle
-            is just the open-deadline count, which is the single
-            useful state signal at this scan distance. */}
+        {/* Subtitle is just the open-deadline count — the single
+            useful state signal at this scan distance. Entity type is
+            not repeated here; the chip row below carries it. */}
         <span className="text-xs text-text-secondary">
           {openCount === 0
             ? t`No open deadlines`
@@ -150,14 +145,13 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
               ? t`1 open deadline`
               : t`${openCount} open deadlines`}
         </span>
-        {/* 2026-05-27 (phi journey audit J1): payment-overdue line.
-            Surfaces "Filed but payment overdue on N filings" inline
-            with the identity subtitle so the peek doesn't bury the
-            most expensive signal. Renders only when the count is > 0
-            so the common case (every filing's payment is up to date)
-            stays quiet. Tinted destructive because penalty interest
-            accrues until the wire lands — this IS active urgency, not
-            a quality stat. */}
+        {/* Payment-overdue line. Surfaces "Filed but payment overdue
+            on N filings" inline with the identity subtitle so the peek
+            doesn't bury the most expensive signal. Renders only when
+            the count is > 0 so the common case (every filing's payment
+            is up to date) stays quiet. Tinted destructive because
+            penalty interest accrues until the wire lands — this IS
+            active urgency, not a quality stat. */}
         {paymentOverdueCount > 0 ? (
           <span className="text-xs font-medium text-text-destructive">
             {paymentOverdueCount === 1 ? (
@@ -235,9 +229,9 @@ function PeekNextDue({
   asOfDate,
 }: {
   nextDue: ObligationInstancePublic | null
-  // 2026-05-27 (D16): firm's "as of" anchor. Falls back to Date.now()
-  // when missing so the hover-card stays resilient if the timezone
-  // provider hasn't hydrated yet.
+  // Firm's "as of" anchor. Falls back to Date.now() when missing so
+  // the hover-card stays resilient if the timezone provider hasn't
+  // hydrated yet.
   asOfDate: string | null
 }) {
   const { t } = useLingui()

@@ -4,7 +4,6 @@ import { ArrowRightIcon, CheckCircle2Icon } from 'lucide-react'
 import { useNavigate } from 'react-router'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 
-import brandMark from '@duedatehq/ui/assets/brand/brand-favicon.svg?url'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
@@ -98,17 +97,12 @@ export function SplashRoute() {
     <div className="flex min-h-screen w-full flex-col bg-background-section">
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-16 md:px-20 md:py-32">
         <div className="flex w-full max-w-[720px] flex-col items-center gap-8">
-          {/* Brand lockup */}
+          {/* Brand lockup — dark "D" mark, consistent with the auth cluster. */}
           <div className="flex items-center gap-2.5">
-            <img
-              src={brandMark}
-              alt=""
-              aria-hidden
-              width={24}
-              height={24}
-              className="size-6 rounded-lg"
-            />
-            <span className="text-sm font-semibold tracking-tight text-text-primary">
+            <span className="flex size-6 items-center justify-center rounded-md bg-text-primary text-[13px] font-bold tracking-[-0.3px] text-text-primary-on-surface">
+              D
+            </span>
+            <span className="text-sm font-semibold tracking-[-0.2px] text-text-primary">
               DueDateHQ
             </span>
           </div>
@@ -122,13 +116,13 @@ export function SplashRoute() {
                 <Trans>Welcome back</Trans>
               )}
             </h1>
-            <p className="text-center text-base font-medium text-text-tertiary">{todayLabel}</p>
+            <p className="text-center text-[15px] font-medium text-text-tertiary">{todayLabel}</p>
           </div>
 
           {/* "While you were away" recap card */}
           <section
             aria-label={t`While you were away`}
-            className="flex w-full flex-col gap-3.5 rounded-xl border border-divider-regular bg-background-default px-7 py-6"
+            className="flex w-full flex-col gap-3.5 rounded-[14px] border border-divider-subtle bg-background-default px-7 py-6"
           >
             <div className="flex items-center gap-2">
               <span aria-hidden className="block size-1.5 rounded-full bg-state-success-solid" />

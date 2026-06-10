@@ -53,13 +53,11 @@ export function AccountSecurityRoute() {
   const [code, setCode] = useState('')
   const securityKey = orpc.security.key()
 
-  // 2026-05-24 (re-critique): the three destructive security actions
-  // — Disable MFA, Sign out other sessions, Revoke session — all
-  // fired on a single click with no confirm. Stage each through an
-  // AlertDialog before the mutation. Per-session Revoke shows the
-  // session's user-agent + IP + created-at so the admin sees which
-  // device they're killing (especially important for the "revoke
-  // current session" path, which signs them out).
+  // The three destructive security actions — Disable MFA, Sign out other
+  // sessions, Revoke session — each stage through an AlertDialog before the
+  // mutation. Per-session Revoke shows the session's user-agent + IP +
+  // created-at so the admin sees which device they're killing (especially
+  // important for the "revoke current session" path, which signs them out).
   const [confirmDisableMfa, setConfirmDisableMfa] = useState(false)
   const [confirmSignOutOthers, setConfirmSignOutOthers] = useState(false)
   const [pendingSessionRevoke, setPendingSessionRevoke] = useState<{
@@ -204,11 +202,8 @@ export function AccountSecurityRoute() {
 
   return (
     <div className="mx-auto flex w-full max-w-page-medium flex-col gap-4 px-4 py-6 md:px-6">
-      {/* 2026-05-24 (design-system audit): migrated from ad-hoc
-          Breadcrumb + h1 + Badge layout to the shared `<PageHeader>`
-          primitive. Breadcrumb routes through the eyebrow slot; MFA
-          status Badge sits in the actions slot. Same visual outcome,
-          one less custom header to maintain. */}
+      {/* Uses the shared `<PageHeader>` primitive: breadcrumb routes through
+          the eyebrow slot; MFA status Badge sits in the actions slot. */}
       <PageHeader
         breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Security` }]}
         title={<Trans>Security</Trans>}
@@ -337,11 +332,10 @@ export function AccountSecurityRoute() {
         </CardContent>
       </Card>
 
-      {/* 2026-05-24 (re-critique): three security-side confirms. MFA
-          disable + sign-out-others are both account-wide and hard to
-          recover from quickly; per-session revoke shows the device
-          details so the user knows which session they're killing
-          (especially important for "revoke current session" — that
+      {/* Three security-side confirms. MFA disable + sign-out-others are both
+          account-wide and hard to recover from quickly; per-session revoke
+          shows the device details so the user knows which session they're
+          killing (especially important for "revoke current session" — that
           path navigates them to /login). */}
       <AlertDialog
         open={confirmDisableMfa}

@@ -44,10 +44,9 @@ const FILL_BY_TONE: Record<PulsingDotTone, string> = {
   disabled: 'bg-components-badge-status-light-disabled-bg',
 }
 
-// A flat 8px status dot. 2026-06-08 (Yuqi): the shadow halo and the
-// `animate-ping` expanding ring were both removed — the dot now reads as a
-// calm status color, not a heartbeat/glow. `active` is retained only as a
-// data attribute hook for callers that style on it.
+// A flat 8px status dot — no shadow halo, no `animate-ping` ring, so it
+// reads as a calm status color, not a heartbeat/glow. `active` is
+// retained only as a data attribute hook for callers that style on it.
 export function PulsingDot({ tone = 'success', active = true, className, label }: PulsingDotProps) {
   return (
     <span

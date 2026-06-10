@@ -93,10 +93,6 @@ export function TemporaryRulesTab() {
         </span>
       </div>
       <SectionFrame>
-        {/* 2026-06-04 (Yuqi table sweep): explicit TableHeader bg
-            and TableRow hover override REMOVED — the primitive
-            now ships the canonical `bg-background-section` header
-            and transparent header-row hover by default. */}
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>

@@ -75,13 +75,12 @@ export function ClientNotesPanel({
   client: ClientPublic
   /** When false, the panel renders the notes body in read-only mode (no textarea, no save). */
   canWrite: boolean
-  // 2026-06-01 (Yuqi /clients/[id] critique — IA part 2): controlled
-  // open state lifted to the parent so multiple affordances can
-  // trigger the same panel — the inline `<ClientNotesStrip>` Edit
+  // Controlled open state lives in the parent so multiple affordances
+  // can trigger the same panel — the inline `<ClientNotesStrip>` Edit
   // affordance, the empty-state "Add notes" button in the header
   // actions cluster, and (future) a keyboard shortcut. This file
-  // no longer ships its own SheetTrigger; the workspace renders
-  // the trigger(s) and threads state down.
+  // doesn't ship its own SheetTrigger; the workspace renders the
+  // trigger(s) and threads state down.
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {

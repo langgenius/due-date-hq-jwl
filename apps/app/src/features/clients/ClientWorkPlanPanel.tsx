@@ -107,11 +107,11 @@ const OPEN_FILING_PLAN_STATUSES = new Set([
   'done',
 ])
 
-// 2026-05-24 (shape — critique P2): filing-plan column sort state.
-// `null` field means "natural order" — each year section's obligations
-// stay in whatever order the API returned. `internal` and `official`
-// are the most common sort axes (per CPA Sarah's testing). `form` is a
-// stable secondary key. `status` orders by the lifecycle enum.
+// Filing-plan column sort state. `null` field means "natural order" —
+// each year section's obligations stay in whatever order the API
+// returned. `internal` and `official` are the most common sort axes.
+// `form` is a stable secondary key. `status` orders by the lifecycle
+// enum.
 type FilingPlanSortField = 'form' | 'internal' | 'official' | 'status' | 'estimate' | null
 type FilingPlanSortDir = 'asc' | 'desc'
 type FilingPlanSort = { field: FilingPlanSortField; dir: FilingPlanSortDir }
@@ -131,9 +131,6 @@ const STATUS_SORT_INDEX: Record<string, number> = {
   extended: 9,
   not_applicable: 10,
 }
-
-// 2026-06-10 (Yuqi — DeadlineRow card-rows): FilingPlanSortHeader (the
-// table column-sort button) retired with the table.
 
 function sortObligations(
   list: readonly ObligationQueueRow[],
@@ -205,12 +202,9 @@ export function ClientWorkPlanPanel({
     [obligations, currentTaxYear],
   )
 
-  // 2026-05-24 (shape — critique P2 power-user pass): sort state
-  // lives at the panel level so all year sections share the same
-  // sort. Click a header → toggle (asc → desc → null). Default
-  // (`field === null`) keeps the API order.
-  // 2026-06-10 (Yuqi — DeadlineRow card-rows): the column-header sort affordance
-  // retired with the table; sort holds at API order (smart priority).
+  // Sort state lives at the panel level so all year sections share the
+  // same sort. There's no column-header sort affordance, so sort holds
+  // at API order (smart priority); `field === null` keeps that order.
   const [sort] = useState<FilingPlanSort>({ field: null, dir: 'asc' })
 
   // Multi-select state — a Set of obligation ids selected across all
@@ -266,12 +260,12 @@ export function ClientWorkPlanPanel({
       },
     }),
   )
-  // 2026-05-24 (re-critique): the filing-plan bulk bar used to fire
-  // the status mutation directly on dropdown pick — so a stray year-
-  // level checkbox + status click could move dozens of deadlines with
-  // zero pre-action signal. Stage the change behind a confirm with
-  // the actual count + target status. Reversible, but the click is
-  // cheap insurance against accidental cascades.
+  // The bulk status change is staged behind a confirm with the actual
+  // count + target status, rather than firing the mutation directly on
+  // dropdown pick — otherwise a stray year-level checkbox + status
+  // click could move dozens of deadlines with zero pre-action signal.
+  // Reversible, but the confirm is cheap insurance against accidental
+  // cascades.
   const [pendingBulkStatus, setPendingBulkStatus] = useState<{
     status: ObligationStatus
     ids: string[]
@@ -283,22 +277,18 @@ export function ClientWorkPlanPanel({
     },
     [selectedIds],
   )
-  // 2026-05-24: the Filing plan heading went through TabSection so it
-  // sits on the same h2 / subtitle baseline as every other section
-  // header on this client detail page.
+  // The Filing plan heading goes through TabSection so it sits on the
+  // same h2 / subtitle baseline as every other section header on this
+  // client detail page.
   //
-  // 2026-05-26 (audit D4 fix): the subtitle USED to read "N deadlines
-  // across N tax years" — but the SummaryStrip "Open filing" tile
-  // 100 px above already owns the count signal (made canonical in the
-  // 2026-05-24 distill pass that dropped "N open filings" from the
-  // workPlan summary — see `renderClientHeaderSubLine` rationale).
-  // Two counts 100 px apart with slightly-different denominators
-  // (the tile counts non-terminal obligations; the old subtitle
-  // counted ALL obligations including terminal years) forced the
-  // CPA to compute the relationship instead of just reading.
-  // Subtitle now carries only the structural fact — *how* the rows
-  // are grouped, not how many — so the tile stays the single source
-  // of truth. See `docs/Design/ui-audit-2026-05-25.md` §3.2 D4.
+  // The subtitle carries only the structural fact — *how* the rows are
+  // grouped, not how many — so the SummaryStrip "Open filing" tile
+  // ~100px above stays the single source of truth for the count. Two
+  // counts that close together with slightly-different denominators
+  // (the tile counts non-terminal obligations; a count subtitle would
+  // count ALL obligations including terminal years) would force the CPA
+  // to compute the relationship instead of just reading. See
+  // `docs/Design/ui-audit-2026-05-25.md` §3.2 D4.
   const subtitle =
     yearGroups.length <= 1 ? (
       <Trans>Latest first</Trans>
@@ -307,20 +297,14 @@ export function ClientWorkPlanPanel({
     )
   return (
     <TabSection title={t`Filing plan`} summary={subtitle}>
-      {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3): each year
-          section is wrapped in its own framed block using the
-          canonical `rounded-lg border-divider-regular
+      {/* Each year section is wrapped in its own framed block using
+          the canonical `rounded-lg border-divider-regular
           bg-background-default` shape. The column header bar lives
-          INSIDE the frame, paired with the rows it legends. This
-          replaces the earlier single-column-header-above-all-years
-          shape. Trade-off: column legend repeats per year, but each
-          section now reads as a self-contained year card and
-          scanning year-by-year is much easier when there are 3+
-          years of history. (Prior 2026-05-24 Figma-replica pass
-          used `bg-background-soft rounded-xl border-subtle`; that
-          was the only divergent frame on the page and got snapped
-          to canonical 2026-05-26 — see the comment on the year
-          section wrapper at FilingPlanYearSection.) */}
+          INSIDE the frame, paired with the rows it legends, rather than
+          a single column header above all years. Trade-off: the column
+          legend repeats per year, but each section reads as a
+          self-contained year card and scanning year-by-year is much
+          easier when there are 3+ years of history. */}
       {isLoading ? (
         <div className="grid gap-2">
           <Skeleton className="h-32 w-full" />
@@ -452,10 +436,9 @@ function FilingPlanBulkBar({
   onClear: () => void
 }) {
   const { t } = useLingui()
-  // 2026-06-01: swapped the hand-rolled fixed/centered bulk bar for the
-  // shared FloatingActionBar primitive so the Filing-plan bulk surface
-  // matches the canonical shadow/blur/z-index recipe used by the
-  // obligations queue and rules library bulk bars.
+  // The shared FloatingActionBar primitive so the Filing-plan bulk
+  // surface matches the canonical shadow/blur/z-index recipe used by
+  // the obligations queue and rules library bulk bars.
   return (
     <FloatingActionBar ariaLabel={t`Bulk actions`}>
       <span className="text-xs font-medium tabular-nums text-text-primary">
@@ -490,7 +473,7 @@ function FilingPlanBulkBar({
 // Per-tax-year section in the Filing plan panel. Rendered once per year
 // bucket; current tax year sits at the top with a CURRENT TAX YEAR chip.
 //
-// 2026-05-22 hierarchy pass:
+// Hierarchy:
 //  - Year number reads as a clear section heading (text-base, tabular)
 //  - Chip + counts cluster CLOSE to the year, not pushed to the far
 //    edge with `ml-auto`. Wide-screen content shouldn't be split at the
@@ -538,36 +521,24 @@ function FilingPlanYearSection({
   const toggleYear = useCallback(() => {
     onSetYearSelection(yearIds, !yearAllSelected)
   }, [onSetYearSelection, yearIds, yearAllSelected])
-  // 2026-05-24 (Figma replica pass): year section originally snapped
-  // to the pixel-exact frame from the Figma Make export
-  // (`bg-background-soft` + `rounded-xl` + inset hairline).
-  // 2026-05-26 (Yuqi post-revamp critique P1 / §3.5 — tab section-
-  // frame unification): frame swapped to the canonical
-  // `bg-background-default rounded-lg border-divider-regular` so
-  // the Work tab's year panels read identically to the section
-  // frames in Client info, Discover, and Activity. The previous
-  // `rounded-xl bg-background-soft border-subtle` was the only
-  // divergent frame on the page — left over from the pre-canonical
-  // pixel-replica pass. Inset-surface canonical (rounded-lg +
-  // bg-default) is the system-level rule; per-page Figma replicas
-  // should respect it.
+  // Frame uses the canonical `bg-background-default rounded-lg
+  // border-divider-regular` so the Work tab's year panels read
+  // identically to the section frames in Client info, Discover, and
+  // Activity. Inset-surface canonical (rounded-lg + bg-default) is the
+  // system-level rule.
   //   - Year header row: year + `· current year` italic marker +
-  //     the "N open filing" badge. Same row paddings (`px-3 py-3`)
-  //     as the original.
-  //   - Column header bar: still bg-gray-soft inside the frame so
-  //     it reads as the section's legend.
-  //   - Row cells: 12px text + rule pill unchanged.
+  //     the "N open filing" badge.
+  //   - Column header bar: bg-gray-soft inside the frame so it reads
+  //     as the section's legend.
+  //   - Row cells: 12px text + rule pill.
   const isUnknown = group.year === 'unknown'
   return (
     <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
-      {/* Year header bar.
-          2026-05-26 (Yuqi feedback #9 + #10 — "感觉很难发现 / 没有看出
-          来这是 header"): bumped the year-section header from
-          text-sm to text-base font-semibold + soft section tint
-          (bg-background-subtle) + border-b to set it apart from the
-          rows below. Reads now as a real section header / group
-          banner rather than as the first row of the table. Matches
-          the section-heading scale used by the TabSection primitive
+      {/* Year header bar. text-base font-semibold + soft section tint
+          (bg-background-subtle) + border-b set it apart from the rows
+          below so it reads as a real section header / group banner
+          rather than the first row of the table. Matches the
+          section-heading scale used by the TabSection primitive
           (page-family-canonical §9). */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-divider-subtle bg-background-subtle px-3 py-2.5">
         <Checkbox
@@ -590,11 +561,10 @@ function FilingPlanYearSection({
           </span>
         ) : null}
         {group.openCount > 0 ? (
-          // 2026-06-01: hand-rolled inline-flex pill replaced by Badge
-          // size='sm' shape='square' — info variant for the current
-          // year, outline for prior years. Soft-corner square shape
-          // preserved to visually distinguish from the fully-rounded
-          // row status pills below.
+          // Badge size='sm' shape='square' — info variant for the
+          // current year, outline for prior years. Soft-corner square
+          // shape distinguishes it from the fully-rounded row status
+          // pills below.
           <Badge variant={group.isCurrent ? 'info' : 'outline'} size="sm" shape="square">
             {group.isUpcoming ? (
               <Plural
@@ -608,31 +578,19 @@ function FilingPlanYearSection({
           </Badge>
         ) : null}
         {group.extendedCount > 0 ? (
-          // 2026-06-01: inline "{n} extended" marker upgraded to a
-          // Badge outline sm pill so it stops drifting from the open-
-          // count chip next to it.
+          // "{n} extended" marker as a Badge outline sm pill so it
+          // doesn't drift from the open-count chip next to it.
           <Badge variant="outline" size="sm" shape="square">
             <Trans>{group.extendedCount} extended</Trans>
           </Badge>
         ) : null}
       </div>
-      {/* 2026-06-04 (Yuqi table sweep): migrated from raw <table>
-          to the canonical <Table> primitive so this surface inherits
-          the same chrome (gray-50 header, hairline row borders,
-          state-base hover, zebra striping) as every other table
-          across the app. Audit L3 a11y intent preserved — the
-          primitive renders proper <thead>/<tbody>/<tr>/<td>
-          underneath, so row-N-of-M screen-reader announcement +
-          native keyboard table nav still apply.
-          The outer wrapper provides horizontal scroll on narrow
-          viewports (mobile/tablet) where the fixed-width columns
-          would otherwise collide with the Form cell. */}
-      {/* 2026-06-10 (Yuqi — client Work tab uses DeadlineRow inline-expand,
-          per deadline-row-interaction.md): each filing renders as a
-          <DeadlineRow mode="inline-expand">. Body click expands inline; the
-          title navigates to the full deadline. The table's inline status
-          picker / kebab / dual-date columns are redistributed into the row
-          expansion. Panel sort still orders rows; multi-select drives the bulk bar. */}
+      {/* Each filing renders as a <DeadlineRow mode="inline-expand">
+          (per deadline-row-interaction.md). Body click expands inline;
+          the title navigates to the full deadline. The inline status
+          picker / kebab / dual-date columns are redistributed into the
+          row expansion. Panel sort orders rows; multi-select drives the
+          bulk bar. */}
       <div className="flex flex-col">
         {sortedObligations.map((obligation) => (
           <DeadlineRow

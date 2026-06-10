@@ -7,12 +7,11 @@
 //   2. …\n
 //   footer
 //
-// The card used to render that whole blob in one <p>, which collapsed the
-// newlines into a wall of text (Yuqi 2026-06-10: "太乱太大 — 不够清晰，
-// 不够有条理"). Parsing it back into its parts lets the card render a
+// Rendering that whole blob in one <p> collapses the newlines into a
+// wall of text. Parsing it back into its parts lets the card render a
 // scannable lead line + one compact line per item, and drop the generic
-// closing sentence. Old briefs stored before this change parse the same
-// way — no regeneration or storage change needed.
+// closing sentence. Old briefs parse the same way — no regeneration or
+// storage change needed.
 
 export interface ParsedBriefItem {
   /** The "why this matters" clause; may contain [n] citation markers. */

@@ -5,13 +5,8 @@ import { cn } from '@duedatehq/ui/lib/utils'
 /**
  * Small "dot + text" count chip — the canonical "N needs review" /
  * "N missing" / "N at risk" pattern used across workbench tables.
- *
- * Extracted 2026-05-26 (Yuqi cross-table drift #9 — "Count chip
- * primitive: one pill for review counts everywhere"). Before this
- * primitive each surface hand-rolled its own `<span>` chain with a
- * `size-1.5 rounded-full` dot + `text-xs font-medium text-text-*`
- * label. Now there's one source of truth so a workbench table can
- * surface a count + tone signal with a single import.
+ * One source of truth so a workbench table can surface a count + tone
+ * signal with a single import.
  *
  * Tones map to semantic states:
  *   - `accent`     — needs review, pending CPA attention

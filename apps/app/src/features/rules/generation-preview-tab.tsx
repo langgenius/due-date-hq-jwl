@@ -661,13 +661,11 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
           description={t`Deadlines actually created after Generate runs. Preview results show zero here until generation succeeds.`}
         />
       </div>
-      {/* 2026-05-26 (Yuqi scrollbar audit): dropped
-          `max-h-[420px] overflow-y-auto`. The rollover preview
-          rows were nested inside the app-shell's main scroll
-          container — the inner cap forced a second scrollbar
-          INSIDE the page when the preview returned more than
-          ~10 rows. Letting the rows flow naturally lets the
-          page scroll handle the overflow. */}
+      {/* No inner `max-h` / `overflow-y-auto` here: the rollover preview
+          rows are nested inside the app-shell's main scroll container, so
+          an inner cap forces a second scrollbar INSIDE the page when the
+          preview returns more than ~10 rows. Letting the rows flow
+          naturally lets the page scroll handle the overflow. */}
       <div>
         <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-caption font-medium uppercase tracking-eyebrow text-text-muted">
           <RolloverColumnHeader
@@ -743,8 +741,8 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
                       <Trans>Open</Trans>
                     </Button>
                   ) : (
-                    // 2026-06-01: hand-rolled em-dash → EmptyCellMark for the
-                    // canonical text-text-tertiary tone + screen-reader label.
+                    // EmptyCellMark gives the canonical text-text-tertiary
+                    // tone + screen-reader label.
                     <EmptyCellMark />
                   )}
                 </span>
@@ -799,25 +797,21 @@ function RolloverColumnHeader({
   )
 }
 
-// 2026-05-25 (info-icon audit): the rollover preview's per-metric
-// and per-column help blurbs are glossary-grade (60-100+ chars)
-// which is too long for a Tooltip. Swapped to a Popover matching
-// the ConceptHelp shape (size-6 hit area, w-80 surface, title +
-// description body) so the affordance reads consistently with
-// every other "what does this term mean" explainer in the app.
-// Concept dictionary entries weren't added because the labels
-// here are highly localised to the rollover preview and would
-// pollute the cross-surface concept namespace.
+// The rollover preview's per-metric and per-column help blurbs are
+// glossary-grade (60-100+ chars), too long for a Tooltip. Uses a Popover
+// matching the ConceptHelp shape (size-6 hit area, w-80 surface, title +
+// description body) so the affordance reads consistently with every other
+// "what does this term mean" explainer in the app. Concept dictionary
+// entries aren't added because the labels here are highly localised to the
+// rollover preview and would pollute the cross-surface concept namespace.
 function RolloverHelpPopover({ label, description }: { label: string; description: string }) {
   const { t } = useLingui()
   return (
     <Popover>
-      {/* 2026-06-01 design-system migration: swapped the bespoke
-          24px help trigger to the Button primitive (ghost / icon-xs).
-          icon-xs is size-7 by default; this rollover trigger needs to
-          tuck into a dense column header, so we override the size
-          class to size-6 inline — the only site in the app that
-          needs the strict 24px control. */}
+      {/* icon-xs is size-7 by default; this rollover trigger needs to
+          tuck into a dense column header, so we override the size class
+          to size-6 inline — the only site in the app that needs the
+          strict 24px control. */}
       <PopoverTrigger
         openOnHover
         delay={150}

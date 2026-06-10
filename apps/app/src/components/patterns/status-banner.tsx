@@ -34,11 +34,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * AlertsListPage.tsx (×2), ClientFactsWorkspace.tsx, and
  * needs-attention-section.tsx. Centralizing here so future
  * tone / spacing / typography tweaks land in one place.
- *
- * 2026-05-27 (Yuqi cross-route consistency): unified per Yuqi's
- * design-system observation — three pages were rendering the same
- * semantic surface ("status announcement") with three different
- * visual treatments. The AlertsListPage style was picked as canonical.
  */
 export function StatusBanner({
   indicator,

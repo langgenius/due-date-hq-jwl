@@ -134,20 +134,15 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[min(820px,calc(100vh-2rem))] w-[min(1100px,calc(100vw-2rem))] flex-col gap-0 overflow-hidden rounded-lg border border-components-panel-border bg-components-panel-bg p-0 shadow-overlay">
-        {/* 2026-05-27 (Yuqi feedback "wider modal"): bumped from
-            900 → 1100px and bumped max-h 760 → 820 so the shortcut
-            descriptions fit on one line and the modal feels less
-            cramped. Also dropping the redundant `Global` scope chip
-            per-row (every row inside the GLOBAL section is already
-            global — the section header carries that signal). The
-            `Reserved` chip stays as it marks per-row state, not the
-            section. */}
-        {/* 2026-06-01: outer chrome (border-b, bg, padding) stays
-            as a wrapper since DialogHeader is a plain flex stack and
-            the dialog uses the gallery-style top-bar look. The title
-            + description cluster now sits inside <DialogHeader> for
-            the canonical gap-2 stack so consumers find the title via
-            the semantic slot. */}
+        {/* No redundant `Global` scope chip per-row (every row inside the
+            GLOBAL section is already global — the section header carries that
+            signal). The `Reserved` chip stays as it marks per-row state, not
+            the section. */}
+        {/* Outer chrome (border-b, bg, padding) stays as a wrapper since
+            DialogHeader is a plain flex stack and the dialog uses the
+            gallery-style top-bar look. The title + description cluster sits
+            inside <DialogHeader> for the canonical gap-2 stack so consumers
+            find the title via the semantic slot. */}
         <header className="flex shrink-0 flex-col gap-3 border-b border-divider-regular bg-background-default px-5 py-4 pr-14">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <DialogHeader className="gap-1">
@@ -218,11 +213,10 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
 }
 
 function ShortcutRow({ item }: { item: ShortcutHelpItem }) {
-  // 2026-05-27 (Yuqi feedback): scope chip shown only when NOT global
-  // — every visible row sits in a section that already names its
-  // scope ("GLOBAL", "NAVIGATE", etc.), so the per-row 'Global' chip
-  // was pure visual noise. Non-global scopes (e.g. "List") still
-  // surface their chip to flag context-specific shortcuts.
+  // Scope chip shown only when NOT global — every visible row sits in a
+  // section that already names its scope ("GLOBAL", "NAVIGATE", etc.), so the
+  // per-row 'Global' chip would be pure visual noise. Non-global scopes
+  // (e.g. "List") still surface their chip to flag context-specific shortcuts.
   const showScopeChip = item.scope !== 'global'
   return (
     <div
@@ -232,10 +226,9 @@ function ShortcutRow({ item }: { item: ShortcutHelpItem }) {
       )}
     >
       <div className="flex flex-wrap items-center gap-1">
-        {/* 2026-06-01: inline <kbd> elements routed through the
-            Kbd primitive (now exported from patterns/kbd.tsx) so
-            the help dialog shares the canonical keycap chrome with
-            the inline KbdHint strips. */}
+        {/* Inline <kbd> elements route through the Kbd primitive (exported
+            from patterns/kbd.tsx) so the help dialog shares the canonical
+            keycap chrome with the inline KbdHint strips. */}
         {shortcutSegments(item.keys).map((segment) => (
           <span key={`${item.id}-${segment.id}`} className="contents">
             {!segment.first ? (

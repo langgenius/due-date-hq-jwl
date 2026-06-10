@@ -354,7 +354,3 @@ export function ReadinessResponseStatusBadge({
     </Badge>
   )
 }
-
-// `ObligationQueueAuditEventCard` retired 2026-05-21 with the
-// Audit/Timeline tab removal. Bring back when raw audit events
-// surface somewhere again.

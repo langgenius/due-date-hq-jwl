@@ -32,14 +32,11 @@ export function EntryShell() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-bg-canvas text-text-primary">
-      {/* 2026-05-26 (Step 7 onboarding audit F10-09): every
-          entry-shell surface (login, OTP, accept-invite,
-          onboarding, 2FA, migration, readiness portal) lacked
-          a skip-to-content anchor. Keyboard users had to tab
-          through brand mark + locale switcher on every entry
-          beat. Standard a11y; added a hidden anchor that
-          appears on focus and sends keyboard users straight to
-          the main content. */}
+      {/* Skip-to-content anchor for every entry-shell surface (login, OTP,
+          accept-invite, onboarding, 2FA, migration, readiness portal) so
+          keyboard users don't have to tab through brand mark + locale switcher
+          on every entry beat. Hidden anchor that appears on focus and sends
+          keyboard users straight to the main content. */}
       <a
         href="#entry-main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:border focus:border-divider-regular focus:bg-background-default focus:px-3 focus:py-1.5 focus:text-sm focus:text-text-primary focus:shadow-overlay"
@@ -103,12 +100,10 @@ function EntryShellFooter() {
       <span className="tabular-nums">
         <Trans>© {new Date().getFullYear()} DueDateHQ Inc.</Trans>
       </span>
-      {/* 2026-05-27 (Step 7 onboarding audit F10-03): the
-          "All systems operational" pill claimed status without
-          linking to a status page. Users seeing an outage had
-          no way to verify or get details. Now a real anchor to
-          the public status page — opens in a new tab so the
-          entry surface (often mid-login) isn't lost. */}
+      {/* The "All systems operational" pill is a real anchor to the public
+          status page so users seeing an outage can verify or get details —
+          opens in a new tab so the entry surface (often mid-login) isn't
+          lost. */}
       <a
         href="https://status.duedatehq.com"
         target="_blank"

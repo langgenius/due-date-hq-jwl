@@ -57,27 +57,17 @@ export function FloatingActionBar({
    *
    * `elevated` — dark inverted surface so the bar reads as a
    * deliberate "command bar" mode (think Linear / Notion batch
-   * tools). Adopted by /deadlines per 2026-06-05 page feedback
-   * — the white pill blended into the page chrome and didn't
-   * read as a distinct selection-mode surface.
+   * tools). Used by /deadlines, where a white pill would blend into
+   * the page chrome and not read as a distinct selection-mode surface.
    */
   tone?: 'default' | 'elevated'
 }) {
-  // 2026-05-26 (Yuqi feedback — "Bulk review actions look ugly and
-  // not UX friendly"): third iteration on the surface. Previously:
-  // dark inverted → beige warning-hover-alt. Yuqi's call on the
-  // beige: ugly. New recipe — clean elevated white pill, hairline
-  // neutral border, slightly stronger lifted shadow. Reads as a
-  // floating control surface (think Linear/Stripe context bars)
-  // without claiming a warm/warning tone.
-  //
-  // 2026-06-05 (Yuqi /deadlines page-feedback — "batch selection
-  // bar is ugly, not designed, blended into the rest of the page,
-  // not highlighted and differentiated"): added `tone="elevated"`
-  // variant so consumers can opt into a dark contrast surface that
-  // reads as a distinct selection-mode bar. The default white
-  // recipe stays for callers (Rule library) that want the quieter
-  // shape.
+  // The `default` tone is a clean elevated white pill — hairline neutral
+  // border, lifted shadow — reading as a floating control surface (think
+  // Linear/Stripe context bars) without claiming a warm/warning tone.
+  // `tone="elevated"` is a dark contrast surface that reads as a distinct
+  // selection-mode bar; the default white recipe stays for callers (Rule
+  // library) that want the quieter shape.
   //
   // Inner ghost buttons inherit text-primary (default) or
   // text-inverted (elevated); the canonical primary action (sized
@@ -90,10 +80,9 @@ export function FloatingActionBar({
       className={cn(
         // Step 1-5 reaudit canonicalized shadows — keep `shadow-overlay`
         // token, not main's arbitrary `shadow-[0_20px_48px_-16px_...]`.
-        // 2026-06-05 (Yuqi page-feedback #12): `flex-wrap` → `flex-nowrap`
-        // so the bar stays a single horizontal row at desktop widths.
-        // Consumers that need more than ~6 affordances must use a `More`
-        // overflow dropdown (see /deadlines) — wrapping to two lines
+        // `flex-nowrap` so the bar stays a single horizontal row at desktop
+        // widths. Consumers that need more than ~6 affordances must use a
+        // `More` overflow dropdown (see /deadlines) — wrapping to two lines
         // reads as "the bar is broken" rather than "the bar has many
         // actions."
         'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-nowrap items-center gap-2 rounded-xl px-4 py-2.5 shadow-overlay',

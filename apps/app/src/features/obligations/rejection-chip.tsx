@@ -22,19 +22,15 @@ function isRejectionVisible(input: { status: string; efileRejectedAt: string | n
   return input.status === 'review' && input.efileRejectedAt !== null
 }
 
-// Compact mode (2026-05-21): drops the "Rejected" text, keeps the
-// warning icon + tooltip. Used in the obligations queue when the
-// detail panel is open and the status column needs to fit a narrower
-// viewport — the icon's red tint + hover tooltip still carries the
-// "this came back from filing" signal.
-// 2026-05-25 (status-pill audit #6, finding 2.6): swapped the
-// bespoke `bg-state-destructive-hover` + `border-state-destructive-border`
-// chrome for the canonical `<Badge variant="destructive">`. Same
-// visual semantically — destructive red chip with warning glyph —
-// but now built from the shared primitive, so future tone-system
-// changes propagate here automatically. Compact variant stays a
-// raw <span> because it's icon-only and Badge primitive's text
-// padding makes a 20×20 icon-only chip awkward.
+// Compact mode drops the "Rejected" text, keeps the warning icon +
+// tooltip. Used in the obligations queue when the detail panel is
+// open and the status column needs to fit a narrower viewport — the
+// icon's red tint + hover tooltip still carries the "this came back
+// from filing" signal.
+// The full chip is the canonical `<Badge variant="destructive">` so
+// future tone-system changes propagate here automatically. The
+// compact variant stays a raw <span> because it's icon-only and the
+// Badge primitive's text padding makes a 20×20 icon-only chip awkward.
 function RejectionChip({ compact = false }: { compact?: boolean }) {
   const { t } = useLingui()
   const title = t`Returned from filed status — IRS/state rejected the submission.`
@@ -49,14 +45,12 @@ function RejectionChip({ compact = false }: { compact?: boolean }) {
       </span>
     )
   }
-  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #18, follow-up #5):
   // Filled red chip — white text on solid red, font-semibold uppercase.
   // Most prominent chip in the row by design — rejection is the
-  // singular "this needs immediate hands-on work" signal.
-  // Follow-up: dropped `shadow-sm` and the AlertTriangleIcon. The
-  // shadow read as a floating element above the row, fighting the
-  // queue's flat surface; the warning icon was redundant on top of
-  // the already-red filled chip + uppercase typography. Word alone
+  // singular "this needs immediate hands-on work" signal. No shadow
+  // (it would read as floating above the row, fighting the queue's
+  // flat surface) and no warning icon (redundant on top of the
+  // already-red filled chip + uppercase typography). The word alone
   // carries the siren.
   return (
     <Badge

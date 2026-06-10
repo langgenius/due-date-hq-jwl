@@ -2208,8 +2208,10 @@ export function ObligationQueueDetailDrawer({
                         isPageMode
                           ? // 2026-06-10 (Yuqi "actual design" — Pencil Qn4nX
                             // `CorQi` WorkflowMilestoneCard): the stepper, active
-                            // stage, and blocking all live in ONE white card.
-                            'flex flex-col gap-4 rounded-[12px] border border-divider-subtle bg-background-default px-5 py-4'
+                            // stage, and blocking live in ONE white card,
+                            // separated by internal divider lines (not gaps) —
+                            // StatusJourney │ ActiveStageCard │ NextMovePanel.
+                            'flex flex-col divide-y divide-divider-subtle rounded-[12px] border border-divider-subtle bg-background-default px-5 py-4 [&>*]:py-4 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0'
                           : 'contents'
                       }
                     >

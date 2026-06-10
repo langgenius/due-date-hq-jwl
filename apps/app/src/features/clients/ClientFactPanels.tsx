@@ -293,12 +293,9 @@ export function ClientRiskSummaryPanel({
   isLoading: boolean
   canRefresh: boolean
 }) {
-  // 2026-05-26 (Yuqi /clients/[id] feedback #6+#7 — "pull the
-  // badge + Refresh out to the TabSection title row; drop the bar"):
-  // panel signature trimmed. The status badge + Refresh button + the
-  // standalone header bar that hosted them are gone from this body;
-  // the parent TabSection's `actions` slot now renders them next to
-  // the section title.
+  // The status badge + Refresh button are NOT in this body — the
+  // parent TabSection's `actions` slot renders them next to the section
+  // title.
   return (
     <div className="grid gap-3">
       {isLoading ? (
@@ -307,21 +304,19 @@ export function ClientRiskSummaryPanel({
           <Skeleton className="h-14 w-full" />
         </div>
       ) : insight ? (
-        // 2026-05-26 (Yuqi feedback #6+#7): inline "Refreshed [date]"
-        // line dropped — the parent TabSection's `summary` slot already
-        // shows that same timestamp next to the section title.
+        // No inline "Refreshed [date]" line — the parent TabSection's
+        // `summary` slot already shows that timestamp next to the
+        // section title.
         <div className="grid gap-3">
           {insight.sections.map((section) => (
             <InsightSection key={section.key} section={section} insight={insight} />
           ))}
         </div>
       ) : (
-        // 2026-05-26 (Yuqi tab-body follow-ups, Task 2 / Fix #10):
-        // canonical EmptyState replaces a silent `null` return. The
-        // panel used to render the refresh button + nothing else when
-        // no insight existed yet, which left the section looking
-        // broken. Empty state explains the surface and tells the user
-        // what to expect.
+        // Canonical EmptyState rather than a silent `null` return:
+        // rendering nothing when no insight exists yet left the section
+        // looking broken. The empty state explains the surface and
+        // tells the user what to expect.
         <EmptyState
           icon={SparklesIcon}
           title={<Trans>No activity summary yet</Trans>}
@@ -357,8 +352,7 @@ export function InsightStatusBadge({ status }: { status: AiInsightPublic['status
     )
   }
   if (status === 'stale') {
-    // 2026-05-26 (Step 9 AI Visibility Audit F-021): tooltip
-    // explains what stale means for an AI insight.
+    // Tooltip explains what stale means for an AI insight.
     return (
       <Tooltip>
         <TooltipTrigger

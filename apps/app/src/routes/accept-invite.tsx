@@ -2,23 +2,22 @@ import { useState } from 'react'
 import { Link, useLoaderData, useNavigate, useRevalidator, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, Loader2Icon, MailIcon } from 'lucide-react'
+import { AlertCircleIcon, ArrowRightIcon, Loader2Icon, MailIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@duedatehq/ui/components/ui/card'
-import { FieldSeparator } from '@duedatehq/ui/components/ui/field'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { AuthCard, CenteredAuthScreen } from '@/features/auth/auth-chrome'
 import { EmailOtpSignInForm } from '@/features/auth/email-otp-sign-in-form'
-import { signInWithGoogle, signInWithMicrosoft, type AuthUser } from '@/lib/auth'
+import { signInWithGoogle, signInWithMicrosoft, signOut, type AuthUser } from '@/lib/auth'
 import { authCapabilities } from '@/lib/auth-capabilities'
+
+// /accept-invite uses the full-bleed CenteredAuthScreen; the signed-in view
+// leads with a "Firm invitation" pill + inviter→firm headline + context row.
+// Standalone route in router.tsx. The name input stays dropped (the display
+// name comes from the SSO provider / email), and the portfolio sub-line has no
+// field in the invitation contract so the inviter email fills that slot.
 
 type AcceptInviteLoaderData = {
   user: AuthUser | null
@@ -56,12 +55,20 @@ async function acceptInvitation(id: string): Promise<void> {
   }
 }
 
-// The invitation preview carries `role` as a free string; title-case it for
-// the "Joining as …" accept-row rather than pulling in the typed member
-// roleLabel map (which would narrow the type and couple two features).
+// The invitation preview carries `role` as a free string; title-case it rather
+// than pulling in the typed member roleLabel map (which would couple features).
 function formatRole(role: string): string {
   if (!role) return role
   return role.charAt(0).toUpperCase() + role.slice(1)
+}
+
+function InvitePill() {
+  return (
+    <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-state-accent-hover px-2.5 py-1 text-[11px] font-semibold tracking-[0.2px] text-text-accent">
+      <MailIcon className="size-3" aria-hidden />
+      <Trans>Firm invitation</Trans>
+    </span>
+  )
 }
 
 export function AcceptInviteRoute() {
@@ -128,173 +135,190 @@ export function AcceptInviteRoute() {
     }
   }
 
+  // Missing invite token — never dead-end; offer Sign-in and Today escapes.
   if (!id) {
-    // 2026-05-26 (Step 6 UX #9 + Step 7 onboarding F2-01): the
-    // missing-invite alert was a dead end. Surface both Sign-in
-    // and Go-to-Today escapes so the page never dead-ends.
     return (
-      <div className="flex w-full max-w-[420px] flex-col gap-3">
-        <Alert variant="destructive">
-          <AlertCircleIcon />
-          <AlertTitle>
-            <Trans>Invite link is missing</Trans>
-          </AlertTitle>
-          <AlertDescription>
-            <Trans>Ask the practice owner to send a new invitation.</Trans>
-          </AlertDescription>
-        </Alert>
-        <div className="flex flex-wrap gap-2">
-          <Button render={<Link to="/login" />}>
-            <Trans>Sign in</Trans>
-          </Button>
-          <Button variant="outline" render={<Link to="/" />}>
-            <Trans>Go to Today</Trans>
-          </Button>
-        </div>
-      </div>
+      <CenteredAuthScreen>
+        <AuthCard className="gap-5">
+          <InvitePill />
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertTitle>
+              <Trans>Invite link is missing</Trans>
+            </AlertTitle>
+            <AlertDescription>
+              <Trans>Ask the practice owner to send a new invitation.</Trans>
+            </AlertDescription>
+          </Alert>
+          <div className="flex flex-wrap gap-2.5">
+            <Button
+              className="h-11 flex-1 rounded-[10px] font-semibold"
+              render={<Link to="/login" />}
+            >
+              <Trans>Sign in</Trans>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 flex-1 rounded-[10px]"
+              render={<Link to="/" />}
+            >
+              <Trans>Go to Today</Trans>
+            </Button>
+          </div>
+        </AuthCard>
+      </CenteredAuthScreen>
     )
   }
 
   return (
-    <div className="flex w-full max-w-[420px] flex-col">
-      <Card>
-        {/* 2026-06-07 (Cluster 6 auth canvas, node e3FyUB): the canvas
-            leads with a "Firm invitation" pill and promotes the
-            inviter→firm line to the headline so the recipient sees
-            *who* invited them and *where* before anything else. The
-            route previously buried that line in the muted card
-            description. Restructured the header to match. Per the
-            product decision the canvas's name input is intentionally
-            dropped — the display name comes from the SSO provider /
-            email, so there is no name field or user.update here. */}
-        <CardHeader className="gap-3">
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-state-accent-hover-alt px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wide text-text-accent">
-            <MailIcon className="size-3" aria-hidden />
-            <Trans>Firm invitation</Trans>
-          </span>
+    <CenteredAuthScreen>
+      <AuthCard>
+        <InvitePill />
+
+        {/* Title block */}
+        <div className="flex flex-col gap-2.5">
           {inviteQuery.isLoading ? (
-            // 2026-05-26 (Step 7 onboarding audit F2-05): the
-            // invite-preview skeleton had no role/label, so a
-            // blind user saw no progress event while the
-            // preview loaded. Wrapped with role="status" +
-            // sr-only label so AT announces "Loading
-            // invitation" while the skeleton is on-screen.
             <span role="status" aria-live="polite">
               <span className="sr-only">{t`Loading invitation`}</span>
-              <Skeleton className="h-6 w-64" />
+              <Skeleton className="h-9 w-72" />
             </span>
           ) : inviteQuery.data ? (
-            <CardTitle className="text-[22px] leading-snug tracking-tight">
+            <h1 className="text-[32px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
               <Trans>
-                {inviteQuery.data.inviterEmail} invited you to {inviteQuery.data.organizationName}.
+                {inviteQuery.data.inviterEmail} invited you to {inviteQuery.data.organizationName}
               </Trans>
-            </CardTitle>
+            </h1>
           ) : (
-            <CardTitle className="text-[22px] leading-snug tracking-tight">
+            <h1 className="text-[32px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
               <Trans>You&apos;ve been invited to a firm</Trans>
-            </CardTitle>
+            </h1>
           )}
-          <CardDescription>
+          <p className="text-sm font-medium leading-normal text-text-tertiary">
             {signedIn ? (
               <Trans>
-                Accept to join the firm&apos;s deadline workbench. No password to remember —
-                we&apos;ll email a sign-in link whenever you need to come back.
+                You opened this from the invite email — accept and you&apos;re in. We&apos;ll send a
+                sign-in link whenever you come back, so there&apos;s no password to remember.
               </Trans>
             ) : (
-              <Trans>Sign in to accept this invitation.</Trans>
+              <Trans>Sign in to accept this invitation — no password to remember.</Trans>
             )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {signedIn && inviteQuery.isError ? (
-            <Alert variant="destructive">
-              <AlertCircleIcon />
-              <AlertTitle>
-                <Trans>Invitation couldn't load</Trans>
-              </AlertTitle>
-              <AlertDescription>{inviteQuery.error.message}</AlertDescription>
-            </Alert>
-          ) : null}
+          </p>
+        </div>
 
-          {!signedIn ? (
-            <div className="grid gap-3">
-              {emailOtpEnabled ? (
-                <>
-                  <EmailOtpSignInForm
-                    disabled={submitting !== null}
-                    onPendingChange={setEmailBusy}
-                    onSignedIn={async () => {
-                      await revalidator.revalidate()
-                      setEmailSignedIn(true)
-                      await inviteQuery.refetch()
-                    }}
-                  />
-                  <FieldSeparator>
-                    <Trans>or continue with SSO</Trans>
-                  </FieldSeparator>
-                </>
+        {signedIn && inviteQuery.isError ? (
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertTitle>
+              <Trans>Invitation couldn't load</Trans>
+            </AlertTitle>
+            <AlertDescription>{inviteQuery.error.message}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {!signedIn ? (
+          <div className="flex flex-col gap-4">
+            <Button
+              variant="outline"
+              className="h-12 w-full justify-center gap-2.5 rounded-[10px] font-semibold"
+              onClick={() => void handleProvider('google')}
+              disabled={providerDisabled}
+              aria-busy={submitting === 'google'}
+            >
+              {submitting === 'google' ? (
+                <Loader2Icon className="size-4 animate-spin" aria-hidden />
               ) : null}
+              <Trans>Continue with Google</Trans>
+            </Button>
+            {microsoftEnabled ? (
               <Button
                 variant="outline"
-                onClick={() => void handleProvider('google')}
+                className="h-12 w-full justify-center gap-2.5 rounded-[10px] font-semibold"
+                onClick={() => void handleProvider('microsoft')}
                 disabled={providerDisabled}
+                aria-busy={submitting === 'microsoft'}
               >
-                {submitting === 'google' ? (
+                {submitting === 'microsoft' ? (
                   <Loader2Icon className="size-4 animate-spin" aria-hidden />
                 ) : null}
-                <Trans>Continue with Google</Trans>
+                <Trans>Continue with Microsoft</Trans>
               </Button>
-              {microsoftEnabled ? (
-                <Button
-                  variant="outline"
-                  onClick={() => void handleProvider('microsoft')}
-                  disabled={providerDisabled}
-                >
-                  {submitting === 'microsoft' ? (
-                    <Loader2Icon className="size-4 animate-spin" aria-hidden />
-                  ) : null}
-                  <Trans>Continue with Microsoft</Trans>
-                </Button>
-              ) : null}
-            </div>
-          ) : (
-            <>
-              {/* 2026-06-07 (Cluster 6 auth canvas, node e3FyUB): the
-                  canvas shows an "accept row" — the inviter avatar +
-                  the role you'll join as — so the recipient confirms
-                  the access level before committing. Role comes from
-                  the existing invitation preview; the canvas's
-                  per-client portfolio line has no field in the
-                  invitation contract, so it is omitted.
-                  TODO(data): expose the assigned client portfolio on
-                  the invitation preview to render the canvas's
-                  "Hudson Wells · Brightline LLC · …" sub-line. */}
-              {inviteQuery.data ? (
-                <div className="flex items-center gap-2.5 rounded-xl border border-divider-subtle bg-background-section px-3.5 py-3">
-                  <span
-                    aria-hidden
-                    className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent-default font-mono text-[11px] font-semibold text-white"
-                  >
-                    {inviteQuery.data.inviterEmail.slice(0, 2).toUpperCase()}
+            ) : null}
+            {emailOtpEnabled ? (
+              <>
+                <div className="flex items-center gap-3.5">
+                  <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
+                  <span className="text-[11px] font-medium tracking-[0.2px] text-text-muted">
+                    <Trans>or continue with email</Trans>
                   </span>
-                  <span className="text-sm font-medium text-text-primary">
-                    <Trans>Joining as {formatRole(inviteQuery.data.role)}</Trans>
-                  </span>
+                  <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
                 </div>
+                <EmailOtpSignInForm
+                  disabled={submitting !== null}
+                  onPendingChange={setEmailBusy}
+                  onSignedIn={async () => {
+                    await revalidator.revalidate()
+                    setEmailSignedIn(true)
+                    await inviteQuery.refetch()
+                  }}
+                />
+              </>
+            ) : null}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-7">
+            {/* Context row — inviter avatar + the role you'll join as. */}
+            {inviteQuery.data ? (
+              <div className="flex items-center gap-3 rounded-xl border border-divider-subtle bg-bg-subtle px-4 py-3.5">
+                <span
+                  aria-hidden
+                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-state-accent-solid text-xs font-bold text-text-primary-on-surface"
+                >
+                  {inviteQuery.data.inviterEmail.slice(0, 2).toUpperCase()}
+                </span>
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <p className="truncate text-[13px] font-semibold text-text-primary">
+                    {inviteQuery.data.organizationName} · {formatRole(inviteQuery.data.role)}
+                  </p>
+                  <p className="truncate text-xs font-medium text-text-tertiary">
+                    <Trans>Invited by {inviteQuery.data.inviterEmail}</Trans>
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
+            <Button
+              className="h-12 w-full justify-center gap-2 rounded-[10px] font-semibold"
+              onClick={handleAccept}
+              disabled={submitting !== null || inviteQuery.isLoading || inviteQuery.isError}
+              aria-busy={submitting === 'accept'}
+            >
+              {submitting === 'accept' ? (
+                <Loader2Icon className="size-4 animate-spin" aria-hidden />
               ) : null}
-              <Button
-                onClick={handleAccept}
-                disabled={submitting !== null || inviteQuery.isLoading || inviteQuery.isError}
+              <Trans>Accept invite &amp; continue</Trans>
+              {submitting === 'accept' ? null : <ArrowRightIcon className="size-4" aria-hidden />}
+            </Button>
+
+            {/* "Use a different email" signs out so the recipient can switch
+                accounts. There is no decline endpoint, so no decline action. */}
+            <p className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  void signOut().finally(() => navigate('/login', { replace: true }))
+                }}
+                className="rounded-sm text-xs font-medium text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
-                {submitting === 'accept' ? (
-                  <Loader2Icon className="size-4 animate-spin" aria-hidden />
-                ) : null}
-                <Trans>Accept invite &amp; continue</Trans>
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                <Trans>Use a different email</Trans>
+              </button>
+            </p>
+          </div>
+        )}
+
+        <p className="text-center text-[11px] font-medium text-text-muted">
+          <Trans>By accepting you agree to the Terms and Privacy Policy.</Trans>
+        </p>
+      </AuthCard>
+    </CenteredAuthScreen>
   )
 }

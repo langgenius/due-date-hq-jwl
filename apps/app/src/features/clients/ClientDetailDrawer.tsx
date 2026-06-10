@@ -34,12 +34,10 @@ import { useClientNextDue } from './use-client-next-due'
 /**
  * `ClientDetailDrawer` — the *peek* form of a client.
  *
- * Redesigned 2026-05-22 from "drawer-shaped detail page" to "brief
- * tooltip-style peek." The previous shape (full SummaryStrip + alerts
- * band + compliance posture inside a 640px sheet) was over-rendering
- * for the actual job: when a CPA hits the eye icon on an obligations
- * row, they want to know *which client* this is — entity, state,
- * readiness, what's next due — not edit the compliance posture.
+ * A brief tooltip-style peek, not a drawer-shaped detail page: when a
+ * CPA hits the eye icon on an obligations row, they want to know
+ * *which client* this is — entity, state, readiness, what's next due —
+ * not edit the compliance posture.
  *
  * Anyone who needs more clicks "Open full page" → the canonical
  * `/clients/[id]` workspace, where the rich body has room to render
@@ -64,8 +62,7 @@ const EMPTY_OBLIGATIONS = [] as const
 export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProps) {
   const isOpen = clientId !== null
   const isQueryEnabled = clientId !== null && clientId.length > 0
-  // 2026-05-26 (Yuqi sidebar mental-model pass — consistency):
-  // every right-side drawer in the product opts into the same
+  // Every right-side drawer in the product opts into the same
   // auto-collapse behavior. ClientDetailDrawer mounts via
   // `ClientDrawerMount` in `routes/_layout.tsx` as a sibling of
   // AppShell, so SidebarProvider is NOT in scope — use the
@@ -100,27 +97,23 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
 
   const entityLabels = useEntityLabels()
   const { t } = useLingui()
-  // 2026-05-27 (D16 — Agent ω, journey-audit drain): threaded the
-  // firm's "as of" date through NextDueLine instead of letting it
-  // call Date.now() directly. Keeps the peek's relative-day text
-  // ("3d late") in sync with the rest of the app's day-math, which
+  // Thread the firm's "as of" date through NextDueLine instead of
+  // letting it call Date.now() directly. Keeps the peek's relative-day
+  // text ("3d late") in sync with the rest of the app's day-math, which
   // anchors on the firm's timezone rather than the user's browser
   // clock.
   const asOfDate = useFirmAsOfDate()
 
   return (
     <Sheet open={isOpen} onOpenChange={(next) => (!next ? onClose() : undefined)}>
-      {/* Slim peek width (~400px). Was ~640px when the drawer carried
-          the full SummaryStrip + alerts band + compliance posture —
-          that content moved to the full page; this peek is just for
-          identification. */}
+      {/* Slim peek width (~400px) — this peek is just for
+          identification; richer content lives on the full page. */}
       <SheetContent className="overflow-y-auto data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(400px,calc(100vw-1rem))]">
         {client ? (
           <>
-            {/* 2026-06-01: hand-rolled <header> + free-floating action
-                cluster swapped for SheetHeader/SheetFooter so the peek
-                inherits the canonical drawer padding (px-6) instead of
-                rendering flush to the panel edge. */}
+            {/* SheetHeader/SheetFooter so the peek inherits the
+                canonical drawer padding (px-6) instead of rendering
+                flush to the panel edge. */}
             <SheetHeader>
               <div className="flex min-w-0 flex-col gap-1">
                 <SheetTitle className="truncate text-lg font-semibold text-text-primary">
@@ -134,10 +127,9 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                       ? t`1 open deadline`
                       : t`${openCount} open deadlines`}
                 </SheetDescription>
-                {/* 2026-05-27 (phi journey audit J1): payment-overdue
-                    line. Mirrors ClientPeekHoverCard so the SAME
-                    client renders the SAME urgency cue whether the
-                    user sees the hover popover or the drawer peek. */}
+                {/* Payment-overdue line. Mirrors ClientPeekHoverCard so
+                    the SAME client renders the SAME urgency cue whether
+                    the user sees the hover popover or the drawer peek. */}
                 {paymentOverdueCount > 0 ? (
                   <span className="text-xs font-medium text-text-destructive">
                     {paymentOverdueCount === 1 ? (
@@ -150,13 +142,11 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
               </div>
 
               {/* Identity chips — state + readiness color give a fast
-                  visual read.
-                  2026-05-27 (Step 6 UX audit #86): entity chip dropped.
-                  The caption line above already says "S corp · 1 open
-                  deadline" — the chip below was rendering the same
-                  entity label a second time at smaller scale, which
-                  read as duplicate metadata. State and readiness are
-                  unique signals that earn their chip; entity does not. */}
+                  visual read. No entity chip: the caption line above
+                  already says "S corp · 1 open deadline", so an entity
+                  chip would duplicate that label. State and readiness
+                  are unique signals that earn their chip; entity does
+                  not. */}
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 {client.state ? (
                   <Badge variant="outline" className="text-caption">
@@ -231,14 +221,11 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
           </Alert>
         ) : (
           // Loading skeleton sized for the slim peek.
-          // 2026-05-27 (Step 6 UX audit #84): SheetTitle used to be
-          // `sr-only` — so AT users heard "Loading client…" but
-          // sighted users just saw three grey bars with no label
-          // hinting at what the drawer was about to show. Promoted
-          // the title to a visible heading; AT still gets the same
-          // announcement (semantics unchanged). Description stays
-          // sr-only since the visible bars already show "we're
-          // fetching things."
+          // SheetTitle is a visible heading (not `sr-only`) so sighted
+          // users get a label hinting at what the drawer is about to
+          // show, not just three grey bars; AT gets the same
+          // announcement. Description stays sr-only since the visible
+          // bars already show "we're fetching things."
           <SheetHeader className="gap-3">
             <SheetTitle className="text-lg font-semibold text-text-primary">
               <Trans>Loading client…</Trans>
@@ -265,9 +252,8 @@ function NextDueLine({
   asOfDate,
 }: {
   nextDue: ObligationInstancePublic | null
-  // 2026-05-27 (D16): firm's "as of" anchor. Falls back to Date.now()
-  // when missing so the component never breaks if the timezone
-  // provider isn't in scope.
+  // Firm's "as of" anchor. Falls back to Date.now() when missing so
+  // the component never breaks if the timezone provider isn't in scope.
   asOfDate: string | null
 }) {
   const { t } = useLingui()

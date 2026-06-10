@@ -24,19 +24,16 @@ const EMPTY_CLIENTS: readonly ClientPublic[] = []
  * fights. Callers render the linked `CreateClientDialog` alongside the
  * combobox and pass the newly-created client's id back via `value`.
  *
- * 2026-05-27 (audit-drain ζ F-CB01): the original implementation
- * re-rolled the Popover + cmdk + form-select-trigger recipe inline.
- * Wave-2 extracted that recipe into
- * `@duedatehq/ui/components/ui/combobox` (`SearchableCombobox`); this
- * component now delegates to it and only owns the firm-clients query
- * + option-shape adapter. The query gate (`enabled: open ||
- * value !== null`) — which kept the listByFirm RPC quiet until the
- * user actually opens the popover — moved into the adapter: we keep
- * fetching enabled when a value is set so the trigger can resolve a
- * label, and we delay it otherwise. Because the primitive owns the
- * `open` state, we mirror it via a ref-based "user has interacted"
- * gate; in practice the original combo opens on first focus anyway,
- * so the query fires whenever the user actually engages.
+ * Delegates the Popover + cmdk + form-select-trigger recipe to
+ * `@duedatehq/ui/components/ui/combobox` (`SearchableCombobox`) and
+ * only owns the firm-clients query + option-shape adapter. The query
+ * gate (`enabled: open || value !== null`) keeps the listByFirm RPC
+ * quiet until the user opens the popover: fetching stays enabled when a
+ * value is set so the trigger can resolve a label, and is delayed
+ * otherwise. Because the primitive owns the `open` state, we mirror it
+ * via a ref-based "user has interacted" gate; in practice the combo
+ * opens on first focus anyway, so the query fires whenever the user
+ * engages.
  */
 export function ClientCombobox({
   id,

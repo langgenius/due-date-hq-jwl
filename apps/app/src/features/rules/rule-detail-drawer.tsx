@@ -1625,18 +1625,13 @@ function AiDraftReviewPanel({
   errorMessage: string | null
   generating: boolean
   /**
-   * 2026-05-26 (Yuqi /critique — P0-3): when no draft and not
-   * actively generating, render a "Generate draft" button.
-   * Optional — only rendered when caller has a viable source +
-   * mutation wired up. Without this prop the panel just shows
-   * the disabled / pending state as before.
+   * When no draft and not actively generating, render a "Generate draft"
+   * button. Optional — only rendered when caller has a viable source +
+   * mutation wired up. Without this prop the panel just shows the
+   * disabled / pending state.
    */
   onGenerateDraft?: () => void
 }) {
-  // 2026-06-01: hand-rolled tinted panel → Card primitive (sm size,
-  // muted tone, md radius) matches the previous recipe one-for-one
-  // (divider-subtle border, background-section bg) without the
-  // local border+bg+rounded class soup.
   return (
     <Card size="sm" tone="muted" radius="md" aria-busy={generating && !draft ? true : undefined}>
       <p className="text-xs font-medium text-text-secondary">
@@ -1644,24 +1639,18 @@ function AiDraftReviewPanel({
       </p>
       {generating && !draft ? <AiDraftReviewSkeleton /> : null}
       {!generating && errorMessage && !draft ? (
-        // 2026-05-26 (Yuqi /critique — P0-2): "AI concrete draft
-        // is not ready" was rendered in `text-severity-medium`
-        // (amber/red). That tone implies "something is broken",
-        // but the pre-generation state isn't an error — it's a
-        // pending state. Switched to `text-text-tertiary` so the
-        // message reads as informational. The disabled Accept
-        // button already communicates "you can't proceed yet";
-        // the message just explains why. Red wasn't earning the
-        // urgency it claimed.
+        // The pre-generation message uses `text-text-tertiary`, not
+        // `text-severity-medium` — the pre-generation state isn't an error,
+        // it's a pending state, so it reads as informational. The disabled
+        // Accept button already communicates "you can't proceed yet"; the
+        // message just explains why.
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-text-tertiary">{errorMessage}</p>
-          {/* 2026-05-26 (Yuqi /critique — P0-3 follow-up): inline
-              "Generate draft" CTA. Without it, the user could only
-              Skip → revisit → still no draft → Skip again — an
-              infinite loop across the 456-rule queue. Outline
-              button keeps the primary "Accept rule" CTA as the
-              dominant action below; this is the "make Accept
-              possible" pre-action. */}
+          {/* Inline "Generate draft" CTA. Without it, the user could only
+              Skip → revisit → still no draft → Skip again — an infinite
+              loop across the rule queue. Outline button keeps the primary
+              "Accept rule" CTA as the dominant action below; this is the
+              "make Accept possible" pre-action. */}
           {onGenerateDraft ? (
             <Button
               type="button"
@@ -1683,12 +1672,10 @@ function AiDraftReviewPanel({
             <span className="text-text-tertiary">
               <Trans>Confidence</Trans>
             </span>
-            {/* 2026-05-26 (Step 9 AI Visibility Audit F-013): qualitative
-                tier (Low/Medium/High) renders alongside the raw
-                percentage so a CPA reading the draft can match against
-                the same Low/Medium/High vocabulary used in Alerts,
-                instead of mentally translating "72%" into the canonical
-                ladder. */}
+            {/* Qualitative tier (Low/Medium/High) renders alongside the
+                raw percentage so a CPA reading the draft can match against
+                the same Low/Medium/High vocabulary used in Alerts, instead
+                of mentally translating "72%" into the canonical ladder. */}
             <span className="font-mono text-text-secondary">
               {Math.round(draft.confidence * 100)}%
               <span className="ml-1 text-text-tertiary">
@@ -1712,12 +1699,10 @@ function AiDraftReviewPanel({
 }
 
 function AiDraftReviewSkeleton() {
-  // 2026-05-26 (Step 9 AI Visibility Audit F-053): added explicit
-  // "AI is reading the source" microcopy above the skeleton bars.
-  // Before, a bare skeleton row left the user wondering whether the
-  // page was loading or actually invoking a model — naming the
-  // operation removes the ambiguity and sets honest latency
-  // expectations.
+  // Explicit "AI is reading the source" microcopy above the skeleton
+  // bars: a bare skeleton row leaves the user wondering whether the page
+  // is loading or actually invoking a model — naming the operation
+  // removes the ambiguity and sets honest latency expectations.
   return (
     <div className="flex flex-col gap-2" aria-busy="true">
       <p className="text-xs text-text-tertiary">
@@ -1736,37 +1721,23 @@ function AiDraftReviewSkeleton() {
   )
 }
 
-// 2026-05-26 (Yuqi /critique): `RuleStatusInline` retired with the
-// audit meta line in RuleDetailCompact. Status pill was redundant
-// on the review surface (every rule there is "Needs review" by
-// queue definition) and unused elsewhere. Recover from git if a
-// non-review surface needs the inline status renderer.
-
 function RuleSectionHeading({ children }: { children: React.ReactNode }) {
-  // 2026-05-26 (Yuqi /critique — same canonical move as
-  // DetailSection above). Practice review heading reads at the
-  // same weight as Applicability / Due date / Extension / Evidence
-  // so the action zone doesn't feel buried under meta.
-  // 2026-05-27 (Yuqi follow-up): bumped `text-sm` → `text-base` —
-  // matches the DetailSection bump, gives every section title in
-  // the rule-detail surfaces a single voice at title-rank size.
+  // Same canonical move as DetailSection above: the Practice review heading
+  // reads at the same weight as Applicability / Due date / Extension /
+  // Evidence so the action zone doesn't feel buried under meta. `text-base`
+  // gives every section title in the rule-detail surfaces a single voice at
+  // title-rank size.
   return <h4 className="text-base font-semibold text-text-primary">{children}</h4>
 }
 
 function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
-  // 2026-05-25 (Yuqi rule library #19, #20, #23): applicability
-  // section tidied up. Was a mixed-type grid (some rows in mono,
-  // some in proper text) with a confusing "· also filing" suffix
-  // that didn't read as English. Now:
+  // Applicability layout:
   //   - First line: full sentence "Applies to {entities} in
-  //     {jurisdiction}" — answers "who does this rule cover" in
-  //     plain prose before any tabular data.
-  //   - Grid rows uniform `text-sm text-text-secondary` (no more
-  //     mono mixed with non-mono for "Tax year" — that drift was
-  //     Yuqi's #20 complaint).
-  //   - Event row spells out the secondary flags ("also handles
-  //     payment" instead of "· also payment") so the suffix reads
-  //     as a sentence.
+  //     {jurisdiction}" — answers "who does this rule cover" in plain
+  //     prose before any tabular data.
+  //   - Grid rows uniform `text-sm text-text-secondary`.
+  //   - Event row spells out the secondary flags ("also handles payment"
+  //     instead of "· also payment") so the suffix reads as a sentence.
   return (
     <DetailSectionCard
       title={<Trans>Applicability</Trans>}
@@ -1809,11 +1780,9 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
 }
 
 function EventRow({ rule }: { rule: ObligationRule }) {
-  // 2026-05-25 (Yuqi rule library #19): the "· also filing" suffix
-  // didn't read as English — CPAs asked "what does '· also filing'
-  // mean?" Now spelled out: "(also handles payment)" / "(also
-  // handles filing)" so the relationship to the primary eventType
-  // is obvious.
+  // Secondary flags are spelled out — "(also handles payment)" / "(also
+  // handles filing)" — so the relationship to the primary eventType is
+  // obvious, rather than a terse "· also filing" suffix.
   const extras: ('filing' | 'payment')[] = []
   if (rule.isFiling && rule.eventType !== 'filing') extras.push('filing')
   if (rule.isPayment && rule.eventType !== 'payment') extras.push('payment')
@@ -1831,12 +1800,10 @@ function EventRow({ rule }: { rule: ObligationRule }) {
 
 function DueDateLogicSection({ rule }: { rule: ObligationRule }) {
   const summary = useMemo(() => humanizeDueDateLogic(rule.dueDateLogic), [rule.dueDateLogic])
-  // 2026-05-25 (Yuqi rule library #21): the humanizer returns a
-  // dense formula sentence like "15th day of the 3rd month after
-  // tax year end…" which is hard to scan. Renamed the section
-  // label to "When it's due" — plain English asks "when?"
-  // before reading the answer. Padding tightened so the answer
-  // sits closer to the label.
+  // The humanizer returns a dense formula sentence like "15th day of the
+  // 3rd month after tax year end…" which is hard to scan, so the section
+  // label is "When it's due" — plain English asks "when?" before the
+  // reader hits the answer.
   return (
     <DetailSectionCard title={<Trans>When it's due</Trans>}>
       <p className="text-sm text-text-primary">{summary}</p>
@@ -1845,13 +1812,9 @@ function DueDateLogicSection({ rule }: { rule: ObligationRule }) {
 }
 
 function ExtensionSection({ rule }: { rule: ObligationRule }) {
-  // 2026-05-25 (Yuqi rule library #22, #25): rewrote the extension
-  // section as a structured grid so the relationship between
-  // "extension is allowed", "form to file", "how long", "what's
-  // covered" is read top-down. Before it was four loose paragraphs
-  // and the form name (e.g. "Form 7004") floated on its own line
-  // — Yuqi asked whether Form 7004 belonged to this section at
-  // all. Now everything sits inside one labeled section with
+  // The extension section is a structured grid so the relationship
+  // between "extension is allowed", "form to file", "how long", and
+  // "what's covered" reads top-down inside one labeled section with
   // explicit field labels.
   const { extensionPolicy } = rule
   const durationMonths = extensionPolicy.durationMonths
@@ -1924,23 +1887,15 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
     return null
   }
 
-  // 2026-05-25 (Yuqi rule library #27, #28): the callout used to
-  // float at the bottom of the dialog with no label — Yuqi asked
-  // "what is this? does it have an action?" Now it carries:
-  //   - A RuleSectionHeading-style heading so it reads as a regular
-  //     section, not a random alert box
-  //   - An explicit "Needs CPA review" / "Needs CPA confirmation"
-  //     icon-led heading that names the work
-  //   - A `defaultTip` body that explains why
-  //   - The CTA action lives in CandidateReviewSection below
-  //     (Accept / Skip buttons) — this section names the WHY,
-  //     the next one names the HOW.
-  // RuleDetailInline pushes this section to the top of the body
-  // when the rule still needs review, so the prompt isn't buried
-  // below Applicability / Due date.
-  // 2026-06-01: hand-rolled callouts → Alert primitive. `info` for
-  // review-needed (accent tint) and `warning` for applicability
-  // review (severity-medium tint) match the previous tone mapping.
+  // The callout carries an icon-led heading that names the work ("Needs
+  // CPA review" / "Needs CPA confirmation") plus a `defaultTip` body that
+  // explains why, so it reads as a regular section, not a random alert
+  // box. The CTA action lives in CandidateReviewSection below — this
+  // section names the WHY, the next one names the HOW. RuleDetailInline
+  // pushes this section to the top of the body when the rule still needs
+  // review, so the prompt isn't buried below Applicability / Due date.
+  // `info` for review-needed (accent tint), `warning` for applicability
+  // review (severity-medium tint).
   if (rule.status === 'candidate' || rule.status === 'pending_review') {
     return (
       <Alert variant="info" aria-label="Review required">
@@ -1949,12 +1904,6 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
           <Trans>Needs CPA review</Trans>
         </AlertTitle>
         <AlertDescription>{rule.defaultTip}</AlertDescription>
-        {/* 2026-05-27 (Yuqi follow-up — sticky-footer move): old copy
-            promised "Accept / Skip buttons below" but there's no Skip
-            button in this dialog (Skip lives only in the coverage-tab
-            workspace queue). Since the action bar is now pinned at
-            the bottom and always visible, an explicit pointer is
-            redundant. Dropped. */}
       </Alert>
     )
   }
@@ -2088,10 +2037,9 @@ function AuthorityRoleBadge({ role }: { role: RuleEvidenceAuthorityRole }) {
     watch: 'bg-state-warning-hover text-text-warning',
     early_warning: 'bg-state-warning-hover text-text-warning',
   }[role]
-  // 2026-05-26 (Yuqi /critique — P1-4): WATCH / BASIS / CROSS-CHECK
-  // / EARLY-WARN were opaque to first-timers. Tooltip via `title`
-  // explains the classification in plain English on hover. The
-  // label stays short so it fits the evidence-card chip slot;
+  // WATCH / BASIS / CROSS-CHECK / EARLY-WARN are opaque to first-timers,
+  // so a tooltip via `title` explains the classification in plain English
+  // on hover. The label stays short to fit the evidence-card chip slot;
   // the explainer surfaces only when the user needs it.
   return (
     <Badge

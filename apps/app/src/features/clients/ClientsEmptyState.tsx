@@ -23,11 +23,9 @@ import ultrataxCsLogoUrl from '@/features/migration/assets/source-logos/ultratax
 /**
  * ClientsEmptyState — the full-surface "no clients yet" hero for /clients.
  *
- * 2026-06-07 (design replication, Pencil nodes jQFBx + T4eNmw): the prior
- * empty state was the quiet inline shared `EmptyState`. The canvas designs
- * call for a prominent hero that OWNS the surface — an integration-logo
- * strip, a large headline, a CTA pair (Import / Add manually), an outcomes
- * strip (4 min · 11 tools · SOC 2) and a "try sample data" chip.
+ * A prominent hero that OWNS the surface — an integration-logo strip, a
+ * large headline, a CTA pair (Import / Add manually), an outcomes strip
+ * (4 min · 11 tools · SOC 2) and a "try sample data" chip.
  *
  * The hero reuses the same prominent-card chrome as the shared EmptyState
  * (`rounded-xl border border-divider-regular bg-background-default`,

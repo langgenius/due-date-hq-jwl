@@ -39,14 +39,13 @@ export function findExtensionWithoutPaymentObligations(
 }
 
 /**
- * 2026-05-27 (phi journey audit J1): Anti-pattern #1 also fires on the
- * FILING track — a filing that's been Filed (status='done') but whose
- * authority payment is past due. Previously the work-plan summary
- * filtered by OPEN_OBLIGATION_STATUSES (which excludes 'done'), so
- * "Filed but payment overdue" rows became invisible to the header pill.
- * This helper takes the FULL obligations list (terminal AND open) and
- * extracts the filed-payment-due bucket; the work-plan summary counts
- * them separately so the header can priority-order them ahead of
+ * Anti-pattern #1 also fires on the FILING track — a filing that's been
+ * Filed (status='done') but whose authority payment is past due.
+ * Filtering by OPEN_OBLIGATION_STATUSES (which excludes 'done') would
+ * make "Filed but payment overdue" rows invisible to the header pill,
+ * so this helper takes the FULL obligations list (terminal AND open)
+ * and extracts the filed-payment-due bucket; the work-plan summary
+ * counts them separately so the header can priority-order them ahead of
  * "Extended" and "All on track."
  */
 export function findFiledWithoutPaymentObligations(
@@ -65,12 +64,11 @@ export function findFiledWithoutPaymentObligations(
 export type ClientWorkPlanSummary = {
   openCount: number
   overdueOpenCount: number
-  // 2026-05-24 (critique P0): "All on track" was showing on clients
-  // whose statutory date was missed but `currentDueDate` had shifted
-  // forward (post-extension). `overdueOpenCount` only checks the
-  // current/effective date so post-extension rows looked fine — even
-  // when no extension was actually on the wire. These three counts
-  // expose the truthful picture:
+  // `overdueOpenCount` only checks the current/effective date, so a
+  // client whose statutory date was missed but whose `currentDueDate`
+  // shifted forward (post-extension) would look fine even when no
+  // extension is actually on the wire. These three counts expose the
+  // truthful picture:
   //   - statutoryLateUnextendedCount: red — past statutory, no
   //     extension filed or accepted (real lateness, anti-pattern #3
   //     "Filed ≠ Done" should never lie green)
@@ -83,10 +81,10 @@ export type ClientWorkPlanSummary = {
   // renderClientHeaderSubLine in ClientFactsWorkspace.
   statutoryLateUnextendedCount: number
   extensionPaymentDueCount: number
-  // 2026-05-27 (phi journey audit J1): Filed-but-payment-overdue
-  // count. Independent of `overdueOpenCount` (which is status-open
-  // only) and `extensionPaymentDueCount` (which only catches the
-  // extension-track variant). See findFiledWithoutPaymentObligations.
+  // Filed-but-payment-overdue count. Independent of `overdueOpenCount`
+  // (which is status-open only) and `extensionPaymentDueCount` (which
+  // only catches the extension-track variant). See
+  // findFiledWithoutPaymentObligations.
   filedPaymentOverdueCount: number
   extensionFiledOpenCount: number
   needsReviewCount: number
@@ -201,10 +199,9 @@ export function buildClientWorkPlanSummary(
     EXTENSION_FILED_STATES.has(obligation.extensionState),
   ).length
   const extensionPaymentDueCount = findExtensionWithoutPaymentObligations(open).length
-  // 2026-05-27 (phi journey audit J1): include terminal-status rows
-  // here because Filed (`status='done'`) is exactly the case we want
-  // to catch — the row left OPEN_OBLIGATION_STATUSES the moment it
-  // was filed.
+  // Include terminal-status rows here because Filed (`status='done'`)
+  // is exactly the case we want to catch — the row left
+  // OPEN_OBLIGATION_STATUSES the moment it was filed.
   const filedPaymentOverdueCount = findFiledWithoutPaymentObligations(obligations, asOfDate).length
 
   return {
@@ -301,23 +298,22 @@ export type ClientObligationListSummary = {
   waitingOnClientCount: number
   nextDueDate: string | null
   nextTaxType: string | null
-  // 2026-05-23: status of the earliest-non-terminal obligation. Surfaces
-  // on the /clients list as a colored pill inside the NEXT DUE cell so
-  // the CPA can tell *why* a row is "Xd late" (blocked / waiting / in
-  // review / ...) without opening the drawer. Tracks the same row whose
-  // due date populates `nextDueDate`.
+  // Status of the earliest-non-terminal obligation. Surfaces on the
+  // /clients list as a colored pill inside the NEXT DUE cell so the CPA
+  // can tell *why* a row is "Xd late" (blocked / waiting / in review /
+  // ...) without opening the drawer. Tracks the same row whose due date
+  // populates `nextDueDate`.
   nextDueStatus: ObligationInstancePublic['status'] | null
-  // 2026-05-23: count of obligations the firm has already filed or
-  // closed out for this client. Pairs with `openCount` on the /clients
-  // list — answers "how many done?" alongside "how many in-flight?".
-  // Counts rows whose status is `done` or `completed` (terminal states
-  // in the workflow).
+  // Count of obligations the firm has already filed or closed out for
+  // this client. Pairs with `openCount` on the /clients list — answers
+  // "how many done?" alongside "how many in-flight?". Counts rows whose
+  // status is `done` or `completed` (terminal states in the workflow).
   doneCount: number
 }
 
-// 2026-05-23: terminal-state statuses contribute to `doneCount` but
-// not to `openCount` or `nextDueDate`. Kept in sync with the list
-// route's widened query input (`OBLIGATIONS_LIST_INPUT.status`).
+// Terminal-state statuses contribute to `doneCount` but not to
+// `openCount` or `nextDueDate`. Kept in sync with the list route's
+// widened query input (`OBLIGATIONS_LIST_INPUT.status`).
 const DONE_OBLIGATION_STATUSES = new Set<ObligationInstancePublic['status']>(['done', 'completed'])
 
 export function buildClientObligationListSummaries(

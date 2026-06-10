@@ -203,11 +203,10 @@ export function BillingRoute() {
   const activeFirmCount = ownedActiveFirms(firms).length
   const activeFirmLimit = activeFirmEntitlementLimit(firms)
   const activeFirmLimitLabel = activeFirmLimit === null ? t`contract` : String(activeFirmLimit)
-  // 2026-05-24 (critique P2 — clarify): when the owner has more
-  // active practices than their plan permits (e.g. seed has 2 owned
-  // firms on a 1-practice Pro plan), the previous string read "2 of
-  // 1 active practices" — math that reads as a bug. Flag the
-  // over-limit case explicitly so the user sees what's going on.
+  // When the owner has more active practices than their plan permits (e.g.
+  // 2 owned firms on a 1-practice Pro plan), a "2 of 1 active practices"
+  // string reads as a bug. Flag the over-limit case explicitly so the user
+  // sees what's going on.
   const activeFirmOverLimit = activeFirmLimit !== null && activeFirmCount > activeFirmLimit
   const activeFirmUsage = currentFirm
     ? activeFirmOverLimit
@@ -310,12 +309,9 @@ export function BillingRoute() {
 
   return (
     <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
-      {/* 2026-05-24 (design-system audit): migrated from ad-hoc
-          Breadcrumb + custom header to the shared `<PageHeader>`.
-          Breadcrumb routes through the eyebrow slot; current plan
-          Badge sits in the actions cluster.
-          2026-05-24 (A7): outer page width standardized to
-          `max-w-page-wide` (was an outlier 1180px). */}
+      {/* Uses the shared `<PageHeader>`: breadcrumb routes through the eyebrow
+          slot; current plan Badge sits in the actions cluster. Outer page
+          width is `max-w-page-wide`. */}
       <PageHeader
         breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Billing` }]}
         title={<Trans>Billing</Trans>}

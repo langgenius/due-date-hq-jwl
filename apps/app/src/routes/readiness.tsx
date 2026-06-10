@@ -157,12 +157,9 @@ export function ReadinessPortalRoute() {
         </header>
 
         {portalQuery.isLoading ? (
-          // 2026-05-26 (Step 6 UX audit #167): bare text was the
-          // only loading affordance. Public-portal clients waiting
-          // 2+ seconds on a slow connection saw "Loading readiness
-          // check…" with no motion signal — read as a static page.
-          // Loader2 spin gives an unambiguous "system is working"
-          // beat.
+          // Public-portal clients waiting 2+ seconds on a slow connection
+          // need a motion signal so the page doesn't read as static. The
+          // Loader2 spin gives an unambiguous "system is working" beat.
           <Card>
             <CardContent className="flex flex-col items-center gap-3 py-10 text-center text-sm text-text-tertiary">
               <Loader2Icon className="size-5 animate-spin" aria-hidden />
@@ -170,13 +167,10 @@ export function ReadinessPortalRoute() {
             </CardContent>
           </Card>
         ) : portalQuery.isError || !portal ? (
-          // 2026-05-26 (Step 6 UX audit #168): expired/revoked
-          // link state left the client stranded with no path
-          // forward. Added explicit recovery copy pointing back
-          // to the CPA. The portal is the firm's contact surface
-          // so "contact your CPA" is the canonical next step —
-          // no app-side action makes sense from this dead-link
-          // state.
+          // Expired/revoked link state needs explicit recovery copy
+          // pointing back to the CPA. The portal is the firm's contact
+          // surface so "contact your CPA" is the canonical next step —
+          // no app-side action makes sense from this dead-link state.
           <Card>
             <CardHeader>
               <CardTitle>
@@ -276,11 +270,9 @@ export function ReadinessPortalRoute() {
                 )
               })}
               <Separator />
-              {/* 2026-05-26 (Step 6 UX audit #173): pending state
-                  had no motion signal — the button just disabled.
-                  Loader2 spin matches the cross-app submit-pending
-                  pattern + the label switches to "Submitting…" so
-                  the client knows something is happening. */}
+              {/* The Loader2 spin matches the cross-app submit-pending pattern
+                  + the label switches to "Submitting…" so the client knows
+                  something is happening while the button is disabled. */}
               <Button
                 onClick={submit}
                 disabled={submitMutation.isPending}

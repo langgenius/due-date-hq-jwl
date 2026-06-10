@@ -195,7 +195,7 @@ export function useObligationQueueColumns(
         cell: ({ row: tableRow, table }) => {
           const isContinuation = continuationRowIds.has(tableRow.original.id)
           // Shift+click the client name → range-select every row
-          // sharing this clientId (2026-05-21). Matches the hybrid
+          // sharing this clientId. Matches the hybrid
           // multi-select model: filings-default, with a group-expand
           // keystroke for the one workflow (reassignment) that
           // naturally lives at the client level. Unshifted clicks
@@ -288,27 +288,24 @@ export function useObligationQueueColumns(
         meta: { cellClassName: 'min-w-[200px] max-w-[280px]' },
       },
       {
-        // Smart Priority — second data column (right after Client) per
-        // 2026-05-21 design call. Client is the primary anchor; Priority
-        // answers "why am I looking at this row" right next to the
-        // name. Default sort is smart_priority desc, so this column
-        // doubles as the implicit sort key.
+        // Smart Priority — second data column (right after Client).
+        // Client is the primary anchor; Priority answers "why am I
+        // looking at this row" right next to the name. Default sort is
+        // smart_priority desc, so this column doubles as the implicit
+        // sort key.
         accessorKey: 'smartPriority',
         id: 'smartPriority',
-        // 2026-05-27 (Yuqi feedback "remove the sortby arrow besides
-        // priority — no use"): Priority IS the default sort, so the
-        // click-to-sort affordance was a no-op (sorting by priority
-        // when already sorted by priority). Header is now plain text.
+        // Header is plain text (no click-to-sort): Priority IS the
+        // default sort, so a sort affordance here would be a no-op.
         header: () => <span>{t`Priority`}</span>,
         cell: ({ row: tableRow }) => {
           const score = tableRow.original.smartPriority.score
           const rank = tableRow.original.smartPriority.rank
-          // 2026-05-27 (Yuqi feedback "priority just show the number, don't
-          // write urgent or now"): tier labels ("Urgent" / "High" / "Med"
-          // / "Low") retired. Column now renders just the numeric score
-          // (rounded), with optical-weight inherited from the tier (kept
-          // because the score's heaviness IS the visual urgency cue —
-          // dropping weight too would flatten the whole column).
+          // Column renders just the numeric score (rounded), no tier
+          // labels ("Urgent" / "High" / etc.), with optical-weight
+          // inherited from the tier — the score's heaviness IS the
+          // visual urgency cue, so dropping weight too would flatten
+          // the whole column.
           const tierClassName =
             score >= 70
               ? 'text-text-primary font-semibold'
@@ -354,17 +351,15 @@ export function useObligationQueueColumns(
           if (!assigneeName) {
             // Unassigned = dashed-outline empty avatar, no text.
             // Reads as "slot exists but nobody's filled it."
-            // 2026-05-26 (Yuqi sixty-sixth pass — inset-followup E
-            // finally lands): the `?` is now a real DropdownMenu
-            // trigger. Clicking it opens an assignee picker (same
-            // member list + `clients.bulkUpdateAssignee` flow the
-            // client-detail H1 owner-pill uses). Per obligation
-            // schema review: there is no per-obligation `assignee`
-            // — an obligation's assignee inherits from the client.
-            // So the picker assigns the CLIENT, which propagates
-            // to every deadline for that client. Tooltip + footer
-            // copy make that scope explicit so the user doesn't
-            // assign one row and discover they assigned twelve.
+            // The `?` is a real DropdownMenu trigger. Clicking it
+            // opens an assignee picker (same member list +
+            // `clients.bulkUpdateAssignee` flow the client-detail H1
+            // owner-pill uses). There is no per-obligation `assignee`
+            // — an obligation's assignee inherits from the client. So
+            // the picker assigns the CLIENT, which propagates to every
+            // deadline for that client. Tooltip + footer copy make
+            // that scope explicit so the user doesn't assign one row
+            // and discover they assigned twelve.
             return (
               <AssigneeQuickPicker
                 clientName={tableRow.original.clientName}
@@ -416,23 +411,13 @@ export function useObligationQueueColumns(
             }
           />
         ),
-        // 2026-05-26 (Yuqi /deadlines sixty-fifth pass — State cell
-        // canonical): adopt the Alerts page's universal state
-        // representation. The bare 2-letter code "CA" / "NY" read
-        // as the same line of text as every other cell — the column
-        // didn't actually look like "state" anything. Now: leading
-        // StateBadge SVG (flag/seal motif) + code, matches the
-        // Alerts state-chip strip + the /clients filing-states
-        // pill so "state" reads as a recognized motif at scan
-        // distance. Empty cell stays "—" since rendering a flag for
-        // "no state" would be more confusing than less.
+        // Empty cell stays "—" since rendering anything for "no
+        // state" would be more confusing than less.
         cell: (info) => {
           const state = info.getValue<string | null>()
           if (!state) return <EmptyCellMark />
-          // 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
-          // everywhere"): swept to a bordered Badge for cross-route
-          // consistency with /clients. The SVG flag glyph is gone;
-          // the code itself sits in the unified outline pill.
+          // Bordered Badge for cross-route consistency with /clients
+          // — the code sits in the unified outline pill, no icon.
           return (
             <Badge variant="outline" className="text-xs font-normal">
               {state}
@@ -469,18 +454,11 @@ export function useObligationQueueColumns(
         accessorKey: 'currentDueDate',
         header: () => {
           const label = t`Internal due date`
-          // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #5): dropped
-          // the RangeHeaderFilterDropdown icon button. Yuqi's call:
-          // "remove. Sort by is doing the same thing." The dropdown
-          // was a min/max-days range filter on the column — but the
-          // toolbar chip row above (Past Due / Due this week) already
-          // covers the common date-range filters with one click, and
-          // the column sort handle on this same header lets you find
-          // any row by ordering. The icon-button-inside-header chrome
-          // added a second affordance (range filter) that overlapped
-          // semantically with sort + the toolbar chips. Killing it
-          // also addresses #4 (no way to cancel an applied range)
-          // because there's no longer an applied range to cancel.
+          // No per-column range filter on this header: the toolbar
+          // chip row above (Past Due / Due this week) covers the
+          // common date-range filters with one click, and the column
+          // sort handle on this header orders by date — a range-filter
+          // affordance here would overlap both.
           return (
             <ObligationQueueSortableHeader
               label={label}
@@ -493,11 +471,10 @@ export function useObligationQueueColumns(
             />
           )
         },
-        // Relative-time pill only ("3d late" / "in 5d"). Per
-        // 2026-05-21 design call the exact date moved to its own
-        // hide-by-default column ('dueDateExact' below) — most
-        // triage decisions only need the relative urgency, and the
-        // date row is signal-to-noise tax.
+        // Relative-time pill only ("3d late" / "in 5d"). The exact
+        // date lives in its own hide-by-default column ('dueDateExact'
+        // below) — most triage decisions only need the relative
+        // urgency, and the date row is signal-to-noise tax.
         cell: ({ row: tableRow }) => (
           <DueDaysPill
             days={daysUntilEffectiveInternalDueDate(tableRow.original)}
@@ -534,12 +511,11 @@ export function useObligationQueueColumns(
         },
         meta: { cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
       },
-      // "Projected risk" column removed 2026-05-21 per UX call —
-      // the dollar exposure number lives inside the obligation drawer
-      // and is summarised at the firm level on the dashboard. Surfacing
-      // a per-row $ in the queue was over-quantifying triage decisions
-      // that are really driven by status + due date. Penalty inputs
-      // and risk filtering still ship via the chip row above.
+      // No per-row dollar-exposure column: it would over-quantify
+      // triage decisions that are really driven by status + due date.
+      // The dollar exposure number lives inside the obligation drawer
+      // and is summarised at the firm level on the dashboard; penalty
+      // inputs and risk filtering ship via the chip row above.
       {
         accessorKey: 'evidenceCount',
         header: () => <ConceptLabel concept="evidence">{t`Evidence`}</ConceptLabel>,
@@ -592,12 +568,9 @@ export function useObligationQueueColumns(
       },
       {
         accessorKey: 'status',
-        // 2026-05-26 (Yuqi /deadlines feedback): "Sort by Status does
-        // not work." It WAS working, just sorting alphabetically —
-        // ('blocked', 'completed', 'done', 'extended', 'in_progress',
-        // ...) which clustered statuses in an order that didn't match
-        // any task-flow logic. Replace the alphabetical sort with an
-        // urgency-ordered priority sort: not_started → blocked →
+        // Status sorts by an urgency-ordered priority (not
+        // alphabetically, which would cluster statuses in an order
+        // that matches no task-flow logic): not_started → blocked →
         // waiting_on_client → in_progress → in_review → done →
         // filed → paid → completed → extended → not_applicable. The
         // urgent / action-needed states come first so "Sort by
@@ -652,13 +625,11 @@ export function useObligationQueueColumns(
             status: obligationQueueRow.status,
             blockedByObligationInstanceId: obligationQueueRow.blockedByObligationInstanceId,
           })
-          // 2026-05-27 (phi journey audit J1): payment-overdue chip in
-          // the queue Status column. A row that's been Filed but whose
-          // paymentDueDate has slipped used to render only the green
-          // Filed pill — the queue itself never surfaced the buried
-          // payment-overdue signal. Now: a small red Badge appears
-          // next to the status pill when the row's payment is past
-          // due, regardless of the lifecycle status. Stacks cleanly
+          // Payment-overdue chip in the queue Status column: a small
+          // red Badge appears next to the status pill when the row's
+          // payment is past due, regardless of the lifecycle status,
+          // so a Filed row whose paymentDueDate has slipped still
+          // surfaces the buried payment-overdue signal. Stacks cleanly
           // with BlockedByChip / RejectionChip (they're status-state
           // signals; this is a date-state signal).
           const paymentLateDays = paymentOverdueDays(obligationQueueRow, Date.now())

@@ -27,10 +27,10 @@ interface ProtectiveClaimFacts {
   authorityRefs: string[]
 }
 
-// 2026-06-08 (Aogxu parity Phase 3): AI-extracted facts for deadline-shift
-// alerts, read from the freeform `structuredChange.deadlineShift` block. All
-// fields are optional — OLD alerts carry no `deadlineShift`, so the reader
-// returns null and the grid falls back to the generic cells.
+// AI-extracted facts for deadline-shift alerts, read from the freeform
+// `structuredChange.deadlineShift` block. All fields are optional — OLD
+// alerts carry no `deadlineShift`, so the reader returns null and the
+// grid falls back to the generic cells.
 interface DeadlineShiftFacts {
   reliefType: string | null
   deadlineTypes: Array<'filing' | 'payment'>
@@ -100,13 +100,14 @@ function optionalBool(value: unknown): boolean | null {
   return typeof value === 'boolean' ? value : null
 }
 
-// 2026-06-08 (Aogxu parity Phase 3): mirror of `protectiveClaimFacts`. Reads the
-// AI-extracted `deadlineShift` block from the freeform `structuredChange` for
-// `deadline_shift` alerts. Returns null when the alert isn't a deadline shift or
-// carries no deadlineShift facts (every OLD alert) — the grid then keeps its
-// generic cells, so nothing breaks or renders empty. The block is conventionally
-// nested under `structuredChange.deadlineShift`; we also tolerate the keys being
-// written at the top level of `structuredChange`.
+// Mirror of `protectiveClaimFacts`. Reads the AI-extracted
+// `deadlineShift` block from the freeform `structuredChange` for
+// `deadline_shift` alerts. Returns null when the alert isn't a deadline
+// shift or carries no deadlineShift facts (every OLD alert) — the grid
+// then keeps its generic cells, so nothing breaks or renders empty. The
+// block is conventionally nested under `structuredChange.deadlineShift`;
+// we also tolerate the keys being written at the top level of
+// `structuredChange`.
 function deadlineShiftFacts(detail: PulseDetail): DeadlineShiftFacts | null {
   if (detail.alert.changeKind !== 'deadline_shift') return null
   if (!isRecord(detail.structuredChange)) return null
@@ -128,10 +129,9 @@ function deadlineShiftFacts(detail: PulseDetail): DeadlineShiftFacts | null {
 }
 
 /**
- * 2026-06-08 (Pencil ibEoz/BbQAK `b4syg ExtractedFacts`): rebuilt from
- * the two stacked Source/Scope FactCards into the design's flat fact
- * GRID — a 4-column (2 on narrow) matrix of hairline-divided cells,
- * each an uppercase mono label over a `13/600` value.
+ * The design's flat fact GRID — a 4-column (2 on narrow) matrix of
+ * hairline-divided cells, each an uppercase mono label over a `13/600`
+ * value.
  *
  * The mock's exact cells include RELIEF TYPE / DEADLINE TYPES / OPT-IN,
  * which the contract doesn't carry. Rather than fabricate them, the
@@ -168,12 +168,12 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
   const protectiveFacts = protectiveClaimFacts(detail)
   const deadlineFacts = deadlineShiftFacts(detail)
 
-  // 2026-06-08 (Aogxu parity Phase 3): for deadline-shift alerts that carry
-  // AI-extracted relief facts, the design's three trailing slots show RELIEF
-  // TYPE / DEADLINE TYPES / OPT-IN instead of the generic Change type / Entity
-  // types / Apply mode. When those facts are ABSENT (every OLD alert), we keep
-  // the generic cells so the grid never shows empty. Each AI-derived cell stays
-  // under the section's existing "AI parsed — verify before Apply" subtitle.
+  // For deadline-shift alerts that carry AI-extracted relief facts, the
+  // three trailing slots show RELIEF TYPE / DEADLINE TYPES / OPT-IN
+  // instead of the generic Change type / Entity types / Apply mode. When
+  // those facts are ABSENT (every OLD alert), the generic cells keep the
+  // grid from showing empty. Each AI-derived cell stays under the
+  // section's "AI parsed — verify before Apply" subtitle.
   const deadlineTypesValue =
     deadlineFacts && deadlineFacts.deadlineTypes.length > 0
       ? deadlineFacts.deadlineTypes

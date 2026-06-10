@@ -63,12 +63,9 @@ function inferAuthorityRole(source: string): AuthorityRole {
   return 'formal'
 }
 
-// 2026-06-04 round 20 (Yuqi /rules/pulse feedback #9 "better way of
-// representation, without frame and border"): role meta no longer
-// carries a Badge `variant` — chip is rendered as plain inline text
-// with a leading icon. Tone is the same secondary-text family as the
-// rest of the meta cluster; the icon does the per-class
-// differentiation work.
+// Role meta renders as plain inline text with a leading icon, no Badge
+// frame. Tone is the same secondary-text family as the rest of the meta
+// cluster; the icon does the per-class differentiation work.
 const ROLE_META: Record<
   AuthorityRole,
   {

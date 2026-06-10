@@ -5,20 +5,17 @@ import { alertImpactLevel } from '../lib/impact-level'
 /**
  * # Canonical TABLE / LIST chrome guideline
  *
- * 2026-06-04 round 84 (Yuqi "apply table design guideline and rules
- * to Alert and Deadlines"): codifying the per-cell + per-row token
- * combos so any new tabular surface knows the canonical recipe.
- * Source of truth: `/today` `ActionsTable` (the round-23 canonical).
+ * The per-cell + per-row token combos so any new tabular surface knows
+ * the canonical recipe. Source of truth: `/today` `ActionsTable`.
  *
  * ## Outer card frame
  *   `rounded-[12px] border border-divider-regular bg-background-default`
- *   - Drop `overflow-hidden` unless the surface needs to clip
- *     (round 84 #1 dropped it on PulseAlertList).
+ *   - Drop `overflow-hidden` unless the surface needs to clip.
  *
  * ## Subgroup divider band / day-group header
  *   `bg-background-subtle px-5 py-2`
  *   `text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase`
- *   - 12/secondary (round 79 + round 84) — readable but quiet.
+ *   - 12/secondary — readable but quiet.
  *   - Same tokens on ActionsTable's subgroup divider AND
  *     PulseAlertList's day-group header.
  *
@@ -55,21 +52,14 @@ import { alertImpactLevel } from '../lib/impact-level'
  * + any future alert-card variant — they all share the jykZH meta
  * vocabulary so the helpers below stay in one place.
  *
- * (Naming note: file + helper prefix stayed `pulse-alert-chrome` /
- * `pulse-alert-*` after the Pulse → Alert product rename because
- * the JSX components renamed but the chrome vocabulary the helpers
- * encode still tracks the original Pencil specs. The legacy
- * `PulseAlertCard` was renamed to `AlertCard` in the merge with PR
- * #61; comments below predating that rename were updated in place.)
+ * (Naming note: file + helper prefix stay `pulse-alert-chrome` /
+ * `pulse-alert-*` because the chrome vocabulary the helpers encode
+ * still tracks the original Pencil specs, even though the JSX
+ * components are named `AlertCard` etc.)
  *
- * 2026-06-04 round 31 (Yuqi screenshot — "did you do any changes
- * and updates? dumb"): the previous round's restyle only applied
- * to PulseFormRevisedCard, which never rendered because no demo
- * alerts have changeKind === 'form_instruction'. The generic
- * AlertCard was still on the old layout. This module extracts
- * the data-mapping helpers so both cards can share the jykZH
- * chrome — severity / action / status / change-kind labels — and
- * be wired to real alert data.
+ * This module extracts the data-mapping helpers — severity / action /
+ * status / change-kind labels — so both cards can share the jykZH
+ * chrome and be wired to real alert data.
  */
 
 /**
@@ -80,20 +70,18 @@ import { alertImpactLevel } from '../lib/impact-level'
  * one threshold table (lib/impact-level.ts: low 0–1 / medium 2–4 /
  * high 5+).
  *
- * 2026-06-06: this is the SINGLE badge mapper for every alert surface
- * — AlertCard, PulseFormRevisedCard, NeedsAttentionCard (/today),
- * PulseAlertRow, AlertDetailDrawer. It replaced `severityFromConfidence`,
- * which mislabeled INVERTED AI confidence as impact (low confidence →
- * "HIGH IMPACT"), conflating model uncertainty with client impact.
- * Confidence still drives its own surfaces (pulsing-dot tone, drawer
- * confidence pill, low-confidence banner, AlertConfidencePill) — it
- * just no longer masquerades as impact.
+ * This is the SINGLE badge mapper for every alert surface — AlertCard,
+ * PulseFormRevisedCard, NeedsAttentionCard (/today), PulseAlertRow,
+ * AlertDetailDrawer. Impact is distinct from AI confidence: confidence
+ * drives its own surfaces (pulsing-dot tone, drawer confidence pill,
+ * low-confidence banner, AlertConfidencePill) and must not masquerade
+ * as impact.
  *
- * Colors (round 47 + round 58 X3j4nt): HIGH keeps the amber
- * (`#ffe3d6` / `#92400E`) — "watch out" without crossing into the
- * destructive register reserved for errors / overdue. MEDIUM / LOW
- * stay neutral gray; in practice every surface gates the pill to HIGH
- * only, so the gray tiers render nothing — absence IS the signal.
+ * Colors: HIGH keeps the amber (`#ffe3d6` / `#92400E`) — "watch out"
+ * without crossing into the destructive register reserved for errors /
+ * overdue. MEDIUM / LOW stay neutral gray; in practice every surface
+ * gates the pill to HIGH only, so the gray tiers render nothing —
+ * absence IS the signal.
  */
 export type SeverityId = 'low' | 'medium' | 'high'
 export function impactBadgeFromAlert(
@@ -113,8 +101,7 @@ export function impactBadgeFromAlert(
  *   • Otherwise                            → null (no pill rendered)
  */
 /**
- * 2026-06-09 (Yuqi "toggle between review and active"): an alert is in the
- * "Active" work queue when it NEEDS ACTION — it applies a due-date change
+ * An alert is in the "Active" work queue when it NEEDS ACTION — it applies a due-date change
  * (`due_date_overlay` / `deadline_shift`) OR it actually flags real clients
  * (matched / needs-review > 0). "Review" = informational: no date change and no
  * client impact, so it just needs a look.

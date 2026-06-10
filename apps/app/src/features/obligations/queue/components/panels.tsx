@@ -91,15 +91,12 @@ export function ReadinessOverview({
   const responseCount = latestRequest?.responses.length ?? 0
   const readyResponseCount =
     latestRequest?.responses.filter((r) => r.status === 'ready').length ?? 0
-  // 2026-05-23: per-state copy reframe. The earlier "Ready to prep" /
-  // "Not ready" headlines worked in the Waiting case but read awkwardly
-  // in Blocked / In review (where readiness is a watch-list signal) and
-  // wrong in Filed / Completed (where the question is closed and the
-  // tab is an audit trail). The headline + subline now branch on the
-  // lifecycle STAGE first, then on the readiness enum within that
-  // stage — so the copy matches what the CPA is actually doing at
-  // each phase of the row's life. See the docs/dev-log entry for the
-  // full matrix.
+  // The headline + subline branch on the lifecycle STAGE first, then
+  // on the readiness enum within that stage, so the copy matches what
+  // the CPA is actually doing at each phase: readiness is a "Ready to
+  // prep / Not ready" question while Waiting, a watch-list signal in
+  // Blocked / In review, and a closed audit-trail question in Filed /
+  // Completed.
   const { headline, subline }: { headline: string; subline: string } = (() => {
     // 1. Filed / Completed — historical record, audit trail mode.
     if (isTerminal) {
@@ -109,12 +106,10 @@ export function ReadinessOverview({
           subline: t`No document checklist was attached to this filing.`,
         }
       }
-      // 2026-05-26 (Yuqi sixty-first pass — better terminal copy):
-      // "Audit trail captured 0 of 13 items as received" on a filed
-      // row read as either (a) we filed without any receipts (alarming)
-      // or (b) the audit trail is broken (also alarming). Reframe by
-      // ratio: complete archive vs partial vs untracked, with copy
-      // that matches each case honestly.
+      // Terminal copy branches by ratio — complete archive vs partial
+      // vs untracked — so a filed row with zero ticked receipts doesn't
+      // read as "we filed without any receipts" or "the audit trail is
+      // broken." Each case gets copy that matches it honestly.
       if (receivedCount === 0) {
         return {
           headline: t`Filed`,
@@ -236,11 +231,10 @@ export function ReadinessOverview({
   // Terminal-state subline now renders as a description under the
   // "Materials checklist" heading instead of above it.
   if (isTerminal) return null
-  // 2026-05-23: tightened spacing per critique. Outer `py-2` dropped
-  // (parent grid already supplies vertical rhythm), icon shrunk
-  // size-6 → size-5, gap-3 → gap-2, removed the icon's mt-1 nudge.
-  // Headline is the only thing carrying section weight here; the
-  // overview shouldn't take a third of the drawer's first screen.
+  // Spacing is tight here (no outer py-2 — the parent grid supplies
+  // vertical rhythm — small icon, gap-2): the headline is the only
+  // thing carrying section weight, and the overview shouldn't take a
+  // third of the drawer's first screen.
   return (
     <div className="flex items-start gap-2">
       <span
@@ -293,9 +287,8 @@ export function ReadinessOverview({
 // the year ("2026"); fiscal / short / quarterly periods keep the
 // explicit start–end range.
 
-// 2026-06-10 (Yuqi — replicate Pencil `Qn4nX` date cards MuJyP/QMQgD/ZSK1V):
-// the standalone-page 'cards' variant renders each anchor date as a real card
-// — leading icon + uppercase 11/600 label, a 22/600 prettified date, and a
+// The standalone-page 'cards' variant renders each anchor date as a real card
+// — leading icon + uppercase label, a prettified date, and a
 // day-of-week · relative sub-line. The Filing card flips to the warm
 // `state-warning-hover` (#fff4f1) tint with a warning-tone icon when overdue.
 const DATE_CARD_WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
@@ -318,8 +311,8 @@ function DeadlineDateCard({
   return (
     <div
       className={cn(
-        // 2026-06-10 (Yuqi #7 "smaller"): tighter date card — px-4/py-3, 16px
-        // date (was 22), 11px sub — so the strip stops dominating the header.
+        // Tight date card (px-4/py-3, 16px date, 11px sub) so the
+        // strip stops dominating the header.
         'flex flex-col gap-1 rounded-xl border border-divider-subtle px-4 py-3',
         overdue ? 'bg-state-warning-hover' : 'bg-background-default',
       )}
@@ -359,19 +352,16 @@ export function PrimaryDeadlineStrip({
   variant = 'flat',
 }: {
   row: ObligationQueueRow
-  // 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil ne4Fd + Alert-detail
-  // unification): `cards` renders the three deadlines as bordered white cards
-  // (rounded-12 + divider-subtle + bg-default, matching the Alert detail's
-  // card system) for the standalone page. `flat` (default) keeps the frameless
-  // divide-x cells used inside the /clients + sheet panels.
+  // `cards` renders the three deadlines as bordered white cards
+  // (rounded-12 + divider-subtle + bg-default, matching the Alert
+  // detail's card system) for the standalone page. `flat` (default)
+  // keeps the frameless divide-x cells used inside the /clients +
+  // sheet panels.
   variant?: 'flat' | 'cards'
 }) {
   const { i18n, t } = useLingui()
   const todayIso = todayIsoDate()
-  // 2026-05-26 (Yuqi fiftieth pass — Figma-Make hero from
-  // design/deadlines-drawer-rework): replaced the flat 3-column
-  // strip with a HERO (filing) + 2-column secondary (internal +
-  // payment) layout.
+  // HERO (filing) + 2-column secondary (internal + payment) layout.
   //
   // Filing deadline is the date the IRS / state actually enforces,
   // so it gets a full-width dark hero card with the date in text-xl
@@ -383,11 +373,10 @@ export function PrimaryDeadlineStrip({
   // Internal target + Payment due are secondary anchors stacked
   // below the hero in a 2-column grid with quiet bordered cards.
   //
-  // Direction fix from the rework: Internal = the firm's earlier
-  // internal target — extensionInternalTargetDate when set; falls
-  // back to currentDueDate capped at <= filing so we never render
-  // internal LATER than the statutory anchor (the old shape could
-  // invert these).
+  // Internal = the firm's earlier internal target —
+  // extensionInternalTargetDate when set; falls back to currentDueDate
+  // capped at <= filing so we never render internal LATER than the
+  // statutory anchor.
   const filingIso = row.filingDueDate ?? row.baseDueDate
   const paymentIso = row.paymentDueDate ?? null
   const internalCandidate = row.extensionInternalTargetDate ?? row.currentDueDate ?? filingIso
@@ -403,20 +392,18 @@ export function PrimaryDeadlineStrip({
     return Math.round(ms / DAY_MS)
   }
   const filingDays = dayDiff(filingIso)
-  // 2026-05-26 (Yuqi sixty-first pass — compact terminal strip):
-  // when the row is filed AND internal + payment dates match the
-  // filing date (the common case for a clean filing), the original
-  // 3-card strip was 100+ px of dates that all said the same thing.
-  // Render a single compact one-liner instead — "Filed on
-  // 2026-03-16 · 70 days ago" — and skip the redundant Internal /
-  // Payment cards. Non-terminal rows + terminal rows with mixed
-  // dates keep the full strip.
-  // 2026-05-27 (phi journey audit J1): suppress the compact-terminal
-  // collapse when the payment is overdue. The compact strip hides the
-  // Payment tile (the dates all "match"), but a Filed-but-payment-
-  // overdue row REALLY DOES have a live signal on the payment leg
-  // that the user needs to see. Fall through to the full 3-tile
-  // strip so the Payment tile can paint destructive.
+  // When the row is filed AND internal + payment dates match the
+  // filing date (the common case for a clean filing), render a single
+  // compact one-liner ("Filed on <date> · 70 days ago") instead of a
+  // 3-card strip that would be 100+ px of dates all saying the same
+  // thing. Non-terminal rows + terminal rows with mixed dates keep the
+  // full strip.
+  // Suppress the compact-terminal collapse when the payment is
+  // overdue: the compact strip hides the Payment tile (the dates all
+  // "match"), but a Filed-but-payment-overdue row really does have a
+  // live signal on the payment leg the user needs to see, so fall
+  // through to the full 3-tile strip and let the Payment tile paint
+  // destructive.
   const hasOverduePayment =
     paymentIso !== null && paymentIso < todayIso && row.status !== 'completed'
   const allTerminalDatesMatch =
@@ -426,21 +413,17 @@ export function PrimaryDeadlineStrip({
     (paymentIso === null || paymentIso === filingIso) &&
     !hasOverduePayment
   if (allTerminalDatesMatch) {
-    // 2026-05-26 (Yuqi feedback #3): dropped the full green chrome
-    // (border-state-success-border + bg-state-success-hover) from the
-    // compact hero. With the header status pill ALSO carrying the
-    // green Filed tone, having the hero strip + the Filed status pill
-    // BOTH paint green was "the green status appears three times."
-    // Hero is now a quiet divider-subtle bordered strip — date data
-    // only, with a small green ✓ icon as the state cue. The header
-    // pill is the single green-tone anchor.
+    // The compact hero is a quiet divider-subtle bordered strip —
+    // date data only, with a small green ✓ icon as the state cue — not
+    // full green chrome. The header status pill is the single
+    // green-tone anchor, so painting the hero green too would make the
+    // green Filed status appear three times.
     return (
       <div
         aria-label={t`Filed on ${formatDate(filingIso)}`}
-        // 2026-05-26 (Yuqi feedback #13): dropped the rounded-lg
-        // border + bg. The compact hero is just info — date and
-        // relative time, no surface needed. Now an inline row of
-        // text with a leading green check, no frame.
+        // The compact hero is just info — date and relative time, no
+        // surface needed — so it's an inline row of text with a
+        // leading green check, no frame or background.
         className="flex flex-wrap items-center justify-between gap-3 py-1"
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
@@ -464,32 +447,23 @@ export function PrimaryDeadlineStrip({
       </div>
     )
   }
-  // 2026-05-26 (Yuqi seventieth pass — deadline strip unified 3-col):
-  // dropped the HERO + 2-col secondary split (items #2, #3, #4, #14).
-  // The hero card was painting too much red on missed rows AND was
-  // visually disconnected from the two sub-tiles below it. Now ALL
-  // three deadlines share a single grid-cols-3 row with the same
+  // All three deadlines share a single grid-cols-3 row with the same
   // tile shape — Filing always FIRST so it reads as the primary
   // anchor, then Internal, then Payment. The tile tone ladder
   // carries urgency:
   //   • Filing on a missed row → bordered red tone (destructive
-  //     border + tinted bg + red value). No hero-style filled
-  //     background.
+  //     border + tinted bg + red value). No filled background.
   //   • Filing on terminal → success tone.
   //   • Other tiles → neutral white with a small red value when the
   //     individual date is past.
-  // Date text reduced from `text-2xl` (hero) to `text-base` (item
-  // #2: too big). The "MISSED" word doesn't repeat as a separate
-  // badge inside the tile — the header pill carries that text
-  // (answers item #4 "what's the relationship"). The tile's tone
-  // (red border + tint) is the visual cue.
-  // 2026-05-27 (Yuqi screenshot — pill tone with payment-overdue rows):
+  // The "MISSED" word doesn't repeat as a separate badge inside the
+  // tile — the header pill carries that text; the tile's tone (red
+  // border + tint) is the visual cue.
   // `'done'` (UI label "Filed") means the filing event has been
-  // satisfied but the payment may still be outstanding. The prior
-  // tone math painted the FILING tile red whenever the filing date
-  // was past AND the row wasn't terminal — but a `'done'` row IS
-  // satisfied on its filing milestone; the red signal belongs on
-  // payment-due. Split the "satisfied" check by milestone.
+  // satisfied but the payment may still be outstanding, so the
+  // "satisfied" check is split by milestone: a `'done'` row is
+  // satisfied on its filing milestone, and the red signal belongs on
+  // payment-due rather than the filing tile.
   const filingSatisfied = isTerminal || row.status === 'done' || row.status === 'paid'
   const filingPast = filingIso !== null && filingIso < todayIso && !filingSatisfied
   // Internal target overdueness is moot once the filing is satisfied —
@@ -499,14 +473,13 @@ export function PrimaryDeadlineStrip({
   // from showing a red "INTERNAL TARGET N DAYS OVERDUE" chip beside a
   // green "Filed" status pill — the conflict the audit (L10) flagged.
   const internalPast = internalIso !== null && internalIso < todayIso && !filingSatisfied
-  // 2026-05-27 (root-bug + phi J1 merge): payment-overdue isn't gated
-  // by `isTerminal` / filing-satisfied. A row that's been Filed
-  // (status='done') but whose payment date has slipped should STILL
-  // paint the Payment tile destructive — penalty interest accrues
-  // until the wire clears. Matches the canonical payment-terminal
-  // set: only `completed` and `not_applicable` suppress red on the
-  // payment tile. `'paid'` is legacy: technically means payment
-  // cleared, so don't repaint as overdue.
+  // Payment-overdue isn't gated by `isTerminal` / filing-satisfied. A
+  // row that's been Filed (status='done') but whose payment date has
+  // slipped should STILL paint the Payment tile destructive — penalty
+  // interest accrues until the wire clears. Per the canonical
+  // payment-terminal set, only `completed` and `not_applicable`
+  // suppress red on the payment tile. `'paid'` is legacy: it
+  // technically means payment cleared, so don't repaint as overdue.
   const paymentPast =
     paymentIso !== null &&
     paymentIso < todayIso &&
@@ -523,9 +496,9 @@ export function PrimaryDeadlineStrip({
   const formatDaysOverdue = (d: number) =>
     i18n._(plural(d, { one: '# day overdue', other: '# days overdue' }))
 
-  // 2026-06-10 (Yuqi — Pencil `Qn4nX` date cards): the standalone page renders
-  // real cards (icon + pretty date + weekday·relative sub-line + overdue tint),
-  // not the frameless flat strip used inside /clients + the sheet.
+  // The standalone page renders real cards (icon + pretty date +
+  // weekday·relative sub-line + overdue tint), not the frameless flat
+  // strip used inside /clients + the sheet.
   if (variant === 'cards') {
     const wd = (iso: string | null) =>
       iso ? DATE_CARD_WEEKDAYS[new Date(`${iso}T00:00:00.000Z`).getUTCDay()] : ''
@@ -583,13 +556,13 @@ export function PrimaryDeadlineStrip({
   return (
     <div
       aria-label={t`Key deadlines`}
-      // 2026-06-08 (flat-document rework): tiles are frameless cells now —
-      // separate them with hairline vertical dividers (divide-x) instead of
-      // each being its own bordered card, mirroring the alerts EXTRACTED
-      // FACTS grid. `gap-2` is dropped so the dividers read as clean column
-      // rules; each cell gets `px-3` for breathing room around the rule,
-      // and the first cell drops its left pad so the strip aligns flush
-      // with the body's `px-12` rhythm.
+      // Tiles are frameless cells separated by hairline vertical
+      // dividers (divide-x) rather than each being its own bordered
+      // card, mirroring the alerts EXTRACTED FACTS grid. No `gap-2` so
+      // the dividers read as clean column rules; each cell gets `px-3`
+      // for breathing room around the rule, and the first cell drops
+      // its left pad so the strip aligns flush with the body's `px-12`
+      // rhythm.
       className="grid grid-cols-3 divide-x divide-divider-subtle [&>*]:px-3 [&>*:first-child]:pl-0"
     >
       <DeadlineTile
@@ -624,11 +597,11 @@ export function PrimaryDeadlineStrip({
   )
 }
 
-// 2026-05-26 (Yuqi seventieth pass): canonical tile for the unified
-// 3-column deadline strip. `tone` paints the surface (neutral white,
-// success-tinted, destructive-tinted); `valueTone` colors the date
-// itself (independent of surface so a non-terminal "internal target
-// past" row can show a red value on a neutral surface).
+// Canonical tile for the unified 3-column deadline strip. `tone`
+// paints the surface (neutral white, success-tinted,
+// destructive-tinted); `valueTone` colors the date itself
+// (independent of surface so a non-terminal "internal target past"
+// row can show a red value on a neutral surface).
 
 export function DeadlineTile({
   label,
@@ -645,24 +618,18 @@ export function DeadlineTile({
   primary?: boolean
   lateLabel?: string
 }) {
-  // 2026-05-26 (Yuqi drawer feedback — "too much red on the right
-  // panel"): destructive tile drops the filled red bg in favour of a
-  // hairline red border + neutral surface. The header pill ("18 days
-  // overdue"), the milestone-strip In-review ring, AND the alert
-  // banner already carry the lateness signal; this tile filled all
-  // its real estate with red on top of those, stacking the alarm. A
-  // neutral surface with the date value in red (via `valueTone`) +
-  // the destructive border keeps the cue without flooding.
-  // 2026-06-08 (Yuqi /deadlines flat-document rework): the boxed-card tile
-  // chrome is gone — modeled on the alerts EXTRACTED FACTS grid where each
-  // fact is a frameless cell (uppercase eyebrow + value) on the bare
-  // surface, separated by subtle dividers rather than per-tile borders.
-  // No `rounded-lg border` and no white `bg-background-default`; the three
-  // dates now read as a flat divided strip on the warm pane (dividers are
-  // applied by the parent grid). The success tile keeps a soft tinted
-  // surface as its terminal-state tone cue, but frameless. Urgency on the
-  // other tiles is carried by the red value + the restrained inline "N
-  // days overdue" note (no pill — mirrors the alerts red delta).
+  // Tiles are frameless cells (uppercase eyebrow + value) on the bare
+  // surface, modeled on the alerts EXTRACTED FACTS grid — no
+  // `rounded-lg border`, no white `bg-background-default`; the three
+  // dates read as a flat divided strip on the warm pane (dividers come
+  // from the parent grid). The success tile keeps a soft tinted
+  // surface as its terminal-state tone cue, but stays frameless.
+  // Urgency on the other tiles is carried by the red value + a
+  // restrained inline "N days overdue" note: a destructive tile uses a
+  // red value via `valueTone` rather than a filled red surface,
+  // because the header pill, the milestone-strip In-review ring, and
+  // the alert banner already carry the lateness signal — filling this
+  // tile with red too would stack the alarm.
   const surfaceClass = tone === 'success' ? 'bg-state-success-hover' : ''
   const labelToneClass = tone === 'success' ? 'text-text-success' : 'text-text-tertiary'
   const valueClass = valueTone === 'tertiary' ? 'text-text-tertiary' : 'text-text-primary'
@@ -682,9 +649,8 @@ export function DeadlineTile({
           {date ? formatDate(date) : '—'}
         </span>
         {lateLabel ? (
-          // 2026-06-08 (parity #2): restrained inline red note — no filled
-          // pill — consistent with how the alerts detail shows its red
-          // `+N days` delta.
+          // Restrained inline red note — no filled pill — consistent
+          // with how the alerts detail shows its red `+N days` delta.
           <span className="text-caption font-semibold text-text-destructive tabular-nums">
             {lateLabel}
           </span>
@@ -694,30 +660,28 @@ export function DeadlineTile({
   )
 }
 
-// FlatDateList — secondary dates only (2026-05-23). The three primary
-// dates the CPA reaches for first — Internal, Filing, Payment — now
-// live in the PrimaryDeadlineStrip at the top of the snapshot. This
+// FlatDateList — secondary dates only. The three primary dates the
+// CPA reaches for first — Internal, Filing, Payment — live in the
+// PrimaryDeadlineStrip at the top of the snapshot. This
 // list carries everything else (period + create/touched timestamps +
 // e-file pipeline timestamps) as a quiet reference surface under
 // "Reference dates" at the bottom of the drawer.
 //
-// 2026-05-25 (Yuqi Deadlines #14): dropped the redundant `Statutory`
-// row. The PrimaryDeadlineStrip's `Filing deadline` resolves to
-// `row.filingDueDate ?? row.baseDueDate` — i.e. the same baseDueDate
-// when no separate filing date exists, which is most rows. Showing it
-// again under "Reference dates" was the duplication Yuqi flagged ("这
-// 个 dates 上面是不是已经显示了"). E-file pipeline timestamps and
-// tax period stay because they're not in the primary strip.
+// No `Statutory` row: the PrimaryDeadlineStrip's `Filing deadline`
+// resolves to `row.filingDueDate ?? row.baseDueDate` — i.e. the same
+// baseDueDate when no separate filing date exists, which is most
+// rows. Showing it again under "Reference dates" would duplicate the
+// strip above. E-file pipeline timestamps and tax period stay because
+// they're not in the primary strip.
 
 export function FlatDateList({ row }: { row: ObligationQueueRow }) {
   const { t } = useLingui()
   const dateRows = useMemo(
     () => [
-      // 2026-05-26 (86th pass, audit cross-cutting A): user-facing
-      // reference-date list now renders prose via `formatDatePretty`
-      // (e.g. "May 9, 2026") instead of ISO. The drawer is a panel
-      // the user reads; ISO format here undermines the canonical
-      // "finance-grade calm" feel. Queue row date column keeps
+      // User-facing reference-date list renders prose via
+      // `formatDatePretty` (e.g. "May 9, 2026") instead of ISO: the
+      // drawer is a panel the user reads, where ISO would undermine
+      // the "finance-grade calm" feel. The queue row date column keeps
       // `formatDate` because that's a dense triage table where ISO
       // alignment + tabular-nums is the better trade.
       ...(row.efileSubmittedAt

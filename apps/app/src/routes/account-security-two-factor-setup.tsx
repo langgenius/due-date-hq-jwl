@@ -40,17 +40,14 @@ export function TwoFactorSetupPanel({
   onVerify,
 }: TwoFactorSetupPanelProps) {
   const { t } = useLingui()
-  // 2026-05-27 (Step 7 onboarding audit F4-01 — P0): recovery codes
-  // are shown ONCE during setup. Previously the user could click
-  // "Verify and enable" without acknowledging they stored them —
-  // when their phone later breaks they discover the lockout. Add a
-  // mandatory ack checkbox; gate the verify CTA on it.
+  // Recovery codes are shown ONCE during setup. If the user could click
+  // "Verify and enable" without acknowledging they stored them, a later
+  // broken phone means lockout. A mandatory ack checkbox gates the verify CTA.
   const [acknowledgedCodes, setAcknowledgedCodes] = useState(false)
-  // 2026-05-27 (Step 7 onboarding audit F4-04 — P1): Copy buttons
-  // previously had no in-panel feedback. Toast fires from the
-  // parent on success, but inline button-label feedback is the
-  // canonical pattern (one less surface to look at). Track which
-  // field was last copied and swap the button label for 2s.
+  // Copy buttons get inline in-panel feedback: a toast fires from the parent
+  // on success, but inline button-label feedback is the canonical pattern
+  // (one less surface to look at). Track which field was last copied and swap
+  // the button label for 2s.
   const [copiedField, setCopiedField] = useState<'uri' | 'codes' | null>(null)
 
   useEffect(() => {
@@ -100,9 +97,9 @@ export function TwoFactorSetupPanel({
             </p>
           </div>
 
-          {/* 2026-06-01: setup URI now uses InputGroup with a trailing Copy
-              addon so the readOnly value + copy CTA share one focus/border
-              layer instead of stacking label-row above input. */}
+          {/* The setup URI uses InputGroup with a trailing Copy addon so the
+              readOnly value + copy CTA share one focus/border layer instead of
+              stacking label-row above input. */}
           <Field>
             <FieldLabel htmlFor="totp-uri">
               <Trans>Setup URI</Trans>
@@ -148,12 +145,10 @@ export function TwoFactorSetupPanel({
 
       <div className="grid gap-2">
         <div className="flex items-center justify-between gap-2">
-          {/* 2026-05-26 (Step 7 onboarding audit F4-03): heading
-              was `<Label>`, a form-control element — but the
-              backup-codes block has no input. Assistive tech
-              may announce the label as if attached to an
-              input that doesn't exist. Promoted to a real
-              heading; visual weight preserved via tailwind. */}
+          {/* This is a real heading, not a `<Label>`: the backup-codes block
+              has no input, so a form-control `<Label>` would make assistive
+              tech announce it as attached to an input that doesn't exist.
+              Visual weight preserved via tailwind. */}
           <h3 className="text-sm font-medium">
             <Trans>Recovery codes</Trans>
           </h3>
@@ -176,9 +171,9 @@ export function TwoFactorSetupPanel({
             <span key={backupCode}>{backupCode}</span>
           ))}
         </div>
-        {/* 2026-06-01: ack-checkbox row uses Field horizontal so the
-            checkbox-leading label/control alignment + focus state come
-            from the primitive instead of a hand-rolled <Label> + flex. */}
+        {/* The ack-checkbox row uses Field horizontal so the checkbox-leading
+            label/control alignment + focus state come from the primitive
+            instead of a hand-rolled <Label> + flex. */}
         <Field orientation="horizontal" className="mt-1">
           <Checkbox
             id="recovery-codes-ack"

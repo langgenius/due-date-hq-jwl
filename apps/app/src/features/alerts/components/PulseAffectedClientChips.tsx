@@ -29,20 +29,16 @@ function PulseAffectedClientChips({
 }: {
   names: readonly string[]
   hasMore: number
-  // 2026-06-04 round 6 (Yuqi "icon in the client name badge
-  // frame, not outside"): leading people icon now renders
-  // INSIDE the first Badge so the affected-clients semantic
-  // sits on the chip itself, not as a sibling glyph next to
-  // the chip row. Callers opt in via `showLeadingIcon`.
+  // Leading people icon renders INSIDE the first Badge so the
+  // affected-clients semantic sits on the chip itself, not as a sibling
+  // glyph next to the chip row. Callers opt in via `showLeadingIcon`.
   showLeadingIcon?: boolean
   className?: string
 }) {
   if (names.length === 0) return null
-  // 2026-06-04 round 16 (Yuqi Pencil qSR9p — "client name frame
-  // does not need to be always full rounded corners"): chip shape
-  // switched `pill` (default) → `rounded` (8px corner radius,
-  // matching Pencil's qSR9p frame). Multi-word client names read
-  // better in a softly-rounded card than in an aggressive pill.
+  // Chip shape is `rounded` (8px corner radius), not a full pill:
+  // multi-word client names read better in a softly-rounded card than
+  // in an aggressive pill.
   return (
     <ul className={cn('flex min-w-0 flex-wrap items-center gap-1.5', className)}>
       {names.map((name, index) => (

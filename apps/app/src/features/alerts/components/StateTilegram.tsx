@@ -5,12 +5,10 @@ import { cn } from '@duedatehq/ui/lib/utils'
 /**
  * StateTilegram — clickable jurisdiction filter map for `/alerts`.
  *
- * 2026-05-25 (Yuqi Alerts #9 — SVG US-map filter): replaces the
- * flat chip strip with a tilegram-style US map. Each state sits at
- * its approximate geographic position on a grid; the StateBadge
- * SVG motif renders inside the cell. States with active alerts
- * are color-coded by count; states without alerts dim out.
- * Clicking a state toggles its filter.
+ * A tilegram-style US map. Each state sits at its approximate
+ * geographic position on a grid. States with active alerts are
+ * color-coded by count; states without alerts dim out. Clicking a state
+ * toggles its filter.
  *
  * Why a tilegram (not a true geographic SVG):
  *   - The geographic projection's value is "I see my client's
@@ -151,12 +149,9 @@ export function StateTilegram({ counts, activeState, onSelect, className }: Stat
             )}
             style={{ left, top, width: CELL_SIZE, height: CELL_SIZE }}
           >
-            {/* 2026-05-29 (Yuqi /clients round 1 — "remove the state
-                icon everywhere"): SVG StateBadge dropped from the
-                tilegram cell. Each tile now reads as a code-led tile:
-                code on the leading row, count beneath when there are
-                alerts. The tile-border + bg already provides the
-                state-grid identity. */}
+            {/* Code-led tile (no SVG StateBadge): code on the leading
+                row, count beneath when there are alerts. The tile-border
+                + bg already provides the state-grid identity. */}
             <span
               className={cn(
                 'text-caption font-semibold leading-none tabular-nums',

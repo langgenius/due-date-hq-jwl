@@ -567,9 +567,8 @@ export function DeadlineInputRequestDialog({
   const { t } = useLingui()
   const selectedRecipient =
     recipients.find((recipient) => recipient.assigneeId === selectedRecipientUserId) ?? null
-  // 2026-05-26 (step-6 ux-flow audit Q6.3): keep role-specific
-  // labels — collapsing manager/preparer/coordinator to "Team
-  // member" hid information the rest of the app exposes.
+  // Keep role-specific labels — collapsing manager/preparer/coordinator
+  // to "Team member" would hide information the rest of the app exposes.
   const roleLabels = {
     owner: t`Owner`,
     partner: t`Partner`,
@@ -596,12 +595,10 @@ export function DeadlineInputRequestDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 px-6 py-5">
-          {/* 2026-05-26 (step-6 ux-flow audit Q6.1): the recipient label
-              is exposed via id so DropdownTriggerButton's aria-labelledby
-              still binds it for SR users.
-              2026-06-01: rows now ride Field + FieldLabel; the seat-warning
-              "Add an active owner…" uses FieldDescription tone="warning"
-              instead of a hand-rolled <p role=alert>. */}
+          {/* The recipient label is exposed via id so
+              DropdownTriggerButton's aria-labelledby binds it for SR
+              users. Rows ride Field + FieldLabel; the seat-warning
+              "Add an active owner…" uses FieldDescription tone="warning". */}
           <Field>
             <FieldLabel id="deadline-input-request-recipient-label">
               <Trans>Recipient</Trans>
@@ -738,10 +735,10 @@ export function AuthorityRejectionDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid min-h-0 gap-4 overflow-y-auto px-6 py-5">
-          {/* 2026-06-01: 4 fields migrated to Field + FieldLabel. Reason's
-              char counter rides FieldLabel as a trailing span — FieldLabel
-              already gap-2's children so no extra flex row needed; the
-              w-full + justify-between recipe keeps counter right-aligned. */}
+          {/* Reason's char counter rides FieldLabel as a trailing span —
+              FieldLabel already gap-2's children so no extra flex row
+              needed; the w-full + justify-between recipe keeps the
+              counter right-aligned. */}
           <div className="grid gap-4 md:grid-cols-2">
             <Field>
               <FieldLabel htmlFor="authority-rejected-date">
@@ -1083,13 +1080,10 @@ export function PenaltyInputDialog({
     <Dialog open={row !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <DialogContent>
         <DialogHeader>
-          {/* 2026-05-27 (Step 6 cont Q5.4 — P3): title was generic
-              "Penalty inputs" with the client name buried in the
-              description. CPAs working through a list of clients in
-              one sitting open this dialog repeatedly — the title
-              should answer "whose penalty am I editing?" without a
-              second glance. Description retains the tax-code suffix
-              so the filing context is still legible. */}
+          {/* Title names the client so CPAs working through a list in
+              one sitting can answer "whose penalty am I editing?"
+              without a second glance. Description retains the tax-code
+              suffix so the filing context is still legible. */}
           <DialogTitle>
             {row ? (
               <Trans>Penalty inputs for {row.clientName}</Trans>
@@ -1099,9 +1093,8 @@ export function PenaltyInputDialog({
           </DialogTitle>
           <DialogDescription>{row ? formatTaxCode(row.taxType) : null}</DialogDescription>
         </DialogHeader>
-        {/* 2026-05-26 (step-6 ux-flow audit Q5.1/Q5.2): added real
-            <label> elements (placeholder alone disappears on type)
-            and inline helper text describing accepted formats. */}
+        {/* Real <label> elements (placeholder alone disappears on type)
+            plus inline helper text describing accepted formats. */}
         <div className="grid gap-3">
           <Field>
             <FieldLabel htmlFor="penalty-tax-due">
@@ -1142,9 +1135,8 @@ export function PenaltyInputDialog({
           <Button variant="ghost" onClick={onClose}>
             <Trans>Cancel</Trans>
           </Button>
-          {/* 2026-05-26 (step-6 ux-flow audit Q5.3): disable save
-              when both inputs are empty (no-op write polluted the
-              audit log). */}
+          {/* Disable save when both inputs are empty — a no-op write
+              would pollute the audit log. */}
           <Button
             onClick={save}
             disabled={

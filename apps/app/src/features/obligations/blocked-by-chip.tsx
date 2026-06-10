@@ -26,9 +26,9 @@ function BlockedByChip({
   parentObligationId: string
   parentLabel?: string | null
   onOpen: (parentObligationId: string) => void
-  // Compact mode (2026-05-21): drops the "by X · Form Y" label, keeps
-  // the link icon + tooltip. Used in the queue Status cell when the
-  // detail panel is open — saves ~150px without losing the signal.
+  // Compact mode drops the "by X · Form Y" label, keeps the link
+  // icon + tooltip. Used in the queue Status cell when the detail
+  // panel is open — saves ~150px without losing the signal.
   compact?: boolean
 }) {
   const { t } = useLingui()
@@ -36,15 +36,12 @@ function BlockedByChip({
   const title = parentLabel
     ? t`Open the deadline blocking this row: ${label}.`
     : t`Open the linked deadline that's blocking this row.`
-  // 2026-05-25 (Yuqi Deadlines #4): chip palette shifted from full-
-  // amber to neutral chip + red-icon. Yuqi's call: "这个不能就 icon
-  // 是红色，字体是 secondary，背景是浅灰色背景吗" — let the icon
-  // carry the urgency cue while the chip body sits in body-text
-  // neutrals so a row full of these doesn't read as "everything is
-  // on fire." The destructive-red on the icon is still distinct
-  // from RejectionChip (where the WHOLE chip goes red) so the
-  // urgency-tier separation from ux-audit-2026-05-21 §P0 #6 stays
-  // intact — only the visual weight inside this chip changed.
+  // Chip palette is neutral chip + red icon: the icon carries the
+  // urgency cue while the chip body sits in body-text neutrals so a
+  // row full of these doesn't read as "everything is on fire." The
+  // destructive-red on the icon is still distinct from RejectionChip
+  // (where the WHOLE chip goes red) so the urgency-tier separation
+  // stays intact — the urgency lives in the icon, not the chip body.
   if (compact) {
     return (
       <button
@@ -61,15 +58,12 @@ function BlockedByChip({
       </button>
     )
   }
-  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #19): dropped the
-  // bordered-pill chrome. Yuqi's call: "does it need to be in a pill?
-  // all gray." The pill body was reading as a competing badge next
-  // to the Status pill in the same column — two outline chips, same
-  // row, different meanings. Now: inline link with a red LinkIcon
-  // (the urgency cue stays on the icon, where it was already living),
-  // text reads as `text-text-secondary` underline-on-hover. Same
-  // click target, same tooltip; the chip-vs-link distinction makes
-  // it clear that this is a navigation handle, not a status tag.
+  // Inline link (not a bordered pill) so it doesn't read as a
+  // competing badge next to the Status pill in the same column. A
+  // red LinkIcon carries the urgency cue; text reads as
+  // `text-text-secondary` underline-on-hover. The chip-vs-link
+  // distinction makes it clear that this is a navigation handle, not
+  // a status tag.
   return (
     <button
       type="button"
@@ -81,10 +75,9 @@ function BlockedByChip({
       aria-label={title}
       className="inline-flex max-w-[280px] cursor-pointer items-center gap-1 rounded-sm text-sm text-text-secondary underline-offset-2 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
-      {/* 2026-05-26 (Yuqi sixty-sixth pass): icon tone aligned to
-          the label's text-text-secondary so the icon + text read
-          as a single navigation token instead of two greys at
-          different weights. Yuqi: "same gray icon." */}
+      {/* Icon tone aligned to the label's text-text-secondary so the
+          icon + text read as a single navigation token instead of two
+          greys at different weights. */}
       <LinkIcon className="size-3.5 shrink-0 text-text-secondary" aria-hidden />
       <span className="truncate">
         <Trans>Blocked by: {label}</Trans>

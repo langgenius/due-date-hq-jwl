@@ -128,8 +128,8 @@ export function formatDateTimeWithTimezone(value: string, timeZone: string): str
   return `${readPart(parts, 'year')}-${readPart(parts, 'month')}-${readPart(parts, 'day')} ${readPart(parts, 'hour')}:${readPart(parts, 'minute')}:${readPart(parts, 'second')} ${zoneName}`
 }
 
-// 2026-05-24 (critique P2 — clarify): the ISO `2026-05-01 02:50:00
-// PDT` shape `formatDateTimeWithTimezone` returns is the right
+// The ISO `2026-05-01 02:50:00 PDT` shape `formatDateTimeWithTimezone`
+// returns is the right
 // answer for audit-log rows (where precision is the value) but the
 // wrong answer for inbox + members LAST_ACTIVE surfaces (where a
 // CPA scans for recency, not exact second). This helper returns a
@@ -168,10 +168,9 @@ export function formatRelativeTime(value: string, now: Date = new Date()): strin
   if (abs < MS_PER_DAY) return ago(Math.round(abs / MS_PER_HOUR), 'h')
   if (abs < MS_PER_WEEK) return ago(Math.round(abs / MS_PER_DAY), 'd')
 
-  // 2026-06-04 round 68 (Yuqi "over 1 week ago it needs to be exact
-  // date"): past the 1-week mark, "2w ago" / "1mo ago" tell the CPA
-  // basically nothing — the original date is more informative AND
-  // less ambiguous (does "1mo" mean 30 days or "early last month"?).
+  // Past the 1-week mark, "2w ago" / "1mo ago" tell the CPA basically
+  // nothing — the original date is more informative AND less ambiguous
+  // (does "1mo" mean 30 days or "early last month"?).
   // Switch to absolute formatting once we're outside the
   // human-meaningful relative window. Format:
   //   • Same year → "Jun 4"          (e.g. "Jun 4")

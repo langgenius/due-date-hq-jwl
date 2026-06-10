@@ -8,18 +8,11 @@ interface AlertStatusBadgeProps {
   status: PulseFirmAlertStatus
 }
 
-// 2026-05-26 (Yuqi /alerts thirteenth pass): per-status lucide
-// icon. Kept distinct from the obligation status icon set (per
-// Yuqi's earlier note "you should not use their icons") — this
-// vocabulary is alert-specific: CircleCheckBig = the alert is open
-// / active; Undo2 = the alert is in a terminal state that could be
-// reversed (applied / partially_applied / reverted / dismissed);
+// Per-status lucide icon, kept distinct from the obligation status icon
+// set — this vocabulary is alert-specific: CircleCheckBig = the alert
+// is open / active; CheckCheck = applied ("task completed"); Undo2 = a
+// reverseable terminal state (partially_applied / reverted / dismissed);
 // FileCheck = reviewed (acknowledged + closed).
-// 2026-05-26 (Yuqi sixteenth pass #9): `applied` switched from
-// `Undo2` to `CheckCheck` — Yuqi flagged that "applied" should
-// signal "task completed", not "can be undone". The remaining
-// Undo2 family (partially_applied / reverted / dismissed) keeps
-// the "reverseable terminal state" semantic.
 export const ALERT_STATUS_ICON: Record<PulseFirmAlertStatus, LucideIcon> = {
   matched: CircleCheckBig,
   applied: CheckCheck,
@@ -31,17 +24,10 @@ export const ALERT_STATUS_ICON: Record<PulseFirmAlertStatus, LucideIcon> = {
 
 // Single source of truth for "what does the firm-level alert state look like".
 //
-// 2026-05-26 (Yuqi /alerts fifth pass — A#2 + B#3):
-//   • Dropped the leading Spotlight/Sparkles icon. Yuqi asked for
-//     the status pill to follow the same visual language as the
-//     obligation status pills (status-control.tsx) — colour-coded
-//     `variant` only, no icon. The obligation pills use icons of
-//     their own; here we just borrow the variant palette.
-//   • Label for `matched` changed from "New" → "Open". "New" lives
-//     as a SEPARATE small `NEW` chip rendered alongside the status
-//     pill (see AlertCard) when the alert hasn't been actioned
-//     yet. The status pill itself should describe the *workflow*
-//     state (Open / Applied / Dismissed / …), not the
+//   • `matched` is labelled "Open". "New" lives as a SEPARATE small
+//     `NEW` chip rendered alongside the status pill (see AlertCard) when
+//     the alert hasn't been actioned yet. The status pill describes the
+//     *workflow* state (Open / Applied / Dismissed / …), not the
 //     read-state — the read-state is a different dimension.
 //   • Variants mapped per terminal-vs-active semantics, matching the
 //     obligation pill tone ladder:
@@ -65,15 +51,9 @@ export function AlertStatusBadge({ status }: AlertStatusBadgeProps) {
   }
   const entry = config[status]
   const Icon = ALERT_STATUS_ICON[status]
-  // 2026-05-26 (Yuqi /alerts eighth pass #4): bump to `h-6
-  // text-sm` so the status pill matches AlertSourceBadge's height
-  // (also h-6 text-sm) — they sit side-by-side in the drawer
-  // header and the card row, and the previous default `h-5`
-  // looked shorter than the source pill next to it.
-  // 2026-05-26 (Yuqi thirteenth pass): icon added per status —
-  // see ALERT_STATUS_ICON map above. Yuqi reversed the earlier
-  // "no icons" call now that we have an alert-specific
-  // vocabulary that doesn't collide with obligation status.
+  // `h-6 text-sm` so the status pill matches AlertSourceBadge's height
+  // (also h-6 text-sm) — they sit side-by-side in the drawer header and
+  // the card row. Icon per status — see ALERT_STATUS_ICON map above.
   return (
     <Badge variant={entry.variant} className="h-6 text-sm">
       <Icon aria-hidden />

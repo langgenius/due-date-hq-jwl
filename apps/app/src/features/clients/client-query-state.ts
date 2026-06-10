@@ -49,11 +49,8 @@ export function normalizeClientsQueryFilters(input: {
   pulse: readonly string[]
 }): ClientFilters {
   return {
-    // 2026-05-26 (Yuqi /clients directory pivot brief): `q` URL
-    // param now flows through normalize → `filters.search` →
-    // filterClients haystack match. Before this pass the parser
-    // was declared but never consumed; every filter handler reset
-    // `q: null` on activation, leaving search effectively unusable.
+    // `q` URL param flows through normalize → `filters.search` →
+    // filterClients haystack match.
     search: input.q?.trim() ?? '',
     clientFilters: cleanStringFilters(input.clients),
     entityFilters: input.entity.filter(isClientEntityType),

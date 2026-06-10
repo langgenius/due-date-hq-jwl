@@ -46,7 +46,7 @@ export function ChecklistItemRow({
   response: ClientReadinessResponsePublic | null
   correctionMode?: boolean
   pending: boolean
-  // Multi-select model (2026-05-23). The leading Checkbox tracks
+  // Multi-select model. The leading Checkbox tracks
   // selection (for the "Mark client docs received" batch
   // action), NOT the item's received-state. Status is communicated
   // via the small inline status chip on received / needs-review
@@ -85,15 +85,12 @@ export function ChecklistItemRow({
         return { variant: 'outline' as const, label: response.status }
       })()
     : null
-  // 2026-05-23 (drawer fidelity pass): card visual rebuilt against
-  // the Figma target. Per-row chrome stripped — no Mark received
-  // button, no chevron expand, no italic info-icon description.
-  // The card now reads as a clean checkbox + title + description
+  // The card reads as a clean checkbox + title + description
   // block; status is a small chip on the right when non-default;
   // selection state shows a strong accent border + filled checkbox.
   // The checklist action row owns the
   // mark-received affordance (single-item case: select one, click
-  // action row). Edit/delete moved behind an overflow menu (… on hover).
+  // action row). Edit/delete live behind an overflow menu (… on hover).
   return (
     <div
       className={cn(
@@ -188,8 +185,7 @@ export function ChecklistItemRow({
             Renders only on hover/focus to keep the default state
             calm (matches the Figma's clean card surface). */}
         <DropdownMenu>
-          {/* 2026-06-01: swap hand-rolled icon button chrome for the Button
-              primitive (variant="ghost" + size="icon-xs"). The primitive owns
+          {/* Button primitive (variant="ghost" + size="icon-xs") owns
               base sizing, hover/focus ring, and ghost coloring; the className
               keeps only the row-hover-reveal opacity behavior (opacity-0 at
               rest, restored on group-hover/focus-visible) which is layout
@@ -228,8 +224,8 @@ export function ChecklistItemRow({
                 </span>
               </DropdownMenuItem>
             ) : null}
-            {/* 2026-06-07 (Pencil AYpfU): waive an outstanding doc that
-                doesn't apply this filing year (or restore it). */}
+            {/* Waive an outstanding doc that doesn't apply this filing
+                year (or restore it). */}
             {waived ? (
               <DropdownMenuItem onClick={() => onStatusChange('missing')} disabled={pending}>
                 <RotateCcwIcon className="size-4" aria-hidden />

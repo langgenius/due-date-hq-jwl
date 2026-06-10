@@ -35,11 +35,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * for that key, the component returns `null` on first render — the
  * banner doesn't even mount. When `dismissKey` is omitted, the dismiss
  * × also disappears (the banner is non-dismissable).
- *
- * 2026-05-26 (Stripe-level Phase A): canonical info banner primitive
- * per docs/Design/stripe-level-critique-2026-05-26.md §S3. Wired on
- * /clients (count < 5 → Import tip) and /clients/[id] (needs-facts →
- * Add filing state tip) in the same pass.
  */
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
@@ -125,11 +120,9 @@ export function InfoBanner({
       <Icon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
       <p className="min-w-0 flex-1 truncate text-sm text-text-secondary">{message}</p>
       {cta ? (
-        // 2026-06-01: migrated hand-rolled accent CTA button to the
-        // canonical `<TextLink variant="accent" size="sm">` primitive
-        // per docs/Design/design-system-migration-2026-05-31.md. Same
-        // visual contract (accent tone + hover-underline) with shared
-        // focus-ring treatment.
+        // The CTA uses the canonical `<TextLink variant="accent" size="sm">`
+        // primitive (accent tone + hover-underline) with shared focus-ring
+        // treatment.
         <TextLink variant="accent" size="sm" onClick={cta.onClick} className="shrink-0">
           {cta.label}
         </TextLink>

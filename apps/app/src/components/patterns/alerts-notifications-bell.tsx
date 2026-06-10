@@ -30,8 +30,8 @@ import { formatDatePretty } from '@/lib/utils'
 // AlertsNotificationsBell — top-right utility bell that opens a popover
 // listing recent in-app notifications. The popover IS the Inbox at a
 // glance; the expand icon in the header promotes the same content to
-// the full-page Inbox at /notifications. The sidebar no longer has an
-// Inbox entry as of 2026-05-21 — the bell is the canonical surface.
+// the full-page Inbox at /notifications. The sidebar has no Inbox entry —
+// the bell is the canonical surface.
 //
 // Three surfaces, three roles:
 //   - Bell + popover = the Inbox (compact form)
@@ -118,12 +118,11 @@ function AlertsNotificationsBell() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      {/* 2026-06-01: hand-rolled bell trigger collapsed onto
-          SidebarMenuButton — same chrome/hover/focus/collapsed-tile
-          behavior as the other footer destinations (Audit log,
-          Settings). Unread count routes through SidebarMenuBadge
-          tone='urgent' which already handles the expanded-pill ↔
-          collapsed-dot variant per sidebar mode. */}
+      {/* The bell trigger is a SidebarMenuButton — same
+          chrome/hover/focus/collapsed-tile behavior as the other footer
+          destinations (Audit log, Settings). Unread count routes through
+          SidebarMenuBadge tone='urgent' which already handles the
+          expanded-pill ↔ collapsed-dot variant per sidebar mode. */}
       <PopoverTrigger
         render={
           <SidebarMenuButton
@@ -166,11 +165,9 @@ function AlertsNotificationsBell() {
             ) : null}
           </div>
           <div className="flex items-center gap-1">
-            {/* 2026-06-01: Mark-all-read uses TextLink variant='secondary'
-                size='sm' — same secondary-tone hover-to-primary tonality
-                as the previous hand-rolled <button>, now from the
-                primitive. Disabled-opacity routes through the primitive's
-                rounded focus ring as before. */}
+            {/* Mark-all-read uses TextLink variant='secondary' size='sm' for
+                secondary-tone hover-to-primary tonality. Disabled-opacity
+                routes through the primitive's rounded focus ring. */}
             {unreadCount > 0 ? (
               <TextLink
                 variant="secondary"
@@ -183,13 +180,11 @@ function AlertsNotificationsBell() {
               </TextLink>
             ) : null}
             {/* Expand icon — promotes the popover to the full-page Inbox
-              at /notifications. Now that the sidebar no longer has an
-              Inbox entry, this is the canonical way users reach the
-              full view. Sits in the header so it's always visible
-              regardless of how long the notification list scrolls.
-              2026-06-01: hand-rolled icon link replaced by Button
-              variant='ghost' size='icon-xs' (28px), which already
-              owns the size-7 + rounded-lg + hover/focus chrome. */}
+              at /notifications. Since the sidebar has no Inbox entry, this is
+              the canonical way users reach the full view. Sits in the header
+              so it's always visible regardless of how long the notification
+              list scrolls. Uses Button variant='ghost' size='icon-xs' (28px),
+              which owns the size-7 + rounded-lg + hover/focus chrome. */}
             <Button
               variant="ghost"
               size="icon-xs"
@@ -207,10 +202,9 @@ function AlertsNotificationsBell() {
           </div>
         </header>
 
-        {/* 2026-06-01: hand-rolled filter pills collapsed onto the
-            segmented Tabs primitive. Two triggers (Unread / All)
-            share the same value/onValueChange contract; selected
-            state comes from the primitive's `data-active` chrome. */}
+        {/* Filter pills use the segmented Tabs primitive. Two triggers
+            (Unread / All) share the same value/onValueChange contract;
+            selected state comes from the primitive's `data-active` chrome. */}
         <div className="border-b border-divider-subtle px-3 py-2">
           <Tabs
             value={filter}
@@ -249,10 +243,9 @@ function AlertsNotificationsBell() {
         </ul>
 
         <footer className="border-t border-divider-subtle px-4 py-2.5">
-          {/* 2026-06-01: footer link routed through TextLink
-              variant='secondary' size='sm' — the primitive owns the
-              secondary-tone hover-to-primary chrome + focus ring +
-              gap-1 layout. Trailing icon stays as a child. */}
+          {/* The footer link uses TextLink variant='secondary' size='sm' —
+              the primitive owns the secondary-tone hover-to-primary chrome +
+              focus ring + gap-1 layout. Trailing icon stays as a child. */}
           <TextLink
             variant="secondary"
             size="sm"
@@ -276,11 +269,10 @@ function NotificationItem({
 }) {
   const unread = isUnread(notification)
   const Icon = TYPE_ICONS[notification.type]
-  // 2026-05-27 (Yuqi polish — "why is all the inbox notification in
-  // blue?"): the unread state used to paint the whole row in
-  // `bg-state-accent-hover-alt/40` — a heavy lavender tint that
-  // dominated the popover and shouted "everything is urgent." Now
-  // the unread signal is carried by:
+  // The unread state avoids painting the whole row in
+  // `bg-state-accent-hover-alt/40` — a heavy lavender tint that would
+  // dominate the popover and shout "everything is urgent." Instead the
+  // unread signal is carried by:
   //   1. The dot on the LEFT (moved from right → left, the canonical
   //      iOS / Linear / Slack position so the eye scans the dot
   //      column to triage what's new).

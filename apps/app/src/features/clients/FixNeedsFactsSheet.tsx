@@ -90,7 +90,7 @@ export function FixNeedsFactsSheet({
         onOpenChange(next)
       }}
     >
-      {/* 2026-06-01: SheetContent flush variant absorbs the
+      {/* SheetContent flush variant absorbs the
           gap-0/overflow-hidden/p-0 recipe so the header + counter strip
           + list can each own their own padding + dividers. */}
       <SheetContent flush className="w-full max-w-[640px] sm:max-w-[640px]">
@@ -113,8 +113,7 @@ export function FixNeedsFactsSheet({
             </Trans>
           </span>
           {visibleClients.length === 0 && totalCount > 0 ? (
-            // 2026-06-01: hand-rolled inline-flex success tag swapped for
-            // the canonical success Badge so the chip inherits the same
+            // Canonical success Badge so the chip inherits the same
             // height/icon-sizing as the rest of the app's success pills.
             <Badge variant="success">
               <CheckCircle2Icon aria-hidden />

@@ -36,12 +36,9 @@ function PulseSourceMeta({
   const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
   return (
     <div
-      // 2026-06-04 round 45 (Yuqi /today feedback #5 — "smaller
-      // text — apply to all"): step down `text-[13px]` → `text-xs`.
-      // AlertCard's inline source span on /alerts also bumped to
-      // 12px so the two surfaces stay aligned at the new smaller
-      // size. Reads as a quiet caption beside the larger severity
-      // pill + title.
+      // `text-xs` (12px) to match AlertCard's inline source span on
+      // /alerts, so the two surfaces stay aligned. Reads as a quiet
+      // caption beside the larger severity pill + title.
       className={cn('flex min-w-0 items-center gap-2 text-xs text-text-tertiary', className)}
       aria-label={t`Alert source`}
     >

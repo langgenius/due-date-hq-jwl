@@ -14,9 +14,8 @@ import { formatDateTimeWithTimezone } from '@/lib/utils'
  * disclosure, not visual noise. Pairs with a tooltip that exposes WHEN
  * the AI produced it and HOW the user can override it.
  *
- * 2026-05-27 (audit drain — η — F-008 / F-039): introduced for the
- * readiness checklist Astroid marker. The marker DROPS once the user
- * value-edits the row (server-side: origin flips to 'manual',
+ * Used for the readiness checklist Astroid marker. The marker DROPS once
+ * the user value-edits the row (server-side: origin flips to 'manual',
  * userEditedAt stamps) — this badge simply renders the new state.
  *
  * ## When to use

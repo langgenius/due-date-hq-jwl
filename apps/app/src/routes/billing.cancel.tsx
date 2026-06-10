@@ -17,13 +17,11 @@ import { billingSearchParamsParsers, serializeBillingQuery } from '@/features/bi
 
 export function BillingCancelRoute() {
   const [{ plan, interval }] = useQueryStates(billingSearchParamsParsers)
-  // 2026-05-27 (step-6 audit #123): if the user lands here with no
-  // plan/interval in the query (e.g. opened a bookmarked cancel URL,
-  // or the upstream link dropped its params), the previous shape
-  // routed "Restart checkout" to `/billing/checkout` with no plan
-  // selection — a dead end. When we have no plan signal, route the
-  // primary CTA to the `/billing` plan-picker instead and re-label
-  // it to match.
+  // If the user lands here with no plan/interval in the query (e.g. opened a
+  // bookmarked cancel URL, or the upstream link dropped its params), routing
+  // "Restart checkout" to `/billing/checkout` with no plan selection is a dead
+  // end. When we have no plan signal, route the primary CTA to the `/billing`
+  // plan-picker instead and re-label it to match.
   const hasPlanSelection = Boolean(plan)
   const restartHref = hasPlanSelection
     ? serializeBillingQuery('/billing/checkout', { plan, interval })

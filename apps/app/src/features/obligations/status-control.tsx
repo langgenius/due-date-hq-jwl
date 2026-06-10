@@ -56,15 +56,11 @@ const LIFECYCLE_V2_STATUSES = [
   'completed',
 ] as const satisfies readonly ObligationStatus[]
 
-// 2026-05-25 (Yuqi Deadlines #10 status color audit): two collisions
-// surfaced — `extended` used the same blue (`info` variant + `normal`
-// dot) as `in_progress`, and `done`/`paid`/`completed` all shared
-// green. The `extended` collision was a real bug — in_progress means
-// "we're actively working", extended means "deadline got pushed
-// forward via an extension filing." Different intent, same color.
-// Fixed: extended now renders as `secondary` (gray pill) with a blue
-// dot — distinct from in_progress (blue pill + blue dot) and from
-// pending (gray pill + gray dot).
+// `extended` renders as `secondary` (gray pill) with a blue dot —
+// distinct from in_progress (blue pill + blue dot) and from pending
+// (gray pill + gray dot). in_progress means "we're actively
+// working", extended means "deadline got pushed forward via an
+// extension filing" — different intent, so they must not share a color.
 //
 // The done/paid/completed cluster is intentionally green-shared:
 // they're all "settled" lifecycle states and the eye doesn't need to
@@ -73,14 +69,11 @@ const LIFECYCLE_V2_STATUSES = [
 //
 // `waiting_on_client` uses outline + info dot (uncolored pill +
 // violet dot) which is already distinct from every filled pill.
-// 2026-05-25 (Yuqi review tone audit): `review` flipped from
-// `warning` (amber) → `info` (blue). Lifecycle v2 reads `review` as
-// "In review" — i.e. work IS happening, someone is actively
-// reviewing the prepared return. That's the same family as
+// `review` is `info` (blue), not `warning` (amber): lifecycle v2
+// reads `review` as "In review" — work IS happening, someone is
+// actively reviewing the prepared return. That's the same family as
 // `in_progress` (blue), not the "needs attention" family that
-// warning/amber implies. The icon was already `text-text-accent`,
-// so the pill was internally inconsistent — amber bg + amber text
-// + blue icon. Now: blue bg + blue text + blue icon, matching
+// warning/amber implies. Blue bg + blue text + blue icon, matching
 // in_progress.
 const STATUS_VARIANT: Record<
   ObligationStatus,
@@ -98,21 +91,10 @@ const STATUS_VARIANT: Record<
   completed: 'success',
 }
 
-// 2026-05-25 (status-pill audit §4 #8): `STATUS_DOT` (a
-// `Record<ObligationStatus, BadgeStatusDot tone>` mapping)
-// lived here as the pre-icon-pass affordance. It was retired
-// once the canonical badge + queue control switched to
-// icon-led (`STATUS_ICON` + `STATUS_ICON_COLOR`); the only
-// remaining consumer was the obligations-page filter tab as a
-// fallback that was already unreachable (every status-mapped
-// tab passes `icon`). Removed from the export surface so
-// future surfaces can't regress onto the legacy treatment.
-//
-// 2026-05-25 (Yuqi status icon pass): every status now ships a
-// lucide icon + a tinted color class so the chrome reads as
-// recognizable glyphs ("hourglass = waiting on client", "barrier
-// = blocked") rather than tone-dot abstractions. The icon set
-// mirrors the lifecycle v2 collapse (see useLifecycleV2StatusLabels):
+// Every status ships a lucide icon + a tinted color class so the
+// chrome reads as recognizable glyphs ("hourglass = waiting on
+// client", "barrier = blocked") rather than tone-dot abstractions.
+// The icon set mirrors the lifecycle v2 collapse (see useLifecycleV2StatusLabels):
 //   pending / not_applicable           → Loader            (gray)
 //   waiting_on_client                  → Hourglass         (amber)
 //   blocked                            → Construction      (red)
@@ -159,19 +141,11 @@ const STATUS_ICON_COLOR: Record<ObligationStatus, string> = {
   completed: 'text-text-success',
 }
 
-// 2026-05-26 (Yuqi follow-up — "Filed can be more subtle"): the
-// `success` Badge variant reverted from solid green back to a soft
-// green tint, so the icon stays on `text-text-success` (the dark
-// green from STATUS_ICON_COLOR) and reads against the soft pill.
-// Map is preserved as an alias so existing consumers don't break.
-//
-// 2026-05-27 (Yuqi quick-fix batch — "icon color matches text color
-// on the status pill"): icon-on-pill tones now mirror the Badge
-// variant's text tone, so the chip reads as one coherent color
-// rather than gray-text-plus-tinted-icon. The non-pill rendering
-// (`STATUS_ICON_COLOR`, used in the dropdown menu against white)
-// keeps the canonical hue swatch so the menu still reads as a
-// color-coded picker.
+// Icon-on-pill tones mirror the Badge variant's text tone, so the
+// chip reads as one coherent color rather than gray-text-plus-tinted-icon.
+// The non-pill rendering (`STATUS_ICON_COLOR`, used in the dropdown
+// menu against white) keeps the canonical hue swatch so the menu
+// still reads as a color-coded picker.
 //
 //   pending          → secondary pill (gray text)   → gray icon
 //   waiting_on_client→ outline pill   (gray text)   → gray icon
@@ -180,10 +154,6 @@ const STATUS_ICON_COLOR: Record<ObligationStatus, string> = {
 //
 // Tinted statuses (info / success / destructive / warning) keep
 // their colored icons because the pill's text tone already matches.
-// "In review" → variant `info` (blue text + blue icon) — that case
-// was already correct; the brief named it as the symptom, the
-// underlying mismatch was on the v2-collapsed `extended` status
-// (which also displays as "In review" but used `secondary` chrome).
 const STATUS_ICON_COLOR_ON_PILL: Record<ObligationStatus, string> = {
   ...STATUS_ICON_COLOR,
   pending: 'text-text-secondary',
@@ -199,12 +169,8 @@ function isObligationStatus(value: string): value is ObligationStatus {
 function useStatusLabels(): StatusLabels {
   const { t } = useLingui()
   return useMemo(
-    // 2026-05-27 (Agent X3 milestone audit M-06): `review` label flipped
-    // from "Needs review" → "In review" to match the v2 collapse and the
-    // tone audit on the pill (`review` reads as work-in-progress, not
-    // "needs attention"). The v2 label hook already returned "In review";
-    // surfaces falling back to this legacy map (admin / debug surfaces)
-    // used to disagree with the queue pill on the same row.
+    // `review` reads as "In review" (work-in-progress, not "needs
+    // attention") to match the v2 collapse and the tone on the pill.
     () => ({
       pending: t`Not started`,
       in_progress: t`In progress`,
@@ -224,7 +190,7 @@ function useStatusLabels(): StatusLabels {
 // Lifecycle v2 label overrides — under v2 the queue shows only 6
 // canonical pill labels even though the DB still carries the
 // legacy 10-state palette. Same map shape as useStatusLabels so
-// the consumer is unaware. The collapse mapping (2026-05-21):
+// the consumer is unaware. The collapse mapping:
 //   pending / not_applicable           → "Not started"
 //   waiting_on_client                  → "Waiting on client"
 //   blocked                            → "Blocked"
@@ -260,15 +226,14 @@ function useReadinessLabels(): ReadinessLabels {
   const { t } = useLingui()
   return useMemo(
     () => ({
-      // 2026-05-23: materials state vocabulary. Was "Ready / Waiting /
-      // Needs review". Renamed in three passes to break visual
-      // collisions with the obligation status palette:
-      //   - "Waiting" collided with status `waiting_on_client` → now
-      //     "Outstanding" (materials are outstanding).
-      //   - "Ready" was ambiguous (firm-side or client-side?) → now
-      //     "Received" (materials have been received).
-      //   - "Needs review" collided with status `review` → now
-      //     "Needs CPA action" (the firm has to act on the response).
+      // Materials state vocabulary chosen to avoid visual collisions
+      // with the obligation status palette:
+      //   - "Outstanding" (not "Waiting", which collides with status
+      //     `waiting_on_client`) — materials are outstanding.
+      //   - "Received" (not "Ready", which is ambiguous firm-side vs
+      //     client-side) — materials have been received.
+      //   - "Needs CPA action" (not "Needs review", which collides
+      //     with status `review`) — the firm has to act on the response.
       // These chip labels appear in the audit log entries and the
       // materials overview header. Each label answers the question
       // "what state are the materials in?" not "is anyone ready?"
@@ -414,9 +379,9 @@ function ObligationStatusReadBadge({
   // Size enforced by Badge primitive's `[&>svg]:size-3!` rule
   // (see docs/Design/icon-sizing.md). Only the color class is
   // passed here — a size class would be silently overridden.
-  // 2026-05-26 (Stripe S9): uses STATUS_ICON_COLOR_ON_PILL so the
-  // success statuses (solid green chip after the badge restyle)
-  // render a white icon instead of disappearing into the fill.
+  // Uses STATUS_ICON_COLOR_ON_PILL so the success statuses (solid
+  // green chip) render a white icon instead of disappearing into
+  // the fill.
   return (
     <Badge variant={STATUS_VARIANT[status]} className={className}>
       <Icon className={STATUS_ICON_COLOR_ON_PILL[status]} aria-hidden />

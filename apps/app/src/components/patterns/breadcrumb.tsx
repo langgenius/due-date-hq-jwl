@@ -47,7 +47,7 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
   // a `to`, render as a friendly back-link (`< Clients`) instead of
   // the uppercase eyebrow-tag chain. The eyebrow chain reads as a
   // section label tag when the chain has only one item — users miss
-  // that it's clickable (audit follow-up 2026-05-28). For two+
+  // that it's clickable. For two+
   // segments the canonical chain still reads as wayfinding because
   // the chevron separators + multiple labels make the structure
   // obvious.
@@ -57,10 +57,9 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
     if (!item || !item.to) return null
     return (
       <nav aria-label="Breadcrumb" className={cn('flex items-center', className)}>
-        {/* 2026-06-01: back-link collapsed onto TextLink variant='muted'.
-            The primitive carries the muted-tone hover-to-tertiary
-            chrome + the focus-visible ring; we just plug in the
-            ChevronLeft + label as children. */}
+        {/* The back-link is a TextLink variant='muted': the primitive carries
+            the muted-tone hover-to-tertiary chrome + the focus-visible ring;
+            we just plug in the ChevronLeft + label as children. */}
         <TextLink
           variant="muted"
           render={<Link to={item.to} title={`Go back · ${shortcutHint}`} />}
