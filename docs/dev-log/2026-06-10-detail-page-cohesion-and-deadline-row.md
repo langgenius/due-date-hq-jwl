@@ -137,3 +137,18 @@ the exact Zod paths, then reverted it. Two root causes:
 Verified: `/deadlines/000000000009` (Sunbelt FL F1120, Waiting on client) now
 loads — eyebrow pill + Stage 2 of 6 + materials block all render. tsgo clean
 (app + server).
+
+## (c) finish — active-stage BLOCKING panel (Pencil c2l347)
+
+With the backend fix unblocking waiting deadlines, finished the iTasJ active-stage
+card: added the `c2l347` NextMovePanel to `ActiveStageDetailCard` (panels.tsx) —
+a top-border "BLOCKING" section (10/700 eyebrow) naming the top 2 outstanding
+materials with a red/orange status dot + "+N more outstanding". Real data
+(`readinessChecklist` filtered to not-received/not-waived); names WHICH docs block
+(additive over the counts above). Per one-purpose-per-panel + separate-
+visualization-from-action, it's a named glance only — the single action stays the
+"Check materials" link above ("Send reminder" was the earlier intentional merge).
+Verified live on /deadlines/000000000009 (Sunbelt FL F1120). tsgo clean.
+
+The active-stage card now matches iTasJ: eyebrow status pill + Stage 2 of 6 +
+sub-status · materials big-number + chips + progress bar · Check materials · BLOCKING.

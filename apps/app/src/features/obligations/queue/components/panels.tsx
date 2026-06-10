@@ -1449,6 +1449,12 @@ export function ActiveStageDetailCard({
     const waived = readinessChecklist.filter((item) => item.status === 'waived').length
     return { total, received, waived, outstanding: Math.max(0, total - received - waived) }
   }, [readinessChecklist])
+  // Pencil `c2l347` BLOCKING glance: the actual outstanding materials (real
+  // checklist items) so the card names WHICH docs block, not just a count.
+  const outstandingItems = useMemo(
+    () => readinessChecklist.filter((item) => item.status !== 'received' && item.status !== 'waived'),
+    [readinessChecklist],
+  )
   // Sub-status descriptor — read inline (NOT from
   // `subStatusForActiveStage(row, t)` because that helper takes `t`
   // as a parameter, which the Lingui macro doesn't transform → label
@@ -2368,6 +2374,39 @@ export function ActiveStageDetailCard({
             <Trans>Check materials</Trans>
             <ArrowUpRightIcon className="size-3" aria-hidden />
           </button>
+        </div>
+      ) : null}
+      {isWaitingDocsCase && outstandingItems.length > 0 ? (
+        // Pencil `c2l347` NextMovePanel — a compact "BLOCKING" section naming the
+        // top outstanding materials with a red/orange status dot, behind a
+        // top-border separator (matches the Pencil). It NAMES the blockers
+        // (additive over the counts above); the single action stays the
+        // "Check materials" link — separate visualization from action.
+        <div className="mt-3 flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.8px] text-text-tertiary">
+            <Trans>Blocking</Trans>
+          </p>
+          <ul className="flex flex-col">
+            {outstandingItems.slice(0, 2).map((item, idx) => (
+              <li key={item.id} className="flex items-center gap-3 py-1.5">
+                <span
+                  className={cn(
+                    'size-1.5 shrink-0 rounded-full',
+                    idx === 0 ? 'bg-state-destructive-solid' : 'bg-state-warning-solid',
+                  )}
+                  aria-hidden
+                />
+                <span className="min-w-0 flex-1 truncate text-[13px] text-text-secondary">
+                  {item.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {outstandingItems.length > 2 ? (
+            <p className="text-[12px] text-text-tertiary">
+              {t`+${outstandingItems.length - 2} more outstanding`}
+            </p>
+          ) : null}
         </div>
       ) : null}
       {stageKey === 'completed' ? (
