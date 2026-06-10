@@ -59,3 +59,12 @@ Reuses existing primitives throughout: `AssigneeAvatar`, `DueDaysPill`,
 `ObligationStatusReadBadge`, `TaxCodeBadge`, `deadlineDetailHref`.
 
 Spec: `docs/Design/deadline-row-interaction.md` (committed alongside).
+
+## Follow-up — deadline detail feedback polish (Yuqi /deadlines/:id batch)
+
+- **#7 date cards smaller**: `DeadlineDateCard` tightened — `px-4 py-3`, 16px date
+  (was 22), 11px sub — so the strip stops dominating the header.
+- **#8 stepper caption**: "Past deadline" / "Expected" dropped to 8px (smaller
+  than the 9px date above) + `text-muted` (lighter).
+- **#9 unreached stages**: stages not yet reached render as an empty circle (no
+  glyph), per Pencil `aNMRF` — only done / active / skipped carry an icon.

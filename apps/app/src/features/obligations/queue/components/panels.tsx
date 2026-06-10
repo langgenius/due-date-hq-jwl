@@ -55,7 +55,6 @@ import {
   CheckCircle2Icon,
   ChevronRightIcon,
   CircleCheck,
-  CircleIcon,
   ClipboardListIcon,
   Clock,
   Construction,
@@ -319,11 +318,13 @@ function DeadlineDateCard({
   return (
     <div
       className={cn(
-        'flex flex-col gap-2 rounded-xl border border-divider-subtle px-[18px] py-4',
+        // 2026-06-10 (Yuqi #7 "smaller"): tighter date card — px-4/py-3, 16px
+        // date (was 22), 11px sub — so the strip stops dominating the header.
+        'flex flex-col gap-1 rounded-xl border border-divider-subtle px-4 py-3',
         overdue ? 'bg-state-warning-hover' : 'bg-background-default',
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <Icon
           className={cn('size-3 shrink-0', overdue ? 'text-text-warning' : 'text-text-tertiary')}
           aria-hidden
@@ -332,13 +333,13 @@ function DeadlineDateCard({
           {label}
         </span>
       </div>
-      <span className="text-[22px] leading-none font-semibold tracking-[-0.3px] text-text-primary tabular-nums">
+      <span className="text-[16px] leading-none font-semibold tracking-[-0.2px] text-text-primary tabular-nums">
         {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
       </span>
       {subline ? (
         <span
           className={cn(
-            'text-[12px] font-medium',
+            'text-[11px] font-medium',
             sublineTone === 'destructive'
               ? 'text-text-destructive'
               : sublineTone === 'warning'
@@ -1020,6 +1021,13 @@ export function PathToFilingSummary({
                   )}
                 >
                   {(() => {
+                    // 2026-06-10 (Yuqi #9): stages NOT yet reached render as an
+                    // empty circle (no icon), per Pencil `aNMRF` — only the
+                    // done / active / skipped stages carry a glyph. The wrapper
+                    // already paints the upcoming circle (white + border).
+                    const isUpcoming =
+                      state !== 'done' && state !== 'active' && state !== 'skipped' && !overdueActive
+                    if (isUpcoming) return null
                     // 2026-05-26 (Yuqi feedback #8): align the stage
                     // icon set with the canonical STATUS_ICON map
                     // (status-control.tsx). The pending stage now
@@ -1160,13 +1168,15 @@ export function PathToFilingSummary({
                   // underneath read as a shout. The word still says
                   // "Past deadline" — readable in any tone.
                   <span
-                    className="text-center text-caption-xs font-medium uppercase tracking-wide leading-tight text-text-secondary"
+                    // 2026-06-10 (Yuqi #8): caption smaller than the date above
+                    // (8px vs 9px) + lighter (muted) so it reads as sub-meta.
+                    className="text-center text-[8px] font-medium uppercase tracking-wide leading-tight text-text-muted"
                     title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days past deadline.`}
                   >
                     <Trans>Past deadline</Trans>
                   </span>
                 ) : isExpected ? (
-                  <span className="text-center text-caption-xs font-medium uppercase tracking-wide leading-tight text-text-tertiary">
+                  <span className="text-center text-[8px] font-medium uppercase tracking-wide leading-tight text-text-muted">
                     <Trans>Expected</Trans>
                   </span>
                 ) : null}
@@ -1429,6 +1439,14 @@ export function ActiveStageDetailCard({
     () => willReadinessChecklistBeFullyReceived(readinessChecklist, new Set<string>()),
     [readinessChecklist],
   )
+  // 2026-06-10 (Yuqi — Pencil `iTasJ` materials progress): big-number +
+  // received/outstanding/waived chips + green progress bar for the waiting card.
+  const readinessCounts = useMemo(() => {
+    const total = readinessChecklist.length
+    const received = readinessChecklist.filter((item) => item.status === 'received').length
+    const waived = readinessChecklist.filter((item) => item.status === 'waived').length
+    return { total, received, waived, outstanding: Math.max(0, total - received - waived) }
+  }, [readinessChecklist])
   // Sub-status descriptor — read inline (NOT from
   // `subStatusForActiveStage(row, t)` because that helper takes `t`
   // as a parameter, which the Lingui macro doesn't transform → label
@@ -2281,27 +2299,62 @@ export function ActiveStageDetailCard({
           Materials". "Open" reads as "open the tab"; "Check" reads as
           "go review what's outstanding" — the CPA's actual intent
           when the count is non-zero. */}
-      {isWaitingDocsCase && outstandingDocsCount > 0 ? (
-        <button
-          type="button"
-          onClick={() => onChangeTab('readiness')}
-          className="mt-3 -mx-1 flex cursor-pointer items-center gap-1.5 rounded-lg px-1 py-1 text-left text-xs text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          aria-label={t`Check Materials to review ${outstandingDocsCount} outstanding items`}
-        >
-          <CircleIcon className="size-2 fill-current text-state-warning-solid" aria-hidden />
-          <span>
-            <Plural
-              value={outstandingDocsCount}
-              one="# item outstanding"
-              other="# items outstanding"
+      {isWaitingDocsCase && readinessCounts.total > 0 ? (
+        // Pencil `iTasJ` materials progress: big mono received count + a
+        // received/outstanding/waived chip row + a green segment bar, with the
+        // "Check materials" affordance below. Real counts from the checklist.
+        <div className="mt-3 flex flex-col gap-2.5">
+          <div className="flex items-end gap-2.5">
+            <span className="font-mono text-[30px] leading-none font-bold tracking-[-0.6px] text-text-primary tabular-nums">
+              {readinessCounts.received}
+            </span>
+            <span className="pb-0.5 text-[12px] font-medium text-text-tertiary">
+              {t`of ${readinessCounts.total} materials`}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {[
+              {
+                key: 'received',
+                count: readinessCounts.received,
+                label: t`received`,
+                dot: 'bg-state-success-solid',
+              },
+              {
+                key: 'outstanding',
+                count: readinessCounts.outstanding,
+                label: t`outstanding`,
+                dot: 'bg-state-warning-solid',
+              },
+              { key: 'waived', count: readinessCounts.waived, label: t`waived`, dot: 'bg-text-muted' },
+            ].map((chip) => (
+              <span
+                key={chip.key}
+                className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2.5 py-0.5 text-[11px] font-medium text-text-secondary"
+              >
+                <span className={cn('size-1.5 shrink-0 rounded-full', chip.dot)} aria-hidden />
+                <span className="tabular-nums">{chip.count}</span> {chip.label}
+              </span>
+            ))}
+          </div>
+          <div className="h-1 w-full overflow-hidden rounded-full bg-divider-subtle">
+            <div
+              className="h-full rounded-full bg-state-success-solid transition-all"
+              style={{
+                width: `${Math.round((readinessCounts.received / readinessCounts.total) * 100)}%`,
+              }}
             />
-          </span>
-          <span className="text-text-tertiary">·</span>
-          <span className="text-text-tertiary">
+          </div>
+          <button
+            type="button"
+            onClick={() => onChangeTab('readiness')}
+            className="-mx-1 flex w-fit cursor-pointer items-center gap-1 rounded-lg px-1 py-0.5 text-left text-xs text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            aria-label={t`Check Materials to review ${readinessCounts.outstanding} outstanding items`}
+          >
             <Trans>Check materials</Trans>
-          </span>
-          <ArrowUpRightIcon className="size-3 text-text-tertiary" aria-hidden />
-        </button>
+            <ArrowUpRightIcon className="size-3" aria-hidden />
+          </button>
+        </div>
       ) : null}
       {stageKey === 'completed' ? (
         <div className="mt-3">
