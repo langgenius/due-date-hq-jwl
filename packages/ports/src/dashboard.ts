@@ -24,6 +24,10 @@ export interface DashboardLoadInput {
   // nobody claimed never disappears from everyone's Today.
   scope?: DashboardBriefScope
   scopeUserId?: string | null
+  // Viewer id for the "Yesterday" recap (independent of scope — the recap
+  // anchor is per-user even in the firm-wide view). Unset for non-view
+  // loads (brief-consumer snapshots, cron risk probes).
+  recapUserId?: string | null
   clientIds?: string[]
   taxTypes?: string[]
   dueBuckets?: DashboardDueBucket[]
@@ -152,6 +156,19 @@ export interface DashboardLoadResult {
   triageTabs: DashboardTriageTab[]
   facets: DashboardFacetsOutput
   brief: DashboardBriefRow | null
+  // "Yesterday" Daily-Brief row: deterministic activity counts since the
+  // viewer's previous (earlier-day) visit. Null without a recapUserId.
+  recap: DashboardRecap | null
+}
+
+export interface DashboardRecap {
+  since: Date
+  completedCount: number
+  filedCount: number
+  paidCount: number
+  newAlertCount: number
+  dueDateMovedCount: number
+  remindersSentCount: number
 }
 
 export interface DashboardBriefRow {

@@ -190,6 +190,23 @@ export const DashboardBriefPublicSchema = z.object({
 })
 export type DashboardBriefPublic = z.infer<typeof DashboardBriefPublicSchema>
 
+// 2026-06-10 (Daily Brief v2 — "Yesterday / Today"): deterministic
+// activity counts since the viewer's previous (earlier-day) dashboard
+// visit. Audit-ledger derived on the server — never AI-generated — so the
+// Yesterday row renders instantly and truthfully even when the AI brief
+// is pending or failed. Obligation-linked counts follow the page scope;
+// alert counts are firm-wide in both scopes.
+export const DashboardRecapSchema = z.object({
+  since: z.iso.datetime(),
+  completedCount: z.number().int().min(0),
+  filedCount: z.number().int().min(0),
+  paidCount: z.number().int().min(0),
+  newAlertCount: z.number().int().min(0),
+  dueDateMovedCount: z.number().int().min(0),
+  remindersSentCount: z.number().int().min(0),
+})
+export type DashboardRecap = z.infer<typeof DashboardRecapSchema>
+
 export const DashboardLoadOutputSchema = z.object({
   asOfDate: z.iso.date(),
   windowDays: z.number().int().min(1),
@@ -198,6 +215,7 @@ export const DashboardLoadOutputSchema = z.object({
   triageTabs: z.array(DashboardTriageTabSchema),
   facets: DashboardFacetsOutputSchema,
   brief: DashboardBriefPublicSchema.nullable(),
+  recap: DashboardRecapSchema.nullable(),
 })
 export type DashboardLoadOutput = z.infer<typeof DashboardLoadOutputSchema>
 

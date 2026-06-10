@@ -136,6 +136,11 @@ msgstr "{0, plural, one {# client} other {# clients}}"
 msgid "{0, plural, one {# column is currently ignored.} other {# columns are currently ignored.}}"
 msgstr "{0, plural, one {# column is currently ignored.} other {# columns are currently ignored.}}"
 
+#. placeholder {0}: recap.completedCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# completed} other {# completed}}"
+msgstr "{0, plural, one {# completed} other {# completed}}"
+
 #. placeholder {0}: Math.abs(filingDays)
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -172,6 +177,16 @@ msgstr "{0, plural, one {# deadline synced from your rules} other {# deadlines s
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
 msgstr "{0, plural, one {# deadline} other {# deadlines}}"
+
+#. placeholder {0}: recap.dueDateMovedCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# due date moved} other {# due dates moved}}"
+msgstr "{0, plural, one {# due date moved} other {# due dates moved}}"
+
+#. placeholder {0}: counts.dueThisWeekCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# due this week} other {# due this week}}"
+msgstr "{0, plural, one {# due this week} other {# due this week}}"
 
 #. placeholder {0}: rule.entityApplicability.length
 #: src/features/rules/rule-detail-drawer.tsx
@@ -226,6 +241,11 @@ msgstr "{0, plural, one {# more in the audit log} other {# more in the audit log
 msgid "{0, plural, one {# needs review} other {# need review}}"
 msgstr "{0, plural, one {# needs review} other {# need review}}"
 
+#. placeholder {0}: recap.newAlertCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# new alert} other {# new alerts}}"
+msgstr "{0, plural, one {# new alert} other {# new alerts}}"
+
 #. placeholder {0}: data.clientsImportedCount
 #: src/routes/splash.tsx
 msgid "{0, plural, one {# new client added} other {# new clients added}}"
@@ -261,10 +281,20 @@ msgstr "{0, plural, one {# open filing} other {# open filings}}"
 msgid "{0, plural, one {# open} other {# open}}"
 msgstr "{0, plural, one {# open} other {# open}}"
 
+#. placeholder {0}: counts.overdueCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# overdue} other {# overdue}}"
+msgstr "{0, plural, one {# overdue} other {# overdue}}"
+
 #. placeholder {0}: group.openCount
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "{0, plural, one {# projected filing} other {# projected filings}}"
 msgstr "{0, plural, one {# projected filing} other {# projected filings}}"
+
+#. placeholder {0}: recap.remindersSentCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# reminder sent} other {# reminders sent}}"
+msgstr "{0, plural, one {# reminder sent} other {# reminders sent}}"
 
 #. placeholder {0}: errors.length
 #: src/features/migration/Step2Mapping.tsx
@@ -316,6 +346,11 @@ msgstr "{0, plural, one {# source} other {# sources}}"
 #: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, one {# state rule type} other {# state rule types}}"
+
+#. placeholder {0}: counts.waitingOnClientCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# waiting on client} other {# waiting on client}}"
+msgstr "{0, plural, one {# waiting on client} other {# waiting on client}}"
 
 #. placeholder {0}: -days
 #: src/components/primitives/due-date-label.tsx
@@ -7123,6 +7158,10 @@ msgstr "File size"
 msgid "File type"
 msgstr "File type"
 
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "filed"
+msgstr "filed"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CompletedKeyDates.tsx
@@ -7630,6 +7669,10 @@ msgstr "Generate a plain-English recap of this client's recent recorded changes 
 #: src/routes/obligations.tsx
 msgid "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
 msgstr "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Generate brief"
+msgstr "Generate brief"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Generate deadlines"
@@ -9869,10 +9912,6 @@ msgstr "Next week"
 msgid "Next years"
 msgstr "Next years"
 
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "Next:"
-msgstr "Next:"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "No"
 msgstr "No"
@@ -9974,6 +10013,10 @@ msgstr "No brief for this view yet."
 #: src/routes/practice.tsx
 msgid "No change"
 msgstr "No change"
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "No changes since your last visit."
+msgstr "No changes since your last visit."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "No client deadlines will be generated yet — accepting activates this rule for future filings."
@@ -11388,6 +11431,10 @@ msgstr "Page not found"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Pages"
 msgstr "Pages"
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "paid"
+msgstr "paid"
 
 #: src/features/obligations/status-control.tsx
 msgid "Paid"
@@ -14654,6 +14701,11 @@ msgstr "Signed in"
 msgid "Signing out…"
 msgstr "Signing out…"
 
+#. placeholder {0}: formatRecapSince(recap.since)
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Since {0}"
+msgstr "Since {0}"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Single review"
 msgstr "Single review"
@@ -16091,6 +16143,7 @@ msgstr "today"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-table.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/obligations/deadlines-at-a-glance.tsx
 #: src/features/obligations/queue/components/primitives.tsx
 #: src/routes/dashboard.tsx
@@ -16938,10 +16991,6 @@ msgstr "We couldn't find what you were looking for."
 msgid "We couldn't generate today's brief."
 msgstr "We couldn't generate today's brief."
 
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "We couldn't generate today's brief. Try again, or check back shortly."
-msgstr "We couldn't generate today's brief. Try again, or check back shortly."
-
 #: src/features/migration/Step2Mapping.tsx
 msgid "We couldn't reach AI and no preset was selected. Please map columns manually before continuing."
 msgstr "We couldn't reach AI and no preset was selected. Please map columns manually before continuing."
@@ -17277,6 +17326,7 @@ msgid "yesterday"
 msgstr "yesterday"
 
 #: src/features/audit/audit-log-table.tsx
+#: src/features/dashboard/daily-brief-card.tsx
 msgid "Yesterday"
 msgstr "Yesterday"
 

@@ -1,4 +1,16 @@
-import { asc, and, count, desc, eq, gte, inArray, isNull, lte } from 'drizzle-orm'
+import {
+  asc,
+  and,
+  count,
+  countDistinct,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNull,
+  lte,
+  sql,
+} from 'drizzle-orm'
 import type {
   DashboardBriefCreatePendingInput,
   DashboardBriefFailedInput,
@@ -23,7 +35,7 @@ import { rankSmartPriorities } from '@duedatehq/core/priority'
 import type { SmartPriorityProfile } from '@duedatehq/core/priority'
 import type { SmartPriorityBreakdown } from '@duedatehq/ports/priority'
 import type { Db } from '../client'
-import { evidenceLink } from '../schema/audit'
+import { auditEvent, evidenceLink } from '../schema/audit'
 import { user } from '../schema/auth'
 import { client } from '../schema/clients'
 import { dashboardBrief, userDashboardVisit } from '../schema/dashboard'
@@ -70,6 +82,11 @@ export interface DashboardLoadInput {
   // member's Today — same fallback rule the reminder dispatcher uses).
   scope?: DashboardBriefScope
   scopeUserId?: string | null
+  // Viewer id for the "Yesterday" recap window (independent of scope —
+  // the recap anchor is per-user even in the firm-wide view). When set,
+  // load() computes the since-last-visit recap AND stamps the first
+  // visit of the day (see recordDashboardVisit / resolveRecapAnchor).
+  recapUserId?: string | null
   clientIds?: string[]
   taxTypes?: string[]
   dueBuckets?: DashboardDueBucket[]
@@ -170,10 +187,53 @@ export interface DashboardLoadResult {
   triageTabs: DashboardTriageTab[]
   facets: DashboardFacetsOutput
   brief: DashboardBriefRow | null
+  // "Yesterday" row of the Daily Brief — deterministic activity counts
+  // since the viewer's previous (earlier-day) visit. Null when the load
+  // was made without a recapUserId (e.g. brief-consumer snapshots, cron).
+  recap: DashboardRecap | null
+}
+
+export interface DashboardRecap {
+  since: Date
+  // Distinct obligations whose status reached done/paid/completed in the
+  // window (audit-derived), with the done/paid split for the breakdown.
+  completedCount: number
+  filedCount: number
+  paidCount: number
+  newAlertCount: number
+  dueDateMovedCount: number
+  remindersSentCount: number
 }
 
 function parseDateOnly(date: string): Date {
   return new Date(`${date}T00:00:00.000Z`)
+}
+
+// UTC calendar-day comparison. The visit rollover + recap anchor use UTC
+// days (not firm-tz) so the repo stays Intl-free; at worst the anchor is
+// off near midnight by the tz offset, which a "since your last visit"
+// window absorbs harmlessly.
+export function isSameUtcDay(a: Date, b: Date): boolean {
+  return a.toISOString().slice(0, 10) === b.toISOString().slice(0, 10)
+}
+
+export interface DashboardVisitRow {
+  lastVisitAt: Date
+  previousVisitAt: Date | null
+}
+
+/**
+ * The "Yesterday" recap anchor — the viewer's most recent visit on an
+ * EARLIER day:
+ *   • not visited yet today → last_visit_at IS that anchor;
+ *   • already stamped today → previous_visit_at (preserved by the daily
+ *     rollover in recordDashboardVisit);
+ *   • first-ever visit (or pre-0076 rows) → trailing 24h.
+ */
+export function resolveRecapAnchor(visit: DashboardVisitRow | null, now: Date): Date {
+  if (visit && !isSameUtcDay(visit.lastVisitAt, now)) return visit.lastVisitAt
+  if (visit?.previousVisitAt) return visit.previousVisitAt
+  return new Date(now.getTime() - DAY_MS)
 }
 
 function toDateOnly(date: Date): string {
@@ -489,6 +549,7 @@ export function composeDashboardLoad(
     ],
     facets,
     brief: null,
+    recap: null,
   }
 }
 
@@ -544,6 +605,167 @@ export function makeDashboardRepo(db: Db, firmId: string) {
     }
     const rows = (await Promise.all(reads)).flat()
     return new Map(rows.map((row) => [row.id, row.name]))
+  }
+
+  async function findDashboardVisit(userId: string): Promise<DashboardVisitRow | null> {
+    const [visit] = await db
+      .select({
+        lastVisitAt: userDashboardVisit.lastVisitAt,
+        previousVisitAt: userDashboardVisit.previousVisitAt,
+      })
+      .from(userDashboardVisit)
+      .where(and(eq(userDashboardVisit.firmId, firmId), eq(userDashboardVisit.userId, userId)))
+      .limit(1)
+    return visit ?? null
+  }
+
+  // Day-rollover-aware visit stamp: the first stamp of a new day preserves
+  // the prior earlier-day visit in previous_visit_at — that timestamp is
+  // the "Yesterday" recap anchor and must survive today's own stamp.
+  // Same-day re-stamps only move last_visit_at.
+  async function recordDashboardVisit(input: { userId: string; now: Date }): Promise<Date> {
+    const existing = await findDashboardVisit(input.userId)
+    const previousVisitAt =
+      existing && !isSameUtcDay(existing.lastVisitAt, input.now)
+        ? existing.lastVisitAt
+        : (existing?.previousVisitAt ?? null)
+    await db
+      .insert(userDashboardVisit)
+      .values({
+        id: crypto.randomUUID(),
+        firmId,
+        userId: input.userId,
+        lastVisitAt: input.now,
+        previousVisitAt,
+        createdAt: input.now,
+        updatedAt: input.now,
+      })
+      .onConflictDoUpdate({
+        target: [userDashboardVisit.userId, userDashboardVisit.firmId],
+        set: { lastVisitAt: input.now, previousVisitAt, updatedAt: input.now },
+      })
+    return input.now
+  }
+
+  // Recap orchestration for a dashboard view: resolve the anchor from the
+  // viewer's visit row BEFORE stamping, count the window, and stamp the
+  // first view of the day (the splash gate is unwired — the dashboard
+  // itself is the visit; same-day reloads skip the write entirely).
+  async function loadRecapForViewer(input: DashboardLoadInput): Promise<DashboardRecap | null> {
+    if (!input.recapUserId) return null
+    // The recap is a garnish on the dashboard, never a dependency: if it
+    // fails (e.g. a deploy where the worker briefly outruns migration
+    // 0076's previous_visit_at column), degrade to null instead of
+    // failing the whole load.
+    try {
+      const now = new Date()
+      const visit = await findDashboardVisit(input.recapUserId)
+      const since = resolveRecapAnchor(visit, now)
+      if (!visit || !isSameUtcDay(visit.lastVisitAt, now)) {
+        await recordDashboardVisit({ userId: input.recapUserId, now })
+      }
+      const counts = await loadDashboardRecap({
+        since,
+        scope: input.scope,
+        scopeUserId: input.scopeUserId,
+      })
+      return { since, ...counts }
+    } catch (error) {
+      console.error('[dashboard.load] recap degraded to null:', error)
+      return null
+    }
+  }
+
+  // Deterministic "Yesterday" counts for the Daily Brief — audit-ledger
+  // derived, so they never depend on the AI path. The obligation-linked
+  // counts follow the page scope (effective assignee = COALESCE(obligation,
+  // client) = viewer ∪ unassigned); alert counts stay firm-wide in both
+  // scopes (alerts are firm-level signals, mirroring the Alerts strip).
+  async function loadDashboardRecap(input: {
+    since: Date
+    scope?: DashboardBriefScope | undefined
+    scopeUserId?: string | null | undefined
+  }): Promise<Omit<DashboardRecap, 'since'>> {
+    const effectiveAssignee = sql`coalesce(${obligationInstance.assigneeId}, ${client.assigneeId})`
+    const scopePredicate =
+      input.scope === 'me'
+        ? sql`(${effectiveAssignee} IS NULL OR ${effectiveAssignee} = ${input.scopeUserId ?? ''})`
+        : undefined
+    const completedStatus = sql<string>`json_extract(${auditEvent.afterJson}, '$.status')`
+
+    const [completedRows, [dueDateMoved], [newAlerts], [remindersSent]] = await Promise.all([
+      db
+        .select({ status: completedStatus, value: countDistinct(auditEvent.entityId) })
+        .from(auditEvent)
+        .innerJoin(obligationInstance, eq(obligationInstance.id, auditEvent.entityId))
+        .innerJoin(client, eq(client.id, obligationInstance.clientId))
+        .where(
+          and(
+            eq(auditEvent.firmId, firmId),
+            eq(auditEvent.action, 'obligation.status.updated'),
+            gte(auditEvent.createdAt, input.since),
+            eq(obligationInstance.firmId, firmId),
+            sql`json_extract(${auditEvent.afterJson}, '$.status') IN ('done', 'paid', 'completed')`,
+            scopePredicate,
+          ),
+        )
+        .groupBy(completedStatus),
+      db
+        .select({ value: countDistinct(auditEvent.entityId) })
+        .from(auditEvent)
+        .innerJoin(obligationInstance, eq(obligationInstance.id, auditEvent.entityId))
+        .innerJoin(client, eq(client.id, obligationInstance.clientId))
+        .where(
+          and(
+            eq(auditEvent.firmId, firmId),
+            eq(auditEvent.action, 'obligation.due_date.updated'),
+            gte(auditEvent.createdAt, input.since),
+            eq(obligationInstance.firmId, firmId),
+            scopePredicate,
+          ),
+        ),
+      db
+        .select({ value: count() })
+        .from(pulseFirmAlert)
+        .where(and(eq(pulseFirmAlert.firmId, firmId), gte(pulseFirmAlert.createdAt, input.since))),
+      input.scope === 'me'
+        ? db
+            .select({ value: count() })
+            .from(reminder)
+            .innerJoin(obligationInstance, eq(obligationInstance.id, reminder.obligationInstanceId))
+            .innerJoin(client, eq(client.id, obligationInstance.clientId))
+            .where(
+              and(
+                eq(reminder.firmId, firmId),
+                eq(reminder.status, 'sent'),
+                gte(reminder.sentAt, input.since),
+                scopePredicate,
+              ),
+            )
+        : db
+            .select({ value: count() })
+            .from(reminder)
+            .where(
+              and(
+                eq(reminder.firmId, firmId),
+                eq(reminder.status, 'sent'),
+                gte(reminder.sentAt, input.since),
+              ),
+            ),
+    ])
+
+    const completedByStatus = new Map(completedRows.map((row) => [row.status, row.value]))
+    const filedCount = completedByStatus.get('done') ?? 0
+    const paidCount = completedByStatus.get('paid') ?? 0
+    const completedCount = filedCount + paidCount + (completedByStatus.get('completed') ?? 0)
+    return {
+      completedCount,
+      filedCount,
+      paidCount,
+      newAlertCount: newAlerts?.value ?? 0,
+      dueDateMovedCount: dueDateMoved?.value ?? 0,
+      remindersSentCount: remindersSent?.value ?? 0,
+    }
   }
 
   function briefScopePredicate(scope: DashboardBriefScope, userId?: string | null) {
@@ -772,23 +994,7 @@ export function makeDashboardRepo(db: Db, firmId: string) {
     },
 
     // Upsert the "visited now" stamp so the splash won't re-trigger today.
-    async recordDashboardVisit(input: { userId: string; now: Date }): Promise<Date> {
-      await db
-        .insert(userDashboardVisit)
-        .values({
-          id: crypto.randomUUID(),
-          firmId,
-          userId: input.userId,
-          lastVisitAt: input.now,
-          createdAt: input.now,
-          updatedAt: input.now,
-        })
-        .onConflictDoUpdate({
-          target: [userDashboardVisit.userId, userDashboardVisit.firmId],
-          set: { lastVisitAt: input.now, updatedAt: input.now },
-        })
-      return input.now
-    },
+    recordDashboardVisit,
 
     async load(input: DashboardLoadInput): Promise<DashboardLoadResult> {
       const rows = await db
@@ -879,14 +1085,15 @@ export function makeDashboardRepo(db: Db, firmId: string) {
         })
       })
       const result = composeDashboardLoad(overlayRows, evidenceRows, input, smartPriorityProfile)
-      return {
-        ...result,
-        brief: await findBriefForDisplay({
+      const [brief, recap] = await Promise.all([
+        findBriefForDisplay({
           scope: input.scope ?? 'firm',
           asOfDate: input.asOfDate,
           userId: input.scopeUserId ?? null,
         }),
-      }
+        input.recapUserId ? loadRecapForViewer(input) : Promise.resolve(null),
+      ])
+      return { ...result, brief, recap }
     },
 
     findLatestBrief,

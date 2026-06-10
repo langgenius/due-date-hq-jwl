@@ -135,6 +135,11 @@ msgstr "{0, plural, one {# 个客户} other {# 个客户}}"
 msgid "{0, plural, one {# column is currently ignored.} other {# columns are currently ignored.}}"
 msgstr "{0, plural, one {# 列当前被忽略。} other {# 列当前被忽略。}}"
 
+#. placeholder {0}: recap.completedCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# completed} other {# completed}}"
+msgstr "{0, plural, other {完成 # 件}}"
+
 #. placeholder {0}: Math.abs(filingDays)
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -171,6 +176,16 @@ msgstr "{0, plural, other {根据您的规则同步了 # 个截止日期}}"
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
 msgstr "{0, plural, other {# 个截止事项}}"
+
+#. placeholder {0}: recap.dueDateMovedCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# due date moved} other {# due dates moved}}"
+msgstr "{0, plural, other {# 个截止日变动}}"
+
+#. placeholder {0}: counts.dueThisWeekCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# due this week} other {# due this week}}"
+msgstr "{0, plural, other {本周截止 # 件}}"
 
 #. placeholder {0}: rule.entityApplicability.length
 #: src/features/rules/rule-detail-drawer.tsx
@@ -226,6 +241,11 @@ msgstr "{0, plural, one {# 项进行中} other {# 项进行中}}"
 msgid "{0, plural, one {# needs review} other {# need review}}"
 msgstr "{0, plural, other {# 项待审核}}"
 
+#. placeholder {0}: recap.newAlertCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# new alert} other {# new alerts}}"
+msgstr "{0, plural, other {# 条新提醒}}"
+
 #. placeholder {0}: data.clientsImportedCount
 #: src/routes/splash.tsx
 msgid "{0, plural, one {# new client added} other {# new clients added}}"
@@ -262,10 +282,20 @@ msgstr "{0, plural, one {# 项进行中} other {# 项进行中}}"
 msgid "{0, plural, one {# open} other {# open}}"
 msgstr "{0, plural, one {# 项未完成} other {# 项未完成}}"
 
+#. placeholder {0}: counts.overdueCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# overdue} other {# overdue}}"
+msgstr "{0, plural, other {# 件已逾期}}"
+
 #. placeholder {0}: group.openCount
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "{0, plural, one {# projected filing} other {# projected filings}}"
 msgstr "{0, plural, one {# 项预计申报} other {# 项预计申报}}"
+
+#. placeholder {0}: recap.remindersSentCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# reminder sent} other {# reminders sent}}"
+msgstr "{0, plural, other {已发出 # 封提醒邮件}}"
 
 #. placeholder {0}: errors.length
 #: src/features/migration/Step2Mapping.tsx
@@ -317,6 +347,11 @@ msgstr "{0, plural, other {# 个来源}}"
 #: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, other {# 类州规则}}"
+
+#. placeholder {0}: counts.waitingOnClientCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0, plural, one {# waiting on client} other {# waiting on client}}"
+msgstr "{0, plural, other {# 件等待客户}}"
 
 #. placeholder {0}: -days
 #: src/components/primitives/due-date-label.tsx
@@ -7152,6 +7187,10 @@ msgstr "文件大小"
 msgid "File type"
 msgstr "文件类型"
 
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "filed"
+msgstr "已申报"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CompletedKeyDates.tsx
@@ -7663,6 +7702,10 @@ msgstr "生成该客户近期记录变更及当前记录状态的通俗概述。
 #: src/routes/obligations.tsx
 msgid "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
 msgstr "生成一个私有订阅链接，让分配给你的截止日出现在你的个人日历中。"
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Generate brief"
+msgstr "生成简报"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Generate deadlines"
@@ -9916,10 +9959,6 @@ msgstr "下周"
 msgid "Next years"
 msgstr "下一组年份"
 
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "Next:"
-msgstr "下一步："
-
 #: src/features/audit/audit-log-labels.ts
 msgid "No"
 msgstr "否"
@@ -10021,6 +10060,10 @@ msgstr "此视图暂无简报。"
 #: src/routes/practice.tsx
 msgid "No change"
 msgstr "无变化"
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "No changes since your last visit."
+msgstr "自上次访问以来没有新变更。"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "No client deadlines will be generated yet — accepting activates this rule for future filings."
@@ -11447,6 +11490,10 @@ msgstr "未找到页面"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Pages"
 msgstr "页面"
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "paid"
+msgstr "已缴纳"
 
 #: src/features/obligations/status-control.tsx
 msgid "Paid"
@@ -14732,6 +14779,11 @@ msgstr "已登录"
 msgid "Signing out…"
 msgstr "正在退出…"
 
+#. placeholder {0}: formatRecapSince(recap.since)
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Since {0}"
+msgstr "自 {0} 起"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Single review"
 msgstr "单条审核"
@@ -16171,6 +16223,7 @@ msgstr "今天"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-table.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/obligations/deadlines-at-a-glance.tsx
 #: src/features/obligations/queue/components/primitives.tsx
 #: src/routes/dashboard.tsx
@@ -17022,10 +17075,6 @@ msgstr "未找到您要查找的内容。"
 msgid "We couldn't generate today's brief."
 msgstr "我们无法生成今天的简报。"
 
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "We couldn't generate today's brief. Try again, or check back shortly."
-msgstr "我们无法生成今日简报。请重试，或稍后再来查看。"
-
 #: src/features/migration/Step2Mapping.tsx
 msgid "We couldn't reach AI and no preset was selected. Please map columns manually before continuing."
 msgstr "无法连接 AI 且未选择预设。请在继续前手动完成字段映射。"
@@ -17363,6 +17412,7 @@ msgid "yesterday"
 msgstr "昨天"
 
 #: src/features/audit/audit-log-table.tsx
+#: src/features/dashboard/daily-brief-card.tsx
 msgid "Yesterday"
 msgstr "昨天"
 

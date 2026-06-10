@@ -545,6 +545,13 @@ export function DashboardRoute() {
         return (
           <DailyBriefCard
             brief={brief}
+            recap={data?.recap ?? null}
+            todayCounts={{
+              overdueCount: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
+              waitingOnClientCount:
+                facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0,
+              dueThisWeekCount: data?.summary?.dueThisWeekCount ?? 0,
+            }}
             onRefresh={() => requestBriefRefresh.mutate({ scope })}
             refreshing={requestBriefRefresh.isPending}
             onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}

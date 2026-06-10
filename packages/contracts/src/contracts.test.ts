@@ -1615,9 +1615,19 @@ describe('@duedatehq/contracts', () => {
         aiOutputId: '44444444-4444-4444-8444-444444444444',
         errorCode: null,
       },
+      recap: {
+        since: '2026-04-27T13:00:00.000Z',
+        completedCount: 3,
+        filedCount: 2,
+        paidCount: 1,
+        newAlertCount: 2,
+        dueDateMovedCount: 1,
+        remindersSentCount: 5,
+      },
     })
     expect(output.topRows[0]!.severity).toBe('critical')
     expect(output.brief?.status).toBe('ready')
+    expect(output.recap?.completedCount).toBe(3)
   })
 
   it('freezes rules read contracts', () => {

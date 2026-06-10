@@ -84,6 +84,11 @@ export const userDashboardVisit = sqliteTable(
       .notNull()
       .references(() => firmProfile.id, { onDelete: 'cascade' }),
     lastVisitAt: integer('last_visit_at', { mode: 'timestamp_ms' }).notNull(),
+    // 2026-06-10 (Daily Brief "Yesterday" row): the most recent visit from
+    // an EARLIER calendar day, preserved when the daily rollover re-stamps
+    // last_visit_at. The recap window's anchor — "since your last visit"
+    // must survive today's own stamp (migration 0076).
+    previousVisitAt: integer('previous_visit_at', { mode: 'timestamp_ms' }),
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),

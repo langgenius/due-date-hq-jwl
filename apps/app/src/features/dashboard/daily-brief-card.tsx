@@ -1,8 +1,9 @@
 import { Fragment, useMemo } from 'react'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
+import { Link } from 'react-router'
 
-import type { DashboardBriefPublic } from '@duedatehq/contracts'
+import type { DashboardBriefPublic, DashboardRecap } from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -13,80 +14,57 @@ import { parseBriefText } from './brief-text'
 
 type DashboardBriefCitation = NonNullable<DashboardBriefPublic['citations']>[number]
 
+export interface DailyBriefTodayCounts {
+  overdueCount: number
+  waitingOnClientCount: number
+  dueThisWeekCount: number
+}
+
 /**
- * DailyBriefCard — the AI narrative of the firm's day. Rebuilt to Pencil
- * `qYrr3`: a white card with a single hairline border (no shadow), a calm
- * title row (sparkles + "Daily Brief" + one status dot + a mono age label),
- * an icon-only refresh, then the prose. (2026-06-10: the Firm/Me pill
- * moved OFF the card — the page-level "My work / Everyone" Segmented in
- * the /today header switches the brief AND Priority Actions together;
- * the card just renders whatever brief the scoped dashboard.load
- * returned.) Each
- * `[n]` token resolves to an accent citation chip that deep-links back to
- * the obligation it cites (evidence traceability, not decoration).
+ * DailyBriefCard — rebuilt 2026-06-10 (Yuqi: "打开 Today 一目了然看到昨天
+ * 的总结和今天的安排") into a two-row "Yesterday / Today" digest:
  *
- * The single status dot carries freshness, so the rest of the card stays
- * neutral — the body prose is the one thing meant to be read. Renders
- * nothing when no brief exists (feature-off firms).
+ *   YESTERDAY  3 completed (2 filed · 1 paid) · 2 new alerts · 1 due date moved
+ *   TODAY      <one AI sentence: focus + start-here, with citation chip>
+ *              2 overdue · 1 waiting on client · 2 due this week
+ *
+ * Yesterday is DETERMINISTIC (audit-derived counts since the viewer's
+ * previous earlier-day visit — see dashboard repo recap) so it renders
+ * instantly and truthfully even while the AI sentence is generating or
+ * failed. The AI's role shrank to ONE sentence; the detailed plan is the
+ * Priority Actions table right below, so the card never repeats it.
+ * Citation `[n]` tokens resolve to accent chips deep-linking back to the
+ * obligation (evidence traceability, not decoration).
+ *
+ * Card chrome stays Pencil `qYrr3` (accent-tinted, hairline-free, calm
+ * title row with one freshness dot). Renders nothing only when there is
+ * neither a brief nor a recap (initial load / feature-off firms).
  */
 export function DailyBriefCard({
   brief,
+  recap,
+  todayCounts,
   onRefresh,
   refreshing,
   onOpenObligation,
   onClose,
 }: {
   brief: DashboardBriefPublic | null
+  recap: DashboardRecap | null
+  todayCounts: DailyBriefTodayCounts
   onRefresh: () => void
   refreshing: boolean
   onOpenObligation: (obligationId: string) => void
   onClose?: (() => void) | undefined
 }) {
   const { t } = useLingui()
-  if (!brief) return null
+  if (!brief && !recap) return null
 
-  const isPending = brief.status === 'pending' || refreshing
+  const isPending = brief?.status === 'pending' || refreshing
   // Refresh is only meaningful once a brief exists in some terminal-ish
-  // state; while it's generating the status label shows the spinner.
-  const canRefresh = !isPending
-
-  // 2026-06-08 (Yuqi "in one line, thin banner if it failed"): a failed brief
-  // collapses to a single thin banner — title · Failed · short message · inline
-  // retry — instead of the full card with body prose.
-  if (brief.status === 'failed' && !refreshing) {
-    return (
-      <section
-        aria-label={t`Daily brief`}
-        className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-state-accent-hover px-[18px] py-2.5"
-      >
-        <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
-          <Trans>Daily Brief</Trans>
-        </h2>
-        <span className="min-w-0 truncate text-xs text-text-tertiary">
-          <Trans>We couldn't generate today's brief.</Trans>
-        </span>
-        {/* 2026-06-08 (Yuqi /today): the "Failed" label is dropped (the message
-            already says it failed) and the icon-only retry becomes a quiet
-            "Regenerate brief" TEXT button sitting right after the message. */}
-        <TextLink variant="accent" onClick={onRefresh} className="shrink-0">
-          <RotateCwIcon className="size-3.5" aria-hidden />
-          <Trans>Regenerate brief</Trans>
-        </TextLink>
-        <div className="flex flex-1 shrink-0 items-center justify-end gap-1">
-          {onClose ? (
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={t`Dismiss brief`}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
-            >
-              <XIcon className="size-3.5" aria-hidden />
-            </button>
-          ) : null}
-        </div>
-      </section>
-    )
-  }
+  // state; while it's generating the status label shows the spinner, and
+  // with no brief at all the Today row carries its own Generate link.
+  const canRefresh = brief !== null && !isPending
 
   return (
     <section
@@ -104,11 +82,13 @@ export function DailyBriefCard({
           <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
             <Trans>Daily Brief</Trans>
           </h2>
-          <BriefFreshness
-            brief={brief}
-            pending={isPending}
-            onRefresh={canRefresh ? onRefresh : undefined}
-          />
+          {brief ? (
+            <BriefFreshness
+              brief={brief}
+              pending={isPending}
+              onRefresh={canRefresh ? onRefresh : undefined}
+            />
+          ) : null}
         </div>
         {/* Right — icon-only refresh + dismiss */}
         <div className="flex shrink-0 items-center gap-2.5">
@@ -142,114 +122,240 @@ export function DailyBriefCard({
         </div>
       </div>
 
-      {/* Body — Pencil qYrr3 `zgUBx`: prose at 14/normal, primary ink,
-          with inline accent citation chips. */}
-      {/* 2026-06-09 (Yuqi #5 "click to regenerate, the page flicks"): the
-          skeleton only shows on a COLD generate (no prior text). While
-          regenerating an existing brief we keep the current prose on screen —
-          the freshness chip's spinner carries the "working" signal — so the
-          card no longer flashes blank → skeleton → prose on every refresh. */}
-      {isPending && !brief.text ? (
-        <div className="grid gap-2" aria-busy>
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-[88%]" />
-          <Skeleton className="h-4 w-[60%]" />
+      {/* Body — the Yesterday / Today grid. Labels are mono eyebrows in
+          the freshness chip's voice; content lines stay 14px prose. */}
+      <div className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5 pt-1">
+        {recap ? (
+          <>
+            <BriefRowLabel title={t`Since ${formatRecapSince(recap.since)}`}>
+              <Trans>Yesterday</Trans>
+            </BriefRowLabel>
+            <YesterdayLine recap={recap} />
+          </>
+        ) : null}
+        <BriefRowLabel>
+          <Trans>Today</Trans>
+        </BriefRowLabel>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <TodayLine
+            brief={brief}
+            pending={isPending}
+            onRefresh={onRefresh}
+            onOpenObligation={onOpenObligation}
+          />
+          <TodayCountsLine counts={todayCounts} />
         </div>
-      ) : brief.status === 'failed' ? (
-        <p className="text-sm text-text-tertiary">
-          <Trans>We couldn't generate today's brief. Try again, or check back shortly.</Trans>
-        </p>
-      ) : brief.text ? (
-        <BriefBody
-          text={brief.text}
-          citations={brief.citations}
-          onOpenObligation={onOpenObligation}
-        />
-      ) : (
-        <p className="text-sm text-text-tertiary">
-          <Trans>No brief for this view yet.</Trans>
-        </p>
-      )}
+      </div>
     </section>
   )
 }
 
+/** Mono uppercase row label — same voice as the freshness chip. */
+function BriefRowLabel({ children, title }: { children: React.ReactNode; title?: string }) {
+  return (
+    <span
+      title={title}
+      className="font-mono text-[11px] leading-[1.6] font-medium tracking-[0.4px] text-text-tertiary uppercase select-none"
+    >
+      {children}
+    </span>
+  )
+}
+
+function formatRecapSince(since: string): string {
+  const date = new Date(since)
+  if (Number.isNaN(date.getTime())) return since
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+}
+
 /**
- * Structured brief body (2026-06-10 Yuqi: "brief 太乱太大，不够清晰不够有
- * 条理 — 要尽量简洁直观"). The stored text is the consumer's flattened
- * headline/items/footer format; rendering it in one <p> collapsed the
- * newlines into a wall of prose. Parse it back apart (brief-text.ts) and
- * render:
- *   • headline — one 14/500 lead line, the at-a-glance takeaway
- *   • items — one compact line each: why-clause in primary ink, then the
- *     verification step toned down ("Next: …" in tertiary), citation
- *     chips inline via BriefProse. A muted dot anchors each line start.
- *   • footer — DROPPED. It's the model's generic compliance closer
- *     ("review all pending items…"): bulk without information. The
- *     brief@v1 prompt now also tells the model to omit it.
- * Plain prose with no numbered items (e.g. the zero-risk brief) falls
- * back to the original single-paragraph rendering, so unknown shapes
- * never lose content.
+ * Deterministic "what happened while you were away" line — only the
+ * activity that actually happened renders; an all-quiet window collapses
+ * to one muted sentence. The alerts segment links to /alerts (the only
+ * segment with a dedicated review surface).
  */
-function BriefBody({
-  text,
-  citations,
-  onOpenObligation,
-}: {
-  text: string
-  citations: DashboardBriefPublic['citations']
-  onOpenObligation: (obligationId: string) => void
-}) {
-  const parsed = useMemo(() => parseBriefText(text), [text])
-  if (parsed.items.length === 0) {
+function YesterdayLine({ recap }: { recap: DashboardRecap }) {
+  const segments: React.ReactNode[] = []
+
+  if (recap.completedCount > 0) {
+    segments.push(
+      <span key="completed">
+        <Plural value={recap.completedCount} one="# completed" other="# completed" />
+        {recap.filedCount > 0 && recap.paidCount > 0 ? (
+          <span className="text-text-tertiary">
+            {' '}
+            ({recap.filedCount} <Trans>filed</Trans> · {recap.paidCount} <Trans>paid</Trans>)
+          </span>
+        ) : null}
+      </span>,
+    )
+  }
+  if (recap.newAlertCount > 0) {
+    segments.push(
+      <Link
+        key="alerts"
+        to="/alerts"
+        className="text-text-accent underline-offset-2 hover:underline"
+      >
+        <Plural value={recap.newAlertCount} one="# new alert" other="# new alerts" />
+      </Link>,
+    )
+  }
+  if (recap.dueDateMovedCount > 0) {
+    segments.push(
+      <span key="moved">
+        <Plural value={recap.dueDateMovedCount} one="# due date moved" other="# due dates moved" />
+      </span>,
+    )
+  }
+  if (recap.remindersSentCount > 0) {
+    segments.push(
+      <span key="reminders">
+        <Plural value={recap.remindersSentCount} one="# reminder sent" other="# reminders sent" />
+      </span>,
+    )
+  }
+
+  if (segments.length === 0) {
     return (
-      <p className="text-sm leading-[1.5] font-normal text-text-primary">
-        <BriefProse text={text} citations={citations} onOpenObligation={onOpenObligation} />
+      <p className="text-sm leading-[1.5] text-text-tertiary">
+        <Trans>No changes since your last visit.</Trans>
       </p>
     )
   }
   return (
-    <div className="flex flex-col gap-1.5">
-      {parsed.headline ? (
-        <p className="text-sm leading-[1.5] font-medium text-text-primary">
+    <p className="min-w-0 text-sm leading-[1.5] text-text-primary">
+      {segments.map((segment, index) => (
+        <Fragment key={index}>
+          {index > 0 ? <span className="text-text-muted"> · </span> : null}
+          {segment}
+        </Fragment>
+      ))}
+    </p>
+  )
+}
+
+/**
+ * The one AI sentence: today's focus + where to start, citation chip
+ * inline. Pending shows a single skeleton line; failed degrades to a
+ * quiet inline retry (the deterministic rows around it keep rendering —
+ * the AI path must never take the card down with it). Old multi-item
+ * briefs render their headline; if it carries no citation marker, the
+ * first item's markers are appended so the deep-link affordance survives.
+ */
+function TodayLine({
+  brief,
+  pending,
+  onRefresh,
+  onOpenObligation,
+}: {
+  brief: DashboardBriefPublic | null
+  pending: boolean
+  onRefresh: () => void
+  onOpenObligation: (obligationId: string) => void
+}) {
+  const parsed = useMemo(() => (brief?.text ? parseBriefText(brief.text) : null), [brief?.text])
+
+  if (pending && !brief?.text) {
+    return (
+      <div aria-busy>
+        <Skeleton className="h-4 w-[70%]" />
+      </div>
+    )
+  }
+  if (brief && brief.status === 'failed' && !brief.text) {
+    return (
+      <p className="text-sm leading-[1.5] text-text-tertiary">
+        <Trans>We couldn't generate today's brief.</Trans>{' '}
+        <TextLink variant="accent" onClick={onRefresh} className="align-baseline">
+          <Trans>Regenerate brief</Trans>
+        </TextLink>
+      </p>
+    )
+  }
+  if (!brief || !brief.text || !parsed) {
+    return (
+      <p className="text-sm leading-[1.5] text-text-tertiary">
+        <Trans>No brief for this view yet.</Trans>{' '}
+        <TextLink variant="accent" onClick={onRefresh} className="align-baseline">
+          <Trans>Generate brief</Trans>
+        </TextLink>
+      </p>
+    )
+  }
+
+  const headline = parsed.headline ?? brief.text
+  // Older briefs put citations on the items, not the headline — surface
+  // the first item's markers so the chip affordance survives.
+  const fallbackMarkers =
+    !/\[\d+\]/.test(headline) && parsed.items[0]
+      ? [
+          ...new Set(
+            `${parsed.items[0].text} ${parsed.items[0].nextCheck ?? ''}`.match(/\[\d+\]/g) ?? [],
+          ),
+        ].join(' ')
+      : ''
+
+  return (
+    <p className="min-w-0 text-sm leading-[1.5] font-medium text-text-primary">
+      <BriefProse text={headline} citations={brief.citations} onOpenObligation={onOpenObligation} />
+      {fallbackMarkers ? (
+        <>
+          {' '}
           <BriefProse
-            text={parsed.headline}
-            citations={citations}
+            text={fallbackMarkers}
+            citations={brief.citations}
             onOpenObligation={onOpenObligation}
           />
-        </p>
+        </>
       ) : null}
-      <ul className="flex flex-col gap-1">
-        {parsed.items.map((item, index) => (
-          <li
-            key={`${index}:${item.text}`}
-            className="flex items-baseline gap-2 text-sm leading-[1.5]"
-          >
-            <span aria-hidden className="select-none text-text-muted">
-              •
-            </span>
-            <span className="min-w-0 text-text-primary">
-              <BriefProse
-                text={item.text}
-                citations={citations}
-                onOpenObligation={onOpenObligation}
-              />
-              {item.nextCheck ? (
-                <span className="text-text-tertiary">
-                  {' '}
-                  <Trans>Next:</Trans>{' '}
-                  <BriefProse
-                    text={item.nextCheck}
-                    citations={citations}
-                    onOpenObligation={onOpenObligation}
-                  />
-                </span>
-              ) : null}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    </p>
+  )
+}
+
+/** Scoped workload counts under the AI sentence — only non-zero render. */
+function TodayCountsLine({ counts }: { counts: DailyBriefTodayCounts }) {
+  const segments: React.ReactNode[] = []
+  if (counts.overdueCount > 0) {
+    segments.push(
+      <span key="overdue" className="text-text-destructive">
+        <Plural value={counts.overdueCount} one="# overdue" other="# overdue" />
+      </span>,
+    )
+  }
+  if (counts.waitingOnClientCount > 0) {
+    segments.push(
+      <span key="waiting">
+        <Plural
+          value={counts.waitingOnClientCount}
+          one="# waiting on client"
+          other="# waiting on client"
+        />
+      </span>,
+    )
+  }
+  if (counts.dueThisWeekCount > 0) {
+    segments.push(
+      <span key="week">
+        <Plural value={counts.dueThisWeekCount} one="# due this week" other="# due this week" />
+      </span>,
+    )
+  }
+  if (segments.length === 0) return null
+  return (
+    <p className="text-xs leading-[1.5] text-text-tertiary">
+      {segments.map((segment, index) => (
+        <Fragment key={index}>
+          {index > 0 ? <span className="text-text-muted"> · </span> : null}
+          {segment}
+        </Fragment>
+      ))}
+    </p>
   )
 }
 

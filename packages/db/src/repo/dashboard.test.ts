@@ -1,11 +1,60 @@
 import { describe, expect, it } from 'vitest'
-import { composeDashboardLoad, severityForDueDate, type DashboardLoadInput } from './dashboard'
+import {
+  composeDashboardLoad,
+  isSameUtcDay,
+  resolveRecapAnchor,
+  severityForDueDate,
+  type DashboardLoadInput,
+} from './dashboard'
 
 const AS_OF = '2026-04-28'
 
 function due(date: string): Date {
   return new Date(`${date}T00:00:00.000Z`)
 }
+
+// 2026-06-10 (Daily Brief "Yesterday" row): the recap anchor must be the
+// most recent EARLIER-day visit — surviving today's own rollover stamp via
+// previous_visit_at — and fall back to a trailing 24h window.
+describe('dashboard recap anchor', () => {
+  const now = new Date('2026-06-10T15:00:00.000Z')
+
+  it('compares UTC calendar days, not 24h windows', () => {
+    expect(isSameUtcDay(new Date('2026-06-10T00:05:00Z'), new Date('2026-06-10T23:55:00Z'))).toBe(
+      true,
+    )
+    expect(isSameUtcDay(new Date('2026-06-09T23:55:00Z'), new Date('2026-06-10T00:05:00Z'))).toBe(
+      false,
+    )
+  })
+
+  it('anchors on lastVisitAt when the viewer has not been stamped today', () => {
+    const lastVisitAt = new Date('2026-06-09T20:00:00.000Z')
+    expect(resolveRecapAnchor({ lastVisitAt, previousVisitAt: null }, now)).toEqual(lastVisitAt)
+  })
+
+  it("anchors on previousVisitAt after today's stamp", () => {
+    const previousVisitAt = new Date('2026-06-09T08:30:00.000Z')
+    expect(
+      resolveRecapAnchor(
+        { lastVisitAt: new Date('2026-06-10T07:00:00.000Z'), previousVisitAt },
+        now,
+      ),
+    ).toEqual(previousVisitAt)
+  })
+
+  it('falls back to a trailing 24h window without a usable anchor', () => {
+    const fallback = new Date('2026-06-09T15:00:00.000Z')
+    expect(resolveRecapAnchor(null, now)).toEqual(fallback)
+    // Stamped today but no preserved previous visit (pre-0076 rows).
+    expect(
+      resolveRecapAnchor(
+        { lastVisitAt: new Date('2026-06-10T07:00:00.000Z'), previousVisitAt: null },
+        now,
+      ),
+    ).toEqual(fallback)
+  })
+})
 
 describe('dashboard aggregation', () => {
   it('computes activation summary from real obligation rows', () => {

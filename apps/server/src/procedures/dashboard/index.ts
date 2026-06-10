@@ -151,6 +151,9 @@ const load = os.dashboard.load.handler(async ({ input, context }) => {
     topLimit,
     scope,
     scopeUserId: scope === 'me' ? userId : null,
+    // Recap is viewer-anchored in BOTH scopes (the "since your last
+    // visit" window belongs to the person looking, not the firm).
+    recapUserId: userId,
     ...(input?.clientIds ? { clientIds: input.clientIds } : {}),
     ...(input?.taxTypes ? { taxTypes: input.taxTypes } : {}),
     ...(input?.dueBuckets ? { dueBuckets: input.dueBuckets } : {}),
@@ -196,6 +199,17 @@ const load = os.dashboard.load.handler(async ({ input, context }) => {
     })),
     facets: result.facets,
     brief: toBriefPublic(result.brief),
+    recap: result.recap
+      ? {
+          since: result.recap.since.toISOString(),
+          completedCount: result.recap.completedCount,
+          filedCount: result.recap.filedCount,
+          paidCount: result.recap.paidCount,
+          newAlertCount: result.recap.newAlertCount,
+          dueDateMovedCount: result.recap.dueDateMovedCount,
+          remindersSentCount: result.recap.remindersSentCount,
+        }
+      : null,
   } satisfies DashboardLoadOutput
 })
 
