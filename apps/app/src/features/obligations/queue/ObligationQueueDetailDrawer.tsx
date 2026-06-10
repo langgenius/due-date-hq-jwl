@@ -128,6 +128,7 @@ import {
   ExternalLinkIcon,
   FileTextIcon,
   HistoryIcon,
+  InfoIcon,
   LinkIcon,
   Loader2,
   MessageSquareText,
@@ -2641,43 +2642,32 @@ export function ObligationQueueDetailDrawer({
                         ├ Outstanding (N items)
                         └ Received (M items, M + N = 13)
                 */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-base font-semibold text-text-primary">
-                            <Trans>Materials checklist</Trans>
-                          </h3>
-                          {checklistReference ? (
-                            <Badge
-                              variant="outline"
-                              className="h-5 rounded-lg px-1.5 text-caption-xs font-medium text-text-secondary"
-                            >
-                              {checklistReference}
-                            </Badge>
-                          ) : null}
-                        </div>
-                        {(() => {
-                          if (row.status !== 'done' && row.status !== 'completed') return null
-                          const total = checklist.length
-                          const received = checklist.filter((i) => i.status === 'received').length
-                          const description =
-                            total === 0
-                              ? t`No document checklist was attached to this filing.`
-                              : received === 0
-                                ? t`${total} checklist items weren't individually ticked during filing.`
-                                : received < total
-                                  ? t`${received} of ${total} items recorded as received before filing.`
-                                  : t`All ${total} items recorded as received.`
-                          return (
-                            <p className="text-caption italic leading-snug text-text-tertiary">
-                              {description}
-                            </p>
-                          )
-                        })()}
-                      </div>
-                      {checklist.length > 0 ? (
-                        <div className="flex shrink-0 items-center gap-2">
+                  {/* 2026-06-10 (cohesion pass): the Materials checklist
+                      section now wraps in the canonical <DetailSectionCard>
+                      so it reads as a gray-header card matching the rest of
+                      the panel (alert / deadline / rule detail). Title +
+                      checklistReference badge sit in the header band; the
+                      select-all + Add-item cluster moves to `headerRight`;
+                      the terminal-state description sub-line moves into the
+                      card body (the header band is single-row). Behavior is
+                      unchanged — chrome only. */}
+                  <DetailSectionCard
+                    title={
+                      <span className="flex items-center gap-2">
+                        <Trans>Materials checklist</Trans>
+                        {checklistReference ? (
+                          <Badge
+                            variant="outline"
+                            className="h-5 rounded-lg px-1.5 text-caption-xs font-medium text-text-secondary"
+                          >
+                            {checklistReference}
+                          </Badge>
+                        ) : null}
+                      </span>
+                    }
+                    headerRight={
+                      checklist.length > 0 ? (
+                        <>
                           <div className="flex h-8 items-center gap-2 rounded-lg px-1 text-sm font-medium text-text-secondary">
                             <Checkbox
                               aria-label={
@@ -2717,9 +2707,28 @@ export function ObligationQueueDetailDrawer({
                             <PlusIcon data-icon="inline-start" />
                             <Trans>Add item</Trans>
                           </Button>
-                        </div>
-                      ) : null}
-                    </div>
+                        </>
+                      ) : undefined
+                    }
+                  >
+                    {(() => {
+                      if (row.status !== 'done' && row.status !== 'completed') return null
+                      const total = checklist.length
+                      const received = checklist.filter((i) => i.status === 'received').length
+                      const description =
+                        total === 0
+                          ? t`No document checklist was attached to this filing.`
+                          : received === 0
+                            ? t`${total} checklist items weren't individually ticked during filing.`
+                            : received < total
+                              ? t`${received} of ${total} items recorded as received before filing.`
+                              : t`All ${total} items recorded as received.`
+                      return (
+                        <p className="text-caption italic leading-snug text-text-tertiary">
+                          {description}
+                        </p>
+                      )
+                    })()}
                     {checklist.length === 0 ? (
                       autoGenerateChecklistQuery.isFetching ? (
                         <EmptyPanel className="grid gap-3 text-text-secondary">
@@ -3075,7 +3084,7 @@ export function ObligationQueueDetailDrawer({
                         ) : null}
                       </>
                     )}
-                  </div>
+                  </DetailSectionCard>
                   {latestRequest ? (
                     <section className="flex flex-col gap-2">
                       <header className="flex items-baseline gap-2">
@@ -3742,6 +3751,25 @@ export function ObligationQueueDetailDrawer({
                   which forced users to scroll past authority citations
                   to find the workpapers they actually wanted. */}
                 <div className="grid gap-4">
+                  {/* 2026-06-10 (cohesion pass — no-fiction honesty bar):
+                      the Record tab ships only audit-trail + timestamps +
+                      derived artefact checks today. File storage for
+                      workpapers and signed documents is NOT wired (the
+                      "Add workpaper" CTA is a coming-soon stub). This bar
+                      sets that expectation up-front so the gray-header
+                      cards below aren't mistaken for a document vault. */}
+                  <div className="flex items-start gap-2 rounded-lg bg-background-section px-3 py-2.5">
+                    <InfoIcon
+                      className="mt-px size-3.5 shrink-0 text-text-tertiary"
+                      aria-hidden
+                    />
+                    <p className="text-[12px] font-medium leading-snug text-text-tertiary">
+                      <Trans>
+                        Record tab is currently audit-trail + timestamps only. File storage for
+                        workpapers and signed documents is on the roadmap.
+                      </Trans>
+                    </p>
+                  </div>
                   {/* Cluster 2 (Evidence design `KsbdI > H3xJg`): the 1/4
                       artefact-checks hero. The four artefacts that prove a
                       return is filed, accepted, and signed off are derived
@@ -3800,25 +3828,23 @@ export function ObligationQueueDetailDrawer({
                     ]
                     const complete = cells.filter((c) => c.tone === 'success').length
                     return (
-                      <section className="flex flex-col gap-3.5">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div className="grid gap-0.5">
-                            <p className="text-sm font-semibold text-text-primary">
-                              <Trans>Evidence to close out filing</Trans>
-                            </p>
-                            <p className="text-caption text-text-secondary">
-                              <Trans>
-                                Four artefacts confirm the return is filed, accepted, and signed
-                                off.
-                              </Trans>
-                            </p>
-                          </div>
-                          <span className="font-mono text-sm font-semibold tabular-nums text-text-secondary">
+                      <DetailSectionCard
+                        title={<Trans>Evidence to close out filing</Trans>}
+                        headerRight={
+                          <span className="font-mono tabular-nums">
                             {complete} / {cells.length}
                           </span>
-                        </div>
+                        }
+                      >
+                        <p className="text-caption text-text-secondary">
+                          <Trans>
+                            Four artefacts confirm the return is filed, accepted, and signed off.
+                            Each is derived from the e-file pipeline state and workpaper count — not
+                            from stored files.
+                          </Trans>
+                        </p>
                         <EvidenceArtifactStatusGrid cells={cells} />
-                      </section>
+                      </DetailSectionCard>
                     )
                   })()}
                   {/* 2026-05-26 (Yuqi sixty-sixth pass — cross-tab
@@ -3828,22 +3854,12 @@ export function ObligationQueueDetailDrawer({
                       `text-sm font-semibold text-text-primary` for
                       section labels. Aligned so all 4 tabs share
                       one heading vocabulary. */}
-                  <section
-                    aria-labelledby="evidence-workpapers-heading"
-                    className="flex flex-col gap-2"
-                  >
-                    <header className="flex items-baseline justify-between gap-2">
-                      <h3
-                        id="evidence-workpapers-heading"
-                        className="text-sm font-semibold text-text-primary"
-                      >
-                        <Trans>Workpapers</Trans>
-                      </h3>
-                      <div className="flex items-center gap-2">
+                  <DetailSectionCard
+                    title={<Trans>Workpapers</Trans>}
+                    headerRight={
+                      <>
                         {detail.evidence.length > 0 ? (
-                          <span className="text-xs tabular-nums text-text-tertiary">
-                            {detail.evidence.length}
-                          </span>
+                          <span className="tabular-nums">{detail.evidence.length}</span>
                         ) : null}
                         {/* Stub CTA so the workpapers section isn't a dead
                             end (audit L11). Upload pipeline isn't wired yet,
@@ -3861,8 +3877,9 @@ export function ObligationQueueDetailDrawer({
                         >
                           <Trans>Add workpaper</Trans>
                         </Button>
-                      </div>
-                    </header>
+                      </>
+                    }
+                  >
                     {detail.evidence.length > 0 ? (
                       <div className="grid gap-2">
                         {detail.evidence.map((item) => (
@@ -3878,14 +3895,21 @@ export function ObligationQueueDetailDrawer({
                         <Trans>No workpapers attached to this deadline yet.</Trans>
                       </EmptyPanel>
                     )}
-                  </section>
+                  </DetailSectionCard>
 
-                  {/* Cluster 2 (Evidence design `KsbdI > FXD1b`): promote the
+                  {/* 2026-06-10 (cohesion pass): authority facts + the
+                      folded citation excerpts now share one <DetailSectionCard>
+                      ("Authority") so the source-of-truth chain reads as a
+                      gray-header card matching the rest of the tab. All data
+                      is real (detail.matchedRule / row.authority); PRIOR YEAR
+                      stays a `—` placeholder (no prior-year filing record yet,
+                      explicitly not faked).
+                      Cluster 2 (Evidence design `KsbdI > FXD1b`): promote the
                       headline authority facts to an always-visible quiet
                       strip. The verbose per-source excerpts stay folded in
-                      the <details> below. PRIOR YEAR is design-only — no
-                      prior-year filing record on the obligation today.
+                      the <details> below.
                       // TODO(data): prior-year filing date for the authority strip. */}
+                  <DetailSectionCard title={<Trans>Authority</Trans>}>
                   {detail.matchedRule ? (
                     <AuthorityFactStrip
                       facts={[
@@ -4025,6 +4049,7 @@ export function ObligationQueueDetailDrawer({
                       ) : null}
                     </div>
                   </details>
+                  </DetailSectionCard>
                 </div>
               </motion.div>
             </TabsContent>
