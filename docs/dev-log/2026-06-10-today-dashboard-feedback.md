@@ -24,3 +24,12 @@ Yuqi 8-item `/` feedback batch + "daily brief 修改成 Node ID: tvSsP".
     header chrome is tsgo-verified code.
 
 Verified live on /today: LIVE pill bg #ecfdf3, Daily Brief bg #fff + #1018281f border.
+
+## Wave 2 — #5 sync indicator → actions icon
+
+- **#5** (`routes/dashboard.tsx`): the "Synced just now ↻" PageHeader **eyebrow**
+  (its own row above the title) moved INTO the actions cluster, beside the My
+  work / Everyone toggle, as an **icon-only** button (RotateCwIcon) with a tooltip
+  ("Synced just now" / "Synced {age}"); click still refetches, spins while
+  fetching. Reclaims a row of vertical space; the big "Today" title now anchors
+  the top edge. Verified live.

@@ -18,6 +18,8 @@ import { DASHBOARD_FILTER_MAX_SELECTIONS } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
@@ -315,59 +317,10 @@ export function DashboardRoute() {
         // directly. Saves one row of vertical real estate, lets the
         // big "Today" title read as the page's anchor.
         eyebrow={
-          syncedLabel ? (
-            // 2026-06-04 round 6: dropped CheckCircle2Icon — green
-            // tone alone carries freshness.
-            // 2026-06-04 round 8: refresh icon goes inline as
-            // success-toned size-3 in a size-4 button.
-            // 2026-06-04 round 14 (Yuqi page-feedback "click this
-            // button to actually sync again"): wrapped the entire
-            // "Synced just now" text + refresh icon in a single
-            // button so the CPA can click the LABEL itself to
-            // trigger refresh — previously only the tiny size-4
-            // icon was the click target, easy to miss. The label
-            // now reads as the affordance ("click to re-sync");
-            // the icon stays as a visual confirmation. Whole
-            // chip pulses spin while fetching so the action
-            // feedback covers both visual elements.
-            // 2026-06-04 round 18 (Yuqi page-feedback "remove all
-            // of the background and padding, hover = changes
-            // colour to dark green"): stripped `px-1.5 py-0.5
-            // rounded hover:bg-state-base-hover` — the eyebrow
-            // is now a flat color-toggle button, no chrome at
-            // rest, no bg shift on hover. Hover deepens the
-            // text tone (text-text-success → state-success-solid)
-            // so the interactive cue is purely tonal. Reads as
-            // a quiet inline affordance, not a ghost button.
-            <button
-              type="button"
-              onClick={() => void dashboardQuery.refetch()}
-              disabled={dashboardQuery.isFetching}
-              aria-label={t`Refresh dashboard`}
-              title={t`Click to refresh`}
-              // 2026-06-04 round 80 (Yuqi #4 "gray colour"):
-              // sync status changed from `text-text-success` (green)
-              // to `text-text-tertiary` (gray). The freshness
-              // indicator was over-claiming with the green tone —
-              // it's an informational stamp, not a success state.
-              // Hover steps to `text-text-secondary` (one tier
-              // darker) so the interactive cue is still tonal but
-              // stays in the gray family.
-              className="inline-flex items-center gap-1 text-xs font-medium tracking-normal text-text-tertiary outline-none normal-case transition-colors cursor-pointer hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span>
-                {syncedLabel === 'just now' ? (
-                  <Trans>Synced just now</Trans>
-                ) : (
-                  <Trans>Synced {syncedLabel}</Trans>
-                )}
-              </span>
-              <RotateCwIcon
-                className={`size-3 ${dashboardQuery.isFetching ? 'animate-spin' : ''}`}
-                aria-hidden
-              />
-            </button>
-          ) : null
+          // 2026-06-10 (Yuqi /today #5 "place besides my work/everyone, just
+          // an icon, hover shows synced"): the Synced indicator moved OUT of
+          // the eyebrow row and into the actions cluster as an icon + tooltip.
+          undefined
         }
         title={
           // 2026-06-04 round 3 (Yuqi feedback #6 "semibold, light
@@ -399,6 +352,40 @@ export function DashboardRoute() {
         }
         actions={
           <>
+            {/* 2026-06-10 (Yuqi /today #5 "just an icon, hover to show synced"):
+                the sync freshness indicator lives here as an icon-only affordance
+                beside the scope toggle — hover reveals "Synced …", click refetches.
+                Moved out of the eyebrow row to reclaim a row of vertical space. */}
+            {syncedLabel ? (
+              <Tooltip>
+                <TooltipTrigger
+                  render={(props) => (
+                    <button
+                      type="button"
+                      onClick={() => void dashboardQuery.refetch()}
+                      disabled={dashboardQuery.isFetching}
+                      aria-label={
+                        syncedLabel === 'just now' ? t`Synced just now` : t`Synced ${syncedLabel}`
+                      }
+                      className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-text-tertiary outline-none transition-colors hover:bg-background-section hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
+                      {...props}
+                    >
+                      <RotateCwIcon
+                        className={cn('size-3.5', dashboardQuery.isFetching && 'animate-spin')}
+                        aria-hidden
+                      />
+                    </button>
+                  )}
+                />
+                <TooltipContent>
+                  {syncedLabel === 'just now' ? (
+                    <Trans>Synced just now</Trans>
+                  ) : (
+                    <Trans>Synced {syncedLabel}</Trans>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            ) : null}
             {/* 2026-06-10 (My work / Everyone): ONE scope toggle for the
                 whole page — daily brief, Priority Actions rows/ranks, and
                 every count switch together. Lives in the header action
