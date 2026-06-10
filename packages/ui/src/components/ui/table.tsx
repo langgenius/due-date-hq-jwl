@@ -91,6 +91,14 @@ function TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
 }
 
 function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
+  // Interactive rows (callsites add `cursor-pointer` when the row carries an
+  // onClick) get the canonical hover treatment — accent tint + a 2px inset left
+  // accent bar (box-shadow, so no layout shift). Display-only tables keep the
+  // neutral hover so they don't falsely signal clickability. Gated in JS off the
+  // established `cursor-pointer` convention (a CSS arbitrary variant on
+  // `&.cursor-pointer:hover` doesn't compile reliably). Selected rows carry the
+  // same bar so hover→select reads as one motif.
+  const interactive = className?.includes('cursor-pointer') ?? false
   return (
     <tr
       data-slot="table-row"
@@ -98,7 +106,11 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
         // Zebra striping (even-row tint) is part of the canonical
         // body — gives adjacent rows visual separation even when
         // content is short. Hover overlays cleanly.
-        'border-b border-divider-subtle transition-colors even:bg-background-section/40 hover:bg-state-base-hover has-aria-expanded:bg-state-base-hover data-[state=selected]:bg-state-accent-hover',
+        'border-b border-divider-subtle transition-colors even:bg-background-section/40 has-aria-expanded:bg-state-base-hover',
+        interactive
+          ? 'hover:bg-state-accent-hover hover:shadow-[inset_2px_0_0_var(--color-state-accent-solid)]'
+          : 'hover:bg-state-base-hover',
+        'data-[state=selected]:bg-state-accent-hover data-[state=selected]:shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
         className,
       )}
       {...props}
