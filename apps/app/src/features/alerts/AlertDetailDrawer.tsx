@@ -901,6 +901,25 @@ export function AlertDetailDrawer({
     }),
   )
 
+  // Dismiss — resolve the alert without applying (server writes the audit
+  // entry + `dismissedAt`). Closes the drawer like apply, since dismissing
+  // resolves the alert. Wires the previously-decorative `D` keyboard hint +
+  // the footer Dismiss button.
+  const dismissMutation = useMutation(
+    orpc.pulse.dismiss.mutationOptions({
+      onSuccess: () => {
+        invalidate()
+        toast.success(t`Alert dismissed`)
+        onClose()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't dismiss alert`, {
+          description: i18n._(alertErrorDescriptor(err)),
+        })
+      },
+    }),
+  )
+
   const requestReviewMutation = useMutation(
     orpc.pulse.requestReview.mutationOptions({
       onSuccess: () => {
@@ -973,7 +992,8 @@ export function AlertDetailDrawer({
     reviewPriorityMutation.isPending ||
     reactivateMutation.isPending ||
     requestReviewMutation.isPending ||
-    revertMutation.isPending
+    revertMutation.isPending ||
+    dismissMutation.isPending
 
   // F-041 — alert deadline-shift Apply now opens a verification gate
   // BEFORE firing the mutation. The CPA must read the official
@@ -1011,6 +1031,61 @@ export function AlertDetailDrawer({
       ),
     })
   }
+
+  // Dismiss is available while the alert is still awaiting a decision — not
+  // once it's resolved (applied / reviewed / reverted / dismissed) or its
+  // source was revoked.
+  const alertResolved =
+    !detail ||
+    detail.alert.status === 'dismissed' ||
+    detail.alert.status === 'reviewed' ||
+    detail.alert.status === 'reverted' ||
+    detail.alert.status === 'applied' ||
+    detail.alert.sourceStatus === 'source_revoked'
+  const canDismiss = !alertResolved && canApply
+  const handleDismiss = () => {
+    if (!detail || !canDismiss || isMutating) return
+    dismissMutation.mutate({ alertId: detail.alert.id })
+  }
+
+  // Make the footer's `A` / `D` keyboard hints real (they were decorative).
+  // `D` dismisses while the alert is open; `A` fires the primary decision —
+  // Apply's verification gate, or Mark reviewed for review_only alerts
+  // (skipped while re-verification is incomplete, matching the footer button).
+  useEffect(() => {
+    if (!open || !detail) return undefined
+    const handler = (event: KeyboardEvent) => {
+      const target = event.target instanceof HTMLElement ? event.target : null
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return
+      }
+      if (event.metaKey || event.ctrlKey || event.altKey || isMutating) return
+      const key = event.key.toLowerCase()
+      if (key === 'd' && canDismiss) {
+        event.preventDefault()
+        handleDismiss()
+      } else if (key === 'a' && !alertResolved) {
+        const reviewMode =
+          detail.alert.actionMode === 'review_only' ||
+          detail.alert.firmImpact === 'no_current_match'
+        if (reviewMode) {
+          if (reverifyIncomplete) return
+          event.preventDefault()
+          markReviewedMutation.mutate({ alertId: detail.alert.id })
+        } else {
+          event.preventDefault()
+          handleApply()
+        }
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+    // handleApply / handleDismiss close over the same state these deps track.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, detail, isMutating, canDismiss, alertResolved, reverifyIncomplete])
 
   const handleCopyDraft = () => {
     if (!detail) return
@@ -1863,6 +1938,7 @@ export function AlertDetailDrawer({
                   sourceStatus: detail.alert.sourceStatus,
                 })}
                 canApplyReviewed={permissions.canManagePriorityReview}
+                canDismiss={canDismiss}
                 reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
                 reverifyIncomplete={reverifyIncomplete}
                 isMutating={isMutating}
@@ -1873,6 +1949,7 @@ export function AlertDetailDrawer({
                 onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
                 onRequestReview={() => setReviewDialogOpen(true)}
                 onCopyDraft={handleCopyDraft}
+                onDismiss={handleDismiss}
               />
             ) : null}
           </div>
@@ -2030,6 +2107,7 @@ export function DrawerActions({
   canRevert,
   canRequestReview,
   canApplyReviewed,
+  canDismiss,
   reviewedSetReady,
   reverifyIncomplete,
   isMutating,
@@ -2040,6 +2118,7 @@ export function DrawerActions({
   onReactivate,
   onRequestReview,
   onCopyDraft,
+  onDismiss,
 }: {
   alertStatus: PulseFirmAlertStatus
   sourceStatus: PulseStatus
@@ -2054,6 +2133,8 @@ export function DrawerActions({
   canRevert: boolean
   canRequestReview: boolean
   canApplyReviewed: boolean
+  /** Dismiss is offered while the alert is still awaiting a decision. */
+  canDismiss: boolean
   reviewedSetReady: boolean
   // 2026-06-03 — true when this review_only alert still has rules that
   // need re-verifying (a candidate / pending_review row in listRules).
@@ -2068,6 +2149,7 @@ export function DrawerActions({
   onReactivate: () => void
   onRequestReview: () => void
   onCopyDraft: () => void
+  onDismiss: () => void
 }) {
   const { t } = useLingui()
   const showRevert = REVERTABLE_STATUSES.has(alertStatus)
@@ -2132,6 +2214,14 @@ export function DrawerActions({
           <Button variant="ghost" size="sm" disabled={isMutating} onClick={onCopyDraft}>
             <MailIcon data-icon="inline-start" />
             <Trans>Copy client email draft</Trans>
+          </Button>
+        ) : null}
+        {/* Dismiss — resolve the alert without applying. Offered only while
+            it's still awaiting a decision (the `D` shortcut mirrors this). */}
+        {canDismiss ? (
+          <Button variant="ghost" size="sm" disabled={isMutating} onClick={onDismiss}>
+            <XIcon data-icon="inline-start" />
+            <Trans>Dismiss</Trans>
           </Button>
         ) : null}
       </div>

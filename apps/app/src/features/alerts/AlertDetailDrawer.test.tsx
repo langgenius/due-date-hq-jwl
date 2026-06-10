@@ -75,6 +75,7 @@ function renderDrawerActions({
           canRevert
           canRequestReview={false}
           canApplyReviewed={false}
+          canDismiss={false}
           reviewedSetReady={false}
           reverifyIncomplete={false}
           isMutating={false}
@@ -85,6 +86,7 @@ function renderDrawerActions({
           onReactivate={() => {}}
           onRequestReview={() => {}}
           onCopyDraft={() => {}}
+          onDismiss={() => {}}
         />
       </AppI18nProvider>,
     )
