@@ -2266,7 +2266,7 @@ for (const f of FIRMS) {
   add(
     'client_readiness_response',
     row(
-      s(sid('691', i, 1)),
+      s(sid('6a', i, 1)),
       s(f.id),
       s(reqId),
       s(obl(f, 9)),
@@ -2277,7 +2277,7 @@ for (const f of FIRMS) {
       ts('2026-05-22 10:00:00'),
     ),
     row(
-      s(sid('691', i, 2)),
+      s(sid('6a', i, 2)),
       s(f.id),
       s(reqId),
       s(obl(f, 9)),

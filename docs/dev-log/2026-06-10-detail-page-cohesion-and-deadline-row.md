@@ -118,3 +118,21 @@ Verified live on /clients/lone-star-…: 3 DeadlineRows render, body click expan
 inline + sets `?expanded=`, the expansion region renders. tsgo clean.
 NOTE: table removal left some now-unused imports in the panel (lint-level, not
 type errors) — tidy follow-up.
+
+## Backend fix — getDetail 500 on waiting deadlines (Yuqi "yes, fix it")
+
+`obligations.getDetail` 500'd ("Output validation failed") for any
+`waiting_on_client` deadline — so the whole waiting-state UI (active-stage card)
+was unverifiable. Diagnosed via a temporary in-handler `safeParse` that surfaced
+the exact Zod paths, then reverted it. Two root causes:
+1. **Request-checklist items** were stored as `{id,label}`, but
+   `ReadinessChecklistItemSchema` requires `description/reason/sourceHint`
+   (`.nullable()` — `undefined` fails). Fixed in `toReadinessRequestPublic`
+   (`_public.ts`) by normalizing those to `null`.
+2. **Readiness-response ids** were seeded with `sid('691', …)` — a 3-char prefix
+   where `sid` expects 2 — producing an invalid UUID. Fixed the seed to
+   `sid('6a', …)` + regenerated `mock/demo.sql` + re-seeded.
+
+Verified: `/deadlines/000000000009` (Sunbelt FL F1120, Waiting on client) now
+loads — eyebrow pill + Stage 2 of 6 + materials block all render. tsgo clean
+(app + server).

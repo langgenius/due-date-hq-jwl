@@ -111,7 +111,16 @@ export function toReadinessRequestPublic(
     createdByUserId: row.createdByUserId,
     recipientEmail: row.recipientEmail,
     status: row.status,
-    checklist: row.checklistJson,
+    // 2026-06-10 (Yuqi — getDetail 500 fix): request-checklist items are stored
+    // as a simple {id,label} shape; normalize the optional metadata fields to
+    // `null` so they satisfy the schema's `.nullable()` (undefined would fail).
+    checklist: row.checklistJson.map((item) => ({
+      id: item.id,
+      label: item.label,
+      description: item.description ?? null,
+      reason: item.reason ?? null,
+      sourceHint: item.sourceHint ?? null,
+    })),
     portalUrl,
     expiresAt: row.expiresAt.toISOString(),
     sentAt: toNullableIso(row.sentAt),
