@@ -17,7 +17,8 @@ test('AC: E2E-SMOKE-I18N renders the login entry in the persisted locale', async
   await loginPage.goto()
 
   await expect(loginPage.googleButton).toHaveText(/使用 Google 继续/)
-  await expect(page.getByText('面向美国注册会计师事务所')).toBeVisible()
+  // "for CPA firms" eyebrow — translated 面向 CPA 事务所 in the catalog.
+  await expect(page.getByText('面向 CPA 事务所')).toBeVisible()
   await expect(page).toHaveURL(/\/login$/)
 })
 
