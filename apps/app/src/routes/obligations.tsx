@@ -4167,7 +4167,12 @@ export function ObligationQueueRoute() {
               // sticky-top-padding hack pulled the toolbar (and the focused
               // search field's ring) up under the page header, clipping it.
               // Reverted to a clean sticky top-0 fill — no negative margin.
-              !panelOpenIntent && 'bg-background-default',
+              // 2026-06-10 (Yuqi "sticky on top should always have page-
+              // consistent top AND bottom padding"): plain `pt-3` gives the
+              // pinned toolbar symmetric top padding (the rows already carry
+              // pb-3) without any negative margin, so it can't crop the search
+              // ring — matching the detail tab bar's pt-3/pb-3.
+              !panelOpenIntent && 'bg-background-default pt-3',
             )}
           >
             {/* 2026-06-09 (Yuqi /deadlines production recreation): the

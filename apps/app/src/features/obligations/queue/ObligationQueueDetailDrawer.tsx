@@ -1960,8 +1960,20 @@ export function ObligationQueueDetailDrawer({
                 sticky tab bar drops its `bg-background-canvas-warm` fill so it
                 reads as part of the page, not a banded strip. The TabsList's own
                 bottom hairline still anchors the bar; the page wash behind it is
-                the same warm canvas, so there's no visible seam. */}
-            <div className="sticky top-0 z-10 pt-3">
+                the same warm canvas, so there's no visible seam.
+                2026-06-10 (Yuqi "inspect scroll/sticky" + "sticky on top should
+                have page-consistent top AND bottom padding"): in PAGE mode the
+                tab content scrolls directly behind this bar, so a transparent
+                fill let rows bleed through it when pinned (the overlap). Restore
+                an opaque page-matching fill (bg-background-subtle) and give it
+                symmetric pt/pb so the pinned bar reads as a clean band. Panel/
+                sheet (/clients) keep the seamless warm-canvas look. */}
+            <div
+              className={cn(
+                'sticky top-0 z-10 pt-3',
+                isPageMode ? 'bg-background-subtle pb-3' : '',
+              )}
+            >
               {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
                   from design/deadlines-drawer-rework): tab bar
                   switched from default pill segmented control to the
