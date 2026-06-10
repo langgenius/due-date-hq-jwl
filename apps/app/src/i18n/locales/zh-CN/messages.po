@@ -374,6 +374,11 @@ msgstr "{0, plural, other {已向 # 个客户发送提醒}}"
 msgid "{0, plural, one {View # more source} other {View # more sources}}"
 msgstr "{0, plural, other {查看另外 # 个来源}}"
 
+#. placeholder {0}: notes.length
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "{0, plural, one {View # team note} other {View # team notes}}"
+msgstr "{0, plural, other {查看 # 条团队备注}}"
+
 #. placeholder {0}: intake.rowCount
 #: src/features/migration/Step1Intake.tsx
 msgid "{0, plural, one {We imported the first 1000 of # row. Split your file to import more.} other {We imported the first 1000 of # rows. Split your file to import more.}}"
@@ -1947,6 +1952,10 @@ msgstr "Add {0}% across factors to balance. Weights must total 100%."
 msgid "Add a client to this practice."
 msgstr "该事务所没有匹配客户。"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Add a note for your team — explain assumptions, scope decisions, or follow-ups."
+msgstr "为团队添加备注——说明假设、范围决定或后续事项。"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Add a review note and try again."
 msgstr "请添加审核说明后重试。"
@@ -2016,6 +2025,7 @@ msgid "Add item manually"
 msgstr "手动添加项"
 
 #: src/features/alerts/components/AlertTeamNotes.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "Add note"
 msgstr "添加备注"
 
@@ -3961,6 +3971,10 @@ msgstr "清除上方筛选条件以查看所有关注的来源。"
 msgid "Clear filters to return to the latest practice-wide events."
 msgstr "清除筛选器以返回最新的事务所事件。"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Clear morning sweep"
+msgstr "清除晨间扫描"
+
 #: src/components/patterns/table-header-filter.tsx
 #: src/components/primitives/search-input.tsx
 msgid "Clear search"
@@ -4705,6 +4719,7 @@ msgid "Couldn't add document item"
 msgstr "无法添加文件项"
 
 #: src/features/alerts/components/AlertTeamNotes.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "Couldn't add note"
 msgstr "无法添加备注"
 
@@ -5756,6 +5771,7 @@ msgid "Decide extensions"
 msgstr "确定延期"
 
 #: src/features/audit/audit-log-table.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "Decision"
 msgstr "决策"
 
@@ -6151,6 +6167,7 @@ msgstr "到期日"
 #: src/features/obligations/BlockerContextCard.tsx
 #: src/features/obligations/queue/components/evidence.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 msgid "Due {0}"
@@ -7828,6 +7845,10 @@ msgstr "历史：30 天提醒窗口"
 #: src/routes/billing.tsx
 msgid "History: full alert record"
 msgstr "历史：完整提醒记录"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Holiday rollover: source-adjusted"
+msgstr "节假日顺延：按官方来源调整"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "HomeBase contacts CSV"
@@ -9513,6 +9534,10 @@ msgstr "晨间摘要"
 msgid "Morning digest preview queued"
 msgstr "Morning digest 预览已排队"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Morning sweep · last 24h"
+msgstr "晨间扫描 · 最近 24 小时"
+
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "Most firms come back to import within 3 days — we'll send you a reminder."
 msgstr "大多数事务所会在 3 天内返回导入 — 我们会向您发送提醒。"
@@ -9962,6 +9987,10 @@ msgstr "暂无活动摘要"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No alerts — you're caught up"
 msgstr "暂无提醒 —— 您都已处理完毕"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "No alerts in the last 24 hours."
+msgstr "最近 24 小时内没有警报。"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No alerts match these filters."
@@ -10463,6 +10492,10 @@ msgstr "没有税年"
 msgid "No tax-type services tracked"
 msgstr "暂无税种服务记录"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "No team notes yet"
+msgstr "暂无团队备注"
+
 #: src/features/alerts/components/AlertTeamNotes.tsx
 msgid "No team notes yet. Add the first one for your colleagues."
 msgstr "还没有团队备注。为同事添加第一条吧。"
@@ -10610,6 +10643,10 @@ msgstr "尚未准备好"
 #: src/routes/readiness.tsx
 msgid "Note"
 msgstr "备注"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Note added"
+msgstr "备注已添加"
 
 #: src/routes/practice.tsx
 msgid "Note: changes can't be reverted automatically — adjusting this back later won't restore prior deadline dates. Historical audit entries stay intact."
@@ -12187,6 +12224,10 @@ msgstr "此前的阶段"
 msgid "Previous years"
 msgstr "上一组年份"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Primary"
+msgstr "主要"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Primary contact"
 msgstr "主要联系人"
@@ -13032,6 +13073,10 @@ msgstr "已向客户索取"
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Required"
 msgstr "需要"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Required before Accept"
+msgstr "接受前必填"
 
 #: src/routes/onboarding.tsx
 msgid "required, 2+ characters"
@@ -14577,6 +14622,10 @@ msgstr "显示"
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "全部显示"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Show all alerts"
+msgstr "显示全部警报"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Show all events"
@@ -16247,6 +16296,10 @@ msgstr "请稍后重试。"
 msgid "Try again, or skip this rule for now."
 msgstr "请重试，或暂时跳过此规则。"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Try again."
+msgstr "请重试。"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Try previewing again before generating."
 msgstr "请在生成前重新预览。"
@@ -17043,6 +17096,10 @@ msgstr "导入功能上线后即可在此附加 PDF 与导出文件。"
 #: src/routes/settings.profile.tsx
 msgid "Week starts on"
 msgstr "每周开始于"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Weekend → next business day"
+msgstr "周末 → 下一个工作日"
 
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Weekly"

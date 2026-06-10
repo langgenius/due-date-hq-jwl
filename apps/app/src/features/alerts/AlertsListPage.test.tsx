@@ -11,6 +11,7 @@ import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
 
 import { AlertsListPage } from './AlertsListPage'
+import { MorningSweepProvider, useMorningSweep } from './MorningSweepContext'
 
 // Shape of the options object the api.ts infinite hooks pass to
 // orpc.pulse.list*.infiniteOptions — mirrored by the mock below.
@@ -611,5 +612,117 @@ describe('AlertsListPage status filter scope', () => {
 
     await waitForText('Seeded CA relief')
     expect(document.querySelector('[aria-label="Filter by alert status"]')).not.toBeNull()
+  })
+})
+
+describe('AlertsListPage morning sweep override', () => {
+  function SweepActivator() {
+    const sweep = useMorningSweep()
+    return <button type="button" aria-label="test-activate-sweep" onClick={() => sweep?.toggle()} />
+  }
+
+  function sweepAlerts() {
+    const fresh = listAlert({
+      id: '56565656-5656-4565-8565-565656565656',
+      title: 'Fresh overnight relief',
+      publishedAt: new Date(Date.now() - 3600_000).toISOString(),
+    })
+    const old = listAlert() // 2026-05-01 — far outside any 24h window
+    return { fresh, old }
+  }
+
+  async function activateSweep() {
+    const activator = document.querySelector('[aria-label="test-activate-sweep"]')
+    expect(activator).toBeTruthy()
+    await act(async () => {
+      activator?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await Promise.resolve()
+    })
+  }
+
+  async function renderSweepPage(alerts: PulseAlertPublic[]) {
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts, nextCursor: null })
+    await render(
+      <MorningSweepProvider>
+        <SweepActivator />
+        <AlertsListPage embedded />
+      </MorningSweepProvider>,
+    )
+    await selectActiveQueue()
+  }
+
+  it('pins the list to the last-24h window and shows a dismissible sweep chip', async () => {
+    const { fresh, old } = sweepAlerts()
+    await renderSweepPage([fresh, old])
+    await waitForText('Seeded CA relief')
+
+    await activateSweep()
+
+    await waitForText('Morning sweep · last 24h')
+    expect(document.body.textContent).toContain('Fresh overnight relief')
+    expect(document.body.textContent).not.toContain('Seeded CA relief')
+    // The sweep counts as an active filter, so Reset renders.
+    expect(
+      Array.from(document.querySelectorAll('button')).some(
+        (candidate) => candidate.textContent?.trim() === 'Reset',
+      ),
+    ).toBe(true)
+  })
+
+  it('chip Clear turns the override off', async () => {
+    const { fresh, old } = sweepAlerts()
+    await renderSweepPage([fresh, old])
+    await activateSweep()
+    await waitForText('Morning sweep · last 24h')
+
+    const clear = document.querySelector('[aria-label="Clear morning sweep"]')
+    expect(clear).toBeTruthy()
+    await act(async () => {
+      clear?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await Promise.resolve()
+    })
+
+    await waitForText('Seeded CA relief')
+    expect(document.body.textContent).not.toContain('Morning sweep · last 24h')
+  })
+
+  it('Reset clears the sweep override along with other filters', async () => {
+    const { fresh, old } = sweepAlerts()
+    await renderSweepPage([fresh, old])
+    await activateSweep()
+    await waitForText('Morning sweep · last 24h')
+
+    const reset = Array.from(document.querySelectorAll('button')).find(
+      (candidate) => candidate.textContent?.trim() === 'Reset',
+    )
+    expect(reset).toBeTruthy()
+    await act(async () => {
+      reset?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await Promise.resolve()
+    })
+
+    await waitForText('Seeded CA relief')
+    expect(document.body.textContent).not.toContain('Morning sweep · last 24h')
+  })
+
+  it('sweep-empty window shows the window-aware empty state, not "caught up"', async () => {
+    const { old } = sweepAlerts()
+    await renderSweepPage([old])
+    await waitForText('Seeded CA relief')
+
+    await activateSweep()
+
+    await waitForText('No alerts in the last 24 hours.')
+    expect(document.body.textContent).toContain('Show all alerts')
+    expect(document.body.textContent).not.toContain("you're caught up")
+
+    const showAll = Array.from(document.querySelectorAll('button')).find(
+      (candidate) => candidate.textContent?.trim() === 'Show all alerts',
+    )
+    await act(async () => {
+      showAll?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await Promise.resolve()
+    })
+    await waitForText('Seeded CA relief')
   })
 })

@@ -13,6 +13,7 @@ import {
   ArchiveIcon,
   CheckIcon,
   CircleCheckIcon,
+  CoffeeIcon,
   FileCheckIcon,
   HistoryIcon,
   ListIcon,
@@ -525,6 +526,8 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // filtered-empty state's "Clear filters" escape hatch — so the empty
   // state always has a way out, not just a dead end.
   const resetFilters = () => {
+    // Morning sweep is a preset filter — Reset clears it like any other facet.
+    morningSweep?.deactivate()
     setImpactFilter('all')
     setStatusFilter('all')
     setChangeKindFilter('all')
@@ -537,6 +540,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const isEmpty = !alertsQuery.isLoading && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
   const filtersActive =
+    (morningSweep?.active ?? false) ||
     impactFilter !== 'all' ||
     statusFilter !== 'all' ||
     changeKindFilter !== 'all' ||
@@ -1016,6 +1020,26 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   />
                 </label>
 
+                {/* Morning-sweep preset chip — deliberately OUTSIDE the
+                    panelOpen gate so the override's exit stays visible when
+                    the detail panel or map is open. "Show me" only ever turns
+                    the pin on; this chip (plus Reset and any explicit Time
+                    choice) is how it turns off. */}
+                {morningSweep?.active ? (
+                  <span className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-state-accent-border bg-state-accent-hover px-3 text-[13px] font-medium text-text-accent">
+                    <CoffeeIcon className="size-3.5" aria-hidden />
+                    <Trans>Morning sweep · last 24h</Trans>
+                    <button
+                      type="button"
+                      onClick={morningSweep.deactivate}
+                      aria-label={t`Clear morning sweep`}
+                      className="inline-flex size-5 cursor-pointer items-center justify-center rounded-md outline-none transition-colors hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    >
+                      <XIcon className="size-3" aria-hidden />
+                    </button>
+                  </span>
+                ) : null}
+
                 {/* Round 68: when the detail panel is open, every
                     filter control AFTER the Search hides — see the
                     closing `)}` ~280 lines down. */}
@@ -1094,8 +1118,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         trigger count includes an active time filter. State and
                         Sort stay separate as their own controls. */}
                     <AlertFiltersPopover
-                      timeRangeFilter={timeRangeFilter}
-                      onTimeRangeChange={setTimeRangeFilter}
+                      timeRangeFilter={effectiveTimeRangeFilter}
+                      onTimeRangeChange={(value) => {
+                        // The user's explicit time choice takes over from the
+                        // sweep preset — the popover never silently no-ops.
+                        morningSweep?.deactivate()
+                        setTimeRangeFilter(value)
+                      }}
                       impactFilter={impactFilter}
                       onImpactChange={setImpactFilter}
                       changeKindFilter={changeKindFilter}
@@ -1331,7 +1360,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       </span>
                     </div>
                     {isFilteredEmpty ? (
-                      <FilteredEmptyState onClearFilters={resetFilters} />
+                      <FilteredEmptyState
+                        onClearFilters={resetFilters}
+                        sweepActive={morningSweep?.active ?? false}
+                      />
                     ) : (
                       // 2026-06-08 (Yuqi "update the alert list in the map
                       // view"): the right rail now renders the SAME
@@ -1375,7 +1407,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 // state is reserved for when actual filters are narrowing.
                 <AlertsEmptyState historyMode={historyMode} sources={sourceHealth} />
               ) : isFilteredEmpty ? (
-                <FilteredEmptyState onClearFilters={resetFilters} />
+                <FilteredEmptyState
+                  onClearFilters={resetFilters}
+                  sweepActive={morningSweep?.active ?? false}
+                />
               ) : (
                 /* 2026-06-04 round 42 (Yuqi consistency audit
                    follow-up #2 — "the gap between alert card should
@@ -1721,15 +1756,27 @@ function StateFilterPopover({
   )
 }
 
-function FilteredEmptyState({ onClearFilters }: { onClearFilters: () => void }) {
+function FilteredEmptyState({
+  onClearFilters,
+  sweepActive = false,
+}: {
+  onClearFilters: () => void
+  sweepActive?: boolean
+}) {
   return (
     <StatusBanner indicator={<PulsingDot tone="disabled" />}>
       {/* Give the dead-end empty state a way out — reuse the toolbar's
-          reset handler so filtered-to-nothing isn't a trap. */}
+          reset handler so filtered-to-nothing isn't a trap. While the
+          morning-sweep pin is on, say WHY the list is empty (the 24h window)
+          instead of the misleading "you're caught up" hero. */}
       <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <Trans>No alerts match these filters.</Trans>
+        {sweepActive ? (
+          <Trans>No alerts in the last 24 hours.</Trans>
+        ) : (
+          <Trans>No alerts match these filters.</Trans>
+        )}
         <Button variant="ghost" size="sm" onClick={onClearFilters}>
-          <Trans>Clear filters</Trans>
+          {sweepActive ? <Trans>Show all alerts</Trans> : <Trans>Clear filters</Trans>}
         </Button>
       </span>
     </StatusBanner>

@@ -372,6 +372,11 @@ msgstr "{0, plural, one {Reminder went out to # client} other {Reminders went ou
 msgid "{0, plural, one {View # more source} other {View # more sources}}"
 msgstr "{0, plural, one {View # more source} other {View # more sources}}"
 
+#. placeholder {0}: notes.length
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "{0, plural, one {View # team note} other {View # team notes}}"
+msgstr "{0, plural, one {View # team note} other {View # team notes}}"
+
 #. placeholder {0}: intake.rowCount
 #: src/features/migration/Step1Intake.tsx
 msgid "{0, plural, one {We imported the first 1000 of # row. Split your file to import more.} other {We imported the first 1000 of # rows. Split your file to import more.}}"
@@ -1924,6 +1929,10 @@ msgstr "Add {0}% across factors to balance. Weights must total 100%."
 msgid "Add a client to this practice."
 msgstr "Add a client to this practice."
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Add a note for your team — explain assumptions, scope decisions, or follow-ups."
+msgstr "Add a note for your team — explain assumptions, scope decisions, or follow-ups."
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Add a review note and try again."
 msgstr "Add a review note and try again."
@@ -1993,6 +2002,7 @@ msgid "Add item manually"
 msgstr "Add item manually"
 
 #: src/features/alerts/components/AlertTeamNotes.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "Add note"
 msgstr "Add note"
 
@@ -3932,6 +3942,10 @@ msgstr "Clear filters above to see all watched sources."
 msgid "Clear filters to return to the latest practice-wide events."
 msgstr "Clear filters to return to the latest practice-wide events."
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Clear morning sweep"
+msgstr "Clear morning sweep"
+
 #: src/components/patterns/table-header-filter.tsx
 #: src/components/primitives/search-input.tsx
 msgid "Clear search"
@@ -4670,6 +4684,7 @@ msgid "Couldn't add document item"
 msgstr "Couldn't add document item"
 
 #: src/features/alerts/components/AlertTeamNotes.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "Couldn't add note"
 msgstr "Couldn't add note"
 
@@ -5719,6 +5734,7 @@ msgid "Decide extensions"
 msgstr "Decide extensions"
 
 #: src/features/audit/audit-log-table.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "Decision"
 msgstr "Decision"
 
@@ -6112,6 +6128,7 @@ msgstr "Due"
 #: src/features/obligations/BlockerContextCard.tsx
 #: src/features/obligations/queue/components/evidence.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 msgid "Due {0}"
@@ -7781,6 +7798,10 @@ msgstr "History: 30-day alert window"
 #: src/routes/billing.tsx
 msgid "History: full alert record"
 msgstr "History: full alert record"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Holiday rollover: source-adjusted"
+msgstr "Holiday rollover: source-adjusted"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "HomeBase contacts CSV"
@@ -9455,6 +9476,10 @@ msgstr "Morning digest"
 msgid "Morning digest preview queued"
 msgstr "Morning digest preview queued"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Morning sweep · last 24h"
+msgstr "Morning sweep · last 24h"
+
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "Most firms come back to import within 3 days — we'll send you a reminder."
 msgstr "Most firms come back to import within 3 days — we'll send you a reminder."
@@ -9903,6 +9928,10 @@ msgstr "No activity summary yet"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No alerts — you're caught up"
 msgstr "No alerts — you're caught up"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "No alerts in the last 24 hours."
+msgstr "No alerts in the last 24 hours."
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No alerts match these filters."
@@ -10399,6 +10428,10 @@ msgstr "No tax year"
 msgid "No tax-type services tracked"
 msgstr "No tax-type services tracked"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "No team notes yet"
+msgstr "No team notes yet"
+
 #: src/features/alerts/components/AlertTeamNotes.tsx
 msgid "No team notes yet. Add the first one for your colleagues."
 msgstr "No team notes yet. Add the first one for your colleagues."
@@ -10546,6 +10579,10 @@ msgstr "Not yet"
 #: src/routes/readiness.tsx
 msgid "Note"
 msgstr "Note"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Note added"
+msgstr "Note added"
 
 #: src/routes/practice.tsx
 msgid "Note: changes can't be reverted automatically — adjusting this back later won't restore prior deadline dates. Historical audit entries stay intact."
@@ -12104,6 +12141,10 @@ msgstr "Previous stages"
 msgid "Previous years"
 msgstr "Previous years"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Primary"
+msgstr "Primary"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Primary contact"
 msgstr "Primary contact"
@@ -12947,6 +12988,10 @@ msgstr "Requested from client"
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Required"
 msgstr "Required"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Required before Accept"
+msgstr "Required before Accept"
 
 #: src/routes/onboarding.tsx
 msgid "required, 2+ characters"
@@ -14485,6 +14530,10 @@ msgstr "Show"
 #: src/routes/obligations.tsx
 msgid "Show all"
 msgstr "Show all"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Show all alerts"
+msgstr "Show all alerts"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Show all events"
@@ -16152,6 +16201,10 @@ msgstr "Try again in a moment."
 msgid "Try again, or skip this rule for now."
 msgstr "Try again, or skip this rule for now."
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Try again."
+msgstr "Try again."
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Try previewing again before generating."
 msgstr "Try previewing again before generating."
@@ -16945,6 +16998,10 @@ msgstr "We'll let you attach PDFs and exports here as soon as ingest lands."
 #: src/routes/settings.profile.tsx
 msgid "Week starts on"
 msgstr "Week starts on"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Weekend → next business day"
+msgstr "Weekend → next business day"
 
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Weekly"

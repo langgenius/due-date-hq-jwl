@@ -51,6 +51,10 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 export type MorningSweepValue = {
   active: boolean
   toggle: () => void
+  // Explicit off-switch for the sweep filter override — "Show me" only ever
+  // turns it on, and the list page needs exits (chip, Reset, time-filter
+  // takeover) that never accidentally re-enable it.
+  deactivate: () => void
   digestOpen: boolean
   toggleDigest: () => void
   closeDigest: () => void
@@ -65,6 +69,7 @@ export function MorningSweepProvider({ children }: { children: ReactNode }) {
     () => ({
       active,
       toggle: () => setActive((prev) => !prev),
+      deactivate: () => setActive(false),
       digestOpen,
       toggleDigest: () => setDigestOpen((prev) => !prev),
       closeDigest: () => setDigestOpen(false),
