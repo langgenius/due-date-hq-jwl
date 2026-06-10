@@ -46,7 +46,7 @@ test.describe('seeded Pulse alerts', () => {
     await obligationQueuePage.goto('/deadlines?asOf=2026-05-26')
     const arborRow = obligationQueuePage.rowFor('Arbor & Vale LLC')
     await expect(arborRow).toContainText('128 days')
-    await obligationQueuePage.columnsButton.click()
+    await obligationQueuePage.openColumnsMenu()
     const evidenceColumnOption = obligationQueuePage.columnVisibilityOption('Evidence')
     if ((await evidenceColumnOption.getAttribute('aria-checked')) !== 'true') {
       await evidenceColumnOption.click()

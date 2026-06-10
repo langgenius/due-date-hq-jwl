@@ -23,10 +23,10 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await rulesConsolePage.goto()
 
   await expect(authenticatedPage).toHaveURL(/\/rules\/library(?:\?view=matrix)?$/)
-  // The header's "Start review N" / "New rule" actions are conditional on the
-  // review-queue and active scope; assert the always-rendered "Rule library
-  // overview" section instead to confirm the library route rendered its console.
-  await expect(authenticatedPage.getByText('Rule library overview')).toBeVisible({
+  // 2026-06-10 (Pencil O0pyRO): the overview is a summary dashboard now —
+  // its stats band ("Total rules" tile) is the always-rendered anchor that
+  // confirms the library route rendered its console.
+  await expect(authenticatedPage.getByText('Total rules')).toBeVisible({
     timeout: 20_000,
   })
 

@@ -6,18 +6,20 @@ export class LoginPage {
   readonly emailButton: Locator
   readonly googleButton: Locator
   readonly microsoftButton: Locator
-  readonly languageButton: Locator
-  readonly footerStatus: Locator
+  readonly reassurance: Locator
 
   constructor(readonly page: Page) {
-    this.heading = page.getByRole('heading', {
-      name: /Welcome (?:back )?(?:to the workbench|to DueDateHQ)\.?|欢迎回到工作台/,
-    })
+    // 2026-06-10 (login redesign): the entry heading is a plain
+    // "Welcome back" — the split marketing panel carries the product
+    // pitch ("Every CPA deadline. One source of truth.") instead.
+    this.heading = page.getByRole('heading', { name: /Welcome back|欢迎回来/ })
 
-    this.emailInput = page.getByLabel(/(?:Work )?Email address|工作邮箱/)
+    this.emailInput = page.getByLabel(/Work email|工作邮箱/)
 
+    // The email flow sends a one-time sign-in link first ("Send
+    // sign-in link"); the 6-digit code entry appears after submit.
     this.emailButton = page.getByRole('button', {
-      name: /Email me a code|发送验证码/,
+      name: /Send sign-in link|发送登录链接/,
     })
 
     this.googleButton = page.getByRole('button', {
@@ -28,11 +30,10 @@ export class LoginPage {
       name: /Continue with Microsoft|使用 Microsoft 继续/,
     })
 
-    this.languageButton = page.getByRole('button', {
-      name: /Language|语言/,
-    })
-
-    this.footerStatus = page.getByText(/All systems operational|所有系统运行正常/)
+    // 2026-06-10 (login redesign): the "All systems operational"
+    // footer + the Language menu button are gone. The reassurance
+    // card under the form is the stable always-rendered footer copy.
+    this.reassurance = page.getByText(/Secured by one-time link|一次性链接安全保障/)
   }
 
   async goto(path = '/login') {

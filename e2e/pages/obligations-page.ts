@@ -8,16 +8,20 @@ export class ObligationQueuePage {
   // (it used to be a link to /deadlines/calendar). The dedicated route
   // still exists and is reachable via ⌘K → "Calendar sync".
   readonly calendarSyncButton: Locator
-  readonly columnsButton: Locator
+  readonly viewMenuButton: Locator
+  readonly statusFilterButton: Locator
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Deadlines' })
     // 2026-06-05 (page-feedback #5): the collapsible "Filter deadlines"
     // icon-button was removed — the toolbar now renders a single fixed
-    // search field (`<input type="search" aria-label="Search deadlines">`)
-    // in the filter row above the table. It's always visible, so there is
-    // no expand button and no dedicated "Clear search" button anymore.
-    this.searchInput = page.getByRole('searchbox', { name: 'Search deadlines' })
+    // search field in the filter row above the table. It's always
+    // visible, so there is no expand button and no dedicated "Clear
+    // search" button anymore.
+    // 2026-06-10 (queue toolbar redesign): the field's accessible name
+    // now spells out the searchable axes ("Search client, form, or
+    // assignee"); the navigator rail keeps its own "Search deadlines".
+    this.searchInput = page.getByRole('searchbox', { name: 'Search client, form, or assignee' })
     // The sortable header renders a button with aria-label `Sort ${columnLabel}`
     // (ObligationQueueSortableHeader). The active /deadlines queue (obligations
     // .tsx) labels the internal-due column t`Internal due` — verified against
@@ -26,7 +30,16 @@ export class ObligationQueuePage {
     // (lifecycle-v2) column code path.
     this.dueSortButton = page.getByRole('button', { name: 'Sort Internal due', exact: true })
     this.calendarSyncButton = page.getByRole('button', { name: 'Calendar sync' })
-    this.columnsButton = page.getByRole('button', { name: 'Columns' })
+    // 2026-06-10 (queue toolbar redesign): the standalone "Columns" button
+    // folded into a single "View" dropdown (aria-label "View, columns, and
+    // actions") whose Columns SUBMENU carries the visibility checklist.
+    this.viewMenuButton = page.getByRole('button', { name: 'View, columns, and actions' })
+    // Status filter — single dropdown pill replacing the scope-tab bar. The
+    // trigger's visible text is the active scope label + facet count
+    // ("All Status 4" → "In review 1" once filtered).
+    this.statusFilterButton = page.getByRole('button', {
+      name: /^(?:All Status|Not started|Waiting on client|Blocked|In review|Filed|Completed)\s*\d*$/,
+    })
   }
 
   async goto(path = '/deadlines') {
@@ -44,20 +57,20 @@ export class ObligationQueuePage {
     await this.searchInput.fill('')
   }
 
-  // 2026-06-08 (ad0f900d — filter consolidation): the per-column STATUS header
-  // dropdown was removed (it conflicted with the top tabs). Status is now a
-  // top-level scope-tab bar — each tab is a <button> (aria-pressed) whose
-  // accessible name is the status label followed by its facet count (label and
-  // count are adjacent <span>s, e.g. "In review 1"). Clicking one writes
-  // ?status=<key> via setObligationQueueQuery; there is no popover to escape.
-  statusScopeTab(name: string) {
-    return this.page.getByRole('button', {
-      name: new RegExp(`^${escapeRegex(name)}\\s*\\d*$`),
-    })
+  // 2026-06-10 (queue toolbar redesign): the scope-tab bar consolidated into
+  // the "All Status" dropdown — pick a status via its menuitemradio. The
+  // trigger re-labels to the active scope (see `statusFilterButton`).
+  async selectStatusScope(name: string) {
+    await this.statusFilterButton.click()
+    await this.page
+      .getByRole('menuitemradio', { name: new RegExp(`^${escapeRegex(name)}\\b`) })
+      .click()
   }
 
-  async selectStatusScope(name: string) {
-    await this.statusScopeTab(name).click()
+  // Opens View ▸ Columns so callers can toggle `columnVisibilityOption`s.
+  async openColumnsMenu() {
+    await this.viewMenuButton.click()
+    await this.page.getByRole('menuitem', { name: /^Columns\b/ }).click()
   }
 
   statusSelectFor(clientName: string) {

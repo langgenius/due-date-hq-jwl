@@ -1277,6 +1277,10 @@ describe('@duedatehq/contracts', () => {
       jurisdiction: 'CA',
       summary: 'IRS extends selected filing deadlines for Los Angeles County.',
       publishedAt: '2026-04-15T17:00:00.000Z',
+      // 2026-06-10 (status-chip timestamps): lifecycle timestamps are part
+      // of the public alert — null until the alert is dismissed/applied.
+      dismissedAt: null,
+      appliedAt: null,
       matchedCount: 1,
       needsReviewCount: 1,
       applyReadiness: {

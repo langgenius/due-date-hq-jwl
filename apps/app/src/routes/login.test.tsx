@@ -134,20 +134,24 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
+// 2026-06-10 (login redesign): the email flow's visible copy changed —
+// the send button reads "Send sign-in link" and the code step submits
+// via "Verify & sign in". The underlying contract (sendEmailSignInCode,
+// signInWithEmailCode, input[name="otp"]) is unchanged.
 describe('LoginRoute email OTP', () => {
   it('renders email OTP with Google fallback and hides disabled Microsoft', async () => {
     await renderLogin()
 
-    await waitForText('Email me a code')
+    await waitForText('Send sign-in link')
     expect(document.body.textContent).toContain('Continue with Google')
     expect(document.body.textContent).not.toContain('Continue with Microsoft')
   })
 
   it('validates email before sending a code', async () => {
     await renderLogin()
-    await waitForText('Email me a code')
+    await waitForText('Send sign-in link')
 
-    clickButton('Email me a code')
+    clickButton('Send sign-in link')
 
     await waitForText('Enter a valid email address')
     expect(authMocks.sendEmailSignInCode).not.toHaveBeenCalled()
@@ -155,29 +159,29 @@ describe('LoginRoute email OTP', () => {
 
   it('sends a code and renders the verification step', async () => {
     await renderLogin()
-    await waitForText('Email me a code')
+    await waitForText('Send sign-in link')
 
     const emailInput = requireInput(document.querySelector<HTMLInputElement>('input[type="email"]'))
     changeInput(emailInput, 'alex@example.com')
-    clickButton('Email me a code')
+    clickButton('Send sign-in link')
 
-    await waitForText('Verify code')
+    await waitForText('Verify & sign in')
     expect(authMocks.sendEmailSignInCode).toHaveBeenCalledWith('alex@example.com')
     expect(document.body.textContent).toContain('Code sent to')
   })
 
   it('verifies the code and navigates to redirectTo', async () => {
     await renderLogin('/login?redirectTo=/deadlines')
-    await waitForText('Email me a code')
+    await waitForText('Send sign-in link')
 
     const emailInput = requireInput(document.querySelector<HTMLInputElement>('input[type="email"]'))
     changeInput(emailInput, 'alex@example.com')
-    clickButton('Email me a code')
-    await waitForText('Verify code')
+    clickButton('Send sign-in link')
+    await waitForText('Verify & sign in')
 
     const codeInput = requireInput(document.querySelector<HTMLInputElement>('input[name="otp"]'))
     changeInput(codeInput, '123456')
-    clickButton('Verify code')
+    clickButton('Verify & sign in')
 
     await waitForText('Deadlines target')
     expect(authMocks.signInWithEmailCode).toHaveBeenCalledWith({

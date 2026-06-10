@@ -13,7 +13,7 @@ test('AC: E2E-SMOKE-LOGIN renders the login entry', async ({ loginPage, page }) 
   await expect(loginPage.emailButton).toBeEnabled()
   await expect(loginPage.googleButton).toBeEnabled()
   await expect(loginPage.microsoftButton).toHaveCount(0)
-  await expect(loginPage.footerStatus).toBeVisible()
+  await expect(loginPage.reassurance).toBeVisible()
 })
 
 test('AC: E2E-SMOKE-AUTH-REDIRECT redirects root visitors to login', async ({

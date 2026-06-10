@@ -22,7 +22,9 @@ test.describe('seeded obligations', () => {
     await expect(actions.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(actions.getByText('Northstar Dental Group')).toBeVisible()
 
-    await actions.getByRole('link', { name: 'View all' }).click()
+    // 2026-06-09 (Yuqi /today "hide"): the right-aligned "View all"
+    // link is gone — the section title itself navigates to /deadlines.
+    await actions.getByRole('link', { name: 'Actions this week' }).click()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
   })
 
@@ -64,13 +66,14 @@ test.describe('seeded obligations', () => {
 
     await obligationQueuePage.clearSearch()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
-    // 2026-06-08 (ad0f900d): status moved from a header dropdown to a scope-tab
-    // bar — click the "In review" tab directly (no popover to open or escape).
-    await obligationQueuePage.statusScopeTab('In review').click()
+    // 2026-06-10 (queue toolbar redesign): the scope-tab bar consolidated
+    // into the "All Status" dropdown pill — pick "In review" from its menu;
+    // the trigger re-labels to the active scope.
+    await obligationQueuePage.selectStatusScope('In review')
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?status=review$/)
     await expect(obligationQueuePage.rowFor('Northstar Dental Group')).toBeVisible()
     await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeHidden()
-    await expect(obligationQueuePage.statusScopeTab('In review')).toBeVisible()
+    await expect(obligationQueuePage.statusFilterButton).toContainText('In review')
 
     await obligationQueuePage.goto()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
@@ -95,10 +98,13 @@ test.describe('seeded obligations', () => {
       name: /Arbor & Vale LLC/,
     })
     await expect(deadlineDrawer).toBeVisible()
-    await expect(deadlineDrawer.getByRole('tab', { name: 'Summary' })).toBeVisible()
+    // 2026-06-10 (detail drawer IA): tabs are Status (workflow home) ·
+    // Materials · Record (workpapers, absorbed Evidence) · Audit; the
+    // Extension flow lives inside the Status tab now.
+    await expect(deadlineDrawer.getByRole('tab', { name: 'Status' })).toBeVisible()
     await expect(deadlineDrawer.getByRole('tab', { name: /^Materials\b/ })).toBeVisible()
-    await expect(deadlineDrawer.getByRole('tab', { name: 'Extension' })).toBeVisible()
-    await expect(deadlineDrawer.getByRole('tab', { name: /^Evidence\b/ })).toBeVisible()
+    await expect(deadlineDrawer.getByRole('tab', { name: /^Record\b/ })).toBeVisible()
+    await expect(deadlineDrawer.getByRole('tab', { name: 'Audit' })).toBeVisible()
 
     await deadlineDrawer.getByRole('tab', { name: /^Materials\b/ }).click()
     const checklistItems = deadlineDrawer.getByRole('checkbox', {
@@ -146,12 +152,12 @@ test.describe('seeded obligations', () => {
     // toggle from this test.
     await obligationQueuePage.goto()
 
-    await obligationQueuePage.columnsButton.click()
+    await obligationQueuePage.openColumnsMenu()
     await obligationQueuePage.columnVisibilityOption('Assignee').click()
     await authenticatedPage.keyboard.press('Escape')
     await expect(authenticatedPage).toHaveURL(/hide=[^&]*assigneeName/)
 
-    await obligationQueuePage.columnsButton.click()
+    await obligationQueuePage.openColumnsMenu()
     await obligationQueuePage.columnVisibilityOption('Assignee').click()
     await authenticatedPage.keyboard.press('Escape')
     await expect(authenticatedPage).not.toHaveURL(/hide=[^&]*assigneeName/)

@@ -34,6 +34,8 @@ const rpcMocks = vi.hoisted(() => ({
   rejectTemplateMutationFn: vi.fn(),
   rejectCandidateMutationFn: vi.fn(),
   previewRuleImpactQueryFn: vi.fn(),
+  previewBulkRuleImpactQueryFn: vi.fn(),
+  bulkAcceptTemplatesMutationFn: vi.fn(),
   createCustomRuleMutationFn: vi.fn(),
   diffAgainstPredecessorQueryFn: vi.fn(),
   listCatalogReleaseQueryFn: vi.fn(),
@@ -91,6 +93,7 @@ vi.mock('@/lib/rpc', () => ({
     // "proposed change" block. Stub it with no matches so the drawer
     // renders (the rule-detail tests assert other sections).
     pulse: {
+      key: () => ['pulse'],
       listAlertsForRule: {
         queryOptions: ({ input }: { input: unknown }) => ({
           queryKey: ['pulse', 'listAlertsForRule', input],
@@ -172,6 +175,18 @@ vi.mock('@/lib/rpc', () => ({
         queryOptions: ({ input }: { input: unknown }) => ({
           queryKey: ['rules', 'previewRuleImpact', input],
           queryFn: rpcMocks.previewRuleImpactQueryFn,
+        }),
+      },
+      previewBulkRuleImpact: {
+        queryOptions: ({ input }: { input: unknown }) => ({
+          queryKey: ['rules', 'previewBulkRuleImpact', input],
+          queryFn: rpcMocks.previewBulkRuleImpactQueryFn,
+        }),
+      },
+      bulkAcceptTemplates: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.bulkAcceptTemplatesMutationFn,
+          ...options,
         }),
       },
       diffAgainstPredecessor: {
@@ -530,8 +545,25 @@ beforeEach(() => {
     entityCounts: [{ key: 'individual', count: 1 }],
     formCounts: [{ key: 'Form 540', count: 1 }],
     reviewReasonCounts: [],
+    classificationCounts: { new: 1, date_only: 0, substantive: 0 },
+    sourceCount: 1,
     estimatedObligationCount: 1,
   })
+  rpcMocks.previewBulkRuleImpactQueryFn.mockReset()
+  rpcMocks.previewBulkRuleImpactQueryFn.mockResolvedValue({
+    selectedCount: 2,
+    acceptReadyCount: 2,
+    skipped: [],
+    jurisdictionCounts: [{ key: 'AZ', count: 2 }],
+    entityCounts: [{ key: 'individual', count: 2 }],
+    formCounts: [{ key: 'Form 140', count: 2 }],
+    reviewReasonCounts: [],
+    classificationCounts: { new: 2, date_only: 0, substantive: 0 },
+    sourceCount: 1,
+    estimatedObligationCount: 2,
+  })
+  rpcMocks.bulkAcceptTemplatesMutationFn.mockReset()
+  rpcMocks.bulkAcceptTemplatesMutationFn.mockResolvedValue({ accepted: [], skipped: [] })
   rpcMocks.createCustomRuleMutationFn.mockReset()
   rpcMocks.createCustomRuleMutationFn.mockResolvedValue({})
   toastMocks.loading.mockReset()
@@ -592,7 +624,11 @@ describe('RulesLibraryRoute', () => {
     expect(document.querySelector('[aria-busy="true"]')).toBeNull()
   })
 
-  it('defaults to all jurisdiction groups collapsed', async () => {
+  // 2026-06-10 (Pencil O0pyRO overview): the grouped jurisdiction table
+  // (collapsible state rows) retired — the "All jurisdictions" overview is
+  // now a summary dashboard (stats band + recent changes), and rule rows
+  // only render after drilling into a jurisdiction via the rail.
+  it('renders the overview as a summary dashboard without a rule table', async () => {
     const federalRule = obligationRule({
       id: 'fed.1040.return.2026',
       title: 'Federal individual income tax return',
@@ -621,26 +657,13 @@ describe('RulesLibraryRoute', () => {
     await render(<RulesLibraryRoute />)
     await waitForText('Federal')
     await waitForText('Arizona')
+    await waitForText('Total rules')
 
-    // Form codes for collapsed groups must not render inside the rule
-    // TABLE (the grouped rows stay collapsed). They can legitimately
-    // appear elsewhere — e.g. the Overview "Recent changes" card surfaces
-    // the form code in each row's meta line — so scope this assertion to
-    // the table body rather than the whole document.
-    const tableText = document.querySelector('table')?.textContent ?? ''
-    expect(tableText).not.toContain('Federal Row Form')
-    expect(tableText).not.toContain('Arizona Row Form')
-
-    const federalRow = Array.from(document.querySelectorAll('tbody tr')).find((row) =>
-      row.textContent?.includes('Federal'),
-    )
-    expect(federalRow).toBeDefined()
-
-    await act(async () => {
-      federalRow?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
-    await waitForText('Federal Row Form')
+    // No rule table on the overview — drilling into a rail jurisdiction
+    // is what swaps in the working console with the per-state table.
+    expect(document.querySelector('table')).toBeNull()
+    expect(findButton('Federal 1')).toBeDefined()
+    expect(findButton('Arizona 1')).toBeDefined()
   })
 
   it('keeps the selected jurisdiction table in a scrollable flex pane', async () => {
@@ -656,7 +679,10 @@ describe('RulesLibraryRoute', () => {
     rpcMocks.listRulesQueryFn.mockResolvedValue([federalRule])
 
     await render(<RulesLibraryRoute />)
-    await waitForText('Form 1040')
+    // 2026-06-10 (oJL8o per-state table): the Form column retired — rows
+    // carry Rule name / Type / Effective / Last modified / Severity /
+    // Status, so wait on the stripped rule title instead of the form code.
+    await waitForText('Individual income tax return')
 
     const rightPane = Array.from(document.querySelectorAll('div')).find(
       (el) =>
@@ -677,7 +703,7 @@ describe('RulesLibraryRoute', () => {
     expect(tableFrame?.className).toContain('min-h-0')
     expect(tableFrame?.className).toContain('flex-1')
     expect(tableFrame?.className).toContain('overflow-y-auto')
-    expect(tableFrame?.textContent).toContain('Basic')
+    expect(tableFrame?.textContent).toContain('Income Tax')
     expect(tableFrame?.textContent).not.toContain('v2')
   })
 
@@ -715,7 +741,7 @@ describe('RulesLibraryRoute', () => {
     expect(reviewIndex).toBeLessThan(activeIndex)
   })
 
-  it('sorts fully active state groups ahead of jurisdictions that still need review', async () => {
+  it('lists rail jurisdictions with Federal first and states alphabetical', async () => {
     const federalRule = obligationRule({
       id: 'fed.1040.return.active.2026',
       title: 'Federal individual income tax return',
@@ -741,112 +767,33 @@ describe('RulesLibraryRoute', () => {
     await waitForText('Alaska')
     await waitForText('Alabama')
 
-    const groupRows = Array.from(document.querySelectorAll('tbody tr[data-state="collapsed"]'))
-    const federalIndex = groupRows.findIndex((row) => row.textContent?.includes('Federal'))
-    const alaskaIndex = groupRows.findIndex((row) => row.textContent?.includes('Alaska'))
-    const alabamaIndex = groupRows.findIndex((row) => row.textContent?.includes('Alabama'))
-    const alaskaTierCell = groupRows[alaskaIndex]?.querySelector('td:nth-child(10)')
+    // 2026-06-10 (Pencil O0pyRO): the grouped table (and its fully-active-
+    // first priority sort) retired — the jurisdictions RAIL is the
+    // navigation surface now, with a Federal section above an alphabetical
+    // States list (predictable lookup order, review counts shown per row).
+    const buttons = Array.from(document.querySelectorAll('button'))
+    const federalIndex = buttons.findIndex((b) => b.textContent?.includes('Federal'))
+    const alabamaIndex = buttons.findIndex((b) => b.textContent?.includes('Alabama'))
+    const alaskaIndex = buttons.findIndex((b) => b.textContent?.includes('Alaska'))
 
-    expect(federalIndex).toBe(0)
-    expect(alaskaIndex).toBeGreaterThan(federalIndex)
-    expect(alaskaIndex).toBeLessThan(alabamaIndex)
-    expect(alaskaTierCell?.querySelector('[title="1 active"]')).toBeDefined()
-    expect(alaskaTierCell?.querySelector('[title="1 need review"]')).toBeNull()
+    expect(federalIndex).toBeGreaterThanOrEqual(0)
+    expect(alabamaIndex).toBeGreaterThan(federalIndex)
+    expect(alaskaIndex).toBeGreaterThan(alabamaIndex)
   })
 
-  it('auto-expands a state after batch review activates every pending rule and moves it into view', async () => {
-    const federalRule = obligationRule({
-      id: 'fed.1040.return.active.2026',
-      title: 'Federal individual income tax return',
-      jurisdiction: 'FED',
-      status: 'active',
-    })
-    const activeStateRules = (
-      ['CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID'] satisfies Array<
-        ObligationRule['jurisdiction']
-      >
-    ).map((jurisdiction) =>
-      obligationRule({
-        id: `${jurisdiction.toLowerCase()}.active.2026`,
-        title: `${jurisdiction} active tax return`,
-        jurisdiction,
-        formName: `${jurisdiction} Row Form`,
-        status: 'active',
-      }),
-    )
-    const alaskaFinalRule = obligationRule({
-      id: 'ak.individual_income_return.candidate.2026',
-      title: 'Alaska individual income tax return',
-      jurisdiction: 'AK',
-      formName: 'Alaska Row Form',
-      dueDateLogic: {
-        kind: 'fixed_date',
-        date: '2026-04-15',
-        holidayRollover: 'source_adjusted',
-      },
-      sourceIds: [],
-      evidence: [],
-    })
-    rpcMocks.coverageQueryFn.mockResolvedValue([
-      coverageRow({
-        jurisdiction: 'AK',
-        activeRuleCount: 0,
-        pendingReviewCount: 1,
-        entityCoverage: {
-          llc: 'active',
-          partnership: 'active',
-          s_corp: 'active',
-          c_corp: 'active',
-          sole_prop: 'active',
-          individual: 'review',
-          trust: 'active',
-        },
-        entitySourceCoverage: {
-          llc: 'rule_active',
-          partnership: 'rule_active',
-          s_corp: 'rule_active',
-          c_corp: 'rule_active',
-          sole_prop: 'rule_active',
-          individual: 'rule_pending_review',
-          trust: 'rule_active',
-        },
-      }),
-    ])
-    rpcMocks.listRulesQueryFn
-      .mockResolvedValueOnce([alaskaFinalRule, ...activeStateRules, federalRule])
-      .mockResolvedValue([
-        { ...alaskaFinalRule, status: 'active' as const },
-        ...activeStateRules,
-        federalRule,
-      ])
+  // 2026-06-10: the "auto-expands a state after batch review" walkthrough
+  // test retired with the grouped table + the "Open review queue" CTA. The
+  // one-at-a-time BatchReviewModal is no longer reachable from the UI (the
+  // bulk-review list modal is the canonical entry; see the bulk-review test
+  // below), and jurisdiction groups no longer expand in place — the rail
+  // navigates to a per-state table instead.
 
-    await render(<RulesLibraryRoute />)
-    await waitForButton('Open review queue')
-
-    await clickButton('Open review queue')
-    await waitForText('1 / 1')
-    await waitForText(alaskaFinalRule.title)
-
-    await clickButton('Accept rule')
-    await waitForAssertion(() => {
-      expect(rpcMocks.listRulesQueryFn.mock.calls.length).toBeGreaterThan(1)
-    })
-    await waitForText('Alaska Row Form')
-
-    const groupRows = Array.from(document.querySelectorAll('tbody tr[data-state]'))
-    const federalIndex = groupRows.findIndex((row) => row.textContent?.includes('Federal'))
-    const alaskaIndex = groupRows.findIndex((row) => row.textContent?.includes('Alaska'))
-    const californiaIndex = groupRows.findIndex((row) => row.textContent?.includes('California'))
-    const alaskaRow = groupRows[alaskaIndex]
-
-    expect(federalIndex).toBe(0)
-    expect(alaskaIndex).toBeGreaterThan(federalIndex)
-    expect(alaskaIndex).toBeLessThan(californiaIndex)
-    expect(alaskaRow?.getAttribute('data-state')).toBe('expanded')
-    expect(document.body.textContent).toContain('Alaska Row Form')
-  })
-
+  // 2026-06-10 (oJL8o per-state table): coverage gaps now render as gap
+  // rows inside the selected jurisdiction's Missing scope, so these tests
+  // drill into the state instead of expanding an overview group row.
   it('does not render add-rule gaps for not-applicable entity coverage', async () => {
+    nuqsMocks.jurisdiction = 'AK'
+    nuqsMocks.scope = 'missing'
     rpcMocks.coverageQueryFn.mockResolvedValue([
       coverageRow({
         jurisdiction: 'AK',
@@ -874,18 +821,15 @@ describe('RulesLibraryRoute', () => {
 
     await render(<RulesLibraryRoute />)
     await waitForText('Alaska')
+    await waitForText('No rules in Alaska for this view.')
 
-    expect(document.body.textContent).not.toContain('Missing rules')
     expect(document.body.textContent).not.toContain('No rule defined for this entity in Alaska')
     expect(document.body.textContent).not.toContain('Add rule')
-    const entityChipTitles = Array.from(document.querySelectorAll('button[title]')).map((button) =>
-      button.getAttribute('title'),
-    )
-    expect(entityChipTitles).not.toContain('Individual — 0 rules · 1 jurisdiction missing a rule')
-    expect(entityChipTitles).not.toContain('Trust — 0 rules · 1 jurisdiction missing a rule')
   })
 
   it('still renders add-rule gaps for applicable entity coverage without a rule', async () => {
+    nuqsMocks.jurisdiction = 'AZ'
+    nuqsMocks.scope = 'missing'
     rpcMocks.coverageQueryFn.mockResolvedValue([
       coverageRow({
         jurisdiction: 'AZ',
@@ -912,20 +856,13 @@ describe('RulesLibraryRoute', () => {
 
     await render(<RulesLibraryRoute />)
     await waitForText('Arizona')
-    const arizonaRow = Array.from(document.querySelectorAll('tr')).find((row) =>
-      row.textContent?.includes('Arizona'),
-    )
-    expect(arizonaRow).toBeDefined()
-    await act(async () => {
-      arizonaRow?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    await waitForText('Missing rules')
+    await waitForText('No rule defined for this entity in Arizona')
 
-    expect(document.body.textContent).toContain('No rule defined for this entity in Arizona')
     expect(document.body.textContent).toContain('Add rule')
   })
 
-  it('shows a scope-specific empty state when the Missing tab has no gaps', async () => {
+  it('shows a scope-specific empty state when the Missing scope has no gaps', async () => {
+    nuqsMocks.jurisdiction = 'AZ'
     nuqsMocks.scope = 'missing'
     rpcMocks.coverageQueryFn.mockResolvedValue([
       coverageRow({
@@ -958,20 +895,14 @@ describe('RulesLibraryRoute', () => {
     ])
 
     await render(<RulesLibraryRoute />)
-    await waitForText('No missing rules')
+    // 2026-06-10: the dedicated `MissingRulesEmptyState` card retired with
+    // the grouped overview table — a clean Missing scope now reads as the
+    // per-state table's scoped empty row, never the global catalog-empty
+    // state (which would wrongly suggest importing from sources).
+    await waitForText('No rules in Arizona for this view.')
 
     expect(document.body.textContent).not.toContain('Your rule catalog is empty.')
     expect(document.body.textContent).not.toContain('Import from sources')
-    // 2026-05-28 (Yuqi /rules/library polish #4 — "Missing scope时
-    // New rule消失了"): the prior guard hid the header "New rule" CTA
-    // on the Missing scope on the assumption that gap rows carry an
-    // `Add rule (prefilled)` action. That left CPAs on a scope view
-    // with no global way to add a brand-new (unseeded) rule. Header
-    // CTA now shows on every scope, so this assertion was inverted.
-    // We still assert the empty-state body itself doesn't carry its
-    // own "New rule" CTA — verified via the scope-specific empty
-    // state message ("No missing rules") rendered without a button.
-    expect(document.body.textContent).toContain('No missing rules')
   })
 
   it('shows cached AI concrete drafts in the selected rule detail', async () => {
@@ -1130,50 +1061,11 @@ describe('RulesLibraryRoute', () => {
     expect(document.body.textContent).not.toContain('Next source review')
   })
 
-  it('keeps batch review progress tied to the opened queue after accepting a rule', async () => {
-    const firstRule = obligationRule({
-      id: 'az.individual_income_return.candidate.2026',
-      title: 'Arizona individual income tax return',
-      dueDateLogic: {
-        kind: 'fixed_date',
-        date: '2026-04-15',
-        holidayRollover: 'source_adjusted',
-      },
-      sourceIds: [],
-      evidence: [],
-    })
-    const secondRule = obligationRule({
-      id: 'ca.individual_income_return.candidate.2026',
-      title: 'California individual income tax return',
-      jurisdiction: 'CA',
-      dueDateLogic: {
-        kind: 'fixed_date',
-        date: '2026-04-15',
-        holidayRollover: 'source_adjusted',
-      },
-      sourceIds: [],
-      evidence: [],
-    })
-    const activeFirstRule = { ...firstRule, status: 'active' as const }
-    rpcMocks.listRulesQueryFn
-      .mockResolvedValueOnce([firstRule, secondRule])
-      .mockResolvedValue([activeFirstRule, secondRule])
-
-    await render(<RulesLibraryRoute />)
-    await waitForButton('Open review queue')
-
-    await clickButton('Open review queue')
-    await waitForText('1 / 2')
-    await waitForText(firstRule.title)
-
-    expect(findButton('Reject')).toBeUndefined()
-
-    await clickButton('Accept rule')
-    await waitForText('2 / 2', 250)
-    await waitForText(secondRule.title)
-
-    expect(document.body.textContent).not.toContain('2 / 1')
-  })
+  // 2026-06-10: the one-at-a-time walkthrough ("Open review queue" →
+  // "1 / 2" progress → Skip/Done) is no longer reachable — the bulk-review
+  // list modal (Pencil `Oaey3`) is the canonical batch surface. The two
+  // walkthrough tests were replaced by the bulk-modal test below; the
+  // accept-toast contract moved to the rule-detail review dialog.
 
   it('uses the global toast surface for accept progress instead of an inline accept tooltip', async () => {
     const rule = obligationRule({
@@ -1187,17 +1079,19 @@ describe('RulesLibraryRoute', () => {
       sourceIds: [],
       evidence: [],
     })
+    nuqsMocks.rule = rule.id
     const acceptRequest = deferred<Record<string, never>>()
     rpcMocks.listRulesQueryFn.mockResolvedValue([rule])
     rpcMocks.acceptTemplateMutationFn.mockReturnValueOnce(acceptRequest.promise)
 
     await render(<RulesLibraryRoute />)
-    await waitForButton('Open review queue')
+    await waitForButton('Accept rule')
 
-    await clickButton('Open review queue')
-    await waitForText(rule.title)
-
+    // "Accept rule" opens the Confirm-accept review dialog; the actual
+    // write fires from its "Activate rule" confirm CTA.
     await clickButton('Accept rule')
+    await waitForText('Confirm accept')
+    await clickButton('Activate rule')
 
     await waitForAssertion(() => {
       expect(toastMocks.loading).toHaveBeenCalledWith(
@@ -1232,7 +1126,8 @@ describe('RulesLibraryRoute', () => {
     expect(document.body.textContent).not.toContain('Rule accepted')
   })
 
-  it('refreshes the rule list after finishing a skipped batch review session', async () => {
+  it('bulk accepts the selected rules from the review list modal and refreshes the catalog', async () => {
+    nuqsMocks.jurisdiction = 'AZ'
     const firstRule = obligationRule({
       id: 'az.individual_income_return.candidate.2026',
       title: 'Arizona individual income tax return',
@@ -1245,9 +1140,8 @@ describe('RulesLibraryRoute', () => {
       evidence: [],
     })
     const secondRule = obligationRule({
-      id: 'ca.individual_income_return.candidate.2026',
-      title: 'California individual income tax return',
-      jurisdiction: 'CA',
+      id: 'az.franchise_tax_return.candidate.2026',
+      title: 'Arizona franchise tax return',
       dueDateLogic: {
         kind: 'fixed_date',
         date: '2026-04-15',
@@ -1257,25 +1151,61 @@ describe('RulesLibraryRoute', () => {
       evidence: [],
     })
     rpcMocks.listRulesQueryFn.mockResolvedValue([firstRule, secondRule])
+    rpcMocks.bulkAcceptTemplatesMutationFn.mockResolvedValue({
+      accepted: [firstRule.id, secondRule.id],
+      skipped: [],
+    })
 
     await render(<RulesLibraryRoute />)
-    await waitForButton('Open review queue')
+    await waitForText('Individual income tax return')
 
-    await clickButton('Open review queue')
-    await waitForText('1 / 2')
+    // The header tri-state checkbox selects every reviewable row, which
+    // floats the bulk bar with its "Review N" CTA.
+    const selectAll = document.querySelector('[aria-label="Select all rules needing review"]')
+    expect(selectAll).toBeDefined()
+    await act(async () => {
+      selectAll?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
 
-    await clickButton('Skip')
-    await waitForText('2 / 2')
+    await waitForButton('Review 2')
+    await clickButton('Review 2')
+    await waitForText('Bulk review')
 
-    const callsBeforeFinish = rpcMocks.listRulesQueryFn.mock.calls.length
-    // Step 6 cont audit R3.4 renamed the terminal-action button from
-    // "Finish" → "Done" so it's semantically distinct from "Skip" and
-    // visually distinct (primary fill vs outline). Test follows the UI.
-    await clickButton('Done')
+    // The shared review note is required before the batch can be applied.
+    const noteField = document.querySelector('textarea')
+    expect(noteField).toBeInstanceOf(HTMLTextAreaElement)
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')
+    await act(async () => {
+      descriptor?.set?.call(noteField, 'Reviewed against the source.')
+      noteField?.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+
+    const callsBeforeAccept = rpcMocks.listRulesQueryFn.mock.calls.length
+    await waitForButton('Accept 2')
+    await clickButton('Accept 2')
 
     await waitForAssertion(() => {
-      expect(rpcMocks.listRulesQueryFn.mock.calls.length).toBeGreaterThan(callsBeforeFinish)
+      expect(rpcMocks.bulkAcceptTemplatesMutationFn).toHaveBeenCalled()
     })
-    expect(findButton('Done')).toBeUndefined()
+    const acceptInput = rpcMocks.bulkAcceptTemplatesMutationFn.mock.calls[0]?.[0] as {
+      rules: Array<{ ruleId: string }>
+      reviewNote: string
+    }
+    expect(acceptInput.reviewNote).toBe('Reviewed against the source.')
+    expect(acceptInput.rules.map((entry) => entry.ruleId).toSorted()).toEqual(
+      [firstRule.id, secondRule.id].toSorted(),
+    )
+
+    // Success invalidates the rules queries (catalog refetch) and closes
+    // the modal via onComplete.
+    await waitForAssertion(() => {
+      expect(rpcMocks.listRulesQueryFn.mock.calls.length).toBeGreaterThan(callsBeforeAccept)
+    })
+    await waitForAssertion(() => {
+      expect(toastMocks.success).toHaveBeenCalledWith('2 rules accepted')
+    })
+    await waitForAssertion(() => {
+      expect(findButton('Accept 2')).toBeUndefined()
+    })
   })
 })
