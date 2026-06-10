@@ -1649,7 +1649,7 @@ export function ObligationQueueDetailDrawer({
               // Qn4nX hero — 26px / 600 / -0.6 tracking.
               'pr-8 font-semibold text-text-primary',
               heroCollapsed
-                ? 'line-clamp-1 text-base leading-[1.3] tracking-[-0.3px]'
+                ? 'line-clamp-1 text-[16px] leading-[1.3] tracking-[-0.3px]'
                 : 'text-[26px] leading-[1.2] tracking-[-0.6px]',
             )}
           >
@@ -3788,7 +3788,7 @@ export function ObligationQueueDetailDrawer({
                       cards below aren't mistaken for a document vault. */}
                   <div className="flex items-start gap-2 rounded-lg bg-background-section px-3 py-2.5">
                     <InfoIcon className="mt-px size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-                    <p className="text-xs font-medium leading-snug text-text-tertiary">
+                    <p className="text-sm font-medium leading-snug text-text-tertiary">
                       <Trans>
                         Record tab is currently audit-trail + timestamps only. File storage for
                         workpapers and signed documents is on the roadmap.
