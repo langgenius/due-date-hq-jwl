@@ -71,9 +71,9 @@ export function MergedBriefCard({
   }, [rows, asOf])
 
   const tabs = [
-    { key: 'overdue' as const, label: t`overdue`, count: counts.overdue, urgent: true },
-    { key: 'today' as const, label: t`ending today`, count: counts.endingToday, urgent: false },
-    { key: 'week' as const, label: t`this week`, count: counts.thisWeek, urgent: false },
+    { key: 'overdue' as const, label: t`Overdue`, count: counts.overdue, dot: 'text-text-destructive' },
+    { key: 'today' as const, label: t`Ending today`, count: counts.endingToday, dot: 'text-text-warning' },
+    { key: 'week' as const, label: t`This week`, count: counts.thisWeek, dot: 'text-text-tertiary' },
   ]
 
   // No explicit pick yet → follow the data (first non-empty bucket, overdue
@@ -114,37 +114,28 @@ export function MergedBriefCard({
           <Trans>Today's brief</Trans>
         </h2>
 
-        {/* Count chips as a Segmented control — sits beside the title so it
-            reads as the view selector; inherits the My-work/Everyone toggle. */}
-        <div className="inline-flex items-center gap-0.5 rounded-lg bg-components-segmented-bg p-0.5">
-            {tabs.map((tab) => {
-              const active = tab.key === selected
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setOverride(tab.key)}
-                  aria-pressed={active}
-                  className={cn(
-                    'inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
-                    active
-                      ? 'border border-divider-subtle bg-components-segmented-item-bg-active font-medium text-components-segmented-text-active'
-                      : 'border border-transparent text-components-segmented-text hover:text-components-segmented-text-active',
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'font-semibold tabular-nums',
-                      !active && tab.urgent && tab.count > 0 ? 'text-text-destructive' : undefined,
-                    )}
-                  >
-                    {tab.count}
-                  </span>
-                  <span>{tab.label}</span>
-                </button>
-              )
-            })}
-          </div>
+        {/* Status-scope segmented control borrowed verbatim from the /deadlines
+            queue (Yuqi): rounded-full track, white active pill, tone dot + label
+            + muted count. Same markup so the two surfaces can't drift. */}
+        <div className="flex items-center gap-0.5 rounded-full bg-background-subtle p-1">
+          {tabs.map((tab) => {
+            const active = tab.key === selected
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                data-active={active}
+                onClick={() => setOverride(tab.key)}
+                aria-pressed={active}
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
+              >
+                <span className={cn('size-1.5 shrink-0 rounded-full bg-current', tab.dot)} aria-hidden />
+                <span className="whitespace-nowrap">{tab.label}</span>
+                <span className="tabular-nums text-text-tertiary">{tab.count}</span>
+              </button>
+            )
+          })}
+        </div>
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
