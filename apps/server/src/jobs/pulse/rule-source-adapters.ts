@@ -888,6 +888,19 @@ function fetchUrlForAdapterId(id: string): string | null {
   return null
 }
 
+// The host an adapter's polite fetch will hit — the grouping key for
+// enqueuePulseIngestScans, so one host's due sources ride one queue message.
+// `{year}` tokens only ever appear in the path, so the host is stable.
+export function politeHostForAdapterId(id: string): string | null {
+  const url = fetchUrlForAdapterId(id)
+  if (!url) return null
+  try {
+    return new URL(url).host
+  } catch {
+    return null
+  }
+}
+
 function explicitLiveAdapterMetadata(adapter: SourceAdapter): AlertSourceAdapterMetadata {
   return {
     sourceId: adapter.id,

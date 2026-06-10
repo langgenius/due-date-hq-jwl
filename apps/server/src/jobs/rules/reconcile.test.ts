@@ -116,6 +116,7 @@ vi.mock('../pulse/ingest', () => ({
   // fetchTextSnapshot is mocked separately, so ctx.fetch is never invoked here;
   // the wrapper just needs to return a function (pass the fetch through).
   createPoliteFetch: (fn: typeof fetch) => fn,
+  isolatePoliteHostState: { nextSlotAt: new Map<string, number>() },
   // Must mirror the real constant: the failure path computes
   // Math.min(cadence, PULSE_SOURCE_FAILURE_RETRY_MS) — undefined would be NaN.
   PULSE_SOURCE_FAILURE_RETRY_MS: 15 * 60 * 1000,

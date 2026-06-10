@@ -68,12 +68,35 @@ describe('queue consumer', () => {
               reason: 'cadence_due',
             },
           },
+          {
+            // Host-grouped shape: several same-host sources ride one message.
+            body: {
+              type: 'pulse.ingest.source',
+              sourceId: 'ny.due.one',
+              sourceIds: ['ny.due.one', 'ny.due.two'],
+              reason: 'cadence_due',
+            },
+          },
         ]),
       ),
     ).not.toThrow()
     expect(
       queueMessageType({ type: 'pulse.ingest.source', sourceId: 's', reason: 'cadence_due' }),
     ).toBe('pulse.ingest.source')
+    expect(() =>
+      assertQueueDispatchable(
+        batch([
+          {
+            body: {
+              type: 'pulse.ingest.source',
+              sourceId: 's',
+              sourceIds: [42],
+              reason: 'cadence_due',
+            },
+          },
+        ]),
+      ),
+    ).toThrow()
   })
 
   it('allows rule concrete draft generation messages', () => {

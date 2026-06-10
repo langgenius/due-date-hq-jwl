@@ -21,6 +21,7 @@ import {
   listAlertSourceCatalog,
   listAlertSourceCoverage,
   liveRegulatorySourceAdapters,
+  politeHostForAdapterId,
   requiresReviewOnlyPulseAlert,
   ruleSourceAdapters,
   shouldForceReviewOnlyPulseAlert,
@@ -661,5 +662,14 @@ describe('rule source adapters', () => {
       ctx,
     )
     expect(smallItem!.fullText).toBeUndefined()
+  })
+
+  it('resolves a polite host for every live adapter and null for unknown ids', () => {
+    for (const adapter of liveRegulatorySourceAdapters) {
+      const host = politeHostForAdapterId(adapter.id)
+      expect(host, `adapter ${adapter.id} must resolve a grouping host`).toBeTruthy()
+      expect(host).not.toContain('/')
+    }
+    expect(politeHostForAdapterId('does.not.exist')).toBeNull()
   })
 })

@@ -23,6 +23,7 @@ import { cachedConcreteDraftKey } from '../../procedures/rules/concrete-draft'
 import {
   archivePulseRaw,
   createPoliteFetch,
+  isolatePoliteHostState,
   PULSE_SOURCE_FAILURE_RETRY_MS,
   suppressDedupeRehashMigration,
 } from '../pulse/ingest'
@@ -302,9 +303,10 @@ export async function consumePulseRuleSourceScan(
     // and calling it as `ctx.fetch(...)` runs it with `this === ctx`, which
     // workerd rejects with "Illegal invocation". createPoliteFetch calls fetch
     // as a free function (correct `this`) and adds the 30s/host rate limiting
-    // this scan path otherwise lacks. A single instance is shared so text and
-    // PDF (binary) fetches to the same host coordinate.
-    const politeFetch = createPoliteFetch(fetch)
+    // this scan path otherwise lacks. The isolate-shared clock makes text, PDF
+    // (binary) and concurrent pulse-ingest fetches to the same host coordinate
+    // within this isolate.
+    const politeFetch = createPoliteFetch(fetch, isolatePoliteHostState)
     const ingestCtx: IngestCtx = {
       fetch: politeFetch,
       binaryFetch: politeFetch,

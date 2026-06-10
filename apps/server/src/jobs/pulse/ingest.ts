@@ -7,7 +7,7 @@ import type { Env } from '../../env'
 import { dispatchOpsAlert, type OpsAlertEnv } from '../ops-alerts'
 import { createBrowserlessFetch } from './browserless'
 import { emitSourceIdleAlerts, recordPulseMetric } from './metrics'
-import { liveRegulatorySourceAdapters } from './rule-source-adapters'
+import { liveRegulatorySourceAdapters, politeHostForAdapterId } from './rule-source-adapters'
 
 export interface PulseExtractQueueMessage {
   type: 'pulse.extract'
@@ -21,16 +21,28 @@ export const PULSE_INGEST_SOURCE_MESSAGE_TYPE = 'pulse.ingest.source'
 // (up to 90 days for quarterly rule sources).
 export const PULSE_SOURCE_FAILURE_RETRY_MS = 15 * 60 * 1000
 
-// One message per *due* source, enqueued by the cron path (`enqueuePulseIngestScans`)
-// and consumed one-source-per-invocation (`consumePulseIngestSource`). This keeps the
-// scheduled tick O(1) — it only decides which sources are due and fans them out — so a
-// slow or hanging source can no longer burn the whole cron invocation's CPU/wall-clock
-// budget. Mirrors the rules-scan pattern (jobs/rules/reconcile.ts).
+// One message per HOST GROUP of due sources, enqueued by the cron path
+// (`enqueuePulseIngestScans`) and consumed group-sequentially
+// (`consumePulseIngestSource`). The scheduled tick stays O(1) — it only decides
+// which sources are due and fans them out. Sources sharing a host ride ONE
+// message (and so fetch sequentially through one polite clock) because the
+// per-host politeness limiter cannot span the up-to-5 concurrent consumer
+// invocations — grouping is the cross-invocation guard. `sourceId` stays the
+// group's first id for back/forward compatibility and DLQ logging; old
+// single-source messages (no `sourceIds`) remain consumable.
 export interface PulseIngestSourceMessage {
   type: typeof PULSE_INGEST_SOURCE_MESSAGE_TYPE
   sourceId: string
+  sourceIds?: readonly string[]
   reason: 'cadence_due'
 }
+
+// Wall-clock budget per message: worst case per source ≈ 30s politeness slot +
+// 30s watchdog fetch, ×2 for fetchWithRetry's 5xx re-fetch ≈ 2 min ⇒ 4 sources
+// ≈ 8 min, safely inside the 15-min queue-consumer limit even though a batch's
+// messages run under one invocation (they run concurrently across hosts).
+// Do not raise without redoing that math.
+export const MAX_SOURCES_PER_INGEST_MESSAGE = 4
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -41,6 +53,9 @@ export function isPulseIngestSourceMessage(value: unknown): value is PulseIngest
     isRecord(value) &&
     value.type === PULSE_INGEST_SOURCE_MESSAGE_TYPE &&
     typeof value.sourceId === 'string' &&
+    (value.sourceIds === undefined ||
+      (Array.isArray(value.sourceIds) &&
+        value.sourceIds.every((entry) => typeof entry === 'string'))) &&
     value.reason === 'cadence_due'
   )
 }
@@ -209,38 +224,45 @@ function resolveFetcherForAdapter(
   return adapter.fetcher ?? 'cloudflare'
 }
 
-export function createPoliteFetch(fetchImpl: typeof fetch): typeof fetch {
-  const locks = new Map<string, Promise<void>>()
-  const lastFetchAt = new Map<string, number>()
-  // The watchdog starts after the per-host politeness queue releases, so
-  // serialized 30s/host waits never count against the request's own budget.
+// Per-host politeness state: the next instant a fetch may START for each host.
+// Numbers-only (no chained lock promises) so it is safe to share at module
+// scope across queue invocations — a hard-killed invocation can at worst waste
+// one 30s slot, never wedge a host behind a permanently-pending lock.
+export interface PoliteHostState {
+  nextSlotAt: Map<string, number>
+}
+
+export function createPoliteHostState(): PoliteHostState {
+  return { nextSlotAt: new Map() }
+}
+
+// Isolate-wide politeness clock. Module scope persists per-isolate but NOT
+// across isolates, and Cloudflare gives no isolate-affinity guarantee for
+// concurrent queue invocations — host-grouped ingest messages
+// (enqueuePulseIngestScans) are the cross-isolate guard; this clock is the
+// in-isolate backstop covering chunk-split groups, retries, the rules-scan
+// path and manual runs.
+export const isolatePoliteHostState = createPoliteHostState()
+
+export function createPoliteFetch(
+  fetchImpl: typeof fetch,
+  state: PoliteHostState = createPoliteHostState(),
+): typeof fetch {
+  // The watchdog starts after the politeness wait releases, so 30s/host slot
+  // waits never count against the request's own budget.
   const timedFetch = withFetchTimeout(fetchImpl)
 
   return (async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
     const url =
       input instanceof Request ? new URL(input.url) : input instanceof URL ? input : new URL(input)
-    const host = url.host
-    const previous = locks.get(host) ?? Promise.resolve()
-    if (url.pathname === '/robots.txt') {
-      locks.set(
-        host,
-        previous.catch(() => undefined).then(() => undefined),
-      )
-      await previous
-      return timedFetch(input, init)
-    }
-
-    const run = previous.then(async () => {
-      const last = lastFetchAt.get(host) ?? 0
-      const waitMs = Math.max(0, RATE_LIMIT.minIntervalMs - (Date.now() - last))
-      if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs))
-      lastFetchAt.set(host, Date.now())
-    })
-    locks.set(
-      host,
-      run.catch(() => undefined).then(() => undefined),
-    )
-    await run
+    // robots.txt probes are tiny and 24h-cached per host — never spend a slot.
+    if (url.pathname === '/robots.txt') return timedFetch(input, init)
+    // Synchronous read→reserve (no await in between): concurrent callers
+    // sharing `state` get strictly increasing 30s-spaced start slots per host.
+    const now = Date.now()
+    const slot = Math.max(now, state.nextSlotAt.get(url.host) ?? 0)
+    state.nextSlotAt.set(url.host, slot + RATE_LIMIT.minIntervalMs)
+    if (slot > now) await new Promise((resolve) => setTimeout(resolve, slot - now))
     return timedFetch(input, init)
   }) as typeof fetch
 }
@@ -467,9 +489,13 @@ function createPulseIngestCtx(
     ...(env.PULSE_BROWSERLESS_TOKEN ? { token: env.PULSE_BROWSERLESS_TOKEN } : {}),
   })
   const browserlessSourceIds = parseSourceIdList(env.PULSE_BROWSERLESS_SOURCE_IDS)
+  // ONE polite fetch on the isolate-shared clock for both roles — separate
+  // instances would let a text and a binary (PDF) fetch hit the same host
+  // back-to-back with no spacing.
+  const politeFetch = createPoliteFetch(fetch, isolatePoliteHostState)
   const ctx: IngestCtx = {
-    fetch: createPoliteFetch(fetch),
-    binaryFetch: createPoliteFetch(fetch),
+    fetch: politeFetch,
+    binaryFetch: politeFetch,
     ...(browserlessFetch ? { browserlessFetch } : {}),
     getSourceState: async (sourceId) => {
       const state = await repo.getSourceState(sourceId)
@@ -517,6 +543,7 @@ export async function enqueuePulseIngestScans(
   env: Pick<Env, 'DB' | 'PULSE_QUEUE'> & OpsAlertEnv,
   adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
   now: Date = new Date(),
+  hostForSourceId: (sourceId: string) => string | null = politeHostForAdapterId,
 ): Promise<{ queued: number }> {
   const db = createDb(env.DB)
   const repo = makePulseIngestRepo(db)
@@ -540,15 +567,31 @@ export async function enqueuePulseIngestScans(
     })
     .map((adapter) => adapter.id)
 
-  await Promise.all(
-    dueSourceIds.map((sourceId) =>
-      env.PULSE_QUEUE.send({
+  // Group due sources by polite host so one host's fetches ride one message
+  // (sequential through one polite clock) instead of colliding across the
+  // queue's concurrent invocations. Unresolvable hosts enqueue as singletons.
+  const hostGroups = new Map<string, string[]>()
+  for (const sourceId of dueSourceIds) {
+    const key = hostForSourceId(sourceId) ?? `solo:${sourceId}`
+    const group = hostGroups.get(key)
+    if (group) group.push(sourceId)
+    else hostGroups.set(key, [sourceId])
+  }
+  const messages: PulseIngestSourceMessage[] = []
+  for (const group of hostGroups.values()) {
+    for (let start = 0; start < group.length; start += MAX_SOURCES_PER_INGEST_MESSAGE) {
+      const chunk = group.slice(start, start + MAX_SOURCES_PER_INGEST_MESSAGE)
+      const first = chunk[0]
+      if (!first) continue
+      messages.push({
         type: PULSE_INGEST_SOURCE_MESSAGE_TYPE,
-        sourceId,
+        sourceId: first,
+        sourceIds: chunk,
         reason: 'cadence_due',
-      } satisfies PulseIngestSourceMessage),
-    ),
-  )
+      })
+    }
+  }
+  await Promise.all(messages.map((message) => env.PULSE_QUEUE.send(message)))
 
   const activeSourceIds = new Set(adapters.map((adapter) => adapter.id))
   const staleSources = emitSourceIdleAlerts(
@@ -566,26 +609,45 @@ export async function enqueuePulseIngestScans(
         .join(', '),
     })
   }
-  recordPulseMetric('pulse.ingest.enqueued', { queued: dueSourceIds.length })
+  // `queued` keeps meaning "due sources" for existing dashboards; `messages`
+  // is the post-grouping send count.
+  recordPulseMetric('pulse.ingest.enqueued', {
+    queued: dueSourceIds.length,
+    messages: messages.length,
+  })
   return { queued: dueSourceIds.length }
 }
 
-// Queue consumer for a single source enqueued by `enqueuePulseIngestScans`. Runs with
-// `force: true` because the due-check already happened at enqueue time, and so a queue
-// retry re-fetches rather than short-circuiting on a stale `nextCheckAt`. Idempotency is
-// still guaranteed downstream by the snapshot unique index + the extract status guard.
+// Queue consumer for a host group enqueued by `enqueuePulseIngestScans` (legacy
+// in-flight messages carry a single sourceId). Sources run SEQUENTIALLY through
+// one shared ctx — one polite clock — which is the whole point of grouping;
+// per-source failures stay isolated because `ingestAdapter` catches and records
+// them without throwing. Runs with `force: true` because the due-check already
+// happened at enqueue time, and so a queue retry re-fetches rather than
+// short-circuiting on a stale `nextCheckAt`. Idempotency is still guaranteed
+// downstream by the snapshot unique index + the extract status guard.
 export async function consumePulseIngestSource(
   env: PulseIngestEnv,
   message: PulseIngestSourceMessage,
   adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
 ): Promise<IngestCounts> {
-  const adapter = adapters.find((candidate) => candidate.id === message.sourceId)
-  if (!adapter) {
-    recordPulseMetric('pulse.ingest.source_missing', { sourceId: message.sourceId })
-    return { snapshots: 0, queued: 0, duplicates: 0, failures: 0 }
-  }
+  const sourceIds = message.sourceIds?.length ? message.sourceIds : [message.sourceId]
   const db = createDb(env.DB)
   const repo = makePulseIngestRepo(db)
   const { ctx, browserlessSourceIds } = createPulseIngestCtx(env, repo)
-  return ingestAdapter(adapter, ctx, repo, env.PULSE_QUEUE, { force: true, browserlessSourceIds })
+  const results: IngestCounts[] = []
+  for (const sourceId of sourceIds) {
+    const adapter = adapters.find((candidate) => candidate.id === sourceId)
+    if (!adapter) {
+      recordPulseMetric('pulse.ingest.source_missing', { sourceId })
+      continue
+    }
+    results.push(
+      await ingestAdapter(adapter, ctx, repo, env.PULSE_QUEUE, {
+        force: true,
+        browserlessSourceIds,
+      }),
+    )
+  }
+  return sumCounts(results)
 }

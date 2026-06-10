@@ -9,6 +9,7 @@ import {
   archivePulseRaw,
   consumePulseIngestSource,
   createPoliteFetch,
+  createPoliteHostState,
   enqueuePulseIngestScans,
   pulseFullTextR2Key,
   runPulseIngest,
@@ -410,10 +411,66 @@ describe('enqueuePulseIngestScans', () => {
     expect(queueSend).toHaveBeenCalledWith({
       type: 'pulse.ingest.source',
       sourceId: 'due.source',
+      sourceIds: ['due.source'],
       reason: 'cadence_due',
     })
     expect(repoMocks.createSourceSnapshot).not.toHaveBeenCalled()
     expect(repoMocks.recordSourceSuccess).not.toHaveBeenCalled()
+  })
+
+  it('groups due sources sharing a polite host into one message', async () => {
+    const now = new Date('2026-05-01T00:00:00.000Z')
+    repoMocks.ensureSourceState.mockResolvedValue({ enabled: true, nextCheckAt: null })
+    const queueSend = vi.fn()
+
+    const result = await enqueuePulseIngestScans(
+      env(queueSend),
+      [adapter({ id: 'ny.due.one' }), adapter({ id: 'ny.due.two' }), adapter({ id: 'ca.due' })],
+      now,
+      (sourceId) => (sourceId.startsWith('ny.') ? 'tax.ny.gov' : 'www.ftb.ca.gov'),
+    )
+
+    expect(result).toEqual({ queued: 3 })
+    expect(queueSend).toHaveBeenCalledTimes(2)
+    expect(queueSend).toHaveBeenCalledWith({
+      type: 'pulse.ingest.source',
+      sourceId: 'ny.due.one',
+      sourceIds: ['ny.due.one', 'ny.due.two'],
+      reason: 'cadence_due',
+    })
+    expect(queueSend).toHaveBeenCalledWith({
+      type: 'pulse.ingest.source',
+      sourceId: 'ca.due',
+      sourceIds: ['ca.due'],
+      reason: 'cadence_due',
+    })
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith('pulse.ingest.enqueued', {
+      queued: 3,
+      messages: 2,
+    })
+  })
+
+  it('chunks oversized host groups and keeps unresolvable hosts as singletons', async () => {
+    const now = new Date('2026-05-01T00:00:00.000Z')
+    repoMocks.ensureSourceState.mockResolvedValue({ enabled: true, nextCheckAt: null })
+    const queueSend = vi.fn()
+    const hosted = ['h.1', 'h.2', 'h.3', 'h.4', 'h.5']
+
+    await enqueuePulseIngestScans(
+      env(queueSend),
+      [...hosted, 'solo.a', 'solo.b'].map((id) => adapter({ id })),
+      now,
+      (sourceId) => (sourceId.startsWith('h.') ? 'shared.example.gov' : null),
+    )
+
+    const sent = queueSend.mock.calls.map((call) => call[0] as { sourceIds: string[] })
+    const groupSizes = sent
+      .filter((message) => message.sourceIds[0]?.startsWith('h.'))
+      .map((message) => message.sourceIds.length)
+      .toSorted((a, b) => a - b)
+    expect(groupSizes).toEqual([1, 4])
+    const soloMessages = sent.filter((message) => message.sourceIds[0]?.startsWith('solo.'))
+    expect(soloMessages.map((message) => message.sourceIds)).toEqual([['solo.a'], ['solo.b']])
   })
 
   it('emits idle alerts over the active set and records an enqueued metric', async () => {
@@ -446,6 +503,7 @@ describe('enqueuePulseIngestScans', () => {
     )
     expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith('pulse.ingest.enqueued', {
       queued: 1,
+      messages: 1,
     })
   })
 })
@@ -476,6 +534,84 @@ describe('consumePulseIngestSource', () => {
 
     expect(result).toMatchObject({ snapshots: 1, queued: 1, failures: 0 })
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
+  })
+
+  it('processes a host group sequentially through one shared ingest context', async () => {
+    const queueSend = vi.fn()
+    const order: string[] = []
+    const groupAdapter = (id: string) =>
+      adapter({
+        id,
+        async fetch() {
+          order.push(`fetch:${id}`)
+          return [
+            {
+              sourceId: id,
+              fetchedAt: new Date('2026-04-30T00:00:00.000Z'),
+              contentHash: `raw-${id}`,
+              r2Key: `raw-${id}.html`,
+              body: 'raw body',
+              contentType: 'text/html',
+              etag: null,
+              lastModified: null,
+            },
+          ]
+        },
+        async parse() {
+          order.push(`parse:${id}`)
+          return [
+            {
+              sourceId: id,
+              externalId: `${id}-item`,
+              title: `${id} item`,
+              publishedAt: new Date('2026-04-29T00:00:00.000Z'),
+              officialSourceUrl: `https://shared.example.gov/${id}`,
+              rawText: `${id} raw text`,
+            },
+          ]
+        },
+      })
+
+    const result = await consumePulseIngestSource(
+      env(queueSend),
+      {
+        type: 'pulse.ingest.source',
+        sourceId: 'shared.one',
+        sourceIds: ['shared.one', 'shared.two'],
+        reason: 'cadence_due',
+      },
+      [groupAdapter('shared.one'), groupAdapter('shared.two')],
+    )
+
+    expect(result).toMatchObject({ snapshots: 2, queued: 2, failures: 0 })
+    // Strict sequence: the second source starts only after the first finished.
+    expect(order).toEqual([
+      'fetch:shared.one',
+      'parse:shared.one',
+      'fetch:shared.two',
+      'parse:shared.two',
+    ])
+    expect(dbMocks.createDb).toHaveBeenCalledTimes(1)
+  })
+
+  it('skips unknown ids inside a group without dropping the rest', async () => {
+    const queueSend = vi.fn()
+
+    const result = await consumePulseIngestSource(
+      env(queueSend),
+      {
+        type: 'pulse.ingest.source',
+        sourceId: 'fema.declarations',
+        sourceIds: ['fema.declarations', 'does.not.exist'],
+        reason: 'cadence_due',
+      },
+      [adapter()],
+    )
+
+    expect(result).toMatchObject({ snapshots: 1, queued: 1, failures: 0 })
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith('pulse.ingest.source_missing', {
+      sourceId: 'does.not.exist',
+    })
   })
 
   it('runs with force even when nextCheckAt is in the future', async () => {
@@ -607,6 +743,83 @@ describe('createPoliteFetch', () => {
     await politeFetch('https://comptroller.texas.gov/about/media-center/news/')
 
     expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+
+  it('spaces same-host fetch starts by the politeness interval', async () => {
+    vi.useFakeTimers()
+    try {
+      const fetchImpl = vi.fn(async () => new Response('ok'))
+      const politeFetch = createPoliteFetch(fetchImpl as unknown as typeof fetch)
+
+      const first = politeFetch('https://tax.example.gov/a')
+      const second = politeFetch('https://tax.example.gov/b')
+      await vi.advanceTimersByTimeAsync(0)
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+
+      await vi.advanceTimersByTimeAsync(30_000)
+      expect(fetchImpl).toHaveBeenCalledTimes(2)
+      await Promise.all([first, second])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('coordinates separate instances that share one host state', async () => {
+    vi.useFakeTimers()
+    try {
+      const fetchImpl = vi.fn(async () => new Response('ok'))
+      const shared = createPoliteHostState()
+      const politeA = createPoliteFetch(fetchImpl as unknown as typeof fetch, shared)
+      const politeB = createPoliteFetch(fetchImpl as unknown as typeof fetch, shared)
+
+      const first = politeA('https://tax.example.gov/a')
+      const second = politeB('https://tax.example.gov/b')
+      await vi.advanceTimersByTimeAsync(0)
+      // Two queue invocations in one isolate no longer hit the host together.
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+
+      await vi.advanceTimersByTimeAsync(30_000)
+      expect(fetchImpl).toHaveBeenCalledTimes(2)
+      await Promise.all([first, second])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('never makes distinct hosts wait on each other', async () => {
+    vi.useFakeTimers()
+    try {
+      const fetchImpl = vi.fn(async () => new Response('ok'))
+      const politeFetch = createPoliteFetch(
+        fetchImpl as unknown as typeof fetch,
+        createPoliteHostState(),
+      )
+
+      const first = politeFetch('https://tax.ny.gov/a')
+      const second = politeFetch('https://www.ftb.ca.gov/b')
+      await vi.advanceTimersByTimeAsync(0)
+      expect(fetchImpl).toHaveBeenCalledTimes(2)
+      await Promise.all([first, second])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('keeps instances without shared state independent (test-isolation default)', async () => {
+    vi.useFakeTimers()
+    try {
+      const fetchImpl = vi.fn(async () => new Response('ok'))
+      const politeA = createPoliteFetch(fetchImpl as unknown as typeof fetch)
+      const politeB = createPoliteFetch(fetchImpl as unknown as typeof fetch)
+
+      const first = politeA('https://tax.example.gov/a')
+      const second = politeB('https://tax.example.gov/b')
+      await vi.advanceTimersByTimeAsync(0)
+      expect(fetchImpl).toHaveBeenCalledTimes(2)
+      await Promise.all([first, second])
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
 
