@@ -377,9 +377,27 @@ export function RuleDetailCompact({
         meta={<span className="font-mono">{rule.dueDateLogic.kind}</span>}
         moreLabel={<Trans>View extension rules</Trans>}
         summary={
-          <div className="rounded-lg bg-background-section px-3.5 py-3 text-sm text-text-primary">
-            {dueDateSummary}
-          </div>
+          rule.dueDateLogic.kind === 'fixed_date' ? (
+            // irBJ8 "Due {date}" block — concrete date + holiday-rollover hint.
+            <div className="flex flex-col gap-1 rounded-lg bg-background-section px-3.5 py-3">
+              <span className="font-mono text-[16px] font-bold text-text-primary">
+                <Trans>
+                  Due {formatDatePretty(rule.dueDateLogic.date, { alwaysShowYear: true })}
+                </Trans>
+              </span>
+              <span className="text-xs font-medium text-text-secondary">
+                {rule.dueDateLogic.holidayRollover === 'next_business_day' ? (
+                  <Trans>Weekend → next business day</Trans>
+                ) : (
+                  <Trans>Holiday rollover: source-adjusted</Trans>
+                )}
+              </span>
+            </div>
+          ) : (
+            <div className="rounded-lg bg-background-section px-3.5 py-3 text-sm text-text-primary">
+              {dueDateSummary}
+            </div>
+          )
         }
         detail={
           <div className="flex flex-col gap-1.5">
