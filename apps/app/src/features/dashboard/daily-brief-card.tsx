@@ -1,7 +1,6 @@
 import { Fragment, useMemo } from 'react'
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
-import { Link } from 'react-router'
+import { Trans, useLingui } from '@lingui/react/macro'
+import { ExternalLinkIcon, RotateCwIcon, SparklesIcon, XIcon } from 'lucide-react'
 
 import type {
   DashboardBriefPublic,
@@ -76,33 +75,99 @@ export function DailyBriefCard({
   const aiEnabled = scope === 'me'
   if (!brief && !recap && !(scope === 'firm' && concentration)) return null
 
-  // 2026-06-10 (manual refresh retired): the brief is a self-tending
-  // daily edition — it regenerates on the firm-tz day rollover and
-  // self-heals failed/stale states server-side, so the card carries NO
-  // refresh affordance anywhere. The freshness chip is display-only.
-  const isPending = aiEnabled && brief?.status === 'pending'
+  const isPending = brief.status === 'pending' || refreshing
+  // Refresh is only meaningful once a brief exists in some terminal-ish
+  // state; while it's generating the status label shows the spinner.
+  const canRefresh = !isPending
+
+  // 2026-06-08 (Yuqi "in one line, thin banner if it failed"): a failed brief
+  // collapses to a single thin banner — title · Failed · short message · inline
+  // retry — instead of the full card with body prose.
+  if (brief.status === 'failed' && !refreshing) {
+    return (
+      <section
+        aria-label={t`Daily brief`}
+        className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-divider-regular bg-background-default px-[18px] py-2.5"
+      >
+        <span
+          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background-section"
+          aria-hidden
+        >
+          <SparklesIcon className="size-3.5 text-text-secondary" />
+        </span>
+        <h2 className="text-[13px] leading-tight font-semibold text-text-primary">
+          <Trans>Daily Brief</Trans>
+        </h2>
+        <span className="min-w-0 truncate text-xs text-text-tertiary">
+          <Trans>We couldn't generate today's brief.</Trans>
+        </span>
+        {/* 2026-06-08 (Yuqi /today): the "Failed" label is dropped (the message
+            already says it failed) and the icon-only retry becomes a quiet
+            "Regenerate brief" TEXT button sitting right after the message. */}
+        <TextLink variant="accent" onClick={onRefresh} className="shrink-0">
+          <RotateCwIcon className="size-3.5" aria-hidden />
+          <Trans>Regenerate brief</Trans>
+        </TextLink>
+        <div className="flex flex-1 shrink-0 items-center justify-end gap-1">
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t`Dismiss brief`}
+              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+            >
+              <XIcon className="size-3.5" aria-hidden />
+            </button>
+          ) : null}
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section
       aria-label={t`Daily brief`}
-      // 2026-06-08 (Yuqi /today #1 "top padding reduce"): the section's
-      // top padding is trimmed (pt-3 vs the 18px on the other sides) so the
-      // title row sits closer to the top edge and the card reads tighter.
-      className="group flex flex-col gap-1 rounded-xl bg-state-accent-hover px-[18px] pt-3 pb-[18px]"
+      // 2026-06-10 (Yuqi "daily brief → Pencil tvSsP"): the brief moved OFF the
+      // blue accent fill onto a white card + single hairline border (also
+      // satisfies the product-wide surface model — colored-fill regions pull
+      // back to white + hairline). The sparkles icon now carries the AI signal
+      // that the accent fill used to.
+      className="group flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-5"
     >
-      {/* TopRow — Pencil qYrr3 `LfcWh` */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Left — title + freshness (dot + mono age). Yuqi: icon removed;
-            the title takes the dark brand color on hover. */}
+      {/* TopRow — Pencil tvSsP `header`: sparkles icon-wrap + "Daily Brief"
+          (13/600) + freshness, with a labeled Regenerate button on the right. */}
+      <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
-          <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
-            <Trans>Daily Brief</Trans>
-          </h2>
-          {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
+          <span
+            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background-section"
+            aria-hidden
+          >
+            <SparklesIcon className="size-4 text-text-secondary" />
+          </span>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+            <h2 className="text-[13px] leading-tight font-semibold text-text-primary">
+              <Trans>Daily Brief</Trans>
+            </h2>
+            <BriefFreshness
+              brief={brief}
+              pending={isPending}
+              onRefresh={canRefresh ? onRefresh : undefined}
+            />
+          </div>
         </div>
-        {/* Right — dismiss only. The regenerate button is gone (manual
-            refresh retired); freshness is display-only. */}
-        <div className="flex shrink-0 items-center gap-2.5">
+        {/* Right — labeled Regenerate (tvSsP `Regenerate btn`) + dismiss */}
+        <div className="flex shrink-0 items-center gap-1">
+          {canRefresh && brief.status !== 'failed' ? (
+            <button
+              type="button"
+              onClick={onRefresh}
+              aria-label={t`Regenerate brief`}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+            >
+              <RotateCwIcon className="size-3" aria-hidden />
+              <Trans>Regenerate</Trans>
+            </button>
+          ) : null}
           {/* 2026-06-08 (Yuqi /today #8 "able to close it"): dismiss the
               brief for the day. The parent persists the dismissal keyed to
               this brief's generation, so a freshly regenerated brief returns. */}

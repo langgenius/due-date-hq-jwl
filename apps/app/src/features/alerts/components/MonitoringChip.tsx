@@ -31,7 +31,7 @@ import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 const NATIONAL_POLICY_WATCH_TOOLTIP = (
   <div className="flex max-w-[280px] flex-col gap-1 text-left">
     <span className="font-semibold">
-      <Trans>National policy watch</Trans>
+      <Trans>Monitoring: Federal · 50 States · DC</Trans>
     </span>
     <span>
       <Trans>
@@ -57,14 +57,15 @@ export function MonitoringChip({
   const label = (
     <>
       <PulsingDot tone="success" active />
-      <Trans>Monitoring: Federal · 50 States · DC</Trans>
+      <Trans>LIVE</Trans>
     </>
   )
   const badgeClass = cn(
-    // 2026-06-09 (Yuqi /today "muted text colour"): the chip label sits at
-    // text-muted so it reads as quiet ambient status, not a second title.
-    'px-0 text-text-muted',
-    to ? 'cursor-pointer transition-colors hover:text-text-secondary' : 'cursor-help',
+    // 2026-06-10 (Yuqi /today #1 "writes LIVE in a green pill, hover shows
+    // monitoring"): the chip is now a compact green "LIVE" pill; the full
+    // monitoring scope (Federal · 50 States · DC) moved into the hover tooltip.
+    'gap-1.5 rounded-full border border-state-success-border bg-state-success-hover px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.4px] text-text-success',
+    to ? 'cursor-pointer transition-colors hover:bg-state-success-active' : 'cursor-help',
     className,
   )
   return (
