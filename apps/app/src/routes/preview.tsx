@@ -53,6 +53,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -1417,7 +1418,11 @@ export function PreviewRoute() {
                   }
                 />
                 <DropdownMenuContent align="start" className="w-52">
-                  <DropdownMenuLabel>Form 1120 — Acme LLC</DropdownMenuLabel>
+                  {/* Base UI GroupLabel needs a Menu.Group ancestor or it
+                      throws "MenuGroupContext is missing" on open. */}
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>Form 1120 — Acme LLC</DropdownMenuLabel>
+                  </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <PencilIcon /> Edit

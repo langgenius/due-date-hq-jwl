@@ -134,6 +134,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -4284,171 +4285,186 @@ export function ObligationQueueRoute() {
                       }
                     />
                     <DropdownMenuContent align="end" className="min-w-[244px]">
-                      <DropdownMenuLabel className="text-caption-xs tracking-wide text-text-tertiary uppercase">
-                        <Trans>View</Trans>
-                      </DropdownMenuLabel>
-                      {/* Columns submenu — count on the trigger, checklist inside. */}
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                          <Columns3Icon className="size-4" aria-hidden />
-                          <span>
-                            <Trans>Columns</Trans>
-                          </span>
-                          <span className="ml-auto tabular-nums text-text-tertiary">
-                            {t`${visibleHideableCount} of ${totalHideableCount}`}
-                          </span>
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent className="w-56">
-                          <DropdownMenuLabel className="flex items-center justify-between gap-2">
-                            <Trans>Visible columns</Trans>
-                            {hiddenColumnsCount > 0 ? (
-                              <TextLink
-                                variant="accent"
-                                className="font-normal"
-                                onClick={() => {
-                                  void setObligationQueueQuery({ hide: [] })
-                                }}
-                              >
-                                <Trans>Show all</Trans>
-                              </TextLink>
-                            ) : null}
-                          </DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {table
-                            .getAllLeafColumns()
-                            .filter((column) => column.getCanHide())
-                            .map((column) => {
-                              const label = columnLabel(column.id, columnLabels)
-                              return (
-                                <DropdownMenuCheckboxItem
-                                  key={column.id}
-                                  aria-label={label}
-                                  checked={column.getIsVisible()}
-                                  closeOnClick={false}
-                                  onCheckedChange={(checked) => column.toggleVisibility(checked)}
-                                >
-                                  <span>{label}</span>
-                                </DropdownMenuCheckboxItem>
-                              )
-                            })}
-                        </DropdownMenuSubContent>
-                      </DropdownMenuSub>
-                      {/* Group by submenu. */}
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                          <LayersIcon className="size-4" aria-hidden />
-                          <span>
-                            <Trans>Group by</Trans>
-                          </span>
-                          <span className="ml-auto text-text-tertiary">
-                            {group === 'client' ? (
-                              <Trans>Client</Trans>
-                            ) : group === 'filing' ? (
-                              <Trans>Filing</Trans>
-                            ) : group === 'urgency' ? (
-                              <Trans>Urgency</Trans>
-                            ) : (
-                              <Trans>Due date</Trans>
-                            )}
-                          </span>
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent className="min-w-[160px]">
-                          <DropdownMenuRadioGroup
-                            value={group}
-                            onValueChange={(next) => {
-                              if (
-                                next === 'due' ||
-                                next === 'urgency' ||
-                                next === 'client' ||
-                                next === 'filing'
-                              ) {
-                                void setObligationQueueQuery({ group: next })
-                              }
-                            }}
-                          >
-                            <DropdownMenuRadioItem value="urgency">
-                              <Trans>Urgency</Trans>
-                            </DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="due">
-                              <Trans>Due date</Trans>
-                            </DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="client">
-                              <Trans>Client</Trans>
-                            </DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="filing">
-                              <Trans>Filing</Trans>
-                            </DropdownMenuRadioItem>
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuSub>
-                      {/* Density submenu. */}
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                          <ListChecksIcon className="size-4" aria-hidden />
-                          <span>
-                            <Trans>Density</Trans>
-                          </span>
-                          <span className="ml-auto text-text-tertiary">
-                            {density === 'compact' ? (
-                              <Trans>Compact</Trans>
-                            ) : (
-                              <Trans>Default</Trans>
-                            )}
-                          </span>
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent className="min-w-[160px]">
-                          <DropdownMenuRadioGroup
-                            value={density}
-                            onValueChange={(next) => {
-                              if (next === 'comfortable' || next === 'compact') {
-                                void setObligationQueueQuery({ density: next })
-                              }
-                            }}
-                          >
-                            <DropdownMenuRadioItem value="comfortable">
-                              <Trans>Default</Trans>
-                            </DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="compact">
-                              <Trans>Compact</Trans>
-                            </DropdownMenuRadioItem>
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuSub>
+                      {/* Base UI's GroupLabel calls useMenuGroupRootContext()
+                          and throws ("MenuGroupContext is missing") the moment
+                          the popup renders unless a Menu.Group/Menu.RadioGroup
+                          ancestor provides it — same crash class as the assign
+                          picker's label below. Every labelled section here is
+                          therefore a real DropdownMenuGroup, which also wires
+                          the group's aria-labelledby. */}
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel className="text-caption-xs tracking-wide text-text-tertiary uppercase">
+                          <Trans>View</Trans>
+                        </DropdownMenuLabel>
+                        {/* Columns submenu — count on the trigger, checklist inside. */}
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            <Columns3Icon className="size-4" aria-hidden />
+                            <span>
+                              <Trans>Columns</Trans>
+                            </span>
+                            <span className="ml-auto tabular-nums text-text-tertiary">
+                              {t`${visibleHideableCount} of ${totalHideableCount}`}
+                            </span>
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent className="w-56">
+                            <DropdownMenuGroup>
+                              <DropdownMenuLabel className="flex items-center justify-between gap-2">
+                                <Trans>Visible columns</Trans>
+                                {hiddenColumnsCount > 0 ? (
+                                  <TextLink
+                                    variant="accent"
+                                    className="font-normal"
+                                    onClick={() => {
+                                      void setObligationQueueQuery({ hide: [] })
+                                    }}
+                                  >
+                                    <Trans>Show all</Trans>
+                                  </TextLink>
+                                ) : null}
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {table
+                                .getAllLeafColumns()
+                                .filter((column) => column.getCanHide())
+                                .map((column) => {
+                                  const label = columnLabel(column.id, columnLabels)
+                                  return (
+                                    <DropdownMenuCheckboxItem
+                                      key={column.id}
+                                      aria-label={label}
+                                      checked={column.getIsVisible()}
+                                      closeOnClick={false}
+                                      onCheckedChange={(checked) =>
+                                        column.toggleVisibility(checked)
+                                      }
+                                    >
+                                      <span>{label}</span>
+                                    </DropdownMenuCheckboxItem>
+                                  )
+                                })}
+                            </DropdownMenuGroup>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        {/* Group by submenu. */}
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            <LayersIcon className="size-4" aria-hidden />
+                            <span>
+                              <Trans>Group by</Trans>
+                            </span>
+                            <span className="ml-auto text-text-tertiary">
+                              {group === 'client' ? (
+                                <Trans>Client</Trans>
+                              ) : group === 'filing' ? (
+                                <Trans>Filing</Trans>
+                              ) : group === 'urgency' ? (
+                                <Trans>Urgency</Trans>
+                              ) : (
+                                <Trans>Due date</Trans>
+                              )}
+                            </span>
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent className="min-w-[160px]">
+                            <DropdownMenuRadioGroup
+                              value={group}
+                              onValueChange={(next) => {
+                                if (
+                                  next === 'due' ||
+                                  next === 'urgency' ||
+                                  next === 'client' ||
+                                  next === 'filing'
+                                ) {
+                                  void setObligationQueueQuery({ group: next })
+                                }
+                              }}
+                            >
+                              <DropdownMenuRadioItem value="urgency">
+                                <Trans>Urgency</Trans>
+                              </DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem value="due">
+                                <Trans>Due date</Trans>
+                              </DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem value="client">
+                                <Trans>Client</Trans>
+                              </DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem value="filing">
+                                <Trans>Filing</Trans>
+                              </DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        {/* Density submenu. */}
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            <ListChecksIcon className="size-4" aria-hidden />
+                            <span>
+                              <Trans>Density</Trans>
+                            </span>
+                            <span className="ml-auto text-text-tertiary">
+                              {density === 'compact' ? (
+                                <Trans>Compact</Trans>
+                              ) : (
+                                <Trans>Default</Trans>
+                              )}
+                            </span>
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent className="min-w-[160px]">
+                            <DropdownMenuRadioGroup
+                              value={density}
+                              onValueChange={(next) => {
+                                if (next === 'comfortable' || next === 'compact') {
+                                  void setObligationQueueQuery({ density: next })
+                                }
+                              }}
+                            >
+                              <DropdownMenuRadioItem value="comfortable">
+                                <Trans>Default</Trans>
+                              </DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem value="compact">
+                                <Trans>Compact</Trans>
+                              </DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                      </DropdownMenuGroup>
                       <DropdownMenuSeparator />
-                      <DropdownMenuLabel className="text-caption-xs tracking-wide text-text-tertiary uppercase">
-                        <Trans>Actions</Trans>
-                      </DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => openExportDialog('filtered')}>
-                        <DownloadIcon className="size-4" aria-hidden />
-                        <span className="flex-1">
-                          <Trans>Export visible rows</Trans>
-                        </span>
-                        <Badge variant="secondary" className="h-5 px-1.5 text-caption-xs">
-                          CSV
-                        </Badge>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          toast.success(t`View saved`, {
-                            description: t`Your current columns, grouping, and filters are saved to this view.`,
-                          })
-                        }
-                      >
-                        <BookmarkIcon className="size-4" aria-hidden />
-                        <span className="flex-1">
-                          <Trans>Save current view</Trans>
-                        </span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        disabled={!queueFiltersActive}
-                        onClick={() => resetObligationQueue()}
-                        className="text-text-destructive data-highlighted:text-text-destructive"
-                      >
-                        <RotateCcwIcon className="size-4" aria-hidden />
-                        <span className="flex-1">
-                          <Trans>Reset filters</Trans>
-                        </span>
-                      </DropdownMenuItem>
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel className="text-caption-xs tracking-wide text-text-tertiary uppercase">
+                          <Trans>Actions</Trans>
+                        </DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => openExportDialog('filtered')}>
+                          <DownloadIcon className="size-4" aria-hidden />
+                          <span className="flex-1">
+                            <Trans>Export visible rows</Trans>
+                          </span>
+                          <Badge variant="secondary" className="h-5 px-1.5 text-caption-xs">
+                            CSV
+                          </Badge>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            toast.success(t`View saved`, {
+                              description: t`Your current columns, grouping, and filters are saved to this view.`,
+                            })
+                          }
+                        >
+                          <BookmarkIcon className="size-4" aria-hidden />
+                          <span className="flex-1">
+                            <Trans>Save current view</Trans>
+                          </span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={!queueFiltersActive}
+                          onClick={() => resetObligationQueue()}
+                          className="text-text-destructive data-highlighted:text-text-destructive"
+                        >
+                          <RotateCcwIcon className="size-4" aria-hidden />
+                          <span className="flex-1">
+                            <Trans>Reset filters</Trans>
+                          </span>
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
