@@ -59,6 +59,7 @@ import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 import { tabsForObligationType } from '@/features/obligations/obligation-type'
 import { PenaltyExposureCard } from '@/features/obligations/detail/PenaltyExposureCard'
 import { ObligationTimeline } from '@/features/obligations/timeline'
+import { DeadlineCrumbBar } from '@/features/obligations/detail/DeadlineCrumbBar'
 import {
   type ObligationStatus,
   ObligationStatusReadBadge,
@@ -140,9 +141,23 @@ import {
   XIcon,
 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
+
+// 2026-06-10 (Yuqi alert↔deadline parity #2): the page-mode drawer's
+// window-level hotkeys (▲▼ rail pager + F mark-filed) must go quiet while
+// ANY modal layer is stacked above the drawer — the authority-rejection /
+// deadline-input / materials-request-preview / signature-reminder dialogs.
+// Their focusable controls are <button>s, so the INPUT/TEXTAREA target
+// guard never catches them. Base UI keeps Dialog/AlertDialog popups out of
+// the DOM until open, so probing for a mounted popup is a reliable "is a
+// modal up?" check. Mirrors AlertDetailDrawer's isModalLayerOpen exactly.
+const MODAL_LAYER_SELECTOR = '[data-slot="dialog-content"], [data-slot="alert-dialog-content"]'
+
+function isModalLayerOpen(): boolean {
+  return document.querySelector(MODAL_LAYER_SELECTOR) !== null
+}
 
 // 2026-06-08 (Pencil HuYeb /deadlines detail): the header's top-right
 // action cluster — Assign (assignee picker), Snooze (preset defer), and
@@ -171,6 +186,13 @@ function DeadlineTopActions({
   // `done` / `paid` / `completed` already read as "Filed"/terminal, so the
   // primary action is a no-op there — disable rather than re-file.
   const isFiled = row.status === 'done' || row.status === 'completed' || row.status === 'paid'
+  // 2026-06-10 (Yuqi critique "one primary CTA, context-aware"): while the row
+  // is In Review the stage-card's "Approve return" is the single blue primary
+  // (that's the actual next move), so the footer "Mark as filed" demotes to a
+  // secondary OUTLINE here — never two blue primaries on screen at once. In
+  // every other stage filing IS the next move, so the footer button stays
+  // primary.
+  const markFiledIsPrimary = row.status !== 'review'
   // Relative snooze presets. App code, so wall-clock `Date.now()` is fine
   // (unlike workflow scripts); the server stores the resolved instant.
   const snoozePresets: Array<{ label: string; days: number }> = [
@@ -249,6 +271,7 @@ function DeadlineTopActions({
       </DropdownMenu>
       <Button
         size="sm"
+        variant={markFiledIsPrimary ? 'default' : 'outline'}
         className="h-8 gap-1.5"
         disabled={isFiled || markFiledPending}
         onClick={onMarkFiled}
@@ -283,6 +306,9 @@ export function ObligationQueueDetailDrawer({
   // Sheet ('sheet'). Default 'sheet' preserves back-compat for any
   // unconverted caller.
   mode = 'sheet',
+  onPrev,
+  onNext,
+  position = null,
 }: {
   obligationId: string | null
   activeTab: ObligationQueueDetailTab
@@ -299,6 +325,14 @@ export function ObligationQueueDetailDrawer({
   // tab restructure (Status · Materials · Record · Audit). `panel` /
   // `sheet` (used by /clients) are untouched.
   mode?: 'sheet' | 'panel' | 'page'
+  // 2026-06-10 (Yuqi alert↔deadline parity #1/#2): prev/next paging across
+  // the surrounding rail list + a "N of M" position read-out, threaded from
+  // the /deadlines/:ref route (which owns the sorted order). Page mode wires
+  // them into the in-surface top bar + the ▲▼ keyboard pager, mirroring
+  // AlertDetailDrawer. All optional — absent in panel/sheet mode.
+  onPrev?: (() => void) | undefined
+  onNext?: (() => void) | undefined
+  position?: { index: number; total: number } | null | undefined
 }) {
   // True for the persistent layouts (right-rail panel + standalone
   // page) where the body owns its own scroll and the deadline strip
@@ -1434,6 +1468,67 @@ export function ObligationQueueDetailDrawer({
     )
   }
 
+  // 2026-06-10 (Yuqi alert↔deadline parity #2): keyboard interactions
+  // matching the alert drawer. Page mode only — the in-context page is the
+  // surface that mirrors the alert's full-window keyboard model; the
+  // /clients sheet/panel keeps click-only nav.
+  //
+  // ▲ / ▼ page prev/next through the surrounding rail list (the rail stays
+  // the primary click navigator). Ignored while typing in a field and while
+  // any dialog is stacked above, so it never hijacks search/text input.
+  // Mirrors AlertDetailDrawer's ArrowUp/ArrowDown pager.
+  useEffect(() => {
+    if (!isPageMode || (!onPrev && !onNext)) return undefined
+    const handler = (event: KeyboardEvent) => {
+      const target = event.target instanceof HTMLElement ? event.target : null
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return
+      }
+      if (isModalLayerOpen()) return
+      if (event.key === 'ArrowUp' && onPrev) {
+        event.preventDefault()
+        onPrev()
+      } else if (event.key === 'ArrowDown' && onNext) {
+        event.preventDefault()
+        onNext()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [isPageMode, onPrev, onNext])
+
+  // F = mark filed / advance — the deadline analogue of the alert's `A`
+  // primary-decision hotkey. Fires the SAME `changeStatus(row.id, 'done')`
+  // the footer's "Mark as filed" primary fires, so the keyboard + button
+  // stay in lockstep. No-op (disabled) once the row is already filed /
+  // completed. Skipped while typing, while a dialog is open, and while a
+  // mutation is in flight. Page mode only.
+  const rowIsFiled = row?.status === 'done' || row?.status === 'completed' || row?.status === 'paid'
+  const changeStatusPending = changeStatusMutation.isPending
+  useEffect(() => {
+    if (!isPageMode || !row || rowIsFiled) return undefined
+    const handler = (event: KeyboardEvent) => {
+      const target = event.target instanceof HTMLElement ? event.target : null
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return
+      }
+      if (event.metaKey || event.ctrlKey || event.altKey || changeStatusPending) return
+      if (isModalLayerOpen()) return
+      if (event.key.toLowerCase() === 'f') {
+        event.preventDefault()
+        changeStatus(row.id, 'done', row.status)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [isPageMode, row, rowIsFiled, changeStatusPending, changeStatus])
+
   const checklistReference = row ? materialsChecklistReference(row) : null
   // The visible heading is shared with the drawer body. SheetTitle
   // stays sr-only below so Radix Dialog gets its accessible name
@@ -1443,6 +1538,12 @@ export function ObligationQueueDetailDrawer({
   const titleText = row?.clientName ?? null
   const drawerBody = (
     <>
+      {/* 2026-06-10 (Yuqi alert↔deadline parity #1): in-surface top bar —
+          "‹ Deadlines" crumb + "N of M" position + close ✕, all inside the
+          drawer body (page mode) so it shares the 760px document measure
+          and scroll column with the hero/body/footer below, exactly like
+          AlertDetailDrawer's BackStrip. */}
+      {isPageMode ? <DeadlineCrumbBar position={position} onClose={onClose} /> : null}
       {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): thin h-7 top
           status banner mirroring AlertDetailDrawer's DecisionBanners
           (L424). One band, colored by deadline state — red when overdue,
@@ -1450,12 +1551,13 @@ export function ObligationQueueDetailDrawer({
           status text on the left and a quiet timing note on the right.
           This subsumes the inline status-dot+label that used to sit on
           the header status row.
-          2026-06-09 (Yuqi /deadlines detail rebuild — Pencil rzzww): the
-          standalone page (`page` mode) drops this top banner — the rzzww
-          hero carries the status as a pill in the meta strip, and the
-          overdue state is already shown on the date cards + workflow
-          stepper. The panel/sheet surfaces (/clients) keep the banner. */}
-      {row && !isPageMode
+          2026-06-10 (Yuqi alert↔deadline parity #3): page mode now ALSO
+          shows this full-bleed status band (was page-excluded). Mirrors
+          AlertDetailDrawer, where the colored status band sits at the very
+          top above the header — so status lives in the SAME place on both
+          surfaces. The header status chip is dropped in page mode below to
+          avoid stating status twice (critique: de-dupe status). */}
+      {row
         ? (() => {
             const isDone =
               row.status === 'done' || row.status === 'completed' || row.status === 'paid'
@@ -1570,12 +1672,14 @@ export function ObligationQueueDetailDrawer({
         className={cn(
           'relative flex flex-col px-12 transition-all duration-200',
           heroCollapsed ? 'gap-1 pt-3 pb-3' : 'gap-1.5 pt-10 pb-6',
-          // 2026-06-09 (Yuqi "follow the alert detail responsive rule, page
-          // width"): page mode centers its content at a max width within the
-          // px-12 gutters, mirroring the Alert detail's `[&>*]:mx-auto
-          // max-w-[760px]` rule — scaled to ~1100px for the two-column
-          // (content + 340px rail) deadline layout.
-          isPageMode && '[&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[1100px]',
+          // 2026-06-10 (Yuqi alert↔deadline parity #6/#7): page mode now
+          // matches the Alert detail hero EXACTLY — a soft gray
+          // (bg-background-subtle) masthead whose content centers on the
+          // same 760px document measure as the body/footer. The tonal step
+          // from the gray header to the white cards on the gray-wash body
+          // carries the separation; the layout is single-column now so the
+          // wider 1100px measure is gone.
+          isPageMode && 'bg-background-subtle [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
         )}
       >
         {/* Panel mode owns its own close button — there's no Sheet
@@ -1597,16 +1701,12 @@ export function ObligationQueueDetailDrawer({
             <XIcon className="size-4" aria-hidden />
           </button>
         ) : null}
-        {/* 2026-06-10 (Yuqi feedback #13 + #1): the action cluster (Copy link ·
-            Assign · Snooze · Mark filed) + "Last activity" stamp moved OUT of
-            the hero into the shared sticky bottom action bar (enabled for page
-            mode below, mirroring the Alert detail's footer). This shortens the
-            header so more detail is readable on scroll. */}
-        {isPageMode && row && detail && detail.auditEvents.length > 0 ? (
-          <div className="pb-1 text-xs text-text-tertiary">
-            <Trans>Last activity {formatRelativeTime(detail.auditEvents[0]!.createdAt)}</Trans>
-          </div>
-        ) : null}
+        {/* 2026-06-10 (Yuqi alert↔deadline parity, hero rework 2f0d4b27): the
+            "Last activity just now" stamp is gone from the hero — it isn't in
+            the Alert detail's hero (whose eyebrow is just the meta strip), and
+            the activity story already lives in the Status tab's Recent
+            activity card + the Audit tab. The action cluster (Assign · Snooze
+            · Mark filed) lives in the shared sticky footer below. */}
         {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): the status
             dot + label that used to lead this row is gone — the new top
             status banner carries the status, mirroring the alerts detail.
@@ -1681,10 +1781,17 @@ export function ObligationQueueDetailDrawer({
                 <Trans>Client record missing</Trans>
               </span>
             ) : null}
-            <ObligationStatusReadBadge
-              status={row.status}
-              className="h-6 text-caption-xs uppercase tracking-wide"
-            />
+            {/* 2026-06-10 (Yuqi alert↔deadline parity #3 + critique
+                "de-dupe status"): the header status chip is dropped in page
+                mode — the full-bleed status banner above the header now
+                states status ONCE, in the same place the alert does. Panel /
+                sheet modes (no co-located banner pairing) keep the chip. */}
+            {!isPageMode ? (
+              <ObligationStatusReadBadge
+                status={row.status}
+                className="h-6 text-caption-xs uppercase tracking-wide"
+              />
+            ) : null}
             {latestInputRequest ? (
               <Badge
                 variant="secondary"
@@ -1766,10 +1873,12 @@ export function ObligationQueueDetailDrawer({
           // space holds the content steady regardless of which tab
           // is active.
           panelLayout && 'flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]',
-          // 2026-06-09 (Yuqi "follow the alert detail responsive rule, page
-          // width"): center body content at the same ~1100px max width as the
-          // hero so the page reads as one column on wide viewports.
-          isPageMode && '[&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[1100px]',
+          // 2026-06-10 (Yuqi alert↔deadline parity #6/#7): the page body is a
+          // gray-wash (bg-background-subtle) scroll surface hosting white
+          // cards, centered on the same 760px document measure as the alert
+          // body — single-column now, so the prior 1100px two-column measure
+          // is gone. pt-6 matches the alert body's header→body breathing.
+          isPageMode && 'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
         )}
         onScroll={
           isPageMode
@@ -2169,21 +2278,26 @@ export function ObligationQueueDetailDrawer({
                       (?tab=summary is shareable).
                     - Materials / Extension / Evidence don't get the
                       stage card pushing them below the fold. */}
-                {/* 2026-06-09 (Yuqi /deadlines detail recreation — Pencil
-                    rzzww): the Status tab is a two-column read — the milestone
-                    story + activity on the left, an Ownership / Linked-from
-                    rail on the right. Stacks below lg. */}
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+                {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX
+                    `hMaQD`): the Status tab is a SINGLE column of stacked
+                    cards — WorkflowMilestoneCard (stepper + active stage +
+                    blocking + what's-left) → Extension → Recent activity →
+                    Penalty exposure — then a full-width 2-up Ownership /
+                    Linked-from footer row. The earlier two-column rail is
+                    gone. This matches the alert detail's single flat card
+                    stack. */}
+                <div className="flex flex-col gap-4">
                   <div className={cn('grid min-w-0 flex-1', isPageMode ? 'gap-4' : 'gap-3')}>
-                    {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
-                        ne4Fd): page mode groups the milestone stepper +
-                        what's-left + active-stage card into one white card (the
-                        design's workflow card on the gray body). Panel/sheet
-                        keep them as flat siblings via `contents`. */}
+                    {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX
+                        `CorQi` WorkflowMilestoneCard): the stepper, active
+                        stage, blocking, and "What's left" all live in ONE
+                        white card on the gray-wash body — the deadline analogue
+                        of the alert's "The change" group card. Panel/sheet keep
+                        them as flat siblings via `contents`. */}
                     <div
                       className={
                         isPageMode
-                          ? 'flex flex-col gap-4 rounded-[12px] border border-divider-subtle bg-background-default p-6'
+                          ? 'flex flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default px-5 py-4'
                           : 'contents'
                       }
                     >
@@ -2291,17 +2405,18 @@ export function ObligationQueueDetailDrawer({
                           )
                         }}
                       />
-                      {/* "What's left to do" lives INSIDE the
-                          WorkflowMilestoneCard as a divider-separated section
-                          (the wrapper's divide-y paints the top rule), not a
-                          nested card — a plain section with a small uppercase
-                          eyebrow. */}
+                      {/* 2026-06-10 (Yuqi restore rework 61edf90a — Qn4nX CorQi
+                          `WdFB4` NextMovePanel): "What's left to do" lives
+                          INSIDE the WorkflowMilestoneCard as a divider-separated
+                          section (top hairline), not a nested card — matching
+                          the canonical and the alert's flat in-card sections.
+                          Small uppercase eyebrow, no card chrome. */}
                       {checklist.length > 0 &&
                       row.status !== 'done' &&
                       row.status !== 'completed' ? (
-                        <div className="flex flex-col gap-2.5">
+                        <div className="flex flex-col gap-2.5 border-t border-divider-subtle pt-4">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-caption-xs font-bold tracking-[0.8px] text-text-muted uppercase">
+                            <span className="text-caption-xs font-bold tracking-eyebrow-tight text-text-tertiary uppercase">
                               <Trans>What's left to do</Trans>
                             </span>
                             <span className="text-caption-xs text-text-tertiary">
@@ -2315,13 +2430,14 @@ export function ObligationQueueDetailDrawer({
                                 <li key={item.id} className="flex items-start gap-3">
                                   <span
                                     className={cn(
-                                      'text-sm leading-tight',
+                                      'mt-px flex size-[18px] shrink-0 items-center justify-center rounded-sm border',
                                       isDone
-                                        ? 'text-text-secondary line-through decoration-text-tertiary/40'
-                                        : 'text-text-primary',
+                                        ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
+                                        : 'border-divider-regular bg-background-default',
                                     )}
+                                    aria-hidden
                                   >
-                                    {item.label}
+                                    {isDone ? <CheckIcon className="size-3" /> : null}
                                   </span>
                                   <span className="grid min-w-0 gap-0.5">
                                     <span
@@ -2334,21 +2450,28 @@ export function ObligationQueueDetailDrawer({
                                     >
                                       {item.label}
                                     </span>
-                                  ) : null}
-                                </span>
-                              </li>
-                            )
-                          })}
-                        </ul>
-                        <TextLink
-                          variant="accent"
-                          className="w-fit"
-                          onClick={() => onTabChange('readiness')}
-                        >
-                          <Trans>Manage in Materials →</Trans>
-                        </TextLink>
-                      </DetailSectionCard>
-                    ) : null}
+                                    {isDone && item.receivedAt ? (
+                                      <span className="text-caption-xs text-text-tertiary">
+                                        <Trans>
+                                          received {formatDate(item.receivedAt.slice(0, 10))}
+                                        </Trans>
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                          <TextLink
+                            variant="accent"
+                            className="w-fit"
+                            onClick={() => onTabChange('readiness')}
+                          >
+                            <Trans>Manage in Materials →</Trans>
+                          </TextLink>
+                        </div>
+                      ) : null}
+                    </div>
                     {/* Recent activity — last few audit-feed entries, with a
                         link out to the full Timeline tab. */}
                     {/* 2026-06-10 (Yuqi — replicate Pencil `qSa9z` Recent
@@ -2386,7 +2509,7 @@ export function ObligationQueueDetailDrawer({
                                   <span aria-hidden> · </span>
                                   {formatAuditActionLabel(event.action, auditActionLabels)}
                                 </span>
-                                <span className="shrink-0 font-mono text-[11px] tabular-nums text-text-tertiary">
+                                <span className="shrink-0 font-mono text-caption-xs tabular-nums text-text-tertiary">
                                   {formatRelativeTime(event.createdAt)}
                                 </span>
                               </li>
@@ -2401,13 +2524,172 @@ export function ObligationQueueDetailDrawer({
                         no exposure applies. Page-only so the /clients drawer
                         summary is unchanged. */}
                     {isPageMode ? <PenaltyExposureCard row={row} /> : null}
+                    {/* 2026-06-10 (Yuqi restore rework 2adfcf5e — fold Extension
+                        into Status): the decideExtension flow (Form 7004/4868)
+                        is unreachable in page mode (no Extension tab in the
+                        locked 4-tab bar), so the apply-extension action folds
+                        here as a Status-tab DetailSectionCard. Reuses the same
+                        extensionDraft + saveExtensionDecision as the legacy
+                        Extension tab — no fiction (real rule fields only).
+                        Shows when a rule allows an extension or one is already
+                        on file. */}
+                    {isPageMode &&
+                    (extensionPolicy?.available || Boolean(row.extensionDecidedAt)) ? (
+                      <DetailSectionCard
+                        title={<Trans>Extension</Trans>}
+                        headerRight={
+                          row.extensionDecidedAt ? (
+                            <span className="text-caption-xs text-text-tertiary">
+                              <Trans>Filed {formatDate(row.extensionDecidedAt.slice(0, 10))}</Trans>
+                            </span>
+                          ) : detail.matchedRule ? (
+                            <TextLink
+                              variant="accent"
+                              className="font-semibold"
+                              render={
+                                <Link to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`} />
+                              }
+                            >
+                              <Trans>Open rule →</Trans>
+                            </TextLink>
+                          ) : null
+                        }
+                      >
+                        <div className="flex flex-col gap-3">
+                          <p className="text-caption text-text-tertiary">
+                            {(() => {
+                              const formName =
+                                extensionPolicy?.formName ?? row.extensionFormName ?? null
+                              return formName
+                                ? t`${formName} — automatic extension of time to file. Defers filing, not payment.`
+                                : t`Extension of time to file. Defers filing, not payment.`
+                            })()}
+                          </p>
+                          {extensionNeedsManualDeadline ? (
+                            <label className="flex flex-col gap-1">
+                              <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                <Trans>Extended filing deadline</Trans>
+                              </span>
+                              <IsoDatePicker
+                                value={extensionDraft.extendedFilingDate}
+                                invalid={extensionManualDeadlineInvalid}
+                                ariaLabel={t`Extended filing deadline`}
+                                placeholder={t`Extended filing deadline`}
+                                onValueChange={(extendedFilingDate) =>
+                                  setExtensionDraft((current) => ({
+                                    ...current,
+                                    extendedFilingDate,
+                                  }))
+                                }
+                              />
+                            </label>
+                          ) : null}
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <label className="flex flex-col gap-1">
+                              <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                <Trans>Internal target date</Trans>
+                              </span>
+                              <IsoDatePicker
+                                value={extensionDraft.internalTargetDate}
+                                invalid={internalTargetDateInvalid}
+                                maxIsoDate={extensionDeadlineCap}
+                                ariaLabel={t`Internal extension target date`}
+                                placeholder={t`Internal extension target date`}
+                                onValueChange={(internalTargetDate) =>
+                                  setExtensionDraft((current) => ({
+                                    ...current,
+                                    internalTargetDate,
+                                  }))
+                                }
+                              />
+                            </label>
+                            <label className="flex flex-col gap-1">
+                              <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                <Trans>Source or confirmation</Trans>
+                              </span>
+                              <Input
+                                aria-label={t`Extension source`}
+                                placeholder={t`Reference (optional)`}
+                                value={extensionDraft.source}
+                                onChange={(event) =>
+                                  setExtensionDraft((current) => ({
+                                    ...current,
+                                    source: event.target.value,
+                                  }))
+                                }
+                              />
+                            </label>
+                          </div>
+                          <label className="flex flex-col gap-1">
+                            <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                              <Trans>Decision memo</Trans>
+                            </span>
+                            <Textarea
+                              aria-label={t`Decision memo`}
+                              aria-required="true"
+                              placeholder={t`Why is this extension being filed? (required)`}
+                              value={extensionDraft.memo}
+                              onChange={(event) =>
+                                setExtensionDraft((current) => ({
+                                  ...current,
+                                  memo: event.target.value,
+                                }))
+                              }
+                            />
+                          </label>
+                          {row.paymentDueDate ? (
+                            <PaymentStillDueCallout
+                              title={
+                                typeof row.estimatedTaxDueCents === 'number' &&
+                                row.estimatedTaxDueCents > 0
+                                  ? t`Payment of ${formatCents(row.estimatedTaxDueCents)} still due ${formatDate(row.paymentDueDate)}`
+                                  : t`Payment still due ${formatDate(row.paymentDueDate)}`
+                              }
+                            >
+                              <Trans>
+                                Filing an extension does not extend the time to pay. Schedule an
+                                EFTPS payment by the original deadline to avoid interest and
+                                penalties.
+                              </Trans>
+                            </PaymentStillDueCallout>
+                          ) : null}
+                          <div className="flex flex-wrap items-center justify-end gap-2">
+                            {row.extensionDecidedAt ? (
+                              <span className="mr-auto text-caption text-text-tertiary">
+                                <Trans>
+                                  Last decided{' '}
+                                  {formatDateTimeWithTimezone(
+                                    row.extensionDecidedAt,
+                                    practiceTimezone,
+                                  )}
+                                </Trans>
+                              </span>
+                            ) : null}
+                            <Button
+                              variant="outline"
+                              onClick={() => setExtensionDraft(emptyExtensionPlanDraft(row.id))}
+                            >
+                              <Trans>Reset</Trans>
+                            </Button>
+                            <Button
+                              onClick={saveExtensionDecision}
+                              disabled={saveExtensionPlanDisabled}
+                            >
+                              <Trans>File extension</Trans>
+                            </Button>
+                          </div>
+                        </div>
+                      </DetailSectionCard>
+                    ) : null}
                   </div>
-                  {/* Right rail — Ownership + Linked from (Pencil rzzww). */}
-                  <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-[256px]">
-                    <section className="flex flex-col gap-3 rounded-xl border border-divider-subtle bg-background-default p-4">
-                      <h3 className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
-                        <Trans>Ownership</Trans>
-                      </h3>
+                  {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX):
+                      single-column body, so Ownership + Linked-from fold to a
+                      full-width 2-up footer row below the cards (the prior right
+                      rail is gone). Each is wrapped in the shared
+                      DetailSectionCard chrome (gray header band) so they match
+                      the alert's zero-hand-rolled-card system — parity #4. */}
+                  <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                    <DetailSectionCard title={<Trans>Ownership</Trans>}>
                       <div className="flex items-center gap-2.5">
                         <AssigneeAvatar
                           name={row.assigneeName ?? t`Unassigned`}
@@ -2425,11 +2707,12 @@ export function ObligationQueueDetailDrawer({
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             render={
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 px-2 text-caption font-normal text-state-accent-solid"
-                              >
+                              // 2026-06-10 (Yuqi critique contrast pass): the
+                              // "Change" target was a tiny h-7 ghost in
+                              // accent-solid (~3:1 on white). Switched to a
+                              // bordered outline button at the default size so
+                              // it clears AA and reads as a real affordance.
+                              <Button variant="outline" size="sm" className="h-8 font-medium">
                                 <Trans>Change</Trans>
                               </Button>
                             }
@@ -2471,11 +2754,8 @@ export function ObligationQueueDetailDrawer({
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                    </section>
-                    <section className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default p-4">
-                      <h3 className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
-                        <Trans>Linked from</Trans>
-                      </h3>
+                    </DetailSectionCard>
+                    <DetailSectionCard title={<Trans>Linked from</Trans>}>
                       <Link
                         to={clientDetailPath({ id: row.clientId, name: row.clientName })}
                         className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
@@ -2518,8 +2798,8 @@ export function ObligationQueueDetailDrawer({
                           />
                         </Link>
                       ) : null}
-                    </section>
-                  </aside>
+                    </DetailSectionCard>
+                  </div>
                 </div>
               </motion.div>
             </TabsContent>
@@ -4166,74 +4446,85 @@ export function ObligationQueueDetailDrawer({
            those already mirror the alert drawer. */
         <div
           className={cn(
-            'sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t border-divider-subtle px-12 pt-4 pb-6',
-            // Page mode sits on the gray body, so the bar is white paper; the
-            // panel/sheet keep the warm canvas. Both read as the committed
-            // action surface via the top border.
-            isPageMode ? 'bg-background-default' : 'bg-background-canvas-warm',
+            // 2026-06-10 (Yuqi alert↔deadline parity #5): footer chrome
+            // aligned to AlertDetailDrawer's SheetFooter — `min-h-16 border-t
+            // px-12 py-3` on a white (bg-background-default) committed-decision
+            // surface, content centered on the 760px document measure in page
+            // mode. Switched from the prior `flex-wrap justify-between` to a
+            // single centered row. Panel/sheet keep the warm canvas + their
+            // existing wrap behavior.
+            'sticky bottom-0 mt-auto flex min-h-16 border-t border-divider-subtle px-12',
+            isPageMode
+              ? 'items-center bg-background-default py-3'
+              : 'flex-wrap items-center justify-between gap-2 bg-background-canvas-warm pt-4 pb-6',
           )}
         >
-          {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #4): footer now
-              mirrors the alerts footer — quiet secondaries on the left
-              (Last updated · Request input · Copy link), primary action
-              cluster on the right (Assign · Snooze · Mark as filed), moved
-              out of the header. The corner close X keeps the close path,
-              so the footer's duplicate "Close" text button is dropped to
-              avoid crowding the action row. */}
-          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-            {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
+          {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #4): footer mirrors
+              the alerts footer — quiet secondaries on the left (Last updated ·
+              Request input · Copy link), primary action cluster on the right
+              (Assign · Snooze · Mark as filed). In page mode both children sit
+              inside the centered 760px measure; panel/sheet render them flush. */}
+          <div
+            className={cn(
+              'flex w-full items-center',
+              isPageMode ? 'mx-auto max-w-[760px] gap-8' : 'contents',
+            )}
+          >
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
+              {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
                 vertically — label on line 1, timestamp on line 2. */}
-            <span className="flex flex-col text-xs leading-tight text-text-tertiary">
-              <span>
-                <Trans>Last updated</Trans>
+              <span className="flex flex-col text-xs leading-tight text-text-tertiary">
+                <span>
+                  <Trans>Last updated</Trans>
+                </span>
+                <span className="tabular-nums">
+                  {formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
+                </span>
               </span>
-              <span className="tabular-nums">
-                {formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
-              </span>
-            </span>
-            {canRequestInput ? (
+              {canRequestInput ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={openRequestInputDialog}
+                  disabled={requestInputMutation.isPending}
+                >
+                  <MessageSquareText data-icon="inline-start" />
+                  <Trans>Request input</Trans>
+                </Button>
+              ) : null}
+              {/* Quiet shareability slot — copies a deep link that
+                round-trips to the same obligation + tab being read. */}
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={openRequestInputDialog}
-                disabled={requestInputMutation.isPending}
+                onClick={async () => {
+                  const url = new URL(
+                    deadlineDetailHref({ obligationId: row.id, tab: activeTab }),
+                    window.location.origin,
+                  )
+                  try {
+                    await copyTextToClipboard(url.toString())
+                    toast.success(t`Link copied`)
+                  } catch {
+                    toast.error(t`Couldn't copy link — your browser blocked clipboard access.`)
+                  }
+                }}
               >
-                <MessageSquareText data-icon="inline-start" />
-                <Trans>Request input</Trans>
+                <LinkIcon data-icon="inline-start" />
+                <Trans>Copy link to this deadline</Trans>
               </Button>
-            ) : null}
-            {/* Quiet shareability slot — copies a deep link that
-                round-trips to the same obligation + tab being read. */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={async () => {
-                const url = new URL(
-                  deadlineDetailHref({ obligationId: row.id, tab: activeTab }),
-                  window.location.origin,
-                )
-                try {
-                  await copyTextToClipboard(url.toString())
-                  toast.success(t`Link copied`)
-                } catch {
-                  toast.error(t`Couldn't copy link — your browser blocked clipboard access.`)
-                }
-              }}
-            >
-              <LinkIcon data-icon="inline-start" />
-              <Trans>Copy link to this deadline</Trans>
-            </Button>
+            </div>
+            <DeadlineTopActions
+              row={row}
+              assignableMembers={assignableMembers}
+              onAssign={(assigneeId) => assignMutation.mutate({ id: row.id, assigneeId })}
+              onSnooze={(snoozedUntil) => snoozeMutation.mutate({ id: row.id, snoozedUntil })}
+              onMarkFiled={() => changeStatus(row.id, 'done', row.status)}
+              assignPending={assignMutation.isPending}
+              snoozePending={snoozeMutation.isPending}
+              markFiledPending={changeStatusMutation.isPending}
+            />
           </div>
-          <DeadlineTopActions
-            row={row}
-            assignableMembers={assignableMembers}
-            onAssign={(assigneeId) => assignMutation.mutate({ id: row.id, assigneeId })}
-            onSnooze={(snoozedUntil) => snoozeMutation.mutate({ id: row.id, snoozedUntil })}
-            onMarkFiled={() => changeStatus(row.id, 'done', row.status)}
-            assignPending={assignMutation.isPending}
-            snoozePending={snoozeMutation.isPending}
-            markFiledPending={changeStatusMutation.isPending}
-          />
         </div>
       ) : null}
     </>
@@ -4280,13 +4571,16 @@ export function ObligationQueueDetailDrawer({
         // row they're on.
         className={cn(
           'relative flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden',
-          // 2026-06-09 (Yuqi /deadlines detail rebuild — unify with Alert
-          // detail): page mode adopts the Alert detail's gray body
-          // (bg-background-subtle) so the white bordered cards read with the
-          // same contrast. The /clients panel keeps its lifted warm paper +
-          // left border + shadow.
+          // 2026-06-10 (Yuqi alert↔deadline parity #7 — FULLY unify bg): page
+          // mode now mirrors AlertDetailDrawer's panel root EXACTLY — a WHITE
+          // (bg-background-default) aside with `shadow-subtle` and no left
+          // border. The gray wash + white cards are painted by the inner
+          // header/body regions (bg-background-subtle), so the surface model
+          // is identical to the alert: white root → gray-wash document →
+          // white cards. The /clients panel keeps its lifted warm paper +
+          // left border.
           isPageMode
-            ? 'bg-background-subtle'
+            ? 'bg-background-default shadow-subtle'
             : 'border-l border-divider-subtle bg-background-canvas-warm shadow-subtle',
         )}
       >

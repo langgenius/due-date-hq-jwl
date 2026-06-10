@@ -1,95 +1,60 @@
-import { Trans } from '@lingui/react/macro'
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { Trans, useLingui } from '@lingui/react/macro'
+import { ChevronLeftIcon, XIcon } from 'lucide-react'
 import { Link } from 'react-router'
-import type { ObligationQueueRow } from '@duedatehq/contracts'
-import { cn } from '@duedatehq/ui/lib/utils'
-
-import { describeTaxCode } from '@/lib/tax-codes'
 
 /**
- * Breadcrumb + Prev/Next bar atop the deadline detail page (Pencil
- * rzzww `Xdimj`). "‹ Deadlines / {client} · {form}" on the left,
- * Prev/Next deadline nav on the right. Lives at the route level so it
- * sits above the reused detail body.
+ * In-surface top bar atop the deadline detail PAGE — rebuilt 2026-06-10
+ * (Yuqi alert↔deadline parity #1) to mirror AlertDetailDrawer's top bar
+ * exactly: a 52px full-bleed band with a `border-b`, content capped to
+ * the same 760px document measure, carrying a "‹ Deadlines" crumb on the
+ * left and a "N of M" position read-out + a close ✕ on the right.
+ *
+ * The left RAIL is the primary navigator (▲▼ keyboard paging lives in the
+ * drawer), so this bar carries no Prev/Next buttons — just like the alert
+ * top bar. Rendered INSIDE the drawer body (page mode) so it shares the
+ * same scroll column + `mx-auto max-w-[760px]` measure as the header/body
+ * /footer below it.
  */
 export function DeadlineCrumbBar({
-  row,
-  onPrev,
-  onNext,
-  prevDisabled,
-  nextDisabled,
+  position,
+  onClose,
 }: {
-  row: ObligationQueueRow | null
-  onPrev: () => void
-  onNext: () => void
-  prevDisabled: boolean
-  nextDisabled: boolean
+  /** 1-based-on-render position read-out across the rail list. */
+  position: { index: number; total: number } | null
+  onClose: () => void
 }) {
-  const formLabel = row ? (row.formName ?? describeTaxCode(row.taxType).label) : null
-  const current = row ? `${row.clientName} · ${formLabel}` : ''
+  const { t } = useLingui()
 
   return (
-    // Full-width border-b, content centered at the same ~1100px max width +
-    // px-12 gutters as the hero/body so the breadcrumb aligns with the page.
-    <div className="flex h-14 items-center border-b border-divider-subtle bg-background-default px-12">
-      <div className="mx-auto flex w-full max-w-[1100px] items-center gap-2">
+    // Full-width border-b (so the bar never looks cut off); content capped
+    // to the same 760px `mx-auto` measure as the document below so it sits
+    // centered over the same column the hero/body/footer share — matching
+    // AlertDetailDrawer's top bar.
+    <div className="flex h-[52px] shrink-0 items-center border-b border-divider-subtle px-12">
+      <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3">
         <Link
           to="/deadlines"
           className="inline-flex items-center gap-1 text-base font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
         >
-          <ChevronLeftIcon className="size-3.5 shrink-0" aria-hidden />
+          <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
           <Trans>Deadlines</Trans>
         </Link>
-        {current ? (
-          <>
-            <span className="text-base font-medium text-text-muted" aria-hidden>
-              /
+        <div className="flex items-center gap-2">
+          {position && position.total > 0 ? (
+            <span className="text-sm font-medium text-text-muted tabular-nums">
+              {t`${position.index + 1} of ${position.total}`}
             </span>
-            <span className="truncate text-base font-semibold text-text-primary">{current}</span>
-          </>
-        ) : null}
-
-        <div className="ml-auto flex items-center gap-1">
-          <CrumbNavButton direction="prev" onClick={onPrev} disabled={prevDisabled} />
-          <CrumbNavButton direction="next" onClick={onNext} disabled={nextDisabled} />
+          ) : null}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t`Close deadline detail`}
+            className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <XIcon className="size-4" aria-hidden />
+          </button>
         </div>
       </div>
     </div>
-  )
-}
-
-function CrumbNavButton({
-  direction,
-  onClick,
-  disabled,
-}: {
-  direction: 'prev' | 'next'
-  onClick: () => void
-  disabled: boolean
-}) {
-  const Icon = direction === 'prev' ? ChevronLeftIcon : ChevronRightIcon
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        'inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-base font-medium text-text-secondary outline-none transition-colors',
-        'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        'disabled:cursor-not-allowed disabled:text-text-muted disabled:hover:bg-transparent',
-      )}
-    >
-      {direction === 'prev' ? (
-        <>
-          <Icon className="size-3.5 shrink-0" aria-hidden />
-          <Trans>Prev</Trans>
-        </>
-      ) : (
-        <>
-          <Trans>Next deadline</Trans>
-          <Icon className="size-3.5 shrink-0" aria-hidden />
-        </>
-      )}
-    </button>
   )
 }

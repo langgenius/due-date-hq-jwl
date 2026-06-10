@@ -10,7 +10,6 @@ import {
   normalizeDeadlineDetailTab,
   normalizeDeadlineRef,
 } from '@/features/obligations/deadline-detail-url'
-import { DeadlineCrumbBar } from '@/features/obligations/detail/DeadlineCrumbBar'
 import { DeadlineNavigatorRail } from '@/features/obligations/detail/DeadlineNavigatorRail'
 import { railListInputFromSearch } from '@/features/obligations/rail-list-input'
 import { ObligationQueueDetailDrawer } from '@/features/obligations/queue/ObligationQueueDetailDrawer'
@@ -105,7 +104,6 @@ export function DeadlineDetailRoute() {
   // Prev/Next navigation across the loaded rows, in the same order the
   // rail shows. Clamped at the ends.
   const currentIndex = obligationId ? rows.findIndex((row) => row.id === obligationId) : -1
-  const currentRow = currentIndex >= 0 ? (rows[currentIndex] ?? null) : null
   const prevRow = currentIndex > 0 ? (rows[currentIndex - 1] ?? null) : null
   const nextRow =
     currentIndex >= 0 && currentIndex < rows.length - 1 ? (rows[currentIndex + 1] ?? null) : null
@@ -132,25 +130,29 @@ export function DeadlineDetailRoute() {
         onLoadMore={() => void listQuery.fetchNextPage()}
       />
       <div className="flex min-w-0 flex-1 flex-col">
-        <DeadlineCrumbBar
-          row={currentRow}
-          onPrev={() => goToRow(prevRow?.id ?? null)}
-          onNext={() => goToRow(nextRow?.id ?? null)}
-          prevDisabled={!prevRow}
-          nextDisabled={!nextRow}
+        {/* 2026-06-10 (Yuqi alert↔deadline parity #1): the breadcrumb +
+            position read-out + close moved INTO the drawer's in-surface
+            top bar (mirroring AlertDetailDrawer, which carries its own
+            BackStrip inside the body). Prev/Next paging is the rail + the
+            drawer's ▲▼ keyboard handler now, so the route no longer
+            renders a separate crumb bar above the panel. */}
+        <ObligationQueueDetailDrawer
+          mode="page"
+          obligationId={obligationId}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          onClose={handleClose}
+          onNeedsInput={() => {}}
+          practiceAiEnabled={false}
+          blockerCandidates={rows}
+          onPrev={prevRow ? () => goToRow(prevRow.id) : undefined}
+          onNext={nextRow ? () => goToRow(nextRow.id) : undefined}
+          position={
+            currentIndex >= 0 && rows.length > 0
+              ? { index: currentIndex, total: rows.length }
+              : null
+          }
         />
-        <div className="flex min-h-0 flex-1 flex-col">
-          <ObligationQueueDetailDrawer
-            mode="page"
-            obligationId={obligationId}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            onClose={handleClose}
-            onNeedsInput={() => {}}
-            practiceAiEnabled={false}
-            blockerCandidates={rows}
-          />
-        </div>
       </div>
     </div>
   )
