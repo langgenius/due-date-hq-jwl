@@ -385,7 +385,12 @@ function ActionsTableRow({
       // but rows can now contain a 2-line stacked cell (action +
       // why-now, due-date + relative date) without feeling
       // suffocated.
-      className="group relative cursor-pointer hover:!bg-background-subtle focus-visible:bg-background-subtle focus-visible:outline-none [&_td]:py-3"
+      // 2026-06-10 (Yuqi /today): row hover lightened gray-100
+      // (`background-subtle`) → gray-50 (`background-default-hover`, the
+      // assigned lighter surface-hover token, opaque so the Review mask
+      // below still hides the due date). Reused rather than minting a
+      // third gray-50 alias.
+      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-3"
     >
       {/* 2026-06-04 round 11 (Yuqi "don't like the dedicated Smart
           Priority chip - too complicated and useless"): chip
@@ -571,12 +576,15 @@ function ActionsTableRow({
             obscuring the action prompt far to the left. `pointer-events-none`
             on the mask keeps the whole-row click working; the button re-enables
             pointer events. `tabIndex={-1}`/`aria-hidden` keep it out of the tab
-            order — the row itself is the focusable target. */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-subtle from-55% to-transparent pr-[18px] pl-16 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+            order — the row itself is the focusable target.
+            2026-06-10 (Yuqi): plain `variant="link"` blue text → a proper
+            `primary` button (filled), and the mask tone tracks the row's new
+            `background-default-hover`. */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-default-hover from-55% to-transparent pr-[18px] pl-16 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
           <Button
             type="button"
             size="xs"
-            variant="link"
+            variant="primary"
             tabIndex={-1}
             aria-hidden
             onClick={(event) => {

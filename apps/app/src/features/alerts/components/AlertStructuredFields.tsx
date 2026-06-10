@@ -240,16 +240,15 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           the surrounding panel + dividers carry the outer structure). */}
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-divider-subtle bg-divider-subtle sm:grid-cols-4">
         {cells.map((cell) => (
-          <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-4 py-3">
-            {/* 2026-06-08 (Yuqi /alerts D4+D5 — restraint): eyebrow label
-                drops `font-mono` (mono is reserved for dates/numbers, not
-                names like "Authority") and steps from bold → semibold; the
-                value drops semibold → normal. Values that ARE dates/numbers
-                still read fine at normal weight with tabular alignment. */}
-            <span className="text-[10px] font-semibold tracking-[0.6px] text-text-muted uppercase">
+          // 2026-06-10 (Yuqi — Pencil `b4syg` ExtractedFacts cell): padding
+          // [10,20] (px-5 py-2.5), 11/600 uppercase tertiary label over a
+          // 13/normal primary value. The grid's gap-px + divider bg draw the
+          // right-/row-hairlines the Pencil shows between cells.
+          <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-5 py-2.5">
+            <span className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
               {cell.label}
             </span>
-            <span className="min-w-0 truncate text-[13px] font-normal tracking-[-0.1px] text-text-primary">
+            <span className="min-w-0 truncate text-[13px] font-normal text-text-primary">
               {cell.value}
             </span>
           </div>

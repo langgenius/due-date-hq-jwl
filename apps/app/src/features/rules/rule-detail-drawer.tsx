@@ -5,7 +5,11 @@ import {
   AlertTriangleIcon,
   Astroid,
   CheckIcon,
-  SparklesIcon,
+  ChevronDownIcon,
+  Loader2,
+  OctagonXIcon,
+  RotateCcwIcon,
+  ShieldCheckIcon,
   TriangleAlertIcon,
   XIcon,
 } from 'lucide-react'
@@ -215,6 +219,81 @@ function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
  *   - Evidence card(s) — the audit trail the decision rests on
  *   - Accept button
  */
+/**
+ * `DisclosureCard` — the canonical bar-header card (same chrome as the
+ * deadline-detail cards / `PenaltyExposureCard`: `rounded-xl`, `divider-subtle`
+ * border, `bg-default`, an `h-9` `bg-subtle` bar with a 13/600 title + an
+ * `ml-auto` right meta slot) plus the summary-first disclosure contract from
+ * `docs/Design/rule-library-review-flow.md`: the `summary` body shows by
+ * default; an optional `detail` body is revealed by a trailing
+ * "Read more / Show less" toggle. Each card discloses independently.
+ */
+function DisclosureCard({
+  title,
+  meta,
+  summary,
+  detail,
+  moreLabel,
+  lessLabel,
+}: {
+  title: React.ReactNode
+  meta?: React.ReactNode
+  summary: React.ReactNode
+  detail?: React.ReactNode
+  moreLabel?: React.ReactNode
+  lessLabel?: React.ReactNode
+}) {
+  const { t } = useLingui()
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <section className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
+      <div className="flex h-9 items-center gap-2 bg-background-subtle px-5">
+        <h3 className="text-[13px] font-semibold text-text-primary">{title}</h3>
+        {meta != null ? (
+          <span className="ml-auto truncate text-caption font-medium text-text-tertiary">
+            {meta}
+          </span>
+        ) : null}
+      </div>
+      <div className="flex flex-col gap-3 px-5 py-4">
+        {summary}
+        {detail != null ? (
+          <>
+            {expanded ? (
+              <div className="flex flex-col gap-3 border-t border-divider-subtle pt-3">{detail}</div>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setExpanded((value) => !value)}
+              aria-expanded={expanded}
+              className="inline-flex w-fit cursor-pointer items-center gap-1 rounded-md text-[13px] font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              {expanded ? (lessLabel ?? t`Show less`) : (moreLabel ?? t`Read more`)}
+              <ChevronDownIcon
+                aria-hidden
+                className={cn(
+                  'size-3.5 transition-transform duration-150',
+                  expanded && 'rotate-180',
+                )}
+              />
+            </button>
+          </>
+        ) : null}
+      </div>
+    </section>
+  )
+}
+
+/** Key/value row for a disclosure-card detail grid. */
+function FactRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className="shrink-0 text-text-tertiary">{label}</dt>
+      <dd className="min-w-0 text-right text-text-primary">{children}</dd>
+    </div>
+  )
+}
+
 export function RuleDetailCompact({
   rule,
   concreteDraft,
@@ -230,74 +309,120 @@ export function RuleDetailCompact({
   deferQueryInvalidation?: boolean
   onActionComplete?: () => void | Promise<void>
 }) {
+  const { t } = useLingui()
   const sourceLookup = useSourceLookup()
   const dueDateSummary = useMemo(() => humanizeDueDateLogic(rule.dueDateLogic), [rule.dueDateLogic])
+  const entitySummary = formatEntityApplicability(rule.entityApplicability)
+  const primaryEvidence = rule.evidence[0]
+  const restEvidence = rule.evidence.slice(1)
+  // Summary-first card-stack (docs/Design/rule-library-review-flow.md). Each
+  // section is its own bar-header DisclosureCard, collapsed to a scannable
+  // summary; the reviewer opts into depth per section. The Decision surface
+  // (CandidateReviewSection) is the always-expanded commit footer.
   return (
-    <div className="flex min-w-0 flex-col gap-4">
-      {/* 2026-05-26 (Yuqi /critique — P1-3 / P2-1 / P2-3):
-        retired the audit meta line. It carried `rule.id` (a
-        dev-internal slug — `al.individual_income_return.candidate.
-        2026` reads as code, not as identity), `v{rule.version}`
-        (only meaningful to engineers debugging migrations), and
-        a `Needs review` status pill (redundant — every rule in
-        the batch-review queue is "Needs review" by definition;
-        the surface IS the review queue). The audit trail for
-        these values lives in the server-side audit log; the
-        review screen doesn't need to repeat it.
+    <div className="flex min-w-0 flex-col gap-3">
+      {/* Applicability — one-line summary; detail = full facts grid. */}
+      <DisclosureCard
+        title={<Trans>Applicability</Trans>}
+        meta={<Plural value={rule.entityApplicability.length} one="# entity" other="# entities" />}
+        summary={
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-text-primary">
+            <JurisdictionCode code={rule.jurisdiction} />
+            <span>{entitySummary}</span>
+            <span aria-hidden className="text-text-tertiary">
+              ·
+            </span>
+            <span className="text-text-secondary">{rule.formName}</span>
+            <span aria-hidden className="text-text-tertiary">
+              ·
+            </span>
+            <span className="text-text-secondary">{formatEnumLabel(rule.eventType)}</span>
+          </div>
+        }
+        detail={
+          <dl className="flex flex-col gap-2 text-sm">
+            <FactRow label={t`Entities`}>{entitySummary}</FactRow>
+            <FactRow label={t`Form`}>{rule.formName}</FactRow>
+            <FactRow label={t`Event`}>{formatEnumLabel(rule.eventType)}</FactRow>
+            <FactRow label={t`Tax year`}>
+              <span className="font-mono tabular-nums">
+                {rule.taxYear}–{rule.applicableYear}
+              </span>
+            </FactRow>
+          </dl>
+        }
+      />
 
-        If a future surface needs the rule id (deep-link share,
-        DevTools, support ticket reference), expose it via a
-        "Copy rule id" affordance or a Details disclosure, not
-        as visible chrome. */}
+      {/* Due date — summary = humanized logic; detail = extension policy. */}
+      <DisclosureCard
+        title={<Trans>Due date</Trans>}
+        meta={formatEnumLabel(rule.dueDateLogic.kind)}
+        summary={<p className="text-sm text-text-primary">{dueDateSummary}</p>}
+        detail={
+          <div className="flex flex-col gap-1.5">
+            <span className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
+              <Trans>Extension</Trans>
+            </span>
+            <div className="text-sm">
+              <ExtensionCompact policy={rule.extensionPolicy} />
+            </div>
+          </div>
+        }
+      />
 
-      {/* Vertical layout — each section's label sits ABOVE its
-        content, not beside. Frees the full panel width for content
-        (long source titles, due-date paragraphs, evidence cards
-        wrap less aggressively) and removes the eye-jump from a
-        narrow label column to a wider content column. */}
-      <DetailSection label={<Trans>Applicability</Trans>}>
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-text-primary">
-          <JurisdictionCode code={rule.jurisdiction} />
-          <span>{formatEntityApplicability(rule.entityApplicability)}</span>
-          <span aria-hidden className="text-text-tertiary">
-            ·
-          </span>
-          <span className="text-text-secondary">{rule.formName}</span>
-          <span aria-hidden className="text-text-tertiary">
-            ·
-          </span>
-          <span className="text-text-secondary">{formatEnumLabel(rule.eventType)}</span>
-          <span aria-hidden className="text-text-tertiary">
-            ·
-          </span>
-          <span className="font-mono text-xs text-text-tertiary">
-            {rule.taxYear}–{rule.applicableYear}
-          </span>
-        </div>
-      </DetailSection>
-
-      <DetailSection label={<Trans>Due date</Trans>}>
-        <p className="text-sm text-text-primary">{dueDateSummary}</p>
-      </DetailSection>
-
-      <DetailSection label={<Trans>Extension</Trans>}>
-        <div className="text-sm">
-          <ExtensionCompact policy={rule.extensionPolicy} />
-        </div>
-      </DetailSection>
-
-      <DetailSection label={<Trans>Evidence</Trans>}>
-        <div className="flex min-w-0 flex-col gap-1.5">
-          {rule.evidence.map((evidence) => (
+      {/* Evidence — summary = primary source; detail = remaining sources. */}
+      <DisclosureCard
+        title={<Trans>Evidence</Trans>}
+        meta={<Plural value={rule.evidence.length} one="# source" other="# sources" />}
+        summary={
+          primaryEvidence ? (
             <RuleEvidenceCard
-              key={evidenceKey(evidence)}
-              evidence={evidence}
-              source={sourceLookup.get(evidence.sourceId)}
+              evidence={primaryEvidence}
+              source={sourceLookup.get(primaryEvidence.sourceId)}
             />
-          ))}
-        </div>
-      </DetailSection>
+          ) : (
+            <p className="text-sm text-text-tertiary">
+              <Trans>No evidence recorded.</Trans>
+            </p>
+          )
+        }
+        detail={
+          restEvidence.length > 0 ? (
+            <div className="flex min-w-0 flex-col gap-1.5">
+              {restEvidence.map((evidence) => (
+                <RuleEvidenceCard
+                  key={evidenceKey(evidence)}
+                  evidence={evidence}
+                  source={sourceLookup.get(evidence.sourceId)}
+                />
+              ))}
+            </div>
+          ) : undefined
+        }
+      />
 
+      {/* Activity — summary = current version; detail = full audit timeline. */}
+      <DisclosureCard
+        title={<Trans>Activity</Trans>}
+        meta={<span className="font-mono tabular-nums">v{rule.version}</span>}
+        summary={
+          <p className="text-sm text-text-secondary">
+            <Trans>Currently on version {rule.version}. Expand for the full edit + review history.</Trans>
+          </p>
+        }
+        detail={
+          <EntityAuditActivityPanel
+            entityType="rule"
+            entityId={rule.id}
+            emptyTitle={<Trans>No audited rule changes yet</Trans>}
+            emptyDescription={
+              <Trans>Edits, version bumps, and review decisions for this rule will appear here.</Trans>
+            }
+          />
+        }
+      />
+
+      {/* Decision — the always-expanded commit footer. */}
       <CandidateReviewSection
         key={rule.id}
         rule={rule}
@@ -431,6 +556,16 @@ function CandidateReviewForm({
   const queryClient = useQueryClient()
   const [acceptCompleting, setAcceptCompleting] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  // Accept-mutation error surface (Pencil `DGeuG`). On failure the loading
+  // toast is dismissed and this dialog takes over — it carries the real
+  // server message + code, reassures the draft is preserved, and offers a
+  // one-click Retry. (`acceptAttempts` numbers retries; the Pencil's
+  // per-step "Step 3 of 5" progress is intentionally NOT rendered — the
+  // accept is a single RPC with no streamed step state, so it'd be fiction.)
+  const [acceptError, setAcceptError] = useState<{ message: string; code: string | null } | null>(
+    null,
+  )
+  const acceptAttemptsRef = useRef(0)
   const acceptToastIdRef = useRef<string | number | null>(null)
   const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
   const reviewSourceId = rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? ''
@@ -481,14 +616,17 @@ function CandidateReviewForm({
 
   function handleAcceptError(error: unknown) {
     setAcceptCompleting(false)
-    toast.error(
-      t`Couldn't accept rule`,
-      acceptToastOptions({
-        description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
-        style: ACCEPT_RULE_ERROR_TOAST_STYLE,
-      }),
-    )
-    acceptToastIdRef.current = null
+    // Replace the loading toast with the error dialog (Pencil `DGeuG`) — it
+    // gives the failure room for the message + a real Retry, rather than a
+    // toast the user has to re-trigger the whole flow from.
+    if (acceptToastIdRef.current !== null) {
+      toast.dismiss(acceptToastIdRef.current)
+      acceptToastIdRef.current = null
+    }
+    setAcceptError({
+      message: rpcErrorMessage(error) ?? t`The server rejected the change.`,
+      code: rpcErrorCode(error),
+    })
   }
 
   // ---- Reject flow (Pencil DvLC9 reject popover) ---------------------
@@ -600,6 +738,8 @@ function CandidateReviewForm({
   const estimatedObligations = impactQuery.data?.estimatedObligationCount ?? null
   function submitAccept() {
     if (acceptCompleting || isPending) return
+    setAcceptError(null)
+    acceptAttemptsRef.current += 1
     setAcceptCompleting(true)
     acceptToastIdRef.current = toast.loading(
       t`Accepting rule…`,
@@ -698,37 +838,48 @@ function CandidateReviewForm({
           />
         </p>
       ) : null}
-      <RuleYearDiff
-        ruleId={rule.id}
-        expectedVersion={rule.version}
-        {...(reviewReason !== undefined ? { reason: reviewReason } : {})}
-      />
-      {sourceDefined ? (
-        <AiDraftReviewPanel
-          draft={draft}
-          errorMessage={draftPanelMessage}
-          generating={(concreteDraftLoading || draftMutation.isPending) && !draft}
-          {...(reviewSourceId.length > 0 ? { onGenerateDraft: requestDraft } : {})}
+      {/* Pre-accept checks — grouped under one quiet label so the section
+          reads context → checks → decide, instead of two cards floating
+          between the explanation and the action buttons. The year-over-year
+          diff flags whether this is a new/changed rule vs last year; the AI
+          concrete draft (source-defined rules only) is the due-date logic
+          that Accept is gated on. */}
+      <div className="flex flex-col gap-2">
+        <span className="text-caption-xs font-semibold tracking-eyebrow text-text-muted uppercase">
+          <Trans>Before you accept</Trans>
+        </span>
+        <RuleYearDiff
+          ruleId={rule.id}
+          expectedVersion={rule.version}
+          {...(reviewReason !== undefined ? { reason: reviewReason } : {})}
         />
-      ) : null}
+        {sourceDefined ? (
+          <AiDraftReviewPanel
+            draft={draft}
+            errorMessage={draftPanelMessage}
+            generating={(concreteDraftLoading || draftMutation.isPending) && !draft}
+            {...(reviewSourceId.length > 0 ? { onGenerateDraft: requestDraft } : {})}
+          />
+        ) : null}
+      </div>
 
       <div className="flex justify-end gap-2">
-        {/* Reject lives only in the single-rule detail review (the
-            `confirmImpact` context). The batch queue is accept/skip-only
-            — skipping defers a rule without a destructive decision. Reject
-            does NOT depend on a concrete draft being ready (unlike Accept). */}
-        {confirmImpact ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => setRejectOpen(true)}
-            disabled={reviewDisabled}
-            data-rule-action="reject"
-          >
-            <Trans>Reject</Trans>
-          </Button>
-        ) : null}
+        {/* Reject is available in every review context — the single-rule
+            detail AND the batch walkthrough (2026-06-10, Yuqi: "keep the
+            walkthrough, just add a Reject action"). Skip still defers without
+            a decision; Reject records the destructive one with a reason.
+            Reject does NOT depend on a concrete draft being ready (unlike
+            Accept). */}
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setRejectOpen(true)}
+          disabled={reviewDisabled}
+          data-rule-action="reject"
+        >
+          <Trans>Reject</Trans>
+        </Button>
         <Button
           type="button"
           size="sm"
@@ -754,20 +905,30 @@ function CandidateReviewForm({
           }}
         />
       ) : null}
-      {confirmImpact ? (
-        <RejectReasonDialog
-          open={rejectOpen}
-          onOpenChange={(next) => {
-            // Don't allow closing mid-submit so the result toast lands on
-            // a known state.
-            if (rejecting || rejectPending) return
-            setRejectOpen(next)
-          }}
-          rule={rule}
-          pending={rejecting || rejectPending}
-          onSubmit={submitReject}
+      {acceptError ? (
+        <RuleAcceptErrorDialog
+          ruleId={rule.id}
+          error={acceptError}
+          attempt={acceptAttemptsRef.current}
+          retrying={acceptCompleting || isPending}
+          onRetry={submitAccept}
+          onClose={() => setAcceptError(null)}
         />
       ) : null}
+      {/* Reject dialog mounts in every review context (single detail + batch
+          walkthrough); it's only visible when `rejectOpen`. */}
+      <RejectReasonDialog
+        open={rejectOpen}
+        onOpenChange={(next) => {
+          // Don't allow closing mid-submit so the result toast lands on
+          // a known state.
+          if (rejecting || rejectPending) return
+          setRejectOpen(next)
+        }}
+        rule={rule}
+        pending={rejecting || rejectPending}
+        onSubmit={submitReject}
+      />
     </>
   )
   if (chrome === 'card') {
@@ -778,6 +939,102 @@ function CandidateReviewForm({
     )
   }
   return <section className="flex flex-col gap-3">{body}</section>
+}
+
+/** Extract an oRPC error's machine code (e.g. `CONFLICT`), if present. */
+function rpcErrorCode(error: unknown): string | null {
+  if (error && typeof error === 'object' && 'code' in error) {
+    const code = (error as { code: unknown }).code
+    if (typeof code === 'string' && code.length > 0) return code
+  }
+  return null
+}
+
+/**
+ * `RuleAcceptErrorDialog` — the accept-mutation failure surface (Pencil
+ * `DGeuG`). Shown when `acceptTemplate` / `verifyCandidate` rejects: a
+ * destructive-led header with the rule id + attempt count, the real server
+ * message, the machine code (only when it adds signal beyond the message),
+ * reassurance that the draft is preserved, and a one-click Retry.
+ *
+ * The Pencil's "Step 3 of 5 · Write deadline changes" progress + the
+ * "Reference: req_… · Logged to audit" line are intentionally omitted — the
+ * accept is a single RPC (no streamed step state) and a rolled-back failure
+ * isn't written to the audit ledger, so rendering either would be fiction.
+ */
+export function RuleAcceptErrorDialog({
+  ruleId,
+  error,
+  attempt,
+  retrying,
+  onRetry,
+  onClose,
+}: {
+  ruleId: string
+  error: { message: string; code: string | null }
+  attempt: number
+  retrying: boolean
+  onRetry: () => void
+  onClose: () => void
+}) {
+  const { t } = useLingui()
+  const showCode = error.code !== null && error.code !== error.message
+  return (
+    <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
+      <DialogContent
+        showCloseButton
+        className="flex w-[min(480px,calc(100vw-2rem))] max-w-[480px] flex-col gap-0 overflow-hidden p-0"
+      >
+        <div className="flex items-center gap-3 border-b border-divider-subtle px-[18px] py-4">
+          <span
+            aria-hidden
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-state-destructive-hover"
+          >
+            <TriangleAlertIcon className="size-4 text-text-destructive" />
+          </span>
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <DialogTitle className="text-base font-semibold text-text-primary">
+              <Trans>Couldn't apply rule</Trans>
+            </DialogTitle>
+            <span className="truncate font-mono text-xs font-medium text-text-tertiary">
+              {ruleId}
+              {attempt > 1 ? ` · ${t`attempt ${attempt}`}` : ''}
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-3.5 px-[22px] py-5">
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[13px] font-medium leading-relaxed text-text-secondary">
+              {error.message}
+            </p>
+            <p className="text-xs text-text-tertiary">
+              <Trans>Your draft is preserved — retry, or come back to it later.</Trans>
+            </p>
+          </div>
+          {showCode ? (
+            <div className="flex items-center rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2.5">
+              <span className="font-mono text-[11px] font-semibold text-text-destructive">
+                {error.code}
+              </span>
+            </div>
+          ) : null}
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-divider-subtle px-[18px] py-3.5">
+          <Button variant="outline" size="sm" onClick={onClose} disabled={retrying}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button size="sm" onClick={onRetry} disabled={retrying}>
+            {retrying ? (
+              <Loader2 data-icon="inline-start" className="animate-spin" />
+            ) : (
+              <RotateCcwIcon data-icon="inline-start" />
+            )}
+            <Trans>Retry</Trans>
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 /**
@@ -821,11 +1078,11 @@ function ConfirmImpactDialog({
             aria-hidden
             className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-state-accent-hover"
           >
-            <SparklesIcon className="size-[18px] text-text-accent" />
+            <ShieldCheckIcon className="size-[18px] text-text-accent" />
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <DialogTitle className="text-lg font-semibold text-text-primary">
-              <Trans>Confirm impact</Trans>
+              <Trans>Confirm accept</Trans>
             </DialogTitle>
             <p className="text-[13px] text-text-tertiary">
               <Trans>
@@ -917,7 +1174,7 @@ function ConfirmImpactDialog({
           </Button>
           <Button type="button" size="sm" onClick={onConfirm} disabled={isPending}>
             <CheckIcon data-icon="inline-start" />
-            <Trans>Accept & apply</Trans>
+            <Trans>Activate rule</Trans>
           </Button>
         </div>
       </DialogContent>
@@ -973,6 +1230,12 @@ function RejectReasonDialog({
         className="w-[min(480px,calc(100vw-2rem))] max-w-[480px] gap-0 overflow-hidden p-0"
       >
         <div className="flex items-start gap-3 border-b border-divider-subtle px-5 py-4">
+          <span
+            aria-hidden
+            className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-state-destructive-hover"
+          >
+            <OctagonXIcon className="size-[18px] text-text-destructive" />
+          </span>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <DialogTitle className="text-lg font-semibold text-text-primary">
               <Trans>Reject rule</Trans>

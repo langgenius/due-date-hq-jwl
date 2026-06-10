@@ -4,6 +4,7 @@ import {
   PlusIcon,
   CheckIcon,
   XIcon,
+  SlidersHorizontalIcon,
   FilterIcon,
   ArrowRightIcon,
   CircleHelpIcon,
@@ -174,6 +175,10 @@ import { DestructiveChangePreview } from '@/components/patterns/destructive-chan
 // Dashboard sections, audit-log-page, etc.) are deliberately not previewed —
 // they need RPC-loaded data, router context, or drawer providers to render.
 import { AlertStatusBadge } from '@/features/alerts/components/AlertStatusBadge'
+import { AlertStatusChip } from '@/features/alerts/components/AlertStatusChip'
+import { DecisionActions } from '@/features/alerts/components/DecisionActions'
+import { RelatedRuleRow } from '@/features/alerts/components/RelatedRuleRow'
+import { RuleAcceptErrorDialog } from '@/features/rules/rule-detail-drawer'
 import { AlertSourceStatusBadge } from '@/features/alerts/components/AlertSourceStatusBadge'
 import { AlertSourceBadge } from '@/features/alerts/components/AlertSourceBadge'
 import { AlertConfidencePill } from '@/features/alerts/components/AlertConfidencePill'
@@ -279,6 +284,32 @@ function Row({ label, children, mono }: RowProps) {
       </div>
       <div className="flex flex-wrap items-center gap-3">{children}</div>
     </div>
+  )
+}
+
+/** Gallery demo — opens the accept-mutation error dialog (Pencil `DGeuG`). */
+function RuleAcceptErrorDialogDemo() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+        Show accept error
+      </Button>
+      {open ? (
+        <RuleAcceptErrorDialog
+          ruleId="ak.individual_income_return.2026"
+          error={{
+            message:
+              'The rule version changed while you were reviewing it. Reload to pick up the latest, then accept again.',
+            code: 'CONFLICT',
+          }}
+          attempt={2}
+          retrying={false}
+          onRetry={() => setOpen(false)}
+          onClose={() => setOpen(false)}
+        />
+      ) : null}
+    </>
   )
 }
 
@@ -1945,6 +1976,36 @@ export function PreviewRoute() {
               <AlertStatusBadge status="reverted" />
               <AlertStatusBadge status="dismissed" />
               <AlertStatusBadge status="reviewed" />
+            </Row>
+            <Row label="AlertStatusChip" mono="features/alerts/components/AlertStatusChip">
+              <AlertStatusChip status="matched" timestamp="2h" />
+              <AlertStatusChip status="applied" timestamp="Mar 4" />
+              <AlertStatusChip status="partially_applied" timestamp="Mar 4" />
+              <AlertStatusChip status="reviewed" timestamp="Mar 4" />
+              <AlertStatusChip status="reverted" timestamp="Mar 6" />
+              <AlertStatusChip status="dismissed" timestamp="Mar 5" />
+            </Row>
+            <Row label="DecisionActions" mono="features/alerts/components/DecisionActions">
+              <div className="w-full max-w-[520px]">
+                <DecisionActions
+                  primary={{ label: 'Apply to 2 confirmed clients', icon: CheckIcon }}
+                  secondary={{ label: 'Customize per client', icon: SlidersHorizontalIcon }}
+                  tertiary={{ label: 'Dismiss alert', icon: XIcon }}
+                />
+              </div>
+            </Row>
+            <Row label="RelatedRuleRow" mono="features/alerts/components/RelatedRuleRow">
+              <div className="w-full max-w-[520px]">
+                <RelatedRuleRow
+                  code="CA FTB-2026-12"
+                  name="California state-level mirror"
+                  description="State mirror of the federal disaster relief. Same scope, same dates. Applied automatically if the federal extension is applied."
+                  onClick={() => {}}
+                />
+              </div>
+            </Row>
+            <Row label="RuleAcceptErrorDialog" mono="features/rules/rule-detail-drawer">
+              <RuleAcceptErrorDialogDemo />
             </Row>
             <Row label="AlertSourceStatusBadge" mono="features/pulse/AlertSourceStatusBadge">
               <AlertSourceStatusBadge status="source_revoked" />

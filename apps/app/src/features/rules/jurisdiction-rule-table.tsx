@@ -1,5 +1,5 @@
 import { Fragment, useMemo, type ReactNode } from 'react'
-import { CircleCheckIcon, GitPullRequestArrowIcon } from 'lucide-react'
+import { ChevronRightIcon, CircleCheckIcon, GitPullRequestArrowIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationRule, RuleStatus } from '@duedatehq/contracts'
@@ -64,7 +64,7 @@ function isSelectable(status: RuleStatus): boolean {
 // HIGH reads warning-brown; MED/LOW stay quiet on the subtle surface so
 // the eye lands on the high-severity rows.
 const SEVERITY_PILL: Record<ObligationRule['riskLevel'], { label: string; cls: string }> = {
-  high: { label: 'HIGH', cls: 'bg-state-warning-hover text-state-warning-text' },
+  high: { label: 'HIGH', cls: 'bg-state-warning-hover text-text-warning' },
   med: { label: 'MED', cls: 'bg-background-subtle text-text-secondary' },
   low: { label: 'LOW', cls: 'bg-background-subtle text-text-muted' },
 }
@@ -79,7 +79,7 @@ const STATUS_PILL: Record<
   success: { dot: 'bg-state-success-solid', text: 'text-text-success', bg: 'bg-state-success-hover' },
   review: {
     dot: 'bg-state-warning-solid',
-    text: 'text-state-warning-text',
+    text: 'text-text-warning',
     bg: 'bg-state-warning-hover',
   },
   destructive: {
@@ -324,6 +324,7 @@ export function JurisdictionRuleTable({
   onToggleRuleSelection,
   onToggleRulesSelection,
   focusedRowId,
+  activeRuleId,
   onRuleClick,
   onAddRule,
 }: {
@@ -337,6 +338,8 @@ export function JurisdictionRuleTable({
   onToggleRuleSelection: (id: string) => void
   onToggleRulesSelection: (ids: readonly string[]) => void
   focusedRowId: string | null
+  /** The rule whose detail panel is currently open (`?rule=`) — its row reads active. */
+  activeRuleId?: string | null
   onRuleClick: (rule: ObligationRule) => void
   onAddRule: (entity: EntityKey) => void
 }) {
@@ -397,12 +400,14 @@ export function JurisdictionRuleTable({
             <TableHead className="w-[120px] px-2">
               <Trans>Status</Trans>
             </TableHead>
+            {/* Trailing chevron column — the "open this rule" affordance. */}
+            <TableHead className="w-10" aria-label={t`Open`} />
           </TableRow>
         </TableHeader>
         <TableBody>
           {isEmpty ? (
             <TableRow>
-              <TableCell colSpan={7} className="py-10 text-center text-sm text-text-tertiary">
+              <TableCell colSpan={8} className="py-10 text-center text-sm text-text-tertiary">
                 <Trans>No rules in {jurisdictionLabel} for this view.</Trans>
               </TableCell>
             </TableRow>
@@ -416,6 +421,7 @@ export function JurisdictionRuleTable({
                   tierLabels={tierLabels}
                   selectable={isSelectable(rule.status)}
                   selected={selectedRuleIds.has(rule.id)}
+                  active={activeRuleId === rule.id}
                   focused={focusedRowId === `rule:${rule.id}`}
                   onSelectChange={() => onToggleRuleSelection(rule.id)}
                   onClick={onRuleClick}
@@ -446,6 +452,7 @@ function JurisdictionRuleRow({
   tierLabels,
   selectable,
   selected,
+  active,
   focused,
   onSelectChange,
   onClick,
@@ -455,6 +462,7 @@ function JurisdictionRuleRow({
   tierLabels: RuleTierLabels
   selectable: boolean
   selected: boolean
+  active: boolean
   focused: boolean
   onSelectChange: (next: boolean) => void
   onClick: (rule: ObligationRule) => void
@@ -472,44 +480,68 @@ function JurisdictionRuleRow({
   const severity = SEVERITY_PILL[rule.riskLevel]
   const statusPill = STATUS_PILL[tone]
 
+  // Open / active (its `?rule=` detail panel is showing) and checked-for-bulk
+  // rows both read accent — the active bar is the canvas State-B selection
+  // (`accent-hover` + 2px left accent); the checkbox's own checked state
+  // distinguishes "selected for bulk" from "open".
+  const accentRow = selected || active
   return (
     <TableRow
       className={cn(
         'group/row cursor-pointer hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        // Selected (checked) rows read in accent-hover with a left accent
-        // bar — the Pencil oJL8o `AccentBar` treatment.
-        selected && 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
-        focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
+        accentRow && 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
+        focused &&
+          !accentRow &&
+          'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onClick(rule)}
       aria-label={`Open rule details for ${displayTitle}`}
       data-state={selected ? 'selected' : undefined}
     >
+      {/* Leading affordance — a quiet status dot AT REST, swapping to the
+          bulk-select checkbox on row hover (or whenever the row is checked).
+          This keeps "click the row to open & review" the obvious primary
+          action and makes the checkbox a deliberate, secondary bulk gesture
+          rather than competing for the same click. */}
       <TableCell className="pl-4 align-top">
-        {selectable ? (
-          <span
-            className="inline-flex items-center"
-            onClick={(event) => event.stopPropagation()}
-            onPointerDown={(event) => event.stopPropagation()}
-          >
-            <Checkbox
-              checked={selected}
-              onCheckedChange={onSelectChange}
-              aria-label={`Select ${displayTitle} for batch review`}
+        <span className="relative mt-0.5 inline-flex size-4 items-center justify-center">
+          {selectable ? (
+            <>
+              <span
+                aria-hidden
+                className={cn(
+                  'absolute size-1.5 rounded-full transition-opacity',
+                  tone === 'review' ? 'bg-state-accent-solid' : 'bg-divider-regular',
+                  selected ? 'opacity-0' : 'group-hover/row:opacity-0 group-focus-within/row:opacity-0',
+                )}
+              />
+              <span
+                className={cn(
+                  'inline-flex transition-opacity',
+                  selected
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100',
+                )}
+                onClick={(event) => event.stopPropagation()}
+                onPointerDown={(event) => event.stopPropagation()}
+              >
+                <Checkbox
+                  checked={selected}
+                  onCheckedChange={onSelectChange}
+                  aria-label={`Select ${displayTitle} for batch review`}
+                />
+              </span>
+            </>
+          ) : (
+            <span
+              aria-hidden
+              className={cn(
+                'size-1.5 rounded-full',
+                tone === 'destructive' ? 'bg-state-destructive-solid' : 'bg-divider-regular',
+              )}
             />
-          </span>
-        ) : (
-          <span
-            aria-hidden
-            className={cn(
-              'mt-1 inline-block size-1.5 rounded-full',
-              tone === 'success' && 'bg-divider-regular',
-              tone === 'review' && 'bg-state-accent-solid',
-              tone === 'destructive' && 'bg-state-destructive-solid',
-              tone === 'muted' && 'bg-divider-regular',
-            )}
-          />
-        )}
+          )}
+        </span>
       </TableCell>
 
       {/* Rule name — jurisdiction code badge + title + one-line summary. */}
@@ -565,18 +597,31 @@ function JurisdictionRuleRow({
         </span>
       </TableCell>
 
-      {/* Status — dot + label pill. */}
+      {/* Status — label pill. (The dot is dropped: the leading row dot
+          already carries the status colour, so a second dot here is
+          redundant — keep just the labelled pill.) */}
       <TableCell className="px-2 py-3 align-top">
         <span
           className={cn(
-            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+            'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
             statusPill.bg,
             statusPill.text,
           )}
         >
-          <span aria-hidden className={cn('size-1.5 rounded-full', statusPill.dot)} />
           {STATUS_LABEL_SHORT[rule.status]}
         </span>
+      </TableCell>
+
+      {/* Open affordance — a chevron that signals the row opens the rule
+          detail; brightens + nudges +2px on hover. */}
+      <TableCell className="pr-4 align-top">
+        <ChevronRightIcon
+          aria-hidden
+          className={cn(
+            'mt-1 size-4 shrink-0 transition-all duration-150 group-hover/row:translate-x-0.5',
+            active ? 'text-text-accent' : 'text-text-muted group-hover/row:text-text-tertiary',
+          )}
+        />
       </TableCell>
     </TableRow>
   )
@@ -603,7 +648,7 @@ function GapRow({
       )}
     >
       <TableCell className="pl-4" />
-      <TableCell colSpan={5} className="py-2.5">
+      <TableCell colSpan={6} className="py-2.5">
         <div className="flex items-center gap-2">
           <span
             aria-hidden

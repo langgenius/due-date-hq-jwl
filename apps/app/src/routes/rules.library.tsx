@@ -15,11 +15,14 @@ import {
   CircleSlash,
   ShieldCheck,
   ExternalLinkIcon,
+  EyeIcon,
+  LayersIcon,
   LibraryIcon,
   LinkIcon,
   Loader2,
   MessageSquareText,
   PlusIcon,
+  TriangleAlertIcon,
   RssIcon,
   SearchIcon,
   XIcon,
@@ -28,6 +31,7 @@ import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } fr
 
 import type {
   ObligationRule,
+  RuleBulkImpactPreview,
   RuleConcreteDraftCacheEntry,
   RuleCoverageRow,
   RuleCustomRuleInput,
@@ -118,6 +122,7 @@ import {
 import { formatTaxCode } from '@/lib/tax-codes'
 import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 
 /**
  * Rule library v3 (2026-05-21 preview) — one surface, no toggle.
@@ -842,7 +847,7 @@ function useRuleChangeKindLabels(): Record<RuleChangeKind, string> {
 const RECENT_CHANGE_PILL_CLASS: Record<RuleChangeKind, string> = {
   updated: 'bg-state-accent-hover text-text-accent',
   new: 'bg-state-success-hover text-text-success',
-  effective: 'bg-state-warning-hover text-state-warning-text',
+  effective: 'bg-state-warning-hover text-text-warning',
 }
 
 /**
@@ -1089,6 +1094,8 @@ export function RulesLibraryRoute() {
   // set. `batchReviewIndex` is the currently-shown card in the
   // review modal; `null` means the modal is closed.
   const [selectedRuleIds, setSelectedRuleIds] = useState<Set<string>>(() => new Set())
+  // The bulk-review list modal (Pencil `Oaey3`) — the default bulk surface.
+  const [bulkListOpen, setBulkListOpen] = useState(false)
   const [batchReviewRuleIds, setBatchReviewRuleIds] = useState<string[] | null>(null)
   const [batchReviewIndex, setBatchReviewIndex] = useState<number | null>(null)
   const [batchReviewDirty, setBatchReviewDirty] = useState(false)
@@ -2144,7 +2151,7 @@ export function RulesLibraryRoute() {
       label: t`Changed (30d)`,
       value: changedLast30,
       sub: highImpactChanged > 0 ? t`${highImpactChanged} high-impact` : t`Last 30 days`,
-      subClass: highImpactChanged > 0 ? 'text-state-warning-text' : 'text-text-tertiary',
+      subClass: highImpactChanged > 0 ? 'text-text-warning' : 'text-text-tertiary',
     },
     {
       key: 'pending',
@@ -2399,6 +2406,7 @@ export function RulesLibraryRoute() {
                         onToggleRuleSelection={toggleRuleSelection}
                         onToggleRulesSelection={toggleRulesSelection}
                         focusedRowId={focusedRowId}
+                        activeRuleId={ruleId}
                         onRuleClick={handleRuleClick}
                         onAddRule={(entity) =>
                           setNewRuleSeed({ jurisdiction: selectedGroup.jurisdiction, entity })
@@ -2468,18 +2476,34 @@ export function RulesLibraryRoute() {
           viewport when ≥1 rule is selected. Stays visible while the
           user scrolls so they can launch the review modal at any
           time, then disappears when they clear or finish reviewing. */}
-      {selectedReviewRules.length > 0 && batchReviewIndex === null ? (
+      {selectedReviewRules.length > 0 && !bulkListOpen ? (
         <BulkReviewBar
           count={selectedReviewRules.length}
           totalPending={allReviewableRuleIds.length}
-          onReview={openBatchReview}
+          onReview={() => setBulkListOpen(true)}
           onSelectAll={selectAllPending}
           onClear={clearSelection}
         />
       ) : null}
-      {/* Batch-review modal — opens on `Review N rules` click and
-          walks the user through each selected rule one card at a
-          time, dating-app style. */}
+      {/* Bulk-review list modal (Pencil `Oaey3`) — the default bulk surface:
+          all selected rules in one list with per-row readiness flags +
+          open-detail, a shared note, honest impact, and batch Accept/Reject. */}
+      {bulkListOpen && selectedReviewRules.length > 0 ? (
+        <BulkReviewListModal
+          rules={selectedReviewRules}
+          onClose={() => setBulkListOpen(false)}
+          onOpenRule={(rule) => {
+            setBulkListOpen(false)
+            handleRuleClick(rule)
+          }}
+          onComplete={() => {
+            setBulkListOpen(false)
+            clearSelection()
+          }}
+        />
+      ) : null}
+      {/* Legacy one-at-a-time walkthrough (`BatchReviewModal`) — retained but
+          no longer the default entry; `batchReviewIndex` stays null. */}
       {batchReviewIndex !== null && currentBatchReviewRule ? (
         <BatchReviewModal
           rule={currentBatchReviewRule}
@@ -4601,11 +4625,358 @@ function BulkReviewBar({
 }
 
 // ---------------------------------------------------------------------------
+// Bulk-review list modal (Pencil `Oaey3` / review-flow State G) — the
+// canonical bulk surface. Shows ALL selected rules in one list with
+// per-row readiness/risk flags + open-detail, a shared review note, an
+// honest impact summary (no fabricated coverage-lift / est-work pills), and
+// batch Accept N / Reject N. Readiness comes from `previewBulkRuleImpact`
+// (server classifies which rules can be bulk-accepted vs need individual
+// review); `bulkAcceptTemplates` only activates the ready ones. Replaced the
+// one-at-a-time walkthrough (`BatchReviewModal`, kept below) at the
+// "Review N" entry per Yuqi 2026-06-10 (option a, with per-row flags).
+// ---------------------------------------------------------------------------
+
+/** Honest impact/readiness pill — value + label, tone-keyed. */
+function BulkMetric({
+  value,
+  label,
+  tone = 'default',
+}: {
+  value: number
+  label: string
+  tone?: 'default' | 'warning' | 'muted'
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span
+        className={cn(
+          'text-xl font-bold tabular-nums',
+          tone === 'warning'
+            ? 'text-text-warning'
+            : tone === 'muted'
+              ? 'text-text-tertiary'
+              : 'text-text-primary',
+        )}
+      >
+        {value}
+      </span>
+      <span className="text-caption-xs font-medium text-text-muted">{label}</span>
+    </div>
+  )
+}
+
+function BulkReviewListModal({
+  rules,
+  onClose,
+  onOpenRule,
+  onComplete,
+}: {
+  /** The selected reviewable rules (candidate / pending_review). */
+  rules: ObligationRule[]
+  onClose: () => void
+  /** Open one rule's full detail (takeover) — closes this modal. */
+  onOpenRule: (rule: ObligationRule) => void
+  /** After a successful batch accept/reject — clears selection + closes. */
+  onComplete: () => void
+}) {
+  const { t } = useLingui()
+  const queryClient = useQueryClient()
+  const [note, setNote] = useState('')
+  const [excluded, setExcluded] = useState<ReadonlySet<string>>(() => new Set())
+  const [rejecting, setRejecting] = useState(false)
+
+  const included = useMemo(() => rules.filter((r) => !excluded.has(r.id)), [rules, excluded])
+  const selections = useMemo(
+    () => included.map((r) => ({ ruleId: r.id, expectedVersion: r.version })),
+    [included],
+  )
+
+  const previewQuery = useQuery({
+    ...orpc.rules.previewBulkRuleImpact.queryOptions({ input: { rules: selections } }),
+    enabled: selections.length > 0,
+  })
+  const preview = previewQuery.data ?? null
+  const skippedReasonById = useMemo(
+    () => new Map((preview?.skipped ?? []).map((s) => [s.ruleId, s.reason])),
+    [preview],
+  )
+
+  const skipReasonLabel: Record<RuleBulkImpactPreview['skipped'][number]['reason'], string> = {
+    template_not_found: t`Not found`,
+    version_conflict: t`Version conflict`,
+    already_active: t`Already active`,
+    rejected: t`Rejected`,
+    archived: t`Archived`,
+    invalid_template: t`Invalid rule`,
+    source_changed_requires_review: t`Source changed — review individually`,
+    source_drifted_requires_review: t`Source updated — re-verify`,
+    source_defined_requires_ai_review: t`Needs AI draft review`,
+    substantive_requires_review: t`Substantive change — review individually`,
+  }
+
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+  }
+
+  const acceptMutation = useMutation(
+    orpc.rules.bulkAcceptTemplates.mutationOptions({
+      onSuccess: (result) => {
+        const accepted = result.accepted.length
+        const skipped = result.skipped.length
+        toast.success(
+          skipped > 0
+            ? t`${accepted} rules accepted · ${skipped} skipped for individual review`
+            : t`${accepted} rules accepted`,
+        )
+        invalidate()
+        onComplete()
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't accept rules`, {
+          description: rpcErrorMessage(error) ?? t`Check the selection and try again.`,
+        })
+      },
+    }),
+  )
+  const rejectTemplateMutation = useMutation(orpc.rules.rejectTemplate.mutationOptions({}))
+  const rejectCandidateMutation = useMutation(orpc.rules.rejectCandidate.mutationOptions({}))
+
+  const noteTrimmed = note.trim()
+  const readyCount = preview?.acceptReadyCount ?? 0
+  const busy = acceptMutation.isPending || rejecting
+  const canAccept = readyCount > 0 && noteTrimmed.length > 0 && !busy
+  const canReject = included.length > 0 && noteTrimmed.length > 0 && !busy
+
+  const toggleExcluded = (id: string) =>
+    setExcluded((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+
+  function handleAccept() {
+    if (!canAccept) return
+    acceptMutation.mutate({ rules: selections, reviewNote: noteTrimmed })
+  }
+
+  async function handleReject() {
+    if (!canReject) return
+    setRejecting(true)
+    let ok = 0
+    let failed = 0
+    for (const rule of included) {
+      try {
+        if (isSourceDefinedRule(rule)) {
+          await rejectCandidateMutation.mutateAsync({ ruleId: rule.id, reason: noteTrimmed })
+        } else {
+          await rejectTemplateMutation.mutateAsync({
+            ruleId: rule.id,
+            expectedVersion: rule.version,
+            reason: noteTrimmed,
+          })
+        }
+        ok += 1
+      } catch {
+        failed += 1
+      }
+    }
+    setRejecting(false)
+    if (failed === 0) toast.success(t`${ok} rules rejected`)
+    else toast.error(t`${ok} rejected · ${failed} failed`)
+    invalidate()
+    onComplete()
+  }
+
+  const substantive = preview?.classificationCounts.substantive ?? 0
+  const skippedTotal = preview?.skipped.length ?? 0
+
+  return (
+    <Dialog open onOpenChange={(next) => (next || busy ? undefined : onClose())}>
+      <DialogContent
+        showCloseButton={false}
+        className="flex max-h-[85vh] w-[min(720px,calc(100vw-2rem))] max-w-[720px] flex-col gap-0 overflow-hidden p-0"
+      >
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b border-divider-subtle px-5 py-4">
+          <span
+            aria-hidden
+            className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-state-accent-hover"
+          >
+            <LayersIcon className="size-[18px] text-text-accent" />
+          </span>
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <DialogTitle className="text-lg font-semibold text-text-primary">
+              <Trans>Bulk review</Trans>
+            </DialogTitle>
+            <p className="text-[13px] text-text-tertiary">
+              <Plural value={rules.length} one="# rule selected" other="# rules selected" />
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label={t`Close`}
+            onClick={onClose}
+            disabled={busy}
+            className="-mr-1 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <XIcon className="size-4" aria-hidden />
+          </button>
+        </div>
+
+        {/* Selected-rules list — per-row readiness/risk flag + open-detail. */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-5">
+          <ul className="flex flex-col">
+            {rules.map((rule, index) => {
+              const isExcluded = excluded.has(rule.id)
+              const reason = skippedReasonById.get(rule.id)
+              return (
+                <li
+                  key={rule.id}
+                  className={cn(
+                    'flex items-center gap-3 py-2.5',
+                    index > 0 && 'border-t border-divider-subtle',
+                  )}
+                >
+                  <Checkbox
+                    checked={!isExcluded}
+                    onCheckedChange={() => toggleExcluded(rule.id)}
+                    aria-label={t`Include ${rule.title} in this batch`}
+                  />
+                  <span
+                    aria-hidden
+                    className="size-1.5 shrink-0 rounded-full bg-state-accent-solid"
+                  />
+                  <div className={cn('flex min-w-0 flex-1 flex-col gap-0.5', isExcluded && 'opacity-45')}>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="inline-flex shrink-0 items-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-tertiary">
+                        {rule.jurisdiction}
+                      </span>
+                      <span className="min-w-0 truncate text-sm font-semibold text-text-primary">
+                        {rule.title}
+                      </span>
+                    </div>
+                    <span className="truncate text-xs text-text-tertiary">
+                      {formatRuleTypeLabel(rule.taxType, rule.jurisdiction)}
+                    </span>
+                  </div>
+                  {/* Readiness/risk flag (real, from previewBulkRuleImpact). */}
+                  {!isExcluded ? (
+                    reason ? (
+                      <span className="inline-flex shrink-0 items-center rounded-full bg-state-warning-hover px-2 py-0.5 text-[10px] font-semibold text-text-warning">
+                        {skipReasonLabel[reason]}
+                      </span>
+                    ) : preview ? (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-state-success-hover px-2 py-0.5 text-[10px] font-semibold text-text-success">
+                        <Check className="size-2.5" aria-hidden />
+                        <Trans>Ready</Trans>
+                      </span>
+                    ) : null
+                  ) : null}
+                  <button
+                    type="button"
+                    aria-label={t`Open ${rule.title}`}
+                    onClick={() => onOpenRule(rule)}
+                    className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  >
+                    <EyeIcon className="size-4" aria-hidden />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+
+        {/* Shared review note — required (serves accept reviewNote + reject reason). */}
+        <div className="flex flex-col gap-1.5 border-t border-divider-subtle bg-background-subtle px-5 py-3">
+          <label htmlFor="bulk-review-note" className="text-xs font-medium text-text-secondary">
+            <Trans>Review note</Trans>
+            <span className="ml-1 text-text-tertiary">
+              <Trans>· required · logged to audit</Trans>
+            </span>
+          </label>
+          <Textarea
+            id="bulk-review-note"
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            maxLength={1000}
+            disabled={busy}
+            placeholder={t`Why are you accepting or rejecting these rules?`}
+            className="min-h-16 bg-background-default text-sm"
+          />
+        </div>
+
+        {/* Honest impact summary — only metrics the API actually returns.
+            The Pencil's "coverage lift" + "est. work" pills are dropped
+            (no backend signal); these four are real. */}
+        <div className="flex items-center gap-6 border-t border-divider-subtle px-5 py-3">
+          {preview ? (
+            <>
+              <BulkMetric value={readyCount} label={t`Ready to accept`} />
+              <BulkMetric value={preview.estimatedObligationCount} label={t`Est. deadlines`} />
+              {substantive > 0 ? (
+                <BulkMetric value={substantive} label={t`Need review`} tone="warning" />
+              ) : null}
+              {skippedTotal > 0 ? (
+                <BulkMetric value={skippedTotal} label={t`Skipped`} tone="muted" />
+              ) : null}
+            </>
+          ) : (
+            <span className="text-xs text-text-tertiary">
+              {selections.length === 0 ? (
+                <Trans>Select at least one rule to preview impact.</Trans>
+              ) : (
+                <Trans>Calculating impact…</Trans>
+              )}
+            </span>
+          )}
+        </div>
+
+        {/* Footer — Reject N (destructive outline) · Cancel · Accept N. */}
+        <div className="flex flex-wrap items-center gap-2 border-t border-divider-subtle px-5 py-3.5">
+          <span className="flex items-center gap-1.5 text-xs text-text-tertiary">
+            <TriangleAlertIcon className="size-3.5 shrink-0" aria-hidden />
+            <Trans>Open any rule to review it individually.</Trans>
+          </span>
+          <span className="flex-1" aria-hidden />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={handleReject}
+            disabled={!canReject}
+            className="text-text-destructive hover:bg-state-destructive-hover hover:text-text-destructive"
+          >
+            {rejecting ? <Loader2 data-icon="inline-start" className="animate-spin" /> : null}
+            <Trans>Reject {included.length}</Trans>
+          </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={onClose} disabled={busy}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button type="button" size="sm" onClick={handleAccept} disabled={!canAccept}>
+            {acceptMutation.isPending ? (
+              <Loader2 data-icon="inline-start" className="animate-spin" />
+            ) : (
+              <ShieldCheck data-icon="inline-start" />
+            )}
+            <Trans>Accept {readyCount}</Trans>
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Batch-review modal — centered Dialog that walks the user through
 // every selected rule, dating-app style. One rule per "card";
 // Prev / Skip / Next at the bottom; Accept lives inside the rule body
 // via `RuleDetailCompact`. Progress shown as "1 / 5" at the header.
 // Closes when the queue is exhausted.
+// (Retained but no longer the default bulk entry — see BulkReviewListModal.)
 // ---------------------------------------------------------------------------
 
 function BatchReviewModal({

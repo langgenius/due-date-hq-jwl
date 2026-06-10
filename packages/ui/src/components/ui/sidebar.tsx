@@ -658,7 +658,7 @@ const sidebarMenuButtonVariants = cva(
     // (gap-3 — "icon与text之间的gap稍微大一点"), px-3, rounded-lg. Label
     // text-[15px]. Identical in both modes — collapsed re-centering is
     // gone (see below).
-    'group/menu-button peer/menu-button relative flex h-9 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-lg px-[9px] text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
+    'group/menu-button peer/menu-button relative flex h-9 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-lg px-[11px] text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
     // Hover uses the sidebar-row token (~10 units darker than the
     // #f6f8fa card) so the wash reads as a quiet step on the card;
     // selected state below uses the explicit accent tint so route

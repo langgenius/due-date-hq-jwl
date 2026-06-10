@@ -6,16 +6,16 @@ import {
   ChevronLeftIcon,
   CircleAlertIcon,
   ExternalLinkIcon,
-  FileTextIcon,
   LightbulbIcon,
   MailIcon,
-  MapPinIcon,
   MessageSquareIcon,
   RotateCcwIcon,
   ShieldCheckIcon,
+  SparklesIcon,
+  TriangleAlertIcon,
   UsersIcon,
+  CheckIcon,
   XIcon,
-  ZapIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -51,7 +51,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { describeTaxCode } from '@/lib/tax-codes'
 import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -61,6 +60,8 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
+import { DetailSectionCard } from '@/components/patterns/detail-section-card'
+import { AlertStatusChip } from './components/AlertStatusChip'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
 import {
@@ -151,6 +152,7 @@ function formatDeadlineDate(iso: string): string {
 }
 
 function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
+  const { t } = useLingui()
   const oldIso = detail.originalDueDate
   const newIso = detail.newDueDate
   if (detail.alert.actionMode !== 'due_date_overlay' || !oldIso || !newIso) return null
@@ -159,58 +161,93 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
       new Date(`${oldIso}T00:00:00.000Z`).getTime()) /
       86_400_000,
   )
-  const scopeArea =
-    detail.counties.length > 0
-      ? detail.counties.join(', ')
-      : getJurisdictionName(detail.jurisdiction)
-  const formsText = detail.forms
-    .map((form) => describeTaxCode(form).label || form)
-    .filter(Boolean)
-    .join(', ')
+  // 2026-06-10 (Yuqi — replicate Pencil `Qla5h KeyChange`): header pill +
+  // "Effective immediately"; mono diff row (old strike → new 18/700) with a
+  // GREEN delta (an extension is relief, not a penalty); the source summary;
+  // then a hairline meta row of AI-confidence · source · audit ledger. The
+  // scope/forms facts moved to the Extracted-facts grid (Pencil order).
+  const confPct = Math.round(detail.alert.confidence * 100)
+  const confTone = aiConfidenceTier(detail.alert.confidence)
+  const confClass =
+    confTone === 'high'
+      ? 'text-text-success'
+      : confTone === 'medium'
+        ? 'text-text-tertiary'
+        : 'text-text-destructive'
   return (
-    // 2026-06-09 (Yuqi alert-detail "light gray background"): the hero
-    // Deadline-change card steps white → bg-background-subtle, matching its
-    // sibling PracticeImpactSection below. With the gray fill carrying the
-    // card's edge against the white body, the border is dropped so the two
-    // stacked cards read as one consistent gray-card family.
-    <section className="flex flex-col gap-2.5 rounded-lg bg-background-subtle p-4">
-      {/* 2026-06-08 (Aogxu parity Phase 1, task 3): the AI signal is now the
-          single inline subtitle on the EXTRACTED FACTS header — the hero
-          DEADLINE CHANGE card shows no AI badge (matches the Aogxu mock). */}
-      <div className="flex items-center gap-2">
-        <span className="text-[12px] font-semibold text-text-secondary">
+    <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-subtle px-4 py-3.5">
+      {/* Header — ⚠ Deadline change · status chip · Effective immediately. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <TriangleAlertIcon className="size-3.5 shrink-0 text-state-warning-solid" aria-hidden />
+        <span className="text-[13px] font-semibold text-text-primary">
           <Trans>Deadline change</Trans>
         </span>
+        <AlertStatusChip
+          status={detail.alert.status}
+          timestamp={formatRelativeTime(detail.alert.publishedAt)}
+        />
+        <span className="flex-1" />
+        <span className="text-[12px] font-medium text-text-muted">
+          <Trans>Effective immediately</Trans>
+        </span>
       </div>
-      {/* 2026-06-08 (Yuqi alert-detail feedback #11 "ugly" + #15 "smaller"):
-          the new date drops 18px → 15px so the old→new pair reads as one
-          tidy line rather than an oversized headline. */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[12px] font-medium text-text-muted line-through tabular-nums">
+
+      {/* Diff row — old → new + signed delta (green when later = relief). */}
+      <div className="flex flex-wrap items-baseline gap-2.5">
+        <span className="font-mono text-[13px] font-medium text-text-muted line-through tabular-nums">
           {formatDeadlineDate(oldIso)}
         </span>
-        <ArrowRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
-        <span className="font-mono text-[15px] font-bold tracking-[-0.2px] text-text-primary tabular-nums">
+        <ArrowRightIcon className="size-3.5 shrink-0 self-center text-text-muted" aria-hidden />
+        <span className="font-mono text-[18px] font-bold tracking-[-0.2px] text-text-primary tabular-nums">
           {formatDeadlineDate(newIso)}
         </span>
-        <span className="text-[12px] font-semibold text-text-destructive tabular-nums">
+        <span
+          className={cn(
+            'text-[12px] font-semibold tabular-nums',
+            days >= 0 ? 'text-text-success' : 'text-text-destructive',
+          )}
+        >
           {days >= 0 ? `+${days}` : `${days}`} <Trans>days</Trans>
         </span>
       </div>
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] font-medium text-text-secondary">
+
+      {/* Source summary. */}
+      {detail.alert.summary && detail.alert.summary.trim() !== detail.alert.title.trim() ? (
+        <p className="text-[13px] leading-[1.55] text-text-secondary">{detail.alert.summary}</p>
+      ) : null}
+
+      {/* Meta — AI confidence · source · audit ledger (top hairline). */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-divider-subtle pt-2.5 text-[12px] font-medium text-text-tertiary">
         <span className="inline-flex items-center gap-1.5">
-          <MapPinIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-          {scopeArea}
+          <SparklesIcon className={cn('size-3 shrink-0', confClass)} aria-hidden />
+          <span className={cn('font-semibold', confClass)}>{confPct}%</span>
+          <Trans>AI confidence</Trans>
         </span>
-        {formsText ? (
+        <span aria-hidden className="text-text-muted">
+          ·
+        </span>
+        {detail.alert.sourceUrl ? (
+          <a
+            href={detail.alert.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-text-tertiary underline-offset-2 outline-none hover:text-text-secondary hover:underline"
+          >
+            <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+            <span className="truncate">{detail.alert.source}</span>
+          </a>
+        ) : (
           <span className="inline-flex items-center gap-1.5">
-            <FileTextIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-            <Trans>{formsText} affected</Trans>
+            <ExternalLinkIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+            {detail.alert.source}
           </span>
-        ) : null}
+        )}
+        <span aria-hidden className="text-text-muted">
+          ·
+        </span>
         <span className="inline-flex items-center gap-1.5">
-          <ZapIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-          <Trans>Auto-applied · no opt-in</Trans>
+          <ShieldCheckIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+          {t`Every change logged in the audit ledger`}
         </span>
       </div>
     </section>
@@ -398,12 +435,15 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
 
   return (
     <section className="flex flex-col gap-3">
-      <header className="flex items-baseline gap-2">
+      {/* Pencil `gRY5g` header: "Activity" + "N events · oldest first". */}
+      <header className="flex items-baseline justify-between gap-2">
         <span className="text-[12px] font-semibold text-text-secondary">
           <Trans>Activity</Trans>
         </span>
-        <span className="text-[11px] font-medium text-text-muted tabular-nums">
+        <span className="text-[12px] font-medium text-text-muted">
           <Plural value={events.length} one="# event" other="# events" />
+          {' · '}
+          <Trans>oldest first</Trans>
         </span>
       </header>
       <ol className="flex flex-col">
@@ -761,6 +801,25 @@ export function AlertDetailDrawer({
       }
       return next
     })
+  }
+
+  // 2026-06-10 (Yuqi — Pencil `G24tQh` header Confirm/Exclude): bulk-exclude the
+  // currently-selected clients, folding each through the same excludeFromSelection
+  // reducer the per-row Exclude uses (so confirmed/excluded/selection stay coherent).
+  const handleExcludeSelected = () => {
+    let nextState = { selection, confirmedReviewIds, excludedIds }
+    for (const obligationId of selection) {
+      nextState = excludeFromSelection(
+        nextState.selection,
+        nextState.confirmedReviewIds,
+        nextState.excludedIds,
+        obligationId,
+        true,
+      )
+    }
+    setSelection(nextState.selection)
+    setConfirmedReviewIds(nextState.confirmedReviewIds)
+    setExcludedIds(nextState.excludedIds)
   }
 
   const revertMutation = useMutation(
@@ -1310,21 +1369,16 @@ export function AlertDetailDrawer({
                 blocks instead of a dozen disconnected boxes. Card radius 12
                 (canonical wrapper); white fill pops against the gray body. */}
 
-            {/* GROUP 1 — The change. */}
-            <div className="flex flex-col gap-5 rounded-[12px] border border-divider-subtle bg-background-default p-6">
-              {/* 2026-06-09 (Yuqi alert-detail "sections with labels"): each
-                  group card gets a consistent eyebrow title (11/600 uppercase
-                  tertiary) so the four sections are unmistakable. */}
-              <h3 className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
-                <Trans>The change</Trans>
-              </h3>
-              {/* Pencil ibEoz/BbQAK `Qla5h KeyChange`: the prominent DEADLINE
-                  CHANGE hero — old → new date + day delta + scope facts. Renders
-                  for deadline-overlay alerts that carry both dates. */}
+            {/* GROUP 1 — The change. 2026-06-10 (Yuqi "keep the grouping, but
+                update the style"): the four group cards now use the canonical
+                Pencil BbQAK card chrome via <DetailSectionCard> — a gray
+                header band (13/600 title) + white px-5/py-4 body — replacing
+                the uppercase-eyebrow-in-p-6 treatment. */}
+            <DetailSectionCard title={<Trans>The change</Trans>}>
+              {/* Pencil `Qla5h KeyChange`: the prominent deadline-change hero. */}
               <DeadlineChangeCard detail={detail} />
 
-              {/* Extracted facts (Aogxu parity): the AI signal is the inline
-                  muted subtitle — the single AI affordance in the detail. */}
+              {/* Extracted facts — the AI signal is the inline muted subtitle. */}
               <section className="flex flex-col gap-3">
                 <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                   <span className="text-[12px] font-semibold text-text-secondary">
@@ -1337,30 +1391,52 @@ export function AlertDetailDrawer({
                 <AlertStructuredFields detail={detail} />
               </section>
 
-              {/* "What this means for your practice" — self-gates to auto-applied
-                  due-date overlays with matched clients; otherwise renders null. */}
+              {/* "What this means for your practice" — self-gates. */}
               <PracticeImpactSection detail={detail} />
-            </div>
+            </DetailSectionCard>
 
             {/* GROUP 2 — Affected clients + apply/review controls. */}
             {showClientsGroup ? (
-              <div className="flex flex-col gap-5 rounded-[12px] border border-divider-subtle bg-background-default p-6">
-                {/* 2026-06-09 (Yuqi "sections with labels"): single group header
-                    for the card — carries the client count + (overlay) selection
-                    summary. The inner overlay/review sections drop their own
-                    headers so "Affected clients" isn't duplicated. <h3> (not a
-                    span) — E2E specs match
-                    getByRole('heading', { name: /Affected clients/ }). */}
-                <header className="flex items-baseline justify-between">
-                  <h3 className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+              <DetailSectionCard
+                title={
+                  <>
                     <Trans>Affected clients</Trans>
                     {detail.affectedClients.length > 0 ? (
-                      <span className="ml-2 tabular-nums">{detail.affectedClients.length}</span>
+                      <span className="ml-2 font-normal tabular-nums text-text-tertiary">
+                        {detail.affectedClients.length}
+                      </span>
                     ) : null}
-                  </h3>
-                  {stats ? <SelectionSummary stats={stats} /> : null}
-                </header>
-
+                  </>
+                }
+                headerRight={
+                  // Pencil `G24tQh` header: bulk Confirm / Exclude on the right
+                  // (overlay + apply permission). Otherwise the read-only count.
+                  detail.alert.actionMode === 'due_date_overlay' && canApply && stats ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleConfirmAllNeedsReview}
+                        disabled={stats.needsReviewCount === 0}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-[3px] text-[11px] font-semibold text-white outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                      >
+                        <CheckIcon className="size-3 shrink-0" aria-hidden />
+                        {t`Confirm ${stats.needsReviewCount}`}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleExcludeSelected}
+                        disabled={stats.selectedCount === 0}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-[3px] text-[11px] font-semibold text-text-secondary outline-none transition-colors hover:bg-state-base-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                      >
+                        <XIcon className="size-3 shrink-0" aria-hidden />
+                        <Trans>Exclude</Trans>
+                      </button>
+                    </>
+                  ) : stats ? (
+                    <SelectionSummary stats={stats} />
+                  ) : undefined
+                }
+              >
                 {/* Due-date overlay: per-row Confirm / Exclude is the
                     confirmation surface — always renders for due-date alerts. */}
                 {detail.alert.actionMode === 'due_date_overlay' &&
@@ -1482,15 +1558,12 @@ export function AlertDetailDrawer({
                     ) : null}
                   </section>
                 ) : null}
-              </div>
+              </DetailSectionCard>
             ) : null}
 
             {/* GROUP 3 — Source & confidence: warnings, the verbatim source
                 extract, and the provenance read-out. */}
-            <div className="flex flex-col gap-5 rounded-[12px] border border-divider-subtle bg-background-default p-6">
-              <h3 className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
-                <Trans>Source &amp; confidence</Trans>
-              </h3>
+            <DetailSectionCard title={<Trans>Source &amp; confidence</Trans>}>
               {/* Low AI confidence — a "double-check this" cue (amber, not
                   destructive). Names the % and explains what to verify. */}
               {isLowAiConfidence(detail.alert.confidence) ? (
@@ -1540,37 +1613,44 @@ export function AlertDetailDrawer({
                 </Alert>
               ) : null}
 
-              {/* SOURCE EXTRACT — the verbatim quote anchor. */}
+              {/* SOURCE EXTRACT — Pencil `c0Vxc`: a mono citation line over a
+                  non-mono italic quote in a gray (#f9fafb) rounded box;
+                  "Open original" with an external-link glyph on the header. */}
               {detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
-                <section className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
+                <section className="flex flex-col gap-2.5">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-[12px] font-semibold text-text-secondary">
                       <Trans>Source extract</Trans>
                     </span>
                     {detail.alert.sourceUrl ? (
-                      <TextLink
-                        variant="accent"
-                        render={
-                          <a href={detail.alert.sourceUrl} target="_blank" rel="noreferrer" />
-                        }
+                      <a
+                        href={detail.alert.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[13px] font-semibold text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
-                        <Trans>Open original ↗</Trans>
-                      </TextLink>
+                        <Trans>Open original</Trans>
+                        <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+                      </a>
                     ) : null}
                   </div>
-                  <blockquote className="rounded-lg bg-background-subtle px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
-                    &ldquo;{detail.alert.summary}&rdquo;
-                    <footer className="mt-2 font-sans text-[11px] font-medium text-text-muted">
-                      {detail.alert.source}
-                      {detail.alert.publishedAt ? (
-                        <>
-                          {' · '}
+                  {/* Citation — source (mono) · published date. */}
+                  <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-text-muted">
+                    <span className="font-mono">{detail.alert.source}</span>
+                    {detail.alert.publishedAt ? (
+                      <>
+                        <span aria-hidden>·</span>
+                        <span>
+                          <Trans>Published</Trans>{' '}
                           <span className="tabular-nums">
-                            {formatRelativeTime(detail.alert.publishedAt)}
+                            {formatDatePretty(detail.alert.publishedAt)}
                           </span>
-                        </>
-                      ) : null}
-                    </footer>
+                        </span>
+                      </>
+                    ) : null}
+                  </div>
+                  <blockquote className="rounded-lg bg-background-section px-4 py-3 text-[13px] leading-[1.55] text-text-secondary italic">
+                    &ldquo;{detail.alert.summary}&rdquo;
                   </blockquote>
                 </section>
               ) : null}
@@ -1672,14 +1752,10 @@ export function AlertDetailDrawer({
                 </section>
               )
             })()}
+            </DetailSectionCard>
 
-            </div>
-
-            {/* GROUP 4 — Activity: lifecycle timeline + team notes. */}
-            <div className="flex flex-col gap-5 rounded-[12px] border border-divider-subtle bg-background-default p-6">
-              <h3 className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
-                <Trans>Activity &amp; notes</Trans>
-              </h3>
+            {/* GROUP 4 — Activity & notes: lifecycle timeline + team notes. */}
+            <DetailSectionCard title={<Trans>Activity &amp; notes</Trans>}>
               {/* Pencil `gRY5g Activity`: lifecycle timeline built from the
                   alert's real timestamps (received → matched → reviewed →
                   current) — every node is a fact already on the record. */}
@@ -1688,7 +1764,7 @@ export function AlertDetailDrawer({
               {/* Pencil Aogxu §7 "Team notes": internal discussion threaded on
                   the alert. Wired to pulse.listAlertNotes / pulse.addAlertNote. */}
               <AlertTeamNotes alertId={detail.alert.id} />
-            </div>
+            </DetailSectionCard>
           </div>
         ) : null}
       </div>

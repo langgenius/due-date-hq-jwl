@@ -51,6 +51,7 @@ import type { AuthorityRejectionDraft, DeadlineInputRequestDraft } from './types
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
+import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
@@ -1998,7 +1999,12 @@ export function ObligationQueueDetailDrawer({
                 on the TabsContent panels drops the gap below the
                 bar to just `gap-2`, so the bar still reads as the
                 leading edge of the tab content beneath. */}
-            <div className="sticky top-0 z-10 bg-background-canvas-warm pt-3">
+            {/* 2026-06-10 (Yuqi /deadlines detail "remove background"): the
+                sticky tab bar drops its `bg-background-canvas-warm` fill so it
+                reads as part of the page, not a banded strip. The TabsList's own
+                bottom hairline still anchors the bar; the page wash behind it is
+                the same warm canvas, so there's no visible seam. */}
+            <div className="sticky top-0 z-10 pt-3">
               {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
                   from design/deadlines-drawer-rework): tab bar
                   switched from default pill segmented control to the
@@ -2040,7 +2046,7 @@ export function ObligationQueueDetailDrawer({
                     // tab `gap-1` → `gap-6` opens 24px between tabs so
                     // they remain individually scannable now that each
                     // one no longer carries its own `px-2`.
-                    className="flex h-11 w-full justify-start gap-6 border-b border-divider-subtle bg-background-canvas-warm text-sm"
+                    className="flex h-11 w-full justify-start gap-6 border-b border-divider-subtle text-sm"
                   >
                     {/* 2026-05-26 (Yuqi feedback — "tabs can be more
                         obvious, signalling people hey check these
@@ -2389,25 +2395,35 @@ export function ObligationQueueDetailDrawer({
                     </div>
                     {/* Recent activity — last few audit-feed entries, with a
                         link out to the full Timeline tab. */}
+                    {/* 2026-06-10 (Yuqi — replicate Pencil `qSa9z` Recent
+                        activity): the shared <DetailSectionCard> chrome (gray
+                        header band + "View all → Record" link) over flush rows
+                        with top hairlines + mono timestamps. */}
                     {detail.auditEvents.length > 0 ? (
-                      <section className="flex flex-col gap-3 rounded-xl border border-divider-subtle bg-background-default p-4">
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
-                            <Trans>Recent activity</Trans>
-                          </h3>
-                          <TextLink
-                            variant="accent"
-                            className="text-caption font-normal"
+                      <DetailSectionCard
+                        title={<Trans>Recent activity</Trans>}
+                        headerRight={
+                          <button
+                            type="button"
                             onClick={() => onTabChange('audit')}
+                            className="font-medium text-text-accent underline-offset-2 outline-none hover:underline"
                           >
                             <Trans>View all in Timeline →</Trans>
-                          </TextLink>
-                        </div>
-                        <ul className="flex flex-col gap-3">
-                          {detail.auditEvents.slice(0, 3).map((event) => {
+                          </button>
+                        }
+                        flush
+                      >
+                        <ul className="flex flex-col">
+                          {detail.auditEvents.slice(0, 3).map((event, index) => {
                             const actor = event.actorLabel ?? t`System`
                             return (
-                              <li key={event.id} className="flex items-center gap-2.5">
+                              <li
+                                key={event.id}
+                                className={cn(
+                                  'flex items-center gap-3 px-5 py-3.5',
+                                  index > 0 && 'border-t border-divider-subtle',
+                                )}
+                              >
                                 <AssigneeAvatar name={actor} title={actor} size="sm" />
                                 <span className="min-w-0 flex-1 text-sm leading-tight text-text-secondary">
                                   <span className="font-medium text-text-primary">{actor}</span>
@@ -2415,14 +2431,14 @@ export function ObligationQueueDetailDrawer({
                                   {(auditActionLabels as Record<string, string>)[event.action] ??
                                     event.action}
                                 </span>
-                                <span className="shrink-0 text-caption-xs tabular-nums text-text-tertiary">
+                                <span className="shrink-0 font-mono text-[11px] tabular-nums text-text-tertiary">
                                   {formatRelativeTime(event.createdAt)}
                                 </span>
                               </li>
                             )
                           })}
                         </ul>
-                      </section>
+                      </DetailSectionCard>
                     ) : null}
                     {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
                         rzzww): Penalty exposure card, driven entirely by the

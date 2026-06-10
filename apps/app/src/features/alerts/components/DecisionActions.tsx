@@ -1,0 +1,84 @@
+import { type ReactNode } from 'react'
+import { Loader2, type LucideIcon } from 'lucide-react'
+
+import { Button } from '@duedatehq/ui/components/ui/button'
+import { cn } from '@duedatehq/ui/lib/utils'
+
+export type DecisionAction = {
+  label: ReactNode
+  icon?: LucideIcon
+  onClick?: () => void
+  disabled?: boolean
+}
+
+/**
+ * `DecisionActions` — the polymorphic decision footer (Pencil `fJtAo`): a
+ * primary filled action and an optional secondary outline action grouped on
+ * the left, plus an optional tertiary text action (e.g. "Dismiss alert")
+ * pushed to the right edge.
+ *
+ * The buttons reuse the shared `Button` primitive, so they inherit the
+ * canonical hover / focus / active / disabled / loading states documented on
+ * `b7fa5Y` (States · Interactive) rather than re-implementing them. `loading`
+ * spins the primary action and disables the cluster (the "Posting…" /
+ * "Applying…" state).
+ *
+ * Polymorphic by design (amendments §1.1 Option C): the same footer serves
+ * every alert/rule decision — callers map their action onto the primary slot.
+ */
+export function DecisionActions({
+  primary,
+  secondary,
+  tertiary,
+  loading = false,
+  className,
+}: {
+  primary: DecisionAction
+  secondary?: DecisionAction
+  tertiary?: DecisionAction
+  /** Spins the primary action's icon + disables the whole cluster. */
+  loading?: boolean
+  className?: string
+}) {
+  const PrimaryIcon = primary.icon
+  const SecondaryIcon = secondary?.icon
+  const TertiaryIcon = tertiary?.icon
+  return (
+    <div className={cn('flex w-full flex-wrap items-center gap-2.5', className)}>
+      <Button onClick={primary.onClick} disabled={loading || primary.disabled}>
+        {loading ? (
+          <Loader2 data-icon="inline-start" className="animate-spin" />
+        ) : PrimaryIcon ? (
+          <PrimaryIcon data-icon="inline-start" />
+        ) : null}
+        {primary.label}
+      </Button>
+
+      {secondary ? (
+        <Button
+          variant="outline"
+          onClick={secondary.onClick}
+          disabled={loading || secondary.disabled}
+        >
+          {SecondaryIcon ? <SecondaryIcon data-icon="inline-start" /> : null}
+          {secondary.label}
+        </Button>
+      ) : null}
+
+      {tertiary ? (
+        <>
+          <span className="flex-1" aria-hidden />
+          <button
+            type="button"
+            onClick={tertiary.onClick}
+            disabled={loading || tertiary.disabled}
+            className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md text-[13px] font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {TertiaryIcon ? <TertiaryIcon aria-hidden className="size-3 shrink-0" /> : null}
+            {tertiary.label}
+          </button>
+        </>
+      ) : null}
+    </div>
+  )
+}

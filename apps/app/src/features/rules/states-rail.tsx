@@ -100,57 +100,53 @@ export function JurisdictionRail({
   return (
     <aside
       className={cn(
-        'flex w-72 shrink-0 flex-col overflow-hidden border-r border-divider-regular bg-background-default',
+        // Canonical list-rail recipe — identical to AlertListRail /
+        // ObligationListRail / DeadlineNavigatorRail (w-[380px], subtle
+        // right border, full-height flex column).
+        'flex h-full w-[380px] shrink-0 flex-col border-r border-divider-subtle bg-background-default',
         className,
       )}
       aria-label={t`Jurisdictions`}
     >
-      {/* Header — eyebrow + title row + search pill. Top padding matches
-          the main panel's `pt-6` so the rail eyebrow lines up with the page
-          eyebrow, and both sit at the same title height as /today +
-          /deadlines (the app-wide pt-6 page-title baseline). */}
-      <div className="shrink-0 px-3.5 pt-6">
-        <div className="flex flex-col gap-2.5 pb-4">
-          <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
-            <Trans>Rule library</Trans>
-          </span>
-          <div className="flex items-center gap-2">
-            <span className="text-base font-semibold tracking-tight text-text-primary">
-              <Trans>Jurisdictions</Trans>
-            </span>
-            <span className="flex-1" />
-            <button
-              type="button"
-              onClick={() => setReviewOnly((v) => !v)}
-              aria-pressed={reviewOnly}
-              title={
-                reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
-              }
-              aria-label={
-                reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
-              }
-              className={cn(
-                'inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                reviewOnly
-                  ? 'bg-state-accent-hover text-text-accent'
-                  : 'text-text-secondary hover:bg-state-base-hover',
-              )}
-            >
-              <ListFilterIcon className="size-3.5" />
-            </button>
-          </div>
-        </div>
-        <div className="pb-3">
-          <SearchInput
-            value={search}
-            onChange={onSearchChange}
-            placeholder={t`Search jurisdictions`}
-            ariaLabel={t`Search jurisdictions`}
-          />
-        </div>
+      {/* ListHead — title + review-only filter toggle. Mirrors the canonical
+          list-rail head (AlertListRail / ObligationListRail): a single 15px
+          title row with a trailing control, separated by a `border-b`. */}
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
+        <span className="text-[15px] font-semibold text-text-primary">
+          <Trans>Jurisdictions</Trans>
+        </span>
+        <button
+          type="button"
+          onClick={() => setReviewOnly((v) => !v)}
+          aria-pressed={reviewOnly}
+          title={
+            reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
+          }
+          aria-label={
+            reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
+          }
+          className={cn(
+            'inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+            reviewOnly
+              ? 'bg-state-accent-hover text-text-accent'
+              : 'text-text-secondary hover:bg-state-base-hover',
+          )}
+        >
+          <ListFilterIcon className="size-3.5" />
+        </button>
       </div>
 
-      <div className="h-px shrink-0 bg-divider-subtle" aria-hidden />
+      {/* FilterRow — full-width search, separated by a `border-b` (same
+          section rhythm as the canonical rails). */}
+      <div className="flex shrink-0 items-center border-b border-divider-subtle px-3 py-2.5">
+        <SearchInput
+          value={search}
+          onChange={onSearchChange}
+          placeholder={t`Search jurisdictions`}
+          ariaLabel={t`Search jurisdictions`}
+          className="w-full"
+        />
+      </div>
 
       {/* Scrolling jurisdiction list. */}
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
@@ -224,11 +220,13 @@ export function JurisdictionRail({
         </div>
       </nav>
 
-      {/* Footer hint strip — "Showing N of M states". */}
-      <div className="shrink-0 px-3.5 py-3">
-        <div className="rounded-lg bg-background-subtle px-3 py-2.5 text-center text-xs font-medium text-text-tertiary tabular-nums">
+      {/* Footer — "Showing N of M states", a quiet `border-t` strip that
+          settles into the column edge (same divider rhythm as the head/search
+          rows above). */}
+      <div className="flex shrink-0 items-center border-t border-divider-subtle px-[18px] py-3">
+        <span className="text-xs font-medium text-text-tertiary tabular-nums">
           {t`Showing ${shownStateCount} of ${states.length} states`}
-        </div>
+        </span>
       </div>
     </aside>
   )
