@@ -50,11 +50,17 @@ function NeedsAttentionSection() {
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? []
   const sources = sourceHealthQuery.data?.sources ?? []
-  const visibleAlerts = alerts.slice(0, VISIBLE_ALERTS)
+  // Client-affecting first (Yuqi): an alert earns the Today slot only when it
+  // matched a client's obligation — those are the ones that can move a deadline.
+  // If nothing matched, fall back to the raw monitoring stream so the section
+  // still shows what's being watched rather than going empty.
+  const affectingAlerts = alerts.filter((alert) => alert.matchedCount > 0)
+  const shownAlerts = affectingAlerts.length > 0 ? affectingAlerts : alerts
+  const visibleAlerts = shownAlerts.slice(0, VISIBLE_ALERTS)
   // One batched detail request for the visible cards instead of one
   // `getDetail` per card — the cards only need affected-client names.
   const affectedByAlert = useAlertsAffectedClients(visibleAlerts.map((alert) => alert.id))
-  const totalAlertCount = alerts.length
+  const totalAlertCount = shownAlerts.length
   // Describes jurisdiction coverage, not raw adapter count, so hidden
   // policy-watch adapters can grow without the header reading
   // "monitoring 150 sources."

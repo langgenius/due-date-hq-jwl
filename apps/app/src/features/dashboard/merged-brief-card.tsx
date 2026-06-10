@@ -89,6 +89,12 @@ export function MergedBriefCard({
   const shown = byBucket[selected].slice(0, ROWS_PER_BUCKET)
   const moreCount = Math.max(0, activeTotal - shown.length)
 
+  // One-line deterministic summary — the lede of the brief. It surfaces the
+  // docs blocker the count chips can't, so it says something they don't.
+  const overdueNeedingDocs = byBucket.overdue.filter((r) => r.evidenceCount === 0).length
+  const weekAhead = counts.endingToday + counts.thisWeek
+  const totalActive = counts.overdue + weekAhead
+
   return (
     <section
       aria-label={t`Daily brief`}
@@ -158,6 +164,20 @@ export function MergedBriefCard({
           + hover so the card stays calm. */}
       {!collapsed ? (
         <div className="flex flex-col gap-0.5">
+          {/* Lede — one-line deterministic summary of the day. */}
+          <p className="px-2 pb-1.5 text-sm text-text-secondary">
+            {totalActive === 0 ? (
+              <Trans>You're clear — nothing due in the next week.</Trans>
+            ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
+              <Trans>
+                {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
+              </Trans>
+            ) : counts.overdue > 0 ? (
+              <Trans>{counts.overdue} overdue.</Trans>
+            ) : (
+              <Trans>{weekAhead} due this week, none overdue.</Trans>
+            )}
+          </p>
           {shown.length === 0 ? (
             <p className="px-2 py-1.5 text-sm text-text-tertiary">
               {activeTotal > 0 ? (

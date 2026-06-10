@@ -379,13 +379,15 @@ export function DashboardRoute() {
           uncommenting the line below. */}
       {/* <ChangesSinceLastSection /> */}
 
-      {/* Daily brief — server-generated AI narrative of the day with
-          citations that deep-link each claim back to its obligation.
-          `dashboard.load` already returns `brief`; the card renders
-          null when none exists (feature-off firms). */}
-      {/* Today's brief — the deadline queue itself, grouped by time, with the
-          count chips as the view selector (Pencil jXPZ9). One surface: it
-          replaces both the old AI brief and the Priority Actions table. */}
+      {/* Alerts on top (Yuqi): client-affecting regulatory changes lead the day
+          because they can MOVE the deadlines below — read what changed, then act
+          on the brief. The section self-filters to client-affecting alerts. */}
+      <NeedsAttentionSection />
+
+      {/* Today's brief — the deadline queue itself (by time), opened by a
+          one-line deterministic summary, with the count chips as the view
+          selector and the priority-action rows nested as flat sections. One
+          surface: replaces the old AI brief AND the Priority Actions table. */}
       <MergedBriefCard
         counts={{
           overdue: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
@@ -396,15 +398,6 @@ export function DashboardRoute() {
         asOfDate={data?.asOfDate ?? null}
         onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
       />
-
-      {/* No standalone "AT A GLANCE" tile row — the Daily Brief bar above
-          carries the day's headline numbers, so a separate four-tile
-          strip would duplicate that signal with extra chrome. */}
-      <NeedsAttentionSection />
-
-      {/* Priority Actions table removed 2026-06-10 (Yuqi "fully merged"): the
-          MergedBrief above is now the single deadline surface — its rows carry
-          the action verb + Docs readiness + status + owner + due the table did. */}
     </div>
   )
 }
