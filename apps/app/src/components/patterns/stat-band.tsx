@@ -15,7 +15,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *
  *  - `/clients`             → Total clients · Active obligations · At risk
  *  - `/clients/[id]`        → Next filing · Blocked · Open filing
- *  - `/rules/sources`       → Feeds · Rules derived · Fetched 24h · Failed
+ *  - `/rules/sources`       → Feeds · Rules derived · Fetched 24h
  *  - `/rules/library`       → Total · Jurisdictions · Changed · Pending
  *  - `/alerts/history`      → Handled · Applied · Dismissed · …
  *

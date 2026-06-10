@@ -2482,10 +2482,6 @@ msgstr "全部实体类型"
 msgid "All handled"
 msgstr "全部已处理"
 
-#: src/features/rules/sources-tab.tsx
-msgid "All healthy"
-msgstr "全部正常"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "All ignored"
 msgstr "全部忽略"
@@ -7040,10 +7036,6 @@ msgstr "因子权重"
 msgid "Failed"
 msgstr "失败"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Failed fetches"
-msgstr "抓取失败"
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Fallback document list ready"
@@ -9597,7 +9589,6 @@ msgid "Needs AI draft review"
 msgstr "需要 AI 草案审核"
 
 #: src/features/clients/ClientSummaryStrip.tsx
-#: src/features/rules/sources-tab.tsx
 msgid "Needs attention"
 msgstr "需要关注"
 

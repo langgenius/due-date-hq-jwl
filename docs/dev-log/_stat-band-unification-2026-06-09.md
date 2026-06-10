@@ -107,3 +107,15 @@ like the rest.
 The `/clients/[id]` detail change from rounds 1–2 stays (user chose "keep it
 unified" when asked), so the band is now the one card-summary across **five**
 surfaces: /clients, /clients/[id], /rules/sources, /rules/library, /alerts/history.
+
+## Round 4 — Sources band drops the failed-fetches column
+
+Yuqi feedback on `/rules/sources` (2026-06-10): the top band should not show
+**Failed fetches**. Removed that `StatBandItem` from `SourcesKpiStrip` and
+dropped the now-unused failed-fetch count from the KPI memo. The remaining three
+items keep the same shared `StatBand`; because each column is `flex-1` on
+desktop, Feeds monitored / Rules derived / Fetched last 24h now divide the row
+evenly.
+
+No `DESIGN.md` update needed: this is a page-specific content reduction within
+the existing shared stat-band pattern, not a token or primitive contract change.

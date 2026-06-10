@@ -2459,10 +2459,6 @@ msgstr "All entity types"
 msgid "All handled"
 msgstr "All handled"
 
-#: src/features/rules/sources-tab.tsx
-msgid "All healthy"
-msgstr "All healthy"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "All ignored"
 msgstr "All ignored"
@@ -6999,10 +6995,6 @@ msgstr "Factor weights"
 msgid "Failed"
 msgstr "Failed"
 
-#: src/features/rules/sources-tab.tsx
-msgid "Failed fetches"
-msgstr "Failed fetches"
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Fallback document list ready"
@@ -9538,7 +9530,6 @@ msgid "Needs AI draft review"
 msgstr "Needs AI draft review"
 
 #: src/features/clients/ClientSummaryStrip.tsx
-#: src/features/rules/sources-tab.tsx
 msgid "Needs attention"
 msgstr "Needs attention"
 

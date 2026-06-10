@@ -108,16 +108,13 @@ export function SourcesTab() {
     const healthEntries = sourceHealthQuery.data?.sources ?? []
     const dayAgo = Date.now() - 24 * 60 * 60 * 1000
     let fetched24h = 0
-    let failed = 0
     for (const entry of healthEntries) {
       if (entry.lastCheckedAt && new Date(entry.lastCheckedAt).getTime() >= dayAgo) fetched24h += 1
-      if (entry.consecutiveFailures > 0 || entry.lastError) failed += 1
     }
     return {
       feedsMonitored: rows.length,
       rulesDerived: rulesQuery.data?.length ?? null,
       fetched24h,
-      failed,
     }
   }, [rows.length, rulesQuery.data, sourceHealthQuery.data])
   const sourceTypeLabels = useMemo<SourceTypeLabelMap>(
@@ -211,7 +208,6 @@ export function SourcesTab() {
         feedsMonitored={kpiStats.feedsMonitored}
         rulesDerived={kpiStats.rulesDerived}
         fetched24h={kpiStats.fetched24h}
-        failed={kpiStats.failed}
         paused={counts.paused}
       />
       <div className="flex items-center gap-4">
@@ -344,24 +340,21 @@ export function SourcesTab() {
 }
 
 /**
- * SourcesKpiStrip — the 4-stat summary above the Sources table (Pencil
- * bf6Ni): FEEDS MONITORED · RULES DERIVED · FETCHED LAST 24H · FAILED
- * FETCHES, with a tone-colored "failed" value (success-green at 0,
- * destructive otherwise). Renders the shared `StatBand` — the same
- * "card summary" component the rule-library overview, /clients/[id], and
- * /alerts/history use — so the four surfaces never drift apart again.
+ * SourcesKpiStrip — the 3-stat summary above the Sources table (Pencil
+ * bf6Ni): FEEDS MONITORED · RULES DERIVED · FETCHED LAST 24H. Renders the
+ * shared `StatBand` — the same "card summary" component the rule-library
+ * overview, /clients/[id], and /alerts/history use — so the surfaces never
+ * drift apart again.
  */
 function SourcesKpiStrip({
   feedsMonitored,
   rulesDerived,
   fetched24h,
-  failed,
   paused,
 }: {
   feedsMonitored: number
   rulesDerived: number | null
   fetched24h: number
-  failed: number
   paused: number
 }) {
   const { t } = useLingui()
@@ -387,14 +380,6 @@ function SourcesKpiStrip({
       label: t`Fetched last 24h`,
       value: fetched24h,
       sub: t`of ${feedsMonitored} feeds`,
-    },
-    {
-      key: 'failed',
-      label: t`Failed fetches`,
-      value: failed,
-      valueClass: failed > 0 ? 'text-text-destructive' : 'text-text-success',
-      sub: failed > 0 ? t`Needs attention` : t`All healthy`,
-      subClass: failed > 0 ? 'text-text-destructive' : 'text-text-success',
     },
   ]
   return <StatBand stats={stats} ariaLabel={t`Source feed summary`} />
