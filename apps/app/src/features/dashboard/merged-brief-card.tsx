@@ -6,11 +6,13 @@ import { Link } from 'react-router'
 import type { DashboardTopRow } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { DueDateLabel } from '@/components/primitives/due-date-label'
 import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { formatDatePretty } from '@/lib/utils'
+import { ExtensionChip } from './extension-chip'
 
 /**
  * MergedBriefCard — Pencil `jXPZ9`, refined per Yuqi: compact + informative.
@@ -112,11 +114,9 @@ export function MergedBriefCard({
           <Trans>Today's brief</Trans>
         </h2>
 
-        <div className="ml-auto flex items-center gap-1.5">
-          {/* Count chips rendered as a Segmented control — inherits the
-              My-work/Everyone toggle look so it reads as a clickable selector,
-              not just labels (Yuqi). */}
-          <div className="inline-flex items-center gap-0.5 rounded-lg bg-components-segmented-bg p-0.5">
+        {/* Count chips as a Segmented control — sits beside the title so it
+            reads as the view selector; inherits the My-work/Everyone toggle. */}
+        <div className="inline-flex items-center gap-0.5 rounded-lg bg-components-segmented-bg p-0.5">
             {tabs.map((tab) => {
               const active = tab.key === selected
               return (
@@ -145,20 +145,19 @@ export function MergedBriefCard({
               )
             })}
           </div>
-          <button
-            type="button"
-            onClick={() => setCollapsed((c) => !c)}
-            aria-label={collapsed ? t`Expand brief` : t`Collapse brief`}
-            aria-expanded={!collapsed}
-            className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
-          >
-            {collapsed ? (
-              <ChevronDownIcon className="size-3.5" aria-hidden />
-            ) : (
-              <ChevronUpIcon className="size-3.5" aria-hidden />
-            )}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-label={collapsed ? t`Expand brief` : t`Collapse brief`}
+          aria-expanded={!collapsed}
+          className="ml-auto inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+        >
+          {collapsed ? (
+            <ChevronDownIcon className="size-3.5" aria-hidden />
+          ) : (
+            <ChevronUpIcon className="size-3.5" aria-hidden />
+          )}
+        </button>
       </div>
 
       {/* Body — the selected bucket's rows. No dividers: rows separate by space
@@ -189,22 +188,24 @@ export function MergedBriefCard({
             </p>
           ) : (
             shown.map((row) => (
-              <BriefRow key={row.obligationId} row={row} asOf={asOf} onOpen={onOpenObligation} />
+              <BriefRow
+                key={row.obligationId}
+                row={row}
+                asOf={asOf}
+                asOfDate={asOfDate}
+                onOpen={onOpenObligation}
+              />
             ))
           )}
 
-          <div className="mt-1 flex items-center justify-between gap-3 px-2">
+          {/* One link, one arrow — the "+N more" is a plain count, not a second
+              link to the same place (Yuqi: fewer arrows). */}
+          <div className="mt-1 flex items-center justify-end gap-2 px-2">
             {moreCount > 0 ? (
-              <Link
-                to="/deadlines"
-                className="inline-flex items-center gap-1 text-caption font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-              >
-                <Trans>View {moreCount} more</Trans>
-                <ArrowRightIcon className="size-2.5" aria-hidden />
-              </Link>
-            ) : (
-              <span />
-            )}
+              <span className="text-caption tabular-nums text-text-tertiary">
+                <Trans>+{moreCount} more</Trans>
+              </span>
+            ) : null}
             <Link
               to="/deadlines"
               className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
@@ -222,20 +223,16 @@ export function MergedBriefCard({
 function BriefRow({
   row,
   asOf,
+  asOfDate,
   onOpen,
 }: {
   row: DashboardTopRow
   asOf: Date
+  asOfDate: string | null
   onOpen: (obligationId: string) => void
 }) {
   const { t } = useLingui()
   const d = daysUntil(row.currentDueDate, asOf)
-  const dueText =
-    d < 0
-      ? t`past ${formatDatePretty(row.currentDueDate)}`
-      : d === 0
-        ? t`EOD`
-        : formatDatePretty(row.currentDueDate)
   // Action verb inline — the lingui `t` macro must stay in component scope;
   // passing it into a helper compiles fine (tsgo) but returns "" at runtime.
   const verb =
@@ -254,11 +251,11 @@ function BriefRow({
     <button
       type="button"
       onClick={() => onOpen(row.obligationId)}
-      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-background-section focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
+      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left outline-none transition-colors hover:bg-background-section focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
     >
       {/* Fixed-width form column so every client name + action starts at the
           same x — the name/action reads as one left-aligned column (Yuqi). */}
-      <span className="flex w-28 shrink-0 items-center">
+      <span className="flex w-24 shrink-0 items-center">
         <TaxCodeBadge code={row.taxType} />
       </span>
       {/* Client + the instruction/readiness sub-line, aligned together. */}
@@ -273,10 +270,23 @@ function BriefRow({
           />
         </span>
       </span>
-      <ObligationStatusReadBadge status={row.status} className="h-5 shrink-0 text-caption-xs" />
+      <span className="flex shrink-0 items-center gap-1.5">
+        <ObligationStatusReadBadge status={row.status} className="h-5 text-caption-xs" />
+        {row.status === 'extended' ? <ExtensionChip /> : null}
+      </span>
       <AssigneeAvatar name={row.assigneeName} title={row.assigneeName ?? t`Unassigned`} />
-      <span className="w-[84px] shrink-0 text-right text-caption tabular-nums text-text-secondary">
-        {dueText}
+      {/* Due — relative countdown (sized up) over the absolute date, matching
+          the queue's DueDateLabel + handling payment-late (Yuqi: was missing). */}
+      <span className="flex min-w-[80px] shrink-0 flex-col items-end gap-0.5">
+        <DueDateLabel
+          days={d}
+          status={row.status}
+          paymentDueDate={row.paymentDueDate}
+          asOfDate={asOfDate}
+        />
+        <span className="text-caption tabular-nums text-text-tertiary">
+          {formatDatePretty(row.currentDueDate)}
+        </span>
       </span>
     </button>
   )
