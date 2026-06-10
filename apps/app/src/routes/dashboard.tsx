@@ -3,7 +3,6 @@ import { useMemo, useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
-import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import { formatRelativeTime } from '@/lib/utils'
@@ -24,7 +23,6 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
-import { DashboardActionsList } from '@/features/dashboard/actions-list'
 import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
 // Import retained but commented out alongside the section mount.
 // Restore both when ChangesSinceLastSection is brought back.
@@ -128,7 +126,6 @@ function cleanEntityIdFilters(values: readonly string[]): string[] {
 
 export function DashboardRoute() {
   const { t } = useLingui()
-  const navigate = useNavigate()
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
   const canRunMigration = permission.can('migration.run')
@@ -386,82 +383,28 @@ export function DashboardRoute() {
           citations that deep-link each claim back to its obligation.
           `dashboard.load` already returns `brief`; the card renders
           null when none exists (feature-off firms). */}
-      {(() => {
-        // At scope='me' a missing brief means "the server just enqueued
-        // your personal brief" (no cron generates those) — render the
-        // card in its generating state instead of nothing, so the scope
-        // switch visibly answers. Firm scope: no brief row → no card.
-        const brief =
-          data?.brief ??
-          (scope === 'me' && data
-            ? ({
-                status: 'pending',
-                generatedAt: null,
-                expiresAt: null,
-                text: null,
-                citations: null,
-                aiOutputId: null,
-                errorCode: null,
-              } as const)
-            : null)
-        // 2026-06-10 (Yuqi "turn Daily brief into jXPZ9"): the brief is now the
-        // MergedBrief — counts + the deadline queue grouped by time/stage/owner,
-        // collapsible in place. No AI sentence to regenerate and no dismiss
-        // (collapse replaces it). Priority Actions stays below for comparison.
-        return (
-          <MergedBriefCard
-            scope={scope}
-            brief={brief}
-            counts={{
-              overdue: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
-              endingToday: facets?.dueBuckets.find((b) => b.value === 'today')?.count ?? 0,
-              thisWeek: facets?.dueBuckets.find((b) => b.value === 'next_7_days')?.count ?? 0,
-            }}
-            rows={data?.topRows ?? []}
-            asOfDate={data?.asOfDate ?? null}
-            onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
-          />
-        )
-      })()}
+      {/* Today's brief — the deadline queue itself, grouped by time, with the
+          count chips as the view selector (Pencil jXPZ9). One surface: it
+          replaces both the old AI brief and the Priority Actions table. */}
+      <MergedBriefCard
+        counts={{
+          overdue: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
+          endingToday: facets?.dueBuckets.find((b) => b.value === 'today')?.count ?? 0,
+          thisWeek: facets?.dueBuckets.find((b) => b.value === 'next_7_days')?.count ?? 0,
+        }}
+        rows={data?.topRows ?? []}
+        asOfDate={data?.asOfDate ?? null}
+        onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
+      />
 
       {/* No standalone "AT A GLANCE" tile row — the Daily Brief bar above
           carries the day's headline numbers, so a separate four-tile
           strip would duplicate that signal with extra chrome. */}
       <NeedsAttentionSection />
 
-      {/* The <ExposureStrip> summary lives inside <DashboardActionsList>
-          as its header rather than as a separate section — both render
-          "this week" scope, so two sections in a row would split the same
-          concept across redundant chrome. Counts pass through as props. */}
-      <section>
-        <DashboardActionsList
-          isLoading={dashboardQuery.isLoading}
-          asOfDate={data?.asOfDate ?? null}
-          // Today surfaces the next best work across open deadlines, not
-          // only items in the 7-day bucket. `topRows` is the server-ranked
-          // Smart Priority shortlist; the component keeps status grouping.
-          rows={data?.topRows ?? []}
-          totalOpen={data?.summary?.openObligationCount ?? 0}
-          scope={scope}
-          firmTotalOpen={data?.summary?.firmOpenObligationCount ?? 0}
-          onSwitchToEveryone={() => setScope('firm')}
-          needDecisionCount={data?.summary?.needsReviewCount ?? 0}
-          blockedCount={facets?.statuses.find((s) => s.value === 'blocked')?.count ?? 0}
-          waitingOnClientCount={
-            facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0
-          }
-          canRunMigration={canRunMigration}
-          hasClients={hasClients}
-          onOpenWizard={openWizard}
-          // Clicking an action navigates to the obligations queue with
-          // the right panel pre-opened for that obligation. The
-          // provider's openDrawer routes off-route callers to
-          // `/deadlines/<short-ref>` — dashboard is a
-          // picker, the queue is the workspace.
-          onOpenObligation={(row) => openObligationDrawer(row.obligationId)}
-          onOpenAllObligations={() => void navigate('/deadlines')}
-        />
-      </section>
+      {/* Priority Actions table removed 2026-06-10 (Yuqi "fully merged"): the
+          MergedBrief above is now the single deadline surface — its rows carry
+          the action verb + Docs readiness + status + owner + due the table did. */}
     </div>
   )
 }
