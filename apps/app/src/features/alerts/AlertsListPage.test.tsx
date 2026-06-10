@@ -348,7 +348,7 @@ describe('AlertsListPage source health display', () => {
 })
 
 describe('AlertsListPage work queue toggle', () => {
-  it('defaults to Active first and switches to Review-only alerts on request', async () => {
+  it('defaults to Review first and switches to Active alerts on request', async () => {
     const activeDetail = alertDetail()
     const reviewOnlyAlert = listAlert({
       id: '23232323-2323-4232-8232-232323232323',
@@ -369,21 +369,23 @@ describe('AlertsListPage work queue toggle', () => {
 
     await render(<AlertsListPage embedded />)
 
-    await waitForText('Seeded CA relief')
-    expect(document.body.textContent).not.toContain('Review-only source update')
+    // 2026-06-10 (Yuqi "review is more important than active"): Review leads the
+    // toggle and is the default queue.
+    await waitForText('Review-only source update')
+    expect(document.body.textContent).not.toContain('Seeded CA relief')
     const queueButtons = Array.from(
       document.querySelectorAll<HTMLButtonElement>('[aria-label="Alert work queue"] button'),
     )
-    expect(queueButtons[0]?.textContent).toContain('Active')
+    expect(queueButtons[0]?.textContent).toContain('Review')
     expect(queueButtons[0]?.getAttribute('aria-pressed')).toBe('true')
-    expect(queueButtons[1]?.textContent).toContain('Review')
+    expect(queueButtons[1]?.textContent).toContain('Active')
 
     await act(async () => {
       queueButtons[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
-    await waitForText('Review-only source update')
-    expect(document.body.textContent).not.toContain('Seeded CA relief')
+    await waitForText('Seeded CA relief')
+    expect(document.body.textContent).not.toContain('Review-only source update')
   })
 })
 

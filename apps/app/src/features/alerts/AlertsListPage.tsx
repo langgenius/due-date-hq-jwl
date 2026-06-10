@@ -223,9 +223,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   //     actionable work).
   //   • 'review' = `review_only` alerts (informational, just need a look).
   // Active-only affordance (history has its own handled-status filter).
-  // 2026-06-10: Active leads the toggle and is the default queue so the first
-  // screen prioritizes actionable due-date/client-impacting alerts.
-  const [workQueue, setWorkQueue] = useState<'active' | 'review'>('active')
+  // 2026-06-10 (Yuqi "review is more important than active"): Review leads the
+  // toggle AND is the default queue — reviewing pending changes is the higher-
+  // priority action; Active (apply due-date changes) follows.
+  const [workQueue, setWorkQueue] = useState<'active' | 'review'>('review')
 
   // 2026-06-07 (Pencil g5kKJQ — bulk selection): local selection set
   // of alert ids. Drives the per-row checkboxes, the BulkSelectStrip's
@@ -978,23 +979,23 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     onValueChange={setWorkQueue}
                     options={[
                       {
-                        value: 'active',
-                        label: (
-                          <span className="inline-flex items-center gap-1.5">
-                            <Trans>Active</Trans>
-                            <span className="tabular-nums text-text-tertiary">
-                              {workQueueCounts.active}
-                            </span>
-                          </span>
-                        ),
-                      },
-                      {
                         value: 'review',
                         label: (
                           <span className="inline-flex items-center gap-1.5">
                             <Trans>Review</Trans>
                             <span className="tabular-nums text-text-tertiary">
                               {workQueueCounts.review}
+                            </span>
+                          </span>
+                        ),
+                      },
+                      {
+                        value: 'active',
+                        label: (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Trans>Active</Trans>
+                            <span className="tabular-nums text-text-tertiary">
+                              {workQueueCounts.active}
                             </span>
                           </span>
                         ),
