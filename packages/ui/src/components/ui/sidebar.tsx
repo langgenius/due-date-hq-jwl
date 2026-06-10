@@ -659,6 +659,11 @@ const sidebarMenuButtonVariants = cva(
     // text-[15px]. Identical in both modes — collapsed re-centering is
     // gone (see below).
     'group/menu-button peer/menu-button relative flex h-9 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-lg px-[11px] text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
+    // 2026-06-09 (Yuqi "icons should be vertically center aligned" in the
+    // collapsed rail): center the lone icon on the rail's centerline.
+    // Drop the icon↔label gap and justify-center so the glyph isn't left-
+    // aligned at the item padding (which left it ~3px off-center).
+    'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0',
     // Hover uses the sidebar-row token (~10 units darker than the
     // #f6f8fa card) so the wash reads as a quiet step on the card;
     // selected state below uses the explicit accent tint so route

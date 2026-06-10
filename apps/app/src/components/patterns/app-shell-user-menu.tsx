@@ -230,6 +230,7 @@ function UserMenuTrigger({
               // name span hides, the avatar stays put and centers in the
               // narrow card via the symmetric padding.
               'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2.5 rounded-lg px-1.5 py-2.5 outline-none transition-[background-color,color]',
+              'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0',
               'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             )}
           />
