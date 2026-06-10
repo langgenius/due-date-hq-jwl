@@ -253,9 +253,12 @@ function BriefRow({
       <span className="flex w-28 shrink-0 items-center">
         <TaxCodeBadge code={row.taxType} />
       </span>
-      {/* Client + the instruction/readiness sub-line, aligned together. */}
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-sm font-medium text-text-primary">{row.clientName}</span>
+      {/* Client + the instruction/readiness sub-line. Capped width pulls the
+          status/owner/due cluster IN so the row isn't two islands with a dead
+          middle (Yuqi #3). Client name is the row anchor — bumped to semibold so
+          one thing is clearly primary (Yuqi #2). */}
+      <span className="flex min-w-0 max-w-[440px] flex-1 flex-col gap-0.5">
+        <span className="truncate text-sm font-semibold text-text-primary">{row.clientName}</span>
         <span className="flex min-w-0 items-center gap-1.5 text-caption text-text-tertiary">
           <span className="truncate">{verb}</span>
           {showReadiness ? (
@@ -276,7 +279,10 @@ function BriefRow({
           {row.status === 'extended' ? <ExtensionChip /> : null}
         </span>
         {paymentLate ? (
-          <span className="inline-flex items-center rounded bg-state-destructive-hover px-1.5 py-0.5 text-caption-xs font-medium text-text-destructive">
+          // Amber, not red: payment-late is a DIFFERENT obligation from the
+          // filing. Red is reserved for the filing lateness (the due column) so
+          // one red = one signal per row (Yuqi #1).
+          <span className="inline-flex items-center rounded bg-state-warning-hover px-1.5 py-0.5 text-caption-xs font-medium text-text-warning">
             <Trans>Pay {paymentLateDays}d late</Trans>
           </span>
         ) : null}
