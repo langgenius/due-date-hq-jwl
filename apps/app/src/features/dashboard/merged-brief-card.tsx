@@ -149,10 +149,18 @@ export function MergedBriefCard({
           </span>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          <CountPill count={counts.overdue} label={t`overdue`} tone="destructive" />
-          <CountPill count={counts.endingToday} label={t`ending today`} tone="neutral" />
-          <CountPill count={counts.thisWeek} label={t`this week`} tone="neutral" />
+        {/* Day summary, independent of the grouping lens. Zero counts are noise
+            — only render a pill that has something behind it. */}
+        <div className="flex flex-wrap items-center gap-1.5 empty:hidden">
+          {counts.overdue > 0 ? (
+            <CountPill count={counts.overdue} label={t`overdue`} tone="destructive" />
+          ) : null}
+          {counts.endingToday > 0 ? (
+            <CountPill count={counts.endingToday} label={t`ending today`} tone="neutral" />
+          ) : null}
+          {counts.thisWeek > 0 ? (
+            <CountPill count={counts.thisWeek} label={t`this week`} tone="neutral" />
+          ) : null}
         </div>
 
         <div className="ml-auto flex items-center gap-1.5">
@@ -207,6 +215,10 @@ export function MergedBriefCard({
                   // In "By stage" the group header IS the status, so the per-row
                   // status pill would be redundant — hide it there only.
                   showStatus={mode !== 'stage'}
+                  // In "By time" the group keys == the header count pills, so a
+                  // per-group badge would just repeat them — show it only when the
+                  // grouping differs from the pills (stage/owner).
+                  showCount={mode !== 'time'}
                 />
               ))
             )}
@@ -268,6 +280,7 @@ function GroupCard({
   asOf,
   onOpenObligation,
   showStatus,
+  showCount,
 }: {
   label: string
   tone: 'destructive' | 'warning' | 'neutral'
@@ -278,6 +291,7 @@ function GroupCard({
   asOf: Date
   onOpenObligation: (obligationId: string) => void
   showStatus: boolean
+  showCount: boolean
 }) {
   const eyebrowTone =
     tone === 'destructive'
@@ -293,21 +307,23 @@ function GroupCard({
         : 'bg-background-section text-text-secondary'
   return (
     // Flat section — NOT a bordered box. The brief card is the only frame; each
-    // group is delineated by its colored eyebrow + count badge and the outer
-    // gap, so there are no frames-within-frames (Yuqi).
+    // group is delineated by its colored eyebrow (plus a count badge only when
+    // the grouping differs from the header pills), so there are no frames-in-frames.
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2 border-b border-divider-subtle px-1 pb-1.5">
         <span className={cn('text-caption-xs font-semibold tracking-wider uppercase', eyebrowTone)}>
           {label}
         </span>
-        <span
-          className={cn(
-            'inline-flex min-w-[18px] items-center justify-center rounded-full px-1.5 text-caption-xs font-semibold tabular-nums',
-            badgeTone,
-          )}
-        >
-          {total}
-        </span>
+        {showCount ? (
+          <span
+            className={cn(
+              'inline-flex min-w-[18px] items-center justify-center rounded-full px-1.5 text-caption-xs font-semibold tabular-nums',
+              badgeTone,
+            )}
+          >
+            {total}
+          </span>
+        ) : null}
       </div>
       {rows.map((row) => (
         <BriefDeadlineRow
