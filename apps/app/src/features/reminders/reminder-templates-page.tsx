@@ -51,7 +51,7 @@ export function ReminderTemplatesPage() {
       <PageHeader
         breadcrumbs={[
           { label: t`Settings`, to: '/settings' },
-          { label: t`Reminders`, to: '/reminders' },
+          { label: t`Email Template`, to: '/reminders' },
           { label: t`Templates` },
         ]}
         title={<Trans>Reminder templates</Trans>}

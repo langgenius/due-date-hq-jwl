@@ -1,20 +1,7 @@
-import { useState, type ReactNode } from 'react'
-import { Link } from 'react-router'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import {
-  AlarmClockIcon,
-  BellIcon,
-  CheckCircle2Icon,
-  ClockIcon,
-  Edit3Icon,
-  Loader2,
-  MailWarningIcon,
-  PauseCircleIcon,
-  SendIcon,
-  TriangleAlertIcon,
-  type LucideIcon,
-} from 'lucide-react'
+import { Edit3Icon, Loader2, PauseCircleIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -22,9 +9,7 @@ import type {
   ReminderRecentSend,
   ReminderRecipientKind,
   ReminderTemplatePublic,
-  ReminderUpcomingItem,
 } from '@duedatehq/contracts'
-import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -58,9 +43,9 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatDate } from '@/lib/utils'
 import { RelativeTime } from '@/components/primitives/relative-time'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
@@ -98,12 +83,6 @@ function statusBadge(status: ReminderDeliveryStatus) {
 
 function recipientLabel(kind: ReminderRecipientKind) {
   return kind === 'client' ? <Trans>Client</Trans> : <Trans>Team</Trans>
-}
-
-function offsetLabel(offsetDays: number) {
-  if (offsetDays === 0) return <Trans>Overdue</Trans>
-  if (offsetDays === 1) return <Trans>1 day before</Trans>
-  return <Trans>{offsetDays} days before</Trans>
 }
 
 function templateListDescription(template: ReminderTemplatePublic) {
@@ -151,156 +130,31 @@ function templateDialogDescription(template: ReminderTemplatePublic) {
   )
 }
 
-function StatTile({
-  icon: Icon,
-  label,
-  value,
-  caption,
-  tone = 'neutral',
-}: {
-  icon: LucideIcon
-  label: ReactNode
-  value: number
-  caption: ReactNode
-  // `critical` reserves destructive color for genuinely-stuck magnitudes
-  // (failed sends) per DESIGN.md §7 — never default to it.
-  tone?: 'neutral' | 'critical'
-}) {
-  return (
-    <Card>
-      <CardContent className="flex items-start justify-between gap-3 p-4">
-        <div className="grid gap-1">
-          <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
-            {label}
-          </span>
-          <span
-            className={`text-2xl leading-none font-semibold tabular-nums ${
-              tone === 'critical' ? 'text-text-destructive' : 'text-text-primary'
-            }`}
-          >
-            {value}
-          </span>
-          <span className="text-xs text-text-tertiary">{caption}</span>
-        </div>
-        <span className="rounded-lg bg-background-subtle p-2 text-text-secondary">
-          <Icon className="size-4" aria-hidden />
-        </span>
-      </CardContent>
-    </Card>
-  )
-}
-
 export function RemindersPage() {
   const { t } = useLingui()
   const [editingTemplate, setEditingTemplate] = useState<ReminderTemplatePublic | null>(null)
-  const overviewQuery = useQuery(orpc.reminders.overview.queryOptions({ input: undefined }))
   const templatesQuery = useQuery(orpc.reminders.listTemplates.queryOptions({ input: undefined }))
-  const upcomingQuery = useQuery(orpc.reminders.listUpcoming.queryOptions({ input: { limit: 30 } }))
   const recentQuery = useQuery(
     orpc.reminders.listRecentSends.queryOptions({ input: { limit: 20 } }),
   )
-  const suppressionsQuery = useQuery(
-    orpc.reminders.listSuppressions.queryOptions({ input: { limit: 12 } }),
-  )
-
-  const overview = overviewQuery.data
-  const timezone = overview?.practiceTimezone ?? 'America/New_York'
+  const timezone = usePracticeTimezone()
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <PageHeader
-        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Reminders` }]}
-        title={<Trans>Reminders</Trans>}
-        actions={
-          <Button
-            render={<Link to="/notifications" />}
-            nativeButton={false}
-            variant="outline"
-            size="sm"
-          >
-            <BellIcon data-icon="inline-start" />
-            <Trans>Personal inbox</Trans>
-          </Button>
-        }
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Email Template` }]}
+        title={<Trans>Email Template</Trans>}
       />
 
-      {overviewQuery.isError ? (
-        /* 2026-05-27 (step-6 cross-section #147): converted from
-           Card-as-error chrome to canonical Alert variant="destructive"
-           so the error rhythm matches /notifications, /workload,
-           /opportunities, /audit — every other shipped page in this
-           batch carries the same shape. */
-        <Alert variant="destructive">
-          <AlertTitle>
-            <Trans>Couldn't load reminder overview</Trans>
-          </AlertTitle>
-          <AlertDescription>
-            {rpcErrorMessage(overviewQuery.error) ??
-              t`Check your network and try again. If this keeps happening, contact support.`}
-          </AlertDescription>
-        </Alert>
-      ) : null}
-
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <StatTile
-          icon={CheckCircle2Icon}
-          label={<Trans>Active templates</Trans>}
-          value={overview?.activeTemplateCount ?? 0}
-          caption={<Trans>Practice-level delivery copy</Trans>}
+      <div className="grid gap-4">
+        <TemplatesPanel
+          templates={templatesQuery.data ?? []}
+          loading={templatesQuery.isLoading}
+          onEdit={setEditingTemplate}
         />
-        <StatTile
-          icon={AlarmClockIcon}
-          label={<Trans>Upcoming</Trans>}
-          value={overview?.upcomingCount ?? 0}
-          caption={<Trans>30 / 7 days and overdue</Trans>}
-        />
-        <StatTile
-          icon={ClockIcon}
-          label={<Trans>Queued today</Trans>}
-          value={overview?.queuedTodayCount ?? 0}
-          caption={<Trans>Scheduled to send today</Trans>}
-        />
-        <StatTile
-          icon={SendIcon}
-          label={<Trans>Sent last 7 days</Trans>}
-          value={overview?.sentLast7DaysCount ?? 0}
-          caption={<Trans>Outbox-confirmed sends</Trans>}
-        />
-        <StatTile
-          icon={TriangleAlertIcon}
-          label={<Trans>Failed last 7 days</Trans>}
-          value={overview?.failedLast7DaysCount ?? 0}
-          caption={<Trans>Bounced or rejected sends</Trans>}
-          tone={(overview?.failedLast7DaysCount ?? 0) > 0 ? 'critical' : 'neutral'}
-        />
-        <StatTile
-          icon={MailWarningIcon}
-          label={<Trans>Suppressed</Trans>}
-          value={overview?.suppressedEmailCount ?? 0}
-          caption={<Trans>Client email opt-outs</Trans>}
-        />
-      </section>
-
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="grid gap-4">
-          <TemplatesPanel
-            templates={templatesQuery.data ?? []}
-            loading={templatesQuery.isLoading}
-            onEdit={setEditingTemplate}
-          />
-          <UpcomingPanel
-            reminders={upcomingQuery.data?.reminders ?? []}
-            loading={upcomingQuery.isLoading}
-          />
-          <RecentSendsPanel
-            reminders={recentQuery.data?.reminders ?? []}
-            loading={recentQuery.isLoading}
-            timezone={timezone}
-          />
-        </div>
-        <SuppressionsPanel
-          suppressions={suppressionsQuery.data?.suppressions ?? []}
-          loading={suppressionsQuery.isLoading}
+        <RecentSendsPanel
+          reminders={recentQuery.data?.reminders ?? []}
+          loading={recentQuery.isLoading}
           timezone={timezone}
         />
       </div>
@@ -410,82 +264,6 @@ function TemplatesPanel({
   )
 }
 
-function UpcomingPanel({
-  reminders,
-  loading,
-}: {
-  reminders: ReminderUpcomingItem[]
-  loading: boolean
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <Trans>Upcoming schedule</Trans>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="grid gap-2" aria-busy="true">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : reminders.length === 0 ? (
-          <EmptyState
-            title={<Trans>No upcoming reminders match the current 30 / 7-day windows.</Trans>}
-          />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  <Trans>Client</Trans>
-                </TableHead>
-                <TableHead>
-                  <Trans>Recipient</Trans>
-                </TableHead>
-                <TableHead>
-                  <Trans>Window</Trans>
-                </TableHead>
-                <TableHead>
-                  <Trans>Due</Trans>
-                </TableHead>
-                <TableHead>
-                  <Trans>Status</Trans>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
-              {reminders.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <div className="grid gap-1 whitespace-normal">
-                      <Link
-                        to={`/deadlines?obligation=${item.obligationId}`}
-                        className="font-medium text-text-primary hover:underline"
-                      >
-                        {item.clientName}
-                      </Link>
-                      <span className="text-xs text-text-tertiary">
-                        <TaxCodeLabel code={item.taxType} />
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{recipientLabel(item.recipientKind)}</TableCell>
-                  <TableCell>{offsetLabel(item.offsetDays)}</TableCell>
-                  <TableCell className="tabular-nums">{formatDate(item.dueDate)}</TableCell>
-                  <TableCell>{statusBadge(item.deliveryStatus)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
 function RecentSendsPanel({
   reminders,
   loading,
@@ -568,61 +346,6 @@ function RecentSendsPanel({
               ))}
             </TableBody>
           </Table>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-function SuppressionsPanel({
-  suppressions,
-  loading,
-  timezone,
-}: {
-  suppressions: Array<{ id: string; email: string; reason: string; createdAt: string }>
-  loading: boolean
-  timezone: string
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <Trans>Client suppressions</Trans>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-3">
-        {loading ? (
-          <div className="grid gap-2" aria-busy="true">
-            <Skeleton className="h-14 w-full" />
-            <Skeleton className="h-14 w-full" />
-          </div>
-        ) : suppressions.length === 0 ? (
-          <EmptyState title={<Trans>No client emails are suppressed.</Trans>} />
-        ) : (
-          suppressions.map((item) => (
-            // 2026-06-01: hand-rolled <article> rounded-lg border swapped
-            // for Card size="xs" radius="md" — same dense in-page chrome
-            // PulseDetailDrawer / AlertsListPage use. Card primitive
-            // owns the border + radius + padding rhythm.
-            <Card key={item.id} size="xs" radius="md">
-              <CardContent className="grid gap-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="min-w-0 truncate text-sm font-medium text-text-primary">
-                    {item.email}
-                  </span>
-                  <Badge variant="secondary">{item.reason}</Badge>
-                </div>
-                {/* 2026-05-24 (critique /polish): suppression timestamp
-                    becomes RelativeTime, consistent with Inbox + Members.
-                    Hover still surfaces the precise ISO. */}
-                <RelativeTime
-                  value={item.createdAt}
-                  timeZone={timezone}
-                  className="text-xs text-text-tertiary"
-                />
-              </CardContent>
-            </Card>
-          ))
         )}
       </CardContent>
     </Card>

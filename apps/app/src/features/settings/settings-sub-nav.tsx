@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router'
 import { useLingui } from '@lingui/react/macro'
 import {
-  AlarmClockIcon,
   BellIcon,
   Building2Icon,
   CalendarDaysIcon,
   ClipboardListIcon,
   CreditCardIcon,
+  MailIcon,
   ShieldCheckIcon,
   UserRoundIcon,
   UsersIcon,
@@ -41,7 +41,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *   Team / Members → /members
  *   Workload       → /workload
  *   Billing        → /billing
- *   Reminders      → /reminders
+ *   Email Template → /reminders
  *   Notifications  → /notifications/preferences
  *   Calendar sync  → /deadlines/calendar
  *
@@ -132,9 +132,9 @@ export function useSettingsNavSections(): SettingsNavSection[] {
       items: [
         {
           to: '/reminders',
-          label: t`Reminders`,
-          description: t`Outbound deadline reminders to clients and team.`,
-          Icon: AlarmClockIcon,
+          label: t`Email Template`,
+          description: t`Reminder email templates and recent delivery.`,
+          Icon: MailIcon,
         },
         {
           to: '/notifications/preferences',

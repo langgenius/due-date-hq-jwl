@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
-  AlarmClockIcon,
   BellIcon,
   Building2Icon,
   CalendarDaysIcon,
@@ -15,6 +14,7 @@ import {
   HourglassIcon,
   LayoutDashboardIcon,
   LibraryIcon,
+  MailIcon,
   MapIcon,
   RssIcon,
   ScaleIcon,
@@ -152,11 +152,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       },
       {
         id: 'reminders',
-        label: t`Reminders`,
-        description: t`Manage deadline reminder templates and delivery status.`,
+        label: t`Email Template`,
+        description: t`Manage reminder email templates and recent delivery.`,
         scope: 'deadlines',
         group: 'navigate',
-        icon: AlarmClockIcon,
+        icon: MailIcon,
         onSelect: () => navigate('/reminders'),
       },
       {

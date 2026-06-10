@@ -1063,10 +1063,6 @@ msgstr "{needsReview, plural, =0 {0 need review} one {# needs review} other {# n
 msgid "{nextYear} rule catalog expected around {expectedLabel}"
 msgstr "{nextYear} rule catalog expected around {expectedLabel}"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "{offsetDays} days before"
-msgstr "{offsetDays} days before"
-
 #: src/routes/rules.library.tsx
 msgid "{ok} rejected · {failed} failed"
 msgstr "{ok} rejected · {failed} failed"
@@ -1439,10 +1435,6 @@ msgstr "1 active practice"
 msgid "1 client may be affected"
 msgstr "1 client may be affected"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "1 day before"
-msgstr "1 day before"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "1 filed or completed deadline for this client"
 msgstr "1 filed or completed deadline for this client"
@@ -1507,10 +1499,6 @@ msgstr "24h"
 #: src/routes/billing.tsx
 msgid "3 seats included"
 msgstr "3 seats included"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "30 / 7 days and overdue"
-msgstr "30 / 7 days and overdue"
 
 #: src/routes/billing.tsx
 msgid "30-day alert history"
@@ -1870,10 +1858,6 @@ msgstr "Active sessions"
 #: src/routes/obligations.tsx
 msgid "Active stage detail"
 msgstr "Active stage detail"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Active templates"
-msgstr "Active templates"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/rules/rule-detail-drawer.tsx
@@ -3374,10 +3358,6 @@ msgstr "Body"
 msgid "Bold"
 msgstr "Bold"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Bounced or rejected sends"
-msgstr "Bounced or rejected sends"
-
 #: src/features/alerts/MorningSweepDialog.tsx
 msgid "Brewing your briefing…"
 msgstr "Brewing your briefing…"
@@ -4049,10 +4029,6 @@ msgstr "Client details updated"
 msgid "Client email draft copied"
 msgstr "Client email draft copied"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Client email opt-outs"
-msgstr "Client email opt-outs"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "CLIENT FILTER"
 msgstr "CLIENT FILTER"
@@ -4167,10 +4143,6 @@ msgstr "Client submitted materials"
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Client summary"
 msgstr "Client summary"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Client suppressions"
-msgstr "Client suppressions"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Client unsubscribed"
@@ -4853,10 +4825,6 @@ msgstr "Couldn't load import history"
 #: src/features/notifications/notifications-page.tsx
 msgid "Couldn't load notifications"
 msgstr "Couldn't load notifications"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Couldn't load reminder overview"
-msgstr "Couldn't load reminder overview"
 
 #: src/features/reminders/reminder-templates-page.tsx
 msgid "Couldn't load reminder templates"
@@ -6116,7 +6084,6 @@ msgid "Dry run"
 msgstr "Dry run"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-#: src/features/reminders/reminders-page.tsx
 #: src/routes/obligations.tsx
 msgid "Due"
 msgstr "Due"
@@ -6320,8 +6287,8 @@ msgstr "Edit reminder template"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
-msgid "Edit template in Reminders"
-msgstr "Edit template in Reminders"
+msgid "Edit template in Email Template settings"
+msgstr "Edit template in Email Template settings"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -6418,6 +6385,14 @@ msgstr "Email selected clients a Form 8879 signature reminder"
 #: src/features/rules/sources-tab.tsx
 msgid "Email signal"
 msgstr "Email signal"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/reminders/reminder-templates-page.tsx
+#: src/features/reminders/reminders-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
+#: src/routes/route-summary.ts
+msgid "Email Template"
+msgstr "Email Template"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Email unsubscribe"
@@ -7036,10 +7011,6 @@ msgstr "Failed"
 #: src/features/rules/sources-tab.tsx
 msgid "Failed fetches"
 msgstr "Failed fetches"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Failed last 7 days"
-msgstr "Failed last 7 days"
 
 #: src/routes/billing.tsx
 msgid "Fair-use AI"
@@ -8832,10 +8803,6 @@ msgid "Manage client facts and materials."
 msgstr "Manage client facts and materials."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Manage deadline reminder templates and delivery status."
-msgstr "Manage deadline reminder templates and delivery status."
-
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Manage external deadline calendar feeds."
 msgstr "Manage external deadline calendar feeds."
 
@@ -8846,6 +8813,10 @@ msgstr "Manage in Materials →"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Manage practice seats, roles, and invitations."
 msgstr "Manage practice seats, roles, and invitations."
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Manage reminder email templates and recent delivery."
+msgstr "Manage reminder email templates and recent delivery."
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -9968,10 +9939,6 @@ msgstr "No client email"
 msgid "No client email on file"
 msgstr "No client email on file"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "No client emails are suppressed."
-msgstr "No client emails are suppressed."
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 msgid "No clients"
@@ -10410,10 +10377,6 @@ msgstr "No timezone found."
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No upcoming deadline"
 msgstr "No upcoming deadline"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "No upcoming reminders match the current 30 / 7-day windows."
-msgstr "No upcoming reminders match the current 30 / 7-day windows."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "No user-facing field change was recorded."
@@ -11201,14 +11164,6 @@ msgstr "Other changes"
 msgid "Other sessions revoked"
 msgstr "Other sessions revoked"
 
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Outbound deadline reminders to clients and team."
-msgstr "Outbound deadline reminders to clients and team."
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Outbox-confirmed sends"
-msgstr "Outbox-confirmed sends"
-
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Outdated"
 msgstr "Outdated"
@@ -11237,7 +11192,6 @@ msgid "Over your client limit"
 msgstr "Over your client limit"
 
 #: src/features/notifications/notifications-page.tsx
-#: src/features/reminders/reminders-page.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
 msgid "Overdue"
@@ -11726,10 +11680,6 @@ msgstr "Permissions"
 msgid "Personal details, security, and how the product looks for you."
 msgstr "Personal details, security, and how the product looks for you."
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Personal inbox"
-msgstr "Personal inbox"
-
 #: src/routes/settings.profile.tsx
 msgid "Personal info"
 msgstr "Personal info"
@@ -11949,10 +11899,6 @@ msgstr "Practice updated"
 #: src/routes/billing.tsx
 msgid "Practice workspaces"
 msgstr "Practice workspaces"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Practice-level delivery copy"
-msgstr "Practice-level delivery copy"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Practice-managed reminder template."
@@ -12301,10 +12247,6 @@ msgstr "Queue clear"
 #: src/features/reminders/reminders-page.tsx
 msgid "Queued"
 msgstr "Queued"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Queued today"
-msgstr "Queued today"
 
 #: src/routes/obligations.tsx
 msgid "Quick filters"
@@ -12815,6 +12757,10 @@ msgstr "Reminder bounced"
 msgid "Reminder couldn't be sent"
 msgstr "Reminder couldn't be sent"
 
+#: src/features/settings/settings-sub-nav.tsx
+msgid "Reminder email templates and recent delivery."
+msgstr "Reminder email templates and recent delivery."
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Reminder opened"
 msgstr "Reminder opened"
@@ -12856,12 +12802,7 @@ msgstr "Reminder templates"
 msgid "Reminder-ready"
 msgstr "Reminder-ready"
 
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/reminders/reminder-templates-page.tsx
-#: src/features/reminders/reminders-page.tsx
-#: src/features/settings/settings-sub-nav.tsx
-#: src/routes/route-summary.ts
 msgid "Reminders"
 msgstr "Reminders"
 
@@ -13303,8 +13244,8 @@ msgstr "Review the active practice plan, open billing controls, and choose the r
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
-msgid "Review the email generated from the Reminders template before creating the client materials link."
-msgstr "Review the email generated from the Reminders template before creating the client materials link."
+msgid "Review the email generated from the email template before creating the client materials link."
+msgstr "Review the email generated from the email template before creating the client materials link."
 
 #: src/routes/billing.checkout.tsx
 msgid "Review the practice subscription before opening secure checkout."
@@ -13971,10 +13912,6 @@ msgstr "Schedule the payment with the authority"
 msgid "Scheduled"
 msgstr "Scheduled"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Scheduled to send today"
-msgstr "Scheduled to send today"
-
 #: src/features/members/members-page.tsx
 msgid "Schedules work and handles client intake — no preparation rights."
 msgstr "Schedules work and handles client intake — no preparation rights."
@@ -14406,10 +14343,6 @@ msgstr "Sent {0}"
 #: src/routes/obligations.tsx
 msgid "Sent {checklistCount} items — awaiting client response."
 msgstr "Sent {checklistCount} items — awaiting client response."
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Sent last 7 days"
-msgstr "Sent last 7 days"
 
 #. placeholder {0}: latestRequest.recipientEmail ?? t`client`
 #. placeholder {1}: formatDatePretty(latestRequest.expiresAt.slice(0, 10))
@@ -15271,10 +15204,6 @@ msgstr "Superseded"
 msgid "supported"
 msgstr "supported"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Suppressed"
-msgstr "Suppressed"
-
 #: src/features/rules/sources-tab.tsx
 msgid "Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed."
 msgstr "Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed."
@@ -15805,8 +15734,8 @@ msgstr "The tax form or deadline type carried forward from the source-year seed 
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
-msgid "The template is paused in Reminders, so no email will be queued."
-msgstr "The template is paused in Reminders, so no email will be queued."
+msgid "The template is paused in Email Template settings, so no email will be queued."
+msgstr "The template is paused in Email Template settings, so no email will be queued."
 
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "The week ahead is clear"
@@ -16489,7 +16418,6 @@ msgid "Up to 300 clients"
 msgstr "Up to 300 clients"
 
 #: src/features/dashboard/severity-section.tsx
-#: src/features/reminders/reminders-page.tsx
 #: src/routes/obligations.tsx
 msgid "Upcoming"
 msgstr "Upcoming"
@@ -16497,10 +16425,6 @@ msgstr "Upcoming"
 #: src/features/migration/SuccessModal.tsx
 msgid "upcoming · 30 days"
 msgstr "upcoming · 30 days"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Upcoming schedule"
-msgstr "Upcoming schedule"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Update the active practice's name and timezone."
@@ -17175,10 +17099,6 @@ msgstr "Will remove"
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Will update"
 msgstr "Will update"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Window"
-msgstr "Window"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "with reason"

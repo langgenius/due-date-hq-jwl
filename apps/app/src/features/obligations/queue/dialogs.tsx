@@ -891,7 +891,7 @@ export function MaterialsRequestPreviewDialog({
           </DialogTitle>
           <DialogDescription>
             <Trans>
-              Review the email generated from the Reminders template before creating the client
+              Review the email generated from the email template before creating the client
               materials link.
             </Trans>
           </DialogDescription>
@@ -926,7 +926,8 @@ export function MaterialsRequestPreviewDialog({
                   <p className="text-xs text-text-tertiary">
                     {preview.recipientEmail && !preview.templateActive ? (
                       <Trans>
-                        The template is paused in Reminders, so no email will be queued.
+                        The template is paused in Email Template settings, so no email will be
+                        queued.
                       </Trans>
                     ) : (
                       <Trans>
@@ -972,7 +973,7 @@ export function MaterialsRequestPreviewDialog({
         <DialogFooter className="border-t border-divider-subtle px-6 py-4">
           <Button variant="outline" render={<Link to="/reminders" />}>
             <ExternalLinkIcon data-icon="inline-start" />
-            <Trans>Edit template in Reminders</Trans>
+            <Trans>Edit template in Email Template settings</Trans>
           </Button>
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
             <Trans>Cancel</Trans>

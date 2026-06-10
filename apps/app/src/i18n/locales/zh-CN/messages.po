@@ -1073,10 +1073,6 @@ msgstr "{0, plural, other {# 项待审核}}"
 msgid "{nextYear} rule catalog expected around {expectedLabel}"
 msgstr "{nextYear} 规则目录预计于 {expectedLabel} 前后发布"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "{offsetDays} days before"
-msgstr "提前 {offsetDays} 天"
-
 #: src/routes/rules.library.tsx
 msgid "{ok} rejected · {failed} failed"
 msgstr "已拒绝 {ok} 条 · {failed} 条失败"
@@ -1456,10 +1452,6 @@ msgstr "1 个活跃事务所"
 msgid "1 client may be affected"
 msgstr "1 个客户可能受影响"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "1 day before"
-msgstr "提前 1 天"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "1 filed or completed deadline for this client"
 msgstr "该客户已有 1 个已申报或已完成的截止事项"
@@ -1524,10 +1516,6 @@ msgstr "24 小时制"
 #: src/routes/billing.tsx
 msgid "3 seats included"
 msgstr "包含 3 个席位"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "30 / 7 days and overdue"
-msgstr "30 / 7 天和逾期"
 
 #: src/routes/billing.tsx
 msgid "30-day alert history"
@@ -1891,10 +1879,6 @@ msgstr "活跃会话"
 #: src/routes/obligations.tsx
 msgid "Active stage detail"
 msgstr "当前阶段详情"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Active templates"
-msgstr "启用模板"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/rules/rule-detail-drawer.tsx
@@ -3400,10 +3384,6 @@ msgstr "正文"
 msgid "Bold"
 msgstr "加粗"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Bounced or rejected sends"
-msgstr "退信或被拒发送"
-
 #: src/features/alerts/MorningSweepDialog.tsx
 msgid "Brewing your briefing…"
 msgstr "正在生成简报…"
@@ -4079,10 +4059,6 @@ msgstr "客户信息已更新"
 msgid "Client email draft copied"
 msgstr "客户邮件草稿已复制"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Client email opt-outs"
-msgstr "客户邮件退订"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "CLIENT FILTER"
 msgstr "客户筛选"
@@ -4198,10 +4174,6 @@ msgstr "客户已提交资料"
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Client summary"
 msgstr "客户摘要"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Client suppressions"
-msgstr "客户抑制列表"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Client unsubscribed"
@@ -4888,10 +4860,6 @@ msgstr "无法加载导入历史"
 #: src/features/notifications/notifications-page.tsx
 msgid "Couldn't load notifications"
 msgstr "无法加载通知"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Couldn't load reminder overview"
-msgstr "无法加载提醒概览"
 
 #: src/features/reminders/reminder-templates-page.tsx
 msgid "Couldn't load reminder templates"
@@ -6155,7 +6123,6 @@ msgid "Dry run"
 msgstr "试运行"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-#: src/features/reminders/reminders-page.tsx
 #: src/routes/obligations.tsx
 msgid "Due"
 msgstr "到期日"
@@ -6359,8 +6326,8 @@ msgstr "编辑提醒模板"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
-msgid "Edit template in Reminders"
-msgstr "在 Reminders 中编辑模板"
+msgid "Edit template in Email Template settings"
+msgstr "在邮件模板设置中编辑模板"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -6457,6 +6424,14 @@ msgstr "向所选客户发送 Form 8879 签字提醒邮件"
 #: src/features/rules/sources-tab.tsx
 msgid "Email signal"
 msgstr "邮件信号"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/reminders/reminder-templates-page.tsx
+#: src/features/reminders/reminders-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
+#: src/routes/route-summary.ts
+msgid "Email Template"
+msgstr "邮件模板"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Email unsubscribe"
@@ -7077,10 +7052,6 @@ msgstr "失败"
 #: src/features/rules/sources-tab.tsx
 msgid "Failed fetches"
 msgstr "抓取失败"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Failed last 7 days"
-msgstr "过去 7 天失败"
 
 #: src/routes/billing.tsx
 msgid "Fair-use AI"
@@ -8885,10 +8856,6 @@ msgid "Manage client facts and materials."
 msgstr "管理客户事实和材料。"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Manage deadline reminder templates and delivery status."
-msgstr "管理截止日提醒模板和投递状态。"
-
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Manage external deadline calendar feeds."
 msgstr "管理外部截止日日历订阅源。"
 
@@ -8899,6 +8866,10 @@ msgstr "在材料中管理 →"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Manage practice seats, roles, and invitations."
 msgstr "管理事务所席位、角色和邀请。"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Manage reminder email templates and recent delivery."
+msgstr "管理提醒邮件模板与最近投递。"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -10027,10 +9998,6 @@ msgstr "没有客户邮箱"
 msgid "No client email on file"
 msgstr "未登记客户邮箱"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "No client emails are suppressed."
-msgstr "没有被抑制的客户邮箱。"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 msgid "No clients"
@@ -10474,10 +10441,6 @@ msgstr "未找到时区。"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No upcoming deadline"
 msgstr "暂无即将到来的截止日期"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "No upcoming reminders match the current 30 / 7-day windows."
-msgstr "当前没有匹配 30 / 7 天窗口的即将触发提醒。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "No user-facing field change was recorded."
@@ -11271,14 +11234,6 @@ msgstr "其他变更"
 msgid "Other sessions revoked"
 msgstr "其他会话已撤销"
 
-#: src/features/settings/settings-sub-nav.tsx
-msgid "Outbound deadline reminders to clients and team."
-msgstr "向客户与团队发送的到期提醒。"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Outbox-confirmed sends"
-msgstr "Outbox 已确认发送"
-
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Outdated"
 msgstr "已过时"
@@ -11307,7 +11262,6 @@ msgid "Over your client limit"
 msgstr "已超出客户数上限"
 
 #: src/features/notifications/notifications-page.tsx
-#: src/features/reminders/reminders-page.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
 msgid "Overdue"
@@ -11804,10 +11758,6 @@ msgstr "权限"
 msgid "Personal details, security, and how the product looks for you."
 msgstr "个人详细信息、安全性，以及产品对您的呈现方式。"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Personal inbox"
-msgstr "个人收件箱"
-
 #: src/routes/settings.profile.tsx
 msgid "Personal info"
 msgstr "个人信息"
@@ -12031,10 +11981,6 @@ msgstr "事务所已更新"
 #: src/routes/billing.tsx
 msgid "Practice workspaces"
 msgstr "事务所工作区"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Practice-level delivery copy"
-msgstr "事务所级投递文案"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Practice-managed reminder template."
@@ -12385,10 +12331,6 @@ msgstr "队列已清空"
 #: src/features/reminders/reminders-page.tsx
 msgid "Queued"
 msgstr "已入队"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Queued today"
-msgstr "今日已排队"
 
 #: src/routes/obligations.tsx
 msgid "Quick filters"
@@ -12901,6 +12843,10 @@ msgstr "提醒被退回"
 msgid "Reminder couldn't be sent"
 msgstr "提醒无法发送"
 
+#: src/features/settings/settings-sub-nav.tsx
+msgid "Reminder email templates and recent delivery."
+msgstr "提醒邮件模板与最近投递。"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Reminder opened"
 msgstr "提醒已打开"
@@ -12942,12 +12888,7 @@ msgstr "提醒模板"
 msgid "Reminder-ready"
 msgstr "提醒就绪"
 
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/reminders/reminder-templates-page.tsx
-#: src/features/reminders/reminders-page.tsx
-#: src/features/settings/settings-sub-nav.tsx
-#: src/routes/route-summary.ts
 msgid "Reminders"
 msgstr "提醒"
 
@@ -13390,8 +13331,8 @@ msgstr "查看当前事务所计划，打开账单控制，并选择合适的工
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
-msgid "Review the email generated from the Reminders template before creating the client materials link."
-msgstr "创建客户材料链接前，先查看由 Reminders 模板生成的邮件。"
+msgid "Review the email generated from the email template before creating the client materials link."
+msgstr "创建客户材料链接前，先查看由邮件模板生成的邮件。"
 
 #: src/routes/billing.checkout.tsx
 msgid "Review the practice subscription before opening secure checkout."
@@ -14061,10 +14002,6 @@ msgstr "向税务机关安排付款"
 msgid "Scheduled"
 msgstr "已排程"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Scheduled to send today"
-msgstr "今日计划发送"
-
 #: src/features/members/members-page.tsx
 msgid "Schedules work and handles client intake — no preparation rights."
 msgstr "Schedules work and handles client intake — no preparation rights."
@@ -14499,10 +14436,6 @@ msgstr "已发送 {0}"
 #: src/routes/obligations.tsx
 msgid "Sent {checklistCount} items — awaiting client response."
 msgstr "已发送 {checklistCount} 项 — 等待客户回复。"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Sent last 7 days"
-msgstr "近 7 天已发送"
 
 #. placeholder {0}: latestRequest.recipientEmail ?? t`client`
 #. placeholder {1}: formatDatePretty(latestRequest.expiresAt.slice(0, 10))
@@ -15365,10 +15298,6 @@ msgstr "已被取代"
 msgid "supported"
 msgstr "已支持"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Suppressed"
-msgstr "已抑制"
-
 #: src/features/rules/sources-tab.tsx
 msgid "Surface still-open protective-claim windows and unexpired deadline shifts this firm may have missed."
 msgstr "显示本所可能遗漏的、仍然开放的保护性申报窗口与未过期的截止日变更。"
@@ -15900,8 +15829,8 @@ msgstr "从源年度种子截止日期结转的税表或截止日期类型。"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
-msgid "The template is paused in Reminders, so no email will be queued."
-msgstr "该模板已在 Reminders 中暂停，因此不会排队发送邮件。"
+msgid "The template is paused in Email Template settings, so no email will be queued."
+msgstr "该模板已在邮件模板设置中暂停，因此不会排队发送邮件。"
 
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "The week ahead is clear"
@@ -16587,7 +16516,6 @@ msgid "Up to 300 clients"
 msgstr "最多 300 个客户"
 
 #: src/features/dashboard/severity-section.tsx
-#: src/features/reminders/reminders-page.tsx
 #: src/routes/obligations.tsx
 msgid "Upcoming"
 msgstr "即将触发"
@@ -16595,10 +16523,6 @@ msgstr "即将触发"
 #: src/features/migration/SuccessModal.tsx
 msgid "upcoming · 30 days"
 msgstr "即将到来 · 30 天"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Upcoming schedule"
-msgstr "即将触发排期"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Update the active practice's name and timezone."
@@ -17276,10 +17200,6 @@ msgstr "将删除"
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Will update"
 msgstr "将更新"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Window"
-msgstr "窗口"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "with reason"

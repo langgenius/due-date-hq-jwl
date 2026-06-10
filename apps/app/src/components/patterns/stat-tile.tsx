@@ -18,11 +18,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *  - `apps/app/src/features/dashboard/actions-list.tsx`
  *    `ActionsSummaryTile` (text-lg variant, with Link wrapper)
  *
- * Bespoke tiles that intentionally stay outside this primitive:
- *  - `RemindersPage.StatTile` — settings-tier tile inside Card chrome
- *    with an icon slot + caption row. Settings pages keep their Card
- *    framing; this primitive targets frameless body surfaces.
- *
  * Visual contract (per DESIGN.md §3.2 Tile value role):
  *  - Frame: `rounded-lg border border-divider-subtle bg-background-default px-4 py-3`
  *  - Value: `text-xl font-semibold leading-tight tabular-nums tracking-tight`,
