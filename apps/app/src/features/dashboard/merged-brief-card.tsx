@@ -287,8 +287,11 @@ function GroupCard({
         ? 'bg-state-warning-hover text-text-warning'
         : 'bg-background-section text-text-secondary'
   return (
-    <div className="overflow-hidden rounded-lg border border-divider-regular">
-      <div className="flex items-center justify-between border-b border-divider-subtle bg-background-section px-3 py-2">
+    // Flat section — NOT a bordered box. The brief card is the only frame; each
+    // group is delineated by its colored eyebrow + count badge and the outer
+    // gap, so there are no frames-within-frames (Yuqi).
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2 px-1">
         <span className={cn('text-caption-xs font-semibold tracking-wider uppercase', eyebrowTone)}>
           {label}
         </span>
@@ -307,7 +310,7 @@ function GroupCard({
       {moreCount > 0 ? (
         <Link
           to={moreHref}
-          className="flex items-center gap-1.5 px-3 py-2 text-caption font-medium text-text-secondary outline-none transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
+          className="flex items-center gap-1.5 rounded-lg px-1 py-1.5 text-caption font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <Trans>View {moreCount} more</Trans>
           <ArrowRightIcon className="size-2.5" aria-hidden />
@@ -338,7 +341,7 @@ function BriefDeadlineRow({
     <button
       type="button"
       onClick={() => onOpen(row.obligationId)}
-      className="flex w-full items-center gap-2.5 border-b border-divider-subtle px-3 py-2.5 text-left outline-none transition-colors last:border-b-0 hover:bg-background-section focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
+      className="flex w-full items-center gap-2.5 border-b border-divider-subtle px-1 py-2.5 text-left outline-none transition-colors last:border-b-0 hover:bg-background-section focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
     >
       <TaxCodeBadge code={row.taxType} />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
