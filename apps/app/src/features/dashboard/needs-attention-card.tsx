@@ -328,7 +328,7 @@ function NeedsAttentionCard({
                       render={(props) => (
                         <span
                           className={cn(
-                            'inline-flex size-5 items-center justify-center rounded-full bg-[#e9ebf0] text-caption-xs font-semibold text-text-primary ring-[1.5px] ring-[#e2e5ea] outline-none',
+                            'inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-caption-xs font-semibold text-text-primary ring-[1.5px] ring-divider-regular outline-none',
                             index > 0 && '-ml-1.5',
                           )}
                           {...props}

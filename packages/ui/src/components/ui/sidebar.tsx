@@ -583,7 +583,7 @@ export function SidebarGroupLabel({ className, ...props }: React.ComponentProps<
         // 2026-06-09 (Yuqi sidebar parity — §RuleLabel / §ClientsLabel):
         // height 30, padding [14,12,4,12] → pt-3.5 pb-1 px-3, text 10px /
         // 600 / 1.2px tracking, #676f83 (text-tertiary).
-        'flex h-7 shrink-0 items-center px-3 pt-2.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-tertiary',
+        'flex h-7 shrink-0 items-center px-3 pt-2.5 pb-1 text-caption-xs font-semibold uppercase tracking-[0.12em] text-text-tertiary',
         // Collapsed: the frame KEEPS its 30px height + padding (no
         // height collapse → no layout jump). The text is hidden and a
         // centered 19×1.5px hairline (#CCCCCC → divider-deep) is drawn

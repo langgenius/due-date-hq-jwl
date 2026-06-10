@@ -290,13 +290,12 @@ export function ObligationQueueDetailDrawer({
   onNeedsInput: (row: ObligationQueueRow) => void
   practiceAiEnabled: boolean
   blockerCandidates: ObligationQueueRow[]
-  // 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil rzzww): `page`
-  // is the master-detail-page presentation used by the standalone
+  // `page` is the master-detail-page presentation used by the standalone
   // /deadlines/:ref route. It shares panel mode's two-column scrolling
   // layout but drops the panel's corner close-X (the page has a
-  // breadcrumb + Prev/Next bar above it) and applies the rzzww
-  // tab restructure (Status · Materials · Record · Audit). `panel` /
-  // `sheet` (used by /clients) are untouched.
+  // breadcrumb + Prev/Next bar above it) and applies the tab restructure
+  // (Status · Materials · Record · Audit). `panel` / `sheet` (used by
+  // /clients) are untouched.
   mode?: 'sheet' | 'panel' | 'page'
 }) {
   // True for the persistent layouts (right-rail panel + standalone
@@ -304,18 +303,16 @@ export function ObligationQueueDetailDrawer({
   // pins — as opposed to the modal Sheet's single document scroll.
   const panelLayout = mode === 'panel' || mode === 'page'
   const isPageMode = mode === 'page'
-  // 2026-06-09 (Yuqi /deadlines detail rebuild — "header too tall, reading
-  // space limited"): the page hero collapses once the body scrolls, mirroring
-  // the Alert detail's headerCollapsed pattern — shrinks padding + title and
-  // drops the tax-year line + meta chip row so the content underneath gets the
+  // The page hero collapses once the body scrolls, mirroring the Alert
+  // detail's headerCollapsed pattern — shrinks padding + title and drops
+  // the tax-year line + meta chip row so the content underneath gets the
   // reclaimed height.
   const [pageHeaderCollapsed, setPageHeaderCollapsed] = useState(false)
   const heroCollapsed = isPageMode && pageHeaderCollapsed
   const { t } = useLingui()
   const navigate = useNavigate()
   const practiceTimezone = usePracticeTimezone()
-  // 2026-06-09 (Yuqi /deadlines detail recreation — Pencil rzzww): humanized
-  // labels for the Recent activity card sourced from the audit feed.
+  // Humanized labels for the Recent activity card sourced from the audit feed.
   const auditActionLabels = useAuditActionLabels()
   const queryClient = useQueryClient()
   const permission = useFirmPermission()
@@ -327,10 +324,8 @@ export function ObligationQueueDetailDrawer({
   const legacyStatusLabels = useStatusLabels()
   const v2StatusLabels = useLifecycleV2StatusLabels()
   const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
-  // 2026-05-26 (step-6 ux-flow audit Q7.1): removed dead
-  // `_statusDropdownOptions` computation. The drawer-header status
-  // pill was retired and the dropdown-options value was being
-  // computed only to immediately `void` it. If the pill comes back,
+  // The drawer-header status pill was retired, so there's no
+  // `_statusDropdownOptions` computation. If the pill comes back,
   // re-derive from LIFECYCLE_V2_STATUSES / ALL_STATUSES at that
   // point — the cost is negligible.
   const [extensionDraft, setExtensionDraft] = useState(() => emptyExtensionPlanDraft())
@@ -350,7 +345,7 @@ export function ObligationQueueDetailDrawer({
   // mutation lifecycle without triggering a re-render.
   const prepStagePreviousRef = useRef<ObligationPrepStage | null>(null)
   const reviewStagePreviousRef = useRef<ObligationReviewStage | null>(null)
-  // Materials tab multi-select model (2026-05-23). Keyed by the
+  // Materials tab multi-select model. Keyed by the
   // checklist item id so the checklist action row can batch a
   // "Mark received" mutation across every selected row. Carries the
   // owning obligationId so the selection clears automatically when
@@ -408,8 +403,7 @@ export function ObligationQueueDetailDrawer({
       ),
     [requestRecipientsQuery.data],
   )
-  // 2026-06-08 (Pencil HuYeb /deadlines detail — top "Assign" action):
-  // the full assignable roster (every role, not just owner/partner) so a
+  // The full assignable roster (every role, not just owner/partner) so a
   // deadline can be handed to any teammate. Drives the Assign dropdown.
   const assignableMembersQuery = useQuery({
     ...orpc.members.listAssignable.queryOptions({ input: undefined }),
@@ -492,21 +486,20 @@ export function ObligationQueueDetailDrawer({
   const latestInputRequestTitle = latestInputRequest
     ? t`Input requested from ${latestInputRequestRecipient} on ${formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)}`
     : undefined
-  // `obligationTypeLabels` lookup was retired with the header distill
-  // (2026-05-21) — the "FILING" badge it backed is gone. If a future
-  // surface wants the human label, re-add via `useObligationTypeLabels()`.
+  // `obligationTypeLabels` lookup was retired with the header distill —
+  // the "FILING" badge it backed is gone. If a future surface wants the
+  // human label, re-add via `useObligationTypeLabels()`.
   // Type-aware drawer surface: per PRD §3.1 different obligation types
   // expose different tabs. A `payment` row has no readiness checklist;
   // a `client_action` row has no deadline readiness surface.
   const visibleTabsList = useMemo(() => {
     const base = tabsForObligationType(row?.obligationType ?? null)
-    // 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil rzzww): the
-    // standalone page shows the locked 4-tab set Status · Materials ·
-    // Record · Audit (memory: tab count locked). Map onto the existing
-    // tab values (Status=summary, Record=evidence) and drop Extension +
-    // Risk — Extension folds into the Status workflow as a follow-up;
-    // Risk was already unmounted. The set still adapts per obligation
-    // type (a payment row keeps Status/Record/Audit, no Materials).
+    // The standalone page shows the locked 4-tab set Status · Materials ·
+    // Record · Audit. Map onto the existing tab values (Status=summary,
+    // Record=evidence) and drop Extension + Risk — Extension folds into
+    // the Status workflow; Risk is unmounted. The set still adapts per
+    // obligation type (a payment row keeps Status/Record/Audit, no
+    // Materials).
     if (!isPageMode) return base
     return base.filter(
       (tab) => tab === 'summary' || tab === 'readiness' || tab === 'evidence' || tab === 'audit',
@@ -517,12 +510,11 @@ export function ObligationQueueDetailDrawer({
   // (e.g. ?tab=extension on a payment row), bounce to the first tab
   // this type actually has. Otherwise the drawer body renders empty.
   //
-  // 2026-05-24 (useEffect audit): the previous shape ran this as a
-  // useEffect that ran post-render. Replaced with the React-
-  // recommended render-time adjustment pattern. `onTabChange` is
-  // idempotent (it just updates URL state), so calling it during
-  // render is safe — React bails out of the re-render when the URL
-  // already matches the requested value.
+  // This uses the React-recommended render-time adjustment pattern
+  // rather than a post-render useEffect. `onTabChange` is idempotent
+  // (it just updates URL state), so calling it during render is safe —
+  // React bails out of the re-render when the URL already matches the
+  // requested value.
   const tabFallback = row && !visibleTabs.has(activeTab) ? (visibleTabsList[0] ?? null) : null
   if (tabFallback && tabFallback !== activeTab) {
     onTabChange(tabFallback)
@@ -713,9 +705,9 @@ export function ObligationQueueDetailDrawer({
     latestRequest.status === 'revoked' ||
     (correctionMaterialsMode &&
       (latestRequest.status === 'responded' || latestRequest.status === 'expired'))
-  // 2026-05-26 (Step 9 AI Visibility Audit F-020): surface the
-  // "degraded fallback list" signal as an inline banner above the
-  // checklist, not just a 4-second toast that disappears forever.
+  // Surface the "degraded fallback list" signal as an inline banner
+  // above the checklist, not just a 4-second toast that disappears
+  // forever.
   // The degraded flag IS the AI's "I'm not sure" state — losing
   // it on render means the user can't tell a fallback-list run
   // apart from a real run on a stale tab.
@@ -925,10 +917,10 @@ export function ObligationQueueDetailDrawer({
       },
     }),
   )
-  // 2026-06-08 (Pencil HuYeb /deadlines detail — top actions): per-deadline
-  // assignee + snooze. Both reuse the status-update output shape (obligation
-  // + auditId) and invalidate the detail + queue so the header, the table's
-  // Assignee column, and the snooze-driven list filter all re-read.
+  // Per-deadline assignee + snooze. Both reuse the status-update output
+  // shape (obligation + auditId) and invalidate the detail + queue so the
+  // header, the table's Assignee column, and the snooze-driven list filter
+  // all re-read.
   const assignMutation = useMutation(
     orpc.obligations.assign.mutationOptions({
       onSuccess: (result) => {
@@ -1151,9 +1143,9 @@ export function ObligationQueueDetailDrawer({
       },
     }),
   )
-  // `updateBlockedByMutation` retired 2026-05-21 with the K-1 editor.
-  // The RPC procedure (orpc.obligations.updateBlockedBy) still ships;
-  // re-bind here when the new blocker UX lands.
+  // `updateBlockedByMutation` is retired. The RPC procedure
+  // (orpc.obligations.updateBlockedBy) still ships; re-bind here when the
+  // new blocker UX lands.
   function updateDocumentChecklistItem(
     itemId: string,
     patch: {
@@ -1177,7 +1169,7 @@ export function ObligationQueueDetailDrawer({
     )
   }
 
-  // Materials multi-select handlers (2026-05-23). Toggling a row's
+  // Materials multi-select handlers. Toggling a row's
   // selection updates the local Set; the checklist action row shows
   // selected-item actions when itemIds.size > 0. The batch "Mark
   // received" calls the existing per-item update RPC for each selected
@@ -1442,15 +1434,13 @@ export function ObligationQueueDetailDrawer({
   const titleText = row?.clientName ?? null
   const drawerBody = (
     <>
-      {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): thin h-7 top
-          status banner mirroring AlertDetailDrawer's DecisionBanners
-          (L424). One band, colored by deadline state — red when overdue,
-          green when filed/completed, amber otherwise — carrying the
-          status text on the left and a quiet timing note on the right.
+      {/* Thin h-7 top status banner mirroring AlertDetailDrawer's
+          DecisionBanners. One band, colored by deadline state — red when
+          overdue, green when filed/completed, amber otherwise — carrying
+          the status text on the left and a quiet timing note on the right.
           This subsumes the inline status-dot+label that used to sit on
           the header status row.
-          2026-06-09 (Yuqi /deadlines detail rebuild — Pencil rzzww): the
-          standalone page (`page` mode) drops this top banner — the rzzww
+          The standalone page (`page` mode) drops this top banner — the
           hero carries the status as a pill in the meta strip, and the
           overdue state is already shown on the date cards + workflow
           stepper. The panel/sheet surfaces (/clients) keep the banner. */}
@@ -2327,7 +2317,7 @@ export function ObligationQueueDetailDrawer({
                       row.status !== 'completed' ? (
                         <div className="flex flex-col gap-2.5">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[10px] font-bold tracking-[0.8px] text-text-muted uppercase">
+                            <span className="text-caption-xs font-bold tracking-[0.8px] text-text-muted uppercase">
                               <Trans>What's left to do</Trans>
                             </span>
                             <span className="text-caption-xs text-text-tertiary">

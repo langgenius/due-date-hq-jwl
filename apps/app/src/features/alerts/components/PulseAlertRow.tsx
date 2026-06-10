@@ -406,7 +406,7 @@ function PulseAlertRow({
               "Active" queue; a green dot+label flags them on the row (and
               the detail header). Review-only alerts carry no badge. */}
           {isActiveAlert(alert) ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-[#17b26a40] bg-[#e8f5ee] px-1.5 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-state-success-border bg-state-success-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
               <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
               <Trans>Active</Trans>
             </span>
@@ -432,7 +432,7 @@ function PulseAlertRow({
               for the ACTION pill below, so the two never read as the same
               signal. */}
           {highImpact ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-[#fecdca] bg-[#fef3f2] px-1.5 text-xs font-semibold tracking-[0.3px] text-text-destructive uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-destructive uppercase">
               <Trans>High impact</Trans>
             </span>
           ) : null}
@@ -539,7 +539,7 @@ function PulseAlertRow({
                 // border; collapsed = transparent with a hairline
                 // border that tints to the accent wash on hover.
                 whyOpen
-                  ? 'border-[#155aef33] bg-state-accent-hover'
+                  ? 'border-state-accent-border bg-state-accent-hover'
                   : 'border-divider-subtle bg-transparent hover:bg-state-accent-hover',
               )}
             >
@@ -644,7 +644,7 @@ function PulseAlertRow({
             this client"). All values come from the real priority
             queue; nothing is hardcoded. */}
         {showPriority && whyOpen && priority ? (
-          <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-[#fafbfc] px-[14px] py-3">
+          <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-background-default-subtle px-[14px] py-3">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
               <span className="text-xs font-semibold tracking-[0.3px] text-text-secondary">

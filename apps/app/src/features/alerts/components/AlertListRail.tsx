@@ -216,7 +216,7 @@ function RailItem({
         // and lifts back to full strength on hover; the active row stays
         // opacity-100 with its 2px left accent.
         active
-          ? 'border-l-2 border-l-state-accent-solid bg-[#fafbfc] opacity-100'
+          ? 'border-l-2 border-l-state-accent-solid bg-background-default-subtle opacity-100'
           : 'border-l-2 border-l-transparent opacity-60 hover:bg-state-base-hover hover:opacity-100',
       )}
     >

@@ -217,7 +217,7 @@ function SidebarQuickFind() {
       </span>
       {/* ⌘K hint — plain muted mono text (no keycap box) so the field
           carries no extra borders/lines. */}
-      <span className="shrink-0 font-mono text-[11px] font-medium text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
+      <span className="shrink-0 font-mono text-xs font-medium text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
         {shortcut}
       </span>
     </button>

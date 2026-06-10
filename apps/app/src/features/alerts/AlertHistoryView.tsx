@@ -325,7 +325,7 @@ export function AlertHistoryView() {
                     {/* Month band — same gray-200 (#e9ebf0) group-header band
                         the /today Actions table uses. */}
                     <TableRow className="even:bg-transparent hover:bg-transparent">
-                      <TableCell colSpan={5} className="bg-[#e9ebf0] px-5 py-2">
+                      <TableCell colSpan={5} className="bg-background-subtle px-5 py-2">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-semibold tracking-[0.5px] text-text-secondary uppercase">
                             {month}

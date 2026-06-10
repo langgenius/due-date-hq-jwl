@@ -45,6 +45,10 @@ const EXCEPTIONS = [
   // Tooltip arrow tip: 1px softening on the rotated 8px square — a decorative
   // detail, not a container radius (no canonical token applies).
   { path: 'packages/ui/src/components/ui/tooltip.tsx', has: 'rounded-[1px]' },
+  // PulseFormRevisedCard identity colors — purple change-kind badge + amber-800
+  // NEW badge (Pencil QJ04z/U3D0D); no standard token, intentional one-offs.
+  { path: 'apps/app/src/features/alerts/components/PulseFormRevisedCard.tsx', has: '#6B21A8' },
+  { path: 'apps/app/src/features/alerts/components/PulseFormRevisedCard.tsx', has: '#92400E' },
 ]
 
 const FONT = /text-\[(\d+)px\]/g
@@ -69,7 +73,9 @@ function scan(file) {
     FONT.lastIndex = 0
     while ((m = FONT.exec(line))) {
       const n = Number(m[1])
-      if (n <= 15) push(rel, i, m[0], `text-[${n}px] → font token`)
+      // 10–15px must be a token (caption/xs/sm/base). ≤9 is the intentional
+      // micro tier (9px, Yuqi); ≥16 is display (no token). Both allowed.
+      if (n >= 10 && n <= 15) push(rel, i, m[0], `text-[${n}px] → font token`)
     }
     const hex = line.match(HEX)
     if (hex) push(rel, i, hex[0], `hardcoded hex → color token`)

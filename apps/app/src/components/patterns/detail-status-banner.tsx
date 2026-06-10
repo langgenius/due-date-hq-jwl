@@ -22,9 +22,9 @@ import { cn } from '@duedatehq/ui/lib/utils'
 export type DetailBannerTone = 'danger' | 'success' | 'warning'
 
 const TONE: Record<DetailBannerTone, { band: string; text: string }> = {
-  danger: { band: 'bg-[#fee4e2]', text: 'text-text-destructive' },
+  danger: { band: 'bg-state-destructive-hover', text: 'text-text-destructive' },
   success: { band: 'bg-components-badge-bg-green-soft', text: 'text-text-success' },
-  warning: { band: 'bg-[#fffbeb]', text: 'text-text-warning' },
+  warning: { band: 'bg-state-warning-hover', text: 'text-text-warning' },
 }
 
 export function DetailStatusBanner({

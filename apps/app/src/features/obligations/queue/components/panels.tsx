@@ -2339,7 +2339,7 @@ export function ActiveStageDetailCard({
               <span
                 key={chip.key}
                 className={cn(
-                  'inline-flex items-center gap-1 rounded-full bg-background-section px-2 py-0.5 text-[10px] font-semibold',
+                  'inline-flex items-center gap-1 rounded-full bg-background-section px-2 py-0.5 text-caption-xs font-semibold',
                   chip.muted ? 'text-text-tertiary' : 'text-text-secondary',
                 )}
               >

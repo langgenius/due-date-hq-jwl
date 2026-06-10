@@ -10663,9 +10663,9 @@ function DeadlineTile({
     <div className={cn('flex flex-col gap-0.5 rounded-lg border px-2.5 py-1.5', surfaceClass)}>
       <span
         className={cn(
-          // `text-[10px]` not `text-caption-xs` — twMerge collapses
+          // `text-caption-xs` not `text-caption-xs` — twMerge collapses
           // custom font-size tokens against `text-text-destructive`.
-          'text-[10px] leading-tight font-medium uppercase tracking-eyebrow-tight',
+          'text-caption-xs leading-tight font-medium uppercase tracking-eyebrow-tight',
           labelToneClass,
           primary && 'font-semibold',
         )}
@@ -10677,7 +10677,7 @@ function DeadlineTile({
           {date ? formatDate(date) : '—'}
         </span>
         {lateLabel ? (
-          <span className="inline-flex items-center rounded-full bg-state-destructive-hover px-2 py-0.5 text-[10px] font-medium uppercase tracking-eyebrow-tight text-text-destructive">
+          <span className="inline-flex items-center rounded-full bg-state-destructive-hover px-2 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-destructive">
             {lateLabel}
           </span>
         ) : null}
@@ -13180,7 +13180,7 @@ function ObligationFiltersPopover({
           {/* Due — single-select (radio) pills. Past due / Due this week
               are the same date axis, so picking one clears the other. */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+            <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
               <Trans>Due</Trans>
             </span>
             <div className="flex flex-wrap gap-1">
@@ -13213,7 +13213,7 @@ function ObligationFiltersPopover({
 
           {/* Needs evidence + Awaiting signature — orthogonal toggles. */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+            <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
               <Trans>Other</Trans>
             </span>
             <div className="flex flex-wrap gap-1">
@@ -13342,7 +13342,7 @@ function ObligationMultiFilterSection({
   const selectedSet = new Set(selected)
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+      <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
         {label}
       </span>
       <div className="flex flex-wrap gap-1">

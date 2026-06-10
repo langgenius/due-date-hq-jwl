@@ -151,7 +151,7 @@ function RailItem({
         'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-3.5 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
         active
-          ? 'border-l-2 border-l-state-accent-solid bg-[#fafbfc]'
+          ? 'border-l-2 border-l-state-accent-solid bg-background-default-subtle'
           : 'border-l-2 border-l-transparent hover:bg-state-base-hover',
       )}
     >

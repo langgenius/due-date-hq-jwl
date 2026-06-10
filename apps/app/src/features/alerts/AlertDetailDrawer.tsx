@@ -1305,7 +1305,7 @@ export function AlertDetailDrawer({
                       active has an indication it is active"): flags the
                       actionable due-date-overlay queue, mirroring the row badge. */}
                   {isActiveAlert(detail.alert) ? (
-                    <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded border border-[#17b26a40] bg-[#e8f5ee] px-2 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
+                    <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded border border-state-success-border bg-state-success-hover px-2 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
                       <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
                       <Trans>Active</Trans>
                     </span>

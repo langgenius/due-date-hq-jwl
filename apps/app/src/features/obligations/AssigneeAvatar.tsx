@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils'
 // size='md', type='human', name required.
 //
 // Variant map:
-//   size='xs' → size-5 (20px), text-[10px], icon size-3
+//   size='xs' → size-5 (20px), text-caption-xs, icon size-3
 //   size='sm' → size-7 (28px), text-xs, icon size-3.5
 //   size='md' → size-8 (32px), text-sm, icon size-4  (default)
 //   size='lg' → size-10 (40px), text-base, icon size-5
@@ -51,7 +51,7 @@ type AvatarType = 'human' | 'ai' | 'unassigned' | 'firm'
 type AvatarShape = 'round' | 'square'
 
 const sizeStyles: Record<AvatarSize, { box: string; text: string; icon: string }> = {
-  xs: { box: 'size-5', text: 'text-[10px]', icon: 'size-3' },
+  xs: { box: 'size-5', text: 'text-caption-xs', icon: 'size-3' },
   sm: { box: 'size-7', text: 'text-xs', icon: 'size-3.5' },
   md: { box: 'size-8', text: 'text-sm', icon: 'size-4' },
   lg: { box: 'size-10', text: 'text-base', icon: 'size-5' },

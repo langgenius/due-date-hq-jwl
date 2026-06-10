@@ -271,7 +271,7 @@ function DeadlineNavigatorRow({
         'flex gap-2.5 border-b border-divider-subtle px-[18px] py-3.5 outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
         active
-          ? 'border-l-2 border-l-state-accent-solid bg-[#fafbfc]'
+          ? 'border-l-2 border-l-state-accent-solid bg-background-default-subtle'
           : 'border-l-2 border-l-transparent hover:bg-state-base-hover',
       )}
     >
