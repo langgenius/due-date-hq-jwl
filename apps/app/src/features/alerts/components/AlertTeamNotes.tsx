@@ -20,7 +20,7 @@ import { useAlertNotesInvalidation, useAlertNotesQueryOptions } from '../api'
  * the bottom is a Textarea + "Add note" button, disabled while empty / saving.
  *
  * Matches the flat calm-document section style of the surrounding drawer body:
- * sentence-case header in `text-[12px] font-semibold text-text-secondary`.
+ * sentence-case header in `text-xs font-semibold text-text-secondary`.
  */
 export function AlertTeamNotes({ alertId }: { alertId: string }) {
   const { t } = useLingui()
@@ -65,7 +65,7 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
   return (
     <section className="flex flex-col gap-3">
       <header className="flex items-baseline gap-2">
-        <span className="text-[12px] font-semibold text-text-secondary">
+        <span className="text-xs font-semibold text-text-secondary">
           <Trans>Team notes</Trans>
         </span>
         <span className="text-caption font-medium text-text-muted tabular-nums">

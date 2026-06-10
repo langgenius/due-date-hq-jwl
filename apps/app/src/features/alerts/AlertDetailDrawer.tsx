@@ -214,7 +214,7 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
           }
         />
         <span className="flex-1" />
-        <span className="text-[12px] font-medium text-text-muted">
+        <span className="text-xs font-medium text-text-muted">
           <Trans>Effective immediately</Trans>
         </span>
       </div>
@@ -230,7 +230,7 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
         </span>
         <span
           className={cn(
-            'text-[12px] font-semibold tabular-nums',
+            'text-xs font-semibold tabular-nums',
             days >= 0 ? 'text-text-success' : 'text-text-destructive',
           )}
         >
@@ -244,7 +244,7 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
       ) : null}
 
       {/* Meta — AI confidence · source · audit ledger (top hairline). */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-divider-subtle pt-2.5 text-[12px] font-medium text-text-tertiary">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-divider-subtle pt-2.5 text-xs font-medium text-text-tertiary">
         <span className="inline-flex items-center gap-1.5">
           <SparklesIcon className={cn('size-3 shrink-0', confClass)} aria-hidden />
           <span className={cn('font-semibold', confClass)}>{confPct}%</span>
@@ -342,7 +342,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
     <section className="flex flex-col gap-3">
       <header className="flex items-center gap-1.5">
         <LightbulbIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-        <span className="text-[12px] font-semibold text-text-secondary">
+        <span className="text-xs font-semibold text-text-secondary">
           <Trans>What this means for your practice</Trans>
         </span>
       </header>
@@ -464,10 +464,10 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
     <section className="flex flex-col gap-3">
       {/* Pencil `gRY5g` header: "Activity" + "N events · oldest first". */}
       <header className="flex items-baseline justify-between gap-2">
-        <span className="text-[12px] font-semibold text-text-secondary">
+        <span className="text-xs font-semibold text-text-secondary">
           <Trans>Activity</Trans>
         </span>
-        <span className="text-[12px] font-medium text-text-muted">
+        <span className="text-xs font-medium text-text-muted">
           <Plural value={events.length} one="# event" other="# events" />
           {' · '}
           <Trans>oldest first</Trans>
@@ -547,7 +547,7 @@ function DecisionBanners({
           <button
             type="button"
             onClick={onRetry}
-            className="cursor-pointer text-[12px] font-semibold text-text-destructive underline-offset-2 hover:underline"
+            className="cursor-pointer text-xs font-semibold text-text-destructive underline-offset-2 hover:underline"
           >
             <Trans>Retry now</Trans>
           </button>
@@ -580,7 +580,7 @@ function DecisionBanners({
             <button
               type="button"
               onClick={onUndo}
-              className="cursor-pointer text-[12px] font-semibold text-text-success underline-offset-2 hover:underline"
+              className="cursor-pointer text-xs font-semibold text-text-success underline-offset-2 hover:underline"
             >
               <Trans>Undo</Trans>
             </button>
@@ -1188,7 +1188,7 @@ export function AlertDetailDrawer({
           </button>
           <div className="flex items-center gap-2">
             {position && position.total > 0 ? (
-              <span className="text-[12px] font-medium text-text-muted tabular-nums">
+              <span className="text-xs font-medium text-text-muted tabular-nums">
                 {t`${position.index + 1} of ${position.total}`}
               </span>
             ) : null}
@@ -1327,7 +1327,7 @@ export function AlertDetailDrawer({
                   <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-caption font-bold tracking-[0.7px] text-text-accent uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
-                  <span className="ml-auto flex shrink-0 items-center gap-2 text-[12px] font-medium text-text-tertiary">
+                  <span className="ml-auto flex shrink-0 items-center gap-2 text-xs font-medium text-text-tertiary">
                     {detail.alert.sourceUrl ? (
                       <a
                         href={detail.alert.sourceUrl}
@@ -1369,7 +1369,7 @@ export function AlertDetailDrawer({
                 <h2
                   className={cn(
                     'font-semibold leading-[1.25] tracking-[-0.4px] text-text-primary transition-all duration-200',
-                    headerCollapsed ? 'line-clamp-1 text-[16px]' : 'text-[22px]',
+                    headerCollapsed ? 'line-clamp-1 text-base' : 'text-[22px]',
                   )}
                 >
                   {detail.alert.title}
@@ -1380,7 +1380,7 @@ export function AlertDetailDrawer({
                 {!headerCollapsed &&
                 detail.alert.summary &&
                 detail.alert.summary.trim() !== detail.alert.title.trim() ? (
-                  <p className="text-[14px] font-medium leading-[1.5] text-text-secondary">
+                  <p className="text-sm font-medium leading-[1.5] text-text-secondary">
                     {detail.alert.summary}
                   </p>
                 ) : null}
@@ -1485,10 +1485,10 @@ export function AlertDetailDrawer({
               {/* Extracted facts — the AI signal is the inline muted subtitle. */}
               <section className="flex flex-col gap-3">
                 <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className="text-[12px] font-semibold text-text-secondary">
+                  <span className="text-xs font-semibold text-text-secondary">
                     <Trans>Extracted facts</Trans>
                   </span>
-                  <span className="text-[12px] text-text-tertiary">
+                  <span className="text-xs text-text-tertiary">
                     <Trans>AI parsed these from the source — verify before Apply</Trans>
                   </span>
                 </header>
@@ -1641,7 +1641,7 @@ export function AlertDetailDrawer({
                         <span className="text-[13px] font-semibold text-text-success">
                           <Trans>Ready to apply · deadline selection confirmed</Trans>
                         </span>
-                        <p className="text-[12px] leading-[1.5] text-text-secondary">
+                        <p className="text-xs leading-[1.5] text-text-secondary">
                           <Plural
                             value={stats?.selectedCount ?? 0}
                             one="# client confirmed and matched to the new date."
@@ -1734,7 +1734,7 @@ export function AlertDetailDrawer({
               {detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
                 <section className="flex flex-col gap-2.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[12px] font-semibold text-text-secondary">
+                    <span className="text-xs font-semibold text-text-secondary">
                       <Trans>Source extract</Trans>
                     </span>
                     {detail.alert.sourceUrl ? (
@@ -1802,7 +1802,7 @@ export function AlertDetailDrawer({
                       (modest %, tier label, one-line guidance) / RIGHT source
                       + published + audit-ledger note. */}
                     <header className="flex items-baseline justify-between">
-                      <span className="text-[12px] font-semibold text-text-secondary">
+                      <span className="text-xs font-semibold text-text-secondary">
                         <Trans>How confident we are · where this came from</Trans>
                       </span>
                     </header>

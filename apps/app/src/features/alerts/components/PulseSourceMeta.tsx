@@ -37,12 +37,12 @@ function PulseSourceMeta({
   return (
     <div
       // 2026-06-04 round 45 (Yuqi /today feedback #5 — "smaller
-      // text — apply to all"): step down `text-[13px]` → `text-[12px]`.
+      // text — apply to all"): step down `text-[13px]` → `text-xs`.
       // AlertCard's inline source span on /alerts also bumped to
       // 12px so the two surfaces stay aligned at the new smaller
       // size. Reads as a quiet caption beside the larger severity
       // pill + title.
-      className={cn('flex min-w-0 items-center gap-2 text-[12px] text-text-tertiary', className)}
+      className={cn('flex min-w-0 items-center gap-2 text-xs text-text-tertiary', className)}
       aria-label={t`Alert source`}
     >
       <span className="truncate font-medium text-text-tertiary">{source}</span>

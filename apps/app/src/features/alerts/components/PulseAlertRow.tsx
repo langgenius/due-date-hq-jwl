@@ -512,7 +512,7 @@ function PulseAlertRow({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="shrink-0 cursor-help whitespace-nowrap text-[12px] font-medium text-text-tertiary tabular-nums outline-none"
+                    className="shrink-0 cursor-help whitespace-nowrap text-xs font-medium text-text-tertiary tabular-nums outline-none"
                     {...props}
                   >
                     {relativeTime}
@@ -535,7 +535,7 @@ function PulseAlertRow({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="inline-flex min-w-0 shrink cursor-pointer items-center gap-1 truncate text-[12px] font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline"
+                    className="inline-flex min-w-0 shrink cursor-pointer items-center gap-1 truncate text-xs font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline"
                     onClick={(event) => {
                       event.stopPropagation()
                       window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
@@ -557,7 +557,7 @@ function PulseAlertRow({
               </TooltipContent>
             </Tooltip>
           ) : (
-            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-[12px] font-medium text-text-tertiary">
+            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-xs font-medium text-text-tertiary">
               <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
               <span className="truncate">{alert.source}</span>
             </span>
@@ -618,7 +618,7 @@ function PulseAlertRow({
           <div className="flex flex-col gap-2">
             {showDateRow ? (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[12px] font-medium text-text-muted line-through tabular-nums">
+                <span className="font-mono text-xs font-medium text-text-muted line-through tabular-nums">
                   {oldDateLabel}
                 </span>
                 <ArrowRightIcon
@@ -626,13 +626,13 @@ function PulseAlertRow({
                   strokeWidth={1.5}
                   aria-hidden
                 />
-                <span className="font-mono text-[12px] font-semibold text-text-primary tabular-nums">
+                <span className="font-mono text-xs font-semibold text-text-primary tabular-nums">
                   {newDateLabel}
                 </span>
                 {daysDiff !== null ? (
                   <span
                     className={cn(
-                      'text-[12px] font-medium',
+                      'text-xs font-medium',
                       daysDiff < 0 ? 'text-text-destructive' : 'text-text-warning',
                     )}
                   >
@@ -684,7 +684,7 @@ function PulseAlertRow({
                   >
                     <Trans>Action</Trans>
                   </span>
-                  <span className="text-[12px] font-medium" style={{ color: '#92400E' }}>
+                  <span className="text-xs font-medium" style={{ color: '#92400E' }}>
                     {actionText}
                   </span>
                 </div>
@@ -757,7 +757,7 @@ function PulseAlertRow({
             units (`flex-wrap gap-y-1`) and `whitespace-nowrap` /
             `shrink-0` on the text + pill so neither ever breaks
             internally. */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-[12px] text-text-muted">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-xs text-text-muted">
           {/* 2026-06-08 (Yuqi /alerts #4 "love this icon, apply to all"):
               the affected-clients line uses the Users icon everywhere now
               (was Building2 on /alerts + /today). One clients-affected
@@ -1085,7 +1085,7 @@ function PulseAlertList({
                 to read. any way to improve?"): readability fixes
                 applied while keeping the subgroup-divider
                 chrome:
-                  • text-caption → text-[12px] (one tier larger,
+                  • text-caption → text-xs (one tier larger,
                     still in eyebrow scale)
                   • text-text-tertiary → text-text-secondary
                     (steps the contrast up by one tier — was

@@ -1633,10 +1633,10 @@ function BulkActionBar({
           <CheckIcon className="size-3.5 text-white" aria-hidden />
         </span>
         <div className="flex flex-col leading-tight">
-          <span className="text-[14px] font-semibold">
+          <span className="text-sm font-semibold">
             <Plural value={selectedCount} one="# selected" other="# selected" />
           </span>
-          <span className="text-[12px] text-text-inverted/60">
+          <span className="text-xs text-text-inverted/60">
             <Trans>of {totalCount} alerts</Trans>
           </span>
         </div>
@@ -1923,7 +1923,7 @@ function FilterPillSection<T extends string>({
               onClick={() => onSelect(option)}
               aria-pressed={active}
               className={cn(
-                'inline-flex h-7 cursor-pointer items-center rounded-lg border px-2.5 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex h-7 cursor-pointer items-center rounded-lg border px-2.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 active
                   ? 'border-state-accent-border bg-state-accent-hover text-text-accent'
                   : 'border-divider-subtle text-text-secondary hover:bg-state-base-hover',
@@ -2035,7 +2035,7 @@ function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {
       </span>
 
       {/* Header band — mirrors the day-group divider tokens */}
-      <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-5 py-2 text-[12px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+      <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-5 py-2 text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
         <span className="inline-flex items-center gap-1.5">
           <PulsingDot tone="warning" active />
           <Trans>Checking {label}…</Trans>

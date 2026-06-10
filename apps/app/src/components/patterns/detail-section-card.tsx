@@ -48,7 +48,7 @@ export function DetailSectionCard({
         {headerRight ? (
           <>
             <span className="flex-1" />
-            <span className="flex items-center gap-2 text-[12px] font-medium text-text-tertiary">
+            <span className="flex items-center gap-2 text-xs font-medium text-text-tertiary">
               {headerRight}
             </span>
           </>

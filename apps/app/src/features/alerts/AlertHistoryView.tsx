@@ -429,7 +429,7 @@ function HistoryRow({
       {/* DATE */}
       <TableCell>
         <div className="flex flex-col">
-          <span className="text-[12px] font-semibold text-text-primary">{dateLabel}</span>
+          <span className="text-xs font-semibold text-text-primary">{dateLabel}</span>
           {relativeSub ? (
             <span className="text-caption-xs font-medium text-text-muted">{relativeSub}</span>
           ) : null}

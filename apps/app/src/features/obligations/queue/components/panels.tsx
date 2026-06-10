@@ -333,7 +333,7 @@ function DeadlineDateCard({
           {label}
         </span>
       </div>
-      <span className="text-[16px] leading-none font-semibold tracking-[-0.2px] text-text-primary tabular-nums">
+      <span className="text-base leading-none font-semibold tracking-[-0.2px] text-text-primary tabular-nums">
         {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
       </span>
       {subline ? (
@@ -2323,7 +2323,7 @@ export function ActiveStageDetailCard({
             <span className="font-mono text-[30px] leading-none font-bold tracking-[-0.6px] text-text-primary tabular-nums">
               {readinessCounts.received}
             </span>
-            <span className="pb-0.5 text-[12px] font-medium text-text-tertiary">
+            <span className="pb-0.5 text-xs font-medium text-text-tertiary">
               {t`of ${readinessCounts.total} materials`}
             </span>
           </div>
@@ -2403,7 +2403,7 @@ export function ActiveStageDetailCard({
             ))}
           </ul>
           {outstandingItems.length > 2 ? (
-            <p className="text-[12px] text-text-tertiary">
+            <p className="text-xs text-text-tertiary">
               {t`+${outstandingItems.length - 2} more outstanding`}
             </p>
           ) : null}

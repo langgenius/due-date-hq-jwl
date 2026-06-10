@@ -226,7 +226,7 @@ export function DeadlineRow({
           >
             {deadline.formName}
           </Link>
-          <span className="truncate text-[12px] text-text-tertiary">
+          <span className="truncate text-xs text-text-tertiary">
             {deadline.clientName}
             {deadline.clientState ? <span aria-hidden> · {deadline.clientState}</span> : null}
           </span>
@@ -376,7 +376,7 @@ function DeadlineRowExpansion({
       {/* Section C — what's left (readiness status + evidence count signal). */}
       {!isTerminal ? (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <span className="flex items-center gap-1.5 text-[12px] font-medium text-text-secondary">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary">
             {deadline.readiness === 'ready' ? (
               <SquareCheckIcon className="size-4 shrink-0 text-state-success-solid" aria-hidden />
             ) : (
@@ -384,7 +384,7 @@ function DeadlineRowExpansion({
             )}
             {readinessLabel}
           </span>
-          <span className="text-[12px] text-text-tertiary">
+          <span className="text-xs text-text-tertiary">
             {t`${deadline.evidenceCount} documents attached`}
           </span>
         </div>
@@ -392,7 +392,7 @@ function DeadlineRowExpansion({
 
       {/* §7.1 — penalty exposure surfaces inline only when overdue. */}
       {overdue && deadline.estimatedExposureCents !== null ? (
-        <p className="text-[12px] text-text-tertiary">
+        <p className="text-xs text-text-tertiary">
           <Trans>Estimated exposure</Trans>{' '}
           <span className="font-semibold text-text-destructive tabular-nums">
             ${(deadline.estimatedExposureCents / 100).toLocaleString()}
@@ -423,7 +423,7 @@ function DeadlineRowExpansion({
         <Link
           to={deadlineDetailHref({ obligationId: deadline.id, tab: 'audit' })}
           onClick={(event) => event.stopPropagation()}
-          className="text-[12px] font-medium text-text-tertiary underline-offset-2 outline-none hover:text-text-secondary hover:underline"
+          className="text-xs font-medium text-text-tertiary underline-offset-2 outline-none hover:text-text-secondary hover:underline"
         >
           <Trans>Activity on full page →</Trans>
         </Link>
@@ -431,7 +431,7 @@ function DeadlineRowExpansion({
           to={summaryHref}
           state={{ from: 'client' }}
           onClick={(event) => event.stopPropagation()}
-          className="flex items-center gap-1.5 text-[12px] font-semibold text-text-accent underline-offset-2 outline-none hover:underline"
+          className="flex items-center gap-1.5 text-xs font-semibold text-text-accent underline-offset-2 outline-none hover:underline"
         >
           <Trans>Open full deadline</Trans>
           <ArrowUpRightIcon className="size-3 shrink-0" aria-hidden />

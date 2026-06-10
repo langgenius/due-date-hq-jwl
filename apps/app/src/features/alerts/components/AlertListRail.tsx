@@ -231,7 +231,7 @@ function RailItem({
     >
       {/* Time column (60px). */}
       <div className="flex w-[60px] shrink-0 flex-col gap-0.5">
-        <span className="text-[12px] font-medium text-text-primary">{dateLabel}</span>
+        <span className="text-xs font-medium text-text-primary">{dateLabel}</span>
         <span className="text-caption-xs font-medium tracking-[-0.1px] text-text-tertiary tabular-nums">
           {timeLabel}
         </span>
@@ -262,7 +262,7 @@ function RailItem({
             left accent on the active row is kept. */}
         <span
           className={cn(
-            'line-clamp-2 text-[14px] font-medium leading-[1.35]',
+            'line-clamp-2 text-sm font-medium leading-[1.35]',
             active ? 'text-text-primary' : 'text-text-tertiary',
           )}
         >

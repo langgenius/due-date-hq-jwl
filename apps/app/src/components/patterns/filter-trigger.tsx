@@ -110,7 +110,7 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
           // smaller. just to be more delicate"): height 10 → 9,
           // horizontal pad 4 → 3, text 13 → 12. The filter row
           // reads as a quieter, more deliberate strip.
-          'inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-xl border border-divider-regular px-3 text-[12px] font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
+          'inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-xl border border-divider-regular px-3 text-xs font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           variantBg,
           'disabled:cursor-not-allowed disabled:opacity-50',
