@@ -112,44 +112,45 @@ export function MergedBriefCard({
           <Trans>Today's brief</Trans>
         </h2>
 
-        <div className="ml-auto flex flex-wrap items-center gap-1">
-          {tabs.map((tab) => {
-            const active = tab.key === selected
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setOverride(tab.key)}
-                aria-pressed={active}
-                className={cn(
-                  'inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2.5 py-1 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
-                  active
-                    ? 'bg-components-segmented-item-bg-active font-medium text-components-segmented-text-active'
-                    : 'text-text-tertiary hover:bg-background-section',
-                )}
-              >
-                <span
+        <div className="ml-auto flex items-center gap-1.5">
+          {/* Count chips rendered as a Segmented control — inherits the
+              My-work/Everyone toggle look so it reads as a clickable selector,
+              not just labels (Yuqi). */}
+          <div className="inline-flex items-center gap-0.5 rounded-lg bg-components-segmented-bg p-0.5">
+            {tabs.map((tab) => {
+              const active = tab.key === selected
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setOverride(tab.key)}
+                  aria-pressed={active}
                   className={cn(
-                    'font-semibold tabular-nums',
+                    'inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
                     active
-                      ? 'text-text-primary'
-                      : tab.urgent && tab.count > 0
-                        ? 'text-text-destructive'
-                        : 'text-text-secondary',
+                      ? 'border border-divider-subtle bg-components-segmented-item-bg-active font-medium text-components-segmented-text-active'
+                      : 'border border-transparent text-components-segmented-text hover:text-components-segmented-text-active',
                   )}
                 >
-                  {tab.count}
-                </span>
-                <span>{tab.label}</span>
-              </button>
-            )
-          })}
+                  <span
+                    className={cn(
+                      'font-semibold tabular-nums',
+                      !active && tab.urgent && tab.count > 0 ? 'text-text-destructive' : undefined,
+                    )}
+                  >
+                    {tab.count}
+                  </span>
+                  <span>{tab.label}</span>
+                </button>
+              )
+            })}
+          </div>
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
             aria-label={collapsed ? t`Expand brief` : t`Collapse brief`}
             aria-expanded={!collapsed}
-            className="ml-0.5 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+            className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
           >
             {collapsed ? (
               <ChevronDownIcon className="size-3.5" aria-hidden />
@@ -255,7 +256,11 @@ function BriefRow({
       onClick={() => onOpen(row.obligationId)}
       className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-background-section focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
     >
-      <TaxCodeBadge code={row.taxType} />
+      {/* Fixed-width form column so every client name + action starts at the
+          same x — the name/action reads as one left-aligned column (Yuqi). */}
+      <span className="flex w-28 shrink-0 items-center">
+        <TaxCodeBadge code={row.taxType} />
+      </span>
       {/* Client + the instruction/readiness sub-line, aligned together. */}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate text-sm font-medium text-text-primary">{row.clientName}</span>
@@ -270,7 +275,7 @@ function BriefRow({
       </span>
       <ObligationStatusReadBadge status={row.status} className="h-5 shrink-0 text-caption-xs" />
       <AssigneeAvatar name={row.assigneeName} title={row.assigneeName ?? t`Unassigned`} />
-      <span className="w-[56px] shrink-0 text-right text-caption tabular-nums text-text-secondary">
+      <span className="w-[84px] shrink-0 text-right text-caption tabular-nums text-text-secondary">
         {dueText}
       </span>
     </button>
