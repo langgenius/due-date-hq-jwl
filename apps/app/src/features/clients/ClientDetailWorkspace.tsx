@@ -2,7 +2,7 @@ import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { Link, useNavigate } from 'react-router'
-import { parseAsStringLiteral, useQueryState } from 'nuqs'
+import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
@@ -32,6 +32,7 @@ import type {
   ClientPublic,
   MemberAssigneeOption,
   ObligationInstancePublic,
+  ObligationQueueRow,
 } from '@duedatehq/contracts'
 import {
   AlertDialog,
@@ -67,6 +68,7 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { INITIAL_CURSOR } from '@/features/obligations/queue/constants'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
@@ -115,6 +117,7 @@ import {
 } from './client-detail-model'
 
 const EMPTY_OBLIGATIONS: readonly ObligationInstancePublic[] = []
+const EMPTY_QUEUE_ROWS: readonly ObligationQueueRow[] = []
 
 function taxClassificationLabel(value: ClientPublic['taxClassification']): string | null {
   switch (value) {
@@ -357,6 +360,13 @@ export function ClientDetailWorkspace({
     'tab',
     parseAsStringLiteral(['work', 'info', 'activity'] as const).withDefault('work'),
   )
+  // 2026-06-10 (Yuqi — Work tab inline-expand): which filing row is expanded.
+  // Single string = strict accordion (only one open at a time), deep-linkable
+  // via ?expanded= per deadline-row-interaction.md §5.
+  const [expandedFilingId, setExpandedFilingId] = useQueryState(
+    'expanded',
+    parseAsString.withDefault(''),
+  )
   // 2026-05-26 (Yuqi tab-body follow-ups, Task 1): wire 1/2/3 as
   // hotkeys for the three tabs. Mirrors the J/K cycle pattern in
   // ClientCycleArrows — uses `useAppHotkey` (the project's canonical
@@ -434,6 +444,22 @@ export function ClientDetailWorkspace({
   const obligationsQuery = useQuery(
     orpc.obligations.listByClient.queryOptions({ input: { clientId: client.id } }),
   )
+  // 2026-06-10 (Yuqi — client Work tab uses <DeadlineRow>): the queue list
+  // filtered by this client returns ObligationQueueRow[] (assigneeName,
+  // daysUntilDue, readiness, evidenceCount) that DeadlineRow needs — the richer
+  // shape `listByClient` (ObligationInstancePublic) does not carry. One page is
+  // enough (a single client rarely has >100 deadlines).
+  const clientQueueQuery = useQuery(
+    orpc.obligations.list.queryOptions({
+      input: {
+        sort: 'due_asc' as const,
+        limit: 100,
+        cursor: INITIAL_CURSOR,
+        clientIds: [client.id],
+      },
+    }),
+  )
+  const queueRows = clientQueueQuery.data?.rows ?? EMPTY_QUEUE_ROWS
   const alertHistoryQuery = useQuery(orpc.pulse.listHistory.queryOptions({ input: { limit: 30 } }))
   // Audit P1-4: single batch round-trip instead of N+1 useQueries.
   const alertIds = useMemo(
@@ -1092,13 +1118,16 @@ export function ClientDetailWorkspace({
                 className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
               >
                 <ClientWorkPlanPanel
-                  obligations={obligations}
-                  isLoading={obligationsQuery.isLoading}
+                  obligations={queueRows}
+                  isLoading={clientQueueQuery.isLoading}
                   summary={workPlan}
                   clientName={client.name}
                   onChangeStatus={handleChangeObligationStatus}
                   isStatusChangePending={changeStatusMutation.isPending}
                   canChangeStatus={canUpdateObligationStatus}
+                  expandedFilingId={expandedFilingId}
+                  onExpandFiling={(id) => void setExpandedFilingId(id)}
+                  onCollapseFiling={() => void setExpandedFilingId('')}
                 />
               </TabsContent>
 

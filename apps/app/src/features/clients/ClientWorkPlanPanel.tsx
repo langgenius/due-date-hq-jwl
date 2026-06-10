@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import type { ObligationInstancePublic } from '@duedatehq/contracts'
+import type { ObligationQueueRow } from '@duedatehq/contracts'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,7 +52,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
-import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
+import { DeadlineRow } from '@/features/obligations/queue/components/DeadlineRow'
 import {
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
@@ -71,7 +71,7 @@ type FilingPlanYearGroup = {
   // active filings. Year-based proxy for projected status (the precise signal
   // is `confirmed`, which this public-obligation view doesn't carry).
   isUpcoming: boolean
-  obligations: readonly ObligationInstancePublic[]
+  obligations: readonly ObligationQueueRow[]
   openCount: number
   extendedCount: number
 }
@@ -81,10 +81,10 @@ type FilingPlanYearGroup = {
 // current tax year (latest year present, or calendar year if no data) sits
 // at the top with a "Current tax year" chip; prior years follow descending.
 function groupObligationsByTaxYear(
-  obligations: readonly ObligationInstancePublic[],
+  obligations: readonly ObligationQueueRow[],
   currentTaxYear: number,
 ): FilingPlanYearGroup[] {
-  const buckets = new Map<number | 'unknown', ObligationInstancePublic[]>()
+  const buckets = new Map<number | 'unknown', ObligationQueueRow[]>()
   for (const obligation of obligations) {
     const key: number | 'unknown' = obligation.taxYear ?? 'unknown'
     const list = buckets.get(key)
@@ -210,12 +210,12 @@ function FilingPlanSortHeader({
 }
 
 function sortObligations(
-  list: readonly ObligationInstancePublic[],
+  list: readonly ObligationQueueRow[],
   sort: FilingPlanSort,
-): readonly ObligationInstancePublic[] {
+): readonly ObligationQueueRow[] {
   if (sort.field === null) return list
   const sign = sort.dir === 'asc' ? 1 : -1
-  const cmp = (a: ObligationInstancePublic, b: ObligationInstancePublic): number => {
+  const cmp = (a: ObligationQueueRow, b: ObligationQueueRow): number => {
     switch (sort.field) {
       case 'form':
         return a.taxType.localeCompare(b.taxType) * sign
@@ -250,18 +250,24 @@ export function ClientWorkPlanPanel({
   obligations,
   isLoading,
   summary: _summary,
-  clientName,
+  clientName: _clientName,
   onChangeStatus,
-  isStatusChangePending,
+  isStatusChangePending: _isStatusChangePending,
   canChangeStatus,
+  expandedFilingId,
+  onExpandFiling,
+  onCollapseFiling,
 }: {
-  obligations: readonly ObligationInstancePublic[]
+  obligations: readonly ObligationQueueRow[]
   isLoading: boolean
   summary: ClientWorkPlanSummary
   clientName: string
   onChangeStatus: (id: string, status: ObligationStatus) => void
   isStatusChangePending: boolean
   canChangeStatus: boolean
+  expandedFilingId: string
+  onExpandFiling: (id: string) => void
+  onCollapseFiling: () => void
 }) {
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const { t } = useLingui()
@@ -415,16 +421,15 @@ export function ClientWorkPlanPanel({
               <FilingPlanYearSection
                 key={group.year}
                 group={group}
-                clientName={clientName}
                 sort={sort}
-                onCycleSort={cycleSort}
                 selectedIds={selectedIds}
                 onToggleRow={toggleRow}
                 onSetYearSelection={setYearSelection}
-                onOpen={(obligationId) => openObligationDrawer(obligationId)}
                 onChangeStatus={onChangeStatus}
-                isStatusChangePending={isStatusChangePending}
                 canChangeStatus={canChangeStatus}
+                expandedFilingId={expandedFilingId}
+                onExpandFiling={onExpandFiling}
+                onCollapseFiling={onCollapseFiling}
               />
             ))}
           </div>
@@ -572,32 +577,28 @@ function FilingPlanBulkBar({
 //    two ends of a row — that orphans the heading.
 function FilingPlanYearSection({
   group,
-  clientName,
   sort,
-  onCycleSort,
   selectedIds,
   onToggleRow,
   onSetYearSelection,
-  onOpen,
   onChangeStatus,
-  isStatusChangePending,
   canChangeStatus,
+  expandedFilingId,
+  onExpandFiling,
+  onCollapseFiling,
 }: {
   group: FilingPlanYearGroup
-  clientName: string
   sort: FilingPlanSort
-  onCycleSort: (field: Exclude<FilingPlanSortField, null>) => void
   selectedIds: Set<string>
   onToggleRow: (id: string) => void
   onSetYearSelection: (ids: readonly string[], on: boolean) => void
-  onOpen: (obligationId: string) => void
   onChangeStatus: (id: string, status: ObligationStatus) => void
-  isStatusChangePending: boolean
   canChangeStatus: boolean
+  expandedFilingId: string
+  onExpandFiling: (id: string) => void
+  onCollapseFiling: () => void
 }) {
   const { t } = useLingui()
-  const navigate = useNavigate()
-  const statusPickerLabels = useLifecycleV2StatusLabels()
   // Apply panel-level sort to this year's obligations. When sort is
   // null (default), order matches whatever the API returned.
   const sortedObligations = useMemo(
@@ -649,6 +650,13 @@ function FilingPlanYearSection({
           the section-heading scale used by the TabSection primitive
           (page-family-canonical §9). */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-divider-subtle bg-background-subtle px-3 py-2.5">
+        <Checkbox
+          checked={yearAllSelected}
+          indeterminate={yearSomeSelected}
+          onCheckedChange={toggleYear}
+          aria-label={t`Select all deadlines in this year`}
+          className="size-4"
+        />
         <span className="text-base font-semibold leading-6 tabular-nums text-text-primary">
           {isUnknown ? <Trans>No tax year</Trans> : group.year}
         </span>
@@ -699,194 +707,28 @@ function FilingPlanYearSection({
           The outer wrapper provides horizontal scroll on narrow
           viewports (mobile/tablet) where the fixed-width columns
           would otherwise collide with the Form cell. */}
-      <div className="overflow-x-auto">
-        <Table className="min-w-[520px] table-fixed">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-9 px-3">
-                <Checkbox
-                  checked={yearAllSelected}
-                  indeterminate={yearSomeSelected}
-                  onCheckedChange={toggleYear}
-                  aria-label={t`Select all deadlines in this year`}
-                  className="size-4"
-                />
-              </TableHead>
-              <TableHead className="px-1">
-                <FilingPlanSortHeader
-                  active={sort.field === 'form'}
-                  dir={sort.dir}
-                  onClick={() => onCycleSort('form')}
-                >
-                  <Trans>Form</Trans>
-                </FilingPlanSortHeader>
-              </TableHead>
-              <TableHead className="w-[120px] px-1">
-                <FilingPlanSortHeader
-                  active={sort.field === 'internal'}
-                  dir={sort.dir}
-                  title={t`The firm-side soft target — when this filing should be ready internally for the deadline window`}
-                  onClick={() => onCycleSort('internal')}
-                >
-                  <Trans>Internal deadline</Trans>
-                </FilingPlanSortHeader>
-              </TableHead>
-              <TableHead className="w-[120px] px-1">
-                <FilingPlanSortHeader
-                  active={sort.field === 'official'}
-                  dir={sort.dir}
-                  title={t`The IRS / state statutory due date — the hard deadline the filing must be submitted by`}
-                  onClick={() => onCycleSort('official')}
-                >
-                  <Trans>Official deadline</Trans>
-                </FilingPlanSortHeader>
-              </TableHead>
-              <TableHead className="w-[120px] px-1">
-                <FilingPlanSortHeader
-                  active={sort.field === 'status'}
-                  dir={sort.dir}
-                  title={t`The deadline's lifecycle state. Click any row's pill to change its status — the same control as on /deadlines and inside the obligation drawer.`}
-                  onClick={() => onCycleSort('status')}
-                >
-                  <Trans>Status</Trans>
-                </FilingPlanSortHeader>
-              </TableHead>
-              <TableHead className="w-9 px-1" aria-hidden />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedObligations.map((obligation) => {
-              const isSelected = selectedIds.has(obligation.id)
-              return (
-                <TableRow
-                  key={obligation.id}
-                  className={cn(
-                    'group/row cursor-pointer',
-                    isSelected && 'bg-state-accent-hover-alt',
-                  )}
-                  onClick={() => onOpen(obligation.id)}
-                >
-                  <TableCell
-                    className="w-9 px-3 py-2"
-                    onClick={(event) => event.stopPropagation()}
-                    // Escape MUST bubble to the parent Dialog/Sheet close
-                    // handler. Other keys stay scoped so checkbox toggle
-                    // doesn't accidentally fire row open.
-                    onKeyDown={(event) => {
-                      if (event.key === 'Escape') return
-                      event.stopPropagation()
-                    }}
-                  >
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => onToggleRow(obligation.id)}
-                      aria-label={t`Select ${formatTaxCode(obligation.taxType)}`}
-                      className="size-4"
-                    />
-                  </TableCell>
-                  <TableCell className="px-1 py-2">
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        onOpen(obligation.id)
-                      }}
-                      aria-label={t`Open ${formatTaxCode(obligation.taxType)} due ${formatDate(obligation.currentDueDate)}`}
-                      className="block w-full min-w-0 cursor-pointer truncate rounded-sm text-left text-sm font-medium leading-5 text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                    >
-                      <TaxCodeLabel code={obligation.taxType} tooltip={false} />
-                    </button>
-                  </TableCell>
-                  <TableCell className="w-[120px] px-1 py-2">
-                    <span className="flex items-baseline gap-1.5 text-[14px] leading-5 tabular-nums text-text-primary">
-                      {formatDate(obligation.currentDueDate)}
-                      {obligation.extensionState === 'filed' ||
-                      obligation.extensionState === 'accepted' ? (
-                        // 2026-06-01: ext. chip swapped to Badge size=sm
-                        // shape=square info variant — same token-driven
-                        // blue treatment, but inherits the canonical
-                        // micro-chip sizing used everywhere else.
-                        <Badge
-                          variant="info"
-                          size="sm"
-                          shape="square"
-                          title={t`This row's deadline has been extended. The Official Deadline column shows the original statutory date; the Internal Deadline reflects the new post-extension target.`}
-                        >
-                          ext.
-                        </Badge>
-                      ) : null}
-                    </span>
-                  </TableCell>
-                  <TableCell className="w-[120px] px-1 py-2 text-[14px] leading-5 tabular-nums text-text-primary">
-                    {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
-                  </TableCell>
-                  <TableCell className="w-[120px] px-1 py-2">
-                    <span className="flex flex-wrap items-center gap-1">
-                      <ObligationQueueStatusControl
-                        row={{ id: obligation.id, status: obligation.status, clientName }}
-                        labels={statusPickerLabels}
-                        statuses={LIFECYCLE_V2_STATUSES}
-                        disabled={isStatusChangePending}
-                        onChange={onChangeStatus}
-                        readOnly={!canChangeStatus}
-                      />
-                      {(() => {
-                        const overdueDays = paymentOverdueDays(obligation, Date.now())
-                        if (overdueDays === null) return null
-                        return (
-                          // 2026-06-01: Payment-late chip swapped to
-                          // Badge destructive sm square so it inherits
-                          // the same micro-chip rhythm as the ext. chip
-                          // on the Internal Deadline column.
-                          <Badge
-                            variant="destructive"
-                            size="sm"
-                            shape="square"
-                            title={t`The filing was submitted, but the authority payment due ${formatDate(obligation.paymentDueDate ?? '')} hasn't been confirmed yet. Penalty interest accrues until the wire lands.`}
-                          >
-                            <Trans>Payment {overdueDays}d late</Trans>
-                          </Badge>
-                        )
-                      })()}
-                    </span>
-                  </TableCell>
-                  <TableCell className="w-9 px-1 py-2">
-                    <RowActionsMenu
-                      label={t`Actions for ${formatTaxCode(obligation.taxType)}`}
-                      items={[
-                        {
-                          label: t`Open obligation`,
-                          icon: EyeIcon,
-                          onSelect: () => onOpen(obligation.id),
-                        },
-                        {
-                          label: t`View in Deadlines`,
-                          icon: ExternalLinkIcon,
-                          onSelect: () => {
-                            void navigate(`/deadlines?obligation=${obligation.id}`)
-                          },
-                        },
-                        {
-                          label: t`Copy obligation ID`,
-                          icon: LinkIcon,
-                          onSelect: () => {
-                            if (typeof window === 'undefined') return
-                            try {
-                              void window.navigator.clipboard?.writeText(obligation.id)
-                              toast.success(t`Obligation ID copied`)
-                            } catch {
-                              // Clipboard can throw in sandboxed iframes.
-                            }
-                          },
-                        },
-                      ]}
-                    />
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+      {/* 2026-06-10 (Yuqi — client Work tab uses DeadlineRow inline-expand,
+          per deadline-row-interaction.md): each filing renders as a
+          <DeadlineRow mode="inline-expand">. Body click expands inline; the
+          title navigates to the full deadline. The table's inline status
+          picker / kebab / dual-date columns are redistributed into the row
+          expansion. Panel sort still orders rows; multi-select drives the bulk bar. */}
+      <div className="flex flex-col">
+        {sortedObligations.map((obligation) => (
+          <DeadlineRow
+            key={obligation.id}
+            deadline={obligation}
+            mode="inline-expand"
+            isExpanded={expandedFilingId === obligation.id}
+            isSelected={selectedIds.has(obligation.id)}
+            multiSelectMode={selectedIds.size > 0}
+            canEdit={canChangeStatus}
+            onExpand={onExpandFiling}
+            onCollapse={onCollapseFiling}
+            onSelect={(id) => onToggleRow(id)}
+            onMarkFiled={(id) => onChangeStatus(id, 'done')}
+          />
+        ))}
       </div>
     </div>
   )

@@ -97,3 +97,24 @@ Spec: `docs/Design/deadline-row-interaction.md` (committed alongside).
   into its own gray-header `DetailSectionCard` ("N of M complete" right-meta),
   matching Pencil `bmwHb` + the rest of the panel's card system. The workflow
   card stays the headerless hero (stepper + active-stage), per Pencil `Y8xrR`.
+
+## Client Work tab → DeadlineRow inline-expand (Yuqi pick "a")
+
+Phase 2 of deadline-row-interaction.md, integrated into the existing panel
+(grouping + multi-select + bulk bar preserved):
+
+- `ClientDetailWorkspace`: new `obligations.list` query filtered by `clientIds`
+  (returns `ObligationQueueRow[]` with assigneeName/daysUntilDue/readiness that
+  `DeadlineRow` needs) + a `nuqs` `?expanded=` param (strict accordion). The
+  existing `listByClient` still feeds the work-plan summary.
+- `ClientWorkPlanPanel` retyped to `ObligationQueueRow`; `FilingPlanYearSection`
+  swaps its `<Table>` (Form/Internal/Official/Status columns, inline status
+  picker, kebab, column-sort) for `<DeadlineRow mode="inline-expand">`. The
+  table's inline controls are redistributed into the row expansion (Mark filed
+  etc.), per the spec. Year-group header keeps the select-all; panel sort still
+  orders rows; multi-select still drives the bulk bar.
+
+Verified live on /clients/lone-star-…: 3 DeadlineRows render, body click expands
+inline + sets `?expanded=`, the expansion region renders. tsgo clean.
+NOTE: table removal left some now-unused imports in the panel (lint-level, not
+type errors) — tidy follow-up.
