@@ -51,6 +51,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   AlertTriangleIcon,
   ArrowUpRightIcon,
+  CalendarXIcon,
   CheckCircle2Icon,
   ChevronRightIcon,
   CircleCheck,
@@ -63,6 +64,9 @@ import {
   Loader,
   Loader2,
   MessageSquareText,
+  TargetIcon,
+  WalletIcon,
+  type LucideIcon,
 } from 'lucide-react'
 import { Fragment, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -290,6 +294,65 @@ export function ReadinessOverview({
 // the year ("2026"); fiscal / short / quarterly periods keep the
 // explicit start–end range.
 
+// 2026-06-10 (Yuqi — replicate Pencil `Qn4nX` date cards MuJyP/QMQgD/ZSK1V):
+// the standalone-page 'cards' variant renders each anchor date as a real card
+// — leading icon + uppercase 11/600 label, a 22/600 prettified date, and a
+// day-of-week · relative sub-line. The Filing card flips to the warm
+// `state-warning-hover` (#fff4f1) tint with a warning-tone icon when overdue.
+const DATE_CARD_WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
+
+function DeadlineDateCard({
+  icon: Icon,
+  label,
+  date,
+  subline,
+  sublineTone,
+  overdue = false,
+}: {
+  icon: LucideIcon
+  label: string
+  date: string | null
+  subline: string | null
+  sublineTone: 'destructive' | 'warning' | 'tertiary'
+  overdue?: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col gap-2 rounded-xl border border-divider-subtle px-[18px] py-4',
+        overdue ? 'bg-state-warning-hover' : 'bg-background-default',
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <Icon
+          className={cn('size-3 shrink-0', overdue ? 'text-text-warning' : 'text-text-tertiary')}
+          aria-hidden
+        />
+        <span className="text-[11px] font-semibold uppercase tracking-[0.4px] text-text-tertiary">
+          {label}
+        </span>
+      </div>
+      <span className="text-[22px] leading-none font-semibold tracking-[-0.3px] text-text-primary tabular-nums">
+        {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
+      </span>
+      {subline ? (
+        <span
+          className={cn(
+            'text-[12px] font-medium',
+            sublineTone === 'destructive'
+              ? 'text-text-destructive'
+              : sublineTone === 'warning'
+                ? 'text-text-warning'
+                : 'text-text-tertiary',
+          )}
+        >
+          {subline}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
 export function PrimaryDeadlineStrip({
   row,
   variant = 'flat',
@@ -458,6 +521,64 @@ export function PrimaryDeadlineStrip({
   const paymentLateDays = paymentOverdueDays(row, Date.now())
   const formatDaysOverdue = (d: number) =>
     i18n._(plural(d, { one: '# day overdue', other: '# days overdue' }))
+
+  // 2026-06-10 (Yuqi — Pencil `Qn4nX` date cards): the standalone page renders
+  // real cards (icon + pretty date + weekday·relative sub-line + overdue tint),
+  // not the frameless flat strip used inside /clients + the sheet.
+  if (variant === 'cards') {
+    const wd = (iso: string | null) =>
+      iso ? DATE_CARD_WEEKDAYS[new Date(`${iso}T00:00:00.000Z`).getUTCDay()] : ''
+    const pastStr = (n: number) => i18n._(plural(n, { one: '# day past', other: '# days past' }))
+    const inStr = (n: number) => i18n._(plural(n, { one: 'in # day', other: 'in # days' }))
+    const join = (iso: string | null, tail: string | null) => {
+      const day = wd(iso)
+      if (!day) return null
+      return tail ? `${day} · ${tail}` : day
+    }
+    const filingSub = filingSatisfied
+      ? join(filingIso, null)
+      : filingLateDays && filingLateDays > 0
+        ? join(filingIso, pastStr(filingLateDays))
+        : filingDays !== null && filingDays > 0
+          ? join(filingIso, inStr(filingDays))
+          : filingDays === 0
+            ? join(filingIso, t`today`)
+            : join(filingIso, null)
+    const internalSub =
+      internalLateDays && internalLateDays > 0
+        ? join(internalIso, pastStr(internalLateDays))
+        : join(internalIso, null)
+    const paymentSub =
+      paymentLateDays && paymentLateDays > 0
+        ? join(paymentIso, formatDaysOverdue(paymentLateDays))
+        : join(paymentIso, null)
+    return (
+      <div aria-label={t`Key deadlines`} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <DeadlineDateCard
+          icon={CalendarXIcon}
+          label={t`Filing deadline`}
+          date={filingIso}
+          overdue={filingPast}
+          subline={filingSub}
+          sublineTone={filingPast ? 'destructive' : 'tertiary'}
+        />
+        <DeadlineDateCard
+          icon={TargetIcon}
+          label={t`Internal target`}
+          date={internalIso}
+          subline={internalSub}
+          sublineTone={internalPast ? 'destructive' : 'tertiary'}
+        />
+        <DeadlineDateCard
+          icon={WalletIcon}
+          label={t`Payment due`}
+          date={paymentIso}
+          subline={paymentSub}
+          sublineTone={paymentPast ? 'destructive' : 'tertiary'}
+        />
+      </div>
+    )
+  }
   return (
     <div
       aria-label={t`Key deadlines`}
@@ -468,11 +589,7 @@ export function PrimaryDeadlineStrip({
       // rules; each cell gets `px-3` for breathing room around the rule,
       // and the first cell drops its left pad so the strip aligns flush
       // with the body's `px-12` rhythm.
-      className={
-        variant === 'cards'
-          ? 'grid grid-cols-3 gap-3 [&>*]:rounded-[12px] [&>*]:border [&>*]:border-divider-subtle [&>*]:bg-background-default [&>*]:p-4'
-          : 'grid grid-cols-3 divide-x divide-divider-subtle [&>*]:px-3 [&>*:first-child]:pl-0'
-      }
+      className="grid grid-cols-3 divide-x divide-divider-subtle [&>*]:px-3 [&>*:first-child]:pl-0"
     >
       <DeadlineTile
         label={t`Filing deadline`}
