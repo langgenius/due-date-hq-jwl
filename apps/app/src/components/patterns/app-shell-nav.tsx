@@ -1,17 +1,14 @@
-import { useCallback, useMemo, useState, type SyntheticEvent, type ReactNode } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { useCallback, useMemo, type ReactNode } from 'react'
+import { NavLink } from 'react-router'
+import { useQuery } from '@tanstack/react-query'
+import { useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
   BookOpenIcon,
   CalendarIcon,
-  CheckIcon,
-  ChevronsUpDownIcon,
   MapIcon,
   MegaphoneIcon,
-  PlusIcon,
   SatelliteDishIcon,
   ScrollTextIcon,
   SearchIcon,
@@ -20,33 +17,8 @@ import {
   UsersIcon,
   type LucideIcon,
 } from 'lucide-react'
-import { toast } from 'sonner'
 
-import {
-  DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
-  MAX_INTERNAL_DEADLINE_OFFSET_DAYS,
-  MIN_INTERNAL_DEADLINE_OFFSET_DAYS,
-  type FirmPublic,
-  type USFirmTimezone,
-} from '@duedatehq/contracts'
-import { Button } from '@duedatehq/ui/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@duedatehq/ui/components/ui/dialog'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@duedatehq/ui/components/ui/dropdown-menu'
+import type { FirmPublic } from '@duedatehq/contracts'
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -60,29 +32,16 @@ import {
 } from '@duedatehq/ui/components/ui/sidebar'
 import { AlertsNotificationsBell } from '@/components/patterns/alerts-notifications-bell'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
-import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
-import { Input } from '@duedatehq/ui/components/ui/input'
-import { Label } from '@duedatehq/ui/components/ui/label'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { useActiveAlertCount } from '@/features/alerts/api'
 import { orpc } from '@/lib/rpc'
-import { rpcErrorMessage } from '@/lib/rpc-error'
-import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
-import { canCreateAdditionalFirm, ownedActiveFirms } from '@/features/billing/model'
-import { DEFAULT_US_FIRM_TIMEZONE } from '@/features/firm/timezone-model'
-import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
 import {
   COMMAND_PALETTE_HOTKEY,
-  FIRM_SWITCHER_HOTKEY,
   formatShortcutForDisplay,
 } from '@/components/patterns/keyboard-shell/display'
 import { useNavV2 } from '@/components/patterns/use-nav-v2'
-import {
-  useAppHotkey,
-  useKeyboardShell,
-  useKeyboardShortcutsBlocked,
-} from '@/components/patterns/keyboard-shell/hooks'
+import { useKeyboardShell } from '@/components/patterns/keyboard-shell/hooks'
 
 type NavItem = {
   href: string
@@ -141,14 +100,6 @@ const NAV_ROLE_LABELS = {
   coordinator: msg`Coordinator`,
 } as const
 
-const NAV_PLAN_LABELS = {
-  firm: msg`Enterprise`,
-  team: msg`Team`,
-  pro: msg`Pro`,
-  solo: msg`Solo`,
-  free: msg`Free`,
-} as const
-
 function roleLabel(role: FirmPublic['role'], i18n: I18n): string {
   return i18n._(NAV_ROLE_LABELS[role])
 }
@@ -159,213 +110,58 @@ function navItemTooltip(item: NavItem, disabled: boolean): string {
   return item.label
 }
 
-function planLabel(plan: FirmPublic['plan'], i18n: I18n): string {
-  return i18n._(NAV_PLAN_LABELS[plan])
-}
-
-function firmMeta(firm: FirmPublic, i18n: I18n): string {
-  const role = roleLabel(firm.role, i18n)
-  const plan = planLabel(firm.plan, i18n)
-  return firm.seatLimit === 1
-    ? i18n._(msg`${role} · ${plan} · ${firm.seatLimit} seat`)
-    : i18n._(msg`${role} · ${plan} · ${firm.seatLimit} seats`)
-}
-
-function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPublic[] }) {
-  const { i18n, t } = useLingui()
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const shortcutsBlocked = useKeyboardShortcutsBlocked()
-  const [switcherOpen, setSwitcherOpen] = useState(false)
-  const [addOpen, setAddOpen] = useState(false)
-  const switchMutation = useMutation(
-    orpc.firms.switchActive.mutationOptions({
-      onSuccess: () => {
-        setSwitcherOpen(false)
-        void resetPracticeScopedQueryCache(queryClient)
-        void navigate('/', { replace: true })
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't switch practice`, {
-          description:
-            rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
-        })
-      },
-    }),
-  )
-  const handleSwitch = useCallback(
-    (firmId: string) => {
-      if (firmId === firm.id || switchMutation.isPending) return
-      switchMutation.mutate({ firmId })
-    },
-    [firm.id, switchMutation],
-  )
-
-  useAppHotkey(FIRM_SWITCHER_HOTKEY, () => setSwitcherOpen(true), {
-    enabled: !shortcutsBlocked && !addOpen,
-    requireReset: true,
-    meta: {
-      id: 'firm.switch',
-      name: 'Switch practice',
-      description: 'Open the practice switcher.',
-      category: 'global',
-      scope: 'global',
-    },
-  })
-
+// 2026-06-10 (practice switcher removed): the sidebar header no longer
+// opens a practice switcher — multi-practice switching and the self-serve
+// "Add practice" dialog left the UI (the `firms.switchActive` /
+// `firms.create` procedures stay server-side; onboarding still drives
+// them). The header is now a STATIC workspace identity. It keeps the
+// Pencil v202hj §BrandHeader box metrics — fixed h-10, rounded-xl 1px
+// border, 32px monogram + practice name — minus the chevron and every
+// interactive affordance (cursor, hover border, focus ring, hotkey),
+// so expanded/collapsed layout behaves exactly as before: collapsing
+// turns the border transparent (1px layout preserved → no shift) and
+// hides the name via its own group-collapsed:hidden.
+function FirmIdentityHeader({ firm }: { firm: FirmPublic }) {
   return (
     // 2026-05-26 (Yuqi sidebar bug): `SidebarHeader` is a `flex
-    // flex-col` wrapper with no grow constraint. When the app-shell
-    // places `SidebarCollapseToggle` as a sibling next to this trigger
-    // in a horizontal flex row, the SidebarHeader stays at its
-    // content's natural width and the toggle gets pushed past the
-    // sidebar's right edge into the page content area. Adding
-    // `min-w-0 flex-1` makes the SidebarHeader expand to fill the row
-    // so the toggle stays inside the sidebar boundary. Collapsed mode
-    // overrides with `w-auto flex-none` in the parent.
+    // flex-col` wrapper with no grow constraint. `min-w-0 flex-1`
+    // makes it expand to fill the header row so siblings the
+    // app-shell may place beside it stay inside the sidebar
+    // boundary. Collapsed mode overrides with `w-auto flex-none`
+    // in the parent.
     <SidebarHeader className="min-w-0 flex-1">
-      <DropdownMenu open={switcherOpen} onOpenChange={setSwitcherOpen}>
-        <DropdownMenuTrigger
-          render={
-            <button
-              type="button"
-              aria-label={t`Switch practice, current ${firm.name}`}
-              aria-keyshortcuts="Meta+Shift+O Control+Shift+O"
-              title={firm.name}
-              // 2026-05-26 (Yuqi sixty-ninth pass follow-up — firm
-              // switcher bug): dropped `rounded-lg` + the bg-hover
-              // / focus-bg states. The rounded corners made the
-              // trigger read as a floating card peeking out of the
-              // sidebar (especially during hover-expand on an
-              // auto-collapsed rail) instead of the sidebar's
-              // top section. Without the rounded corners + visible
-              // bg state, the trigger now flows flush with the
-              // sidebar header and the dropdown affordance comes
-              // purely from the chevron + cursor (still
-              // interactive via hover/focus, just without the
-              // card-shaped wash). Compact (collapsed) mode keeps
-              // its size-8 footprint; the visual card-ness was the
-              // expanded-mode problem.
-              // 2026-06-09 (Yuqi follow-up — match Pencil v202hj
-              // §BrandHeader): the firm switcher is an OUTLINED BOX —
-              // rounded-xl (12), 1px divider border, transparent fill,
-              // holding the 32px monogram tile + practice name + chevron.
-              // 2026-06-09 (Yuqi "no flick on collapse"): the button
-              // keeps a FIXED h-10 in BOTH modes and the monogram stays
-              // left-aligned + vertically centered, so its position never
-              // moves between expanded/collapsed. Collapsing only makes
-              // the border transparent (box chrome disappears but its 1px
-              // layout is preserved → no shift) and hides the name +
-              // chevron (their own group-collapsed:hidden). No size-8
-              // snap, no mx-auto re-center — those were the flick.
-              className="flex h-10 w-full min-w-0 cursor-pointer touch-manipulation items-center gap-2.5 rounded-xl border border-divider-deep p-1 text-left outline-none transition-colors hover:border-divider-intense hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:border-transparent group-data-[collapsed=true]/sidebar:hover:border-transparent"
-            />
-          }
-        >
-          {/* 2026-06-09 (Yuqi follow-up — monogram restored to match
-              Pencil §BrandHeader): the 32px monogram tile renders in BOTH
-              modes — beside the name when expanded, and as the standalone
-              workspace identity in the collapsed rail. */}
-          <span className="flex shrink-0">
-            <AssigneeAvatar
-              name={firm.name}
-              title={firm.name}
-              type="firm"
-              shape="square"
-              size="md"
-              className="shrink-0"
-            />
-          </span>
-          <span
-            className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
-            translate="no"
-          >
-            {firm.name}
-          </span>
-          <ChevronsUpDownIcon
-            className="size-4 shrink-0 text-text-tertiary group-data-[collapsed=true]/sidebar:hidden"
-            aria-hidden
+      <div
+        title={firm.name}
+        className="flex h-10 w-full min-w-0 items-center gap-2.5 rounded-xl border border-divider-deep p-1 group-data-[collapsed=true]/sidebar:border-transparent"
+      >
+        {/* 2026-06-09 (Yuqi follow-up — monogram restored to match
+            Pencil §BrandHeader): the 32px monogram tile renders in BOTH
+            modes — beside the name when expanded, and as the standalone
+            workspace identity in the collapsed rail. */}
+        <span className="flex shrink-0">
+          <AssigneeAvatar
+            name={firm.name}
+            title={firm.name}
+            type="firm"
+            shape="square"
+            size="md"
+            className="shrink-0"
           />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" side="bottom" sideOffset={6} className="w-64">
-          <DropdownMenuGroup>
-            <DropdownMenuLabel className="text-left">
-              <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
-                <Trans>Practices</Trans>
-              </span>
-            </DropdownMenuLabel>
-            {firms.map((item) => {
-              const selected = item.id === firm.id
-              return (
-                <DropdownMenuItem
-                  key={item.id}
-                  aria-checked={selected}
-                  // 2026-05-25 (Yuqi caps fix follow-up): bumped
-                  // row height (h-12) + padding (px-2 py-2) +
-                  // avatar (size-7) so the dropdown row matches
-                  // the trigger's brand-mark presence. Item row
-                  // was h-8 / size-5 (20px) — the avatar read as
-                  // a UI dot rather than the workspace identity
-                  // it pairs with on the trigger (32px).
-                  className="flex h-12 items-center justify-between gap-2 px-2 py-2"
-                  onClick={() => handleSwitch(item.id)}
-                >
-                  <span className="flex min-w-0 items-center gap-2.5">
-                    {/* 2026-06-01: dropdown-item monogram routed
-                        through AssigneeAvatar (firm + square + sm).
-                        Fixed 28px tile — no sidebar-context resize. */}
-                    <AssigneeAvatar
-                      name={item.name}
-                      title={item.name}
-                      type="firm"
-                      shape="square"
-                      size="sm"
-                      className="shrink-0"
-                    />
-                    <span className="flex min-w-0 flex-col leading-tight">
-                      <span
-                        className="truncate text-sm font-medium text-text-primary"
-                        translate="no"
-                      >
-                        {item.name}
-                      </span>
-                      <span className="truncate text-xs text-text-tertiary">
-                        {firmMeta(item, i18n)}
-                      </span>
-                    </span>
-                  </span>
-                  {selected ? (
-                    <CheckIcon className="size-4 shrink-0 text-text-accent" aria-hidden />
-                  ) : null}
-                </DropdownMenuItem>
-              )
-            })}
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem
-              onClick={() => {
-                setSwitcherOpen(false)
-                setAddOpen(true)
-              }}
-            >
-              <PlusIcon />
-              <span>
-                <Trans>Add practice</Trans>
-              </span>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <AddFirmDialog open={addOpen} onOpenChange={setAddOpen} firms={firms} />
+        </span>
+        <span
+          className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
+          translate="no"
+        >
+          {firm.name}
+        </span>
+      </div>
     </SidebarHeader>
   )
 }
 
 /**
  * SidebarQuickFind — the "Quick find…" search affordance under the firm
- * switcher (Pencil duedatehq_work.pen §QuickSearch).
+ * identity header (Pencil duedatehq_work.pen §QuickSearch).
  *
  * It is not a real input: clicking it (or pressing the ⌘K hotkey) opens
  * the global CommandPalette, which owns the actual search field, client
@@ -429,198 +225,6 @@ function SidebarQuickFind() {
         {shortcut}
       </span>
     </button>
-  )
-}
-
-function AddFirmDialog({
-  open,
-  onOpenChange,
-  firms,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  firms: FirmPublic[]
-}) {
-  const { t } = useLingui()
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const [name, setName] = useState('')
-  const [timezone, setTimezone] = useState<USFirmTimezone>(DEFAULT_US_FIRM_TIMEZONE)
-  const [internalDeadlineOffsetDays, setInternalDeadlineOffsetDays] = useState(
-    DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
-  )
-  const [error, setError] = useState<string | null>(null)
-  const canCreate = canCreateAdditionalFirm(firms)
-  const ownedFirmCount = ownedActiveFirms(firms).length
-  const createMutation = useMutation(
-    orpc.firms.create.mutationOptions({
-      onSuccess: () => {
-        setName('')
-        setTimezone(DEFAULT_US_FIRM_TIMEZONE)
-        setInternalDeadlineOffsetDays(DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS)
-        setError(null)
-        onOpenChange(false)
-        void resetPracticeScopedQueryCache(queryClient)
-        void navigate('/', { replace: true })
-      },
-      onError: (err) => {
-        setError(rpcErrorMessage(err) ?? t`Couldn't create practice`)
-      },
-    }),
-  )
-
-  function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!canCreate) return
-    const trimmed = name.trim()
-    if (trimmed.length < 2) {
-      setError(t`Please enter at least 2 characters.`)
-      return
-    }
-    if (
-      internalDeadlineOffsetDays < MIN_INTERNAL_DEADLINE_OFFSET_DAYS ||
-      internalDeadlineOffsetDays > MAX_INTERNAL_DEADLINE_OFFSET_DAYS
-    ) {
-      setError(t`Internal deadline offset must be between 0 and 365 days.`)
-      return
-    }
-    setError(null)
-    createMutation.mutate({ name: trimmed, timezone, internalDeadlineOffsetDays })
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            <Trans>Add practice</Trans>
-          </DialogTitle>
-          {canCreate ? (
-            <DialogDescription>
-              <Trans>
-                Create a separate practice with its own clients, deadlines, audit trail, and
-                settings.
-              </Trans>
-            </DialogDescription>
-          ) : (
-            <DialogDescription>
-              <Trans>
-                Your current plan includes one active practice. Additional practices are available
-                on the Enterprise plan.
-              </Trans>
-            </DialogDescription>
-          )}
-        </DialogHeader>
-        {!canCreate ? (
-          <div className="grid gap-4">
-            {/* 2026-06-01: hand-rolled info callout collapsed onto
-                Card size='sm' tone='muted' radius='md' — same border-
-                subtle + background-section recipe, now from the
-                primitive. Card sets py-4; CardContent adds px-4. */}
-            <Card size="sm" tone="muted" radius="md">
-              <CardContent>
-                <p className="text-xs uppercase tracking-eyebrow text-text-tertiary">
-                  <Trans>Practice workspaces</Trans>
-                </p>
-                <p className="mt-2 text-sm font-medium text-text-primary">
-                  <Trans>{ownedFirmCount} of 1 included</Trans>
-                </p>
-                <p className="mt-1 text-sm leading-5 text-text-secondary">
-                  <Trans>
-                    Solo, Pro, and Team include one active practice workspace. Contact sales for
-                    multiple practices, offices, or demo/production separation.
-                  </Trans>
-                </p>
-              </CardContent>
-            </Card>
-            <DialogFooter>
-              {/* 2026-05-27 (σ cross-route audit D12 — upgrade prompt):
-                  Cancel was the last outline straggler from X1 in the
-                  cross-cutting nav shell. Aligned with the ghost canon
-                  shared by every other dialog Cancel. */}
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                <Trans>Cancel</Trans>
-              </Button>
-              <Button render={<Link to="/billing" onClick={() => onOpenChange(false)} />}>
-                <Trans>Review plans</Trans>
-              </Button>
-            </DialogFooter>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="grid gap-4">
-            <div className="grid gap-1.5">
-              <Label htmlFor="add-firm-name">
-                <Trans>Practice name</Trans>
-              </Label>
-              <Input
-                id="add-firm-name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                autoComplete="organization"
-                aria-invalid={error ? true : undefined}
-                placeholder={t`e.g. Bright CPA Practice`}
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="add-firm-timezone">
-                <Trans>Timezone</Trans>
-              </Label>
-              <FirmTimezoneSelect
-                id="add-firm-timezone"
-                value={timezone}
-                onValueChange={setTimezone}
-                disabled={createMutation.isPending}
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="add-firm-internal-deadline-offset">
-                <Trans>Internal deadline</Trans>
-              </Label>
-              <Input
-                id="add-firm-internal-deadline-offset"
-                type="number"
-                min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
-                max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
-                step={1}
-                value={internalDeadlineOffsetDays}
-                onChange={(event) =>
-                  setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
-                }
-                disabled={createMutation.isPending}
-                className="tabular-nums"
-              />
-              <p className="text-xs text-text-tertiary">
-                <Trans>Show work as due this many days before the statutory deadline.</Trans>
-              </p>
-            </div>
-            {error ? (
-              <p role="alert" className="text-sm text-text-destructive">
-                {error}
-              </p>
-            ) : null}
-            <DialogFooter>
-              {/* 2026-05-27 (σ cross-route audit D12 — create-firm
-                  dialog): same outline → ghost as the upgrade-prompt
-                  twin above. */}
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                <Trans>Cancel</Trans>
-              </Button>
-              <Button
-                type="submit"
-                disabled={createMutation.isPending}
-                aria-busy={createMutation.isPending || undefined}
-              >
-                {createMutation.isPending ? (
-                  <Trans>Creating…</Trans>
-                ) : (
-                  <Trans>Create practice</Trans>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
-      </DialogContent>
-    </Dialog>
   )
 }
 
@@ -1081,4 +685,4 @@ function NavItemBadge({ value, tone }: { value: string; tone: NonNullable<NavIte
   )
 }
 
-export { FirmSwitcherTrigger, NavGroups, SidebarQuickFind, roleLabel }
+export { FirmIdentityHeader, NavGroups, SidebarQuickFind, roleLabel }

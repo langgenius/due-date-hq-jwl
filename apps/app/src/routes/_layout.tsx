@@ -125,7 +125,6 @@ function RootLayoutShell({
                   <AppShell
                     user={user}
                     firm={firm}
-                    firms={firmsQuery.data ?? [firm]}
                     route={route}
                     themePreference={themePreference}
                     switchThemePreference={switchThemePreference}

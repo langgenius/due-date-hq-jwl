@@ -12,7 +12,7 @@ import {
   useSidebar,
 } from '@duedatehq/ui/components/ui/sidebar'
 import type { ThemePreference } from '@duedatehq/ui/theme'
-import { FirmSwitcherTrigger, NavGroups, SidebarQuickFind } from './app-shell-nav'
+import { FirmIdentityHeader, NavGroups, SidebarQuickFind } from './app-shell-nav'
 import { SIDEBAR_TOGGLE_HOTKEY } from './keyboard-shell/display'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from './keyboard-shell/hooks'
 import { UserMenuTrigger, isReadOnlyDemoUser } from './app-shell-user-menu'
@@ -45,7 +45,6 @@ type RouteSummary = {
 type AppShellProps = {
   user: AuthUser
   firm: FirmPublic
-  firms: FirmPublic[]
   route: RouteSummary
   themePreference: ThemePreference
   switchThemePreference: (next: ThemePreference) => void
@@ -179,9 +178,12 @@ export function AppShell(props: AppShellProps) {
               icon"): the firm box spans the full header width — the
               collapse control is no longer here. It now floats as an
               edge-handle arrow OUTSIDE the card, mounted by the Sidebar
-              primitive itself (see SidebarCollapseToggle). */}
+              primitive itself (see SidebarCollapseToggle).
+              2026-06-10 (practice switcher removed): the header is a
+              static workspace identity now — no dropdown, no switching,
+              no Add-practice entry. Same box metrics as before. */}
           <div className="flex items-center pt-3 pb-3">
-            <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
+            <FirmIdentityHeader firm={props.firm} />
           </div>
           {/* 2026-06-09 (Yuqi sidebar floating-card pass): the 1px rib
               under the firm switcher is gone — the Pencil design has no

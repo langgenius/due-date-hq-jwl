@@ -9,7 +9,6 @@ export { isEditableEventTarget, isInteractiveEventTarget } from './types'
 export type { AppHotkeyMeta, ShortcutCategory, ShortcutScope } from './types'
 export {
   COMMAND_PALETTE_HOTKEY,
-  FIRM_SWITCHER_HOTKEY,
   SIDEBAR_TOGGLE_HOTKEY,
   formatCompactShortcutForDisplay,
   formatShortcutForDisplay,
