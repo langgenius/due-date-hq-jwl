@@ -137,7 +137,11 @@ export function DeadlineNavigatorRail({
   }, [rows, search, effectiveStatusFilter, statusLabels])
 
   return (
-    <aside className="flex h-full w-[380px] shrink-0 flex-col border-r border-divider-subtle bg-background-default">
+    // 2026-06-10 (Yuqi responsive contract): rail is the xl/lg companion
+    // column; below lg the master-detail collapses to detail-only (rail hidden,
+    // so the detail gets full width — the crumb's "Deadlines" link returns to
+    // the table). Width 340 (lg) → 380 (xl).
+    <aside className="hidden h-full w-[340px] shrink-0 flex-col border-r border-divider-subtle bg-background-default lg:flex xl:w-[380px]">
       {/* ListHead — title + count chip (rzzww `mCfAZ`). */}
       <div className="flex items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
         <span className="text-[15px] font-semibold text-text-primary">
