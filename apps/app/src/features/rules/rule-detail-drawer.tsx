@@ -404,6 +404,14 @@ export function RuleDetailCompact({
         }
       />
 
+      {/* Impact — estimated client obligations accepting would generate (the
+          real previewRuleImpact count only; the canvas's "N clients / +X%
+          coverage" aren't backed by the API, so they're dropped). Review
+          context only — for an already-active rule the accept-impact is moot. */}
+      {rule.status === 'candidate' || rule.status === 'pending_review' ? (
+        <RuleImpactCard rule={rule} />
+      ) : null}
+
       {/* Activity — summary = current version; detail = full audit timeline. */}
       <DisclosureCard
         title={<Trans>Activity</Trans>}
@@ -441,6 +449,65 @@ export function RuleDetailCompact({
         {...(onActionComplete ? { onActionComplete } : {})}
       />
     </div>
+  )
+}
+
+/**
+ * `RuleImpactCard` — the `N2X10V` "Impact" card. Summary = the real
+ * `previewRuleImpact.estimatedObligationCount` ("→ ~N new obligations");
+ * read-more = the per-entity distribution. The canvas's affected-client count
+ * and coverage-lift % aren't returned by the API, so they're intentionally
+ * omitted (no fiction).
+ */
+function RuleImpactCard({ rule }: { rule: ObligationRule }) {
+  const impactQuery = useQuery({
+    ...orpc.rules.previewRuleImpact.queryOptions({
+      input: { ruleId: rule.id, expectedVersion: rule.version },
+    }),
+    staleTime: 60_000,
+  })
+  const impact = impactQuery.data ?? null
+  const count = impact?.estimatedObligationCount ?? null
+  const entityRows = impact?.entityCounts ?? []
+  return (
+    <DisclosureCard
+      title={<Trans>Impact</Trans>}
+      meta={<Trans>Estimated</Trans>}
+      summary={
+        impactQuery.isLoading ? (
+          <Skeleton className="h-4 w-2/3" />
+        ) : impactQuery.isError ? (
+          <p className="text-sm text-text-tertiary">
+            <Trans>Impact preview unavailable.</Trans>
+          </p>
+        ) : count !== null && count > 0 ? (
+          <p className="text-sm text-text-primary">
+            <Plural
+              value={count}
+              one="Activates this rule → ~# new obligation across your current clients."
+              other="Activates this rule → ~# new obligations across your current clients."
+            />
+          </p>
+        ) : (
+          <p className="text-sm text-text-secondary">
+            <Trans>
+              No client obligations yet — accepting activates this rule for future filings.
+            </Trans>
+          </p>
+        )
+      }
+      detail={
+        entityRows.length > 0 ? (
+          <dl className="flex flex-col gap-2 text-sm">
+            {entityRows.map((row) => (
+              <FactRow key={row.key} label={isEntityKey(row.key) ? ENTITY_LABELS[row.key] : row.key}>
+                <span className="font-semibold tabular-nums">{row.count}</span>
+              </FactRow>
+            ))}
+          </dl>
+        ) : undefined
+      }
+    />
   )
 }
 

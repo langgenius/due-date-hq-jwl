@@ -30,7 +30,13 @@ impact-confirm dialog (parity with the old Sheet footer).
 Row-click → 980px centered modal, hero + Applicability/Due date/Evidence/Activity
 cards + Accept/Reject; **overlay-click closes it**. `tsgo` clean.
 
-## Remaining vs the 8-card `N2X10V`
-One card still missing: the **Impact** card ("→ N estimated new obligations"
-between Evidence and Activity). Will add it with the *real* `previewRuleImpact`
-count only (dropping the canvas's fabricated "12 clients / +8% coverage").
+## Impact card — added (all 8 `N2X10V` cards now present)
+`RuleImpactCard` inserted between Evidence and Activity (review-context rules
+only). Summary = the **real** `previewRuleImpact.estimatedObligationCount`
+("Activates this rule → ~N new obligations…", or an honest "No client obligations
+yet" when the count is 0); read-more = the per-entity distribution. The canvas's
+"12 clients" + "+8% AZ coverage" are **dropped** — the API doesn't return an
+affected-client count or a coverage-lift %, so rendering them would be fiction.
+
+Verified live: the modal now shows, in order — Rule under review · Applicability ·
+Due date · Evidence · **Impact** · Activity · Practice review · Decision.
