@@ -34,7 +34,7 @@ import {
   type ObligationStatus,
   ObligationStatusReadBadge,
 } from '@/features/obligations/status-control'
-import { cn, daysBetween, formatDate, formatDatePretty } from '@/lib/utils'
+import { cn, daysBetween, formatCents, formatDate, formatDatePretty } from '@/lib/utils'
 import {
   type AuditEventPublic,
   type ClientReadinessRequestPublic,
@@ -287,34 +287,46 @@ export function ReadinessOverview({
 // the year ("2026"); fiscal / short / quarterly periods keep the
 // explicit start–end range.
 
-// The standalone-page 'cards' variant renders each anchor date as a real card
-// — leading icon + uppercase label, a prettified date, and a
-// day-of-week · relative sub-line. The Filing card flips to the warm
-// `state-warning-hover` (#fff4f1) tint with a warning-tone icon when overdue.
-const DATE_CARD_WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
+// The standalone-page 'cards' variant renders each anchor date as a
+// quiet reference card — leading icon + uppercase label, a date, an
+// overdue/relative clock, and a card-specific distinguishing line
+// (FILING: none; INTERNAL: buffer to filing; PAYMENT: $ owed). These
+// read as REFERENCE, subordinate to the workflow card + primary CTA:
+// the date type is small (text-sm) and the chrome is light
+// (background-subtle, no shadow), so the strip no longer out-shouts
+// the page.
 
 function DeadlineDateCard({
   icon: Icon,
   label,
   date,
-  subline,
-  sublineTone,
+  clock,
+  clockTone,
+  meta,
   overdue = false,
 }: {
   icon: LucideIcon
   label: string
   date: string | null
-  subline: string | null
-  sublineTone: 'destructive' | 'warning' | 'tertiary'
+  // The relative-time clock (e.g. "12 days overdue", "in 4 days").
+  // One uniform vocabulary across all three cards — always "overdue"
+  // for past dates — and each card counts against its OWN date.
+  clock: string | null
+  clockTone: 'destructive' | 'tertiary'
+  // Card-specific distinguishing line drawn from a REAL row field
+  // (INTERNAL → buffer to filing; PAYMENT → $ owed). null = omit.
+  meta: string | null
   overdue?: boolean
 }) {
   return (
     <div
       className={cn(
-        // Tight date card (px-4/py-3, 16px date, 11px sub) so the
-        // strip stops dominating the header.
-        'flex flex-col gap-1 rounded-xl border border-divider-subtle px-4 py-3',
-        overdue ? 'bg-state-warning-hover' : 'bg-background-default',
+        // Quiet reference card: light subtle surface + hairline border,
+        // no shadow. Overdue cards get a restrained warning tint as the
+        // only state cue. px-3.5/py-2.5 keeps the card short so the
+        // strip stays subordinate to the workflow + CTA below.
+        'flex flex-col gap-1.5 rounded-xl border border-divider-subtle px-3.5 py-2.5',
+        overdue ? 'bg-state-warning-hover' : 'bg-background-subtle',
       )}
     >
       <div className="flex items-center gap-1.5">
@@ -322,26 +334,25 @@ function DeadlineDateCard({
           className={cn('size-3 shrink-0', overdue ? 'text-text-warning' : 'text-text-tertiary')}
           aria-hidden
         />
-        <span className="text-xs font-semibold uppercase tracking-[0.4px] text-text-tertiary">
+        <span className="text-caption-xs font-semibold uppercase tracking-[0.4px] text-text-tertiary">
           {label}
         </span>
       </div>
-      <span className="text-[16px] leading-none font-semibold tracking-[-0.2px] text-text-primary tabular-nums">
+      <span className="text-sm leading-none font-semibold text-text-primary tabular-nums">
         {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
       </span>
-      {subline ? (
+      {clock ? (
         <span
           className={cn(
-            'text-xs font-medium',
-            sublineTone === 'destructive'
-              ? 'text-text-destructive'
-              : sublineTone === 'warning'
-                ? 'text-text-warning'
-                : 'text-text-tertiary',
+            'text-caption-xs font-medium',
+            clockTone === 'destructive' ? 'text-text-destructive' : 'text-text-tertiary',
           )}
         >
-          {subline}
+          {clock}
         </span>
+      ) : null}
+      {meta ? (
+        <span className="text-caption-xs font-medium text-text-secondary tabular-nums">{meta}</span>
       ) : null}
     </div>
   )
@@ -496,36 +507,62 @@ export function PrimaryDeadlineStrip({
   const formatDaysOverdue = (d: number) =>
     i18n._(plural(d, { one: '# day overdue', other: '# days overdue' }))
 
-  // The standalone page renders real cards (icon + pretty date +
-  // weekday·relative sub-line + overdue tint), not the frameless flat
-  // strip used inside /clients + the sheet.
+  // The standalone page renders three quiet REFERENCE cards. Each card
+  // is differentiated by a REAL row field so they stop reading as three
+  // identical heavy date tiles:
+  //   FILING  → the hard date + its overdue/relative clock.
+  //   INTERNAL→ the date + the firm's BUFFER (days between the internal
+  //             target and the filing deadline, computed from the two
+  //             real dates) + its own overdue clock.
+  //   PAYMENT → the date + $ OWED (row.estimatedTaxDueCents) + its own
+  //             overdue clock.
+  // The clock vocabulary is uniform — always "overdue" for a past date,
+  // "in N days" / "today" for a future one — and each card counts
+  // against ITS OWN date via the same dayDiff (midnight) math, so the
+  // old "29 days past" vs "30 days overdue" split is gone.
   if (variant === 'cards') {
-    const wd = (iso: string | null) =>
-      iso ? DATE_CARD_WEEKDAYS[new Date(`${iso}T00:00:00.000Z`).getUTCDay()] : ''
-    const pastStr = (n: number) => i18n._(plural(n, { one: '# day past', other: '# days past' }))
-    const inStr = (n: number) => i18n._(plural(n, { one: 'in # day', other: 'in # days' }))
-    const join = (iso: string | null, tail: string | null) => {
-      const day = wd(iso)
-      if (!day) return null
-      return tail ? `${day} · ${tail}` : day
+    // One clock string per card, all from the same vocabulary + math
+    // base. Satisfied/terminal milestones drop the clock entirely (a
+    // filed row's filing date is no longer "overdue").
+    const clockFor = (
+      iso: string | null,
+      opts: { satisfied?: boolean } = {},
+    ): { text: string | null; destructive: boolean } => {
+      const diff = dayDiff(iso)
+      if (iso === null || diff === null || opts.satisfied) return { text: null, destructive: false }
+      if (diff < 0) return { text: formatDaysOverdue(-diff), destructive: true }
+      if (diff === 0) return { text: t`due today`, destructive: false }
+      return {
+        text: i18n._(plural(diff, { one: 'in # day', other: 'in # days' })),
+        destructive: false,
+      }
     }
-    const filingSub = filingSatisfied
-      ? join(filingIso, null)
-      : filingLateDays && filingLateDays > 0
-        ? join(filingIso, pastStr(filingLateDays))
-        : filingDays !== null && filingDays > 0
-          ? join(filingIso, inStr(filingDays))
-          : filingDays === 0
-            ? join(filingIso, t`today`)
-            : join(filingIso, null)
-    const internalSub =
-      internalLateDays && internalLateDays > 0
-        ? join(internalIso, pastStr(internalLateDays))
-        : join(internalIso, null)
-    const paymentSub =
-      paymentLateDays && paymentLateDays > 0
-        ? join(paymentIso, formatDaysOverdue(paymentLateDays))
-        : join(paymentIso, null)
+    const filingClock = clockFor(filingIso, { satisfied: filingSatisfied })
+    const internalClock = clockFor(internalIso, { satisfied: filingSatisfied })
+    const paymentClock = clockFor(paymentIso, {
+      satisfied:
+        row.status === 'completed' || row.status === 'not_applicable' || row.status === 'paid',
+    })
+    // INTERNAL buffer — days between the internal target and the filing
+    // deadline. "On the filing deadline" when equal; otherwise "N days
+    // before filing". Only when BOTH dates are real and internal is not
+    // later than filing (it's already capped above).
+    const internalBuffer: string | null = (() => {
+      if (internalIso === null || filingIso === null) return null
+      const buffer = daysBetween(internalIso, filingIso)
+      if (buffer <= 0) return t`On the filing deadline`
+      return i18n._(
+        plural(buffer, {
+          one: '# day before filing',
+          other: '# days before filing',
+        }),
+      )
+    })()
+    // PAYMENT $ owed — the real per-row estimate, when present + > 0.
+    const paymentAmount: string | null =
+      typeof row.estimatedTaxDueCents === 'number' && row.estimatedTaxDueCents > 0
+        ? t`${formatCents(row.estimatedTaxDueCents)} owed`
+        : null
     return (
       <div aria-label={t`Key deadlines`} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <DeadlineDateCard
@@ -533,22 +570,25 @@ export function PrimaryDeadlineStrip({
           label={t`Filing deadline`}
           date={filingIso}
           overdue={filingPast}
-          subline={filingSub}
-          sublineTone={filingPast ? 'destructive' : 'tertiary'}
+          clock={filingClock.text}
+          clockTone={filingClock.destructive ? 'destructive' : 'tertiary'}
+          meta={null}
         />
         <DeadlineDateCard
           icon={TargetIcon}
           label={t`Internal target`}
           date={internalIso}
-          subline={internalSub}
-          sublineTone={internalPast ? 'destructive' : 'tertiary'}
+          clock={internalClock.text}
+          clockTone={internalPast ? 'destructive' : 'tertiary'}
+          meta={internalBuffer}
         />
         <DeadlineDateCard
           icon={WalletIcon}
           label={t`Payment due`}
           date={paymentIso}
-          subline={paymentSub}
-          sublineTone={paymentPast ? 'destructive' : 'tertiary'}
+          clock={paymentClock.text}
+          clockTone={paymentPast ? 'destructive' : 'tertiary'}
+          meta={paymentAmount}
         />
       </div>
     )
