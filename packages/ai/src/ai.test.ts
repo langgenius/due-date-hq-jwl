@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
 import { createAI } from './index'
+import { GatewayOutputInvalidError } from './gateway'
 import { PulseDeadlineShiftFactsSchema } from './pulse'
 import { redactMigrationInput } from './pii'
 import type { AiPorts, VectorMatch } from './ports'
@@ -134,6 +135,51 @@ describe('@duedatehq/ai', () => {
     expect(result.refusal?.code).toBe('SCHEMA_INVALID')
     expect(result.trace.guardResult).toBe('schema_fail')
     expect(result.trace.tokens).toEqual({ input: 10, output: 5 })
+  })
+
+  it('classifies a thrown GatewayOutputInvalidError as SCHEMA_INVALID with salvaged usage', async () => {
+    // ai@6 throws NoObjectGeneratedError inside generateText on JSON/schema
+    // mismatch; callGateway converts it to GatewayOutputInvalidError carrying
+    // the billed usage. It must land in the schema_fail bucket with tokens —
+    // not be misclassified as a provider outage with NULL cost.
+    callGatewayMock.mockRejectedValueOnce(
+      new GatewayOutputInvalidError('response did not match schema', {
+        tokens: { input: 120, output: 64 },
+        costUsd: 0.00075,
+        finishReason: 'stop',
+      }),
+    )
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'normalizer-entity@v1',
+      { values: ['LLC'] },
+      z.object({ ok: z.boolean() }),
+    )
+
+    expect(result.result).toBeNull()
+    expect(result.refusal?.code).toBe('SCHEMA_INVALID')
+    expect(result.trace.guardResult).toBe('schema_fail')
+    expect(result.trace.tokens).toEqual({ input: 120, output: 64 })
+    expect(result.trace.costUsd).toBe(0.00075)
+  })
+
+  it('keeps transport/credit failures in the ai_unavailable bucket', async () => {
+    callGatewayMock.mockRejectedValueOnce(
+      new Error('This request requires more credits, or fewer max_tokens.'),
+    )
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'normalizer-entity@v1',
+      { values: ['LLC'] },
+      z.object({ ok: z.boolean() }),
+    )
+
+    expect(result.result).toBeNull()
+    expect(result.refusal?.code).toBe('AI_GATEWAY_ERROR')
+    expect(result.trace.guardResult).toBe('ai_unavailable')
+    expect(result.trace.tokens).toBeUndefined()
   })
 
   it('uses the OpenRouter provider key without requiring a gateway auth key', async () => {
@@ -310,6 +356,8 @@ describe('@duedatehq/ai', () => {
         mappings: [{ source: 'Tax ID', target: 'client.ein', confidence: 0.95 }],
       },
       model: 'test-model',
+      tokens: { input: 40, output: 12 },
+      costUsd: 0.0002,
     })
     const ai = createAI(CONFIGURED_ENV)
 
@@ -330,6 +378,10 @@ describe('@duedatehq/ai', () => {
     expect(result.result).toBeNull()
     expect(result.refusal?.code).toBe('GUARD_REJECTED')
     expect(result.trace.guardResult).toBe('guard_rejected')
+    // Guards run after a completed (billed) generation — the rejected call's
+    // spend must still land in the trace.
+    expect(result.trace.tokens).toEqual({ input: 40, output: 12 })
+    expect(result.trace.costUsd).toBe(0.0002)
   })
 
   it('extracts Pulse output and requires a source-backed excerpt', async () => {

@@ -1,7 +1,7 @@
 import { createAiGateway } from 'ai-gateway-provider'
 import { createOpenRouter } from 'ai-gateway-provider/providers/openrouter'
 import { createUnified } from 'ai-gateway-provider/providers/unified'
-import { generateText, Output } from 'ai'
+import { generateText, NoObjectGeneratedError, Output } from 'ai'
 import * as z from 'zod'
 import { computeCostUsd } from './pricing'
 
@@ -46,6 +46,37 @@ export interface GatewayResponse<TOut> {
   model: string
   tokens?: { input?: number; output?: number }
   costUsd?: number
+}
+
+/**
+ * The model completed a billed generation but its output failed JSON/schema
+ * validation (or was truncated) — distinct from transport/credit failures
+ * where nothing was generated. ai@6 parses `Output.object` eagerly inside
+ * `generateText` and throws before `result.usage` is ever read, so usage must
+ * be salvaged off the error — otherwise every failed generation logs NULL
+ * tokens/cost and a schema mismatch is indistinguishable from a provider
+ * outage in llm_log.
+ */
+export class GatewayOutputInvalidError extends Error {
+  readonly tokens?: NonNullable<GatewayResponse<unknown>['tokens']>
+  readonly costUsd?: number
+  readonly finishReason?: string
+
+  constructor(
+    message: string,
+    options: {
+      cause?: unknown
+      tokens?: NonNullable<GatewayResponse<unknown>['tokens']>
+      costUsd?: number
+      finishReason?: string
+    },
+  ) {
+    super(message, options.cause === undefined ? undefined : { cause: options.cause })
+    this.name = 'GatewayOutputInvalidError'
+    if (options.tokens) this.tokens = options.tokens
+    if (options.costUsd !== undefined) this.costUsd = options.costUsd
+    if (options.finishReason !== undefined) this.finishReason = options.finishReason
+  }
 }
 
 function optionalNumber(value: unknown): number | undefined {
@@ -111,19 +142,47 @@ export async function callGateway<TOut>(
       // the model's doGenerate; ai-gateway-provider passes them through unchanged.
       ...(request.providerOptions ? { providerOptions: request.providerOptions } : {}),
     })
+  } catch (error) {
+    if (NoObjectGeneratedError.isInstance(error)) {
+      const tokens = readUsage(error.usage)
+      const costUsd = computeCostUsd(request.model, tokens)
+      throw new GatewayOutputInvalidError(error.message, {
+        cause: error,
+        ...(tokens ? { tokens } : {}),
+        ...(costUsd !== undefined ? { costUsd } : {}),
+        ...(error.finishReason !== undefined ? { finishReason: error.finishReason } : {}),
+      })
+    }
+    throw error
   } finally {
     if (timeout) clearTimeout(timeout)
   }
 
-  const response: GatewayResponse<TOut> = {
-    output: request.schema.parse(result.output),
-    model: request.model,
-  }
   const tokens = readUsage(result.usage)
-  if (tokens) response.tokens = tokens
   // The gateway doesn't return a cost — attribute it from usage so spend lands in
   // the DB (ai_output / llm_log cost_usd) instead of only the provider dashboard.
   const costUsd = computeCostUsd(request.model, tokens)
+
+  let output: TOut
+  try {
+    // Defense-in-depth re-validation (the SDK already parsed against the same
+    // schema); classify a mismatch as an invalid billed generation, not a
+    // gateway failure, and keep its usage.
+    output = request.schema.parse(result.output)
+  } catch (error) {
+    throw new GatewayOutputInvalidError(
+      error instanceof Error ? error.message : 'AI output failed schema validation.',
+      {
+        cause: error,
+        ...(tokens ? { tokens } : {}),
+        ...(costUsd !== undefined ? { costUsd } : {}),
+        finishReason: result.finishReason,
+      },
+    )
+  }
+
+  const response: GatewayResponse<TOut> = { output, model: request.model }
+  if (tokens) response.tokens = tokens
   if (costUsd !== undefined) response.costUsd = costUsd
   return response
 }

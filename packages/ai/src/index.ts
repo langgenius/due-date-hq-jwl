@@ -1,6 +1,6 @@
 import type * as z from 'zod'
 import { consumeAiBudget, type AiBudgetKv } from './budget'
-import { callGateway, type GatewayRequest } from './gateway'
+import { callGateway, GatewayOutputInvalidError, type GatewayRequest } from './gateway'
 import {
   GuardRejection,
   verifyInsightOutput,
@@ -131,6 +131,9 @@ export function createAI(env: AiEnv = {}) {
     const selectedModel = modelTier ? modelForPromptTier(env, modelTier, routing) : undefined
     const parsedSystemLimit = Number.parseInt(env.AI_SYSTEM_DAILY_LIMIT ?? '', 10)
     const systemAiDailyLimit = Number.isFinite(parsedSystemLimit) ? parsedSystemLimit : undefined
+    // Usage of a completed (billed) generation, captured before the guards run so
+    // a GuardRejection still records what the rejected call cost.
+    let paidUsage: { tokens?: { input?: number; output?: number }; costUsd?: number } = {}
 
     if (
       !env.AI_GATEWAY_ACCOUNT_ID ||
@@ -211,6 +214,10 @@ export function createAI(env: AiEnv = {}) {
           : {}),
       } satisfies GatewayRequest<TOut>
       const gateway = await callGateway(gatewayRequest)
+      paidUsage = {
+        ...(gateway.tokens ? { tokens: gateway.tokens } : {}),
+        ...(gateway.costUsd !== undefined ? { costUsd: gateway.costUsd } : {}),
+      }
       const parsed = schema.safeParse(gateway.output)
 
       if (!parsed.success) {
@@ -270,6 +277,31 @@ export function createAI(env: AiEnv = {}) {
             guardResult: 'guard_rejected',
             inputHash,
             refusalCode: 'GUARD_REJECTED',
+            // Guards run after a completed generation — record what it cost.
+            ...(paidUsage.tokens ? { tokens: paidUsage.tokens } : {}),
+            ...(paidUsage.costUsd !== undefined ? { costUsd: paidUsage.costUsd } : {}),
+          }),
+          selectedModel ?? prompt.modelTier,
+        )
+      }
+
+      if (error instanceof GatewayOutputInvalidError) {
+        // The model DID generate (billed) but the output failed JSON/schema
+        // validation or was truncated. Keep this in the schema_fail bucket with
+        // its salvaged usage — folding it into 'ai_unavailable' made schema
+        // regressions indistinguishable from provider outages in llm_log.
+        return refusal(
+          'SCHEMA_INVALID',
+          error.message,
+          createTrace({
+            promptVersion: name,
+            model: selectedModel ?? prompt.modelTier,
+            latencyMs: Date.now() - startedAt,
+            guardResult: 'schema_fail',
+            inputHash,
+            refusalCode: 'SCHEMA_INVALID',
+            ...(error.tokens ? { tokens: error.tokens } : {}),
+            ...(error.costUsd !== undefined ? { costUsd: error.costUsd } : {}),
           }),
           selectedModel ?? prompt.modelTier,
         )
