@@ -58,8 +58,15 @@ describe('obligations quick filters', () => {
     // helpers DROP defaults from the URL.
     sort: 'due_asc' as const,
     density: 'comfortable' as const,
-    group: 'due' as const,
-    hide: ['smartPriority', 'clientCounty', 'dueDateExact', 'daysUntilDue', 'evidenceCount'],
+    group: 'urgency' as const,
+    hide: [
+      'smartPriority',
+      'clientCounty',
+      'dueDateExact',
+      'daysUntilDue',
+      'evidenceCount',
+      'taxCategory',
+    ],
   } satisfies Parameters<typeof deadlineDetailSearchFromQueueState>[1]
 
   it('applies the this week days filter when inactive', () => {
