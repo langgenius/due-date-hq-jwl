@@ -280,7 +280,7 @@ function DeadlineNavigatorRow({
         {showRelative ? (
           <span
             className={cn(
-              'text-[11px] font-semibold tabular-nums',
+              'text-caption font-semibold tabular-nums',
               relative.tone === 'late'
                 ? 'text-text-destructive'
                 : relative.tone === 'soon'
@@ -305,14 +305,14 @@ function DeadlineNavigatorRow({
               aria-hidden
             />
             {active ? (
-              <span className="text-[11px] font-medium text-text-tertiary">{statusLabel}</span>
+              <span className="text-caption font-medium text-text-tertiary">{statusLabel}</span>
             ) : null}
           </span>
         </div>
         <span className="line-clamp-2 text-[15px] font-medium leading-snug text-text-primary">
           {title}
         </span>
-        <span className="truncate text-[11px] text-text-tertiary">{row.clientName}</span>
+        <span className="truncate text-caption text-text-tertiary">{row.clientName}</span>
       </div>
     </Link>
   )

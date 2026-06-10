@@ -329,7 +329,7 @@ function DeadlineDateCard({
           className={cn('size-3 shrink-0', overdue ? 'text-text-warning' : 'text-text-tertiary')}
           aria-hidden
         />
-        <span className="text-[11px] font-semibold uppercase tracking-[0.4px] text-text-tertiary">
+        <span className="text-caption font-semibold uppercase tracking-[0.4px] text-text-tertiary">
           {label}
         </span>
       </div>
@@ -339,7 +339,7 @@ function DeadlineDateCard({
       {subline ? (
         <span
           className={cn(
-            'text-[11px] font-medium',
+            'text-caption font-medium',
             sublineTone === 'destructive'
               ? 'text-text-destructive'
               : sublineTone === 'warning'
@@ -670,7 +670,7 @@ export function DeadlineTile({
     <div className={cn('flex flex-col gap-1 py-2.5', surfaceClass)}>
       <span
         className={cn(
-          'text-[11px] leading-tight font-semibold uppercase tracking-wide',
+          'text-caption leading-tight font-semibold uppercase tracking-wide',
           labelToneClass,
           primary && 'tracking-[0.6px]',
         )}
@@ -685,7 +685,7 @@ export function DeadlineTile({
           // 2026-06-08 (parity #2): restrained inline red note — no filled
           // pill — consistent with how the alerts detail shows its red
           // `+N days` delta.
-          <span className="text-[11px] font-semibold text-text-destructive tabular-nums">
+          <span className="text-caption font-semibold text-text-destructive tabular-nums">
             {lateLabel}
           </span>
         ) : null}
@@ -2165,15 +2165,15 @@ export function ActiveStageDetailCard({
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <ObligationStatusReadBadge status={row.status} />
-          <span className="text-[11px] font-medium tabular-nums text-text-tertiary">
+          <span className="text-caption font-medium tabular-nums text-text-tertiary">
             {t`Stage ${stageIdx + 1} of ${TIMELINE_STAGE_KEYS.length}`}
           </span>
           {subStatus ? (
             <>
-              <span aria-hidden className="text-[11px] text-text-tertiary">
+              <span aria-hidden className="text-caption text-text-tertiary">
                 ·
               </span>
-              <span className="text-[11px] font-medium text-text-secondary">{subStatus}</span>
+              <span className="text-caption font-medium text-text-secondary">{subStatus}</span>
             </>
           ) : null}
         </div>
@@ -2350,7 +2350,7 @@ export function ActiveStageDetailCard({
             ].map((chip) => (
               <span
                 key={chip.key}
-                className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2.5 py-0.5 text-[11px] font-medium text-text-secondary"
+                className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2.5 py-0.5 text-caption font-medium text-text-secondary"
               >
                 <span className={cn('size-1.5 shrink-0 rounded-full', chip.dot)} aria-hidden />
                 <span className="tabular-nums">{chip.count}</span> {chip.label}
@@ -2383,7 +2383,7 @@ export function ActiveStageDetailCard({
         // (additive over the counts above); the single action stays the
         // "Check materials" link — separate visualization from action.
         <div className="mt-3 flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.8px] text-text-tertiary">
+          <p className="text-caption-xs font-bold uppercase tracking-[0.8px] text-text-tertiary">
             <Trans>Blocking</Trans>
           </p>
           <ul className="flex flex-col">

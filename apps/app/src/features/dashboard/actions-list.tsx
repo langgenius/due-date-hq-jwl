@@ -281,7 +281,7 @@ function ActionsTable({
                       readability to both surfaces): subgroup
                       divider tokens lifted to match /alerts day-
                       header chrome — `text-[12px] text-text-secondary`
-                      (was `text-[11px] text-text-tertiary`). Round
+                      (was `text-caption text-text-tertiary`). Round
                       79 #2 made /alerts more readable; this
                       brings /today's matching primitive up to
                       the same readable scale so both surfaces
@@ -292,7 +292,7 @@ function ActionsTable({
                       dividing the lifecycle groups, not a faint whisper. */}
                 <TableCell
                   colSpan={7}
-                  className="bg-background-subtle px-[18px] py-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase"
+                  className="bg-background-subtle px-[18px] py-1.5 text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase"
                 >
                   <StatusGroupLabel kind={currentStatusGroup} />
                 </TableCell>
@@ -403,7 +403,7 @@ function ActionsTableRow({
                   props?.onClick?.(e)
                   e.stopPropagation()
                 }}
-                className="inline-flex cursor-help items-center justify-center gap-1 font-mono text-[11px] font-semibold tabular-nums text-text-tertiary"
+                className="inline-flex cursor-help items-center justify-center gap-1 font-mono text-caption font-semibold tabular-nums text-text-tertiary"
               >
                 {row.smartPriority?.rank && row.smartPriority.rank <= 3 ? (
                   <SparklesIcon className="size-2.5 shrink-0 text-text-accent" aria-hidden />
@@ -1185,7 +1185,7 @@ function DashboardStatusLifecycleStrip({ rows }: { rows: DashboardTopRow[] }) {
     // 11/600 uppercase tertiary matches the canonical column-
     // label tone shared across tables — same family signal.
     <div className="flex flex-col gap-1.5">
-      <span className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+      <span className="text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase">
         <Trans>Status across priority actions</Trans>
       </span>
       <div className="flex flex-row flex-wrap overflow-hidden rounded-xl border border-divider-deep bg-background-default">

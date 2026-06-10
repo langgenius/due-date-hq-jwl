@@ -119,7 +119,7 @@ function ReadinessSubgroupHeader({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 px-5 py-2 text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase',
+        'flex items-center gap-2 px-5 py-2 text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase',
         // Quiet subhead — sits inside the section's row container
         // so it reads as a horizontal divider with a label, not as
         // a parallel section header.

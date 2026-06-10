@@ -225,7 +225,7 @@ function EvidenceCard({ item, focused }: { item: EvidencePublic; focused: boolea
               <>
                 <span aria-hidden>·</span>
                 {/* AI-provenance disclosure: which model produced this value. */}
-                <span className="font-mono text-[11px]">{item.model}</span>
+                <span className="font-mono text-caption">{item.model}</span>
               </>
             ) : null}
           </span>

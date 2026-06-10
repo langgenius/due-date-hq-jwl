@@ -28,7 +28,7 @@ function PulseAIBoundaryChip() {
         render={(props) => (
           <Badge
             variant="outline"
-            className="cursor-help gap-1 border-divider-subtle bg-background-section text-[11px]"
+            className="cursor-help gap-1 border-divider-subtle bg-background-section text-caption"
             {...props}
           >
             <UserCheckIcon className="size-3 shrink-0 text-text-secondary" aria-hidden />

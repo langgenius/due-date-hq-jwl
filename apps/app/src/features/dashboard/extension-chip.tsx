@@ -21,7 +21,7 @@ function ExtensionChip() {
   return (
     <Badge
       variant="info"
-      className="gap-1 text-[11px]"
+      className="gap-1 text-caption"
       title="Filing extension applied. Payment side is NOT extended."
     >
       <CalendarPlusIcon className="size-3" aria-hidden />

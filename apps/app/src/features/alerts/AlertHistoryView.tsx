@@ -29,10 +29,8 @@ import { useAlertDrawer } from './DrawerProvider'
 import { changeKindLabel } from './components/PulseChangeKindChip'
 
 /**
- * 2026-06-08 (Pencil hFOEo "/alerts/history"): the handled-alerts
- * archive, rebuilt from the active-list reuse into the dedicated
- * table design — a derived-stats row, status tabs + search, and a
- * day-grouped DATE / JURIS / ALERT / STATUS table.
+ * The handled-alerts archive — a derived-stats row, status tabs +
+ * search, and a day-grouped DATE / JURIS / ALERT / STATUS table.
  *
  * Data honesty: every stat is derived from the real loaded history
  * list (no aggregate endpoint is faked). The design's ACTOR column
@@ -54,11 +52,10 @@ type HistoryTab = 'all' | 'applied' | 'dismissed' | 'reverted' | 'expired'
 // selects (the prior hand-rolled if/else ladder had no `expired`
 // branch, so both 'reverted' and 'expired' fell through to "Reverted").
 //
-// 2026-06-08 (Pencil hFOEo `rgWeB FilterRow`): the design's segmented
-// control carries FOUR tabs — All / Applied / Dismissed / Reverted.
-// There is no "Expired" tab; expired (aged-out `matched`) rows still
-// surface under "All" with their Expired status badge, and the Expired
-// STAT card above keeps the standalone count.
+// The segmented control carries FOUR tabs — All / Applied / Dismissed
+// / Reverted. There is no "Expired" tab; expired (aged-out `matched`)
+// rows still surface under "All" with their Expired status badge, and
+// the Expired STAT card above keeps the standalone count.
 const TABS: { id: HistoryTab; label: React.ReactNode }[] = [
   { id: 'all', label: <Trans>All</Trans> },
   { id: 'applied', label: <Trans>Applied</Trans> },
@@ -73,9 +70,8 @@ const STATUS_META: Record<
   applied: { label: 'Applied', variant: 'success' },
   partially_applied: { label: 'Partly applied', variant: 'success' },
   dismissed: { label: 'Dismissed', variant: 'secondary' },
-  // 2026-06-08 (design audit task 9 — red restraint): a handled
-  // archive is calm; nothing here is urgent. A revert is a normal
-  // logged outcome, not an alarm, so it reads as a neutral chip
+  // A handled archive is calm; nothing here is urgent. A revert is a
+  // normal logged outcome, not an alarm, so it reads as a neutral chip
   // rather than destructive-red.
   reverted: { label: 'Reverted', variant: 'secondary' },
   reviewed: { label: 'Reviewed', variant: 'info' },
@@ -223,9 +219,8 @@ export function AlertHistoryView() {
         <StatBand stats={statCards} ariaLabel={t`Handled alerts summary`} />
 
         {/* TABS + SEARCH — wraps instead of scrolling on small screens.
-            2026-06-08: tabs render off the shared flat <Segmented>
-            primitive driven by the TABS array, so labels can't desync
-            from ids. */}
+            Tabs render off the shared flat <Segmented> primitive driven
+            by the TABS array, so labels can't desync from ids. */}
         <div className="flex flex-wrap items-center gap-3">
           <Segmented
             ariaLabel={t`Filter handled alerts`}
@@ -272,14 +267,12 @@ export function AlertHistoryView() {
           </div>
         ) : null}
 
-        {/* TABLE — 2026-06-08 (Yuqi "rebuild but it should look the same"):
-            rebuilt on the canonical <Table> primitive so the history table
-            shares the exact same DOM + style source as every other table.
-            `table-fixed` + the truncating ALERT cell keep the
-            no-horizontal-scroll guarantee the prior flex grid had; zebra is
-            disabled (per-row `even:bg-transparent`) to match the calm alerts
-            surfaces. Month bands + loading/empty render as full-width
-            `colSpan` rows. */}
+        {/* TABLE — built on the canonical <Table> primitive so the history
+            table shares the exact same DOM + style source as every other
+            table. `table-fixed` + the truncating ALERT cell keep the
+            no-horizontal-scroll guarantee; zebra is disabled (per-row
+            `even:bg-transparent`) to match the calm alerts surfaces. Month
+            bands + loading/empty render as full-width `colSpan` rows. */}
         <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
           <Table className="table-fixed">
             <TableHeader>
@@ -334,10 +327,10 @@ export function AlertHistoryView() {
                     <TableRow className="even:bg-transparent hover:bg-transparent">
                       <TableCell colSpan={5} className="bg-[#e9ebf0] px-5 py-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
+                          <span className="text-caption font-semibold tracking-[0.5px] text-text-secondary uppercase">
                             {month}
                           </span>
-                          <span className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
+                          <span className="text-caption font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
                             <Plural value={monthAlerts.length} one="# handled" other="# handled" />
                           </span>
                         </div>
@@ -392,11 +385,11 @@ function HistoryRow({
     day: 'numeric',
     timeZone: firmTimezone,
   }).format(new Date(alert.publishedAt))
-  // 2026-06-08 (bug: "May 17 / May 17"): `formatRelativeTime` switches to an
-  // absolute "Mon D" string once an item is older than a week — which, in
-  // this archive of mostly weeks-old alerts, is byte-identical to `dateLabel`
-  // and rendered as a duplicate second line. Only show the relative sub-line
-  // when it's an actual relative phrase (i.e. differs from the date label).
+  // `formatRelativeTime` switches to an absolute "Mon D" string once an
+  // item is older than a week — which, in this archive of mostly
+  // weeks-old alerts, is byte-identical to `dateLabel` and would render
+  // as a duplicate second line. Only show the relative sub-line when
+  // it's an actual relative phrase (i.e. differs from the date label).
   const relative = formatRelativeTime(alert.publishedAt)
   const relativeSub = relative && relative !== dateLabel ? relative : null
   const impacted = alert.matchedCount + alert.needsReviewCount
@@ -438,14 +431,14 @@ function HistoryRow({
         <div className="flex flex-col">
           <span className="text-[12px] font-semibold text-text-primary">{dateLabel}</span>
           {relativeSub ? (
-            <span className="text-[10px] font-medium text-text-muted">{relativeSub}</span>
+            <span className="text-caption-xs font-medium text-text-muted">{relativeSub}</span>
           ) : null}
         </div>
       </TableCell>
 
       {/* JURIS */}
       <TableCell>
-        <span className="inline-flex h-[20px] items-center rounded-lg bg-background-subtle px-2 text-[11px] font-semibold text-text-secondary uppercase">
+        <span className="inline-flex h-[20px] items-center rounded-lg bg-background-subtle px-2 text-caption font-semibold text-text-secondary uppercase">
           {alert.jurisdiction}
         </span>
       </TableCell>
@@ -459,7 +452,7 @@ function HistoryRow({
           >
             {alert.title}
           </span>
-          <span className="flex min-w-0 items-center gap-2 truncate text-[11px] text-text-tertiary">
+          <span className="flex min-w-0 items-center gap-2 truncate text-caption text-text-tertiary">
             <span className="shrink-0 font-semibold tracking-[0.3px] text-text-muted uppercase">
               {changeKindLabel(alert.changeKind)}
             </span>

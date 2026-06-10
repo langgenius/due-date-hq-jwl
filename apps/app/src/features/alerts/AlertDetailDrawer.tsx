@@ -491,7 +491,7 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
               <div className={cn('flex min-w-0 flex-col gap-0.5', isLast ? '' : 'pb-4')}>
                 <span className="text-[13px] font-medium text-text-primary">{event.title}</span>
                 {event.meta ? (
-                  <span className="text-[11px] text-text-tertiary tabular-nums">{event.meta}</span>
+                  <span className="text-caption text-text-tertiary tabular-nums">{event.meta}</span>
                 ) : null}
               </div>
             </li>
@@ -1305,7 +1305,7 @@ export function AlertDetailDrawer({
                       active has an indication it is active"): flags the
                       actionable due-date-overlay queue, mirroring the row badge. */}
                   {isActiveAlert(detail.alert) ? (
-                    <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-[4px] border border-[#17b26a40] bg-[#e8f5ee] px-2 text-[11px] font-semibold tracking-[0.3px] text-text-success uppercase">
+                    <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-[4px] border border-[#17b26a40] bg-[#e8f5ee] px-2 text-caption font-semibold tracking-[0.3px] text-text-success uppercase">
                       <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
                       <Trans>Active</Trans>
                     </span>
@@ -1314,7 +1314,7 @@ export function AlertDetailDrawer({
                       "HIGH IMPACT" (not bare "HIGH"). */}
                   {showSeverityPill ? (
                     <span
-                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-[11px] font-bold tracking-[0.7px] uppercase"
+                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-caption font-bold tracking-[0.7px] uppercase"
                       style={{ backgroundColor: severity.bg, color: severity.text }}
                     >
                       {t`HIGH IMPACT`}
@@ -1324,7 +1324,7 @@ export function AlertDetailDrawer({
                       JurisdictionLabel primitive — seal + mono code + full name,
                       identical to the deadline detail header. */}
                   <JurisdictionLabel code={detail.alert.jurisdiction} />
-                  <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-[11px] font-bold tracking-[0.7px] text-text-accent uppercase">
+                  <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-caption font-bold tracking-[0.7px] text-text-accent uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
                   <span className="ml-auto flex shrink-0 items-center gap-2 text-[12px] font-medium text-text-tertiary">
@@ -1536,7 +1536,7 @@ export function AlertDetailDrawer({
                         type="button"
                         onClick={handleConfirmAllNeedsReview}
                         disabled={stats.needsReviewCount === 0}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-[3px] text-[11px] font-semibold text-white outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-[3px] text-caption font-semibold text-white outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         <CheckIcon className="size-3 shrink-0" aria-hidden />
                         {t`Confirm ${stats.needsReviewCount}`}
@@ -1545,7 +1545,7 @@ export function AlertDetailDrawer({
                         type="button"
                         onClick={handleExcludeSelected}
                         disabled={stats.selectedCount === 0}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-[3px] text-[11px] font-semibold text-text-secondary outline-none transition-colors hover:bg-state-base-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-[3px] text-caption font-semibold text-text-secondary outline-none transition-colors hover:bg-state-base-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         <XIcon className="size-3 shrink-0" aria-hidden />
                         <Trans>Exclude</Trans>
@@ -1653,7 +1653,7 @@ export function AlertDetailDrawer({
                           </Trans>
                         </p>
                       </div>
-                      <span className="hidden shrink-0 font-mono text-[11px] font-bold text-text-success tabular-nums sm:inline">
+                      <span className="hidden shrink-0 font-mono text-caption font-bold text-text-success tabular-nums sm:inline">
                         {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
                       </span>
                     </div>
@@ -1750,7 +1750,7 @@ export function AlertDetailDrawer({
                     ) : null}
                   </div>
                   {/* Citation — source (mono) · published date. */}
-                  <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-text-muted">
+                  <div className="flex flex-wrap items-center gap-1.5 text-caption font-medium text-text-muted">
                     <span className="font-mono">{detail.alert.source}</span>
                     {detail.alert.publishedAt ? (
                       <>
@@ -1940,20 +1940,20 @@ export function AlertDetailDrawer({
         <div className="mx-auto flex w-full max-w-[760px] flex-row items-center gap-8">
           {detail ? (
             <div className="hidden shrink-0 items-center gap-3.5 text-text-tertiary xl:flex">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
-                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
+              <span className="inline-flex items-center gap-1.5 text-caption font-medium">
+                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
                   A
                 </kbd>
                 <Trans>Apply</Trans>
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
-                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
+              <span className="inline-flex items-center gap-1.5 text-caption font-medium">
+                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
                   D
                 </kbd>
                 <Trans>Dismiss</Trans>
               </span>
               <span className="h-3.5 w-px bg-divider-regular" aria-hidden />
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-success">
+              <span className="inline-flex items-center gap-1.5 text-caption font-medium text-text-success">
                 <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
                 <Trans>Every decision captured to audit ledger</Trans>
               </span>

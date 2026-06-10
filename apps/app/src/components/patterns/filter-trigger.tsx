@@ -7,11 +7,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * `FilterTrigger` — canonical button chrome for a dropdown / popover that
  * narrows the list under it.
  *
- * 2026-06-04 round 33 (Yuqi Pencil T3GhR — "update the filters and dropdown
- * (the functionalities and style). has to be 100% the same and recreated"):
- * trigger rebuilt to match T3GhR's `JlMSs`/`VSThR`/`iOxIZ`/`XVOni`/`vRYoE`
- * pill specs exactly.
- *
  * Visual contract:
  *   - h-10 (40px), padding [10, 16] (`px-4`)
  *   - rounded-xl (12px corner radius)
@@ -128,7 +123,7 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
         ) : null}
         {children}
         {valueLabel != null ? (
-          <span className="font-mono text-[11px] font-semibold text-text-muted">{valueLabel}</span>
+          <span className="font-mono text-caption font-semibold text-text-muted">{valueLabel}</span>
         ) : null}
         {hideChevron ? null : (
           <ChevronDownIcon

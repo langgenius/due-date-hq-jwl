@@ -154,14 +154,13 @@ function renderClientHeaderSubLine({
   // without reading prose. Order mirrors the four canonical questions
   // (what kind of client → urgency → tone).
   //
-  // 2026-05-24 (distill — critique P0): dropped the "N open filings"
-  // segment. The Open Filing summary tile (now at 20px after the
-  // typeset pass) is the canonical surface for that number; repeating
-  // it in the subtitle, the tile, AND the year-section badge gave
-  // CPAs three nearly-identical counts with three different scopes —
-  // they had to compute the relationship instead of just reading.
-  // Subtitle now carries only the qualitative tail: classification,
-  // next-due date, and the late / on-track tone marker.
+  // No "N open filings" segment: the Open Filing summary tile is the
+  // canonical surface for that number; repeating it in the subtitle,
+  // the tile, AND the year-section badge gave CPAs three
+  // nearly-identical counts with three different scopes — they had to
+  // compute the relationship instead of just reading. Subtitle carries
+  // only the qualitative tail: classification, next-due date, and the
+  // late / on-track tone marker.
   const parts: Array<{ id: string; node: ReactNode }> = []
   const taxLabel = entityType === 'llc' ? taxClassificationLabel(taxClassification) : null
   if (taxLabel) parts.push({ id: 'tax', node: <span>{taxLabel}</span> })
@@ -171,9 +170,9 @@ function renderClientHeaderSubLine({
       node: <span>next due {formatDatePretty(workPlan.nextDueDate)}</span>,
     })
   }
-  // 2026-05-24 (critique P0 — clarify): the pill used to bottom-out at
-  // "All on track" whenever `overdueOpenCount` (currentDueDate-based)
-  // was zero. That hid two real product states from the CPA:
+  // Don't bottom-out at "All on track" whenever `overdueOpenCount`
+  // (currentDueDate-based) is zero — that hides two real product states
+  // from the CPA:
   //
   //   1. Statutory date missed but no extension on the wire (the row
   //      that quietly looked fine because `currentDueDate` still equals
@@ -199,11 +198,11 @@ function renderClientHeaderSubLine({
       ),
     })
   } else if (workPlan.filedPaymentOverdueCount > 0) {
-    // 2026-05-27 (phi journey audit J1): the FILING-track version of
-    // anti-pattern #1 ("Filed ≠ Paid"). A client whose every filing is
-    // done but whose payment hasn't cleared used to flow into the
-    // "All on track" bottom-out — a silent green that hid the real
-    // urgency. Priority order: ahead of extensionPaymentDueCount
+    // The FILING-track version of anti-pattern #1 ("Filed ≠ Paid"). A
+    // client whose every filing is done but whose payment hasn't
+    // cleared must not flow into the "All on track" bottom-out — a
+    // silent green that hides the real urgency. Priority order: ahead
+    // of extensionPaymentDueCount
     // (which is also anti-pattern #1 but on the extension track) and
     // "Extended" / "All on track" fall-throughs. Destructive tone
     // because penalty interest accrues until the wire lands; a
@@ -326,20 +325,17 @@ export function ClientDetailWorkspace({
   const navigate = useNavigate()
   const permission = useFirmPermission()
   const currentUserName = useCurrentUserName()
-  // 2026-05-24: `filingJurisdictionsOpen` state retired with the
-  // DetailSection collapsible. Sections are flat now, so the "scroll
+  // Sections are flat (no DetailSection collapsible), so the "scroll
   // me into view" callback just scrolls — no panel state to toggle.
   const canReadAudit = permission.can('audit.read')
   const canUpdateObligationStatus = permission.can('obligation.status.update')
-  // 2026-06-01 (Yuqi /clients/[id] critique — IA): wraps the
-  // `client.write` capability for the Notes slide-in panel. Same
-  // permission scope the other client-edit panels (Risk profile,
+  // Wraps the `client.write` capability for the Notes slide-in panel.
+  // Same permission scope the other client-edit panels (Risk profile,
   // Source details) already gate on; surfacing it here means the
   // sheet trigger renders read-only for coordinators / preparers
   // who can VIEW notes but can't write them.
   const canUpdateClient = permission.can('client.write')
-  // 2026-06-01 (Yuqi /clients/[id] critique — IA part 2): notes
-  // slide-in is now controlled by the workspace so multiple
+  // Notes slide-in is controlled by the workspace so multiple
   // affordances can open it:
   //   • `<ClientNotesStrip>` — inline preview below PageHeader,
   //     always visible when notes exist. Click → open editor.
@@ -351,8 +347,8 @@ export function ClientDetailWorkspace({
   const [notesOpen, setNotesOpen] = useState(false)
   const hasClientNotes = (client.notes?.trim().length ?? 0) > 0
   // Body is a 3-tab structure (Work / Client info / Activity) — see
-  // docs/Design/client-page-information-architecture.md updated
-  // 2026-05-22. URL-bound so deep links land on the right tab.
+  // docs/Design/client-page-information-architecture.md. URL-bound so
+  // deep links land on the right tab.
   // Work is the daily driver (filing plan), Client info carries the
   // configuration surfaces (compliance posture + jurisdictions + risk +
   // onboarding + import source), Activity is lazy-loaded history.
@@ -360,9 +356,9 @@ export function ClientDetailWorkspace({
     'tab',
     parseAsStringLiteral(['work', 'info', 'activity'] as const).withDefault('work'),
   )
-  // 2026-06-10 (Yuqi — Work tab inline-expand): which filing row is expanded.
-  // Single string = strict accordion (only one open at a time), deep-linkable
-  // via ?expanded= per deadline-row-interaction.md §5.
+  // Which filing row is expanded. Single string = strict accordion
+  // (only one open at a time), deep-linkable via ?expanded= per
+  // deadline-row-interaction.md §5.
   const [expandedFilingId, setExpandedFilingId] = useQueryState(
     'expanded',
     parseAsString.withDefault(''),
@@ -376,13 +372,12 @@ export function ClientDetailWorkspace({
   // ShortcutHelpDialog (the `?` sheet — that's Task 4 satisfied for
   // free). No on-screen kbd hints yet — power users discover via `?`.
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
-  // 2026-06-01 (Yuqi /clients/[id] critique — IA): shortcut metadata
-  // synced with the tab-label rename. The `?` Keyboard Shortcuts
-  // dialog and any other surface that reads `meta.name` /
-  // `meta.description` from the hotkey registry now show the new
-  // tab labels (Filing plan / Setup / History) and accurate
-  // descriptions (Activity → History no longer mentions "notes"
-  // because Notes moved to a slide-in panel).
+  // Shortcut metadata stays in sync with the tab labels. The `?`
+  // Keyboard Shortcuts dialog and any other surface that reads
+  // `meta.name` / `meta.description` from the hotkey registry shows the
+  // tab labels (Filing plan / Setup / History) and descriptions
+  // (History no longer mentions "notes" because Notes moved to a
+  // slide-in panel).
   useAppHotkey('1', () => void setActiveTab('work'), {
     enabled: !shortcutsBlocked,
     meta: {
@@ -444,11 +439,11 @@ export function ClientDetailWorkspace({
   const obligationsQuery = useQuery(
     orpc.obligations.listByClient.queryOptions({ input: { clientId: client.id } }),
   )
-  // 2026-06-10 (Yuqi — client Work tab uses <DeadlineRow>): the queue list
-  // filtered by this client returns ObligationQueueRow[] (assigneeName,
-  // daysUntilDue, readiness, evidenceCount) that DeadlineRow needs — the richer
-  // shape `listByClient` (ObligationInstancePublic) does not carry. One page is
-  // enough (a single client rarely has >100 deadlines).
+  // The queue list filtered by this client returns ObligationQueueRow[]
+  // (assigneeName, daysUntilDue, readiness, evidenceCount) that
+  // DeadlineRow needs — the richer shape `listByClient`
+  // (ObligationInstancePublic) does not carry. One page is enough (a
+  // single client rarely has >100 deadlines).
   const clientQueueQuery = useQuery(
     orpc.obligations.list.queryOptions({
       input: {
@@ -477,11 +472,10 @@ export function ClientDetailWorkspace({
     enabled: canReadAudit && activityTabActive,
   })
   const obligations = obligationsQuery.data ?? EMPTY_OBLIGATIONS
-  // 2026-05-27 (D16 — Agent ω, journey-audit drain): anchor the work
-  // plan summary on the firm's "as of" date instead of the browser's
-  // wall clock. Keeps "overdue" / "needs review" / "extension payment
-  // due" counts in sync with the rest of the client surfaces (and
-  // with the server's day-math on the obligations queue).
+  // Anchor the work plan summary on the firm's "as of" date instead of
+  // the browser's wall clock. Keeps "overdue" / "needs review" /
+  // "extension payment due" counts in sync with the rest of the client
+  // surfaces (and with the server's day-math on the obligations queue).
   const asOfDate = useFirmAsOfDate()
   const workPlan = useMemo(
     () => buildClientWorkPlanSummary(obligations, asOfDate),
@@ -593,12 +587,11 @@ export function ClientDetailWorkspace({
       },
     }),
   )
-  // Owner reassignment (2026-05-24). Powers the H1 owner-pill
-  // dropdown so clicking "Unassigned" / "M. Chen" opens a real
-  // picker — previously the pill looked tappable but was a dead
-  // <span>. Reuses the same `clients.bulkUpdateAssignee` procedure
-  // the /clients list bulk-bar uses, with a single-id payload so
-  // the audit-log breadcrumb stays consistent.
+  // Owner reassignment. Powers the H1 owner-pill dropdown so clicking
+  // "Unassigned" / "M. Chen" opens a real picker. Reuses the same
+  // `clients.bulkUpdateAssignee` procedure the /clients list bulk-bar
+  // uses, with a single-id payload so the audit-log breadcrumb stays
+  // consistent.
   const assignableMembersQuery = useQuery(
     orpc.members.listAssignable.queryOptions({ input: undefined }),
   )
@@ -633,11 +626,11 @@ export function ClientDetailWorkspace({
   )
   const missingFilingState = Boolean(readiness?.missingRequiredFacts.includes('state'))
   // "Add filing state" chip + jurisdiction-deep-link callback.
-  // 2026-05-24: the chip lives on the Work tab header but the
-  // jurisdiction form lives on the Client info tab. Scrolling
-  // alone left the user on Work with nothing visibly changed.
-  // Now switches the tab first, then RAFs the scroll so the
-  // section is in the DOM before we try to align it.
+  // The chip lives on the Work tab header but the jurisdiction form
+  // lives on the Client info tab, so scrolling alone would leave the
+  // user on Work with nothing visibly changed. Switch the tab first,
+  // then RAF the scroll so the section is in the DOM before we try to
+  // align it.
   const openFilingJurisdictions = useCallback(() => {
     void setActiveTab('info')
     window.requestAnimationFrame(() => {
@@ -647,12 +640,10 @@ export function ClientDetailWorkspace({
     })
   }, [setActiveTab])
 
-  // 2026-05-24 (shape — critique P1): the H1 "Add filing state" /
-  // "Needs facts" chip opens the same inline batch sheet the
-  // /clients list page uses, so the fix-state journey matches across
-  // surfaces. Previously the detail-page chip just switched to the
-  // Client info tab + scrolled to the jurisdiction form, which was
-  // ~6 clicks vs the list page's 2.
+  // The H1 "Add filing state" / "Needs facts" chip opens the same
+  // inline batch sheet the /clients list page uses, so the fix-state
+  // journey matches across surfaces (2 clicks instead of the tab+scroll
+  // path's ~6).
   //
   // When `entityType` is missing (rare), the sheet's existing
   // fallback is a "Open client to fix" link — useless here because
@@ -735,53 +726,40 @@ export function ClientDetailWorkspace({
 
   return (
     <>
-      {/* 2026-05-26 (Yuqi feedback #11-#14 — "page scrolling mechanism
-          should follow Deadline expanded"): outer container is now a
-          flex column on small viewports and a flex row at xl+. The
-          left column owns its OWN scroll container (PageHeader +
-          metadata pinned, tab body scrolls); the right panel slides
-          in motion-animated 0→600 when a filing row is clicked. The
-          page-level scroll on the document body is gone — only the
+      {/* Outer container is a flex column on small viewports and a flex
+          row at xl+. The left column owns its OWN scroll container
+          (PageHeader + metadata pinned, tab body scrolls); the right
+          panel slides in motion-animated 0→600 when a filing row is
+          clicked. No page-level scroll on the document body — only the
           tab body scrolls. Mirrors /deadlines exactly. */}
       <div className="flex min-h-0 flex-1 flex-col gap-4 xl:flex-row xl:items-stretch xl:gap-6">
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <PageHeader
-            // 2026-05-28 (audit P2-4): switched from a hand-rolled
-            // `<Link>` in the `eyebrow` slot to the canonical
-            // `breadcrumbs` prop. The earlier rationale ("eyebrow
-            // overrides the uppercase tag styling so the back-nav
-            // reads as a friendly link") predates the `breadcrumbs`
-            // primitive — which IS styled as a friendly link with
-            // chevron separator + ⌘[ hint. Lines up with /settings,
-            // /members, /billing.checkout. `eyebrowAside` still
-            // carries the 1/N ClientCycleArrows pagination on the
-            // right of the same eyebrow row (PageHeader supports
-            // both — see `page-header.tsx`).
+            // The canonical `breadcrumbs` prop, styled as a friendly
+            // link with chevron separator + ⌘[ hint. Lines up with
+            // /settings, /members, /billing.checkout. `eyebrowAside`
+            // still carries the 1/N ClientCycleArrows pagination on the
+            // right of the same eyebrow row (PageHeader supports both —
+            // see `page-header.tsx`).
             breadcrumbs={[{ label: t`Clients`, to: '/clients' }]}
-            // 2026-05-26 (Yuqi follow-up — "1/9 does not belong to
-            // the client detail … should be in the frame of the
-            // < Clients, space between far right"): the prev/next
-            // pagination belongs on the BREADCRUMB row, not in the
-            // H1 actions cluster. The < Clients back-link sits on
-            // the left of the eyebrow row; 1/9 sits on the right of
-            // the same row via the eyebrowAside slot, with the
+            // The prev/next pagination belongs on the BREADCRUMB row,
+            // not in the H1 actions cluster. The < Clients back-link
+            // sits on the left of the eyebrow row; 1/9 sits on the
+            // right of the same row via the eyebrowAside slot, with the
             // PageHeader providing `justify-between`. Action cluster
             // (⋯ + Add deadline) stays in the title row — those
-            // ARE page-level controls scoped to this client. */}
+            // ARE page-level controls scoped to this client.
             eyebrowAside={<ClientCycleArrows currentClientId={client.id} />}
             title={
-              // 2026-05-26 (Yuqi macro→micro audit, Fix #3 + #11 / §2.2,
-              // §2.4): title cluster reduced to title + 1 readiness chip
-              // per canonical (page-family-canonical §3 — title + ≤1
-              // chip). Entity badge, owner pill, and filing-state chips
-              // moved DOWN to ClientContactMetaRow so the H1 line reads
-              // as identification, not a stat strip.
-              // 2026-05-26 (Yuqi /clients/[id] header restructure —
-              // "restructure the header section of the client-detail"):
-              // chip moves to its OWN row BELOW the title (the title
-              // span used to share a flex-wrap row with the chip; in
-              // narrow layouts that pushed the chip onto a 2nd line
-              // OR forced the title to wrap to 3 lines). New shape:
+              // Title cluster is title + 1 readiness chip per canonical
+              // (page-family-canonical §3 — title + ≤1 chip). Entity
+              // badge, owner pill, and filing-state chips live DOWN in
+              // ClientContactMetaRow so the H1 line reads as
+              // identification, not a stat strip.
+              // The chip sits on its OWN row BELOW the title: sharing a
+              // flex-wrap row with the title pushed the chip onto a 2nd
+              // line OR forced the title to wrap to 3 lines in narrow
+              // layouts. Shape:
               //   • Row 1: ClientTitleSwitcher (truncates if narrow)
               //   • Row 2: optional readiness chip (only when status
               //            === 'needs_facts')
@@ -790,12 +768,11 @@ export function ClientDetailWorkspace({
               <span className="flex min-w-0 flex-col items-start gap-y-2">
                 <ClientTitleSwitcher client={client} />
                 {readiness?.status === 'needs_facts' ? (
-                  // 2026-05-26 (Fix #9 / §3.7): badge tone destructive
-                  // → warning. "Add filing state" is incomplete
-                  // configuration, not a destructive state; warning
-                  // matches the needs-facts banner tone and the
-                  // canonical color reservation (red is for late /
-                  // hard errors / blocked).
+                  // Badge tone is warning, not destructive: "Add filing
+                  // state" is incomplete configuration, not a
+                  // destructive state; warning matches the needs-facts
+                  // banner tone and the canonical color reservation (red
+                  // is for late / hard errors / blocked).
                   <Badge
                     variant="warning"
                     className="cursor-pointer text-xs"
@@ -807,16 +784,11 @@ export function ClientDetailWorkspace({
                 ) : null}
               </span>
             }
-            // 2026-05-28 (Yuqi /clients/[id] polish — "client name
-            // 下面很空，感觉缺了内容"): pulled `ClientContactMetaRow`
-            // (entity badge / owner pill / state chips / email /
-            // phone / address) UP into the PageHeader's metaRow
-            // slot. Previously it rendered as the first child of
-            // the body section below the header, separated by the
-            // outer `gap-4` (16px). Now it sits inside the
-            // PageHeader column at the canonical `gap-2` (8px)
-            // below the H1 — title and identity facts read as one
-            // anchored block instead of "client name then a void."
+            // `ClientContactMetaRow` (entity badge / owner pill / state
+            // chips / email / phone / address) sits in the PageHeader's
+            // metaRow slot at the canonical `gap-2` (8px) below the H1,
+            // so title and identity facts read as one anchored block
+            // instead of "client name then a void."
             metaRow={
               <ClientContactMetaRow
                 client={client}
@@ -833,15 +805,15 @@ export function ClientDetailWorkspace({
                 }
               />
             }
-            // 2026-05-23: subtitle suppressed when readiness gap chip is
+            // Subtitle is suppressed when the readiness gap chip is
             // present in the H1 chip cluster. The "Missing filing state"
             // chip is itself the page-level signal; piling a workPlan
-            // summary line on top creates two summary lines stacked
-            // ("alert chip row" + "N open filings · …") and feels noisy.
-            // Per Figma — when the alert chip is there, it owns the
-            // sub-h1 slot; the workPlan summary returns once the gap
-            // is resolved. Subtitle keeps rendering for every other
-            // client so the at-a-glance state stays visible.
+            // summary line on top stacks two summary lines ("alert chip
+            // row" + "N open filings · …") and feels noisy. When the
+            // alert chip is there, it owns the sub-h1 slot; the workPlan
+            // summary returns once the gap is resolved. Subtitle keeps
+            // rendering for every other client so the at-a-glance state
+            // stays visible.
             description={
               readiness?.status === 'needs_facts'
                 ? null
@@ -853,8 +825,7 @@ export function ClientDetailWorkspace({
             }
             actions={
               <>
-                {/* 2026-06-01 (Yuqi /clients/[id] critique — IA part 2):
-                    Notes affordance in the actions cluster ONLY renders
+                {/* Notes affordance in the actions cluster ONLY renders
                     when the client has no notes yet. With notes, the
                     inline `<ClientNotesStrip>` below the PageHeader is
                     the canonical read+edit affordance; an extra header
@@ -1529,7 +1500,7 @@ function ClientDetailRail({ client }: { client: ClientPublic }) {
                     <span className="shrink-0 text-xs text-text-secondary">{contact.role}</span>
                   </div>
                   {contact.email ? (
-                    <span className="truncate text-[11px] text-text-tertiary">{contact.email}</span>
+                    <span className="truncate text-caption text-text-tertiary">{contact.email}</span>
                   ) : null}
                 </div>
                 {/* Compose intentionally not rendered: EmailComposeDialog
@@ -1550,7 +1521,7 @@ function ClientDetailRail({ client }: { client: ClientPublic }) {
 }
 
 function RailSectionLabel({ children }: { children: ReactNode }) {
-  return <span className="text-[10px] font-bold tracking-wide text-text-muted">{children}</span>
+  return <span className="text-caption-xs font-bold tracking-wide text-text-muted">{children}</span>
 }
 
 type ClientDetailTabKey = 'work' | 'info' | 'activity'

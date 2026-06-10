@@ -49,7 +49,7 @@ const badgeVariants = cva(
       // tab counts, and the rules legend 'S' glyph.
       size: {
         default: 'h-5 px-2 py-0.5 text-xs',
-        sm: 'h-4 min-w-4 px-1.5 text-[10px] leading-none',
+        sm: 'h-4 min-w-4 px-1.5 text-caption-xs leading-none',
         lg: 'h-6 px-2 py-1.5 text-xs',
         circle: 'size-6 px-0 justify-center tabular-nums',
       },

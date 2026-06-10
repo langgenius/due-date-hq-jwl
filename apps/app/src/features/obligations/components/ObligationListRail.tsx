@@ -160,7 +160,7 @@ function RailItem({
         <span className="text-[12px] font-medium text-text-primary tabular-nums">{dueLabel}</span>
         <span
           className={cn(
-            'text-[10px] font-medium tabular-nums',
+            'text-caption-xs font-medium tabular-nums',
             relative.late ? 'text-text-destructive' : 'text-text-muted',
           )}
         >
@@ -172,7 +172,7 @@ function RailItem({
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           {row.clientState ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-divider-regular px-1.5 text-caption font-semibold text-text-secondary uppercase">
               <StateBadge code={row.clientState} size="xs" style={{ width: 12, height: 12 }} />
               {row.clientState}
             </span>
@@ -180,7 +180,7 @@ function RailItem({
           <TaxCodeBadge code={row.taxType} />
         </div>
         <span className="truncate text-[13px] font-medium text-text-primary">{row.clientName}</span>
-        <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-[11px]" />
+        <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-caption" />
       </div>
     </button>
   )

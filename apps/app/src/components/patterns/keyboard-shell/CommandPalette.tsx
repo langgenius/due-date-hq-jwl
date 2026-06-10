@@ -447,7 +447,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   value={`client-${client.id}`}
                   onSelect={() => selectClient(client)}
                 >
-                  <span className="grid size-7 place-items-center rounded-full bg-state-accent-solid text-[11px] font-semibold text-text-accent-inverse">
+                  <span className="grid size-7 place-items-center rounded-full bg-state-accent-solid text-caption font-semibold text-text-accent-inverse">
                     {initials(client.name)}
                   </span>
                   <span className="grid min-w-0 gap-0.5">

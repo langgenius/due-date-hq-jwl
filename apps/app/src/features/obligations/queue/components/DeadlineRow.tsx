@@ -354,7 +354,7 @@ function DeadlineRowExpansion({
                 />
                 <span
                   className={cn(
-                    'text-[11px] whitespace-nowrap',
+                    'text-caption whitespace-nowrap',
                     isActive
                       ? 'font-semibold text-text-warning'
                       : isPast

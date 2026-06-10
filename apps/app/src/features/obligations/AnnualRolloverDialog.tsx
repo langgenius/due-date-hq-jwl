@@ -52,7 +52,7 @@ function DispositionBadge({ disposition }: { disposition: AnnualRolloverDisposit
   const variant =
     bucket === 'will_update' ? 'info' : bucket === 'requires_review' ? 'warning' : 'secondary'
   return (
-    <Badge variant={variant} className="font-mono text-[10px] font-bold">
+    <Badge variant={variant} className="font-mono text-caption-xs font-bold">
       {disposition}
     </Badge>
   )
@@ -90,7 +90,7 @@ function SummaryCard({
       </span>
       <span
         className={cn(
-          'text-[10px] font-bold tracking-wider uppercase',
+          'text-caption-xs font-bold tracking-wider uppercase',
           tone === 'accent' && 'text-text-accent',
           tone === 'warning' && 'text-text-warning',
           tone === 'neutral' && 'text-text-secondary',
@@ -279,19 +279,19 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-background-section">
-                      <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
+                      <TableHead className="text-caption-xs font-bold tracking-wider text-text-muted uppercase">
                         <Trans>Client · Form</Trans>
                       </TableHead>
-                      <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
+                      <TableHead className="text-caption-xs font-bold tracking-wider text-text-muted uppercase">
                         <Trans>TY {headerFrom} due</Trans>
                       </TableHead>
-                      <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
+                      <TableHead className="text-caption-xs font-bold tracking-wider text-text-muted uppercase">
                         <Trans>TY {headerTo} due</Trans>
                       </TableHead>
-                      <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
+                      <TableHead className="text-caption-xs font-bold tracking-wider text-text-muted uppercase">
                         <Trans>Rule change</Trans>
                       </TableHead>
-                      <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
+                      <TableHead className="text-caption-xs font-bold tracking-wider text-text-muted uppercase">
                         <Trans>Disposition</Trans>
                       </TableHead>
                     </TableRow>

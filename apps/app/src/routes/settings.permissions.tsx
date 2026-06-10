@@ -286,13 +286,13 @@ export function SettingsPermissionsRoute() {
               {/* Header */}
               <div className="flex items-center bg-background-section px-5 py-4">
                 <div className="w-[260px] shrink-0 pr-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-eyebrow text-text-tertiary">
+                  <span className="text-caption font-semibold uppercase tracking-eyebrow text-text-tertiary">
                     <Trans>Scope</Trans>
                   </span>
                 </div>
                 {ACTIONS.map((action) => (
                   <div key={action} className="flex flex-1 justify-center">
-                    <span className="text-[11px] font-semibold uppercase tracking-eyebrow text-text-tertiary">
+                    <span className="text-caption font-semibold uppercase tracking-eyebrow text-text-tertiary">
                       {i18n._(ACTION_LABELS[action])}
                     </span>
                   </div>
@@ -316,7 +316,7 @@ export function SettingsPermissionsRoute() {
                       <span className="text-[13px] font-semibold text-text-primary">
                         {i18n._(scope.label)}
                       </span>
-                      <span className="truncate text-[11px] text-text-tertiary">
+                      <span className="truncate text-caption text-text-tertiary">
                         {i18n._(scope.description)}
                       </span>
                     </span>

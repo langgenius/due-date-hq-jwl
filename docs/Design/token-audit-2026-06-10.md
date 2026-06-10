@@ -50,3 +50,12 @@ resolve to a semantic token (background-*, state-*, divider-*) — needs per-sit
 3. **Hex → tokens** (19 sites) — match each to the nearest semantic token.
 
 Scale (~530 edits) makes this a multi-wave effort, not a single pass.
+
+## Remediation log
+- **2026-06-10 — exact-token swap, font 11/10:** replaced `text-[11px]`→`text-caption`
+  (145×) and `text-[10px]`→`text-caption-xs` (63×) across **49 files** (excluded the
+  pre-login auth/onboarding surfaces + any file under concurrent edit). Both tokens
+  are designed for these px with matching line-heights → no layout shift. Verified
+  caption→11px / caption-xs→10px live. Remaining (per design decisions): off-scale
+  13/15/8, 12/14/16→xs/sm/base (larger lh delta), hex (19), radius (mostly auth /
+  nested-radius — intentional).

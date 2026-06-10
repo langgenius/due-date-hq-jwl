@@ -35,16 +35,14 @@ import {
 } from '@/lib/auth'
 import { authCapabilities } from '@/lib/auth-capabilities'
 
-// 2026-06-09 (Yuqi — "100% replicate Pencil node pW6pK"): /login moved from
-// the centered single-column EntryShell card to a full-bleed two-column split
-// — a product-story column (left) beside the sign-in card (right), with a
-// dedicated footer. The page now owns its own chrome and is wired as a
-// standalone route (no EntryShell parent) in router.tsx, so the other entry
-// surfaces (/onboarding, /two-factor, /accept-invite) keep the shared shell.
+// /login is a full-bleed two-column split — a product-story column (left)
+// beside the sign-in card (right), with a dedicated footer. The page owns its
+// own chrome and is wired as a standalone route (no EntryShell parent) in
+// router.tsx, so the other entry surfaces (/onboarding, /two-factor,
+// /accept-invite) keep the shared shell.
 //
 // Colors/spacing map to the app's semantic tokens (text-text-*, bg-bg-*,
-// border-divider-*, the primary Button) rather than the canvas's raw hex, per
-// the "use variables and tokens" direction. The left column is a STATIC
+// border-divider-*, the primary Button) rather than raw hex. The left column is a STATIC
 // marketing proof — illustrative sample deadlines, not the visitor's live data
 // (they are logged out), so it does not violate the no-fiction-on-canvas rule.
 
@@ -279,7 +277,7 @@ export function LoginRoute() {
                   <>
                     <div className="flex items-center gap-3.5">
                       <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
-                      <span className="text-[11px] font-medium tracking-[0.2px] text-text-muted">
+                      <span className="text-caption font-medium tracking-[0.2px] text-text-muted">
                         <Trans>or continue with email</Trans>
                       </span>
                       <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
@@ -304,7 +302,7 @@ export function LoginRoute() {
                   <p className="text-xs font-semibold text-text-secondary">
                     <Trans>Secured by one-time link</Trans>
                   </p>
-                  <p className="text-[11px] font-medium leading-[1.45] text-text-muted">
+                  <p className="text-caption font-medium leading-[1.45] text-text-muted">
                     <Trans>Links expire in 10 minutes. We never store passwords.</Trans>
                   </p>
                 </div>
@@ -329,11 +327,11 @@ export function LoginRoute() {
 
             {/* Residency */}
             <div className="flex flex-col items-center gap-1 text-center">
-              <p className="flex items-center gap-1 text-[11px] font-medium text-text-muted">
+              <p className="flex items-center gap-1 text-caption font-medium text-text-muted">
                 <MapPinIcon className="size-3 shrink-0" aria-hidden />
                 <Trans>Hosted in US-East · your data never leaves your jurisdiction</Trans>
               </p>
-              <p className="text-[11px] font-medium text-text-muted">
+              <p className="text-caption font-medium text-text-muted">
                 <Trans>ISO 27001 in progress</Trans>
               </p>
             </div>
@@ -429,11 +427,11 @@ function ProductStory() {
 
       <div className="mt-2 flex flex-col gap-3.5">
         <div className="flex items-center gap-3.5">
-          <span className="text-[10px] font-semibold tracking-[1.8px] text-text-tertiary">
+          <span className="text-caption-xs font-semibold tracking-[1.8px] text-text-tertiary">
             WHAT IT DOES
           </span>
           <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
-          <span className="text-[10px] italic text-text-muted">three things, done well</span>
+          <span className="text-caption-xs italic text-text-muted">three things, done well</span>
         </div>
 
         <div className="grid grid-cols-1 overflow-hidden rounded-xl border border-divider-subtle bg-background-default sm:grid-cols-3">
@@ -446,7 +444,7 @@ function ProductStory() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <span className="font-mono text-[10px] tracking-[0.4px] text-text-muted">
+                <span className="font-mono text-caption-xs tracking-[0.4px] text-text-muted">
                   {cap.index}
                 </span>
                 <span aria-hidden className={cn('h-px w-3.5', TONE_TICK[cap.tone])} />
@@ -463,19 +461,19 @@ function ProductStory() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 px-1">
-          <span className="text-[11px] italic text-text-muted">
+          <span className="text-caption italic text-text-muted">
             All three ship in v1. See them live in
           </span>
           {['/today', '/deadlines', '/alerts'].map((path) => (
             <span
               key={path}
-              className="rounded-lg bg-bg-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-[0.2px] text-text-secondary"
+              className="rounded-lg bg-bg-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold tracking-[0.2px] text-text-secondary"
             >
               {path}
             </span>
           ))}
           <span className="flex-1" />
-          <span className="text-[10px] font-medium italic text-text-muted">
+          <span className="text-caption-xs font-medium italic text-text-muted">
             no waitlist, no asterisks
           </span>
         </div>
@@ -486,7 +484,7 @@ function ProductStory() {
         {TRUST_ITEMS.map((item, i) => (
           <Fragment key={item.label}>
             {i > 0 ? <span aria-hidden className="h-2.5 w-px bg-divider-subtle" /> : null}
-            <span className="flex items-center gap-1.5 text-[11px] font-medium italic text-text-tertiary">
+            <span className="flex items-center gap-1.5 text-caption font-medium italic text-text-tertiary">
               <item.Icon className="size-[11px] shrink-0 text-text-muted" />
               {item.label}
             </span>
@@ -499,7 +497,7 @@ function ProductStory() {
 
 function LoginFooter() {
   return (
-    <footer className="flex flex-col gap-3 border-t border-divider-subtle px-6 py-3.5 text-[11px] font-medium text-text-tertiary sm:flex-row sm:items-center lg:px-10">
+    <footer className="flex flex-col gap-3 border-t border-divider-subtle px-6 py-3.5 text-caption font-medium text-text-tertiary sm:flex-row sm:items-center lg:px-10">
       <div className="flex flex-wrap items-center gap-2.5">
         <span>© {new Date().getFullYear()} DueDateHQ</span>
         {[
@@ -522,7 +520,7 @@ function LoginFooter() {
       </div>
       <span className="hidden flex-1 sm:block" />
       <div className="flex items-center gap-3.5">
-        <span className="font-mono text-[10px] text-text-muted">v2.18.4 · build 9c3a1f</span>
+        <span className="font-mono text-caption-xs text-text-muted">v2.18.4 · build 9c3a1f</span>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default px-2.5 py-1">
           <GlobeIcon className="size-3 text-text-tertiary" aria-hidden />
           <span className="text-text-secondary">US East</span>
@@ -665,7 +663,7 @@ function LoginEmailForm({
       <form onSubmit={handleVerifySubmit} noValidate className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3 rounded-xl bg-bg-subtle px-3.5 py-2.5">
           <div className="min-w-0">
-            <p className="text-[11px] font-medium text-text-muted">
+            <p className="text-caption font-medium text-text-muted">
               <Trans>Code sent to</Trans>
             </p>
             <p className="min-w-0 truncate font-mono text-sm text-text-primary">{sentEmail}</p>
@@ -749,7 +747,7 @@ function LoginEmailForm({
             <Trans>Work email</Trans>
           </label>
           <span className="flex-1" />
-          <span className="text-[11px] font-medium text-text-muted">
+          <span className="text-caption font-medium text-text-muted">
             <Trans>we look up your firm automatically</Trans>
           </span>
         </div>
@@ -773,7 +771,7 @@ function LoginEmailForm({
             }}
             className="h-full flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-text-muted"
           />
-          <span className="shrink-0 rounded-[4px] bg-bg-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-tertiary">
+          <span className="shrink-0 rounded-[4px] bg-bg-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
             Return ↵
           </span>
         </FieldShell>

@@ -245,7 +245,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           // 13/normal primary value. The grid's gap-px + divider bg draw the
           // right-/row-hairlines the Pencil shows between cells.
           <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-5 py-2.5">
-            <span className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+            <span className="text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase">
               {cell.label}
             </span>
             <span className="min-w-0 truncate text-[13px] font-normal text-text-primary">
@@ -271,7 +271,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           <div className="grid gap-3 sm:grid-cols-2">
             {protectiveFacts.actionDeadline ? (
               <div className="flex flex-col gap-1">
-                <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
                   <Trans>Action deadline</Trans>
                 </span>
                 <span className="text-sm font-semibold text-text-primary">
@@ -281,7 +281,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             ) : null}
             {protectiveFacts.claimTaxYears.length > 0 ? (
               <div className="flex flex-col gap-1">
-                <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
                   <Trans>Affected years</Trans>
                 </span>
                 <span className="break-words text-sm font-semibold text-text-primary">
@@ -291,7 +291,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             ) : null}
             {protectiveFacts.affectedTaxActs.length > 0 ? (
               <div className="flex flex-col gap-1">
-                <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
                   <Trans>Affected tax acts</Trans>
                 </span>
                 <span className="break-words text-sm font-semibold text-text-primary">
@@ -301,7 +301,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             ) : null}
             {protectiveFacts.evidenceNeeded.length > 0 ? (
               <div className="flex flex-col gap-1">
-                <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
                   <Trans>Evidence to gather</Trans>
                 </span>
                 <span className="break-words text-sm font-semibold text-text-primary">
@@ -312,7 +312,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           </div>
           {protectiveFacts.legalUncertainty ? (
             <div className="mt-3 flex flex-col gap-1">
-              <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+              <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
                 <Trans>Legal uncertainty</Trans>
               </span>
               <p className="text-sm leading-relaxed text-text-secondary">
@@ -322,7 +322,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           ) : null}
           {protectiveFacts.authorityRefs.length > 0 ? (
             <div className="mt-3 flex flex-col gap-1">
-              <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+              <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
                 <Trans>Authority refs</Trans>
               </span>
               <p className="break-words text-sm leading-relaxed text-text-secondary">

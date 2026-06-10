@@ -37,24 +37,22 @@ interface AlertCardProps {
    * so the card renders fine before the batch resolves (or in isolation).
    */
   affectedClients?: PulseAffectedClient[]
-  // 2026-06-04: Archive/Dismiss handlers drive the hover-revealed
+  // Archive/Dismiss handlers drive the hover-revealed
   // PulseAlertActionsRow on the impact row. All optional — callers that only
   // need a read-only card (or rely on the drawer for actions) omit them and
   // the actions row simply renders nothing.
   onDismiss?: (() => void) | undefined
-  // 2026-05-26 (Yuqi /alerts sixth pass #1): "archive" action always
-  // available even on terminal-state alerts — archive is the no-reason
-  // move-to-history verb; when a card already lives in the history view this
-  // is a no-op.
+  // "archive" action always available even on terminal-state alerts —
+  // archive is the no-reason move-to-history verb; when a card already
+  // lives in the history view this is a no-op.
   onArchive?: (() => void) | undefined
   /** Inline actions are hidden when the card is rendered as a folded "more" entry. */
   compact?: boolean
   /**
-   * 2026-05-26 (Yuqi twenty-third pass): when the right panel is
-   * open the list column is narrower (~560px). Pass `true` to
-   * truncate affected-client name chips at a fixed 140px so a
-   * long client name (e.g. "Hudson & Wells LLC") doesn't push
-   * the chip row into wrapping/overflow.
+   * When the right panel is open the list column is narrower (~560px).
+   * Pass `true` to truncate affected-client name chips at a fixed 140px
+   * so a long client name (e.g. "Hudson & Wells LLC") doesn't push the
+   * chip row into wrapping/overflow.
    */
   compactClients?: boolean
   /**
@@ -64,11 +62,10 @@ interface AlertCardProps {
    */
   showReadiness?: boolean
   /**
-   * 2026-05-26 (Yuqi /alerts #4): when this card is the one
-   * currently being viewed in the right-hand panel, render a left
-   * border + brighter background so the user can quickly find the
-   * active row in the list. Parent (AlertsListPage) passes
-   * `active={alert.id === openAlertId}`.
+   * When this card is the one currently being viewed in the right-hand
+   * panel, render a left border + brighter background so the user can
+   * quickly find the active row in the list. Parent (AlertsListPage)
+   * passes `active={alert.id === openAlertId}`.
    */
   active?: boolean
 }
@@ -246,11 +243,11 @@ export function AlertCard({
                   {/* Round 66 + 84: severity gated to HIGH only (LOW /
                       MEDIUM render nothing; absence IS the signal),
                       pill chrome aligned to canonical
-                      h-[22px] rounded-[4px] px-2 text-[11px] font-bold
+                      h-[22px] rounded-[4px] px-2 text-caption font-bold
                       tracking-[0.7px] uppercase (rounds 66/84). */}
                   {severity.id === 'high' ? (
                     <span
-                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-[11px] font-bold tracking-[0.7px] uppercase"
+                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-caption font-bold tracking-[0.7px] uppercase"
                       style={{ backgroundColor: severity.bg, color: severity.text }}
                     >
                       {severityLabel}
@@ -334,7 +331,7 @@ export function AlertCard({
                     the meta row above carries the relative "Nmo ago"). */}
               <div className="grid grid-cols-[5fr_5fr_3fr] overflow-hidden rounded-[8px] bg-background-section">
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <span className="text-[10px] font-semibold tracking-[0.6px] text-text-muted uppercase">
+                  <span className="text-caption-xs font-semibold tracking-[0.6px] text-text-muted uppercase">
                     <Trans>What changed</Trans>
                   </span>
                   <span className="truncate text-xs font-medium text-text-secondary">
@@ -342,7 +339,7 @@ export function AlertCard({
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <span className="text-[10px] font-semibold tracking-[0.6px] text-text-muted uppercase">
+                  <span className="text-caption-xs font-semibold tracking-[0.6px] text-text-muted uppercase">
                     <Trans>Affecting</Trans>
                   </span>
                   <span className="truncate text-xs font-medium text-text-secondary">
@@ -357,7 +354,7 @@ export function AlertCard({
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <span className="text-[10px] font-semibold tracking-[0.6px] text-text-muted uppercase">
+                  <span className="text-caption-xs font-semibold tracking-[0.6px] text-text-muted uppercase">
                     <Trans>Published</Trans>
                   </span>
                   <span className="truncate text-xs font-medium text-text-secondary tabular-nums">

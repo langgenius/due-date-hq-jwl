@@ -280,7 +280,7 @@ function Row({ label, children, mono }: RowProps) {
       <div className="flex flex-col">
         <span className="text-xs font-medium text-text-secondary">{label}</span>
         {mono ? (
-          <span className="mt-0.5 font-mono text-[10px] text-text-tertiary">{mono}</span>
+          <span className="mt-0.5 font-mono text-caption-xs text-text-tertiary">{mono}</span>
         ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-3">{children}</div>
@@ -581,7 +581,7 @@ const TYPE_SCALE: Array<{ name: string; className: string; spec: string }> = [
   { name: 'Caption', className: 'text-xs', spec: '12 / 16 · 400' },
   {
     name: 'Eyebrow',
-    className: 'text-[11px] font-semibold uppercase tracking-wider',
+    className: 'text-caption font-semibold uppercase tracking-wider',
     spec: '11 / 14 · 600 uppercase',
   },
 ]
@@ -656,7 +656,7 @@ export function PreviewRoute() {
       <div className="mx-auto flex max-w-[1280px] gap-8 px-8 py-10">
         {/* Sticky TOC */}
         <nav className="sticky top-10 hidden h-[calc(100vh-5rem)] w-44 shrink-0 overflow-y-auto md:block">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
+          <p className="mb-3 text-caption font-semibold uppercase tracking-wider text-text-tertiary">
             Sections
           </p>
           <ul className="space-y-1.5">
@@ -735,7 +735,7 @@ export function PreviewRoute() {
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-medium text-text-primary">{tok.name}</p>
-                    <p className="truncate font-mono text-[10px] text-text-tertiary">
+                    <p className="truncate font-mono text-caption-xs text-text-tertiary">
                       {tok.cssVar}
                     </p>
                   </div>
@@ -760,7 +760,7 @@ export function PreviewRoute() {
                   <span className={`${step.className} text-text-primary`}>
                     The quick CPA filed the brown fox's 1120
                   </span>
-                  <span className="whitespace-nowrap font-mono text-[10px] text-text-tertiary">
+                  <span className="whitespace-nowrap font-mono text-caption-xs text-text-tertiary">
                     {step.spec}
                   </span>
                 </div>
@@ -785,7 +785,7 @@ export function PreviewRoute() {
                     style={{ width: step.rem }}
                     aria-hidden
                   />
-                  <span className="font-mono text-[10px] text-text-tertiary">
+                  <span className="font-mono text-caption-xs text-text-tertiary">
                     {step.rem} · {step.px}
                   </span>
                 </div>
@@ -1744,7 +1744,7 @@ export function PreviewRoute() {
                   }
                   footer={
                     <div className="flex flex-col items-center gap-2">
-                      <p className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                      <p className="font-mono text-caption font-semibold tracking-[0.5px] text-text-muted uppercase">
                         What gets recorded
                       </p>
                       <div className="flex flex-wrap items-center justify-center gap-2">

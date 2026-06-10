@@ -232,10 +232,10 @@ function RailItem({
       {/* Time column (60px). */}
       <div className="flex w-[60px] shrink-0 flex-col gap-0.5">
         <span className="text-[12px] font-medium text-text-primary">{dateLabel}</span>
-        <span className="text-[10px] font-medium tracking-[-0.1px] text-text-tertiary tabular-nums">
+        <span className="text-caption-xs font-medium tracking-[-0.1px] text-text-tertiary tabular-nums">
           {timeLabel}
         </span>
-        <span className="text-[10px] font-medium text-text-muted">{relative}</span>
+        <span className="text-caption-xs font-medium text-text-muted">{relative}</span>
       </div>
 
       {/* Content — badge meta row + 2-line title. */}
@@ -244,7 +244,7 @@ function RailItem({
           {/* 2026-06-09 (Yuqi "remove the circular state badge"): plain
               bordered 2-letter code; the StateBadge seal is dropped, matching
               the /alerts row. */}
-          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
+          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-caption font-semibold text-text-secondary uppercase">
             {alert.jurisdiction}
           </span>
           {form ? <TaxCodeBadge code={form} /> : null}
@@ -252,7 +252,7 @@ function RailItem({
               change-kind matches the /today card's treatment — sans
               font-semibold tracking-[0.4px] text-tertiary (was font-bold
               text-muted). */}
-          <span className="text-[10px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
+          <span className="text-caption-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>

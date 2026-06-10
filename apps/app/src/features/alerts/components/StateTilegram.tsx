@@ -159,7 +159,7 @@ export function StateTilegram({ counts, activeState, onSelect, className }: Stat
                 state-grid identity. */}
             <span
               className={cn(
-                'text-[11px] font-semibold leading-none tabular-nums',
+                'text-caption font-semibold leading-none tabular-nums',
                 active ? 'text-text-accent' : hasCount ? 'text-text-primary' : 'text-text-tertiary',
               )}
             >

@@ -109,18 +109,15 @@ function formatEntityApplicability(values: readonly string[]): string {
  */
 export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
   const sourceLookup = useSourceLookup()
-  // 2026-05-25 (Yuqi rule library #14-#16): the old audit-meta header
-  // (`fed.7004.extension.1065.2025 · v1 · Active`) lived inline at the
-  // top of the body. Now the kicker line lives in the Dialog header
-  // (RuleDetailKicker), so the body just renders the structured
-  // sections. ReviewReasonsSection is conditionally pushed to the top
-  // when present so the "you need to act" prompt isn't buried below
-  // the rule substance when the rule still needs review.
-  // 2026-05-27 (Yuqi — "Practice review在最下面而且需要滑动才能看到"):
-  // `CandidateReviewSection` no longer renders inside the scrollable
-  // body. The dialog renders it as a sticky footer below this
-  // component so the Accept action is always visible without
-  // scrolling past every reference section first.
+  // The kicker line lives in the Dialog header (RuleDetailKicker), so the
+  // body just renders the structured sections. ReviewReasonsSection is
+  // conditionally pushed to the top when present so the "you need to act"
+  // prompt isn't buried below the rule substance when the rule still needs
+  // review.
+  // `CandidateReviewSection` does not render inside the scrollable body —
+  // the dialog renders it as a sticky footer below this component so the
+  // Accept action is always visible without scrolling past every reference
+  // section first.
   const needsReview = rule.status === 'candidate' || rule.status === 'pending_review'
   // Approved, still-active pulses that affect this rule — surfaced as an
   // additive "proposed change" block above the rule substance so a CPA sees a
@@ -777,18 +774,12 @@ function RulePracticeReviewCard({ rule }: { rule: ObligationRule }) {
 }
 
 function DetailSection({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
-  // 2026-05-26 (Yuqi /critique on Review Pending Rules modal —
-  // P1-1): section labels were `text-caption uppercase tracking-
-  // wider text-text-muted` kicker eyebrows. Five eyebrows in a
-  // row on the review surface made the modal read as a form, not
-  // a decision page. Switched to a font-semibold text-text-primary
-  // section heading.
-  // 2026-05-27 (Yuqi follow-up — "section title没有用正常的title"):
-  // bumped `text-sm` → `text-base` so the section labels actually
-  // read as title-rank between the `text-xl` dialog title and the
-  // `text-sm` body. At 14px they read as emphasized body text, not
-  // as section titles; 16px gives them their own tier in the
-  // hierarchy.
+  // Section labels are font-semibold text-text-primary headings, not
+  // uppercase kicker eyebrows — five eyebrows in a row on the review
+  // surface made the modal read as a form, not a decision page.
+  // `text-base` (16px) so the labels read as title-rank between the
+  // `text-xl` dialog title and the `text-sm` body; at 14px they read as
+  // emphasized body text, not as section titles.
   return (
     <section className="flex flex-col gap-3">
       <h4 className="text-base font-semibold text-text-primary">{label}</h4>
@@ -845,14 +836,11 @@ export function CandidateReviewSection({
    */
   confirmImpact?: boolean
   /**
-   * 2026-05-27 (Yuqi follow-up — "Practice review在最下面而且需要
-   * 滑动才能看到"): the review action is the WHY of the dialog —
-   * scrolling to it is wrong. The dialog now renders this section
-   * as a sticky FOOTER below the scrollable body, which means it
-   * should NOT carry its own rounded card chrome (the footer
-   * wrapper provides the visual boundary via `border-t`). Default
-   * stays `'card'` so other callers (batch-review modal in
-   * coverage-tab) keep their existing chrome.
+   * The dialog renders this section as a sticky FOOTER below the
+   * scrollable body, which means it should NOT carry its own rounded
+   * card chrome (the footer wrapper provides the visual boundary via
+   * `border-t`). Default stays `'card'` so other callers (batch-review
+   * modal in coverage-tab) keep their existing chrome.
    */
   chrome?: 'card' | 'flat'
 }) {
@@ -1040,14 +1028,13 @@ function CandidateReviewForm({
   // gated on `draft` from the `concreteDraft` prop, which the route re-reads
   // after that card's generate invalidates `listConcreteDrafts`.
 
-  // 2026-05-26 (Yuqi /critique — P2-2): preview the rule's impact
-  // so the Practice review explainer can show the actual count of
-  // deadlines acceptance would generate. Surfaces in the
-  // explainer copy as "Accepting will generate ~N deadlines for
-  // client filings in {jurisdiction}…" — the decision weight
-  // depends on the magnitude, not just the jurisdiction + entity
-  // labels. Errors are silently ignored — if the preview can't
-  // load, we fall back to the generic copy.
+  // Preview the rule's impact so the Practice review explainer can show
+  // the actual count of deadlines acceptance would generate. Surfaces in
+  // the explainer copy as "Accepting will generate ~N deadlines for
+  // client filings in {jurisdiction}…" — the decision weight depends on
+  // the magnitude, not just the jurisdiction + entity labels. Errors are
+  // silently ignored — if the preview can't load, we fall back to the
+  // generic copy.
   const impactQuery = useQuery({
     ...orpc.rules.previewRuleImpact.queryOptions({
       input: { ruleId: rule.id, expectedVersion: rule.version },
@@ -1114,11 +1101,10 @@ function CandidateReviewForm({
     reviewDisabled || acceptDisabledReason !== null || (sourceDefined && !draft)
 
   const entitySummary = formatEntityApplicability(rule.entityApplicability)
-  // 2026-06-01: `chrome === 'card'` now renders the wrapper as the
-  // Card primitive (sm size, accent-active tone, md radius) instead
-  // of a hand-rolled <section> with the same recipe. `chrome ===
-  // 'flat'` keeps the bare <section> so the sticky dialog footer
-  // doesn't double-wrap with its own border-t + tinted bg.
+  // `chrome === 'card'` renders the wrapper as the Card primitive (sm
+  // size, accent-active tone, md radius). `chrome === 'flat'` keeps the
+  // bare <section> so the sticky dialog footer doesn't double-wrap with
+  // its own border-t + tinted bg.
   const body = (
     <>
       {/* Section header used to include a right-aligned "Needs review"
@@ -1142,12 +1128,11 @@ function CandidateReviewForm({
           </Trans>
         )}
       </p>
-      {/* 2026-05-26 (Yuqi /critique — P2-2): client-impact line.
-          Shows the actual count of deadlines this rule would
-          generate across the firm's clients. Renders only when
-          the preview query has a count > 0 so an empty firm
-          doesn't see a misleading "0 deadlines." Quiet text
-          tertiary — informative, not action-demanding. */}
+      {/* Client-impact line. Shows the actual count of deadlines this
+          rule would generate across the firm's clients. Renders only when
+          the preview query has a count > 0 so an empty firm doesn't see a
+          misleading "0 deadlines." Quiet text tertiary — informative, not
+          action-demanding. */}
       {estimatedObligations !== null && estimatedObligations > 0 ? (
         <p className="text-xs text-text-tertiary">
           <Plural
@@ -1164,8 +1149,7 @@ function CandidateReviewForm({
           generate invalidates `listConcreteDrafts`. */}
       <div className="flex justify-end gap-2">
         {/* Reject is available in every review context — the single-rule
-            detail AND the batch walkthrough (2026-06-10, Yuqi: "keep the
-            walkthrough, just add a Reject action"). Skip still defers without
+            detail AND the batch walkthrough. Skip still defers without
             a decision; Reject records the destructive one with a reason.
             Reject does NOT depend on a concrete draft being ready (unlike
             Accept). */}
@@ -1319,7 +1303,7 @@ export function RuleAcceptErrorDialog({
           </div>
           {showCode ? (
             <div className="flex items-center rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2.5">
-              <span className="font-mono text-[11px] font-semibold text-text-destructive">
+              <span className="font-mono text-caption font-semibold text-text-destructive">
                 {error.code}
               </span>
             </div>
@@ -1412,7 +1396,7 @@ function ConfirmImpactDialog({
             <span className="text-lg font-bold text-text-primary tabular-nums">
               {loading ? '—' : errored ? '—' : deadlines}
             </span>
-            <span className="text-[11px] font-medium text-text-muted">
+            <span className="text-caption font-medium text-text-muted">
               {deadlines === 1 ? t`deadline generated` : t`deadlines generated`}
             </span>
           </div>
@@ -1421,7 +1405,7 @@ function ConfirmImpactDialog({
             <span className="text-lg font-bold text-text-primary tabular-nums">
               {rule.entityApplicability.length}
             </span>
-            <span className="text-[11px] font-medium text-text-muted">
+            <span className="text-caption font-medium text-text-muted">
               {rule.entityApplicability.length === 1 ? t`entity type` : t`entity types`}
             </span>
           </div>
@@ -2036,7 +2020,7 @@ function RuleEvidenceCard({
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          <span className="font-mono text-[11px] font-medium text-text-secondary">
+          <span className="font-mono text-caption font-medium text-text-secondary">
             {evidence.sourceId}
           </span>
           <span aria-hidden className="text-text-muted">
@@ -2052,7 +2036,7 @@ function RuleEvidenceCard({
         <p className="line-clamp-2 text-sm text-text-secondary">{evidence.summary}</p>
       </div>
       {isPrimary ? (
-        <span className="shrink-0 self-start rounded-full bg-state-success-solid px-2.5 py-0.5 text-[11px] font-semibold text-white">
+        <span className="shrink-0 self-start rounded-full bg-state-success-solid px-2.5 py-0.5 text-caption font-semibold text-white">
           <Trans>Primary</Trans>
         </span>
       ) : (

@@ -246,7 +246,7 @@ function UserMenuTrigger({
           <span className="truncate text-[13px] font-semibold text-text-primary">
             {displayName}
           </span>
-          <span className="truncate text-[11px] font-medium text-text-muted" translate="no">
+          <span className="truncate text-caption font-medium text-text-muted" translate="no">
             {firm.name}
           </span>
         </span>

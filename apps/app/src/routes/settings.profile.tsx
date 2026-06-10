@@ -262,12 +262,12 @@ export function SettingsProfileRoute() {
                       <Trans>Two-factor authentication</Trans>
                     </span>
                     {status.twoFactorEnabled ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-state-success-hover px-2 py-0.5 text-[11px] font-semibold text-text-success">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-state-success-hover px-2 py-0.5 text-caption font-semibold text-text-success">
                         <span aria-hidden className="size-1.5 rounded-full bg-current" />
                         <Trans>Enabled</Trans>
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2 py-0.5 text-[11px] font-semibold text-text-secondary">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2 py-0.5 text-caption font-semibold text-text-secondary">
                         <Trans>Off</Trans>
                       </span>
                     )}
@@ -368,7 +368,7 @@ export function SettingsProfileRoute() {
                           {s.userAgent || <Trans>Unknown browser</Trans>}
                         </span>
                         {s.isCurrent ? (
-                          <span className="rounded-full bg-state-accent-hover px-1.5 py-px text-[11px] font-medium text-text-accent">
+                          <span className="rounded-full bg-state-accent-hover px-1.5 py-px text-caption font-medium text-text-accent">
                             <Trans>This device</Trans>
                           </span>
                         ) : null}

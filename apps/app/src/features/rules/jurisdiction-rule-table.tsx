@@ -40,8 +40,7 @@ import { formatTaxCode } from '@/lib/tax-codes'
 import { formatDatePretty } from '@/lib/utils'
 
 /**
- * `JurisdictionRuleTable` — the right detail pane of the Rule Library
- * (2026-06-04, Yuqi rule-library master–detail pivot, Pencil `HR6mK`).
+ * `JurisdictionRuleTable` — the right detail pane of the Rule Library.
  *
  * A flat rule table for ONE selected jurisdiction (no expand/collapse —
  * the states rail is the navigation axis now). Columns mirror the
@@ -554,7 +553,7 @@ function JurisdictionRuleRow({
       <TableCell className="py-3 align-top whitespace-normal">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="inline-flex shrink-0 items-center justify-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-tertiary">
+            <span className="inline-flex shrink-0 items-center justify-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
               {rule.jurisdiction}
             </span>
             <span className="min-w-0 truncate text-[13px] font-semibold text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-focus-within/row:underline">
@@ -570,7 +569,7 @@ function JurisdictionRuleRow({
       {/* Type — humanized tax type pill, truncated to its column. */}
       <TableCell className="overflow-hidden px-2 py-3 align-top">
         <span
-          className="block max-w-full truncate rounded-full border border-divider-subtle bg-background-subtle px-2.5 py-0.5 text-center text-[11px] font-medium text-text-secondary"
+          className="block max-w-full truncate rounded-full border border-divider-subtle bg-background-subtle px-2.5 py-0.5 text-center text-caption font-medium text-text-secondary"
           title={typeLabel}
         >
           {typeLabel}
@@ -595,7 +594,7 @@ function JurisdictionRuleRow({
       <TableCell className="px-2 py-3 align-top">
         <span
           className={cn(
-            'inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide',
+            'inline-flex items-center rounded-full px-2.5 py-0.5 text-caption-xs font-bold tracking-wide',
             severity.cls,
           )}
         >
@@ -609,7 +608,7 @@ function JurisdictionRuleRow({
       <TableCell className="px-2 py-3 align-top">
         <span
           className={cn(
-            'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+            'inline-flex items-center rounded-full px-2.5 py-0.5 text-caption font-semibold',
             statusPill.bg,
             statusPill.text,
           )}
@@ -751,7 +750,7 @@ export function KpiStrip({
             </span>
             <span
               className={cn(
-                'truncate text-[11px] font-medium',
+                'truncate text-caption font-medium',
                 stat.subClass ?? 'text-text-secondary',
               )}
             >

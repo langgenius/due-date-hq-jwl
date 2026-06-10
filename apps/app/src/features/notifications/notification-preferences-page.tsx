@@ -207,10 +207,10 @@ function ChannelsCard({
               </span>
               {/* TODO(data): the verified delivery address is not on the
                   notification-preference contract. */}
-              <span className="font-mono text-[11px] text-text-secondary">
+              <span className="font-mono text-caption text-text-secondary">
                 jules@brightline.com
               </span>
-              <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 text-[10px] font-semibold text-text-accent">
+              <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 text-caption-xs font-semibold text-text-accent">
                 <Trans>Verified</Trans>
               </span>
             </span>
@@ -305,7 +305,7 @@ function ChannelRow({
       <div className="flex items-center gap-2.5">
         <span
           className={cn(
-            'text-[11px] font-semibold tracking-wide uppercase',
+            'text-caption font-semibold tracking-wide uppercase',
             disabled ? 'text-text-tertiary' : isOn ? 'text-text-success' : 'text-text-tertiary',
           )}
         >
@@ -430,7 +430,7 @@ function TypesMatrixCard({
         <div className="min-w-[760px] overflow-hidden rounded-xl border border-divider-regular">
           {/* Header */}
           <div className="flex items-center gap-3.5 border-b border-divider-regular bg-background-section px-5 py-3">
-            <span className="flex-1 text-[10px] font-bold tracking-wide text-text-secondary uppercase">
+            <span className="flex-1 text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
               <Trans>Type</Trans>
             </span>
             <MatrixColHead>
@@ -445,7 +445,7 @@ function TypesMatrixCard({
             <MatrixColHead muted>
               <Trans>Slack</Trans>
             </MatrixColHead>
-            <span className="w-[150px] text-[10px] font-bold tracking-wide text-text-secondary uppercase">
+            <span className="w-[150px] text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
               <Trans>Cadence</Trans>
             </span>
           </div>
@@ -468,7 +468,7 @@ function TypesMatrixCard({
                   </span>
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <span className="text-[13px] font-semibold text-text-primary">{row.name}</span>
-                    <span className="truncate text-[11px] text-text-secondary">{row.detail}</span>
+                    <span className="truncate text-caption text-text-secondary">{row.detail}</span>
                   </div>
                 </div>
                 {/* Email + In-app cells reflect the row's type flag AND the
@@ -487,7 +487,7 @@ function TypesMatrixCard({
                 <MatrixCell on={false} muted />
                 <MatrixCell on={false} muted />
                 <span className="w-[150px]">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-caption font-medium text-text-secondary">
                     <TimerIcon className="size-2.5 text-text-tertiary" aria-hidden />
                     {row.cadence}
                   </span>
@@ -505,7 +505,7 @@ function MatrixColHead({ children, muted }: { children: ReactNode; muted?: boole
   return (
     <span
       className={cn(
-        'w-[60px] text-center text-[10px] font-bold tracking-wide uppercase',
+        'w-[60px] text-center text-caption-xs font-bold tracking-wide uppercase',
         muted ? 'text-text-tertiary' : 'text-text-secondary',
       )}
     >
@@ -565,7 +565,7 @@ function QuietHoursCard() {
             <span className="text-[15px] font-semibold text-text-primary">
               <Trans>Quiet hours</Trans>
             </span>
-            <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 text-[10px] font-semibold text-text-accent">
+            <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 text-caption-xs font-semibold text-text-accent">
               <Trans>Active</Trans>
             </span>
           </div>
@@ -580,7 +580,7 @@ function QuietHoursCard() {
 
       <div className="flex flex-wrap gap-6">
         <div className="flex flex-col gap-2.5">
-          <span className="text-[10px] font-bold tracking-wide text-text-secondary uppercase">
+          <span className="text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
             <Trans>Active days</Trans>
           </span>
           <div className="flex flex-wrap gap-2">
@@ -604,7 +604,7 @@ function QuietHoursCard() {
         </div>
 
         <div className="flex flex-col gap-2.5">
-          <span className="text-[10px] font-bold tracking-wide text-text-secondary uppercase">
+          <span className="text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
             <Trans>Time range</Trans>
           </span>
           <div className="flex flex-wrap items-center gap-2.5">
@@ -615,7 +615,7 @@ function QuietHoursCard() {
             <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-[13px] text-text-primary">
               07:30
             </span>
-            <span className="inline-flex items-center rounded-lg bg-background-subtle px-2.5 py-1.5 font-mono text-[11px] text-text-secondary">
+            <span className="inline-flex items-center rounded-lg bg-background-subtle px-2.5 py-1.5 font-mono text-caption text-text-secondary">
               America/New_York
             </span>
           </div>
@@ -628,7 +628,7 @@ function QuietHoursCard() {
           <span className="text-xs font-semibold text-text-secondary">
             <Trans>Urgent overrides still come through</Trans>
           </span>
-          <span className="text-[11px] text-text-secondary">
+          <span className="text-caption text-text-secondary">
             <Trans>
               High-impact alerts and same-day deadlines bypass quiet hours so nothing critical waits
               until morning.
@@ -693,7 +693,7 @@ function MorningDigestCard({
       {preferences.morningDigestEnabled ? (
         <div className="flex flex-wrap gap-6">
           <div className="flex flex-col gap-2.5">
-            <span className="text-[10px] font-bold tracking-wide text-text-secondary uppercase">
+            <span className="text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
               <Trans>Send hour</Trans>
             </span>
             <Select
@@ -717,7 +717,7 @@ function MorningDigestCard({
           </div>
 
           <div className="flex flex-col gap-2.5">
-            <span className="text-[10px] font-bold tracking-wide text-text-secondary uppercase">
+            <span className="text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
               <Trans>Days</Trans>
             </span>
             <div className="flex flex-wrap gap-2">
@@ -753,7 +753,7 @@ function MorningDigestCard({
       </Button>
 
       <div className="flex flex-col gap-2 border-t border-divider-regular pt-4">
-        <span className="flex items-center gap-2 text-[10px] font-bold tracking-wide text-text-secondary uppercase">
+        <span className="flex items-center gap-2 text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
           <ClipboardListIcon className="size-3 text-text-tertiary" aria-hidden />
           <Trans>Recent digest runs</Trans>
         </span>

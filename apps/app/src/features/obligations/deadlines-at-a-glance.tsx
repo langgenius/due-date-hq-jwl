@@ -233,7 +233,7 @@ function NarrativeTile({
     //   • card chrome → `rounded-xl bg-background-section p-[18px]` +
     //     `hover:bg-background-subtle transition-colors duration-200`
     //     (was `rounded-xl … px-5 py-4 hover:bg-background-section-burn`)
-    //   • eyebrow label → `text-[11px] font-semibold tracking-[0.4px]
+    //   • eyebrow label → `text-caption font-semibold tracking-[0.4px]
     //     text-text-tertiary uppercase` (matches the card's change-kind /
     //     meta eyebrow; was `font-bold tracking-[0.8px] text-text-muted`)
     //   • headline → `text-[14px] font-semibold leading-[1.3]
@@ -262,7 +262,7 @@ function NarrativeTile({
         <Icon className="size-3.5" aria-hidden />
       </span>
       <span className="flex min-w-0 flex-col gap-1">
-        <span className="text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
+        <span className="text-caption font-semibold tracking-[0.4px] text-text-tertiary uppercase">
           {label}
         </span>
         {loading ? (

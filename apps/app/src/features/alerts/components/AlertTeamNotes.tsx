@@ -68,7 +68,7 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
         <span className="text-[12px] font-semibold text-text-secondary">
           <Trans>Team notes</Trans>
         </span>
-        <span className="text-[11px] font-medium text-text-muted tabular-nums">
+        <span className="text-caption font-medium text-text-muted tabular-nums">
           <Plural value={notes.length} one="# internal" other="# internal" /> ·{' '}
           <Trans>open to add or reply</Trans>
         </span>
@@ -80,13 +80,13 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
             <li key={note.id} className="flex flex-col gap-1">
               <div className="flex items-baseline gap-2">
                 <span className="text-[13px] font-medium text-text-primary">{note.authorName}</span>
-                <span className="text-[11px] text-text-tertiary tabular-nums">
+                <span className="text-caption text-text-tertiary tabular-nums">
                   {formatRelativeTime(note.createdAt)}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleReply(note.authorName)}
-                  className="ml-auto cursor-pointer text-[11px] font-medium text-text-tertiary underline-offset-2 transition-colors hover:text-text-secondary hover:underline"
+                  className="ml-auto cursor-pointer text-caption font-medium text-text-tertiary underline-offset-2 transition-colors hover:text-text-secondary hover:underline"
                 >
                   <Trans>Reply</Trans>
                 </button>

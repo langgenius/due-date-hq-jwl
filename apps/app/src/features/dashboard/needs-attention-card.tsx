@@ -52,14 +52,10 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 // chip row pushes to the bottom edge via the parent's `justify-between`.
 const CARD_MIN_HEIGHT_CLASS = 'min-h-[160px]'
 
-// 2026-06-04 round 19 (Yuqi Pencil vMnz5 — "for the clients
-// — and hover will show the exact client in tooltip"): this now
-// returns the FULL deduplicated list of affected client names so
-// the new Meta row's tooltip can render every name on hover. The
-// previous Top-N + overflow-tail shape (for the chip-row design)
-// is no longer needed because the card now shows a single
-// "{N} clients" label with a tooltip-revealed roster, not a chip
-// cluster.
+// Returns the FULL deduplicated list of affected client names so the
+// Meta row's tooltip can render every name on hover (the card shows a
+// single "{N} clients" label with a tooltip-revealed roster, not a
+// chip cluster).
 //
 // Affected rows are batch-loaded by the parent section (one
 // `getDetailsBatch` for all visible cards via
@@ -82,22 +78,14 @@ function uniqueAffectedClientNames(affected: PulseAffectedClient[]): {
   }
 }
 
-// 2026-06-05 (pre-CI green-up): `confidenceToneClass` helper
-// removed — its only call site (the confidence pill) was retired in
-// round 81's inline source treatment. The 3-tier ladder it encoded
-// (high → success, medium → tertiary, low → destructive) is still
-// canonical via `aiConfidenceTier`; rebuild this 4-line helper at
-// the call site if the confidence pill is ever restored.
-
 /**
- * 2026-06-04 round 81 (Yuqi #4 "avoid writing the source e.g. FL
- * DOR again"): when an alert title starts with the source name
- * (e.g. title "FL DOR Bulletin has very-low-confidence…" alongside
- * source "FL DOR Bulletin"), the two read as a duplicate. Strip
- * the source prefix from the title when it matches, then clean up
- * a trailing separator (":", "·", "—", "-") if present.
+ * When an alert title starts with the source name (e.g. title "FL DOR
+ * Bulletin has very-low-confidence…" alongside source "FL DOR Bulletin"),
+ * the two read as a duplicate. Strip the source prefix from the title
+ * when it matches, then clean up a trailing separator (":", "·", "—",
+ * "-") if present.
  *
- * Round 85 follow-up — edge cases tightened:
+ * Edge cases:
  *   • If `title === source` exactly (or trimmed-equal), there's
  *     nothing meaningful to surface as a stripped title. Return
  *     the raw title so the card still shows SOMETHING in the
@@ -147,25 +135,22 @@ function NeedsAttentionCard({
 }) {
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
-  // 2026-05-25 (Yuqi critique B): dot tone now comes from the
-  // canonical helper so the dashboard card + drawer + alerts list
-  // all agree on the same alert's tone.
+  // Dot tone comes from the canonical helper so the dashboard card +
+  // drawer + alerts list all agree on the same alert's tone.
   const tone = alertTone(alert)
   // Affected client names come from the parent's batched load (one
   // request for all visible cards), not a per-card query.
   const { allNames } = uniqueAffectedClientNames(affectedClients)
-  // Round 71/85 (post-merge adaptation): origin/main's section now
-  // batch-loads detail; we don't per-card fetch any more. Derive the
-  // form code from the first affected client's `taxType` so the
-  // TaxCodeBadge in the bottom row still renders without an extra
-  // round-trip. Drops to null when no clients are matched.
+  // The section batch-loads detail, so derive the form code from the
+  // first affected client's `taxType` to render the TaxCodeBadge in the
+  // bottom row without an extra round-trip. Null when no clients matched.
   const firstForm = affectedClients[0]?.taxType ?? null
   // VxRyF bottom-meta data: confidence %, the alert's own form code, and
   // overlapping initial-avatars of the matched clients.
   const confidencePct = Math.round(alert.confidence * 100)
-  // 2026-06-08 (Yuqi /today hover emphasis): at rest the confidence pill
-  // stays neutral; on card hover it switches to its confidence-tier color
-  // (high → green, medium → amber, low → red) via the canonical helper.
+  // At rest the confidence pill stays neutral; on card hover it switches
+  // to its confidence-tier color (high → green, medium → amber, low →
+  // red) via the canonical helper.
   const confidenceHoverToneClass = {
     high: 'group-hover:text-text-success',
     medium: 'group-hover:text-text-warning',
@@ -383,7 +368,7 @@ function NeedsAttentionCard({
                 text → destructive tokens). Full words "High impact", not
                 the abbreviated "HIGH". Only renders for high-impact alerts. */}
             {severity.id === 'high' ? (
-              <span className="inline-flex shrink-0 items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-[11px] font-semibold tracking-[0.4px] text-text-destructive uppercase">
+              <span className="inline-flex shrink-0 items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-caption font-semibold tracking-[0.4px] text-text-destructive uppercase">
                 <Trans>High impact</Trans>
               </span>
             ) : null}
@@ -395,7 +380,7 @@ function NeedsAttentionCard({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold tracking-[0.2px] text-text-secondary outline-none"
+                    className="inline-flex shrink-0 items-center gap-1.5 text-caption font-semibold tracking-[0.2px] text-text-secondary outline-none"
                     {...props}
                   >
                     <StateBadge
@@ -420,7 +405,7 @@ function NeedsAttentionCard({
             {alertForm ? (
               <TaxCodeBadge
                 code={alertForm}
-                className="rounded-lg border-divider-subtle px-2 py-[2px] text-[11px]"
+                className="rounded-lg border-divider-subtle px-2 py-[2px] text-caption"
               />
             ) : null}
 
@@ -432,7 +417,7 @@ function NeedsAttentionCard({
                 reflow.
                 2026-06-09 (Yuqi /today "gray. hover shows gray"): on hover it
                 stays the muted gray tone — no accent-tone switch. */}
-            <span className="shrink-0 text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <span className="shrink-0 text-caption font-semibold tracking-[0.4px] text-text-tertiary uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               {changeKindLabel(alert.changeKind)}
             </span>
           </div>
@@ -543,7 +528,7 @@ function NeedsAttentionCard({
                         // fill — settled at #e2e5ea (lighter than the first
                         // #d7dbe2 try) so the rim reads without darkening the
                         // overlap gap.
-                        'inline-flex size-5 items-center justify-center rounded-full bg-[#e9ebf0] text-[10px] font-semibold text-text-primary ring-[1.5px] ring-[#e2e5ea] outline-none',
+                        'inline-flex size-5 items-center justify-center rounded-full bg-[#e9ebf0] text-caption-xs font-semibold text-text-primary ring-[1.5px] ring-[#e2e5ea] outline-none',
                         index > 0 && '-ml-1.5',
                       )}
                       {...props}

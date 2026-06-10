@@ -415,7 +415,7 @@ function PulseAlertRow({
             />
             <TooltipContent>{railRelative}</TooltipContent>
           </Tooltip>
-          <span className="text-[11px] font-medium text-text-tertiary tabular-nums">
+          <span className="text-caption font-medium text-text-tertiary tabular-nums">
             {absoluteTime}
           </span>
         </div>
@@ -435,7 +435,7 @@ function PulseAlertRow({
               actionable "Active" queue; a green dot+label flags them on the row
               (and the detail header). Review-only alerts carry no badge. */}
           {isActiveAlert(alert) ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-[#17b26a40] bg-[#e8f5ee] px-1.5 text-[11px] font-semibold tracking-[0.3px] text-text-success uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-[#17b26a40] bg-[#e8f5ee] px-1.5 text-caption font-semibold tracking-[0.3px] text-text-success uppercase">
               <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
               <Trans>Active</Trans>
             </span>
@@ -444,7 +444,7 @@ function PulseAlertRow({
               when the alert is in the priority queue. */}
           {levelPill ? (
             <span
-              className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] border px-2 text-[11px] font-semibold tracking-[0.3px] uppercase"
+              className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] border px-2 text-caption font-semibold tracking-[0.3px] uppercase"
               style={{
                 backgroundColor: levelPill.bg,
                 borderColor: levelPill.border,
@@ -462,7 +462,7 @@ function PulseAlertRow({
               red, NOT amber — amber is reserved for the ACTION pill below, so the
               two never read as the same signal. */}
           {highImpact ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-[#fecdca] bg-[#fef3f2] px-1.5 text-[11px] font-semibold tracking-[0.3px] text-text-destructive uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-[#fecdca] bg-[#fef3f2] px-1.5 text-caption font-semibold tracking-[0.3px] text-text-destructive uppercase">
               <Trans>High impact</Trans>
             </span>
           ) : null}
@@ -470,7 +470,7 @@ function PulseAlertRow({
           {/* STATE — 2026-06-09 (Yuqi "remove the circular state badge"): the
               jurisdiction chip is now a plain bordered 2-letter code; the
               circular StateBadge seal is dropped. */}
-          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
+          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-caption font-semibold text-text-secondary uppercase">
             {alert.jurisdiction}
           </span>
 
@@ -484,7 +484,7 @@ function PulseAlertRow({
           {/* CHANGE KIND — 2026-06-08 (Yuqi /alerts #1+#3 "reuse Today's
               alert card, do not reinvent" / "hard to read, different from
               Today's"): aligned to the dashboard NeedsAttentionCard's
-              change-kind treatment — SANS (not mono), text-[11px]
+              change-kind treatment — SANS (not mono), text-caption
               font-semibold tracking-[0.4px], neutral text-tertiary (not
               accent). One change-kind type signature across /today + /alerts.
               Followed by the real source-corroboration count (`kdiMz`) in
@@ -494,7 +494,7 @@ function PulseAlertRow({
               confidence pill already leads with "N sources · X% conf", so the
               head was duplicating the corroboration signal. The change-kind
               label now stands alone here. */}
-          <span className="text-[11px] font-semibold tracking-[0.3px] text-text-tertiary uppercase">
+          <span className="text-caption font-semibold tracking-[0.3px] text-text-tertiary uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
 
@@ -575,7 +575,7 @@ function PulseAlertRow({
               }}
               aria-expanded={whyOpen}
               className={cn(
-                'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2 text-[11px] font-semibold text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                'inline-flex h-[22px] shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2 text-caption font-semibold text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
                 // Pencil `X6enpJ`: expanded = accent fill + accent
                 // border; collapsed = transparent with a hairline
                 // border that tints to the accent wash on hover.
@@ -679,7 +679,7 @@ function PulseAlertRow({
                   style={{ backgroundColor: '#FFFBEB' }}
                 >
                   <span
-                    className="text-[11px] font-semibold tracking-[0.3px] uppercase"
+                    className="text-caption font-semibold tracking-[0.3px] uppercase"
                     style={{ color: '#92400E' }}
                   >
                     <Trans>Action</Trans>
@@ -703,11 +703,11 @@ function PulseAlertRow({
           <div className="flex flex-col gap-2 rounded-xl border border-divider-subtle bg-[#fafbfc] px-[14px] py-3">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
-              <span className="text-[11px] font-semibold tracking-[0.3px] text-text-secondary">
+              <span className="text-caption font-semibold tracking-[0.3px] text-text-secondary">
                 <Trans>Why this is urgent · priority {priority.score}</Trans>
               </span>
               <span className="flex-1" aria-hidden />
-              <span className="text-[11px] font-medium text-text-muted tabular-nums">
+              <span className="text-caption font-medium text-text-muted tabular-nums">
                 <Plural value={priority.reasons.length} one="# signal" other="# signals" />
               </span>
             </div>
@@ -717,10 +717,10 @@ function PulseAlertRow({
                   key={reason.key}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-1"
                 >
-                  <span className="text-[11px] font-semibold text-text-accent tabular-nums">
+                  <span className="text-caption font-semibold text-text-accent tabular-nums">
                     +{reason.points}
                   </span>
-                  <span className="text-[11px] font-semibold text-text-secondary">
+                  <span className="text-caption font-semibold text-text-secondary">
                     {reason.label}
                   </span>
                 </span>
@@ -788,7 +788,7 @@ function PulseAlertRow({
               high/medium stay neutral. Source corroboration moves to the
               tooltip so the row stays quiet. */}
           <span
-            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] font-medium tabular-nums text-text-tertiary"
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-caption font-medium tabular-nums text-text-tertiary"
             title={
               confirmingSources > 1
                 ? t`AI confidence ${confidencePct}% · confirmed by ${confirmingSources} sources`
@@ -1085,7 +1085,7 @@ function PulseAlertList({
                 to read. any way to improve?"): readability fixes
                 applied while keeping the subgroup-divider
                 chrome:
-                  • text-[11px] → text-[12px] (one tier larger,
+                  • text-caption → text-[12px] (one tier larger,
                     still in eyebrow scale)
                   • text-text-tertiary → text-text-secondary
                     (steps the contrast up by one tier — was
@@ -1112,7 +1112,7 @@ function PulseAlertList({
                     quiet date separator, not a lede — the lighter tone keeps it
                     from competing with the alert rows beneath it. */}
                 <div className="flex items-center border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+                  <div className="flex items-center gap-1.5 text-caption font-semibold tracking-[0.5px] text-text-tertiary uppercase">
                     {isToday ? (
                       <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
                     ) : null}

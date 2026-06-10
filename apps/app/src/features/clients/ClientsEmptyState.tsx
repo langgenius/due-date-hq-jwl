@@ -86,7 +86,7 @@ function OutcomeStat({
       </span>
       <span className="flex flex-col leading-tight">
         <span className="text-[13px] font-bold text-text-primary">{value}</span>
-        <span className="text-[11px] font-medium text-text-secondary">{label}</span>
+        <span className="text-caption font-medium text-text-secondary">{label}</span>
       </span>
     </div>
   )

@@ -26,8 +26,14 @@ export interface DailyBriefTodayCounts {
 }
 
 /**
- * DailyBriefCard — rebuilt 2026-06-10 (Yuqi: "打开 Today 一目了然看到昨天
- * 的总结和今天的安排") into a two-row "Yesterday / Today" digest:
+ * DailyBriefCard — the AI narrative of the firm's day. A white card with a
+ * single hairline border (no shadow), a calm title row (sparkles + "Daily
+ * Brief" + one status dot + a mono age label), an icon-only refresh, then
+ * the prose. The page-level "My work / Everyone" Segmented in the /today
+ * header switches the brief AND Priority Actions together; the card just
+ * renders whatever brief the scoped dashboard.load returned. Each
+ * `[n]` token resolves to an accent citation chip that deep-links back to
+ * the obligation it cites (evidence traceability, not decoration).
  *
  *   YESTERDAY  3 completed (2 filed · 1 paid) · 2 new alerts · 1 due date moved
  *   TODAY      <one AI sentence: focus + start-here, with citation chip>
@@ -80,9 +86,8 @@ export function DailyBriefCard({
   // state; while it's generating the status label shows the spinner.
   const canRefresh = !isPending
 
-  // 2026-06-08 (Yuqi "in one line, thin banner if it failed"): a failed brief
-  // collapses to a single thin banner — title · Failed · short message · inline
-  // retry — instead of the full card with body prose.
+  // A failed brief collapses to a single thin banner — title · short
+  // message · inline retry — instead of the full card with body prose.
   if (brief.status === 'failed' && !refreshing) {
     return (
       <section
@@ -101,9 +106,8 @@ export function DailyBriefCard({
         <span className="min-w-0 truncate text-xs text-text-tertiary">
           <Trans>We couldn't generate today's brief.</Trans>
         </span>
-        {/* 2026-06-08 (Yuqi /today): the "Failed" label is dropped (the message
-            already says it failed) and the icon-only retry becomes a quiet
-            "Regenerate brief" TEXT button sitting right after the message. */}
+        {/* No "Failed" label (the message already says it failed); the retry
+            is a quiet "Regenerate brief" text button right after the message. */}
         <TextLink variant="accent" onClick={onRefresh} className="shrink-0">
           <RotateCwIcon className="size-3.5" aria-hidden />
           <Trans>Regenerate brief</Trans>
@@ -127,11 +131,9 @@ export function DailyBriefCard({
   return (
     <section
       aria-label={t`Daily brief`}
-      // 2026-06-10 (Yuqi "daily brief → Pencil tvSsP"): the brief moved OFF the
-      // blue accent fill onto a white card + single hairline border (also
-      // satisfies the product-wide surface model — colored-fill regions pull
-      // back to white + hairline). The sparkles icon now carries the AI signal
-      // that the accent fill used to.
+      // The brief sits on a white card + single hairline border (the
+      // product-wide surface model — colored-fill regions pull back to
+      // white + hairline). The sparkles icon carries the AI signal.
       className="group flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-5"
     >
       {/* TopRow — Pencil tvSsP `header`: sparkles icon-wrap + "Daily Brief"
@@ -168,9 +170,9 @@ export function DailyBriefCard({
               <Trans>Regenerate</Trans>
             </button>
           ) : null}
-          {/* 2026-06-08 (Yuqi /today #8 "able to close it"): dismiss the
-              brief for the day. The parent persists the dismissal keyed to
-              this brief's generation, so a freshly regenerated brief returns. */}
+          {/* Dismiss the brief for the day. The parent persists the dismissal
+              keyed to this brief's generation, so a freshly regenerated brief
+              returns. */}
           {onClose ? (
             <button
               type="button"
@@ -184,27 +186,17 @@ export function DailyBriefCard({
         </div>
       </div>
 
-      {/* Body — the Yesterday / Today grid. Labels are mono eyebrows in
-          the freshness chip's voice; content lines stay 14px prose. */}
-      <div className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5 pt-1">
-        {recap ? (
-          <>
-            <BriefRowLabel title={t`Since ${formatRecapSince(recap.since)}`}>
-              <Trans>Yesterday</Trans>
-            </BriefRowLabel>
-            <YesterdayLine recap={recap} />
-          </>
-        ) : null}
-        <BriefRowLabel>
-          <Trans>Today</Trans>
-        </BriefRowLabel>
-        <div className="flex min-w-0 flex-col gap-0.5">
-          {aiEnabled ? (
-            <TodayLine brief={brief} pending={isPending} onOpenObligation={onOpenObligation} />
-          ) : (
-            <FirmTodayLine concentration={concentration} counts={todayCounts} />
-          )}
-          <TodayCountsLine counts={todayCounts} />
+      {/* Body — Pencil qYrr3 `zgUBx`: prose at 14/normal, primary ink,
+          with inline accent citation chips. */}
+      {/* The skeleton only shows on a COLD generate (no prior text). While
+          regenerating an existing brief we keep the current prose on screen —
+          the freshness chip's spinner carries the "working" signal — so the
+          card doesn't flash blank → skeleton → prose on every refresh. */}
+      {isPending && !brief.text ? (
+        <div className="grid gap-2" aria-busy>
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-[88%]" />
+          <Skeleton className="h-4 w-[60%]" />
         </div>
       </div>
     </section>
@@ -235,10 +227,20 @@ function formatRecapSince(since: string): string {
 }
 
 /**
- * Deterministic "what happened while you were away" line — only the
- * activity that actually happened renders; an all-quiet window collapses
- * to one muted sentence. The alerts segment links to /alerts (the only
- * segment with a dedicated review surface).
+ * Structured brief body. The stored text is the consumer's flattened
+ * headline/items/footer format; rendering it in one <p> collapsed the
+ * newlines into a wall of prose. Parse it back apart (brief-text.ts) and
+ * render:
+ *   • headline — one 14/500 lead line, the at-a-glance takeaway
+ *   • items — one compact line each: why-clause in primary ink, then the
+ *     verification step toned down ("Next: …" in tertiary), citation
+ *     chips inline via BriefProse. A muted dot anchors each line start.
+ *   • footer — DROPPED. It's the model's generic compliance closer
+ *     ("review all pending items…"): bulk without information. The
+ *     brief@v1 prompt now also tells the model to omit it.
+ * Plain prose with no numbered items (e.g. the zero-risk brief) falls
+ * back to the original single-paragraph rendering, so unknown shapes
+ * never lose content.
  */
 function YesterdayLine({ recap }: { recap: DashboardRecap }) {
   const segments: React.ReactNode[] = []
@@ -466,18 +468,18 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5">
         <RotateCwIcon className="size-3 animate-spin text-text-secondary" aria-hidden />
-        <span className="font-mono text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
+        <span className="font-mono text-caption font-medium tracking-[0.4px] text-text-secondary uppercase">
           <Trans>Generating</Trans>
         </span>
       </span>
     )
   }
   if (brief.status === 'failed') {
-    // 2026-06-10 (manual refresh retired): the FAILED chip is display-only
-    // — recovery is the server's failed self-heal, not a user action. The
-    // error code stays one hover away for support conversations.
+    // The failed state has no status dot and carries an inline retry icon
+    // right after the label, so recovery lives on the FAILED chip itself
+    // (the separate right-side regenerate button hides while failed).
     const failedText = (
-      <span className="text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
+      <span className="text-caption font-medium tracking-[0.4px] text-text-secondary uppercase">
         <Trans>Failed</Trans>
       </span>
     )
@@ -497,9 +499,8 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
   const stale = brief.status === 'stale'
   const age = brief.generatedAt ? formatRelativeTime(brief.generatedAt) : null
 
-  // 2026-06-08 (Yuqi "remove the REFRESH"): the outdated state is a plain
-  // amber "Outdated" label again — the inline "· Refresh" affordance is
-  // gone; the icon-only regenerate button on the right handles refresh.
+  // The outdated state is a plain amber "Outdated" label — the icon-only
+  // regenerate button on the right handles refresh.
   return (
     <span className="inline-flex shrink-0 items-center gap-1.5">
       <span
@@ -508,7 +509,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
       />
       <span
         className={cn(
-          'font-mono text-[11px] font-medium tracking-[0.4px] tabular-nums uppercase',
+          'font-mono text-caption font-medium tracking-[0.4px] tabular-nums uppercase',
           stale ? 'text-text-warning' : 'text-text-secondary',
         )}
       >
@@ -576,7 +577,7 @@ function CitationChip({
       type="button"
       onClick={onOpen}
       aria-label={t`Citation ${n} — open deadline`}
-      className="mx-0.5 inline-flex h-[18px] min-w-[18px] cursor-pointer items-center justify-center rounded-[4px] border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-[11px] leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+      className="mx-0.5 inline-flex h-[18px] min-w-[18px] cursor-pointer items-center justify-center rounded-[4px] border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-caption leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
     >
       {n}
     </button>

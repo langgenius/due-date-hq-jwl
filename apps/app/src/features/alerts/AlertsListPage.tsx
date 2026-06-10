@@ -1354,7 +1354,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   {/* RIGHT: active alerts panel (compact rows) */}
                   <div className="flex w-[460px] shrink-0 flex-col gap-2 overflow-y-auto">
                     <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
-                      <span className="text-[11px] font-bold tracking-[0.8px] text-text-muted uppercase">
+                      <span className="text-caption font-bold tracking-[0.8px] text-text-muted uppercase">
                         <Trans>Active alerts</Trans>
                         <span className="ml-2 tabular-nums">{sortedAlerts.length}</span>
                       </span>
@@ -1910,7 +1910,7 @@ function FilterPillSection<T extends string>({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+      <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
         {label}
       </span>
       <div className="flex flex-wrap gap-1">
@@ -2198,7 +2198,7 @@ function AlertsHistoryRecordLegend() {
     // wrapper (gap-6 column + mt-2) already supplies the separation from the
     // CTA above, so no extra padding-top here.
     <div className="flex flex-col items-center gap-2">
-      <p className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+      <p className="text-caption font-semibold tracking-[0.5px] text-text-muted uppercase">
         <Trans>What gets recorded</Trans>
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">

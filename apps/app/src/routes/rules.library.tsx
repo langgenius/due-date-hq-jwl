@@ -919,7 +919,7 @@ function OverviewRecentChangesCard({
               >
                 <span
                   className={cn(
-                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-[3px] text-[11px] font-bold',
+                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-[3px] text-caption font-bold',
                     jurisdictionPillClass(rule.jurisdiction),
                   )}
                 >
@@ -937,7 +937,7 @@ function OverviewRecentChangesCard({
                 </span>
                 <span
                   className={cn(
-                    'inline-flex shrink-0 items-center rounded-full px-2 py-[3px] text-[10px] font-bold tracking-wider uppercase',
+                    'inline-flex shrink-0 items-center rounded-full px-2 py-[3px] text-caption-xs font-bold tracking-wider uppercase',
                     RECENT_CHANGE_PILL_CLASS[kind],
                   )}
                 >
@@ -4431,7 +4431,7 @@ function RuleDetailHeroCard({
           {isReviewable ? <Trans>Rule under review</Trans> : <Trans>Active rule</Trans>}
         </span>
         {isReviewable ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-state-warning-hover px-2.5 py-0.5 text-[11px] font-semibold text-text-warning">
+          <span className="inline-flex items-center gap-1 rounded-full bg-state-warning-hover px-2.5 py-0.5 text-caption font-semibold text-text-warning">
             <Clock3 aria-hidden className="size-2.5" />
             <Trans>Awaiting review</Trans>
           </span>
@@ -4449,7 +4449,7 @@ function RuleDetailHeroCard({
             {rule.defaultTip}
           </p>
         ) : null}
-        <div className="flex flex-wrap items-center gap-2.5 pt-1 text-[11px] font-medium">
+        <div className="flex flex-wrap items-center gap-2.5 pt-1 text-caption font-medium">
           {aiPct !== null ? (
             <>
               <span className="inline-flex items-center gap-1 text-text-success">
@@ -4814,7 +4814,7 @@ function BulkReviewListModal({
                     )}
                   >
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="inline-flex shrink-0 items-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-tertiary">
+                      <span className="inline-flex shrink-0 items-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
                         {rule.jurisdiction}
                       </span>
                       <span className="min-w-0 truncate text-sm font-semibold text-text-primary">
@@ -4828,11 +4828,11 @@ function BulkReviewListModal({
                   {/* Readiness/risk flag (real, from previewBulkRuleImpact). */}
                   {!isExcluded ? (
                     reason ? (
-                      <span className="inline-flex shrink-0 items-center rounded-full bg-state-warning-hover px-2 py-0.5 text-[10px] font-semibold text-text-warning">
+                      <span className="inline-flex shrink-0 items-center rounded-full bg-state-warning-hover px-2 py-0.5 text-caption-xs font-semibold text-text-warning">
                         {skipReasonLabel[reason]}
                       </span>
                     ) : preview ? (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-state-success-hover px-2 py-0.5 text-[10px] font-semibold text-text-success">
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-state-success-hover px-2 py-0.5 text-caption-xs font-semibold text-text-success">
                         <Check className="size-2.5" aria-hidden />
                         <Trans>Ready</Trans>
                       </span>
