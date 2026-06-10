@@ -12,6 +12,7 @@ import {
 } from '@/features/obligations/deadline-detail-url'
 import { DeadlineCrumbBar } from '@/features/obligations/detail/DeadlineCrumbBar'
 import { DeadlineNavigatorRail } from '@/features/obligations/detail/DeadlineNavigatorRail'
+import { railListInputFromSearch } from '@/features/obligations/rail-list-input'
 import { ObligationQueueDetailDrawer } from '@/features/obligations/queue/ObligationQueueDetailDrawer'
 import { INITIAL_CURSOR } from '@/features/obligations/queue/constants'
 import { deadlineDetailStateObligationId } from '@/features/obligations/queue/helpers'
@@ -47,17 +48,24 @@ export function DeadlineDetailRoute() {
   const routeRef = normalizeDeadlineRef(params.obligationRef ?? null)
   const activeTab = normalizeDeadlineDetailTab(params.detailTab ?? null) ?? 'summary'
 
-  // Default-sorted list (due date ascending) — matches the table's
-  // default order. Filter/sort coherence with a filtered table is a
-  // follow-up (the rail shares the same query key shape so swapping in
-  // the table's exact input later is a drop-in).
+  // The rail mirrors the TABLE's active sort + filters: we parse the same
+  // URL search params the /deadlines table reads (via the shared parser map)
+  // and feed the identical `obligations.list` input. So the rail order and
+  // membership match exactly what the user was just looking at, and — because
+  // the query key is the same shape — TanStack serves it straight from cache
+  // on navigation. With no relevant params present this resolves to the
+  // historical `due_asc` baseline, so a bare `/deadlines/:ref` is unchanged.
+  const railListInput = useMemo(
+    () => railListInputFromSearch(location.search, RAIL_PAGE_SIZE),
+    [location.search],
+  )
   const listQuery = useInfiniteQuery({
     ...orpc.obligations.list.infiniteOptions({
       // `INITIAL_CURSOR` (ObligationQueueCursor = string | null) — bare `null`
       // narrows the page-param type to the `null` literal and breaks the
       // useInfiniteQuery overload (mirrors obligations.tsx's working query).
       initialPageParam: INITIAL_CURSOR,
-      input: (cursor) => ({ sort: 'due_asc' as const, limit: RAIL_PAGE_SIZE, cursor }),
+      input: (cursor) => ({ ...railListInput, cursor }),
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }),
     placeholderData: (previous) => previous,
