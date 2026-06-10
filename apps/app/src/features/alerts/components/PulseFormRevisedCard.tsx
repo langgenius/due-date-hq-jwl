@@ -112,7 +112,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
               Gated to HIGH only (see severityLabel note above). */}
           {severity.id === 'high' ? (
             <span
-              className="inline-flex shrink-0 items-center rounded-[4px] px-2 pt-[3px] pb-[2px] text-xs font-semibold tracking-[0.8px]"
+              className="inline-flex shrink-0 items-center rounded px-2 pt-[3px] pb-[2px] text-xs font-semibold tracking-[0.8px]"
               style={{ backgroundColor: severity.bg, color: severity.text }}
             >
               {severityLabel}
@@ -151,7 +151,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
       <div className="flex items-center gap-2">
         {/* tCuD7 jurisdiction pill: 14/700 ls 0.8, rounded-4, bg
             #f9fafb (bg-background-section), padding [3,8]. */}
-        <span className="inline-flex shrink-0 items-center rounded-[4px] bg-background-section px-2 py-[3px] text-sm font-bold tracking-[0.8px] text-text-tertiary">
+        <span className="inline-flex shrink-0 items-center rounded bg-background-section px-2 py-[3px] text-sm font-bold tracking-[0.8px] text-text-tertiary">
           {alert.jurisdiction}
         </span>
         {/* d5PWuK title: 18/600 ls -0.2 line-height 1.25 primary. */}

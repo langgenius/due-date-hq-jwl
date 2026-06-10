@@ -771,7 +771,7 @@ function LoginEmailForm({
             }}
             className="h-full flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-text-muted"
           />
-          <span className="shrink-0 rounded-[4px] bg-bg-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
+          <span className="shrink-0 rounded bg-bg-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
             Return ↵
           </span>
         </FieldShell>

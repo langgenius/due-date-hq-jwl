@@ -113,7 +113,7 @@ export function TwoFactorRoute() {
           {/* Primary CTA */}
           <Button
             type="submit"
-            className="h-12 w-full justify-center gap-2 rounded-[10px] font-semibold"
+            className="h-12 w-full justify-center gap-2 rounded-lg font-semibold"
             disabled={verifyMutation.isPending || code.trim().length < 6}
             aria-busy={verifyMutation.isPending || undefined}
           >

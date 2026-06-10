@@ -122,7 +122,7 @@ export function SplashRoute() {
           {/* "While you were away" recap card */}
           <section
             aria-label={t`While you were away`}
-            className="flex w-full flex-col gap-3.5 rounded-[14px] border border-divider-subtle bg-background-default px-7 py-6"
+            className="flex w-full flex-col gap-3.5 rounded-xl border border-divider-subtle bg-background-default px-7 py-6"
           >
             <div className="flex items-center gap-2">
               <span aria-hidden className="block size-1.5 rounded-full bg-state-success-solid" />

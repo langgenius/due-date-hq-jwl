@@ -136,7 +136,7 @@ export function AuthCard({ children, className }: { children: ReactNode; classNa
   return (
     <div
       className={cn(
-        'flex w-full max-w-[520px] flex-col gap-7 rounded-[20px] border border-divider-subtle bg-background-default px-8 py-10 lg:px-16 lg:py-14',
+        'flex w-full max-w-[520px] flex-col gap-7 rounded-xl border border-divider-subtle bg-background-default px-8 py-10 lg:px-16 lg:py-14',
         className,
       )}
     >

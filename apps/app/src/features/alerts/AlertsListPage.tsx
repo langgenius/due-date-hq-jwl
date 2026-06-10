@@ -2017,7 +2017,7 @@ function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {
   const label = sourceLabel(sources)
   // 2026-06-04 round 85 (Yuqi follow-up audit): skeleton rebuilt
   // to mirror the round-72+ PulseAlertList chrome — same outer
-  // `rounded-[12px] border-divider-regular` frame, a subgroup-style
+  // `rounded-xl border-divider-regular` frame, a subgroup-style
   // header band on top, then 3 alert-row skeletons that mirror
   // the actual row shape (time rail + main column with meta strip
   // + title + bottom shelf). Previously the loading skeleton was
@@ -2028,7 +2028,7 @@ function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {
     <div
       role="status"
       aria-live="polite"
-      className="flex flex-col rounded-[12px] border border-divider-regular bg-background-default"
+      className="flex flex-col rounded-xl border border-divider-regular bg-background-default"
     >
       <span className="sr-only">
         <Trans>Loading alerts…</Trans>
@@ -2068,11 +2068,11 @@ function SkeletonAlertRow() {
         <div className="flex items-center gap-2">
           <Skeleton
             aria-hidden
-            className="h-[22px] w-12 rounded-[4px] motion-reduce:animate-none"
+            className="h-[22px] w-12 rounded motion-reduce:animate-none"
           />
           <Skeleton
             aria-hidden
-            className="h-[22px] w-14 rounded-[4px] motion-reduce:animate-none"
+            className="h-[22px] w-14 rounded motion-reduce:animate-none"
           />
           <Skeleton aria-hidden className="h-[22px] w-20 rounded-sm motion-reduce:animate-none" />
           <span className="flex-1" aria-hidden />

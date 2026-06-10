@@ -172,12 +172,12 @@ function ActionsTable({
   // divider header above the first row of each group.
   let lastStatusGroup: StatusGroup | null = null
   return (
-    // Wrapper conforms to the canonical table card — rounded-[12px]
+    // Wrapper conforms to the canonical table card — rounded-xl
     // border border-divider-regular (table-canonical-style.md; matches
     // the /alerts list + /deadlines table) so all three tables share one
     // frame. The 12px radius respects the no-random-corners rule (14 is
     // banned).
-    <div className="overflow-hidden rounded-[12px] border border-divider-regular bg-background-default">
+    <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
       {/* Pencil ErW76 Table — radius 14, white fill, one 8% hairline
           (#10182814 -> border-divider-subtle). The white fill keeps the
           Actions table the brightest (focal) surface on /today. */}

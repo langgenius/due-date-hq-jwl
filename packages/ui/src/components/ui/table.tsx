@@ -11,7 +11,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 //
 // Canonical recipe (from /today ActionsTable, the visual
 // reference):
-//   • Container wrapper: rounded-[12px] + hairline border +
+//   • Container wrapper: rounded-xl + hairline border +
 //     bg-background-default + overflow-hidden
 //   • TableHeader bg: bg-background-section (gray-50, quiet
 //     inset); 1px bottom border-divider-subtle
@@ -35,7 +35,7 @@ function Table({ className, ...props }: React.ComponentProps<'table'>) {
   // need a tier-accent left border, a heavier shadow, etc). The
   // canonical "wrap me in a rounded card" recipe is:
   //
-  //   <div className="overflow-hidden rounded-[12px] border
+  //   <div className="overflow-hidden rounded-xl border
   //                   border-divider-subtle bg-background-default">
   //     <Table>...</Table>
   //   </div>

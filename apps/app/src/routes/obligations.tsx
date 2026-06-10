@@ -3619,7 +3619,7 @@ export function ObligationQueueRoute() {
                     <span className="flex-1">
                       <Trans>Add one deadline</Trans>
                     </span>
-                    <kbd className="rounded-[4px] border border-divider-regular bg-background-subtle px-1 font-sans text-caption-xs text-text-tertiary">
+                    <kbd className="rounded border border-divider-regular bg-background-subtle px-1 font-sans text-caption-xs text-text-tertiary">
                       N
                     </kbd>
                   </DropdownMenuItem>
@@ -4394,14 +4394,14 @@ export function ObligationQueueRoute() {
               className={cn(
                 // Canonical workbench-table card frame (table-canonical-style.md),
                 // shared with /today + /alerts + /clients + /rules/library:
-                // `rounded-[12px] border border-divider-regular bg-default`. The
+                // `rounded-xl border border-divider-regular bg-default`. The
                 // frame applies in BOTH modes. `overflow-hidden` is gated to
                 // panel-open only — in full-page it would scope the page-level
                 // sticky column header to this card; without it the header still
                 // pins to the page. `flex-1` (fill height) is also panel-only, so
                 // the full-page card sizes to content and never leaves a tall
                 // empty bordered rectangle on short result sets.
-                'flex flex-col rounded-[12px] border border-divider-regular bg-background-default',
+                'flex flex-col rounded-xl border border-divider-regular bg-background-default',
                 panelOpenIntent && 'min-h-0 flex-1 overflow-hidden',
               )}
             >
@@ -4438,7 +4438,7 @@ export function ObligationQueueRoute() {
                     (not the <thead>) so its top corners can round
                     (`rounded-t[lr]`) — the gray header reads as the rounded top
                     of a sheet, while the rows below stay frameless. */}
-                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-[12px] [&_thead_tr_th:last-child]:rounded-tr-[12px] [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-xs [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_th_button]:!tracking-[0.5px] [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-base">
+                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-xl [&_thead_tr_th:last-child]:rounded-tr-xl [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-xs [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_th_button]:!tracking-[0.5px] [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-base">
                   {/* Header (select-all + sort/filter controls) pins so column
                       labels stay visible as the buffer scrolls. In the
                       panel-open split it sticks to top-0 of its own scroll

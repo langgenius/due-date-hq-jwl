@@ -106,8 +106,8 @@ export function AffectedClientsTable({
               text-text-primary` (see TableCell below) so it renders
               identically to the obligations row client name, not just
               relying on inherited text-sm from the cell.
-          `rounded-[12px]` matches ActionsTable's canonical card radius. */}
-      <div className="overflow-hidden rounded-[12px] border border-divider-regular">
+          `rounded-xl` matches ActionsTable's canonical card radius. */}
+      <div className="overflow-hidden rounded-xl border border-divider-regular">
         <Table>
           <TableHeader>
             <TableRow>

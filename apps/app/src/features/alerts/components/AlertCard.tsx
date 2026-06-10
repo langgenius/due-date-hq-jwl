@@ -230,11 +230,11 @@ export function AlertCard({
                 <div className="flex min-w-0 items-center gap-2">
                   {/* Severity gated to HIGH only (LOW / MEDIUM render
                       nothing; absence IS the signal), pill chrome aligned
-                      to canonical h-[22px] rounded-[4px] px-2 text-caption
+                      to canonical h-[22px] rounded px-2 text-caption
                       font-bold tracking-[0.7px] uppercase. */}
                   {severity.id === 'high' ? (
                     <span
-                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-xs font-bold tracking-[0.7px] uppercase"
+                      className="inline-flex h-[22px] shrink-0 items-center rounded px-2 text-xs font-bold tracking-[0.7px] uppercase"
                       style={{ backgroundColor: severity.bg, color: severity.text }}
                     >
                       {severityLabel}
@@ -313,7 +313,7 @@ export function AlertCard({
                     overflow; `—` when the alert carries no form scope.
                   • PUBLISHED    → source bulletin's publish date (absolute;
                     the meta row above carries the relative "Nmo ago"). */}
-              <div className="grid grid-cols-[5fr_5fr_3fr] overflow-hidden rounded-[8px] bg-background-section">
+              <div className="grid grid-cols-[5fr_5fr_3fr] overflow-hidden rounded-lg bg-background-section">
                 <div className="flex flex-col gap-1 px-3 py-2">
                   <span className="text-caption-xs font-semibold tracking-[0.6px] text-text-muted uppercase">
                     <Trans>What changed</Trans>

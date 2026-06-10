@@ -145,10 +145,10 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
-// 2026-06-08 (Pencil HuYeb /deadlines detail): the header's top-right
-// action cluster — Assign (assignee picker), Snooze (preset defer), and
-// Mark-as-filed (status → Filed). Extracted as a small component so the
-// dropdown state stays local and the header JSX reads cleanly.
+// The header's top-right action cluster — Assign (assignee picker),
+// Snooze (preset defer), and Mark-as-filed (status → Filed). Extracted
+// as a small component so the dropdown state stays local and the header
+// JSX reads cleanly.
 function DeadlineTopActions({
   row,
   assignableMembers,
@@ -273,16 +273,14 @@ export function ObligationQueueDetailDrawer({
   // entirely in a follow-up that also updates the two callsites.
   onNeedsInput: _onNeedsInput,
   practiceAiEnabled: _practiceAiEnabled,
-  // `blockerCandidates` retired 2026-05-21 with the in-tab K-1 editor.
-  // Kept on the prop type so the route + provider call sites still
-  // compile; underscore-prefixed to silence eslint until we land the
-  // new blocker UX.
+  // `blockerCandidates` is retired but kept on the prop type so the
+  // route + provider call sites still compile; underscore-prefixed to
+  // silence eslint until we land the new blocker UX.
   blockerCandidates: _blockerCandidates,
-  // 2026-05-21: dual-mode. The /deadlines route renders the detail
-  // as a persistent right-side panel ('panel'). The ObligationDrawer-
-  // Provider (dashboard / clients / pulse) still uses the modal-style
-  // Sheet ('sheet'). Default 'sheet' preserves back-compat for any
-  // unconverted caller.
+  // Dual-mode. The /deadlines route renders the detail as a persistent
+  // right-side panel ('panel'). The ObligationDrawerProvider (dashboard
+  // / clients / pulse) still uses the modal-style Sheet ('sheet').
+  // Default 'sheet' preserves back-compat for any unconverted caller.
   mode = 'sheet',
 }: {
   obligationId: string | null
@@ -2211,7 +2209,7 @@ export function ObligationQueueDetailDrawer({
                             // stage, and blocking live in ONE white card,
                             // separated by internal divider lines (not gaps) —
                             // StatusJourney │ ActiveStageCard │ NextMovePanel.
-                            'flex flex-col divide-y divide-divider-subtle rounded-[12px] border border-divider-subtle bg-background-default px-5 py-4 [&>*]:py-4 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0'
+                            'flex flex-col divide-y divide-divider-subtle rounded-xl border border-divider-subtle bg-background-default px-5 py-4 [&>*]:py-4 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0'
                           : 'contents'
                       }
                     >

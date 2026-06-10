@@ -252,7 +252,7 @@ export function AlertHistoryView() {
               indeterminate={someSelected}
               onCheckedChange={(next) => toggleAll(next)}
               aria-label={t`Select all`}
-              className="size-4 rounded-[4px]"
+              className="size-4 rounded"
             />
             <span className="text-base font-semibold text-text-accent tabular-nums">
               <Plural value={selected.size} one="# alert selected" other="# alerts selected" />
@@ -283,7 +283,7 @@ export function AlertHistoryView() {
                     indeterminate={someSelected}
                     onCheckedChange={(next) => toggleAll(next)}
                     aria-label={t`Select all`}
-                    className="size-4 rounded-[4px]"
+                    className="size-4 rounded"
                   />
                 </TableHead>
                 <TableHead className="w-[104px]">
@@ -422,7 +422,7 @@ function HistoryRow({
           checked={selected}
           onCheckedChange={(next) => onToggle(next)}
           aria-label={t`Select alert: ${alert.title}`}
-          className="size-4 rounded-[4px]"
+          className="size-4 rounded"
         />
       </TableCell>
 

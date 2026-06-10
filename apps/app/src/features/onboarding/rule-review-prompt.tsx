@@ -108,7 +108,7 @@ export function RuleReviewPrompt({
       </div>
 
       {/* Card */}
-      <div className="overflow-hidden rounded-[14px] border border-divider-subtle bg-background-default">
+      <div className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
         <div className="flex items-center gap-2.5 border-b border-divider-subtle px-[22px] py-4">
           <span className="text-sm font-semibold text-text-primary">
             <Trans>Jurisdictions awaiting calendar review</Trans>

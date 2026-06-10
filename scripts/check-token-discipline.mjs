@@ -42,9 +42,9 @@ const EXEMPT_PATHS = [
 // Specific lines that are intentional and reviewed (path → substring match).
 // Keep this list SHORT and justify each; it's the escape hatch, not a dumping ground.
 const EXCEPTIONS = [
-  // sidebar/nav label is intentionally 15px (project_today_design_system).
-  { path: 'packages/ui/src/components/ui/sidebar.tsx', has: 'text-[15px]' },
-  { path: 'apps/app/src/components/patterns/app-shell-nav.tsx', has: 'text-[15px]' },
+  // Tooltip arrow tip: 1px softening on the rotated 8px square — a decorative
+  // detail, not a container radius (no canonical token applies).
+  { path: 'packages/ui/src/components/ui/tooltip.tsx', has: 'rounded-[1px]' },
 ]
 
 const FONT = /text-\[(\d+)px\]/g

@@ -233,7 +233,7 @@ function NeedsAttentionCard({
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {/* HIGH IMPACT — only renders for high-impact alerts. */}
           {severity.id === 'high' ? (
-            <span className="inline-flex shrink-0 items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-xs font-semibold tracking-[0.4px] text-text-destructive uppercase">
+            <span className="inline-flex shrink-0 items-center rounded bg-state-destructive-hover px-2 py-[3px] text-xs font-semibold tracking-[0.4px] text-text-destructive uppercase">
               <Trans>High impact</Trans>
             </span>
           ) : null}

@@ -9,7 +9,7 @@ import { alertImpactLevel } from '../lib/impact-level'
  * the canonical recipe. Source of truth: `/today` `ActionsTable`.
  *
  * ## Outer card frame
- *   `rounded-[12px] border border-divider-regular bg-background-default`
+ *   `rounded-xl border border-divider-regular bg-background-default`
  *   - Drop `overflow-hidden` unless the surface needs to clip.
  *
  * ## Subgroup divider band / day-group header
@@ -30,7 +30,7 @@ import { alertImpactLevel } from '../lib/impact-level'
  *     /alerts, `text-text-muted` on /today card)
  *   - State: circular 16px `<StateBadge>` motif + 12/700 mono code
  *     (no bg, no padding)
- *   - Severity: HIGH-only, `h-[22px] rounded-[4px] px-2 text-xs
+ *   - Severity: HIGH-only, `h-[22px] rounded px-2 text-xs
  *     font-bold tracking-[0.7px] uppercase` + colors from
  *     `impactBadgeFromAlert`
  *   - Action pill (change-action amber, separate from status):

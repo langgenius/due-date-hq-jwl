@@ -53,8 +53,8 @@ function LifecycleStripCell({
         // `divider-deep` tone matches the strip's outer card border so
         // cells read as 6 distinct cells, not a single smeared row.
         !isFirst && 'border-l border-divider-deep',
-        isFirst && 'rounded-l-[10px]',
-        isLast && 'rounded-r-[10px]',
+        isFirst && 'rounded-l-xl',
+        isLast && 'rounded-r-xl',
       )}
     >
       <Icon className={cn('size-3.5 shrink-0', iconToneClass)} aria-hidden />

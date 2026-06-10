@@ -1305,7 +1305,7 @@ export function AlertDetailDrawer({
                       active has an indication it is active"): flags the
                       actionable due-date-overlay queue, mirroring the row badge. */}
                   {isActiveAlert(detail.alert) ? (
-                    <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-[4px] border border-[#17b26a40] bg-[#e8f5ee] px-2 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
+                    <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded border border-[#17b26a40] bg-[#e8f5ee] px-2 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
                       <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
                       <Trans>Active</Trans>
                     </span>
@@ -1314,7 +1314,7 @@ export function AlertDetailDrawer({
                       "HIGH IMPACT" (not bare "HIGH"). */}
                   {showSeverityPill ? (
                     <span
-                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-xs font-bold tracking-[0.7px] uppercase"
+                      className="inline-flex h-[22px] shrink-0 items-center rounded px-2 text-xs font-bold tracking-[0.7px] uppercase"
                       style={{ backgroundColor: severity.bg, color: severity.text }}
                     >
                       {t`HIGH IMPACT`}
@@ -1324,7 +1324,7 @@ export function AlertDetailDrawer({
                       JurisdictionLabel primitive — seal + mono code + full name,
                       identical to the deadline detail header. */}
                   <JurisdictionLabel code={detail.alert.jurisdiction} />
-                  <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-xs font-bold tracking-[0.7px] text-text-accent uppercase">
+                  <span className="inline-flex h-[22px] shrink-0 items-center rounded bg-state-accent-hover px-2 font-mono text-xs font-bold tracking-[0.7px] text-text-accent uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
                   <span className="ml-auto flex shrink-0 items-center gap-2 text-sm font-medium text-text-tertiary">

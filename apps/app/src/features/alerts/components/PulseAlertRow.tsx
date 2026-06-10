@@ -359,7 +359,7 @@ function PulseAlertRow({
             checked={selected}
             onCheckedChange={(next) => onToggleSelected?.(next)}
             aria-label={t`Select alert: ${alert.title}`}
-            className="size-[18px] rounded-[4px]"
+            className="size-[18px] rounded"
           />
         </div>
       ) : null}
@@ -415,7 +415,7 @@ function PulseAlertRow({
               when the alert is in the priority queue. */}
           {levelPill ? (
             <span
-              className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] border px-2 text-xs font-semibold tracking-[0.3px] uppercase"
+              className="inline-flex h-[22px] shrink-0 items-center rounded border px-2 text-xs font-semibold tracking-[0.3px] uppercase"
               style={{
                 backgroundColor: levelPill.bg,
                 borderColor: levelPill.border,
@@ -619,7 +619,7 @@ function PulseAlertRow({
                   <path d="M4 2.5v3a1.5 1.5 0 0 0 1.5 1.5H9" />
                 </svg>
                 <div
-                  className="inline-flex items-center gap-2 self-start rounded-[4px] px-3 py-1"
+                  className="inline-flex items-center gap-2 self-start rounded px-3 py-1"
                   style={{ backgroundColor: '#FFFBEB' }}
                 >
                   <span
@@ -939,7 +939,7 @@ function PulseAlertList({
 
   return (
     // List frame uses the ActionsTable canonical chrome —
-    // `rounded-[12px] border-divider-regular` — so /today, /alerts,
+    // `rounded-xl border-divider-regular` — so /today, /alerts,
     // /deadlines share one outer frame language.
     // `overflow-hidden` clips the full-bleed gray day-group bands (square
     // corners) to the rounded-12 frame. Tooltips/popovers inside rows
@@ -948,7 +948,7 @@ function PulseAlertList({
     // the overflow-y-auto list column — without it flex shrinks the frame
     // to fit and the clip swallows the rest, so nothing scrolls. At full
     // height there's no vertical clip.
-    <div className="flex shrink-0 flex-col overflow-hidden rounded-[12px] border border-divider-regular bg-background-default">
+    <div className="flex shrink-0 flex-col overflow-hidden rounded-xl border border-divider-regular bg-background-default">
       {/* No BulkSelectStrip ("Select all · N dispatches", Pencil
           `TAamJ`): per-row checkboxes drive bulk selection in selectable
           mode, and the floating BulkActionBar appears once rows are

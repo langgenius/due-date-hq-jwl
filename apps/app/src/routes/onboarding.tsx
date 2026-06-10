@@ -230,7 +230,7 @@ export function OnboardingRoute() {
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="flex w-full flex-col gap-7 rounded-[20px] border border-divider-subtle bg-background-default px-6 py-10 lg:px-14 lg:py-12"
+          className="flex w-full flex-col gap-7 rounded-xl border border-divider-subtle bg-background-default px-6 py-10 lg:px-14 lg:py-12"
         >
           {/* Heading */}
           <div className="flex flex-col gap-2">
@@ -331,7 +331,7 @@ export function OnboardingRoute() {
           <div className="flex flex-col gap-3">
             <Button
               type="submit"
-              className="h-12 w-full justify-center gap-2 rounded-[10px] font-semibold"
+              className="h-12 w-full justify-center gap-2 rounded-lg font-semibold"
               disabled={submitting || monitoringStartDateInvalid}
               aria-busy={submitting}
             >
