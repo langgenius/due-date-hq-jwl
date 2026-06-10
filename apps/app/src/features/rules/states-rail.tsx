@@ -111,7 +111,7 @@ export function JurisdictionRail({
           list-rail head (AlertListRail / ObligationListRail): a single 15px
           title row with a trailing control, separated by a `border-b`. */}
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
-        <span className="text-[15px] font-semibold text-text-primary">
+        <span className="text-[16px] font-semibold text-text-primary">
           <Trans>Jurisdictions</Trans>
         </span>
         <button

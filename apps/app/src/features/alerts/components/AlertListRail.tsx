@@ -82,12 +82,12 @@ export function AlertListRail({
           <button
             type="button"
             onClick={onCloseDetail}
-            className="-mx-1 cursor-pointer rounded-lg px-1 text-[15px] font-semibold text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="-mx-1 cursor-pointer rounded-lg px-1 text-[16px] font-semibold text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>Alerts</Trans>
           </button>
         ) : (
-          <span className="text-[15px] font-semibold text-text-primary">
+          <span className="text-[16px] font-semibold text-text-primary">
             <Trans>Alerts</Trans>
           </span>
         )}

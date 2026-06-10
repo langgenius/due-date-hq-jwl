@@ -559,7 +559,7 @@ function PulseAlertRow({
             cut mid-thought); the full summary lives in the detail
             drawer. */}
         <h3
-          className="line-clamp-2 min-w-0 text-[15px] font-medium leading-[1.3] tracking-[-0.25px] text-text-secondary"
+          className="line-clamp-2 min-w-0 text-[16px] font-medium leading-[1.3] tracking-[-0.25px] text-text-secondary"
           title={alert.title}
         >
           {alert.title}

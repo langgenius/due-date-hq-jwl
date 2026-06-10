@@ -20,11 +20,11 @@ export function AuthBrandAnchor({ className }: { className?: string }) {
       <span className="flex size-7 items-center justify-center rounded-lg bg-text-primary text-sm font-bold tracking-[-0.2px] text-text-primary-on-surface">
         D
       </span>
-      <span className="text-[15px] font-semibold tracking-[-0.2px] text-text-primary">
+      <span className="text-[16px] font-semibold tracking-[-0.2px] text-text-primary">
         DueDateHQ
       </span>
       <span aria-hidden className="h-3.5 w-px bg-divider-regular" />
-      <span className="text-[13px] font-medium italic tracking-[-0.1px] text-text-tertiary">
+      <span className="text-base font-medium italic tracking-[-0.1px] text-text-tertiary">
         <Trans>for CPA firms</Trans>
       </span>
     </div>

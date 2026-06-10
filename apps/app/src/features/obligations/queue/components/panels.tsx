@@ -1140,13 +1140,13 @@ export function PathToFilingSummary({
                   <span
                     // 2026-06-10 (Yuqi #8): caption smaller than the date above
                     // (8px vs 9px) + lighter (muted) so it reads as sub-meta.
-                    className="text-center text-[8px] font-medium uppercase tracking-wide leading-tight text-text-muted"
+                    className="text-center text-[9px] font-medium uppercase tracking-wide leading-tight text-text-muted"
                     title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days past deadline.`}
                   >
                     <Trans>Past deadline</Trans>
                   </span>
                 ) : isExpected ? (
-                  <span className="text-center text-[8px] font-medium uppercase tracking-wide leading-tight text-text-muted">
+                  <span className="text-center text-[9px] font-medium uppercase tracking-wide leading-tight text-text-muted">
                     <Trans>Expected</Trans>
                   </span>
                 ) : null}
@@ -2205,7 +2205,7 @@ export function ActiveStageDetailCard({
               the overdue context reads as the active-stage headline + sub (like
               the canonical "8 materials still outstanding." treatment), not a
               white-on-white boxed callout inside the white WorkflowMilestoneCard. */}
-          <p className="text-[15px] font-semibold tracking-[-0.2px] text-text-primary">
+          <p className="text-[16px] font-semibold tracking-[-0.2px] text-text-primary">
             <Trans>
               Filing was due {formatDatePretty(row.currentDueDate.slice(0, 10))} —{' '}
               <Plural value={daysPastDeadline} one="# day" other="# days" /> past deadline.

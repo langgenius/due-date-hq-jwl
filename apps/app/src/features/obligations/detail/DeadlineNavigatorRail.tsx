@@ -144,7 +144,7 @@ export function DeadlineNavigatorRail({
     <aside className="hidden h-full w-[340px] shrink-0 flex-col border-r border-divider-subtle bg-background-default lg:flex xl:w-[380px]">
       {/* ListHead — title + count chip (rzzww `mCfAZ`). */}
       <div className="flex items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
-        <span className="text-[15px] font-semibold text-text-primary">
+        <span className="text-[16px] font-semibold text-text-primary">
           <Trans>Deadlines</Trans>
         </span>
         {totalCount !== null ? (
@@ -312,7 +312,7 @@ function DeadlineNavigatorRow({
             ) : null}
           </span>
         </div>
-        <span className="line-clamp-2 text-[15px] font-medium leading-snug text-text-primary">
+        <span className="line-clamp-2 text-[16px] font-medium leading-snug text-text-primary">
           {title}
         </span>
         <span className="truncate text-xs text-text-tertiary">{row.clientName}</span>

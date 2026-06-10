@@ -2375,7 +2375,7 @@ export function ObligationQueueRoute() {
                     // steps up to semibold so the selection still reads. 15px
                     // so it anchors the row a touch more strongly over the
                     // secondary cells.
-                    'line-clamp-1 min-w-0 text-[15px] leading-tight text-text-primary',
+                    'line-clamp-1 min-w-0 text-[16px] leading-tight text-text-primary',
                     tableRow.original.id === explicitActiveRowId ? 'font-semibold' : 'font-medium',
                   )}
                   title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}

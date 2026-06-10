@@ -408,7 +408,7 @@ export function DashboardRoute() {
                 first-time keyboardists a path in; mouse users
                 can also click. Mirrors the bottom-of-queue
                 pattern in /deadlines. */}
-            <ShortcutHintChip className="hidden md:inline-flex" />
+            <ShortcutHintChip compact className="hidden md:inline-flex" />
             {/* 2026-06-08 (Yuqi /today ErW76): the PageHeader action
                 cluster was trimmed to a single control. "Add deadline"
                 was removed entirely (creation lives in the deadlines
@@ -418,16 +418,18 @@ export function DashboardRoute() {
                 square affordance, not a row of outline buttons. The
                 permission guard + tooltip-via-aria-label are preserved,
                 so clicks still always produce feedback. */}
-            {/* 2026-06-08 (Yuqi /today): the lone "+" affordance becomes an
-                expand-on-hover pill — at rest a 28px filled circle showing only
-                the "+", on hover its WIDTH grows to reveal the "Import clients"
-                label while the height stays fixed (h-7 / 28px), so the header
-                cluster never jumps. Hand-rolled (not <Button/>) so the label can
-                animate from max-w-0; the filled primary colors mirror the
-                `variant="primary"` tokens. */}
+            {/* 2026-06-10 (Yuqi "make the + sit more calmly"): the import
+                affordance is an expand-on-hover pill — at rest a circle
+                with just the "+", on hover its WIDTH grows to reveal
+                "Import clients" (height fixed h-8 so the cluster never
+                jumps). Recolored from the bright primary-blue fill to a
+                CALM neutral bordered control (matches the search field's
+                hairline treatment): white fill, gray "+", border darkens
+                + a subtle gray wash on hover. Import is a setup task, not
+                a daily CTA, so it no longer needs the accent. */}
             <button
               type="button"
-              className="group/import inline-flex h-8 items-center rounded-full border border-components-button-primary-border bg-components-button-primary-bg px-2 text-components-button-primary-text transition-all cursor-pointer [corner-shape:round] hover:border-components-button-primary-border-hover hover:bg-components-button-primary-bg-hover hover:px-3.5 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default focus-visible:outline-none"
+              className="group/import inline-flex h-8 items-center rounded-full border border-divider-regular bg-background-default px-2 text-text-secondary transition-all cursor-pointer [corner-shape:round] hover:border-divider-deep hover:bg-background-section hover:px-3.5 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default focus-visible:outline-none"
               onClick={() => {
                 if (!canRunMigration) {
                   toast.error(

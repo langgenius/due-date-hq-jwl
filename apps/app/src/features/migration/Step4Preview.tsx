@@ -73,7 +73,7 @@ export function Step4Preview({
             <span aria-hidden className="size-1.5 rounded-full bg-state-success-solid" />
             <Trans>Ready to import</Trans>
           </span>
-          <p className="text-[15px] font-semibold text-text-primary">
+          <p className="text-[16px] font-semibold text-text-primary">
             <Trans>You&apos;re about to create:</Trans>
           </p>
         </div>

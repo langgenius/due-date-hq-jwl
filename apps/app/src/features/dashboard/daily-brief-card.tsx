@@ -92,7 +92,7 @@ export function DailyBriefCard({
     return (
       <section
         aria-label={t`Daily brief`}
-        className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-divider-regular bg-background-default px-[18px] py-2.5"
+        className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-background-section px-[18px] py-2.5"
       >
         <span
           className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background-section"
@@ -131,10 +131,11 @@ export function DailyBriefCard({
   return (
     <section
       aria-label={t`Daily brief`}
-      // The brief sits on a white card + single hairline border (the
-      // product-wide surface model — colored-fill regions pull back to
-      // white + hairline). The sparkles icon carries the AI signal.
-      className="group flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-5"
+      // 2026-06-10 (Yuqi "restrain borders and lines"): no hairline border —
+      // a calm gray fill (bg-background-section, matching the alert cards)
+      // defines the brief without a line. The sparkles icon carries the AI
+      // signal.
+      className="group flex flex-col gap-3 rounded-xl bg-background-section p-5"
     >
       {/* TopRow — Pencil tvSsP `header`: sparkles icon-wrap + "Daily Brief"
           (13/600) + freshness, with a labeled Regenerate button on the right. */}

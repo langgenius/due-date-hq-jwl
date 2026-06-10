@@ -41,7 +41,6 @@ import {
   formatShortcutForDisplay,
 } from '@/components/patterns/keyboard-shell/display'
 import { useNavV2 } from '@/components/patterns/use-nav-v2'
-import { Kbd } from '@/components/patterns/kbd'
 import { useKeyboardShell } from '@/components/patterns/keyboard-shell/hooks'
 
 type NavItem = {
@@ -133,7 +132,7 @@ function FirmIdentityHeader({ firm }: { firm: FirmPublic }) {
     <SidebarHeader className="min-w-0 flex-1">
       <div
         title={firm.name}
-        className="flex h-10 w-full min-w-0 items-center gap-2.5 rounded-xl border border-divider-deep p-1 group-data-[collapsed=true]/sidebar:border-transparent"
+        className="flex h-10 w-full min-w-0 items-center gap-2.5 rounded-xl p-1"
       >
         {/* 2026-06-09 (Yuqi follow-up — monogram restored to match
             Pencil §BrandHeader): the 32px monogram tile renders in BOTH
@@ -199,16 +198,15 @@ function SidebarQuickFind() {
       aria-keyshortcuts="Meta+K Control+K"
       title={collapsedRail ? t`Quick find` : undefined}
       className={cn(
-        // 2026-06-09 (Yuqi "polish + elevate the search bar"): a crisp
-        // white field defined by a 1px hairline (not a borderless white
-        // blob) — `px-2.5` + the 1px border lands the icon at 11px, in
-        // the same column as the nav icons. Hover darkens the border
-        // (input-like affordance); focus shows the accent ring. Collapsed
-        // drops the border + fill so the icon centers like the nav rows.
-        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg border border-divider-regular bg-background-default px-2.5 text-left text-text-muted outline-none transition-colors',
-        'hover:border-divider-deep hover:text-text-secondary',
-        'focus-visible:border-state-accent-active-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:border-transparent group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',
+        // 2026-06-10 (Yuqi "restrain borders and lines"): NO border on the
+        // search field — the white fill alone lifts it off the #f6f8fa
+        // card. Hover is a subtle bg wash (same token as the nav rows),
+        // not a border darken. Collapsed drops the fill so the icon
+        // centers like the nav rows.
+        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg bg-background-default px-3 text-left text-text-muted outline-none transition-colors',
+        'hover:bg-background-sidebar-hover hover:text-text-secondary',
+        'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',
       )}
     >
       <SearchIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
@@ -217,10 +215,11 @@ function SidebarQuickFind() {
       <span className="min-w-0 flex-1 truncate text-base group-data-[collapsed=true]/sidebar:hidden">
         {t`Quick find…`}
       </span>
-      {/* ⌘K hint via the canonical <Kbd> keycap — same component the
-          "? for shortcuts" header chip uses, so the shortcut styling is
-          consistent app-wide instead of a one-off. */}
-      <Kbd className="shrink-0 group-data-[collapsed=true]/sidebar:hidden">{shortcut}</Kbd>
+      {/* ⌘K hint — plain muted mono text (no keycap box) so the field
+          carries no extra borders/lines. */}
+      <span className="shrink-0 font-mono text-[11px] font-medium text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
+        {shortcut}
+      </span>
     </button>
   )
 }

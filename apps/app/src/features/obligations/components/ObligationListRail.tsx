@@ -57,7 +57,7 @@ export function ObligationListRail({
     <div className="flex h-full w-[380px] shrink-0 flex-col border-r border-divider-subtle bg-background-default">
       {/* ListHead — "Deadlines · N overdue / N open". */}
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
-        <span className="text-[15px] font-semibold text-text-primary">
+        <span className="text-[16px] font-semibold text-text-primary">
           <Trans>Deadlines</Trans>
         </span>
         {overdueCount > 0 ? (

@@ -802,6 +802,20 @@ function ActionsListHeader({
           </Trans>
         </p>
       </div>
+      {/* 2026-06-10 (Yuqi /today #6): explicit right-aligned "View all"
+          restored (the title is also a link, but the affordance was
+          requested back). Opens the full deadlines list via onOpenAll. */}
+      <Link
+        to="/deadlines"
+        onClick={(event) => {
+          event.preventDefault()
+          onOpenAll()
+        }}
+        className="inline-flex shrink-0 items-center gap-1 self-start rounded-sm text-xs font-medium text-text-tertiary underline-offset-2 outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <Trans>View all</Trans>
+        <ArrowRightIcon className="size-3.5" aria-hidden />
+      </Link>
     </div>
   )
 }

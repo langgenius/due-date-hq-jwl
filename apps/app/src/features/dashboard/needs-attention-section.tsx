@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CircleCheckIcon } from 'lucide-react'
+import { ArrowRightIcon, CircleCheckIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
@@ -164,6 +164,15 @@ function NeedsAttentionSection() {
             <MonitoringChip />
           ) : null}
         </h2>
+        {/* 2026-06-10 (Yuqi /today #5): "View all" link restored — opens
+            the full /alerts surface from the section header. */}
+        <Link
+          to="/alerts"
+          className="inline-flex shrink-0 items-center gap-1 rounded-sm text-xs font-medium text-text-tertiary underline-offset-2 outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <Trans>View all</Trans>
+          <ArrowRightIcon className="size-3.5" aria-hidden />
+        </Link>
       </div>
 
       {totalAlertCount > 0 ? (

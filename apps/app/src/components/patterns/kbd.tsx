@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -47,7 +47,17 @@ export function Kbd({ children, className }: { children: ReactNode; className?: 
  * <button>), focus-visible-ringed, and quiet enough not to compete
  * with primary actions in the same cluster.
  */
-export function ShortcutHintChip({ className }: { className?: string }) {
+export function ShortcutHintChip({
+  className,
+  compact = false,
+}: {
+  className?: string
+  // 2026-06-10 (Yuqi toolbar polish): `compact` drops the "for shortcuts"
+  // label and renders just the `?` keycap (with an accessible name +
+  // native tooltip), so a dense action cluster isn't carrying a sentence.
+  compact?: boolean
+}) {
+  const { t } = useLingui()
   const { openShortcutHelp } = useKeyboardShell()
   // Uses the `<Button>` primitive with `variant="ghost" size="xs"` (h-7,
   // text-xs) and a small "for shortcuts" label.
@@ -56,6 +66,21 @@ export function ShortcutHintChip({ className }: { className?: string }) {
   // corners so the ghost hover-fill reads as a sharp rectangle. `rounded-lg`
   // (8px) makes the hover chip read as a clearly-rounded affordance in the
   // header cluster.
+  if (compact) {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        onClick={() => openShortcutHelp()}
+        aria-label={t`Keyboard shortcuts`}
+        title={t`Keyboard shortcuts`}
+        className={cn('rounded-lg px-2 text-text-tertiary hover:text-text-secondary', className)}
+      >
+        <Kbd>?</Kbd>
+      </Button>
+    )
+  }
   return (
     <Button
       type="button"

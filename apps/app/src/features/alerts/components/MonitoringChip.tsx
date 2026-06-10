@@ -71,7 +71,7 @@ export function MonitoringChip({
           to ? (
             <Badge
               variant="ghost"
-              size="sm"
+              size="default"
               className={badgeClass}
               aria-label={ariaLabel}
               render={<Link to={to} />}
@@ -82,7 +82,7 @@ export function MonitoringChip({
           ) : (
             <Badge
               variant="ghost"
-              size="sm"
+              size="default"
               className={badgeClass}
               aria-label={ariaLabel}
               {...props}

@@ -99,7 +99,7 @@ export function SplashRoute() {
         <div className="flex w-full max-w-[720px] flex-col items-center gap-8">
           {/* Brand lockup — dark "D" mark, consistent with the auth cluster. */}
           <div className="flex items-center gap-2.5">
-            <span className="flex size-6 items-center justify-center rounded-md bg-text-primary text-[13px] font-bold tracking-[-0.3px] text-text-primary-on-surface">
+            <span className="flex size-6 items-center justify-center rounded-md bg-text-primary text-base font-bold tracking-[-0.3px] text-text-primary-on-surface">
               D
             </span>
             <span className="text-sm font-semibold tracking-[-0.2px] text-text-primary">
@@ -116,7 +116,7 @@ export function SplashRoute() {
                 <Trans>Welcome back</Trans>
               )}
             </h1>
-            <p className="text-center text-[15px] font-medium text-text-tertiary">{todayLabel}</p>
+            <p className="text-center text-[16px] font-medium text-text-tertiary">{todayLabel}</p>
           </div>
 
           {/* "While you were away" recap card */}

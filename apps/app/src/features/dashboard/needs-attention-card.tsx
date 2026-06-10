@@ -227,64 +227,48 @@ function NeedsAttentionCard({
             the bottom row next to "N Clients" as a `<TaxCodeBadge>`
             so it shares the chrome + label format the Actions this
             week table uses. */}
-        <div className="flex min-w-0 items-center justify-between gap-2">
-          {/* LEFT cluster — pill row. */}
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            {/* HIGH IMPACT — Pencil VxRyF red pill (#FEE4E2 bg / #B42318
-                text → destructive tokens). Full words "High impact", not
-                the abbreviated "HIGH". Only renders for high-impact alerts. */}
-            {severity.id === 'high' ? (
-              <span className="inline-flex shrink-0 items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-xs font-semibold tracking-[0.4px] text-text-destructive uppercase">
-                <Trans>High impact</Trans>
-              </span>
-            ) : null}
-
-            {/* STATE — jurisdiction pill. Yuqi: the actual state badge (the
-                seal graphic used on /alerts), not a generic pin. Tooltip
-                preserves the full jurisdiction on hover. */}
-            <Tooltip>
-              <TooltipTrigger
-                render={(props) => (
-                  <span
-                    className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold tracking-[0.2px] text-text-secondary outline-none"
-                    {...props}
-                  >
-                    <StateBadge
-                      code={alert.jurisdiction}
-                      size="xs"
-                      preview={false}
-                      style={{ width: 14, height: 14 }}
-                    />
-                    {alert.jurisdiction}
-                  </span>
-                )}
-              />
-              <TooltipContent>{alert.jurisdiction}</TooltipContent>
-            </Tooltip>
-
-            {/* FORM badge — gray-filled code chip. The form code inherits
-                TaxCodeBadge's canonical `font-mono tracking-tight` — same mono
-                treatment the /alerts table rows use; only the scale + padding
-                are overridden. */}
-            {alertForm ? (
-              <TaxCodeBadge
-                code={alertForm}
-                className="rounded-lg border-divider-subtle px-2 py-[2px] text-xs"
-              />
-            ) : null}
-
-            {/* CHANGE KIND — e.g. "DEADLINE SHIFTED", plain label. Neutral
-                (two-color rule). Invisible at rest and fades in on card hover;
-                opacity-0 reserves its width so the meta row doesn't reflow. On
-                hover it stays the muted gray tone — no accent-tone switch. */}
-            <span className="shrink-0 text-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-              {changeKindLabel(alert.changeKind)}
+        {/* 2026-06-10 (Yuqi /today #4): ONE left-aligned meta cluster — the
+            date ("May 18") sits right after the form badge instead of being
+            pushed to the far right edge by a justify-between split. */}
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {/* HIGH IMPACT — only renders for high-impact alerts. */}
+          {severity.id === 'high' ? (
+            <span className="inline-flex shrink-0 items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-xs font-semibold tracking-[0.4px] text-text-destructive uppercase">
+              <Trans>High impact</Trans>
             </span>
-          </div>
+          ) : null}
 
-          {/* RIGHT cluster — only relative time ("2h ago" / "Jun 4")
-              renders inline; exact time is surfaced via tooltip
-              (mirrors the /alerts row pattern). */}
+          {/* STATE — jurisdiction pill (seal + code; full name on hover). */}
+          <Tooltip>
+            <TooltipTrigger
+              render={(props) => (
+                <span
+                  className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold tracking-[0.2px] text-text-secondary outline-none"
+                  {...props}
+                >
+                  <StateBadge
+                    code={alert.jurisdiction}
+                    size="xs"
+                    preview={false}
+                    style={{ width: 14, height: 14 }}
+                  />
+                  {alert.jurisdiction}
+                </span>
+              )}
+            />
+            <TooltipContent>{alert.jurisdiction}</TooltipContent>
+          </Tooltip>
+
+          {/* FORM badge — gray-filled code chip (TaxCodeBadge mono). */}
+          {alertForm ? (
+            <TaxCodeBadge
+              code={alertForm}
+              className="rounded-lg border-divider-subtle px-2 py-[2px] text-xs"
+            />
+          ) : null}
+
+          {/* DATE — relative time inline (exact on tooltip), right after the
+              form so the two read together rather than splitting the row. */}
           <Tooltip>
             <TooltipTrigger
               render={(props) => (
@@ -298,6 +282,11 @@ function NeedsAttentionCard({
             />
             <TooltipContent>{absoluteTime}</TooltipContent>
           </Tooltip>
+
+          {/* CHANGE KIND — hover-reveal label (opacity-0 reserves width). */}
+          <span className="shrink-0 text-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            {changeKindLabel(alert.changeKind)}
+          </span>
         </div>
 
         {/* Subject — title + source caption. The source is wrapped in a
@@ -324,67 +313,56 @@ function NeedsAttentionCard({
           source holds a fixed width on the right, so the two always share a
           single line. */}
       <div className="flex items-center gap-x-2 border-t border-divider-subtle pt-3 text-xs">
-        {/* Affects-clients line. Yuqi #5: icon + label share ONE color.
-            #6: when nothing matched, both step to the lighter muted tone so
-            noise alerts recede. */}
-        <span
-          className={cn(
-            // The affected-clients line is the row's priority signal, so it
-            // holds `shrink-0` and never truncates — the fixed-width source
-            // (right) is what gives way on tight cards.
-            'inline-flex shrink-0 items-center gap-1 whitespace-nowrap',
-            impacted > 0 ? 'font-medium text-text-secondary' : 'text-text-muted',
-          )}
-        >
-          {/* Users icon for the affected-clients line, unified with the
-              /alerts AlertCard + PulseAlertRow. */}
-          <UsersIcon className="size-3 shrink-0" aria-hidden />
-          {impacted > 0 ? (
-            <Plural value={impacted} one="Affects # client" other="Affects # clients" />
-          ) : (
-            <Trans>No clients matched</Trans>
-          )}
-        </span>
-
-        {/* Gate the avatar stack on real client impact, not just the presence
-            of affected-client names. When nothing matched (impacted === 0) the
-            row reads "No clients matched" with no avatars trailing it. */}
-        {impacted > 0 && avatars.length > 0 ? (
-          <span className="flex shrink-0 items-center pl-0.5">
-            {avatars.map((avatar, index) => (
-              <Tooltip key={avatar.name}>
-                <TooltipTrigger
-                  render={(props) => (
-                    <span
-                      className={cn(
-                        // One neutral tone + the card's font. Initials carry
-                        // identity; the full name is on hover. The fill +
-                        // text-primary initials read against the card's gray
-                        // surface instead of dissolving in; the separating ring
-                        // is a faint rim just below the fill so it reads without
-                        // darkening the overlap gap.
-                        'inline-flex size-5 items-center justify-center rounded-full bg-[#e9ebf0] text-caption-xs font-semibold text-text-primary ring-[1.5px] ring-[#e2e5ea] outline-none',
-                        index > 0 && '-ml-1.5',
+        {/* 2026-06-10 (Yuqi /today #2): the affected-clients signal leads
+            with the AVATAR stack, then the first client NAME + "+N more"
+            — not an "Affects N clients" label. Reads as "[av] Meridian +2
+            more". When nothing matched, a quiet muted "No clients matched"
+            with the users icon. */}
+        {impacted > 0 ? (
+          <span className="inline-flex min-w-0 shrink items-center gap-1.5 whitespace-nowrap">
+            {avatars.length > 0 ? (
+              <span className="flex shrink-0 items-center">
+                {avatars.map((avatar, index) => (
+                  <Tooltip key={avatar.name}>
+                    <TooltipTrigger
+                      render={(props) => (
+                        <span
+                          className={cn(
+                            'inline-flex size-5 items-center justify-center rounded-full bg-[#e9ebf0] text-caption-xs font-semibold text-text-primary ring-[1.5px] ring-[#e2e5ea] outline-none',
+                            index > 0 && '-ml-1.5',
+                          )}
+                          {...props}
+                        >
+                          {avatar.initials}
+                        </span>
                       )}
-                      {...props}
-                    >
-                      {avatar.initials}
-                    </span>
-                  )}
-                />
-                <TooltipContent>{avatar.name}</TooltipContent>
-              </Tooltip>
-            ))}
-            {/* Overflow counter — Yuqi: "+1 in a circle is hard to read."
-                Now plain text after the stack so it reads as "and N more"
-                rather than a mystery avatar. */}
-            {impacted > avatars.length ? (
-              <span className="ml-1.5 text-xs font-medium text-text-tertiary tabular-nums">
-                +{impacted - avatars.length}
+                    />
+                    <TooltipContent>{avatar.name}</TooltipContent>
+                  </Tooltip>
+                ))}
               </span>
             ) : null}
+            {allNames[0] ? (
+              <span className="min-w-0 truncate font-medium text-text-secondary">
+                {allNames[0]}
+                {impacted > 1 ? (
+                  <span className="ml-1 font-normal text-text-tertiary tabular-nums">
+                    <Plural value={impacted - 1} one="+# more" other="+# more" />
+                  </span>
+                ) : null}
+              </span>
+            ) : (
+              <span className="font-medium text-text-secondary">
+                <Plural value={impacted} one="# client" other="# clients" />
+              </span>
+            )}
           </span>
-        ) : null}
+        ) : (
+          <span className="inline-flex shrink-0 items-center gap-1 text-text-muted">
+            <UsersIcon className="size-3 shrink-0" aria-hidden />
+            <Trans>No clients matched</Trans>
+          </span>
+        )}
 
         {/* The confidence read-out (and its leading dot separator) is
             invisible at rest and fades in on card hover. opacity-0 reserves

@@ -276,7 +276,7 @@ export function AcceptInviteRoute() {
                   {inviteQuery.data.inviterEmail.slice(0, 2).toUpperCase()}
                 </span>
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  <p className="truncate text-[13px] font-semibold text-text-primary">
+                  <p className="truncate text-base font-semibold text-text-primary">
                     {inviteQuery.data.organizationName} · {formatRole(inviteQuery.data.role)}
                   </p>
                   <p className="truncate text-xs font-medium text-text-tertiary">

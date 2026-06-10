@@ -41,7 +41,7 @@ function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean
         !last && 'border-b border-divider-subtle',
       )}
     >
-      <span className="grid size-[42px] shrink-0 place-items-center rounded-lg border border-state-warning-active bg-state-warning-hover text-[13px] font-bold text-text-warning">
+      <span className="grid size-[42px] shrink-0 place-items-center rounded-lg border border-state-warning-active bg-state-warning-hover text-base font-bold text-text-warning">
         {item.code}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -71,7 +71,7 @@ function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean
           )}
         </p>
       </div>
-      <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-3.5 py-2 text-[13px] font-semibold text-text-secondary">
+      <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-3.5 py-2 text-base font-semibold text-text-secondary">
         <Trans>Review</Trans>
         <ArrowRightIcon className="size-3 text-text-tertiary" aria-hidden />
       </span>
@@ -136,7 +136,7 @@ export function RuleReviewPrompt({
         <button
           type="button"
           onClick={onSkip}
-          className="rounded-lg px-3.5 py-2.5 text-[13px] font-semibold text-text-tertiary transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="rounded-lg px-3.5 py-2.5 text-base font-semibold text-text-tertiary transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <Trans>Skip and import clients first</Trans>
         </button>
@@ -145,7 +145,7 @@ export function RuleReviewPrompt({
           <button
             type="button"
             onClick={onBack}
-            className="rounded-lg border border-divider-subtle bg-background-default px-4 py-2.5 text-[13px] font-semibold text-text-secondary transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="rounded-lg border border-divider-subtle bg-background-default px-4 py-2.5 text-base font-semibold text-text-secondary transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>Back</Trans>
           </button>
@@ -153,7 +153,7 @@ export function RuleReviewPrompt({
         <button
           type="button"
           onClick={onReview}
-          className="flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-5 py-2.5 text-[13px] font-semibold text-text-primary-on-surface transition-colors hover:bg-components-button-primary-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-5 py-2.5 text-base font-semibold text-text-primary-on-surface transition-colors hover:bg-components-button-primary-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <Trans>Review {codeList} now</Trans>
           <ArrowRightIcon className="size-3.5" aria-hidden />

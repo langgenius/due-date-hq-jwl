@@ -562,7 +562,7 @@ function QuietHoursCard() {
       <div className="flex items-start gap-3.5">
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-2.5">
-            <span className="text-[15px] font-semibold text-text-primary">
+            <span className="text-[16px] font-semibold text-text-primary">
               <Trans>Quiet hours</Trans>
             </span>
             <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 text-caption-xs font-semibold text-text-accent">
@@ -673,7 +673,7 @@ function MorningDigestCard({
     <Card>
       <div className="flex items-start gap-3.5">
         <div className="flex flex-1 flex-col gap-1">
-          <span className="inline-flex items-center gap-2 text-[15px] font-semibold text-text-primary">
+          <span className="inline-flex items-center gap-2 text-[16px] font-semibold text-text-primary">
             <CalendarClockIcon className="size-4 text-text-tertiary" aria-hidden />
             <Trans>Morning digest</Trans>
           </span>
@@ -808,7 +808,7 @@ function Card({ children }: { children: ReactNode }) {
 function CardHead({ title, subtitle }: { title: ReactNode; subtitle: ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[15px] font-semibold text-text-primary">{title}</span>
+      <span className="text-[16px] font-semibold text-text-primary">{title}</span>
       <span className="text-xs text-text-secondary">{subtitle}</span>
     </div>
   )

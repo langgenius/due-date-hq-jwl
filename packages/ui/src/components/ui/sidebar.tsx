@@ -652,16 +652,16 @@ const sidebarMenuButtonVariants = cva(
     // Linear / Notion / Cloudflare sidebar density. Item height
     // stays h-8 (32px); icon size unchanged at size-4 (16px).
     // 2026-06-08 (Yuqi product-wide unification — "1px or 2px bigger text
-    // for the menu item"): nav label text-sm (14px) → text-[15px]. Item
+    // for the menu item"): nav label text-sm (14px) → text-[16px]. Item
     // height stays h-8 (32px); icon stays size-4 (16px). Restores a touch
     // more presence to the nav without returning to the text-base (16px)
     // that previously competed with the firm-switcher anchor.
     // 2026-06-09 (Yuqi): height 36 (h-9 — "hover padding smaller", a
     // more compact tile now that rows sit flush at gap-0), gap 12
     // (gap-3 — "icon与text之间的gap稍微大一点"), px-3, rounded-lg. Label
-    // text-[15px]. Identical in both modes — collapsed re-centering is
+    // text-[16px]. Identical in both modes — collapsed re-centering is
     // gone (see below).
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-lg px-[11px] text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-lg px-[11px] text-left text-[16px] font-normal text-text-secondary outline-none transition-colors',
     // 2026-06-09 (Yuqi "icons should be vertically center aligned" in the
     // collapsed rail): center the lone icon on the rail's centerline.
     // Drop the icon↔label gap and justify-center so the glyph isn't left-
