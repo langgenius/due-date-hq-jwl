@@ -1090,7 +1090,7 @@ export function PathToFilingSummary({
                     // Caption is smaller than the date above + lighter (muted)
                     // so it reads as sub-meta.
                     className="text-center text-[9px] font-medium uppercase tracking-wide leading-tight text-text-muted"
-                    title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days past deadline.`}
+                    title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days overdue.`}
                   >
                     <Trans>Past deadline</Trans>
                   </span>
@@ -2116,7 +2116,7 @@ export function ActiveStageDetailCard({
           <p className="text-[16px] font-semibold tracking-[-0.2px] text-text-primary">
             <Trans>
               Filing was due {formatDatePretty(row.currentDueDate.slice(0, 10))} —{' '}
-              <Plural value={daysPastDeadline} one="# day" other="# days" /> past deadline.
+              <Plural value={daysPastDeadline} one="# day" other="# days" /> overdue.
             </Trans>
           </p>
           <p className="text-xs text-text-tertiary">
