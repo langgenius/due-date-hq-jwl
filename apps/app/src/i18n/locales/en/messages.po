@@ -1500,10 +1500,6 @@ msgstr "24h"
 msgid "3 seats included"
 msgstr "3 seats included"
 
-#: src/routes/billing.tsx
-msgid "30-day alert history"
-msgstr "30-day alert history"
-
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "4 min"
 msgstr "4 min"
@@ -2350,10 +2346,6 @@ msgstr "Alerts · {0}"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Alerts · {count}"
 msgstr "Alerts · {count}"
-
-#: src/routes/billing.tsx
-msgid "Alerts and Deadlines access"
-msgstr "Alerts and Deadlines access"
 
 #: src/routes/route-summary.ts
 msgid "Alerts archive"
@@ -4518,6 +4510,22 @@ msgstr "Continue with Microsoft"
 #: src/routes/billing.tsx
 msgid "contract"
 msgstr "contract"
+
+#: src/routes/billing.tsx
+msgid "Controls: guided production imports"
+msgstr "Controls: guided production imports"
+
+#: src/routes/billing.tsx
+msgid "Controls: manual changes only"
+msgstr "Controls: manual changes only"
+
+#: src/routes/billing.tsx
+msgid "Controls: migration preview"
+msgstr "Controls: migration preview"
+
+#: src/routes/billing.tsx
+msgid "Controls: migration review + audit exports"
+msgstr "Controls: migration review + audit exports"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -7405,7 +7413,6 @@ msgid "For multi-practice operations, API access, and custom coverage."
 msgstr "For multi-practice operations, API access, and custom coverage."
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "For practices coordinating a larger operations team."
 msgstr "For practices coordinating a larger operations team."
 
@@ -7418,12 +7425,10 @@ msgid "for shortcuts"
 msgstr "for shortcuts"
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "For small practices that need shared deadline operations."
 msgstr "For small practices that need shared deadline operations."
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "For solo owners running one practice workspace."
 msgstr "For solo owners running one practice workspace."
 
@@ -7535,8 +7540,8 @@ msgid "Full name"
 msgstr "Full name"
 
 #: src/routes/billing.tsx
-msgid "Full Pulse alerts and rule library on a starter book — feel the core value before you scale."
-msgstr "Full Pulse alerts and rule library on a starter book — feel the core value before you scale."
+msgid "Full-history monitoring for one owner."
+msgstr "Full-history monitoring for one owner."
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Future edits to facts, risk profile, or deletion will appear here."
@@ -7717,6 +7722,14 @@ msgstr "Highest impact"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "History"
 msgstr "History"
+
+#: src/routes/billing.tsx
+msgid "History: 30-day alert window"
+msgstr "History: 30-day alert window"
+
+#: src/routes/billing.tsx
+msgid "History: full alert record"
+msgstr "History: full alert record"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "HomeBase contacts CSV"
@@ -8792,6 +8805,10 @@ msgstr "Manage reminder email templates and recent delivery."
 msgid "Manager"
 msgstr "Manager"
 
+#: src/routes/billing.tsx
+msgid "Manager controls for a larger team."
+msgstr "Manager controls for a larger team."
+
 #: src/features/workload/workload-page.tsx
 msgid "Manager operations"
 msgstr "Manager operations"
@@ -8803,10 +8820,6 @@ msgstr "Manager review"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Manager review saved"
 msgstr "Manager review saved"
-
-#: src/routes/billing.tsx
-msgid "Manager-ready practice operations"
-msgstr "Manager-ready practice operations"
 
 #: src/lib/required-roles-label.ts
 msgid "managers"
@@ -9245,10 +9258,6 @@ msgstr "MFA not enabled"
 #: src/features/audit/audit-log-page.tsx
 msgid "Migration"
 msgstr "Migration"
-
-#: src/routes/billing.tsx
-msgid "Migration and rules preview"
-msgstr "Migration and rules preview"
 
 #: src/features/concepts/concept-help.tsx
 msgid "Migration Copilot"
@@ -12168,10 +12177,6 @@ msgstr "Publication"
 msgid "Published"
 msgstr "Published"
 
-#: src/routes/billing.tsx
-msgid "Pulse alerts + rule library"
-msgstr "Pulse alerts + rule library"
-
 #: src/routes/settings.permissions.tsx
 msgid "Pulse alerts, reminders, calendar sync"
 msgstr "Pulse alerts, reminders, calendar sync"
@@ -12179,6 +12184,18 @@ msgstr "Pulse alerts, reminders, calendar sync"
 #: src/routes/obligations.tsx
 msgid "Pulse-generated drafts live in Projected"
 msgstr "Pulse-generated drafts live in Projected"
+
+#: src/routes/billing.tsx
+msgid "Pulse: bulk alert actions"
+msgstr "Pulse: bulk alert actions"
+
+#: src/routes/billing.tsx
+msgid "Pulse: live alerts and source rules"
+msgstr "Pulse: live alerts and source rules"
+
+#: src/routes/billing.tsx
+msgid "Pulse: priority alert review"
+msgstr "Pulse: priority alert review"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Push"
@@ -14391,13 +14408,16 @@ msgid "Severity"
 msgstr "Severity"
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "Shared deadline operations"
 msgstr "Shared deadline operations"
 
 #: src/features/workload/workload-page.tsx
 msgid "Shared deadline operations for Pro, Team, and Enterprise plans."
 msgstr "Shared deadline operations for Pro, Team, and Enterprise plans."
+
+#: src/routes/billing.tsx
+msgid "Shared operations for a small team."
+msgstr "Shared operations for a small team."
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Shareholder count"
@@ -14844,7 +14864,6 @@ msgid "Source watchers feed the rule catalog — once configured, they appear he
 msgstr "Source watchers feed the rule catalog — once configured, they appear here with watch status and cadence."
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "Source-backed evidence"
 msgstr "Source-backed evidence"
 
@@ -14919,6 +14938,10 @@ msgstr "Start fresh"
 #: src/routes/billing.tsx
 msgid "Start Solo"
 msgstr "Start Solo"
+
+#: src/routes/billing.tsx
+msgid "Starter monitoring for one owner."
+msgstr "Starter monitoring for one owner."
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/PulseRelevanceMatrix.tsx
@@ -15371,7 +15394,6 @@ msgid "Team workload"
 msgstr "Team workload"
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "Team workload and shared triage"
 msgstr "Team workload and shared triage"
 
@@ -17030,6 +17052,22 @@ msgstr "Work assigned to or unassigned from you"
 #: src/routes/login.tsx
 msgid "Work email"
 msgstr "Work email"
+
+#: src/routes/billing.tsx
+msgid "Workflow: manager workload insights"
+msgstr "Workflow: manager workload insights"
+
+#: src/routes/billing.tsx
+msgid "Workflow: one-owner review"
+msgstr "Workflow: one-owner review"
+
+#: src/routes/billing.tsx
+msgid "Workflow: one-seat manual review"
+msgstr "Workflow: one-seat manual review"
+
+#: src/routes/billing.tsx
+msgid "Workflow: shared deadline work"
+msgstr "Workflow: shared deadline work"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Working…"

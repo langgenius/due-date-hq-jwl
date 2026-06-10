@@ -1517,10 +1517,6 @@ msgstr "24 小时制"
 msgid "3 seats included"
 msgstr "包含 3 个席位"
 
-#: src/routes/billing.tsx
-msgid "30-day alert history"
-msgstr "30 天告警历史"
-
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "4 min"
 msgstr "4 分钟"
@@ -2373,10 +2369,6 @@ msgstr "提醒 · {0}"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Alerts · {count}"
 msgstr "提醒 · {count}"
-
-#: src/routes/billing.tsx
-msgid "Alerts and Deadlines access"
-msgstr "提醒与截止日期访问权限"
 
 #: src/routes/route-summary.ts
 msgid "Alerts archive"
@@ -4552,6 +4544,22 @@ msgstr "使用 Microsoft 继续"
 #: src/routes/billing.tsx
 msgid "contract"
 msgstr "合同约定"
+
+#: src/routes/billing.tsx
+msgid "Controls: guided production imports"
+msgstr "控制：生产导入引导"
+
+#: src/routes/billing.tsx
+msgid "Controls: manual changes only"
+msgstr "控制：仅手动变更"
+
+#: src/routes/billing.tsx
+msgid "Controls: migration preview"
+msgstr "控制：迁移预览"
+
+#: src/routes/billing.tsx
+msgid "Controls: migration review + audit exports"
+msgstr "控制：迁移审核 + 审计导出"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -7449,7 +7457,6 @@ msgid "For multi-practice operations, API access, and custom coverage."
 msgstr "适合多事务所运营、API 访问和自定义覆盖。"
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "For practices coordinating a larger operations team."
 msgstr "适合协调较大运营团队的事务所。"
 
@@ -7463,12 +7470,10 @@ msgid "for shortcuts"
 msgstr "快捷键"
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "For small practices that need shared deadline operations."
 msgstr "适合需要共享截止日运营的小型事务所。"
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "For solo owners running one practice workspace."
 msgstr "适合运营单个事务所工作区的个人 Owner。"
 
@@ -7580,8 +7585,8 @@ msgid "Full name"
 msgstr "全名"
 
 #: src/routes/billing.tsx
-msgid "Full Pulse alerts and rule library on a starter book — feel the core value before you scale."
-msgstr "起步客户册即享完整 Pulse 告警与规则库——先体验核心价值,再扩张。"
+msgid "Full-history monitoring for one owner."
+msgstr "适合单个负责人的完整历史监控。"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Future edits to facts, risk profile, or deletion will appear here."
@@ -7764,6 +7769,14 @@ msgstr "影响最高"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "History"
 msgstr "历史记录"
+
+#: src/routes/billing.tsx
+msgid "History: 30-day alert window"
+msgstr "历史：30 天提醒窗口"
+
+#: src/routes/billing.tsx
+msgid "History: full alert record"
+msgstr "历史：完整提醒记录"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "HomeBase contacts CSV"
@@ -8845,6 +8858,10 @@ msgstr "管理提醒邮件模板与最近投递。"
 msgid "Manager"
 msgstr "管理员"
 
+#: src/routes/billing.tsx
+msgid "Manager controls for a larger team."
+msgstr "适合较大团队的经理控制。"
+
 #: src/features/workload/workload-page.tsx
 msgid "Manager operations"
 msgstr "管理者运营"
@@ -8856,10 +8873,6 @@ msgstr "经理审核"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Manager review saved"
 msgstr "经理审核已保存"
-
-#: src/routes/billing.tsx
-msgid "Manager-ready practice operations"
-msgstr "面向管理员的事务所运营"
 
 #: src/lib/required-roles-label.ts
 #, fuzzy
@@ -9303,10 +9316,6 @@ msgstr "MFA 未启用"
 #: src/features/audit/audit-log-page.tsx
 msgid "Migration"
 msgstr "迁移"
-
-#: src/routes/billing.tsx
-msgid "Migration and rules preview"
-msgstr "迁移与规则预览"
 
 #: src/features/concepts/concept-help.tsx
 msgid "Migration Copilot"
@@ -12252,10 +12261,6 @@ msgstr "出版物"
 msgid "Published"
 msgstr "发布日期"
 
-#: src/routes/billing.tsx
-msgid "Pulse alerts + rule library"
-msgstr "Pulse 告警 + 规则库"
-
 #: src/routes/settings.permissions.tsx
 msgid "Pulse alerts, reminders, calendar sync"
 msgstr "Pulse 提醒、提醒事项、日历同步"
@@ -12263,6 +12268,18 @@ msgstr "Pulse 提醒、提醒事项、日历同步"
 #: src/routes/obligations.tsx
 msgid "Pulse-generated drafts live in Projected"
 msgstr "Pulse 生成的草案位于「预估」中"
+
+#: src/routes/billing.tsx
+msgid "Pulse: bulk alert actions"
+msgstr "Pulse：批量提醒操作"
+
+#: src/routes/billing.tsx
+msgid "Pulse: live alerts and source rules"
+msgstr "Pulse：实时提醒和来源规则"
+
+#: src/routes/billing.tsx
+msgid "Pulse: priority alert review"
+msgstr "Pulse：优先提醒审核"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Push"
@@ -14484,13 +14501,16 @@ msgid "Severity"
 msgstr "严重程度"
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "Shared deadline operations"
 msgstr "共享截止日运营"
 
 #: src/features/workload/workload-page.tsx
 msgid "Shared deadline operations for Pro, Team, and Enterprise plans."
 msgstr "Pro、Team 和 Enterprise 计划支持共享截止日运营。"
+
+#: src/routes/billing.tsx
+msgid "Shared operations for a small team."
+msgstr "适合小团队的共享运营。"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Shareholder count"
@@ -14937,7 +14957,6 @@ msgid "Source watchers feed the rule catalog — once configured, they appear he
 msgstr "来源监视器为规则目录提供数据 — 配置后将在此显示监视状态和频率。"
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "Source-backed evidence"
 msgstr "带来源的证据"
 
@@ -15013,6 +15032,10 @@ msgstr "重新开始"
 #: src/routes/billing.tsx
 msgid "Start Solo"
 msgstr "开始使用 Solo"
+
+#: src/routes/billing.tsx
+msgid "Starter monitoring for one owner."
+msgstr "适合单个负责人的起步监控。"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/PulseRelevanceMatrix.tsx
@@ -15466,7 +15489,6 @@ msgid "Team workload"
 msgstr "团队工作负载"
 
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 msgid "Team workload and shared triage"
 msgstr "团队工作负载与共享分诊"
 
@@ -17131,6 +17153,22 @@ msgstr "分配给您或取消分配给您的工作"
 #: src/routes/login.tsx
 msgid "Work email"
 msgstr "工作邮箱"
+
+#: src/routes/billing.tsx
+msgid "Workflow: manager workload insights"
+msgstr "工作流：经理工作负载洞察"
+
+#: src/routes/billing.tsx
+msgid "Workflow: one-owner review"
+msgstr "工作流：单负责人审核"
+
+#: src/routes/billing.tsx
+msgid "Workflow: one-seat manual review"
+msgstr "工作流：单席位手动审核"
+
+#: src/routes/billing.tsx
+msgid "Workflow: shared deadline work"
+msgstr "工作流：共享截止日工作"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Working…"
