@@ -246,14 +246,14 @@ export function Step4Preview({
         <ul className="flex flex-col gap-1.5 text-base text-text-primary">
           <li className="flex items-center gap-2">
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
-            <Trans>This import can be undone for 24 hours and keeps an audit record</Trans>
+            <Trans>Undo this import for 24 hours — the audit log records every change</Trans>
           </li>
           {/* No info-icon — the bullet text already paraphrases the concept;
               audit-trail detail belongs on the audit page, not in a passing
               safety bullet. */}
           <li className="flex items-center gap-2">
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
-            <Trans>Audit log captures every AI decision</Trans>
+            <Trans>The audit log records every mapping and value change</Trans>
           </li>
           <li className="flex items-center gap-2">
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />

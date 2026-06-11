@@ -317,7 +317,7 @@ export function WizardShell({ open, onClose, confirmOnClose, ...frameProps }: Wi
                 <Trans>Leave without importing?</Trans>
               </AlertDialogTitle>
               <AlertDialogDescription className="text-base">
-                <Trans>Your pasted data and unsaved edits in this wizard will be lost.</Trans>
+                <Trans>Your pasted data and unsaved edits will be discarded.</Trans>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -385,7 +385,7 @@ export function WizardRouteShell({
                 <Trans>Leave without importing?</Trans>
               </AlertDialogTitle>
               <AlertDialogDescription className="text-base">
-                <Trans>Your pasted data and unsaved edits in this wizard will be lost.</Trans>
+                <Trans>Your pasted data and unsaved edits will be discarded.</Trans>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

@@ -93,7 +93,7 @@ export function Step3Normalize({
         <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
           <LockIcon className="size-3.5 shrink-0" aria-hidden />
           <Trans>
-            Your uploaded file stays unchanged — this clean draft is used only after you import.
+            Your uploaded file stays unchanged — this standardized version is used only when you import.
           </Trans>
         </p>
       </div>
@@ -221,7 +221,7 @@ function SummaryReadout({
   if (categoryCount === 0) {
     return (
       <p className="text-sm text-text-secondary">
-        <Trans>No values needed cleanup for this import.</Trans>
+        <Trans>No values needed changes for this import.</Trans>
       </p>
     )
   }

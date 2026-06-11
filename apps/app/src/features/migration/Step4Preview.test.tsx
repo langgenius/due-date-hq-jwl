@@ -82,7 +82,7 @@ describe('Step4Preview rule review warnings', () => {
 
     expect(document.body.textContent).toContain('Some state deadlines need rule review')
     expect(document.body.textContent).toContain(
-      '1 client has state deadlines that need reviewed practice rules first.',
+      '1 client has state deadlines waiting on rule review.',
     )
     expect(document.body.textContent).toContain('TX')
     expect(document.body.textContent).toContain('C corp')

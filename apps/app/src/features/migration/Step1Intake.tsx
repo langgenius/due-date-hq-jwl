@@ -246,7 +246,7 @@ export function Step1Intake({
       resetParsedRows()
       onParseError(
         fileName
-          ? t`That file has no data rows. Add a header and at least one row, then re-upload.`
+          ? t`That file is empty. Include column names and at least one client, then re-upload.`
           : null,
       )
       return
@@ -257,7 +257,7 @@ export function Step1Intake({
       if (parsed.rowCount === 0) {
         resetParsedRows()
         onParseError(
-          t`We found a header, but no data rows. Add at least one client row to continue.`,
+          t`We found column names but no clients. Add at least one client to continue.`,
         )
         return
       }
@@ -363,7 +363,7 @@ export function Step1Intake({
 
     if (file.size > MAX_FILE_BYTES) {
       setIsReadingFile(false)
-      onParseError(t`File is larger than 5 MB. Please trim or split the export.`)
+      onParseError(t`File is larger than 5 MB. Trim or split the export, then re-upload.`)
       return
     }
     void prepareUploadFile(file)
@@ -536,7 +536,7 @@ export function Step1Intake({
                     value={intake.rawText}
                     onChange={(e) => handleTextChange(e.target.value)}
                     onPaste={handleRowsPaste}
-                    placeholder={t`Paste here — any shape, we'll figure it out. Include the header row if you have one.`}
+                    placeholder={t`Paste your client list — any format. Include column names if you have them.`}
                     className={cn(
                       'resize-y border-0 bg-transparent p-3 font-mono text-base tabular-nums shadow-none focus-visible:ring-0',
                       compact ? 'h-[140px]' : 'h-[160px]',
@@ -594,7 +594,7 @@ export function Step1Intake({
                       <Trans>Drop a file or click to browse</Trans>
                     </span>
                     <span className="text-sm text-text-tertiary">
-                      <Trans>CSV, Excel, ZIP, TXT, or IIF · up to 1,000 rows · 5 MB</Trans>
+                      <Trans>CSV, Excel, ZIP, TXT, or IIF · up to 1,000 clients · 5 MB</Trans>
                     </span>
                   </span>
                 </div>

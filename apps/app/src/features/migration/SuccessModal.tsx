@@ -108,7 +108,7 @@ export function SuccessModal({
                   one="# deadline is now scheduled"
                   other="# deadlines are now scheduled"
                 />
-                . Nothing will email a client until you turn the matching rule on.
+                . No emails go out until you turn the matching rule on — you control every send.
               </Trans>
             </p>
           </div>
@@ -185,7 +185,7 @@ export function SuccessModal({
               tone="warning"
               icon={<TriangleAlertIcon className="size-3.5" aria-hidden />}
               title={t`Review your jurisdictions`}
-              sub={t`Confirm state calendars before their deadlines fan out`}
+              sub={t`Confirm state calendars before their deadlines generate`}
               onClick={onOpenDashboard}
             />
             <NextStep

@@ -187,8 +187,8 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
               </Trans>
             ) : (
               <Trans>
-                We couldn&apos;t reach AI and no preset was selected. Please map columns manually
-                before continuing.
+                We couldn&apos;t reach AI and no preset was selected. Map your columns below to
+                continue.
               </Trans>
             )}
             {allIgnoreFallback ? (
