@@ -242,8 +242,8 @@ export function MergedBriefCard({
               </span>
               <span>
                 <Trans>
-                  The top open deadlines in this view, ranked by Smart Priority and bucketed by
-                  due window — the next work most worth handling, not every deadline.
+                  The top open deadlines in this view, ranked by Smart Priority and bucketed by due
+                  window — the next work most worth handling, not every deadline.
                 </Trans>
               </span>
             </div>
@@ -443,7 +443,7 @@ function BriefTableRow({
       // (spacing audit). hover:shadow-none suppresses the primitive's 2px
       // inset left accent bar — Yuqi: no side-border highlight inside a
       // rounded frame.
-      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-2.5"
+      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt [&_td]:py-2.5"
     >
       {/* FORM */}
       <TableCell>
@@ -457,9 +457,7 @@ function BriefTableRow({
           right?"). The trailing spacer cell absorbs the leftover width. */}
       <TableCell>
         <div className="flex w-[440px] min-w-0 flex-col gap-0.5">
-          <span className="truncate text-row-anchor text-text-primary">
-            {row.clientName}
-          </span>
+          <span className="truncate text-row-anchor text-text-primary">{row.clientName}</span>
           <span className="flex min-w-0 items-center gap-1.5 text-xs text-text-tertiary transition-colors group-hover:text-text-secondary">
             <span className="truncate">{verb}</span>
             {showReadiness ? (

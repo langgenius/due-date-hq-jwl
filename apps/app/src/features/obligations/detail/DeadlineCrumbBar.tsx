@@ -36,7 +36,7 @@ export function DeadlineCrumbBar({
       <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3">
         <Link
           to="/deadlines"
-          className="inline-flex items-center gap-1 text-base font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
+          className="inline-flex items-center gap-1 rounded-sm text-base font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
           <Trans>Deadlines</Trans>

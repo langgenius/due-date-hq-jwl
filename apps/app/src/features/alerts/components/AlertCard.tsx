@@ -407,7 +407,7 @@ export function AlertCard({
                       <TooltipTrigger
                         render={
                           <span
-                            className="inline-flex shrink-0 cursor-help text-text-warning"
+                            className="inline-flex shrink-0 cursor-help rounded-sm text-text-warning outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                             tabIndex={0}
                             onClick={(event) => event.stopPropagation()}
                             onKeyDown={(event) => event.stopPropagation()}

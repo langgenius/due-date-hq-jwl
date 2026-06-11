@@ -492,10 +492,19 @@ function PulseAlertRow({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="inline-flex min-w-0 shrink cursor-pointer items-center gap-1 truncate text-sm font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline"
+                    role="link"
+                    tabIndex={0}
+                    className="inline-flex min-w-0 shrink cursor-pointer items-center gap-1 truncate rounded-sm text-sm font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                     onClick={(event) => {
                       event.stopPropagation()
                       window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
+                      }
                     }}
                     {...props}
                   >

@@ -108,7 +108,7 @@ export function ObligationListRail({
               <button
                 type="button"
                 onClick={onLoadMore}
-                className="w-full cursor-pointer py-3 text-center text-base font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover"
+                className="w-full cursor-pointer py-3 text-center text-base font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
               >
                 <Trans>Load more</Trans>
               </button>

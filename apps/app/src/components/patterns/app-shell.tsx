@@ -106,6 +106,16 @@ export function AppShell(props: AppShellProps) {
           instead (see `Sidebar` in sidebar.tsx) so it reads as lifted
           off the white. */}
       <div className="relative isolate flex h-svh w-full overflow-hidden bg-background-inset text-text-primary">
+        {/* 2026-06-11 (keyboard-focus audit): skip link — first tab stop in
+            the shell. sr-only at rest; on keyboard focus it surfaces as a
+            small card over the sidebar and jumps focus past the nav to the
+            <main> region (which carries id + tabIndex={-1} below). */}
+        <a
+          href="#main-content"
+          className="sr-only z-50 rounded-lg focus-visible:not-sr-only focus-visible:absolute focus-visible:left-3 focus-visible:top-3 focus-visible:block focus-visible:border focus-visible:border-divider-regular focus-visible:bg-background-default focus-visible:px-3 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <Trans>Skip to content</Trans>
+        </a>
         <PendingBar />
         <Sidebar>
           {/* The notifications bell lives outside the sidebar
@@ -230,7 +240,13 @@ export function AppShell(props: AppShellProps) {
             sidebar footer (see app-shell-nav.tsx).
             bg-background-default makes the inset white (Notion/Linear
             pattern: gray rail, white work surface). */}
-          <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
+          <main
+            id="main-content"
+            // tabIndex={-1} so the skip link's #main-content jump can land
+            // programmatic focus on the region (keyboard-focus audit).
+            tabIndex={-1}
+            className="min-w-0 flex-1 overflow-y-auto outline-none overscroll-contain [scrollbar-gutter:stable]"
+          >
             {/* `h-full` + `flex flex-col` propagate `<main>`'s definite
               height down to RulesPageShell (and any other route shell
               using `h-full`). Without it, `h-full` on the shell resolves

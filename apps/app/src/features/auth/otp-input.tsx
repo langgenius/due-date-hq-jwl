@@ -86,7 +86,7 @@ export function OtpInput({
           onPaste={handlePaste}
           className={cn(
             'h-16 min-w-0 flex-1 rounded-lg border bg-background-default text-center text-2xl font-semibold text-text-primary outline-none transition-colors',
-            'focus:border-state-accent-solid focus:ring-1 focus:ring-inset focus:ring-state-accent-active-alt',
+            'focus-visible:border-state-accent-solid focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
             'disabled:cursor-not-allowed disabled:opacity-60',
             invalid ? 'border-state-destructive-border' : 'border-divider-regular',
           )}

@@ -183,7 +183,7 @@ export function EmailComposeDialog({
                   onChange={(event) => setSubject(event.target.value)}
                   placeholder={t`Add a subject`}
                   aria-label={t`Subject`}
-                  className="min-w-0 grow bg-transparent text-sm font-semibold text-text-primary outline-none placeholder:font-normal placeholder:text-text-placeholder"
+                  className="min-w-0 grow rounded-sm bg-transparent text-sm font-semibold text-text-primary outline-none placeholder:font-normal placeholder:text-text-placeholder focus-visible:ring-1 focus-visible:ring-state-accent-active-alt"
                 />
               </div>
             </div>

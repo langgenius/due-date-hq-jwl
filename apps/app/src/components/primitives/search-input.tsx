@@ -8,6 +8,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import type { ShortcutCategory, ShortcutScope } from '@/components/patterns/keyboard-shell'
 import { useAppHotkey } from '@/components/patterns/keyboard-shell'
+import { Kbd } from '@/components/patterns/kbd'
 
 /**
  * Canonical search bar for page-level table filtering.
@@ -173,12 +174,15 @@ export const SearchInput = forwardRef(function SearchInput(
           // combos (cmd+K etc) are intentionally NOT shown here — those
           // are global, this slot is for page-level shortcuts where a
           // single character ('/') is the convention.
-          <kbd
+          <span
             aria-hidden
-            className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-divider-regular bg-background-subtle px-1.5 font-sans text-caption-xs tabular-nums text-text-tertiary"
+            className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
           >
-            {typeof hotkey === 'string' ? hotkey : hotkey.key}
-          </kbd>
+            {/* 2026-06-11 (keyboard-focus audit): hand-rolled <kbd> recipe
+                converged on the canonical Kbd pattern — one keycap look
+                across hint chips, panel headers, and the shortcut dialog. */}
+            <Kbd>{typeof hotkey === 'string' ? hotkey : hotkey.key}</Kbd>
+          </span>
         ) : null}
       </div>
     </>

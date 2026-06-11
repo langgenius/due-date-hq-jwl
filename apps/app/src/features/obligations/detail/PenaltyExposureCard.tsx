@@ -77,7 +77,7 @@ export function PenaltyExposureCard({ row }: { row: ObligationQueueRow }) {
             href={primarySource.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 font-medium text-text-accent outline-none hover:underline focus-visible:underline"
+            className="inline-flex items-center gap-1 rounded-sm font-medium text-text-accent outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>View schedule</Trans>
             <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />

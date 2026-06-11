@@ -161,6 +161,24 @@ function isModalLayerOpen(): boolean {
   return document.querySelector(MODAL_LAYER_SELECTOR) !== null
 }
 
+// 2026-06-11 (keyboard-focus audit): broader popup probe for the page-mode
+// Escape-to-close handler. Esc must dismiss the TOPMOST layer — so while any
+// base-ui popup (dialog, popover, dropdown, select, sheet) is mounted, the
+// page-level Esc stays quiet and lets base-ui's own Esc handling win. Base UI
+// keeps these out of the DOM until open, so a mounted node means "open".
+const POPUP_LAYER_SELECTOR = [
+  '[data-slot="dialog-content"]',
+  '[data-slot="alert-dialog-content"]',
+  '[data-slot="popover-content"]',
+  '[data-slot="dropdown-menu-content"]',
+  '[data-slot="select-content"]',
+  '[data-slot="sheet-content"]',
+].join(', ')
+
+function isPopupLayerOpen(): boolean {
+  return document.querySelector(POPUP_LAYER_SELECTOR) !== null
+}
+
 // 2026-06-08 (Pencil HuYeb /deadlines detail): the header's top-right
 // action cluster — Assign (assignee picker), Snooze (preset defer), and
 // Mark-as-filed (status → Filed). Extracted as a small component so the
@@ -1511,6 +1529,30 @@ export function ObligationQueueDetailDrawer({
     return () => window.removeEventListener('keydown', handler)
   }, [isPageMode, row, rowIsFiled, changeStatusPending, changeStatus])
 
+  // 2026-06-11 (keyboard-focus audit): Esc closes the page-mode detail —
+  // same navigate-back the top bar's breadcrumb/✕ fires. Page mode only
+  // (panel/sheet keep base-ui's own dismissal). Goes quiet while typing,
+  // and while ANY popup layer (dialog, popover, dropdown, select, sheet)
+  // is stacked above — Esc must dismiss the topmost layer, not the page.
+  useEffect(() => {
+    if (!isPageMode) return undefined
+    const handler = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      const target = event.target instanceof HTMLElement ? event.target : null
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return
+      }
+      if (isPopupLayerOpen()) return
+      event.preventDefault()
+      onClose()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [isPageMode, onClose])
+
   const checklistReference = row ? materialsChecklistReference(row) : null
   // The visible heading is shared with the drawer body. SheetTitle
   // stays sr-only below so Radix Dialog gets its accessible name
@@ -2598,7 +2640,7 @@ export function ObligationQueueDetailDrawer({
                             <button
                               type="button"
                               onClick={() => onTabChange('audit')}
-                              className="font-medium text-text-accent underline-offset-2 outline-none hover:underline"
+                              className="rounded-sm font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                             >
                               <Trans>View all in Timeline →</Trans>
                             </button>

@@ -362,10 +362,19 @@ function NeedsAttentionCard({
             <TooltipTrigger
               render={(props) => (
                 <span
-                  className="inline-flex min-w-0 max-w-[160px] cursor-pointer items-center gap-1 text-xs text-text-tertiary outline-none transition-colors hover:text-text-secondary"
+                  role="link"
+                  tabIndex={0}
+                  className="inline-flex min-w-0 max-w-[160px] cursor-pointer items-center gap-1 rounded-sm text-xs text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   onClick={(event) => {
                     event.stopPropagation()
                     window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
+                    }
                   }}
                   {...props}
                 >

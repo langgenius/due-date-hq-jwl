@@ -57,6 +57,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
+import { Kbd } from '@/components/patterns/kbd'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { AlertStatusChip } from './components/AlertStatusChip'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
@@ -1100,7 +1101,7 @@ export function AlertDetailDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 cursor-pointer text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
+            className="shrink-0 cursor-pointer rounded-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>Alerts</Trans>
           </button>
@@ -1124,9 +1125,7 @@ export function AlertDetailDrawer({
           {detail && !alertResolved ? (
             <span className="hidden items-center gap-2.5 text-text-tertiary xl:inline-flex">
               <span className="inline-flex items-center gap-1.5 text-caption">
-                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
-                  A
-                </kbd>
+                <Kbd>A</Kbd>
                 {/* The label tracks what `A` actually fires — Mark
                       reviewed on review-only / no-match alerts, the Apply
                       gate on due-date overlays (same `noActionReview`
@@ -1141,9 +1140,7 @@ export function AlertDetailDrawer({
                 )}
               </span>
               <span className="inline-flex items-center gap-1.5 text-caption">
-                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
-                  D
-                </kbd>
+                <Kbd>D</Kbd>
                 <Trans>Dismiss</Trans>
               </span>
               <span className="h-3.5 w-px bg-divider-regular" aria-hidden />

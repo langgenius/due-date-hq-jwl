@@ -205,6 +205,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { Kbd } from '@/components/patterns/kbd'
 import { CountPill } from '@/components/primitives/count-pill'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -3639,9 +3640,7 @@ export function ObligationQueueRoute() {
                     <span className="flex-1">
                       <Trans>Add one deadline</Trans>
                     </span>
-                    <kbd className="rounded border border-divider-regular bg-background-subtle px-1 font-sans text-caption-xs text-text-tertiary">
-                      N
-                    </kbd>
+                    <Kbd>N</Kbd>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={!canRunMigration}

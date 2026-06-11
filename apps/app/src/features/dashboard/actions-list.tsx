@@ -278,7 +278,7 @@ function ActionsTableRow({
       // cell (action + why-now, due-date + relative date) without feeling
       // suffocated. The hover token is opaque so the Review mask below
       // still hides the due date.
-      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-3"
+      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt [&_td]:py-3"
     >
       {/* CLIENT + ACTION stacked into ONE column — client name on top
           (primary ink), the action prompt below (quieter). A per-row STATUS
@@ -569,8 +569,8 @@ function DashboardActionsList({
           <div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center sm:px-10 sm:py-14">
             <p className="max-w-[540px] text-sm leading-relaxed text-text-secondary">
               <Trans>
-                When something gets at-risk — a stalled document request, a rejected filing, a client
-                gone quiet — Smart Priority will surface it here. Right now everything is on
+                When something gets at-risk — a stalled document request, a rejected filing, a
+                client gone quiet — Smart Priority will surface it here. Right now everything is on
                 track.
               </Trans>
             </p>
