@@ -66,15 +66,15 @@ describe('SIGNATURE_REMINDER_* defaults', () => {
       taxYear: 2025,
     })
     expect(renderTemplate(SIGNATURE_REMINDER_SUBJECT_TEMPLATE, vars)).toBe(
-      'Reminder: please sign Form 8879 for your 2025 Form 1120-S return',
+      'Signature needed: Form 8879 for your 2025 Form 1120-S return',
     )
     expect(renderTemplate(SIGNATURE_REMINDER_BODY_TEMPLATE, vars)).toBe(
       [
         'Hi Bright Studio S-Corp,',
         '',
-        "This is a friendly reminder to sign Form 8879 (the e-file authorization) for your 2025 Form 1120-S return. We can't electronically file your return until we have your signed authorization.",
+        "Your 2025 Form 1120-S return needs your signature on Form 8879 (the e-file authorization). We can't file electronically until we have it.",
         '',
-        "If you've already signed, thank you — no further action is needed. Otherwise, please sign at your earliest convenience so we can file on time.",
+        "If you've already signed, thank you — no further action is needed. Otherwise, sign at your earliest convenience so we can file on time.",
         '',
         'Thank you.',
       ].join('\n'),
@@ -84,7 +84,7 @@ describe('SIGNATURE_REMINDER_* defaults', () => {
   it('drops the year cleanly when tax_year is empty', () => {
     const vars = signatureReminderVars({ clientName: 'Acme', form: 'Form 1065', taxYear: null })
     expect(renderTemplate(SIGNATURE_REMINDER_SUBJECT_TEMPLATE, vars)).toBe(
-      'Reminder: please sign Form 8879 for your Form 1065 return',
+      'Signature needed: Form 8879 for your Form 1065 return',
     )
   })
 

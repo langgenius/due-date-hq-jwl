@@ -86,7 +86,7 @@ function eventDescription(input: {
     `Readiness: ${input.row.readiness}`,
     `Open in DueDateHQ: ${input.url}`,
     '',
-    'Subscribed from DueDateHQ. External calendar reminders are best-effort; DueDateHQ email and in-app reminders remain authoritative.',
+    'Subscribed from DueDateHQ. Calendar reminders are informational — DueDateHQ email and in-app reminders are authoritative.',
   ]
   return lines.join('\n')
 }

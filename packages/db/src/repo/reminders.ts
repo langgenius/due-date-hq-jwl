@@ -35,13 +35,13 @@ export const DEFAULT_REMINDER_TEMPLATES: readonly TemplateDefault[] = [
     templateKey: 'member-deadline-reminder',
     kind: 'deadline_reminder',
     name: 'Team deadline countdown email',
-    subject: 'Action needed in {{offset_days}} days: {{client_name}} {{tax_type}}',
+    subject: '{{client_name}}: {{tax_type}} due in {{offset_days}} days',
     bodyText: [
       'Team,',
       '',
-      '{{client_name}} has a {{tax_type}} deadline due {{due_date}}. Please review the file, ' +
-        'confirm the current owner, and clear any open client-materials or review blockers ' +
-        'before the countdown reaches the due date.',
+      '{{client_name}} has a {{tax_type}} deadline due {{due_date}}. Review the file, ' +
+        'confirm the owner, and clear pending client materials and review items ' +
+        'before the due date.',
       '',
       'Deadline workspace:',
       '{{obligation_url}}',
@@ -60,16 +60,15 @@ export const DEFAULT_REMINDER_TEMPLATES: readonly TemplateDefault[] = [
     templateKey: CLIENT_30_DAY_TEMPLATE_KEY,
     kind: 'client_deadline_reminder',
     name: '30-day client deadline countdown email',
-    subject: '{{client_name}}: {{tax_type}} deadline in 30 days',
+    subject: '{{client_name}}: {{tax_type}} due in 30 days',
     bodyText: [
       'Hello {{client_name}},',
       '',
-      'Our office is tracking your upcoming {{tax_type}} deadline on {{due_date}}, which is ' +
-        'now 30 days away.',
+      'Your {{tax_type}} is due {{due_date}} — 30 days from now.',
       '',
-      'We are reviewing the file and will follow up through the secure client portal if any ' +
-        'documents, signatures, or payment information are needed. Please watch for those ' +
-        'requests so we can keep the filing on schedule.',
+      "We're reviewing your file. If we need documents, signatures, or payment " +
+        "information, we'll send a secure request through the client portal — " +
+        'please watch for it so we can keep the filing on schedule.',
       '',
       'Thank you,',
       'Your tax team',
@@ -83,14 +82,14 @@ export const DEFAULT_REMINDER_TEMPLATES: readonly TemplateDefault[] = [
     templateKey: CLIENT_7_DAY_TEMPLATE_KEY,
     kind: 'client_deadline_reminder',
     name: '7-day client deadline countdown email',
-    subject: '{{client_name}}: {{tax_type}} deadline in 7 days',
+    subject: '{{client_name}}: {{tax_type}} due in 7 days',
     bodyText: [
       'Hello {{client_name}},',
       '',
-      'This is a reminder that your {{tax_type}} deadline is 7 days away on {{due_date}}.',
+      'Your {{tax_type}} is due in 7 days, on {{due_date}}.',
       '',
-      'If you have received a secure materials request from our office, please complete it as ' +
-        'soon as practical so our team can finish review and filing steps before the deadline.',
+      'Complete any outstanding requests from our office now so we can finish ' +
+        'review and file on time.',
       '',
       'Thank you,',
       'Your tax team',
@@ -108,20 +107,20 @@ export const DEFAULT_REMINDER_TEMPLATES: readonly TemplateDefault[] = [
     bodyText: [
       'Hello {{client_name}},',
       '',
-      'Our office is preparing your {{tax_type}} work for the {{due_date}} deadline. Please use ' +
-        'the secure link below to review the materials checklist and upload or confirm the ' +
-        'items still outstanding:',
+      "We're preparing your {{tax_type}} work for the {{due_date}} deadline. Use the " +
+        'secure link below to review the checklist and upload or confirm the ' +
+        'outstanding items:',
       '',
       '{{request_url}}',
       '',
       'Outstanding items:',
       '{{outstanding_checklist}}',
       '',
-      'Items we have already received:',
+      'Already received:',
       '{{received_checklist}}',
       '',
-      'If an item is not available yet, please note that in the portal so our team can plan ' +
-        'the next step. We will review your responses and follow up if we need clarification.',
+      "If an item isn't available yet, note that in the portal so we can plan around " +
+        "it. We'll follow up if anything needs clarification.",
       '',
       'Thank you,',
       'Your tax team',

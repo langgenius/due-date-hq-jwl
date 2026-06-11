@@ -43,14 +43,14 @@ export type SignatureReminderToken = (typeof SIGNATURE_REMINDER_TOKENS)[number]
 export const SIGNATURE_REMINDER_THROTTLE_DAYS = 3
 
 export const SIGNATURE_REMINDER_SUBJECT_TEMPLATE =
-  'Reminder: please sign Form 8879 for your {{tax_year}} {{form}} return'
+  'Signature needed: Form 8879 for your {{tax_year}} {{form}} return'
 
 export const SIGNATURE_REMINDER_BODY_TEMPLATE = [
   'Hi {{client_name}},',
   '',
-  "This is a friendly reminder to sign Form 8879 (the e-file authorization) for your {{tax_year}} {{form}} return. We can't electronically file your return until we have your signed authorization.",
+  "Your {{tax_year}} {{form}} return needs your signature on Form 8879 (the e-file authorization). We can't file electronically until we have it.",
   '',
-  "If you've already signed, thank you — no further action is needed. Otherwise, please sign at your earliest convenience so we can file on time.",
+  "If you've already signed, thank you — no further action is needed. Otherwise, sign at your earliest convenience so we can file on time.",
   '',
   'Thank you.',
 ].join('\n')

@@ -246,7 +246,7 @@ async function buildDigestPayload(
     .limit(5)
 
   const lines = [
-    `DueDateHQ morning digest for ${recipient.firmName} (${localDate})`,
+    `${recipient.firmName} — deadline digest (${localDate})`,
     '',
     urgent.length > 0 ? 'Urgent deadlines' : 'Urgent deadlines: none',
     ...urgent.map((row) => {
@@ -254,7 +254,7 @@ async function buildDigestPayload(
       return `- ${row.clientName}: ${row.taxType} due ${dueDate} (${env.APP_URL}/obligations?obligation=${row.obligationId})`
     }),
     '',
-    pulseRows.length > 0 ? 'Pulse changes waiting for review' : 'Pulse changes: none',
+    pulseRows.length > 0 ? 'Alerts waiting for review' : 'Alerts: none',
     ...pulseRows.map(
       (row) =>
         `- ${row.summary} (${row.matchedCount} matched, ${row.needsReviewCount} need review) ${env.APP_URL}/alerts?alert=${row.alertId}`,
@@ -276,7 +276,7 @@ async function buildDigestPayload(
   ]
 
   return {
-    subject: `DueDateHQ morning digest - ${localDate}`,
+    subject: `Deadline digest — ${localDate}`,
     text: lines.join('\n'),
     urgentCount: urgent.length,
     pulseCount: pulseRows.length,

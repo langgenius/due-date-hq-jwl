@@ -69,12 +69,12 @@ describe('renderReminderTemplate', () => {
         expect.objectContaining({
           templateKey: 'client-deadline-30-day-reminder',
           name: '30-day client deadline countdown email',
-          subject: '{{client_name}}: {{tax_type}} deadline in 30 days',
+          subject: '{{client_name}}: {{tax_type}} due in 30 days',
         }),
         expect.objectContaining({
           templateKey: 'client-deadline-7-day-reminder',
           name: '7-day client deadline countdown email',
-          subject: '{{client_name}}: {{tax_type}} deadline in 7 days',
+          subject: '{{client_name}}: {{tax_type}} due in 7 days',
         }),
       ]),
     )
