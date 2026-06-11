@@ -377,7 +377,11 @@ async function wait(ms: number): Promise<void> {
 }
 
 function isNetworkProbeError(reason: string): boolean {
-  return /SSL_ERROR_SYSCALL|Connection timed out|Could not resolve host|Failed to connect|Operation timed out|Recv failure|Empty reply from server/i.test(
+  // "SSL certificate problem" = curl exit 60: the host serves an incomplete
+  // cert chain that the probe environment's openssl trust store can't build
+  // (e.g. dor.ms.gov on GitHub runners), while Workers fetch — the environment
+  // that matters — accepts it. Probe limitation, not a dead source.
+  return /SSL_ERROR_SYSCALL|SSL certificate problem|TLS connect error|Connection timed out|Could not resolve host|Failed to connect|Operation timed out|Recv failure|Empty reply from server/i.test(
     reason,
   )
 }
