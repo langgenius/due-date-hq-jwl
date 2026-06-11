@@ -872,21 +872,26 @@ export function ClientDetailWorkspace({
                 />
                 <CreateObligationDialog
                   defaultClientId={client.id}
-                  {...(panelOpen
-                    ? {
-                        trigger: (
-                          <Button
-                            type="button"
-                            size="icon-sm"
-                            variant="default"
-                            aria-label={t`Add deadline`}
-                            title={t`Add deadline`}
-                          >
-                            <PlusIcon className="size-4" aria-hidden />
-                          </Button>
-                        ),
-                      }
-                    : {})}
+                  trigger={
+                    panelOpen ? (
+                      <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="default"
+                        aria-label={t`Add deadline`}
+                        title={t`Add deadline`}
+                      >
+                        <PlusIcon className="size-4" aria-hidden />
+                      </Button>
+                    ) : (
+                      // Primary CTA — filled (solid background), not the faint
+                      // outline default trigger that read as a bare link.
+                      <Button type="button" size="sm" variant="default">
+                        <PlusIcon data-icon="inline-start" />
+                        <Trans>Add deadline</Trans>
+                      </Button>
+                    )
+                  }
                 />
               </>
             }
@@ -1869,9 +1874,7 @@ function HistoryCard({
             {sub}
           </span>
         ) : null}
-        {actions ? (
-          <div className="ml-auto flex shrink-0 items-center gap-2">{actions}</div>
-        ) : null}
+        {actions ? <div className="ml-auto flex shrink-0 items-center gap-2">{actions}</div> : null}
       </div>
       <div className={bodyClassName ?? 'px-4 py-4'}>{children}</div>
       {footer ? (
