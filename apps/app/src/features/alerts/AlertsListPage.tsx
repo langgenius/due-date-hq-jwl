@@ -683,19 +683,26 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
             list. The card list stays mounted-but-hidden so its filter and
             scroll state survive closing the detail. */}
         {panelOpen ? (
-          <AlertListRail
-            alerts={sortedAlerts}
-            activeId={openAlertId}
-            onSelect={openDrawer}
-            onCloseDetail={closeDrawer}
-            {...(!historyMode
-              ? {
-                  workQueue,
-                  onWorkQueueChange: setWorkQueue,
-                  workQueueCounts,
-                }
-              : {})}
-          />
+          // Below lg (1024) the split DISSOLVES: the rail hides and the
+          // detail takes the full width — drill-in navigation, with the
+          // panel's "Alerts /" breadcrumb as the way back (alerts
+          // responsive contract; at 1024 the rigid 380px rail squeezed
+          // the detail to 562px, at 768 to an unusable 306px).
+          <div className="hidden h-full shrink-0 lg:block">
+            <AlertListRail
+              alerts={sortedAlerts}
+              activeId={openAlertId}
+              onSelect={openDrawer}
+              onCloseDetail={closeDrawer}
+              {...(!historyMode
+                ? {
+                    workQueue,
+                    onWorkQueueChange: setWorkQueue,
+                    workQueueCounts,
+                  }
+                : {})}
+            />
+          </div>
         ) : null}
         {/* List column vertical rhythm: `gap-2` (8px) between filter row
             → status chips → cards list. A 12px gap created three visually
@@ -1041,8 +1048,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
               <MorningSweepPanel />
 
               {viewMode === 'map' ? (
-                <div className="flex min-h-0 flex-1 gap-6">
-                  {/* LEFT: map grid in gray-50 panel */}
+                // Below xl (1280) the side-by-side map ‖ 460px list stacks
+                // vertically — the fixed rail left the map ~500px at 1024
+                // (alerts responsive contract). Map on top, compact list
+                // below.
+                <div className="flex min-h-0 flex-1 flex-col gap-6 xl:flex-row">
+                  {/* TOP/LEFT: map grid in gray-50 panel */}
                   <div className="flex flex-1 flex-col overflow-hidden rounded-xl bg-background-section p-6">
                     <PulseAlertsMap
                       alerts={alerts}
@@ -1050,8 +1061,8 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       onSelect={(j) => setJurisdictionFilter(j)}
                     />
                   </div>
-                  {/* RIGHT: active alerts panel (compact rows) */}
-                  <div className="flex w-[460px] shrink-0 flex-col gap-2 overflow-y-auto">
+                  {/* BOTTOM/RIGHT: active alerts panel (compact rows) */}
+                  <div className="flex w-full shrink-0 flex-col gap-2 overflow-y-auto xl:w-[460px]">
                     <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
                       <span className="text-xs font-bold tracking-eyebrow text-text-muted uppercase">
                         <Trans>Active alerts</Trans>

@@ -1200,7 +1200,7 @@ export function AlertDetailDrawer({
           on the same white surface as the title. */}
       <SheetHeader
         className={cn(
-          'bg-background-default px-12 transition-all [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+          'bg-background-default px-6 transition-all xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
           headerCollapsed ? 'pt-4 pb-4' : 'pt-10 pb-6',
         )}
       >
@@ -1327,7 +1327,7 @@ export function AlertDetailDrawer({
           const next = event.currentTarget.scrollTop > 16
           setHeaderCollapsed((prev) => (prev === next ? prev : next))
         }}
-        className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto bg-background-subtle px-12 pt-6 pb-24 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]"
+        className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto bg-background-subtle px-6 pt-6 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]"
       >
         {/* Body order leads with the decision banner + key change + facts
             + affected clients, and keeps the verbatim SOURCE EXTRACT quote
@@ -1793,7 +1793,7 @@ export function AlertDetailDrawer({
           what squeezed Mark-reviewed into overlapping Dismiss. `py-4`
           (was py-3) gives the action row the extra bottom breathing room
           Yuqi asked for. */}
-      <SheetFooter className="min-h-16 flex-row items-center gap-6 border-t border-divider-subtle bg-background-default px-12 py-4 sm:flex-row">
+      <SheetFooter className="min-h-16 flex-row items-center gap-6 border-t border-divider-subtle bg-background-default px-6 py-4 sm:flex-row xl:px-12">
         {/* The footer chrome spans full width; its actions cap to the
             760px `mx-auto` document measure so the action row sits
             centered under the same column the header + body share. */}

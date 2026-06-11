@@ -57,7 +57,7 @@ export function DetailStatusBanner({
       // toggle's height, not a shorter stripe).
       <div
         className={cn(
-          'flex h-[52px] w-full items-center gap-2.5 border-b border-divider-subtle px-12',
+          'flex h-[52px] w-full items-center gap-2.5 border-b border-divider-subtle px-6 xl:px-12',
           c.band,
         )}
       >
@@ -78,7 +78,7 @@ export function DetailStatusBanner({
   return (
     <div
       className={cn(
-        'flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle px-12 py-3',
+        'flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle px-6 py-3 xl:px-12',
         c.band,
       )}
     >

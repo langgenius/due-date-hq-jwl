@@ -351,7 +351,10 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           so a second framed box read as a nested frame. The cell hairlines
           (gap-px over the divider bg) remain to delineate the matrix; the
           card chrome above is the only outer frame. */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden bg-divider-subtle sm:grid-cols-4">
+      {/* 4-col only ≥xl — below 1280 the detail pane runs 560–820px wide
+          (rail + sidebar take the rest), where 4 columns crushed each cell
+          to ~116px (alerts responsive contract). */}
+      <div className="grid grid-cols-2 gap-px overflow-hidden bg-divider-subtle xl:grid-cols-4">
         {cells.map((cell) => (
           // Fact cell: padding [10,20] (px-5 py-3), 11/600 uppercase
           // tertiary label over a 13/medium primary value. The grid's
