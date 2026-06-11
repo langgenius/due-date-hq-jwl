@@ -94,11 +94,15 @@ export function ChecklistItemRow({
   return (
     <div
       className={cn(
+        // Every row is a legible white card on the gray content wash; the green
+        // "Received" badge (not a washed-out gray fill) marks done items —
+        // received rows previously used bg-subtle and read as disabled (Yuqi).
         'group/checklist-item rounded-lg border bg-background-default p-3 transition-colors',
         selected
           ? 'border-accent-default ring-2 ring-accent-default/20'
           : 'border-divider-subtle hover:border-divider-regular',
-        received && !selected && 'bg-background-subtle',
+        // Only a genuinely non-selectable (already-received during a batch
+        // selection) row dims — that's a real disabled state, not "done".
         selectionDisabled && 'border-divider-regular bg-background-subtle opacity-60',
       )}
     >
