@@ -65,9 +65,15 @@ weight is exactly the "feels cheap" tier of inconsistency users sense but
 can't name. At the common size-3/3.5 render sizes, 1.5 also drops below
 1px effective stroke on 1x displays and renders fuzzy.
 
-Exception: hand-drawn inline `<svg>` glyphs (e.g. the ACTION elbow in
-`PulseAlertRow`) own their stroke as part of the drawing — they are not
-lucide icons and don't follow this rule.
+Two exceptions:
+
+1. **Hand-drawn inline `<svg>` glyphs** (the ACTION elbow in
+   `PulseAlertRow`, the +/−/✓ marks in `destructive-change-preview`) own
+   their stroke as part of the drawing — they are not lucide icons.
+2. **Display-size decorative icons** (`size-6`+, e.g. empty-state heroes
+   like the /today Megaphone disc) may thin to 1.5–1.75 for optical
+   balance — lucide stroke scales with render size, so default 2 reads
+   heavy past 24px. UI-size icons (size-3 → size-5) never deviate.
 
 ## Common icon-to-text rules
 

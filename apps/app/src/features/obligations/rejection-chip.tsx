@@ -41,7 +41,9 @@ function RejectionChip({ compact = false }: { compact?: boolean }) {
         aria-label={t`Rejected`}
         className="inline-flex size-4 shrink-0 items-center justify-center text-text-destructive"
       >
-        <XIcon className="size-4" aria-hidden strokeWidth={2.5} />
+        {/* Default stroke (icon-sizing.md: one lucide stroke) — the
+            destructive color carries the prominence, not a bolder X. */}
+        <XIcon className="size-4" aria-hidden />
       </span>
     )
   }
