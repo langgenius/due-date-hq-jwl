@@ -168,7 +168,7 @@ describe('AcceptInviteRoute email OTP', () => {
     changeInput(codeInput, '123456')
     clickButton('Verify code')
 
-    await waitForText('owner@example.com invited you to Bright CPA.')
+    await waitForText('owner@example.com invited you to Bright CPA')
     expect(authMocks.signInWithEmailCode).toHaveBeenCalledWith({
       email: 'alex@example.com',
       otp: '123456',

@@ -70,14 +70,16 @@ test.describe('seeded obligations', () => {
 
     await obligationQueuePage.clearSearch()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
-    // 2026-06-10 (queue toolbar redesign): the scope-tab bar consolidated
-    // into the "All Status" dropdown pill — pick "In review" from its menu;
-    // the trigger re-labels to the active scope.
+    // 2026-06-11 (queue toolbar): the status scope is a segmented control —
+    // click the "In review" pill; it becomes the active (data-active) scope.
     await obligationQueuePage.selectStatusScope('In review')
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?status=review$/)
     await expect(obligationQueuePage.rowFor('Northstar Dental Group')).toBeVisible()
     await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeHidden()
-    await expect(obligationQueuePage.statusFilterButton).toContainText('In review')
+    await expect(obligationQueuePage.statusScopeButton('In review')).toHaveAttribute(
+      'data-active',
+      'true',
+    )
 
     await obligationQueuePage.goto()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)

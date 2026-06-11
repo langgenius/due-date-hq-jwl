@@ -116,9 +116,10 @@ test.describe('seeded client facts', () => {
       authenticatedPage.getByRole('button', { name: 'View open filings for this client' }),
     ).toContainText(/Open\s*1/i)
     // IA redesign renamed the three detail tabs (URL keys unchanged):
-    //   work → "Filing plan", info → "Setup", activity → "History"
+    //   work → "Filings" tab (its section header is still "Filing plan"),
+    //   info → "Setup", activity → "History"
     // (apps/app/src/features/clients/ClientDetailWorkspace.tsx).
-    await authenticatedPage.getByRole('tab', { name: 'Filing plan' }).click()
+    await authenticatedPage.getByRole('tab', { name: 'Filings' }).click()
     await expect(clientsPage.detailSection('Filing plan')).toBeVisible()
     await authenticatedPage.getByRole('tab', { name: 'Setup' }).click()
     await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()

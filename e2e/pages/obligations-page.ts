@@ -9,7 +9,6 @@ export class ObligationQueuePage {
   // still exists and is reachable via ⌘K → "Calendar sync".
   readonly calendarSyncButton: Locator
   readonly viewMenuButton: Locator
-  readonly statusFilterButton: Locator
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Deadlines' })
@@ -36,12 +35,14 @@ export class ObligationQueuePage {
     // folded into a single "View" dropdown (aria-label "View, columns, and
     // actions") whose Columns SUBMENU carries the visibility checklist.
     this.viewMenuButton = page.getByRole('button', { name: 'View, columns, and actions' })
-    // Status filter — single dropdown pill replacing the scope-tab bar. The
-    // trigger's visible text is the active scope label + facet count
-    // ("All Status 4" → "In review 1" once filtered).
-    this.statusFilterButton = page.getByRole('button', {
-      name: /^(?:All Status|Not started|Waiting on client|Blocked|In review|Filed|Completed)\s*\d*$/,
-    })
+  }
+
+  // 2026-06-11 (queue toolbar): the status filter is a segmented control — one
+  // pill button per present status ("All N", "In review N", …), each writing the
+  // `status` URL param and carrying `data-active` when selected. There is no
+  // dropdown trigger anymore. Match a scope by its leading label.
+  statusScopeButton(name: string) {
+    return this.page.getByRole('button', { name: new RegExp(`^${escapeRegex(name)}`) })
   }
 
   async goto(path = '/deadlines') {
@@ -59,14 +60,10 @@ export class ObligationQueuePage {
     await this.searchInput.fill('')
   }
 
-  // 2026-06-10 (queue toolbar redesign): the scope-tab bar consolidated into
-  // the "All Status" dropdown — pick a status via its menuitemradio. The
-  // trigger re-labels to the active scope (see `statusFilterButton`).
+  // 2026-06-11 (queue toolbar): pick a status by clicking its segmented-control
+  // pill directly (no dropdown). The clicked pill becomes `data-active`.
   async selectStatusScope(name: string) {
-    await this.statusFilterButton.click()
-    await this.page
-      .getByRole('menuitemradio', { name: new RegExp(`^${escapeRegex(name)}\\b`) })
-      .click()
+    await this.statusScopeButton(name).click()
   }
 
   // Opens View ▸ Columns so callers can toggle `columnVisibilityOption`s.

@@ -78,7 +78,7 @@ test.describe('seeded Pulse alerts', () => {
 
     // The Alerts page is `/alerts` now (previously `/rules/pulse`, `/rules?tab=pulse`).
     await appShellPage.goto('/alerts')
-    await selectActiveAlertQueue(authenticatedPage)
+    await revealSeededAlert(authenticatedPage)
     const appliedAlert = authenticatedPage.getByRole('button', {
       name: /Alert: IRS CA storm relief/,
     })
@@ -115,7 +115,7 @@ test.describe('seeded Pulse alerts', () => {
   }) => {
     await seedBillingSubscription(request, { firmId: authSession.firmId, plan: 'team' })
     await appShellPage.goto('/alerts')
-    await selectActiveAlertQueue(authenticatedPage)
+    await revealSeededAlert(authenticatedPage)
 
     await expect(authenticatedPage.getByRole('button', { name: 'Priority Queue' })).toHaveCount(0)
     await expect(authenticatedPage.getByRole('button', { name: 'All Pulse' })).toHaveCount(0)
@@ -240,13 +240,20 @@ function pulseListAlertButton(page: Page) {
   })
 }
 
-// The alerts list defaults to the "Review" queue (review-only alerts); the
-// seeded deadline-shift alerts (isActiveAlert) live under the "Active" toggle.
-// Switch to it when present so list lookups resolve regardless of the default.
-async function selectActiveAlertQueue(page: Page) {
-  const activeToggle = page.getByRole('button', { name: /^Active/ })
-  if (await activeToggle.isVisible().catch(() => false)) {
-    await activeToggle.click()
+// The alerts list splits into "Review" and "Active" work queues (a Segmented
+// control labelled "Alert work queue") and defaults to one of them; the seeded
+// alert can sit under either. Reveal it by trying each queue toggle — scoped to
+// the group so the match is unambiguous — until the alert button shows.
+async function revealSeededAlert(page: Page) {
+  const alert = pulseListAlertButton(page)
+  if (await alert.isVisible().catch(() => false)) return
+  const queue = page.getByRole('group', { name: 'Alert work queue' })
+  for (const label of [/^Active/, /^Review/]) {
+    const toggle = queue.getByRole('button', { name: label })
+    if ((await toggle.count()) > 0) {
+      await toggle.click()
+      if (await alert.isVisible().catch(() => false)) return
+    }
   }
 }
 
@@ -258,7 +265,7 @@ async function openDashboardPulseAlert(page: Page) {
   }
 
   await page.goto('/alerts')
-  await selectActiveAlertQueue(page)
+  await revealSeededAlert(page)
   await expect(pulseListAlertButton(page)).toBeVisible()
   await pulseListAlertButton(page).click()
 }

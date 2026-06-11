@@ -664,7 +664,7 @@ describe('AlertsListPage morning sweep override', () => {
     // The sweep counts as an active filter, so Reset renders.
     expect(
       Array.from(document.querySelectorAll('button')).some(
-        (candidate) => candidate.textContent?.trim() === 'Reset',
+        (candidate) => candidate.textContent?.trim() === 'Clear filters',
       ),
     ).toBe(true)
   })
@@ -693,7 +693,7 @@ describe('AlertsListPage morning sweep override', () => {
     await waitForText('Morning sweep · last 24h')
 
     const reset = Array.from(document.querySelectorAll('button')).find(
-      (candidate) => candidate.textContent?.trim() === 'Reset',
+      (candidate) => candidate.textContent?.trim() === 'Clear filters',
     )
     expect(reset).toBeTruthy()
     await act(async () => {

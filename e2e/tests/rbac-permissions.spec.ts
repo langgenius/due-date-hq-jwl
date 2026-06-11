@@ -127,11 +127,19 @@ async function openPulseAlert(page: Page) {
   }
 
   await page.goto('/alerts')
-  // The alerts list defaults to the "Review" queue; the seeded active alerts
-  // live under the "Active" toggle, so switch to it before opening one.
-  const activeToggle = page.getByRole('button', { name: /^Active/ })
-  if (await activeToggle.isVisible().catch(() => false)) {
-    await activeToggle.click()
+  // The alerts list splits into "Review" and "Active" work queues (the
+  // "Alert work queue" Segmented control) and defaults to one; the seeded alert
+  // can sit under either. Try each toggle until the alert button shows.
+  const alert = pulseListAlertButton(page)
+  if (!(await alert.isVisible().catch(() => false))) {
+    const queue = page.getByRole('group', { name: 'Alert work queue' })
+    for (const label of [/^Active/, /^Review/]) {
+      const toggle = queue.getByRole('button', { name: label })
+      if ((await toggle.count()) > 0) {
+        await toggle.click()
+        if (await alert.isVisible().catch(() => false)) break
+      }
+    }
   }
   await expect(pulseListAlertButton(page)).toBeVisible()
   await pulseListAlertButton(page).click()

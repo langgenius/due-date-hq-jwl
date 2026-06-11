@@ -94,7 +94,7 @@ afterEach(() => {
 })
 
 describe('ClientCompliancePosturePanel', () => {
-  it('renders client identity facts without static filing activity tags', () => {
+  it('renders client identity facts and the tax attributes section', () => {
     renderPanel({ client: client() })
 
     expect(document.body.textContent).toContain('Federal EIN')
@@ -106,11 +106,16 @@ describe('ClientCompliancePosturePanel', () => {
     expect(document.body.textContent).toContain('Client since')
     expect(document.body.textContent).toContain('Apr 2026')
 
+    // 2026-06-11: the panel now surfaces a "Tax attributes" section with chips
+    // for the activity types that drive deadline generation (re-added in the
+    // redesign — ClientCompliancePosturePanel.tsx). The old combined "Activity
+    // that adds deadlines" heading is gone, but the individual tags are shown.
     expect(document.body.textContent).not.toContain('Activity that adds deadlines')
-    expect(document.body.textContent).not.toContain('Foreign accounts')
-    expect(document.body.textContent).not.toContain('Payroll')
-    expect(document.body.textContent).not.toContain('1099 vendors')
-    expect(document.body.textContent).not.toContain('K-1 activity')
+    expect(document.body.textContent).toContain('Tax attributes')
+    expect(document.body.textContent).toContain('Foreign accounts')
+    expect(document.body.textContent).toContain('Payroll')
+    expect(document.body.textContent).toContain('1099 vendors')
+    expect(document.body.textContent).toContain('K-1 activity')
   })
 
   it('keeps late-filing risk visible as a scan-only footer', () => {

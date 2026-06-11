@@ -67,6 +67,8 @@ test.describe('two-factor challenge', () => {
     await authenticatedPage.goto('/two-factor')
 
     await expect(authenticatedPage.getByText(/Check your phone|查看你的手机/)).toBeVisible()
-    await expect(authenticatedPage.getByLabel(/Verification code|验证码/)).toBeVisible()
+    // The code field is a six-box OtpInput; each box is a textbox labelled
+    // "Digit N" (apps/app/src/features/auth/otp-input.tsx).
+    await expect(authenticatedPage.getByRole('textbox', { name: 'Digit 1' })).toBeVisible()
   })
 })
