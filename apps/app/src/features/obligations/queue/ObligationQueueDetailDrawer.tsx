@@ -2217,7 +2217,8 @@ export function ObligationQueueDetailDrawer({
             // top padding is dropped so the tab bar sits tight under the date
             // strip above. The sticky tab bar's own pt-3/pb-3 carries the
             // breathing room now.
-            isPageMode && 'bg-background-subtle [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+            isPageMode &&
+              'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
           )}
           onScroll={
             isPageMode
