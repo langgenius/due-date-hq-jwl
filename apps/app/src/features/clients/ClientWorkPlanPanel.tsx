@@ -593,7 +593,7 @@ function FilingPlanYearSection({
           bulk bar. */}
       {/* Column header (Pencil VtC73) — grid must match DeadlineRow's
           inline-expand layout exactly so the columns line up. */}
-      <div className="grid grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px] items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2 text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+      <div className="grid grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px] items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
         <span>
           <Trans>Deadline</Trans>
         </span>

@@ -689,7 +689,7 @@ const sidebarMenuButtonVariants = cva(
     // 16px. Identical in both modes — collapsed re-centering is
     // gone (see below).
     // 2026-06-10 (Yuqi "set to 15px" — sidebar is the product's sole 15px
-    // text size): nav label text-[16px] → text-nav.
+    // text size): nav label 16px → text-nav.
     // 2026-06-10 (Yuqi "delicacy" — tactile press): the row dips to 98% on
     // press (active:scale) for a crafted, responsive feel. transform is added
     // to the transition list (duration-150) so the dip + the icon hover-nudge

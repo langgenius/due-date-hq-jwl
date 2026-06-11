@@ -40,7 +40,7 @@ export function OnboardingSkipModal({
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-background-subtle text-text-secondary">
             <SkipForwardIcon className="size-4" aria-hidden />
           </span>
-          <DialogTitle className="text-[17px] font-semibold text-text-primary">
+          <DialogTitle className="text-xl font-semibold text-text-primary">
             <Trans>Skip importing for now?</Trans>
           </DialogTitle>
         </DialogHeader>

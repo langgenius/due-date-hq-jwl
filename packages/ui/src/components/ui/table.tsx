@@ -15,7 +15,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 //     bg-background-default + overflow-hidden
 //   • TableHeader bg: bg-background-section (gray-50, quiet
 //     inset); 1px bottom border-divider-subtle
-//   • TableHead: text-xs font-semibold tracking-[0.5px]
+//   • TableHead: text-xs font-semibold tracking-eyebrow-tight
 //     uppercase text-text-tertiary; px-5 py-3
 //   • TableRow body: border-b border-divider-subtle; zebra
 //     stripe on even rows (bg-background-section/40); hover

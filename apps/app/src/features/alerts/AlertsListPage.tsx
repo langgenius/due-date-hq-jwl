@@ -1053,7 +1053,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   {/* RIGHT: active alerts panel (compact rows) */}
                   <div className="flex w-[460px] shrink-0 flex-col gap-2 overflow-y-auto">
                     <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
-                      <span className="text-xs font-bold tracking-[0.8px] text-text-muted uppercase">
+                      <span className="text-xs font-bold tracking-eyebrow text-text-muted uppercase">
                         <Trans>Active alerts</Trans>
                         <span className="ml-2 tabular-nums">{sortedAlerts.length}</span>
                       </span>
@@ -1609,7 +1609,7 @@ function FilterPillSection<T extends string>({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+      <span className="text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
         {label}
       </span>
       <div className="flex flex-wrap gap-1">
@@ -1730,7 +1730,7 @@ function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {
       </span>
 
       {/* Header band — mirrors the day-group divider tokens */}
-      <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-5 py-2 text-sm font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+      <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-5 py-2 text-sm font-semibold tracking-eyebrow-tight text-text-tertiary uppercase">
         <span className="inline-flex items-center gap-1.5">
           <PulsingDot tone="warning" active />
           <Trans>Checking {label}…</Trans>

@@ -1251,7 +1251,7 @@ export function AlertDetailDrawer({
                       code + full name, identical to the deadline detail
                       header. */}
                   <JurisdictionLabel code={detail.alert.jurisdiction} />
-                  <span className="inline-flex h-[22px] shrink-0 items-center rounded bg-state-accent-hover px-2 font-mono text-xs font-bold tracking-[0.7px] text-text-accent uppercase">
+                  <span className="inline-flex h-[22px] shrink-0 items-center rounded bg-state-accent-hover px-2 font-mono text-xs font-bold tracking-eyebrow text-text-accent uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
                   <span className="ml-auto flex shrink-0 items-center gap-2 text-sm text-text-tertiary">
@@ -1293,7 +1293,7 @@ export function AlertDetailDrawer({
                     // the facts below the fold); the title attr carries
                     // the full text on hover.
                     'font-semibold leading-[1.3] tracking-[-0.4px] text-text-primary transition-all duration-200',
-                    headerCollapsed ? 'line-clamp-1 text-[16px]' : 'line-clamp-3 text-[22px]',
+                    headerCollapsed ? 'line-clamp-1 text-item-title' : 'line-clamp-3 text-surface-title',
                   )}
                   title={detail.alert.title}
                 >

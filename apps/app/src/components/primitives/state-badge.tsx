@@ -394,7 +394,7 @@ export function JurisdictionLabel({ code, className }: { code: string; className
       )}
     >
       <StateBadge code={code} size="xs" style={{ width: 16, height: 16 }} />
-      <span className="font-mono text-sm font-bold tracking-[0.7px] uppercase">{code}</span>
+      <span className="font-mono text-sm font-bold tracking-eyebrow uppercase">{code}</span>
       <span className="text-base font-medium">{getJurisdictionName(code)}</span>
     </span>
   )

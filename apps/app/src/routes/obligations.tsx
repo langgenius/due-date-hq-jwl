@@ -4660,13 +4660,13 @@ export function ObligationQueueRoute() {
                                       />
                                       {/* Band label conforms to the canonical
                                           eyebrow shared by /today + /alerts —
-                                          11px/600/uppercase/tracking-[0.5px]/
+                                          11px/600/uppercase/tracking-eyebrow-tight/
                                           tertiary. The leading tone dot + count
                                           still carry urgency. */}
                                       <span className="text-column-label text-text-tertiary uppercase">
                                         {groupHeader.label}
                                       </span>
-                                      <span className="text-xs tracking-[0.5px] text-text-tertiary uppercase tabular-nums">
+                                      <span className="text-xs tracking-eyebrow-tight text-text-tertiary uppercase tabular-nums">
                                         <Plural
                                           value={groupHeader.count}
                                           one="# deadline"
@@ -12884,7 +12884,7 @@ function ObligationFiltersPopover({
               {/* Due window — single-select. Past due / Due this week share the
                   date axis, so picking one clears the other. */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+                <span className="text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
                   <Trans>Due window</Trans>
                 </span>
                 <div className="flex flex-wrap gap-1">
@@ -12923,7 +12923,7 @@ function ObligationFiltersPopover({
 
               {/* Needs evidence + Awaiting signature — orthogonal toggles. */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+                <span className="text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
                   <Trans>Triage</Trans>
                 </span>
                 <div className="flex flex-wrap gap-1">
@@ -12955,7 +12955,7 @@ function ObligationFiltersPopover({
           ) : (
             // Saved views — preset shortcuts that stage the same facet params.
             <div className="flex flex-col gap-1 p-3">
-              <span className="px-1 pb-1 text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+              <span className="px-1 pb-1 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
                 <Trans>Presets</Trans>
               </span>
               {presets.map((preset) => (

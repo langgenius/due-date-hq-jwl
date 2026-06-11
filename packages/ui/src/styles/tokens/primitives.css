@@ -107,6 +107,17 @@
   --text-chip-label--line-height: 15px;
   --text-chip-label--font-weight: 500;
   --text-chip-label--letter-spacing: 0.4px;
+  /* 2026-06-11 (display-ramp consolidation): two named steps close the
+     20-30px no-man's-land. surface-title = the expanded title of a major
+     surface (detail-drawer condense-morph expanded end, prominent EmptyState
+     heading). stat-value = the compact KPI numeral (StatBand sm variant);
+     numeral heroes above it snap to 2xl(28)/section-title(32). The ramp is
+     now 18 xl · 22 surface-title · 24 stat-value · 28 2xl · 32 section-title
+     · 36 display-large — anything else is a violation, not a new step. */
+  --text-surface-title: 22px;
+  --text-surface-title--line-height: 28px;
+  --text-stat-value: 24px;
+  --text-stat-value--line-height: 1;
   --text-section-title: 32px;
   --text-section-title--line-height: 1.1875;
   --text-display-large: 36px;

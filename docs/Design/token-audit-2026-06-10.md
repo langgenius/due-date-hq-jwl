@@ -100,3 +100,26 @@ inside drawer condense-morphs + migration wizard).
 - 27 arbitrary leadings (mostly titles, allowed by doctrine) + 115 arbitrary
   trackings — next sweep candidate: consolidate the eyebrow-family trackings
   (0.5/0.6/0.7/0.8px) onto --tracking-eyebrow(-tight).
+
+## 2026-06-11 PM — display ramp consolidated + eyebrow tracking merged
+
+**Display ramp (the backlog from the morning sweep) — closed.** Two new
+steps: `--text-surface-title` 22/28 (detail-drawer condense-morph expanded
+end ×2, prominent EmptyState heading) and `--text-stat-value` 24/1 (StatBand
+compact numeral). Everything else SNAPPED to existing steps: drawer-morph
+collapsed 16 → text-item-title; numeral heroes 26 (migration ×2) + 30
+(readiness panel) → text-2xl; rules.library "Recent changes" 20/-0.015em →
+text-region-title (it IS a region anchor — size and tracking both fold into
+the token); PulseFormRevisedCard muted "Open" 20 → text-xl; skip-modal 17 →
+text-xl. The canonical ramp: 18 xl · 22 surface-title · 24 stat-value ·
+28 2xl · 32 section-title · 36 display-large.
+
+**Eyebrow tracking merged.** The 4 near-values (0.5/0.6/0.7/0.8px, 35 sites)
+folded onto the em-based tokens: 0.5/0.6 → `--tracking-eyebrow-tight`
+(0.06em), 0.7/0.8 → `--tracking-eyebrow` (0.08em). Sub-pixel deltas only;
+em-based now scales with size. (--text-column-label/--text-chip-label carry
+their own letter-spacing internally — untouched.)
+
+**Guard: the net is now closed.** Flags ALL text-[9–32px] outside the auth
+exemption; baseline shrank to ZERO grandfathered signatures. 33+ display
+sizes (display-large/hero) and the documented auth scale remain outside.

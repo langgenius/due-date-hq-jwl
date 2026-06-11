@@ -821,7 +821,7 @@ function OverviewRecentChangesCard({
     <div className="flex shrink-0 flex-col gap-5">
       <div className="flex items-center gap-3">
         <div className="flex min-w-0 flex-col gap-1">
-          <span className="text-[20px] leading-tight font-semibold tracking-[-0.015em] text-text-primary">
+          <span className="text-region-title text-text-primary">
             <Trans>Recent changes</Trans>
           </span>
           <span className="text-sm font-medium text-text-tertiary">

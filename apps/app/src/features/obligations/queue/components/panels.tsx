@@ -682,7 +682,7 @@ export function DeadlineTile({
         className={cn(
           'text-xs leading-tight font-semibold uppercase tracking-wide',
           labelToneClass,
-          primary && 'tracking-[0.6px]',
+          primary && 'tracking-eyebrow-tight',
         )}
       >
         {label}
@@ -2202,7 +2202,7 @@ export function ActiveStageDetailCard({
               // sentence — the bare "Resumed from blocked…" line gave no cue
               // about WHAT the box was, only the date.
               <div className="flex flex-col gap-0.5 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2 leading-snug">
-                <p className="text-caption-xs font-bold uppercase tracking-[0.8px] text-text-tertiary">
+                <p className="text-caption-xs font-bold uppercase tracking-eyebrow text-text-tertiary">
                   <Trans>Auto-unblocked</Trans>
                 </p>
                 <p className="text-xs text-text-secondary">
@@ -2247,7 +2247,7 @@ export function ActiveStageDetailCard({
             )}
           </p>
           <div className="flex items-end gap-2.5">
-            <span className="font-mono text-[30px] leading-none font-bold tracking-[-0.6px] text-text-primary tabular-nums">
+            <span className="font-mono text-2xl leading-none font-bold tracking-[-0.6px] text-text-primary tabular-nums">
               {readinessCounts.received}
             </span>
             <span className="text-xs leading-tight font-medium text-text-tertiary">
@@ -2316,7 +2316,7 @@ export function ActiveStageDetailCard({
         // (additive over the counts above); the single action stays the
         // "Check materials" link — separate visualization from action.
         <div className="flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
-          <p className="text-caption-xs font-bold uppercase tracking-[0.8px] text-text-tertiary">
+          <p className="text-caption-xs font-bold uppercase tracking-eyebrow text-text-tertiary">
             <Trans>Blocking</Trans>
           </p>
           {/* Items left-align flush under the eyebrow: a fixed-width dot

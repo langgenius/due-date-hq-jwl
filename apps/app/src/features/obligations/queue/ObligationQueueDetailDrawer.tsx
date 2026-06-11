@@ -2022,8 +2022,8 @@ export function ObligationQueueDetailDrawer({
                     className={cn(
                       'pr-8 font-semibold tracking-[-0.4px] text-text-primary transition-all duration-300 ease-apple',
                       heroCollapsed
-                        ? 'line-clamp-1 text-[16px] leading-[1.3]'
-                        : 'line-clamp-3 text-[22px] leading-[1.3]',
+                        ? 'line-clamp-1 text-item-title leading-[1.3]'
+                        : 'line-clamp-3 text-surface-title leading-[1.3]',
                     )}
                     title={heroTitle}
                   >

@@ -906,7 +906,7 @@ export function ClientFactsWorkspace({
         header: () => (
           // 2026-06-10 (Yuqi "follow Deadline's table"): plain span inherits
           // the canonical TableHead eyebrow style (11/600 uppercase
-          // tracking-[0.5px]) — matches /deadlines' Assignee header and the
+          // tracking-eyebrow-tight) — matches /deadlines' Assignee header and the
           // now-uppercase sort-button labels, so the whole header row is one
           // consistent uppercase rhythm.
           <span>
@@ -1166,7 +1166,7 @@ export function ClientFactsWorkspace({
                 // 2026-06-10 (Yuqi "follow Deadline's table"): the header
                 // recipe mirrors /deadlines' obligation-queue table
                 // (routes/obligations.tsx) — h-9 section-tinted header cells
-                // and UPPERCASE 11/600 tracking-[0.5px] sort-button labels,
+                // and UPPERCASE 11/600 tracking-eyebrow-tight sort-button labels,
                 // so the two workbench tables read identically.
                 className="table-fixed [&_th]:bg-background-section [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th_button]:!text-column-label [&_th_button]:!font-semibold [&_th_button]:!uppercase"
               >

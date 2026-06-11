@@ -204,7 +204,7 @@ function MigrationActivationIntro({
           <Trans>PRACTICE ACTIVATION</Trans>
         </span>
         {/* H1 is text-2xl to match the entry-shell family (login uses
-            text-[26px], onboarding uses text-2xl). Trailing period
+            text-2xl, onboarding uses text-2xl). Trailing period
             intentionally kept — login ("Welcome to DueDateHQ.") and
             onboarding ("We pre-filled a name from your account.") both
             end H1s with a period as part of the entry-shell declarative

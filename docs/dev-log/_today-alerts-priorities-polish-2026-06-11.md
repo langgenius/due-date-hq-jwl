@@ -361,3 +361,13 @@ added --text-micro + --text-nav, extended the guard to 9–18+28+32, baseline
 (needs explicit !font-semibold alongside the token). Full detail + the
 deliberate backlog (display ramp 20–44, auth exemption, leading/tracking)
 recorded in docs/Design/token-audit-2026-06-10.md.
+
+## Addendum 15 — display ramp + eyebrow tracking (the last two backlogs)
+
+Per token-audit doc §2026-06-11 PM: --text-surface-title (22/28) +
+--text-stat-value (24/1) added; 10 display-ramp sites tokenized/snapped
+(20→region-title/xl, 26/30→2xl, 17→xl, morph pairs → item-title/
+surface-title); 35 eyebrow trackings merged 0.5/0.6→eyebrow-tight,
+0.7/0.8→eyebrow. Guard flags all 9–32px; baseline = 0. Verified: /alerts
+chips clean, "Recent changes" lands exactly on Register-A spec
+(18/22.5/600/−0.18).

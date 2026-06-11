@@ -231,10 +231,10 @@ export function AlertCard({
                   {/* Severity gated to HIGH only (LOW / MEDIUM render
                       nothing; absence IS the signal), pill chrome aligned
                       to canonical h-[22px] rounded px-2 text-caption
-                      font-bold tracking-[0.7px] uppercase. */}
+                      font-bold tracking-eyebrow uppercase. */}
                   {severity.id === 'high' ? (
                     <span
-                      className="inline-flex h-[22px] shrink-0 items-center rounded px-2 text-xs font-bold tracking-[0.7px] uppercase"
+                      className="inline-flex h-[22px] shrink-0 items-center rounded px-2 text-xs font-bold tracking-eyebrow uppercase"
                       style={{ backgroundColor: severity.bg, color: severity.text }}
                     >
                       {severityLabel}
@@ -269,7 +269,7 @@ export function AlertCard({
               <div className="flex items-center gap-2">
                 {/* State pill aligned to canonical — no bg, no padding,
                     16px circular motif, 12/700 mono code with
-                    tracking-[0.7px]. Same primitive across /today +
+                    tracking-eyebrow. Same primitive across /today +
                     /alerts + drawer. */}
                 <span className="inline-flex h-[22px] shrink-0 items-center gap-1">
                   <StateBadge
@@ -277,7 +277,7 @@ export function AlertCard({
                     size="xs"
                     style={{ width: 16, height: 16 }}
                   />
-                  <span className="font-mono text-sm font-bold tracking-[0.7px] text-text-secondary uppercase">
+                  <span className="font-mono text-sm font-bold tracking-eyebrow text-text-secondary uppercase">
                     {alert.jurisdiction}
                   </span>
                 </span>
@@ -315,7 +315,7 @@ export function AlertCard({
                     the meta row above carries the relative "Nmo ago"). */}
               <div className="grid grid-cols-[5fr_5fr_3fr] overflow-hidden rounded-lg bg-background-section">
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <span className="text-caption-xs font-semibold tracking-[0.6px] text-text-muted uppercase">
+                  <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
                     <Trans>What changed</Trans>
                   </span>
                   <span className="truncate text-xs font-medium text-text-secondary">
@@ -323,7 +323,7 @@ export function AlertCard({
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <span className="text-caption-xs font-semibold tracking-[0.6px] text-text-muted uppercase">
+                  <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
                     <Trans>Affecting</Trans>
                   </span>
                   <span className="truncate text-xs font-medium text-text-secondary">
@@ -338,7 +338,7 @@ export function AlertCard({
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <span className="text-caption-xs font-semibold tracking-[0.6px] text-text-muted uppercase">
+                  <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
                     <Trans>Published</Trans>
                   </span>
                   <span className="truncate text-xs font-medium text-text-secondary tabular-nums">

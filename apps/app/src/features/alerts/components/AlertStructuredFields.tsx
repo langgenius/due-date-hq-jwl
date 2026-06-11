@@ -324,7 +324,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
                   : 'flex flex-col gap-1.5'
               }
             >
-              <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
+              <span className="text-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
                 <Trans>Evidence to gather</Trans>
               </span>
               <ul className="flex flex-col gap-1">
@@ -361,7 +361,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             {/* Register B2 micro label — 12/500 CAPS tertiary (semibold read
                 chunky at the lifted xs size; medium is the canonical B2
                 weight, see section-header-style.md). */}
-            <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
+            <span className="text-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
               {cell.label}
             </span>
             {/* Wrap to two lines instead of ellipsizing — Relief type /
@@ -392,7 +392,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           the review but isn't a do-this fact like the hero above. */}
       {protectiveFacts?.legalUncertainty ? (
         <div className="flex flex-col gap-1 rounded-lg bg-background-soft px-4 py-3">
-          <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
+          <span className="text-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
             <Trans>Legal uncertainty</Trans>
           </span>
           <p className="text-sm leading-relaxed text-text-secondary">

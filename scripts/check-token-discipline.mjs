@@ -72,11 +72,12 @@ function scan(file) {
     FONT.lastIndex = 0
     while ((m = FONT.exec(line))) {
       const n = Number(m[1])
-      // 9–18px + 28 + 32 must be tokens (micro/2xs/caption/xs/sm/base/nav/lg/
-      // xl/2xl/section-title). The 19–27/29-31/33+ display-ramp leftovers are
-      // baseline-grandfathered until the display scale consolidation.
+      // 9-32px must be tokens (micro/2xs/caption/xs/sm/base/nav/lg/xl/
+      // surface-title/stat-value/2xl/section-title — the full consolidated
+      // ramp, 2026-06-11). 33+ display sizes (display-large/hero) + the
+      // auth-exempt paths remain outside the net.
       // micro tier (9px, Yuqi); ≥16 is display (no token). Both allowed.
-      if ((n >= 9 && n <= 18) || n === 28 || n === 32)
+      if (n >= 9 && n <= 32)
         push(rel, i, m[0], `text-[${n}px] → font token`)
     }
     const hex = line.match(HEX)

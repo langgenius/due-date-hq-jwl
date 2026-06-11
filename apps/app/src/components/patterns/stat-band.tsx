@@ -90,7 +90,7 @@ export function StatBand({
             </span>
             <span
               className={cn(
-                'text-[24px] leading-none font-medium tracking-tight tabular-nums',
+                'text-stat-value font-medium tracking-tight tabular-nums',
                 stat.valueClass ?? 'text-text-primary',
               )}
             >

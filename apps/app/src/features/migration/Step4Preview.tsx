@@ -70,7 +70,7 @@ export function Step4Preview({
             <span aria-hidden className="size-1.5 rounded-full bg-state-success-solid" />
             <Trans>Ready to import</Trans>
           </span>
-          <p className="text-[16px] font-semibold text-text-primary">
+          <p className="text-item-title text-text-primary">
             <Trans>You&apos;re about to create:</Trans>
           </p>
         </div>
@@ -395,7 +395,7 @@ function HeroMetric({
     <div className="flex flex-col gap-0.5 px-4 first:pl-0 last:pr-0">
       <span
         className={cn(
-          'text-[26px] font-bold leading-none tracking-tight tabular-nums',
+          'text-2xl font-bold leading-none tracking-tight tabular-nums',
           muted ? 'text-text-secondary' : 'text-text-primary',
         )}
       >

@@ -108,7 +108,7 @@ export function EmptyState({
         className={cn(
           'font-semibold text-text-primary',
           isProminent
-            ? cn('tracking-tight', iconTone === 'neutral' ? 'text-[22px]' : 'text-xl')
+            ? cn('tracking-tight', iconTone === 'neutral' ? 'text-surface-title' : 'text-xl')
             : 'text-sm',
         )}
       >

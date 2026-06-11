@@ -637,7 +637,7 @@ function ActionsListHeader({
       <div className="flex flex-col">
         {/* Demoted eyebrow treatment shared with the Alerts h2 — 11px / 600 /
             muted tertiary / wider tracking. See section-header-style.md. */}
-        <h2 className="flex items-center gap-1.5 text-xs font-semibold tracking-[0.6px] text-text-tertiary uppercase">
+        <h2 className="flex items-center gap-1.5 text-xs font-semibold tracking-eyebrow-tight text-text-tertiary uppercase">
           {/* The title links to the full deadlines list (via onOpenAll). The
               Sparkles tooltip stays a non-link sibling. */}
           <Link
