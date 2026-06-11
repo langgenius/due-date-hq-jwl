@@ -63,6 +63,7 @@ export function DailyBriefCard({
   concentration,
   onOpenObligation,
   onClose,
+  showCounts = true,
 }: {
   scope: DashboardBriefScope
   brief: DashboardBriefPublic | null
@@ -71,6 +72,9 @@ export function DailyBriefCard({
   concentration: DashboardSummary['overdueConcentration']
   onOpenObligation: (obligationId: string) => void
   onClose?: (() => void) | undefined
+  // Suppress the count chips when another surface (the Priorities card) already
+  // carries them, so the digest reads as narrative only (Yuqi).
+  showCounts?: boolean
 }) {
   const { t } = useLingui()
   const aiEnabled = scope === 'me'
@@ -139,7 +143,7 @@ export function DailyBriefCard({
           ) : (
             <FirmTodayLine concentration={concentration} counts={todayCounts} />
           )}
-          <TodayCountsLine counts={todayCounts} />
+          {showCounts ? <TodayCountsLine counts={todayCounts} /> : null}
         </div>
       </div>
     </section>
@@ -151,7 +155,7 @@ function BriefRowLabel({ children, title }: { children: React.ReactNode; title?:
   return (
     <span
       title={title}
-      className="font-mono text-[11px] leading-[1.6] font-medium tracking-[0.4px] text-text-tertiary uppercase select-none"
+      className="font-mono text-xs leading-[1.6] font-medium tracking-[0.4px] text-text-tertiary uppercase select-none"
     >
       {children}
     </span>
@@ -401,7 +405,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5">
         <RotateCwIcon className="size-3 animate-spin text-text-secondary" aria-hidden />
-        <span className="font-mono text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
+        <span className="font-mono text-xs font-medium tracking-[0.4px] text-text-secondary uppercase">
           <Trans>Generating</Trans>
         </span>
       </span>
@@ -412,7 +416,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     // — recovery is the server's failed self-heal, not a user action. The
     // error code stays one hover away for support conversations.
     const failedText = (
-      <span className="text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
+      <span className="text-xs font-medium tracking-[0.4px] text-text-secondary uppercase">
         <Trans>Failed</Trans>
       </span>
     )
@@ -443,7 +447,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
       />
       <span
         className={cn(
-          'font-mono text-[11px] font-medium tracking-[0.4px] tabular-nums uppercase',
+          'font-mono text-xs font-medium tracking-[0.4px] tabular-nums uppercase',
           stale ? 'text-text-warning' : 'text-text-secondary',
         )}
       >
@@ -511,7 +515,7 @@ function CitationChip({
       type="button"
       onClick={onOpen}
       aria-label={t`Citation ${n} — open deadline`}
-      className="mx-0.5 inline-flex h-[18px] min-w-[18px] cursor-pointer items-center justify-center rounded-[4px] border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-[11px] leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+      className="mx-0.5 inline-flex h-[18px] min-w-[18px] cursor-pointer items-center justify-center rounded border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-xs leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
     >
       {n}
     </button>
