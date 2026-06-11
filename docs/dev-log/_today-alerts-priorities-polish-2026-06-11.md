@@ -291,3 +291,23 @@ five utilities resolve size/lh/weight/tracking from the tokens.
 - NeedsAttentionSection: alertsQuery.isLoading previously fell through to the
   "caught up" empty state for a beat on every load. Now: title + 3
   card-shaped skeletons in the same grid.
+
+## Addendum 12 — motion grammar token-ized
+
+The third lever from the finish-quality list: ONE canonical micro-interaction
+tempo, owned by tokens in primitives.css:
+
+  --default-transition-duration: 150ms
+  --default-transition-timing-function: cubic-bezier(0, 0, 0.2, 1)  (ease-out
+  — state changes decelerate into place; replaces Tailwind's default
+  ease-in-out for ALL un-eased transitions app-wide)
+
+Doctrine: ordinary hover/press/fade call sites write `transition-*` with NO
+duration/easing — the token owns the tempo; retuning the whole app is a
+one-line change. Deliberate outliers only: --ease-apple full-surface slides,
+the 3s pulse-breathe, and `animate-in` entrances (animation-duration, kept
+explicit per the house recipe). Swept the /today surfaces: card hover (200→
+token), conf% fade (200→token), Review-mask fade (200→token), arrow nudges,
+chip press, overflow chevron rotate (200→token). Verified via compiled CSS:
+transition utilities resolve var(--tw-duration, var(--default-transition-
+duration)).

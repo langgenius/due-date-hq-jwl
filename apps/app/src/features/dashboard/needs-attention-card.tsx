@@ -193,7 +193,7 @@ function NeedsAttentionCard({
         'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-3 rounded-xl bg-background-section p-5 text-left',
         // Hover carried by the bg step alone — no lift, no floating shadow
         // (Yuqi hated the floating-shadow interaction; restrained-shadows rule).
-        'transition-colors duration-200 hover:bg-background-subtle',
+        'transition-colors hover:bg-background-subtle',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}
@@ -330,7 +330,7 @@ function NeedsAttentionCard({
             invisible at rest and fades in on card hover. opacity-0 reserves
             the layout width so the row doesn't shift; the tier color resolves
             on hover via confidenceHoverToneClass. */}
-        <span className="inline-flex shrink-0 items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+        <span className="inline-flex shrink-0 items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
           <span aria-hidden className="text-text-muted">
             ·
           </span>
@@ -402,7 +402,7 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
     >
       <span className="inline-flex items-center gap-1 text-sm">
         <Plus
-          className="size-3.5 transition-transform duration-200 group-hover/overflow:rotate-90"
+          className="size-3.5 transition-transform group-hover/overflow:rotate-90"
           aria-hidden
         />
         <Trans>{count} more</Trans>

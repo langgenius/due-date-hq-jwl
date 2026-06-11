@@ -264,7 +264,7 @@ export function MergedBriefCard({
                 aria-pressed={active}
                 // `active:scale-[0.98]` = a 1-frame press acknowledgement; the
                 // transition covers colors + transform together.
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-[color,background-color,transform] duration-150 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt active:scale-[0.98] data-[active=true]:bg-background-default data-[active=true]:text-text-primary motion-reduce:transition-none"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-[color,background-color,transform] hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt active:scale-[0.98] data-[active=true]:bg-background-default data-[active=true]:text-text-primary motion-reduce:transition-none"
               >
                 <span
                   className={cn('size-1.5 shrink-0 rounded-full bg-current', tab.dot)}
@@ -370,7 +370,7 @@ export function MergedBriefCard({
           <Trans>See all deadlines</Trans>
           {/* Arrow nudge on hover — motion on the glyph, not the surface. */}
           <ArrowRightIcon
-            className="size-3 transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transition-none"
+            className="size-3 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
             aria-hidden
           />
         </Link>
@@ -517,7 +517,7 @@ function BriefTableRow({
             absolutely-positioned primary button anchored to the row's right
             edge, with a left-fading mask in the hover tone so it always reads
             cleanly. Out of the tab order — the row is the focus target. */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-default-hover from-55% to-transparent pr-5 pl-16 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-default-hover from-55% to-transparent pr-5 pl-16 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
           <Button
             type="button"
             size="xs"

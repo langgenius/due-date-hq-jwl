@@ -181,6 +181,19 @@
    * --------------------------------------------------------------------- */
   --ease-apple: cubic-bezier(0.32, 0.72, 0, 1);
 
+  /* ===== Motion defaults (2026-06-11, Yuqi: token-ize the motion grammar) =
+   * ONE canonical micro-interaction tempo. Every `transition-*` utility that
+   * doesn't say otherwise inherits these — so call sites should NOT write
+   * `duration-150`/`ease-*` for ordinary hover/press/fade states; the token
+   * owns the tempo, and changing it retunes the whole app at once.
+   * Deliberate outliers only: long reveals (3s pulse-breathe), full-surface
+   * slides on --ease-apple, and `animate-in` entrances (animation, not
+   * transition — those keep an explicit duration per the house recipe).
+   * Easing = decelerating ease-out: state changes should arrive, not bounce.
+   * --------------------------------------------------------------------- */
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+
   /* ===== Util-colors: gray =============================================== */
   --color-util-colors-gray-25: #fcfcfd;
   --color-util-colors-gray-50: #f9fafb;

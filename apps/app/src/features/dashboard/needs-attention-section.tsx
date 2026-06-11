@@ -242,7 +242,7 @@ function NeedsAttentionSection() {
           {/* Micro-detail: the arrow nudges forward on hover — motion carried
               by the glyph, not the surface (no lifts/shadows). */}
           <ArrowRightIcon
-            className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transition-none"
+            className="size-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
             aria-hidden
           />
         </Link>
