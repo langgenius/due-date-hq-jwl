@@ -1,6 +1,7 @@
 import { Fragment, useMemo } from 'react'
-import { Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon, RotateCwIcon, SunriseIcon, XIcon } from 'lucide-react'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
+import { Link } from 'react-router'
 
 import type {
   DashboardBriefPublic,
@@ -8,7 +9,6 @@ import type {
   DashboardRecap,
   DashboardSummary,
 } from '@duedatehq/contracts'
-import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -27,14 +27,8 @@ export interface DailyBriefTodayCounts {
 }
 
 /**
- * DailyBriefCard — the AI narrative of the firm's day. A white card with a
- * single hairline border (no shadow), a calm title row (sparkles + "Daily
- * Brief" + one status dot + a mono age label), an icon-only refresh, then
- * the prose. The page-level "My work / Everyone" Segmented in the /today
- * header switches the brief AND Priority Actions together; the card just
- * renders whatever brief the scoped dashboard.load returned. Each
- * `[n]` token resolves to an accent citation chip that deep-links back to
- * the obligation it cites (evidence traceability, not decoration).
+ * DailyBriefCard — rebuilt 2026-06-10 (Yuqi: "打开 Today 一目了然看到昨天
+ * 的总结和今天的安排") into a two-row "Yesterday / Today" digest:
  *
  *   YESTERDAY  3 completed (2 filed · 1 paid) · 2 new alerts · 1 due date moved
  *   TODAY      <one AI sentence: focus + start-here, with citation chip>
@@ -82,41 +76,36 @@ export function DailyBriefCard({
   const aiEnabled = scope === 'me'
   if (!brief && !recap && !(scope === 'firm' && concentration)) return null
 
-  const isPending = brief.status === 'pending' || refreshing
-  // Refresh is only meaningful once a brief exists in some terminal-ish
-  // state; while it's generating the status label shows the spinner.
-  const canRefresh = !isPending
+  // 2026-06-10 (manual refresh retired): the brief is a self-tending
+  // daily edition — it regenerates on the firm-tz day rollover and
+  // self-heals failed/stale states server-side, so the card carries NO
+  // refresh affordance anywhere. The freshness chip is display-only.
+  const isPending = aiEnabled && brief?.status === 'pending'
 
-  // A failed brief collapses to a single thin banner — title · short
-  // message · inline retry — instead of the full card with body prose.
-  if (brief.status === 'failed' && !refreshing) {
-    return (
-      <section
-        aria-label={t`Daily brief`}
-        className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-background-section px-[18px] py-2.5"
-      >
-        {/* Bare "daily" Sunrise glyph + a `·` dot before the title. */}
-        <SunriseIcon className="size-4 shrink-0 text-text-secondary" aria-hidden />
-        <span aria-hidden className="text-text-muted">
-          ·
-        </span>
-        <h2 className="text-base leading-tight font-semibold text-text-primary">
-          <Trans>Daily Brief</Trans>
-        </h2>
-        <span className="min-w-0 truncate text-xs text-text-tertiary">
-          <Trans>We couldn't generate today's brief.</Trans>
-        </span>
-        {/* Quiet neutral retry button (was an accent text-link, which read
-            loud/ugly next to the muted message). */}
-        <button
-          type="button"
-          onClick={onRefresh}
-          className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-background-default hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
-        >
-          <RotateCwIcon className="size-3.5" aria-hidden />
-          <Trans>Regenerate brief</Trans>
-        </button>
-        <div className="flex flex-1 shrink-0 items-center justify-end gap-1">
+  return (
+    <section
+      aria-label={t`Daily brief`}
+      // 2026-06-08 (Yuqi /today #1 "top padding reduce"): the section's
+      // top padding is trimmed (pt-3 vs the 18px on the other sides) so the
+      // title row sits closer to the top edge and the card reads tighter.
+      className="group flex flex-col gap-1 rounded-xl bg-state-accent-hover px-[18px] pt-3 pb-[18px]"
+    >
+      {/* TopRow — Pencil qYrr3 `LfcWh` */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Left — title + freshness (dot + mono age). Yuqi: icon removed;
+            the title takes the dark brand color on hover. */}
+        <div className="flex min-w-0 items-center gap-2.5">
+          <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
+            <Trans>Daily Brief</Trans>
+          </h2>
+          {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
+        </div>
+        {/* Right — dismiss only. The regenerate button is gone (manual
+            refresh retired); freshness is display-only. */}
+        <div className="flex shrink-0 items-center gap-2.5">
+          {/* 2026-06-08 (Yuqi /today #8 "able to close it"): dismiss the
+              brief for the day. The parent persists the dismissal keyed to
+              this brief's generation, so a freshly regenerated brief returns. */}
           {onClose ? (
             <button
               type="button"
@@ -128,81 +117,29 @@ export function DailyBriefCard({
             </button>
           ) : null}
         </div>
-      </section>
-    )
-  }
-
-  return (
-    <section
-      aria-label={t`Daily brief`}
-      // No hairline border — a calm gray fill (bg-background-section,
-      // matching the alert cards) defines the brief without a line. The
-      // sparkles icon carries the AI signal.
-      className="group flex flex-col gap-3 rounded-xl bg-background-section p-5"
-    >
-      {/* TopRow — Pencil tvSsP `header`: sparkles icon-wrap + "Daily Brief"
-          (13/600) + freshness, with a labeled Regenerate button on the right. */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          {/* Bare Sunrise icon + a `·` dot before the title — a
-              sparkles-in-a-circle blended into the gray card. */}
-          <SunriseIcon className="size-4 shrink-0 text-text-secondary" aria-hidden />
-          <span aria-hidden className="text-text-muted">
-            ·
-          </span>
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
-            <h2 className="text-base leading-tight font-semibold text-text-primary">
-              <Trans>Daily Brief</Trans>
-            </h2>
-            <BriefFreshness
-              brief={brief}
-              pending={isPending}
-              onRefresh={canRefresh ? onRefresh : undefined}
-            />
-          </div>
-        </div>
-        {/* Right — labeled Regenerate (tvSsP `Regenerate btn`) + dismiss */}
-        <div className="flex shrink-0 items-center gap-1">
-          {canRefresh && brief.status !== 'failed' ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              onClick={onRefresh}
-              aria-label={t`Regenerate brief`}
-            >
-              <RotateCwIcon data-icon="inline-start" className="size-3" aria-hidden />
-              <Trans>Regenerate</Trans>
-            </Button>
-          ) : null}
-          {/* Dismiss the brief for the day. The parent persists the dismissal
-              keyed to this brief's generation, so a freshly regenerated brief
-              returns. */}
-          {onClose ? (
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              type="button"
-              onClick={onClose}
-              aria-label={t`Dismiss brief`}
-            >
-              <XIcon className="size-3.5" aria-hidden />
-            </Button>
-          ) : null}
-        </div>
       </div>
 
-      {/* Body — Pencil qYrr3 `zgUBx`: prose at 14/normal, primary ink,
-          with inline accent citation chips. */}
-      {/* The skeleton only shows on a COLD generate (no prior text). While
-          regenerating an existing brief we keep the current prose on screen —
-          the freshness chip's spinner carries the "working" signal — so the
-          card doesn't flash blank → skeleton → prose on every refresh. */}
-      {isPending && !brief.text ? (
-        <div className="grid gap-2" aria-busy>
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-[88%]" />
-          <Skeleton className="h-4 w-[60%]" />
+      {/* Body — the Yesterday / Today grid. Labels are mono eyebrows in
+          the freshness chip's voice; content lines stay 14px prose. */}
+      <div className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5 pt-1">
+        {recap ? (
+          <>
+            <BriefRowLabel title={t`Since ${formatRecapSince(recap.since)}`}>
+              <Trans>Yesterday</Trans>
+            </BriefRowLabel>
+            <YesterdayLine recap={recap} />
+          </>
+        ) : null}
+        <BriefRowLabel>
+          <Trans>Today</Trans>
+        </BriefRowLabel>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          {aiEnabled ? (
+            <TodayLine brief={brief} pending={isPending} onOpenObligation={onOpenObligation} />
+          ) : (
+            <FirmTodayLine concentration={concentration} counts={todayCounts} />
+          )}
+          <TodayCountsLine counts={todayCounts} />
         </div>
       </div>
     </section>
@@ -233,20 +170,10 @@ function formatRecapSince(since: string): string {
 }
 
 /**
- * Structured brief body. The stored text is the consumer's flattened
- * headline/items/footer format; rendering it in one <p> collapsed the
- * newlines into a wall of prose. Parse it back apart (brief-text.ts) and
- * render:
- *   • headline — one 14/500 lead line, the at-a-glance takeaway
- *   • items — one compact line each: why-clause in primary ink, then the
- *     verification step toned down ("Next: …" in tertiary), citation
- *     chips inline via BriefProse. A muted dot anchors each line start.
- *   • footer — DROPPED. It's the model's generic compliance closer
- *     ("review all pending items…"): bulk without information. The
- *     brief@v1 prompt now also tells the model to omit it.
- * Plain prose with no numbered items (e.g. the zero-risk brief) falls
- * back to the original single-paragraph rendering, so unknown shapes
- * never lose content.
+ * Deterministic "what happened while you were away" line — only the
+ * activity that actually happened renders; an all-quiet window collapses
+ * to one muted sentence. The alerts segment links to /alerts (the only
+ * segment with a dedicated review surface).
  */
 function YesterdayLine({ recap }: { recap: DashboardRecap }) {
   const segments: React.ReactNode[] = []
@@ -474,18 +401,18 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5">
         <RotateCwIcon className="size-3 animate-spin text-text-secondary" aria-hidden />
-        <span className="font-mono text-xs font-medium tracking-[0.4px] text-text-secondary uppercase">
+        <span className="font-mono text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
           <Trans>Generating</Trans>
         </span>
       </span>
     )
   }
   if (brief.status === 'failed') {
-    // The failed state has no status dot and carries an inline retry icon
-    // right after the label, so recovery lives on the FAILED chip itself
-    // (the separate right-side regenerate button hides while failed).
+    // 2026-06-10 (manual refresh retired): the FAILED chip is display-only
+    // — recovery is the server's failed self-heal, not a user action. The
+    // error code stays one hover away for support conversations.
     const failedText = (
-      <span className="text-xs font-medium tracking-[0.4px] text-text-secondary uppercase">
+      <span className="text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
         <Trans>Failed</Trans>
       </span>
     )
@@ -499,26 +426,15 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
         ) : (
           failedText
         )}
-        {onRefresh ? (
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            type="button"
-            onClick={onRefresh}
-            aria-label={t`Regenerate brief`}
-            className="size-5"
-          >
-            <RotateCwIcon className="size-3" aria-hidden />
-          </Button>
-        ) : null}
       </span>
     )
   }
   const stale = brief.status === 'stale'
   const age = brief.generatedAt ? formatRelativeTime(brief.generatedAt) : null
 
-  // The outdated state is a plain amber "Outdated" label — the icon-only
-  // regenerate button on the right handles refresh.
+  // 2026-06-08 (Yuqi "remove the REFRESH"): the outdated state is a plain
+  // amber "Outdated" label again — the inline "· Refresh" affordance is
+  // gone; the icon-only regenerate button on the right handles refresh.
   return (
     <span className="inline-flex shrink-0 items-center gap-1.5">
       <span
@@ -527,7 +443,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
       />
       <span
         className={cn(
-          'font-mono text-xs font-medium tracking-[0.4px] tabular-nums uppercase',
+          'font-mono text-[11px] font-medium tracking-[0.4px] tabular-nums uppercase',
           stale ? 'text-text-warning' : 'text-text-secondary',
         )}
       >
@@ -595,7 +511,7 @@ function CitationChip({
       type="button"
       onClick={onOpen}
       aria-label={t`Citation ${n} — open deadline`}
-      className="mx-0.5 inline-flex h-[18px] min-w-[18px] cursor-pointer items-center justify-center rounded border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-xs leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+      className="mx-0.5 inline-flex h-[18px] min-w-[18px] cursor-pointer items-center justify-center rounded-[4px] border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-[11px] leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
     >
       {n}
     </button>

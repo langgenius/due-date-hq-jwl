@@ -296,7 +296,7 @@ function RailRow({
       )}
     >
       {code ? (
-        <StateBadge code={code} size="2xs" preview={false} />
+        <StateBadge code={code} size="xs" preview={false} />
       ) : Icon ? (
         <Icon
           className={cn(

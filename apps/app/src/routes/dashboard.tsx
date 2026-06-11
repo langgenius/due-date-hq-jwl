@@ -145,7 +145,6 @@ export function DashboardRoute() {
     rememberDashboardScope(next)
     void setDashboardParams({ scope: next })
   }
-  const queryClient = useQueryClient()
   const dashboardAsOfDate = ISO_DATE_RE.test(asOfDate) ? asOfDate : null
   const clientQuery = useMemo(() => cleanEntityIdFilters(client), [client])
   const taxTypeQuery = useMemo(() => cleanStringFilters(taxType), [taxType])
@@ -177,16 +176,6 @@ export function DashboardRoute() {
         ? 4000
         : false,
   })
-  const requestBriefRefresh = useMutation(
-    orpc.dashboard.requestBriefRefresh.mutationOptions({
-      onSuccess: () => {
-        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
-      },
-      onError: (error) => {
-        toast.error(rpcErrorMessage(error) ?? t`Couldn't regenerate the brief. Try again.`)
-      },
-    }),
-  )
   // A `totalOpen === 0` page distinguishes "no clients yet" from "has
   // clients but no generated deadlines" — the "import clients" CTA is
   // right for a fresh practice but wrong for one that already imported.
