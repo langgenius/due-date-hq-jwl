@@ -31,6 +31,9 @@ export const PULSE_INGEST_SOURCE_MESSAGE_TYPE = 'pulse.ingest.source'
 // one transient failure parks a slow-cadence source for its whole interval
 // (up to 90 days for quarterly rule sources).
 export const PULSE_SOURCE_FAILURE_RETRY_MS = 15 * 60 * 1000
+// Deterministic robots.txt refusals retry weekly instead — see the failure
+// handler in runIngestForAdapter.
+export const ROBOTS_DISALLOW_BACKOFF_MS = 7 * 24 * 60 * 60 * 1000
 
 // One message per HOST GROUP of due sources, enqueued by the cron path
 // (`enqueuePulseIngestScans`) and consumed group-sequentially
@@ -162,10 +165,13 @@ export async function archivePulseRaw(
     `${safePathPart(input.externalId).slice(0, 80)}-${contentHash.slice(0, 16)}.txt`,
   ].join('/')
 
-  // A dedupeText hash is stable across re-fetches, so the key no longer rotates
-  // with page churn — keep the FIRST archived body as the item's evidence copy
-  // instead of overwriting it with whatever the listing page looks like today.
-  if (input.dedupeText && (await env.R2_PULSE.head(r2Key))) {
+  // The key embeds the contentHash, so an existing object already IS these
+  // exact bytes — re-putting is pure waste and trips R2's same-object rate
+  // limit ("Reduce your concurrent request rate for the same object", which
+  // had fl.dor.tips' 2h scans re-putting unchanged items until R2 429'd the
+  // source). For dedupeText items this also keeps the FIRST archived body as
+  // the item's evidence copy instead of today's listing-page rendering.
+  if (await env.R2_PULSE.head(r2Key)) {
     return { r2Key, contentHash }
   }
 
@@ -528,12 +534,20 @@ async function ingestAdapter(
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     })
+    // robots.txt disallow is deterministic, not transient: hot-retrying every
+    // 15 minutes burned 86 consecutive failures on ak.temporary_announcements
+    // (tax.alaska.gov disallows all crawlers site-wide). Back off a week —
+    // long enough to stop the churn, short enough to notice if the policy
+    // ever changes. Everything else keeps the fast retry.
+    const isRobotsDisallow = error instanceof Error && /robots\.txt disallows/i.test(error.message)
     await repo.recordSourceFailure({
       sourceId: adapter.id,
       checkedAt,
       nextCheckAt: nextCheckAt(
         checkedAt,
-        Math.min(adapter.cronIntervalMs, PULSE_SOURCE_FAILURE_RETRY_MS),
+        isRobotsDisallow
+          ? ROBOTS_DISALLOW_BACKOFF_MS
+          : Math.min(adapter.cronIntervalMs, PULSE_SOURCE_FAILURE_RETRY_MS),
       ),
       error: error instanceof Error ? error.message : 'Pulse ingest failed.',
     })

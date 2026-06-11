@@ -1049,8 +1049,9 @@ describe('archivePulseRaw', () => {
   it('archives the full-text sibling without changing the main key or hash', async () => {
     const putA = vi.fn(async (_key: string, _value: unknown) => undefined)
     const putB = vi.fn(async (_key: string, _value: unknown) => undefined)
-    const envA = { R2_PULSE: { put: putA } as unknown as R2Bucket }
-    const envB = { R2_PULSE: { put: putB } as unknown as R2Bucket }
+    const head = vi.fn(async () => null)
+    const envA = { R2_PULSE: { put: putA, head } as unknown as R2Bucket }
+    const envB = { R2_PULSE: { put: putB, head } as unknown as R2Bucket }
 
     const withoutFull = await archivePulseRaw(envA, input)
     const withFull = await archivePulseRaw(envB, {
@@ -1070,7 +1071,7 @@ describe('archivePulseRaw', () => {
   it('skips the sibling when the full text adds nothing', async () => {
     const put = vi.fn(async () => undefined)
     await archivePulseRaw(
-      { R2_PULSE: { put } as unknown as R2Bucket },
+      { R2_PULSE: { put, head: vi.fn(async () => null) } as unknown as R2Bucket },
       {
         ...input,
         fullText: input.body,
