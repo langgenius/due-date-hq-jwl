@@ -131,3 +131,21 @@ Measured audit (DOM tape-measure, 1512×861) then fixes:
   alert recency had favoured.
 - Known, deliberately untouched: text-xs(13)/text-sm(14) 1px near-collision is
   a token-level question for a future sweep, not a per-page fix.
+
+## Addendum 4 — Priorities column packing + hover side-bar suppression
+
+Yuqi: "why are STATUS/DUE/assignee so far right when CLIENT is so long?" The
+client cell was `w-full max-w-0` (greedy), pushing the meta columns to the
+table's far edge with a ~700px void. Fix: CLIENT fixed at the original
+ActionsTable's 440px (inner div `w-[440px]`, truncation preserved) + a
+trailing spacer column (`w-full p-0` th/td pair) that absorbs the leftover —
+data columns now pack left (STATUS at x≈728 instead of ≈1270), whitespace
+trails inside the frame. The hover-reveal Review CTA stays anchored to the
+row's right edge (the void gains a purpose on hover).
+
+Also suppressed (hover:shadow-none): the canonical TableRow's 2px inset LEFT
+ACCENT BAR on interactive-row hover — exactly the "side-border highlight
+inside a rounded frame" pattern Yuqi banned. NOTE: the motif still lives in
+the primitive (packages/ui table.tsx) and renders on /deadlines, /clients,
+etc. — whether to remove it app-wide is an open design decision, not taken
+unilaterally here.

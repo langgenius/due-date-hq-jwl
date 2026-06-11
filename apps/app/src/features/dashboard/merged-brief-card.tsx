@@ -237,7 +237,7 @@ export function MergedBriefCard({
                 <TableHead>
                   <Trans>Form</Trans>
                 </TableHead>
-                <TableHead className="w-full">
+                <TableHead>
                   <Trans>Client</Trans>
                 </TableHead>
                 <TableHead>
@@ -251,6 +251,10 @@ export function MergedBriefCard({
                 <TableHead>
                   <Trans>Due</Trans>
                 </TableHead>
+                {/* Spacer — absorbs the table's leftover width so the data
+                    columns stay packed left after CLIENT instead of spreading
+                    to the right edge. */}
+                <TableHead aria-hidden className="w-full p-0" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -348,18 +352,23 @@ function BriefTableRow({
       // Review mask below still hides the due date. py-2.5 (not the default
       // py-4): the two-line stacked cells already carry height — this lands
       // the row near the canonical /deadlines 56px pitch instead of 68
-      // (spacing audit).
-      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-2.5"
+      // (spacing audit). hover:shadow-none suppresses the primitive's 2px
+      // inset left accent bar — Yuqi: no side-border highlight inside a
+      // rounded frame.
+      className="group relative cursor-pointer hover:!bg-background-default-hover hover:shadow-none focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-2.5"
     >
       {/* FORM */}
       <TableCell>
         <TaxCodeBadge code={row.taxType} />
       </TableCell>
       {/* CLIENT — name (row anchor) + the instruction/readiness sub-line,
-          stacked like the original actions table. `w-full max-w-0` lets this
-          cell absorb the free width so the name can truncate. */}
-      <TableCell className="w-full max-w-0">
-        <div className="flex min-w-0 flex-col gap-0.5">
+          stacked like the original actions table. Fixed 440px (the original
+          ActionsTable's client width) so STATUS / owner / DUE follow right
+          after the content instead of being pushed to the table's far edge by
+          a greedy flex column (Yuqi: "why are status/due/assignee so far
+          right?"). The trailing spacer cell absorbs the leftover width. */}
+      <TableCell>
+        <div className="flex w-[440px] min-w-0 flex-col gap-0.5">
           <span className="truncate text-base font-semibold text-text-primary">
             {row.clientName}
           </span>
@@ -437,6 +446,8 @@ function BriefTableRow({
           </Button>
         </div>
       </TableCell>
+      {/* Spacer — pairs with the header's spacer column. */}
+      <TableCell aria-hidden className="p-0" />
     </TableRow>
   )
 }
