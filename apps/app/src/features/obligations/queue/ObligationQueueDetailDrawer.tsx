@@ -470,8 +470,7 @@ export function ObligationQueueDetailDrawer({
         setDeadlineTipRefresh(null)
         toast.error(t`Couldn't start deadline tip refresh`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -493,8 +492,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't send input request`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -701,8 +699,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't generate document list`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -783,8 +780,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't prepare materials request preview`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -798,8 +794,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't send materials request`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -825,8 +820,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't add document item`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -839,8 +833,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't update document item`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -854,8 +847,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't remove document item`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -869,8 +861,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't revoke request`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -886,8 +877,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't save tax year profile`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -904,8 +894,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't save extension plan`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -935,8 +924,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't mark accepted`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -956,8 +944,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't mark e-file rejected`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -982,8 +969,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't update assignee`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1000,8 +986,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't snooze deadline`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1020,8 +1005,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't update e-file state`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1044,8 +1028,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't send reminder`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1074,8 +1057,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't change status`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1151,8 +1133,7 @@ export function ObligationQueueDetailDrawer({
         prepStagePreviousRef.current = null
         toast.error(t`Couldn't update step`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1182,8 +1163,7 @@ export function ObligationQueueDetailDrawer({
         reviewStagePreviousRef.current = null
         toast.error(t`Couldn't update step`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -2016,14 +1996,14 @@ export function ObligationQueueDetailDrawer({
                   // alert hero carries (2026-06-11 hostile-data sweep: an
                   // unclamped long title ran 4+ lines and pushed the tab
                   // content below the fold on all four tabs). Full text on
-                  // the title attr. leading-[1.3] expanded (was 1.25) per
+                  // the title attr. expanded (was 1.25) per
                   // the same cramped-two-line finding as the alert hero.
                   <h2
                     className={cn(
-                      'pr-8 font-semibold tracking-[-0.4px] text-text-primary transition-all duration-300 ease-apple',
+                      'pr-8 font-semibold tracking-display text-text-primary transition-all duration-300 ease-apple',
                       heroCollapsed
-                        ? 'line-clamp-1 text-item-title leading-[1.3]'
-                        : 'line-clamp-3 text-surface-title leading-[1.3]',
+                        ? 'line-clamp-1 text-item-title'
+                        : 'line-clamp-3 text-surface-title',
                     )}
                     title={heroTitle}
                   >
@@ -2096,7 +2076,11 @@ export function ObligationQueueDetailDrawer({
                 items-baseline alignment left the text vertically offset from
                 the h-6 chips. Reduced to just the shared JurisdictionLabel seal
                 (the one fact not shown elsewhere), aligned with the chip row. */}
-              {row.jurisdiction ? <JurisdictionLabel code={row.jurisdiction} /> : null}
+              {/* h-7 — same line box as the client chip so the meta row sits
+                  on one baseline (the label's default 22px box rode high). */}
+              {row.jurisdiction ? (
+                <JurisdictionLabel code={row.jurisdiction} className="h-7" />
+              ) : null}
             </div>
           ) : null}
           {/* 2026-05-23: dropped the canonical-forward-action row
@@ -2240,7 +2224,8 @@ export function ObligationQueueDetailDrawer({
             // flush against the tab bar's bottom seam; `pt-6` gives the same
             // 24px breathing room the panel/sheet tab content carries via its
             // own pt-6, just hoisted to the body so it covers every tab.
-            isPageMode && 'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+            isPageMode &&
+              'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
           )}
           onScroll={
             isPageMode

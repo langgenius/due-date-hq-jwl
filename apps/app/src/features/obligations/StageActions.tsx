@@ -83,9 +83,18 @@ export function StageActions({
         </div>
       ) : null}
       {reminders.length > 0 ? (
-        <p className="text-caption leading-snug text-text-tertiary">
-          {reminders.map((task) => task.label).join(' · ')}
-        </p>
+        // One reminder per line (was a single " · "-joined run-on that read
+        // as one ambiguous gray sentence — Yuqi). Middot prefix, no boxes:
+        // these stay visibly NON-interactive — no backing schema, and a
+        // checkbox shape misled CPAs into trying to tick them (2026-05-21).
+        <ul className="flex flex-col gap-0.5 pt-0.5 text-caption leading-snug text-text-tertiary">
+          {reminders.map((task) => (
+            <li key={task.id} className="flex gap-1.5">
+              <span aria-hidden>·</span>
+              <span>{task.label}</span>
+            </li>
+          ))}
+        </ul>
       ) : null}
     </div>
   )
