@@ -1494,7 +1494,9 @@ export function ActiveStageDetailCard({
           },
           {
             id: 'start',
-            label: t`Skip ahead to drafting (docs already in hand)`,
+            // Tight verb label — the "docs already in hand" caveat lives in
+            // the hint, stating it twice made the button read like a clause.
+            label: t`Skip to drafting`,
             flavor: 'mutation',
             hint: t`Use only when you already have all client documents. Sends the row straight to In review.`,
           },
@@ -2098,7 +2100,7 @@ export function ActiveStageDetailCard({
         </header>
         {showStageHeadline ? (
           <div className="flex flex-col gap-0.5">
-            <h3 className="text-xl leading-snug font-semibold tracking-[-0.4px] text-text-primary">
+            <h3 className="text-xl leading-snug font-semibold tracking-display text-text-primary">
               {stageLabels[stageKey]}
             </h3>
             {subStatus ? (
@@ -2144,7 +2146,7 @@ export function ActiveStageDetailCard({
           {/* 2026-06-11 (Yuqi "避免太多红色"): the day-count is gone from this
               headline — the status banner is the page's single overdue
               statement; the card states the missed DATE + the next action. */}
-          <p className="text-item-title tracking-[-0.2px] text-text-primary">
+          <p className="text-item-title tracking-title text-text-primary">
             <Trans>Filing was due {formatDatePretty(row.currentDueDate.slice(0, 10))}.</Trans>
           </p>
           <p className="text-xs text-text-tertiary">
@@ -2235,7 +2237,7 @@ export function ActiveStageDetailCard({
               outstanding." treatment. Names the live blocker count, not
               a generic label. Falls back to a "received" framing once the
               outstanding count hits zero so the line stays honest. */}
-          <p className="text-xl leading-snug font-semibold tracking-[-0.4px] text-text-primary">
+          <p className="text-xl leading-snug font-semibold tracking-display text-text-primary">
             {readinessCounts.outstanding > 0 ? (
               <Plural
                 value={readinessCounts.outstanding}
@@ -2247,7 +2249,7 @@ export function ActiveStageDetailCard({
             )}
           </p>
           <div className="flex items-end gap-2.5">
-            <span className="font-mono text-2xl leading-none font-bold tracking-[-0.6px] text-text-primary tabular-nums">
+            <span className="font-mono text-2xl leading-none font-bold tracking-display text-text-primary tabular-nums">
               {readinessCounts.received}
             </span>
             <span className="text-xs leading-tight font-medium text-text-tertiary">
