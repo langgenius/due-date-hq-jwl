@@ -19,6 +19,7 @@ import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { useAppHotkey } from '@/components/patterns/keyboard-shell'
+import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 
 import type { NormalizeState } from './state'
@@ -632,12 +633,11 @@ function MatrixControls({
               </div>
               <div className="flex flex-wrap gap-1.5 text-xs">
                 {cell.taxTypes.map((taxType) => (
-                  <span
-                    key={taxType}
-                    className="inline-flex h-5 items-center rounded-lg border border-divider-regular bg-components-panel-bg px-1.5 font-mono tabular-nums text-text-secondary"
-                  >
-                    {taxType}
-                  </span>
+                  // Shared TaxCodeBadge primitive (compact density for the
+                  // matrix) — human-readable label + tooltip instead of the
+                  // raw snake_case code, and the same chip chrome as every
+                  // other form badge in the app.
+                  <TaxCodeBadge key={taxType} code={taxType} size="compact" />
                 ))}
                 <EvidenceChip
                   model={null}

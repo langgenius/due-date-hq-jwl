@@ -1638,6 +1638,11 @@ export function PreviewRoute() {
               <TaxCodeBadge code="941" />
               <TaxCodeBadge code="W-2" />
             </Row>
+            <Row label="TaxCodeBadge compact" mono='primitives/tax-code-label size="compact"'>
+              <TaxCodeBadge code="1120" size="compact" />
+              <TaxCodeBadge code="1040" size="compact" />
+              <TaxCodeBadge code="941" size="compact" />
+            </Row>
             <Row label="RelativeTime" mono="primitives/relative-time">
               <span className="text-sm">
                 Last touched{' '}

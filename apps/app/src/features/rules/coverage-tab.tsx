@@ -1689,12 +1689,15 @@ function RuleSelectionCheckbox({
 
 function RuleSelectionUnavailableChip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-background-subtle px-1.5 text-caption-xs font-medium text-text-tertiary">
+    <Badge variant="secondary" size="sm">
       {children}
-    </span>
+    </Badge>
   )
 }
 
+// Badge primitive, §4.10 tones — review-flavored states read info (blue,
+// in-flight work), "AI draft needed" reads warning (action required),
+// Active reads success. `size="sm"` keeps the rail rows dense.
 function RuleStatusChip({
   rule,
   sourceDefined,
@@ -1707,30 +1710,30 @@ function RuleStatusChip({
   if (sourceDefined) {
     if (sourceDefinedDraftReady) {
       return (
-        <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-review/10 px-1.5 text-caption-xs font-medium text-status-review">
+        <Badge variant="info" size="sm">
           <Trans>AI draft ready</Trans>
-        </span>
+        </Badge>
       )
     }
     return (
-      <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-severity-medium-tint px-1.5 text-caption-xs font-medium text-severity-medium">
+      <Badge variant="warning" size="sm">
         <Trans>AI draft needed</Trans>
-      </span>
+      </Badge>
     )
   }
 
   if (rule.status === 'active' || rule.status === 'verified') {
     return (
-      <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-done/10 px-1.5 text-caption-xs font-medium text-status-done">
+      <Badge variant="success" size="sm">
         <Trans>Active</Trans>
-      </span>
+      </Badge>
     )
   }
 
   return (
-    <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-review/10 px-1.5 text-caption-xs font-medium text-status-review">
+    <Badge variant="info" size="sm">
       <Trans>Awaiting review</Trans>
-    </span>
+    </Badge>
   )
 }
 

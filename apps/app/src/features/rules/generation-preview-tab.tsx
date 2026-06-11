@@ -49,7 +49,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
-import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 import {
   formatEnumLabel,
@@ -564,12 +564,10 @@ function GenerationPreviewForm({
                 </span>
               ) : (
                 taxTypeChips.map((taxType) => (
-                  <span
-                    key={taxType}
-                    className="inline-flex h-6 items-center rounded border border-divider-regular bg-background-default px-2 font-mono text-caption text-text-secondary"
-                  >
-                    {taxType}
-                  </span>
+                  // Shared TaxCodeBadge primitive — same chip chrome as
+                  // every other form badge in the app (the field surface
+                  // is bg-subtle, so the chip's border carries the edge).
+                  <TaxCodeBadge key={taxType} code={taxType} />
                 ))
               )}
               <form.Field name="taxTypes">

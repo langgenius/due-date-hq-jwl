@@ -36,20 +36,33 @@ export const ALERT_STATUS_ICON: Record<PulseFirmAlertStatus, LucideIcon> = {
 //       partially_applied → warning   (partial, needs attention)
 //       dismissed         → secondary (parked, won't return)
 //       reverted          → outline   (undone, back to baseline)
+//
+// Exported so every alert-status pill (card footer, drawer hero chip)
+// paints the SAME status the SAME tone — per-surface remapping is what
+// the §4.10 tone ladder bans.
+export const ALERT_STATUS_VARIANT: Record<
+  PulseFirmAlertStatus,
+  'outline' | 'success' | 'warning' | 'secondary'
+> = {
+  matched: 'outline',
+  partially_applied: 'warning',
+  applied: 'success',
+  reverted: 'outline',
+  dismissed: 'secondary',
+  reviewed: 'success',
+}
+
 export function AlertStatusBadge({ status }: AlertStatusBadgeProps) {
   const { t } = useLingui()
-  const config: Record<
-    PulseFirmAlertStatus,
-    { label: string; variant: 'outline' | 'success' | 'warning' | 'secondary' }
-  > = {
-    matched: { label: t`Open`, variant: 'outline' },
-    partially_applied: { label: t`Partially applied`, variant: 'warning' },
-    applied: { label: t`Applied`, variant: 'success' },
-    reverted: { label: t`Reverted`, variant: 'outline' },
-    dismissed: { label: t`Dismissed`, variant: 'secondary' },
-    reviewed: { label: t`Reviewed`, variant: 'success' },
+  const labels: Record<PulseFirmAlertStatus, string> = {
+    matched: t`Open`,
+    partially_applied: t`Partially applied`,
+    applied: t`Applied`,
+    reverted: t`Reverted`,
+    dismissed: t`Dismissed`,
+    reviewed: t`Reviewed`,
   }
-  const entry = config[status]
+  const entry = { label: labels[status], variant: ALERT_STATUS_VARIANT[status] }
   const Icon = ALERT_STATUS_ICON[status]
   // `h-6 text-sm` so the status pill matches AlertSourceBadge's height
   // (also h-6 text-sm) — they sit side-by-side in the drawer header and

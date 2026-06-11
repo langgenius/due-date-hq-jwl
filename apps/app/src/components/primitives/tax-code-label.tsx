@@ -75,6 +75,11 @@ function TaxCodeLabel({
  *   • `px-3 py-1` (Pencil's [4, 12])
  *   • `border-divider-subtle` hairline border (subtle, not regular)
  *
+ * `size="compact"` is the ONE sanctioned density variant (tight rails,
+ * matrix cells): same chrome, `px-1.5 py-0.5 text-caption-xs`. Call
+ * sites must not freelance their own padding/radius/bg overrides —
+ * the chip has to read identically on every surface.
+ *
  * The Badge primitive's `variant="outline"` still drives focus +
  * hover behavior; only the chrome (bg, font, radius, padding) is
  * overridden via className. Tooltip behavior unchanged.
@@ -82,9 +87,11 @@ function TaxCodeLabel({
 function TaxCodeBadge({
   code,
   className,
+  size = 'default',
 }: {
   code: string | null | undefined
   className?: string
+  size?: 'default' | 'compact'
 }) {
   const meta = describeTaxCode(code)
   if (!meta.code) return null
@@ -99,7 +106,8 @@ function TaxCodeBadge({
             // identity; bold made it shout next to the row's
             // body text.
             className={cn(
-              'cursor-help border-divider-subtle bg-background-subtle px-3 py-1 font-mono font-medium tracking-tight rounded-sm',
+              'cursor-help border-divider-subtle bg-background-subtle font-mono font-medium tracking-tight rounded-sm',
+              size === 'compact' ? 'px-1.5 py-0.5 text-caption-xs' : 'px-3 py-1',
               className,
             )}
             {...props}

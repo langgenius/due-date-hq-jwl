@@ -2,6 +2,7 @@ import { Fragment, type ComponentType, type ReactNode } from 'react'
 import { Trans } from '@lingui/react/macro'
 import { GlobeIcon, LockIcon, MailCheckIcon, ShieldIcon } from 'lucide-react'
 
+import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 // Shared chrome for the full-bleed auth surfaces (login, 2FA, accept-invite),
@@ -32,17 +33,21 @@ export function AuthBrandAnchor({ className }: { className?: string }) {
 }
 
 // "All systems normal" status pill (links to the public status page).
+// Badge primitive — the same outline-chip-plus-dot family as every other
+// state pill (members, sources, temporary rules); the render prop keeps
+// it a real link to the status page.
 export function AuthStatusPill() {
   return (
-    <a
-      href="https://status.duedatehq.com"
-      target="_blank"
-      rel="noreferrer noopener"
-      className="inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default px-2.5 py-1 text-[11px] font-medium text-text-secondary transition-colors hover:border-divider-regular focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+    <Badge
+      variant="outline"
+      className="bg-background-default text-text-secondary transition-colors hover:border-divider-regular"
+      render={
+        <a href="https://status.duedatehq.com" target="_blank" rel="noreferrer noopener" />
+      }
     >
-      <span aria-hidden className="size-1.5 rounded-full bg-state-success-solid" />
+      <BadgeStatusDot tone="success" className="size-1.5" />
       <Trans>All systems normal</Trans>
-    </a>
+    </Badge>
   )
 }
 

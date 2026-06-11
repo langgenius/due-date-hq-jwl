@@ -211,7 +211,9 @@ function TemporaryRuleStatusBadge({ status }: { status: TemporaryRule['status'] 
           ? 'disabled'
           : 'error'
   return (
-    <Badge variant="outline" className="h-[22px] rounded-full px-2 text-xs">
+    // Stock Badge chrome — same outline-chip-plus-dot family (and the same
+    // default h-5 pill) as the members + sources status pills.
+    <Badge variant="outline">
       <BadgeStatusDot tone={tone} className="size-1.5" />
       {label}
     </Badge>

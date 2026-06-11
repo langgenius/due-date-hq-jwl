@@ -6,6 +6,7 @@ import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
 
 import { useAlertDetailQueryOptions } from '../api'
@@ -209,18 +210,16 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
                 ? facts.affecting
                 : firstForm
                   ? [firstForm]
-                  : ['—']
+                  : []
               ).map((code) => (
-                <span
-                  key={code}
-                  // QbZPm form-code pill: bg #f9fafb, border
-                  // divider-regular, rounded-5, padding [4,12], 12/700
-                  // JetBrains Mono.
-                  className="inline-flex items-center rounded-sm border border-divider-regular bg-background-section px-3 py-1 font-mono text-xs font-bold text-text-secondary"
-                >
-                  {code}
-                </span>
+                // QbZPm form-code pill — shared TaxCodeBadge primitive
+                // (stock chrome) so the form badge reads identically on
+                // every surface; supersedes the canvas's 12/700 one-off.
+                <TaxCodeBadge key={code} code={code} />
               ))}
+              {!facts?.affecting?.length && !firstForm ? (
+                <span className="text-sm font-medium text-text-secondary">—</span>
+              ) : null}
             </div>
           </div>
           {/* DOz2N FIRST YEAR — narrower cell. */}

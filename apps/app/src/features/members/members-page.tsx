@@ -995,11 +995,12 @@ function RoleDisplay({ role }: { role: MemberPublic['role'] | MemberManagedRole 
 // share one shape — `outline` chip + tone-colored dot (a filled chip + dot is
 // redundant) — to avoid looking like different families. Tones follow the
 // ladder: success = healthy, info = active work, warning = external pause,
-// disabled = dormant.
+// disabled = dormant. Stock Badge chrome (pill radius, default size) so the
+// state pill reads the same here as on every other surface.
 function MemberStatusPill({ status }: { status: MemberPublic['status'] }) {
   const suspended = status === 'suspended'
   return (
-    <Badge variant="outline" className="h-5 rounded-sm px-2 text-xs text-text-secondary">
+    <Badge variant="outline" className="text-text-secondary">
       <BadgeStatusDot tone={suspended ? 'disabled' : 'success'} className="size-1.5" />
       {suspended ? <Trans>Suspended</Trans> : <Trans>Active</Trans>}
     </Badge>
@@ -1009,7 +1010,7 @@ function MemberStatusPill({ status }: { status: MemberPublic['status'] }) {
 function InvitationStatusPill({ status }: { status: MemberInvitationPublic['status'] }) {
   const expired = status === 'expired'
   return (
-    <Badge variant="outline" className="h-5 rounded-sm px-2 text-xs text-text-secondary">
+    <Badge variant="outline" className="text-text-secondary">
       <BadgeStatusDot tone={expired ? 'warning' : 'info'} className="size-1.5" />
       {expired ? <Trans>Expired</Trans> : <Trans>Pending</Trans>}
     </Badge>

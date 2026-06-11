@@ -5,6 +5,7 @@ import { ArrowRightIcon, InfoIcon } from 'lucide-react'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { CountPill } from '@/components/primitives/count-pill'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 
 // Maps the Pencil `U8eGg` — /onboarding rule-review prompt, step 2 of the
@@ -118,9 +119,11 @@ export function RuleReviewPrompt({
             <Trans>Jurisdictions awaiting calendar review</Trans>
           </span>
           <div className="flex-1" />
-          <span className="rounded-full border border-state-warning-active bg-state-warning-hover px-2.5 py-0.5 text-[11px] font-bold text-text-warning">
+          {/* CountPill — the canonical "N <noun>" count pill (warning
+              tone), not a hand-rolled one-off. */}
+          <CountPill tone="warning">
             <Trans>{reviewCount} to review</Trans>
-          </span>
+          </CountPill>
         </div>
 
         {jurisdictions.map((item, index) => (

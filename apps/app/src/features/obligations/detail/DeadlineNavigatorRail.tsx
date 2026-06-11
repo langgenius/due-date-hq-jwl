@@ -388,7 +388,7 @@ function DeadlineNavigatorRow({
       {/* Content (rzzww `NIkyc`) */}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center gap-2 pb-0.5">
-          <TaxCodeBadge code={row.taxType} className="px-1.5 py-0.5 text-caption-xs" />
+          <TaxCodeBadge code={row.taxType} size="compact" />
         </div>
         {/* Form title + status on ONE line (Yuqi #2): title takes the row,
             status reads as an icon and expands to icon + label on the active

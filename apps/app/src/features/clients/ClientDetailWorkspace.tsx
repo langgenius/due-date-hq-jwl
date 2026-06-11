@@ -68,6 +68,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
@@ -1667,9 +1668,9 @@ function ClientActiveAlertsCard({ match }: { match: ClientAlertMatch }) {
   return (
     <div className="flex flex-col gap-2 px-4 py-3">
       <div className="flex items-center justify-between gap-2">
-        <Badge variant="secondary" className="shrink-0 rounded-sm uppercase">
-          {formatTaxCode(match.taxType)}
-        </Badge>
+        {/* Shared TaxCodeBadge primitive — same mono code-chip chrome as
+            every other form badge in the app (was a one-off gray Badge). */}
+        <TaxCodeBadge code={match.taxType} className="shrink-0" />
         <Button
           variant="ghost"
           size="sm"

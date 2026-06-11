@@ -267,10 +267,10 @@ function RailItem({
           <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-xs font-semibold text-text-secondary uppercase">
             {alert.jurisdiction}
           </span>
-          {/* rounded-lg — the same corner override the main row's form
-              chip carries, so the SAME alert wears the same chip in both
-              the row and the rail (same-entity-same-rendering audit). */}
-          {form ? <TaxCodeBadge code={form} className="rounded-lg" /> : null}
+          {/* Stock TaxCodeBadge chrome — the SAME alert wears the same
+              chip in the row and the rail, and both match the app-wide
+              form-badge treatment (same-entity-same-rendering audit). */}
+          {form ? <TaxCodeBadge code={form} /> : null}
           {/* Change-kind — the SAME demoted treatment as the main /alerts
               row (caption-xs/medium/muted): classification metadata, not a
               signal (batch 4 #8). */}

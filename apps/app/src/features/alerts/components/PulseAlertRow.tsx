@@ -448,10 +448,10 @@ function PulseAlertRow({
           </span>
 
           {/* FORM PILL — shared TaxCodeBadge primitive (bg-subtle mono
-              code chip). The row instance overrides to rounded-lg (8px)
-              for softer corners; the shared primitive base stays
-              rounded-sm for other surfaces. */}
-          {formLabel ? <TaxCodeBadge code={formLabel} className="rounded-lg" /> : null}
+              code chip), stock chrome so the form badge reads identically
+              on every surface (per the pulse-alert-chrome contract: no
+              className override on /alerts). */}
+          {formLabel ? <TaxCodeBadge code={formLabel} /> : null}
 
           {/* CHANGE KIND — aligned to the dashboard NeedsAttentionCard's
               change-kind treatment — SANS (not mono), text-xs
