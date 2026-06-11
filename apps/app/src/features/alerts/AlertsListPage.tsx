@@ -817,46 +817,17 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 ) : null}
 
                 {/* When the detail panel is open, every filter control
-                    AFTER the Search hides — see the closing `)}` below. */}
+                    AFTER the Search hides — see the closing `)}` below.
+
+                    Toolbar order (Yuqi batch 3 #1/#8): NARROWING controls
+                    lead, left-to-right — [Queue toggle] [Search] [Filters]
+                    [State] [Clear] — then the spacer, then the DISPLAY
+                    controls flush right — [Suggested action] [Sort] [view
+                    icons]. One labeled toggle per row: the List/Map switch
+                    is icon-only at the far end so it reads as a view
+                    switcher, not a second queue toggle. */}
                 {panelOpen ? null : (
                   <>
-                    {/* View mode toggle. The canonical toolbar layout is
-                        Search + ViewToggle (left cluster) ‖ Time +
-                        Severity + ChangeType + Status + State + Sort
-                        (right cluster). Force the List/Map track to 36px
-                        tall and stretch its items to fill — the md
-                        Segmented is a 32px track by default, which sits
-                        4px short of the FilterTrigger / search siblings. */}
-                    <Segmented
-                      className="h-9 shrink-0 [&>button]:h-8 [&>button]:text-base"
-                      ariaLabel={t`View mode`}
-                      value={viewMode}
-                      onValueChange={setViewMode}
-                      options={[
-                        { value: 'list', label: <Trans>List</Trans>, icon: ListIcon },
-                        { value: 'map', label: <Trans>Map</Trans>, icon: MapIcon },
-                      ]}
-                    />
-
-                    {/* The flex-1 spacer sits directly after the
-                        Search + List/Map cluster, so the toolbar reads as
-                        two groups — "find + view" on the left, every
-                        narrowing control (Suggested action · Filters ·
-                        State · Clear · Sort) on the right (Yuqi #1/#5).
-                        On narrow viewports the wrap row reflows the right
-                        cluster onto a second line. */}
-                    <span className="hidden flex-1 lg:block" aria-hidden />
-
-                    {/* "Suggested action" (not "Show suggested action") —
-                        the shorter label keeps the whole control row on
-                        one line at laptop widths (Yuqi #2). */}
-                    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-base font-medium text-text-secondary select-none">
-                      <Checkbox
-                        checked={showSuggestedAction}
-                        onCheckedChange={(next) => setShowSuggestedAction(next)}
-                      />
-                      <Trans>Suggested action</Trans>
-                    </label>
 
                     {/* Avoid a greedy `flex-1` spacer between the
                     Search/View cluster and the dropdowns: in a `flex-wrap`
@@ -962,6 +933,21 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       <Trans>Clear filters</Trans>
                     </Button>
 
+                    {/* Spacer — narrowing cluster left, display cluster
+                        right (Yuqi batch 3 #8). */}
+                    <span className="hidden flex-1 lg:block" aria-hidden />
+
+                    {/* Display settings — quiet 13px label (Yuqi batch 3
+                        #2: 更小), then Sort, then the icon-only view
+                        switcher. */}
+                    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-sm text-text-secondary select-none">
+                      <Checkbox
+                        checked={showSuggestedAction}
+                        onCheckedChange={(next) => setShowSuggestedAction(next)}
+                      />
+                      <Trans>Suggested action</Trans>
+                    </label>
+
                     {/* Sort by — three options matching the sortOrder
                     enum. The current value is shown inline on the trigger
                     so the dropdown reads "Sort by Newest" / "Oldest" /
@@ -1021,6 +1007,21 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         </DropdownMenuRadioGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
+
+                    {/* View switcher — icon-only Segmented at the far end.
+                        One labeled toggle per toolbar (the queue switch);
+                        this one reads as a view affordance, not a second
+                        queue (Yuqi batch 3 #1). */}
+                    <Segmented
+                      className="h-9 shrink-0 [&>button]:h-8"
+                      ariaLabel={t`View mode`}
+                      value={viewMode}
+                      onValueChange={setViewMode}
+                      options={[
+                        { value: 'list', label: null, icon: ListIcon, ariaLabel: t`List view` },
+                        { value: 'map', label: null, icon: MapIcon, ariaLabel: t`Map view` },
+                      ]}
+                    />
                   </>
                 )}
               </div>
@@ -1516,10 +1517,15 @@ function AlertFiltersPopover({
         render={
           <FilterTrigger
             active={activeCount > 0}
+            // The consolidated Filters entry leads the filter cluster and
+            // carries the gray `saved` fill at rest so it reads as a real
+            // control, not another quiet pill (Yuqi batch 3 #7: "more
+            // obvious"). Active filters switch to the accent wash.
+            variant={activeCount > 0 ? 'filter' : 'saved'}
             leadingIcon={SlidersHorizontalIcon}
             valueLabel={activeCount > 0 ? String(activeCount) : undefined}
             aria-label={t`Filters`}
-            className="text-base"
+            className="text-base font-medium text-text-primary"
           >
             <span>
               <Trans>Filters</Trans>

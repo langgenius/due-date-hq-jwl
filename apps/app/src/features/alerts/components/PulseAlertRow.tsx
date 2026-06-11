@@ -337,12 +337,16 @@ function PulseAlertRow({
         // Rows are a FLAT uniform white surface (no zebra striping by
         // impact): client impact is already carried by the "Affects N
         // clients" meta + the High-impact pill, so a receding fill would
-        // be redundant signal. Every non-active row is
-        // `bg-background-default`; active wins with the accent wash;
-        // hover steps to base-hover.
+        // be redundant signal. Hover/active use the canonical interactive
+        // -row motif (accent wash + 2px inset left accent bar — the
+        // clients-list treatment baked into TableRow, applied here
+        // directly since this row doesn't use the table primitive; see
+        // dev-log 2026-06-10-hover-accent-bar-rows).
         'group/row flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-colors',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        active ? 'bg-state-accent-hover' : 'bg-background-default hover:bg-state-base-hover',
+        active
+          ? 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]'
+          : 'bg-background-default hover:bg-state-accent-hover hover:shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
     >
       {/* Bulk-select checkbox (Pencil g5kKJQ `gT3zO chk`, 18px).
@@ -456,7 +460,10 @@ function PulseAlertRow({
               /alerts. The change-kind label stands alone here; the bottom
               confidence pill already leads with "N sources · X% conf", so
               the corroboration signal isn't duplicated in the head. */}
-          <span className="text-xs font-semibold tracking-[0.3px] text-text-tertiary uppercase">
+          {/* Demoted to caption/medium/muted — at xs/semibold the kind
+              label out-shouted the title (Yuqi batch 3 #5: "too
+              obvious"); it's classification metadata, not a signal. */}
+          <span className="text-caption-xs font-medium tracking-[0.4px] text-text-muted uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
 
@@ -559,7 +566,10 @@ function PulseAlertRow({
             cut mid-thought); the full summary lives in the detail
             drawer. */}
         <h3
-          className="line-clamp-2 min-w-0 text-[16px] font-medium leading-[1.3] tracking-[-0.25px] text-text-secondary"
+          // `text-lg` (the 16px token, not a literal) + text-primary —
+          // the title is the row's primary read, so it takes the primary
+          // ink while everything around it recedes (batch 3 #3 polish).
+          className="line-clamp-2 min-w-0 text-lg font-medium leading-[1.3] tracking-[-0.25px] text-text-primary"
           title={alert.title}
         >
           {alert.title}
@@ -618,19 +628,13 @@ function PulseAlertRow({
                 >
                   <path d="M4 2.5v3a1.5 1.5 0 0 0 1.5 1.5H9" />
                 </svg>
-                <div
-                  className="inline-flex items-center gap-2 self-start rounded px-3 py-1"
-                  style={{ backgroundColor: '#FFFBEB' }}
-                >
-                  <span
-                    className="text-xs font-semibold tracking-[0.3px] uppercase"
-                    style={{ color: '#92400E' }}
-                  >
+                {/* Token classes, not hex literals — the amber recipe is
+                    the shared state-warning pair (batch 3 #4 polish). */}
+                <div className="inline-flex items-center gap-2 self-start rounded bg-state-warning-hover px-3 py-1">
+                  <span className="text-xs font-semibold tracking-[0.3px] text-text-warning uppercase">
                     <Trans>Action</Trans>
                   </span>
-                  <span className="text-sm font-medium" style={{ color: '#92400E' }}>
-                    {actionText}
-                  </span>
+                  <span className="text-sm font-medium text-text-warning">{actionText}</span>
                 </div>
               </div>
             ) : null}
@@ -685,19 +689,15 @@ function PulseAlertRow({
               the dashboard card. Impacted rows step to text-secondary;
               no-match advisories stay muted, mirroring the dashboard
               NeedsAttentionCard affects-clients line. */}
-          <span
-            className={cn(
-              'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap',
-              impacted > 0 ? 'text-text-secondary' : 'text-text-muted',
-            )}
-          >
-            <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
-            {impacted > 0 ? (
+          {/* Zero-match rows render NO clients line — "No matching
+              clients" repeated on every advisory row was gray noise that
+              buried the rows that DO affect clients (the signal). */}
+          {impacted > 0 ? (
+            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-text-secondary">
+              <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
-            ) : (
-              <Trans>No matching clients</Trans>
-            )}
-          </span>
+            </span>
+          ) : null}
           {/* AI confidence — a neutral signal-strength METER (three
               rising bars filled by tier) + the %, so it reads as a
               MEASUREMENT, not a status chip (a green pill would collide

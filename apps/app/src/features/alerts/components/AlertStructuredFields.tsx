@@ -12,7 +12,6 @@ import { formatDate, formatDatePretty } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 
-import { changeKindLabel } from './PulseChangeKindChip'
 
 interface AlertStructuredFieldsProps {
   detail: PulseDetail
@@ -180,17 +179,17 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           .map((kind) => (kind === 'filing' ? t`Filing` : t`Payment`))
           .join(' + ')
       : null
+  // No generic "Change type" fallback cell — the header's change-kind
+  // chip 60px above already names it verbatim, so the cell was pure
+  // duplication (and it truncated). The slot only renders when a
+  // deadline-shift alert carries a real AI-extracted relief type.
   const reliefCell = deadlineFacts?.reliefType
     ? {
         key: 'reliefType',
         label: <Trans>Relief type</Trans>,
         value: deadlineFacts.reliefType,
       }
-    : {
-        key: 'change',
-        label: <Trans>Change type</Trans>,
-        value: changeKindLabel(detail.alert.changeKind),
-      }
+    : null
   const deadlineTypesCell = deadlineTypesValue
     ? { key: 'deadlineTypes', label: <Trans>Deadline types</Trans>, value: deadlineTypesValue }
     : { key: 'entities', label: <Trans>Entity types</Trans>, value: entityValue }
@@ -207,21 +206,26 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
     { key: 'authority', label: <Trans>Authority</Trans>, value: detail.alert.source },
     { key: 'effective', label: <Trans>Effective</Trans>, value: effectiveValue },
     { key: 'forms', label: <Trans>Affected forms</Trans>, value: formsValue },
-    reliefCell,
+    ...(reliefCell ? [reliefCell] : []),
     { key: 'jurisdiction', label: <Trans>Jurisdiction</Trans>, value: jurisdictionValue },
     {
       key: 'published',
       label: <Trans>Published</Trans>,
-      value: formatDate(detail.alert.publishedAt),
+      // Pretty format ("May 20, 2026") — the grid showed ISO while every
+      // neighboring date rendered pretty; one date format per page.
+      value: formatDatePretty(detail.alert.publishedAt, { alwaysShowYear: true }),
     },
     deadlineTypesCell,
     optInCell,
   ]
+  // Pad the hairline matrix to a full 4-column row — the grid wrapper's
+  // divider-colored bg shows through any unfilled slot as a gray block.
+  const fillerCount = (4 - (cells.length % 4)) % 4
 
   return (
     <div className="flex flex-col gap-3">
       {detail.alert.duplicateSourceSnapshotCount > 0 ? (
-        <div className="rounded-lg border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
+        <div className="rounded-lg bg-background-soft px-3 py-2 text-xs text-text-secondary">
           <Plural
             value={detail.alert.duplicateSourceSnapshotCount}
             one="# similar source update was merged into this alert."
@@ -249,15 +253,23 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
               {cell.label}
             </span>
-            <span className="min-w-0 truncate text-base font-medium text-text-primary">
+            {/* Wrap to two lines instead of ellipsizing — Authority /
+                Relief type are the identity values; hiding them behind
+                "…" defeated the grid. */}
+            <span className="line-clamp-2 min-w-0 break-words text-base font-medium text-text-primary">
               {cell.value}
             </span>
           </div>
         ))}
+        {/* cells.length is 7 or 8, so one filler also squares the 2-col
+            mobile grid (7+1 = 4 rows of 2). */}
+        {Array.from({ length: fillerCount }, (_, i) => (
+          <div key={`filler-${i}`} className="bg-background-default" aria-hidden />
+        ))}
       </div>
 
       {detail.alert.changeKind === 'threshold_advisory' ? (
-        <div className="rounded-lg border border-divider-subtle bg-background-soft px-4 py-3">
+        <div className="rounded-lg bg-background-soft px-4 py-3">
           <p className="text-sm leading-relaxed text-text-secondary">
             <Trans>
               This alert points to the official IRS Revenue Procedure and asserts no specific
@@ -268,44 +280,44 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
       ) : null}
 
       {protectiveFacts ? (
-        <div className="rounded-lg border border-divider-subtle bg-background-soft px-4 py-3">
+        <div className="rounded-lg bg-background-soft px-4 py-3">
           <div className="grid gap-3 sm:grid-cols-2">
             {protectiveFacts.actionDeadline ? (
               <div className="flex flex-col gap-1">
-                <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+                <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
                   <Trans>Action deadline</Trans>
                 </span>
-                <span className="text-sm font-semibold text-text-primary">
+                <span className="text-sm font-medium text-text-primary">
                   {formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}
                 </span>
               </div>
             ) : null}
             {protectiveFacts.claimTaxYears.length > 0 ? (
               <div className="flex flex-col gap-1">
-                <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+                <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
                   <Trans>Affected years</Trans>
                 </span>
-                <span className="break-words text-sm font-semibold text-text-primary">
+                <span className="break-words text-sm font-medium text-text-primary">
                   {protectiveFacts.claimTaxYears.join(' · ')}
                 </span>
               </div>
             ) : null}
             {protectiveFacts.affectedTaxActs.length > 0 ? (
               <div className="flex flex-col gap-1">
-                <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+                <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
                   <Trans>Affected tax acts</Trans>
                 </span>
-                <span className="break-words text-sm font-semibold text-text-primary">
+                <span className="break-words text-sm font-medium text-text-primary">
                   {protectiveFacts.affectedTaxActs.join(' · ')}
                 </span>
               </div>
             ) : null}
             {protectiveFacts.evidenceNeeded.length > 0 ? (
               <div className="flex flex-col gap-1">
-                <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+                <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
                   <Trans>Evidence to gather</Trans>
                 </span>
-                <span className="break-words text-sm font-semibold text-text-primary">
+                <span className="break-words text-sm font-medium text-text-primary">
                   {protectiveFacts.evidenceNeeded.join(' · ')}
                 </span>
               </div>
@@ -313,7 +325,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           </div>
           {protectiveFacts.legalUncertainty ? (
             <div className="mt-3 flex flex-col gap-1">
-              <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+              <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
                 <Trans>Legal uncertainty</Trans>
               </span>
               <p className="text-sm leading-relaxed text-text-secondary">
@@ -323,7 +335,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           ) : null}
           {protectiveFacts.authorityRefs.length > 0 ? (
             <div className="mt-3 flex flex-col gap-1">
-              <span className="font-mono text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+              <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
                 <Trans>Authority refs</Trans>
               </span>
               <p className="break-words text-sm leading-relaxed text-text-secondary">
@@ -335,7 +347,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
       ) : null}
 
       {/* Source excerpt — flush bordered blockquote with copy affordance. */}
-      <div className="group/excerpt relative rounded-lg border border-divider-subtle bg-background-soft px-4 py-3">
+      <div className="group/excerpt relative rounded-lg bg-background-soft px-4 py-3">
         <blockquote className="break-words pr-8 text-sm italic leading-relaxed text-text-secondary">
           &ldquo;{detail.sourceExcerpt}&rdquo;
         </blockquote>

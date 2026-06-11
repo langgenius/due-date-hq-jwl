@@ -1177,7 +1177,18 @@ export function AlertDetailDrawer({
                   <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
                     A
                   </kbd>
-                  <Trans>Apply</Trans>
+                  {/* The label tracks what `A` actually fires — Mark
+                      reviewed on review-only / no-match alerts, the Apply
+                      gate on due-date overlays (same `noActionReview`
+                      branch as the hotkey handler + footer CTA). A hint
+                      that says "Apply" while the key marks-reviewed
+                      teaches a falsehood on the liability path. */}
+                  {detail.alert.actionMode === 'review_only' ||
+                  detail.alert.firmImpact === 'no_current_match' ? (
+                    <Trans>Review</Trans>
+                  ) : (
+                    <Trans>Apply</Trans>
+                  )}
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-caption">
                   <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">

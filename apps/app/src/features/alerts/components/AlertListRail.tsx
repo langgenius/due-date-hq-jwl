@@ -236,9 +236,12 @@ function RailItem({
         // inactive row stays full-strength (no opacity dimming — that read
         // as "disabled") so every row looks active/clickable; the only
         // distinction is the accent + fill, not contrast.
+        // Hover takes the same accent wash + left-bar motif as the active
+        // row (the canonical interactive-row treatment; dev-log
+        // 2026-06-10-hover-accent-bar-rows listed this rail as follow-up).
         active
           ? 'border-l-2 border-l-state-accent-solid bg-state-accent-hover'
-          : 'border-l-2 border-l-transparent hover:bg-state-base-hover',
+          : 'border-l-2 border-l-transparent hover:border-l-state-accent-solid hover:bg-state-accent-hover',
       )}
     >
       {/* Time column (60px). */}
@@ -247,7 +250,13 @@ function RailItem({
         <span className="text-caption-xs font-medium tracking-[-0.1px] text-text-tertiary tabular-nums">
           {timeLabel}
         </span>
-        <span className="text-caption-xs font-medium text-text-muted">{relative}</span>
+        {/* formatRelativeTime falls back to an absolute "May 20" past the
+            1-week window — identical to the dateLabel above it, so the
+            column read stuttered ("May 20 / 04:00 / May 20"). Render the
+            third line only when it adds information. */}
+        {relative !== dateLabel ? (
+          <span className="text-caption-xs font-medium text-text-muted">{relative}</span>
+        ) : null}
       </div>
 
       {/* Content — head meta row + 2-line title + bottom meta row, the
@@ -315,19 +324,14 @@ function RailItem({
             same two signals the main row carries on its bottom shelf,
             wrapped to the rail width. */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-muted">
-          <span
-            className={cn(
-              'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap',
-              impacted > 0 ? 'text-text-secondary' : 'text-text-muted',
-            )}
-          >
-            <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
-            {impacted > 0 ? (
+          {/* Zero-match rows drop the clients line (same rule as the main
+              list row) — repeated "No matching clients" was noise. */}
+          {impacted > 0 ? (
+            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-text-secondary">
+              <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
-            ) : (
-              <Trans>No matching clients</Trans>
-            )}
-          </span>
+            </span>
+          ) : null}
           {/* AI confidence — neutral three-bar signal-strength meter + %,
               identical to the main row (LOW keeps a warning tint; the rest
               stay neutral so it reads as a measurement, not a status). */}
