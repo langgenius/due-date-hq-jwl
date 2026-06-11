@@ -784,12 +784,11 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel size="sm" disabled={revertMutation.isPending}>
+            <AlertDialogCancel disabled={revertMutation.isPending}>
               <Trans>Keep import</Trans>
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive-primary"
-              size="sm"
               disabled={revertMutation.isPending}
               onClick={handleConfirmRevert}
             >

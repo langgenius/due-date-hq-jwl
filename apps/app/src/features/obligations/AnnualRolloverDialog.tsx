@@ -339,13 +339,12 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
 
         {/* Footer */}
         <div className="flex flex-wrap items-center gap-2 border-t border-divider-regular px-6 py-3.5">
-          <DialogClose render={<Button variant="ghost" size="sm" />}>
+          <DialogClose render={<Button variant="ghost" />}>
             <Trans>Cancel</Trans>
           </DialogClose>
           <div className="flex-1" />
           <Button
             variant="outline"
-            size="sm"
             disabled={pending || willUpdateCount === 0 || safeClientIds.length === 0}
             onClick={() =>
               createMutation.mutate({
@@ -358,7 +357,6 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
             <Trans>Apply {willUpdateCount} safe items only</Trans>
           </Button>
           <Button
-            size="sm"
             disabled={pending || totalCount === 0}
             onClick={() =>
               createMutation.mutate({

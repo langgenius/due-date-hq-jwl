@@ -438,12 +438,11 @@ export function ImportHistoryDrawer({
             />
           ) : null}
           <AlertDialogFooter>
-            <AlertDialogCancel size="sm" disabled={recoveryPending}>
+            <AlertDialogCancel disabled={recoveryPending}>
               <Trans>Cancel</Trans>
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive-primary"
-              size="sm"
               disabled={recoveryPending}
               onClick={handleConfirmRecovery}
             >

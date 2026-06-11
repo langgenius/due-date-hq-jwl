@@ -661,6 +661,27 @@ Tax Period review。
 基类统一带 `[corner-shape:squircle]`（iOS 连续圆角，受支持的浏览器自动平滑，其余优雅降级）+
 `focus-visible:ring-2 ring-state-accent-active-alt ring-offset-2`。
 
+#### Size → context 映射（2026-06-11 — 强制规则，不要凭感觉选 size）
+
+size 不是统一一个值——它按 context 分级。下表是**唯一规则**；新按钮按 context 选 size，
+不得手搓高度 className（`h-11`/`h-12` 之类），不得在同一 context 里 `sm` 和 default 混用。
+
+| Context | size | 高度 |
+| ------- | ---- | ---- |
+| **Auth / entry CTA**（login / accept-invite / onboarding 的全宽登录按钮）；**empty-state hero**（ClientsEmptyState 等占满整面的主 CTA） | **`lg`** | 40px |
+| **Page-header actions**（路由右上角主/次操作）；**dialog / modal / AlertDialog footer**（Cancel/Confirm/Save） | **`default`**（不写 size） | 36px |
+| **Toolbars / filter rows**（挨着 FilterTrigger / SearchInput）；**table / list row actions**；inline 行内操作 | **`sm`** | 32px |
+| **Dense labels / 超紧凑 chip-级按钮** | **`xs`** | 28px |
+| icon-only | 对应 `icon-xs / icon-sm / icon / icon-lg`（贴文字 size 的同档） | — |
+
+要点：
+- **default vs sm 的边界**：工具条/行/footer-外的"密集成排"按钮 = `sm`；页面级单发操作 + 所有
+  modal footer = `default`。两者差 4px，同一行/同一 footer 里**只能用一种**。
+- **Auth 用 `lg`，不要手搓 `h-11`/`h-12`**（2026-06-11 修复：11 处 auth CTA 从 hand-rolled
+  height 收回到 `size="lg"`）。
+- **所有 modal footer = `default`**（2026-06-11 修复：AnnualRolloverDialog / OnboardingSkipModal /
+  AlertDialog 系列从 `sm` 收回到 default，与 CreateClientDialog / CreateObligationDialog 对齐）。
+
 #### Legacy 别名（保留，勿在新代码用）
 
 `default → primary`、`outline → secondary`、`destructive → destructive-secondary`。

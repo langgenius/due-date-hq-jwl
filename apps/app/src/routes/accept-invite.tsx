@@ -157,7 +157,8 @@ export function AcceptInviteRoute() {
           <div className="flex flex-wrap gap-2.5">
             <Button
               nativeButton={false}
-              className="h-11 flex-1 rounded-lg font-semibold"
+              size="lg"
+              className="flex-1 rounded-lg font-semibold"
               render={<Link to="/login" />}
             >
               <Trans>Sign in</Trans>
@@ -165,7 +166,8 @@ export function AcceptInviteRoute() {
             <Button
               nativeButton={false}
               variant="outline"
-              className="h-11 flex-1 rounded-lg"
+              size="lg"
+              className="flex-1 rounded-lg"
               render={<Link to="/" />}
             >
               <Trans>Go to Today</Trans>
@@ -225,7 +227,8 @@ export function AcceptInviteRoute() {
           <div className="flex flex-col gap-4">
             <Button
               variant="outline"
-              className="h-12 w-full justify-center gap-2.5 rounded-lg font-semibold"
+              size="lg"
+              className="w-full justify-center gap-2.5 rounded-lg font-semibold"
               onClick={() => void handleProvider('google')}
               disabled={providerDisabled}
               aria-busy={submitting === 'google'}
@@ -238,7 +241,8 @@ export function AcceptInviteRoute() {
             {microsoftEnabled ? (
               <Button
                 variant="outline"
-                className="h-12 w-full justify-center gap-2.5 rounded-lg font-semibold"
+                size="lg"
+                className="w-full justify-center gap-2.5 rounded-lg font-semibold"
                 onClick={() => void handleProvider('microsoft')}
                 disabled={providerDisabled}
                 aria-busy={submitting === 'microsoft'}
@@ -293,7 +297,8 @@ export function AcceptInviteRoute() {
             ) : null}
 
             <Button
-              className="h-12 w-full justify-center gap-2 rounded-lg font-semibold"
+              size="lg"
+              className="w-full justify-center gap-2 rounded-lg font-semibold"
               onClick={handleAccept}
               disabled={submitting !== null || inviteQuery.isLoading || inviteQuery.isError}
               aria-busy={submitting === 'accept'}

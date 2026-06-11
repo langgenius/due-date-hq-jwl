@@ -226,10 +226,11 @@ export function LoginRoute() {
               <div className="flex flex-col gap-4">
                 <Button
                   variant="secondary"
+                  size="lg"
                   onClick={handleGoogleSignIn}
                   disabled={socialDisabled}
                   aria-busy={submittingProvider === 'google'}
-                  className="h-11 w-full gap-3 rounded-xl"
+                  className="w-full gap-3 rounded-xl"
                 >
                   {submittingProvider === 'google' ? (
                     <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -248,10 +249,11 @@ export function LoginRoute() {
                 {microsoftEnabled ? (
                   <Button
                     variant="secondary"
+                    size="lg"
                     onClick={handleMicrosoftSignIn}
                     disabled={socialDisabled}
                     aria-busy={submittingProvider === 'microsoft'}
-                    className="h-11 w-full gap-3 rounded-xl"
+                    className="w-full gap-3 rounded-xl"
                   >
                     {submittingProvider === 'microsoft' ? (
                       <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -699,7 +701,8 @@ function LoginEmailForm({
         <div className="grid grid-cols-[1fr_auto] gap-2.5">
           <Button
             type="submit"
-            className="h-11 justify-center gap-2 rounded-xl font-semibold"
+            size="lg"
+            className="justify-center gap-2 rounded-xl font-semibold"
             disabled={formDisabled || normalizeCode(code).length !== 6}
             aria-busy={pendingAction === 'verify'}
           >
@@ -711,7 +714,8 @@ function LoginEmailForm({
           <Button
             type="button"
             variant="outline"
-            className="h-11 rounded-xl px-4"
+            size="lg"
+            className="rounded-xl px-4"
             disabled={formDisabled}
             onClick={() => void sendCode('resend')}
             aria-busy={pendingAction === 'resend'}
@@ -768,7 +772,8 @@ function LoginEmailForm({
 
       <Button
         type="submit"
-        className="h-11 w-full justify-center gap-2 rounded-xl font-semibold"
+        size="lg"
+        className="w-full justify-center gap-2 rounded-xl font-semibold"
         disabled={formDisabled}
         aria-busy={pendingAction === 'send'}
       >

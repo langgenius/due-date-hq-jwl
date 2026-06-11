@@ -321,10 +321,10 @@ export function WizardShell({ open, onClose, confirmOnClose, ...frameProps }: Wi
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel size="sm">
+              <AlertDialogCancel>
                 <Trans>Keep editing</Trans>
               </AlertDialogCancel>
-              <AlertDialogAction variant="destructive-primary" size="sm" onClick={handleDiscard}>
+              <AlertDialogAction variant="destructive-primary" onClick={handleDiscard}>
                 <Trans>Discard import</Trans>
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -389,10 +389,10 @@ export function WizardRouteShell({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel size="sm">
+              <AlertDialogCancel>
                 <Trans>Keep editing</Trans>
               </AlertDialogCancel>
-              <AlertDialogAction variant="destructive-primary" size="sm" onClick={handleDiscard}>
+              <AlertDialogAction variant="destructive-primary" onClick={handleDiscard}>
                 <Trans>Discard import</Trans>
               </AlertDialogAction>
             </AlertDialogFooter>

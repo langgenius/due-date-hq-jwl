@@ -331,7 +331,8 @@ export function OnboardingRoute() {
           <div className="flex flex-col gap-3">
             <Button
               type="submit"
-              className="h-12 w-full justify-center gap-2 rounded-lg font-semibold"
+              size="lg"
+              className="w-full justify-center gap-2 rounded-lg font-semibold"
               disabled={submitting || monitoringStartDateInvalid}
               aria-busy={submitting}
             >
