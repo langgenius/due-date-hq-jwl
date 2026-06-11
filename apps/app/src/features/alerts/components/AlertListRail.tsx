@@ -315,16 +315,23 @@ function RailItem({
           <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
         </span>
 
-        {/* Bottom meta — affected clients only, and only when there ARE
-            any. The AI-confidence meter is a detail-panel fact, not a
-            navigator fact — in the rail it was per-row noise (batch 4
-            #10/#11); zero-match rows render no meta at all. */}
+        {/* Bottom meta — client impact, answered on EVERY row (it's
+            triage question #1: which alert do I open next?). Impacted
+            rows are loud (icon + secondary); zero-match rows state the
+            conclusion quietly (muted, no icon) so the rail still ranks
+            by impact at a glance. The AI-confidence meter stays out —
+            that's an apply-time fact, owned by the detail panel (Yuqi
+            batch 4 #10). */}
         {impacted > 0 ? (
           <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm text-text-secondary">
             <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
             <Plural value={impacted} one="Affects # client" other="Affects # clients" />
           </span>
-        ) : null}
+        ) : (
+          <span className="whitespace-nowrap text-sm text-text-muted">
+            <Trans>No client impact</Trans>
+          </span>
+        )}
       </div>
     </button>
   )

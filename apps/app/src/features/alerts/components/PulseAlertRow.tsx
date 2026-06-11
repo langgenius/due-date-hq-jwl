@@ -691,15 +691,21 @@ function PulseAlertRow({
               the dashboard card. Impacted rows step to text-secondary;
               no-match advisories stay muted, mirroring the dashboard
               NeedsAttentionCard affects-clients line. */}
-          {/* Zero-match rows render NO clients line — "No matching
-              clients" repeated on every advisory row was gray noise that
-              buried the rows that DO affect clients (the signal). */}
+          {/* Client impact is triage question #1 — EVERY row answers it,
+              including zero. Impacted rows are the loud form (icon +
+              secondary ink); zero-match rows state the conclusion quietly
+              (muted, no icon) — "No client impact" is information ("safe
+              to skim past"), not noise; demote it, never delete it. */}
           {impacted > 0 ? (
             <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-text-secondary">
               <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
             </span>
-          ) : null}
+          ) : (
+            <span className="shrink-0 whitespace-nowrap text-text-muted">
+              <Trans>No client impact</Trans>
+            </span>
+          )}
           {/* AI confidence — a neutral signal-strength METER (three
               rising bars filled by tier) + the %, so it reads as a
               MEASUREMENT, not a status chip (a green pill would collide
