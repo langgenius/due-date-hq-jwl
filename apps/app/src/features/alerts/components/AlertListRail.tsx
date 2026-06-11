@@ -305,7 +305,7 @@ function RailItem({
               window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
             }
           }}
-          className="inline-flex min-w-0 cursor-pointer items-center gap-1 text-sm font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:text-text-secondary"
+          className="inline-flex min-w-0 cursor-pointer items-center gap-1 text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:text-text-secondary"
         >
           <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
           <span className="truncate">{alert.source}</span>

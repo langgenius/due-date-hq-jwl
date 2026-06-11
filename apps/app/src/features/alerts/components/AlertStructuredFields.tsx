@@ -243,7 +243,10 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           // cells. Yuqi #8: values are a consistent MEDIUM weight (was a
           // mix of normal grid cells + semibold protective cells).
           <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-5 py-2.5">
-            <span className="text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+            {/* Register B2 micro label — 12/500 CAPS tertiary (semibold read
+                chunky at the lifted xs size; medium is the canonical B2
+                weight, see section-header-style.md). */}
+            <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
               {cell.label}
             </span>
             <span className="min-w-0 truncate text-base font-medium text-text-primary">

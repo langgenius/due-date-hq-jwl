@@ -48,7 +48,9 @@ export function DetailSectionCard({
         {headerRight ? (
           <>
             <span className="flex-1" />
-            <span className="flex items-center gap-2 text-sm font-medium text-text-tertiary">
+            {/* 13/400 — header meta is secondary by definition; action
+                buttons passed in here carry their own weight classes. */}
+            <span className="flex items-center gap-2 text-sm text-text-tertiary">
               {headerRight}
             </span>
           </>

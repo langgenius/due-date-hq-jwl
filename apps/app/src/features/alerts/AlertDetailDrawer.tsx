@@ -199,7 +199,7 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
           }
         />
         <span className="flex-1" />
-        <span className="text-sm font-medium text-text-muted">
+        <span className="text-sm text-text-muted">
           <Trans>Effective immediately</Trans>
         </span>
       </div>
@@ -229,7 +229,7 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
       ) : null}
 
       {/* Meta — AI confidence · source · audit ledger (top hairline). */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-divider-subtle pt-2.5 text-sm font-medium text-text-tertiary">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-divider-subtle pt-2.5 text-sm text-text-tertiary">
         <span className="inline-flex items-center gap-1.5">
           <SparklesIcon className={cn('size-3 shrink-0', confClass)} aria-hidden />
           <span className={cn('font-semibold', confClass)}>{confPct}%</span>
@@ -478,7 +478,9 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
                 {!isLast ? <span className="w-px flex-1 bg-divider-subtle" aria-hidden /> : null}
               </div>
               <div className={cn('flex min-w-0 flex-col gap-0.5', isLast ? '' : 'pb-4')}>
-                <span className="text-base font-medium text-text-primary">{event.title}</span>
+                {/* Timeline narrative is secondary — 13/400 (the card title
+                    above and the body's 14px lead content outrank it). */}
+                <span className="text-sm text-text-primary">{event.title}</span>
                 {event.meta ? (
                   <span className="text-xs text-text-tertiary tabular-nums">{event.meta}</span>
                 ) : null}
@@ -1142,7 +1144,10 @@ export function AlertDetailDrawer({
               alert title trails it as a non-interactive, truncating leaf so
               the bar reads as a real in-surface path (mirrors the deadline
               detail's in-surface crumb). */}
-          <nav className="flex min-w-0 items-center gap-1.5 text-base font-medium">
+          {/* Breadcrumb is chrome, not content — 13/400 so it recedes
+              behind the 22px title below (Yuqi: unimportant text lighter
+              + smaller; fewer styles per page). */}
+          <nav className="flex min-w-0 items-center gap-1.5 text-sm">
             <button
               type="button"
               onClick={onClose}
@@ -1168,13 +1173,13 @@ export function AlertDetailDrawer({
                 room, and only while the alert still accepts a decision. */}
             {detail && !alertResolved ? (
               <span className="hidden items-center gap-2.5 text-text-tertiary xl:inline-flex">
-                <span className="inline-flex items-center gap-1.5 text-caption font-medium">
+                <span className="inline-flex items-center gap-1.5 text-caption">
                   <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
                     A
                   </kbd>
                   <Trans>Apply</Trans>
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-caption font-medium">
+                <span className="inline-flex items-center gap-1.5 text-caption">
                   <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
                     D
                   </kbd>
@@ -1184,7 +1189,7 @@ export function AlertDetailDrawer({
               </span>
             ) : null}
             {position && position.total > 0 ? (
-              <span className="text-sm font-medium text-text-muted tabular-nums">
+              <span className="text-sm text-text-muted tabular-nums">
                 {t`${position.index + 1} of ${position.total}`}
               </span>
             ) : null}
@@ -1305,7 +1310,7 @@ export function AlertDetailDrawer({
                   <span className="inline-flex h-[22px] shrink-0 items-center rounded bg-state-accent-hover px-2 font-mono text-xs font-bold tracking-[0.7px] text-text-accent uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
-                  <span className="ml-auto flex shrink-0 items-center gap-2 text-sm font-medium text-text-tertiary">
+                  <span className="ml-auto flex shrink-0 items-center gap-2 text-sm text-text-tertiary">
                     {/* AI confidence — color-coded by tier (#7/#10/#11). */}
                     <span className="inline-flex items-center gap-1">
                       <SparklesIcon className={cn('size-3 shrink-0', confToneClass)} aria-hidden />
@@ -1365,7 +1370,8 @@ export function AlertDetailDrawer({
                 {!headerCollapsed &&
                 detail.alert.summary &&
                 detail.alert.summary.trim() !== detail.alert.title.trim() ? (
-                  <p className="text-base font-medium leading-[1.5] text-text-secondary">
+                  // Dek is body prose, not a sub-title — 14/400.
+                  <p className="text-base leading-[1.5] text-text-secondary">
                     {detail.alert.summary}
                   </p>
                 ) : null}
@@ -1693,7 +1699,7 @@ export function AlertDetailDrawer({
                         href={detail.alert.sourceUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-base font-semibold text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         <Trans>Open original</Trans>
                         <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
@@ -1701,7 +1707,7 @@ export function AlertDetailDrawer({
                     ) : null}
                   </div>
                   {/* Citation — source (mono) · published date. */}
-                  <div className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-text-muted">
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
                     <span className="font-mono">{detail.alert.source}</span>
                     {detail.alert.publishedAt ? (
                       <>
@@ -1763,10 +1769,7 @@ export function AlertDetailDrawer({
                             {confPct}%
                           </span>
                           <span
-                            className={cn(
-                              'text-xs font-semibold tracking-wide uppercase',
-                              confToneClass,
-                            )}
+                            className={cn('text-xs font-medium tracking-wide uppercase', confToneClass)}
                           >
                             <Trans>{confTierLabel} confidence</Trans>
                           </span>
@@ -1867,7 +1870,7 @@ export function AlertDetailDrawer({
             centered under the same column the header + body share. */}
         <div className="mx-auto flex w-full max-w-[760px] flex-row items-center gap-6">
           {detail ? (
-            <span className="hidden shrink-0 items-center gap-1.5 text-xs font-medium text-text-success xl:inline-flex">
+            <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-success xl:inline-flex">
               <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
               <Trans>Every decision captured to audit ledger</Trans>
             </span>

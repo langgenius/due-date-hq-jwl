@@ -132,10 +132,17 @@
    * `leading-3` / `leading-4` continue to win — the explicit class
    * overrides the implicit per-size line-height.
    * ----------------------------------------------------------------- */
-  --text-caption: 10px;
-  --text-caption--line-height: 14px;
-  --text-caption-xs: 10px;
-  --text-caption-xs--line-height: 14px;
+  /* 2026-06-11 (Yuqi — universal type-scale lift, +1 on the small steps):
+     the small end of the scale read too small across every surface, so the
+     scale TOKENS grow rather than patching font sizes per screen. Caption is
+     lifted here (10 → 11). xs/sm are NOT overridden here — their canonical
+     values live in tokens/primitives.css (xs 12 / sm 13 / base 14; corrected
+     same-day after a first attempt at xs 13 / sm 14 collided sm with base and
+     flattened the page hierarchy — Yuqi: "太多 medium 和太大的字体"). */
+  --text-caption: 11px;
+  --text-caption--line-height: 15px;
+  --text-caption-xs: 11px;
+  --text-caption-xs--line-height: 15px;
 
   /* Text */
   --color-text-primary: var(--text-primary);
