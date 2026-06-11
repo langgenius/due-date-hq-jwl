@@ -1845,10 +1845,49 @@ export function ObligationQueueDetailDrawer({
             anchor dates are the headline context the collapsed hero keeps.
             Page mode only; panel/sheet render the date strip inside the body
             (below) as before. */}
+        {/* 2026-06-10 (Yuqi page-scroll #7 "key dates scroll up — hides"): the
+            anchor dates are reference the CPA needs while scrolling the tab
+            content, so the collapse keeps them REACHABLE rather than dropping
+            them. Expanded: the full three framed key-date cards. Collapsed (on
+            scroll): the cards swap for a single condensed one-line summary
+            (Filing · Internal · Payment) so the pinned header stays compact yet
+            the dates never vanish. The header itself is a non-scrolling sibling
+            above the body's scroll container, so either form stays pinned at
+            the top while the tab content scrolls beneath. */}
         {isPageMode && row ? (
-          <div className="pt-1.5">
-            <PrimaryDeadlineStrip row={row} variant="cards" />
-          </div>
+          heroCollapsed ? (
+            (() => {
+              const filingIso = row.filingDueDate ?? row.baseDueDate ?? null
+              const internalIso = row.extensionInternalTargetDate ?? row.currentDueDate ?? null
+              const paymentIso = row.paymentDueDate ?? null
+              const summaryDates: Array<{ label: string; iso: string }> = [
+                ...(filingIso ? [{ label: t`Filing`, iso: filingIso }] : []),
+                ...(internalIso ? [{ label: t`Internal`, iso: internalIso }] : []),
+                ...(paymentIso ? [{ label: t`Payment`, iso: paymentIso }] : []),
+              ]
+              return summaryDates.length > 0 ? (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-sm">
+                  {summaryDates.map((entry, index) => (
+                    <span key={entry.label} className="flex items-center gap-1.5">
+                      {index > 0 ? (
+                        <span aria-hidden className="text-divider-regular">
+                          ·
+                        </span>
+                      ) : null}
+                      <span className="text-text-tertiary">{entry.label}</span>
+                      <span className="tabular-nums font-medium text-text-secondary">
+                        {formatDate(entry.iso)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              ) : null
+            })()
+          ) : (
+            <div className="pt-1.5">
+              <PrimaryDeadlineStrip row={row} variant="cards" />
+            </div>
+          )
         ) : null}
       </header>
       {/* Body — in panel mode the aside has fixed height, so this
@@ -2106,13 +2145,28 @@ export function ObligationQueueDetailDrawer({
                 reads as part of the page, not a banded strip. The TabsList's own
                 bottom hairline still anchors the bar; the page wash behind it is
                 the same warm canvas, so there's no visible seam. */}
+            {/* 2026-06-10 (Yuqi page-scroll #6 "the tab bar should be part of the
+                header"): in page mode the sticky tab bar now carries a WHITE
+                (bg-background-default) fill so it visually CONTINUES the white
+                header block sitting flush above it — banner · title+meta · key
+                dates · tabs all read as one white identity zone. The TabsList's
+                own `border-b border-divider-subtle` (below) is the white→gray
+                seam; the gray content wash begins only beneath that border.
+                The white fill is opaque so the gray content scrolls cleanly
+                under the bar when it's pinned (no bleed-through). The leading
+                `pt-3` is dropped here in page mode — the white bar should butt
+                directly against the header above with no gray gutter showing;
+                the TabsList carries its own height. Panel/sheet keep `pt-3`
+                with no fill, unchanged. */}
             <div
               className={cn(
-                'sticky top-0 z-10 pt-3',
-                // Page-mode tab bar needs an opaque fill — the stepper/content
-                // scrolls behind it when pinned, so a transparent bar bleeds
-                // (Yuqi: "the tabs don't have a background?").
-                isPageMode ? 'bg-background-subtle pb-3' : '',
+                'sticky top-0 z-10',
+                // Page-mode tab bar = an opaque WHITE continuation of the header
+                // (the stepper/content scrolls behind it when pinned, so a
+                // transparent bar would bleed). The bottom border on the
+                // TabsList is the seam where white header ends and gray content
+                // begins.
+                isPageMode ? 'bg-background-default pb-0' : 'pt-3',
               )}
             >
               {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
