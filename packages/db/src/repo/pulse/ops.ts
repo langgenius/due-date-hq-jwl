@@ -1206,6 +1206,11 @@ export function makePulseOpsRepo(db: Db) {
                 pulseSourceSnapshot.failureReason,
                 'GUARD_REJECTED: Pulse%could not be located%',
               ),
+              // The stranded backlog itself predates the refusal-code prefix —
+              // those rows start with the bare guard message ("…because source
+              // excerpt could not be located…"); "source e" keeps the other
+              // pulse guard class (no-change) deterministic-dead.
+              like(pulseSourceSnapshot.failureReason, 'Pulse extract rejected because source e%'),
               // Legacy rows (pre code-prefix): transport-class messages only.
               like(pulseSourceSnapshot.failureReason, '%requires more credits%'),
               eq(pulseSourceSnapshot.failureReason, 'Pulse extract failed.'),

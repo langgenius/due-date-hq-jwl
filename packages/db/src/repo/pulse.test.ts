@@ -2219,6 +2219,8 @@ describe('makePulseOpsRepo', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- focused Drizzle test double.
     const query = new SQLiteSyncDialect().sqlToQuery(chain.where.mock.calls[0]?.[0] as SQL)
     expect(query.params).toContain('GUARD_REJECTED: Pulse%could not be located%')
+    // Pre-prefix-era rows carry the bare guard message — the actual stranded backlog.
+    expect(query.params).toContain('Pulse extract rejected because source e%')
     expect(query.params).toContain('AI_GATEWAY_ERROR%')
     // The Pulse-anchored pattern is the only GUARD_REJECTED pattern — every other guard
     // rejection class stays deterministic-dead so the sweep converges.
