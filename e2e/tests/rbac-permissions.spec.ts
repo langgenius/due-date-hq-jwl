@@ -127,24 +127,18 @@ async function openPulseAlert(page: Page) {
   }
 
   await page.goto('/alerts')
-  // The alerts list splits into "Review" and "Active" work queues (the
-  // "Alert work queue" Segmented control) and defaults to one; the seeded alert
-  // can sit under either. Try each toggle until the alert button shows.
+  // The alerts list defaults to the "Review" queue; the seeded deadline-shift
+  // alert (isActiveAlert) lives under "Active". Click the Active tab — click()
+  // auto-waits for the SPA to render the switch (a bare count()/isVisible()
+  // check races client hydration and silently skips) — and confirm it's
+  // selected before waiting for the alert card.
   const alert = pulseListAlertButton(page)
   if (!(await alert.isVisible().catch(() => false))) {
-    const queue = page.getByRole('group', { name: 'Alert work queue' })
-    for (const label of [/^Active/, /^Review/]) {
-      const toggle = queue.getByRole('button', { name: label })
-      if ((await toggle.count()) === 0) continue
-      await toggle.click()
-      // Switching queue refetches asynchronously — wait for the alert to render
-      // before falling through (a bare isVisible() check races the query).
-      const shown = await alert.waitFor({ state: 'visible', timeout: 4000 }).then(
-        () => true,
-        () => false,
-      )
-      if (shown) break
-    }
+    const active = page
+      .getByRole('group', { name: 'Alert work queue' })
+      .getByRole('button', { name: /^Active/ })
+    await active.click()
+    await expect(active).toHaveAttribute('aria-pressed', 'true')
   }
   await expect(pulseListAlertButton(page)).toBeVisible()
   await pulseListAlertButton(page).click()

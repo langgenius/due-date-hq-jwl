@@ -241,26 +241,20 @@ function pulseListAlertButton(page: Page) {
 }
 
 // The alerts list splits into "Review" and "Active" work queues (a Segmented
-// control labelled "Alert work queue") and defaults to one of them; the seeded
-// alert can sit under either. Reveal it by trying each queue toggle — scoped to
-// the group so the match is unambiguous — until the alert button shows.
+// control labelled "Alert work queue") and defaults to "Review". The seeded
+// "IRS CA storm relief" alert is a deadline-shift (isActiveAlert) → it lives
+// under "Active". Click the Active tab — click() auto-waits for the SPA to
+// render the switch (a bare count()/isVisible() check races client hydration
+// and silently skips) — and confirm it became selected before the caller waits
+// for the alert card to load.
 async function revealSeededAlert(page: Page) {
   const alert = pulseListAlertButton(page)
   if (await alert.isVisible().catch(() => false)) return
-  const queue = page.getByRole('group', { name: 'Alert work queue' })
-  for (const label of [/^Active/, /^Review/]) {
-    const toggle = queue.getByRole('button', { name: label })
-    if ((await toggle.count()) === 0) continue
-    await toggle.click()
-    // Switching queue refetches asynchronously — wait for the alert to render
-    // before falling through to the other queue (a bare isVisible() check races
-    // the query and would leave us on the wrong queue).
-    const shown = await alert.waitFor({ state: 'visible', timeout: 4000 }).then(
-      () => true,
-      () => false,
-    )
-    if (shown) return
-  }
+  const active = page
+    .getByRole('group', { name: 'Alert work queue' })
+    .getByRole('button', { name: /^Active/ })
+  await active.click()
+  await expect(active).toHaveAttribute('aria-pressed', 'true')
 }
 
 async function openDashboardPulseAlert(page: Page) {
