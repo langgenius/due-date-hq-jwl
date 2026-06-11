@@ -30,7 +30,7 @@ const progressTrackVariants = cva('w-full overflow-hidden bg-background-subtle',
   },
 })
 
-const progressFillVariants = cva('h-full transition-[width] duration-200 ease-out', {
+const progressFillVariants = cva('h-full transition-[width] duration-300 ease-apple', {
   variants: {
     tone: {
       accent: 'bg-state-accent-solid',

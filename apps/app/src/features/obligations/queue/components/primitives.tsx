@@ -371,7 +371,7 @@ export function MaterialsProgressLegend({
     <div className="grid gap-2">
       <div className="h-2 w-full overflow-hidden rounded-sm bg-background-subtle">
         <div
-          className="h-full rounded-sm bg-state-success-solid transition-[width] duration-200 ease-out"
+          className="h-full rounded-sm bg-state-success-solid transition-[width] duration-300 ease-apple"
           style={{ width: `${pct}%` }}
         />
       </div>

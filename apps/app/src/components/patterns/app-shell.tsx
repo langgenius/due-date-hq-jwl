@@ -305,7 +305,7 @@ function PendingBar() {
         className={cn(
           // Animate transform only (compositor-friendly) and disable the
           // animation under prefers-reduced-motion.
-          'h-full origin-left bg-state-accent-solid transition-transform duration-300 ease-out motion-reduce:transition-none',
+          'h-full origin-left bg-state-accent-solid transition-transform duration-300 ease-apple motion-reduce:transition-none',
           isPending ? 'scale-x-100' : 'scale-x-0',
         )}
       />

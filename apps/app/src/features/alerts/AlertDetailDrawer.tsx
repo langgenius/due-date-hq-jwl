@@ -195,7 +195,7 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
           {formatDeadlineDate(oldIso)}
         </span>
         <ArrowRightIcon className="size-3.5 shrink-0 self-center text-text-muted" aria-hidden />
-        <span className="font-mono text-xl font-bold tracking-[-0.2px] text-text-primary tabular-nums">
+        <span className="font-mono text-xl font-bold tracking-title text-text-primary tabular-nums">
           {formatDeadlineDate(newIso)}
         </span>
         <span
@@ -277,7 +277,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
             <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover text-text-accent">
               <UsersIcon className="size-3.5" aria-hidden />
             </span>
-            <p className="text-base leading-[1.45] text-text-secondary">
+            <p className="text-base leading-relaxed text-text-secondary">
               {/* Trans ternary (the ClientDetailWorkspace pattern), not a
                   <Plural> string prop — a string prop leaves the inner
                   {days} ICU placeholder valueless and it renders blank.
@@ -298,7 +298,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
           <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-state-success-hover text-text-success">
             <ShieldCheckIcon className="size-3.5" aria-hidden />
           </span>
-          <p className="text-base leading-[1.45] text-text-secondary">
+          <p className="text-base leading-relaxed text-text-secondary">
             <Trans>
               Audit-safe: relief is automatic for {scopeArea} addresses — no opt-in form needed.
             </Trans>
@@ -309,7 +309,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
             <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-state-success-hover text-text-success">
               <ShieldCheckIcon className="size-3.5" aria-hidden />
             </span>
-            <p className="text-base leading-[1.45] text-text-secondary">
+            <p className="text-base leading-relaxed text-text-secondary">
               <Trans>
                 Estimated payments due {formatDeadlineDate(oldIso)} are also postponed — no
                 penalties accrue.
@@ -1200,7 +1200,7 @@ export function AlertDetailDrawer({
           on the same white surface as the title. */}
       <SheetHeader
         className={cn(
-          'bg-background-default px-12 transition-all duration-200 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+          'bg-background-default px-12 transition-all [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
           headerCollapsed ? 'pt-4 pb-4' : 'pt-10 pb-6',
         )}
       >
@@ -1286,14 +1286,16 @@ export function AlertDetailDrawer({
                     without dominating the panel. */}
                 <h2
                   className={cn(
-                    // leading-[1.3] (was 1.25) — at 22px over two lines the
+                    // (was 1.25) — at 22px over two lines the
                     // tighter leading read cramped (batch 4 #3).
                     // Expanded state clamps at 3 lines (hostile-data pass:
                     // an unclamped 250-char title ran 4+ lines and pushed
                     // the facts below the fold); the title attr carries
                     // the full text on hover.
-                    'font-semibold leading-[1.3] tracking-[-0.4px] text-text-primary transition-all duration-200',
-                    headerCollapsed ? 'line-clamp-1 text-item-title' : 'line-clamp-3 text-surface-title',
+                    'font-semibold tracking-display text-text-primary transition-all',
+                    headerCollapsed
+                      ? 'line-clamp-1 text-item-title'
+                      : 'line-clamp-3 text-surface-title',
                   )}
                   title={detail.alert.title}
                 >
@@ -1675,7 +1677,7 @@ export function AlertDetailDrawer({
                     ) : null}
                   </div>
                   <div className="group/excerpt relative">
-                    <blockquote className="break-words rounded-lg bg-background-section px-4 py-3 pr-10 text-base leading-[1.55] text-text-secondary italic">
+                    <blockquote className="break-words rounded-lg bg-background-section px-4 py-3 pr-10 text-base leading-relaxed text-text-secondary italic">
                       &ldquo;{detail.sourceExcerpt}&rdquo;
                     </blockquote>
                     <Tooltip>

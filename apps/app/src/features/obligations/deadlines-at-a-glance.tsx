@@ -111,7 +111,7 @@ export function DeadlinesAtAGlance({
     <div
       ref={rootRef}
       className={cn(
-        'grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out',
+        'grid transition-[grid-template-rows,opacity,margin] duration-300 ease-apple',
         collapsed
           ? 'pointer-events-none -mt-8 grid-rows-[0fr] opacity-0'
           : 'grid-rows-[1fr] opacity-100',
@@ -234,7 +234,7 @@ function NarrativeTile({
     //   • eyebrow label → `text-xs font-semibold tracking-[0.4px]
     //     text-text-tertiary uppercase` (matches the card's change-kind /
     //     meta eyebrow)
-    //   • headline → `text-base font-semibold leading-[1.3]
+    //   • headline → `text-base font-semibold
     //     text-text-primary` (matches the card's title h3)
     //   • sub line → `text-xs text-text-secondary` (matches the card's
     //     affects-clients line)
@@ -269,9 +269,7 @@ function NarrativeTile({
           </>
         ) : (
           <>
-            <span className="text-base font-semibold leading-[1.3] text-text-primary">
-              {headline}
-            </span>
+            <span className="text-base font-semibold text-text-primary">{headline}</span>
             <span className="text-xs leading-snug text-text-secondary">{sub}</span>
           </>
         )}

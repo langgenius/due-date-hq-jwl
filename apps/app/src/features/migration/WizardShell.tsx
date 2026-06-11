@@ -442,7 +442,7 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
             aria-valuenow={progressValue}
           >
             <div
-              className="h-full rounded-full bg-state-accent-solid transition-[width] duration-500 ease-out motion-reduce:transition-none"
+              className="h-full rounded-full bg-state-accent-solid transition-[width] duration-300 ease-apple motion-reduce:transition-none"
               style={{ width: `${progressValue}%` }}
             />
           </div>

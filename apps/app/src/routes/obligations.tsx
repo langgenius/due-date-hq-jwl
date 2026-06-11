@@ -257,6 +257,7 @@ import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
@@ -694,7 +695,10 @@ function shortFilingAuthority(
 // read as siblings — same ease-apple curve, same durations as the alert
 // drawer. The inner surface rises from y:'100%' → 0 on enter, dissolves
 // opacity → 0 on exit.
-const DETAIL_SWIFT_EASE = [0.32, 0.72, 0, 1] as const
+// Same curve as the app-wide grammar token — aliased so the detail-pane
+// choreography ladder below reads in one place (durations are a deliberate
+// staggered sequence, documented motion-grammar outlier).
+const DETAIL_SWIFT_EASE = EASE_APPLE
 // Sizing is CSS-class driven (responsive: full width on narrow, 3/5 at xl+,
 // max-capped so ultra-wide doesn't bloat the drawer past usefulness).
 // Animation uses x-transform (not width-interpolation) so the slide-in works
@@ -1784,8 +1788,7 @@ export function ObligationQueueRoute() {
       onError: (err) => {
         toast.error(t`Couldn't update status`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1819,8 +1822,7 @@ export function ObligationQueueRoute() {
       onError: (err) => {
         toast.error(t`Couldn't update selected rows`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1841,8 +1843,7 @@ export function ObligationQueueRoute() {
       onError: (err) => {
         toast.error(t`Couldn't confirm deadlines`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1866,8 +1867,7 @@ export function ObligationQueueRoute() {
       onError: (err) => {
         toast.error(t`Couldn't send reminders`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1895,8 +1895,7 @@ export function ObligationQueueRoute() {
       onError: (err) => {
         toast.error(t`Couldn't decide extensions`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1930,8 +1929,7 @@ export function ObligationQueueRoute() {
       onError: (err) => {
         toast.error(t`Couldn't update owners`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1959,8 +1957,7 @@ export function ObligationQueueRoute() {
       onError: (err) => {
         toast.error(t`Couldn't export selected rows`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -4632,7 +4629,7 @@ export function ObligationQueueRoute() {
                                     <span className="flex w-10 shrink-0 items-center justify-center">
                                       <ChevronRightIcon
                                         className={cn(
-                                          'size-3.5 shrink-0 text-text-tertiary transition-transform ease-out',
+                                          'size-3.5 shrink-0 text-text-tertiary transition-transform',
                                           !headerCollapsed && 'rotate-90',
                                         )}
                                         aria-hidden
@@ -6180,8 +6177,7 @@ export function ObligationQueueDetailDrawer({
         setDeadlineTipRefresh(null)
         toast.error(t`Couldn't start deadline tip refresh`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6203,8 +6199,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't send input request`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6400,8 +6395,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't generate document list`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6478,8 +6472,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't prepare materials request preview`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6493,8 +6486,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't send materials request`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6520,8 +6512,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't add document item`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6534,8 +6525,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't update document item`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6549,8 +6539,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't remove document item`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6564,8 +6553,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't revoke request`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6581,8 +6569,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't save tax year profile`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6599,8 +6586,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't save extension plan`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6630,8 +6616,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't mark accepted`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6651,8 +6636,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't mark e-file rejected`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6671,8 +6655,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't update e-file state`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6695,8 +6678,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't send reminder`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6725,8 +6707,7 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         toast.error(t`Couldn't change status`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6802,8 +6783,7 @@ export function ObligationQueueDetailDrawer({
         prepStagePreviousRef.current = null
         toast.error(t`Couldn't update step`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -6833,8 +6813,7 @@ export function ObligationQueueDetailDrawer({
         reviewStagePreviousRef.current = null
         toast.error(t`Couldn't update step`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -7577,7 +7556,7 @@ export function ObligationQueueDetailDrawer({
                 className="pt-6"
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
               >
                 {/* Summary tab — milestone chevron + active-stage zoom. These
                   live in a dedicated tab (not pinned in the sticky snapshot
@@ -7684,7 +7663,7 @@ export function ObligationQueueDetailDrawer({
                 className="pt-6"
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
               >
                 {/* Outer gap-4 so each top-level block (overview, checklist,
                     sent panel, tax year settings) reads as its own clear
@@ -8329,7 +8308,7 @@ export function ObligationQueueDetailDrawer({
                 className="pt-6"
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
               >
                 <div className="grid gap-3">
                   <AlertPanel>
@@ -8470,7 +8449,7 @@ export function ObligationQueueDetailDrawer({
                 className="pt-6"
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                transition={{ duration: MOTION_DURATION.enter, ease: EASE_APPLE }}
               >
                 {/* Evidence tab split into two visually-distinct sections:
                     - WORKPAPERS (top, default open): client-attached files
@@ -12355,8 +12334,7 @@ function PenaltyInputDialog({
       onError: (err) => {
         toast.error(t`Couldn't save penalty inputs`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -13488,8 +13466,7 @@ function CalendarSyncPopover() {
       onError: (err) => {
         toast.error(t`Couldn't enable calendar subscription`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -13503,8 +13480,7 @@ function CalendarSyncPopover() {
       onError: (err) => {
         toast.error(t`Couldn't regenerate calendar URL`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

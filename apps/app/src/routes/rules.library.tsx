@@ -878,7 +878,7 @@ function OverviewRecentChangesCard({
                   {rule.jurisdiction}
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="truncate text-base font-semibold tracking-[-0.01em] text-text-primary transition-colors group-hover/row:text-text-accent">
+                  <span className="truncate text-base font-semibold tracking-title text-text-primary transition-colors group-hover/row:text-text-accent">
                     {rule.title}
                   </span>
                   {metaParts.length > 0 ? (
@@ -942,7 +942,7 @@ function OverviewCaughtUpCard({
         >
           <Check className="size-[22px] text-state-success-solid" />
         </span>
-        <span className="text-xl font-semibold tracking-[-0.015em] text-text-primary">
+        <span className="text-xl font-semibold tracking-title text-text-primary">
           <Trans>Review queue is clear</Trans>
         </span>
         <p className="max-w-[480px] text-base font-medium leading-relaxed text-text-tertiary">
@@ -3332,7 +3332,7 @@ function GroupHeaderRow({
         <div className="flex flex-wrap items-center gap-2">
           <ChevronRightIcon
             className={cn(
-              'size-3.5 shrink-0 text-text-tertiary transition-transform ease-out',
+              'size-3.5 shrink-0 text-text-tertiary transition-transform',
               expanded && 'rotate-90',
             )}
             aria-hidden
