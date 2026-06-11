@@ -591,6 +591,26 @@ function FilingPlanYearSection({
           picker / kebab / dual-date columns are redistributed into the
           row expansion. Panel sort orders rows; multi-select drives the
           bulk bar. */}
+      {/* Column header (Pencil VtC73) — grid must match DeadlineRow's
+          inline-expand layout exactly so the columns line up. */}
+      <div className="grid grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px] items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2 text-caption-xs font-bold tracking-[0.6px] text-text-muted uppercase">
+        <span>
+          <Trans>Deadline</Trans>
+        </span>
+        <span>
+          <Trans>Status</Trans>
+        </span>
+        <span>
+          <Trans>Internal due</Trans>
+        </span>
+        <span>
+          <Trans>Official due</Trans>
+        </span>
+        <span>
+          <Trans>Owner</Trans>
+        </span>
+        <span aria-hidden />
+      </div>
       <div className="flex flex-col">
         {sortedObligations.map((obligation) => (
           <DeadlineRow

@@ -16,6 +16,7 @@ import type { ObligationQueueRow, ObligationStatus } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { formatDatePretty } from '@/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
@@ -182,99 +183,202 @@ export function DeadlineRow({
       )}
     >
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-      <article
-        role="article"
-        tabIndex={0}
-        aria-expanded={mode === 'inline-expand' ? isExpanded : undefined}
-        aria-labelledby={titleId}
-        onClick={handleRowClick}
-        onKeyDown={handleKeyDown}
-        className={cn(
-          'group/row flex w-full cursor-pointer items-center gap-3.5 px-5 py-3.5 text-left outline-none transition-colors',
-          'hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
-          isActive && 'bg-background-subtle',
-          dim && 'opacity-80',
-          // §7.1 overdue: left destructive rule.
-          overdue && 'border-l-[3px] border-l-state-destructive-solid pl-[17px]',
-        )}
-      >
-        {/* Form tag — navigates (paired with title, §2 target 3). */}
-        <button
-          type="button"
-          onClick={stop(() => goToSummary())}
-          className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          tabIndex={-1}
-          aria-hidden
-        >
-          <span className="flex items-center gap-1.5">
-            {overdue ? (
-              <AlertTriangleIcon className="size-3.5 shrink-0 text-text-destructive" aria-hidden />
-            ) : null}
-            <TaxCodeBadge code={deadline.taxType} />
-          </span>
-        </button>
-
-        {/* Title + sub-meta. */}
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <Link
-            id={titleId}
-            to={summaryHref}
-            state={{ from: 'client' }}
-            onClick={(event) => event.stopPropagation()}
-            aria-label={`Open ${deadline.formName} for ${deadline.clientName} detail page`}
-            className="w-fit truncate text-sm font-semibold text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            {deadline.formName}
-          </Link>
-          <span className="truncate text-sm text-text-tertiary">
-            {deadline.clientName}
-            {deadline.clientState ? <span aria-hidden> · {deadline.clientState}</span> : null}
-          </span>
-        </div>
-
-        {/* Status pill — lateral filter (§2 target 4). */}
-        <button
-          type="button"
-          onClick={stop(() => onFilterByStatus?.(deadline.status))}
-          aria-label={`Filter by status: ${deadline.status}`}
-          className="shrink-0 rounded-full outline-none transition-shadow hover:ring-2 hover:ring-divider-regular focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          <ObligationStatusReadBadge status={deadline.status} />
-        </button>
-
-        {/* Owner — lateral filter (§2 target 5). */}
-        <button
-          type="button"
-          onClick={stop(() =>
-            onFilterByAssignee?.(deadline.assigneeId ?? '', deadline.assigneeName ?? ''),
+      {mode === 'inline-expand' ? (
+        // Fixed-column table (Pencil VtC73) — client Filings only; other
+        // surfaces keep the flex row below. DEADLINE fills; the rest are
+        // fixed-width columns. Due columns map to REAL dates (no firm
+        // "internal due" field exists): the working column = currentDueDate
+        // (?? base) + the days countdown; OFFICIAL = baseDueDate (statutory).
+        <article
+          role="article"
+          tabIndex={0}
+          aria-expanded={isExpanded}
+          aria-labelledby={titleId}
+          onClick={handleRowClick}
+          onKeyDown={handleKeyDown}
+          className={cn(
+            'group/row grid w-full cursor-pointer items-center gap-3 px-5 py-2.5 text-left outline-none transition-colors',
+            'grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px]',
+            'hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
+            // §1b — selected + open share one accent (VtC73 #eff4ff).
+            isActive && 'bg-state-accent-hover',
+            dim && 'opacity-80',
+            overdue && 'border-l-[3px] border-l-state-destructive-solid pl-[17px]',
           )}
-          aria-label={`Filter by ${deadline.assigneeName ?? 'unassigned'}`}
-          className="flex shrink-0 items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
-          <AssigneeAvatar
-            name={deadline.assigneeName}
-            title={deadline.assigneeName ?? 'Unassigned'}
-            type={deadline.assigneeName ? 'human' : 'unassigned'}
-            size="sm"
-          />
-        </button>
+          {/* DEADLINE (fill) */}
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={stop(() => goToSummary())}
+              className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              tabIndex={-1}
+              aria-hidden
+            >
+              <span className="flex items-center gap-1.5">
+                {overdue ? (
+                  <AlertTriangleIcon
+                    className="size-3.5 shrink-0 text-text-destructive"
+                    aria-hidden
+                  />
+                ) : null}
+                <TaxCodeBadge code={deadline.taxType} />
+              </span>
+            </button>
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <Link
+                id={titleId}
+                to={summaryHref}
+                state={{ from: 'client' }}
+                onClick={(event) => event.stopPropagation()}
+                aria-label={`Open ${deadline.formName} for ${deadline.clientName} detail page`}
+                className="w-fit truncate text-sm font-medium text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              >
+                {deadline.formName}
+              </Link>
+              {deadline.clientState ? (
+                <span className="truncate text-xs text-text-tertiary">{deadline.clientState}</span>
+              ) : null}
+            </div>
+          </div>
 
-        {/* Due countdown — pure information, NOT clickable (§2.1). */}
-        <div className="w-[68px] shrink-0 text-right">
-          <DueDaysPill days={deadline.daysUntilDue} status={deadline.status} />
-        </div>
+          {/* STATUS */}
+          <button
+            type="button"
+            onClick={stop(() => onFilterByStatus?.(deadline.status))}
+            aria-label={`Filter by status: ${deadline.status}`}
+            className="flex min-w-0 justify-self-start rounded-full outline-none transition-shadow hover:ring-2 hover:ring-divider-regular focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <ObligationStatusReadBadge status={deadline.status} />
+          </button>
 
-        {/* Chevron — inline-expand only (§2 target 6). */}
-        {mode === 'inline-expand' ? (
+          {/* DUE (working) — countdown + working date */}
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <DueDaysPill days={deadline.daysUntilDue} status={deadline.status} />
+            <span className="truncate text-xs text-text-tertiary tabular-nums">
+              {formatDatePretty(deadline.currentDueDate ?? deadline.baseDueDate)}
+            </span>
+          </div>
+
+          {/* OFFICIAL DUE (statutory) */}
+          <div className="min-w-0 truncate font-mono text-xs text-text-secondary tabular-nums">
+            {formatDatePretty(deadline.baseDueDate)}
+          </div>
+
+          {/* OWNER */}
+          <button
+            type="button"
+            onClick={stop(() =>
+              onFilterByAssignee?.(deadline.assigneeId ?? '', deadline.assigneeName ?? ''),
+            )}
+            aria-label={`Filter by ${deadline.assigneeName ?? 'unassigned'}`}
+            className="flex min-w-0 items-center gap-2 justify-self-start rounded-full outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <AssigneeAvatar
+              name={deadline.assigneeName}
+              title={deadline.assigneeName ?? 'Unassigned'}
+              type={deadline.assigneeName ? 'human' : 'unassigned'}
+              size="sm"
+            />
+            <span className="truncate text-xs text-text-secondary">
+              {deadline.assigneeName ?? <Trans>Unassigned</Trans>}
+            </span>
+          </button>
+
+          {/* expand chevron */}
           <ChevronRightIcon
             aria-hidden
             className={cn(
-              'size-4 shrink-0 text-text-tertiary transition-transform duration-200',
+              'size-4 shrink-0 justify-self-end text-text-tertiary transition-transform duration-200',
               isExpanded && 'rotate-90',
             )}
           />
-        ) : null}
-      </article>
+        </article>
+      ) : (
+        <article
+          role="article"
+          tabIndex={0}
+          aria-labelledby={titleId}
+          onClick={handleRowClick}
+          onKeyDown={handleKeyDown}
+          className={cn(
+            'group/row flex w-full cursor-pointer items-center gap-3.5 px-5 py-3.5 text-left outline-none transition-colors',
+            'hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
+            isActive && 'bg-background-subtle',
+            dim && 'opacity-80',
+            overdue && 'border-l-[3px] border-l-state-destructive-solid pl-[17px]',
+          )}
+        >
+          {/* Form tag — navigates (paired with title, §2 target 3). */}
+          <button
+            type="button"
+            onClick={stop(() => goToSummary())}
+            className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            tabIndex={-1}
+            aria-hidden
+          >
+            <span className="flex items-center gap-1.5">
+              {overdue ? (
+                <AlertTriangleIcon
+                  className="size-3.5 shrink-0 text-text-destructive"
+                  aria-hidden
+                />
+              ) : null}
+              <TaxCodeBadge code={deadline.taxType} />
+            </span>
+          </button>
+
+          {/* Title + sub-meta. */}
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <Link
+              id={titleId}
+              to={summaryHref}
+              state={{ from: 'client' }}
+              onClick={(event) => event.stopPropagation()}
+              aria-label={`Open ${deadline.formName} for ${deadline.clientName} detail page`}
+              className="w-fit truncate text-sm font-semibold text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              {deadline.formName}
+            </Link>
+            <span className="truncate text-sm text-text-tertiary">
+              {deadline.clientName}
+              {deadline.clientState ? <span aria-hidden> · {deadline.clientState}</span> : null}
+            </span>
+          </div>
+
+          {/* Status pill — lateral filter (§2 target 4). */}
+          <button
+            type="button"
+            onClick={stop(() => onFilterByStatus?.(deadline.status))}
+            aria-label={`Filter by status: ${deadline.status}`}
+            className="shrink-0 rounded-full outline-none transition-shadow hover:ring-2 hover:ring-divider-regular focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <ObligationStatusReadBadge status={deadline.status} />
+          </button>
+
+          {/* Owner — lateral filter (§2 target 5). */}
+          <button
+            type="button"
+            onClick={stop(() =>
+              onFilterByAssignee?.(deadline.assigneeId ?? '', deadline.assigneeName ?? ''),
+            )}
+            aria-label={`Filter by ${deadline.assigneeName ?? 'unassigned'}`}
+            className="flex shrink-0 items-center gap-2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <AssigneeAvatar
+              name={deadline.assigneeName}
+              title={deadline.assigneeName ?? 'Unassigned'}
+              type={deadline.assigneeName ? 'human' : 'unassigned'}
+              size="sm"
+            />
+          </button>
+
+          {/* Due countdown — pure information, NOT clickable (§2.1). */}
+          <div className="w-[68px] shrink-0 text-right">
+            <DueDaysPill days={deadline.daysUntilDue} status={deadline.status} />
+          </div>
+        </article>
+      )}
 
       {mode === 'inline-expand' && isExpanded ? (
         <DeadlineRowExpansion
