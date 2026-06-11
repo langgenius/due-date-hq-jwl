@@ -58,9 +58,12 @@ export function DetailStatusBanner({
         )}
       >
         <Icon className={cn('size-4 shrink-0', c.text)} aria-hidden />
-        <span className={cn('text-base font-semibold', c.text)}>{title}</span>
+        {/* #20: title sized down (was text-base). */}
+        <span className={cn('text-sm font-semibold', c.text)}>{title}</span>
         {note ? (
-          <span className="ml-auto flex shrink-0 items-center gap-1.5 text-sm font-medium text-text-tertiary tabular-nums">
+          // #21: note flows right after the status text (was `ml-auto`, which
+          // shoved it to the far edge).
+          <span className="flex shrink-0 items-center gap-1.5 text-sm font-medium text-text-tertiary tabular-nums">
             {note}
           </span>
         ) : null}
