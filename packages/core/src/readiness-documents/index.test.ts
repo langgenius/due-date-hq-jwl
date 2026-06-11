@@ -25,10 +25,14 @@ describe('readiness document checklist templates', () => {
       { key: '1120.c_corporation_return', version: 1, count: 13 },
       { key: '1041.fiduciary_return', version: 1, count: 12 },
       { key: '941.payroll_return', version: 1, count: 12 },
+      { key: 'w2.wage_statement_filing', version: 1, count: 12 },
       { key: '1099.information_return', version: 1, count: 12 },
       { key: 'foreign.fbar_and_international', version: 1, count: 12 },
       { key: '990.exempt_organization_return', version: 1, count: 12 },
+      { key: '709.gift_tax_return', version: 1, count: 12 },
+      { key: '5500.benefit_plan_return', version: 1, count: 12 },
       { key: 'sales_use.sales_tax_return', version: 1, count: 12 },
+      { key: 'franchise.annual_entity_filing', version: 1, count: 12 },
       { key: 'generic.fallback_readiness', version: 1, count: 12 },
     ])
   })
@@ -237,6 +241,102 @@ describe('readiness document checklist templates', () => {
     expect(selectReadinessDocumentTemplate({ taxType: 'unknown_tax_type' }).key).toBe(
       'generic.fallback_readiness',
     )
+  })
+
+  it('routes the payroll-annual, specialty, and franchise tax types to their own templates', () => {
+    expect(selectReadinessDocumentTemplate({ taxType: 'federal_940' }).key).toBe(
+      '941.payroll_return',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'federal_w2_w3' }).key).toBe(
+      'w2.wage_statement_filing',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'federal_1099_misc' }).key).toBe(
+      '1099.information_return',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'federal_709' }).key).toBe(
+      '709.gift_tax_return',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'federal_5500' }).key).toBe(
+      '5500.benefit_plan_return',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'tx_franchise_report' }).key).toBe(
+      'franchise.annual_entity_filing',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'ny_it204ll' }).key).toBe(
+      'franchise.annual_entity_filing',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'ca_llc_annual_tax' }).key).toBe(
+      'franchise.annual_entity_filing',
+    )
+    expect(
+      selectReadinessDocumentTemplate({ taxType: 'ca_state_franchise_or_entity_tax' }).key,
+    ).toBe('franchise.annual_entity_filing')
+    expect(selectReadinessDocumentTemplate({ taxType: 'ny_it204' }).key).toBe(
+      '1065.partnership_return',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'ca_llc_568' }).key).toBe(
+      '1065.partnership_return',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'ny_ct3s' }).key).toBe(
+      '1120s.s_corporation_return',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'az_state_fiduciary_income_tax' }).key).toBe(
+      '1041.fiduciary_return',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'az_state_withholding_tax' }).key).toBe(
+      '941.payroll_return',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'az_state_ui_wage_report' }).key).toBe(
+      '941.payroll_return',
+    )
+    expect(selectReadinessDocumentTemplate({ taxType: 'local_services_tax' }).key).toBe(
+      '941.payroll_return',
+    )
+  })
+
+  it('keeps obligation signals ahead of the client entity (no entity hijack)', () => {
+    expect(
+      selectReadinessDocumentTemplate({
+        taxType: 'federal_941',
+        formName: 'Form 941',
+        entityType: 's_corp',
+      }).key,
+    ).toBe('941.payroll_return')
+    expect(
+      selectReadinessDocumentTemplate({
+        taxType: 'federal_fbar',
+        formName: 'FinCEN Form 114',
+        entityType: 'individual',
+      }).key,
+    ).toBe('foreign.fbar_and_international')
+    expect(
+      selectReadinessDocumentTemplate({
+        taxType: 'wa_combined_excise_quarterly',
+        formName: 'Combined Excise Tax Return',
+        entityType: 'partnership',
+      }).key,
+    ).toBe('sales_use.sales_tax_return')
+    expect(
+      selectReadinessDocumentTemplate({
+        taxType: 'federal_990',
+        entityType: 'c_corp',
+        taxClassification: 'nonprofit',
+      }).key,
+    ).toBe('990.exempt_organization_return')
+    expect(
+      selectReadinessDocumentTemplate({
+        taxType: 'federal_1099_nec',
+        formName: 'Form 1099-NEC',
+        entityType: 'c_corp',
+      }).key,
+    ).toBe('1099.information_return')
+    expect(
+      selectReadinessDocumentTemplate({
+        taxType: 'ny_it204ll',
+        formName: 'Form IT-204-LL',
+        entityType: 'partnership',
+      }).key,
+    ).toBe('franchise.annual_entity_filing')
   })
 
   it('uses selected form and client tax classification when the tax type is generic', () => {
