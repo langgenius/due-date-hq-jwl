@@ -126,7 +126,7 @@ export function MergedBriefCard({
         </span>
         {/* "Priorities", not "Today's brief" — the card leads with overdue work,
             so a "today" headline would lie about its own content (Yuqi). */}
-        <h2 className="text-base leading-tight font-semibold text-text-primary">
+        <h2 className="text-xl leading-tight font-semibold tracking-[-0.01em] text-text-primary">
           <Trans>Priorities</Trans>
         </h2>
 
@@ -277,7 +277,7 @@ function BriefRow({
           (Yuqi: the capped version read weird). Client name is the row anchor,
           bumped to semibold so one thing is clearly primary. */}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-sm font-semibold text-text-primary">{row.clientName}</span>
+        <span className="truncate text-base font-semibold text-text-primary">{row.clientName}</span>
         <span className="flex min-w-0 items-center gap-1.5 text-caption text-text-tertiary">
           <span className="truncate">{verb}</span>
           {showReadiness ? (
