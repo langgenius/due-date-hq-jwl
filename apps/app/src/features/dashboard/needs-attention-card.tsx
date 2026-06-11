@@ -285,7 +285,7 @@ function NeedsAttentionCard({
           {/* Title — the card's signal. `dedupeTitleSource` strips a leading
               source prefix so the bottom source link doesn't echo it. */}
           <h3
-            className="line-clamp-2 min-w-0 text-lg font-semibold leading-[1.3] text-text-primary"
+            className="line-clamp-2 min-w-0 text-lg font-semibold text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}
@@ -297,7 +297,7 @@ function NeedsAttentionCard({
               full text still lives in the drawer. Skipped when absent or when it
               would just echo the title. */}
           {alert.verbatimQuote && alert.verbatimQuote.trim() !== alert.title.trim() ? (
-            <p className="line-clamp-2 min-w-0 text-xs leading-snug text-text-secondary">
+            <p className="line-clamp-2 min-w-0 text-xs text-text-secondary">
               {alert.verbatimQuote}
             </p>
           ) : null}

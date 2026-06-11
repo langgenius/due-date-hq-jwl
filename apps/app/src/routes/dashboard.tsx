@@ -236,13 +236,13 @@ export function DashboardRoute() {
           <span className="inline-flex items-baseline gap-2">
             <Trans>Today</Trans>
             {dashboardQuery.isLoading ? (
-              <span className="text-2xl font-medium text-text-muted italic">
+              <span className="text-2xl font-normal text-text-muted italic">
                 <Trans>loading…</Trans>
               </span>
             ) : data?.asOfDate ? (
               // Date weight font-medium, color the lighter text-text-muted
               // so it sits clearly behind the bold "Today" anchor.
-              <span className="text-2xl font-medium tabular-nums text-text-muted">
+              <span className="text-2xl font-normal tabular-nums text-text-muted">
                 {formatTodayHeader(data.asOfDate)}
               </span>
             ) : null}

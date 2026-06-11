@@ -241,7 +241,7 @@ function YesterdayLine({ recap, lead = false }: { recap: DashboardRecap; lead?: 
 
   if (segments.length === 0) {
     return (
-      <p className="text-sm leading-snug text-text-tertiary">
+      <p className="text-sm text-text-tertiary">
         <Trans>No changes since your last visit.</Trans>
       </p>
     )
@@ -253,8 +253,8 @@ function YesterdayLine({ recap, lead = false }: { recap: DashboardRecap; lead?: 
     <p
       className={
         lead
-          ? 'min-w-0 max-w-[72ch] text-base leading-snug text-text-primary'
-          : 'min-w-0 text-sm leading-snug text-text-secondary'
+          ? 'min-w-0 max-w-[72ch] text-base text-text-primary'
+          : 'min-w-0 text-sm text-text-secondary'
       }
     >
       {lead ? (
@@ -301,14 +301,14 @@ function TodayLine({
   }
   if (brief && brief.status === 'failed' && !brief.text) {
     return (
-      <p className="text-sm leading-snug text-text-tertiary">
+      <p className="text-sm text-text-tertiary">
         <Trans>We couldn't generate today's brief — it will retry automatically.</Trans>
       </p>
     )
   }
   if (!brief || !brief.text || !parsed) {
     return (
-      <p className="text-sm leading-snug text-text-tertiary">
+      <p className="text-sm text-text-tertiary">
         <Trans>No brief for this view yet.</Trans>
       </p>
     )
@@ -327,7 +327,7 @@ function TodayLine({
       : ''
 
   return (
-    <p className="min-w-0 max-w-[72ch] text-base leading-snug text-text-primary">
+    <p className="min-w-0 max-w-[72ch] text-base text-text-primary">
       <BriefProse text={headline} citations={brief.citations} onOpenObligation={onOpenObligation} />
       {fallbackMarkers ? (
         <>
@@ -361,7 +361,7 @@ function FirmTodayLine({
   if (concentration && concentration.count >= 2) {
     const formLabel = formatTaxCode(concentration.taxType)
     return (
-      <p className="min-w-0 max-w-[72ch] text-base leading-snug text-text-primary">
+      <p className="min-w-0 max-w-[72ch] text-base text-text-primary">
         <Trans>
           Overdue work is concentrated in {formLabel} ({concentration.count} of{' '}
           {concentration.overdueTotal})
@@ -376,7 +376,7 @@ function FirmTodayLine({
     counts.overdueCount === 0 && counts.waitingOnClientCount === 0 && counts.dueThisWeekCount === 0
   if (allQuiet) {
     return (
-      <p className="text-sm leading-snug text-text-tertiary">
+      <p className="text-sm text-text-tertiary">
         <Trans>No deadline pressure right now.</Trans>
       </p>
     )
@@ -415,7 +415,7 @@ function TodayCountsLine({ counts }: { counts: DailyBriefTodayCounts }) {
   }
   if (segments.length === 0) return null
   return (
-    <p className="text-xs leading-snug text-text-tertiary">
+    <p className="text-xs text-text-tertiary">
       {segments.map((segment, index) => (
         <Fragment key={index}>
           {index > 0 ? <span className="text-text-muted"> · </span> : null}

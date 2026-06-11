@@ -220,3 +220,34 @@ Existing motion kept: Review CTA fade-in w/ gradient mask, conf% hover
 fade-in on alert cards, LIVE PulsingDot. (Verification note: preview tab was
 in active use — classes follow the proven coverage-tab recipe; visual check
 deferred.)
+
+## Addendum 9 — the serious typesetting + spacing audit (full inventory)
+
+Yuqi: "你需要认真地做typesetting和spacing audit." Method: DOM crawl of every
+text-carrying element (clustered by size/lh/weight/tracking/transform/family)
++ every vertical sibling gap in the main column.
+
+**Spacing verdict: already converged.** Exactly five values, each a level:
+32px (section rhythm ×3) · 12px (in-section/in-card primary ×7) · 8px (card
+meta→title ×3) · 6px (banner title→content) · 0 (table internals). No fixes.
+
+**Type verdict: 21 styles → 17, each with one job.** The forks were mostly
+self-inflicted: the Addendum-6 explicit `leading-snug/tight` became 0.5–1px
+NEAR-DUPLICATES of the new token pairs (12/16.5 vs 12/16, 12/15 vs 12/16,
+14/17.5 vs 14/19, alert title leading-[1.3]=20.8 vs lg token 22). All removed
+— body text is now 100% token-driven; explicit leading survives ONLY on
+titles (Register A leading-tight). Plus two weight anomalies: the 28px date
+suffix in the page title was font-medium (the largest non-anchor medium on
+the page) → font-normal; LIVE chip 600 vs FAILED 500 → both 500.
+
+Resulting page type system (17 styles, 7 sizes):
+  28/600 page title · 28/400 date suffix · 18/600 sections · 16/600 item
+  headlines · 14/600 row anchors · 13/500 buttons+DueDateLabel · 13/400 lede ·
+  12/600-caps column labels · 12/500 interactive · 12/500-mono form codes ·
+  12/400 body+meta (the ×22 workhorse) · 11/500-caps status chips ·
+  11/400 captions · 11/600-caps avatar initials · 11/500-mono kbd ·
+  12/500 jurisdiction (+0.2 tracking) · 12/500 count badge (−0.18) —
+  the last two are component-level chip variants.
+
+Doctrine (now enforceable): body/meta NEVER sets leading (tokens own it);
+titles own theirs; weights = 600 anchor / 500 interactive+chip / 400 content.
