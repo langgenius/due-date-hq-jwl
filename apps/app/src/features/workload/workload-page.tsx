@@ -196,11 +196,11 @@ export function WorkloadPage() {
             // surface, not a bare title.
             <EmptyState
               icon={ClipboardListIcon}
-              title={<Trans>No open deadlines match the workload window.</Trans>}
+              title={<Trans>No deadlines due in the selected window.</Trans>}
               description={
                 <Trans>
-                  Workload shows open deadlines for the next 7 days. Import clients or wait for
-                  deadlines to land inside the window.
+                  Workload updates as deadlines approach. Add clients, or widen the window
+                  above.
                 </Trans>
               }
             />

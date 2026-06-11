@@ -148,7 +148,7 @@ export function OnboardingRoute() {
 
     const trimmed = name.trim()
     if (trimmed.length < MIN_NAME_LENGTH) {
-      setError(t`Please enter at least 2 characters.`)
+      setError(t`Practice name needs at least 2 characters.`)
       return
     }
     if (
@@ -239,8 +239,8 @@ export function OnboardingRoute() {
             </h1>
             <p className="text-sm font-medium leading-normal text-text-tertiary">
               <Trans>
-                A few details the engine needs before it can schedule anything. You can change any
-                of this later in Settings.
+                A few details so DueDateHQ can schedule your deadlines. You can change any of
+                this later in Settings.
               </Trans>
             </p>
           </div>

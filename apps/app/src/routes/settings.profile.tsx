@@ -279,7 +279,7 @@ export function SettingsProfileRoute() {
                     {status.twoFactorEnabled ? (
                       <Trans>Authenticator app is active on this account.</Trans>
                     ) : (
-                      <Trans>Owners need MFA before sensitive production actions.</Trans>
+                      <Trans>Owners need MFA to change rules and firm settings.</Trans>
                     )}
                   </p>
                 </div>
@@ -411,7 +411,7 @@ export function SettingsProfileRoute() {
         </SettingsCard>
 
         {/* Preferences */}
-        <SettingsCard title={t`Preferences`} subtitle={t`How the product feels for you`}>
+        <SettingsCard title={t`Preferences`} subtitle={t`Language, date, time, and week-start formats`}>
           {/* TODO(data): no user-preferences store (language / date / time
               format / week-start). Controls render disabled with sensible
               static defaults until a preferences contract lands. */}
@@ -498,7 +498,7 @@ export function SettingsProfileRoute() {
             <AlertDialogDescription>
               <Trans>
                 Sign-in will only require the link we email you until you re-enable MFA. Owners need
-                MFA before sensitive production actions — disabling now blocks those flows.
+                MFA to change rules and firm settings — disabling now blocks those actions.
               </Trans>
             </AlertDialogDescription>
           </AlertDialogHeader>

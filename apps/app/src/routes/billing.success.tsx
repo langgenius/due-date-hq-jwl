@@ -145,8 +145,8 @@ export function BillingSuccessRoute() {
               </AlertTitle>
               <AlertDescription className="grid gap-3">
                 <Trans>
-                  The payment provider hasn't confirmed the subscription yet. This usually clears
-                  within a minute. Refresh the page, or contact support if it persists.
+                  Stripe is still confirming the subscription — this typically takes under a
+                  minute. Refresh the page, or contact support if it persists.
                 </Trans>
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={() => window.location.reload()}>

@@ -220,12 +220,6 @@ export function LoginRoute() {
                 <h1 className="text-[28px] font-semibold leading-[1.15] tracking-[-0.6px] text-text-primary">
                   <Trans>Welcome back</Trans>
                 </h1>
-                <p className="text-sm font-medium leading-normal text-text-tertiary">
-                  <Trans>
-                    Paste your work email and we will send a one-time sign-in link. No password to
-                    remember.
-                  </Trans>
-                </p>
               </div>
 
               {/* Form card — Google + divider + email at 16px */}
@@ -235,7 +229,7 @@ export function LoginRoute() {
                   onClick={handleGoogleSignIn}
                   disabled={socialDisabled}
                   aria-busy={submittingProvider === 'google'}
-                  className="h-12 w-full gap-3"
+                  className="h-11 w-full gap-3 rounded-xl"
                 >
                   {submittingProvider === 'google' ? (
                     <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -244,7 +238,7 @@ export function LoginRoute() {
                   )}
                   <span>
                     {submittingProvider === 'google' ? (
-                      <Trans>Redirecting to Google…</Trans>
+                      <Trans>Signing in with Google…</Trans>
                     ) : (
                       <Trans>Continue with Google</Trans>
                     )}
@@ -257,7 +251,7 @@ export function LoginRoute() {
                     onClick={handleMicrosoftSignIn}
                     disabled={socialDisabled}
                     aria-busy={submittingProvider === 'microsoft'}
-                    className="h-12 w-full gap-3"
+                    className="h-11 w-full gap-3 rounded-xl"
                   >
                     {submittingProvider === 'microsoft' ? (
                       <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -266,7 +260,7 @@ export function LoginRoute() {
                     )}
                     <span>
                       {submittingProvider === 'microsoft' ? (
-                        <Trans>Redirecting to Microsoft…</Trans>
+                        <Trans>Signing in with Microsoft…</Trans>
                       ) : (
                         <Trans>Continue with Microsoft</Trans>
                       )}
@@ -427,14 +421,6 @@ function ProductStory() {
       </p>
 
       <div className="mt-2 flex flex-col gap-3.5">
-        <div className="flex items-center gap-3.5">
-          <span className="text-caption-xs font-semibold tracking-[1.8px] text-text-tertiary">
-            WHAT IT DOES
-          </span>
-          <span aria-hidden className="h-px flex-1 bg-divider-subtle" />
-          <span className="text-caption-xs italic text-text-muted">three things, done well</span>
-        </div>
-
         <div className="grid grid-cols-1 overflow-hidden rounded-xl border border-divider-subtle bg-background-default sm:grid-cols-3">
           {CAPABILITIES.map((cap, i) => (
             <div
@@ -713,7 +699,7 @@ function LoginEmailForm({
         <div className="grid grid-cols-[1fr_auto] gap-2.5">
           <Button
             type="submit"
-            className="h-12 justify-center gap-2 rounded-xl font-semibold"
+            className="h-11 justify-center gap-2 rounded-xl font-semibold"
             disabled={formDisabled || normalizeCode(code).length !== 6}
             aria-busy={pendingAction === 'verify'}
           >
@@ -725,7 +711,7 @@ function LoginEmailForm({
           <Button
             type="button"
             variant="outline"
-            className="h-12 rounded-xl px-4"
+            className="h-11 rounded-xl px-4"
             disabled={formDisabled}
             onClick={() => void sendCode('resend')}
             aria-busy={pendingAction === 'resend'}
@@ -782,7 +768,7 @@ function LoginEmailForm({
 
       <Button
         type="submit"
-        className="h-12 w-full justify-center gap-2 rounded-xl font-semibold"
+        className="h-11 w-full justify-center gap-2 rounded-xl font-semibold"
         disabled={formDisabled}
         aria-busy={pendingAction === 'send'}
       >
@@ -802,7 +788,7 @@ function FieldShell({ children, error }: { children: ReactNode; error: string | 
   return (
     <div
       className={cn(
-        'flex h-12 items-center gap-2.5 rounded-xl border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
+        'flex h-11 items-center gap-2.5 rounded-xl border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
         error
           ? 'border-state-destructive-border focus-within:ring-state-destructive-active'
           : 'border-divider-regular focus-within:border-state-accent-solid',

@@ -779,7 +779,7 @@ export function AuditLogPage() {
               setPageIndex(0)
               void setQuery({ q: next.length > 0 ? next : null, event: null })
             }}
-            placeholder={t`Search actor, entity, action, reason`}
+            placeholder={t`Search by person, item, action, or reason`}
             ariaLabel={t`Search audit events`}
             hotkey="/"
             hotkeyMeta={{
@@ -884,7 +884,7 @@ export function AuditLogPage() {
               popover, so the card heading doesn't need a third copy on the
               same page. */}
           <CardTitle>
-            <Trans>Event stream</Trans>
+            <Trans>Events</Trans>
           </CardTitle>
           <CardDescription>
             <Trans>Newest practice-scoped audit events appear first.</Trans>

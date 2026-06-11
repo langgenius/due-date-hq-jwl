@@ -221,7 +221,7 @@ export function AccountSecurityRoute() {
             <Trans>Authenticator app</Trans>
           </CardTitle>
           <CardDescription>
-            <Trans>Owners need MFA before sensitive production actions.</Trans>
+            <Trans>Owners need MFA to change rules and firm settings.</Trans>
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -351,7 +351,7 @@ export function AccountSecurityRoute() {
             <AlertDialogDescription>
               <Trans>
                 Sign-in will only require the link we email you until you re-enable MFA. Owners need
-                MFA before sensitive production actions — disabling now blocks those flows.
+                MFA to change rules and firm settings — disabling now blocks those actions.
               </Trans>
             </AlertDialogDescription>
           </AlertDialogHeader>

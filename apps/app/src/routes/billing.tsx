@@ -516,7 +516,7 @@ export function BillingRoute() {
             />
             <ControlRow
               icon={<CreditCardIcon className="size-4" aria-hidden />}
-              title={<Trans>Provider hosted</Trans>}
+              title={<Trans>Handled by Stripe</Trans>}
               description={
                 <Trans>
                   Checkout, cards, invoices, and portal sessions stay with the processor.

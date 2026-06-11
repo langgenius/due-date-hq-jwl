@@ -362,7 +362,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         <MembersSectionHeader
           title={t`Active members`}
           count={data.members.length}
-          note={t`owner read-only · self read-only`}
+          note={t`You can't change the owner's role or your own.`}
           action={t`Use Role to change access; more to suspend or remove`}
         />
         <ActiveMembersTable
@@ -476,7 +476,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
               {removeMutation.isPending ? (
                 <Trans>Removing…</Trans>
               ) : (
-                <Trans>Remove from practice (1)</Trans>
+                <Trans>Remove from practice</Trans>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
