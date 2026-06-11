@@ -14,17 +14,21 @@ read as one product.
 ## Register A — Section title (region anchor)
 
 The title that anchors a major region of a **dense overview** page. Reads as a
-loud, scannable signpost. Often paired with a count `<Badge>` and a right-aligned
-`<TextLink>View all</TextLink>`.
+confident, scannable signpost. Often paired with a count `<Badge>` and a
+right-aligned `<TextLink>View all</TextLink>`.
 
 ```
-text-[14px] font-semibold tracking-[0.4px] text-text-primary uppercase
+text-lg leading-tight font-semibold tracking-[-0.01em] text-text-primary
 ```
 
-- **Color: `text-text-primary`** (gray-900). Settled 2026-06-09 — supersedes the
-  earlier muted/tertiary experiments. The section title is a primary read.
-- **Canonical examples:** `/today` — "ALERTS"
-  (`needs-attention-section.tsx`), "ACTIONS THIS WEEK" (`actions-list.tsx`).
+- **Title-case, NOT uppercase** (revised 2026-06-11 — Yuqi: at region scale the
+  tracked-caps eyebrow read "lofi/weak"; proper titles elevate the page. This
+  supersedes both the original 14px-caps spec and the interim demoted 11px
+  eyebrow. Caps now live only in Register B.)
+- **Color: `text-text-primary`** (gray-900). The section title is a primary read.
+- **Canonical examples:** `/today` — "Alerts" (`needs-attention-section.tsx`),
+  "Priorities" (`merged-brief-card.tsx`), "Daily Brief" (`daily-brief-card.tsx`,
+  the in-banner variant).
 - **Use when:** the page is a multi-region overview and the header is the loudest
   thing in its region.
 
@@ -75,12 +79,12 @@ text-base font-semibold text-text-primary          (16px card title)
 
 ## Picking a register
 
-| The header…                                       | Register                               |
-| ------------------------------------------------- | -------------------------------------- |
-| anchors a region on a dense overview page (Today) | **A** — 14px primary uppercase eyebrow |
-| labels a group of rows / a table column / a value | **B1** — 11px tertiary uppercase       |
-| labels a field inside a detail drawer/document    | **B2** — 12px tertiary uppercase       |
-| titles a settings/billing/form card               | **C** — 16px primary title-case        |
+| The header…                                       | Register                                |
+| ------------------------------------------------- | --------------------------------------- |
+| anchors a region on a dense overview page (Today) | **A** — 16px primary title-case         |
+| labels a group of rows / a table column / a value | **B1** — 11px tertiary uppercase        |
+| labels a field inside a detail drawer/document    | **B2** — 12px tertiary uppercase        |
+| titles a settings/billing/form card               | **C** — 16px primary title-case (calm)  |
 
 ---
 
@@ -88,7 +92,7 @@ text-base font-semibold text-text-primary          (16px card title)
 
 | Page                         | Region anchors (A)                                | Field/group labels (B)                        | Card titles (C) |
 | ---------------------------- | ------------------------------------------------- | --------------------------------------------- | --------------- |
-| **Today** (`/`)              | ALERTS, ACTIONS THIS WEEK → **A, primary** ✓      | lifecycle caption, table group bands → B1 ✓   | —               |
+| **Today** (`/`)              | Alerts, Daily Brief, Priorities → **A, primary** ✓ | table column labels → B1 ✓                    | —               |
 | **Alerts** (`/alerts`)       | list is a single table — no A-level region titles | row meta labels → B1 ✓                        | —               |
 | **Alert detail** (drawer)    | —                                                 | SOURCE EXTRACT, PROVENANCE, … → B2 tertiary ✓ | —               |
 | **Deadline detail** (drawer) | —                                                 | field labels → B2 tertiary ✓                  | —               |

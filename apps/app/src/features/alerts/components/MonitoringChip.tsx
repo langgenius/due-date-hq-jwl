@@ -60,8 +60,12 @@ export function MonitoringChip({
   const badgeClass = cn(
     // Compact green "LIVE" pill; the full monitoring scope (Federal ·
     // 50 States · DC) lives in the hover tooltip. Borderless — the green
-    // fill alone carries it (Yuqi: remove border).
-    'gap-1.5 rounded-full bg-state-success-hover px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.4px] text-text-success',
+    // fill alone carries it (Yuqi: remove border). text-caption (10px) so the
+    // chip sits quieter than the title beside it (Yuqi: smaller text).
+    // Pinned to the same h-[22px] as the CountPill it sits beside in
+    // page-header title rows (Yuqi: the count chip and LIVE chip must be
+    // a matched-height pair — same height, only the tone differs).
+    'h-[22px] gap-1.5 rounded-full bg-state-success-hover px-2 py-0 text-caption font-semibold uppercase tracking-[0.4px] text-text-success',
     to ? 'cursor-pointer transition-colors hover:bg-state-success-active' : 'cursor-help',
     className,
   )

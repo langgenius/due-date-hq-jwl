@@ -72,3 +72,32 @@ recap now sit as calm `text-sm` metric lines under the headline; hand-rolled ✕
 matching micro-lift (`gap-1 → gap-1.5`, `py-3.5 → py-4`). Canonical spec +
 keep-in-sync checklist: `docs/Design/brief-banner-language.md` (includes why a
 shared component was deliberately NOT extracted yet).
+
+## Addendum 2 — the elevation pass (lofi → product)
+
+Yuqi: "looks like a lofi prototype, polish and elevate; avoid side-border
+highlights with rounded corners; avoid too much use of borders" + the 8-item
+batch. Changes:
+
+- **One section-title voice.** Alerts / Daily Brief / Priorities all anchor on
+  `text-lg leading-tight font-semibold tracking-[-0.01em] text-text-primary`
+  title-case. Register A redefined in `section-header-style.md` (supersedes
+  the 14px-caps original AND the interim demoted 11px eyebrow — caps now live
+  only in Register B labels).
+- **Daily Brief**: blue tint restored (`bg-state-accent-hover`, borderless —
+  the page's one chromatic surface), proper title (no tracked-caps, no dot),
+  AI sentence demoted to `text-base font-medium` content under the title.
+  `brief-banner-language.md` updated with the purpose-split surface rule.
+- **Priorities**: rebuilt as an OPEN section (header + lede float on the page,
+  like Alerts) over the canonical framed `<Table>` — merging the original
+  actions-list.tsx good bits: labeled header band, client + action-verb
+  stacked cell, due cell stacking relative countdown over `formatDatePretty`
+  absolute date, `isMine` avatar ring via `useCurrentUserId`, and the
+  hover-revealed Review CTA with the gradient mask. Stage-first verb logic +
+  CPA buckets + chip selector + payment-late gray chip all preserved.
+  ROWS_PER_BUCKET 4 → 5. Border budget: ONE framed surface on the page
+  (card-in-card avoided).
+- **Alert cards**: verbatim-quote body stepped to `text-xs`; LIVE chip to
+  `text-caption`.
+- Audited for side-border highlight + rounded-corner combos: none exist on
+  these surfaces.

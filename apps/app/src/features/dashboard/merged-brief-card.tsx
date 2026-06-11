@@ -4,6 +4,15 @@ import { ArrowRightIcon, SparklesIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
+import { Button } from '@duedatehq/ui/components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { DueDateLabel } from '@/components/primitives/due-date-label'
@@ -12,18 +21,22 @@ import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { isPaymentOverdue, paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
+import { formatDatePretty } from '@/lib/utils'
+import { useCurrentUserId } from '@/lib/use-current-user-name'
 import { ExtensionChip } from './extension-chip'
 
 /**
- * MergedBriefCard — Pencil `jXPZ9`, refined per Yuqi: compact + informative.
+ * MergedBriefCard — the /today "Priorities" queue (Pencil `jXPZ9` lineage).
  *
- * "Today's brief" IS the deadline queue, grouped by time only. The three count
- * chips (overdue / ending today / this week) ARE the view selector — click one
- * to switch which bucket shows; there is no separate segmented control. Each row
- * carries the full triage payload that the old Priority Actions table did
- * (action verb + Docs N/M readiness + status + owner + due), so this single card
- * replaces it. Minimal chrome: the card is the only frame — rows separate by
- * space + hover, not borders or dividers.
+ * Composition (Yuqi: "pull the original actions table, merge the good bits"):
+ * the BRIEF header survives — title + the count-chip bucket selector (this
+ * week / this month / overdue — CPA buckets) + a one-line deterministic lede —
+ * and the rows below render through the SAME canonical `<Table>` frame the
+ * original Priority Actions table (actions-list.tsx) and /deadlines use:
+ * labeled column header band, client + action-verb stacked cell, due cell
+ * stacking the relative countdown over the absolute date, owner avatar with
+ * the is-mine ring, and the hover-revealed Review CTA. One framed surface,
+ * an open section header above it — not a card-in-a-card.
  */
 export interface MergedBriefCounts {
   thisWeek: number
@@ -35,7 +48,7 @@ export interface MergedBriefCounts {
 // they think in this week / this month / overdue. Order matches that.
 type Bucket = 'week' | 'month' | 'overdue'
 
-const ROWS_PER_BUCKET = 4
+const ROWS_PER_BUCKET = 5
 
 function daysUntil(dueIso: string, asOf: Date): number {
   const due = Date.parse(dueIso)
@@ -92,9 +105,8 @@ export function MergedBriefCard({
     },
   ]
 
-  // No explicit pick yet → follow the data (first non-empty bucket, overdue
-  // leading). Derived (not initial-state) so it stays correct as counts load in;
-  // once the user clicks a chip we honor that choice.
+  // No explicit pick yet → follow the data. Derived (not initial-state) so it
+  // stays correct as counts load in; once the user clicks a chip we honor it.
   const [override, setOverride] = useState<Bucket | null>(null)
   // Default to the most actionable non-empty bucket: overdue first, then this
   // week, then this month.
@@ -116,11 +128,13 @@ export function MergedBriefCard({
   const totalActive = counts.overdue + upcoming
 
   return (
-    <section
-      aria-label={t`Priorities`}
-      className="flex w-full flex-col gap-3 rounded-xl border border-divider-regular bg-background-default px-5 py-4"
-    >
-      {/* Header — sparkles + title + the count-chip selector + collapse. */}
+    // OPEN section — header + lede float on the page like the Alerts section;
+    // the table below is the page's single framed surface. Fewer borders
+    // (Yuqi: avoid too much use of borders), and the section grammar matches
+    // the rest of /today: title row → content surface.
+    <section aria-label={t`Priorities`} className="flex w-full flex-col gap-2.5">
+      {/* Header — sparkles mark + title (the /today section-title voice) + the
+          count-chip bucket selector pinned right. */}
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
         <span
           className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background-section"
@@ -130,13 +144,12 @@ export function MergedBriefCard({
         </span>
         {/* "Priorities", not "Today's brief" — the card leads with overdue work,
             so a "today" headline would lie about its own content (Yuqi). */}
-        <h2 className="text-xl leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+        <h2 className="text-lg leading-tight font-semibold tracking-[-0.01em] text-text-primary">
           <Trans>Priorities</Trans>
         </h2>
 
-        {/* Status-scope segmented control borrowed verbatim from the /deadlines
-            queue: rounded-full track, white active pill, tone dot + label + muted
-            count. Pinned top-right (Yuqi). */}
+        {/* Bucket selector borrowed from the /deadlines queue: rounded-full
+            track, white active pill, tone dot + label + muted count. */}
         <div className="ml-auto flex items-center gap-0.5 rounded-full bg-background-subtle p-1">
           {tabs.map((tab) => {
             const active = tab.key === selected
@@ -147,7 +160,7 @@ export function MergedBriefCard({
                 data-active={active}
                 onClick={() => setOverride(tab.key)}
                 aria-pressed={active}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
               >
                 <span
                   className={cn('size-1.5 shrink-0 rounded-full bg-current', tab.dot)}
@@ -161,86 +174,92 @@ export function MergedBriefCard({
         </div>
       </div>
 
-      {/* Body — the selected bucket's rows. No dividers: rows separate by space
-          + hover so the card stays calm. */}
-      <div className="flex flex-col gap-0.5">
-        {/* Lede — one-line deterministic summary of the day. */}
-        <p className="px-2 pb-1.5 text-sm text-text-secondary">
-          {totalActive === 0 ? (
-            <Trans>You're clear — nothing due this month.</Trans>
-          ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
-            <Trans>
-              {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
-            </Trans>
-          ) : counts.overdue > 0 ? (
-            <Trans>{counts.overdue} overdue.</Trans>
+      {/* Lede — one-line deterministic summary of the day. */}
+      <p className="text-sm text-text-secondary">
+        {totalActive === 0 ? (
+          <Trans>You're clear — nothing due this month.</Trans>
+        ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
+          <Trans>
+            {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
+          </Trans>
+        ) : counts.overdue > 0 ? (
+          <Trans>{counts.overdue} overdue.</Trans>
+        ) : (
+          <Trans>{upcoming} coming up, none overdue.</Trans>
+        )}
+      </p>
+
+      {shown.length === 0 ? (
+        <p className="rounded-xl border border-divider-subtle px-5 py-6 text-center text-sm text-text-tertiary">
+          {activeTotal > 0 ? (
+            <Trans>None in the priority shortlist — open the queue to see all {activeTotal}.</Trans>
           ) : (
-            <Trans>{upcoming} coming up, none overdue.</Trans>
+            <Trans>Nothing here. You're clear.</Trans>
           )}
         </p>
-        {/* Column header — turns the rows into a labeled table (Yuqi hybrid:
-            brief header above, table below). Mirrors BriefRow's column widths. */}
-        {shown.length > 0 ? (
-          <div className="flex items-center gap-2 border-b border-divider-subtle px-2.5 pb-1.5 text-caption-xs font-medium tracking-wider text-text-tertiary uppercase">
-            <span className="w-28 shrink-0">
-              <Trans>Form</Trans>
-            </span>
-            <span className="min-w-0 flex-1">
-              <Trans>Client</Trans>
-            </span>
-            <span className="w-[128px] shrink-0">
-              <Trans>Status</Trans>
-            </span>
-            <span className="w-6 shrink-0" aria-hidden />
-            <span className="w-[124px] shrink-0">
-              <Trans>Due</Trans>
-            </span>
-          </div>
-        ) : null}
-        {shown.length === 0 ? (
-          <p className="px-2 py-1.5 text-sm text-text-tertiary">
-            {activeTotal > 0 ? (
-              <Trans>
-                None in the priority shortlist — open the queue to see all {activeTotal}.
-              </Trans>
-            ) : (
-              <Trans>Nothing here. You're clear.</Trans>
-            )}
-          </p>
-        ) : (
-          shown.map((row) => (
-            <BriefRow
-              key={row.obligationId}
-              row={row}
-              asOf={asOf}
-              asOfDate={asOfDate}
-              onOpen={onOpenObligation}
-            />
-          ))
-        )}
-
-        {/* Footer — one link to the full list, with extra top padding so it
-              doesn't crowd the last row (Yuqi). */}
-        <div className="mt-3 flex items-center justify-end gap-2 px-2">
-          {moreCount > 0 ? (
-            <span className="text-caption tabular-nums text-text-tertiary">
-              <Trans>{moreCount} more not shown</Trans>
-            </span>
-          ) : null}
-          <Link
-            to="/deadlines"
-            className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <Trans>See all deadlines</Trans>
-            <ArrowRightIcon className="size-3" aria-hidden />
-          </Link>
+      ) : (
+        // The canonical table frame shared with the original Priority Actions
+        // table + /deadlines (table-canonical-style.md): rounded-xl,
+        // border-divider-regular, white fill, labeled header band. Zebra
+        // opted out so the queue reads as one flat surface.
+        <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+          <Table className="[&_tbody_tr]:even:bg-transparent">
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <Trans>Form</Trans>
+                </TableHead>
+                <TableHead className="w-full">
+                  <Trans>Client</Trans>
+                </TableHead>
+                <TableHead>
+                  <Trans>Status</Trans>
+                </TableHead>
+                <TableHead>
+                  <span className="sr-only">
+                    <Trans>Owner</Trans>
+                  </span>
+                </TableHead>
+                <TableHead>
+                  <Trans>Due</Trans>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {shown.map((row) => (
+                <BriefTableRow
+                  key={row.obligationId}
+                  row={row}
+                  asOf={asOf}
+                  asOfDate={asOfDate}
+                  onOpen={onOpenObligation}
+                />
+              ))}
+            </TableBody>
+          </Table>
         </div>
+      )}
+
+      {/* Footer — one link to the full list. */}
+      <div className="flex items-center justify-end gap-2">
+        {moreCount > 0 ? (
+          <span className="text-caption tabular-nums text-text-tertiary">
+            <Trans>{moreCount} more not shown</Trans>
+          </span>
+        ) : null}
+        <Link
+          to="/deadlines"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-sm text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <Trans>See all deadlines</Trans>
+          <ArrowRightIcon className="size-3" aria-hidden />
+        </Link>
       </div>
     </section>
   )
 }
 
-function BriefRow({
+function BriefTableRow({
   row,
   asOf,
   asOfDate,
@@ -253,6 +272,8 @@ function BriefRow({
 }) {
   const { t } = useLingui()
   const d = daysUntil(row.currentDueDate, asOf)
+  const currentUserId = useCurrentUserId()
+  const isMine = currentUserId !== null && row.assigneeId === currentUserId
   // Action verb inline — the lingui `t` macro must stay in component scope;
   // passing it into a helper compiles fine (tsgo) but returns "" at runtime.
   // Verb is STAGE-FIRST: a return in review/blocked has already gathered its
@@ -284,65 +305,107 @@ function BriefRow({
   const paymentLate = isPaymentOverdue(row.paymentDueDate, asOfDate)
   const paymentLateDays = paymentOverdueDays(row.paymentDueDate, asOfDate)
   return (
-    <button
-      type="button"
+    <TableRow
       onClick={() => onOpen(row.obligationId)}
-      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left outline-none transition-colors hover:bg-background-section focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onOpen(row.obligationId)
+        }
+      }}
+      tabIndex={0}
+      aria-label={t`Open ${verb} for ${row.clientName}`}
+      // Interactivity + the `group` hook live here; zebra/border/transition
+      // come from the canonical TableRow. The hover token is opaque so the
+      // Review mask below still hides the due date.
+      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-3"
     >
-      {/* Fixed-width form column so every client name + action starts at the
-          same x — the name/action reads as one left-aligned column (Yuqi). */}
-      <span className="flex w-28 shrink-0 items-center">
+      {/* FORM */}
+      <TableCell>
         <TaxCodeBadge code={row.taxType} />
-      </span>
-      {/* Client + the instruction/readiness sub-line. Flexes to fill so the
-          status/owner/due cluster sits at the card's RIGHT edge — a normal
-          table, not a cluster floating mid-card with dead space trailing right
-          (Yuqi: the capped version read weird). Client name is the row anchor,
-          bumped to semibold so one thing is clearly primary. */}
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-base font-semibold text-text-primary">{row.clientName}</span>
-        <span className="flex min-w-0 items-center gap-1.5 text-caption text-text-tertiary">
-          <span className="truncate">{verb}</span>
-          {showReadiness ? (
-            <ReadinessIndicator
-              obligationType={row.obligationType}
-              attached={row.evidenceCount}
-              className="shrink-0"
-            />
-          ) : null}
-        </span>
-      </span>
-      {/* Status / owner / due are each a fixed-width, LEFT-aligned column so
-          they line up vertically across rows — a real table, not a right-pushed
-          cluster whose x shifts with the status-pill width (Yuqi: obey columns). */}
-      <span className="flex w-[128px] shrink-0 flex-col items-start gap-1">
-        <span className="flex items-center gap-1.5">
-          <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-xs" />
-          {row.status === 'extended' ? <ExtensionChip /> : null}
-        </span>
-        {paymentLate ? (
-          // Neutral, not red: payment-late is a DIFFERENT obligation from the
-          // filing, and this design system has no amber (warning IS red-orange),
-          // so a gray chip is the only way to keep RED pointing at exactly one
-          // thing per row — the filing lateness in the due column (Yuqi #1).
-          <span className="inline-flex items-center rounded bg-background-subtle px-1.5 py-0.5 text-caption-xs font-medium text-text-secondary">
-            <Trans>Pay {paymentLateDays}d late</Trans>
+      </TableCell>
+      {/* CLIENT — name (row anchor) + the instruction/readiness sub-line,
+          stacked like the original actions table. `w-full max-w-0` lets this
+          cell absorb the free width so the name can truncate. */}
+      <TableCell className="w-full max-w-0">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate text-base font-semibold text-text-primary">
+            {row.clientName}
           </span>
-        ) : null}
-      </span>
-      <span className="flex w-6 shrink-0 items-center">
+          <span className="flex min-w-0 items-center gap-1.5 text-xs text-text-tertiary transition-colors group-hover:text-text-secondary">
+            <span className="truncate">{verb}</span>
+            {showReadiness ? (
+              <ReadinessIndicator
+                obligationType={row.obligationType}
+                attached={row.evidenceCount}
+                className="shrink-0"
+              />
+            ) : null}
+          </span>
+        </div>
+      </TableCell>
+      {/* STATUS — workflow badge (+ extension), payment-late as its own quiet
+          gray chip below. Neutral, not red: this design system has no amber,
+          and RED must keep pointing at exactly one thing per row — the filing
+          lateness in the due column (Yuqi). */}
+      <TableCell>
+        <div className="flex flex-col items-start gap-1">
+          <div className="flex items-center gap-1.5">
+            <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-xs" />
+            {row.status === 'extended' ? <ExtensionChip /> : null}
+          </div>
+          {paymentLate ? (
+            <span className="inline-flex items-center rounded bg-background-subtle px-1.5 py-0.5 text-caption-xs font-medium text-text-secondary">
+              <Trans>Pay {paymentLateDays}d late</Trans>
+            </span>
+          ) : null}
+        </div>
+      </TableCell>
+      {/* OWNER — xs avatar with the is-mine ring. */}
+      <TableCell>
         <AssigneeAvatar
           size="xs"
           name={row.assigneeName}
-          title={row.assigneeName ?? t`Unassigned`}
+          isMine={isMine}
+          title={
+            row.assigneeName === null
+              ? t`Unassigned`
+              : isMine
+                ? t`Assigned to you (${row.assigneeName})`
+                : row.assigneeName
+          }
         />
-      </span>
-      {/* Due = the FILING countdown (paymentDueDate nulled so payment-late doesn't
-          hijack it) — it now matches the action verb instead of describing a
-          different obligation (Yuqi). */}
-      <span className="flex w-[124px] shrink-0 items-center">
-        <DueDateLabel days={d} status={row.status} paymentDueDate={null} asOfDate={asOfDate} />
-      </span>
-    </button>
+      </TableCell>
+      {/* DUE — relative FILING countdown (paymentDueDate nulled so payment-late
+          doesn't hijack it) stacked over the absolute date. */}
+      <TableCell>
+        <div className="flex flex-col gap-0.5">
+          <DueDateLabel days={d} status={row.status} paymentDueDate={null} asOfDate={asOfDate} />
+          <span className="text-xs font-medium tabular-nums text-text-tertiary">
+            {formatDatePretty(row.currentDueDate)}
+          </span>
+        </div>
+        {/* Hover-revealed Review CTA (from the original actions table): an
+            absolutely-positioned primary button anchored to the row's right
+            edge, with a left-fading mask in the hover tone so it always reads
+            cleanly. Out of the tab order — the row is the focus target. */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-default-hover from-55% to-transparent pr-5 pl-16 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+          <Button
+            type="button"
+            size="xs"
+            variant="primary"
+            tabIndex={-1}
+            aria-hidden
+            onClick={(event) => {
+              event.stopPropagation()
+              onOpen(row.obligationId)
+            }}
+            className="pointer-events-auto"
+          >
+            <Trans>Review</Trans>
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
   )
 }

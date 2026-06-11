@@ -34,12 +34,23 @@ Anatomy, top to bottom (single `flex-col gap-1.5` stack):
    entities · penalty exposure". Daily Brief: today's workload counts, then the
    "since last visit" recap line.
 
-Chrome: `rounded-xl border border-divider-subtle bg-background-subtle px-5
-py-4 pr-9`, with a ghost `icon-xs` ✕ absolute at `top-2.5 right-2.5` when
-dismissible. **No accent wash** — the banner is a calm document, urgency lives
-in the words and the destructive count tints, not in a coloured surface
-(consistent with the no-coloured-text-on-dark / accent-in-containers rules and
-the detail-pane calm-document surface model).
+Chrome: `rounded-xl px-5 py-4 pr-9`, with a ghost `icon-xs` ✕ absolute at
+`top-2.5 right-2.5` when dismissible. Surface differs BY PURPOSE (revised
+2026-06-11, Yuqi):
+
+- `/deadlines` at-a-glance: `border border-divider-subtle bg-background-subtle`
+  — a calm neutral read of the queue it sits above.
+- `/today` Daily Brief: **`bg-state-accent-hover` tint, no border** — the
+  page's ONE chromatic surface, marking the AI digest apart from the neutral
+  monitor (Alerts) and work (Priorities) sections. The tint alone defines the
+  edge; chromatic accent lives in the container, never the text.
+
+Anatomy divergence (same revision): the Daily Brief opens with a **proper
+title** ("Daily Brief", Register-A section-title voice — see
+`section-header-style.md`) + the freshness chip, and its focus sentence reads
+as content (`text-base font-medium`) under that title. The /deadlines banner
+stays title-less — its `text-lg` narrative sentence IS the anchor, with the
+date eyebrow above. No tracked-caps eyebrow or dot on the Daily Brief.
 
 ## Why not a shared component (yet)
 

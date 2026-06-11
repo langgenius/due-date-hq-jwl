@@ -92,17 +92,17 @@ export function DailyBriefCard({
   return (
     <section
       aria-label={t`Daily brief`}
-      // Shares the /deadlines at-a-glance banner's editorial language (Yuqi:
-      // "same visual language, elevate both"): neutral bg-subtle + a subtle
-      // border — no accent wash — a dot + tracked-caps eyebrow, a text-lg
-      // headline (today's focus), then calm text-sm metric/recap lines.
-      // Keep both call sites in sync: see routes/obligations.tsx
-      // "Deadlines at a glance".
-      className="group relative flex flex-col gap-1.5 rounded-xl border border-divider-subtle bg-background-subtle px-5 py-4 pr-9"
+      // The accent-tinted banner of /today (Yuqi: "background blue tint") —
+      // the page's ONE chromatic surface, marking the AI digest apart from
+      // the neutral monitor (alerts) and work (priorities) sections. No
+      // border: the tint alone defines the edge (avoid too much borders).
+      // Same editorial bones as the /deadlines at-a-glance banner (title →
+      // content sentence → metric lines); see
+      // docs/Design/brief-banner-language.md.
+      className="group relative flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9"
     >
-      {/* Dismiss — ghost ✕ top-right, matching the /deadlines banner. The
-          parent persists the dismissal keyed to this brief's generation, so a
-          freshly regenerated brief returns. */}
+      {/* Dismiss — ghost ✕ top-right. The parent persists the dismissal keyed
+          to this brief's generation, so a freshly regenerated brief returns. */}
       {onClose ? (
         <Button
           variant="ghost"
@@ -116,14 +116,17 @@ export function DailyBriefCard({
         </Button>
       ) : null}
 
-      {/* Eyebrow — accent dot + label + freshness, the banner's eyebrow voice. */}
-      <p className="flex flex-wrap items-center gap-2 text-caption font-medium tracking-eyebrow text-text-tertiary uppercase">
-        <span className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt" aria-hidden />
-        <Trans>Daily Brief</Trans>
+      {/* Title — a proper title (Yuqi: not a tracked-caps eyebrow, no dot),
+          sharing the /today section-title voice. Freshness chip rides beside. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="text-lg leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+          <Trans>Daily Brief</Trans>
+        </h2>
         {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
-      </p>
+      </div>
 
-      {/* Headline — today's focus, the editorial anchor (text-lg). */}
+      {/* Content — today's focus sentence (the title anchors the card, so the
+          sentence reads as content, not a competing headline). */}
       {aiEnabled ? (
         <TodayLine brief={brief} pending={isPending} onOpenObligation={onOpenObligation} />
       ) : (
@@ -262,7 +265,7 @@ function TodayLine({
   if (pending && !brief?.text) {
     return (
       <div aria-busy>
-        <Skeleton className="h-5 w-[70%]" />
+        <Skeleton className="h-4 w-[70%]" />
       </div>
     )
   }
@@ -294,7 +297,7 @@ function TodayLine({
       : ''
 
   return (
-    <p className="min-w-0 max-w-[64ch] text-lg leading-6 font-semibold text-text-primary">
+    <p className="min-w-0 max-w-[72ch] text-base leading-[1.5] font-medium text-text-primary">
       <BriefProse text={headline} citations={brief.citations} onOpenObligation={onOpenObligation} />
       {fallbackMarkers ? (
         <>
@@ -328,7 +331,7 @@ function FirmTodayLine({
   if (concentration && concentration.count >= 2) {
     const formLabel = formatTaxCode(concentration.taxType)
     return (
-      <p className="min-w-0 max-w-[64ch] text-lg leading-6 font-semibold text-text-primary">
+      <p className="min-w-0 max-w-[72ch] text-base leading-[1.5] font-medium text-text-primary">
         <Trans>
           Overdue work is concentrated in {formLabel} ({concentration.count} of{' '}
           {concentration.overdueTotal})

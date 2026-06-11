@@ -173,11 +173,11 @@ function NeedsAttentionSection() {
       className="flex flex-col gap-3"
     >
       <div className="flex items-center justify-between gap-3">
-        {/* Both /today section titles share a DEMOTED eyebrow treatment —
-            11px / 600 / muted tertiary ink / wider tracking — so they orient
-            without the heavy 14px dark-ink band competing with the content
-            below. See docs/Design/section-header-style.md. */}
-        <h2 className="flex items-center gap-2 text-xs font-semibold tracking-[0.6px] text-text-tertiary uppercase">
+        {/* /today section titles share ONE voice — text-lg/600/dark ink
+            (Priorities, Daily Brief, Alerts) — replacing the old demoted
+            eyebrow treatment (Yuqi: the page read lofi/weak; proper titles).
+            See docs/Design/section-header-style.md. */}
+        <h2 className="flex items-center gap-2 text-lg leading-tight font-semibold tracking-[-0.01em] text-text-primary">
           {/* The title word links to /alerts; the count badge + MonitoringChip
               stay as non-link siblings. */}
           <Link
