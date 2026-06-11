@@ -1292,6 +1292,10 @@ describe('@duedatehq/contracts', () => {
       isSample: true,
       taxAreas: ['income_individual'],
       forms: [],
+      // 2026-06-11 (Already-in-effect band): origin + act-by date are part of
+      // the public alert row.
+      origin: 'live',
+      actionDeadline: null,
     })
     expect(alert.isSample).toBe(true)
     expect(alert.duplicateSourceSnapshotCount).toBe(2)
