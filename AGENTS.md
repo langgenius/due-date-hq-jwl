@@ -24,7 +24,7 @@ Use pnpm with Node `>=22.19.0`.
 
 ## Workflow
 
-After each development task, update the relevant dev log and verify DESIGN.md/docs stay aligned with the implementation.
+After each development task, update the relevant dev log and verify DESIGN.md/docs stay aligned with the implementation. If your change supersedes a specific claim in `docs/dev-file/*`, amend that section in the same commit — never leave a known-false statement behind. The periodic `/distill-devfile` pass is a safety net for what slips through, not the primary mechanism.
 
 Docs follow a three-layer contract. `docs/dev-file/` is current truth (architecture, interfaces, constraints); `docs/adr/` records formal decisions; `docs/dev-log/` is a dated historical journal (`YYYY-MM-DD-<slug>.md`) of how the code got here. Dev-log entries may describe superseded states — when one conflicts with code or `docs/dev-file/`, trust code and `dev-file`, and prefer the newest entry on a topic. Forward-looking working documents (implementation specs, engineering briefs, roadmaps, position memos) live under `docs/product-design/<feature>/` or `docs/PRD/`, never in `docs/dev-log/`.
 
