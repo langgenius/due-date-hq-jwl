@@ -44,6 +44,7 @@ function env(queueSend = vi.fn()): TestEnv {
     R2_PULSE: {
       put: putMock,
       putMock,
+      head: vi.fn(async () => null),
     } as unknown as R2Bucket & { putMock: typeof putMock },
     PULSE_QUEUE: {
       send: queueSend,

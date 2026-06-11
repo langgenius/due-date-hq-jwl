@@ -2,6 +2,7 @@ import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import type { Env } from '../env'
 import { dispatchOpsAlert } from './ops-alerts'
 import { retryFailedPulseExtractions } from './pulse/extract-retry'
+import { runScheduledGoldenAudit } from './pulse/golden-audit'
 import { enqueuePulseIngestScans } from './pulse/ingest'
 import { recordPulseAlert } from './pulse/metrics'
 import { dispatchDeadlineReminders } from './reminders/dispatch'
@@ -98,6 +99,9 @@ export async function scheduled(
     ['still_open_alert_windows', refreshStillOpenAlertWindows(env, now)],
     ['pulse_extract_health', checkPulseExtractionHealth(env, now)],
     ['pulse_extract_failed_retry', retryFailedPulseExtractions(env, now)],
+    // Weekly (Mon 10:00 UTC slot): re-parse the golden reference sources and
+    // alert on items the pipeline never ingested — measurable recall.
+    ['pulse_golden_audit', runScheduledGoldenAudit(env, now)],
     ['deadline_reminders', dispatchDeadlineReminders(env, now)],
     ['morning_digests', dispatchMorningDigests(env, now)],
     ['annual_rollover_auto', dispatchAutoRollover(env, now)],
