@@ -297,11 +297,17 @@ function DeadlineNavigatorRow({
 
       {/* Content (rzzww `NIkyc`) */}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex items-center justify-between gap-2 pb-0.5">
+        <div className="flex items-center gap-2 pb-0.5">
           <TaxCodeBadge code={row.taxType} className="px-1.5 py-0.5 text-caption-xs" />
-          {/* Status reads as an icon; the active (currently-viewed)
-              row expands it to icon + label. */}
-          <span className="flex shrink-0 items-center gap-1" title={statusLabel}>
+        </div>
+        {/* Form title + status on ONE line (Yuqi #2): title takes the row,
+            status reads as an icon and expands to icon + label on the active
+            (currently-viewed) row. */}
+        <div className="flex items-start justify-between gap-2">
+          <span className="line-clamp-2 min-w-0 flex-1 text-[16px] font-medium leading-snug text-text-primary">
+            {title}
+          </span>
+          <span className="flex shrink-0 items-center gap-1 pt-0.5" title={statusLabel}>
             <StatusIcon
               className={cn('size-3.5 shrink-0', STATUS_ICON_COLOR[row.status])}
               aria-hidden
@@ -311,9 +317,6 @@ function DeadlineNavigatorRow({
             ) : null}
           </span>
         </div>
-        <span className="line-clamp-2 text-[16px] font-medium leading-snug text-text-primary">
-          {title}
-        </span>
         <span className="truncate text-xs text-text-tertiary">{row.clientName}</span>
       </div>
     </Link>
