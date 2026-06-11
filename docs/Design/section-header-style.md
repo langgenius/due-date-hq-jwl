@@ -18,13 +18,17 @@ confident, scannable signpost. Often paired with a count `<Badge>` and a
 right-aligned `<TextLink>View all</TextLink>`.
 
 ```
-text-lg leading-tight font-semibold tracking-[-0.01em] text-text-primary
+text-xl leading-tight font-semibold tracking-[-0.01em] text-text-primary
 ```
 
 - **Title-case, NOT uppercase** (revised 2026-06-11 — Yuqi: at region scale the
   tracked-caps eyebrow read "lofi/weak"; proper titles elevate the page. This
   supersedes both the original 14px-caps spec and the interim demoted 11px
   eyebrow. Caps now live only in Register B.)
+- **18px, not 16** (same-day audit revision): at 16px the region anchor
+  collided with the 16px card headlines INSIDE the section (alert-card titles)
+  — identical type, position doing all the work. One step up gives the page a
+  real ramp: 28 page / 18 section / 16 item headline / 14 body / 13 fine print.
 - **Color: `text-text-primary`** (gray-900). The section title is a primary read.
 - **Canonical examples:** `/today` — "Alerts" (`needs-attention-section.tsx`),
   "Priorities" (`merged-brief-card.tsx`), "Daily Brief" (`daily-brief-card.tsx`,
@@ -75,13 +79,31 @@ text-base font-semibold text-text-primary          (16px card title)
   Do **not** uppercase these — the calm register is intentional and distinct from
   the dense-overview eyebrow (Register A).
 
+### One title per card (2026-06-11)
+
+A `DetailSectionCard` band title is the card's ONLY title. Never repeat (or
+near-repeat) it as an inner section header in the card body — Yuqi flagged the
+alert detail's "The change" card opening with a second "Extracted facts" header
+and the "Activity & notes" card opening with a second "Activity" header ("why
+not call it extract facts, then we don't need another title repeating"). The
+fix pattern, now canonical:
+
+- **Rename the card to the content's real name** if the inner header was more
+  accurate (alert detail GROUP 1 is now titled "Extracted facts").
+- **Move secondary meta to the band's right slot** (`headerRight`) — the AI
+  caveat ("AI parsed — verify before Apply") and the timeline read-out
+  ("N events · oldest first") ride the gray band, not a second header line.
+- Inner headers remain legitimate only for **sibling sub-sections** that need
+  distinguishing from each other (e.g. "Source extract" vs "How confident we
+  are" inside Source & confidence) — never for the card's lead content.
+
 ---
 
 ## Picking a register
 
 | The header…                                       | Register                                |
 | ------------------------------------------------- | --------------------------------------- |
-| anchors a region on a dense overview page (Today) | **A** — 16px primary title-case         |
+| anchors a region on a dense overview page (Today) | **A** — 18px primary title-case         |
 | labels a group of rows / a table column / a value | **B1** — 11px tertiary uppercase        |
 | labels a field inside a detail drawer/document    | **B2** — 12px tertiary uppercase        |
 | titles a settings/billing/form card               | **C** — 16px primary title-case (calm)  |

@@ -380,6 +380,18 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
  * resolution state derived from `status`. No fabricated events; a true
  * per-alert event feed would be a separate backend addition.
  */
+// Mirrors the events array AlertActivityTimeline builds below — received +
+// current always render; matched / reviewed only when present. Lets the
+// wrapping DetailSectionCard show "N events · oldest first" in its header
+// band without the timeline needing a second inner header (Yuqi #11).
+function alertActivityEventCount(detail: PulseDetail): number {
+  return (
+    2 +
+    (detail.alert.matchedCount + detail.alert.needsReviewCount > 0 ? 1 : 0) +
+    (detail.reviewedAt ? 1 : 0)
+  )
+}
+
 function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
   const { t } = useLingui()
   const alert = detail.alert
@@ -444,18 +456,12 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
   }
 
   return (
+    // Yuqi #11 — no inner "Activity" header: the wrapping
+    // DetailSectionCard already says "Activity & notes" and carries the
+    // "N events · oldest first" meta in its header band (see
+    // `alertActivityEventCount`), so a second label here read as a
+    // repeated title.
     <section className="flex flex-col gap-3">
-      {/* Pencil `gRY5g` header: "Activity" + "N events · oldest first". */}
-      <header className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-semibold text-text-secondary">
-          <Trans>Activity</Trans>
-        </span>
-        <span className="text-sm font-medium text-text-muted">
-          <Plural value={events.length} one="# event" other="# events" />
-          {' · '}
-          <Trans>oldest first</Trans>
-        </span>
-      </header>
       <ol className="flex flex-col">
         {events.map((event, index) => {
           const isLast = index === events.length - 1
@@ -877,13 +883,18 @@ export function AlertDetailDrawer({
   const markReviewedMutation = useMutation(
     orpc.pulse.markReviewed.mutationOptions({
       onSuccess: () => {
-        toast.success(t`Alert marked reviewed`)
-        // Do NOT onClose() on review. Marking reviewed is a status
-        // change, not a "done with this alert" exit — the CPA stays on the
-        // alert and the detail (status pill + action shelf) updates in
-        // place via invalidate(). Apply/dismiss still close (those resolve
-        // the alert).
+        // Marking reviewed RESOLVES the alert — it leaves the active queue
+        // for Alert history, so the user must land somewhere deliberate
+        // (Yuqi: "where does the user land?"). Triage flow: advance to the
+        // next alert in the rail when there is one; otherwise close back
+        // to the list. The toast names where the reviewed alert went so
+        // the hand-off is legible even as the panel moves on.
+        toast.success(t`Alert marked reviewed`, {
+          description: t`Moved to Alert history.`,
+        })
         invalidate()
+        if (onNext) onNext()
+        else onClose()
       },
       onError: (err) => {
         toast.error(t`Couldn't mark alert reviewed`, {
@@ -1411,7 +1422,7 @@ export function AlertDetailDrawer({
           // of flex-shrink so the scroll container owns the scroll height.
           <div className="flex shrink-0 flex-col gap-4">
             {/* The body is four white cards on the gray wash —
-                  1. The change      (deadline shift + extracted facts + impact)
+                  1. Extracted facts  (deadline shift + fact grid + impact)
                   2. Affected clients (scope table + apply/review controls)
                   3. Source & confidence (warnings + source extract + provenance)
                   4. Activity         (lifecycle timeline + team notes)
@@ -1420,25 +1431,21 @@ export function AlertDetailDrawer({
                 blocks. Card radius 12 (canonical wrapper); white fill pops
                 against the gray body. */}
 
-            {/* GROUP 1 — The change. The group cards use the canonical
+            {/* GROUP 1 — Extracted facts. The group cards use the canonical
                 <DetailSectionCard> chrome — a gray header band (13/600
-                title) + white px-5/py-4 body. */}
-            <DetailSectionCard title={<Trans>The change</Trans>}>
+                title) + white px-5/py-4 body. Yuqi #6/#7: the card itself
+                is titled "Extracted facts" (was "The change" + a repeated
+                inner "Extracted facts" section header) and the AI-parsed
+                caveat rides the card header's right slot — one title, one
+                caveat, no duplicate label inside the body. */}
+            <DetailSectionCard
+              title={<Trans>Extracted facts</Trans>}
+              headerRight={<Trans>AI parsed — verify before Apply</Trans>}
+            >
               {/* Pencil `Qla5h KeyChange`: the prominent deadline-change hero. */}
               <DeadlineChangeCard detail={detail} />
 
-              {/* Extracted facts — the AI signal is the inline muted subtitle. */}
-              <section className="flex flex-col gap-3">
-                <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className="text-sm font-semibold text-text-secondary">
-                    <Trans>Extracted facts</Trans>
-                  </span>
-                  <span className="text-sm text-text-tertiary">
-                    <Trans>AI parsed these from the source — verify before Apply</Trans>
-                  </span>
-                </header>
-                <AlertStructuredFields detail={detail} />
-              </section>
+              <AlertStructuredFields detail={detail} />
 
               {/* "What this means for your practice" — self-gates. */}
               <PracticeImpactSection detail={detail} />
@@ -1811,8 +1818,23 @@ export function AlertDetailDrawer({
               })()}
             </DetailSectionCard>
 
-            {/* GROUP 4 — Activity & notes: lifecycle timeline + team notes. */}
-            <DetailSectionCard title={<Trans>Activity &amp; notes</Trans>}>
+            {/* GROUP 4 — Activity & notes: lifecycle timeline + team notes.
+                The "N events · oldest first" meta rides the card header
+                (Yuqi #11) so the timeline body needs no second header. */}
+            <DetailSectionCard
+              title={<Trans>Activity &amp; notes</Trans>}
+              headerRight={
+                <span className="tabular-nums">
+                  <Plural
+                    value={alertActivityEventCount(detail)}
+                    one="# event"
+                    other="# events"
+                  />
+                  {' · '}
+                  <Trans>oldest first</Trans>
+                </span>
+              }
+            >
               {/* Pencil `gRY5g Activity`: lifecycle timeline built from the
                   alert's real timestamps (received → matched → reviewed →
                   current) — every node is a fact already on the record. */}
@@ -1832,35 +1854,23 @@ export function AlertDetailDrawer({
           header/body margin so the left edge is one continuous line. A
           single `border-t border-divider-subtle` (not a heavy double
           rule) matches the deadline detail footer. It's a single row —
-          the kbd hints (`A` Apply / `D` Dismiss) + audit-ledger note on
-          the left (revealed only on wide panels where there's room) and
-          the DrawerActions cluster filling the rest, with gap-8 between
-          them so the note doesn't butt against the first button. */}
-      <SheetFooter className="min-h-16 flex-row items-center gap-8 border-t border-divider-subtle bg-background-default px-12 py-3 sm:flex-row">
+          the audit-ledger note on the left (revealed only on wide panels
+          where there's room) and the DrawerActions cluster filling the
+          rest. The `A`/`D` kbd hints live ONLY in the top bar (Yuqi #13)
+          — they used to render here too, and the duplicate cluster was
+          what squeezed Mark-reviewed into overlapping Dismiss. `py-4`
+          (was py-3) gives the action row the extra bottom breathing room
+          Yuqi asked for. */}
+      <SheetFooter className="min-h-16 flex-row items-center gap-6 border-t border-divider-subtle bg-background-default px-12 py-4 sm:flex-row">
         {/* The footer chrome spans full width; its actions cap to the
             760px `mx-auto` document measure so the action row sits
             centered under the same column the header + body share. */}
-        <div className="mx-auto flex w-full max-w-[760px] flex-row items-center gap-8">
+        <div className="mx-auto flex w-full max-w-[760px] flex-row items-center gap-6">
           {detail ? (
-            <div className="hidden shrink-0 items-center gap-3.5 text-text-tertiary xl:flex">
-              <span className="inline-flex items-center gap-1.5 text-caption font-medium">
-                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
-                  A
-                </kbd>
-                <Trans>Apply</Trans>
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-caption font-medium">
-                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
-                  D
-                </kbd>
-                <Trans>Dismiss</Trans>
-              </span>
-              <span className="h-3.5 w-px bg-divider-regular" aria-hidden />
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-success">
-                <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
-                <Trans>Every decision captured to audit ledger</Trans>
-              </span>
-            </div>
+            <span className="hidden shrink-0 items-center gap-1.5 text-xs font-medium text-text-success xl:inline-flex">
+              <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
+              <Trans>Every decision captured to audit ledger</Trans>
+            </span>
           ) : null}
           <div className="flex min-w-0 flex-1">
             {detail ? (

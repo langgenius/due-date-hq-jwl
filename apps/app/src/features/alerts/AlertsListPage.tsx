@@ -753,7 +753,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     instead). */}
                 {!historyMode ? (
                   <Segmented
-                    className="h-9 shrink-0 [&>button]:h-8 [&>button]:text-sm"
+                    // `text-base` (14px) across the toolbar controls — the
+                    // primitive's 11–12px default read undersized next to
+                    // the 14px checkbox label sharing the row (Yuqi #4).
+                    className="h-9 shrink-0 [&>button]:h-8 [&>button]:text-base"
                     ariaLabel={t`Alert work queue`}
                     value={workQueue}
                     onValueChange={setWorkQueue}
@@ -825,7 +828,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         Segmented is a 32px track by default, which sits
                         4px short of the FilterTrigger / search siblings. */}
                     <Segmented
-                      className="h-9 shrink-0 [&>button]:h-8"
+                      className="h-9 shrink-0 [&>button]:h-8 [&>button]:text-base"
                       ariaLabel={t`View mode`}
                       value={viewMode}
                       onValueChange={setViewMode}
@@ -835,20 +838,25 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       ]}
                     />
 
-                    {/* A flex-1 spacer (below) pushes the right cluster
-                        (Filters · State · Sort by) to the end of the row;
-                        on narrow viewports the wrap row reflows the right
-                        cluster onto a second line. The "Show suggested
-                        action" toggle leads the right cluster. */}
+                    {/* The flex-1 spacer sits directly after the
+                        Search + List/Map cluster, so the toolbar reads as
+                        two groups — "find + view" on the left, every
+                        narrowing control (Suggested action · Filters ·
+                        State · Clear · Sort) on the right (Yuqi #1/#5).
+                        On narrow viewports the wrap row reflows the right
+                        cluster onto a second line. */}
+                    <span className="hidden flex-1 lg:block" aria-hidden />
+
+                    {/* "Suggested action" (not "Show suggested action") —
+                        the shorter label keeps the whole control row on
+                        one line at laptop widths (Yuqi #2). */}
                     <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-base font-medium text-text-secondary select-none">
                       <Checkbox
                         checked={showSuggestedAction}
                         onCheckedChange={(next) => setShowSuggestedAction(next)}
                       />
-                      <Trans>Show suggested action</Trans>
+                      <Trans>Suggested action</Trans>
                     </label>
-
-                    <span className="hidden flex-1 lg:block" aria-hidden />
 
                     {/* Avoid a greedy `flex-1` spacer between the
                     Search/View cluster and the dropdowns: in a `flex-wrap`
@@ -896,6 +904,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                               active={statusFilter !== 'all'}
                               valueLabel={statusFilter === 'all' ? t`all` : statusFilter}
                               aria-label={t`Filter by alert status`}
+                              className="text-base"
                             >
                               <span>
                                 <Trans>Status</Trans>
@@ -948,6 +957,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       size="sm"
                       disabled={!filtersActive}
                       onClick={resetFilters}
+                      className="text-base"
                     >
                       <Trans>Clear filters</Trans>
                     </Button>
@@ -965,7 +975,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                           <FilterTrigger
                             noLeadingIcon
                             aria-label={t`Sort alerts`}
-                            className="w-[200px] justify-start text-left"
+                            className="w-[200px] justify-start text-left text-base"
                           >
                             <span className="text-text-tertiary">
                               <Trans>Sort by</Trans>
@@ -1379,7 +1389,11 @@ function StateFilterPopover({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <FilterTrigger active={Boolean(activeState)} aria-label={t`Filter by state`}>
+          <FilterTrigger
+            active={Boolean(activeState)}
+            aria-label={t`Filter by state`}
+            className="text-base"
+          >
             {activeState ? (
               <>
                 {/* No SVG StateBadge — the 2-letter code with the
@@ -1505,6 +1519,7 @@ function AlertFiltersPopover({
             leadingIcon={SlidersHorizontalIcon}
             valueLabel={activeCount > 0 ? String(activeCount) : undefined}
             aria-label={t`Filters`}
+            className="text-base"
           >
             <span>
               <Trans>Filters</Trans>
