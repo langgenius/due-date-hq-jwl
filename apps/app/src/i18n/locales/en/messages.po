@@ -1109,10 +1109,6 @@ msgstr "{historicalDeadlinesSkipped, plural, one {# historical deadline could no
 msgid "{ignored, plural, =0 {0 ignored} one {# ignored} other {# ignored}}"
 msgstr "{ignored, plural, =0 {0 ignored} one {# ignored} other {# ignored}}"
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "{impactCount, plural, one {# client} other {# clients}}"
-msgstr "{impactCount, plural, one {# client} other {# clients}}"
-
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "{impacted, plural, one {# client} other {# clients}}"
@@ -1856,11 +1852,6 @@ msgstr "across {statesCovered} jurisdictions"
 #: src/routes/practice.tsx
 msgid "Across the previewed queue"
 msgstr "Across the previewed queue"
-
-#. placeholder {0}: actByFormat.format(actBy)
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Act by {0}"
-msgstr "Act by {0}"
 
 #: src/features/dashboard/severity-section.tsx
 msgid "Act today or risk missing the deadline"
@@ -2707,15 +2698,6 @@ msgstr "Already applied"
 #: src/routes/login.tsx
 msgid "Already have a magic link?"
 msgstr "Already have a magic link?"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Already in effect"
-msgstr "Already in effect"
-
-#. placeholder {0}: catchupAlerts.length
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Already in effect ({0})"
-msgstr "Already in effect ({0})"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Already in your client list"
@@ -6117,15 +6099,6 @@ msgstr "Dismiss alert: {alertTitle}"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Dismiss alerts"
 msgstr "Dismiss alerts"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Dismiss all"
-msgstr "Dismiss all"
-
-#. placeholder {0}: catchupAlerts.length
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Dismiss all {0} in-effect alerts?"
-msgstr "Dismiss all {0} in-effect alerts?"
 
 #: src/routes/obligations.tsx
 msgid "Dismiss at-a-glance summary"
@@ -10477,10 +10450,6 @@ msgstr "No missing rules"
 msgid "No morning digests have run yet."
 msgstr "No morning digests have run yet."
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "No new alerts since monitoring started for your firm."
-msgstr "No new alerts since monitoring started for your firm."
-
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "No next client"
 msgstr "No next client"
@@ -11103,10 +11072,6 @@ msgstr "One unfinished draft import"
 #: src/features/auth/auth-chrome.tsx
 msgid "One-time sign-in links expire in 10 minutes"
 msgstr "One-time sign-in links expire in 10 minutes"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Ongoing"
-msgstr "Ongoing"
 
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/alerts/lib/error-mapping.ts
@@ -12579,10 +12544,6 @@ msgstr "Publication"
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Published"
 msgstr "Published"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Published before your firm joined — still affecting client deadlines."
-msgstr "Published before your firm joined — still affecting client deadlines."
 
 #: src/routes/settings.permissions.tsx
 msgid "Pulse alerts, reminders, calendar sync"
@@ -16159,10 +16120,6 @@ msgstr "Theme"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "then"
 msgstr "then"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "These changes were published before your firm joined but are still in effect for your clients. Dismissed alerts move to history; the underlying deadlines do not change."
-msgstr "These changes were published before your firm joined but are still in effect for your clients. Dismissed alerts move to history; the underlying deadlines do not change."
 
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "These current-year deadlines will be removed. Check each one before applying."
