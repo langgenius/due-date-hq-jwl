@@ -23,6 +23,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
 // Import retained but commented out alongside the section mount.
 // Restore both when ChangesSinceLastSection is brought back.
@@ -62,6 +63,7 @@ const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 // still be in the temporal dead zone at that moment ("Cannot access
 // 'SCOPE_STORAGE_KEY' before initialization").
 const SCOPE_STORAGE_KEY = 'ddhq:dashboard:scope'
+const BRIEF_DISMISSED_STORAGE_KEY = 'ddhq:dashboard:brief-dismissed'
 
 function storedDashboardScope(): DashboardBriefScope {
   if (typeof window === 'undefined') return 'me'
@@ -145,6 +147,13 @@ export function DashboardRoute() {
     rememberDashboardScope(next)
     void setDashboardParams({ scope: next })
   }
+  // The Daily Brief is dismissable — persist the dismissal keyed to the brief's
+  // generation stamp so closing it hides THIS brief but a freshly regenerated
+  // one returns on its own. localStorage survives a reload within the day.
+  const [dismissedBriefKey, setDismissedBriefKey] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    return window.localStorage.getItem(BRIEF_DISMISSED_STORAGE_KEY)
+  })
   const dashboardAsOfDate = ISO_DATE_RE.test(asOfDate) ? asOfDate : null
   const clientQuery = useMemo(() => cleanEntityIdFilters(client), [client])
   const taxTypeQuery = useMemo(() => cleanStringFilters(taxType), [taxType])
@@ -363,6 +372,52 @@ export function DashboardRoute() {
           because they can MOVE the deadlines below — read what changed, then act
           on the brief. The section self-filters to client-affecting alerts. */}
       <NeedsAttentionSection />
+
+      {/* Daily brief — my teammate's (Gigi's) version, restored verbatim: the
+          server-generated Yesterday/Today digest WITH its count chips + dismiss
+          affordance, mounted above the Priorities list (Yuqi). */}
+      {(() => {
+        const brief =
+          data?.brief ??
+          (scope === 'me' && data
+            ? ({
+                status: 'pending',
+                generatedAt: null,
+                expiresAt: null,
+                text: null,
+                citations: null,
+                aiOutputId: null,
+                errorCode: null,
+              } as const)
+            : null)
+        const briefKey = brief?.generatedAt ?? brief?.status ?? null
+        if (brief && briefKey && dismissedBriefKey === briefKey) return null
+        return (
+          <DailyBriefCard
+            scope={scope}
+            brief={brief}
+            recap={data?.recap ?? null}
+            concentration={data?.summary?.overdueConcentration ?? null}
+            todayCounts={{
+              overdueCount: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
+              waitingOnClientCount:
+                facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0,
+              dueThisWeekCount: data?.summary?.dueThisWeekCount ?? 0,
+            }}
+            onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
+            onClose={
+              briefKey
+                ? () => {
+                    setDismissedBriefKey(briefKey)
+                    if (typeof window !== 'undefined') {
+                      window.localStorage.setItem(BRIEF_DISMISSED_STORAGE_KEY, briefKey)
+                    }
+                  }
+                : undefined
+            }
+          />
+        )
+      })()}
 
       {/* Today's brief — the deadline queue itself (by time), opened by a
           one-line deterministic summary, with the count chips as the view
