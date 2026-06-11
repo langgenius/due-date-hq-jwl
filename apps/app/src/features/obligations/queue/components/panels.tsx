@@ -338,8 +338,13 @@ function DeadlineDateCard({
         </span>
       </div>
       <span
+        // 2026-06-10 (Yuqi page-polish #1 "bigger text"): the date value
+        // is the primary datum in each key-date card, so it steps up to
+        // text-sm (from the earlier text-caption-xs) to read clearly. The
+        // label above and the clock/meta below stay smaller so the date
+        // owns the hierarchy.
         className={cn(
-          'text-caption-xs leading-none font-semibold tabular-nums',
+          'text-sm leading-tight font-semibold tabular-nums',
           overdue ? 'text-text-warning' : 'text-text-primary',
         )}
       >
@@ -548,19 +553,18 @@ export function PrimaryDeadlineStrip({
         row.status === 'completed' || row.status === 'not_applicable' || row.status === 'paid',
     })
     // INTERNAL buffer — days between the internal target and the filing
-    // deadline. "On the filing deadline" when equal; otherwise "N days
-    // before filing". Only when BOTH dates are real and internal is not
-    // later than filing (it's already capped above).
+    // deadline. 2026-06-10 (Yuqi page-polish #5 "what is this"): the old
+    // "On the filing deadline" read as cryptic. Spell out that a zero
+    // buffer means the internal target IS the filing deadline ("No buffer
+    // — same as filing"); otherwise state the lead time a CPA reads at a
+    // glance ("N days before filing"). Only when BOTH dates are real and
+    // internal is not later than filing (it's already capped above).
     const internalBuffer: string | null = (() => {
       if (internalIso === null || filingIso === null) return null
       const buffer = daysBetween(internalIso, filingIso)
-      if (buffer <= 0) return t`On the filing deadline`
-      return i18n._(
-        plural(buffer, {
-          one: '# day before filing',
-          other: '# days before filing',
-        }),
-      )
+      if (buffer <= 0) return t`No buffer — same as filing`
+      if (buffer === 1) return t`1 day before filing`
+      return t`${buffer} days before filing`
     })()
     // PAYMENT $ owed — the real per-row estimate, when present + > 0.
     const paymentAmount: string | null =
@@ -965,7 +969,11 @@ export function PathToFilingSummary({
                     // Stage circles are SOLID FILLED with white glyphs (not soft
                     // tints) — done/active read as filled chips, upcoming stays
                     // an empty outline ring.
-                    'grid size-6 shrink-0 place-items-center rounded-full border',
+                    // 2026-06-10 (Yuqi page-polish #2 "smaller"): the node
+                    // indicator steps down from size-6 to size-5 so the row of
+                    // six stages reads compact and the larger stage label (#3)
+                    // below carries the weight.
+                    'grid size-5 shrink-0 place-items-center rounded-full border',
                     state === 'done'
                       ? 'border-transparent bg-state-accent-solid text-text-inverted'
                       : state === 'skipped'
@@ -1005,7 +1013,7 @@ export function PathToFilingSummary({
                                 ? FileCheck
                                 : CircleCheck
                     ) as React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
-                    return <StageIcon className="size-3.5" aria-hidden />
+                    return <StageIcon className="size-3" aria-hidden />
                   })()}
                 </span>
                 <span
@@ -1031,14 +1039,16 @@ export function PathToFilingSummary({
                   )}
                 />
               </div>
-              {/* Stage label sits one step up at text-xs (12px) so the
-                  stepper stays legible (AA) without losing its compact
-                  rhythm. Non-active stages lift to text-secondary so the
-                  ghosted labels read clearly; active keeps font-medium +
-                  text-primary for weight contrast. */}
+              {/* 2026-06-10 (Yuqi page-polish #3 "bigger"): the per-stage
+                  label steps up from text-xs to text-sm so the stage names
+                  read clearly as the primary identifier of each column —
+                  paired with the smaller node indicator (#2) above. Non-active
+                  stages lift to text-secondary so the ghosted labels read
+                  clearly; active keeps font-medium + text-primary for weight
+                  contrast. */}
               <span
                 className={cn(
-                  'mt-0.5 text-center text-xs leading-tight',
+                  'mt-0.5 text-center text-sm leading-tight',
                   state === 'active'
                     ? 'font-medium text-text-primary'
                     : state === 'done'
@@ -2039,6 +2049,19 @@ export function ActiveStageDetailCard({
   // overdue number agrees with the cards/banner instead of the server's
   // `daysUntilDue` snapshot, which can lag a day.
   const daysPastDeadline = Math.abs(daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()))
+  // 2026-06-10 (Yuqi page-polish #4 "work on the UX and IA better"):
+  // give the card ONE prominent headline that names the current
+  // situation, sitting directly under the eyebrow (status pill · stage).
+  // Two stages already own a dominant headline block lower down — the
+  // overdue banner ("Filing was due …") and the waiting-docs glance ("N
+  // materials still outstanding.") — so the generic headline SUPPRESSES
+  // in those cases to avoid two competing h-lines. Everywhere else the
+  // headline is the stage name (reused from stageLabels, no new data) and
+  // the sub-line is the existing sub-status; the sub-status therefore
+  // moves OUT of the cramped eyebrow row and becomes the readable subline.
+  const hasDominantHeadlineBlock =
+    showOverdueBanner || (isWaitingDocsCase && readinessCounts.total > 0)
+  const showStageHeadline = !hasDominantHeadlineBlock
   return (
     <section
       aria-label={t`Active stage detail`}
@@ -2058,47 +2081,56 @@ export function ActiveStageDetailCard({
       // gap, which read as inconsistent.
       className="flex flex-col gap-3 rounded-lg bg-background-section p-4"
     >
-      {/* Header eyebrow row: a canonical status pill + "Stage N of 6" +
-          sub-status, with the "Entered DATE" pinned right on the same row.
-          Reuses ObligationStatusReadBadge (the same pill the row + queue
-          use). */}
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-          <ObligationStatusReadBadge status={row.status} />
-          <span className="text-xs font-medium tabular-nums text-text-tertiary">
-            {t`Stage ${stageIdx + 1} of ${TIMELINE_STAGE_KEYS.length}`}
-          </span>
-          {subStatus ? (
-            <>
-              <span aria-hidden className="text-xs text-text-tertiary">
-                ·
-              </span>
-              <span className="text-xs font-medium text-text-secondary">{subStatus}</span>
-            </>
-          ) : null}
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {row.status === 'completed' ? (
-            <Badge
-              variant="success-solid"
-              className="text-caption-xs"
-              title={
-                row.efileAcceptedAt
-                  ? `${t`Authority accepted the return`} · ${formatDatePretty(row.efileAcceptedAt.slice(0, 10))}`
-                  : t`Authority accepted the return`
-              }
-            >
-              <CheckCircle2Icon className="size-3" aria-hidden />
-              <Trans>Accepted</Trans>
-            </Badge>
-          ) : null}
-          {stageEnteredAt ? (
-            <p className="text-sm text-text-tertiary">
-              <Trans>Entered {formatDatePretty(stageEnteredAt.slice(0, 10))}</Trans>
-            </p>
-          ) : null}
-        </div>
-      </header>
+      {/* 2026-06-10 (Yuqi page-polish #4) IA: standard hierarchy block.
+          ROW 1 = eyebrow only — the canonical status pill + "Stage N of 6"
+          (left) and the "Accepted" badge + "Entered DATE" meta pinned right.
+          ROW 2 = ONE prominent headline (the stage name) + a concise sub-line
+          (the sub-status). The sub-status used to be jammed into the eyebrow,
+          competing with the pill and the stage counter; lifting it to a real
+          headline/sub-line gives the card the missing "what's the situation"
+          anchor. Suppressed when a stage already owns a dominant headline
+          block lower down (overdue banner / waiting-docs glance). */}
+      <div className="flex flex-col gap-2">
+        <header className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <ObligationStatusReadBadge status={row.status} />
+            <span className="text-xs font-medium tabular-nums text-text-tertiary">
+              {t`Stage ${stageIdx + 1} of ${TIMELINE_STAGE_KEYS.length}`}
+            </span>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {row.status === 'completed' ? (
+              <Badge
+                variant="success-solid"
+                className="text-caption-xs"
+                title={
+                  row.efileAcceptedAt
+                    ? `${t`Authority accepted the return`} · ${formatDatePretty(row.efileAcceptedAt.slice(0, 10))}`
+                    : t`Authority accepted the return`
+                }
+              >
+                <CheckCircle2Icon className="size-3" aria-hidden />
+                <Trans>Accepted</Trans>
+              </Badge>
+            ) : null}
+            {stageEnteredAt ? (
+              <p className="text-xs text-text-tertiary">
+                <Trans>Entered {formatDatePretty(stageEnteredAt.slice(0, 10))}</Trans>
+              </p>
+            ) : null}
+          </div>
+        </header>
+        {showStageHeadline ? (
+          <div className="flex flex-col gap-0.5">
+            <h3 className="text-[18px] leading-snug font-semibold tracking-[-0.4px] text-text-primary">
+              {stageLabels[stageKey]}
+            </h3>
+            {subStatus ? (
+              <p className="text-sm leading-snug text-text-secondary">{subStatus}</p>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
       {/* P0: chase visibility on the awaiting-signature card — how long
           since we last nudged the client to sign their 8879. */}
       {row.status === 'done' &&
