@@ -80,10 +80,14 @@ function relativeDueLabel(row: ObligationQueueRow): {
 } {
   // Live today-based count (matches the detail's date cards/banner) so the rail
   // and the open deadline never disagree by a day on the server snapshot.
-  const days = daysBetween(todayIsoDate(), row.currentDueDate)
-  if (days < 0) return { text: `${Math.abs(days)}d late`, tone: 'late' }
-  if (days === 0) return { text: 'Today', tone: 'soon' }
-  return { text: `in ${days}d`, tone: days <= 7 ? 'soon' : 'calm' }
+  // NOTE: `daysBetween` clamps to >= 0, so derive past/future from two calls.
+  const dueIso = row.currentDueDate.slice(0, 10)
+  const today = todayIsoDate()
+  const overdue = daysBetween(dueIso, today) // today − due, 0 when not past
+  const until = daysBetween(today, dueIso) // due − today, 0 when not future
+  if (overdue > 0) return { text: `${overdue}d late`, tone: 'late' }
+  if (until === 0) return { text: 'Today', tone: 'soon' }
+  return { text: `in ${until}d`, tone: until <= 7 ? 'soon' : 'calm' }
 }
 
 /**
