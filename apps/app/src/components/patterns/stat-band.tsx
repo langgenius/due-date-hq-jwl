@@ -90,7 +90,7 @@ export function StatBand({
             </span>
             <span
               className={cn(
-                'text-[26px] leading-none font-medium tracking-tight tabular-nums',
+                'text-[24px] leading-none font-medium tracking-tight tabular-nums',
                 stat.valueClass ?? 'text-text-primary',
               )}
             >
@@ -109,7 +109,11 @@ export function StatBand({
           </>
         )
 
-        const columnClass = 'flex min-w-0 flex-1 flex-col gap-1 px-5'
+        // Subtle vertical hairline between columns (row layout only) gives the
+        // band structure without re-introducing a card border; the first
+        // column and the mobile 2-up grid stay divider-free.
+        const columnClass =
+          'flex min-w-0 flex-1 flex-col gap-1 px-5 sm:border-l sm:border-divider-subtle sm:first:border-l-0'
         // Interactive columns gain a hover wash + focus ring so they read
         // as tappable; the read-only column stays dead-quiet.
         const interactiveClass = cn(

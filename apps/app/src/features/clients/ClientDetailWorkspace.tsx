@@ -1618,7 +1618,7 @@ function ClientActiveAlertsSection({
   return (
     <section
       aria-label="Active alerts for this client"
-      className="rounded-lg border border-divider-regular bg-background-default p-4"
+      className="overflow-hidden rounded-xl border border-divider-regular bg-background-default"
     >
       <header className="flex items-baseline justify-between gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft/40 px-4 py-2.5">
         {/* Canonical section heading is sm-semibold sentence-case (no
