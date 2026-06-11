@@ -11208,7 +11208,7 @@ function ActiveStageDetailCard({
           },
           {
             id: 'start',
-            label: t`Skip ahead to drafting (docs already in hand)`,
+            label: t`Skip to drafting`,
             flavor: 'mutation',
             hint: t`Use only when you already have all client documents. Sends the row straight to In review.`,
           },
