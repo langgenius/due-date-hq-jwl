@@ -65,7 +65,7 @@ import {
 //     the collapsed card with NO per-mode re-centering — the source of
 //     the old expand/collapse padding jump.
 const SIDEBAR_WIDTH = '16.5rem' // 264px — Pencil SidebarColumn (expanded), trimmed a touch
-const SIDEBAR_WIDTH_COLLAPSED = '5.5rem' // 88px — Pencil SidebarColumn (collapsed)
+const SIDEBAR_WIDTH_COLLAPSED = '5.125rem' // 82px — tuned so a left-aligned icon lands dead-center, so icons stay left-aligned in BOTH modes and never snap/drift during the collapse/expand width animation (Yuqi). Pencil baseline was 88px.
 const SIDEBAR_WIDTH_MOBILE = '17.5rem' // 280px — Sheet drawer matches expanded
 // Gutter inset of the floating card from its footprint, summed across
 // both sides (12px left + 12px right). Kept in sync with `inset-y-3
@@ -442,11 +442,15 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           'absolute inset-y-3 left-3 z-30 flex flex-col gap-1 overflow-hidden rounded-xl bg-background-sidebar-card px-2.5 py-1.5 [&_svg]:[stroke-width:1.5] transition-[width,box-shadow] duration-[360ms] ease-apple motion-reduce:transition-none',
           // No hard border ("no board"). Separation comes from a soft
           // 1px ring-shadow (defines every edge subtly, no hard line)
-          // plus a blur lift — gentle when docked, prominent when the
-          // collapsed rail peeks OVER content so it reads as floating.
+          // plus a light blur lift — gentle when docked, a touch more when
+          // the collapsed rail peeks OVER content so it reads as floating.
+          // 2026-06-10 (Yuqi "decrease the shadow"): trimmed both drop
+          // shadows — docked 4px/12px/.10 → 2px/6px/.06; overlay
+          // 16px/36px/.18 → 8px/18px/.12 (also brings the peek blur under
+          // the project's 24px ceiling). The 1px ring still owns the edge.
           overlayActive
-            ? 'shadow-[0_0_0_1px_rgb(16_24_40_/_0.05),0_16px_36px_-6px_rgb(16_24_40_/_0.18)]'
-            : 'shadow-[0_0_0_1px_rgb(16_24_40_/_0.04),0_4px_12px_-2px_rgb(16_24_40_/_0.10)]',
+            ? 'shadow-[0_0_0_1px_rgb(16_24_40_/_0.05),0_8px_18px_-6px_rgb(16_24_40_/_0.12)]'
+            : 'shadow-[0_0_0_1px_rgb(16_24_40_/_0.04),0_2px_6px_-2px_rgb(16_24_40_/_0.06)]',
         )}
         style={{
           width: `calc(${targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH} - ${SIDEBAR_CARD_INSET})`,
@@ -483,31 +487,51 @@ export function SidebarHeader({ className, ...props }: React.ComponentProps<'div
   )
 }
 
-export function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
+export function SidebarContent({ className, style, ...props }: React.ComponentProps<'div'>) {
+  // 2026-06-10 (Yuqi "scroll-edge fade"): when the nav overflows, fade the
+  // scrolled-away edge(s) instead of hard-cutting — a soft cue that there's
+  // more above/below. Scroll-aware via a ref + scroll/resize listener so a
+  // NON-overflowing rail (and the pinned footer group at the bottom) never
+  // fades: the top fades only once scrolled down, the bottom only while more
+  // remains below.
+  const ref = React.useRef<HTMLDivElement | null>(null)
+  const [edges, setEdges] = React.useState({ top: false, bottom: false })
+  const updateEdges = React.useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const top = el.scrollTop > 1
+    const bottom = Math.ceil(el.scrollTop + el.clientHeight) < el.scrollHeight - 1
+    setEdges((prev) => (prev.top === top && prev.bottom === bottom ? prev : { top, bottom }))
+  }, [])
+  React.useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    updateEdges()
+    el.addEventListener('scroll', updateEdges, { passive: true })
+    const observer = new ResizeObserver(updateEdges)
+    observer.observe(el)
+    return () => {
+      el.removeEventListener('scroll', updateEdges)
+      observer.disconnect()
+    }
+  }, [updateEdges])
+
+  // 14px fade band on whichever edge still has scrolled-away content.
+  const fadeMask =
+    edges.top || edges.bottom
+      ? `linear-gradient(to bottom, ${edges.top ? 'transparent' : 'black'}, black 14px, black calc(100% - 14px), ${edges.bottom ? 'transparent' : 'black'})`
+      : undefined
+
   return (
-    // 2026-05-25 (Yuqi Today #2): pt-4 (16px) instead of py-2 (8px)
-    // for the top edge. The previous 8px gap between the firm
-    // switcher header and the first nav group felt cramped — the
-    // switcher and the first item read as one block when they're
-    // semantically separate (workspace identity vs. navigation).
-    // Extra breathing room above lets the eye land on "Today" as
-    // the real start of the nav rail.
-    // 2026-05-25 (Yuqi sidebar collapse): in collapsed mode the
-    // horizontal padding tightens (px-1.5) so icons sit centered
-    // in the 56px rail.
+    // The scroll region carries NO horizontal padding of its own — the card
+    // panel owns the padding in both modes. `gap-1` (4px) is the inter-item
+    // gap; the muted footer group pins to the bottom via its own `mt-auto`.
+    // Padding is identical expanded and collapsed.
     <div
+      ref={ref}
       data-slot="sidebar-content"
-      className={cn(
-        // 2026-06-09 (Yuqi "unify expanded/collapsed padding"): the
-        // scroll region carries NO horizontal padding of its own — the
-        // card panel's `p-3` owns the 12px card padding in both modes.
-        // `gap-1` (4px) matches Pencil Frame18's inter-item gap; the
-        // muted footer group pushes to the bottom via its own `mt-auto`.
-        // No `group-data-[collapsed]` overrides: padding is identical
-        // expanded and collapsed.
-        'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto',
-        className,
-      )}
+      className={cn('flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto', className)}
+      style={fadeMask ? { ...style, maskImage: fadeMask, WebkitMaskImage: fadeMask } : style}
       {...props}
     />
   )
@@ -666,12 +690,17 @@ const sidebarMenuButtonVariants = cva(
     // gone (see below).
     // 2026-06-10 (Yuqi "set to 15px" — sidebar is the product's sole 15px
     // text size): nav label text-[16px] → text-[15px].
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
+    // 2026-06-10 (Yuqi "delicacy" — tactile press): the row dips to 98% on
+    // press (active:scale) for a crafted, responsive feel. transform is added
+    // to the transition list (duration-150) so the dip + the icon hover-nudge
+    // below both ease rather than snap.
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-[15px] font-normal text-text-secondary outline-none transition-[color,background-color,transform] duration-150 active:scale-[0.98]',
     // 2026-06-09 (Yuqi "icons should be vertically center aligned" in the
-    // collapsed rail): center the lone icon on the rail's centerline.
-    // Drop the icon↔label gap and justify-center so the glyph isn't left-
-    // aligned at the item padding (which left it ~3px off-center).
-    'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0',
+    // collapsed rail): the icon stays LEFT-aligned in both modes — no
+    // justify-center. SIDEBAR_WIDTH_COLLAPSED is tuned so a left-aligned icon
+    // already sits on the rail centerline, so the glyph never snaps/drifts
+    // during the width animation. Only the icon↔label gap collapses.
+    'group-data-[collapsed=true]/sidebar:gap-0',
     // Hover uses the sidebar-row token (~10 units darker than the
     // #f6f8fa card) so the wash reads as a quiet step on the card;
     // selected state below uses the explicit accent tint so route
@@ -686,7 +715,11 @@ const sidebarMenuButtonVariants = cva(
     // hover both lift together (label → text-primary, icon →
     // text-secondary) — a delicate brighten, eased via [&_svg]
     // transition-colors. Active state overrides to accent below.
-    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:transition-colors [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-text-tertiary",
+    // 2026-06-10 (Yuqi "delicacy" — hover icon micro-motion): on row hover
+    // the glyph nudges 1px toward its label (a small sign of life), eased via
+    // the svg's own transition. Reset to 0 in the collapsed rail so the
+    // centered icon never shifts off its centerline.
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:transition-[color,transform] [&_svg]:duration-150 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-text-tertiary group-hover/menu-button:[&_svg]:translate-x-px group-data-[collapsed=true]/sidebar:group-hover/menu-button:[&_svg]:translate-x-0",
     // Active state has two valid sources: (1) react-router's NavLink renders
     // `aria-current="page"` automatically, and (2) any consumer that passes
     // `isActive` to SidebarMenuButton sets `data-active="true"`. Either flips

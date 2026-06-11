@@ -221,8 +221,15 @@ function UserMenuTrigger({
               // Keeps px-1 in both modes (avatar at 16px). No collapsed size
               // override — only the name span hides, the avatar stays put and
               // centers in the narrow card via the symmetric padding.
-              'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2.5 rounded-lg px-1.5 py-2.5 outline-none transition-[background-color,color]',
-              'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0',
+              // h-10 (Yuqi "profile section height is different"): match the
+              // firm header's fixed h-10 (40px) so the top + bottom avatars
+              // bookend at the SAME box height — `py-2.5` had made this chip
+              // 48px, 8px taller than the header, which read as a displacement.
+              // The two-line identity stack still fits centered in 40px.
+              // active:scale-[0.98]: the chip dips on press like the nav rows
+              // (transform added to the transition so the dip eases).
+              'inline-flex h-10 w-full min-w-0 cursor-pointer touch-manipulation items-center gap-2.5 rounded-lg px-1.5 outline-none transition-[background-color,color,transform] active:scale-[0.98]',
+              'group-data-[collapsed=true]/sidebar:gap-0',
               'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             )}
           />

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, type ReactNode } from 'react'
-import { NavLink } from 'react-router'
+import { Link, NavLink } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
@@ -34,7 +34,8 @@ import { AlertsNotificationsBell } from '@/components/patterns/alerts-notificati
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
-import { useActiveAlertCount } from '@/features/alerts/api'
+import { useActiveAlertCount, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
+import { formatRelativeTime } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import {
   COMMAND_PALETTE_HOTKEY,
@@ -125,12 +126,12 @@ function FirmIdentityHeader({ firm }: { firm: FirmPublic }) {
     // boundary. Collapsed mode overrides with `w-auto flex-none`
     // in the parent.
     <SidebarHeader className="min-w-0 flex-1">
-      {/* Collapsed rail: center the monogram on the same centerline as the
-          nav icons below (justify-center + gap-0), so it doesn't sit
-          left-aligned while every icon under it is centered. */}
+      {/* Collapsed rail: the monogram stays left-aligned like the nav icons
+          below — the rail width is tuned so left-aligned == centered, so
+          nothing snaps during the collapse/expand animation. */}
       <div
         title={firm.name}
-        className="flex h-10 w-full min-w-0 items-center gap-2 rounded-xl p-1 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0"
+        className="flex h-10 w-full min-w-0 items-center gap-2 rounded-xl p-1 group-data-[collapsed=true]/sidebar:gap-0"
       >
         {/* The workspace monogram is `sm` (28px) — same size as the
             footer user avatar so the top + bottom of the rail bookend as a
@@ -203,10 +204,12 @@ function SidebarQuickFind() {
         // card. Hover is a subtle bg wash (same token as the nav rows),
         // not a border darken. Collapsed drops the fill so the icon
         // centers like the nav rows.
-        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg bg-background-default px-3 text-left text-text-muted outline-none transition-colors',
+        // transform added to the transition + active:scale-[0.98] for the
+        // same tactile press as the nav rows (Yuqi "delicacy").
+        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg bg-background-default px-3 text-left text-text-muted outline-none transition-[color,background-color,transform] duration-150 active:scale-[0.98]',
         'hover:bg-background-sidebar-hover hover:text-text-secondary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',
+        'group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',
       )}
     >
       <SearchIcon className="size-4 shrink-0 text-text-muted" aria-hidden />
@@ -222,6 +225,119 @@ function SidebarQuickFind() {
         {shortcut}
       </span>
     </button>
+  )
+}
+
+/**
+ * SidebarSystemStatus — a quiet "is monitoring actually working?" line in the
+ * footer zone (just under Audit log / Settings). Reads the canonical
+ * `pulse.listSourceHealth` query (the SAME one the Sources tab uses, so the two
+ * can't drift) and derives two facts: whether any enabled source is degraded /
+ * failing, and when the sweep last ran.
+ *
+ * The DOT carries the tone (green / amber / red); the label stays neutral —
+ * chromatic accent lives in the container, never the rail text. Clicking opens
+ * `/rules/sources` to investigate. Renders nothing until data loads or when
+ * there are no enabled sources. Collapsed rail: just the tone dot, full status
+ * on hover. The dot sits in a 16px slot so it centers on the nav-icon column.
+ */
+function SidebarSystemStatus() {
+  const { t } = useLingui()
+  const healthQuery = useQuery(useAlertSourceHealthQueryOptions())
+  const enabled = useMemo(
+    () => (healthQuery.data?.sources ?? []).filter((source) => source.enabled),
+    [healthQuery.data],
+  )
+
+  if (healthQuery.isPending || enabled.length === 0) return null
+
+  const failing = enabled.filter((source) => source.healthStatus === 'failing').length
+  const degraded = enabled.filter((source) => source.healthStatus === 'degraded').length
+  const needAttention = failing + degraded
+  const sourceCount = enabled.length
+  const jurisdictions = new Set(enabled.map((source) => source.jurisdiction)).size
+  const lastChecked =
+    enabled
+      .map((source) => source.lastCheckedAt)
+      .filter((value): value is string => Boolean(value))
+      .toSorted()
+      .at(-1) ?? null
+  const relativeChecked = lastChecked ? formatRelativeTime(lastChecked) : null
+
+  const dotToneClass =
+    failing > 0 ? 'bg-text-destructive' : degraded > 0 ? 'bg-text-warning' : 'bg-text-success'
+
+  // The DOT carries health; the line text shows the monitoring SCOPE while
+  // everything's healthy ("what are we watching"), then swaps to the problem
+  // the moment a source degrades/fails. The tooltip always carries both.
+  const healthLabel =
+    needAttention === 0 ? (
+      <Trans>All sources healthy</Trans>
+    ) : (
+      <Plural
+        value={needAttention}
+        one="# source needs attention"
+        other="# sources need attention"
+      />
+    )
+  const lineLabel =
+    needAttention === 0 ? (
+      <Plural
+        value={jurisdictions}
+        one="Monitoring # jurisdiction"
+        other="Monitoring # jurisdictions"
+      />
+    ) : (
+      healthLabel
+    )
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={(props) => (
+          <Link
+            to="/rules/sources"
+            aria-label={t`Source monitoring status`}
+            className={cn(
+              'flex h-7 w-full items-center gap-3 rounded-lg px-[11px] text-left outline-none transition-[color,background-color] hover:bg-background-sidebar-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+              'group-data-[collapsed=true]/sidebar:gap-0',
+            )}
+            {...props}
+          >
+            <span className="flex w-4 shrink-0 justify-center">
+              <span className={cn('size-1.5 rounded-full', dotToneClass)} aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1 truncate text-[13px] text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
+              {lineLabel}
+              {relativeChecked ? (
+                <span className="text-text-muted">
+                  {' · '}
+                  <Trans>swept {relativeChecked}</Trans>
+                </span>
+              ) : null}
+            </span>
+          </Link>
+        )}
+      />
+      <TooltipContent>
+        <div className="flex max-w-[240px] flex-col gap-1 text-left">
+          <span className="font-semibold">{healthLabel}</span>
+          <span>
+            <Trans>
+              Monitoring {sourceCount} sources across {jurisdictions} jurisdictions
+            </Trans>
+          </span>
+          {relativeChecked ? (
+            <span>
+              <Trans>Last swept {relativeChecked}</Trans>
+            </span>
+          ) : null}
+          <span className="text-components-tooltip-text/80">
+            <Trans>Click to open Sources.</Trans>
+          </span>
+        </div>
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -525,7 +641,7 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
             <NavMenuItem key={item.href} item={item} />
           ))}
         </NavGroupSection>
-        <NavGroupSection muted>
+        <NavGroupSection muted topSlot={<SidebarSystemStatus />}>
           {items.footer.map((item) => (
             <NavMenuItem key={item.href} item={item} />
           ))}
@@ -550,7 +666,7 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
           <NavMenuItem key={item.href} item={item} />
         ))}
       </NavGroupSection>
-      <NavGroupSection muted>
+      <NavGroupSection muted topSlot={<SidebarSystemStatus />}>
         {items.footer.map((item) => (
           <NavMenuItem key={item.href} item={item} />
         ))}
@@ -570,6 +686,7 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
 function NavGroupSection({
   label,
   muted = false,
+  topSlot,
   className,
   children,
 }: {
@@ -577,6 +694,10 @@ function NavGroupSection({
   // hides them in icons-only mode via `data-collapsed`.
   label?: string
   muted?: boolean
+  // Full-strength content rendered ABOVE the (possibly dimmed) nav items —
+  // used by the muted footer group to host the system-status line above
+  // Audit log / Settings.
+  topSlot?: ReactNode
   className?: string
   children: ReactNode
 }) {
@@ -589,11 +710,23 @@ function NavGroupSection({
   // anchors the footer zone (the user chip below it drops its own
   // divider, so there's ONE line, not two). The dimming moves onto the
   // content so the hairline itself stays full-strength.
+  // 2026-06-10 (Yuqi "delicacy"): the hairline is a center-weighted
+  // gradient (transparent → divider → transparent) inset 4px from the
+  // card edges, so it reads as a soft seam rather than a hard ruled line.
   return (
-    <SidebarGroup
-      className={cn(muted && 'mt-auto border-t border-divider-subtle pt-2.5', className)}
-    >
+    <SidebarGroup className={cn(muted && 'mt-auto pt-2.5', className)}>
       {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
+      {/* topSlot (e.g. the system-status line) sits ABOVE the divider, at full
+          strength; the gradient hairline below then separates it from the
+          dimmed nav links. With no topSlot, the hairline simply caps the
+          group's top as before. */}
+      {topSlot ? <div className="pb-1.5">{topSlot}</div> : null}
+      {muted ? (
+        <div
+          aria-hidden
+          className="mx-1 mb-1 h-px bg-gradient-to-r from-transparent via-divider-regular to-transparent"
+        />
+      ) : null}
       <SidebarGroupContent className={cn(muted && 'opacity-60')}>
         <SidebarMenu>{children}</SidebarMenu>
       </SidebarGroupContent>
@@ -676,4 +809,4 @@ function NavItemBadge({ value, tone }: { value: string; tone: NonNullable<NavIte
   )
 }
 
-export { FirmIdentityHeader, NavGroups, SidebarQuickFind, roleLabel }
+export { FirmIdentityHeader, NavGroups, SidebarQuickFind, SidebarSystemStatus, roleLabel }
