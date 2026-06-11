@@ -3823,15 +3823,15 @@ export function ObligationQueueRoute() {
           <div
             ref={filterBarRef}
             className={cn(
-              'sticky top-0 z-20 flex flex-col gap-1.5',
-              // Full-page mode: table rows scroll behind the bar, so it needs
-              // an opaque fill. In the panel-open split nothing scrolls behind
-              // it, so it stays transparent over the inset surface.
-              // Plain `pt-3` gives the pinned toolbar symmetric top padding
-              // (the rows already carry pb-3) with no negative margin, so it
-              // can't crop the focused search field's ring — matching the
-              // detail tab bar's pt-3/pb-3.
-              !panelOpenIntent && 'bg-background-default pt-3',
+              // 2026-06-11 (Yuqi "combine into one row"): status pills + search
+              // + filters share ONE line — pills shrink/scroll on the left, the
+              // search/filter cluster takes the rest. Wraps only when truly
+              // narrow.
+              'sticky top-0 z-20 flex flex-wrap items-center gap-3',
+              // Full-page mode: table rows scroll behind the bar, so it needs an
+              // opaque fill + symmetric top/bottom padding. Panel-open split has
+              // nothing scrolling behind it, so it stays transparent.
+              !panelOpenIntent && 'bg-background-default pt-3 pb-3',
             )}
           >
             {/* Horizontal status scope pill-strip — a leading "Status" label +
@@ -3839,7 +3839,7 @@ export function ObligationQueueRoute() {
                 count). Writes the `status` URL param. Scrolls horizontally on
                 narrow viewports; hidden in the panel-open split. */}
             {!panelOpenIntent ? (
-              <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex min-w-0 shrink items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-background-subtle p-1">
                   <button
                     type="button"
@@ -3874,7 +3874,7 @@ export function ObligationQueueRoute() {
                 </div>
               </div>
             ) : null}
-            <div className="flex flex-wrap items-center gap-2 pb-3">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               {/* Search — primary lookup across client / form / assignee. */}
               {/* Canonical SearchInput — unifies hover/focus/placeholder +
                   the clear-(×)/Esc affordance with every other page search.
