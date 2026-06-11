@@ -5,6 +5,7 @@ import { useLingui } from '@lingui/react/macro'
 import type { ClientPublic, ObligationInstancePublic } from '@duedatehq/contracts'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { StateBadge } from '@/components/primitives/state-badge'
+import { formatDatePretty } from '@/lib/utils'
 
 import { useClientNextDue } from './use-client-next-due'
 
@@ -33,7 +34,8 @@ export function ClientSummaryStrip({
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  const { openCount } = useClientNextDue(obligations)
+  const { nextDue, openCount } = useClientNextDue(obligations)
+  const nextDueOverdue = nextDue ? Date.parse(nextDue.currentDueDate) < Date.now() : false
 
   const blockedCount = useMemo(
     () => obligations.filter((o) => o.status === 'blocked').length,
@@ -64,9 +66,12 @@ export function ClientSummaryStrip({
       label: t`Jurisdictions`,
       value:
         jurisdictions.length > 0 ? (
-          <span className="flex flex-wrap items-center gap-1.5">
+          <span className="flex flex-wrap items-center gap-2">
             {jurisdictions.map((code) => (
-              <StateBadge key={code} code={code} size="sm" />
+              <span key={code} className="inline-flex items-center gap-1">
+                <StateBadge code={code} size="xs" preview={false} />
+                <span className="text-base font-semibold text-text-secondary">{code}</span>
+              </span>
             ))}
           </span>
         ) : (
@@ -108,6 +113,21 @@ export function ClientSummaryStrip({
       valueClass: filedCount > 0 ? 'text-text-success' : 'text-text-tertiary',
       sub: filedCount > 0 ? t`Closed out` : t`None filed`,
       subClass: filedCount > 0 ? 'text-text-success' : 'text-text-tertiary',
+    },
+    {
+      // Next due — moved off the header subtitle into the strip (Yuqi). The
+      // soonest open deadline + an on-track/overdue read; the Healthy/At-risk
+      // pill in the title carries the overall health, so this stays factual.
+      key: 'next-due',
+      label: t`Next due`,
+      value: nextDue ? formatDatePretty(nextDue.currentDueDate) : '—',
+      valueClass: nextDue
+        ? nextDueOverdue
+          ? 'text-text-warning'
+          : 'text-text-primary'
+        : 'text-text-tertiary',
+      sub: nextDue ? (nextDueOverdue ? t`Overdue` : t`On track`) : t`Nothing scheduled`,
+      subClass: nextDueOverdue ? 'text-text-warning' : 'text-text-tertiary',
     },
   ]
 

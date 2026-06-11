@@ -831,15 +831,10 @@ export function ClientDetailWorkspace({
             // summary returns once the gap is resolved. Subtitle keeps
             // rendering for every other client so the at-a-glance state
             // stays visible.
-            description={
-              readiness?.status === 'needs_facts'
-                ? null
-                : renderClientHeaderSubLine({
-                    workPlan,
-                    entityType: client.entityType,
-                    taxClassification: client.taxClassification,
-                  })
-            }
+            // Work-plan status line moved into the summary strip's "Next due"
+            // stat (Yuqi #5); the Healthy/At-risk title pill carries the
+            // overall health, so the sub-h1 line is no longer needed.
+            description={null}
             actions={
               <>
                 {/* Notes affordance in the actions cluster ONLY renders
