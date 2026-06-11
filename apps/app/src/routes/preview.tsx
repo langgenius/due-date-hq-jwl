@@ -177,6 +177,7 @@ import { DestructiveChangePreview } from '@/components/patterns/destructive-chan
 // Page-level components (AlertsListPage, ClientDetailWorkspace, Migration wizard,
 // Dashboard sections, audit-log-page, etc.) are deliberately not previewed —
 // they need RPC-loaded data, router context, or drawer providers to render.
+import { ActiveQueueChip } from '@/features/alerts/components/ActiveQueueChip'
 import { AlertStatusBadge } from '@/features/alerts/components/AlertStatusBadge'
 import { AlertStatusChip } from '@/features/alerts/components/AlertStatusChip'
 import { DecisionActions } from '@/features/alerts/components/DecisionActions'
@@ -2017,6 +2018,9 @@ export function PreviewRoute() {
               <AlertStatusChip status="reverted" timestamp="Mar 6" />
               <AlertStatusChip status="dismissed" timestamp="Mar 5" />
             </Row>
+            <Row label="ActiveQueueChip" mono="features/alerts/components/ActiveQueueChip">
+              <ActiveQueueChip />
+            </Row>
             <Row label="DecisionActions" mono="features/alerts/components/DecisionActions">
               <div className="w-full max-w-[520px]">
                 <DecisionActions
@@ -2268,7 +2272,10 @@ export function PreviewRoute() {
             title="Rules console primitives"
             subtitle="Small atoms shared across /rules/* (library, coverage, sources, pulse, temporary). They look quiet but they keep the rule pages consistent."
           >
-            <Row label="JurisdictionCode" mono="features/rules/rules-console-primitives">
+            {/* JurisdictionCode is now an alias for the app-wide
+                JurisdictionChip (primitives/state-badge) — one outline
+                reference-tag chrome on /alerts, /rules, and history. */}
+            <Row label="JurisdictionChip" mono="components/primitives/state-badge">
               <JurisdictionCode code="CA" />
               <JurisdictionCode code="NY" />
               <JurisdictionCode code="TX" />

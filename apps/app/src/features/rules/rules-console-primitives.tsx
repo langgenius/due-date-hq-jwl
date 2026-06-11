@@ -11,6 +11,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import type { BreadcrumbItem } from '@/components/patterns/breadcrumb'
 import { PageHeader } from '@/components/patterns/page-header'
+import { JurisdictionChip } from '@/components/primitives/state-badge'
 
 import { normalizeSourceHealth } from './rules-console-model'
 
@@ -206,12 +207,14 @@ export function QueryPanelState({
   )
 }
 
+// 2026-06-11: now a thin alias for the app-wide JurisdictionChip
+// primitive (Badge outline/square per §4.10 — jurisdiction codes are
+// reference tags). The old bg-subtle filled span was one of five
+// per-surface chrome drifts; the canonical chrome lives in
+// `primitives/state-badge`. Kept as a named export so the rules-console
+// call sites (sources, coverage, drawers) stay untouched.
 export function JurisdictionCode({ code }: { code: string }) {
-  return (
-    <span className="inline-flex h-[18px] min-w-9 items-center justify-center rounded-sm bg-background-subtle px-2 font-mono text-xs font-medium tabular-nums text-text-secondary">
-      {code}
-    </span>
-  )
+  return <JurisdictionChip code={code} />
 }
 
 export function ToneDot({ tone }: { tone: 'success' | 'warning' | 'review' | 'disabled' }) {

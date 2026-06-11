@@ -14,10 +14,12 @@ import {
 } from '@/components/patterns/list-rail'
 import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
+import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { useActiveAlertCount } from '@/features/alerts/api'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { ActiveQueueChip } from './ActiveQueueChip'
 import { changeKindLabel } from './PulseChangeKindChip'
 import { isActiveAlert } from './pulse-alert-chrome'
 
@@ -255,18 +257,11 @@ function RailItem({
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           {/* ACTIVE badge — mirrors the main row's actionable-queue flag
-              (green dot + label) for due-date-overlay alerts. */}
-          {isActiveAlert(alert) ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-state-success-border bg-state-success-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
-              <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
-              <Trans>Active</Trans>
-            </span>
-          ) : null}
-          {/* Plain bordered 2-letter code (no StateBadge seal),
-              matching the /alerts row. */}
-          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-xs font-semibold text-text-secondary uppercase">
-            {alert.jurisdiction}
-          </span>
+              (shared ActiveQueueChip) for due-date-overlay alerts. */}
+          {isActiveAlert(alert) ? <ActiveQueueChip /> : null}
+          {/* Shared JurisdictionChip primitive (outline reference tag,
+              no StateBadge seal), matching the /alerts row. */}
+          <JurisdictionChip code={alert.jurisdiction} />
           {/* Stock TaxCodeBadge chrome — the SAME alert wears the same
               chip in the row and the rail, and both match the app-wide
               form-badge treatment (same-entity-same-rendering audit). */}

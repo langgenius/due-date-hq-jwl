@@ -22,6 +22,7 @@ import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -29,6 +30,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatRelativeTime } from '@/lib/utils'
 
 import { useAlertDetailFromCacheQueryOptions } from '../api'
+import { ActiveQueueChip } from './ActiveQueueChip'
 import { changeKindLabel } from './PulseChangeKindChip'
 import { isActiveAlert } from './pulse-alert-chrome'
 
@@ -409,12 +411,7 @@ function PulseAlertRow({
           {/* ACTIVE badge — due-date-overlay alerts are the actionable
               "Active" queue; a green dot+label flags them on the row (and
               the detail header). Review-only alerts carry no badge. */}
-          {isActiveAlert(alert) ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-state-success-border bg-state-success-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
-              <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
-              <Trans>Active</Trans>
-            </span>
-          ) : null}
+          {isActiveAlert(alert) ? <ActiveQueueChip /> : null}
           {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
               when the alert is in the priority queue. */}
           {levelPill ? (
@@ -441,11 +438,9 @@ function PulseAlertRow({
             </span>
           ) : null}
 
-          {/* STATE — the jurisdiction chip is a plain bordered 2-letter
-              code (no circular StateBadge seal). */}
-          <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-xs font-semibold text-text-secondary uppercase">
-            {alert.jurisdiction}
-          </span>
+          {/* STATE — shared JurisdictionChip primitive (outline reference
+              tag, no circular StateBadge seal). */}
+          <JurisdictionChip code={alert.jurisdiction} />
 
           {/* FORM PILL — shared TaxCodeBadge primitive (bg-subtle mono
               code chip), stock chrome so the form badge reads identically
@@ -588,11 +583,7 @@ function PulseAlertRow({
                 <span className="font-mono text-sm font-medium text-text-muted line-through tabular-nums">
                   {oldDateLabel}
                 </span>
-                <ArrowRightIcon
-                  className="size-3 shrink-0 text-text-muted"
-                 
-                  aria-hidden
-                />
+                <ArrowRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
                 <span className="font-mono text-sm font-semibold text-text-primary tabular-nums">
                   {newDateLabel}
                 </span>

@@ -28,6 +28,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SearchInput } from '@/components/primitives/search-input'
+import { JurisdictionChip } from '@/components/primitives/state-badge'
 import {
   ENTITY_LABELS,
   STATUS_LABEL_SHORT,
@@ -591,9 +592,7 @@ function JurisdictionRuleRow({
       <TableCell className="py-3 align-middle whitespace-normal">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="inline-flex shrink-0 items-center justify-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
-              {rule.jurisdiction}
-            </span>
+            <JurisdictionChip code={rule.jurisdiction} />
             <span className="min-w-0 truncate text-base font-semibold text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-focus-within/row:underline">
               {displayTitle}
             </span>

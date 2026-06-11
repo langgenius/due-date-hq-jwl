@@ -6,6 +6,7 @@ import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
 
@@ -150,11 +151,11 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           packs to the left; the cluster contains CA + title + Open
           tightly. */}
       <div className="flex items-center gap-2">
-        {/* tCuD7 jurisdiction pill: 14/700 ls 0.8, rounded-4, bg
-            #f9fafb (bg-background-section), padding [3,8]. */}
-        <span className="inline-flex shrink-0 items-center rounded bg-background-section px-2 py-[3px] text-sm font-bold tracking-[0.8px] text-text-tertiary">
-          {alert.jurisdiction}
-        </span>
+        {/* Jurisdiction — shared JurisdictionChip primitive (outline
+            reference tag). Replaces the Pencil tCuD7 one-off (14/700
+            bg-section span) so the SAME alert wears the same code chip
+            here, in the row, and in the rail. */}
+        <JurisdictionChip code={alert.jurisdiction} />
         {/* d5PWuK title: 18/600 ls -0.2 line-height 1.25 primary. */}
         <h3 className="min-w-0 flex-1 truncate text-xl leading-[1.25] font-semibold tracking-[-0.2px] text-text-primary">
           {alert.title}

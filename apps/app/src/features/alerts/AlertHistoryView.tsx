@@ -19,7 +19,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { SearchInput } from '@/components/primitives/search-input'
-import { getJurisdictionName } from '@/components/primitives/state-badge'
+import { getJurisdictionName, JurisdictionChip } from '@/components/primitives/state-badge'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatRelativeTime } from '@/lib/utils'
@@ -426,11 +426,10 @@ function HistoryRow({
         </div>
       </TableCell>
 
-      {/* JURIS */}
+      {/* JURIS — shared JurisdictionChip primitive (outline reference
+          tag; was a drifted bg-subtle one-off). */}
       <TableCell>
-        <span className="inline-flex h-[20px] items-center rounded-lg bg-background-subtle px-2 text-xs font-semibold text-text-secondary uppercase">
-          {alert.jurisdiction}
-        </span>
+        <JurisdictionChip code={alert.jurisdiction} />
       </TableCell>
 
       {/* ALERT — table-fixed column + truncation so the row never overflows. */}

@@ -86,6 +86,9 @@ token swap stays with its owner.
   hex family, one shared source already; different semantic family from the
   status pill).
 - Jurisdiction 2-letter code chips (reference tags, not form badges).
+  → converged later the same day into the `JurisdictionChip` primitive,
+  see `2026-06-11-jurisdiction-chip-active-queue-flag.md` (which also
+  fixed the filled+dot ACTIVE queue flag).
 - `ObligationStatusReadBadge` / `HealthBadge` / `AlertReadinessChip` /
   `AlertConfidencePill` / `MonitoringChip` — already on Badge with correct
   tones.

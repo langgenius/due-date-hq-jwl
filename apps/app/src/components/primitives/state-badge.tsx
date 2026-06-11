@@ -33,6 +33,7 @@
 
 import * as React from 'react'
 
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import {
   PreviewCard,
   PreviewCardContent,
@@ -351,6 +352,39 @@ export function getJurisdictionName(code: string): string {
  * name markup. (The compact bordered seal+code chip used in list ROWS / rails
  * is a different, denser treatment and stays inline.)
  */
+/**
+ * JurisdictionChip — the canonical TEXT-ONLY jurisdiction code chip (CA /
+ * FED / IRS) for rows, rails, cards, and table cells. One chrome
+ * everywhere: `Badge variant="outline" shape="square"` (§4.10 ruled
+ * jurisdiction codes are reference tags → neutral outline, never a tone
+ * fill) in mono, with the full jurisdiction name as the hover tooltip.
+ *
+ * Family map — three jurisdiction treatments, each with ONE home:
+ *   • `JurisdictionChip` — text-only code chip (this; the §4.11 entry)
+ *   • `JurisdictionLabel` — detail headers: seal + mono code + full name
+ *   • `StateBadge`       — the bare circular seal (rails, coverage grid)
+ *
+ * `className` is for layout only (alignment/margins) — radius, bg,
+ * weight, and padding overrides are banned (same discipline as
+ * TaxCodeBadge, DESIGN §4.11).
+ */
+export function JurisdictionChip({ code, className }: { code: string; className?: string }) {
+  const upper = code.toUpperCase()
+  return (
+    <Badge
+      variant="outline"
+      shape="square"
+      title={getJurisdictionName(upper)}
+      // min-w keeps 2-letter (CA) and 3-letter (FED) codes the same
+      // width so chips align in tabular columns (inherited from the
+      // rules-console JurisdictionCode it replaces).
+      className={cn('min-w-9 font-mono', className)}
+    >
+      {upper}
+    </Badge>
+  )
+}
+
 export function JurisdictionLabel({ code, className }: { code: string; className?: string }) {
   return (
     <span

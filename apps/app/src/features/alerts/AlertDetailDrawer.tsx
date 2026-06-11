@@ -61,6 +61,7 @@ import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { AlertStatusChip } from './components/AlertStatusChip'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
+import { ActiveQueueChip } from './components/ActiveQueueChip'
 import { impactBadgeFromAlert, isActiveAlert } from './components/pulse-alert-chrome'
 import { AffectedClientsTable } from './components/AffectedClientsTable'
 import { AlertStructuredFields } from './components/AlertStructuredFields'
@@ -1234,13 +1235,9 @@ export function AlertDetailDrawer({
                     variant) so the exact wording matches across surfaces. */}
                 <div className="flex flex-wrap items-center gap-2">
                   {/* ACTIVE badge — flags the actionable
-                      due-date-overlay queue, mirroring the row badge. */}
-                  {isActiveAlert(detail.alert) ? (
-                    <span className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded border border-state-success-border bg-state-success-hover px-2 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
-                      <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
-                      <Trans>Active</Trans>
-                    </span>
-                  ) : null}
+                      due-date-overlay queue, mirroring the row badge
+                      (shared ActiveQueueChip). */}
+                  {isActiveAlert(detail.alert) ? <ActiveQueueChip /> : null}
                   {/* Impact pill — the SAME chip recipe as the /alerts row
                       + /today card (token classes, not the severity
                       helper's inline hexes): one alert, one pill, every
