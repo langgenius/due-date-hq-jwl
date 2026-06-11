@@ -398,12 +398,20 @@ export function makePulseOpsRepo(db: Db) {
   // (protective-claim windows + unexpired deadline shifts), reusing the live
   // fan-out so counts are real instead of zero. Scope to one firm (opt-in
   // catch-up) or all active firms (periodic sweep). `preserveStatus` keeps a
-  // firm's dismissed alert from being resurrected; deadline shifts only
-  // materialize where the firm has a matching obligation (`skipZeroImpact`).
+  // firm's dismissed alert from being resurrected. `skipZeroImpact` (default
+  // on) drops count-0 rows — the SWEEP must keep it: a zero-impact row
+  // arriving via the daily sweep lands origin='live' and would read as a fresh
+  // "new alert" for an existing firm every day. The firm-scoped CATCH-UP turns
+  // it off (owner decision 2026-06-11): a new firm's "Already in effect" band
+  // shows the FULL still-open landscape, matches or not, so a fresh/free
+  // account sees the breadth of monitoring on day one. The band's
+  // state-not-news chrome (no "new" counters, no emails, dismissible, outside
+  // the stream) is what makes that safe where the old day-one wall was not.
   async function refreshStillOpenWindows(opts: {
     firmId?: string
     now: Date
     origin?: PulseFirmAlertOrigin
+    skipZeroImpact?: boolean
   }): Promise<number> {
     const candidates = await db
       .select({ id: pulse.id, changeKind: pulse.changeKind })
@@ -421,11 +429,7 @@ export function makePulseOpsRepo(db: Db) {
       materialized += await refreshFirmAlertsForPulse(candidate.id, {
         ...(opts.firmId ? { firmIds: [opts.firmId] } : {}),
         preserveStatus: true,
-        // Both kinds skip zero-impact here (live approval fan-out stays
-        // firm-wide): a protective window materializing count-0 rows for every
-        // firm without a single in-scope client is the day-one noise wall in
-        // n=1 form — and via the daily sweep it would even count as "new".
-        skipZeroImpact: true,
+        skipZeroImpact: opts.skipZeroImpact ?? true,
         ...(opts.origin ? { origin: opts.origin } : {}),
       })
     }
@@ -1467,8 +1471,7 @@ export function makePulseOpsRepo(db: Db) {
      *
      * Scoped to protective-claim windows + unexpired deadline shifts and routed
      * through the live fan-out (`refreshStillOpenWindows`) so counts are real, not
-     * zero. This replaces the old unscoped, count-0 backfill that surfaced ~30
-     * firm-wide noise alerts on day one. Idempotent and dismiss-safe.
+     * zero. Idempotent and dismiss-safe.
      *
      * Rows materialize as origin='catchup' — state, not news: the firm joined
      * after the change was published, so it must not count as "new" on
@@ -1476,12 +1479,18 @@ export function makePulseOpsRepo(db: Db) {
      * daily all-firms sweep keeps origin='live' — a row appearing there is a
      * fresh development for an existing firm (e.g. a newly added client in a
      * relief county) and "new" is its only notification channel.
+     *
+     * Zero-impact rows are INCLUDED here (owner decision 2026-06-11): a new
+     * or free account should see the full still-open landscape — the breadth
+     * of monitoring is itself the pitch. This is safe where the old ~30-row
+     * day-one wall was not because the band is state-not-news chrome: no
+     * "new" counters, no emails, dismissible, separate from the stream.
      */
     async backfillFirmAlertsForActiveLandscape(
       firmId: string,
       now: Date = new Date(),
     ): Promise<number> {
-      return refreshStillOpenWindows({ firmId, now, origin: 'catchup' })
+      return refreshStillOpenWindows({ firmId, now, origin: 'catchup', skipZeroImpact: false })
     },
 
     /**

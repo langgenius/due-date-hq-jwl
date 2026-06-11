@@ -1585,6 +1585,52 @@ describe('makePulseOpsRepo', () => {
     expect(directStatements).toHaveLength(0)
   })
 
+  it('catch-up materializes zero-impact rows so a clientless firm still sees the landscape', async () => {
+    // Owner decision 2026-06-11: the "Already in effect" band shows the FULL
+    // still-open landscape — matches or not — so a fresh/free account sees
+    // the breadth of monitoring on day one. Safe because catch-up rows are
+    // state, not news (origin='catchup': no "new" counters, no emails). The
+    // daily sweep keeps skipZeroImpact — its rows land 'live' and would read
+    // as fresh news.
+    const overlayPulse = {
+      id: 'pulse-ga-relief',
+      status: 'approved' as const,
+      actionMode: 'due_date_overlay' as const,
+      changeKind: 'deadline_shift' as const,
+      parsedJurisdiction: 'GA',
+      parsedCounties: [],
+      parsedForms: ['federal_1040'],
+      parsedEntityTypes: ['individual'],
+      parsedOriginalDueDate: new Date('2026-05-01T00:00:00.000Z'),
+      reverifyRuleIdsJson: [],
+      structuredChangeJson: null,
+    }
+    const { db, directStatements } = fakeDb([
+      [{ id: 'pulse-ga-relief', changeKind: 'deadline_shift' }], // still-open candidates
+      [overlayPulse], // getPulse inside the fan-out
+      [{ id: 'firm-clientless' }], // active firms
+      [], // overlay candidate scan — no matching obligations at all
+    ])
+
+    const count = await makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(
+      'firm-clientless',
+      new Date('2026-06-01T00:00:00.000Z'),
+    )
+
+    expect(count).toBe(1)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, {
+          pulseId: 'pulse-ga-relief',
+          firmId: 'firm-clientless',
+          matchedCount: 0,
+          needsReviewCount: 0,
+          origin: 'catchup',
+        }),
+      ),
+    ).toBe(true)
+  })
+
   it('promotes a system-quarantined survivor and runs the first-publication fan-out', async () => {
     const quarantinedPulse = {
       id: 'pulse-q',

@@ -1,7 +1,7 @@
 import { APIError } from 'better-auth/api'
 import { and, count, eq, gt, isNull } from 'drizzle-orm'
 import { planHasFeature } from '@duedatehq/core/plan-entitlements'
-import { authSchema, firmSchema, type Db } from '@duedatehq/db'
+import { authSchema, firmSchema, makePulseOpsRepo, type Db } from '@duedatehq/db'
 import { createAuditWriter } from '@duedatehq/db/audit-writer'
 import type { OrganizationHooks } from '@duedatehq/auth'
 
@@ -59,14 +59,26 @@ export function buildOrganizationHooks(db: Db): OrganizationHooks {
         })
         return
       }
-      // Firm creation stays alert-free: at this point the firm has no clients,
-      // so a landscape backfill could only produce firm-wide, matchedCount-0
-      // rows (the ~30-alert day-one noise wall that got this hook removed).
-      // The catch-up instead fires when the firm's FIRST obligations
-      // materialize (import apply / rule accept / rule catalog all call
-      // scoped.pulse.catchUpStillOpenWindowsOnFirstObligations), where
-      // skipZeroImpact guarantees every row affects ≥1 client, stamped
-      // origin='catchup' so it reads as state, not news.
+      // Day-zero landscape (owner decision 2026-06-11): materialize the full
+      // still-open catch-up at firm creation, INCLUDING zero-impact rows — a
+      // brand-new or free account should see the breadth of monitoring before
+      // it has imported a single client. The old ~30-row day-one wall this
+      // hook once removed put stale items in the NEWS stream as "new"; the
+      // catch-up rows land origin='catchup' instead: pinned "Already in
+      // effect" band, excluded from new-alert counters, no emails,
+      // dismissible. When the firm's first obligations materialize, the
+      // first-obligations catch-up re-runs and upgrades the counts from 0 to
+      // real "Affects N clients" numbers. Best-effort: a failure must never
+      // fail signup; the onboarding-time catch-up has the daily sweep +
+      // first-obligations hook as fallbacks.
+      try {
+        await makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(organization.id, now)
+      } catch (err) {
+        console.error('[firm_profile.afterCreateOrganization] landscape catch-up failed', {
+          orgId: organization.id,
+          message: err instanceof Error ? err.message : String(err),
+        })
+      }
     },
     beforeAddMember: async ({ member }) => {
       if (member.role === 'owner') {
