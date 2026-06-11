@@ -16,11 +16,8 @@ import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
 import { useActiveAlertCount } from '@/features/alerts/api'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
-import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
-import { formatRelativeTime } from '@/lib/utils'
-
 import { changeKindLabel } from './PulseChangeKindChip'
 import { isActiveAlert } from './pulse-alert-chrome'
 
@@ -206,7 +203,6 @@ function RailItem({
     hour12: false,
     timeZone: firmTimezone,
   }).format(published)
-  const relative = formatRelativeTime(alert.publishedAt)
   const form = alert.forms[0] ?? null
 
   // Bottom-meta parity with the main /alerts row (PulseAlertRow):
@@ -216,8 +212,6 @@ function RailItem({
   // on the main row DO need the detail cache, so those stay in the detail
   // pane, not the rail).
   const impacted = alert.matchedCount + alert.needsReviewCount
-  const confidencePct = Math.round(alert.confidence * 100)
-  const confidenceTier = aiConfidenceTier(alert.confidence)
 
   return (
     <button
@@ -247,16 +241,12 @@ function RailItem({
       {/* Time column (60px). */}
       <div className="flex w-[60px] shrink-0 flex-col gap-0.5">
         <span className="text-sm font-medium text-text-primary">{dateLabel}</span>
+        {/* Two lines only — date + wall-clock. The relative-time third
+            line is gone entirely (batch 4 #9): in a date-sorted rail it
+            restated the date column's information as noise. */}
         <span className="text-caption-xs font-medium tracking-[-0.1px] text-text-tertiary tabular-nums">
           {timeLabel}
         </span>
-        {/* formatRelativeTime falls back to an absolute "May 20" past the
-            1-week window — identical to the dateLabel above it, so the
-            column read stuttered ("May 20 / 04:00 / May 20"). Render the
-            third line only when it adds information. */}
-        {relative !== dateLabel ? (
-          <span className="text-caption-xs font-medium text-text-muted">{relative}</span>
-        ) : null}
       </div>
 
       {/* Content — head meta row + 2-line title + bottom meta row, the
@@ -278,9 +268,10 @@ function RailItem({
             {alert.jurisdiction}
           </span>
           {form ? <TaxCodeBadge code={form} /> : null}
-          {/* Change-kind matches the /today card's treatment — sans
-              font-semibold tracking-[0.4px] text-tertiary. */}
-          <span className="text-caption-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase">
+          {/* Change-kind — the SAME demoted treatment as the main /alerts
+              row (caption-xs/medium/muted): classification metadata, not a
+              signal (batch 4 #8). */}
+          <span className="text-caption-xs font-medium tracking-[0.4px] text-text-muted uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>
@@ -316,52 +307,24 @@ function RailItem({
           }}
           className="inline-flex min-w-0 cursor-pointer items-center gap-1 text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:text-text-secondary"
         >
-          <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
+          {/* Text first, trailing ↗ — the ONE external-link order across
+              the app (drawer header, Open original, list rows all read
+              "text ↗"); the leading-icon variant was the odd one out
+              (batch 4 #5). */}
           <span className="truncate">{alert.source}</span>
+          <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
         </span>
 
-        {/* Bottom meta — affected-clients line + AI confidence meter, the
-            same two signals the main row carries on its bottom shelf,
-            wrapped to the rail width. */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-muted">
-          {/* Zero-match rows drop the clients line (same rule as the main
-              list row) — repeated "No matching clients" was noise. */}
-          {impacted > 0 ? (
-            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-text-secondary">
-              <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
-              <Plural value={impacted} one="Affects # client" other="Affects # clients" />
-            </span>
-          ) : null}
-          {/* AI confidence — neutral three-bar signal-strength meter + %,
-              identical to the main row (LOW keeps a warning tint; the rest
-              stay neutral so it reads as a measurement, not a status). */}
-          <span
-            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium text-text-tertiary tabular-nums"
-            title={t`AI confidence ${confidencePct}%`}
-          >
-            <span className="inline-flex items-end gap-[2px]" aria-hidden>
-              {[0, 1, 2].map((i) => {
-                const filled =
-                  i < (confidenceTier === 'high' ? 3 : confidenceTier === 'medium' ? 2 : 1)
-                return (
-                  <span
-                    key={i}
-                    className={cn(
-                      'w-[3px] rounded-full',
-                      i === 0 ? 'h-1.5' : i === 1 ? 'h-2' : 'h-2.5',
-                      filled
-                        ? confidenceTier === 'low'
-                          ? 'bg-text-warning'
-                          : 'bg-text-tertiary'
-                        : 'bg-divider-regular',
-                    )}
-                  />
-                )
-              })}
-            </span>
-            {t`${confidencePct}% conf`}
+        {/* Bottom meta — affected clients only, and only when there ARE
+            any. The AI-confidence meter is a detail-panel fact, not a
+            navigator fact — in the rail it was per-row noise (batch 4
+            #10/#11); zero-match rows render no meta at all. */}
+        {impacted > 0 ? (
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm text-text-secondary">
+            <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
+            <Plural value={impacted} one="Affects # client" other="Affects # clients" />
           </span>
-        </div>
+        ) : null}
       </div>
     </button>
   )

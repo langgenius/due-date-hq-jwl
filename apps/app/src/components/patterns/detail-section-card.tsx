@@ -48,9 +48,11 @@ export function DetailSectionCard({
         {headerRight ? (
           <>
             <span className="flex-1" />
-            {/* 13/400 — header meta is secondary by definition; action
-                buttons passed in here carry their own weight classes. */}
-            <span className="flex items-center gap-2 text-sm text-text-tertiary">
+            {/* THE universal band-meta size: 12/400 tertiary — visibly a
+                caption next to the 14/600 title, one size across every
+                detail card (alert + deadline). Action buttons passed in
+                here carry their own size/weight classes. */}
+            <span className="flex items-center gap-2 text-xs text-text-tertiary">
               {headerRight}
             </span>
           </>

@@ -246,7 +246,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           // grid's gap-px + divider bg draw the right-/row-hairlines between
           // cells. Yuqi #8: values are a consistent MEDIUM weight (was a
           // mix of normal grid cells + semibold protective cells).
-          <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-5 py-2.5">
+          <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-5 py-3">
             {/* Register B2 micro label — 12/500 CAPS tertiary (semibold read
                 chunky at the lifted xs size; medium is the canonical B2
                 weight, see section-header-style.md). */}

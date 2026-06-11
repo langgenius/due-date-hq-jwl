@@ -51,9 +51,13 @@ export function DetailStatusBanner({
 
   if (compact) {
     return (
+      // h-[52px] — the same row height as the detail panel's top bar and
+      // the list rail's head/toggle rows, so the horizontal bands align
+      // across the rail ⟷ detail columns (Yuqi: banner should sit at the
+      // toggle's height, not a shorter stripe).
       <div
         className={cn(
-          'flex h-10 w-full items-center gap-2.5 border-b border-divider-subtle px-12',
+          'flex h-[52px] w-full items-center gap-2.5 border-b border-divider-subtle px-12',
           c.band,
         )}
       >

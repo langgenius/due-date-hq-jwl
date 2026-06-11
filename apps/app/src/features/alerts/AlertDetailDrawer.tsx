@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
-  ChevronLeftIcon,
   CircleAlertIcon,
   ExternalLinkIcon,
   LightbulbIcon,
@@ -63,7 +62,6 @@ import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabul
 
 import {
   impactBadgeFromAlert,
-  actionPillFromAlert,
   isActiveAlert,
 } from './components/pulse-alert-chrome'
 import { AffectedClientsTable } from './components/AffectedClientsTable'
@@ -588,7 +586,12 @@ function DecisionBanners({
         compact
         tone="warning"
         icon={CircleAlertIcon}
-        title={<Trans>Pending your review</Trans>}
+        // "Awaiting your decision" — the SAME phrase the Activity
+        // timeline's current-state node uses, so the banner and the
+        // timeline speak one status vocabulary. (The header's separate
+        // "Needs Action" pill was removed for restating this banner in
+        // different words — one state, one phrasing.)
+        title={<Trans>Awaiting your decision</Trans>}
         // The confidence % is dropped from this banner — it lives in the
         // dedicated "AI confidence" block below (which for low-confidence
         // alerts is the prominent actionable warning), so the banner
@@ -1137,34 +1140,36 @@ export function AlertDetailDrawer({
           capped to the same 760px `mx-auto` measure as the document below,
           so it sits centered over the same column the header/body/footer
           share. */}
-      <div className="flex h-[52px] shrink-0 items-center border-b border-divider-subtle px-12">
-        <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3">
-          {/* Yuqi #14 — breadcrumb "‹ Alerts / {alert title}". The "Alerts"
-              crumb is the click target (returns to the list); the current
-              alert title trails it as a non-interactive, truncating leaf so
-              the bar reads as a real in-surface path (mirrors the deadline
-              detail's in-surface crumb). */}
-          {/* Breadcrumb is chrome, not content — 13/400 so it recedes
-              behind the 22px title below (Yuqi: unimportant text lighter
-              + smaller; fewer styles per page). */}
-          <nav className="flex min-w-0 items-center gap-1.5 text-sm">
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
-            >
-              <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
-              <Trans>Alerts</Trans>
-            </button>
-            {detail ? (
-              <>
-                <span className="shrink-0 text-text-muted" aria-hidden>
-                  /
-                </span>
-                <span className="min-w-0 truncate text-text-secondary">{detail.alert.title}</span>
-              </>
-            ) : null}
-          </nav>
+      {/* Top bar is CHROME, so it spans the full panel width (no 760px
+          document cap): the breadcrumb hugs the left edge and the close X
+          hugs the top-right corner where a close affordance is expected
+          (Yuqi batch 4 #13 — capped to the document column it floated
+          mid-panel). px-5, not the document's px-12. */}
+      <div className="flex h-[52px] shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-5">
+        {/* Breadcrumb "Alerts / {title}" — 13/400 chrome. No leading
+            chevron (batch 4 #14): the slash path is the navigation
+            metaphor; a back-arrow on top of it was a mixed signal. The
+            title leaf caps at 360px (batch 4 #12) so the crumb reads as a
+            path, not a second full-width title. */}
+        <nav className="flex min-w-0 items-center gap-1.5 text-sm">
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 cursor-pointer text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
+          >
+            <Trans>Alerts</Trans>
+          </button>
+          {detail ? (
+            <>
+              <span className="shrink-0 text-text-muted" aria-hidden>
+                /
+              </span>
+              <span className="max-w-[360px] truncate text-text-secondary">
+                {detail.alert.title}
+              </span>
+            </>
+          ) : null}
+        </nav>
           <div className="flex shrink-0 items-center gap-3">
             {/* Yuqi #13 — the A/D keyboard-action hints moved OUT of the
                 footer (where they crowded the Mark-reviewed / Dismiss
@@ -1214,7 +1219,6 @@ export function AlertDetailDrawer({
               <XIcon className="size-4" aria-hidden />
             </Button>
           </div>
-        </div>
       </div>
 
       {/* Header padding overrides SheetHeader's primitive default
@@ -1258,30 +1262,13 @@ export function AlertDetailDrawer({
             // Gate the impact pill to HIGH only — the same rule
             // NeedsAttentionCard / PulseAlertRow / AlertCard use.
             const showSeverityPill = severity.id === 'high'
-            const actionPill = actionPillFromAlert(detail.alert)
-            const actionLabel = actionPill
-              ? actionPill.id === 'needs-action'
-                ? t`Needs Action`
-                : actionPill.id === 'needs-review'
-                  ? t`Needs Review`
-                  : t`Closed`
-              : null
-            // Yuqi #7/#10/#11 — lightweight meta promoted to the header:
-            // AI-confidence (color-coded by tier) + last-activity relative
-            // timestamp now live in the header meta strip alongside the
-            // source · published chrome and the JurisdictionLabel. The body's
-            // duplicate "Source & confidence" provenance read-out and the
-            // Activity timeline's "received" timestamp are no longer the only
-            // place these appear, so the header reads as the consolidated
-            // metadata band (like the deadline detail's meta strip).
-            const confPct = Math.round(detail.alert.confidence * 100)
-            const confTier = aiConfidenceTier(detail.alert.confidence)
-            const confToneClass =
-              confTier === 'high'
-                ? 'text-text-success'
-                : confTier === 'medium'
-                  ? 'text-text-tertiary'
-                  : 'text-text-destructive'
+            // Batch 4 #1/#2 — the header meta carries ONLY identity
+            // (Active / High-impact / jurisdiction / change-kind) plus
+            // source · time. The AI-confidence % lives in the Source &
+            // confidence card (its one home), and the Needs-Action pill
+            // is gone: it restated the status banner above in different
+            // words, and two competing state vocabularies confused the
+            // read ("Pending your review" vs "Needs Action").
             // The freshest real timestamp on the record: a terminal alert
             // shows when it resolved; an open one shows when it arrived.
             const lastActivityIso =
@@ -1322,14 +1309,6 @@ export function AlertDetailDrawer({
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
                   <span className="ml-auto flex shrink-0 items-center gap-2 text-sm text-text-tertiary">
-                    {/* AI confidence — color-coded by tier (#7/#10/#11). */}
-                    <span className="inline-flex items-center gap-1">
-                      <SparklesIcon className={cn('size-3 shrink-0', confToneClass)} aria-hidden />
-                      <span className={cn('font-semibold tabular-nums', confToneClass)}>
-                        {confPct}%
-                      </span>
-                    </span>
-                    <span aria-hidden>·</span>
                     {detail.alert.sourceUrl ? (
                       <a
                         href={detail.alert.sourceUrl}
@@ -1351,14 +1330,6 @@ export function AlertDetailDrawer({
                         the standalone publish date (also surfaced verbatim in
                         the source-extract citation below). */}
                     <span className="tabular-nums">{formatRelativeTime(lastActivityIso)}</span>
-                    {actionPill && actionLabel ? (
-                      <span
-                        className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-                        style={{ backgroundColor: actionPill.bg, color: actionPill.text }}
-                      >
-                        {actionLabel}
-                      </span>
-                    ) : null}
                   </span>
                 </div>
 
@@ -1369,7 +1340,9 @@ export function AlertDetailDrawer({
                     without dominating the panel. */}
                 <h2
                   className={cn(
-                    'font-semibold leading-[1.25] tracking-[-0.4px] text-text-primary transition-all duration-200',
+                    // leading-[1.3] (was 1.25) — at 22px over two lines the
+                    // tighter leading read cramped (batch 4 #3).
+                    'font-semibold leading-[1.3] tracking-[-0.4px] text-text-primary transition-all duration-200',
                     headerCollapsed ? 'line-clamp-1 text-[16px]' : 'text-[22px]',
                   )}
                 >
@@ -1645,8 +1618,29 @@ export function AlertDetailDrawer({
             ) : null}
 
             {/* GROUP 3 — Source & confidence: warnings, the verbatim source
-                extract, and the provenance read-out. */}
-            <DetailSectionCard title={<Trans>Source &amp; confidence</Trans>}>
+                extract, and a single confidence row. Batch 4 #15/#17: the
+                card had two inner sub-headers ("Source extract", "How
+                confident we are · where this came from") plus a 2-col
+                provenance grid that re-stated the source link, publish
+                date, and audit note already shown elsewhere — the card
+                title + header-band link now carry all of it, and the body
+                is just citation → quote → confidence. */}
+            <DetailSectionCard
+              title={<Trans>Source &amp; confidence</Trans>}
+              headerRight={
+                detail.alert.sourceUrl ? (
+                  <a
+                    href={detail.alert.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  >
+                    <Trans>Open original</Trans>
+                    <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+                  </a>
+                ) : undefined
+              }
+            >
               {/* Low AI confidence — a "double-check this" cue (amber, not
                   destructive). Names the % and explains what to verify. */}
               {isLowAiConfidence(detail.alert.confidence) ? (
@@ -1696,28 +1690,11 @@ export function AlertDetailDrawer({
                 </Alert>
               ) : null}
 
-              {/* SOURCE EXTRACT — Pencil `c0Vxc`: a mono citation line over a
-                  non-mono italic quote in a gray (#f9fafb) rounded box;
-                  "Open original" with an external-link glyph on the header. */}
+              {/* Citation line + verbatim quote. The "Source extract"
+                  sub-header is gone (the card title says it); "Open
+                  original" rides the card's header band. */}
               {detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
-                <section className="flex flex-col gap-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-semibold text-text-secondary">
-                      <Trans>Source extract</Trans>
-                    </span>
-                    {detail.alert.sourceUrl ? (
-                      <a
-                        href={detail.alert.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                      >
-                        <Trans>Open original</Trans>
-                        <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
-                      </a>
-                    ) : null}
-                  </div>
-                  {/* Citation — source (mono) · published date. */}
+                <section className="flex flex-col gap-2">
                   <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
                     <span className="font-mono">{detail.alert.source}</span>
                     {detail.alert.publishedAt ? (
@@ -1738,19 +1715,10 @@ export function AlertDetailDrawer({
                 </section>
               ) : null}
 
-              {/* Round 47 (Yuqi #5 — "fulfill the content and make it
-                information rich"): PROVENANCE & CONFIDENCE section
-                per Pencil n9m9B. The Hero meta row carries
-                source · time as a quick caption; this section
-                expands provenance into a verifiable surface:
-                  • Confidence — AI N% + tier label, color-coded
-                  • Source verification — link to original + relative
-                    fetch timestamp + sourceStatus tag
-                  • Audit ledger note — captures the canonical
-                    "every decision recorded" cue from n9m9B's
-                    action shelf left cluster.
-                Sits at the tail of the body so the CPA's eye lands
-                on it just before the sticky action shelf. */}
+              {/* Confidence — one hairline row: % + tier left, the
+                  what-to-do-about-it guidance right. The old 2-col
+                  provenance grid duplicated the source link (header band),
+                  publish date (citation above), and audit note (footer). */}
               {(() => {
                 const confPct = Math.round(detail.alert.confidence * 100)
                 const confTier = aiConfidenceTier(detail.alert.confidence)
@@ -1763,71 +1731,29 @@ export function AlertDetailDrawer({
                 const confTierLabel =
                   confTier === 'high' ? t`HIGH` : confTier === 'medium' ? t`MEDIUM` : t`LOW`
                 return (
-                  <section className="flex flex-col gap-3">
-                    {/* The layout splits LEFT confidence (modest %, tier
-                      label, one-line guidance) / RIGHT source + published +
-                      audit-ledger note. */}
-                    <header className="flex items-baseline justify-between">
-                      <span className="text-sm font-semibold text-text-secondary">
-                        <Trans>How confident we are · where this came from</Trans>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-divider-subtle pt-3">
+                    <span className="inline-flex items-baseline gap-2">
+                      <span className={cn('text-base font-semibold tabular-nums', confToneClass)}>
+                        {confPct}%
                       </span>
-                    </header>
-                    <div className="grid grid-cols-[1fr_1fr] gap-3">
-                      {/* Confidence cell */}
-                      <div className="flex flex-col gap-1.5 border-r border-divider-subtle pr-6">
-                        <div className="flex items-baseline gap-2">
-                          <span className={cn('text-xl font-semibold tabular-nums', confToneClass)}>
-                            {confPct}%
-                          </span>
-                          <span
-                            className={cn('text-xs font-medium tracking-wide uppercase', confToneClass)}
-                          >
-                            <Trans>{confTierLabel} confidence</Trans>
-                          </span>
-                        </div>
-                        <p className="text-xs text-text-tertiary">
-                          {confTier === 'low' ? (
-                            <Trans>
-                              Verify the extract panel matches the official source before applying.
-                            </Trans>
-                          ) : confTier === 'medium' ? (
-                            <Trans>Quick-confirm the extracted fields look right.</Trans>
-                          ) : (
-                            <Trans>Model is confident — review and apply when ready.</Trans>
-                          )}
-                        </p>
-                      </div>
-                      {/* Source / tags cell */}
-                      <div className="flex flex-col gap-1 pl-2 text-xs">
-                        <span className="text-text-secondary">
-                          <Trans>From</Trans>{' '}
-                          {detail.alert.sourceUrl ? (
-                            <TextLink
-                              variant="accent"
-                              render={
-                                <a href={detail.alert.sourceUrl} target="_blank" rel="noreferrer" />
-                              }
-                            >
-                              {detail.alert.source} ↗
-                            </TextLink>
-                          ) : (
-                            <span className="font-medium text-text-primary">
-                              {detail.alert.source}
-                            </span>
-                          )}
-                        </span>
-                        <span className="text-text-tertiary">
-                          <Trans>Published</Trans>{' '}
-                          <span className="tabular-nums">
-                            {formatRelativeTime(detail.alert.publishedAt)}
-                          </span>
-                        </span>
-                        <span className="text-text-tertiary">
-                          <Trans>Audit ledger: every change is logged</Trans>
-                        </span>
-                      </div>
-                    </div>
-                  </section>
+                      <span
+                        className={cn('text-xs font-medium tracking-wide uppercase', confToneClass)}
+                      >
+                        <Trans>{confTierLabel} confidence</Trans>
+                      </span>
+                    </span>
+                    <span className="text-xs text-text-tertiary">
+                      {confTier === 'low' ? (
+                        <Trans>
+                          Verify the extract matches the official source before applying.
+                        </Trans>
+                      ) : confTier === 'medium' ? (
+                        <Trans>Quick-confirm the extracted fields look right.</Trans>
+                      ) : (
+                        <Trans>Model is confident — review and apply when ready.</Trans>
+                      )}
+                    </span>
+                  </div>
                 )
               })()}
             </DetailSectionCard>
@@ -2111,16 +2037,13 @@ export function DrawerActions({
     firmImpact !== 'no_current_match' &&
     requiresDeadlineDetails
   return (
-    // Footer two-cluster layout. The LEFT cluster holds the
-    // secondary/reversal actions — Undo / Reactivate AND "Copy client
-    // email draft" (a supporting action, not a decision). The RIGHT
-    // cluster is the PRIMARY CTA group only — Request review + Apply /
-    // Apply reviewed — so the dominant decision sits flush right. `w-full`
-    // + `justify-between` push the two groups to opposite edges. The row
-    // never wraps (flex-nowrap): the secondary group can shrink
-    // (min-w-0); the primary CTA stays shrink-0 so it's always fully
-    // visible flush-right.
-    <div className="flex w-full flex-nowrap items-center justify-between gap-3">
+    // All actions sit as ONE right-aligned cluster — secondaries
+    // (Undo / Copy draft / Dismiss) immediately left of the primary CTA.
+    // The old justify-between split left a dead gap mid-footer between
+    // the secondary and primary groups (Yuqi batch 4 #19); the only
+    // intentional space-between in the footer is audit-note ⟷ actions,
+    // owned by the SheetFooter wrapper. Never wraps; secondaries shrink.
+    <div className="flex w-full flex-nowrap items-center justify-end gap-3">
       <div className="flex min-w-0 flex-nowrap items-center gap-2">
         {showRevert ? (
           <Button

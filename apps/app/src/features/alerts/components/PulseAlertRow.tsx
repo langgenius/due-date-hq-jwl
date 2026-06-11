@@ -508,8 +508,10 @@ function PulseAlertRow({
                     }}
                     {...props}
                   >
-                    <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
+                    {/* Text first, trailing ↗ — the one external-link
+                        order across the app (batch 4 #5). */}
                     <span className="truncate">{alert.source}</span>
+                    <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
                   </span>
                 )}
               />
@@ -524,8 +526,8 @@ function PulseAlertRow({
             </Tooltip>
           ) : (
             <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-sm font-medium text-text-tertiary">
-              <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
               <span className="truncate">{alert.source}</span>
+              <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
             </span>
           )}
 

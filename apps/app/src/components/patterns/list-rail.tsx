@@ -64,8 +64,14 @@ export function ListRailTitle({ children }: { children: ReactNode }) {
 }
 
 /**
- * A bordered filter/control row beneath the head (search, a segmented toggle,
+ * A filter/control row beneath the head (search, a segmented toggle,
  * a search + status dropdown, …). `px-4 py-2.5` by default.
+ *
+ * No bottom border (Yuqi 2026-06-11): the rail is a floaty sidebar — a
+ * hairline under every control row over-segmented it into stacked boxes.
+ * The head keeps its border (title ⟷ content is a real boundary); control
+ * rows separate by spacing alone, and the list items below carry their own
+ * row hairlines.
  */
 export function ListRailSection({
   className,
@@ -75,14 +81,7 @@ export function ListRailSection({
   children: ReactNode
 }) {
   return (
-    <div
-      className={cn(
-        'flex shrink-0 items-center gap-2 border-b border-divider-subtle px-4 py-2.5',
-        className,
-      )}
-    >
-      {children}
-    </div>
+    <div className={cn('flex shrink-0 items-center gap-2 px-4 py-2.5', className)}>{children}</div>
   )
 }
 
