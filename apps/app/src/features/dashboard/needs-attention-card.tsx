@@ -190,9 +190,10 @@ function NeedsAttentionCard({
         // regions and let the white table — the CPA's work — read as the
         // focal point. Impact is carried by the High-impact pill +
         // "Affects N clients", not by a receding fill. No drop shadow.
-        'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-3 rounded-xl bg-background-section p-4 text-left',
-        // Hover is carried by the bg step alone (no border hairline).
-        'transition-colors duration-200 hover:bg-background-subtle',
+        'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-3 rounded-xl bg-background-section p-5 text-left',
+        // Hover micro-interaction (Yuqi): a subtle lift + soft shadow on top of
+        // the bg step so the card feels responsive to the pointer.
+        'transition-all duration-200 hover:-translate-y-0.5 hover:bg-background-subtle hover:shadow-[0_2px_4px_rgba(16,24,40,0.06)]',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}
@@ -285,7 +286,7 @@ function NeedsAttentionCard({
               drawer). `dedupeTitleSource` strips a leading source prefix so the
               bottom source link doesn't echo it. */}
           <h3
-            className="line-clamp-2 min-w-0 text-base font-semibold leading-[1.3] text-text-primary"
+            className="line-clamp-2 min-w-0 text-lg font-semibold leading-[1.3] text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}
