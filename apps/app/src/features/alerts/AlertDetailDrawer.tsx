@@ -1126,15 +1126,52 @@ export function AlertDetailDrawer({
           share. */}
       <div className="flex h-[52px] shrink-0 items-center border-b border-divider-subtle px-12">
         <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex cursor-pointer items-center gap-1 text-base font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
-          >
-            <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
-            <Trans>Alerts</Trans>
-          </button>
-          <div className="flex items-center gap-2">
+          {/* Yuqi #14 — breadcrumb "‹ Alerts / {alert title}". The "Alerts"
+              crumb is the click target (returns to the list); the current
+              alert title trails it as a non-interactive, truncating leaf so
+              the bar reads as a real in-surface path (mirrors the deadline
+              detail's in-surface crumb). */}
+          <nav className="flex min-w-0 items-center gap-1.5 text-base font-medium">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
+            >
+              <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
+              <Trans>Alerts</Trans>
+            </button>
+            {detail ? (
+              <>
+                <span className="shrink-0 text-text-muted" aria-hidden>
+                  /
+                </span>
+                <span className="min-w-0 truncate text-text-secondary">{detail.alert.title}</span>
+              </>
+            ) : null}
+          </nav>
+          <div className="flex shrink-0 items-center gap-3">
+            {/* Yuqi #13 — the A/D keyboard-action hints moved OUT of the
+                footer (where they crowded the Mark-reviewed / Dismiss
+                buttons) and UP into this top bar, beside the "N of M"
+                pager read-out. Shown only on wide panels where there's
+                room, and only while the alert still accepts a decision. */}
+            {detail && !alertResolved ? (
+              <span className="hidden items-center gap-2.5 text-text-tertiary xl:inline-flex">
+                <span className="inline-flex items-center gap-1.5 text-caption font-medium">
+                  <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
+                    A
+                  </kbd>
+                  <Trans>Apply</Trans>
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-caption font-medium">
+                  <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
+                    D
+                  </kbd>
+                  <Trans>Dismiss</Trans>
+                </span>
+                <span className="h-3.5 w-px bg-divider-regular" aria-hidden />
+              </span>
+            ) : null}
             {position && position.total > 0 ? (
               <span className="text-sm font-medium text-text-muted tabular-nums">
                 {t`${position.index + 1} of ${position.total}`}
@@ -1173,13 +1210,16 @@ export function AlertDetailDrawer({
         />
       ) : null}
 
-      {/* The hero header takes a soft gray fill (bg-background-subtle) and
-          drops its `border-b` hairline. The tonal step from the gray
-          header to the white body carries the separation on its own — no
-          rule needed — and reads as a calmer, document-style masthead. */}
+      {/* Yuqi #1 (batch2) — the hero header is WHITE (bg-background-default),
+          matching the deadline detail's white identity block. The body's gray
+          wash (bg-background-subtle) begins below the header, so the tonal
+          step now runs the OTHER way (white masthead → gray content), and the
+          header's lightweight meta strip (source · confidence · jurisdiction ·
+          last activity, per #7/#10/#11) reads as header-level metadata sitting
+          on the same white surface as the title. */}
       <SheetHeader
         className={cn(
-          'bg-background-subtle px-12 transition-all duration-200 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+          'bg-background-default px-12 transition-all duration-200 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
           headerCollapsed ? 'pt-4 pb-4' : 'pt-10 pb-6',
         )}
       >
@@ -1199,6 +1239,29 @@ export function AlertDetailDrawer({
                   ? t`Needs Review`
                   : t`Closed`
               : null
+            // Yuqi #7/#10/#11 — lightweight meta promoted to the header:
+            // AI-confidence (color-coded by tier) + last-activity relative
+            // timestamp now live in the header meta strip alongside the
+            // source · published chrome and the JurisdictionLabel. The body's
+            // duplicate "Source & confidence" provenance read-out and the
+            // Activity timeline's "received" timestamp are no longer the only
+            // place these appear, so the header reads as the consolidated
+            // metadata band (like the deadline detail's meta strip).
+            const confPct = Math.round(detail.alert.confidence * 100)
+            const confTier = aiConfidenceTier(detail.alert.confidence)
+            const confToneClass =
+              confTier === 'high'
+                ? 'text-text-success'
+                : confTier === 'medium'
+                  ? 'text-text-tertiary'
+                  : 'text-text-destructive'
+            // The freshest real timestamp on the record: a terminal alert
+            // shows when it resolved; an open one shows when it arrived.
+            const lastActivityIso =
+              detail.reviewedAt ??
+              (detail.alert.status === 'dismissed' ? detail.alert.dismissedAt : null) ??
+              (detail.alert.status === 'applied' ? detail.alert.appliedAt : null) ??
+              detail.alert.publishedAt
             return (
               <div className="flex flex-col gap-2">
                 {/* Meta row — severity (HIGH only) + state pill +
@@ -1232,6 +1295,14 @@ export function AlertDetailDrawer({
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
                   <span className="ml-auto flex shrink-0 items-center gap-2 text-sm font-medium text-text-tertiary">
+                    {/* AI confidence — color-coded by tier (#7/#10/#11). */}
+                    <span className="inline-flex items-center gap-1">
+                      <SparklesIcon className={cn('size-3 shrink-0', confToneClass)} aria-hidden />
+                      <span className={cn('font-semibold tabular-nums', confToneClass)}>
+                        {confPct}%
+                      </span>
+                    </span>
+                    <span aria-hidden>·</span>
                     {detail.alert.sourceUrl ? (
                       <a
                         href={detail.alert.sourceUrl}
@@ -1249,9 +1320,10 @@ export function AlertDetailDrawer({
                       </span>
                     )}
                     <span aria-hidden>·</span>
-                    <span className="tabular-nums">
-                      {formatDatePretty(detail.alert.publishedAt, { alwaysShowYear: true })}
-                    </span>
+                    {/* Last activity — the freshest real timestamp, replacing
+                        the standalone publish date (also surfaced verbatim in
+                        the source-extract citation below). */}
+                    <span className="tabular-nums">{formatRelativeTime(lastActivityIso)}</span>
                     {actionPill && actionLabel ? (
                       <span
                         className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"

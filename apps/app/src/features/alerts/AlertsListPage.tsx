@@ -557,25 +557,44 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
             <span className="inline-flex items-center gap-2">
               <Trans>Alerts</Trans>
               {!alertsQuery.isLoading ? (
-                // Variant `outline` so the count chip reads as a neutral
-                // total — not as an urgency signal. PulsingDot below
-                // carries the alert-state semantics; this chip is just
-                // the alert count.
-                <Badge variant="outline" size="lg" className="tabular-nums">
-                  {alerts.length === 0 ? (
-                    <Trans>0 ongoing</Trans>
-                  ) : (
-                    <Plural value={alerts.length} one="# ongoing" other="# ongoing" />
-                  )}
-                </Badge>
+                // The count chip + the LIVE chip are a matched PAIR: both
+                // ride the Badge primitive at `size="lg"` (h-6) so they
+                // sit at the exact same height, and both use the quiet
+                // `secondary` tint so neither reads as an urgency signal
+                // or a tappable button — the difference between them is
+                // content, not chrome. (Yuqi #3: "8 active 和 LIVE badge
+                // 高度应该一样，但是 style 不一样".)
+                <>
+                  <Badge variant="secondary" size="lg" className="tabular-nums">
+                    {alerts.length === 0 ? (
+                      <Trans>0 ongoing</Trans>
+                    ) : (
+                      <Plural value={alerts.length} one="# ongoing" other="# ongoing" />
+                    )}
+                  </Badge>
+                  {/* LIVE chip — the live-signal semantics that used to
+                      ride a bare floating PulsingDot now live INSIDE a
+                      matched-height Badge, so the dot keeps its
+                      heartbeat-tone meaning while the chip aligns with
+                      the count pill beside it. */}
+                  <Badge
+                    variant="secondary"
+                    size="lg"
+                    className="gap-1.5 font-semibold tracking-wide uppercase"
+                  >
+                    <PulsingDot
+                      tone={isEmpty ? 'success' : 'warning'}
+                      active
+                      label={
+                        isEmpty
+                          ? t`No active alerts right now`
+                          : t`Active alerts waiting for review`
+                      }
+                    />
+                    <Trans>Live</Trans>
+                  </Badge>
+                </>
               ) : null}
-              <PulsingDot
-                tone={isEmpty ? 'success' : 'warning'}
-                active
-                label={
-                  isEmpty ? t`No active alerts right now` : t`Active alerts waiting for review`
-                }
-              />
             </span>
           }
           description={t`Regulatory alerts that match your practice's clients. Review, batch-apply due-date changes or revisit closed changes.`}
@@ -734,7 +753,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     instead). */}
                 {!historyMode ? (
                   <Segmented
-                    className="h-9 shrink-0 [&>button]:h-8"
+                    className="h-9 shrink-0 [&>button]:h-8 [&>button]:text-sm"
                     ariaLabel={t`Alert work queue`}
                     value={workQueue}
                     onValueChange={setWorkQueue}

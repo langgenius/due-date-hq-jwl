@@ -230,20 +230,23 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
         </div>
       ) : null}
 
-      {/* Pencil ibEoz `noWOa`: the fact grid keeps its OWN 1px border +
-          radius-8 inside the section (the section itself is borderless;
-          the surrounding panel + dividers carry the outer structure). */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-divider-subtle bg-divider-subtle sm:grid-cols-4">
+      {/* Yuqi #9 (avoid frame-in-frame): the grid no longer carries its own
+          outer 1px border + radius — it sits inside DetailSectionCard's body,
+          so a second framed box read as a nested frame. The cell hairlines
+          (gap-px over the divider bg) remain to delineate the matrix; the
+          card chrome above is the only outer frame. */}
+      <div className="grid grid-cols-2 gap-px overflow-hidden bg-divider-subtle sm:grid-cols-4">
         {cells.map((cell) => (
           // ExtractedFacts cell: padding [10,20] (px-5 py-2.5), 11/600
-          // uppercase tertiary label over a 13/normal primary value. The
+          // uppercase tertiary label over a 13/medium primary value. The
           // grid's gap-px + divider bg draw the right-/row-hairlines between
-          // cells.
+          // cells. Yuqi #8: values are a consistent MEDIUM weight (was a
+          // mix of normal grid cells + semibold protective cells).
           <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-5 py-2.5">
             <span className="text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
               {cell.label}
             </span>
-            <span className="min-w-0 truncate text-base font-normal text-text-primary">
+            <span className="min-w-0 truncate text-base font-medium text-text-primary">
               {cell.value}
             </span>
           </div>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { ExternalLinkIcon, UsersIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
@@ -15,18 +16,24 @@ import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
 import { useActiveAlertCount } from '@/features/alerts/api'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
+import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatRelativeTime } from '@/lib/utils'
 
 import { changeKindLabel } from './PulseChangeKindChip'
+import { isActiveAlert } from './pulse-alert-chrome'
 
 /**
  * The 380px alert-list secondary sidebar shown on the full-page detail
  * layout — its own `Alerts · N active` head, an All / Unresolved
- * segmented control + search, and a compact-item body (60px time column
- * + badge meta-row + two-line title). The open alert's item carries the
- * 2px left accent.
+ * segmented control + search, and a compact-item body (60px time
+ * column + head meta-row + two-line title + source + bottom meta).
+ * Each item carries the same field set as the main /alerts row
+ * (PulseAlertRow): ACTIVE badge · jurisdiction · form · change-kind in
+ * the head, the title, the source link, and the affected-clients + AI-
+ * confidence bottom meta. The open alert's item carries the 2px left
+ * accent.
  */
 
 export function AlertListRail({
@@ -202,6 +209,16 @@ function RailItem({
   const relative = formatRelativeTime(alert.publishedAt)
   const form = alert.forms[0] ?? null
 
+  // Bottom-meta parity with the main /alerts row (PulseAlertRow):
+  // affected-clients count (matched + needs-review) and the AI
+  // confidence meter. Both read straight off PulseAlertPublic — no
+  // detail-cache subscription needed (the old→new date row + ACTION line
+  // on the main row DO need the detail cache, so those stay in the detail
+  // pane, not the rail).
+  const impacted = alert.matchedCount + alert.needsReviewCount
+  const confidencePct = Math.round(alert.confidence * 100)
+  const confidenceTier = aiConfidenceTier(alert.confidence)
+
   return (
     <button
       type="button"
@@ -212,14 +229,16 @@ function RailItem({
         // `border-b-divider-subtle` (bottom-only color) so it doesn't
         // override the left accent below. Roomier item padding (py-4) +
         // a touch more column gap so the rail breathes.
-        'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-[background-color,opacity]',
+        'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
-        // The whole inactive row drops to opacity-60 (badges included)
-        // and lifts back to full strength on hover; the active row stays
-        // opacity-100 with its 2px left accent.
+        // Selected vs unselected is carried by the 2px left accent + bg
+        // wash on the active row, and a hover wash on the rest. The
+        // inactive row stays full-strength (no opacity dimming — that read
+        // as "disabled") so every row looks active/clickable; the only
+        // distinction is the accent + fill, not contrast.
         active
-          ? 'border-l-2 border-l-state-accent-solid bg-background-default-subtle opacity-100'
-          : 'border-l-2 border-l-transparent opacity-60 hover:bg-state-base-hover hover:opacity-100',
+          ? 'border-l-2 border-l-state-accent-solid bg-state-accent-hover'
+          : 'border-l-2 border-l-transparent hover:bg-state-base-hover',
       )}
     >
       {/* Time column (60px). */}
@@ -231,9 +250,19 @@ function RailItem({
         <span className="text-caption-xs font-medium text-text-muted">{relative}</span>
       </div>
 
-      {/* Content — badge meta row + 2-line title. */}
+      {/* Content — head meta row + 2-line title + bottom meta row, the
+          same field set the main /alerts row carries, wrapped to the
+          narrower rail width. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          {/* ACTIVE badge — mirrors the main row's actionable-queue flag
+              (green dot + label) for due-date-overlay alerts. */}
+          {isActiveAlert(alert) ? (
+            <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-state-success-border bg-state-success-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-success uppercase">
+              <span className="size-1.5 rounded-full bg-text-success" aria-hidden />
+              <Trans>Active</Trans>
+            </span>
+          ) : null}
           {/* Plain bordered 2-letter code (no StateBadge seal),
               matching the /alerts row. */}
           <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-xs font-semibold text-text-secondary uppercase">
@@ -246,17 +275,89 @@ function RailItem({
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>
-        {/* The active item's title is text-primary; non-active titles
-            drop to text-tertiary. The 2px left accent on the active row
-            is kept. */}
+        {/* Title is AA-readable on both states — text-primary when active,
+            text-secondary otherwise (never the faint tertiary that read as
+            disabled). The 2px left accent on the active row carries the
+            selected distinction. */}
         <span
           className={cn(
             'line-clamp-2 text-base font-medium leading-[1.35]',
-            active ? 'text-text-primary' : 'text-text-tertiary',
+            active ? 'text-text-primary' : 'text-text-secondary',
           )}
         >
           {alert.title}
         </span>
+
+        {/* Source link — mirrors the main row's source slot
+            (ExternalLinkIcon + alert.source). Opens the bulletin in a new
+            tab; click is isolated so it doesn't also select the row. */}
+        <span
+          role="link"
+          tabIndex={0}
+          onClick={(event) => {
+            event.stopPropagation()
+            window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              event.stopPropagation()
+              window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
+            }
+          }}
+          className="inline-flex min-w-0 cursor-pointer items-center gap-1 text-sm font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:text-text-secondary"
+        >
+          <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
+          <span className="truncate">{alert.source}</span>
+        </span>
+
+        {/* Bottom meta — affected-clients line + AI confidence meter, the
+            same two signals the main row carries on its bottom shelf,
+            wrapped to the rail width. */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-muted">
+          <span
+            className={cn(
+              'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap',
+              impacted > 0 ? 'text-text-secondary' : 'text-text-muted',
+            )}
+          >
+            <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
+            {impacted > 0 ? (
+              <Plural value={impacted} one="Affects # client" other="Affects # clients" />
+            ) : (
+              <Trans>No matching clients</Trans>
+            )}
+          </span>
+          {/* AI confidence — neutral three-bar signal-strength meter + %,
+              identical to the main row (LOW keeps a warning tint; the rest
+              stay neutral so it reads as a measurement, not a status). */}
+          <span
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium text-text-tertiary tabular-nums"
+            title={t`AI confidence ${confidencePct}%`}
+          >
+            <span className="inline-flex items-end gap-[2px]" aria-hidden>
+              {[0, 1, 2].map((i) => {
+                const filled =
+                  i < (confidenceTier === 'high' ? 3 : confidenceTier === 'medium' ? 2 : 1)
+                return (
+                  <span
+                    key={i}
+                    className={cn(
+                      'w-[3px] rounded-full',
+                      i === 0 ? 'h-1.5' : i === 1 ? 'h-2' : 'h-2.5',
+                      filled
+                        ? confidenceTier === 'low'
+                          ? 'bg-text-warning'
+                          : 'bg-text-tertiary'
+                        : 'bg-divider-regular',
+                    )}
+                  />
+                )
+              })}
+            </span>
+            {t`${confidencePct}% conf`}
+          </span>
+        </div>
       </div>
     </button>
   )
