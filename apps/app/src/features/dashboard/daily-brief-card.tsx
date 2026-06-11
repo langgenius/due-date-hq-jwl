@@ -179,7 +179,7 @@ function CatchupLine() {
   const count = catchupQuery.data?.alerts.length ?? 0
   if (count === 0) return null
   return (
-    <p className="min-w-0 text-sm leading-[1.5] text-text-primary">
+    <p className="min-w-0 text-sm text-text-primary">
       <Link to="/alerts" className="text-text-accent underline-offset-2 hover:underline">
         <Plural
           value={count}

@@ -282,12 +282,12 @@ export function AlertCard({
                   </span>
                 </span>
                 <h3
-                  className="line-clamp-1 min-w-0 text-xl leading-[1.25] font-semibold tracking-[-0.2px] text-text-primary"
+                  className="line-clamp-1 min-w-0 text-xl leading-tight font-semibold tracking-title text-text-primary"
                   title={alert.title}
                 >
                   {alert.title}
                 </h3>
-                <span className="shrink-0 text-base leading-[1.25] font-medium text-text-muted">
+                <span className="shrink-0 text-base leading-tight font-medium text-text-muted">
                   {openLabel}
                 </span>
                 <span className="flex-1" aria-hidden />

@@ -246,7 +246,7 @@ function RailItem({
         {/* Two lines only — date + wall-clock. The relative-time third
             line is gone entirely (batch 4 #9): in a date-sorted rail it
             restated the date column's information as noise. */}
-        <span className="text-caption-xs font-medium tracking-[-0.1px] text-text-tertiary tabular-nums">
+        <span className="text-caption-xs font-medium tracking-title text-text-tertiary tabular-nums">
           {timeLabel}
         </span>
       </div>
@@ -279,7 +279,7 @@ function RailItem({
             selected distinction. */}
         <span
           className={cn(
-            'line-clamp-2 text-base font-medium leading-[1.35]',
+            'line-clamp-2 text-base font-medium leading-snug',
             active ? 'text-text-primary' : 'text-text-secondary',
           )}
         >

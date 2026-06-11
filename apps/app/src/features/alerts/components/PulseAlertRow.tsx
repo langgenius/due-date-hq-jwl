@@ -27,7 +27,7 @@ import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
-import { formatRelativeTime } from '@/lib/utils'
+import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
 
 import { useAlertDetailFromCacheQueryOptions } from '../api'
 import { ActiveQueueChip } from './ActiveQueueChip'
@@ -138,15 +138,11 @@ function deriveActionText(kind: PulseAlertPublic['changeKind']): string {
   return 'Review change'
 }
 
+// Delegates to the canonical dictionary (docs/Design/date-formatting-canon.md):
+// dateShort — "May 18" in the current year, year appended otherwise.
 function formatMonthDay(iso: string | null): string | null {
   if (!iso) return null
-  const date = new Date(`${iso}T00:00:00.000Z`)
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(date)
+  return formatDatePretty(iso)
 }
 
 /**
@@ -566,7 +562,7 @@ function PulseAlertRow({
           // `text-lg` (the 16px token, not a literal) + text-primary —
           // the title is the row's primary read, so it takes the primary
           // ink while everything around it recedes (batch 3 #3 polish).
-          className="line-clamp-2 min-w-0 text-lg font-medium leading-[1.3] tracking-[-0.25px] text-text-primary"
+          className="line-clamp-2 min-w-0 text-lg font-medium tracking-title text-text-primary"
           title={alert.title}
         >
           {alert.title}

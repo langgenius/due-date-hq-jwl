@@ -211,7 +211,7 @@ function MigrationActivationIntro({
             voice. The H1 frames the page's purpose ("Activate your
             practice.") mirroring the eyebrow; the description names the
             outcomes once. */}
-        <h1 className="mt-3 text-2xl font-semibold leading-[1.15] tracking-tight text-text-primary">
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-text-primary">
           <Trans>Activate your practice.</Trans>
         </h1>
         <p className="mt-1 max-w-4xl text-sm leading-relaxed text-text-secondary">

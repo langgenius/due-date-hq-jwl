@@ -91,7 +91,7 @@ export function SuccessModal({
           {/* Hero — green confirmation */}
           <div className="flex flex-col items-center gap-3 border-b border-divider-subtle bg-state-success-hover px-8 py-7 text-center">
             <span className="grid size-14 place-items-center rounded-xl border border-state-success-hover-alt bg-background-default">
-              <CheckIcon className="size-7 text-text-success" aria-hidden />
+              <CheckIcon className="size-7 text-text-success" strokeWidth={1.75} aria-hidden />
             </span>
             <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
               <Plural

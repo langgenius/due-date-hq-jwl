@@ -96,6 +96,9 @@
   --text-item-title: 16px;
   --text-item-title--line-height: 22px;
   --text-item-title--font-weight: 600;
+  --text-row-name: 13px;
+  --text-row-name--line-height: 18px;
+  --text-row-name--font-weight: 500;
   --text-row-anchor: 14px;
   --text-row-anchor--line-height: 19px;
   --text-row-anchor--font-weight: 600;
@@ -140,6 +143,14 @@
    * --------------------------------------------------------------------- */
   --tracking-eyebrow: 0.08em;
   --tracking-eyebrow-tight: 0.06em;
+  /* 2026-06-11 (negative-tracking merge): the title/display counterparts.
+     `--tracking-title` is the standard title tightening (the region-title
+     token's letter-spacing sub-key uses the same value); `--tracking-display`
+     is the deeper cut for 18px+ display lines (drawer-morph titles, numeral
+     heroes). The old per-site px zoo (-0.1/-0.2/-0.25/-0.4/-0.6px) folds onto
+     these two em steps. */
+  --tracking-title: -0.01em;
+  --tracking-display: -0.02em;
 
   /* ===== Spacing ========================================================= */
   --space-0: 0px;

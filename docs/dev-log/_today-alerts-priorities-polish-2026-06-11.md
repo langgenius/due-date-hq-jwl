@@ -371,3 +371,32 @@ surface-title); 35 eyebrow trackings merged 0.5/0.6→eyebrow-tight,
 0.7/0.8→eyebrow. Guard flags all 9–32px; baseline = 0. Verified: /alerts
 chips clean, "Recent changes" lands exactly on Register-A spec
 (18/22.5/600/−0.18).
+
+## Addendum 16 — "全部": the remaining backlog cleared in one pass
+
+1. **TableRow side-bar motif REMOVED app-wide** (Yuqi's call): the 2px inset
+   left accent bar is gone from hover AND selected in the primitive — the
+   accent bg tint carries both states. /today's local hover:shadow-none
+   suppression deleted (redundant).
+2. **Negative-tracking merge**: --tracking-title (-0.01em) + --tracking-display
+   (-0.02em) tokens; 16 sites folded (-0.1/-0.2/-0.25/-0.01em/-0.015em→title,
+   -0.4/-0.6→display). Zero arbitrary negative tracking outside auth.
+3. **Leading consolidation**: 1.25→leading-tight, 1.35→snug, 1.45/1.55→relaxed
+   (drawer long-form), 1.3/1.15/1.5 dropped where ≈ token pairs. Zero
+   arbitrary leading outside auth.
+4. **--text-row-name** (13/18/500) — the workbench row-name archetype; adopted
+   at DeadlineRow + actions-list client cells.
+5. **Icon optics**: rule = lucide default stroke 2 for ≤20px; size-6+ display
+   icons use strokeWidth 1.75 (optical weight). Applied to the 3 outliers
+   (SuccessModal check, Step1Intake loader/file ×2); megaphone already 1.75.
+6. **Date dictionary** (docs/Design/date-formatting-canon.md): 5 tiers
+   (dateShort/dateFull/dateISO/dateTimeAbsolute/relative). Fixed: alert drawer
+   Received event + facts-grid Effective ISO→dateFull (the "May 16" vs
+   "2026-05-16" same-screen bug), /deadlines queue due columns ISO→dateShort,
+   formatDeadlineDate + formatMonthDay → thin delegates of formatDatePretty.
+7. **Daily Brief demo recap data**: generate-demo.ts seeds user_dashboard_visit
+   (anchor 2026-05-31) + 3 audit events (2 completions on status-consistent
+   obligations seq6/seq13 + 1 due-date move) per firm; demo.sql regenerated +
+   D1 reseeded. Fiber-verified live: recap = 2 completed (2 filed) · 1
+   reminder sent · since May 31 — the failed-brief state now leads with the
+   deterministic recap instead of a footnote-only card.

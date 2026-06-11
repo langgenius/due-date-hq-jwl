@@ -157,11 +157,11 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
             here, in the row, and in the rail. */}
         <JurisdictionChip code={alert.jurisdiction} />
         {/* d5PWuK title: 18/600 ls -0.2 line-height 1.25 primary. */}
-        <h3 className="min-w-0 flex-1 truncate text-xl leading-[1.25] font-semibold tracking-[-0.2px] text-text-primary">
+        <h3 className="min-w-0 flex-1 truncate text-xl leading-tight font-semibold tracking-title text-text-primary">
           {alert.title}
         </h3>
         {/* C9rliy "Open" muted: 20/500 ls -0.4 line-height 1.25. */}
-        <span className="shrink-0 text-xl leading-[1.25] font-medium tracking-[-0.4px] text-text-muted">
+        <span className="shrink-0 text-xl leading-tight font-medium tracking-display text-text-muted">
           {openLabel}
         </span>
       </div>
@@ -184,7 +184,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
                 {facts?.whatChanged?.from ?? '—'}
               </span>
               <ArrowRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
-              <span className="font-medium tracking-[-0.2px] whitespace-nowrap text-text-secondary">
+              <span className="font-medium tracking-title whitespace-nowrap text-text-secondary">
                 {facts?.whatChanged?.to ?? '—'}
               </span>
               {facts?.whatChanged?.newBadge ? (

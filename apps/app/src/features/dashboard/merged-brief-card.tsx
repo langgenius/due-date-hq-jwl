@@ -443,7 +443,7 @@ function BriefTableRow({
       // (spacing audit). hover:shadow-none suppresses the primitive's 2px
       // inset left accent bar — Yuqi: no side-border highlight inside a
       // rounded frame.
-      className="group relative cursor-pointer hover:!bg-background-default-hover hover:shadow-none focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-2.5"
+      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-2.5"
     >
       {/* FORM */}
       <TableCell>

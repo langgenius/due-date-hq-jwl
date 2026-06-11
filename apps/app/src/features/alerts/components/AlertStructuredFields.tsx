@@ -156,7 +156,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
   const effectiveValue = detail.effectiveFrom
     ? new Date(`${detail.effectiveFrom}T00:00:00.000Z`).getTime() <= Date.now()
       ? t`Immediate`
-      : formatDate(detail.effectiveFrom)
+      : formatDatePretty(detail.effectiveFrom, { alwaysShowYear: true })
     : '—'
   const entityValue =
     detail.entityTypes.length > 0 ? detail.entityTypes.join(' · ') : t`All entity types`
@@ -294,7 +294,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
                   <Trans>Action deadline</Trans>
                 </span>
               </span>
-              <span className="font-mono text-xl font-bold tracking-[-0.2px] text-text-primary tabular-nums">
+              <span className="font-mono text-xl font-bold tracking-title text-text-primary tabular-nums">
                 {formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}
               </span>
               {/* Derived countdown (deadline − today) — amber while the

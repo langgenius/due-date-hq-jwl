@@ -2125,6 +2125,62 @@ for (const f of FIRMS) {
       s('uahash_demo'),
       ts('2026-06-01 11:00:00'),
     ),
+    // 2026-06-11 (Daily Brief recap demo data): completion + due-date-move
+    // events INSIDE the recap window (the seeded dashboard visit below is
+    // anchored 2026-05-31, so June 1-2 activity counts). Entities chosen for
+    // status consistency: seq 6 (awaiting_signature) + seq 13 (efile_signed)
+    // both END as status='done' with no baked contradicting timestamps.
+    row(
+      s(sid('60', i, 4)),
+      s(f.id),
+      s(f.owner),
+      s('obligation_instance'),
+      s(obl(f, 6)),
+      s('obligation.status.updated'),
+      s('{"status":"review"}'),
+      s('{"status":"done"}'),
+      s('Return filed; awaiting e-sign authorization.'),
+      s('iphash_demo'),
+      s('uahash_demo'),
+      ts('2026-06-01 16:20:00'),
+    ),
+    row(
+      s(sid('60', i, 5)),
+      s(f.id),
+      s(f.members[Math.min(1, f.members.length - 1)]!.id),
+      s('obligation_instance'),
+      s(obl(f, 13)),
+      s('obligation.status.updated'),
+      s('{"status":"review"}'),
+      s('{"status":"done"}'),
+      'NULL',
+      s('iphash_demo'),
+      s('uahash_demo'),
+      ts('2026-06-02 10:05:00'),
+    ),
+    row(
+      s(sid('60', i, 6)),
+      s(f.id),
+      s(f.owner),
+      s('obligation_instance'),
+      s(obl(f, 2)),
+      s('obligation.due_date.updated'),
+      s('{"currentDueDate":"2026-06-15"}'),
+      s('{"currentDueDate":"2026-09-15"}'),
+      s('Disaster-relief overlay applied.'),
+      s('iphash_demo'),
+      s('uahash_demo'),
+      ts('2026-06-02 08:40:00'),
+    ),
+  )
+
+  // user_dashboard_visit — recap anchor (Daily Brief "since your last visit").
+  // Seeded to 2026-05-31 so the June 1-2 audit/reminder activity above lands
+  // in the window. The repo re-stamps lastVisitAt on first real load and
+  // preserves this as previousVisitAt, so the window survives the rollover.
+  add(
+    'user_dashboard_visit',
+    row(s(sid('72', i, 1)), s(f.owner), s(f.id), ts('2026-05-31 18:00:00'), 'NULL'),
   )
 
   // audit_evidence_package — one ready export per firm.
@@ -2560,6 +2616,7 @@ const SUPPORT_ORDER = [
   'email_outbox',
   'in_app_notification',
   'reminder',
+  'user_dashboard_visit',
   'client_readiness_request',
   'client_readiness_response',
   'obligation_saved_view',
@@ -2693,6 +2750,7 @@ const SUPPORT_COLS: Record<string, string[]> = {
     'created_at',
     'updated_at',
   ],
+  user_dashboard_visit: ['id', 'user_id', 'firm_id', 'last_visit_at', 'previous_visit_at'],
   audit_event: [
     'id',
     'firm_id',

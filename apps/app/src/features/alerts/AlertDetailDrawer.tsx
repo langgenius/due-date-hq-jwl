@@ -144,12 +144,7 @@ interface AlertDetailDrawerProps {
  * dates.
  */
 function formatDeadlineDate(iso: string): string {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(`${iso}T00:00:00.000Z`))
+  return formatDatePretty(iso, { alwaysShowYear: true })
 }
 
 function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
@@ -353,7 +348,7 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
     id: 'received',
     tone: 'muted',
     title: <Trans>Received from {alert.source}</Trans>,
-    meta: `${formatDate(alert.publishedAt)} · ${t`confidence ${confPct}%`}`,
+    meta: `${formatDatePretty(alert.publishedAt, { alwaysShowYear: true })} · ${t`confidence ${confPct}%`}`,
   })
   if (impacted > 0) {
     events.push({

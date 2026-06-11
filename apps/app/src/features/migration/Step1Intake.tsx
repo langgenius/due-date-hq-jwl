@@ -890,9 +890,9 @@ function DetectionHero({
         )}
       >
         {isReadingFile ? (
-          <LoaderCircleIcon className="size-9 shrink-0 animate-spin text-text-accent" aria-hidden />
+          <LoaderCircleIcon strokeWidth={1.75} className="size-9 shrink-0 animate-spin text-text-accent" aria-hidden />
         ) : (
-          <FileCheck2Icon className="size-9 shrink-0 text-text-success" aria-hidden />
+          <FileCheck2Icon strokeWidth={1.75} className="size-9 shrink-0 text-text-success" aria-hidden />
         )}
 
         {isReadingFile ? (

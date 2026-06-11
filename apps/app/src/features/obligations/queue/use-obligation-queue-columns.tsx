@@ -498,12 +498,12 @@ export function useObligationQueueColumns(
           const divergent = statutory && statutory !== internal
           return (
             <span className="text-xs tabular-nums text-text-secondary">
-              {formatDate(internal)}
+              {formatDatePretty(internal)}
               {divergent ? (
                 <>
                   <span className="mx-1 text-text-quaternary">·</span>
                   <span className="text-text-quaternary" title={t`Statutory deadline`}>
-                    {formatDate(statutory)}
+                    {formatDatePretty(statutory)}
                   </span>
                 </>
               ) : null}

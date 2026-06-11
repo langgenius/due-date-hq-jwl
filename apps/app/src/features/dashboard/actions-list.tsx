@@ -285,7 +285,7 @@ function ActionsTableRow({
           badge sits below and the owner avatar shrinks. */}
       <TableCell className="w-[440px] pl-[18px]">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="truncate text-sm font-medium text-text-primary">{row.clientName}</span>
+          <span className="truncate text-row-name text-text-primary">{row.clientName}</span>
           <span className="truncate text-xs text-text-tertiary transition-colors group-hover:text-text-secondary">
             {prompt}
           </span>
