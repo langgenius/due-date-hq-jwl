@@ -1964,12 +1964,12 @@ function AlertsEmptyState({
       description={
         lastChecked ? (
           <Trans>
-            When CA FTB, IRS, or another monitored source publishes a change, it will land here.
+            When IRS, CA FTB, or another monitored source publishes a change, it will land here.
             Last check: {formatRelativeTime(lastChecked)}.
           </Trans>
         ) : (
           <Trans>
-            When CA FTB, IRS, or another monitored source publishes a change, it will land here.
+            When IRS, CA FTB, or another monitored source publishes a change, it will land here.
           </Trans>
         )
       }

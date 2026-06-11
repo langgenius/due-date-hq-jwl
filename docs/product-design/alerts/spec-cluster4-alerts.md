@@ -217,7 +217,7 @@ Shared tokens seen across all frames:
 - Full-surface centered card. Icon circle (accent tint) with **`megaphone`** (size 36,
   `#155aef`). CTA uses **`settings-2`** icon.
 - **Title:** `No alerts — you're caught up` (20/600 `#101828`, tracking -0.2)
-- **Sub:** `When CA FTB, IRS, or another monitored source publishes a change, it will
+- **Sub:** `When IRS, CA FTB, or another monitored source publishes a change, it will
 land here. Last check: 12 minutes ago.` (14/500 `#676f83`, centered, lh1.5)
 - **CTA:** `Configure sources` (13/500 `#155aef`, link/quiet, leading `settings-2` icon)
 
@@ -241,7 +241,7 @@ land here. Last check: 12 minutes ago.` (14/500 `#676f83`, centered, lh1.5)
     title={<Trans>No alerts — you're caught up</Trans>}
     description={
       <Trans>
-        When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last
+        When IRS, CA FTB, or another monitored source publishes a change, it will land here. Last
         check: {lastCheck}.
       </Trans>
     }

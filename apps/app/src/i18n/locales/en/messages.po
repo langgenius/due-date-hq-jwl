@@ -17463,13 +17463,13 @@ msgid "What's new in 6.7"
 msgstr "What's new in 6.7"
 
 #: src/features/alerts/AlertsListPage.tsx
-msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here."
-msgstr "When CA FTB, IRS, or another monitored source publishes a change, it will land here."
+msgid "When IRS, CA FTB, or another monitored source publishes a change, it will land here."
+msgstr "When IRS, CA FTB, or another monitored source publishes a change, it will land here."
 
 #. placeholder {0}: formatRelativeTime(lastChecked)
 #: src/features/alerts/AlertsListPage.tsx
-msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last check: {0}."
-msgstr "When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last check: {0}."
+msgid "When IRS, CA FTB, or another monitored source publishes a change, it will land here. Last check: {0}."
+msgstr "When IRS, CA FTB, or another monitored source publishes a change, it will land here. Last check: {0}."
 
 #: src/routes/rules.library.tsx
 msgid "When is it due?"

@@ -17548,13 +17548,13 @@ msgid "What's new in 6.7"
 msgstr "6.7 版本新功能"
 
 #: src/features/alerts/AlertsListPage.tsx
-msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here."
-msgstr "当 CA FTB、IRS 或其他受监控来源发布变更时，会显示在这里。"
+msgid "When IRS, CA FTB, or another monitored source publishes a change, it will land here."
+msgstr "当 IRS、CA FTB 或其他受监控来源发布变更时，会显示在这里。"
 
 #. placeholder {0}: formatRelativeTime(lastChecked)
 #: src/features/alerts/AlertsListPage.tsx
-msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last check: {0}."
-msgstr "当 CA FTB、IRS 或其他受监控来源发布变更时，将显示在此处。上次检查：{0}。"
+msgid "When IRS, CA FTB, or another monitored source publishes a change, it will land here. Last check: {0}."
+msgstr "当 IRS、CA FTB 或其他受监控来源发布变更时，将显示在此处。上次检查：{0}。"
 
 #: src/routes/rules.library.tsx
 msgid "When is it due?"

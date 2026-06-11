@@ -1749,7 +1749,7 @@ export function PreviewRoute() {
                   variant="prominent"
                   icon={MegaphoneIcon}
                   title="No alerts — you're caught up"
-                  description="When CA FTB, IRS, or another monitored source publishes a change, it will land here."
+                  description="When IRS, CA FTB, or another monitored source publishes a change, it will land here."
                   cta={
                     <Button variant="link" size="sm">
                       Configure sources
