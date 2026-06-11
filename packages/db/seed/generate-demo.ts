@@ -349,6 +349,14 @@ const TAX: Record<string, TaxMeta> = {
   },
 }
 
+// Rule ids end in their tax-year cohort (annual returns due during 2026 are
+// the *.2025 cohort; in-year rules — estimated tax, quarterly 941, TX
+// franchise — are *.2026). The seeded tax_year/tax_period must match the
+// cohort, or annual returns get labeled one year ahead of the filing season.
+function taxYearOf(meta: TaxMeta): number {
+  return Number(meta.ruleId.slice(meta.ruleId.lastIndexOf('.') + 1))
+}
+
 // ---------------------------------------------------------------------------
 // Firms (identity preserved; we only generate their business data).
 // ---------------------------------------------------------------------------
@@ -716,6 +724,7 @@ interface OblRow {
 
 function buildObligationRow(firm: Firm, spec: OblSpec): { sql: string; id: string } {
   const tax = TAX[spec.taxType]!
+  const taxYear = taxYearOf(tax)
   const client = CLIENTS.find((c) => c.seq === spec.client)!
   const id = uuid(firm.oblPfx, spec.seq)
   const clientId = uuid(firm.clientPfx, client.seq)
@@ -732,7 +741,7 @@ function buildObligationRow(firm: Firm, spec: OblSpec): { sql: string; id: strin
     client_filing_profile_id: s(profileId),
     rule_id: s(tax.ruleId),
     tax_type: s(spec.taxType),
-    tax_year: 2026,
+    tax_year: taxYear,
     tax_year_type: s('calendar'),
     jurisdiction: s(tax.jur),
     obligation_type: s(tax.type),
@@ -741,8 +750,8 @@ function buildObligationRow(firm: Firm, spec: OblSpec): { sql: string; id: strin
     recurrence: s(tax.recurrence),
     risk_level: s('med'),
     generation_source: s('manual'),
-    tax_period_start: ts('2026-01-01'),
-    tax_period_end: ts('2026-12-31'),
+    tax_period_start: ts(`${taxYear}-01-01`),
+    tax_period_end: ts(`${taxYear}-12-31`),
     tax_period_kind: s('calendar'),
     tax_period_source: s('client_default'),
     base_due_date: ts(baseDue),

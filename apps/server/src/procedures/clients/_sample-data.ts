@@ -152,7 +152,12 @@ export function buildSampleObligations(
   clientId: string,
   now: Date,
 ): ObligationCreateInput[] {
-  const taxYear = now.getUTCFullYear()
+  // All sample obligations are annual returns: the season being filed during
+  // calendar year Y covers tax year Y-1 (the rule catalog pairs taxYear N with
+  // due dates in N+1; UI "current tax year" = year - 1). If prepayment-style
+  // specs (estimated tax, CA LLC annual tax) are ever added, taxYear must move
+  // onto SampleObligationSpec per row instead of this shared constant.
+  const taxYear = now.getUTCFullYear() - 1
   return spec.obligations.map((o) => ({
     clientId,
     taxType: o.taxType,
