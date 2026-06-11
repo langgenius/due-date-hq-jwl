@@ -23,7 +23,6 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
-import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
 // Import retained but commented out alongside the section mount.
 // Restore both when ChangesSinceLastSection is brought back.
@@ -364,42 +363,6 @@ export function DashboardRoute() {
           because they can MOVE the deadlines below — read what changed, then act
           on the brief. The section self-filters to client-affecting alerts. */}
       <NeedsAttentionSection />
-
-      {/* Daily digest (restored, Yuqi "bring it back") — yesterday's recap +
-          today's plan in prose, ABOVE the Priorities list. Its count chips are
-          suppressed (showCounts=false) because the Priorities card already
-          carries the overdue/today/this-week counts. */}
-      {(() => {
-        const brief =
-          data?.brief ??
-          (scope === 'me' && data
-            ? ({
-                status: 'pending',
-                generatedAt: null,
-                expiresAt: null,
-                text: null,
-                citations: null,
-                aiOutputId: null,
-                errorCode: null,
-              } as const)
-            : null)
-        return (
-          <DailyBriefCard
-            scope={scope}
-            brief={brief}
-            recap={data?.recap ?? null}
-            todayCounts={{
-              overdueCount: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
-              waitingOnClientCount:
-                facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0,
-              dueThisWeekCount: data?.summary?.dueThisWeekCount ?? 0,
-            }}
-            concentration={data?.summary?.overdueConcentration ?? null}
-            onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
-            showCounts={false}
-          />
-        )
-      })()}
 
       {/* Today's brief — the deadline queue itself (by time), opened by a
           one-line deterministic summary, with the count chips as the view
