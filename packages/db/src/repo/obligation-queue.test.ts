@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { SQL } from 'drizzle-orm'
+import { SQLiteSyncDialect } from 'drizzle-orm/sqlite-core'
 import type { ObligationStatus, ReadinessResponseStatus } from '@duedatehq/core/obligation-workflow'
 import type { Db } from '../client'
 import { makeObligationQueueRepo, normalizeObligationQueueSearch } from './obligation-queue'
@@ -87,7 +89,7 @@ function createFakeDb(
 ) {
   const limit = vi.fn(async (_n: number) => rows)
   const orderBy = vi.fn(() => ({ limit }))
-  const where = vi.fn(() => ({ orderBy }))
+  const where = vi.fn((_filter: SQL | undefined) => ({ orderBy }))
   const leftJoin = vi.fn(() => ({ where }))
   const innerJoin = vi.fn(() => ({ leftJoin, where }))
   const from = vi.fn(() => ({ innerJoin, leftJoin }))
@@ -263,8 +265,34 @@ describe('makeObligationQueueRepo.list', () => {
     expect(normalizeObligationQueueSearch('  dddjkfjjjkfjksalj;flaslfkafsadfj;laksjf  ')).toBe(
       'dddjkfjjjkfjksalj flaslfkafsadfj laksjf',
     )
-    expect(normalizeObligationQueueSearch('%_Acme\\LLC_'.repeat(8))?.length).toBeLessThanOrEqual(64)
+    // D1 caps LIKE patterns at 50 chars (SQLITE_LIMIT_LIKE_PATTERN_LENGTH);
+    // the needle adds two `%` wildcards, so the normalized search must stay
+    // ≤ 48 or every queue read with a long search throws "pattern too complex".
+    expect(normalizeObligationQueueSearch('%_Acme\\LLC_'.repeat(8))?.length).toBeLessThanOrEqual(48)
+    expect(normalizeObligationQueueSearch('x'.repeat(64))?.length).toBe(48)
     expect(normalizeObligationQueueSearch(';;;')).toBeNull()
+  })
+
+  it('searches client name, form name, tax type, and assignee with one needle', async () => {
+    const fake = createFakeDb([makeRow({ id: 'a' })])
+    const repo = makeObligationQueueRepo(fake.db, 'firm_a')
+
+    await repo.list({ search: 'Form 1120-S' })
+
+    const [whereFilter] = fake.where.mock.calls[0] ?? []
+    if (!whereFilter) throw new Error('expected the queue read to apply a where filter')
+    const query = new SQLiteSyncDialect().sqlToQuery(whereFilter)
+    expect(query.sql).toContain(`"client"."name" like ? escape '\\'`)
+    expect(query.sql).toContain(`"obligation_instance"."form_name" like ? escape '\\'`)
+    expect(query.sql).toContain(`"obligation_instance"."tax_type" like ? escape '\\'`)
+    expect(query.sql).toContain(`"client"."assignee_name" like ? escape '\\'`)
+    expect(query.params.filter((param) => param === '%form 1120-s%')).toHaveLength(4)
+    // D1 LIKE pattern hard limit — see normalize test above.
+    for (const param of query.params) {
+      if (typeof param === 'string' && param.includes('%')) {
+        expect(param.length).toBeLessThanOrEqual(50)
+      }
+    }
   })
 
   it('returns rows with no nextCursor when limit is not exceeded', async () => {

@@ -324,7 +324,12 @@ const MAX_READ_ROWS = 1000
 const MAX_FACET_OPTIONS = 250
 const EVIDENCE_COUNT_BATCH_SIZE = 90
 const ID_LOOKUP_BATCH_SIZE = 90
-const MAX_SEARCH_LENGTH = 64
+// D1 caps LIKE patterns at 50 chars (SQLITE_LIMIT_LIKE_PATTERN_LENGTH); longer
+// ones throw "LIKE or GLOB pattern too complex" at runtime. The needle wraps
+// the search in two `%` wildcards, so the search itself must stay ≤ 48. The
+// contract still accepts 64 (OBLIGATION_QUEUE_SEARCH_MAX_LENGTH); the excess
+// is truncated here — harmless for substring search.
+const MAX_SEARCH_LENGTH = 48
 const LIKE_WILDCARD_RE = /[\\%_]/g
 const UNSAFE_SEARCH_CHARS_RE = /[^\p{L}\p{N}\s&'.-]+/gu
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -750,7 +755,20 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
       const search = normalizeObligationQueueSearch(input.search)
       if (search) {
         const needle = `%${escapeLikePattern(search)}%`
-        filters.push(sql`${client.name} like ${needle} escape '\\'`)
+        // The toolbar promises "Search client, form, or assignee". Form
+        // matches both the rule-authored display name (form_name, e.g.
+        // "Form 1120-S") and the raw code (tax_type, e.g. "federal_1120s")
+        // because form_name is nullable while the visible Form column label
+        // derives from tax_type. Assignee mirrors the assignee facet filter
+        // (client.assignee_name).
+        filters.push(
+          or(
+            sql`${client.name} like ${needle} escape '\\'`,
+            sql`${obligationInstance.formName} like ${needle} escape '\\'`,
+            sql`${obligationInstance.taxType} like ${needle} escape '\\'`,
+            sql`${client.assigneeName} like ${needle} escape '\\'`,
+          )!,
+        )
       }
 
       const orderBy =
