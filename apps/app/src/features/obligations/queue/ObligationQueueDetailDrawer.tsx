@@ -1878,8 +1878,11 @@ export function ObligationQueueDetailDrawer({
           // gray-wash (bg-background-subtle) scroll surface hosting white
           // cards, centered on the same 760px document measure as the alert
           // body — single-column now, so the prior 1100px two-column measure
-          // is gone. pt-6 matches the alert body's header→body breathing.
-          isPageMode && 'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+          // 2026-06-10 (Yuqi page-polish #3/#17 "移除top padding"): the body's
+          // top padding is dropped so the tab bar sits tight under the date
+          // strip above. The sticky tab bar's own pt-3/pb-3 carries the
+          // breathing room now.
+          isPageMode && 'bg-background-subtle [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
         )}
         onScroll={
           isPageMode
@@ -2121,7 +2124,13 @@ export function ObligationQueueDetailDrawer({
                     // tab `gap-1` → `gap-6` opens 24px between tabs so
                     // they remain individually scannable now that each
                     // one no longer carries its own `px-2`.
-                    className="flex h-11 w-full justify-start gap-6 border-b border-divider-subtle text-sm"
+                    // 2026-06-10 (Yuqi page-polish #6 "gap小"): the inter-tab
+                    // gap tightens from 24px to 16px in page mode so the four
+                    // tabs read as a closer-knit group. Panel/sheet keep gap-6.
+                    className={cn(
+                      'flex h-11 w-full justify-start border-b border-divider-subtle text-sm',
+                      isPageMode ? 'gap-4' : 'gap-6',
+                    )}
                   >
                     {/* 2026-05-26 (Yuqi feedback — "tabs can be more
                         obvious, signalling people hey check these
@@ -2263,7 +2272,10 @@ export function ObligationQueueDetailDrawer({
             </div>
             <TabsContent value="summary" key="summary-content">
               <motion.div
-                className="pt-6"
+                // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
+                // per-tab content drops its 24px top padding in page mode so it
+                // sits tight under the tab bar. Panel/sheet keep pt-6.
+                className={cn(isPageMode ? '' : 'pt-6')}
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
@@ -2431,7 +2443,11 @@ export function ObligationQueueDetailDrawer({
                                 <li key={item.id} className="flex items-start gap-3">
                                   <span
                                     className={cn(
-                                      'mt-px flex size-[18px] shrink-0 items-center justify-center rounded-sm border',
+                                      // 2026-06-10 (Yuqi page-polish #15
+                                      // "checkbox太大"): the checklist box
+                                      // shrinks 18px → 16px (size-4) so it reads
+                                      // as a checkmark glyph, not a tile.
+                                      'mt-px flex size-4 shrink-0 items-center justify-center rounded-sm border',
                                       isDone
                                         ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
                                         : 'border-divider-regular bg-background-default',
@@ -2445,7 +2461,14 @@ export function ObligationQueueDetailDrawer({
                                       className={cn(
                                         'text-sm leading-tight',
                                         isDone
-                                          ? 'text-text-secondary line-through decoration-text-tertiary/40'
+                                          ? // 2026-06-10 (Yuqi page-polish #14
+                                            // "划掉太浅了"): the completed-item
+                                            // strikethrough was decoration-
+                                            // text-tertiary/40 — almost
+                                            // invisible. Darkened to a solid
+                                            // text-secondary line so "done"
+                                            // reads clearly.
+                                            'text-text-secondary line-through decoration-text-secondary'
                                           : 'text-text-primary',
                                       )}
                                     >
@@ -2500,7 +2523,10 @@ export function ObligationQueueDetailDrawer({
                               <li
                                 key={event.id}
                                 className={cn(
-                                  'flex items-center gap-3 px-5 py-3.5',
+                                  // 2026-06-10 (Yuqi page-polish #16 "更扁"):
+                                  // the Recent-activity rows flatten from py-3.5
+                                  // to py-2.5 so the list reads shorter/denser.
+                                  'flex items-center gap-3 px-5 py-2.5',
                                   index > 0 && 'border-t border-divider-subtle',
                                 )}
                               >
@@ -2689,108 +2715,93 @@ export function ObligationQueueDetailDrawer({
                       rail is gone). Each is wrapped in the shared
                       DetailSectionCard chrome (gray header band) so they match
                       the alert's zero-hand-rolled-card system — parity #4. */}
-                  <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                    <DetailSectionCard title={<Trans>Ownership</Trans>}>
-                      <div className="flex items-center gap-2.5">
-                        <AssigneeAvatar
-                          name={row.assigneeName ?? t`Unassigned`}
-                          title={row.assigneeName ?? t`Unassigned`}
-                          size="sm"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-caption-xs text-text-tertiary">
-                            <Trans>Assignee</Trans>
-                          </p>
-                          <p className="truncate text-sm font-medium text-text-primary">
-                            {row.assigneeName ?? <Trans>Unassigned</Trans>}
-                          </p>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            render={
-                              // 2026-06-10 (Yuqi critique contrast pass): the
-                              // "Change" target was a tiny h-7 ghost in
-                              // accent-solid (~3:1 on white). Switched to a
-                              // bordered outline button at the default size so
-                              // it clears AA and reads as a real affordance.
-                              <Button variant="outline" size="sm" className="h-8 font-medium">
-                                <Trans>Change</Trans>
-                              </Button>
-                            }
+                  {/* 2026-06-10 (Yuqi page-polish #18/#19 "不要" ×2): the
+                      Ownership + Linked-from footer 2-up is dropped in page mode.
+                      Ownership duplicates the footer Assign action; Linked-from's
+                      "Client profile" duplicates the hero client chip (which
+                      already navigates to the client). Panel/sheet keep both. */}
+                  {!isPageMode ? (
+                    <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                      <DetailSectionCard title={<Trans>Ownership</Trans>}>
+                        <div className="flex items-center gap-2.5">
+                          <AssigneeAvatar
+                            name={row.assigneeName ?? t`Unassigned`}
+                            title={row.assigneeName ?? t`Unassigned`}
+                            size="sm"
                           />
-                          <DropdownMenuContent align="end" className="w-56">
-                            {assignableMembers.length > 0 ? (
-                              <DropdownMenuRadioGroup
-                                value={row.assigneeId ?? ''}
-                                onValueChange={(value) =>
-                                  assignMutation.mutate({ id: row.id, assigneeId: value || null })
-                                }
-                              >
-                                {assignableMembers.map((member) => (
-                                  <DropdownMenuRadioItem
-                                    key={member.assigneeId}
-                                    value={member.assigneeId}
-                                  >
-                                    {member.name}
-                                  </DropdownMenuRadioItem>
-                                ))}
-                              </DropdownMenuRadioGroup>
-                            ) : (
-                              <DropdownMenuItem disabled>
-                                <Trans>No assignable teammates</Trans>
-                              </DropdownMenuItem>
-                            )}
-                            {row.assigneeId ? (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    assignMutation.mutate({ id: row.id, assigneeId: null })
+                          <div className="min-w-0 flex-1">
+                            <p className="text-caption-xs text-text-tertiary">
+                              <Trans>Assignee</Trans>
+                            </p>
+                            <p className="truncate text-sm font-medium text-text-primary">
+                              {row.assigneeName ?? <Trans>Unassigned</Trans>}
+                            </p>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={
+                                // 2026-06-10 (Yuqi critique contrast pass): the
+                                // "Change" target was a tiny h-7 ghost in
+                                // accent-solid (~3:1 on white). Switched to a
+                                // bordered outline button at the default size so
+                                // it clears AA and reads as a real affordance.
+                                <Button variant="outline" size="sm" className="h-8 font-medium">
+                                  <Trans>Change</Trans>
+                                </Button>
+                              }
+                            />
+                            <DropdownMenuContent align="end" className="w-56">
+                              {assignableMembers.length > 0 ? (
+                                <DropdownMenuRadioGroup
+                                  value={row.assigneeId ?? ''}
+                                  onValueChange={(value) =>
+                                    assignMutation.mutate({ id: row.id, assigneeId: value || null })
                                   }
                                 >
-                                  <Trans>Clear assignee</Trans>
+                                  {assignableMembers.map((member) => (
+                                    <DropdownMenuRadioItem
+                                      key={member.assigneeId}
+                                      value={member.assigneeId}
+                                    >
+                                      {member.name}
+                                    </DropdownMenuRadioItem>
+                                  ))}
+                                </DropdownMenuRadioGroup>
+                              ) : (
+                                <DropdownMenuItem disabled>
+                                  <Trans>No assignable teammates</Trans>
                                 </DropdownMenuItem>
-                              </>
-                            ) : null}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </DetailSectionCard>
-                    <DetailSectionCard title={<Trans>Linked from</Trans>}>
-                      <Link
-                        to={clientDetailPath({ id: row.clientId, name: row.clientName })}
-                        className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                      >
-                        <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
-                          <UsersIcon className="size-3.5" aria-hidden />
-                        </span>
-                        <span className="min-w-0 flex-1 leading-tight">
-                          <span className="block truncate text-sm font-medium text-text-primary">
-                            {row.clientName}
-                          </span>
-                          <span className="block text-caption-xs text-text-tertiary">
-                            <Trans>Client profile</Trans>
-                          </span>
-                        </span>
-                        <ExternalLinkIcon
-                          className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
-                          aria-hidden
-                        />
-                      </Link>
-                      {row.taxYear ? (
+                              )}
+                              {row.assigneeId ? (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      assignMutation.mutate({ id: row.id, assigneeId: null })
+                                    }
+                                  >
+                                    <Trans>Clear assignee</Trans>
+                                  </DropdownMenuItem>
+                                </>
+                              ) : null}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </DetailSectionCard>
+                      <DetailSectionCard title={<Trans>Linked from</Trans>}>
                         <Link
                           to={clientDetailPath({ id: row.clientId, name: row.clientName })}
                           className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                         >
                           <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
-                            <CalendarClockIcon className="size-3.5" aria-hidden />
+                            <UsersIcon className="size-3.5" aria-hidden />
                           </span>
                           <span className="min-w-0 flex-1 leading-tight">
                             <span className="block truncate text-sm font-medium text-text-primary">
-                              <Trans>TY {row.taxYear - 1}</Trans>
+                              {row.clientName}
                             </span>
                             <span className="block text-caption-xs text-text-tertiary">
-                              <Trans>Prior return</Trans>
+                              <Trans>Client profile</Trans>
                             </span>
                           </span>
                           <ExternalLinkIcon
@@ -2798,15 +2809,40 @@ export function ObligationQueueDetailDrawer({
                             aria-hidden
                           />
                         </Link>
-                      ) : null}
-                    </DetailSectionCard>
-                  </div>
+                        {row.taxYear ? (
+                          <Link
+                            to={clientDetailPath({ id: row.clientId, name: row.clientName })}
+                            className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                          >
+                            <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
+                              <CalendarClockIcon className="size-3.5" aria-hidden />
+                            </span>
+                            <span className="min-w-0 flex-1 leading-tight">
+                              <span className="block truncate text-sm font-medium text-text-primary">
+                                <Trans>TY {row.taxYear - 1}</Trans>
+                              </span>
+                              <span className="block text-caption-xs text-text-tertiary">
+                                <Trans>Prior return</Trans>
+                              </span>
+                            </span>
+                            <ExternalLinkIcon
+                              className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
+                              aria-hidden
+                            />
+                          </Link>
+                        ) : null}
+                      </DetailSectionCard>
+                    </div>
+                  ) : null}
                 </div>
               </motion.div>
             </TabsContent>
             <TabsContent value="readiness" key="readiness-content">
               <motion.div
-                className="pt-6"
+                // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
+                // per-tab content drops its 24px top padding in page mode so it
+                // sits tight under the tab bar. Panel/sheet keep pt-6.
+                className={cn(isPageMode ? '' : 'pt-6')}
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
@@ -3621,7 +3657,10 @@ export function ObligationQueueDetailDrawer({
             </TabsContent>
             <TabsContent value="extension" key="extension-content">
               <motion.div
-                className="pt-6"
+                // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
+                // per-tab content drops its 24px top padding in page mode so it
+                // sits tight under the tab bar. Panel/sheet keep pt-6.
+                className={cn(isPageMode ? '' : 'pt-6')}
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
@@ -4002,7 +4041,10 @@ export function ObligationQueueDetailDrawer({
             </TabsContent>
             <TabsContent value="evidence" key="evidence-content">
               <motion.div
-                className="pt-6"
+                // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
+                // per-tab content drops its 24px top padding in page mode so it
+                // sits tight under the tab bar. Panel/sheet keep pt-6.
+                className={cn(isPageMode ? '' : 'pt-6')}
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
@@ -4315,7 +4357,10 @@ export function ObligationQueueDetailDrawer({
             {visibleTabs.has('audit') ? (
               <TabsContent value="audit" key="audit-content">
                 <motion.div
-                  className="pt-6"
+                  // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
+                  // per-tab content drops its 24px top padding in page mode so
+                  // it sits tight under the tab bar. Panel/sheet keep pt-6.
+                  className={cn(isPageMode ? '' : 'pt-6')}
                   initial={{ x: 12, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
