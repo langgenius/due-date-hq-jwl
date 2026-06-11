@@ -1094,7 +1094,7 @@ export function PathToFilingSummary({
                     // Caption is smaller than the date above + lighter (muted)
                     // so it reads as sub-meta.
                     className="text-center text-[9px] font-medium uppercase tracking-wide leading-tight text-text-muted"
-                    title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days overdue.`}
+                    title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()))} days overdue.`}
                   >
                     <Trans>Past deadline</Trans>
                   </span>
@@ -2033,7 +2033,10 @@ export function ActiveStageDetailCard({
   // surface for the lateness story.
   const isPastInternalDue = row.daysUntilDue < 0
   const showOverdueBanner = isPastInternalDue && !TIMELINE_TERMINAL_STAGE_KEYS.has(stageKey)
-  const daysPastDeadline = Math.abs(row.daysUntilDue)
+  // Live today-based count (matches the date cards' dayDiff) so the active-card
+  // overdue number agrees with the cards/banner instead of the server's
+  // `daysUntilDue` snapshot, which can lag a day.
+  const daysPastDeadline = Math.abs(daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()))
   return (
     <section
       aria-label={t`Active stage detail`}

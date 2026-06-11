@@ -73,6 +73,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
   cn,
+  daysBetween,
   formatCents,
   formatDate,
   formatDatePretty,
@@ -1585,7 +1586,9 @@ export function ObligationQueueDetailDrawer({
                     <Trans>
                       Past deadline ·{' '}
                       <Plural
-                        value={Math.abs(row.daysUntilDue)}
+                        value={Math.abs(
+                          daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()),
+                        )}
                         one="# day overdue"
                         other="# days overdue"
                       />
