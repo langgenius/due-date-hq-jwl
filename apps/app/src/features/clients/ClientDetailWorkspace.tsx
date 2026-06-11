@@ -916,15 +916,11 @@ export function ClientDetailWorkspace({
                 they sit alongside Contacts in the rail rather than in the
                 main scan column. See <ClientDetailRail>. */}
 
-            {/* Active alerts + summary strip stay ABOVE the tabs —
-                they're global signals about the client ("anything wrong
-                with this client right now?") that apply regardless of
-                which tab is open. */}
-            <ClientActiveAlertsSection
-              alertMatches={alertMatches}
-              extensionPaymentMismatches={extensionPaymentMismatches}
-            />
-
+            {/* Active alerts moved to the right rail (2026-06-10, Yuqi "move
+                alert to the right side panel as well") — they're per-client
+                signals that belong beside Notes + Contacts, not in the scan
+                column. The summary strip stays above the tabs: it's the
+                client's at-a-glance state. */}
             <ClientSummaryStrip client={client} obligations={obligations} />
 
             {/* Tabbed body. Reasoning in
@@ -1329,6 +1325,8 @@ export function ClientDetailWorkspace({
               client={client}
               canWrite={canUpdateClient}
               onEditNotes={() => setNotesOpen(true)}
+              alertMatches={alertMatches}
+              extensionPaymentMismatches={extensionPaymentMismatches}
             />
           )}
         </aside>
@@ -1407,11 +1405,15 @@ function ClientDetailRail({
   client,
   canWrite,
   onEditNotes,
+  alertMatches,
+  extensionPaymentMismatches,
 }: {
   client: ClientPublic
   canWrite: boolean
   /** Opens the controlled notes slide-in (the rail notes card's click target). */
   onEditNotes: () => void
+  alertMatches: readonly ClientAlertMatch[]
+  extensionPaymentMismatches: readonly ObligationInstancePublic[]
 }) {
   const { t } = useLingui()
   const contactItems = useMemo(() => buildClientHeaderContactItems(client), [client])
@@ -1433,6 +1435,12 @@ function ClientDetailRail({
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-[18px] overflow-y-auto">
+      {/* Active alerts — per-client signals; most urgent, so they lead the
+          rail. Reuses <ClientActiveAlertsSection>; self-suppresses at zero. */}
+      <ClientActiveAlertsSection
+        alertMatches={alertMatches}
+        extensionPaymentMismatches={extensionPaymentMismatches}
+      />
       {/* Notes card — persistent client context, moved into the rail
           (Yuqi). Reuses <ClientNotesStrip>; self-suppresses when empty. */}
       <ClientNotesStrip client={client} canWrite={canWrite} onOpenEditor={onEditNotes} />
@@ -1623,19 +1631,24 @@ function ClientActiveAlertsCard({ match }: { match: ClientAlertMatch }) {
   // leading chip so the CPA sees what kind of filing is affected;
   // source goes on the secondary line. If a future schema iteration
   // adds a jurisdiction column, the chip becomes the 2-letter state.
+  // Rail-friendly vertical layout: the tax-code chip + Review action share a
+  // top row, then the title + source get the full rail width below so the
+  // summary never crushes to one-word-per-line in the 320px rail.
   return (
-    <div className="flex flex-wrap items-start gap-3 px-4 py-3">
-      <Badge variant="secondary" className="rounded-sm uppercase">
-        {formatTaxCode(match.taxType)}
-      </Badge>
-      <div className="min-w-0 flex-1">
+    <div className="flex flex-col gap-2 px-4 py-3">
+      <div className="flex items-center justify-between gap-2">
+        <Badge variant="secondary" className="shrink-0 rounded-sm uppercase">
+          {formatTaxCode(match.taxType)}
+        </Badge>
+        <Button variant="ghost" size="sm" className="-mr-1.5 shrink-0" render={<Link to="/alerts" />}>
+          <Trans>Review</Trans>
+          <ChevronRightIcon data-icon="inline-end" aria-hidden />
+        </Button>
+      </div>
+      <div className="min-w-0">
         <p className="text-sm font-medium text-text-primary">{match.title}</p>
         <p className="mt-0.5 text-xs text-text-tertiary">{match.source}</p>
       </div>
-      <Button variant="ghost" size="sm" render={<Link to="/alerts" />}>
-        <Trans>Review</Trans>
-        <ChevronRightIcon data-icon="inline-end" aria-hidden />
-      </Button>
     </div>
   )
 }
