@@ -1294,6 +1294,85 @@ describe('makePulseOpsRepo', () => {
           firmId: 'firm-new',
           matchedCount: 0,
           needsReviewCount: 1,
+          origin: 'catchup',
+        }),
+      ),
+    ).toBe(true)
+    // State, not news: catch-up only materializes alert rows — no digest email
+    // or in-app notification writes ride along (those are live-approval-only).
+    expect(directStatements).toHaveLength(1)
+  })
+
+  it('keeps origin out of the upsert SET so a refresh never relabels a row', async () => {
+    // First-writer-wins: the daily sweep refreshing a firm's 'live' row must not
+    // flip it to 'catchup' (it would vanish from new-alert counters), and a
+    // dup-fold re-fan-out must not flip a 'catchup' row back to 'live' (it would
+    // resurface months-old news as "new").
+    const protectivePulse = {
+      id: 'pulse-protective',
+      status: 'approved' as const,
+      actionMode: 'review_only' as const,
+      changeKind: 'protective_claim_window' as const,
+      parsedJurisdiction: 'FED',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      reverifyRuleIdsJson: [],
+      structuredChangeJson: { kind: 'protective_claim_window', actionDeadline: '2026-07-10' },
+    }
+    const { db, directStatements } = fakeDb([
+      [{ id: 'pulse-protective', changeKind: 'protective_claim_window' }], // still-open candidates
+      [protectivePulse], // getPulse inside the fan-out
+      [{ id: 'firm-new' }], // active firms
+      [{ firmId: 'firm-new', clientId: 'client-a', taxType: 'federal_1040' }], // protective scan
+    ])
+
+    await makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(
+      'firm-new',
+      new Date('2026-06-01T00:00:00.000Z'),
+    )
+
+    const insertStatement = directStatements.find((statement) =>
+      statementHasValue(statement, { pulseId: 'pulse-protective', firmId: 'firm-new' }),
+    ) as { onConflictDoUpdate: ReturnType<typeof vi.fn> } | undefined
+    expect(insertStatement).toBeDefined()
+    const conflictSet = insertStatement?.onConflictDoUpdate.mock.calls[0]?.[0] as
+      | { set: Record<string, unknown> }
+      | undefined
+    expect(conflictSet).toBeDefined()
+    expect(Object.keys(conflictSet?.set ?? {})).not.toContain('origin')
+  })
+
+  it('stamps live re-fan-out rows origin=live', async () => {
+    const protectivePulse = {
+      id: 'pulse-protective',
+      status: 'approved' as const,
+      actionMode: 'review_only' as const,
+      changeKind: 'protective_claim_window' as const,
+      parsedJurisdiction: 'FED',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      reverifyRuleIdsJson: [],
+      structuredChangeJson: { kind: 'protective_claim_window', actionDeadline: '2026-07-10' },
+    }
+    const { db, directStatements } = fakeDb([
+      [protectivePulse], // getPulse in refreshFirmAlertsForApprovedPulse
+      [protectivePulse], // getPulse inside the fan-out
+      [{ id: 'firm-a' }], // active firms
+      [{ firmId: 'firm-a', clientId: 'client-a', taxType: 'federal_1040' }], // protective scan
+    ])
+
+    await makePulseOpsRepo(db).refreshFirmAlertsForApprovedPulse('pulse-protective')
+
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, {
+          pulseId: 'pulse-protective',
+          firmId: 'firm-a',
+          origin: 'live',
         }),
       ),
     ).toBe(true)

@@ -24,6 +24,14 @@ export const PULSE_FIRM_ALERT_STATUSES = [
 ] as const
 export type PulseFirmAlertStatus = (typeof PULSE_FIRM_ALERT_STATUSES)[number]
 
+// How a firm got its alert row: 'live' = approval-time fan-out or the daily
+// still-open sweep (counts as "new" on splash/daily-brief), 'catchup' = the
+// onboarding catch-up over the already-in-effect landscape (state, not news —
+// excluded from new-alert counters, rendered in the pinned "Already in effect"
+// band). First-writer-wins: set on INSERT, never rewritten by a later refresh.
+export const PULSE_FIRM_ALERT_ORIGINS = ['live', 'catchup'] as const
+export type PulseFirmAlertOrigin = (typeof PULSE_FIRM_ALERT_ORIGINS)[number]
+
 export const PULSE_CHANGE_KINDS = [
   'deadline_shift',
   'filing_requirement',
@@ -290,6 +298,7 @@ export const pulseFirmAlert = sqliteTable(
     status: text('status', { enum: PULSE_FIRM_ALERT_STATUSES }).notNull().default('matched'),
     matchedCount: integer('matched_count').notNull().default(0),
     needsReviewCount: integer('needs_review_count').notNull().default(0),
+    origin: text('origin', { enum: PULSE_FIRM_ALERT_ORIGINS }).notNull().default('live'),
     dismissedBy: text('dismissed_by').references(() => user.id, { onDelete: 'set null' }),
     dismissedAt: integer('dismissed_at', { mode: 'timestamp_ms' }),
 

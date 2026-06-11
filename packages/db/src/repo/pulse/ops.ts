@@ -42,6 +42,7 @@ import {
   type NewPulseSourceSnapshot,
   type NewRuleSourceDriftState,
   type Pulse,
+  type PulseFirmAlertOrigin,
   type PulseSourceSnapshotStatus,
   type PulseStatus,
 } from '../../schema/pulse'
@@ -189,7 +190,12 @@ export function makePulseOpsRepo(db: Db) {
 
   async function refreshFirmAlertsForPulse(
     pulseId: string,
-    opts?: { firmIds?: string[]; preserveStatus?: boolean; skipZeroImpact?: boolean },
+    opts?: {
+      firmIds?: string[]
+      preserveStatus?: boolean
+      skipZeroImpact?: boolean
+      origin?: PulseFirmAlertOrigin
+    },
   ): Promise<number> {
     const row = await getPulse(pulseId)
     if (!row || row.status !== 'approved') throw new PulseRepoError('not_found')
@@ -356,6 +362,7 @@ export function makePulseOpsRepo(db: Db) {
         status: 'matched',
         matchedCount: count.matchedCount,
         needsReviewCount: count.needsReviewCount,
+        origin: opts?.origin ?? 'live',
       }
       alertWrites.push(
         db
@@ -364,7 +371,12 @@ export function makePulseOpsRepo(db: Db) {
           .onConflictDoUpdate({
             target: [pulseFirmAlert.firmId, pulseFirmAlert.pulseId],
             // preserveStatus (catch-up / sweep): refresh the counts but never
-            // reset a firm's dismissed alert back to 'matched'.
+            // reset a firm's dismissed alert back to 'matched'. `origin` is
+            // deliberately absent from BOTH set branches (first-writer-wins):
+            // a later sweep refreshing a 'live' row must not relabel it
+            // 'catchup' (it would vanish from new-alert counters), and a
+            // dup-fold re-fan-out must not flip a 'catchup' row back to 'live'
+            // (it would resurface months-old news as "new").
             set: opts?.preserveStatus
               ? {
                   matchedCount: count.matchedCount,
@@ -388,7 +400,11 @@ export function makePulseOpsRepo(db: Db) {
   // catch-up) or all active firms (periodic sweep). `preserveStatus` keeps a
   // firm's dismissed alert from being resurrected; deadline shifts only
   // materialize where the firm has a matching obligation (`skipZeroImpact`).
-  async function refreshStillOpenWindows(opts: { firmId?: string; now: Date }): Promise<number> {
+  async function refreshStillOpenWindows(opts: {
+    firmId?: string
+    now: Date
+    origin?: PulseFirmAlertOrigin
+  }): Promise<number> {
     const candidates = await db
       .select({ id: pulse.id, changeKind: pulse.changeKind })
       .from(pulse)
@@ -406,6 +422,7 @@ export function makePulseOpsRepo(db: Db) {
         ...(opts.firmId ? { firmIds: [opts.firmId] } : {}),
         preserveStatus: true,
         skipZeroImpact: candidate.changeKind === 'deadline_shift',
+        ...(opts.origin ? { origin: opts.origin } : {}),
       })
     }
     return materialized
@@ -1379,12 +1396,19 @@ export function makePulseOpsRepo(db: Db) {
      * through the live fan-out (`refreshStillOpenWindows`) so counts are real, not
      * zero. This replaces the old unscoped, count-0 backfill that surfaced ~30
      * firm-wide noise alerts on day one. Idempotent and dismiss-safe.
+     *
+     * Rows materialize as origin='catchup' — state, not news: the firm joined
+     * after the change was published, so it must not count as "new" on
+     * splash/brief, and renders in the pinned "Already in effect" band. The
+     * daily all-firms sweep keeps origin='live' — a row appearing there is a
+     * fresh development for an existing firm (e.g. a newly added client in a
+     * relief county) and "new" is its only notification channel.
      */
     async backfillFirmAlertsForActiveLandscape(
       firmId: string,
       now: Date = new Date(),
     ): Promise<number> {
-      return refreshStillOpenWindows({ firmId, now })
+      return refreshStillOpenWindows({ firmId, now, origin: 'catchup' })
     },
 
     /**

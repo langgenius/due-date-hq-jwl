@@ -756,7 +756,15 @@ export function makeDashboardRepo(db: Db, firmId: string) {
       db
         .select({ value: count() })
         .from(pulseFirmAlert)
-        .where(and(eq(pulseFirmAlert.firmId, firmId), gte(pulseFirmAlert.createdAt, input.since))),
+        .where(
+          and(
+            eq(pulseFirmAlert.firmId, firmId),
+            // Onboarding catch-up rows are state, not news — months-old changes
+            // materialized at signup must not read as "N new alerts".
+            eq(pulseFirmAlert.origin, 'live'),
+            gte(pulseFirmAlert.createdAt, input.since),
+          ),
+        ),
       input.scope === 'me'
         ? db
             .select({ value: count() })
@@ -979,7 +987,14 @@ export function makeDashboardRepo(db: Db, firmId: string) {
         db
           .select({ value: count() })
           .from(pulseFirmAlert)
-          .where(and(eq(pulseFirmAlert.firmId, firmId), gte(pulseFirmAlert.createdAt, since))),
+          .where(
+            and(
+              eq(pulseFirmAlert.firmId, firmId),
+              // Catch-up rows are state, not news (see newAlertCount above).
+              eq(pulseFirmAlert.origin, 'live'),
+              gte(pulseFirmAlert.createdAt, since),
+            ),
+          ),
         db
           .select({ value: count() })
           .from(reminder)
