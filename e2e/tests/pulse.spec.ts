@@ -250,10 +250,16 @@ async function revealSeededAlert(page: Page) {
   const queue = page.getByRole('group', { name: 'Alert work queue' })
   for (const label of [/^Active/, /^Review/]) {
     const toggle = queue.getByRole('button', { name: label })
-    if ((await toggle.count()) > 0) {
-      await toggle.click()
-      if (await alert.isVisible().catch(() => false)) return
-    }
+    if ((await toggle.count()) === 0) continue
+    await toggle.click()
+    // Switching queue refetches asynchronously — wait for the alert to render
+    // before falling through to the other queue (a bare isVisible() check races
+    // the query and would leave us on the wrong queue).
+    const shown = await alert.waitFor({ state: 'visible', timeout: 4000 }).then(
+      () => true,
+      () => false,
+    )
+    if (shown) return
   }
 }
 

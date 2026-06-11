@@ -39,10 +39,12 @@ export class ObligationQueuePage {
 
   // 2026-06-11 (queue toolbar): the status filter is a segmented control — one
   // pill button per present status ("All N", "In review N", …), each writing the
-  // `status` URL param and carrying `data-active` when selected. There is no
-  // dropdown trigger anymore. Match a scope by its leading label.
+  // `status` URL param and carrying `data-active` when selected. The label is
+  // followed by a facet count, so anchor on "<label> <digit>" to avoid matching
+  // a row's status-badge dropdown ("In review · Change status for …"), which
+  // also starts with the label.
   statusScopeButton(name: string) {
-    return this.page.getByRole('button', { name: new RegExp(`^${escapeRegex(name)}`) })
+    return this.page.getByRole('button', { name: new RegExp(`^${escapeRegex(name)} \\d`) })
   }
 
   async goto(path = '/deadlines') {
