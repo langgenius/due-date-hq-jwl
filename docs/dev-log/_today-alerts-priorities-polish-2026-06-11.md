@@ -184,3 +184,20 @@ titles leading-tight); BODY/description text tightens to leading-snug (1.375)
 — alert verbatim body, Daily Brief sentence/recap/footnote/empty lines. The
 Priorities table's stacked cells (client name + verb, countdown + date) get
 leading-tight so a 2-line stack reads as one unit, not two spaced rows.
+
+## Addendum 7 — line-height tightening promoted to the TOKEN layer (universal)
+
+Yuqi: "这是universal application." Root cause found: `xs/sm/base/lg/xl` had
+NO paired `--text-*--line-height` tokens, so every un-leaded use inherited
+preflight's `html { line-height: 1.5 }` — the source of the loose feel on
+every surface. Fixed in tokens/primitives.css with paired line-heights at
+snug ratios:
+
+  xs 12/16 · sm 13/18 · description 13/18 · base 14/19 · md 14/19 ·
+  lg 16/22 · xl 18/24 · 2xl 28/32
+
+Explicit `leading-*` at call sites still wins (verified: section titles keep
+their leading-tight 22.5px; the /today component-level snug/tight passes from
+Addendum 6 remain as explicit equivalents). Visually verified on /today,
+/deadlines (densest table + banner), /clients (StatBand + registry table) —
+all intact, uniformly tighter.
