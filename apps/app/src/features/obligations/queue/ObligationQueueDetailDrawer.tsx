@@ -142,7 +142,7 @@ import {
   XIcon,
 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
@@ -1537,6 +1537,244 @@ export function ObligationQueueDetailDrawer({
   // (e.g. "Form 1040") with the client name as a kicker label above
   // — see header comment below for the rationale.
   const titleText = row?.clientName ?? null
+  // 2026-06-10 (Yuqi page-scroll "tabs belong in the header, not the body"):
+  // the tab bar is extracted as a node so it can be placed in two structural
+  // positions without duplicating the trigger markup:
+  //   • PAGE mode → rendered as the LAST child of the white <header>, a real
+  //     non-scrolling part of the header region (NOT sticky). The outer
+  //     <Tabs> root (below) encloses both the header and the scroll body, so
+  //     the TabsList here and the TabsContent panels in the body still share
+  //     a common TabsRoot ancestor — base-ui only needs the shared ancestor,
+  //     their DOM positions may differ.
+  //   • panel / sheet modes → rendered INSIDE the body's own <Tabs>, sticky,
+  //     exactly as before (gated, untouched).
+  // The TabsList carries its own `border-b` (the white→gray seam); in page
+  // mode the wrapper is a plain white block (no `sticky`, no `pt-3`).
+  const tabBar = (
+    <div
+      className={cn(
+        // Page-mode tab bar = a static WHITE part of the header (the body's
+        // tab content scrolls beneath the header, not behind this bar). The
+        // bottom border on the TabsList is the seam where the white header
+        // ends and the gray content begins.
+        // 2026-06-10 (Yuqi /deadlines detail "remove background"): in
+        // panel/sheet the bar stays a `sticky top-0` element inside the body.
+        isPageMode ? 'bg-background-default' : 'sticky top-0 z-10 pt-3',
+      )}
+    >
+      {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
+          from design/deadlines-drawer-rework): tab bar
+          switched from default pill segmented control to the
+          line-variant underline bar. Each trigger leads with
+          a lucide icon + label + context badge:
+            • Summary: no badge
+            • Materials: outstanding count (red destructive)
+              or all-received check (gray) when count == 0
+            • Extension: accent check when row has a saved
+              extension decision
+            • Evidence: workpaper count (gray placeholder)
+          TabsTrigger primitive already wires aria-selected +
+          focus-visible ring per shadcn defaults; we stretch
+          to `flex-1` so the four tabs distribute full-width
+          across the drawer. */}
+      {(() => {
+        const outstandingMaterials = checklist.filter(
+          (i) => i.status !== 'received' && i.status !== 'waived',
+        ).length
+        const allMaterialsReceived = checklist.length > 0 && outstandingMaterials === 0
+        const extensionSaved = Boolean(row?.extensionDecidedAt)
+        const evidenceCount = detail?.evidence.length ?? 0
+        return (
+          <TabsList
+            variant="line"
+            // 2026-05-26 (Yuqi feedback #2): white bg on the
+            // TabsList. The line-variant defaulted to transparent
+            // which let the body's white still show through, but
+            // when the sticky deadline strip above scrolls behind
+            // the tabs they bled together visually. Explicit
+            // white bg gives the tab bar a clear surface.
+            //
+            // 2026-05-26 (Yuqi feedback — "justify content left"
+            // + "remove the left right padding"): bar is now
+            // `justify-start` so the four tabs hug the left
+            // edge instead of distributing across the panel
+            // (each TabsTrigger drops `flex-1` for the same
+            // reason — see the trigger className below). Inter-
+            // tab `gap-1` → `gap-6` opens 24px between tabs so
+            // they remain individually scannable now that each
+            // one no longer carries its own `px-2`.
+            // 2026-06-10 (Yuqi page-polish #6 "gap小"): the inter-tab
+            // gap tightens from 24px to 16px in page mode so the four
+            // tabs read as a closer-knit group. Panel/sheet keep gap-6.
+            className={cn(
+              'flex h-11 w-full justify-start border-b border-divider-subtle text-sm',
+              isPageMode ? 'gap-4' : 'gap-6',
+            )}
+          >
+            {/* 2026-05-26 (Yuqi feedback — "tabs can be more
+                obvious, signalling people hey check these
+                out" + "yes please" to pushing the active
+                state further): every TabsTrigger now layers
+                FOUR signals so the active tab pops without
+                the bar abandoning the tab paradigm in favor
+                of a segmented-control look:
+                  1. Inactive text: `text-text-secondary` —
+                     still visible enough to invite a click.
+                  2. Active text: `text-text-primary` +
+                     `font-semibold` — strongest contrast
+                     jump from inactive (medium-weight
+                     secondary) to active (semibold primary).
+                  3. Active underline color: `accent-default`
+                     (matches the /clients/[id] tabs +
+                     /deadlines scope tabs), so the rule
+                     pops in the canonical brand accent
+                     instead of plain text-active black.
+                  4. Active underline position: primitive
+                     default (`bottom-[-5px]`) — floats ~5px
+                     below the trigger for 15-16px breathing
+                     room from the text descender (an earlier
+                     `bottom-0` pulled it too close — "the
+                     underline is so close to the text").
+                Stayed with TABS (not segmented control)
+                because the 4 panels are different sections
+                of the SAME deadline (Summary / Materials /
+                Extension / Evidence), not filters or scopes.
+                Segmented control belongs to the /deadlines
+                top-level scope tabs where each option
+                re-filters the queue. */}
+            {visibleTabs.has('summary') ? (
+              // 2026-05-26 (Yuqi seventieth pass #5): dropped
+              // the leading Info icon. The "Summary" word is
+              // self-explanatory; an info-glyph next to it
+              // implied "click here for info ABOUT the
+              // summary" rather than "this is the summary
+              // tab." Other tabs (Materials, Extension,
+              // Evidence) keep their icons because they
+              // distinguish by purpose (paperclip /
+              // calendar / file).
+              <TabsTrigger
+                value="summary"
+                className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
+              >
+                {/* rzzww: the milestone/workflow home is labelled
+                    "Status" on the standalone page. */}
+                {isPageMode ? <Trans>Status</Trans> : <Trans>Summary</Trans>}
+              </TabsTrigger>
+            ) : null}
+            {visibleTabs.has('readiness') ? (
+              <TabsTrigger
+                value="readiness"
+                className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
+              >
+                <PaperclipIcon className="size-3.5" aria-hidden />
+                <Trans>Materials</Trans>
+                {outstandingMaterials > 0 ? (
+                  <span
+                    aria-label={t`${outstandingMaterials} outstanding`}
+                    // 2026-05-26 (Yuqi feedback #3): badge subtler.
+                    // Was solid destructive red with white text —
+                    // that loudness made every Materials tab with
+                    // outstanding items shout "danger." Now: light
+                    // accent tint (state-accent-hover-alt) with
+                    // accent-tinted text. Communicates "13 items
+                    // here" without alarm chrome.
+                    className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-accent-hover-alt px-1 text-caption-xs font-medium leading-none tabular-nums text-text-accent"
+                  >
+                    {outstandingMaterials}
+                  </span>
+                ) : allMaterialsReceived ? (
+                  <span
+                    aria-label={t`All received`}
+                    className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-success-hover px-1 text-caption-xs text-state-success-solid"
+                  >
+                    <CheckIcon className="size-3" aria-hidden />
+                  </span>
+                ) : null}
+              </TabsTrigger>
+            ) : null}
+            {visibleTabs.has('extension') ? (
+              <TabsTrigger
+                value="extension"
+                className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
+              >
+                <CalendarClockIcon className="size-3.5" aria-hidden />
+                <Trans>Extension</Trans>
+                {extensionSaved ? (
+                  <span
+                    aria-label={t`Extension saved`}
+                    className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-default px-1 text-caption-xs leading-none text-text-inverted"
+                  >
+                    <CheckIcon className="size-3" aria-hidden />
+                  </span>
+                ) : null}
+              </TabsTrigger>
+            ) : null}
+            {/* Risk tab removed 2026-05-21 — risk inputs live on the
+                client detail page (ClientRiskInputsPanel) rather than
+                per-obligation. Surface kept on the schema for
+                back-compat with deep-links; the trigger and content
+                are unmounted. */}
+            {visibleTabs.has('evidence') ? (
+              <TabsTrigger
+                value="evidence"
+                className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
+              >
+                <FileTextIcon className="size-3.5" aria-hidden />
+                {/* rzzww: the evidence/workpaper surface is labelled
+                    "Record" on the standalone page. */}
+                {isPageMode ? <Trans>Record</Trans> : <Trans>Evidence</Trans>}
+                <span
+                  aria-label={t`${evidenceCount} workpapers`}
+                  className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs tabular-nums text-text-tertiary"
+                >
+                  {evidenceCount}
+                </span>
+              </TabsTrigger>
+            ) : null}
+            {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
+                rzzww): the Audit tab gets its own trigger on the
+                standalone page (it was a dead deep-link before). The
+                content wires the milestone-grouped ObligationTimeline
+                fed by the real audit feed. */}
+            {visibleTabs.has('audit') ? (
+              <TabsTrigger
+                value="audit"
+                className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
+              >
+                <HistoryIcon className="size-3.5" aria-hidden />
+                <Trans>Audit</Trans>
+              </TabsTrigger>
+            ) : null}
+          </TabsList>
+        )
+      })()}
+    </div>
+  )
+  // 2026-06-10 (Yuqi page-scroll "tabs in the header, not the body"): in PAGE
+  // mode a single <Tabs> root must enclose BOTH the header (which now hosts the
+  // TabsList, above) and the scroll body (which hosts the TabsContent panels) —
+  // base-ui only requires the List and the Panels to share a common TabsRoot
+  // ancestor, regardless of their DOM positions. So the outer wrapper is the
+  // Tabs root in page mode, and a transparent Fragment otherwise (panel/sheet
+  // keep their own inner <Tabs> inside the body, untouched). Conversely the
+  // body's inner wrapper is the Tabs root in panel/sheet mode and a Fragment in
+  // page mode (the outer root already provides the context there).
+  const onTabsValueChange = (value: string) => {
+    if (isObligationQueueDetailTab(value)) onTabChange(value)
+  }
+  const OuterTabsWrapper = isPageMode ? Tabs : Fragment
+  const outerTabsProps = isPageMode
+    ? {
+        value: activeTab,
+        onValueChange: onTabsValueChange,
+        // Fill the aside as a flex column so the header stays a fixed-height,
+        // non-scrolling sibling above the flex-1 scroll body. `gap-0` cancels
+        // the Tabs root's default `gap-2` (no seam between header and body).
+        className: 'flex min-h-0 flex-1 flex-col gap-0',
+      }
+    : {}
+  const BodyTabsWrapper = isPageMode ? Fragment : Tabs
+  const bodyTabsProps = isPageMode ? {} : { value: activeTab, onValueChange: onTabsValueChange }
   const drawerBody = (
     <>
       {/* 2026-06-10 (Yuqi alert↔deadline parity #1): in-surface top bar —
@@ -1671,29 +1909,37 @@ export function ObligationQueueDetailDrawer({
           aligned to the alerts SheetHeader (`px-12 pt-10 pb-6`) so both
           right-rail drawers share the same paper-document header spacing.
           The corner close X (parity #4) still anchors this header. */}
-      <header
-        className={cn(
-          'relative flex flex-col px-12 transition-all duration-200',
-          // 2026-06-10 (Yuqi page-polish #1 "好奇怪的 top padding"): the
-          // page-mode hero leads the surface (the thin status banner + crumb
-          // bar above it carry no top gap of their own), so a full pt-10
-          // doubled the visual top inset and read as awkward dead space.
-          // Page mode uses a calmer pt-6; panel/sheet keep the canonical
-          // pt-10 cross-drawer rhythm.
-          heroCollapsed ? 'gap-1 pt-3 pb-3' : 'gap-1.5 pb-6',
-          !isPageMode && !heroCollapsed && 'pt-10',
-          // 2026-06-10 (Yuqi page-polish #4/#5 "should this be part of the
-          // header? / white background"): the page-mode header is the WHITE
-          // identity block — status banner (above) · title + meta · the three
-          // framed key-date columns (rendered below, inside this header). It
-          // sits on bg-background-default, contiguous with the title/meta; the
-          // gray content wash begins only at the tab content beneath. Content
-          // centers on the 760px document measure shared with the body/footer.
-          isPageMode && 'bg-background-default [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
-          isPageMode && !heroCollapsed && 'pt-6',
-        )}
-      >
-        {/* Panel mode owns its own close button — there's no Sheet
+      {/* 2026-06-10 (Yuqi page-scroll "tabs in the header, not the body"): in
+          page mode this <Tabs> root encloses BOTH the non-scrolling white
+          header (which hosts the TabsList) and the scroll body (which hosts
+          the TabsContent panels), so the list + panels share one TabsRoot
+          ancestor while sitting in separate, independently-scrolling regions.
+          In panel/sheet mode this collapses to a Fragment and the body keeps
+          its own inner <Tabs> (unchanged). */}
+      <OuterTabsWrapper {...outerTabsProps}>
+        <header
+          className={cn(
+            'relative flex flex-col px-12 transition-all duration-200',
+            // 2026-06-10 (Yuqi page-polish #1 "好奇怪的 top padding"): the
+            // page-mode hero leads the surface (the thin status banner + crumb
+            // bar above it carry no top gap of their own), so a full pt-10
+            // doubled the visual top inset and read as awkward dead space.
+            // Page mode uses a calmer pt-6; panel/sheet keep the canonical
+            // pt-10 cross-drawer rhythm.
+            heroCollapsed ? 'gap-1 pt-3 pb-3' : 'gap-1.5 pb-6',
+            !isPageMode && !heroCollapsed && 'pt-10',
+            // 2026-06-10 (Yuqi page-polish #4/#5 "should this be part of the
+            // header? / white background"): the page-mode header is the WHITE
+            // identity block — status banner (above) · title + meta · the three
+            // framed key-date columns (rendered below, inside this header). It
+            // sits on bg-background-default, contiguous with the title/meta; the
+            // gray content wash begins only at the tab content beneath. Content
+            // centers on the 760px document measure shared with the body/footer.
+            isPageMode && 'bg-background-default [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+            isPageMode && !heroCollapsed && 'pt-6',
+          )}
+        >
+          {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner.
 
@@ -1702,24 +1948,24 @@ export function ObligationQueueDetailDrawer({
             the sticky footer ("Copy link to this deadline") — the design
             稿 puts the Assign / Snooze / Mark-as-filed actions in this
             corner instead (rendered on the status row below). */}
-        {mode === 'panel' ? (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t`Close deadline detail`}
-            onClick={onClose}
-            className="absolute right-3 top-3 text-text-tertiary hover:text-text-primary"
-          >
-            <XIcon className="size-4" aria-hidden />
-          </Button>
-        ) : null}
-        {/* 2026-06-10 (Yuqi alert↔deadline parity, hero rework 2f0d4b27): the
+          {mode === 'panel' ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t`Close deadline detail`}
+              onClick={onClose}
+              className="absolute right-3 top-3 text-text-tertiary hover:text-text-primary"
+            >
+              <XIcon className="size-4" aria-hidden />
+            </Button>
+          ) : null}
+          {/* 2026-06-10 (Yuqi alert↔deadline parity, hero rework 2f0d4b27): the
             "Last activity just now" stamp is gone from the hero — it isn't in
             the Alert detail's hero (whose eyebrow is just the meta strip), and
             the activity story already lives in the Status tab's Recent
             activity card + the Audit tab. The action cluster (Assign · Snooze
             · Mark filed) lives in the shared sticky footer below. */}
-        {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): the status
+          {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): the status
             dot + label that used to lead this row is gone — the new top
             status banner carries the status, mirroring the alerts detail.
             The row keeps only the tax year · period meta. The Assign /
@@ -1730,105 +1976,105 @@ export function ObligationQueueDetailDrawer({
             monospaced `obligation_id` is dropped — the alerts detail exposes no
             internal id, and a raw db id in mono was both noise and a mono-
             restraint violation. */}
-        {row && row.taxYear && !heroCollapsed ? (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pr-10 text-sm text-text-tertiary">
-            <span>
-              <Trans>Tax year {row.taxYear}</Trans>
-              <span aria-hidden> · </span>
-              {row.taxYearType === 'fiscal' ? (
-                <Trans>Fiscal period</Trans>
-              ) : (
-                <Trans>Calendar period</Trans>
-              )}
-            </span>
-          </div>
-        ) : null}
-        {/* 2026-06-08 (Pencil HuYeb /deadlines detail): the form title sits
+          {row && row.taxYear && !heroCollapsed ? (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pr-10 text-sm text-text-tertiary">
+              <span>
+                <Trans>Tax year {row.taxYear}</Trans>
+                <span aria-hidden> · </span>
+                {row.taxYearType === 'fiscal' ? (
+                  <Trans>Fiscal period</Trans>
+                ) : (
+                  <Trans>Calendar period</Trans>
+                )}
+              </span>
+            </div>
+          ) : null}
+          {/* 2026-06-08 (Pencil HuYeb /deadlines detail): the form title sits
             on its own line; the standalone client kicker link was folded
             into the household chip in the row below per the design稿. */}
-        {row ? (
-          <h2
-            className={cn(
-              'pr-8 font-semibold tracking-[-0.4px] text-text-primary transition-all duration-200',
-              heroCollapsed
-                ? 'line-clamp-1 text-[16px] leading-[1.3]'
-                : 'text-[22px] leading-[1.25]',
-            )}
-          >
-            {(() => {
-              const meta = describeTaxCode(row.taxType)
-              return meta.description ? `${meta.label} — ${meta.description}` : meta.label
-            })()}
-          </h2>
-        ) : null}
-        {/* 2026-06-08 (Pencil HuYeb /deadlines detail): single chip row
+          {row ? (
+            <h2
+              className={cn(
+                'pr-8 font-semibold tracking-[-0.4px] text-text-primary transition-all duration-200',
+                heroCollapsed
+                  ? 'line-clamp-1 text-[16px] leading-[1.3]'
+                  : 'text-[22px] leading-[1.25]',
+              )}
+            >
+              {(() => {
+                const meta = describeTaxCode(row.taxType)
+                return meta.description ? `${meta.label} — ${meta.description}` : meta.label
+              })()}
+            </h2>
+          ) : null}
+          {/* 2026-06-08 (Pencil HuYeb /deadlines detail): single chip row
             under the title — a clickable client-household chip (navigates
             to the client), the canonical status badge (subsumes the old
             waiting/blocked flag chips), the input-requested flag, and the
             jurisdiction / tax-year / period meta. */}
-        {row && !heroCollapsed ? (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8 text-sm">
-            {row.clientId && row.clientName ? (
-              <button
-                type="button"
-                aria-label={t`Open ${row.clientName}`}
-                title={t`Open ${row.clientName}`}
-                onClick={() =>
-                  void navigate(clientDetailPath({ id: row.clientId, name: row.clientName }))
-                }
-                // 2026-06-10 (Yuqi page-polish #2 "client link 太小？"): the
-                // "Open {client}" chip was text-caption with a cramped
-                // px-2.5/py-1 hit area — it read as a footnote next to the
-                // h-6 status/flag chips. Bumped to text-sm, an h-7 chip
-                // height, a wider px-3 hit area, and a size-4 icon so it
-                // lands as a proper tappable chip consistent with the meta row.
-                className="group/clientlink inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 text-sm font-medium text-text-secondary outline-none transition-colors hover:border-state-accent-border hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-              >
-                <UsersIcon
-                  className="size-4 shrink-0 text-text-tertiary transition-colors group-hover/clientlink:text-text-accent"
-                  aria-hidden
-                />
-                {row.clientName}
-              </button>
-            ) : row.clientId ? (
-              <span
-                className="inline-flex items-center gap-1 text-caption text-text-warning"
-                title={t`Client record missing — deadline may be orphaned`}
-              >
-                <AlertTriangleIcon className="size-3.5" aria-hidden />
-                <Trans>Client record missing</Trans>
-              </span>
-            ) : null}
-            {/* 2026-06-10 (Yuqi alert↔deadline parity #3 + critique
+          {row && !heroCollapsed ? (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8 text-sm">
+              {row.clientId && row.clientName ? (
+                <button
+                  type="button"
+                  aria-label={t`Open ${row.clientName}`}
+                  title={t`Open ${row.clientName}`}
+                  onClick={() =>
+                    void navigate(clientDetailPath({ id: row.clientId, name: row.clientName }))
+                  }
+                  // 2026-06-10 (Yuqi page-polish #2 "client link 太小？"): the
+                  // "Open {client}" chip was text-caption with a cramped
+                  // px-2.5/py-1 hit area — it read as a footnote next to the
+                  // h-6 status/flag chips. Bumped to text-sm, an h-7 chip
+                  // height, a wider px-3 hit area, and a size-4 icon so it
+                  // lands as a proper tappable chip consistent with the meta row.
+                  className="group/clientlink inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 text-sm font-medium text-text-secondary outline-none transition-colors hover:border-state-accent-border hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                >
+                  <UsersIcon
+                    className="size-4 shrink-0 text-text-tertiary transition-colors group-hover/clientlink:text-text-accent"
+                    aria-hidden
+                  />
+                  {row.clientName}
+                </button>
+              ) : row.clientId ? (
+                <span
+                  className="inline-flex items-center gap-1 text-caption text-text-warning"
+                  title={t`Client record missing — deadline may be orphaned`}
+                >
+                  <AlertTriangleIcon className="size-3.5" aria-hidden />
+                  <Trans>Client record missing</Trans>
+                </span>
+              ) : null}
+              {/* 2026-06-10 (Yuqi alert↔deadline parity #3 + critique
                 "de-dupe status"): the header status chip is dropped in page
                 mode — the full-bleed status banner above the header now
                 states status ONCE, in the same place the alert does. Panel /
                 sheet modes (no co-located banner pairing) keep the chip. */}
-            {!isPageMode ? (
-              <ObligationStatusReadBadge
-                status={row.status}
-                className="h-6 text-caption-xs uppercase tracking-wide"
-              />
-            ) : null}
-            {latestInputRequest ? (
-              <Badge
-                variant="secondary"
-                className="h-6 gap-1 text-caption-xs uppercase tracking-wide"
-                title={latestInputRequestTitle}
-              >
-                <MessageSquareText className="size-3.5" aria-hidden />
-                <Trans>Input requested</Trans>
-              </Badge>
-            ) : null}
-            {/* 2026-06-10 (Yuqi #5 tidy + #6 displaced): the trailing meta span
+              {!isPageMode ? (
+                <ObligationStatusReadBadge
+                  status={row.status}
+                  className="h-6 text-caption-xs uppercase tracking-wide"
+                />
+              ) : null}
+              {latestInputRequest ? (
+                <Badge
+                  variant="secondary"
+                  className="h-6 gap-1 text-caption-xs uppercase tracking-wide"
+                  title={latestInputRequestTitle}
+                >
+                  <MessageSquareText className="size-3.5" aria-hidden />
+                  <Trans>Input requested</Trans>
+                </Badge>
+              ) : null}
+              {/* 2026-06-10 (Yuqi #5 tidy + #6 displaced): the trailing meta span
                 duplicated the "Tax year · period" line above AND its
                 items-baseline alignment left the text vertically offset from
                 the h-6 chips. Reduced to just the shared JurisdictionLabel seal
                 (the one fact not shown elsewhere), aligned with the chip row. */}
-            {row.jurisdiction ? <JurisdictionLabel code={row.jurisdiction} /> : null}
-          </div>
-        ) : null}
-        {/* 2026-05-23: dropped the canonical-forward-action row
+              {row.jurisdiction ? <JurisdictionLabel code={row.jurisdiction} /> : null}
+            </div>
+          ) : null}
+          {/* 2026-05-23: dropped the canonical-forward-action row
             (`ObligationDrawerStatusActions`) per critique. The
             interactive `ObligationQueueStatusControl` chip above
             already exposes every valid transition with one click;
@@ -1836,7 +2082,7 @@ export function ObligationQueueDetailDrawer({
             redundant affordances ("Start preparation" + "pending →
             review" picker dropdown both go to the same place).
             Status pill is the single source of truth now. */}
-        {/* 2026-06-10 (Yuqi page-polish #4/#5): the "Key deadlines" strip is
+          {/* 2026-06-10 (Yuqi page-polish #4/#5): the "Key deadlines" strip is
             part of the WHITE header zone — it reads as the third line of the
             identity block (status banner → title + meta → the three framed
             key dates), on the same white surface as the title/meta above.
@@ -1845,7 +2091,7 @@ export function ObligationQueueDetailDrawer({
             anchor dates are the headline context the collapsed hero keeps.
             Page mode only; panel/sheet render the date strip inside the body
             (below) as before. */}
-        {/* 2026-06-10 (Yuqi page-scroll #7 "key dates scroll up — hides"): the
+          {/* 2026-06-10 (Yuqi page-scroll #7 "key dates scroll up — hides"): the
             anchor dates are reference the CPA needs while scrolling the tab
             content, so the collapse keeps them REACHABLE rather than dropping
             them. Expanded: the full three framed key-date cards. Collapsed (on
@@ -1854,144 +2100,151 @@ export function ObligationQueueDetailDrawer({
             the dates never vanish. The header itself is a non-scrolling sibling
             above the body's scroll container, so either form stays pinned at
             the top while the tab content scrolls beneath. */}
-        {isPageMode && row ? (
-          heroCollapsed ? (
-            (() => {
-              const filingIso = row.filingDueDate ?? row.baseDueDate ?? null
-              const internalIso = row.extensionInternalTargetDate ?? row.currentDueDate ?? null
-              const paymentIso = row.paymentDueDate ?? null
-              const summaryDates: Array<{ label: string; iso: string }> = [
-                ...(filingIso ? [{ label: t`Filing`, iso: filingIso }] : []),
-                ...(internalIso ? [{ label: t`Internal`, iso: internalIso }] : []),
-                ...(paymentIso ? [{ label: t`Payment`, iso: paymentIso }] : []),
-              ]
-              return summaryDates.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-sm">
-                  {summaryDates.map((entry, index) => (
-                    <span key={entry.label} className="flex items-center gap-1.5">
-                      {index > 0 ? (
-                        <span aria-hidden className="text-divider-regular">
-                          ·
+          {isPageMode && row ? (
+            heroCollapsed ? (
+              (() => {
+                const filingIso = row.filingDueDate ?? row.baseDueDate ?? null
+                const internalIso = row.extensionInternalTargetDate ?? row.currentDueDate ?? null
+                const paymentIso = row.paymentDueDate ?? null
+                const summaryDates: Array<{ label: string; iso: string }> = [
+                  ...(filingIso ? [{ label: t`Filing`, iso: filingIso }] : []),
+                  ...(internalIso ? [{ label: t`Internal`, iso: internalIso }] : []),
+                  ...(paymentIso ? [{ label: t`Payment`, iso: paymentIso }] : []),
+                ]
+                return summaryDates.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-sm">
+                    {summaryDates.map((entry, index) => (
+                      <span key={entry.label} className="flex items-center gap-1.5">
+                        {index > 0 ? (
+                          <span aria-hidden className="text-divider-regular">
+                            ·
+                          </span>
+                        ) : null}
+                        <span className="text-text-tertiary">{entry.label}</span>
+                        <span className="tabular-nums font-medium text-text-secondary">
+                          {formatDate(entry.iso)}
                         </span>
-                      ) : null}
-                      <span className="text-text-tertiary">{entry.label}</span>
-                      <span className="tabular-nums font-medium text-text-secondary">
-                        {formatDate(entry.iso)}
                       </span>
-                    </span>
-                  ))}
-                </div>
-              ) : null
-            })()
-          ) : (
-            <div className="pt-1.5">
-              <PrimaryDeadlineStrip row={row} variant="cards" />
-            </div>
-          )
-        ) : null}
-      </header>
-      {/* Body — in panel mode the aside has fixed height, so this
+                    ))}
+                  </div>
+                ) : null
+              })()
+            ) : (
+              <div className="pt-1.5">
+                <PrimaryDeadlineStrip row={row} variant="cards" />
+              </div>
+            )
+          ) : null}
+          {/* 2026-06-10 (Yuqi page-scroll "the tab bar should be part of the
+            header, not the body"): the tab bar is now a real, non-scrolling
+            child of the white header region — the last line of the identity
+            block (status banner → title + meta → key dates → tabs), all on
+            the same white surface. It is NO LONGER sticky: the header itself
+            is the non-scrolling sibling above the body's scroll container, so
+            the tabs stay pinned while only the tab CONTENT scrolls. Its
+            `pt-2` opens a small gap below the key dates; the TabsList's own
+            `border-b` is the white→gray seam where the scroll body begins.
+            Page mode only — panel/sheet render their tab bar inside the body
+            (below), unchanged. */}
+          {isPageMode && row ? <div className="pt-2">{tabBar}</div> : null}
+        </header>
+        {/* Body — in panel mode the aside has fixed height, so this
           inner div owns the scrolling. That lets the snapshot block
           (milestones + dates) pin via `sticky top-0` to stay visible
           while the Readiness checklist / Evidence rows scroll
           underneath. Sheet mode (mobile) keeps a single document
           scroll: SheetContent has overflow-y-auto, so we don't
           double-scroll here. */}
-      {/* 2026-05-26 (Yuqi /deadlines drawer): body top padding dropped
+        {/* 2026-05-26 (Yuqi /deadlines drawer): body top padding dropped
           from pt-4 to 0. The sticky strip below used a `-mt-4` to
           cancel the body padding — chrome cancelling chrome made
           the layout hard to reason about. With pt-0, the strip
           starts flush at the body top, and the area below the strip
           gets its own real `pt-4` so it's visually a separate
           unit (containing TabsList + tab content). */}
-      {/* 2026-05-26 (Yuqi drawer canonical): body padding `px-5 pb-5`
+        {/* 2026-05-26 (Yuqi drawer canonical): body padding `px-5 pb-5`
           → `px-12 py-10` per the drawer canonical. Same paper-document
           padding as AlertDetailDrawer body — left margin runs as one
           line from header through body. */}
-      {/* 2026-05-26 (Yuqi forty-seventh pass — sticky-footer buffer):
+        {/* 2026-05-26 (Yuqi forty-seventh pass — sticky-footer buffer):
           body bottom padding bumped `py-10` → `pt-10 pb-24` to match
           AlertDetailDrawer. Sticky footer (min-h-16 + py-4) was
           covering the last content row when scrolled — 96px buffer
           guarantees clean separation between bottom content and
           action bar. */}
-      {/* 2026-05-26 (Yuqi forty-eighth pass — body flex wrapper):
+        {/* 2026-05-26 (Yuqi forty-eighth pass — body flex wrapper):
           body wrapper is now `flex flex-col gap-4` per drawer
           canonical. Children get a consistent 16px gap between
           them instead of each carrying its own `mb-*` margin.
           Same shape as AlertDetailDrawer body so the two drawers
           read with identical rhythm. */}
-      <div
-        className={cn(
-          // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-          // body padding aligned to AlertDetailDrawer.tsx L752
-          // (`px-12 pt-10 pb-24`). Same left margin as header/footer
-          // so the panel reads as one continuous paper-document
-          // surface edge-to-edge. The earlier inset-followups
-          // tightening (px-8 pt-0) was reverted for cross-drawer
-          // consistency; the body's pt-10 buffer mirrors the alert drawer's
-          // header → body breathing room.
-          // 2026-05-27 (Yuqi "remove padding-top"): pt-10 dropped.
-          // 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #3): body gap-4 →
-          // gap-6 and pb-12 → pb-24 to match the alerts body rhythm
-          // (`px-12 pb-24`) and clear the sticky footer.
-          'flex flex-col gap-6 px-12 pb-24',
-          // 2026-05-26 (Yuqi feedback #1): added scrollbar-gutter:stable
-          // on the panel-mode body. Different tabs render different
-          // content heights (Summary is short, Materials is long).
-          // Without gutter:stable, the scrollbar appears/disappears
-          // on tab switch and shifts the content ~15px horizontally —
-          // reads as "panel width flickers." Reserving the scrollbar
-          // space holds the content steady regardless of which tab
-          // is active.
-          panelLayout && 'flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]',
-          // 2026-06-10 (Yuqi alert↔deadline parity #6/#7): the page body is a
-          // gray-wash (bg-background-subtle) scroll surface hosting white
-          // cards, centered on the same 760px document measure as the alert
-          // body — single-column now, so the prior 1100px two-column measure
-          // 2026-06-10 (Yuqi page-polish #3/#17 "移除top padding"): the body's
-          // top padding is dropped so the tab bar sits tight under the date
-          // strip above. The sticky tab bar's own pt-3/pb-3 carries the
-          // breathing room now.
-          isPageMode && 'bg-background-subtle [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
-        )}
-        onScroll={
-          isPageMode
-            ? (event) => {
-                const next = event.currentTarget.scrollTop > 16
-                setPageHeaderCollapsed((prev) => (prev === next ? prev : next))
-              }
-            : undefined
-        }
-      >
-        {detailQuery.isLoading ? (
-          <EmptyPanel className="py-8 text-center">
-            <Trans>Loading deadline detail…</Trans>
-          </EmptyPanel>
-        ) : detailQuery.isError || !detail || !row ? (
-          // Step 1-5 reaudit Alert primitive + Step 6 UX #147
-          // Button-link retry.
-          <Alert variant="destructive">
-            <AlertDescription>
-              <Trans>Couldn't load deadline detail.</Trans>{' '}
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                className="h-auto p-0 align-baseline"
-                onClick={() => void detailQuery.refetch()}
-              >
-                <Trans>Retry</Trans>
-              </Button>
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <Tabs
-            value={activeTab}
-            onValueChange={(value) => {
-              if (isObligationQueueDetailTab(value)) onTabChange(value)
-            }}
-          >
-            {/* 2026-05-25 (Yuqi Deadlines #30): the sticky block used
+        <div
+          className={cn(
+            // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
+            // body padding aligned to AlertDetailDrawer.tsx L752
+            // (`px-12 pt-10 pb-24`). Same left margin as header/footer
+            // so the panel reads as one continuous paper-document
+            // surface edge-to-edge. The earlier inset-followups
+            // tightening (px-8 pt-0) was reverted for cross-drawer
+            // consistency; the body's pt-10 buffer mirrors the alert drawer's
+            // header → body breathing room.
+            // 2026-05-27 (Yuqi "remove padding-top"): pt-10 dropped.
+            // 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #3): body gap-4 →
+            // gap-6 and pb-12 → pb-24 to match the alerts body rhythm
+            // (`px-12 pb-24`) and clear the sticky footer.
+            'flex flex-col gap-6 px-12 pb-24',
+            // 2026-05-26 (Yuqi feedback #1): added scrollbar-gutter:stable
+            // on the panel-mode body. Different tabs render different
+            // content heights (Summary is short, Materials is long).
+            // Without gutter:stable, the scrollbar appears/disappears
+            // on tab switch and shifts the content ~15px horizontally —
+            // reads as "panel width flickers." Reserving the scrollbar
+            // space holds the content steady regardless of which tab
+            // is active.
+            panelLayout && 'flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]',
+            // 2026-06-10 (Yuqi alert↔deadline parity #6/#7): the page body is a
+            // gray-wash (bg-background-subtle) scroll surface hosting white
+            // cards, centered on the same 760px document measure as the alert
+            // body — single-column now, so the prior 1100px two-column measure
+            // 2026-06-10 (Yuqi page-polish #3/#17 "移除top padding"): the body's
+            // top padding is dropped so the tab bar sits tight under the date
+            // strip above. The sticky tab bar's own pt-3/pb-3 carries the
+            // breathing room now.
+            isPageMode && 'bg-background-subtle [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+          )}
+          onScroll={
+            isPageMode
+              ? (event) => {
+                  const next = event.currentTarget.scrollTop > 16
+                  setPageHeaderCollapsed((prev) => (prev === next ? prev : next))
+                }
+              : undefined
+          }
+        >
+          {detailQuery.isLoading ? (
+            <EmptyPanel className="py-8 text-center">
+              <Trans>Loading deadline detail…</Trans>
+            </EmptyPanel>
+          ) : detailQuery.isError || !detail || !row ? (
+            // Step 1-5 reaudit Alert primitive + Step 6 UX #147
+            // Button-link retry.
+            <Alert variant="destructive">
+              <AlertDescription>
+                <Trans>Couldn't load deadline detail.</Trans>{' '}
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 align-baseline"
+                  onClick={() => void detailQuery.refetch()}
+                >
+                  <Trans>Retry</Trans>
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <BodyTabsWrapper {...bodyTabsProps}>
+              {/* 2026-05-25 (Yuqi Deadlines #30): the sticky block used
                 to host the full snapshot trio (PrimaryDeadlineStrip +
                 PathToFilingSummary + ActiveStageDetailCard). Yuqi's
                 #30 asked for a Summary tab that owns the milestone
@@ -2007,7 +2260,7 @@ export function ObligationQueueDetailDrawer({
                 (just the dates), the milestone story has its own tab
                 that doesn't compete with Materials / Extension /
                 Evidence, and the URL ?tab=summary is shareable. */}
-            {/* 2026-05-26 (Yuqi obligation drawer): tightened the
+              {/* 2026-05-26 (Yuqi obligation drawer): tightened the
                 sticky block's vertical padding so the band of
                 bg-background-subtle above the deadline cards isn't
                 a visible "gap" between the header and the strip.
@@ -2017,13 +2270,13 @@ export function ObligationQueueDetailDrawer({
                 visual weight. The negative -mt-4 still negates the
                 body container's pt-4, so the sticky block starts
                 flush at the body's top edge. */}
-            {/* 2026-05-26 (Yuqi /deadlines drawer): sticky strip now
+              {/* 2026-05-26 (Yuqi /deadlines drawer): sticky strip now
                 starts flush at the body's top edge (body lost its
                 pt-4). Dropped the `-mt-4` negative margin that was
                 cancelling that padding. The bottom of the strip
                 gets a `border-b border-divider-subtle` so the
                 tabs/content area below reads as a distinct unit. */}
-            {/* 2026-05-26 (Yuqi inset-followups A): sticky-section
+              {/* 2026-05-26 (Yuqi inset-followups A): sticky-section
                 heading dropped its `border-b border-divider-subtle
                 bg-background-subtle`. The gray bg + bottom border were
                 framing the deadline strip as a separate "card" inside
@@ -2032,32 +2285,32 @@ export function ObligationQueueDetailDrawer({
                 visual weight beyond the content itself. Also bled
                 changed `-mx-12 px-12` → `-mx-8 px-8` to match the new
                 tightened body padding. */}
-            {/* 2026-05-26 follow-up: keep the flat treatment, but make
+              {/* 2026-05-26 follow-up: keep the flat treatment, but make
                 the sticky strip opaque. In the Materials tab, checklist
                 rows scroll under this band; a transparent sticky layer
                 lets document text show through the date tiles/gutters.
                 White surface + subtle bottom rule preserves the drawer
                 body feel while giving the sticky layer a real backing. */}
-            {/* 2026-06-10 (Yuqi page-polish #4/#5): in page mode the
+              {/* 2026-06-10 (Yuqi page-polish #4/#5): in page mode the
                 "Key deadlines" strip moved UP into the white header zone
                 (rendered inside <header> above), so it's omitted here. Panel
                 and sheet modes keep it as the leading body block — sticky in
                 the panel rail, a plain spacer in the sheet. */}
-            {!isPageMode ? (
-              <div
-                className={cn(
-                  'flex flex-col gap-3',
-                  panelLayout
-                    ? // 2026-05-27 (Yuqi drawer parity): negative bleed
-                      // updated -mx-8 → -mx-12 to match the body's new
-                      // px-12 padding. Inside px-12 re-applies the
-                      // canonical inset, so the sticky strip's content
-                      // edge still aligns with the rest of the body.
-                      'sticky top-0 z-20 -mx-12 bg-background-canvas-warm px-12 py-3'
-                    : 'mb-4',
-                )}
-              >
-                {/* PrimaryDeadlineStrip (2026-05-23): the three dates the
+              {!isPageMode ? (
+                <div
+                  className={cn(
+                    'flex flex-col gap-3',
+                    panelLayout
+                      ? // 2026-05-27 (Yuqi drawer parity): negative bleed
+                        // updated -mx-8 → -mx-12 to match the body's new
+                        // px-12 padding. Inside px-12 re-applies the
+                        // canonical inset, so the sticky strip's content
+                        // edge still aligns with the rest of the body.
+                        'sticky top-0 z-20 -mx-12 bg-background-canvas-warm px-12 py-3'
+                      : 'mb-4',
+                  )}
+                >
+                  {/* PrimaryDeadlineStrip (2026-05-23): the three dates the
                   CPA actually checks first — Internal, Filing, Payment
                   — promoted out of the bottom dates panel into a
                   3-column strip at the top of the snapshot. Each
@@ -2069,8 +2322,8 @@ export function ObligationQueueDetailDrawer({
                   The remaining secondary dates (Statutory, Tax period,
                   Created, Last touched, e-file timestamps) still live
                   in the bottom FlatDateList under "Reference dates". */}
-                <PrimaryDeadlineStrip row={row} variant="flat" />
-                {/* 2026-05-23: StatutoryDatesPanel moved OUT of this
+                  <PrimaryDeadlineStrip row={row} variant="flat" />
+                  {/* 2026-05-23: StatutoryDatesPanel moved OUT of this
                   sticky snapshot block — relocated to AFTER the
                   TabsContent so the tabs sit immediately under the
                   stage card. The dates panel is reference info (most
@@ -2080,293 +2333,30 @@ export function ObligationQueueDetailDrawer({
                   wrong trade. New reading order: identity → milestone
                   → stage card → TABS → tab content → dates (scroll for
                   reference). */}
-                {/* `ObligationForwardingPanel` removed 2026-05-21 — the
+                  {/* `ObligationForwardingPanel` removed 2026-05-21 — the
                   "Forward to task · bright-studio-…@duedatehq.com · Phase 2"
                   block was a feature stub crowding the drawer with chrome
                   for capability that isn't shipping yet. Restore when the
                   inbound-file routing actually goes live. */}
-              </div>
-            ) : null}
-            {/* TabsList lives OUTSIDE the sticky snapshot block per
-                critique #4 ("shouldn't the tab belong to the
-                following information, not the top part information").
-                Pulled out so the tabs visually group with the
-                TabsContent they control, not with the milestones /
-                dates above. Tradeoff: tabs scroll away with the body
-                rather than staying pinned. In practice the CPA
-                rarely switches tabs mid-scroll on the same
-                obligation, so the visual clarity wins.
-
-                2026-05-23: dropped the `border-t` separator above. The
-                pill segmented control is visually self-contained
-                (rounded bg track + raised active item) — adding a top
-                rule above it made the tabs feel like the bottom of
-                the snapshot block above instead of the top of the tab
-                content below. */}
-            {/* 2026-05-25 (Yuqi Deadlines #9, #12, #16): wrapper
-                top padding was dropped after Yuqi flagged extra empty
-                space. 2026-05-25 (client detail side panel): add a
-                panel-only gap back under the sticky date strip so the
-                selected tab/focus ring does not visually tuck under
-                the date cards while the tab group still belongs to
-                the content below. */}
-            {/* 2026-05-26 (Yuqi /deadlines drawer): pt-3 → pt-4 so
-                TabsList + content area sit at a clean 16px gap
-                below the sticky strip's bottom border, reading as
-                a separate visual unit. */}
-            {/* 2026-05-26 (Yuqi fifty-fifth pass — drop double gap):
-                body wrapper now has `flex-col gap-4` (added in the
-                drawer canonical apply), which already provides 16px
-                between the sticky strip and this tabs container.
-                The extra `pt-4` here was stacking → 32px total
-                between strip and tabs ("weird top margin" per
-                Yuqi). Dropped. */}
-            {/* 2026-05-26 (Yuqi feedback — "the 4 tabs in the deadline
-                detail panel can be more obvious, … more obvious about
-                it is with the below information, not above"): inverted
-                the spacing rhythm so the tab bar visually belongs to
-                what's BELOW it.
-
-                Before: tabs sat ~8px below the sticky strip and ~24px
-                above the content (gap-2 from Tabs root + mt-4 on
-                TabsContent). That asymmetry made the bar read as the
-                bottom edge of the header block above.
-
-                After: `pt-3` on this wrapper (+ the Tabs root's
-                `gap-2`) opens a 20px buffer ABOVE the bar — enough
-                to separate it from the sticky strip without the
-                cavernous 32px the earlier `pt-6` produced (Yuqi
-                follow-up: "still strange padding and gap"). `mt-0`
-                on the TabsContent panels drops the gap below the
-                bar to just `gap-2`, so the bar still reads as the
-                leading edge of the tab content beneath. */}
-            {/* 2026-06-10 (Yuqi /deadlines detail "remove background"): the
-                sticky tab bar drops its `bg-background-canvas-warm` fill so it
-                reads as part of the page, not a banded strip. The TabsList's own
-                bottom hairline still anchors the bar; the page wash behind it is
-                the same warm canvas, so there's no visible seam. */}
-            {/* 2026-06-10 (Yuqi page-scroll #6 "the tab bar should be part of the
-                header"): in page mode the sticky tab bar now carries a WHITE
-                (bg-background-default) fill so it visually CONTINUES the white
-                header block sitting flush above it — banner · title+meta · key
-                dates · tabs all read as one white identity zone. The TabsList's
-                own `border-b border-divider-subtle` (below) is the white→gray
-                seam; the gray content wash begins only beneath that border.
-                The white fill is opaque so the gray content scrolls cleanly
-                under the bar when it's pinned (no bleed-through). The leading
-                `pt-3` is dropped here in page mode — the white bar should butt
-                directly against the header above with no gray gutter showing;
-                the TabsList carries its own height. Panel/sheet keep `pt-3`
-                with no fill, unchanged. */}
-            <div
-              className={cn(
-                'sticky top-0 z-10',
-                // Page-mode tab bar = an opaque WHITE continuation of the header
-                // (the stepper/content scrolls behind it when pinned, so a
-                // transparent bar would bleed). The bottom border on the
-                // TabsList is the seam where white header ends and gray content
-                // begins.
-                isPageMode ? 'bg-background-default pb-0' : 'pt-3',
-              )}
-            >
-              {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
-                  from design/deadlines-drawer-rework): tab bar
-                  switched from default pill segmented control to the
-                  line-variant underline bar. Each trigger leads with
-                  a lucide icon + label + context badge:
-                    • Summary: no badge
-                    • Materials: outstanding count (red destructive)
-                      or all-received check (gray) when count == 0
-                    • Extension: accent check when row has a saved
-                      extension decision
-                    • Evidence: workpaper count (gray placeholder)
-                  TabsTrigger primitive already wires aria-selected +
-                  focus-visible ring per shadcn defaults; we stretch
-                  to `flex-1` so the four tabs distribute full-width
-                  across the drawer. */}
-              {(() => {
-                const outstandingMaterials = checklist.filter(
-                  (i) => i.status !== 'received' && i.status !== 'waived',
-                ).length
-                const allMaterialsReceived = checklist.length > 0 && outstandingMaterials === 0
-                const extensionSaved = Boolean(row?.extensionDecidedAt)
-                const evidenceCount = detail?.evidence.length ?? 0
-                return (
-                  <TabsList
-                    variant="line"
-                    // 2026-05-26 (Yuqi feedback #2): white bg on the
-                    // TabsList. The line-variant defaulted to transparent
-                    // which let the body's white still show through, but
-                    // when the sticky deadline strip above scrolls behind
-                    // the tabs they bled together visually. Explicit
-                    // white bg gives the tab bar a clear surface.
-                    //
-                    // 2026-05-26 (Yuqi feedback — "justify content left"
-                    // + "remove the left right padding"): bar is now
-                    // `justify-start` so the four tabs hug the left
-                    // edge instead of distributing across the panel
-                    // (each TabsTrigger drops `flex-1` for the same
-                    // reason — see the trigger className below). Inter-
-                    // tab `gap-1` → `gap-6` opens 24px between tabs so
-                    // they remain individually scannable now that each
-                    // one no longer carries its own `px-2`.
-                    // 2026-06-10 (Yuqi page-polish #6 "gap小"): the inter-tab
-                    // gap tightens from 24px to 16px in page mode so the four
-                    // tabs read as a closer-knit group. Panel/sheet keep gap-6.
-                    className={cn(
-                      'flex h-11 w-full justify-start border-b border-divider-subtle text-sm',
-                      isPageMode ? 'gap-4' : 'gap-6',
-                    )}
-                  >
-                    {/* 2026-05-26 (Yuqi feedback — "tabs can be more
-                        obvious, signalling people hey check these
-                        out" + "yes please" to pushing the active
-                        state further): every TabsTrigger now layers
-                        FOUR signals so the active tab pops without
-                        the bar abandoning the tab paradigm in favor
-                        of a segmented-control look:
-                          1. Inactive text: `text-text-secondary` —
-                             still visible enough to invite a click.
-                          2. Active text: `text-text-primary` +
-                             `font-semibold` — strongest contrast
-                             jump from inactive (medium-weight
-                             secondary) to active (semibold primary).
-                          3. Active underline color: `accent-default`
-                             (matches the /clients/[id] tabs +
-                             /deadlines scope tabs), so the rule
-                             pops in the canonical brand accent
-                             instead of plain text-active black.
-                          4. Active underline position: primitive
-                             default (`bottom-[-5px]`) — floats ~5px
-                             below the trigger for 15-16px breathing
-                             room from the text descender (an earlier
-                             `bottom-0` pulled it too close — "the
-                             underline is so close to the text").
-                        Stayed with TABS (not segmented control)
-                        because the 4 panels are different sections
-                        of the SAME deadline (Summary / Materials /
-                        Extension / Evidence), not filters or scopes.
-                        Segmented control belongs to the /deadlines
-                        top-level scope tabs where each option
-                        re-filters the queue. */}
-                    {visibleTabs.has('summary') ? (
-                      // 2026-05-26 (Yuqi seventieth pass #5): dropped
-                      // the leading Info icon. The "Summary" word is
-                      // self-explanatory; an info-glyph next to it
-                      // implied "click here for info ABOUT the
-                      // summary" rather than "this is the summary
-                      // tab." Other tabs (Materials, Extension,
-                      // Evidence) keep their icons because they
-                      // distinguish by purpose (paperclip /
-                      // calendar / file).
-                      <TabsTrigger
-                        value="summary"
-                        className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
-                      >
-                        {/* rzzww: the milestone/workflow home is labelled
-                            "Status" on the standalone page. */}
-                        {isPageMode ? <Trans>Status</Trans> : <Trans>Summary</Trans>}
-                      </TabsTrigger>
-                    ) : null}
-                    {visibleTabs.has('readiness') ? (
-                      <TabsTrigger
-                        value="readiness"
-                        className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
-                      >
-                        <PaperclipIcon className="size-3.5" aria-hidden />
-                        <Trans>Materials</Trans>
-                        {outstandingMaterials > 0 ? (
-                          <span
-                            aria-label={t`${outstandingMaterials} outstanding`}
-                            // 2026-05-26 (Yuqi feedback #3): badge subtler.
-                            // Was solid destructive red with white text —
-                            // that loudness made every Materials tab with
-                            // outstanding items shout "danger." Now: light
-                            // accent tint (state-accent-hover-alt) with
-                            // accent-tinted text. Communicates "13 items
-                            // here" without alarm chrome.
-                            className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-accent-hover-alt px-1 text-caption-xs font-medium leading-none tabular-nums text-text-accent"
-                          >
-                            {outstandingMaterials}
-                          </span>
-                        ) : allMaterialsReceived ? (
-                          <span
-                            aria-label={t`All received`}
-                            className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-success-hover px-1 text-caption-xs text-state-success-solid"
-                          >
-                            <CheckIcon className="size-3" aria-hidden />
-                          </span>
-                        ) : null}
-                      </TabsTrigger>
-                    ) : null}
-                    {visibleTabs.has('extension') ? (
-                      <TabsTrigger
-                        value="extension"
-                        className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
-                      >
-                        <CalendarClockIcon className="size-3.5" aria-hidden />
-                        <Trans>Extension</Trans>
-                        {extensionSaved ? (
-                          <span
-                            aria-label={t`Extension saved`}
-                            className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-default px-1 text-caption-xs leading-none text-text-inverted"
-                          >
-                            <CheckIcon className="size-3" aria-hidden />
-                          </span>
-                        ) : null}
-                      </TabsTrigger>
-                    ) : null}
-                    {/* Risk tab removed 2026-05-21 — risk inputs live on the
-                        client detail page (ClientRiskInputsPanel) rather than
-                        per-obligation. Surface kept on the schema for
-                        back-compat with deep-links; the trigger and content
-                        are unmounted. */}
-                    {visibleTabs.has('evidence') ? (
-                      <TabsTrigger
-                        value="evidence"
-                        className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
-                      >
-                        <FileTextIcon className="size-3.5" aria-hidden />
-                        {/* rzzww: the evidence/workpaper surface is labelled
-                            "Record" on the standalone page. */}
-                        {isPageMode ? <Trans>Record</Trans> : <Trans>Evidence</Trans>}
-                        <span
-                          aria-label={t`${evidenceCount} workpapers`}
-                          className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs tabular-nums text-text-tertiary"
-                        >
-                          {evidenceCount}
-                        </span>
-                      </TabsTrigger>
-                    ) : null}
-                    {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
-                        rzzww): the Audit tab gets its own trigger on the
-                        standalone page (it was a dead deep-link before). The
-                        content wires the milestone-grouped ObligationTimeline
-                        fed by the real audit feed. */}
-                    {visibleTabs.has('audit') ? (
-                      <TabsTrigger
-                        value="audit"
-                        className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
-                      >
-                        <HistoryIcon className="size-3.5" aria-hidden />
-                        <Trans>Audit</Trans>
-                      </TabsTrigger>
-                    ) : null}
-                  </TabsList>
-                )
-              })()}
-            </div>
-            <TabsContent value="summary" key="summary-content">
-              <motion.div
-                // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
-                // per-tab content drops its 24px top padding in page mode so it
-                // sits tight under the tab bar. Panel/sheet keep pt-6.
-                className={cn(isPageMode ? '' : 'pt-6')}
-                initial={{ x: 12, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
-              >
-                {/* Summary tab — milestone chevron + active-stage zoom.
+                </div>
+              ) : null}
+              {/* 2026-06-10 (Yuqi page-scroll "tabs in the header, not the
+                body"): in PAGE mode the tab bar is rendered as a non-scrolling
+                child of the white <header> (above); only panel/sheet still host
+                it here as a sticky element inside the body. The `tabBar` node
+                is shared so the trigger markup lives in one place. */}
+              {!isPageMode ? tabBar : null}
+              <TabsContent value="summary" key="summary-content">
+                <motion.div
+                  // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
+                  // per-tab content drops its 24px top padding in page mode so it
+                  // sits tight under the tab bar. Panel/sheet keep pt-6.
+                  className={cn(isPageMode ? '' : 'pt-6')}
+                  initial={{ x: 12, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                >
+                  {/* Summary tab — milestone chevron + active-stage zoom.
                   These were previously pinned in the sticky snapshot
                   block (always-visible across every tab). Yuqi #30
                   moved them into a dedicated tab so:
@@ -2377,7 +2367,7 @@ export function ObligationQueueDetailDrawer({
                       (?tab=summary is shareable).
                     - Materials / Extension / Evidence don't get the
                       stage card pushing them below the fold. */}
-                {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX
+                  {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX
                     `hMaQD`): the Status tab is a SINGLE column of stacked
                     cards — WorkflowMilestoneCard (stepper + active stage +
                     blocking + what's-left) → Extension → Recent activity →
@@ -2385,28 +2375,28 @@ export function ObligationQueueDetailDrawer({
                     Linked-from footer row. The earlier two-column rail is
                     gone. This matches the alert detail's single flat card
                     stack. */}
-                <div className="flex flex-col gap-4">
-                  <div className={cn('grid min-w-0 flex-1', isPageMode ? 'gap-4' : 'gap-3')}>
-                    {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX
+                  <div className="flex flex-col gap-4">
+                    <div className={cn('grid min-w-0 flex-1', isPageMode ? 'gap-4' : 'gap-3')}>
+                      {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX
                         `CorQi` WorkflowMilestoneCard): the stepper, active
                         stage, blocking, and "What's left" all live in ONE
                         white card on the gray-wash body — the deadline analogue
                         of the alert's "The change" group card. Panel/sheet keep
                         them as flat siblings via `contents`. */}
-                    <div
-                      className={
-                        isPageMode
-                          ? 'flex flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default px-5 py-4'
-                          : 'contents'
-                      }
-                    >
-                      <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
-                      {/* 2026-06-10 (Yuqi "the style is different"): the
+                      <div
+                        className={
+                          isPageMode
+                            ? 'flex flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default px-5 py-4'
+                            : 'contents'
+                        }
+                      >
+                        <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
+                        {/* 2026-06-10 (Yuqi "the style is different"): the
                           "What's left to do" checklist moved OUT of this white
                           workflow box into its own gray-header DetailSectionCard
                           (below, Pencil `bmwHb`) so it matches the rest of the
                           panel's card system instead of a bare uppercase eyebrow. */}
-                      {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
+                        {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
                       rzzww + no-fiction rule): the "Expected refund" card
                       ($4,210 + withholding breakdown) and the "Source docs"
                       card's fake "+ Add file" affordance were removed. Both
@@ -2416,228 +2406,228 @@ export function ObligationQueueDetailDrawer({
                       instead (driven by row.penaltyBreakdown), added
                       separately. Real source-document attachments return
                       when the ingest pipeline + contract fields land. */}
-                      <AuthorityResponsePanel
-                        row={row}
-                        auditEvents={detail.auditEvents}
-                        accepting={markAcceptedMutation.isPending}
-                        rejecting={markFiledRejectedMutation.isPending}
-                        onConfirmAccepted={() =>
-                          markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
-                        }
-                        onRecordRejection={openAuthorityRejectionDialog}
-                        onChangeTab={(nextTab) => onTabChange(nextTab)}
-                      />
-                      <ActiveStageDetailCard
-                        row={row}
-                        auditEvents={detail.auditEvents}
-                        readinessChecklist={detail.readinessChecklist}
-                        onChangeTab={(nextTab) => onTabChange(nextTab)}
-                        onChangeStatus={(nextStatus) =>
-                          changeStatus(row.id, nextStatus, row.status)
-                        }
-                        onConfirmAcceptance={() =>
-                          markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
-                        }
-                        onRecordRejection={openAuthorityRejectionDialog}
-                        onChangePrepStage={(nextPrepStage) => {
-                          // Capture the previous value so the success toast can
-                          // offer an Undo that fires the reverse mutation. No-op
-                          // clicks (same value) still let the request through —
-                          // the server short-circuits and emits a zero-uuid
-                          // auditId, but the toast logic uses the captured
-                          // previous to decide whether to show Undo.
-                          prepStagePreviousRef.current = row.prepStage
-                          updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
-                        }}
-                        onChangeReviewStage={(nextReviewStage) => {
-                          reviewStagePreviousRef.current = row.reviewStage
-                          updateReviewStageMutation.mutate({
-                            id: row.id,
-                            reviewStage: nextReviewStage,
-                          })
-                        }}
-                        onMarkSigned={() => {
-                          // Advance the e-file pipeline; success toast offers an
-                          // Undo that reverts to authorization_requested (the
-                          // only state mark-signed fires from). Same per-call
-                          // onSuccess + Undo split as `changeStatus`.
-                          updateEfileStateMutation.mutate(
-                            { id: row.id, efileState: 'authorization_signed' },
-                            {
-                              onSuccess: (result) => {
-                                toast.success(t`Marked 8879 signed`, {
-                                  description: t`Audit ${result.auditId.slice(0, 8)}`,
-                                  action: {
-                                    label: t`Undo`,
-                                    onClick: () =>
-                                      updateEfileStateMutation.mutate({
-                                        id: row.id,
-                                        efileState: 'authorization_requested',
-                                      }),
-                                  },
-                                })
+                        <AuthorityResponsePanel
+                          row={row}
+                          auditEvents={detail.auditEvents}
+                          accepting={markAcceptedMutation.isPending}
+                          rejecting={markFiledRejectedMutation.isPending}
+                          onConfirmAccepted={() =>
+                            markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
+                          }
+                          onRecordRejection={openAuthorityRejectionDialog}
+                          onChangeTab={(nextTab) => onTabChange(nextTab)}
+                        />
+                        <ActiveStageDetailCard
+                          row={row}
+                          auditEvents={detail.auditEvents}
+                          readinessChecklist={detail.readinessChecklist}
+                          onChangeTab={(nextTab) => onTabChange(nextTab)}
+                          onChangeStatus={(nextStatus) =>
+                            changeStatus(row.id, nextStatus, row.status)
+                          }
+                          onConfirmAcceptance={() =>
+                            markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
+                          }
+                          onRecordRejection={openAuthorityRejectionDialog}
+                          onChangePrepStage={(nextPrepStage) => {
+                            // Capture the previous value so the success toast can
+                            // offer an Undo that fires the reverse mutation. No-op
+                            // clicks (same value) still let the request through —
+                            // the server short-circuits and emits a zero-uuid
+                            // auditId, but the toast logic uses the captured
+                            // previous to decide whether to show Undo.
+                            prepStagePreviousRef.current = row.prepStage
+                            updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
+                          }}
+                          onChangeReviewStage={(nextReviewStage) => {
+                            reviewStagePreviousRef.current = row.reviewStage
+                            updateReviewStageMutation.mutate({
+                              id: row.id,
+                              reviewStage: nextReviewStage,
+                            })
+                          }}
+                          onMarkSigned={() => {
+                            // Advance the e-file pipeline; success toast offers an
+                            // Undo that reverts to authorization_requested (the
+                            // only state mark-signed fires from). Same per-call
+                            // onSuccess + Undo split as `changeStatus`.
+                            updateEfileStateMutation.mutate(
+                              { id: row.id, efileState: 'authorization_signed' },
+                              {
+                                onSuccess: (result) => {
+                                  toast.success(t`Marked 8879 signed`, {
+                                    description: t`Audit ${result.auditId.slice(0, 8)}`,
+                                    action: {
+                                      label: t`Undo`,
+                                      onClick: () =>
+                                        updateEfileStateMutation.mutate({
+                                          id: row.id,
+                                          efileState: 'authorization_requested',
+                                        }),
+                                    },
+                                  })
+                                },
                               },
-                            },
-                          )
-                        }}
-                        onRemindSignature={() => setRemindDialogOpen(true)}
-                        onSubmitEfile={() => {
-                          // Signed → e-filed. Undo reverts to
-                          // authorization_signed (where submit fires from).
-                          updateEfileStateMutation.mutate(
-                            { id: row.id, efileState: 'submitted' },
-                            {
-                              onSuccess: (result) => {
-                                toast.success(t`Marked e-filed`, {
-                                  description: t`Audit ${result.auditId.slice(0, 8)}`,
-                                  action: {
-                                    label: t`Undo`,
-                                    onClick: () =>
-                                      updateEfileStateMutation.mutate({
-                                        id: row.id,
-                                        efileState: 'authorization_signed',
-                                      }),
-                                  },
-                                })
+                            )
+                          }}
+                          onRemindSignature={() => setRemindDialogOpen(true)}
+                          onSubmitEfile={() => {
+                            // Signed → e-filed. Undo reverts to
+                            // authorization_signed (where submit fires from).
+                            updateEfileStateMutation.mutate(
+                              { id: row.id, efileState: 'submitted' },
+                              {
+                                onSuccess: (result) => {
+                                  toast.success(t`Marked e-filed`, {
+                                    description: t`Audit ${result.auditId.slice(0, 8)}`,
+                                    action: {
+                                      label: t`Undo`,
+                                      onClick: () =>
+                                        updateEfileStateMutation.mutate({
+                                          id: row.id,
+                                          efileState: 'authorization_signed',
+                                        }),
+                                    },
+                                  })
+                                },
                               },
-                            },
-                          )
-                        }}
-                      />
-                      {/* 2026-06-10 (Yuqi restore rework 61edf90a — Qn4nX CorQi
+                            )
+                          }}
+                        />
+                        {/* 2026-06-10 (Yuqi restore rework 61edf90a — Qn4nX CorQi
                           `WdFB4` NextMovePanel): "What's left to do" lives
                           INSIDE the WorkflowMilestoneCard as a divider-separated
                           section (top hairline), not a nested card — matching
                           the canonical and the alert's flat in-card sections.
                           Small uppercase eyebrow, no card chrome. */}
-                      {checklist.length > 0 &&
-                      row.status !== 'done' &&
-                      row.status !== 'completed' ? (
-                        <div className="flex flex-col gap-2.5 border-t border-divider-subtle pt-4">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-caption-xs font-bold tracking-eyebrow-tight text-text-tertiary uppercase">
-                              <Trans>What's left to do</Trans>
-                            </span>
-                            <span className="text-caption-xs text-text-tertiary">
-                              {t`${checklist.filter((item) => item.status === 'received').length} of ${checklist.length} complete`}
-                            </span>
-                          </div>
-                          <ul className="grid gap-2.5">
-                            {checklist.slice(0, 6).map((item) => {
-                              const isDone = item.status === 'received'
-                              return (
-                                <li key={item.id} className="flex items-start gap-3">
-                                  <span
-                                    className={cn(
-                                      // 2026-06-10 (Yuqi page-polish #15
-                                      // "checkbox太大"): the checklist box
-                                      // shrinks 18px → 16px (size-4) so it reads
-                                      // as a checkmark glyph, not a tile.
-                                      'mt-px flex size-4 shrink-0 items-center justify-center rounded-sm border',
-                                      isDone
-                                        ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
-                                        : 'border-divider-regular bg-background-default',
-                                    )}
-                                    aria-hidden
-                                  >
-                                    {isDone ? <CheckIcon className="size-3" /> : null}
-                                  </span>
-                                  <span className="grid min-w-0 gap-0.5">
+                        {checklist.length > 0 &&
+                        row.status !== 'done' &&
+                        row.status !== 'completed' ? (
+                          <div className="flex flex-col gap-2.5 border-t border-divider-subtle pt-4">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-caption-xs font-bold tracking-eyebrow-tight text-text-tertiary uppercase">
+                                <Trans>What's left to do</Trans>
+                              </span>
+                              <span className="text-caption-xs text-text-tertiary">
+                                {t`${checklist.filter((item) => item.status === 'received').length} of ${checklist.length} complete`}
+                              </span>
+                            </div>
+                            <ul className="grid gap-2.5">
+                              {checklist.slice(0, 6).map((item) => {
+                                const isDone = item.status === 'received'
+                                return (
+                                  <li key={item.id} className="flex items-start gap-3">
                                     <span
                                       className={cn(
-                                        'text-sm leading-tight',
+                                        // 2026-06-10 (Yuqi page-polish #15
+                                        // "checkbox太大"): the checklist box
+                                        // shrinks 18px → 16px (size-4) so it reads
+                                        // as a checkmark glyph, not a tile.
+                                        'mt-px flex size-4 shrink-0 items-center justify-center rounded-sm border',
                                         isDone
-                                          ? // 2026-06-10 (Yuqi page-polish #14
-                                            // "划掉太浅了"): the completed-item
-                                            // strikethrough was decoration-
-                                            // text-tertiary/40 — almost
-                                            // invisible. Darkened to a solid
-                                            // text-secondary line so "done"
-                                            // reads clearly.
-                                            'text-text-secondary line-through decoration-text-secondary'
-                                          : 'text-text-primary',
+                                          ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
+                                          : 'border-divider-regular bg-background-default',
                                       )}
+                                      aria-hidden
                                     >
-                                      {item.label}
+                                      {isDone ? <CheckIcon className="size-3" /> : null}
                                     </span>
-                                    {isDone && item.receivedAt ? (
-                                      <span className="text-caption-xs text-text-tertiary">
-                                        <Trans>
-                                          received {formatDate(item.receivedAt.slice(0, 10))}
-                                        </Trans>
+                                    <span className="grid min-w-0 gap-0.5">
+                                      <span
+                                        className={cn(
+                                          'text-sm leading-tight',
+                                          isDone
+                                            ? // 2026-06-10 (Yuqi page-polish #14
+                                              // "划掉太浅了"): the completed-item
+                                              // strikethrough was decoration-
+                                              // text-tertiary/40 — almost
+                                              // invisible. Darkened to a solid
+                                              // text-secondary line so "done"
+                                              // reads clearly.
+                                              'text-text-secondary line-through decoration-text-secondary'
+                                            : 'text-text-primary',
+                                        )}
+                                      >
+                                        {item.label}
                                       </span>
-                                    ) : null}
+                                      {isDone && item.receivedAt ? (
+                                        <span className="text-caption-xs text-text-tertiary">
+                                          <Trans>
+                                            received {formatDate(item.receivedAt.slice(0, 10))}
+                                          </Trans>
+                                        </span>
+                                      ) : null}
+                                    </span>
+                                  </li>
+                                )
+                              })}
+                            </ul>
+                            <TextLink
+                              variant="accent"
+                              className="w-fit"
+                              onClick={() => onTabChange('readiness')}
+                            >
+                              <Trans>Manage in Materials →</Trans>
+                            </TextLink>
+                          </div>
+                        ) : null}
+                      </div>
+                      {/* Recent activity — last few audit-feed entries, with a
+                        link out to the full Timeline tab. */}
+                      {/* 2026-06-10 (Yuqi — replicate Pencil `qSa9z` Recent
+                        activity): the shared <DetailSectionCard> chrome (gray
+                        header band + "View all → Record" link) over flush rows
+                        with top hairlines + mono timestamps. */}
+                      {detail.auditEvents.length > 0 ? (
+                        <DetailSectionCard
+                          title={<Trans>Recent activity</Trans>}
+                          headerRight={
+                            <button
+                              type="button"
+                              onClick={() => onTabChange('audit')}
+                              className="font-medium text-text-accent underline-offset-2 outline-none hover:underline"
+                            >
+                              <Trans>View all in Timeline →</Trans>
+                            </button>
+                          }
+                          flush
+                        >
+                          <ul className="flex flex-col">
+                            {detail.auditEvents.slice(0, 3).map((event, index) => {
+                              const actor = event.actorLabel ?? t`System`
+                              return (
+                                <li
+                                  key={event.id}
+                                  className={cn(
+                                    // 2026-06-10 (Yuqi page-polish #16 "更扁"):
+                                    // the Recent-activity rows flatten from py-3.5
+                                    // to py-2.5 so the list reads shorter/denser.
+                                    'flex items-center gap-3 px-5 py-2.5',
+                                    index > 0 && 'border-t border-divider-subtle',
+                                  )}
+                                >
+                                  <AssigneeAvatar name={actor} title={actor} size="sm" />
+                                  <span className="min-w-0 flex-1 text-sm leading-tight text-text-secondary">
+                                    <span className="font-medium text-text-primary">{actor}</span>
+                                    <span aria-hidden> · </span>
+                                    {formatAuditActionLabel(event.action, auditActionLabels)}
+                                  </span>
+                                  <span className="shrink-0 font-mono text-caption-xs tabular-nums text-text-tertiary">
+                                    {formatRelativeTime(event.createdAt)}
                                   </span>
                                 </li>
                               )
                             })}
                           </ul>
-                          <TextLink
-                            variant="accent"
-                            className="w-fit"
-                            onClick={() => onTabChange('readiness')}
-                          >
-                            <Trans>Manage in Materials →</Trans>
-                          </TextLink>
-                        </div>
+                        </DetailSectionCard>
                       ) : null}
-                    </div>
-                    {/* Recent activity — last few audit-feed entries, with a
-                        link out to the full Timeline tab. */}
-                    {/* 2026-06-10 (Yuqi — replicate Pencil `qSa9z` Recent
-                        activity): the shared <DetailSectionCard> chrome (gray
-                        header band + "View all → Record" link) over flush rows
-                        with top hairlines + mono timestamps. */}
-                    {detail.auditEvents.length > 0 ? (
-                      <DetailSectionCard
-                        title={<Trans>Recent activity</Trans>}
-                        headerRight={
-                          <button
-                            type="button"
-                            onClick={() => onTabChange('audit')}
-                            className="font-medium text-text-accent underline-offset-2 outline-none hover:underline"
-                          >
-                            <Trans>View all in Timeline →</Trans>
-                          </button>
-                        }
-                        flush
-                      >
-                        <ul className="flex flex-col">
-                          {detail.auditEvents.slice(0, 3).map((event, index) => {
-                            const actor = event.actorLabel ?? t`System`
-                            return (
-                              <li
-                                key={event.id}
-                                className={cn(
-                                  // 2026-06-10 (Yuqi page-polish #16 "更扁"):
-                                  // the Recent-activity rows flatten from py-3.5
-                                  // to py-2.5 so the list reads shorter/denser.
-                                  'flex items-center gap-3 px-5 py-2.5',
-                                  index > 0 && 'border-t border-divider-subtle',
-                                )}
-                              >
-                                <AssigneeAvatar name={actor} title={actor} size="sm" />
-                                <span className="min-w-0 flex-1 text-sm leading-tight text-text-secondary">
-                                  <span className="font-medium text-text-primary">{actor}</span>
-                                  <span aria-hidden> · </span>
-                                  {formatAuditActionLabel(event.action, auditActionLabels)}
-                                </span>
-                                <span className="shrink-0 font-mono text-caption-xs tabular-nums text-text-tertiary">
-                                  {formatRelativeTime(event.createdAt)}
-                                </span>
-                              </li>
-                            )
-                          })}
-                        </ul>
-                      </DetailSectionCard>
-                    ) : null}
-                    {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
+                      {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
                         rzzww): Penalty exposure card, driven entirely by the
                         real penalty-engine output on the row. Self-hides when
                         no exposure applies. Page-only so the /clients drawer
                         summary is unchanged. */}
-                    {isPageMode ? <PenaltyExposureCard row={row} /> : null}
-                    {/* 2026-06-10 (Yuqi restore rework 2adfcf5e — fold Extension
+                      {isPageMode ? <PenaltyExposureCard row={row} /> : null}
+                      {/* 2026-06-10 (Yuqi restore rework 2adfcf5e — fold Extension
                         into Status): the decideExtension flow (Form 7004/4868)
                         is unreachable in page mode (no Extension tab in the
                         locked 4-tab bar), so the apply-extension action folds
@@ -2646,269 +2636,255 @@ export function ObligationQueueDetailDrawer({
                         Extension tab — no fiction (real rule fields only).
                         Shows when a rule allows an extension or one is already
                         on file. */}
-                    {isPageMode &&
-                    (extensionPolicy?.available || Boolean(row.extensionDecidedAt)) ? (
-                      <DetailSectionCard
-                        title={<Trans>Extension</Trans>}
-                        headerRight={
-                          row.extensionDecidedAt ? (
-                            <span className="text-caption-xs text-text-tertiary">
-                              <Trans>Filed {formatDate(row.extensionDecidedAt.slice(0, 10))}</Trans>
-                            </span>
-                          ) : detail.matchedRule ? (
-                            <TextLink
-                              variant="accent"
-                              className="font-semibold"
-                              render={
-                                <Link to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`} />
-                              }
-                            >
-                              <Trans>Open rule →</Trans>
-                            </TextLink>
-                          ) : null
-                        }
-                      >
-                        <div className="flex flex-col gap-3">
-                          <p className="text-caption text-text-tertiary">
-                            {(() => {
-                              const formName =
-                                extensionPolicy?.formName ?? row.extensionFormName ?? null
-                              return formName
-                                ? t`${formName} — automatic extension of time to file. Defers filing, not payment.`
-                                : t`Extension of time to file. Defers filing, not payment.`
-                            })()}
-                          </p>
-                          {extensionNeedsManualDeadline ? (
-                            <label className="flex flex-col gap-1">
-                              <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
-                                <Trans>Extended filing deadline</Trans>
+                      {isPageMode &&
+                      (extensionPolicy?.available || Boolean(row.extensionDecidedAt)) ? (
+                        <DetailSectionCard
+                          title={<Trans>Extension</Trans>}
+                          headerRight={
+                            row.extensionDecidedAt ? (
+                              <span className="text-caption-xs text-text-tertiary">
+                                <Trans>
+                                  Filed {formatDate(row.extensionDecidedAt.slice(0, 10))}
+                                </Trans>
                               </span>
-                              <IsoDatePicker
-                                value={extensionDraft.extendedFilingDate}
-                                invalid={extensionManualDeadlineInvalid}
-                                ariaLabel={t`Extended filing deadline`}
-                                placeholder={t`Extended filing deadline`}
-                                onValueChange={(extendedFilingDate) =>
-                                  setExtensionDraft((current) => ({
-                                    ...current,
-                                    extendedFilingDate,
-                                  }))
+                            ) : detail.matchedRule ? (
+                              <TextLink
+                                variant="accent"
+                                className="font-semibold"
+                                render={
+                                  <Link
+                                    to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`}
+                                  />
                                 }
-                              />
-                            </label>
-                          ) : null}
-                          <div className="grid gap-3 sm:grid-cols-2">
+                              >
+                                <Trans>Open rule →</Trans>
+                              </TextLink>
+                            ) : null
+                          }
+                        >
+                          <div className="flex flex-col gap-3">
+                            <p className="text-caption text-text-tertiary">
+                              {(() => {
+                                const formName =
+                                  extensionPolicy?.formName ?? row.extensionFormName ?? null
+                                return formName
+                                  ? t`${formName} — automatic extension of time to file. Defers filing, not payment.`
+                                  : t`Extension of time to file. Defers filing, not payment.`
+                              })()}
+                            </p>
+                            {extensionNeedsManualDeadline ? (
+                              <label className="flex flex-col gap-1">
+                                <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                  <Trans>Extended filing deadline</Trans>
+                                </span>
+                                <IsoDatePicker
+                                  value={extensionDraft.extendedFilingDate}
+                                  invalid={extensionManualDeadlineInvalid}
+                                  ariaLabel={t`Extended filing deadline`}
+                                  placeholder={t`Extended filing deadline`}
+                                  onValueChange={(extendedFilingDate) =>
+                                    setExtensionDraft((current) => ({
+                                      ...current,
+                                      extendedFilingDate,
+                                    }))
+                                  }
+                                />
+                              </label>
+                            ) : null}
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <label className="flex flex-col gap-1">
+                                <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                  <Trans>Internal target date</Trans>
+                                </span>
+                                <IsoDatePicker
+                                  value={extensionDraft.internalTargetDate}
+                                  invalid={internalTargetDateInvalid}
+                                  maxIsoDate={extensionDeadlineCap}
+                                  ariaLabel={t`Internal extension target date`}
+                                  placeholder={t`Internal extension target date`}
+                                  onValueChange={(internalTargetDate) =>
+                                    setExtensionDraft((current) => ({
+                                      ...current,
+                                      internalTargetDate,
+                                    }))
+                                  }
+                                />
+                              </label>
+                              <label className="flex flex-col gap-1">
+                                <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                  <Trans>Source or confirmation</Trans>
+                                </span>
+                                <Input
+                                  aria-label={t`Extension source`}
+                                  placeholder={t`Reference (optional)`}
+                                  value={extensionDraft.source}
+                                  onChange={(event) =>
+                                    setExtensionDraft((current) => ({
+                                      ...current,
+                                      source: event.target.value,
+                                    }))
+                                  }
+                                />
+                              </label>
+                            </div>
                             <label className="flex flex-col gap-1">
                               <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
-                                <Trans>Internal target date</Trans>
+                                <Trans>Decision memo</Trans>
                               </span>
-                              <IsoDatePicker
-                                value={extensionDraft.internalTargetDate}
-                                invalid={internalTargetDateInvalid}
-                                maxIsoDate={extensionDeadlineCap}
-                                ariaLabel={t`Internal extension target date`}
-                                placeholder={t`Internal extension target date`}
-                                onValueChange={(internalTargetDate) =>
-                                  setExtensionDraft((current) => ({
-                                    ...current,
-                                    internalTargetDate,
-                                  }))
-                                }
-                              />
-                            </label>
-                            <label className="flex flex-col gap-1">
-                              <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
-                                <Trans>Source or confirmation</Trans>
-                              </span>
-                              <Input
-                                aria-label={t`Extension source`}
-                                placeholder={t`Reference (optional)`}
-                                value={extensionDraft.source}
+                              <Textarea
+                                aria-label={t`Decision memo`}
+                                aria-required="true"
+                                placeholder={t`Why is this extension being filed? (required)`}
+                                value={extensionDraft.memo}
                                 onChange={(event) =>
                                   setExtensionDraft((current) => ({
                                     ...current,
-                                    source: event.target.value,
+                                    memo: event.target.value,
                                   }))
                                 }
                               />
                             </label>
-                          </div>
-                          <label className="flex flex-col gap-1">
-                            <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
-                              <Trans>Decision memo</Trans>
-                            </span>
-                            <Textarea
-                              aria-label={t`Decision memo`}
-                              aria-required="true"
-                              placeholder={t`Why is this extension being filed? (required)`}
-                              value={extensionDraft.memo}
-                              onChange={(event) =>
-                                setExtensionDraft((current) => ({
-                                  ...current,
-                                  memo: event.target.value,
-                                }))
-                              }
-                            />
-                          </label>
-                          {row.paymentDueDate ? (
-                            <PaymentStillDueCallout
-                              title={
-                                typeof row.estimatedTaxDueCents === 'number' &&
-                                row.estimatedTaxDueCents > 0
-                                  ? t`Payment of ${formatCents(row.estimatedTaxDueCents)} still due ${formatDate(row.paymentDueDate)}`
-                                  : t`Payment still due ${formatDate(row.paymentDueDate)}`
-                              }
-                            >
-                              <Trans>
-                                Filing an extension does not extend the time to pay. Schedule an
-                                EFTPS payment by the original deadline to avoid interest and
-                                penalties.
-                              </Trans>
-                            </PaymentStillDueCallout>
-                          ) : null}
-                          <div className="flex flex-wrap items-center justify-end gap-2">
-                            {row.extensionDecidedAt ? (
-                              <span className="mr-auto text-caption text-text-tertiary">
+                            {row.paymentDueDate ? (
+                              <PaymentStillDueCallout
+                                title={
+                                  typeof row.estimatedTaxDueCents === 'number' &&
+                                  row.estimatedTaxDueCents > 0
+                                    ? t`Payment of ${formatCents(row.estimatedTaxDueCents)} still due ${formatDate(row.paymentDueDate)}`
+                                    : t`Payment still due ${formatDate(row.paymentDueDate)}`
+                                }
+                              >
                                 <Trans>
-                                  Last decided{' '}
-                                  {formatDateTimeWithTimezone(
-                                    row.extensionDecidedAt,
-                                    practiceTimezone,
-                                  )}
+                                  Filing an extension does not extend the time to pay. Schedule an
+                                  EFTPS payment by the original deadline to avoid interest and
+                                  penalties.
                                 </Trans>
-                              </span>
+                              </PaymentStillDueCallout>
                             ) : null}
-                            <Button
-                              variant="outline"
-                              onClick={() => setExtensionDraft(emptyExtensionPlanDraft(row.id))}
-                            >
-                              <Trans>Reset</Trans>
-                            </Button>
-                            <Button
-                              onClick={saveExtensionDecision}
-                              disabled={saveExtensionPlanDisabled}
-                            >
-                              <Trans>File extension</Trans>
-                            </Button>
+                            <div className="flex flex-wrap items-center justify-end gap-2">
+                              {row.extensionDecidedAt ? (
+                                <span className="mr-auto text-caption text-text-tertiary">
+                                  <Trans>
+                                    Last decided{' '}
+                                    {formatDateTimeWithTimezone(
+                                      row.extensionDecidedAt,
+                                      practiceTimezone,
+                                    )}
+                                  </Trans>
+                                </span>
+                              ) : null}
+                              <Button
+                                variant="outline"
+                                onClick={() => setExtensionDraft(emptyExtensionPlanDraft(row.id))}
+                              >
+                                <Trans>Reset</Trans>
+                              </Button>
+                              <Button
+                                onClick={saveExtensionDecision}
+                                disabled={saveExtensionPlanDisabled}
+                              >
+                                <Trans>File extension</Trans>
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      </DetailSectionCard>
-                    ) : null}
-                  </div>
-                  {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX):
+                        </DetailSectionCard>
+                      ) : null}
+                    </div>
+                    {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX):
                       single-column body, so Ownership + Linked-from fold to a
                       full-width 2-up footer row below the cards (the prior right
                       rail is gone). Each is wrapped in the shared
                       DetailSectionCard chrome (gray header band) so they match
                       the alert's zero-hand-rolled-card system — parity #4. */}
-                  {/* 2026-06-10 (Yuqi page-polish #18/#19 "不要" ×2): the
+                    {/* 2026-06-10 (Yuqi page-polish #18/#19 "不要" ×2): the
                       Ownership + Linked-from footer 2-up is dropped in page mode.
                       Ownership duplicates the footer Assign action; Linked-from's
                       "Client profile" duplicates the hero client chip (which
                       already navigates to the client). Panel/sheet keep both. */}
-                  {!isPageMode ? (
-                    <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                      <DetailSectionCard title={<Trans>Ownership</Trans>}>
-                        <div className="flex items-center gap-2.5">
-                          <AssigneeAvatar
-                            name={row.assigneeName ?? t`Unassigned`}
-                            title={row.assigneeName ?? t`Unassigned`}
-                            size="sm"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-caption-xs text-text-tertiary">
-                              <Trans>Assignee</Trans>
-                            </p>
-                            <p className="truncate text-sm font-medium text-text-primary">
-                              {row.assigneeName ?? <Trans>Unassigned</Trans>}
-                            </p>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger
-                              render={
-                                // 2026-06-10 (Yuqi critique contrast pass): the
-                                // "Change" target was a tiny h-7 ghost in
-                                // accent-solid (~3:1 on white). Switched to a
-                                // bordered outline button at the default size so
-                                // it clears AA and reads as a real affordance.
-                                <Button variant="outline" size="sm" className="h-8 font-medium">
-                                  <Trans>Change</Trans>
-                                </Button>
-                              }
+                    {!isPageMode ? (
+                      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                        <DetailSectionCard title={<Trans>Ownership</Trans>}>
+                          <div className="flex items-center gap-2.5">
+                            <AssigneeAvatar
+                              name={row.assigneeName ?? t`Unassigned`}
+                              title={row.assigneeName ?? t`Unassigned`}
+                              size="sm"
                             />
-                            <DropdownMenuContent align="end" className="w-56">
-                              {assignableMembers.length > 0 ? (
-                                <DropdownMenuRadioGroup
-                                  value={row.assigneeId ?? ''}
-                                  onValueChange={(value) =>
-                                    assignMutation.mutate({ id: row.id, assigneeId: value || null })
-                                  }
-                                >
-                                  {assignableMembers.map((member) => (
-                                    <DropdownMenuRadioItem
-                                      key={member.assigneeId}
-                                      value={member.assigneeId}
-                                    >
-                                      {member.name}
-                                    </DropdownMenuRadioItem>
-                                  ))}
-                                </DropdownMenuRadioGroup>
-                              ) : (
-                                <DropdownMenuItem disabled>
-                                  <Trans>No assignable teammates</Trans>
-                                </DropdownMenuItem>
-                              )}
-                              {row.assigneeId ? (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      assignMutation.mutate({ id: row.id, assigneeId: null })
+                            <div className="min-w-0 flex-1">
+                              <p className="text-caption-xs text-text-tertiary">
+                                <Trans>Assignee</Trans>
+                              </p>
+                              <p className="truncate text-sm font-medium text-text-primary">
+                                {row.assigneeName ?? <Trans>Unassigned</Trans>}
+                              </p>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger
+                                render={
+                                  // 2026-06-10 (Yuqi critique contrast pass): the
+                                  // "Change" target was a tiny h-7 ghost in
+                                  // accent-solid (~3:1 on white). Switched to a
+                                  // bordered outline button at the default size so
+                                  // it clears AA and reads as a real affordance.
+                                  <Button variant="outline" size="sm" className="h-8 font-medium">
+                                    <Trans>Change</Trans>
+                                  </Button>
+                                }
+                              />
+                              <DropdownMenuContent align="end" className="w-56">
+                                {assignableMembers.length > 0 ? (
+                                  <DropdownMenuRadioGroup
+                                    value={row.assigneeId ?? ''}
+                                    onValueChange={(value) =>
+                                      assignMutation.mutate({
+                                        id: row.id,
+                                        assigneeId: value || null,
+                                      })
                                     }
                                   >
-                                    <Trans>Clear assignee</Trans>
+                                    {assignableMembers.map((member) => (
+                                      <DropdownMenuRadioItem
+                                        key={member.assigneeId}
+                                        value={member.assigneeId}
+                                      >
+                                        {member.name}
+                                      </DropdownMenuRadioItem>
+                                    ))}
+                                  </DropdownMenuRadioGroup>
+                                ) : (
+                                  <DropdownMenuItem disabled>
+                                    <Trans>No assignable teammates</Trans>
                                   </DropdownMenuItem>
-                                </>
-                              ) : null}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </DetailSectionCard>
-                      <DetailSectionCard title={<Trans>Linked from</Trans>}>
-                        <Link
-                          to={clientDetailPath({ id: row.clientId, name: row.clientName })}
-                          className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                        >
-                          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
-                            <UsersIcon className="size-3.5" aria-hidden />
-                          </span>
-                          <span className="min-w-0 flex-1 leading-tight">
-                            <span className="block truncate text-sm font-medium text-text-primary">
-                              {row.clientName}
-                            </span>
-                            <span className="block text-caption-xs text-text-tertiary">
-                              <Trans>Client profile</Trans>
-                            </span>
-                          </span>
-                          <ExternalLinkIcon
-                            className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
-                            aria-hidden
-                          />
-                        </Link>
-                        {row.taxYear ? (
+                                )}
+                                {row.assigneeId ? (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        assignMutation.mutate({ id: row.id, assigneeId: null })
+                                      }
+                                    >
+                                      <Trans>Clear assignee</Trans>
+                                    </DropdownMenuItem>
+                                  </>
+                                ) : null}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </DetailSectionCard>
+                        <DetailSectionCard title={<Trans>Linked from</Trans>}>
                           <Link
                             to={clientDetailPath({ id: row.clientId, name: row.clientName })}
                             className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                           >
                             <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
-                              <CalendarClockIcon className="size-3.5" aria-hidden />
+                              <UsersIcon className="size-3.5" aria-hidden />
                             </span>
                             <span className="min-w-0 flex-1 leading-tight">
                               <span className="block truncate text-sm font-medium text-text-primary">
-                                <Trans>TY {row.taxYear - 1}</Trans>
+                                {row.clientName}
                               </span>
                               <span className="block text-caption-xs text-text-tertiary">
-                                <Trans>Prior return</Trans>
+                                <Trans>Client profile</Trans>
                               </span>
                             </span>
                             <ExternalLinkIcon
@@ -2916,94 +2892,115 @@ export function ObligationQueueDetailDrawer({
                               aria-hidden
                             />
                           </Link>
-                        ) : null}
-                      </DetailSectionCard>
-                    </div>
-                  ) : null}
-                </div>
-              </motion.div>
-            </TabsContent>
-            <TabsContent value="readiness" key="readiness-content">
-              <motion.div
-                // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
-                // per-tab content drops its 24px top padding in page mode so it
-                // sits tight under the tab bar. Panel/sheet keep pt-6.
-                className={cn(isPageMode ? '' : 'pt-6')}
-                initial={{ x: 12, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
-              >
-                {/* 2026-05-26 (Yuqi sixty-sixth pass — Materials
+                          {row.taxYear ? (
+                            <Link
+                              to={clientDetailPath({ id: row.clientId, name: row.clientName })}
+                              className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                            >
+                              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
+                                <CalendarClockIcon className="size-3.5" aria-hidden />
+                              </span>
+                              <span className="min-w-0 flex-1 leading-tight">
+                                <span className="block truncate text-sm font-medium text-text-primary">
+                                  <Trans>TY {row.taxYear - 1}</Trans>
+                                </span>
+                                <span className="block text-caption-xs text-text-tertiary">
+                                  <Trans>Prior return</Trans>
+                                </span>
+                              </span>
+                              <ExternalLinkIcon
+                                className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
+                                aria-hidden
+                              />
+                            </Link>
+                          ) : null}
+                        </DetailSectionCard>
+                      </div>
+                    ) : null}
+                  </div>
+                </motion.div>
+              </TabsContent>
+              <TabsContent value="readiness" key="readiness-content">
+                <motion.div
+                  // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
+                  // per-tab content drops its 24px top padding in page mode so it
+                  // sits tight under the tab bar. Panel/sheet keep pt-6.
+                  className={cn(isPageMode ? '' : 'pt-6')}
+                  initial={{ x: 12, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                >
+                  {/* 2026-05-26 (Yuqi sixty-sixth pass — Materials
                     structural tighten, #13 "scattered"): outer gap
                     bumped from gap-3 → gap-4 so each top-level
                     block (overview, checklist, sent panel, tax
                     year settings) reads as its own clear section
                     instead of one long stack. Cross-tab default. */}
-                <div className="grid gap-4">
-                  {/* Top-of-tab summary — explains what readiness IS
+                  <div className="grid gap-4">
+                    {/* Top-of-tab summary — explains what readiness IS
                         + shows the at-a-glance state (PRD §3.2 says the
                         biggest deadline risk isn't "CPA doesn't know the
                         date," it's "CPA doesn't have enough info to
                         finish the return"). This anchor + the per-item
                         rows below replace the prior right sidebar. */}
-                  <ReadinessOverview
-                    row={row}
-                    latestRequest={latestRequest ?? null}
-                    checklistCount={checklist.length}
-                    receivedCount={checklist.filter((item) => item.status === 'received').length}
-                  />
-                  {/* Cluster 2 (Materials design `AYpfU` MatHeader): progress
+                    <ReadinessOverview
+                      row={row}
+                      latestRequest={latestRequest ?? null}
+                      checklistCount={checklist.length}
+                      receivedCount={checklist.filter((item) => item.status === 'received').length}
+                    />
+                    {/* Cluster 2 (Materials design `AYpfU` MatHeader): progress
                       bar + 3-dot legend. received = `received`; outstanding =
                       `missing` + `needs_review`; waived = `waived` (CPA marked
                       not-applicable this year). */}
-                  {checklist.length > 0 ? (
-                    <MaterialsProgressLegend
-                      counts={{
-                        received: checklist.filter((item) => item.status === 'received').length,
-                        outstanding: checklist.filter(
-                          (item) => item.status !== 'received' && item.status !== 'waived',
-                        ).length,
-                        waived: checklist.filter((item) => item.status === 'waived').length,
-                      }}
-                    />
-                  ) : null}
-                  {/* Three-class deadline display (PRD §7.2 + §3.2):
+                    {checklist.length > 0 ? (
+                      <MaterialsProgressLegend
+                        counts={{
+                          received: checklist.filter((item) => item.status === 'received').length,
+                          outstanding: checklist.filter(
+                            (item) => item.status !== 'received' && item.status !== 'waived',
+                          ).length,
+                          waived: checklist.filter((item) => item.status === 'waived').length,
+                        }}
+                      />
+                    ) : null}
+                    {/* Three-class deadline display (PRD §7.2 + §3.2):
                         client-action chip when a readiness request is
                         outstanding. The other two classes (statutory,
                         firm-internal) live in the drawer header. */}
-                  {latestRequest && latestRequest.status !== 'revoked' ? (
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <Badge
-                        variant="outline"
-                        className="border-state-warning-border bg-state-warning-hover text-text-warning"
-                      >
-                        <Trans>
-                          Client response due{' '}
-                          {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
-                        </Trans>
-                      </Badge>
-                      <span className="text-text-tertiary">
-                        <Trans>· firm-set deadline for this materials request</Trans>
-                      </span>
-                    </div>
-                  ) : null}
-                  {correctionMaterialsMode ? (
-                    <div className="flex items-start gap-2 rounded-lg border border-state-destructive-border bg-state-destructive-hover px-3 py-2 text-sm text-text-destructive">
-                      <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
-                      <div className="grid gap-1">
-                        <p className="font-medium">
-                          <Trans>Request corrected materials</Trans>
-                        </p>
-                        <p className="text-xs leading-snug">
+                    {latestRequest && latestRequest.status !== 'revoked' ? (
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <Badge
+                          variant="outline"
+                          className="border-state-warning-border bg-state-warning-hover text-text-warning"
+                        >
                           <Trans>
-                            Select received items that need changes, mark them needs correction,
-                            then send only those items to the client.
+                            Client response due{' '}
+                            {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
                           </Trans>
-                        </p>
+                        </Badge>
+                        <span className="text-text-tertiary">
+                          <Trans>· firm-set deadline for this materials request</Trans>
+                        </span>
                       </div>
-                    </div>
-                  ) : null}
-                  {/* K-1 / parent-obligation blocker editor removed
+                    ) : null}
+                    {correctionMaterialsMode ? (
+                      <div className="flex items-start gap-2 rounded-lg border border-state-destructive-border bg-state-destructive-hover px-3 py-2 text-sm text-text-destructive">
+                        <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
+                        <div className="grid gap-1">
+                          <p className="font-medium">
+                            <Trans>Request corrected materials</Trans>
+                          </p>
+                          <p className="text-xs leading-snug">
+                            <Trans>
+                              Select received items that need changes, mark them needs correction,
+                              then send only those items to the client.
+                            </Trans>
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+                    {/* K-1 / parent-obligation blocker editor removed
                     2026-05-21 — it surfaced as a full picker on every
                     drawer open, even when not blocked. The queue row's
                     <BlockedByChip> still shows when a blocker is set,
@@ -3011,7 +3008,7 @@ export function ObligationQueueDetailDrawer({
                     chip + on-demand picker, or auto-detected from
                     related-entity rows) is parked for a later pass —
                     see docs/Design/obligation-drawer-ux-audit-2026-05-21.md. */}
-                  {/* Action hierarchy — 2026-05-21 redesign:
+                    {/* Action hierarchy — 2026-05-21 redesign:
                     - Empty checklist → single primary "Generate document
                       list" CTA. The other two buttons (Add item, Send to
                       client) are useless here, so they're hidden.
@@ -3022,7 +3019,7 @@ export function ObligationQueueDetailDrawer({
                     weight regardless of state, so the actual workflow
                     goal (send the request) had to fight Generate +
                     Add item for the user's eye. */}
-                  {/* 2026-05-26 (Yuqi fifty-eighth pass — section title
+                    {/* 2026-05-26 (Yuqi fifty-eighth pass — section title
                     semantics): label was "Documents received" + count
                     of `checklist.length` (TOTAL items). Yuqi flagged
                     "Documents Received and Outstanding - what is the
@@ -3042,142 +3039,69 @@ export function ObligationQueueDetailDrawer({
                         ├ Outstanding (N items)
                         └ Received (M items, M + N = 13)
                 */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-base font-semibold text-text-primary">
-                            <Trans>Materials checklist</Trans>
-                          </h3>
-                          {checklistReference ? (
-                            <Badge
-                              variant="outline"
-                              className="h-5 rounded-lg px-1.5 text-caption-xs font-medium text-text-secondary"
-                            >
-                              {checklistReference}
-                            </Badge>
-                          ) : null}
-                        </div>
-                        {(() => {
-                          if (row.status !== 'done' && row.status !== 'completed') return null
-                          const total = checklist.length
-                          const received = checklist.filter((i) => i.status === 'received').length
-                          const description =
-                            total === 0
-                              ? t`No document checklist was attached to this filing.`
-                              : received === 0
-                                ? t`${total} checklist items weren't individually ticked during filing.`
-                                : received < total
-                                  ? t`${received} of ${total} items recorded as received before filing.`
-                                  : t`All ${total} items recorded as received.`
-                          return (
-                            <p className="text-caption italic leading-snug text-text-tertiary">
-                              {description}
-                            </p>
-                          )
-                        })()}
-                      </div>
-                      {checklist.length > 0 ? (
-                        <div className="flex shrink-0 items-center gap-2">
-                          <div className="flex h-8 items-center gap-2 rounded-lg px-1 text-sm font-medium text-text-secondary">
-                            <Checkbox
-                              aria-label={
-                                correctionMaterialsMode
-                                  ? t`Select all received items`
-                                  : t`Select all`
-                              }
-                              checked={allMaterialsSelected}
-                              disabled={
-                                checklistItemIdsForSelection.length === 0 ||
-                                checklistGenerating ||
-                                updateChecklistItemMutation.isPending
-                              }
-                              onCheckedChange={() => {
-                                if (allMaterialsSelected) clearMaterialsSelection()
-                                else selectAllMaterials()
-                              }}
-                            />
-                            <span>
-                              {correctionMaterialsMode ? (
-                                <Trans>Select received</Trans>
-                              ) : (
-                                <Trans>Select all</Trans>
-                              )}
-                            </span>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={addChecklistItem}
-                            disabled={
-                              checklistGenerating ||
-                              addChecklistItemMutation.isPending ||
-                              checklist.length >= 30
-                            }
-                          >
-                            <PlusIcon data-icon="inline-start" />
-                            <Trans>Add item</Trans>
-                          </Button>
-                        </div>
-                      ) : null}
-                    </div>
-                    {checklist.length === 0 ? (
-                      autoGenerateChecklistQuery.isFetching ? (
-                        <EmptyPanel className="grid gap-3 text-text-secondary">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
-                            <RefreshCwIcon className="size-4 animate-spin" aria-hidden />
-                            <span>
-                              <Trans>Preparing</Trans>
-                            </span>
+                            <h3 className="text-base font-semibold text-text-primary">
+                              <Trans>Materials checklist</Trans>
+                            </h3>
+                            {checklistReference ? (
+                              <Badge
+                                variant="outline"
+                                className="h-5 rounded-lg px-1.5 text-caption-xs font-medium text-text-secondary"
+                              >
+                                {checklistReference}
+                              </Badge>
+                            ) : null}
                           </div>
-                        </EmptyPanel>
-                      ) : autoGenerateChecklistQuery.isError ? (
-                        <EmptyPanel>
-                          <div className="flex flex-wrap items-center justify-center gap-2">
-                            <span>
-                              <Trans>Couldn't generate document list</Trans>
-                            </span>
-                            <Button
-                              size="xs"
-                              variant="outline"
-                              onClick={() => void autoGenerateChecklistQuery.refetch()}
-                            >
-                              <Trans>Retry</Trans>
-                            </Button>
-                          </div>
-                        </EmptyPanel>
-                      ) : (
-                        // Empty state — single primary CTA (Generate) sits
-                        // inside the empty panel as the obvious next step.
-                        // "Add item" is demoted to a small text link below
-                        // for users who want to bypass the AI generation.
-                        <EmptyPanel className="grid gap-3 text-center text-text-secondary">
-                          <p className="text-text-tertiary">
-                            <Trans>
-                              No documents listed yet. Generate an AI checklist or add items
-                              manually.
-                            </Trans>
-                          </p>
-                          <div className="flex flex-wrap items-center justify-center gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                generateChecklistMutation.mutate({
-                                  obligationId: row.id,
-                                })
-                              }
-                              disabled={checklistGenerating}
-                            >
-                              <RefreshCwIcon
-                                data-icon="inline-start"
-                                className={cn(checklistGenerating ? 'animate-spin' : undefined)}
+                          {(() => {
+                            if (row.status !== 'done' && row.status !== 'completed') return null
+                            const total = checklist.length
+                            const received = checklist.filter((i) => i.status === 'received').length
+                            const description =
+                              total === 0
+                                ? t`No document checklist was attached to this filing.`
+                                : received === 0
+                                  ? t`${total} checklist items weren't individually ticked during filing.`
+                                  : received < total
+                                    ? t`${received} of ${total} items recorded as received before filing.`
+                                    : t`All ${total} items recorded as received.`
+                            return (
+                              <p className="text-caption italic leading-snug text-text-tertiary">
+                                {description}
+                              </p>
+                            )
+                          })()}
+                        </div>
+                        {checklist.length > 0 ? (
+                          <div className="flex shrink-0 items-center gap-2">
+                            <div className="flex h-8 items-center gap-2 rounded-lg px-1 text-sm font-medium text-text-secondary">
+                              <Checkbox
+                                aria-label={
+                                  correctionMaterialsMode
+                                    ? t`Select all received items`
+                                    : t`Select all`
+                                }
+                                checked={allMaterialsSelected}
+                                disabled={
+                                  checklistItemIdsForSelection.length === 0 ||
+                                  checklistGenerating ||
+                                  updateChecklistItemMutation.isPending
+                                }
+                                onCheckedChange={() => {
+                                  if (allMaterialsSelected) clearMaterialsSelection()
+                                  else selectAllMaterials()
+                                }}
                               />
-                              {checklistGenerating ? (
-                                <Trans>Preparing</Trans>
-                              ) : (
-                                <Trans>Generate document list</Trans>
-                              )}
-                            </Button>
+                              <span>
+                                {correctionMaterialsMode ? (
+                                  <Trans>Select received</Trans>
+                                ) : (
+                                  <Trans>Select all</Trans>
+                                )}
+                              </span>
+                            </div>
                             <Button
                               size="sm"
                               variant="ghost"
@@ -3189,14 +3113,87 @@ export function ObligationQueueDetailDrawer({
                               }
                             >
                               <PlusIcon data-icon="inline-start" />
-                              <Trans>Add item manually</Trans>
+                              <Trans>Add item</Trans>
                             </Button>
                           </div>
-                        </EmptyPanel>
-                      )
-                    ) : (
-                      <>
-                        {/* 2026-05-26 (Step 9 AI Visibility Audit F-020):
+                        ) : null}
+                      </div>
+                      {checklist.length === 0 ? (
+                        autoGenerateChecklistQuery.isFetching ? (
+                          <EmptyPanel className="grid gap-3 text-text-secondary">
+                            <div className="flex items-center gap-2">
+                              <RefreshCwIcon className="size-4 animate-spin" aria-hidden />
+                              <span>
+                                <Trans>Preparing</Trans>
+                              </span>
+                            </div>
+                          </EmptyPanel>
+                        ) : autoGenerateChecklistQuery.isError ? (
+                          <EmptyPanel>
+                            <div className="flex flex-wrap items-center justify-center gap-2">
+                              <span>
+                                <Trans>Couldn't generate document list</Trans>
+                              </span>
+                              <Button
+                                size="xs"
+                                variant="outline"
+                                onClick={() => void autoGenerateChecklistQuery.refetch()}
+                              >
+                                <Trans>Retry</Trans>
+                              </Button>
+                            </div>
+                          </EmptyPanel>
+                        ) : (
+                          // Empty state — single primary CTA (Generate) sits
+                          // inside the empty panel as the obvious next step.
+                          // "Add item" is demoted to a small text link below
+                          // for users who want to bypass the AI generation.
+                          <EmptyPanel className="grid gap-3 text-center text-text-secondary">
+                            <p className="text-text-tertiary">
+                              <Trans>
+                                No documents listed yet. Generate an AI checklist or add items
+                                manually.
+                              </Trans>
+                            </p>
+                            <div className="flex flex-wrap items-center justify-center gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  generateChecklistMutation.mutate({
+                                    obligationId: row.id,
+                                  })
+                                }
+                                disabled={checklistGenerating}
+                              >
+                                <RefreshCwIcon
+                                  data-icon="inline-start"
+                                  className={cn(checklistGenerating ? 'animate-spin' : undefined)}
+                                />
+                                {checklistGenerating ? (
+                                  <Trans>Preparing</Trans>
+                                ) : (
+                                  <Trans>Generate document list</Trans>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={addChecklistItem}
+                                disabled={
+                                  checklistGenerating ||
+                                  addChecklistItemMutation.isPending ||
+                                  checklist.length >= 30
+                                }
+                              >
+                                <PlusIcon data-icon="inline-start" />
+                                <Trans>Add item manually</Trans>
+                              </Button>
+                            </div>
+                          </EmptyPanel>
+                        )
+                      ) : (
+                        <>
+                          {/* 2026-05-26 (Step 9 AI Visibility Audit F-020):
                         when the auto-generated checklist came back
                         with `degraded: true` the toast disappears in
                         4 seconds but the user keeps using the
@@ -3205,18 +3202,18 @@ export function ObligationQueueDetailDrawer({
                         fallback list is on screen — the AI's "I'm
                         not sure" signal needs to be persistent,
                         not transient. */}
-                        {checklistDegraded ? (
-                          <div className="flex items-start gap-2 rounded-lg border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
-                            <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                            <span>
-                              <Trans>
-                                AI couldn't reach the full model — showing a fallback list. Review
-                                each item against the deadline before relying on it.
-                              </Trans>
-                            </span>
-                          </div>
-                        ) : null}
-                        {/* 2026-05-26 (Yuqi fifty-second pass — Materials
+                          {checklistDegraded ? (
+                            <div className="flex items-start gap-2 rounded-lg border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
+                              <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                              <span>
+                                <Trans>
+                                  AI couldn't reach the full model — showing a fallback list. Review
+                                  each item against the deadline before relying on it.
+                                </Trans>
+                              </span>
+                            </div>
+                          ) : null}
+                          {/* 2026-05-26 (Yuqi fifty-second pass — Materials
                         Outstanding/Received split from
                         design/deadlines-drawer-rework): checklist now
                         renders as two labeled sections — Outstanding
@@ -3232,72 +3229,74 @@ export function ObligationQueueDetailDrawer({
                         received-style chrome based on item.status —
                         the split is purely organizational, no new
                         renderer needed. */}
-                        {(() => {
-                          const outstandingItems = checklist.filter(
-                            (i) => i.status !== 'received' && i.status !== 'waived',
-                          )
-                          const receivedItems = checklist.filter((i) => i.status === 'received')
-                          const waivedItems = checklist.filter((i) => i.status === 'waived')
-                          function renderRow(item: (typeof checklist)[number]) {
-                            const response =
-                              latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
-                            const received = item.status === 'received'
-                            const selectable = correctionMaterialsMode
-                              ? received
-                              : item.status !== 'received' && item.status !== 'waived'
-                            const isSelected = selectable && materialsSelection.itemIds.has(item.id)
-                            return (
-                              <ChecklistItemRow
-                                key={`${item.id}:${item.updatedAt}`}
-                                item={item}
-                                response={response}
-                                correctionMode={correctionMaterialsMode}
-                                pending={updateChecklistItemMutation.isPending}
-                                selected={isSelected}
-                                selectionDisabled={!selectable}
-                                onToggleSelect={() => toggleMaterialsSelection(item.id)}
-                                onStatusChange={(status) =>
-                                  updateDocumentChecklistItem(item.id, { status })
-                                }
-                                onLabelCommit={(label) =>
-                                  updateDocumentChecklistItem(item.id, { label })
-                                }
-                                onDescriptionCommit={(description) =>
-                                  updateDocumentChecklistItem(item.id, {
-                                    description: description || null,
-                                  })
-                                }
-                                onNoteCommit={(note) =>
-                                  updateDocumentChecklistItem(item.id, { note: note || null })
-                                }
-                                onRemove={() => removeChecklistItem(item.id)}
-                              />
+                          {(() => {
+                            const outstandingItems = checklist.filter(
+                              (i) => i.status !== 'received' && i.status !== 'waived',
                             )
-                          }
-                          // 2026-05-26 (Yuqi sixtieth pass — terminal-state
-                          // Materials framing): when the row is filed /
-                          // completed the checklist becomes an ARCHIVE,
-                          // not a to-do list. "Outstanding 13" on a
-                          // Filed row read as "13 items still to do"
-                          // when the work is closed — the items just
-                          // weren't ticked in the audit trail.
-                          // Terminal headings:
-                          //   • "Outstanding" → "Not in audit trail" —
-                          //     same items, but framed as "missing from
-                          //     the archive" not "still to be done."
-                          //   • "Received" → "Archived" — same items,
-                          //     historical record framing.
-                          const isTerminalRow = row.status === 'done' || row.status === 'completed'
-                          return (
-                            <div className="flex flex-col gap-4">
-                              {/* 2026-05-26 (Yuqi feedback #5): dropped the
+                            const receivedItems = checklist.filter((i) => i.status === 'received')
+                            const waivedItems = checklist.filter((i) => i.status === 'waived')
+                            function renderRow(item: (typeof checklist)[number]) {
+                              const response =
+                                latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
+                              const received = item.status === 'received'
+                              const selectable = correctionMaterialsMode
+                                ? received
+                                : item.status !== 'received' && item.status !== 'waived'
+                              const isSelected =
+                                selectable && materialsSelection.itemIds.has(item.id)
+                              return (
+                                <ChecklistItemRow
+                                  key={`${item.id}:${item.updatedAt}`}
+                                  item={item}
+                                  response={response}
+                                  correctionMode={correctionMaterialsMode}
+                                  pending={updateChecklistItemMutation.isPending}
+                                  selected={isSelected}
+                                  selectionDisabled={!selectable}
+                                  onToggleSelect={() => toggleMaterialsSelection(item.id)}
+                                  onStatusChange={(status) =>
+                                    updateDocumentChecklistItem(item.id, { status })
+                                  }
+                                  onLabelCommit={(label) =>
+                                    updateDocumentChecklistItem(item.id, { label })
+                                  }
+                                  onDescriptionCommit={(description) =>
+                                    updateDocumentChecklistItem(item.id, {
+                                      description: description || null,
+                                    })
+                                  }
+                                  onNoteCommit={(note) =>
+                                    updateDocumentChecklistItem(item.id, { note: note || null })
+                                  }
+                                  onRemove={() => removeChecklistItem(item.id)}
+                                />
+                              )
+                            }
+                            // 2026-05-26 (Yuqi sixtieth pass — terminal-state
+                            // Materials framing): when the row is filed /
+                            // completed the checklist becomes an ARCHIVE,
+                            // not a to-do list. "Outstanding 13" on a
+                            // Filed row read as "13 items still to do"
+                            // when the work is closed — the items just
+                            // weren't ticked in the audit trail.
+                            // Terminal headings:
+                            //   • "Outstanding" → "Not in audit trail" —
+                            //     same items, but framed as "missing from
+                            //     the archive" not "still to be done."
+                            //   • "Received" → "Archived" — same items,
+                            //     historical record framing.
+                            const isTerminalRow =
+                              row.status === 'done' || row.status === 'completed'
+                            return (
+                              <div className="flex flex-col gap-4">
+                                {/* 2026-05-26 (Yuqi feedback #5): dropped the
                               "This deadline has been filed" banner. The
                               header status pill + the section title
                               ("Not in audit trail" / "Archived") +
                               ReadinessOverview's italic subline already
                               tell the historical-record story 3x over;
                               this green banner was a 4th. Removed. */}
-                              {/* 2026-05-26 (Yuqi seventieth pass #6,
+                                {/* 2026-05-26 (Yuqi seventieth pass #6,
                                 #9): Outstanding / Received are now
                                 small kicker sub-headers (text-
                                 caption-xs uppercase tracking-wider
@@ -3308,297 +3307,304 @@ export function ObligationQueueDetailDrawer({
                                 are sub-section labels under it.
                                 Inner gap tightened from `gap-2 →
                                 gap-1.5` per #9. */}
-                              <section className="flex flex-col gap-1.5">
-                                <header className="flex items-baseline gap-1.5">
-                                  <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
-                                    {isTerminalRow ? (
-                                      <Trans>Not in audit trail</Trans>
-                                    ) : (
-                                      <Trans>Outstanding</Trans>
-                                    )}
-                                  </h4>
-                                  <span
-                                    aria-label={t`${outstandingItems.length} items`}
-                                    className="text-caption-xs font-medium tabular-nums text-text-tertiary"
-                                  >
-                                    {outstandingItems.length}
-                                  </span>
-                                </header>
-                                {outstandingItems.length === 0 ? (
-                                  <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
-                                    <Trans>All items received.</Trans>
-                                  </p>
-                                ) : (
-                                  <div className="grid gap-1.5">
-                                    {outstandingItems.map(renderRow)}
-                                  </div>
-                                )}
-                              </section>
-                              {receivedItems.length > 0 ? (
                                 <section className="flex flex-col gap-1.5">
                                   <header className="flex items-baseline gap-1.5">
                                     <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
                                       {isTerminalRow ? (
-                                        <Trans>Archived</Trans>
+                                        <Trans>Not in audit trail</Trans>
                                       ) : (
-                                        <Trans>Received</Trans>
+                                        <Trans>Outstanding</Trans>
                                       )}
                                     </h4>
                                     <span
-                                      aria-label={t`${receivedItems.length} items`}
+                                      aria-label={t`${outstandingItems.length} items`}
                                       className="text-caption-xs font-medium tabular-nums text-text-tertiary"
                                     >
-                                      {receivedItems.length}
+                                      {outstandingItems.length}
                                     </span>
                                   </header>
-                                  <div className="grid gap-1.5">{receivedItems.map(renderRow)}</div>
+                                  {outstandingItems.length === 0 ? (
+                                    <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
+                                      <Trans>All items received.</Trans>
+                                    </p>
+                                  ) : (
+                                    <div className="grid gap-1.5">
+                                      {outstandingItems.map(renderRow)}
+                                    </div>
+                                  )}
                                 </section>
-                              ) : null}
-                              {/* Cluster 2 (Materials design `AYpfU > BGLC4`):
+                                {receivedItems.length > 0 ? (
+                                  <section className="flex flex-col gap-1.5">
+                                    <header className="flex items-baseline gap-1.5">
+                                      <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                                        {isTerminalRow ? (
+                                          <Trans>Archived</Trans>
+                                        ) : (
+                                          <Trans>Received</Trans>
+                                        )}
+                                      </h4>
+                                      <span
+                                        aria-label={t`${receivedItems.length} items`}
+                                        className="text-caption-xs font-medium tabular-nums text-text-tertiary"
+                                      >
+                                        {receivedItems.length}
+                                      </span>
+                                    </header>
+                                    <div className="grid gap-1.5">
+                                      {receivedItems.map(renderRow)}
+                                    </div>
+                                  </section>
+                                ) : null}
+                                {/* Cluster 2 (Materials design `AYpfU > BGLC4`):
                                   Waived sub-section — items the CPA marked as
                                   not-applicable this filing year. Renders the
                                   real waived rows; falls back to the quiet
                                   empty state when none are waived. */}
-                              {!isTerminalRow ? (
-                                <section className="flex flex-col gap-1.5">
-                                  <header className="flex items-baseline gap-1.5">
-                                    <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
-                                      <Trans>Waived</Trans>
-                                    </h4>
-                                    <span
-                                      aria-label={t`${waivedItems.length} items`}
-                                      className="text-caption-xs font-medium tabular-nums text-text-tertiary"
-                                    >
-                                      {waivedItems.length}
-                                    </span>
-                                  </header>
-                                  {waivedItems.length > 0 ? (
-                                    <div className="grid gap-1.5">{waivedItems.map(renderRow)}</div>
-                                  ) : (
-                                    <div className="flex flex-col items-center gap-1 rounded-lg border border-divider-subtle px-4 py-5 text-center">
-                                      <CircleOffIcon
-                                        className="size-4 text-text-tertiary"
-                                        aria-hidden
-                                      />
-                                      <p className="text-sm font-medium text-text-secondary">
-                                        <Trans>No items waived</Trans>
-                                      </p>
-                                      <p className="text-caption-xs text-text-tertiary">
-                                        <Trans>
-                                          Mark an outstanding doc as waived when it doesn't apply
-                                          this year.
-                                        </Trans>
-                                      </p>
-                                    </div>
-                                  )}
-                                </section>
-                              ) : null}
-                            </div>
-                          )
-                        })()}
-                        {/* Primary CTA below the checklist — the actual
+                                {!isTerminalRow ? (
+                                  <section className="flex flex-col gap-1.5">
+                                    <header className="flex items-baseline gap-1.5">
+                                      <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                                        <Trans>Waived</Trans>
+                                      </h4>
+                                      <span
+                                        aria-label={t`${waivedItems.length} items`}
+                                        className="text-caption-xs font-medium tabular-nums text-text-tertiary"
+                                      >
+                                        {waivedItems.length}
+                                      </span>
+                                    </header>
+                                    {waivedItems.length > 0 ? (
+                                      <div className="grid gap-1.5">
+                                        {waivedItems.map(renderRow)}
+                                      </div>
+                                    ) : (
+                                      <div className="flex flex-col items-center gap-1 rounded-lg border border-divider-subtle px-4 py-5 text-center">
+                                        <CircleOffIcon
+                                          className="size-4 text-text-tertiary"
+                                          aria-hidden
+                                        />
+                                        <p className="text-sm font-medium text-text-secondary">
+                                          <Trans>No items waived</Trans>
+                                        </p>
+                                        <p className="text-caption-xs text-text-tertiary">
+                                          <Trans>
+                                            Mark an outstanding doc as waived when it doesn't apply
+                                            this year.
+                                          </Trans>
+                                        </p>
+                                      </div>
+                                    )}
+                                  </section>
+                                ) : null}
+                              </div>
+                            )
+                          })()}
+                          {/* Primary CTA below the checklist — the actual
                         workflow terminal action. Selection state now
                         lives in the same row, with client-send on the
                         left and selected-item batch actions on the right. */}
-                        {canShowMaterialsRequestAction || selectedChecklistItemCount > 0 ? (
-                          <div className="flex flex-wrap items-center gap-2 pt-1">
-                            {canShowMaterialsRequestAction ? (
-                              <Button
-                                size="sm"
-                                onClick={() => openMaterialsRequestPreview(row.id)}
-                                disabled={
-                                  previewRequestEmailMutation.isPending ||
-                                  sendRequestMutation.isPending ||
-                                  !canOpenMaterialsRequestPreview
-                                }
-                              >
-                                <SendIcon data-icon="inline-start" />
-                                {correctionMaterialsMode ? (
-                                  <Trans>Send correction request</Trans>
-                                ) : (
-                                  <Trans>Send to client</Trans>
-                                )}
-                              </Button>
-                            ) : null}
-                            {selectedChecklistItemCount > 0 ? (
-                              <div className="ml-auto flex flex-wrap items-center gap-2">
-                                <span className="text-xs font-medium text-text-primary">
-                                  <Plural
-                                    value={selectedChecklistItemCount}
-                                    one="# item selected"
-                                    other="# items selected"
-                                  />
-                                </span>
+                          {canShowMaterialsRequestAction || selectedChecklistItemCount > 0 ? (
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                              {canShowMaterialsRequestAction ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => openMaterialsRequestPreview(row.id)}
+                                  disabled={
+                                    previewRequestEmailMutation.isPending ||
+                                    sendRequestMutation.isPending ||
+                                    !canOpenMaterialsRequestPreview
+                                  }
+                                >
+                                  <SendIcon data-icon="inline-start" />
+                                  {correctionMaterialsMode ? (
+                                    <Trans>Send correction request</Trans>
+                                  ) : (
+                                    <Trans>Send to client</Trans>
+                                  )}
+                                </Button>
+                              ) : null}
+                              {selectedChecklistItemCount > 0 ? (
+                                <div className="ml-auto flex flex-wrap items-center gap-2">
+                                  <span className="text-xs font-medium text-text-primary">
+                                    <Plural
+                                      value={selectedChecklistItemCount}
+                                      one="# item selected"
+                                      other="# items selected"
+                                    />
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={clearMaterialsSelection}
+                                    disabled={updateChecklistItemMutation.isPending}
+                                  >
+                                    <Trans>Deselect</Trans>
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant={correctionMaterialsMode ? 'outline' : 'default'}
+                                    onClick={() =>
+                                      void (correctionMaterialsMode
+                                        ? batchMarkNeedsCorrection(
+                                            new Set(selectedChecklistItemIdsForAction),
+                                          )
+                                        : batchMarkReceived(
+                                            new Set(selectedChecklistItemIdsForAction),
+                                          ))
+                                    }
+                                    disabled={updateChecklistItemMutation.isPending}
+                                  >
+                                    {correctionMaterialsMode ? (
+                                      <>
+                                        <Trans>Mark needs correction</Trans>
+                                        <AlertTriangleIcon data-icon="inline-end" />
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Trans>Mark client docs received</Trans>
+                                        <CheckCircle2Icon data-icon="inline-end" />
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              ) : null}
+                              {correctionMaterialsMode && correctionChecklistItems.length === 0 ? (
+                                <p className="text-xs text-text-tertiary">
+                                  <Trans>
+                                    Mark at least one received item needs correction first.
+                                  </Trans>
+                                </p>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </>
+                      )}
+                    </div>
+                    {latestRequest ? (
+                      <section className="flex flex-col gap-2">
+                        <header className="flex items-baseline gap-2">
+                          <h3 className="text-sm font-semibold text-text-primary">
+                            <Trans>Client request</Trans>
+                          </h3>
+                          <Badge
+                            variant="outline"
+                            className="text-caption-xs uppercase tracking-wide"
+                          >
+                            {latestRequest.status}
+                          </Badge>
+                        </header>
+                        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-background-subtle p-3">
+                          <span className="text-xs text-text-secondary">
+                            <Trans>
+                              Sent to {latestRequest.recipientEmail ?? t`client`} · expires{' '}
+                              {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
+                            </Trans>
+                          </span>
+                          {/* 5b: the open/respond signal a CPA needs ("opened
+                            but no response yet") — was never shown. */}
+                          {latestRequest.firstOpenedAt ? (
+                            <span className="text-xs text-text-secondary">
+                              <Trans>
+                                · opened{' '}
+                                {formatDatePretty(latestRequest.firstOpenedAt.slice(0, 10))}
+                              </Trans>
+                            </span>
+                          ) : null}
+                          {latestRequest.lastRespondedAt ? (
+                            <span className="text-xs text-text-secondary">
+                              <Trans>
+                                · responded{' '}
+                                {formatDatePretty(latestRequest.lastRespondedAt.slice(0, 10))}
+                              </Trans>
+                            </span>
+                          ) : null}
+                          <div className="ml-auto flex items-center gap-1.5">
+                            {latestRequest.portalUrl ? (
+                              <>
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={clearMaterialsSelection}
-                                  disabled={updateChecklistItemMutation.isPending}
+                                  onClick={() => void copyLatestLink()}
                                 >
-                                  <Trans>Deselect</Trans>
+                                  <CopyIcon data-icon="inline-start" />
+                                  <Trans>Copy link</Trans>
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  variant={correctionMaterialsMode ? 'outline' : 'default'}
-                                  onClick={() =>
-                                    void (correctionMaterialsMode
-                                      ? batchMarkNeedsCorrection(
-                                          new Set(selectedChecklistItemIdsForAction),
-                                        )
-                                      : batchMarkReceived(
-                                          new Set(selectedChecklistItemIdsForAction),
-                                        ))
-                                  }
-                                  disabled={updateChecklistItemMutation.isPending}
-                                >
-                                  {correctionMaterialsMode ? (
-                                    <>
-                                      <Trans>Mark needs correction</Trans>
-                                      <AlertTriangleIcon data-icon="inline-end" />
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Trans>Mark client docs received</Trans>
-                                      <CheckCircle2Icon data-icon="inline-end" />
-                                    </>
-                                  )}
+                                <Button size="sm" variant="ghost" onClick={openLatestLink}>
+                                  <ExternalLinkIcon data-icon="inline-start" />
+                                  <Trans>Open portal</Trans>
                                 </Button>
-                              </div>
+                              </>
                             ) : null}
-                            {correctionMaterialsMode && correctionChecklistItems.length === 0 ? (
-                              <p className="text-xs text-text-tertiary">
-                                <Trans>
-                                  Mark at least one received item needs correction first.
-                                </Trans>
-                              </p>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </>
-                    )}
-                  </div>
-                  {latestRequest ? (
-                    <section className="flex flex-col gap-2">
-                      <header className="flex items-baseline gap-2">
-                        <h3 className="text-sm font-semibold text-text-primary">
-                          <Trans>Client request</Trans>
-                        </h3>
-                        <Badge
-                          variant="outline"
-                          className="text-caption-xs uppercase tracking-wide"
-                        >
-                          {latestRequest.status}
-                        </Badge>
-                      </header>
-                      <div className="flex flex-wrap items-center gap-2 rounded-lg bg-background-subtle p-3">
-                        <span className="text-xs text-text-secondary">
-                          <Trans>
-                            Sent to {latestRequest.recipientEmail ?? t`client`} · expires{' '}
-                            {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
-                          </Trans>
-                        </span>
-                        {/* 5b: the open/respond signal a CPA needs ("opened
-                            but no response yet") — was never shown. */}
-                        {latestRequest.firstOpenedAt ? (
-                          <span className="text-xs text-text-secondary">
-                            <Trans>
-                              · opened {formatDatePretty(latestRequest.firstOpenedAt.slice(0, 10))}
-                            </Trans>
-                          </span>
-                        ) : null}
-                        {latestRequest.lastRespondedAt ? (
-                          <span className="text-xs text-text-secondary">
-                            <Trans>
-                              · responded{' '}
-                              {formatDatePretty(latestRequest.lastRespondedAt.slice(0, 10))}
-                            </Trans>
-                          </span>
-                        ) : null}
-                        <div className="ml-auto flex items-center gap-1.5">
-                          {latestRequest.portalUrl ? (
-                            <>
+                            {latestRequest.status !== 'revoked' ? (
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => void copyLatestLink()}
+                                onClick={() =>
+                                  revokeRequestMutation.mutate({ requestId: latestRequest.id })
+                                }
+                                disabled={revokeRequestMutation.isPending}
                               >
-                                <CopyIcon data-icon="inline-start" />
-                                <Trans>Copy link</Trans>
+                                <Trans>Revoke</Trans>
                               </Button>
-                              <Button size="sm" variant="ghost" onClick={openLatestLink}>
-                                <ExternalLinkIcon data-icon="inline-start" />
-                                <Trans>Open portal</Trans>
-                              </Button>
-                            </>
-                          ) : null}
-                          {latestRequest.status !== 'revoked' ? (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() =>
-                                revokeRequestMutation.mutate({ requestId: latestRequest.id })
-                              }
-                              disabled={revokeRequestMutation.isPending}
-                            >
-                              <Trans>Revoke</Trans>
-                            </Button>
-                          ) : null}
+                            ) : null}
+                          </div>
                         </div>
-                      </div>
-                    </section>
-                  ) : null}
-                  {/* 5b: prior materials requests — every earlier send with
+                      </section>
+                    ) : null}
+                    {/* 5b: prior materials requests — every earlier send with
                       its sent/opened/responded timeline. The drawer used to
                       read only readinessRequests[0]; the full history was
                       already in the payload, just never surfaced. */}
-                  {(detail?.readinessRequests ?? []).length > 1 ? (
-                    <section className="flex flex-col gap-2">
-                      <h3 className="text-sm font-semibold text-text-primary">
-                        <Trans>Request history</Trans>
-                      </h3>
-                      <ul className="flex flex-col gap-1.5">
-                        {(detail?.readinessRequests ?? []).slice(1).map((request) => (
-                          <li
-                            key={request.id}
-                            className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg bg-background-subtle px-3 py-2 text-xs text-text-secondary"
-                          >
-                            <Badge
-                              variant="outline"
-                              className="text-caption-xs uppercase tracking-wide"
+                    {(detail?.readinessRequests ?? []).length > 1 ? (
+                      <section className="flex flex-col gap-2">
+                        <h3 className="text-sm font-semibold text-text-primary">
+                          <Trans>Request history</Trans>
+                        </h3>
+                        <ul className="flex flex-col gap-1.5">
+                          {(detail?.readinessRequests ?? []).slice(1).map((request) => (
+                            <li
+                              key={request.id}
+                              className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg bg-background-subtle px-3 py-2 text-xs text-text-secondary"
                             >
-                              {request.status}
-                            </Badge>
-                            {request.sentAt ? (
-                              <span>
-                                <Trans>sent {formatDatePretty(request.sentAt.slice(0, 10))}</Trans>
-                              </span>
-                            ) : null}
-                            {request.firstOpenedAt ? (
-                              <span>
-                                <Trans>
-                                  · opened {formatDatePretty(request.firstOpenedAt.slice(0, 10))}
-                                </Trans>
-                              </span>
-                            ) : null}
-                            {request.lastRespondedAt ? (
-                              <span>
-                                <Trans>
-                                  · responded{' '}
-                                  {formatDatePretty(request.lastRespondedAt.slice(0, 10))}
-                                </Trans>
-                              </span>
-                            ) : null}
-                            {request.recipientEmail ? (
-                              <span className="ml-auto text-text-tertiary">
-                                {request.recipientEmail}
-                              </span>
-                            ) : null}
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  ) : null}
-                  {/* Tax year profile — relocated 2026-05-21 from the
+                              <Badge
+                                variant="outline"
+                                className="text-caption-xs uppercase tracking-wide"
+                              >
+                                {request.status}
+                              </Badge>
+                              {request.sentAt ? (
+                                <span>
+                                  <Trans>
+                                    sent {formatDatePretty(request.sentAt.slice(0, 10))}
+                                  </Trans>
+                                </span>
+                              ) : null}
+                              {request.firstOpenedAt ? (
+                                <span>
+                                  <Trans>
+                                    · opened {formatDatePretty(request.firstOpenedAt.slice(0, 10))}
+                                  </Trans>
+                                </span>
+                              ) : null}
+                              {request.lastRespondedAt ? (
+                                <span>
+                                  <Trans>
+                                    · responded{' '}
+                                    {formatDatePretty(request.lastRespondedAt.slice(0, 10))}
+                                  </Trans>
+                                </span>
+                              ) : null}
+                              {request.recipientEmail ? (
+                                <span className="ml-auto text-text-tertiary">
+                                  {request.recipientEmail}
+                                </span>
+                              ) : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    ) : null}
+                    {/* Tax year profile — relocated 2026-05-21 from the
                     top of the tab (where it dominated daily-driver
                     workflow) to a settings-style footer behind a
                     disclosure. Auto-opens when the profile is
@@ -3606,393 +3612,410 @@ export function ObligationQueueDetailDrawer({
                     date), so a CPA who needs to fix it sees it
                     surface naturally. Otherwise it stays collapsed —
                     one-time setup that rarely needs revisiting. */}
-                  {taxYearProfileEditable ? (
-                    <details
-                      className="mt-2 border-t border-divider-subtle"
-                      open={taxYearFiscalMissing || taxYearFiscalInvalid}
-                    >
-                      <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
-                        <span>
-                          <Trans>Tax year profile</Trans>
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className="text-caption-xs normal-case tracking-normal"
-                        >
-                          {taxYearProfileSummary}
-                        </Badge>
-                      </summary>
-                      <div className="grid gap-2 border-t border-divider-subtle py-3">
-                        <div className="grid gap-2 sm:grid-cols-[180px_1fr_auto]">
-                          {/* 2026-05-26 (Yuqi sixty-ninth pass #4):
+                    {taxYearProfileEditable ? (
+                      <details
+                        className="mt-2 border-t border-divider-subtle"
+                        open={taxYearFiscalMissing || taxYearFiscalInvalid}
+                      >
+                        <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
+                          <span>
+                            <Trans>Tax year profile</Trans>
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-caption-xs normal-case tracking-normal"
+                          >
+                            {taxYearProfileSummary}
+                          </Badge>
+                        </summary>
+                        <div className="grid gap-2 border-t border-divider-subtle py-3">
+                          <div className="grid gap-2 sm:grid-cols-[180px_1fr_auto]">
+                            {/* 2026-05-26 (Yuqi sixty-ninth pass #4):
                               Tax year type binary toggle converted
                               from Base UI Select → DropdownMenu so
                               the interaction matches every other
                               dropdown in the drawer (Sort-by /
                               Columns / export client picker). */}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger
-                              render={
-                                <DropdownTriggerButton>
-                                  <span className="truncate">
-                                    {taxYearDraft.taxYearType === 'calendar' ? (
-                                      <Trans>Calendar year</Trans>
-                                    ) : (
-                                      <Trans>Fiscal year</Trans>
-                                    )}
-                                  </span>
-                                  <ChevronDownIcon
-                                    className="size-3.5 shrink-0 text-text-tertiary"
-                                    aria-hidden
-                                  />
-                                </DropdownTriggerButton>
-                              }
-                            />
-                            <DropdownMenuContent align="start" className="w-[var(--anchor-width)]">
-                              <DropdownMenuRadioGroup
-                                value={taxYearDraft.taxYearType}
-                                onValueChange={(value) => {
-                                  if (value === 'calendar' || value === 'fiscal') {
-                                    setTaxYearDraft((current) => ({
-                                      ...current,
-                                      taxYearType: value,
-                                    }))
-                                  }
-                                }}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger
+                                render={
+                                  <DropdownTriggerButton>
+                                    <span className="truncate">
+                                      {taxYearDraft.taxYearType === 'calendar' ? (
+                                        <Trans>Calendar year</Trans>
+                                      ) : (
+                                        <Trans>Fiscal year</Trans>
+                                      )}
+                                    </span>
+                                    <ChevronDownIcon
+                                      className="size-3.5 shrink-0 text-text-tertiary"
+                                      aria-hidden
+                                    />
+                                  </DropdownTriggerButton>
+                                }
+                              />
+                              <DropdownMenuContent
+                                align="start"
+                                className="w-[var(--anchor-width)]"
                               >
-                                <DropdownMenuRadioItem value="calendar">
-                                  <Trans>Calendar year</Trans>
-                                </DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="fiscal">
-                                  <Trans>Fiscal year</Trans>
-                                </DropdownMenuRadioItem>
-                              </DropdownMenuRadioGroup>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          <Input
-                            value={taxYearDraft.fiscalYearEndDate}
-                            disabled={taxYearDraft.taxYearType === 'calendar'}
-                            aria-label={t`Fiscal year end`}
-                            aria-invalid={taxYearFiscalMissing || taxYearFiscalInvalid}
-                            inputMode="numeric"
-                            placeholder="MM/DD"
-                            onBlur={(event) => {
-                              const nextFiscalYearEnd = fiscalYearEndParts(
-                                event.currentTarget.value,
-                              )
-                              if (nextFiscalYearEnd) {
+                                <DropdownMenuRadioGroup
+                                  value={taxYearDraft.taxYearType}
+                                  onValueChange={(value) => {
+                                    if (value === 'calendar' || value === 'fiscal') {
+                                      setTaxYearDraft((current) => ({
+                                        ...current,
+                                        taxYearType: value,
+                                      }))
+                                    }
+                                  }}
+                                >
+                                  <DropdownMenuRadioItem value="calendar">
+                                    <Trans>Calendar year</Trans>
+                                  </DropdownMenuRadioItem>
+                                  <DropdownMenuRadioItem value="fiscal">
+                                    <Trans>Fiscal year</Trans>
+                                  </DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Input
+                              value={taxYearDraft.fiscalYearEndDate}
+                              disabled={taxYearDraft.taxYearType === 'calendar'}
+                              aria-label={t`Fiscal year end`}
+                              aria-invalid={taxYearFiscalMissing || taxYearFiscalInvalid}
+                              inputMode="numeric"
+                              placeholder="MM/DD"
+                              onBlur={(event) => {
+                                const nextFiscalYearEnd = fiscalYearEndParts(
+                                  event.currentTarget.value,
+                                )
+                                if (nextFiscalYearEnd) {
+                                  setTaxYearDraft((current) => ({
+                                    ...current,
+                                    fiscalYearEndDate: formatFiscalYearEnd(
+                                      nextFiscalYearEnd.month,
+                                      nextFiscalYearEnd.day,
+                                    ),
+                                  }))
+                                }
+                              }}
+                              onChange={(event) =>
                                 setTaxYearDraft((current) => ({
                                   ...current,
-                                  fiscalYearEndDate: formatFiscalYearEnd(
-                                    nextFiscalYearEnd.month,
-                                    nextFiscalYearEnd.day,
-                                  ),
+                                  fiscalYearEndDate: event.target.value,
                                 }))
                               }
-                            }}
-                            onChange={(event) =>
-                              setTaxYearDraft((current) => ({
-                                ...current,
-                                fiscalYearEndDate: event.target.value,
-                              }))
-                            }
-                          />
-                          <Button
-                            size="sm"
-                            className="w-fit"
-                            onClick={saveTaxYearProfile}
-                            disabled={
-                              !taxYearProfileChanged ||
-                              taxYearFiscalMissing ||
-                              taxYearFiscalInvalid ||
-                              updateTaxYearProfileMutation.isPending
-                            }
-                            aria-busy={updateTaxYearProfileMutation.isPending || undefined}
-                          >
-                            {/* 2026-05-27 (σ cross-route audit D10):
+                            />
+                            <Button
+                              size="sm"
+                              className="w-fit"
+                              onClick={saveTaxYearProfile}
+                              disabled={
+                                !taxYearProfileChanged ||
+                                taxYearFiscalMissing ||
+                                taxYearFiscalInvalid ||
+                                updateTaxYearProfileMutation.isPending
+                              }
+                              aria-busy={updateTaxYearProfileMutation.isPending || undefined}
+                            >
+                              {/* 2026-05-27 (σ cross-route audit D10):
                                 Save in tax-year-profile drawer drifted
                                 from the cross-app mutation-button
                                 pattern — relabel only, no Loader2 + no
                                 aria-busy. Step 6 cont X2 canon: spinner
                                 + busy state + label-change together. */}
-                            {updateTaxYearProfileMutation.isPending ? (
-                              <Loader2 className="size-4 animate-spin" aria-hidden />
-                            ) : null}
-                            {updateTaxYearProfileMutation.isPending ? (
-                              <Trans>Saving…</Trans>
-                            ) : (
-                              <Trans>Save</Trans>
-                            )}
-                          </Button>
+                              {updateTaxYearProfileMutation.isPending ? (
+                                <Loader2 className="size-4 animate-spin" aria-hidden />
+                              ) : null}
+                              {updateTaxYearProfileMutation.isPending ? (
+                                <Trans>Saving…</Trans>
+                              ) : (
+                                <Trans>Save</Trans>
+                              )}
+                            </Button>
+                          </div>
+                          {taxYearFiscalMissing ? (
+                            <p className="text-xs text-text-destructive">
+                              <Trans>Fiscal-year deadlines require a year end.</Trans>
+                            </p>
+                          ) : null}
+                          {taxYearFiscalInvalid ? (
+                            <p className="text-xs text-text-destructive">
+                              <Trans>Use a valid month and day.</Trans>
+                            </p>
+                          ) : null}
                         </div>
-                        {taxYearFiscalMissing ? (
-                          <p className="text-xs text-text-destructive">
-                            <Trans>Fiscal-year deadlines require a year end.</Trans>
-                          </p>
-                        ) : null}
-                        {taxYearFiscalInvalid ? (
-                          <p className="text-xs text-text-destructive">
-                            <Trans>Use a valid month and day.</Trans>
-                          </p>
-                        ) : null}
-                      </div>
-                    </details>
-                  ) : null}
-                </div>
-              </motion.div>
-            </TabsContent>
-            <TabsContent value="extension" key="extension-content">
-              <motion.div
-                // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
-                // per-tab content drops its 24px top padding in page mode so it
-                // sits tight under the tab bar. Panel/sheet keep pt-6.
-                className={cn(isPageMode ? '' : 'pt-6')}
-                initial={{ x: 12, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
-              >
-                <div className="grid gap-4">
-                  {/* 2026-06-08 (Pencil HuYeb /deadlines detail — Extension
+                      </details>
+                    ) : null}
+                  </div>
+                </motion.div>
+              </TabsContent>
+              <TabsContent value="extension" key="extension-content">
+                <motion.div
+                  // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
+                  // per-tab content drops its 24px top padding in page mode so it
+                  // sits tight under the tab bar. Panel/sheet keep pt-6.
+                  className={cn(isPageMode ? '' : 'pt-6')}
+                  initial={{ x: 12, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                >
+                  <div className="grid gap-4">
+                    {/* 2026-06-08 (Pencil HuYeb /deadlines detail — Extension
                       tab): the matched-rule facts render as a Form 7004
                       card — title + citation + "Open rule", the
                       defers-filing-not-payment warning, a POLICY/FORM facts
                       grid, and the rule notes — replacing the earlier flat
                       DetailRow list so the rule reads as one authoritative
                       reference card. */}
-                  {(() => {
-                    const extensionFormName =
-                      extensionPolicy?.formName ?? row.extensionFormName ?? null
-                    const extensionAuthority = row.authority ?? t`IRS`
-                    const estimatedTaxCents =
-                      typeof row.estimatedTaxDueCents === 'number' ? row.estimatedTaxDueCents : null
-                    const extensionPolicyLabel = extensionPolicy?.available
-                      ? extensionDurationMonths !== null
-                        ? t`Automatic ${extensionDurationMonths}-month extension`
-                        : t`Rule allows extension`
-                      : t`No rule extension`
-                    const extensionLengthLabel =
-                      isValidIsoDate(extensionOriginalDeadline) &&
-                      extensionDeadlineCap &&
-                      isValidIsoDate(extensionDeadlineCap)
-                        ? t`+${Math.round(
-                            (Date.parse(extensionDeadlineCap) -
-                              Date.parse(extensionOriginalDeadline)) /
-                              86_400_000,
-                          )} days`
-                        : extensionDurationMonths !== null
-                          ? t`${extensionDurationMonths} months`
-                          : t`Not specified`
-                    const paymentStillDue = row.paymentDueDate ?? row.baseDueDate
-                    const facts: Array<{ label: string; value: string; warn?: boolean }> = [
-                      { label: t`Policy`, value: extensionPolicyLabel },
-                      { label: t`Form`, value: extensionFormName ?? t`Not specified` },
-                      { label: t`Length`, value: extensionLengthLabel },
-                      { label: t`Original deadline`, value: formatDate(extensionOriginalDeadline) },
-                      {
-                        label: t`Extended deadline`,
-                        value: extensionDeadlineCap ? formatDate(extensionDeadlineCap) : '—',
-                      },
-                      {
-                        label: t`Payment still due`,
-                        value: estimatedTaxCents
-                          ? `${formatDate(paymentStillDue)} · ${formatCents(estimatedTaxCents)}`
-                          : formatDate(paymentStillDue),
-                        warn: true,
-                      },
-                    ]
-                    return (
-                      <section className="flex flex-col">
-                        <div className="flex items-start justify-between gap-3 pt-3.5">
-                          <div className="flex items-start gap-2">
-                            <BookOpenIcon
-                              className="mt-0.5 size-4 shrink-0 text-text-accent"
-                              aria-hidden
-                            />
-                            <div className="flex flex-col gap-0.5">
-                              <h3 className="text-sm font-semibold text-text-primary">
-                                {extensionFormName
-                                  ? `${extensionFormName} — ${t`automatic extension of time to file`}`
-                                  : (detail.matchedRule?.title ?? t`Extension rule`)}
-                              </h3>
-                              <span className="font-mono text-caption-xs text-text-tertiary">
-                                {[
-                                  extensionAuthority,
-                                  row.ruleVersion ? `v.${row.ruleVersion}` : null,
-                                ]
-                                  .filter(Boolean)
-                                  .join(' · ')}
-                              </span>
+                    {(() => {
+                      const extensionFormName =
+                        extensionPolicy?.formName ?? row.extensionFormName ?? null
+                      const extensionAuthority = row.authority ?? t`IRS`
+                      const estimatedTaxCents =
+                        typeof row.estimatedTaxDueCents === 'number'
+                          ? row.estimatedTaxDueCents
+                          : null
+                      const extensionPolicyLabel = extensionPolicy?.available
+                        ? extensionDurationMonths !== null
+                          ? t`Automatic ${extensionDurationMonths}-month extension`
+                          : t`Rule allows extension`
+                        : t`No rule extension`
+                      const extensionLengthLabel =
+                        isValidIsoDate(extensionOriginalDeadline) &&
+                        extensionDeadlineCap &&
+                        isValidIsoDate(extensionDeadlineCap)
+                          ? t`+${Math.round(
+                              (Date.parse(extensionDeadlineCap) -
+                                Date.parse(extensionOriginalDeadline)) /
+                                86_400_000,
+                            )} days`
+                          : extensionDurationMonths !== null
+                            ? t`${extensionDurationMonths} months`
+                            : t`Not specified`
+                      const paymentStillDue = row.paymentDueDate ?? row.baseDueDate
+                      const facts: Array<{ label: string; value: string; warn?: boolean }> = [
+                        { label: t`Policy`, value: extensionPolicyLabel },
+                        { label: t`Form`, value: extensionFormName ?? t`Not specified` },
+                        { label: t`Length`, value: extensionLengthLabel },
+                        {
+                          label: t`Original deadline`,
+                          value: formatDate(extensionOriginalDeadline),
+                        },
+                        {
+                          label: t`Extended deadline`,
+                          value: extensionDeadlineCap ? formatDate(extensionDeadlineCap) : '—',
+                        },
+                        {
+                          label: t`Payment still due`,
+                          value: estimatedTaxCents
+                            ? `${formatDate(paymentStillDue)} · ${formatCents(estimatedTaxCents)}`
+                            : formatDate(paymentStillDue),
+                          warn: true,
+                        },
+                      ]
+                      return (
+                        <section className="flex flex-col">
+                          <div className="flex items-start justify-between gap-3 pt-3.5">
+                            <div className="flex items-start gap-2">
+                              <BookOpenIcon
+                                className="mt-0.5 size-4 shrink-0 text-text-accent"
+                                aria-hidden
+                              />
+                              <div className="flex flex-col gap-0.5">
+                                <h3 className="text-sm font-semibold text-text-primary">
+                                  {extensionFormName
+                                    ? `${extensionFormName} — ${t`automatic extension of time to file`}`
+                                    : (detail.matchedRule?.title ?? t`Extension rule`)}
+                                </h3>
+                                <span className="font-mono text-caption-xs text-text-tertiary">
+                                  {[
+                                    extensionAuthority,
+                                    row.ruleVersion ? `v.${row.ruleVersion}` : null,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(' · ')}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                          {detail.matchedRule ? (
-                            <TextLink
-                              variant="accent"
-                              className="shrink-0 font-semibold"
-                              render={
-                                <Link to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`} />
-                              }
-                            >
-                              <Trans>Open rule →</Trans>
-                            </TextLink>
-                          ) : null}
-                        </div>
-                        {estimatedTaxCents && estimatedTaxCents > 0 ? (
-                          <p className="flex items-start gap-1.5 pb-1 pt-2 text-caption text-text-warning">
-                            <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                            <Trans>
-                              Extension defers filing, not payment. Estimated tax of{' '}
-                              {formatCents(estimatedTaxCents)} still owed by the original deadline.
-                            </Trans>
-                          </p>
-                        ) : null}
-                        <dl className="mt-2 grid grid-cols-1 border-t border-divider-subtle sm:grid-cols-2">
-                          {facts.map((cell) => (
-                            <div
-                              key={cell.label}
-                              className="flex flex-col gap-0.5 border-b border-divider-subtle py-2.5 sm:px-4 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:pl-0 sm:[&:nth-child(even)]:pr-0"
-                            >
-                              <dt className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
-                                {cell.label}
-                              </dt>
-                              <dd
-                                className={cn(
-                                  'text-sm tabular-nums',
-                                  cell.warn ? 'text-text-warning' : 'text-text-primary',
-                                )}
+                            {detail.matchedRule ? (
+                              <TextLink
+                                variant="accent"
+                                className="shrink-0 font-semibold"
+                                render={
+                                  <Link
+                                    to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`}
+                                  />
+                                }
                               >
-                                {cell.value}
-                              </dd>
-                            </div>
-                          ))}
-                        </dl>
-                        <div className="flex flex-col gap-0.5 border-b border-divider-subtle py-2.5">
-                          <dt className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
-                            <Trans>Rule notes</Trans>
-                          </dt>
-                          <dd className="text-caption text-text-secondary">
-                            {extensionPolicy?.notes ?? t`No matched rule`}
-                          </dd>
-                        </div>
-                      </section>
-                    )
-                  })()}
-                  {/* Apply-extension card — saves the firm's internal
+                                <Trans>Open rule →</Trans>
+                              </TextLink>
+                            ) : null}
+                          </div>
+                          {estimatedTaxCents && estimatedTaxCents > 0 ? (
+                            <p className="flex items-start gap-1.5 pb-1 pt-2 text-caption text-text-warning">
+                              <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                              <Trans>
+                                Extension defers filing, not payment. Estimated tax of{' '}
+                                {formatCents(estimatedTaxCents)} still owed by the original
+                                deadline.
+                              </Trans>
+                            </p>
+                          ) : null}
+                          <dl className="mt-2 grid grid-cols-1 border-t border-divider-subtle sm:grid-cols-2">
+                            {facts.map((cell) => (
+                              <div
+                                key={cell.label}
+                                className="flex flex-col gap-0.5 border-b border-divider-subtle py-2.5 sm:px-4 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:pl-0 sm:[&:nth-child(even)]:pr-0"
+                              >
+                                <dt className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                                  {cell.label}
+                                </dt>
+                                <dd
+                                  className={cn(
+                                    'text-sm tabular-nums',
+                                    cell.warn ? 'text-text-warning' : 'text-text-primary',
+                                  )}
+                                >
+                                  {cell.value}
+                                </dd>
+                              </div>
+                            ))}
+                          </dl>
+                          <div className="flex flex-col gap-0.5 border-b border-divider-subtle py-2.5">
+                            <dt className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                              <Trans>Rule notes</Trans>
+                            </dt>
+                            <dd className="text-caption text-text-secondary">
+                              {extensionPolicy?.notes ?? t`No matched rule`}
+                            </dd>
+                          </div>
+                        </section>
+                      )
+                    })()}
+                    {/* Apply-extension card — saves the firm's internal
                       extension plan via decideExtension. The internal
                       target + decision memo are required by the mutation;
                       the payment callout repeats the "defers filing, not
                       payment" warning next to the action. */}
-                  <section className="flex flex-col gap-3">
-                    <header className="flex flex-col gap-0.5">
-                      <h3 className="text-sm font-semibold text-text-primary">
-                        <Trans>Apply extension</Trans>
-                      </h3>
-                      <p className="text-caption text-text-tertiary">
-                        <Trans>
-                          Save the firm's internal extension plan. The internal target must be on or
-                          before the extended filing deadline. This does not file with the authority
-                          or change client records.
-                        </Trans>
-                      </p>
-                    </header>
-                    {extensionNeedsManualDeadline ? (
+                    <section className="flex flex-col gap-3">
+                      <header className="flex flex-col gap-0.5">
+                        <h3 className="text-sm font-semibold text-text-primary">
+                          <Trans>Apply extension</Trans>
+                        </h3>
+                        <p className="text-caption text-text-tertiary">
+                          <Trans>
+                            Save the firm's internal extension plan. The internal target must be on
+                            or before the extended filing deadline. This does not file with the
+                            authority or change client records.
+                          </Trans>
+                        </p>
+                      </header>
+                      {extensionNeedsManualDeadline ? (
+                        <label className="flex flex-col gap-1">
+                          <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                            <Trans>Extended filing deadline</Trans>
+                          </span>
+                          <IsoDatePicker
+                            value={extensionDraft.extendedFilingDate}
+                            invalid={extensionManualDeadlineInvalid}
+                            ariaLabel={t`Extended filing deadline`}
+                            placeholder={t`Extended filing deadline`}
+                            onValueChange={(extendedFilingDate) =>
+                              setExtensionDraft((current) => ({ ...current, extendedFilingDate }))
+                            }
+                          />
+                        </label>
+                      ) : null}
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="flex flex-col gap-1">
+                          <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                            <Trans>Internal target date</Trans>
+                          </span>
+                          <IsoDatePicker
+                            value={extensionDraft.internalTargetDate}
+                            invalid={internalTargetDateInvalid}
+                            maxIsoDate={extensionDeadlineCap}
+                            ariaLabel={t`Internal extension target date`}
+                            placeholder={t`Internal extension target date`}
+                            onValueChange={(internalTargetDate) =>
+                              setExtensionDraft((current) => ({ ...current, internalTargetDate }))
+                            }
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                          <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                            <Trans>Source or confirmation</Trans>
+                          </span>
+                          <Input
+                            aria-label={t`Extension source`}
+                            placeholder={t`Reference (optional)`}
+                            value={extensionDraft.source}
+                            onChange={(event) =>
+                              setExtensionDraft((current) => ({
+                                ...current,
+                                source: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+                      </div>
                       <label className="flex flex-col gap-1">
                         <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
-                          <Trans>Extended filing deadline</Trans>
+                          <Trans>Decision memo</Trans>
                         </span>
-                        <IsoDatePicker
-                          value={extensionDraft.extendedFilingDate}
-                          invalid={extensionManualDeadlineInvalid}
-                          ariaLabel={t`Extended filing deadline`}
-                          placeholder={t`Extended filing deadline`}
-                          onValueChange={(extendedFilingDate) =>
-                            setExtensionDraft((current) => ({ ...current, extendedFilingDate }))
-                          }
-                        />
-                      </label>
-                    ) : null}
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="flex flex-col gap-1">
-                        <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
-                          <Trans>Internal target date</Trans>
-                        </span>
-                        <IsoDatePicker
-                          value={extensionDraft.internalTargetDate}
-                          invalid={internalTargetDateInvalid}
-                          maxIsoDate={extensionDeadlineCap}
-                          ariaLabel={t`Internal extension target date`}
-                          placeholder={t`Internal extension target date`}
-                          onValueChange={(internalTargetDate) =>
-                            setExtensionDraft((current) => ({ ...current, internalTargetDate }))
-                          }
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
-                          <Trans>Source or confirmation</Trans>
-                        </span>
-                        <Input
-                          aria-label={t`Extension source`}
-                          placeholder={t`Reference (optional)`}
-                          value={extensionDraft.source}
+                        <Textarea
+                          aria-label={t`Decision memo`}
+                          aria-required="true"
+                          placeholder={t`Why is this extension being filed? (required)`}
+                          value={extensionDraft.memo}
                           onChange={(event) =>
                             setExtensionDraft((current) => ({
                               ...current,
-                              source: event.target.value,
+                              memo: event.target.value,
                             }))
                           }
                         />
                       </label>
-                    </div>
-                    <label className="flex flex-col gap-1">
-                      <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
-                        <Trans>Decision memo</Trans>
-                      </span>
-                      <Textarea
-                        aria-label={t`Decision memo`}
-                        aria-required="true"
-                        placeholder={t`Why is this extension being filed? (required)`}
-                        value={extensionDraft.memo}
-                        onChange={(event) =>
-                          setExtensionDraft((current) => ({ ...current, memo: event.target.value }))
-                        }
-                      />
-                    </label>
-                    {row.paymentDueDate ? (
-                      <PaymentStillDueCallout
-                        title={
-                          typeof row.estimatedTaxDueCents === 'number' &&
-                          row.estimatedTaxDueCents > 0
-                            ? t`Payment of ${formatCents(row.estimatedTaxDueCents)} still due ${formatDate(row.paymentDueDate)}`
-                            : t`Payment still due ${formatDate(row.paymentDueDate)}`
-                        }
-                      >
-                        <Trans>
-                          Filing an extension does not extend the time to pay. Schedule an EFTPS
-                          payment by the original deadline to avoid interest and penalties.
-                        </Trans>
-                      </PaymentStillDueCallout>
-                    ) : null}
-                    <div className="flex flex-wrap items-center justify-end gap-2">
-                      {row.extensionDecidedAt ? (
-                        <span className="mr-auto text-caption text-text-tertiary">
+                      {row.paymentDueDate ? (
+                        <PaymentStillDueCallout
+                          title={
+                            typeof row.estimatedTaxDueCents === 'number' &&
+                            row.estimatedTaxDueCents > 0
+                              ? t`Payment of ${formatCents(row.estimatedTaxDueCents)} still due ${formatDate(row.paymentDueDate)}`
+                              : t`Payment still due ${formatDate(row.paymentDueDate)}`
+                          }
+                        >
                           <Trans>
-                            Last decided{' '}
-                            {formatDateTimeWithTimezone(row.extensionDecidedAt, practiceTimezone)}
+                            Filing an extension does not extend the time to pay. Schedule an EFTPS
+                            payment by the original deadline to avoid interest and penalties.
                           </Trans>
-                        </span>
+                        </PaymentStillDueCallout>
                       ) : null}
-                      <Button
-                        variant="outline"
-                        onClick={() => setExtensionDraft(emptyExtensionPlanDraft())}
-                      >
-                        <Trans>Cancel</Trans>
-                      </Button>
-                      <Button onClick={saveExtensionDecision} disabled={saveExtensionPlanDisabled}>
-                        <Trans>File extension</Trans>
-                      </Button>
-                    </div>
-                  </section>
-                  {/* Cluster 2 (Extension design `Ls3vb > muzOr`):
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        {row.extensionDecidedAt ? (
+                          <span className="mr-auto text-caption text-text-tertiary">
+                            <Trans>
+                              Last decided{' '}
+                              {formatDateTimeWithTimezone(row.extensionDecidedAt, practiceTimezone)}
+                            </Trans>
+                          </span>
+                        ) : null}
+                        <Button
+                          variant="outline"
+                          onClick={() => setExtensionDraft(emptyExtensionPlanDraft())}
+                        >
+                          <Trans>Cancel</Trans>
+                        </Button>
+                        <Button
+                          onClick={saveExtensionDecision}
+                          disabled={saveExtensionPlanDisabled}
+                        >
+                          <Trans>File extension</Trans>
+                        </Button>
+                      </div>
+                    </section>
+                    {/* Cluster 2 (Extension design `Ls3vb > muzOr`):
                       prior-year extension history table. The obligation
                       detail carries this year's extension decision only —
                       there's no cross-year filing-history collection on
@@ -4004,138 +4027,138 @@ export function ObligationQueueDetailDrawer({
                       // TODO(data): prior-year extension/filing history
                       // (year, form, length, original, extended-to, filed
                       // by, result) on the obligation detail. */}
-                  <section className="flex flex-col gap-2 pt-1">
-                    <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                      <h3 className="text-sm font-semibold text-text-primary">
-                        <Trans>Extension history</Trans>
-                      </h3>
-                      <span className="text-caption-xs text-text-tertiary">
-                        {row.clientName}
-                        {row.taxType ? ` · ${row.taxType}` : ''}
-                      </span>
-                      <TextLink
-                        variant="accent"
-                        className="ml-auto font-semibold"
-                        render={<Link to="/deadlines" />}
-                      >
-                        <Trans>View all client extensions →</Trans>
-                      </TextLink>
-                    </header>
-                    <div>
-                      <div className="hidden grid-cols-[64px_72px_64px_110px_110px_1fr_auto] gap-3 border-b border-divider-subtle px-4 py-2.5 sm:grid">
+                    <section className="flex flex-col gap-2 pt-1">
+                      <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                        <h3 className="text-sm font-semibold text-text-primary">
+                          <Trans>Extension history</Trans>
+                        </h3>
+                        <span className="text-caption-xs text-text-tertiary">
+                          {row.clientName}
+                          {row.taxType ? ` · ${row.taxType}` : ''}
+                        </span>
+                        <TextLink
+                          variant="accent"
+                          className="ml-auto font-semibold"
+                          render={<Link to="/deadlines" />}
+                        >
+                          <Trans>View all client extensions →</Trans>
+                        </TextLink>
+                      </header>
+                      <div>
+                        <div className="hidden grid-cols-[64px_72px_64px_110px_110px_1fr_auto] gap-3 border-b border-divider-subtle px-4 py-2.5 sm:grid">
+                          {[
+                            t`Year`,
+                            t`Form`,
+                            t`Length`,
+                            t`Original`,
+                            t`Extended to`,
+                            t`Filed by`,
+                            t`Result`,
+                          ].map((heading) => (
+                            <span
+                              key={heading}
+                              className="font-mono text-caption-xs font-bold uppercase tracking-wider text-text-tertiary"
+                            >
+                              {heading}
+                            </span>
+                          ))}
+                        </div>
                         {[
-                          t`Year`,
-                          t`Form`,
-                          t`Length`,
-                          t`Original`,
-                          t`Extended to`,
-                          t`Filed by`,
-                          t`Result`,
-                        ].map((heading) => (
-                          <span
-                            key={heading}
-                            className="font-mono text-caption-xs font-bold uppercase tracking-wider text-text-tertiary"
+                          {
+                            year: '2024',
+                            form: '7004',
+                            length: t`6 mo`,
+                            original: 'Mar 17, 2025',
+                            extended: 'Sep 15, 2025',
+                            filedBy: 'Jules Rivera',
+                            result: t`Filed on time`,
+                            tone: 'success' as const,
+                          },
+                          {
+                            year: '2023',
+                            form: '7004',
+                            length: t`6 mo`,
+                            original: 'Mar 15, 2024',
+                            extended: 'Sep 16, 2024',
+                            filedBy: 'Anika Vázquez',
+                            result: t`Filed on time`,
+                            tone: 'success' as const,
+                          },
+                          {
+                            year: '2022',
+                            form: '—',
+                            length: '—',
+                            original: 'Mar 15, 2023',
+                            extended: '—',
+                            filedBy: 'Anika Vázquez',
+                            result: t`Filed without extension`,
+                            tone: 'neutral' as const,
+                          },
+                        ].map((entry, index) => (
+                          <div
+                            key={entry.year}
+                            className={cn(
+                              'flex flex-col gap-1.5 px-4 py-3 sm:grid sm:grid-cols-[64px_72px_64px_110px_110px_1fr_auto] sm:items-center sm:gap-3',
+                              index > 0 && 'border-t border-divider-subtle',
+                            )}
                           >
-                            {heading}
-                          </span>
+                            <span className="font-mono text-sm font-semibold tabular-nums text-text-primary">
+                              {entry.year}
+                            </span>
+                            <span className="text-xs font-medium text-text-secondary">
+                              {entry.form}
+                            </span>
+                            <span className="text-xs font-medium text-text-secondary">
+                              {entry.length}
+                            </span>
+                            <span className="font-mono text-caption-xs font-medium tabular-nums text-text-secondary">
+                              {entry.original}
+                            </span>
+                            <span className="font-mono text-caption-xs font-medium tabular-nums text-text-secondary">
+                              {entry.extended}
+                            </span>
+                            <span className="text-xs font-medium text-text-secondary">
+                              {entry.filedBy}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5">
+                              <span
+                                className={cn(
+                                  'size-1.5 shrink-0 rounded-full',
+                                  entry.tone === 'success'
+                                    ? 'bg-state-success-solid'
+                                    : 'bg-text-tertiary',
+                                )}
+                                aria-hidden
+                              />
+                              <span
+                                className={cn(
+                                  'text-xs font-semibold',
+                                  entry.tone === 'success'
+                                    ? 'text-text-success'
+                                    : 'text-text-secondary',
+                                )}
+                              >
+                                {entry.result}
+                              </span>
+                            </span>
+                          </div>
                         ))}
                       </div>
-                      {[
-                        {
-                          year: '2024',
-                          form: '7004',
-                          length: t`6 mo`,
-                          original: 'Mar 17, 2025',
-                          extended: 'Sep 15, 2025',
-                          filedBy: 'Jules Rivera',
-                          result: t`Filed on time`,
-                          tone: 'success' as const,
-                        },
-                        {
-                          year: '2023',
-                          form: '7004',
-                          length: t`6 mo`,
-                          original: 'Mar 15, 2024',
-                          extended: 'Sep 16, 2024',
-                          filedBy: 'Anika Vázquez',
-                          result: t`Filed on time`,
-                          tone: 'success' as const,
-                        },
-                        {
-                          year: '2022',
-                          form: '—',
-                          length: '—',
-                          original: 'Mar 15, 2023',
-                          extended: '—',
-                          filedBy: 'Anika Vázquez',
-                          result: t`Filed without extension`,
-                          tone: 'neutral' as const,
-                        },
-                      ].map((entry, index) => (
-                        <div
-                          key={entry.year}
-                          className={cn(
-                            'flex flex-col gap-1.5 px-4 py-3 sm:grid sm:grid-cols-[64px_72px_64px_110px_110px_1fr_auto] sm:items-center sm:gap-3',
-                            index > 0 && 'border-t border-divider-subtle',
-                          )}
-                        >
-                          <span className="font-mono text-sm font-semibold tabular-nums text-text-primary">
-                            {entry.year}
-                          </span>
-                          <span className="text-xs font-medium text-text-secondary">
-                            {entry.form}
-                          </span>
-                          <span className="text-xs font-medium text-text-secondary">
-                            {entry.length}
-                          </span>
-                          <span className="font-mono text-caption-xs font-medium tabular-nums text-text-secondary">
-                            {entry.original}
-                          </span>
-                          <span className="font-mono text-caption-xs font-medium tabular-nums text-text-secondary">
-                            {entry.extended}
-                          </span>
-                          <span className="text-xs font-medium text-text-secondary">
-                            {entry.filedBy}
-                          </span>
-                          <span className="inline-flex items-center gap-1.5">
-                            <span
-                              className={cn(
-                                'size-1.5 shrink-0 rounded-full',
-                                entry.tone === 'success'
-                                  ? 'bg-state-success-solid'
-                                  : 'bg-text-tertiary',
-                              )}
-                              aria-hidden
-                            />
-                            <span
-                              className={cn(
-                                'text-xs font-semibold',
-                                entry.tone === 'success'
-                                  ? 'text-text-success'
-                                  : 'text-text-secondary',
-                              )}
-                            >
-                              {entry.result}
-                            </span>
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                </div>
-              </motion.div>
-            </TabsContent>
-            <TabsContent value="evidence" key="evidence-content">
-              <motion.div
-                // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
-                // per-tab content drops its 24px top padding in page mode so it
-                // sits tight under the tab bar. Panel/sheet keep pt-6.
-                className={cn(isPageMode ? '' : 'pt-6')}
-                initial={{ x: 12, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
-              >
-                {/* Evidence tab split into two visually-distinct sections
+                    </section>
+                  </div>
+                </motion.div>
+              </TabsContent>
+              <TabsContent value="evidence" key="evidence-content">
+                <motion.div
+                  // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
+                  // per-tab content drops its 24px top padding in page mode so it
+                  // sits tight under the tab bar. Panel/sheet keep pt-6.
+                  className={cn(isPageMode ? '' : 'pt-6')}
+                  initial={{ x: 12, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                >
+                  {/* Evidence tab split into two visually-distinct sections
                   (2026-05-21):
                     - WORKPAPERS (top, default open): client-attached
                       files and submissions. This is the daily-driver
@@ -4148,342 +4171,346 @@ export function ObligationQueueDetailDrawer({
                   Previously both were under one "Evidence" heading,
                   which forced users to scroll past authority citations
                   to find the workpapers they actually wanted. */}
-                <div className="grid gap-4">
-                  {/* Cluster 2 (Evidence design `KsbdI > H3xJg`): the 1/4
+                  <div className="grid gap-4">
+                    {/* Cluster 2 (Evidence design `KsbdI > H3xJg`): the 1/4
                       artefact-checks hero. The four artefacts that prove a
                       return is filed, accepted, and signed off are derived
                       from EXISTING fields — workpaper count, row.status,
                       and the e-file pipeline state (`row.efileState`) — so
                       no new contract field is invented. */}
-                  {(() => {
-                    const efile = row.efileState ?? 'not_applicable'
-                    const isFiled =
-                      row.status === 'done' ||
-                      row.status === 'completed' ||
-                      ['submitted', 'accepted', 'rejected', 'corrected_resubmitted'].includes(efile)
-                    const isAccepted = efile === 'accepted'
-                    const isSigned = [
-                      'authorization_signed',
-                      'ready_to_submit',
-                      'submitted',
-                      'accepted',
-                      'rejected',
-                      'corrected_resubmitted',
-                    ].includes(efile)
-                    const hasWorkpapers = detail.evidence.length > 0
-                    const cells: ArtifactStatusCell[] = [
-                      {
-                        id: 'workpapers',
-                        label: <Trans>Workpapers</Trans>,
-                        value: hasWorkpapers ? (
-                          <Plural
-                            value={detail.evidence.length}
-                            one="# attached"
-                            other="# attached"
-                          />
-                        ) : (
-                          <Trans>None yet</Trans>
-                        ),
-                        tone: hasWorkpapers ? 'success' : 'warning',
-                      },
-                      {
-                        id: 'filed-return',
-                        label: <Trans>Filed return</Trans>,
-                        value: isFiled ? <Trans>Filed</Trans> : <Trans>Awaiting</Trans>,
-                        tone: isFiled ? 'success' : 'pending',
-                      },
-                      {
-                        id: 'efile-ack',
-                        label: <Trans>E-file ack.</Trans>,
-                        value: isAccepted ? <Trans>Accepted</Trans> : <Trans>Awaiting</Trans>,
-                        tone: isAccepted ? 'success' : 'pending',
-                      },
-                      {
-                        id: 'form-8879',
-                        label: <Trans>Form 8879</Trans>,
-                        value: isSigned ? <Trans>Signed</Trans> : <Trans>Not signed</Trans>,
-                        tone: isSigned ? 'success' : 'pending',
-                      },
-                    ]
-                    const complete = cells.filter((c) => c.tone === 'success').length
-                    return (
-                      <section className="flex flex-col gap-3.5">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div className="grid gap-0.5">
-                            <p className="text-sm font-semibold text-text-primary">
-                              <Trans>Evidence to close out filing</Trans>
-                            </p>
-                            <p className="text-caption text-text-secondary">
-                              <Trans>
-                                Four artefacts confirm the return is filed, accepted, and signed
-                                off.
-                              </Trans>
-                            </p>
+                    {(() => {
+                      const efile = row.efileState ?? 'not_applicable'
+                      const isFiled =
+                        row.status === 'done' ||
+                        row.status === 'completed' ||
+                        ['submitted', 'accepted', 'rejected', 'corrected_resubmitted'].includes(
+                          efile,
+                        )
+                      const isAccepted = efile === 'accepted'
+                      const isSigned = [
+                        'authorization_signed',
+                        'ready_to_submit',
+                        'submitted',
+                        'accepted',
+                        'rejected',
+                        'corrected_resubmitted',
+                      ].includes(efile)
+                      const hasWorkpapers = detail.evidence.length > 0
+                      const cells: ArtifactStatusCell[] = [
+                        {
+                          id: 'workpapers',
+                          label: <Trans>Workpapers</Trans>,
+                          value: hasWorkpapers ? (
+                            <Plural
+                              value={detail.evidence.length}
+                              one="# attached"
+                              other="# attached"
+                            />
+                          ) : (
+                            <Trans>None yet</Trans>
+                          ),
+                          tone: hasWorkpapers ? 'success' : 'warning',
+                        },
+                        {
+                          id: 'filed-return',
+                          label: <Trans>Filed return</Trans>,
+                          value: isFiled ? <Trans>Filed</Trans> : <Trans>Awaiting</Trans>,
+                          tone: isFiled ? 'success' : 'pending',
+                        },
+                        {
+                          id: 'efile-ack',
+                          label: <Trans>E-file ack.</Trans>,
+                          value: isAccepted ? <Trans>Accepted</Trans> : <Trans>Awaiting</Trans>,
+                          tone: isAccepted ? 'success' : 'pending',
+                        },
+                        {
+                          id: 'form-8879',
+                          label: <Trans>Form 8879</Trans>,
+                          value: isSigned ? <Trans>Signed</Trans> : <Trans>Not signed</Trans>,
+                          tone: isSigned ? 'success' : 'pending',
+                        },
+                      ]
+                      const complete = cells.filter((c) => c.tone === 'success').length
+                      return (
+                        <section className="flex flex-col gap-3.5">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="grid gap-0.5">
+                              <p className="text-sm font-semibold text-text-primary">
+                                <Trans>Evidence to close out filing</Trans>
+                              </p>
+                              <p className="text-caption text-text-secondary">
+                                <Trans>
+                                  Four artefacts confirm the return is filed, accepted, and signed
+                                  off.
+                                </Trans>
+                              </p>
+                            </div>
+                            <span className="font-mono text-sm font-semibold tabular-nums text-text-secondary">
+                              {complete} / {cells.length}
+                            </span>
                           </div>
-                          <span className="font-mono text-sm font-semibold tabular-nums text-text-secondary">
-                            {complete} / {cells.length}
-                          </span>
-                        </div>
-                        <EvidenceArtifactStatusGrid cells={cells} />
-                      </section>
-                    )
-                  })()}
-                  {/* 2026-05-26 (Yuqi sixty-sixth pass — cross-tab
+                          <EvidenceArtifactStatusGrid cells={cells} />
+                        </section>
+                      )
+                    })()}
+                    {/* 2026-05-26 (Yuqi sixty-sixth pass — cross-tab
                       section heading unify): workpapers heading was
                       `text-xs uppercase tracking-wider text-text-
                       tertiary` (kicker style); every other tab uses
                       `text-sm font-semibold text-text-primary` for
                       section labels. Aligned so all 4 tabs share
                       one heading vocabulary. */}
-                  <section
-                    aria-labelledby="evidence-workpapers-heading"
-                    className="flex flex-col gap-2"
-                  >
-                    <header className="flex items-baseline justify-between gap-2">
-                      <h3
-                        id="evidence-workpapers-heading"
-                        className="text-sm font-semibold text-text-primary"
-                      >
-                        <Trans>Workpapers</Trans>
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        {detail.evidence.length > 0 ? (
-                          <span className="text-xs tabular-nums text-text-tertiary">
-                            {detail.evidence.length}
-                          </span>
-                        ) : null}
-                        {/* Stub CTA so the workpapers section isn't a dead
+                    <section
+                      aria-labelledby="evidence-workpapers-heading"
+                      className="flex flex-col gap-2"
+                    >
+                      <header className="flex items-baseline justify-between gap-2">
+                        <h3
+                          id="evidence-workpapers-heading"
+                          className="text-sm font-semibold text-text-primary"
+                        >
+                          <Trans>Workpapers</Trans>
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          {detail.evidence.length > 0 ? (
+                            <span className="text-xs tabular-nums text-text-tertiary">
+                              {detail.evidence.length}
+                            </span>
+                          ) : null}
+                          {/* Stub CTA so the workpapers section isn't a dead
                             end (audit L11). Upload pipeline isn't wired yet,
                             so the click acknowledges + sets expectation
                             without losing the user. */}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            toast.info(t`Workpaper upload is coming soon`, {
-                              description: t`We'll let you attach PDFs and exports here as soon as ingest lands.`,
-                            })
-                          }
-                        >
-                          <Trans>Add workpaper</Trans>
-                        </Button>
-                      </div>
-                    </header>
-                    {detail.evidence.length > 0 ? (
-                      <div className="grid gap-2">
-                        {detail.evidence.map((item) => (
-                          <EvidenceInlineItem
-                            key={item.id}
-                            item={item}
-                            practiceTimezone={practiceTimezone}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <EmptyPanel>
-                        <Trans>No workpapers attached to this deadline yet.</Trans>
-                      </EmptyPanel>
-                    )}
-                  </section>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              toast.info(t`Workpaper upload is coming soon`, {
+                                description: t`We'll let you attach PDFs and exports here as soon as ingest lands.`,
+                              })
+                            }
+                          >
+                            <Trans>Add workpaper</Trans>
+                          </Button>
+                        </div>
+                      </header>
+                      {detail.evidence.length > 0 ? (
+                        <div className="grid gap-2">
+                          {detail.evidence.map((item) => (
+                            <EvidenceInlineItem
+                              key={item.id}
+                              item={item}
+                              practiceTimezone={practiceTimezone}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyPanel>
+                          <Trans>No workpapers attached to this deadline yet.</Trans>
+                        </EmptyPanel>
+                      )}
+                    </section>
 
-                  {/* Cluster 2 (Evidence design `KsbdI > FXD1b`): promote the
+                    {/* Cluster 2 (Evidence design `KsbdI > FXD1b`): promote the
                       headline authority facts to an always-visible quiet
                       strip. The verbose per-source excerpts stay folded in
                       the <details> below. PRIOR YEAR is design-only — no
                       prior-year filing record on the obligation today.
                       // TODO(data): prior-year filing date for the authority strip. */}
-                  {detail.matchedRule ? (
-                    <AuthorityFactStrip
-                      facts={[
-                        ...(row.authority
-                          ? [
-                              {
-                                id: 'authority',
-                                label: <Trans>Authority</Trans>,
-                                value: row.authority,
-                                icon: <BookOpenIcon className="size-3.5" aria-hidden />,
-                              },
-                            ]
-                          : []),
-                        {
-                          id: 'rule',
-                          label: <Trans>Rule</Trans>,
-                          value: row.ruleVersion
-                            ? `${detail.matchedRule.id} · v${row.ruleVersion}`
-                            : detail.matchedRule.id,
-                        },
-                        {
-                          id: 'due',
-                          label: <Trans>Due</Trans>,
-                          value: formatDate(row.currentDueDate),
-                        },
-                        {
-                          id: 'prior-year',
-                          label: <Trans>Prior year</Trans>,
-                          // Design-only — there's no prior-year filing record
-                          // on the obligation detail today.
-                          // TODO(data): prior-year filing date.
-                          value: <span className="text-text-tertiary">—</span>,
-                        },
-                      ]}
-                      action={
-                        <TextLink
-                          variant="accent"
-                          className="font-semibold"
-                          render={
-                            <Link
-                              to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
-                            />
-                          }
-                        >
-                          <Trans>Open rule reference →</Trans>
-                        </TextLink>
-                      }
-                    />
-                  ) : null}
+                    {detail.matchedRule ? (
+                      <AuthorityFactStrip
+                        facts={[
+                          ...(row.authority
+                            ? [
+                                {
+                                  id: 'authority',
+                                  label: <Trans>Authority</Trans>,
+                                  value: row.authority,
+                                  icon: <BookOpenIcon className="size-3.5" aria-hidden />,
+                                },
+                              ]
+                            : []),
+                          {
+                            id: 'rule',
+                            label: <Trans>Rule</Trans>,
+                            value: row.ruleVersion
+                              ? `${detail.matchedRule.id} · v${row.ruleVersion}`
+                              : detail.matchedRule.id,
+                          },
+                          {
+                            id: 'due',
+                            label: <Trans>Due</Trans>,
+                            value: formatDate(row.currentDueDate),
+                          },
+                          {
+                            id: 'prior-year',
+                            label: <Trans>Prior year</Trans>,
+                            // Design-only — there's no prior-year filing record
+                            // on the obligation detail today.
+                            // TODO(data): prior-year filing date.
+                            value: <span className="text-text-tertiary">—</span>,
+                          },
+                        ]}
+                        action={
+                          <TextLink
+                            variant="accent"
+                            className="font-semibold"
+                            render={
+                              <Link
+                                to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
+                              />
+                            }
+                          >
+                            <Trans>Open rule reference →</Trans>
+                          </TextLink>
+                        }
+                      />
+                    ) : null}
 
-                  <details className="group border-t border-divider-subtle">
-                    <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
-                      <span>
-                        <Trans>Authority citation</Trans>
-                      </span>
-                      {detail.matchedRule ? (
-                        // 2026-05-25 (Yuqi Deadlines #13): rule-id chip
-                        // is now a real Link into /rules/library — Yuqi
-                        // asked "这个能点出去吗？". Clicking the chip
-                        // opens the library scoped to this rule via the
-                        // `?rule=` query param (the library page treats
-                        // unknown params gracefully when not yet
-                        // implemented; even then the user lands in the
-                        // right vicinity). stopPropagation on click so
-                        // the surrounding <summary> doesn't toggle the
-                        // <details> open/closed at the same time.
-                        <Badge
-                          variant="outline"
-                          className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover"
-                          render={
-                            <Link
-                              to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
-                              onClick={(event) => event.stopPropagation()}
-                              title={t`Open ${detail.matchedRule.id} in the rule library`}
-                            />
-                          }
-                        >
-                          {detail.matchedRule.id}
-                          {row?.ruleVersion ? ` · v${row.ruleVersion}` : ''}
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className="border-state-warning-border text-caption-xs normal-case tracking-normal text-text-warning"
-                        >
-                          <Trans>No rule bound</Trans>
-                        </Badge>
-                      )}
-                    </summary>
-                    <div className="grid gap-2 border-t border-divider-subtle py-3">
-                      {detail.matchedRule ? (
-                        <div className="grid gap-1">
-                          <p className="text-sm font-medium text-text-primary">
-                            {detail.matchedRule.title}
+                    <details className="group border-t border-divider-subtle">
+                      <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
+                        <span>
+                          <Trans>Authority citation</Trans>
+                        </span>
+                        {detail.matchedRule ? (
+                          // 2026-05-25 (Yuqi Deadlines #13): rule-id chip
+                          // is now a real Link into /rules/library — Yuqi
+                          // asked "这个能点出去吗？". Clicking the chip
+                          // opens the library scoped to this rule via the
+                          // `?rule=` query param (the library page treats
+                          // unknown params gracefully when not yet
+                          // implemented; even then the user lands in the
+                          // right vicinity). stopPropagation on click so
+                          // the surrounding <summary> doesn't toggle the
+                          // <details> open/closed at the same time.
+                          <Badge
+                            variant="outline"
+                            className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover"
+                            render={
+                              <Link
+                                to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
+                                onClick={(event) => event.stopPropagation()}
+                                title={t`Open ${detail.matchedRule.id} in the rule library`}
+                              />
+                            }
+                          >
+                            {detail.matchedRule.id}
+                            {row?.ruleVersion ? ` · v${row.ruleVersion}` : ''}
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="border-state-warning-border text-caption-xs normal-case tracking-normal text-text-warning"
+                          >
+                            <Trans>No rule bound</Trans>
+                          </Badge>
+                        )}
+                      </summary>
+                      <div className="grid gap-2 border-t border-divider-subtle py-3">
+                        {detail.matchedRule ? (
+                          <div className="grid gap-1">
+                            <p className="text-sm font-medium text-text-primary">
+                              {detail.matchedRule.title}
+                            </p>
+                            <p className="text-xs leading-snug text-text-secondary">
+                              {detail.matchedRule.defaultTip}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-xs leading-snug text-text-tertiary">
+                            <Trans>
+                              This deadline isn't bound to a rule. Deadlines without a source
+                              citation can't be defended in audit — bind it before relying on the
+                              date.
+                            </Trans>
                           </p>
-                          <p className="text-xs leading-snug text-text-secondary">
-                            {detail.matchedRule.defaultTip}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-xs leading-snug text-text-tertiary">
-                          <Trans>
-                            This deadline isn't bound to a rule. Deadlines without a source citation
-                            can't be defended in audit — bind it before relying on the date.
-                          </Trans>
-                        </p>
-                      )}
-                      {detail.matchedRule?.evidence.length ? (
-                        <div className="grid gap-2 pt-1">
-                          {detail.matchedRule.evidence.map((item) => (
-                            <div
-                              key={`${item.sourceId}-${item.summary}`}
-                              className="grid gap-1 rounded-lg border border-divider-subtle p-3"
-                            >
-                              <div className="flex items-baseline justify-between gap-2">
-                                <p className="text-sm font-medium text-text-primary">
-                                  {item.summary}
+                        )}
+                        {detail.matchedRule?.evidence.length ? (
+                          <div className="grid gap-2 pt-1">
+                            {detail.matchedRule.evidence.map((item) => (
+                              <div
+                                key={`${item.sourceId}-${item.summary}`}
+                                className="grid gap-1 rounded-lg border border-divider-subtle p-3"
+                              >
+                                <div className="flex items-baseline justify-between gap-2">
+                                  <p className="text-sm font-medium text-text-primary">
+                                    {item.summary}
+                                  </p>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-caption-xs uppercase tracking-wide"
+                                  >
+                                    {item.authorityRole}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs leading-snug text-text-secondary">
+                                  "{item.sourceExcerpt}"
                                 </p>
-                                <Badge
-                                  variant="outline"
-                                  className="text-caption-xs uppercase tracking-wide"
-                                >
-                                  {item.authorityRole}
-                                </Badge>
+                                <p className="text-caption text-text-tertiary">
+                                  <Trans>
+                                    Source #{item.sourceId} · retrieved {item.retrievedAt}
+                                  </Trans>
+                                </p>
                               </div>
-                              <p className="text-xs leading-snug text-text-secondary">
-                                "{item.sourceExcerpt}"
-                              </p>
-                              <p className="text-caption text-text-tertiary">
-                                <Trans>
-                                  Source #{item.sourceId} · retrieved {item.retrievedAt}
-                                </Trans>
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  </details>
-                </div>
-              </motion.div>
-            </TabsContent>
-            {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil rzzww):
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    </details>
+                  </div>
+                </motion.div>
+              </TabsContent>
+              {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil rzzww):
                 Audit tab. Renders the milestone-grouped ObligationTimeline
                 from the real audit feed (was a dead deep-link before). Only
                 mounts when the tab is visible (page mode / types that expose
                 it) so the panel/sheet surfaces are unchanged. */}
-            {visibleTabs.has('audit') ? (
-              <TabsContent value="audit" key="audit-content">
-                <motion.div
-                  // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
-                  // per-tab content drops its 24px top padding in page mode so
-                  // it sits tight under the tab bar. Panel/sheet keep pt-6.
-                  className={cn(isPageMode ? '' : 'pt-6')}
-                  initial={{ x: 12, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
-                >
-                  {detail.auditEvents.length > 0 ? (
-                    <ObligationTimeline
-                      currentStatus={row.status}
-                      events={detail.auditEvents}
-                      labels={statusLabels}
-                      practiceTimezone={practiceTimezone}
-                    />
-                  ) : (
-                    <EmptyPanel className="py-8 text-center">
-                      <Trans>No activity recorded yet.</Trans>
-                    </EmptyPanel>
-                  )}
-                </motion.div>
-              </TabsContent>
-            ) : null}
-          </Tabs>
-        )}
-        {/* 2026-05-23: dates panel relocated here from the sticky
+              {visibleTabs.has('audit') ? (
+                <TabsContent value="audit" key="audit-content">
+                  <motion.div
+                    // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
+                    // per-tab content drops its 24px top padding in page mode so
+                    // it sits tight under the tab bar. Panel/sheet keep pt-6.
+                    className={cn(isPageMode ? '' : 'pt-6')}
+                    initial={{ x: 12, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                  >
+                    {detail.auditEvents.length > 0 ? (
+                      <ObligationTimeline
+                        currentStatus={row.status}
+                        events={detail.auditEvents}
+                        labels={statusLabels}
+                        practiceTimezone={practiceTimezone}
+                      />
+                    ) : (
+                      <EmptyPanel className="py-8 text-center">
+                        <Trans>No activity recorded yet.</Trans>
+                      </EmptyPanel>
+                    )}
+                  </motion.div>
+                </TabsContent>
+              ) : null}
+            </BodyTabsWrapper>
+          )}
+          {/* 2026-05-23: dates panel relocated here from the sticky
             snapshot block above. The CPA scans reference dates AFTER
             acting on the active surface (stage card + tabs), so they
             land naturally at the bottom of the drawer body just above
             the sticky footer. Small uppercase eyebrow gives it gentle
             visual separation from the tab content above without
             needing a full divider. */}
-        {row ? (
-          <div className="mt-4 flex flex-col gap-2">
-            <p className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
-              <Trans>Reference dates</Trans>
-            </p>
-            <StatutoryDatesPanel row={row} />
-          </div>
-        ) : null}
-      </div>
+          {row ? (
+            <div className="mt-4 flex flex-col gap-2">
+              <p className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+                <Trans>Reference dates</Trans>
+              </p>
+              <StatutoryDatesPanel row={row} />
+            </div>
+          ) : null}
+        </div>
+      </OuterTabsWrapper>
       <DeadlineInputRequestDialog
         open={requestInputDialogOpen}
         recipients={requestRecipients}
