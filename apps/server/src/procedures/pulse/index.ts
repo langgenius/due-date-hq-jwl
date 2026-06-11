@@ -68,6 +68,10 @@ interface PulseAlertRow {
   // 2026-06-05 (Affecting facts cell): mirrors the repo PulseAlertRow.forms —
   // AI-parsed forms surfaced for the card's "Affecting" cell.
   forms: PulseAlertPublic['forms']
+  // 2026-06-11 (Already-in-effect band): mirrors the repo PulseAlertRow origin
+  // + actionDeadline (Date | null, serialized ISO in toAlertPublic).
+  origin: PulseAlertPublic['origin']
+  actionDeadline: Date | null
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -224,6 +228,9 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     // 2026-06-05 (Affecting facts cell): surface AI-parsed forms so the card's
     // "Affecting" cell renders from the list payload (no per-card detail fetch).
     forms: row.forms,
+    // 2026-06-11 (Already-in-effect band): row origin + act-by date.
+    origin: row.origin,
+    actionDeadline: row.actionDeadline ? row.actionDeadline.toISOString() : null,
   }
 }
 
@@ -475,6 +482,7 @@ const listAlerts = os.pulse.listAlerts.handler(async ({ input, context }) => {
   const { alerts, nextCursor } = await scoped.pulse.listAlerts({
     ...(input?.limit === undefined ? {} : { limit: input.limit }),
     ...(input?.cursor == null ? {} : { cursor: input.cursor }),
+    ...(input?.origin === undefined ? {} : { origin: input.origin }),
   })
   return { alerts: toPublicAlertsSafely(alerts, 'listAlerts'), nextCursor }
 })

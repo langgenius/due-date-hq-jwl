@@ -8,6 +8,7 @@ import {
   type Pulse,
   type PulseActionMode,
   type PulseChangeKind,
+  type PulseFirmAlertOrigin,
   type PulseFirmAlertStatus,
   type PulsePriorityReviewStatus,
   type PulseSourceBaselineMode,
@@ -98,6 +99,13 @@ export interface PulseAlertRow {
   // publishedAt).
   dismissedAt: Date | null
   appliedAt: Date | null
+  // 2026-06-11 (Already-in-effect band): how this firm got the row — 'catchup'
+  // (onboarding catch-up; pinned band, never "new") vs 'live' (approval
+  // fan-out / daily sweep).
+  origin: PulseFirmAlertOrigin
+  // 2026-06-11 (Already-in-effect band): act-by date — parsedNewDueDate, else
+  // protectiveActionDeadline, else parsedEffectiveUntil; null sorts last.
+  actionDeadline: Date | null
 }
 
 export interface PulseAffectedClientRow {
@@ -431,6 +439,7 @@ export interface AlertJoinedRow {
   alertId: string
   pulseId: string
   alertStatus: PulseFirmAlertStatus
+  alertOrigin: PulseFirmAlertOrigin
   matchedCount: number
   needsReviewCount: number
   source: string
@@ -448,6 +457,7 @@ export interface AlertJoinedRow {
   parsedNewDueDate: Date | null
   parsedEffectiveFrom: Date | null
   parsedEffectiveUntil: Date | null
+  protectiveActionDeadline: Date | null
   affectedRuleIds: string[]
   reverifyRuleIds: string[]
   structuredChange: unknown
@@ -762,6 +772,11 @@ export function toAlert(row: AlertJoinedRow): PulseAlertRow {
     // Detail query populates them; list rows leave them undefined → null.
     dismissedAt: row.dismissedAt ?? null,
     appliedAt: row.appliedAt != null ? new Date(row.appliedAt) : null,
+    // 2026-06-11 (Already-in-effect band): row origin + the single act-by date
+    // the band sorts on. Mirrors pulseNotExpiredConditions' date precedence.
+    origin: row.alertOrigin,
+    actionDeadline:
+      row.parsedNewDueDate ?? row.protectiveActionDeadline ?? row.parsedEffectiveUntil,
   }
 }
 

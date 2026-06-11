@@ -1,4 +1,5 @@
 import { Fragment, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
 import { Link } from 'react-router'
@@ -16,6 +17,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatRelativeTime } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { useAlertsListQueryOptions } from '@/features/alerts/api'
 import { parseBriefText } from './brief-text'
 
 type DashboardBriefCitation = NonNullable<DashboardBriefPublic['citations']>[number]
@@ -144,9 +146,35 @@ export function DailyBriefCard({
             <FirmTodayLine concentration={concentration} counts={todayCounts} />
           )}
           {showCounts ? <TodayCountsLine counts={todayCounts} /> : null}
+          <CatchupLine />
         </div>
       </div>
     </section>
+  )
+}
+
+/**
+ * Persistent "already in effect" line — relief windows published before the
+ * firm joined (origin='catchup') that still await handling. NOT part of the
+ * recap: catch-up rows are excluded from newAlertCount by design (state, not
+ * news), so without this line the brief would stay silent about deadlines a
+ * brand-new firm must still act on. Renders for as long as unhandled rows
+ * exist and disappears once the band is cleared — not a one-shot toast.
+ */
+function CatchupLine() {
+  const catchupQuery = useQuery(useAlertsListQueryOptions(50, 'catchup'))
+  const count = catchupQuery.data?.alerts.length ?? 0
+  if (count === 0) return null
+  return (
+    <p className="min-w-0 text-sm leading-[1.5] text-text-primary">
+      <Link to="/alerts" className="text-text-accent underline-offset-2 hover:underline">
+        <Plural
+          value={count}
+          one="# change already in effect affects your clients"
+          other="# changes already in effect affect your clients"
+        />
+      </Link>
+    </p>
   )
 }
 

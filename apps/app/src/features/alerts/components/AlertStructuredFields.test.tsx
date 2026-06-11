@@ -37,6 +37,8 @@ function reviewOnlyDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       pulseId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
       status: 'dismissed',
       sourceStatus: 'approved',
+      origin: 'live',
+      actionDeadline: null,
       changeKind: 'form_instruction',
       actionMode: 'review_only',
       firmImpact: 'review_only',

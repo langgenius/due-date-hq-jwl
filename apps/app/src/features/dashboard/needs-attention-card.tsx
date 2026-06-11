@@ -15,6 +15,17 @@ import { impactBadgeFromAlert } from '@/features/alerts/components/pulse-alert-c
 import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
+
+// Act-by dates are date-valued (a filing due date, not a moment), so format
+// in UTC to avoid the previous-day off-by-one in western timezones.
+function formatActByDate(value: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(value))
+}
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 
@@ -234,20 +245,34 @@ function NeedsAttentionCard({
           ) : null}
 
           {/* DATE — relative time inline (exact on tooltip), right after the
-              form so the two read together rather than splitting the row. */}
-          <Tooltip>
-            <TooltipTrigger
-              render={(props) => (
-                <span
-                  className="shrink-0 whitespace-nowrap text-xs font-normal text-text-muted tabular-nums outline-none"
-                  {...props}
-                >
-                  {formatRelativeTime(alert.publishedAt)}
-                </span>
+              form so the two read together rather than splitting the row.
+              Catch-up rows (origin='catchup') swap the publication framing
+              for the state framing: the announcement is months old, so
+              "5mo ago" reads as stale news — what matters is that it is in
+              effect and when the firm must act. */}
+          {alert.origin === 'catchup' ? (
+            <span className="shrink-0 whitespace-nowrap text-xs font-normal text-text-muted tabular-nums">
+              {alert.actionDeadline ? (
+                <Trans>In effect · act by {formatActByDate(alert.actionDeadline)}</Trans>
+              ) : (
+                <Trans>In effect</Trans>
               )}
-            />
-            <TooltipContent>{absoluteTime}</TooltipContent>
-          </Tooltip>
+            </span>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <span
+                    className="shrink-0 whitespace-nowrap text-xs font-normal text-text-muted tabular-nums outline-none"
+                    {...props}
+                  >
+                    {formatRelativeTime(alert.publishedAt)}
+                  </span>
+                )}
+              />
+              <TooltipContent>{absoluteTime}</TooltipContent>
+            </Tooltip>
+          )}
         </div>
 
         {/* Subject — title + source caption. The source is wrapped in a

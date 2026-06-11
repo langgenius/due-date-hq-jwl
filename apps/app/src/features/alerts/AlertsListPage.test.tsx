@@ -62,7 +62,20 @@ vi.mock('@/lib/rpc', () => ({
         key: () => ['pulse', 'listAlerts'],
         queryOptions: (args: { input: unknown }) => ({
           queryKey: ['pulse', 'listAlerts', args.input],
-          queryFn: rpcMocks.listAlertsQueryFn,
+          // Mirror the server's origin filter: the page now issues a 'live'
+          // query (news stream) and a 'catchup' query (Already-in-effect
+          // band) — one unfiltered mock would render every seed in BOTH.
+          queryFn: async () => {
+            const page = (await rpcMocks.listAlertsQueryFn()) as
+              | { alerts?: Array<{ origin?: string }> }
+              | undefined
+            const origin = (args.input as { origin?: string } | undefined)?.origin
+            if (!origin || !page?.alerts) return page
+            return {
+              ...page,
+              alerts: page.alerts.filter((alert) => (alert.origin ?? 'live') === origin),
+            }
+          },
         }),
         infiniteOptions: (opts: InfiniteOptionsArg) => ({
           queryKey: ['pulse', 'listAlerts', 'infinite', opts.input(opts.initialPageParam)],
@@ -180,6 +193,8 @@ function listAlert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic 
     pulseId: '34343434-3434-4343-8343-343434343434',
     status: 'matched',
     sourceStatus: 'approved',
+    origin: 'live',
+    actionDeadline: null,
     changeKind: 'deadline_shift',
     actionMode: 'due_date_overlay',
     firmImpact: 'matched',
@@ -409,6 +424,46 @@ describe('AlertsListPage work queue toggle', () => {
 
     await waitForText('Seeded CA relief')
     expect(document.body.textContent).not.toContain('Review-only source update')
+  })
+})
+
+describe('AlertsListPage Already-in-effect band', () => {
+  it('pins catchup rows outside the work queue, ordered by act-by date ascending', async () => {
+    const catchupSoon = listAlert({
+      id: '56565656-5656-4565-8565-565656565656',
+      pulseId: '67676767-6767-4676-8676-676767676767',
+      title: 'GA wildfire relief',
+      origin: 'catchup',
+      actionDeadline: '2026-08-20T00:00:00.000Z',
+      matchedCount: 2,
+    })
+    const catchupLater = listAlert({
+      id: '78787878-7878-4787-8787-787878787878',
+      pulseId: '89898989-8989-4898-8898-898989898989',
+      title: 'NMI typhoon relief',
+      origin: 'catchup',
+      actionDeadline: '2026-11-02T00:00:00.000Z',
+      matchedCount: 1,
+    })
+    // Later-deadline row seeded FIRST: the band must reorder by act-by date.
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({
+      alerts: [listAlert(), catchupLater, catchupSoon],
+      nextCursor: null,
+    })
+
+    await render(<AlertsListPage embedded />)
+
+    // Band renders under the default Review queue even though both catchup
+    // rows are deadline shifts (Active-queue material) — the band is exempt
+    // from the queue split and from every filter.
+    await waitForText('Already in effect')
+    expect(document.body.textContent).toContain('GA wildfire relief')
+    expect(document.body.textContent).toContain('NMI typhoon relief')
+    const text = document.body.textContent ?? ''
+    expect(text.indexOf('GA wildfire relief')).toBeLessThan(text.indexOf('NMI typhoon relief'))
+    // Band rows never leak into the news stream's day-grouped list — the
+    // seeded live alert is the only stream row (hidden under Review queue).
+    expect(document.body.textContent).toContain('Dismiss all')
   })
 })
 
@@ -661,7 +716,8 @@ describe('AlertsListPage morning sweep override', () => {
     await waitForText('Morning sweep · last 24h')
     expect(document.body.textContent).toContain('Fresh overnight relief')
     expect(document.body.textContent).not.toContain('Seeded CA relief')
-    // The sweep counts as an active filter, so Reset renders.
+    // The sweep counts as an active filter, so Clear filters renders.
+    // (Label renamed from "Reset" in the 642fa31d consistency pass.)
     expect(
       Array.from(document.querySelectorAll('button')).some(
         (candidate) => candidate.textContent?.trim() === 'Clear filters',
@@ -686,12 +742,13 @@ describe('AlertsListPage morning sweep override', () => {
     expect(document.body.textContent).not.toContain('Morning sweep · last 24h')
   })
 
-  it('Reset clears the sweep override along with other filters', async () => {
+  it('Clear filters clears the sweep override along with other filters', async () => {
     const { fresh, old } = sweepAlerts()
     await renderSweepPage([fresh, old])
     await activateSweep()
     await waitForText('Morning sweep · last 24h')
 
+    // Label renamed from "Reset" in the 642fa31d consistency pass.
     const reset = Array.from(document.querySelectorAll('button')).find(
       (candidate) => candidate.textContent?.trim() === 'Clear filters',
     )

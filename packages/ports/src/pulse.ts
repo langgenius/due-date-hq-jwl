@@ -59,6 +59,15 @@ export interface PulseAlertRow {
   // 2026-06-05 (Affecting facts cell): AI-parsed forms the alert touches.
   // Structural twin of the repo PulseAlertRow.forms (same caveat as above).
   forms: string[]
+  // 2026-06-11 (Already-in-effect band): how this firm got the row. 'catchup'
+  // = onboarding catch-up over the still-in-effect landscape (state, not
+  // news — pinned band, excluded from new-alert counters); 'live' = approval
+  // fan-out or the daily sweep.
+  origin: 'live' | 'catchup'
+  // 2026-06-11 (Already-in-effect band): the date the firm must act by —
+  // parsedNewDueDate, else protectiveActionDeadline, else parsedEffectiveUntil.
+  // Drives the band's ascending act-by ordering; null sorts last.
+  actionDeadline: Date | null
 }
 
 export interface PulseAffectedClientRow {
@@ -316,6 +325,9 @@ export interface PulseRepo {
   listAlerts(opts?: {
     limit?: number
     cursor?: string | null
+    // Filter by row origin: 'live' = the news stream (default UI queue),
+    // 'catchup' = the pinned "Already in effect" band. Absent = both.
+    origin?: 'live' | 'catchup'
   }): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }>
   /**
    * Approved, still-active pulses that affect a specific rule. Backs the

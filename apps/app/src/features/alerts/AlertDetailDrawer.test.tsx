@@ -321,6 +321,8 @@ function hotkeyAlert(): PulseAlertPublic {
     pulseId: '34343434-3434-4343-8343-343434343434',
     status: 'matched',
     sourceStatus: 'approved',
+    origin: 'live',
+    actionDeadline: null,
     changeKind: 'deadline_shift',
     actionMode: 'due_date_overlay',
     firmImpact: 'matched',

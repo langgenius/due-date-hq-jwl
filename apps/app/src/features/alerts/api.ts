@@ -99,12 +99,21 @@ export function useActiveAlertCount(): number {
   return query.data?.count ?? 0
 }
 
-export function useAlertsListQueryOptions(limit?: number) {
+export function useAlertsListQueryOptions(limit?: number, origin?: 'live' | 'catchup') {
   const normalizedLimit = normalizeAlertsListLimit(limit)
+  // Origin splits the active surface into the news stream ('live') and the
+  // pinned "Already in effect" band ('catchup'). Separate queries: catchup
+  // rows carry months-old published dates that the stream's keyset paging
+  // would otherwise push past the first page.
+  const input =
+    normalizedLimit === undefined && origin === undefined
+      ? undefined
+      : {
+          ...(normalizedLimit === undefined ? {} : { limit: normalizedLimit }),
+          ...(origin === undefined ? {} : { origin }),
+        }
   return {
-    ...orpc.pulse.listAlerts.queryOptions({
-      input: normalizedLimit === undefined ? undefined : { limit: normalizedLimit },
-    }),
+    ...orpc.pulse.listAlerts.queryOptions({ input }),
     refetchInterval: ALERT_ACTIVE_ALERTS_REFETCH_INTERVAL_MS,
     refetchIntervalInBackground: true,
   }

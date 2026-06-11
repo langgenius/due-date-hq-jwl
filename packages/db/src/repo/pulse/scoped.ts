@@ -41,6 +41,7 @@ import {
   type NewPulseApplication,
   type NewPulseFirmAlert,
   type NewPulsePriorityReview,
+  type PulseFirmAlertOrigin,
   type PulseFirmAlertStatus,
   type PulsePriorityReviewStatus,
 } from '../../schema/pulse'
@@ -187,6 +188,7 @@ export function makePulseRepo(db: Db, firmId: string) {
         alertId: pulseFirmAlert.id,
         pulseId: pulse.id,
         alertStatus: pulseFirmAlert.status,
+        alertOrigin: pulseFirmAlert.origin,
         matchedCount: pulseFirmAlert.matchedCount,
         needsReviewCount: pulseFirmAlert.needsReviewCount,
         source: pulse.source,
@@ -204,6 +206,7 @@ export function makePulseRepo(db: Db, firmId: string) {
         parsedNewDueDate: pulse.parsedNewDueDate,
         parsedEffectiveFrom: pulse.parsedEffectiveFrom,
         parsedEffectiveUntil: pulse.parsedEffectiveUntil,
+        protectiveActionDeadline: pulse.protectiveActionDeadline,
         affectedRuleIds: pulse.affectedRuleIdsJson,
         reverifyRuleIds: pulse.reverifyRuleIdsJson,
         structuredChange: pulse.structuredChangeJson,
@@ -1141,7 +1144,7 @@ export function makePulseRepo(db: Db, firmId: string) {
     },
 
     async listAlerts(
-      opts: { limit?: number; cursor?: string | null } = {},
+      opts: { limit?: number; cursor?: string | null; origin?: PulseFirmAlertOrigin } = {},
     ): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }> {
       const limit = Math.min(Math.max(opts.limit ?? 5, 1), 50)
       const now = new Date()
@@ -1151,6 +1154,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           alertId: pulseFirmAlert.id,
           pulseId: pulse.id,
           alertStatus: pulseFirmAlert.status,
+          alertOrigin: pulseFirmAlert.origin,
           matchedCount: pulseFirmAlert.matchedCount,
           needsReviewCount: pulseFirmAlert.needsReviewCount,
           source: pulse.source,
@@ -1168,6 +1172,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           parsedNewDueDate: pulse.parsedNewDueDate,
           parsedEffectiveFrom: pulse.parsedEffectiveFrom,
           parsedEffectiveUntil: pulse.parsedEffectiveUntil,
+          protectiveActionDeadline: pulse.protectiveActionDeadline,
           affectedRuleIds: pulse.affectedRuleIdsJson,
           reverifyRuleIds: pulse.reverifyRuleIdsJson,
           structuredChange: pulse.structuredChangeJson,
@@ -1185,6 +1190,9 @@ export function makePulseRepo(db: Db, firmId: string) {
             eq(pulseFirmAlert.firmId, firmId),
             eq(pulse.status, 'approved'),
             inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
+            // Origin split: the news stream queries 'live'; the pinned
+            // "Already in effect" band queries 'catchup'. Absent = both.
+            ...(opts.origin ? [eq(pulseFirmAlert.origin, opts.origin)] : []),
             // Hide alerts whose actionable deadline has already passed (review_only
             // protective windows by actionDeadline; deadline shifts by new-due /
             // effective date), matching catch-up/sweep relevance so the active queue
@@ -1404,6 +1412,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           alertId: pulseFirmAlert.id,
           pulseId: pulse.id,
           alertStatus: pulseFirmAlert.status,
+          alertOrigin: pulseFirmAlert.origin,
           matchedCount: pulseFirmAlert.matchedCount,
           needsReviewCount: pulseFirmAlert.needsReviewCount,
           source: pulse.source,
@@ -1421,6 +1430,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           parsedNewDueDate: pulse.parsedNewDueDate,
           parsedEffectiveFrom: pulse.parsedEffectiveFrom,
           parsedEffectiveUntil: pulse.parsedEffectiveUntil,
+          protectiveActionDeadline: pulse.protectiveActionDeadline,
           affectedRuleIds: pulse.affectedRuleIdsJson,
           reverifyRuleIds: pulse.reverifyRuleIdsJson,
           structuredChange: pulse.structuredChangeJson,
@@ -1541,6 +1551,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           alertId: pulseFirmAlert.id,
           pulseId: pulse.id,
           alertStatus: pulseFirmAlert.status,
+          alertOrigin: pulseFirmAlert.origin,
           matchedCount: pulseFirmAlert.matchedCount,
           needsReviewCount: pulseFirmAlert.needsReviewCount,
           source: pulse.source,
@@ -1558,6 +1569,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           parsedNewDueDate: pulse.parsedNewDueDate,
           parsedEffectiveFrom: pulse.parsedEffectiveFrom,
           parsedEffectiveUntil: pulse.parsedEffectiveUntil,
+          protectiveActionDeadline: pulse.protectiveActionDeadline,
           affectedRuleIds: pulse.affectedRuleIdsJson,
           reverifyRuleIds: pulse.reverifyRuleIdsJson,
           structuredChange: pulse.structuredChangeJson,
@@ -1606,6 +1618,7 @@ export function makePulseRepo(db: Db, firmId: string) {
             alertId: row.alertId,
             pulseId: row.pulseId,
             alertStatus: row.alertStatus,
+            alertOrigin: row.alertOrigin,
             matchedCount: row.matchedCount,
             needsReviewCount: row.needsReviewCount,
             source: row.source,
@@ -1623,6 +1636,7 @@ export function makePulseRepo(db: Db, firmId: string) {
             parsedNewDueDate: row.parsedNewDueDate,
             parsedEffectiveFrom: row.parsedEffectiveFrom,
             parsedEffectiveUntil: row.parsedEffectiveUntil,
+            protectiveActionDeadline: row.protectiveActionDeadline,
             affectedRuleIds: row.affectedRuleIds,
             reverifyRuleIds: row.reverifyRuleIds,
             structuredChange: row.structuredChange,

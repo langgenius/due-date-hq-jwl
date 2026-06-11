@@ -28,6 +28,8 @@ function baseAlert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic 
     pulseId: '22222222-2222-4222-8222-222222222222',
     status: 'matched',
     sourceStatus: 'approved',
+    origin: 'live',
+    actionDeadline: null,
     changeKind: 'deadline_shift',
     actionMode: 'due_date_overlay',
     firmImpact: 'matched',

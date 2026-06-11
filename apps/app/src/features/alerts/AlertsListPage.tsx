@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import {
   AlertCircleIcon,
   ArchiveIcon,
+  CalendarClockIcon,
   CheckIcon,
   CircleCheckIcon,
   CoffeeIcon,
@@ -61,6 +62,7 @@ import { useAlertDrawer } from './DrawerProvider'
 import { useMorningSweep } from './MorningSweepContext'
 import { AlertDetailDrawer } from './AlertDetailDrawer'
 import { AlertListRail } from './components/AlertListRail'
+import { PulseJurisdictionChip } from './components/PulseJurisdictionChip'
 import { StateTilegram } from './components/StateTilegram'
 import {
   // Non-infinite query options. The infinite variants
@@ -207,6 +209,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // preview is the right guard — the same modal family /deadlines +
   // /rules use.
   const [dismissConfirmOpen, setDismissConfirmOpen] = useState(false)
+  // Band-level "Dismiss all" for the pinned "Already in effect" band — same
+  // confirm-dialog guard as the selection flow, scoped to the band's rows.
+  const [catchupDismissOpen, setCatchupDismissOpen] = useState(false)
 
   // The row-level Dismiss button in PulseAlertRow flows through
   // `setReasonState`, which opens the reason dialog (rendered below) and
@@ -280,10 +285,33 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   )
 
   // A flat 50-item query per surface. Client-side filters + sort below
-  // operate on the loaded set; no pagination chrome.
-  const activeAlertsQueryOptions = useAlertsListQueryOptions(50)
+  // operate on the loaded set; no pagination chrome. The active stream is
+  // origin='live' — catch-up rows live in their own pinned band below.
+  const activeAlertsQueryOptions = useAlertsListQueryOptions(50, 'live')
   const historyAlertsQueryOptions = useAlertsHistoryQueryOptions(50)
   const alertsQuery = useQuery(historyMode ? historyAlertsQueryOptions : activeAlertsQueryOptions)
+  // The pinned "Already in effect" band: origin='catchup' rows materialized
+  // at onboarding for changes published before the firm joined. A separate
+  // query because (a) their months-old publishedAt would page them past the
+  // stream's keyset window, and (b) the band is deliberately exempt from the
+  // Review/Active toggle and every filter — it is state, not news.
+  const catchupAlertsQueryOptions = useAlertsListQueryOptions(50, 'catchup')
+  const catchupQuery = useQuery({ ...catchupAlertsQueryOptions, enabled: !historyMode })
+  const catchupAlerts = useMemo(() => {
+    const rows = catchupQuery.data?.alerts ?? EMPTY_ALERTS
+    // Ascending act-by date (soonest obligation first); rows without a
+    // deadline sort last, recency as the tiebreaker.
+    return [...rows].toSorted((a, b) => {
+      const aTime = a.actionDeadline
+        ? new Date(a.actionDeadline).getTime()
+        : Number.POSITIVE_INFINITY
+      const bTime = b.actionDeadline
+        ? new Date(b.actionDeadline).getTime()
+        : Number.POSITIVE_INFINITY
+      if (aTime !== bTime) return aTime - bTime
+      return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    })
+  }, [catchupQuery.data])
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
@@ -291,7 +319,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // card its slice, instead of every AlertCard firing its own `getDetail`.
   // Keyed off the full (stable) `alerts` set — not `filteredAlerts` — so
   // client-side filter changes don't refetch; cards just look up their id.
-  const alertIds = useMemo(() => alerts.map((alert) => alert.id), [alerts])
+  // Band rows ride along so their drawers open warm too.
+  const alertIds = useMemo(
+    () => [...alerts, ...catchupAlerts].map((alert) => alert.id),
+    [alerts, catchupAlerts],
+  )
   // `useAlertsAffectedClients(alertIds)` is invoked for its side effect
   // of seeding the per-alert detail query cache; the returned map is
   // unused (client-name rendering lives in the drawer). Keep the hook
@@ -466,6 +498,23 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const selectedAlerts = useMemo(
     () => sortedAlerts.filter((alert) => selectedIds.has(alert.id)),
     [sortedAlerts, selectedIds],
+  )
+  const confirmCatchupDismiss = () => {
+    if (catchupAlerts.length === 0) return
+    bulkDismissMutation.mutate({ alertIds: catchupAlerts.map((alert) => alert.id) })
+  }
+  // Protective claim windows whose action deadline closes within 60 days —
+  // dismissing one hides the alert but the legal window still shuts, and
+  // there is no recovery after it passes. Both confirm dialogs call this out
+  // by name so an onboarding-fatigue "dismiss all" can't silently bury an
+  // unrecoverable deadline.
+  const closingSelectedWindows = useMemo(
+    () => closingProtectiveWindows(selectedAlerts),
+    [selectedAlerts],
+  )
+  const closingCatchupWindows = useMemo(
+    () => closingProtectiveWindows(catchupAlerts),
+    [catchupAlerts],
   )
 
   // Single reset handler reused by the toolbar Reset button and the
@@ -997,6 +1046,22 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   list takes the whole content column. */}
               <MorningSweepPanel />
 
+              {/* Pinned "Already in effect" band — origin='catchup' rows
+                  materialized at onboarding for changes published before the
+                  firm joined. Deliberately OUTSIDE the queue toggle, the
+                  filter toolbar, and the work-queue counts: it is the firm's
+                  current regulatory state, not news, and a filter must never
+                  silently hide a still-running relief window. Ordered by
+                  act-by date ascending (soonest first). */}
+              {!historyMode && catchupAlerts.length > 0 ? (
+                <CatchupBand
+                  alerts={catchupAlerts}
+                  onReview={openDrawerAndCollapseSidebar}
+                  onDismissAll={() => setCatchupDismissOpen(true)}
+                  dismissPending={bulkDismissMutation.isPending}
+                />
+              ) : null}
+
               {viewMode === 'map' ? (
                 <div className="flex min-h-0 flex-1 gap-6">
                   {/* LEFT: map grid in gray-50 panel */}
@@ -1056,8 +1121,16 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 // this prominent "you're caught up" state, not the terse
                 // "no alerts match these filters" line — that terse
                 // filtered state is reserved for when actual filters are
-                // narrowing.
-                <AlertsEmptyState historyMode={historyMode} sources={sourceHealth} />
+                // narrowing. When the catch-up band is showing, the big
+                // "you're caught up" copy would contradict it — a slim
+                // "no new alerts" line keeps the page honest.
+                catchupAlerts.length > 0 && !historyMode ? (
+                  <p className="px-1 py-6 text-sm text-text-muted">
+                    <Trans>No new alerts since monitoring started for your firm.</Trans>
+                  </p>
+                ) : (
+                  <AlertsEmptyState historyMode={historyMode} sources={sourceHealth} />
+                )
               ) : isFilteredEmpty ? (
                 <FilteredEmptyState
                   onClearFilters={resetFilters}
@@ -1212,12 +1285,161 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         confirmDisabled={bulkDismissMutation.isPending}
         onConfirm={confirmBulkDismiss}
       >
+        {closingSelectedWindows.length > 0 ? (
+          <ClosingWindowWarning count={closingSelectedWindows.length} />
+        ) : null}
         <BulkConfirmList
           label={<Trans>Selected ({selectedCount})</Trans>}
           items={selectedAlerts.map((alert) => ({ id: alert.id, primary: alert.title }))}
         />
       </BulkConfirmDialog>
+
+      {/* Band-level "Dismiss all" confirmation for the "Already in effect"
+          band. Same destructive pattern; protective windows closing within
+          60 days are called out by name — dismissing hides the alert but
+          the legal window still shuts, unrecoverable once it passes. */}
+      <BulkConfirmDialog
+        open={catchupDismissOpen}
+        onOpenChange={setCatchupDismissOpen}
+        tone="destructive"
+        icon={ArchiveIcon}
+        title={<Trans>Dismiss all {catchupAlerts.length} in-effect alerts?</Trans>}
+        description={
+          <Trans>
+            These changes were published before your firm joined but are still in effect for your
+            clients. Dismissed alerts move to history; the underlying deadlines do not change.
+          </Trans>
+        }
+        confirmLabel={<Trans>Dismiss all</Trans>}
+        confirmDisabled={bulkDismissMutation.isPending}
+        onConfirm={confirmCatchupDismiss}
+      >
+        {closingCatchupWindows.length > 0 ? (
+          <ClosingWindowWarning count={closingCatchupWindows.length} />
+        ) : null}
+        <BulkConfirmList
+          label={<Trans>Already in effect ({catchupAlerts.length})</Trans>}
+          items={catchupAlerts.map((alert) => ({ id: alert.id, primary: alert.title }))}
+        />
+      </BulkConfirmDialog>
     </div>
+  )
+}
+
+// Protective claim windows close for good — a dismissed alert is recoverable
+// from history, the missed legal deadline is not. 60 days mirrors the band's
+// urgency horizon.
+const CLOSING_WINDOW_HORIZON_MS = 60 * 24 * 60 * 60 * 1000
+
+function closingProtectiveWindows(alerts: readonly PulseAlertPublic[]): PulseAlertPublic[] {
+  const horizon = Date.now() + CLOSING_WINDOW_HORIZON_MS
+  return alerts.filter(
+    (alert) =>
+      alert.changeKind === 'protective_claim_window' &&
+      alert.actionDeadline !== null &&
+      new Date(alert.actionDeadline).getTime() <= horizon,
+  )
+}
+
+function ClosingWindowWarning({ count }: { count: number }) {
+  return (
+    <Alert variant="destructive">
+      <AlertCircleIcon className="size-4" aria-hidden />
+      <AlertTitle>
+        <Plural
+          value={count}
+          one="# protective claim window closes within 60 days"
+          other="# protective claim windows close within 60 days"
+        />
+      </AlertTitle>
+      <AlertDescription>
+        <Trans>
+          Dismissing hides the alert, but the filing window still closes — it can't be recovered
+          after the deadline passes.
+        </Trans>
+      </AlertDescription>
+    </Alert>
+  )
+}
+
+// The pinned "Already in effect" band. Compact rows (act-by date · title ·
+// jurisdiction · affects-count) instead of full PulseAlertRow cards: these
+// are months-old changes the firm is catching up on, so the publication-day
+// framing and the selection machinery of the news stream don't apply. Click
+// opens the same detail drawer (apply/dismiss/notes all live there).
+function CatchupBand({
+  alerts,
+  onReview,
+  onDismissAll,
+  dismissPending,
+}: {
+  alerts: readonly PulseAlertPublic[]
+  onReview: (alertId: string) => void
+  onDismissAll: () => void
+  dismissPending: boolean
+}) {
+  const { t } = useLingui()
+  const actByFormat = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+  const soonHorizon = Date.now() + 30 * 24 * 60 * 60 * 1000
+  return (
+    <section
+      aria-label={t`Already in effect`}
+      className="rounded-xl border border-divider-subtle bg-background-section"
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-divider-subtle px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <CalendarClockIcon className="size-4 shrink-0 text-text-muted" aria-hidden />
+          <span className="text-xs font-bold tracking-[0.8px] text-text-muted uppercase">
+            <Trans>Already in effect</Trans>
+            <span className="ml-2 tabular-nums">{alerts.length}</span>
+          </span>
+          <span className="hidden text-sm text-text-muted sm:inline">
+            <Trans>Published before your firm joined — still affecting client deadlines.</Trans>
+          </span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={onDismissAll} disabled={dismissPending}>
+          <Trans>Dismiss all</Trans>
+        </Button>
+      </div>
+      <ul className="divide-y divide-divider-subtle">
+        {alerts.map((alert) => {
+          const actBy = alert.actionDeadline ? new Date(alert.actionDeadline) : null
+          const impactCount = alert.matchedCount + alert.needsReviewCount
+          return (
+            <li key={alert.id}>
+              <button
+                type="button"
+                onClick={() => onReview(alert.id)}
+                className="flex w-full items-center gap-4 px-4 py-2.5 text-left transition-colors hover:bg-background-subtle"
+              >
+                <span className="flex w-28 shrink-0 items-center gap-1.5 text-sm font-medium tabular-nums">
+                  {actBy && actBy.getTime() <= soonHorizon ? (
+                    <AlertCircleIcon className="size-3.5 shrink-0" aria-hidden />
+                  ) : null}
+                  {actBy ? (
+                    <Trans>Act by {actByFormat.format(actBy)}</Trans>
+                  ) : (
+                    <span className="text-text-muted">
+                      <Trans>Ongoing</Trans>
+                    </span>
+                  )}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-sm">{alert.title}</span>
+                <PulseJurisdictionChip jurisdiction={alert.jurisdiction} />
+                <span className="w-28 shrink-0 text-right text-sm text-text-muted tabular-nums">
+                  <Plural value={impactCount} one="# client" other="# clients" />
+                </span>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
   )
 }
 

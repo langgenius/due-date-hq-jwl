@@ -147,6 +147,8 @@ function alertDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       pulseId: 'pulse_1',
       status: 'matched',
       sourceStatus: 'approved',
+      origin: 'live',
+      actionDeadline: null,
       title: 'CA disaster relief',
       source: 'CA FTB',
       sourceUrl: 'https://example.com/source',

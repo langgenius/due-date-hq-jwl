@@ -9,6 +9,8 @@ function alert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
     pulseId: '22222222-2222-4222-8222-222222222222',
     status: 'matched',
     sourceStatus: 'approved',
+    origin: 'live',
+    actionDeadline: null,
     title: 'California disaster relief',
     source: 'ca.ftb',
     sourceUrl: 'https://www.ftb.ca.gov/news.html',

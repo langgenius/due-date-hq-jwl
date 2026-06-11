@@ -367,6 +367,8 @@ const MOCK_PULSE_ALERT: PulseAlertPublic = {
   pulseId: 'pulse_mock_ca_q3',
   status: 'matched',
   sourceStatus: 'approved',
+  origin: 'live',
+  actionDeadline: null,
   changeKind: 'deadline_shift',
   actionMode: 'due_date_overlay',
   firmImpact: 'matched',

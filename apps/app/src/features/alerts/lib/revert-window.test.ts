@@ -10,6 +10,8 @@ function makeAlert(status: PulseAlertPublic['status']): PulseAlertPublic {
     pulseId: 'pulse-1',
     status,
     sourceStatus: 'approved',
+    origin: 'live',
+    actionDeadline: null,
     title: 'IRS storm relief',
     source: 'irs.gov',
     sourceUrl: 'https://irs.gov',

@@ -174,6 +174,15 @@ export const PulseAlertPublicSchema = z.object({
   // so the alert card's "Affecting" cell renders without a per-card detail
   // fetch. Empty = no specific form scope.
   forms: z.array(z.string()),
+  // 2026-06-11 (Already-in-effect band): how this firm got the row. 'catchup'
+  // rows materialized via the onboarding catch-up over the still-in-effect
+  // landscape — state, not news: they render in the pinned "Already in
+  // effect" band and never count as "new" on splash/brief.
+  origin: z.enum(['live', 'catchup']),
+  // 2026-06-11 (Already-in-effect band): the act-by date — parsedNewDueDate,
+  // else protectiveActionDeadline, else parsedEffectiveUntil. The band sorts
+  // ascending on it (soonest obligation first); null sorts last.
+  actionDeadline: z.iso.datetime().nullable(),
 })
 export type PulseAlertPublic = z.infer<typeof PulseAlertPublicSchema>
 
@@ -269,6 +278,9 @@ export const PulseListAlertsInputSchema = z
     // pagination — null/absent fetches the first page. Optional (not
     // `.default`) so the existing input shape parses unchanged.
     cursor: z.string().nullable().optional(),
+    // Row-origin filter: 'live' = the news stream, 'catchup' = the pinned
+    // "Already in effect" band. Absent = both (legacy callers unchanged).
+    origin: z.enum(['live', 'catchup']).optional(),
   })
   .optional()
 export type PulseListAlertsInput = z.infer<typeof PulseListAlertsInputSchema>
