@@ -121,4 +121,4 @@ curl -X POST https://app.due.langgenius.app/api/ops/pulse-backfill \
 # 期望 {"queued":8}。这些事件多已过期 → 大概率 ignored/quarantined/History-Expired，跑完即闭环。
 ```
 
-注：staging 目前 0 个 firm，回填只生成全局 pulse 池；新 firm 注册导入客户时由首批 obligations catch-up 自动物化成 band。州级回填 launch 前按 cohort 州逐源 POST 同一路由即可（cap 200/次，1212 条 baseline 积压待用）。
+注：staging 目前 0 个 firm，回填只生成全局 pulse 池；新 firm 注册导入客户时由首批 obligations catch-up 自动物化成 band。州级回填 launch 前按 cohort 州逐源 POST 同一路由即可（cap 200/次，1212 条 baseline 积压待用）。7. `feat(alerts): retire the Already-in-effect band`（4ec5fd59，**owner 展示层修订**）——catchup 行不再用独立紧凑分组带，改用与新闻流相同的 PulseAlertRow 卡片、同一条 50 上限查询（无 origin 过滤），按 `isActiveAlert` 正常落 Review/Active tab。state-not-news 语义完全保留在后端（不计 new、不发邮件、注册时静默物化）；选中批量忽略弹窗的「保护窗口 60 天内关闭」警示自然覆盖 catchup 卡。10 条 band 专属 msgid 经 clean-worktree extract --clean 移除（834a0854），zh 缺翻译归零。
