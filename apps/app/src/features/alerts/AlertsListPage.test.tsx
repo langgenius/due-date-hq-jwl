@@ -344,7 +344,7 @@ describe('AlertsListPage source health display', () => {
   it('uses the active alert query on the active alerts surface', async () => {
     await render(<AlertsListPage embedded />)
 
-    await waitForText('caught up')
+    await waitForText('No alerts right now')
     expect(rpcMocks.listAlertsQueryFn).toHaveBeenCalled()
     expect(rpcMocks.listHistoryQueryFn).not.toHaveBeenCalled()
   })
@@ -376,7 +376,7 @@ describe('AlertsListPage source health display', () => {
 
     await render(<AlertsListPage embedded />)
 
-    await waitForText('caught up')
+    await waitForText('No alerts right now')
     expect(document.body.textContent).not.toContain('Pulse source needs attention')
     expect(document.body.textContent).not.toContain('IRS Disaster Relief')
     expect(document.body.textContent).not.toContain('Review sources')

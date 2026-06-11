@@ -281,7 +281,7 @@ export function MergedBriefCard({
       {/* Lede — one-line deterministic summary of the day. */}
       <p className="text-sm text-text-secondary">
         {totalActive === 0 ? (
-          <Trans>You're clear — nothing due this month.</Trans>
+          <Trans>No open deadlines right now.</Trans>
         ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
           <Trans>
             {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
@@ -301,7 +301,7 @@ export function MergedBriefCard({
           {activeTotal > 0 ? (
             <Trans>None in the priority shortlist — open the queue to see all {activeTotal}.</Trans>
           ) : (
-            <Trans>Nothing here. You're clear.</Trans>
+            <Trans>No open deadlines.</Trans>
           )}
         </p>
       ) : (

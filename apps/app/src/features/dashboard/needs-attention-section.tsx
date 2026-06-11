@@ -140,7 +140,7 @@ function NeedsAttentionSection() {
             {noSources ? (
               <Trans>No sources monitored yet</Trans>
             ) : (
-              <Trans>No alerts — you're caught up</Trans>
+              <Trans>No alerts right now</Trans>
             )}
           </h2>
           <p className="text-sm leading-relaxed text-text-secondary">

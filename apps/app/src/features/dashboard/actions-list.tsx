@@ -505,7 +505,7 @@ function DashboardActionsList({
           // counts), not just this list.
           <SharedEmptyState
             icon={CircleCheckIcon}
-            title={<Trans>You're all caught up</Trans>}
+            title={<Trans>Your queue is clear</Trans>}
             description={
               <Plural
                 value={firmTotalOpen}

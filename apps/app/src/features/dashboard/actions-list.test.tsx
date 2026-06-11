@@ -216,7 +216,7 @@ describe('DashboardActionsList', () => {
       />,
     )
 
-    expect(document.body.textContent).toContain("You're all caught up")
+    expect(document.body.textContent).toContain('Your queue is clear')
     expect(document.body.textContent).toContain('7 open deadlines')
 
     const switchButton = Array.from(document.querySelectorAll('button')).find((button) =>

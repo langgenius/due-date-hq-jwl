@@ -402,7 +402,7 @@ function SourceCoverageSection() {
         toast.success(
           materializedCount > 0
             ? t`Surfaced ${materializedCount} still-open alert(s) for your firm.`
-            : t`You're already caught up — no still-open windows to add.`,
+            : t`No still-open windows to add.`,
         )
       },
       onError: () => {

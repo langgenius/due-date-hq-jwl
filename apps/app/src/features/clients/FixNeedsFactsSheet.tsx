@@ -117,7 +117,7 @@ export function FixNeedsFactsSheet({
             // height/icon-sizing as the rest of the app's success pills.
             <Badge variant="success">
               <CheckCircle2Icon aria-hidden />
-              <Trans>All caught up</Trans>
+              <Trans>All resolved</Trans>
             </Badge>
           ) : null}
         </div>

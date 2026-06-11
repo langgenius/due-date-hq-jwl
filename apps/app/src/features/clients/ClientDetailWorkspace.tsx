@@ -1705,9 +1705,9 @@ function ClientActiveAlertsExtensionCard({
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-text-primary">
           {obligations.length === 1 ? (
-            <Trans>1 filing extended — payment is NOT extended</Trans>
+            <Trans>1 filing extended — payment is not extended</Trans>
           ) : (
-            <Trans>{obligations.length} filings extended — payment is NOT extended</Trans>
+            <Trans>{obligations.length} filings extended — payment is not extended</Trans>
           )}
         </p>
         <p className="mt-0.5 text-xs text-text-tertiary">{taxTypes.join(' · ')}</p>

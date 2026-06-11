@@ -1828,7 +1828,7 @@ function AlertsEmptyState({
       // (canvas frame is 600px tall, vertically centered).
       fill
       icon={MegaphoneIcon}
-      title={<Trans>No alerts — you're caught up</Trans>}
+      title={<Trans>No alerts right now</Trans>}
       description={
         lastChecked ? (
           <Trans>

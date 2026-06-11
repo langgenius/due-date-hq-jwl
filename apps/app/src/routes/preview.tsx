@@ -1748,7 +1748,7 @@ export function PreviewRoute() {
                 <EmptyState
                   variant="prominent"
                   icon={MegaphoneIcon}
-                  title="No alerts — you're caught up"
+                  title="No alerts right now"
                   description="When IRS, CA FTB, or another monitored source publishes a change, it will land here."
                   className="w-full"
                 />

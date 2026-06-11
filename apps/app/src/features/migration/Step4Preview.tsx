@@ -289,8 +289,8 @@ export function Step4Preview({
               <p className="text-sm text-text-secondary">
                 <Plural
                   value={affectedReviewClients}
-                  one="# client has state deadlines that need reviewed practice rules first."
-                  other="# clients have state deadlines that need reviewed practice rules first."
+                  one="# client has state deadlines waiting on rule review."
+                  other="# clients have state deadlines waiting on rule review."
                 />
               </p>
               <p className="text-sm text-text-tertiary">

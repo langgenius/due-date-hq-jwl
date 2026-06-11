@@ -157,7 +157,7 @@ export function SplashRoute() {
               </ul>
             ) : (
               <p className="text-sm font-medium text-text-tertiary">
-                <Trans>Nothing changed while you were away — you're all caught up.</Trans>
+                <Trans>No activity since your last visit.</Trans>
               </p>
             )}
           </section>

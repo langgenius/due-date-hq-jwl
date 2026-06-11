@@ -73,9 +73,9 @@ describe('SurfaceSummaryStrip', () => {
     }
   })
 
-  it('shows the "All caught up" zero-state when items is empty', () => {
+  it('shows the "Nothing pending" zero-state when items is empty', () => {
     mount(<SurfaceSummaryStrip label="Clients" items={[]} />)
-    expect(container?.textContent).toContain('All caught up')
+    expect(container?.textContent).toContain('Nothing pending')
   })
 
   it('renders skeletons when loading is true', () => {

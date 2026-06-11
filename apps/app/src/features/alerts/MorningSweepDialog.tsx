@@ -244,7 +244,7 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
   // width.
   const headline =
     renderBriefing.paragraphs[0] ??
-    (briefingSource === 'fallback' ? t`AI summarisation unavailable.` : t`Brewing your briefing…`)
+    (briefingSource === 'fallback' ? t`Briefing unavailable.` : t`Preparing your briefing…`)
   const isLoading = summaryQuery.isLoading || alertsQuery.isLoading
   return (
     <section
@@ -264,7 +264,7 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
         className="line-clamp-1 min-w-0 flex-1 text-base text-text-secondary"
         aria-live="polite"
       >
-        {isLoading ? <Trans>Brewing your briefing…</Trans> : headline}
+        {isLoading ? <Trans>Preparing your briefing…</Trans> : headline}
       </p>
       {!isLoading && renderBriefing.windowAlerts.length > 0 ? (
         <Button
