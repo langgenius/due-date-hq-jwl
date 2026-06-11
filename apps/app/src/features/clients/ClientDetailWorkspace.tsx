@@ -911,20 +911,10 @@ export function ClientDetailWorkspace({
               />
             ) : null}
 
-            {/* Notes strip lives above the alerts band — notes are
-                *persistent context* that anyone interacting with this
-                client should glance at (preferred call window,
-                sensitivities, history). Reads as identity context,
-                NOT a now-signal. The strip auto-suppresses when the
-                client has no notes (the empty-state "Add notes" CTA
-                lives in the header actions cluster instead). Click
-                anywhere on the strip → opens the controlled slide-in
-                panel mounted at the bottom of this tree. */}
-            <ClientNotesStrip
-              client={client}
-              canWrite={canUpdateClient}
-              onOpenEditor={() => setNotesOpen(true)}
-            />
+            {/* Notes moved to the right rail (2026-06-10, Yuqi "move notes to
+                the right sidebar") — they're persistent identity context, so
+                they sit alongside Contacts in the rail rather than in the
+                main scan column. See <ClientDetailRail>. */}
 
             {/* Active alerts + summary strip stay ABOVE the tabs —
                 they're global signals about the client ("anything wrong
@@ -1335,7 +1325,11 @@ export function ClientDetailWorkspace({
               blockerCandidates={[]}
             />
           ) : (
-            <ClientDetailRail client={client} />
+            <ClientDetailRail
+              client={client}
+              canWrite={canUpdateClient}
+              onEditNotes={() => setNotesOpen(true)}
+            />
           )}
         </aside>
       </div>
@@ -1409,7 +1403,16 @@ export function ClientDetailWorkspace({
  * underlying fields ship. Per-contact Compose stays out until a
  * messages.send RPC exists.
  */
-function ClientDetailRail({ client }: { client: ClientPublic }) {
+function ClientDetailRail({
+  client,
+  canWrite,
+  onEditNotes,
+}: {
+  client: ClientPublic
+  canWrite: boolean
+  /** Opens the controlled notes slide-in (the rail notes card's click target). */
+  onEditNotes: () => void
+}) {
   const { t } = useLingui()
   const contactItems = useMemo(() => buildClientHeaderContactItems(client), [client])
   const primaryContactName = contactItems.find((item) => item.kind === 'contact')?.value ?? null
@@ -1430,12 +1433,17 @@ function ClientDetailRail({ client }: { client: ClientPublic }) {
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-[18px] overflow-y-auto">
-      {/* No Snapshot card: its only live stat would be `openCount` ("N
-          Open deadlines"), which the full-width ClientSummaryStrip's
-          "Open filing" slot beside it already carries richer ("· N
-          payment overdue") — a one-purpose-per-panel concern. The strip
-          owns the at-a-glance counts; the rail's job is Contacts at rest
-          + the obligation detail on row-click. */}
+      {/* Notes card — persistent client context, moved into the rail
+          (Yuqi). Reuses <ClientNotesStrip>; self-suppresses when empty. */}
+      <ClientNotesStrip client={client} canWrite={canWrite} onOpenEditor={onEditNotes} />
+      {/* Snapshot card removed 2026-06-10 (Yuqi): its only live stat was
+          `openCount` ("N Open deadlines"), which duplicated the full-width
+          ClientSummaryStrip's "Open filing" slot sitting right beside it — a
+          one-purpose-per-panel violation, and the strip carries it richer
+          ("· N payment overdue"). The strip owns the at-a-glance counts; the
+          rail's job is Contacts at rest + the obligation detail on row-click.
+          (Filed-YTD / outstanding-tasks / last-filed + the Engagement card
+          were already removed earlier as unbacked-by-contract.) */}
       {/* Contacts card */}
       <section className="flex flex-col gap-[14px] rounded-xl border border-divider-regular bg-background-default p-[18px]">
         <RailSectionLabel>{t`CONTACTS`}</RailSectionLabel>
