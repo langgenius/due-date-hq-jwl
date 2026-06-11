@@ -4,6 +4,20 @@ import { withFetchTimeout } from '@duedatehq/ingest/http'
 export interface BrowserlessConfig {
   endpoint?: string | undefined
   token?: string | undefined
+  /** Test hook — pause before the single 429 retry (default 5s). */
+  retry429DelayMs?: number | undefined
+}
+
+// Browserless meters CONCURRENT renders per account: a cron tick fanning a
+// dozen sources straight through the REST API trips its 429 before any target
+// site is contacted (politeness is keyed on TARGET hosts, so cross-host
+// browserless calls otherwise fire simultaneously). Serialize renders
+// isolate-wide — renders take seconds each, so a tick's wave still clears in
+// minutes — and pace one retry for whatever still collides across isolates.
+let renderSlot: Promise<unknown> = Promise.resolve()
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 const BROWSERLESS_USER_AGENT =
@@ -120,20 +134,37 @@ export function createBrowserlessFetch(config: BrowserlessConfig): IngestFetch |
         'user-agent': userAgent,
       },
     }
-    // Cloud schema as of 2026-06-10: `userAgent` is a CDP
-    // setUserAgentOverride-shaped object, not a string.
-    let response = await post({ ...baseBody, userAgent: { userAgent } })
-    if (response.status === 400) {
-      const rejection = await response
-        .clone()
-        .text()
-        .catch(() => '')
-      // Schema drifted again around the userAgent field — fall back to the
-      // header-level override and keep the source alive.
-      if (/userAgent/i.test(rejection)) {
-        response = await post(baseBody)
+    const render = async (): Promise<Response> => {
+      // Cloud schema as of 2026-06-10: `userAgent` is a CDP
+      // setUserAgentOverride-shaped object, not a string.
+      let body: Record<string, unknown> = { ...baseBody, userAgent: { userAgent } }
+      let response = await post(body)
+      if (response.status === 400) {
+        const rejection = await response
+          .clone()
+          .text()
+          .catch(() => '')
+        // Schema drifted again around the userAgent field — fall back to the
+        // header-level override and keep the source alive.
+        if (/userAgent/i.test(rejection)) {
+          body = baseBody
+          response = await post(body)
+        }
       }
+      // A bare 429 (no x-response-code) is browserless's own concurrency
+      // limiter, not the target site — pace and retry once.
+      if (response.status === 429 && !response.headers.has('x-response-code')) {
+        await delay(config.retry429DelayMs ?? 5_000)
+        response = await post(body)
+      }
+      return response
     }
+    const rendered = renderSlot.then(render, render)
+    renderSlot = rendered.then(
+      () => undefined,
+      () => undefined,
+    )
+    const response = await rendered
     const contentType = response.headers.get('content-type') ?? ''
     if (contentType.includes('application/json')) {
       const parsed: unknown = await response.json()

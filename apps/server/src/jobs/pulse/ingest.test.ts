@@ -748,6 +748,71 @@ describe('createBrowserlessFetch', () => {
     )
   })
 
+  it('paces and retries once when browserless itself returns 429', async () => {
+    const fetchMock = vi
+      .fn(
+        async (_input: string | URL | Request, _init?: RequestInit) =>
+          new Response('<main>ok</main>'),
+      )
+      .mockImplementationOnce(async () => new Response('429 Too Many Requests', { status: 429 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const browserlessFetch = createBrowserlessFetch({
+      endpoint: 'https://browserless.test/content',
+      token: 'secret-token',
+      retry429DelayMs: 1,
+    })
+
+    const response = await browserlessFetch?.('https://state-tax.example/news')
+    expect(response?.status).toBe(200)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not retry a 429 reported FROM the target site', async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response('<html>slow down</html>', {
+          status: 200,
+          headers: { 'x-response-code': '429' },
+        }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const browserlessFetch = createBrowserlessFetch({
+      endpoint: 'https://browserless.test/content',
+      retry429DelayMs: 1,
+    })
+
+    const response = await browserlessFetch?.('https://state-tax.example/news')
+    expect(response?.status).toBe(429)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('serializes concurrent renders through one isolate-wide slot', async () => {
+    let releaseFirst!: (response: Response) => void
+    const fetchMock = vi
+      .fn(
+        async (_input: string | URL | Request, _init?: RequestInit) =>
+          new Response('<main>ok</main>'),
+      )
+      .mockImplementationOnce(() => new Promise<Response>((resolve) => (releaseFirst = resolve)))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const browserlessFetch = createBrowserlessFetch({
+      endpoint: 'https://browserless.test/content',
+    })
+
+    const first = browserlessFetch?.('https://a-state.example/news')
+    const second = browserlessFetch?.('https://b-state.example/news')
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    // The second render must wait for the first to settle.
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    releaseFirst(new Response('<main>first</main>'))
+    await Promise.all([first, second])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
   it('does not retry 400s unrelated to the userAgent field', async () => {
     const fetchMock = vi.fn(
       async () => new Response('POST Body validation failed: "url" must be uri', { status: 400 }),
