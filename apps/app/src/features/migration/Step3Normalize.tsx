@@ -18,6 +18,8 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
+
 import { useAppHotkey } from '@/components/patterns/keyboard-shell'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -357,12 +359,12 @@ function CategoryCard({ category }: { category: NormalizationCategory }) {
             animate={{
               height: 'auto',
               opacity: 1,
-              transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] },
+              transition: { duration: MOTION_DURATION.enter, ease: EASE_APPLE },
             }}
             exit={{
               height: 0,
               opacity: 0,
-              transition: { duration: 0.18, ease: [0.32, 0.72, 0, 1] },
+              transition: { duration: MOTION_DURATION.exit, ease: EASE_APPLE },
             }}
             className="overflow-hidden"
           >
@@ -543,12 +545,12 @@ function MatrixDefaultsCard({
             animate={{
               height: 'auto',
               opacity: 1,
-              transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] },
+              transition: { duration: MOTION_DURATION.enter, ease: EASE_APPLE },
             }}
             exit={{
               height: 0,
               opacity: 0,
-              transition: { duration: 0.18, ease: [0.32, 0.72, 0, 1] },
+              transition: { duration: MOTION_DURATION.exit, ease: EASE_APPLE },
             }}
             className="overflow-hidden"
           >

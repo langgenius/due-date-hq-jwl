@@ -52,6 +52,7 @@ import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-
 import { JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
+import { contentEnterMotion } from '@/lib/motion'
 import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
@@ -1607,7 +1608,10 @@ export function ObligationQueueDetailDrawer({
             // gap tightens from 24px to 16px in page mode so the four
             // tabs read as a closer-knit group. Panel/sheet keep gap-6.
             className={cn(
-              'flex h-11 w-full justify-start border-b border-divider-subtle text-sm',
+              // 2026-06-10 (Yuqi page feedback #2): drop the variant's default
+              // p-[3px] horizontal inset so the first tab aligns to the
+              // document measure's left edge.
+              'flex h-11 w-full justify-start px-0 border-b border-divider-subtle text-sm',
               isPageMode ? 'gap-4' : 'gap-6',
             )}
           >
@@ -1924,15 +1928,19 @@ export function ObligationQueueDetailDrawer({
       <OuterTabsWrapper {...outerTabsProps}>
         <header
           className={cn(
-            'relative flex flex-col px-12 transition-all duration-200',
+            'relative flex flex-col px-12 transition-all duration-300 ease-apple',
             // 2026-06-10 (Yuqi page-polish #1 "好奇怪的 top padding"): the
             // page-mode hero leads the surface (the thin status banner + crumb
             // bar above it carry no top gap of their own), so a full pt-10
             // doubled the visual top inset and read as awkward dead space.
             // Page mode uses a calmer pt-6; panel/sheet keep the canonical
             // pt-10 cross-drawer rhythm.
-            heroCollapsed ? 'gap-1 pt-3 pb-3' : 'gap-1.5 pb-6',
-            !isPageMode && !heroCollapsed && 'pt-10',
+            heroCollapsed ? 'gap-1 pt-3 pb-3' : 'gap-1.5',
+            // 2026-06-10 (Yuqi page feedback #3): in page mode the tab bar is
+            // the header's last child, so its own border-b is the white→gray
+            // seam — drop the header's bottom padding so the tabs butt flush
+            // against the body. Panel/sheet keep the canonical pb-6.
+            !heroCollapsed && !isPageMode && 'pt-10 pb-6',
             // 2026-06-10 (Yuqi page-polish #4/#5 "should this be part of the
             // header? / white background"): the page-mode header is the WHITE
             // identity block — status banner (above) · title + meta · the three
@@ -2000,7 +2008,7 @@ export function ObligationQueueDetailDrawer({
           {row ? (
             <h2
               className={cn(
-                'pr-8 font-semibold tracking-[-0.4px] text-text-primary transition-all duration-200',
+                'pr-8 font-semibold tracking-[-0.4px] text-text-primary transition-all duration-300 ease-apple',
                 heroCollapsed
                   ? 'line-clamp-1 text-[16px] leading-[1.3]'
                   : 'text-[22px] leading-[1.25]',
@@ -2151,9 +2159,10 @@ export function ObligationQueueDetailDrawer({
             `border-b` is the white→gray seam where the scroll body begins.
             Page mode only — panel/sheet render their tab bar inside the body
             (below), unchanged. */}
-          {/* `-mt-1.5` cancels the header's `gap-1.5` so the tab bar butts
-              flush under the key dates — no top-padding gap (Yuqi). */}
-          {isPageMode && row ? <div className="-mt-1.5">{tabBar}</div> : null}
+          {/* 2026-06-10 (Yuqi page feedback #4): open a clear gap above the
+              tab strip so it reads as its own band below the key dates,
+              instead of butting flush against them. */}
+          {isPageMode && row ? <div className="pt-3">{tabBar}</div> : null}
         </header>
         {/* Body — in panel mode the aside has fixed height, so this
           inner div owns the scrolling. That lets the snapshot block
@@ -2213,12 +2222,13 @@ export function ObligationQueueDetailDrawer({
             // gray-wash (bg-background-subtle) scroll surface hosting white
             // cards, centered on the same 760px document measure as the alert
             // body — single-column now, so the prior 1100px two-column measure
-            // 2026-06-10 (Yuqi page-polish #3/#17 "移除top padding"): the body's
-            // top padding is dropped so the tab bar sits tight under the date
-            // strip above. The sticky tab bar's own pt-3/pb-3 carries the
-            // breathing room now.
-            isPageMode &&
-              'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+            // 2026-06-11 (Yuqi "no padding above the first card — it's sticking
+            // to the top"): restore the page-mode body's top padding. The
+            // earlier "移除top padding" pass left the first content card butted
+            // flush against the tab bar's bottom seam; `pt-6` gives the same
+            // 24px breathing room the panel/sheet tab content carries via its
+            // own pt-6, just hoisted to the body so it covers every tab.
+            isPageMode && 'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
           )}
           onScroll={
             isPageMode
@@ -2360,9 +2370,7 @@ export function ObligationQueueDetailDrawer({
                   // per-tab content drops its 24px top padding in page mode so it
                   // sits tight under the tab bar. Panel/sheet keep pt-6.
                   className={cn(isPageMode ? '' : 'pt-6')}
-                  initial={{ x: 12, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                  {...contentEnterMotion}
                 >
                   {/* Summary tab — milestone chevron + active-stage zoom.
                   These were previously pinned in the sticky snapshot
@@ -2882,7 +2890,7 @@ export function ObligationQueueDetailDrawer({
                         <DetailSectionCard title={<Trans>Linked from</Trans>}>
                           <Link
                             to={clientDetailPath({ id: row.clientId, name: row.clientName })}
-                            className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                            className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none transition-colors hover:bg-state-base-hover active:bg-state-base-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                           >
                             <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
                               <UsersIcon className="size-3.5" aria-hidden />
@@ -2903,7 +2911,7 @@ export function ObligationQueueDetailDrawer({
                           {row.taxYear ? (
                             <Link
                               to={clientDetailPath({ id: row.clientId, name: row.clientName })}
-                              className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                              className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none transition-colors hover:bg-state-base-hover active:bg-state-base-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                             >
                               <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
                                 <CalendarClockIcon className="size-3.5" aria-hidden />
@@ -2934,9 +2942,7 @@ export function ObligationQueueDetailDrawer({
                   // per-tab content drops its 24px top padding in page mode so it
                   // sits tight under the tab bar. Panel/sheet keep pt-6.
                   className={cn(isPageMode ? '' : 'pt-6')}
-                  initial={{ x: 12, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                  {...contentEnterMotion}
                 >
                   {/* 2026-05-26 (Yuqi sixty-sixth pass — Materials
                     structural tighten, #13 "scattered"): outer gap
@@ -3637,7 +3643,7 @@ export function ObligationQueueDetailDrawer({
                         className="mt-2 border-t border-divider-subtle"
                         open={taxYearFiscalMissing || taxYearFiscalInvalid}
                       >
-                        <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
+                        <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none transition-colors hover:bg-state-base-hover active:bg-state-base-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
                           <span>
                             <Trans>Tax year profile</Trans>
                           </span>
@@ -3776,9 +3782,7 @@ export function ObligationQueueDetailDrawer({
                   // per-tab content drops its 24px top padding in page mode so it
                   // sits tight under the tab bar. Panel/sheet keep pt-6.
                   className={cn(isPageMode ? '' : 'pt-6')}
-                  initial={{ x: 12, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                  {...contentEnterMotion}
                 >
                   <div className="grid gap-4">
                     {/* 2026-06-08 (Pencil HuYeb /deadlines detail — Extension
@@ -4174,9 +4178,7 @@ export function ObligationQueueDetailDrawer({
                   // per-tab content drops its 24px top padding in page mode so it
                   // sits tight under the tab bar. Panel/sheet keep pt-6.
                   className={cn(isPageMode ? '' : 'pt-6')}
-                  initial={{ x: 12, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                  {...contentEnterMotion}
                 >
                   {/* Evidence tab split into two visually-distinct sections
                   (2026-05-21):
@@ -4377,7 +4379,7 @@ export function ObligationQueueDetailDrawer({
                     ) : null}
 
                     <details className="group border-t border-divider-subtle">
-                      <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
+                      <summary className="flex cursor-pointer items-center justify-between gap-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none transition-colors hover:bg-state-base-hover active:bg-state-base-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
                         <span>
                           <Trans>Authority citation</Trans>
                         </span>
@@ -4394,7 +4396,7 @@ export function ObligationQueueDetailDrawer({
                           // <details> open/closed at the same time.
                           <Badge
                             variant="outline"
-                            className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover"
+                            className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover active:bg-state-base-active"
                             render={
                               <Link
                                 to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
@@ -4481,9 +4483,7 @@ export function ObligationQueueDetailDrawer({
                     // per-tab content drops its 24px top padding in page mode so
                     // it sits tight under the tab bar. Panel/sheet keep pt-6.
                     className={cn(isPageMode ? '' : 'pt-6')}
-                    initial={{ x: 12, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+                    {...contentEnterMotion}
                   >
                     {/* 2026-06-11 (Yuqi tab-content unification): the timeline
                         sits in the shared card chrome like every other tab's

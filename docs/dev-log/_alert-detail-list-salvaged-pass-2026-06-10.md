@@ -8,6 +8,7 @@ clean (tsgo: no alert errors) and were formatted. Salvaging them here rather
 than discarding the work.
 
 Files (intent per the briefs — NEEDS A VISUAL VERIFICATION PASS):
+
 - `AlertDetailDrawer.tsx` — detail overhaul + parity with the deadline detail
   (Extracted-facts rename, de-frame, meta→header, footer non-overlap + kbd hints
   to header, breadcrumb, white header, bottom padding, Mark-reviewed→advance).

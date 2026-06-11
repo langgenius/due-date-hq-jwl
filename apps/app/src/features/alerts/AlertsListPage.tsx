@@ -42,6 +42,7 @@ import {
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatRelativeTime } from '@/lib/utils'
@@ -1161,11 +1162,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
               initial={{ opacity: 0 }}
               animate={{
                 opacity: 1,
-                transition: { duration: 0.22, ease: [0.32, 0.72, 0, 1] },
+                transition: { duration: MOTION_DURATION.surface, ease: EASE_APPLE },
               }}
               exit={{
                 opacity: 0,
-                transition: { duration: 0.18, ease: [0.32, 0.72, 0, 1] },
+                transition: { duration: MOTION_DURATION.exit, ease: EASE_APPLE },
               }}
               // The detail pane FILLS the width left of the fixed 380px
               // rail.
@@ -1175,11 +1176,15 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 initial={{ y: '100%' }}
                 animate={{
                   y: 0,
-                  transition: { duration: 0.64, ease: [0.32, 0.72, 0, 1], delay: 0.14 },
+                  // DELIBERATE motion-grammar outlier (2026-06-11 sweep):
+                  // the 0.64s paper-rise is the celebratory arrival, kept
+                  // off-scale on purpose (matches the deadline drawer's
+                  // DETAIL_PANEL_INNER_RISE_ANIM).
+                  transition: { duration: 0.64, ease: EASE_APPLE, delay: 0.14 },
                 }}
                 exit={{
                   opacity: 0,
-                  transition: { duration: 0.22, ease: [0.32, 0.72, 0, 1] },
+                  transition: { duration: MOTION_DURATION.exit, ease: EASE_APPLE },
                 }}
                 className="flex h-full w-full min-w-0"
               >
@@ -1730,7 +1735,7 @@ function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {
           <PulsingDot tone="warning" active />
           <Trans>Checking {label}…</Trans>
         </span>
-        <Skeleton aria-hidden className="h-2 w-20 rounded-full motion-reduce:animate-none" />
+        <Skeleton aria-hidden className="h-2 w-20 rounded-full" />
       </div>
 
       <SkeletonAlertRow />
@@ -1748,31 +1753,31 @@ function SkeletonAlertRow() {
     >
       {/* Time rail — 100px column matching PulseAlertRow */}
       <div className="flex w-[100px] shrink-0 flex-col gap-1.5">
-        <Skeleton aria-hidden className="h-3 w-12 rounded-full motion-reduce:animate-none" />
-        <Skeleton aria-hidden className="h-2 w-10 rounded-full motion-reduce:animate-none" />
+        <Skeleton aria-hidden className="h-3 w-12 rounded-full" />
+        <Skeleton aria-hidden className="h-2 w-10 rounded-full" />
       </div>
 
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         {/* Meta strip — severity + state + form chip placeholders */}
         <div className="flex items-center gap-2">
-          <Skeleton aria-hidden className="h-[22px] w-12 rounded motion-reduce:animate-none" />
-          <Skeleton aria-hidden className="h-[22px] w-14 rounded motion-reduce:animate-none" />
-          <Skeleton aria-hidden className="h-[22px] w-20 rounded-sm motion-reduce:animate-none" />
+          <Skeleton aria-hidden className="h-[22px] w-12 rounded" />
+          <Skeleton aria-hidden className="h-[22px] w-14 rounded" />
+          <Skeleton aria-hidden className="h-[22px] w-20 rounded-sm" />
           <span className="flex-1" aria-hidden />
-          <Skeleton aria-hidden className="h-3 w-24 rounded-full motion-reduce:animate-none" />
+          <Skeleton aria-hidden className="h-3 w-24 rounded-full" />
         </div>
 
         {/* Title row */}
-        <Skeleton aria-hidden className="h-4 w-3/4 rounded-full motion-reduce:animate-none" />
+        <Skeleton aria-hidden className="h-4 w-3/4 rounded-full" />
 
         {/* Bottom shelf — clients + conf */}
         <div className="mt-1 flex items-center gap-2 border-t border-divider-subtle pt-2">
-          <Skeleton aria-hidden className="h-3 w-24 rounded-full motion-reduce:animate-none" />
+          <Skeleton aria-hidden className="h-3 w-24 rounded-full" />
           <span className="text-divider-regular" aria-hidden>
             ·
           </span>
-          <Skeleton aria-hidden className="h-3 w-14 rounded-full motion-reduce:animate-none" />
+          <Skeleton aria-hidden className="h-3 w-14 rounded-full" />
         </div>
       </div>
     </div>

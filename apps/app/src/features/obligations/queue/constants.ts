@@ -21,6 +21,7 @@ import {
 } from '@duedatehq/contracts'
 import { ALL_STATUSES, type ObligationStatus } from '@/features/obligations/status-control'
 import { DEADLINE_DETAIL_TABS } from '@/features/obligations/deadline-detail-url'
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 
 import type { ClientFilterOption, FilterOption, ObligationQueueCursor } from './types'
 
@@ -166,7 +167,7 @@ export const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
 // ease-apple curve, same durations as the alert drawer so the
 // two right-rail panels read as siblings.
 
-export const DETAIL_SWIFT_EASE = [0.32, 0.72, 0, 1] as const
+export const DETAIL_SWIFT_EASE = EASE_APPLE
 // Sizing is CSS-class driven (responsive: full width on narrow, 3/5
 // at xl+, max-capped so ultra-wide doesn't bloat the drawer past
 // usefulness). Animation uses x-transform rather than
@@ -176,19 +177,21 @@ export const DETAIL_SWIFT_EASE = [0.32, 0.72, 0, 1] as const
 export const DETAIL_PANEL_OPEN_ANIM = {
   x: 0,
   opacity: 1,
-  transition: { duration: 0.3, ease: DETAIL_SWIFT_EASE },
+  transition: { duration: MOTION_DURATION.surface, ease: DETAIL_SWIFT_EASE },
 } as const
 
 export const DETAIL_PANEL_CLOSE_ANIM = {
   x: '100%',
   opacity: 0,
-  transition: { duration: 0.28, ease: DETAIL_SWIFT_EASE },
+  transition: { duration: MOTION_DURATION.surface, ease: DETAIL_SWIFT_EASE },
 } as const
 // Paper-rise enter matches AlertDetailDrawer's inner choreography
 // (y:100%→0, 0.64s duration, 0.14s delay) — the surface visibly
-// extrudes from below the slot. Exit collapses to opacity-only
-// dissolve (0.22s) so the slot closes underneath without a
-// slide-down mirror motion.
+// extrudes from below the slot. DELIBERATE motion-grammar outlier
+// (2026-06-11 sweep): the slow celebratory arrival is the point;
+// everything else here uses MOTION_DURATION. Exit collapses to an
+// opacity-only dissolve at the grammar exit tempo so the slot
+// closes underneath without a slide-down mirror motion.
 
 export const DETAIL_PANEL_INNER_RISE_ANIM = {
   y: 0,
@@ -197,21 +200,22 @@ export const DETAIL_PANEL_INNER_RISE_ANIM = {
 
 export const DETAIL_PANEL_INNER_FADE_ANIM = {
   opacity: 0,
-  transition: { duration: 0.22, ease: DETAIL_SWIFT_EASE },
+  transition: { duration: MOTION_DURATION.exit, ease: DETAIL_SWIFT_EASE },
 } as const
 // The row-to-row content swap is a quick crossfade (no
-// x-translation, short duration) — a small animation, not big.
-// Open/close still uses the bigger width + paper-rise animations
-// above; only the content transition is the quick crossfade.
+// x-translation, fadeMotion's small-fade tempo) — a small
+// animation, not big. Open/close still uses the bigger width +
+// paper-rise animations above; only the content transition is the
+// quick crossfade.
 
 export const DETAIL_PANEL_CONTENT_ENTER_ANIM = {
   opacity: 1,
-  transition: { duration: 0.12, ease: DETAIL_SWIFT_EASE },
+  transition: { duration: MOTION_DURATION.exit, ease: DETAIL_SWIFT_EASE },
 } as const
 
 export const DETAIL_PANEL_CONTENT_EXIT_ANIM = {
   opacity: 0,
-  transition: { duration: 0.08, ease: DETAIL_SWIFT_EASE },
+  transition: { duration: MOTION_DURATION.exit, ease: DETAIL_SWIFT_EASE },
 } as const
 
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
