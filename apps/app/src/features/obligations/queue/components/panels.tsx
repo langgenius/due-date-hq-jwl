@@ -301,9 +301,7 @@ function DeadlineDateCard({
   label,
   date,
   clock,
-  clockTone,
   meta,
-  overdue = false,
 }: {
   icon: LucideIcon
   label: string
@@ -311,12 +309,13 @@ function DeadlineDateCard({
   // The relative-time clock (e.g. "12 days overdue", "in 4 days").
   // One uniform vocabulary across all three cards — always "overdue"
   // for past dates — and each card counts against its OWN date.
+  // 2026-06-11 (Yuqi "避免太多红色"): the clock is ALWAYS quiet gray —
+  // the status banner is the page's single red overdue statement; these
+  // cards are reference, not alarms.
   clock: string | null
-  clockTone: 'destructive' | 'tertiary'
   // Card-specific distinguishing line drawn from a REAL row field
   // (INTERNAL → buffer to filing; PAYMENT → $ owed). null = omit.
   meta: string | null
-  overdue?: boolean
 }) {
   return (
     <div
@@ -329,10 +328,7 @@ function DeadlineDateCard({
       className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle px-3 py-2.5"
     >
       <div className="flex items-center gap-1.5">
-        <Icon
-          className={cn('size-3 shrink-0', overdue ? 'text-text-warning' : 'text-text-tertiary')}
-          aria-hidden
-        />
+        <Icon className="size-3 shrink-0 text-text-tertiary" aria-hidden />
         <span className="text-caption-xs font-semibold uppercase tracking-[0.4px] text-text-tertiary">
           {label}
         </span>
@@ -343,22 +339,12 @@ function DeadlineDateCard({
         // text-sm (from the earlier text-caption-xs) to read clearly. The
         // label above and the clock/meta below stay smaller so the date
         // owns the hierarchy.
-        className={cn(
-          'text-sm leading-tight font-semibold tabular-nums',
-          overdue ? 'text-text-warning' : 'text-text-primary',
-        )}
+        className="text-sm leading-tight font-semibold tabular-nums text-text-primary"
       >
         {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
       </span>
       {clock ? (
-        <span
-          className={cn(
-            'text-caption-xs font-medium',
-            clockTone === 'destructive' ? 'text-text-destructive' : 'text-text-tertiary',
-          )}
-        >
-          {clock}
-        </span>
+        <span className="text-caption-xs font-medium text-text-tertiary">{clock}</span>
       ) : null}
       {meta ? (
         <span className="text-caption-xs font-medium text-text-secondary tabular-nums">{meta}</span>
@@ -547,11 +533,24 @@ export function PrimaryDeadlineStrip({
       }
     }
     const filingClock = clockFor(filingIso, { satisfied: filingSatisfied })
-    const internalClock = clockFor(internalIso, { satisfied: filingSatisfied })
-    const paymentClock = clockFor(paymentIso, {
-      satisfied:
-        row.status === 'completed' || row.status === 'not_applicable' || row.status === 'paid',
-    })
+    // 2026-06-11 (Yuqi de-dup pass): when INTERNAL/PAYMENT share the filing
+    // date their clock is the SAME number as the filing card's — repeating
+    // "30 days overdue" three times is pure noise. The clock renders only
+    // when the card's date actually differs; the card's distinguishing line
+    // (buffer / $ owed) still renders.
+    const internalClock =
+      internalIso !== filingIso
+        ? clockFor(internalIso, { satisfied: filingSatisfied })
+        : { text: null, destructive: false }
+    const paymentClock =
+      paymentIso !== filingIso
+        ? clockFor(paymentIso, {
+            satisfied:
+              row.status === 'completed' ||
+              row.status === 'not_applicable' ||
+              row.status === 'paid',
+          })
+        : { text: null, destructive: false }
     // INTERNAL buffer — days between the internal target and the filing
     // deadline. 2026-06-10 (Yuqi page-polish #5 "what is this"): the old
     // "On the filing deadline" read as cryptic. Spell out that a zero
@@ -577,9 +576,7 @@ export function PrimaryDeadlineStrip({
           icon={CalendarXIcon}
           label={t`Filing deadline`}
           date={filingIso}
-          overdue={filingPast}
           clock={filingClock.text}
-          clockTone={filingClock.destructive ? 'destructive' : 'tertiary'}
           meta={null}
         />
         <DeadlineDateCard
@@ -587,7 +584,6 @@ export function PrimaryDeadlineStrip({
           label={t`Internal target`}
           date={internalIso}
           clock={internalClock.text}
-          clockTone={internalPast ? 'destructive' : 'tertiary'}
           meta={internalBuffer}
         />
         <DeadlineDateCard
@@ -595,7 +591,6 @@ export function PrimaryDeadlineStrip({
           label={t`Payment due`}
           date={paymentIso}
           clock={paymentClock.text}
-          clockTone={paymentPast ? 'destructive' : 'tertiary'}
           meta={paymentAmount}
         />
       </div>
@@ -930,8 +925,6 @@ export function PathToFilingSummary({
                   ? undefined
                   : t`This stage hasn't been reached yet. We only project the Filed date (using the internal due date).`
                 : undefined
-          const overdueActive =
-            state === 'active' && isPastInternalDue && !TIMELINE_TERMINAL_STAGE_KEYS.has(stage.key)
           return (
             <div key={stage.key} className="flex flex-col items-center gap-0.5">
               <div className="flex w-full items-center gap-1">
@@ -973,16 +966,16 @@ export function PathToFilingSummary({
                     // indicator steps down from size-6 to size-5 so the row of
                     // six stages reads compact and the larger stage label (#3)
                     // below carries the weight.
+                    // 2026-06-11 (Yuqi "避免太多红色"): the active node is
+                    // ALWAYS accent — red lives in the status banner only, so
+                    // the page states overdue once instead of echoing it in
+                    // every component.
                     'grid size-5 shrink-0 place-items-center rounded-full border',
-                    state === 'done'
+                    state === 'done' || state === 'active'
                       ? 'border-transparent bg-state-accent-solid text-text-inverted'
                       : state === 'skipped'
                         ? 'border-dashed border-divider-regular bg-background-default text-text-tertiary/60'
-                        : overdueActive
-                          ? 'border-transparent bg-state-destructive-solid text-text-inverted'
-                          : state === 'active'
-                            ? 'border-transparent bg-state-accent-solid text-text-inverted'
-                            : 'border-divider-regular bg-background-default text-text-tertiary/70',
+                        : 'border-divider-regular bg-background-default text-text-tertiary/70',
                   )}
                 >
                   {(() => {
@@ -990,11 +983,7 @@ export function PathToFilingSummary({
                     // icon) — only the done / active / skipped stages carry a
                     // glyph. The wrapper already paints the upcoming circle
                     // (white + border).
-                    const isUpcoming =
-                      state !== 'done' &&
-                      state !== 'active' &&
-                      state !== 'skipped' &&
-                      !overdueActive
+                    const isUpcoming = state !== 'done' && state !== 'active' && state !== 'skipped'
                     if (isUpcoming) return null
                     // The stage icon set aligns with the canonical STATUS_ICON
                     // map (status-control.tsx). The pending stage uses Loader
@@ -1089,28 +1078,17 @@ export function PathToFilingSummary({
                   // so the empty space doesn't read as a missing-data bug.
                   title={emptyDateHint}
                 >
+                  {/* Pretty short date ("May 20") — the strip used raw ISO
+                      stamps while every card shows pretty dates. */}
                   {(state === 'done' || state === 'active' || isExpected) && stamp
-                    ? formatDate(stamp.slice(0, 10))
+                    ? formatDatePretty(stamp.slice(0, 10))
                     : ' '}
                 </span>
-                {overdueActive ? (
-                  // "Past deadline" ties the late cue back to the canonical
-                  // thing that's late — the firm's internal target date — so
-                  // a CPA scanning the strip sees both the urgency cue and the
-                  // noun. Hover spells out the exact days-late count + the
-                  // deadline date. Toned to text-muted (not destructive): the
-                  // destructive-toned In-review circle above is already the
-                  // red signal at this stage; doubling it with red caption
-                  // copy underneath would read as a shout.
-                  <span
-                    // Caption is smaller than the date above + lighter (muted)
-                    // so it reads as sub-meta.
-                    className="text-center text-[9px] font-medium uppercase tracking-wide leading-tight text-text-muted"
-                    title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()))} days overdue.`}
-                  >
-                    <Trans>Past deadline</Trans>
-                  </span>
-                ) : isExpected ? (
+                {/* 2026-06-11 (Yuqi "避免各种status"): the "PAST DEADLINE"
+                    caption is gone — the status banner is the page's single
+                    overdue statement; a third echo under the stepper was
+                    noise. */}
+                {isExpected ? (
                   <span className="text-center text-[9px] font-medium uppercase tracking-wide leading-tight text-text-muted">
                     <Trans>Expected</Trans>
                   </span>
@@ -2093,7 +2071,10 @@ export function ActiveStageDetailCard({
       <div className="flex flex-col gap-2">
         <header className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <ObligationStatusReadBadge status={row.status} />
+            {/* 2026-06-11 (Yuqi "避免各种status"): the status pill is gone —
+                the stepper directly above already highlights the active stage
+                by name, so the chip was the page's third statement of the same
+                status. The stage counter alone anchors the eyebrow. */}
             <span className="text-xs font-medium tabular-nums text-text-tertiary">
               {t`Stage ${stageIdx + 1} of ${TIMELINE_STAGE_KEYS.length}`}
             </span>
@@ -2165,11 +2146,11 @@ export function ActiveStageDetailCard({
           {/* The overdue context reads as the active-stage headline + sub
               (like the canonical "8 materials still outstanding." treatment),
               not a white-on-white boxed callout inside the white card. */}
+          {/* 2026-06-11 (Yuqi "避免太多红色"): the day-count is gone from this
+              headline — the status banner is the page's single overdue
+              statement; the card states the missed DATE + the next action. */}
           <p className="text-[16px] font-semibold tracking-[-0.2px] text-text-primary">
-            <Trans>
-              Filing was due {formatDatePretty(row.currentDueDate.slice(0, 10))} —{' '}
-              <Plural value={daysPastDeadline} one="# day" other="# days" /> overdue.
-            </Trans>
+            <Trans>Filing was due {formatDatePretty(row.currentDueDate.slice(0, 10))}.</Trans>
           </p>
           <p className="text-xs text-text-tertiary">
             <Trans>Submit the return now, or file an extension if eligible.</Trans>

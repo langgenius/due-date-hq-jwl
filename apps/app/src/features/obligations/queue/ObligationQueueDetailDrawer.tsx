@@ -187,13 +187,13 @@ function DeadlineTopActions({
   // `done` / `paid` / `completed` already read as "Filed"/terminal, so the
   // primary action is a no-op there — disable rather than re-file.
   const isFiled = row.status === 'done' || row.status === 'completed' || row.status === 'paid'
-  // 2026-06-10 (Yuqi critique "one primary CTA, context-aware"): while the row
-  // is In Review the stage-card's "Approve return" is the single blue primary
-  // (that's the actual next move), so the footer "Mark as filed" demotes to a
-  // secondary OUTLINE here — never two blue primaries on screen at once. In
-  // every other stage filing IS the next move, so the footer button stays
-  // primary.
-  const markFiledIsPrimary = row.status !== 'review'
+  // 2026-06-11 (Yuqi "避免太多蓝色" — one blue per view): the active-stage
+  // card ALWAYS carries the stage's real next-move as the page's single blue
+  // primary (Request documents / Send reminder / Approve return / …), so the
+  // footer "Mark as filed" is ALWAYS a quiet outline — it's the manual
+  // override, one click away but never competing. (The earlier rule demoted
+  // it only during In&nbsp;Review, which still left two blue primaries on
+  // every other stage.)
   // Relative snooze presets. App code, so wall-clock `Date.now()` is fine
   // (unlike workflow scripts); the server stores the resolved instant.
   const snoozePresets: Array<{ label: string; days: number }> = [
@@ -272,7 +272,7 @@ function DeadlineTopActions({
       </DropdownMenu>
       <Button
         size="sm"
-        variant={markFiledIsPrimary ? 'default' : 'outline'}
+        variant="outline"
         className="h-8 gap-1.5"
         disabled={isFiled || markFiledPending}
         onClick={onMarkFiled}
@@ -1668,15 +1668,15 @@ export function ObligationQueueDetailDrawer({
               >
                 <PaperclipIcon className="size-3.5" aria-hidden />
                 <Trans>Materials</Trans>
-                {/* 2026-06-11 (Yuqi "standardize tab indicators"): ONE
-                    vocabulary across the bar — count pills, shown only when
-                    there's something to count. The green all-received ✓ glyph
-                    is gone (it mixed vocabularies); the accent tint stays as
-                    the "action needed here" tone. */}
+                {/* 2026-06-11 (Yuqi "standardize tab indicators" + "避免太多
+                    蓝色"): ONE vocabulary across the bar — quiet gray count
+                    pills, shown only when there's something to count. The
+                    green ✓ glyph and the accent tint are both gone; counts
+                    inform, the banner alarms. */}
                 {outstandingMaterials > 0 ? (
                   <span
                     aria-label={t`${outstandingMaterials} outstanding`}
-                    className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-accent-hover-alt px-1 text-caption-xs font-medium leading-none tabular-nums text-text-accent"
+                    className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs font-medium leading-none tabular-nums text-text-tertiary"
                   >
                     {outstandingMaterials}
                   </span>
@@ -1812,7 +1812,9 @@ export function ObligationQueueDetailDrawer({
             const timingNote =
               isDone || isOverdue ? (
                 officialIso ? (
-                  t`Due ${formatDate(officialIso)}`
+                  // Pretty date — the banner used raw ISO ("Due 2026-05-12")
+                  // while every card shows "May 12, 2026" (Yuqi: 格式统一).
+                  t`Due ${formatDatePretty(officialIso.slice(0, 10), { alwaysShowYear: true })}`
                 ) : null
               ) : row.daysUntilDue >= 0 ? (
                 <Plural value={row.daysUntilDue} one="due in # day" other="due in # days" />
@@ -4649,12 +4651,19 @@ export function ObligationQueueDetailDrawer({
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
               {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
                 vertically — label on line 1, timestamp on line 2. */}
-              <span className="flex flex-col text-xs leading-tight text-text-tertiary">
+              {/* 2026-06-11 (Yuqi polish audit): the stamp reads as a pretty
+                  date — the seconds-precision "2026-05-20 04:00:00 CDT" was
+                  engineer-grade noise. The full timestamp survives on hover
+                  for audit needs. */}
+              <span
+                className="flex flex-col text-xs leading-tight text-text-tertiary"
+                title={formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
+              >
                 <span>
                   <Trans>Last updated</Trans>
                 </span>
                 <span className="tabular-nums">
-                  {formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
+                  {formatDatePretty(row.updatedAt.slice(0, 10), { alwaysShowYear: true })}
                 </span>
               </span>
               {canRequestInput ? (
