@@ -215,7 +215,7 @@ async function refreshDashboardBrief(
   try {
     if (snapshot.topRows.length === 0) {
       await repo.dashboard.markBriefReady(pending.id, {
-        summaryText: 'No open deadline risks are currently in the Dashboard window.',
+        summaryText: 'No deadline pressure right now.',
         topObligationIds: [],
         citations: [],
         generatedAt: now,

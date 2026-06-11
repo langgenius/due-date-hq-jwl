@@ -2178,7 +2178,7 @@ export function PreviewRoute() {
           <Section
             id="pulse-card"
             title="Pulse — full alert cards"
-            subtitle="The big card shape from /rules/pulse and the smaller dashboard variant. Mocked PulseAlertPublic — no network calls."
+            subtitle="The big card shape from /rules/pulse and the smaller Today variant. Mocked PulseAlertPublic — no network calls."
           >
             <Row label="AlertCard (default)" mono="features/pulse/AlertCard">
               <AlertCard alert={MOCK_PULSE_ALERT} onReview={() => {}} />

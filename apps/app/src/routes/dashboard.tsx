@@ -284,7 +284,7 @@ export function DashboardRoute() {
             <Segmented
               value={scope}
               onValueChange={setScope}
-              ariaLabel={t`Dashboard scope`}
+              ariaLabel={t`View scope`}
               options={[
                 { value: 'me', label: t`My work` },
                 { value: 'firm', label: t`Everyone` },
@@ -326,7 +326,7 @@ export function DashboardRoute() {
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
-            <Trans>Couldn't load dashboard</Trans>
+            <Trans>Couldn't load Today</Trans>
           </AlertTitle>
           <AlertDescription>
             {rpcErrorMessage(dashboardQuery.error) ??

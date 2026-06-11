@@ -39,8 +39,8 @@ describe('parseBriefText', () => {
   })
 
   it('returns no items for plain prose (zero-rows brief)', () => {
-    const parsed = parseBriefText('No open deadline risks are currently in the Dashboard window.')
-    expect(parsed.headline).toBe('No open deadline risks are currently in the Dashboard window.')
+    const parsed = parseBriefText('No deadline pressure right now.')
+    expect(parsed.headline).toBe('No deadline pressure right now.')
     expect(parsed.items).toEqual([])
     expect(parsed.footer).toBeNull()
   })

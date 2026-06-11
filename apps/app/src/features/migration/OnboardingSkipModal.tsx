@@ -58,7 +58,7 @@ export function OnboardingSkipModal({
               eyebrow={<Trans>If you skip</Trans>}
               tone="neutral"
               rows={[
-                { key: 'skip-sample', node: <Trans>Sample data on your dashboard</Trans> },
+                { key: 'skip-sample', node: <Trans>Sample data in your workspace</Trans> },
                 {
                   key: 'skip-watching',
                   node: <Trans>Rules are watching but no deadlines yet</Trans>,

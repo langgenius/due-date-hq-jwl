@@ -320,7 +320,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           items: [
             {
               title: 'Availability',
-              body: 'Use support for app access, login, or dashboard availability issues.',
+              body: 'Use support for app access, login, or availability issues.',
             },
             {
               title: 'Data operations',
@@ -632,7 +632,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           items: [
             {
               title: '可用性',
-              body: 'app 访问、登录或 dashboard 可用性问题走 support。',
+              body: 'app 访问、登录或可用性问题走 support。',
             },
             {
               title: '数据运营',

@@ -102,7 +102,7 @@ export function SuccessModal({
             </h2>
             <p className="max-w-[600px] text-sm leading-relaxed text-text-secondary">
               <Trans>
-                Live on your dashboard.{' '}
+                Live in your workspace.{' '}
                 <Plural
                   value={data.obligationCount}
                   one="# deadline is now scheduled"
@@ -218,7 +218,7 @@ export function SuccessModal({
               <Trans>Import another file</Trans>
             </Button>
             <Button size="sm" onClick={onOpenDashboard}>
-              <Trans>Open dashboard</Trans>
+              <Trans>Go to Today</Trans>
               <ArrowRightIcon data-icon="inline-end" />
             </Button>
           </div>

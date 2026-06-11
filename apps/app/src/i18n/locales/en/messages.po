@@ -4870,10 +4870,6 @@ msgstr "Couldn't load clients"
 msgid "Couldn't load clients for preview"
 msgstr "Couldn't load clients for preview"
 
-#: src/routes/dashboard.tsx
-msgid "Couldn't load dashboard"
-msgstr "Couldn't load dashboard"
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't load deadline detail."
@@ -4940,6 +4936,10 @@ msgstr "Couldn't load this client."
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Couldn't load this reminder template"
 msgstr "Couldn't load this reminder template"
+
+#: src/routes/dashboard.tsx
+msgid "Couldn't load Today"
+msgstr "Couldn't load Today"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Couldn't map columns"
@@ -5470,10 +5470,6 @@ msgstr "Danger zone"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Dark"
 msgstr "Dark"
-
-#: src/routes/dashboard.tsx
-msgid "Dashboard scope"
-msgstr "Dashboard scope"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Data type"
@@ -7724,9 +7720,11 @@ msgstr "Go to Clients > Contacts, click Export contacts, then download that zipp
 msgid "Go to Dashboard > Applications > Utilities > Create client list for Portal."
 msgstr "Go to Dashboard > Applications > Utilities > Create client list for Portal."
 
+#: src/features/migration/SuccessModal.tsx
 #: src/routes/accept-invite.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/not-found.tsx
+#: src/routes/splash.tsx
 msgid "Go to Today"
 msgstr "Go to Today"
 
@@ -8690,8 +8688,8 @@ msgstr "Live"
 
 #. placeholder {0}: data.obligationCount
 #: src/features/migration/SuccessModal.tsx
-msgid "Live on your dashboard. {0, plural, one {# deadline is now scheduled} other {# deadlines are now scheduled}}. Nothing will email a client until you turn the matching rule on."
-msgstr "Live on your dashboard. {0, plural, one {# deadline is now scheduled} other {# deadlines are now scheduled}}. Nothing will email a client until you turn the matching rule on."
+msgid "Live in your workspace. {0, plural, one {# deadline is now scheduled} other {# deadlines are now scheduled}}. Nothing will email a client until you turn the matching rule on."
+msgstr "Live in your workspace. {0, plural, one {# deadline is now scheduled} other {# deadlines are now scheduled}}. Nothing will email a client until you turn the matching rule on."
 
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Live preview"
@@ -10961,10 +10959,6 @@ msgstr "Open client to fix entity"
 msgid "Open Contacts and select the cloud export icon; Admin access may be required."
 msgstr "Open Contacts and select the cloud export icon; Admin access may be required."
 
-#: src/features/migration/SuccessModal.tsx
-msgid "Open dashboard"
-msgstr "Open dashboard"
-
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Open deadline"
 msgstr "Open deadline"
@@ -11127,10 +11121,6 @@ msgstr "Open your authenticator app and enter the 6 digits you see for DueDateHQ
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Open your authenticator app, add a new account, then scan this code. Use the setup URI if scanning is not available."
 msgstr "Open your authenticator app, add a new account, then scan this code. Use the setup URI if scanning is not available."
-
-#: src/routes/splash.tsx
-msgid "Open your dashboard"
-msgstr "Open your dashboard"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open your personal notification inbox."
@@ -12698,16 +12688,13 @@ msgstr "Reference dates"
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/workload/workload-page.tsx
+#: src/routes/dashboard.tsx
 msgid "Refresh"
 msgstr "Refresh"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Refresh confidence"
 msgstr "Refresh confidence"
-
-#: src/routes/dashboard.tsx
-msgid "Refresh dashboard"
-msgstr "Refresh dashboard"
 
 #: src/routes/billing.success.tsx
 msgid "Refresh now"
@@ -13792,13 +13779,13 @@ msgstr "Sample"
 msgid "Sample (first row)"
 msgstr "Sample (first row)"
 
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "Sample data in your workspace"
+msgstr "Sample data in your workspace"
+
 #: src/routes/clients.tsx
 msgid "Sample data loaded"
 msgstr "Sample data loaded"
-
-#: src/features/migration/OnboardingSkipModal.tsx
-msgid "Sample data on your dashboard"
-msgstr "Sample data on your dashboard"
 
 #: src/routes/clients.tsx
 msgid "Sample data removed"
@@ -16029,8 +16016,8 @@ msgid "This removes the client and deadlines created by this import. Use Clients
 msgstr "This removes the client and deadlines created by this import. Use Clients to edit facts instead."
 
 #: src/features/clients/ClientDetailWorkspace.tsx
-msgid "This removes the client and its deadlines from active lists, Deadlines, and dashboard views. Audit history stays retained for compliance records."
-msgstr "This removes the client and its deadlines from active lists, Deadlines, and dashboard views. Audit history stays retained for compliance records."
+msgid "This removes the client and its deadlines from active lists, Deadlines, and Today. Audit history stays retained for compliance records."
+msgstr "This removes the client and its deadlines from active lists, Deadlines, and Today. Audit history stays retained for compliance records."
 
 #: src/features/migration/Wizard.tsx
 msgid "This removes the clients and deadlines created by this import. Other practice data will not be changed."
@@ -16885,6 +16872,10 @@ msgstr "View saved"
 #: src/features/obligations/detail/PenaltyExposureCard.tsx
 msgid "View schedule"
 msgstr "View schedule"
+
+#: src/routes/dashboard.tsx
+msgid "View scope"
+msgstr "View scope"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "View source"

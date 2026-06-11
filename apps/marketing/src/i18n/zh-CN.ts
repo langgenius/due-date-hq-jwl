@@ -37,7 +37,7 @@ const zhCN: LandingCopy = {
       { label: '24 小时提醒 SLA' },
     ],
     surface: {
-      breadcrumb: { workbench: 'Workbench', dashboard: 'Dashboard', week: '本周' },
+      breadcrumb: { workbench: 'Workbench', dashboard: '今天', week: '本周' },
       kbdCommand: 'Command',
       brief: {
         status: 'READY',
@@ -211,7 +211,7 @@ const zhCN: LandingCopy = {
         value: '24',
         unit: '小时',
         description:
-          '所有州的申报通知和 IRS 更新在 24 小时内进入 Dashboard 与邮件摘要，附来源摘录与一键应用至 12 位客户。',
+          '所有州的申报通知和 IRS 更新在 24 小时内进入今天页与邮件摘要，附来源摘录与一键应用至 12 位客户。',
       },
     ],
   },
@@ -287,7 +287,7 @@ const zhCN: LandingCopy = {
         ],
         surface: {
           kind: 'dashboard',
-          header: { title: 'Dashboard · 周一分诊', timestamp: '2026-04-25 08:14' },
+          header: { title: '今天 · 周一分诊', timestamp: '2026-04-25 08:14' },
           ranges: ['本周', '本月', '长期'],
           summary: [
             { label: '未完成', value: '18' },
@@ -577,7 +577,7 @@ const zhCN: LandingCopy = {
         seats: '1 个生产 practice · 3 个席位',
         aiLabel: '包含 Practice AI',
         aiDescription:
-          '包含 Dashboard brief、提醒摘要、客户风险摘要、截止日提示和正式客户数据的智能导入辅助。',
+          '包含每日简报、提醒摘要、客户风险摘要、截止日提示和正式客户数据的智能导入辅助。',
         aiFeatures: ['完整 practice AI 工作流', '与 Team 相同的 AI 能力'],
         cta: '升级到 Pro',
         hrefKind: 'checkout',
@@ -742,7 +742,7 @@ const zhCN: LandingCopy = {
             '只有当规则保留官方来源上下文和复核状态时才值得信任。DueDateHQ 可以让 AI 辅助总结或分类，但来源和复核决定才是信任边界。',
         },
         {
-          question: '规则影响 Deadlines 或 Dashboard 分诊前会发生什么？',
+          question: '规则影响 Deadlines 或今天页分诊前会发生什么？',
           answer:
             '规则需要来源证据、归一化的申报上下文和复核状态，之后才可能生成或更新截止日工作。产品不会根据没有支撑的信号静默改变客户工作。',
         },
@@ -834,7 +834,7 @@ const zhCN: LandingCopy = {
           },
           {
             title: '运营交接',
-            body: '相关变更复核后，可以出现在 dashboard、Deadlines 和邮件工作流中。',
+            body: '相关变更复核后，可以出现在今天页、Deadlines 和邮件工作流中。',
           },
         ],
       },
@@ -902,7 +902,7 @@ const zhCN: LandingCopy = {
           },
           {
             title: '运营路由',
-            body: '当事务所数据提示可能受影响时，已复核信号可以出现在 dashboard 或 Deadlines 动作中。',
+            body: '当事务所数据提示可能受影响时，已复核信号可以出现在今天页或 Deadlines 动作中。',
           },
         ],
         limitations: [
@@ -919,7 +919,7 @@ const zhCN: LandingCopy = {
           {
             question: 'California 更新如何变成运营工作？',
             answer:
-              'DueDateHQ 会保留官方来源、适用性线索，并匹配事务所客户上下文；信号在影响 dashboard 或 Deadlines 工作前需要先复核。',
+              'DueDateHQ 会保留官方来源、适用性线索，并匹配事务所客户上下文；信号在影响今天页或 Deadlines 工作前需要先复核。',
           },
         ],
       },
@@ -1143,7 +1143,7 @@ const zhCN: LandingCopy = {
         coveredSignals: [
           {
             title: '截止日运营',
-            body: '信号在成为 dashboard 或 Deadlines 项目前会被评估运营影响。',
+            body: '信号在成为今天页或 Deadlines 项目前会被评估运营影响。',
           },
           {
             title: '适用性上下文',

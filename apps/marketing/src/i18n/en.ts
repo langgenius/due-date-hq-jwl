@@ -37,7 +37,7 @@ const en: LandingCopy = {
       { label: '24h Alert SLA' },
     ],
     surface: {
-      breadcrumb: { workbench: 'Workbench', dashboard: 'Dashboard', week: 'This week' },
+      breadcrumb: { workbench: 'Workbench', dashboard: 'Today', week: 'This week' },
       kbdCommand: 'Command',
       brief: {
         status: 'READY',
@@ -211,7 +211,7 @@ const en: LandingCopy = {
         value: '24',
         unit: 'hrs',
         description:
-          'Every state filing notice and IRS update reaches Dashboard + email within 24 hours, with a source excerpt and an apply-to-12-clients button.',
+          'Every state filing notice and IRS update reaches Today + email within 24 hours, with a source excerpt and an apply-to-12-clients button.',
       },
     ],
   },
@@ -229,7 +229,7 @@ const en: LandingCopy = {
         cadence: 'avg / firm / yr',
         headline:
           '14 rule changes ship in a 30-day window. You need to know which 4 hit your clients.',
-        body: 'Alerts condense every IRS notice and 50-state filing change into a single dashboard banner with `source_excerpt`, `source_url`, and a one-click apply path.',
+        body: 'Alerts condense every IRS notice and 50-state filing change into a single in-app banner with `source_excerpt`, `source_url`, and a one-click apply path.',
         listTitle: 'Rule changes, last 30 days',
         listSummary: '14 changes · 50 states + DC',
         rows: [
@@ -243,7 +243,7 @@ const en: LandingCopy = {
         severity: 'high',
         cadence: 'avg / firm / yr',
         headline: '312 inbox items per week, 4 of which can fine your clients.',
-        body: 'Email digests + dashboard banners replace inbox archeology. Owner is the only signer; no notice slips into a junior’s drafts.',
+        body: 'Email digests + in-app banners replace inbox archeology. Owner is the only signer; no notice slips into a junior’s drafts.',
         listTitle: 'Inbox · unread',
         listSummary: '312 unread · 4 critical',
         rows: [
@@ -291,14 +291,14 @@ const en: LandingCopy = {
         index: '01',
         tag: 'TRIAGE · 30 SECONDS',
         headline: 'The Monday console.',
-        body: 'Owner opens the laptop, sees five urgent clients, the evidence status, and the first action keystroke. Smart Priority is a pure-function sort — no LLM in the dashboard hot path.',
+        body: 'Owner opens the laptop, sees five urgent clients, the evidence status, and the first action keystroke. Smart Priority is a pure-function sort — no LLM in the Today hot path.',
         hints: [
           { keys: '⌘K', label: 'Command' },
           { keys: 'E', label: 'Evidence' },
         ],
         surface: {
           kind: 'dashboard',
-          header: { title: 'Dashboard · Monday triage', timestamp: '2026-04-25 08:14' },
+          header: { title: 'Today · Monday triage', timestamp: '2026-04-25 08:14' },
           ranges: ['This week', 'This month', 'Long term'],
           summary: [
             { label: 'OPEN', value: '18' },
@@ -486,7 +486,7 @@ const en: LandingCopy = {
   proof: {
     eyebrow: 'THE GLASS-BOX GUARANTEE',
     index: '03',
-    title: 'Every number on the dashboard clicks back to its source.',
+    title: 'Every number on Today clicks back to its source.',
     paragraph:
       'AI is allowed to summarize, suggest, and draft. It is never allowed to render a recommendation without a verifiable source URL, a source excerpt, and a server-side timestamp. The interface fails closed: missing provenance → verification-needed state.',
     footnote: 'Glass-Box Guard · every AI claim is validated against its source',
@@ -507,7 +507,7 @@ const en: LandingCopy = {
         label: 'ALERT SLA',
         value: '24',
         unit: 'h',
-        body: 'From source publication to dashboard banner + email digest, with the affected client list pre-computed.',
+        body: 'From source publication to in-app banner + email digest, with the affected client list pre-computed.',
       },
       {
         label: 'BLACK-BOX SUGGESTIONS',
@@ -598,7 +598,7 @@ const en: LandingCopy = {
         seats: '1 PRODUCTION PRACTICE · 3 SEATS',
         aiLabel: 'Practice AI included',
         aiDescription:
-          'Dashboard briefs, alert summaries, client risk summaries, deadline tips, and guided import AI for live client data.',
+          'Daily briefs, alert summaries, client risk summaries, deadline tips, and guided import AI for live client data.',
         aiFeatures: ['Full practice AI workflows', 'Same AI capability as Team'],
         cta: 'Upgrade to Pro',
         hrefKind: 'checkout',
@@ -766,7 +766,7 @@ const en: LandingCopy = {
             'Only when the rule keeps official source context and a review state. DueDateHQ can use AI to summarize or classify, but the source and reviewer decision remain the trust boundary.',
         },
         {
-          question: 'What happens before a rule affects Deadlines or Dashboard triage?',
+          question: 'What happens before a rule affects Deadlines or Today triage?',
           answer:
             'The rule needs source evidence, normalized filing context, and review status before it can generate or update deadline work. The product does not silently change client work from an unsupported signal.',
         },
@@ -858,7 +858,7 @@ const en: LandingCopy = {
           },
           {
             title: 'Operational handoff',
-            body: 'Relevant changes can surface in dashboard, Deadlines, and email workflows after review.',
+            body: 'Relevant changes can surface in Today, Deadlines, and email workflows after review.',
           },
         ],
       },
@@ -927,7 +927,7 @@ const en: LandingCopy = {
           },
           {
             title: 'Operational routing',
-            body: 'Reviewed signals can surface as dashboard or Deadlines actions when firm data indicates possible impact.',
+            body: 'Reviewed signals can surface as Today or Deadlines actions when firm data indicates possible impact.',
           },
         ],
         limitations: [
@@ -944,7 +944,7 @@ const en: LandingCopy = {
           {
             question: 'How does a California update become operational work?',
             answer:
-              'DueDateHQ preserves the official source, keeps applicability clues, matches against firm client context, and requires review before the signal affects dashboard or Deadlines work.',
+              'DueDateHQ preserves the official source, keeps applicability clues, matches against firm client context, and requires review before the signal affects Today or Deadlines work.',
           },
         ],
       },
@@ -1171,7 +1171,7 @@ const en: LandingCopy = {
         coveredSignals: [
           {
             title: 'Deadline operations',
-            body: 'Signals are evaluated for operational impact before they become dashboard or Deadlines items.',
+            body: 'Signals are evaluated for operational impact before they become Today or Deadlines items.',
           },
           {
             title: 'Applicability context',

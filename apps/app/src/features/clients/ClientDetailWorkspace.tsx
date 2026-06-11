@@ -1370,8 +1370,8 @@ export function ClientDetailWorkspace({
             </AlertDialogTitle>
             <AlertDialogDescription className="text-text-destructive-secondary">
               <Trans>
-                This removes the client and its deadlines from active lists, Deadlines, and
-                dashboard views. Audit history stays retained for compliance records.
+                This removes the client and its deadlines from active lists, Deadlines, and Today.
+                Audit history stays retained for compliance records.
               </Trans>
             </AlertDialogDescription>
           </AlertDialogHeader>

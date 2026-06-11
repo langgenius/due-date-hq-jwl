@@ -183,7 +183,7 @@ export function SplashRoute() {
             onClick={openDashboard}
             disabled={recordVisit.isPending}
           >
-            <Trans>Open your dashboard</Trans>
+            <Trans>Go to Today</Trans>
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
 
