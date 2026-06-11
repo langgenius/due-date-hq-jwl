@@ -1167,10 +1167,6 @@ msgstr "还有 {moreCount} 项未显示"
 msgid "{needAttention, plural, one {# source needs attention} other {# sources need attention}}"
 msgstr "{needAttention, plural, other {# 个来源需要关注}}"
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "{needAttention, plural, one {# source needs attention} other {# sources need attention}}"
-msgstr "{needAttention, plural, other {# 个数据源需要关注}}"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
 msgstr "{needsFactsCount, plural, other {# 个客户缺少州或实体类型 — 规则库已跳过这些客户。}}"
