@@ -17,14 +17,15 @@ test.describe('seeded obligations', () => {
   }) => {
     await authenticatedPage.goto('/')
 
-    const actions = authenticatedPage.getByRole('region', { name: 'Actions this week' })
-    await expect(actions.getByRole('heading', { name: /Actions this week/ })).toBeVisible()
+    const actions = authenticatedPage.getByRole('region', { name: 'Priorities' })
+    await expect(actions.getByRole('heading', { name: /Priorities/ })).toBeVisible()
     await expect(actions.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(actions.getByText('Northstar Dental Group')).toBeVisible()
 
-    // 2026-06-09 (Yuqi /today "hide"): the right-aligned "View all"
-    // link is gone — the section title itself navigates to /deadlines.
-    await actions.getByRole('link', { name: 'Actions this week' }).click()
+    // 2026-06-11 (merged-brief redesign): the "Today" page renders the
+    // MergedBriefCard "Priorities" region; its footer "See all deadlines"
+    // link navigates to the full queue.
+    await actions.getByRole('link', { name: 'See all deadlines' }).click()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
   })
 
@@ -33,9 +34,12 @@ test.describe('seeded obligations', () => {
   }) => {
     await authenticatedPage.goto('/')
 
-    const actions = authenticatedPage.getByRole('region', { name: 'Actions this week' })
-    const arborAction = actions.getByRole('row', {
-      name: /Open Attach the source document for Arbor & Vale LLC/,
+    const actions = authenticatedPage.getByRole('region', { name: 'Priorities' })
+    // Priority rows render as buttons whose accessible name concatenates form,
+    // client, action verb, readiness, status, and due ("Form 1065 Arbor & Vale
+    // LLC Attach the source document Docs 0/3 …"). Match client + action verb.
+    const arborAction = actions.getByRole('button', {
+      name: /Arbor & Vale LLC.*Attach the source document/,
     })
     await arborAction.click()
 

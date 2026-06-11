@@ -66,9 +66,7 @@ test.describe('two-factor challenge', () => {
   }) => {
     await authenticatedPage.goto('/two-factor')
 
-    await expect(
-      authenticatedPage.getByText(/Enter your 2FA code|输入您的双重验证码/),
-    ).toBeVisible()
+    await expect(authenticatedPage.getByText(/Check your phone|查看你的手机/)).toBeVisible()
     await expect(authenticatedPage.getByLabel(/Verification code|验证码/)).toBeVisible()
   })
 })

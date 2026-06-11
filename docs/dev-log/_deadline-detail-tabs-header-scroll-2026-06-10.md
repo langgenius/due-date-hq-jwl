@@ -50,7 +50,7 @@ After: the collapse is smarter. The key-date block stays in the
 state:
 
 - **Expanded** — the full three framed key-date cards (`PrimaryDeadlineStrip
-  variant="cards"`).
+variant="cards"`).
 - **Collapsed** (on scroll) — a single condensed one-line summary
   (`Filing <date> · Internal <date> · Payment <date>`) so the pinned header
   stays compact yet the dates remain reachable.

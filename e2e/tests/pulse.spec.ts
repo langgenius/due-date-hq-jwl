@@ -74,10 +74,11 @@ test.describe('seeded Pulse alerts', () => {
     await expect(auditPage.eventRowFor('pulse.apply')).toBeVisible()
 
     await appShellPage.goto('/?asOfDate=2026-05-03')
-    await expect(authenticatedPage.getByRole('region', { name: 'Actions this week' })).toBeVisible()
+    await expect(authenticatedPage.getByRole('region', { name: 'Priorities' })).toBeVisible()
 
     // The Alerts page is `/alerts` now (previously `/rules/pulse`, `/rules?tab=pulse`).
     await appShellPage.goto('/alerts')
+    await selectActiveAlertQueue(authenticatedPage)
     const appliedAlert = authenticatedPage.getByRole('button', {
       name: /Alert: IRS CA storm relief/,
     })
@@ -114,6 +115,7 @@ test.describe('seeded Pulse alerts', () => {
   }) => {
     await seedBillingSubscription(request, { firmId: authSession.firmId, plan: 'team' })
     await appShellPage.goto('/alerts')
+    await selectActiveAlertQueue(authenticatedPage)
 
     await expect(authenticatedPage.getByRole('button', { name: 'Priority Queue' })).toHaveCount(0)
     await expect(authenticatedPage.getByRole('button', { name: 'All Pulse' })).toHaveCount(0)
@@ -238,6 +240,16 @@ function pulseListAlertButton(page: Page) {
   })
 }
 
+// The alerts list defaults to the "Review" queue (review-only alerts); the
+// seeded deadline-shift alerts (isActiveAlert) live under the "Active" toggle.
+// Switch to it when present so list lookups resolve regardless of the default.
+async function selectActiveAlertQueue(page: Page) {
+  const activeToggle = page.getByRole('button', { name: /^Active/ })
+  if (await activeToggle.isVisible().catch(() => false)) {
+    await activeToggle.click()
+  }
+}
+
 async function openDashboardPulseAlert(page: Page) {
   const dashboardButton = dashboardPulseAlertButton(page)
   if (await dashboardButton.isVisible().catch(() => false)) {
@@ -246,6 +258,7 @@ async function openDashboardPulseAlert(page: Page) {
   }
 
   await page.goto('/alerts')
+  await selectActiveAlertQueue(page)
   await expect(pulseListAlertButton(page)).toBeVisible()
   await pulseListAlertButton(page).click()
 }

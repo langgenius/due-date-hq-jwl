@@ -20,7 +20,7 @@ AlertsListPage.
 deliberately soft (terminal states stay quiet), but a few high-signal milestone
 chips ("Accepted" ×3, "Primary", an active wizard step, a solid count chip) read
 solid on purpose. Added the two solid variants so those route through the
-primitive *without* softening them (use sparingly — soft is the default), and
+primitive _without_ softening them (use sparingly — soft is the default), and
 migrated the 6 sites (AnnualRolloverDialog, rule-detail-drawer,
 use-obligation-queue-columns, obligations ×2, panels).
 

@@ -4,6 +4,7 @@
 
 Backend-completeness audit (Yuqi: "check if I put everything in client detail")
 found `ClientPublic` fields that were never displayed:
+
 - the 5 tax-attribute booleans (`hasPayroll`, `hasSalesTax`, `has1099Vendors`,
   `hasK1Activity`, `hasForeignAccounts`) — they **drive the deadline generator**
   (`deadline-category-suggestions.ts`) but were shown nowhere, despite the
@@ -12,6 +13,7 @@ found `ClientPublic` fields that were never displayed:
   nowhere in the app.
 
 Added both to `ClientCompliancePosturePanel`:
+
 - **Tax attributes** row: 5 honest on/off chips — active = accent chip + check,
   inactive = muted — so the CPA reads the client's filing-relevant profile at a
   glance.

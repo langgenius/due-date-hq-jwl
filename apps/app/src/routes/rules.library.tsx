@@ -4122,8 +4122,7 @@ function RuleDetailHeroCard({
           {rule.title}
         </h2>
         <p className="text-base font-medium text-text-secondary">
-          {rule.jurisdiction} · {rule.formName} ·{' '}
-          <Trans>Tax season {rule.applicableYear}</Trans>
+          {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
         </p>
         {rule.defaultTip ? (
           <p className="line-clamp-2 text-base leading-relaxed text-text-secondary">

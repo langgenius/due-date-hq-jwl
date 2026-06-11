@@ -8,6 +8,7 @@ hunks; origin's non-conflicting backend — RBAC role-hierarchy fix, db search,
 brief retirement — preserved). git dropped 2 commits already upstream.
 
 Rebase-artifact fixes:
+
 - `daily-brief-card.tsx` → took origin's version (orphaned; local renders
   MergedBriefCard. `-X theirs` had produced malformed JSX merging the two).
 - `routes/dashboard.tsx` → removed the dead `requestBriefRefresh` mutation +

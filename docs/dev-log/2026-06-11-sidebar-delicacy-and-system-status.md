@@ -7,7 +7,7 @@ accent text on the rail, restrained shadows, tokens only).
 
 - **Shadow** (`sidebar.tsx`) — trimmed the floating card's drop shadows:
   docked `4px/12px/.10 → 2px/6px/.06`, peek-overlay `16px/36px/.18 →
-  8px/18px/.12` (also brings the peek blur under the 24px ceiling). The 1px
+8px/18px/.12` (also brings the peek blur under the 24px ceiling). The 1px
   ring still owns the edge.
 - **Gradient hairline** (`app-shell-nav.tsx`) — the muted footer divider is a
   center-weighted gradient (transparent → divider → transparent), inset 4px.

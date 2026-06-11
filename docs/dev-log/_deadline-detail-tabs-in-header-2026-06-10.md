@@ -63,5 +63,5 @@ To avoid duplicating the (large) tab-trigger markup and the (very large) panels:
 - `pnpm exec tsgo --noEmit` — clean (no new errors).
 - `pnpm vp test run obligations` — 89 passed.
 - `vp fmt --write` applied.
-</content>
-</invoke>
+  </content>
+  </invoke>

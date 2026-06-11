@@ -14,7 +14,7 @@ falsely signal clickability. Selected rows (`data-[state=selected]`) carry the
 same bar so hover→select reads as one motif.
 
 Implementation note: gated in JS (`className?.includes('cursor-pointer')`) using
-the *plain* proven `hover:bg-state-accent-hover hover:shadow-[inset_2px_0_0_var(
+the _plain_ proven `hover:bg-state-accent-hover hover:shadow-[inset_2px_0_0_var(
 --color-state-accent-solid)]` classes — a CSS arbitrary variant on
 `&.cursor-pointer:hover` did not compile reliably.
 

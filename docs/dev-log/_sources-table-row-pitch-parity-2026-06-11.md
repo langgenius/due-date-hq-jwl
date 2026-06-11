@@ -32,7 +32,7 @@ genuine reinvention: `SourceRow` rendered the jurisdiction as a hand-rolled
 accent pill — `<Badge variant="info" className="font-mono …">` — a blue
 `rgba(11,165,236,.08)` fill with blue text. But a shared `JurisdictionCode`
 component already exists (`rules-console-primitives.tsx:209`) and was
-already imported in this file. The coverage table *on the same page* and the
+already imported in this file. The coverage table _on the same page_ and the
 `/rules/library` jurisdiction table both use it (quiet gray-100 mono chip),
 so the main Sources table was the lone blue-pill outlier — internally
 inconsistent within its own page.
@@ -64,7 +64,7 @@ archetypes**:
   `text-base`/600 over a muted `text-sm` subtitle. Renders ~67px.
 
 The Sources `SOURCE` column is a single **title + description** cell —
-structurally identical to the rules-library "Rule name" column, *not* to the
+structurally identical to the rules-library "Rule name" column, _not_ to the
 workbench's multi-column client identity. But it was rendering that column at
 `text-xs`/500 (11px/medium) — the timid scale that left the new 56px row
 under-filled.
@@ -83,7 +83,7 @@ min-height — within natural variance of the 67px canonical (rules-library's
 subtitle is a wrapping sentence; the Sources id is one line).
 
 Note: the user named `/deadlines` as the reference, but its 12px/500 client
-name is a *workbench* IA (identity fragmented across columns). Matching the
+name is a _workbench_ IA (identity fragmented across columns). Matching the
 structurally-equivalent registry column (rules-library) is the correct
 reading — it gives the SOURCE title the clear primary weight a registry table
 needs, which is what "rigorous/professional" alignment demands here.
@@ -92,6 +92,7 @@ needs, which is what "rigorous/professional" alignment demands here.
 
 Preview at `/rules/sources` (1440×900), all confirmed via computed styles on
 the live DOM:
+
 - `SOURCE` title computes to 14px/600 gray-900; subtitle 12px/400 mono
   gray-500 — byte-identical to the `/rules/library` Rule-name cell.
 - Header 11px/600 gray-500, cell padding 12/16/8px — already matched.

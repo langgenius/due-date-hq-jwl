@@ -127,6 +127,12 @@ async function openPulseAlert(page: Page) {
   }
 
   await page.goto('/alerts')
+  // The alerts list defaults to the "Review" queue; the seeded active alerts
+  // live under the "Active" toggle, so switch to it before opening one.
+  const activeToggle = page.getByRole('button', { name: /^Active/ })
+  if (await activeToggle.isVisible().catch(() => false)) {
+    await activeToggle.click()
+  }
   await expect(pulseListAlertButton(page)).toBeVisible()
   await pulseListAlertButton(page).click()
 }

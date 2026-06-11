@@ -48,6 +48,7 @@ filing date is not "overdue"); payment also drops it on completed/paid/n-a.
 
 `DeadlineDateCard` chrome lightened so the strip reads as reference, subordinate
 to the workflow card + CTA:
+
 - date type 16px → `text-sm`; label `text-xs` → `text-caption-xs`; clock/meta at
   `text-caption-xs`.
 - surface `bg-background-default` → `bg-background-subtle`; padding

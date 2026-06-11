@@ -32,7 +32,7 @@ test('AC: E2E-AUTH-SHELL renders the protected dashboard shell', async ({
     appShellPage.primaryNavigation.getByRole('link', { name: /^Calendar$/ }),
   ).toHaveCount(0)
   await expect(authenticatedPage.getByRole('heading', { name: /^Today/ })).toBeVisible()
-  await expect(authenticatedPage.getByRole('region', { name: 'Actions this week' })).toBeVisible()
+  await expect(authenticatedPage.getByRole('region', { name: 'Priorities' })).toBeVisible()
   await expect(appShellPage.importClientsButton).toBeVisible()
 })
 

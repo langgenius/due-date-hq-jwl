@@ -7,6 +7,7 @@ stats: **Jurisdictions** (state chips) · **Blocked** · **Open** · **Filed YTD
 (was Next filing · Blocked · Open filing). Per Yuqi ("replace the elements with the
 components we already have"), reused existing components rather than a bespoke
 strip:
+
 - the shared **`StatBand`** (which Yuqi also gave per-column hairline dividers,
   matching the canvas) for the strip,
 - the **`Badge variant="outline"`** state chip the /clients list already uses, for

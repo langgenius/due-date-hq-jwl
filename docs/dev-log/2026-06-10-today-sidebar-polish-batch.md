@@ -7,7 +7,7 @@ Priority Actions header, and the sidebar rail.
 
 - **MonitoringChip** (`MonitoringChip.tsx`) — the green "LIVE" pill goes
   borderless; the fill alone carries it (dropped `border
-  border-state-success-border`).
+border-state-success-border`).
 - **NeedsAttentionCard** (`needs-attention-card.tsx`):
   - Removed the hover-reveal CHANGE-KIND label ("Deadline shifted" etc.) and
     its now-unused `changeKindLabel` import.

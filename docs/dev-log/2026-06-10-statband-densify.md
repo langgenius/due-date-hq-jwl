@@ -6,6 +6,7 @@ Feedback (Yuqi, /clients KPI strip): "occupied too much space. be information
 dense and clean."
 
 Tightened the shared `StatBand` (`components/patterns/stat-band.tsx`):
+
 - band padding `py-7` → `py-4`, mobile `gap-y-6` → `gap-y-4`
 - column stack `gap-2` → `gap-1`
 - value `text-[32px]` → `text-[26px]`

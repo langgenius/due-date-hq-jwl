@@ -125,7 +125,6 @@ function cleanEntityIdFilters(values: readonly string[]): string[] {
   return cleanStringFilters(values).filter((value) => UUID_RE.test(value))
 }
 
-
 export function DashboardRoute() {
   const { t } = useLingui()
   const { openWizard } = useMigrationWizard()
@@ -196,7 +195,9 @@ export function DashboardRoute() {
     ...orpc.clients.listByFirm.queryOptions({ input: { limit: 1 } }),
     placeholderData: keepPreviousData,
   })
-  const hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
+  // Parked: the probe query is kept for its shared cache-warming side effect
+  // (dropdowns/pickers reuse the key); the derived flag is currently unused.
+  const _hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
   const data = dashboardQuery.data
 
   const syncedAtIso =

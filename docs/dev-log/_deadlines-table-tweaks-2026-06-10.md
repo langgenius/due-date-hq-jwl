@@ -1,6 +1,7 @@
 # /deadlines table — 3 small tweaks (2026-06-10)
 
 Yuqi page feedback on the list table:
+
 - **#1** Client-name cell ("Riverside Sole Prop…") was `text-[16px]` → `text-sm`
   (down a size; also drops an arbitrary px for a token).
 - **#2** Active-sort chevron in `ObligationQueueSortableHeader` was

@@ -109,12 +109,12 @@ test.describe('seeded client facts', () => {
       authenticatedPage.getByRole('button', { name: 'Change owner — currently unassigned' }),
     ).toBeVisible()
     // The open-filing count surfaces on the detail header chip — a button
-    // labelled "View open filings for this client". 2026-06-10 (client
-    // summary strip): the chip reads label-first ("Open filing" above the
-    // count "1", plus a payment sub-line), so assert label-then-count.
+    // labelled "View open filings for this client". The chip renders status-
+    // first now: "Open" over the count "1" over a status sub-line ("In
+    // progress"), concatenating to "Open1In progress", so assert "Open" + count.
     await expect(
       authenticatedPage.getByRole('button', { name: 'View open filings for this client' }),
-    ).toContainText(/open filing\s*1/i)
+    ).toContainText(/Open\s*1/i)
     // IA redesign renamed the three detail tabs (URL keys unchanged):
     //   work → "Filing plan", info → "Setup", activity → "History"
     // (apps/app/src/features/clients/ClientDetailWorkspace.tsx).

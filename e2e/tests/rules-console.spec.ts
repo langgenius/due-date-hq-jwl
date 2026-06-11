@@ -57,7 +57,7 @@ test('AC: E2E-RULES-DETAIL renders a shipped rule detail workspace', async ({
     name: /Alabama individual income tax return applicability/,
   })
   await expect(ruleDetail).toBeVisible({ timeout: 20_000 })
-  await expect(ruleDetail.getByRole('heading', { name: "When it's due" })).toBeVisible()
+  await expect(ruleDetail.getByRole('heading', { name: 'Due date logic' })).toBeVisible()
   await expect(ruleDetail.getByRole('heading', { name: 'Evidence' })).toBeVisible()
 })
 

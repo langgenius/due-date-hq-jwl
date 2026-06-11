@@ -29,9 +29,8 @@ as a riddle. New copy a CPA reads at a glance:
   `N days before filing`)
 
 Also removed the `i18n._(plural(...))` runtime footgun here: the plural is now
-expressed with plain `t\`\`` strings (a `buffer === 1` branch + the plural form),
-which is the safe pattern for a string-context value (it can't be JSX
-`<Plural>` because it's passed as a prop).
+expressed with plain `t\`\``strings (a`buffer === 1`branch + the plural form),
+which is the safe pattern for a string-context value (it can't be JSX`<Plural>` because it's passed as a prop).
 
 ## #2 — `PathToFilingSummary` stepper node smaller
 
@@ -59,6 +58,7 @@ the eye fell to the first big block lower down (overdue banner / waiting-docs
 count) or straight to the buttons.
 
 **After (header IA):** two rows.
+
 - Row 1 = **eyebrow only** — status pill + "Stage N of 6" (left), "Accepted"
   badge + "Entered DATE" meta (right). The "Entered" line dropped `text-sm` →
   `text-xs` so it reads as quiet meta, not a peer of the headline.

@@ -5,6 +5,7 @@
 Pencil `ibWOx` puts a status pill inline with the client title (a green "● Healthy"
 in the canvas). Restructured the PageHeader title slot from a stacked column to an
 inline flex-wrap row, and added a derived health pill that reuses `Badge`:
+
 - `needs_facts` (config gap) still wins → the "Add filing state" warning chip;
 - else **At risk** (warning) when `workPlan.statutoryLateUnextendedCount > 0`;
 - else **Healthy** (success) — both with a `bg-current` status dot.

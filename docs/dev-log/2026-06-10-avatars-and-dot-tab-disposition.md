@@ -6,8 +6,9 @@ Last bucket from the unification pass (dots / avatars / tabs).
 
 ## Avatars — migrated onto the existing primitive
 
-`AssigneeAvatar` is already a *consolidated* avatar primitive (size/type/shape/
+`AssigneeAvatar` is already a _consolidated_ avatar primitive (size/type/shape/
 image/initials). Migrated the remaining hand-rolled initials-circles onto it:
+
 - command-palette client result (size-7 → `sm`)
 - reminder email-preview recipient ("JR" → `name` + `md`)
 - obligations queue assignee picker + the owner column (size-5 → `xs`, accent via
@@ -22,9 +23,9 @@ Removed the now-dead local `initials()` / `initialsFromName` usages.
 ## Dots — left as-is (would degrade)
 
 The ~11 hand-rolled `size-1.5/2 rounded-full bg-state-*` dots are **not** a clean
-fit for the existing `BadgeStatusDot`: they're mixed sizes and use *vivid*
+fit for the existing `BadgeStatusDot`: they're mixed sizes and use _vivid_
 `state-X-solid` / `text-X` fills, whereas `BadgeStatusDot` is fixed `size-2` with
-a deliberately *muted* `badge-status-light-*` palette. They're contextual
+a deliberately _muted_ `badge-status-light-*` palette. They're contextual
 data-viz / decorative dots — the materials legend (received/outstanding/waived),
 "live" checklist dots on auth/splash, a status legend. Forcing them through the
 muted primitive would change their size AND wash out the vivid legend colors.

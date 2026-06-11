@@ -50,12 +50,12 @@ Re-applied the INTENT of each ancestor commit manually (not cherry-picked):
 - **#4 Shared `DetailSectionCard`** — Ownership + Linked-from now use the shared
   gray-header card (was hand-rolled `<section>` + uppercase `<h3>`).
 - **#5 Footer** — aligned to the alert SheetFooter: `min-h-16 border-t px-12
-  py-3` on white, content centered in `mx-auto max-w-[760px]` with
+py-3` on white, content centered in `mx-auto max-w-[760px]` with
   `flex-row items-center gap-8` (was `flex-wrap justify-between`).
 - **#6 Document measure** — every page-mode region (header, body, top bar,
   footer) moved from `max-w-[1100px]` → `max-w-[760px]`.
 - **#7 Background** — page-mode root aside is now WHITE (`bg-background-default
-  shadow-subtle`, no left border) exactly like the alert; the gray wash
+shadow-subtle`, no left border) exactly like the alert; the gray wash
   (`bg-background-subtle`) is painted by the header + body regions, hosting
   white cards. Identical surface model to the alert: white root → gray-wash
   document → white cards.
@@ -75,7 +75,7 @@ Re-applied the INTENT of each ancestor commit manually (not cherry-picked):
 
 - **Differentiate the 3 date cards** + the "29 days past" vs "30 days overdue"
   off-by-one wording — both live in `PrimaryDeadlineStrip` (`queue/components/
-  panels.tsx`), which is OUT of the editable set for this task.
+panels.tsx`), which is OUT of the editable set for this task.
 - **Tame the active stepper-node red** + the duplicate STEPS sub-list — both
   live in `ActiveStageDetailCard` / the workflow stepper in `panels.tsx`
   (off-limits). The surface-level red is already reserved for OVERDUE via the

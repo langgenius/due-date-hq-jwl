@@ -3,6 +3,7 @@
 **Date:** 2026-06-11 — from Yuqi's review ("yes do them")
 
 **Expanded-row action (DeadlineRowExpansion) — harsh-critique runthrough:**
+
 - **Honest stepper:** the current stage now reads as **accent** (positional), not
   warning-amber ("In review" isn't a warning); and `blocked` never renders as a
   green "passed" dot — it falls to the muted/ghosted treatment (it's a side-state,
