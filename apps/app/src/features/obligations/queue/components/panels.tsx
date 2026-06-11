@@ -320,14 +320,11 @@ function DeadlineDateCard({
 }) {
   return (
     <div
-      className={cn(
-        // Quiet reference card: light subtle surface + hairline border,
-        // no shadow. Overdue cards get a restrained warning tint as the
-        // only state cue. px-3.5/py-2.5 keeps the card short so the
-        // strip stays subordinate to the workflow + CTA below.
-        'flex flex-col gap-1.5 rounded-xl border border-divider-subtle px-3.5 py-2.5',
-        overdue ? 'bg-state-warning-hover' : 'bg-background-subtle',
-      )}
+      // Flat reference column: no surface, no border, no shadow — the
+      // three dates read as plain stacked columns separated by the grid
+      // gap. Overdue state is carried purely as a text-colour cue on the
+      // icon + date, never a filled card.
+      className="flex flex-col gap-1.5"
     >
       <div className="flex items-center gap-1.5">
         <Icon
@@ -338,7 +335,12 @@ function DeadlineDateCard({
           {label}
         </span>
       </div>
-      <span className="text-sm leading-none font-semibold text-text-primary tabular-nums">
+      <span
+        className={cn(
+          'text-caption-xs leading-none font-semibold tabular-nums',
+          overdue ? 'text-text-warning' : 'text-text-primary',
+        )}
+      >
         {date ? formatDatePretty(date, { alwaysShowYear: true }) : '—'}
       </span>
       {clock ? (
@@ -1027,18 +1029,19 @@ export function PathToFilingSummary({
                   )}
                 />
               </div>
-              {/* Stage label sits at text-caption-xs (10px) to match the
-                  date below — at different scales the column feels
-                  unbalanced. Active state keeps font-medium for weight
-                  contrast. */}
+              {/* Stage label sits one step up at text-xs (12px) so the
+                  stepper stays legible (AA) without losing its compact
+                  rhythm. Non-active stages lift to text-secondary so the
+                  ghosted labels read clearly; active keeps font-medium +
+                  text-primary for weight contrast. */}
               <span
                 className={cn(
-                  'mt-0.5 text-center text-caption-xs leading-tight',
+                  'mt-0.5 text-center text-xs leading-tight',
                   state === 'active'
                     ? 'font-medium text-text-primary'
                     : state === 'done'
                       ? 'text-text-secondary'
-                      : 'text-text-tertiary',
+                      : 'text-text-secondary',
                 )}
               >
                 {stage.label}
@@ -1061,11 +1064,12 @@ export function PathToFilingSummary({
                   the Filed milestone forward) render. */}
               <div className="mt-1 flex w-full flex-col items-center gap-0.5">
                 <span
-                  // Date is one step smaller (9px) than the stage label
-                  // (caption-xs) above so the label has visual primacy and
-                  // the date reads as meta.
+                  // Date sits at caption-xs (10px) — lifted one step for
+                  // legibility, still a step below the text-xs stage label
+                  // so the label keeps visual primacy and the date reads as
+                  // meta.
                   className={cn(
-                    'text-center text-[9px] tabular-nums leading-none',
+                    'text-center text-caption-xs tabular-nums leading-none',
                     state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
                   )}
                   // Hover hint surfaces the date-resolution policy in plain
@@ -1108,7 +1112,10 @@ export function PathToFilingSummary({
                       above. */}
                 {state === 'active' && activeSubStatus ? (
                   <span
-                    className="text-center text-caption-xs leading-tight text-text-secondary"
+                    // Sub-status indicator is the smallest unit in the
+                    // column (9px) so it reads as a quiet annotation beneath
+                    // the now-larger stage label + date, not a competing line.
+                    className="text-center text-[9px] leading-tight text-text-secondary"
                     title={activeSubStatus}
                   >
                     {activeSubStatus}
@@ -2037,7 +2044,14 @@ export function ActiveStageDetailCard({
       // A border here would stack four near-rules in close proximity
       // (status-strip bottom border + tab-bar baseline + this card's
       // outline + inner Key dates outline).
-      className="rounded-lg bg-background-section p-4"
+      //
+      // One gap rhythm for the whole card: `flex flex-col gap-3` owns the
+      // vertical spacing so every direct child (header, banners, stage
+      // context, steps, history) sits on the same 12px rhythm. Individual
+      // children no longer carry their own `mt-3` — that mixed pattern left
+      // the header butting against the banner while later sections had a
+      // gap, which read as inconsistent.
+      className="flex flex-col gap-3 rounded-lg bg-background-section p-4"
     >
       {/* Header eyebrow row: a canonical status pill + "Stage N of 6" +
           sub-status, with the "Entered DATE" pinned right on the same row.
@@ -2138,7 +2152,7 @@ export function ActiveStageDetailCard({
           payment pipelines) or land in P1 (In Review pipeline,
           Completed summary). */}
       {stageKey === 'blocked' && row.blockedByObligationInstanceId ? (
-        <div className="mt-3">
+        <div>
           <BlockerContextCard
             blockerId={row.blockedByObligationInstanceId}
             onOpen={(id) => openDrawer(id)}
@@ -2169,12 +2183,21 @@ export function ActiveStageDetailCard({
               return null
             }
             return (
-              <div className="mt-3 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2 text-xs leading-snug text-text-secondary">
-                <Trans>
-                  Resumed from blocked on{' '}
-                  {formatDatePretty(autoUnblockEvent.createdAt.slice(0, 10))} after the upstream
-                  deadline was completed.
-                </Trans>
+              // A labeled eyebrow names the box so it reads as a deliberate
+              // system note ("Auto-unblocked") rather than a floating
+              // sentence — the bare "Resumed from blocked…" line gave no cue
+              // about WHAT the box was, only the date.
+              <div className="flex flex-col gap-0.5 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2 leading-snug">
+                <p className="text-caption-xs font-bold uppercase tracking-[0.8px] text-text-tertiary">
+                  <Trans>Auto-unblocked</Trans>
+                </p>
+                <p className="text-xs text-text-secondary">
+                  <Trans>
+                    This return moved itself out of Blocked on{' '}
+                    {formatDatePretty(autoUnblockEvent.createdAt.slice(0, 10))} once the upstream
+                    deadline it was waiting on was completed.
+                  </Trans>
+                </p>
               </div>
             )
           })()
@@ -2193,7 +2216,7 @@ export function ActiveStageDetailCard({
         // received/outstanding/waived legend chips + a thin green segment
         // bar, with the "Check materials" affordance below. Real counts
         // from the checklist (no fiction).
-        <div className="mt-3 flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2.5">
           {/* Headline — 18/600/-0.4, the canonical "N materials still
               outstanding." treatment. Names the live blocker count, not
               a generic label. Falls back to a "received" framing once the
@@ -2278,13 +2301,16 @@ export function ActiveStageDetailCard({
         // top-border separator (matches the Pencil). It NAMES the blockers
         // (additive over the counts above); the single action stays the
         // "Check materials" link — separate visualization from action.
-        <div className="mt-3 flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
+        <div className="flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
           <p className="text-caption-xs font-bold uppercase tracking-[0.8px] text-text-tertiary">
             <Trans>Blocking</Trans>
           </p>
-          <ul className="flex flex-col">
+          {/* Items left-align flush under the eyebrow: a fixed-width dot
+              gutter (gap-2) + a single text tier (text-sm) so every label
+              starts on the same x and the rows share one spacing rhythm. */}
+          <ul className="flex flex-col gap-1">
             {outstandingItems.slice(0, 2).map((item, idx) => (
-              <li key={item.id} className="flex items-center gap-3 py-1.5">
+              <li key={item.id} className="flex items-center gap-2">
                 <span
                   className={cn(
                     'size-1.5 shrink-0 rounded-full',
@@ -2292,7 +2318,7 @@ export function ActiveStageDetailCard({
                   )}
                   aria-hidden
                 />
-                <span className="min-w-0 flex-1 truncate text-base text-text-secondary">
+                <span className="min-w-0 flex-1 truncate text-sm text-text-secondary">
                   {item.label}
                 </span>
               </li>
@@ -2306,7 +2332,7 @@ export function ActiveStageDetailCard({
         </div>
       ) : null}
       {stageKey === 'completed' ? (
-        <div className="mt-3">
+        <div>
           <CompletedKeyDates row={row} auditEvents={auditEvents} />
         </div>
       ) : null}
@@ -2322,7 +2348,7 @@ export function ActiveStageDetailCard({
           list items inside ride on text-sm so they're a clear tier below
           the stage h3 but legibly above the eyebrow. */}
       {showEfilePipeline || showPaymentPipeline ? (
-        <div className="mt-3 flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           <p className="text-caption font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Steps</Trans>
           </p>
@@ -2420,7 +2446,7 @@ export function ActiveStageDetailCard({
            exposed implementation flags and made default rows look too
            far along. Keep actions on the current step, while the
            steps themselves stay as status markers. */
-        <div className="mt-3 flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           <p className="text-caption font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Steps</Trans>
           </p>
@@ -2488,7 +2514,7 @@ export function ActiveStageDetailCard({
            Primary button + secondary ghost links + manual reminders
            inline. No "What's next" eyebrow because the button is
            self-evident as the next action. */
-        <div className="mt-3">
+        <div>
           <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
         </div>
       ) : null}
@@ -2497,7 +2523,7 @@ export function ActiveStageDetailCard({
           the current stage. Shows the recent chronology so the CPA can
           see HOW the row landed here without leaving the panel. */}
       {stageEvents.length > 0 ? (
-        <div className="mt-3 flex flex-col gap-2 border-t border-divider-subtle pt-3">
+        <div className="flex flex-col gap-2 border-t border-divider-subtle pt-3">
           <p className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Done this stage</Trans>
           </p>
@@ -2530,7 +2556,7 @@ export function ActiveStageDetailCard({
           without taking up vertical space when the CPA only cares
           about what's happening now. */}
       {pastEntries.length > 0 ? (
-        <div className="mt-3 flex flex-col gap-2 border-t border-divider-subtle pt-3">
+        <div className="flex flex-col gap-2 border-t border-divider-subtle pt-3">
           <p className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Previous stages</Trans> · {pastEntries.length}
           </p>
