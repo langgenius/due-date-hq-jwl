@@ -271,10 +271,7 @@ function DisclosureCard({
               {expanded ? (lessLabel ?? t`Show less`) : (moreLabel ?? t`Read more`)}
               <ChevronDownIcon
                 aria-hidden
-                className={cn(
-                  'size-3.5 transition-transform',
-                  expanded && 'rotate-180',
-                )}
+                className={cn('size-3.5 transition-transform', expanded && 'rotate-180')}
               />
             </TextLink>
           </>
@@ -314,6 +311,7 @@ export function RuleDetailCompact({
   confirmImpact = false,
   hideDecision = false,
   hideReviewAids = false,
+  columns = false,
   onActionComplete,
   reviewReason,
 }: {
@@ -326,6 +324,12 @@ export function RuleDetailCompact({
   confirmImpact?: boolean
   /** Omit the Decision footer — the modal renders it as a sticky footer instead. */
   hideDecision?: boolean
+  /**
+   * Lay the reference cards out in balanced CSS columns instead of a single
+   * vertical stack. Used by the full-window review modal so the whole rule
+   * reads at a glance without scrolling. Only valid with `hideDecision`.
+   */
+  columns?: boolean
   /** Omit the per-rule Practice-review note composer. Bulk surfaces own the note
       workflow at the batch level (their own shared note), so the per-rule note
       textarea is suppressed there. The Before-you-accept AI-draft panel stays —
@@ -344,7 +348,14 @@ export function RuleDetailCompact({
   // summary; the reviewer opts into depth per section. The Decision surface
   // (CandidateReviewSection) is the always-expanded commit footer.
   return (
-    <div className="flex min-w-0 flex-col gap-[18px]">
+    <div
+      className={cn(
+        'min-w-0',
+        columns
+          ? 'gap-3 [column-fill:balance] sm:columns-2 [&>*]:mb-3 [&>*]:break-inside-avoid lg:columns-3 xl:columns-4'
+          : 'flex flex-col gap-[18px]',
+      )}
+    >
       {/* Applicability — 3 labeled chips (irBJ8); detail = full facts grid. */}
       <DisclosureCard
         title={<Trans>Applicability</Trans>}

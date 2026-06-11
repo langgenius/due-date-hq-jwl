@@ -932,8 +932,7 @@ function OverviewCaughtUpCard({
 }) {
   const linkClass =
     'group/link inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg text-base font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
-  const linkArrowClass =
-    'size-3.5 transition-transform group-hover/link:translate-x-0.5'
+  const linkArrowClass = 'size-3.5 transition-transform group-hover/link:translate-x-0.5'
   return (
     <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-background-subtle px-6 py-10">
       <div className="flex w-[520px] max-w-full flex-col items-center gap-3.5 text-center">
@@ -944,7 +943,7 @@ function OverviewCaughtUpCard({
           <Check className="size-[22px] text-state-success-solid" />
         </span>
         <span className="text-xl font-semibold tracking-[-0.015em] text-text-primary">
-          <Trans>You're all caught up</Trans>
+          <Trans>Review queue is clear</Trans>
         </span>
         <p className="max-w-[480px] text-base font-medium leading-relaxed text-text-tertiary">
           <Trans>
@@ -4093,7 +4092,10 @@ function RuleDetailPanel({
         showCloseButton
         initialFocus={scrollRef}
         aria-label={t`Rule detail`}
-        className="flex max-h-[90vh] w-[min(980px,calc(100vw-2rem))] max-w-[980px] flex-col gap-0 overflow-hidden bg-background-section p-0"
+        // 2026-06-11 (Yuqi): the review panel is a responsive full-window
+        // surface — 80px inset from every screen edge — laid out in columns
+        // so the whole rule reads at a glance without scrolling.
+        className="flex h-[calc(100dvh-160px)] max-h-[calc(100dvh-160px)] w-[calc(100vw-160px)] max-w-none flex-col gap-0 overflow-hidden bg-background-section p-0"
       >
         {/* a11y label for the Dialog; the visible title lives in the pinned hero. */}
         <DialogTitle className="sr-only">{rule.title}</DialogTitle>
@@ -4109,7 +4111,7 @@ function RuleDetailPanel({
         <div
           ref={scrollRef}
           tabIndex={-1}
-          className="flex min-h-0 flex-1 flex-col gap-[18px] overflow-y-auto px-5 py-5 outline-none"
+          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-4 outline-none"
         >
           <RuleEffectiveBanner rule={rule} />
           <RuleDetailCompact
@@ -4118,6 +4120,7 @@ function RuleDetailPanel({
             concreteDraft={concreteDraft}
             confirmImpact
             hideDecision
+            columns
             onActionComplete={onClose}
           />
         </div>
@@ -4125,7 +4128,7 @@ function RuleDetailPanel({
             visible while the reference cards scroll. Only for reviewable
             rules; active rules have nothing to decide. */}
         {isReviewable ? (
-          <div className="shrink-0 border-t border-divider-regular bg-background-default px-5 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
+          <div className="shrink-0 border-t border-divider-regular bg-background-default px-5 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
             <CandidateReviewSection
               key={rule.id}
               rule={rule}
@@ -4199,17 +4202,15 @@ function RuleDetailHeroCard({
           </span>
         ) : null}
       </div>
-      <div className="flex flex-col gap-2.5 px-5 py-4">
-        <h2 className="text-[22px] leading-tight font-bold tracking-tight text-text-primary">
+      <div className="flex flex-col gap-1.5 px-5 py-3.5">
+        <h2 className="text-xl leading-tight font-bold tracking-tight text-text-primary">
           {rule.title}
         </h2>
-        <p className="text-base font-medium text-text-secondary">
+        <p className="text-sm font-medium text-text-secondary">
           {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
         </p>
         {rule.defaultTip ? (
-          <p className="line-clamp-2 text-base leading-relaxed text-text-secondary">
-            {rule.defaultTip}
-          </p>
+          <p className="line-clamp-1 text-sm text-text-secondary">{rule.defaultTip}</p>
         ) : null}
         <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-medium">
           {aiPct !== null ? (
