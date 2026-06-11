@@ -208,12 +208,14 @@ export function DeadlineRow({
             // VtC73 which uses neither.
           )}
         >
-          {/* DEADLINE (fill) */}
+          {/* DEADLINE (fill) — the form-code badge sits in a fixed-width slot
+              (Yuqi #3) so the form names align into a column regardless of code
+              length. */}
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={stop(() => goToSummary())}
-              className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="flex w-[104px] shrink-0 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               tabIndex={-1}
               aria-hidden
             >
@@ -226,7 +228,7 @@ export function DeadlineRow({
                 state={{ from: 'client' }}
                 onClick={(event) => event.stopPropagation()}
                 aria-label={`Open ${deadline.formName} for ${deadline.clientName} detail page`}
-                className="w-fit truncate text-sm font-medium text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                className="w-fit truncate text-row-name text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 {deadline.formName}
               </Link>
