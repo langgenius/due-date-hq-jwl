@@ -36,6 +36,7 @@ export const SearchInput = forwardRef(function SearchInput(
     placeholder,
     ariaLabel,
     className,
+    variant = 'default',
     autoFocus = false,
     onFocus,
     onBlur,
@@ -48,6 +49,14 @@ export const SearchInput = forwardRef(function SearchInput(
     /** Accessible label — defaults to the placeholder text. */
     ariaLabel?: string
     className?: string
+    /**
+     * `default` — the bordered h-9 page/toolbar field.
+     * `compact` — borderless h-7 field for sidebar rails (transparent at
+     *   rest, `state-base-hover` fill on hover/focus, no ring). Shares every
+     *   other behavior (placeholder, clear-X, Escape) so a rail search is the
+     *   SAME control as a page search, just denser chrome.
+     */
+    variant?: 'default' | 'compact'
     autoFocus?: boolean
     onFocus?: () => void
     onBlur?: () => void
@@ -110,7 +119,10 @@ export const SearchInput = forwardRef(function SearchInput(
       <div className={cn('relative', className)}>
         <SearchIcon
           aria-hidden
-          className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-text-tertiary"
+          className={cn(
+            'pointer-events-none absolute top-1/2 -translate-y-1/2 text-text-tertiary',
+            variant === 'compact' ? 'left-2 size-3.5' : 'left-2.5 size-4',
+          )}
         />
         <Input
           ref={setRef}
@@ -128,14 +140,22 @@ export const SearchInput = forwardRef(function SearchInput(
               onChange('')
             }
           }}
-          className="h-9 bg-background-default pl-9 pr-9 placeholder:text-text-secondary"
+          className={cn(
+            'placeholder:text-text-secondary',
+            variant === 'compact'
+              ? 'h-7 border-transparent bg-transparent pl-8 pr-8 hover:bg-state-base-hover focus-visible:border-transparent focus-visible:bg-state-base-hover focus-visible:ring-0'
+              : 'h-9 bg-background-default pl-9 pr-9',
+          )}
         />
         {value ? (
           <button
             type="button"
             aria-label={t`Clear search`}
             onClick={() => onChange('')}
-            className="absolute right-2 top-1/2 inline-flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className={cn(
+              'absolute top-1/2 inline-flex -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+              variant === 'compact' ? 'right-1.5 size-5' : 'right-2 size-6',
+            )}
           >
             <XIcon className="size-3.5" aria-hidden />
           </button>

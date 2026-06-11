@@ -8,6 +8,7 @@ import type {
   DashboardRecap,
   DashboardSummary,
 } from '@duedatehq/contracts'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -163,28 +164,30 @@ export function DailyBriefCard({
         {/* Right — labeled Regenerate (tvSsP `Regenerate btn`) + dismiss */}
         <div className="flex shrink-0 items-center gap-1">
           {canRefresh && brief.status !== 'failed' ? (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               type="button"
               onClick={onRefresh}
               aria-label={t`Regenerate brief`}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
             >
-              <RotateCwIcon className="size-3" aria-hidden />
+              <RotateCwIcon data-icon="inline-start" className="size-3" aria-hidden />
               <Trans>Regenerate</Trans>
-            </button>
+            </Button>
           ) : null}
           {/* Dismiss the brief for the day. The parent persists the dismissal
               keyed to this brief's generation, so a freshly regenerated brief
               returns. */}
           {onClose ? (
-            <button
+            <Button
+              variant="ghost"
+              size="icon-xs"
               type="button"
               onClick={onClose}
               aria-label={t`Dismiss brief`}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
             >
               <XIcon className="size-3.5" aria-hidden />
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -496,6 +499,18 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
         ) : (
           failedText
         )}
+        {onRefresh ? (
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            type="button"
+            onClick={onRefresh}
+            aria-label={t`Regenerate brief`}
+            className="size-5"
+          >
+            <RotateCwIcon className="size-3" aria-hidden />
+          </Button>
+        ) : null}
       </span>
     )
   }

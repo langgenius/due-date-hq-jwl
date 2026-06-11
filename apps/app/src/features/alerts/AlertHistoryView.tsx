@@ -1,7 +1,6 @@
 import { Fragment, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { SearchIcon } from 'lucide-react'
 
 import type { PulseAlertPublic, PulseFirmAlertStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -15,9 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
+import { SearchInput } from '@/components/primitives/search-input'
 import { getJurisdictionName } from '@/components/primitives/state-badge'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
@@ -228,20 +229,14 @@ export function AlertHistoryView() {
             onValueChange={setTab}
             options={TABS.map((entry) => ({ value: entry.id, label: entry.label }))}
           />
-          {/* Pencil rgWeB `search`: rounded-12, white fill, hairline
-              divider-subtle border, ~240px wide (kept flex-1 on small
-              screens so it never overflows). */}
-          <label className="inline-flex h-9 min-w-0 flex-1 items-center gap-2 rounded-xl border border-divider-subtle bg-background-default px-3 sm:max-w-[240px]">
-            <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder={t`Search handled alerts`}
-              aria-label={t`Search handled alerts`}
-              className="min-w-0 flex-1 bg-transparent text-base font-medium text-text-primary outline-none placeholder:text-text-muted"
-            />
-          </label>
+          {/* Canonical SearchInput so rest/hover/focus/placeholder + the
+              clear-(×)/Esc affordance match every other page search. */}
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder={t`Search handled alerts`}
+            className="min-w-0 flex-1 sm:max-w-[240px]"
+          />
         </div>
 
         {/* BULK BAR — appears when rows are selected. */}
@@ -257,13 +252,14 @@ export function AlertHistoryView() {
             <span className="text-base font-semibold text-text-accent tabular-nums">
               <Plural value={selected.size} one="# alert selected" other="# alerts selected" />
             </span>
-            <button
-              type="button"
+            <TextLink
+              variant="accent"
+              size="sm"
               onClick={() => setSelected(new Set())}
-              className="cursor-pointer text-base font-medium text-text-accent underline-offset-2 hover:underline"
+              className="text-base"
             >
               <Trans>Clear</Trans>
-            </button>
+            </TextLink>
           </div>
         ) : null}
 

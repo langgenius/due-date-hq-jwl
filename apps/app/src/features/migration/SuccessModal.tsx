@@ -204,14 +204,15 @@ export function SuccessModal({
 
           {/* Footer */}
           <div className="flex items-center gap-3 border-t border-divider-subtle px-6 py-3.5">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onViewAuditLog}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-sm text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="text-text-secondary hover:text-text-primary"
             >
               <ScrollTextIcon className="size-3.5" aria-hidden />
               <Trans>View audit log entry</Trans>
-            </button>
+            </Button>
             <span className="flex-1" />
             <Button variant="outline" size="sm" onClick={onImportAnother}>
               <Trans>Import another file</Trans>

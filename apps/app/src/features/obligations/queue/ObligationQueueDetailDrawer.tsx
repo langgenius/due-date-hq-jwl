@@ -1692,14 +1692,15 @@ export function ObligationQueueDetailDrawer({
             稿 puts the Assign / Snooze / Mark-as-filed actions in this
             corner instead (rendered on the status row below). */}
         {mode === 'panel' ? (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-sm"
             aria-label={t`Close deadline detail`}
             onClick={onClose}
-            className="absolute right-3 top-3 inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="absolute right-3 top-3 text-text-tertiary hover:text-text-primary"
           >
             <XIcon className="size-4" aria-hidden />
-          </button>
+          </Button>
         ) : null}
         {/* 2026-06-10 (Yuqi alert↔deadline parity, hero rework 2f0d4b27): the
             "Last activity just now" stamp is gone from the hero — it isn't in

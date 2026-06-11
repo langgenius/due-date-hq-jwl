@@ -69,7 +69,10 @@ function CommandInput({
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(
-          'h-full w-full bg-transparent text-sm text-text-primary outline-none placeholder:text-text-placeholder disabled:cursor-not-allowed disabled:text-text-disabled',
+          // placeholder:text-text-secondary — matches the canonical SearchInput
+          // so the ⌘K palette / faceted-filter popover / combobox typeaheads
+          // read the same as every page search (2026-06-10).
+          'h-full w-full bg-transparent text-sm text-text-primary outline-none placeholder:text-text-secondary disabled:cursor-not-allowed disabled:text-text-disabled',
           className,
         )}
         {...props}

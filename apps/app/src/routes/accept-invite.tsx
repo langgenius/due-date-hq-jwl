@@ -295,15 +295,16 @@ export function AcceptInviteRoute() {
             {/* "Use a different email" signs out so the recipient can switch
                 accounts. There is no decline endpoint, so no decline action. */}
             <p className="text-center">
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="xs"
                 onClick={() => {
                   void signOut().finally(() => navigate('/login', { replace: true }))
                 }}
-                className="rounded-sm text-xs font-medium text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                className="text-text-secondary hover:text-text-primary"
               >
                 <Trans>Use a different email</Trans>
-              </button>
+              </Button>
             </p>
           </div>
         )}

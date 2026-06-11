@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { SearchIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CountPill } from '@/components/primitives/count-pill'
+import { SearchInput } from '@/components/primitives/search-input'
 import { useActiveAlertCount } from '@/features/alerts/api'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -138,17 +138,13 @@ export function AlertListRail({
       {/* FilterRow — full-width search (no All/Unresolved segmented,
           see note above). */}
       <div className="flex shrink-0 items-center gap-2 border-b border-divider-subtle px-4 py-2.5">
-        <label className="inline-flex h-7 w-full items-center gap-2 rounded-lg px-2 text-text-muted transition-colors focus-within:bg-state-base-hover hover:bg-state-base-hover">
-          <SearchIcon className="size-3.5 shrink-0" aria-hidden />
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={t`Search alerts`}
-            aria-label={t`Search alerts`}
-            className="min-w-0 flex-1 bg-transparent text-base text-text-primary outline-none placeholder:text-text-muted"
-          />
-        </label>
+        <SearchInput
+          variant="compact"
+          value={search}
+          onChange={setSearch}
+          placeholder={t`Search alerts`}
+          className="w-full"
+        />
       </div>
 
       {/* ListBody — compact items, the open one accented. */}

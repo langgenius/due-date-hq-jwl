@@ -23,6 +23,7 @@ import type { ReminderTemplatePublic } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -247,6 +248,7 @@ function Editor({ template }: { template: ReminderTemplatePublic }) {
                 { value: 'monthly', label: t`Monthly` },
               ]}
               value={template.kind === 'readiness_request' ? 'once' : 'weekly'}
+              onValueChange={() => {}}
               disabled
             />
           </FormField>
@@ -261,6 +263,7 @@ function Editor({ template }: { template: ReminderTemplatePublic }) {
                   { value: 'after', label: t`Days after start` },
                 ]}
                 value="before"
+                onValueChange={() => {}}
                 disabled
               />
               <div className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-3 py-2 text-sm">
@@ -368,48 +371,15 @@ function FormField({
 
 function ToolbarButton({ icon: Icon, label }: { icon: typeof BoldIcon; label: string }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      size="icon-xs"
       aria-label={label}
       disabled
-      className="inline-flex size-7 cursor-not-allowed items-center justify-center rounded-lg text-text-secondary disabled:opacity-60"
+      className="text-text-secondary disabled:opacity-60"
     >
       <Icon className="size-3.5" aria-hidden />
-    </button>
-  )
-}
-
-function Segmented({
-  options,
-  value,
-  disabled,
-}: {
-  options: Array<{ value: string; label: string }>
-  value: string
-  disabled?: boolean
-}) {
-  return (
-    <div className="inline-flex w-fit items-center gap-0.5 rounded-lg border border-divider-regular bg-background-section p-[3px]">
-      {options.map((option) => {
-        const selected = option.value === value
-        return (
-          <button
-            key={option.value}
-            type="button"
-            disabled={disabled}
-            aria-pressed={selected}
-            className={cn(
-              'rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors disabled:cursor-default',
-              selected
-                ? 'border border-divider-regular bg-background-default font-semibold text-text-primary shadow-xs'
-                : 'text-text-secondary',
-            )}
-          >
-            {option.label}
-          </button>
-        )
-      })}
-    </div>
+    </Button>
   )
 }
 

@@ -130,6 +130,7 @@ import {
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Switch } from '@duedatehq/ui/components/ui/switch'
@@ -689,33 +690,19 @@ export function PreviewRoute() {
               </p>
             </div>
             {/* Theme toggle — flips the whole preview between light + dark so
-                designers can verify token mappings without leaving the page. */}
-            <div className="flex shrink-0 items-center gap-1 rounded-lg border border-divider-regular bg-background-default p-1">
-              <Button
-                variant={theme === 'light' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setTheme('light')}
-                aria-pressed={theme === 'light'}
-              >
-                <SunIcon /> Light
-              </Button>
-              <Button
-                variant={theme === 'dark' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setTheme('dark')}
-                aria-pressed={theme === 'dark'}
-              >
-                <MoonIcon /> Dark
-              </Button>
-              <Button
-                variant={theme === 'system' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setTheme('system')}
-                aria-pressed={theme === 'system'}
-              >
-                System
-              </Button>
-            </div>
+                designers can verify token mappings without leaving the page.
+                Uses the shared <Segmented> (pick-one), like every other
+                pick-one toggle in the app. */}
+            <Segmented<ThemePreference>
+              ariaLabel="Theme"
+              value={theme}
+              onValueChange={setTheme}
+              options={[
+                { value: 'light', label: 'Light', icon: SunIcon },
+                { value: 'dark', label: 'Dark', icon: MoonIcon },
+                { value: 'system', label: 'System' },
+              ]}
+            />
           </header>
 
           {/* Tokens */}

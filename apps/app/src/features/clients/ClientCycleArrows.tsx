@@ -5,7 +5,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
-import { cn } from '@duedatehq/ui/lib/utils'
+import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { orpc } from '@/lib/rpc'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
@@ -175,22 +175,19 @@ function CycleButton({
 }) {
   const Icon = direction === 'prev' ? ChevronLeftIcon : ChevronRightIcon
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      size="icon-xs"
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
       title={title}
-      className={cn(
-        'inline-flex size-6 cursor-pointer items-center justify-center rounded-sm text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        disabled &&
-          'cursor-not-allowed text-text-disabled hover:bg-transparent hover:text-text-disabled',
-      )}
+      className="text-text-secondary hover:text-text-primary"
     >
       <Icon className="size-3.5" aria-hidden />
       <span className="sr-only">
         {direction === 'prev' ? <Trans>Previous</Trans> : <Trans>Next</Trans>}
       </span>
-    </button>
+    </Button>
   )
 }

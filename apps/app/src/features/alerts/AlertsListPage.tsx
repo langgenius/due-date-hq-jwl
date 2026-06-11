@@ -18,7 +18,6 @@ import {
   MapIcon,
   MegaphoneIcon,
   SatelliteDishIcon,
-  SearchIcon,
   Settings2Icon,
   SlidersHorizontalIcon,
   Undo2Icon,
@@ -52,6 +51,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { SearchInput } from '@/components/primitives/search-input'
 import { StatusBanner } from '@/components/patterns/status-banner'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 
@@ -753,17 +753,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   />
                 ) : null}
 
-                <label className="inline-flex h-9 w-[180px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-inset focus-within:ring-state-accent-active-alt sm:w-[200px]">
-                  <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-                  <input
-                    type="search"
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder={t`Search alerts`}
-                    className="min-w-0 flex-1 bg-transparent text-base font-medium text-text-primary outline-none placeholder:text-text-muted"
-                    aria-label={t`Search alerts`}
-                  />
-                </label>
+                <SearchInput
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder={t`Search alerts`}
+                  className="w-[180px] shrink-0 sm:w-[200px]"
+                />
 
                 {/* Morning-sweep preset chip — deliberately OUTSIDE the
                     panelOpen gate so the override's exit stays visible when
@@ -774,14 +769,16 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   <span className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-state-accent-border bg-state-accent-hover px-3 text-base font-medium text-text-accent">
                     <CoffeeIcon className="size-3.5" aria-hidden />
                     <Trans>Morning sweep · last 24h</Trans>
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
                       type="button"
                       onClick={morningSweep.deactivate}
                       aria-label={t`Clear morning sweep`}
-                      className="inline-flex size-5 cursor-pointer items-center justify-center rounded-md outline-none transition-colors hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                      className="size-5 hover:bg-state-accent-hover-alt"
                     >
                       <XIcon className="size-3" aria-hidden />
-                    </button>
+                    </Button>
                   </span>
                 ) : null}
 
@@ -911,14 +908,18 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       />
                     ) : null}
 
-                    {/* Reset sits next to the State dropdown and only
-                    mounts when `filtersActive` (nothing to reset, no
-                    button). */}
-                    {filtersActive ? (
-                      <Button variant="ghost" size="sm" onClick={resetFilters}>
-                        <Trans>Reset</Trans>
-                      </Button>
-                    ) : null}
+                    {/* Clear filters sits next to the State dropdown. Always
+                    rendered, disabled when there's nothing to clear — matches
+                    /clients + /rules so the affordance never reflows the
+                    wrapping toolbar row as filters come and go. */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={!filtersActive}
+                      onClick={resetFilters}
+                    >
+                      <Trans>Clear filters</Trans>
+                    </Button>
 
                     {/* Sort by — three options matching the sortOrder
                     enum. The current value is shown inline on the trigger

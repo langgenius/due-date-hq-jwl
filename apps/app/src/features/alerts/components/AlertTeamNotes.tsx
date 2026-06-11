@@ -4,6 +4,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { toast } from 'sonner'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
 import { orpc } from '@/lib/rpc'
@@ -83,13 +84,13 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
                 <span className="text-xs text-text-tertiary tabular-nums">
                   {formatRelativeTime(note.createdAt)}
                 </span>
-                <button
-                  type="button"
+                <TextLink
+                  variant="quiet"
                   onClick={() => handleReply(note.authorName)}
-                  className="ml-auto cursor-pointer text-xs font-medium text-text-tertiary underline-offset-2 transition-colors hover:text-text-secondary hover:underline"
+                  className="ml-auto"
                 >
                   <Trans>Reply</Trans>
-                </button>
+                </TextLink>
               </div>
               <p className="text-base leading-[1.5] whitespace-pre-wrap text-text-secondary">
                 {note.body}

@@ -798,14 +798,15 @@ function MappingCapabilityHelp({
       <Tooltip>
         <TooltipTrigger
           render={
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon-xs"
               aria-label={label}
               title={title}
-              className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="shrink-0 text-text-tertiary hover:text-text-primary"
             >
               <CircleHelpIcon className="size-3.5" aria-hidden />
-            </button>
+            </Button>
           }
         />
         <TooltipContent className="max-w-[280px] whitespace-normal">{children}</TooltipContent>

@@ -524,13 +524,9 @@ function DecisionBanners({
           </Trans>
         }
         action={
-          <button
-            type="button"
-            onClick={onRetry}
-            className="cursor-pointer text-sm font-semibold text-text-destructive underline-offset-2 hover:underline"
-          >
+          <TextLink variant="destructive" size="sm" onClick={onRetry} className="font-semibold">
             <Trans>Retry now</Trans>
-          </button>
+          </TextLink>
         }
       />
     )
@@ -557,13 +553,9 @@ function DecisionBanners({
         }
         action={
           REVERTABLE_STATUSES.has(alert.status) ? (
-            <button
-              type="button"
-              onClick={onUndo}
-              className="cursor-pointer text-sm font-semibold text-text-success underline-offset-2 hover:underline"
-            >
+            <TextLink variant="success" size="sm" onClick={onUndo} className="font-semibold">
               <Trans>Undo</Trans>
-            </button>
+            </TextLink>
           ) : undefined
         }
       />
@@ -1148,14 +1140,15 @@ export function AlertDetailDrawer({
                 {t`${position.index + 1} of ${position.total}`}
               </span>
             ) : null}
-            <button
+            <Button
+              variant="ghost"
+              size="icon-sm"
               type="button"
               onClick={onClose}
               aria-label={t`Close alert detail`}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <XIcon className="size-4" aria-hidden />
-            </button>
+            </Button>
           </div>
         </div>
       </div>

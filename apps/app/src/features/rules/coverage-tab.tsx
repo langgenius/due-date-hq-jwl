@@ -37,6 +37,7 @@ import {
 } from '@duedatehq/ui/components/ui/sheet'
 import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import { Tabs, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import {
   Table,
   TableBody,
@@ -1275,17 +1276,17 @@ function CoverageRow({
         <TableCell className="py-2 text-right text-sm tabular-nums">
           {onActiveDrillIn && active > 0 ? (
             <span className="group/active inline-flex items-center justify-end gap-0.5">
-              <button
-                type="button"
+              <TextLink
+                variant="quiet"
+                size="sm"
                 onClick={(event) => {
                   event.stopPropagation()
                   onActiveDrillIn(row.jurisdiction)
                 }}
                 aria-label={t`Open ${active} active rules for ${jurisdictionLabel(row.jurisdiction)}`}
-                className="cursor-pointer rounded-sm text-text-secondary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 {active}
-              </button>
+              </TextLink>
               <ChevronRightIcon
                 aria-hidden
                 className="size-3 text-text-accent opacity-0 transition-opacity group-hover/active:opacity-100"
@@ -1497,17 +1498,22 @@ function ExpandedRowDetail({
                     key={source.id}
                     className="flex items-center gap-2 rounded px-1 py-1 hover:bg-background-subtle/40"
                   >
-                    <a
-                      href={source.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(event) => event.stopPropagation()}
-                      title={source.title}
-                      className="inline-flex items-center gap-1 text-sm text-text-secondary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    <TextLink
+                      variant="quiet"
+                      size="sm"
+                      render={
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(event) => event.stopPropagation()}
+                          title={source.title}
+                        />
+                      }
                     >
                       <span className="truncate">{source.title}</span>
                       <ExternalLinkIcon aria-hidden className="size-3 shrink-0 opacity-60" />
-                    </a>
+                    </TextLink>
                   </li>
                 ))}
                 {sources.length > 6 ? (
@@ -1616,18 +1622,23 @@ function CoverageRuleItem({
               sourceDefined={sourceDefined}
               sourceDefinedDraftReady={sourceDefinedDraftReady}
             />
-            <a
-              href={ruleSource.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(event) => event.stopPropagation()}
-              title={ruleSource.title}
-              aria-label={t`Open cited source: ${ruleSource.title}`}
-              className="inline-flex shrink-0 items-center gap-1 rounded-sm px-1 py-0.5 text-xs text-text-tertiary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            <TextLink
+              render={
+                <a
+                  href={ruleSource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(event) => event.stopPropagation()}
+                  title={ruleSource.title}
+                  aria-label={t`Open cited source: ${ruleSource.title}`}
+                />
+              }
+              variant="quiet"
+              className="shrink-0 px-1 py-0.5"
             >
               <Trans>Source</Trans>
               <ExternalLinkIcon aria-hidden className="size-3 shrink-0" />
-            </a>
+            </TextLink>
           </div>
         ) : (
           <div className="flex shrink-0 items-center gap-2">
@@ -2491,15 +2502,17 @@ function RulePanel({
                 <ChevronRightIcon aria-hidden className="size-3.5" />
               </button>
             ) : null}
-            <button
+            <Button
+              variant="ghost"
+              size="icon-sm"
               type="button"
               onClick={onClose}
               aria-label={t`Close rule detail`}
               title={t`Exit review · Esc`}
-              className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded text-text-tertiary outline-none hover:bg-background-subtle hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="shrink-0"
             >
               <XIcon aria-hidden className="size-4" />
-            </button>
+            </Button>
           </div>
         </div>
         <h3 className="line-clamp-2 text-base font-semibold text-text-primary">{rule.title}</h3>

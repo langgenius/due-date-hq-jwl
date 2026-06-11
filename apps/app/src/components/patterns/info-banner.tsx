@@ -1,6 +1,7 @@
 import { useCallback, useState, type ComponentType, type SVGProps } from 'react'
 import { XIcon } from 'lucide-react'
 
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -128,14 +129,15 @@ export function InfoBanner({
         </TextLink>
       ) : null}
       {showDismiss ? (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon-xs"
           onClick={handleDismiss}
           aria-label="Dismiss"
-          className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="shrink-0 text-text-tertiary hover:text-text-secondary"
         >
           <XIcon className="size-4" aria-hidden />
-        </button>
+        </Button>
       ) : null}
     </div>
   )

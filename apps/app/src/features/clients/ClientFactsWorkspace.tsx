@@ -594,15 +594,16 @@ export function ClientFactsWorkspace({
                   surfaces the affordance as soon as the row enters
                   focus. */}
               <ClientPeekHoverCard clientId={row.original.id}>
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={(event) => event.stopPropagation()}
                   aria-label={t`Peek ${row.original.name} details`}
                   title={t`Peek details (without leaving the list)`}
-                  className="ml-auto inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="ml-auto shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:text-text-primary focus-visible:opacity-100"
                 >
                   <EyeIcon className="size-4" aria-hidden />
-                </button>
+                </Button>
               </ClientPeekHoverCard>
             </div>
           )
@@ -1422,10 +1423,12 @@ function ClientsFilterToolbar({
         onClick={() => {
           // Clears search alongside the structural filters so the CPA
           // returns to the full directory in one click.
-          // Labeled "Clear filters" (not "Reset") to align with
-          // /deadlines, /alerts, and /rules/library — "Reset" implied
-          // broader scope (density, columns, etc.) than the affordance
-          // actually has, since only filters get cleared.
+          // Labeled "Clear filters" (not "Reset") and shown always-but-
+          // disabled — the shared model with /alerts and /rules/library.
+          // "Reset" implied broader scope (density, columns, etc.) than the
+          // affordance actually has, since only filters get cleared. (The
+          // /deadlines queue keeps "Reset filters" inside its consolidated
+          // View menu — a different control, intentionally left as-is.)
           onSearchChange('')
           onClientFilterChange([])
           onStateFilterChange([])

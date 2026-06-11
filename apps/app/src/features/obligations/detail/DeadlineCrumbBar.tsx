@@ -2,6 +2,8 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { ChevronLeftIcon, XIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { Button } from '@duedatehq/ui/components/ui/button'
+
 /**
  * In-surface top bar atop the deadline detail PAGE — rebuilt 2026-06-10
  * (Yuqi alert↔deadline parity #1) to mirror AlertDetailDrawer's top bar
@@ -45,14 +47,15 @@ export function DeadlineCrumbBar({
               {t`${position.index + 1} of ${position.total}`}
             </span>
           ) : null}
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={onClose}
             aria-label={t`Close deadline detail`}
-            className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="text-text-tertiary"
           >
             <XIcon className="size-4" aria-hidden />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

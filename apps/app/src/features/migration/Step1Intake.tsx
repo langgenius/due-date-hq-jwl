@@ -598,13 +598,9 @@ export function Step1Intake({
                     </span>
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setPasteMode(true)}
-                  className="text-sm text-text-tertiary underline-offset-2 hover:text-text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm cursor-pointer"
-                >
+                <TextLink variant="quiet" size="sm" onClick={() => setPasteMode(true)}>
                   <Trans>Paste a list instead →</Trans>
-                </button>
+                </TextLink>
               </div>
             )}
 
@@ -951,13 +947,9 @@ function DetectionHero({
         </div>
       </button>
 
-      <button
-        type="button"
-        onClick={onRemove}
-        className="text-sm text-text-tertiary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm cursor-pointer"
-      >
+      <TextLink variant="quiet" size="sm" onClick={onRemove}>
         <Trans>Remove file</Trans>
-      </button>
+      </TextLink>
 
       {selectedPresetLabel && !isReadingFile ? (
         <p className="text-xs text-text-tertiary">
@@ -1002,13 +994,9 @@ function FileSummaryRow({
           </span>
         ) : null}
       </div>
-      <button
-        type="button"
-        onClick={onRemove}
-        className="shrink-0 cursor-pointer rounded-sm text-sm text-text-tertiary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-      >
+      <TextLink variant="quiet" size="sm" onClick={onRemove} className="shrink-0">
         <Trans>Remove</Trans>
-      </button>
+      </TextLink>
     </div>
   )
 }

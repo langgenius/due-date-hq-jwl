@@ -2,6 +2,7 @@ import { type ReactNode } from 'react'
 import { Trans } from '@lingui/react/macro'
 import { ArrowRightIcon, InfoIcon } from 'lucide-react'
 
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 
@@ -133,31 +134,23 @@ export function RuleReviewPrompt({
 
       {/* Actions */}
       <div className="flex flex-wrap items-center gap-2.5">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={onSkip}
-          className="rounded-lg px-3.5 py-2.5 text-base font-semibold text-text-tertiary transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="text-text-tertiary hover:text-text-secondary"
         >
           <Trans>Skip and import clients first</Trans>
-        </button>
+        </Button>
         <div className="flex-1" />
         {onBack ? (
-          <button
-            type="button"
-            onClick={onBack}
-            className="rounded-lg border border-divider-subtle bg-background-default px-4 py-2.5 text-base font-semibold text-text-secondary transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
+          <Button variant="secondary" onClick={onBack}>
             <Trans>Back</Trans>
-          </button>
+          </Button>
         ) : null}
-        <button
-          type="button"
-          onClick={onReview}
-          className="flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-5 py-2.5 text-base font-semibold text-text-primary-on-surface transition-colors hover:bg-components-button-primary-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
+        <Button variant="primary" onClick={onReview}>
           <Trans>Review {codeList} now</Trans>
           <ArrowRightIcon className="size-3.5" aria-hidden />
-        </button>
+        </Button>
       </div>
     </div>
   )

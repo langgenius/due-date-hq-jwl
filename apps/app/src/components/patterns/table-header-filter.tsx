@@ -3,6 +3,7 @@ import { ChevronDownIcon, ListFilterIcon, SearchIcon, XIcon } from 'lucide-react
 import { useLingui } from '@lingui/react/macro'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -154,14 +155,15 @@ function TableHeaderMultiFilter({
                   }}
                 />
                 {optionSearch.length > 0 ? (
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
                     aria-label={t`Clear search`}
                     onClick={() => setOptionSearch('')}
-                    className="absolute right-1.5 top-1/2 inline-flex size-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    className="absolute right-1.5 top-1/2 size-5 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
                   >
                     <XIcon className="size-3" aria-hidden />
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </div>

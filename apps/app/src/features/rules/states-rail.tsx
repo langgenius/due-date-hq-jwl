@@ -1,18 +1,13 @@
 import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import {
-  LandmarkIcon,
-  LayoutDashboardIcon,
-  ListFilterIcon,
-  MapPinIcon,
-  TimerIcon,
-} from 'lucide-react'
+import { LayoutDashboardIcon, ListFilterIcon, TimerIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { SearchInput } from '@/components/primitives/search-input'
+import { StateBadge } from '@/components/primitives/state-badge'
 
 /**
  * `JurisdictionRail` — the left master pane of the Rule Library
@@ -20,17 +15,17 @@ import { SearchInput } from '@/components/primitives/search-input'
  *
  * Renders a searchable jurisdiction list: an "Overview" entry (the All
  * jurisdictions surface), a pinned FEDERAL section, then the states A–Z
- * under a STATES section label. Each row carries a leading lucide icon
- * (layout-dashboard / landmark / map-pin), its rule count in a mono
- * count, and a quiet amber "needs review" dot when the jurisdiction has
- * pending-review rules. The selected jurisdiction drives the flat rule
- * table in the right pane.
+ * under a STATES section label. The Overview row carries a lucide
+ * dashboard icon; each JURISDICTION row carries its `StateBadge` seal
+ * (FED / state code), its rule count in a mono count, and a quiet amber
+ * "needs review" dot when the jurisdiction has pending-review rules. The
+ * selected jurisdiction drives the flat rule table in the right pane.
  *
  * Style maps the Pencil's raw hex onto design-system tokens (per repo
- * rule — no new theme colors): the active Overview row reads accent
- * (bg-state-accent-hover + text-text-accent), a selected state reads as
- * a quiet gray fill (bg-background-subtle). Section labels + eyebrow use
- * the muted caption scale.
+ * rule — no new theme colors): the selected row — Overview OR a
+ * jurisdiction — reads accent (bg-state-accent-hover + text-text-accent),
+ * the canonical nav-item selected state shared with SettingsSubNav and
+ * the main sidebar. Section labels + eyebrow use the muted caption scale.
  *
  * Decoupled from the route's private `JurisdictionGroup` type on
  * purpose — it takes a plain `RailJurisdiction[]` the route maps from
@@ -137,6 +132,7 @@ export function JurisdictionRail({
           section rhythm as the canonical rails). */}
       <div className="flex shrink-0 items-center border-b border-divider-subtle px-3 py-2.5">
         <SearchInput
+          variant="compact"
           value={search}
           onChange={onSearchChange}
           placeholder={t`Search jurisdictions`}
@@ -156,7 +152,6 @@ export function JurisdictionRail({
                 label={t`Overview`}
                 count={totalRuleCount}
                 reviewCount={0}
-                tone="overview"
                 selected={selected === null}
                 onSelect={() => onSelect(null)}
               />
@@ -180,11 +175,10 @@ export function JurisdictionRail({
             <>
               <RailSectionLabel>{t`Federal`}</RailSectionLabel>
               <RailRow
-                icon={LandmarkIcon}
+                code="FED"
                 label={federalVisible.label}
                 count={federalVisible.ruleCount}
                 reviewCount={federalVisible.reviewCount}
-                tone="default"
                 selected={selected === 'FED'}
                 onSelect={() => onSelect('FED')}
               />
@@ -197,11 +191,10 @@ export function JurisdictionRail({
               {visibleStates.map((it) => (
                 <RailRow
                   key={it.jurisdiction}
-                  icon={MapPinIcon}
+                  code={it.jurisdiction}
                   label={it.label}
                   count={it.ruleCount}
                   reviewCount={it.reviewCount}
-                  tone="default"
                   selected={selected === it.jurisdiction}
                   onSelect={() => onSelect(it.jurisdiction)}
                 />
@@ -282,56 +275,49 @@ function RailNavRow({
 
 function RailRow({
   icon: Icon,
+  code,
   label,
   count,
   reviewCount,
-  tone,
   selected,
   onSelect,
 }: {
-  icon: React.ComponentType<{ className?: string }>
+  /** Leading lucide icon — used by the Overview row. Ignored when `code` is set. */
+  icon?: React.ComponentType<{ className?: string }>
+  /** Jurisdiction code ('FED', 'CA', …) — renders the StateBadge seal instead of an icon. */
+  code?: string
   label: string
   count: number
   reviewCount: number
-  /** `overview` reads accent when selected; `default` reads quiet gray. */
-  tone: 'overview' | 'default'
   selected: boolean
   onSelect: () => void
 }) {
-  // The Overview row is the only row that reads in accent-blue when
-  // active — it's the "home" surface. Jurisdiction rows read as a quiet
-  // gray fill so the eye distinguishes "you're on the catalog" from
-  // "you've drilled into one state."
-  const accentSelected = tone === 'overview' && selected
+  // Selected rows — Overview AND jurisdictions — read in accent-blue,
+  // the canonical nav-item selected state shared with SettingsSubNav and
+  // the main sidebar. Unselected rows stay quiet (text-secondary label,
+  // muted count) so the active jurisdiction is the one strong row.
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-current={selected ? 'true' : undefined}
       className={cn(
-        'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-colors',
-        accentSelected
-          ? 'bg-state-accent-hover'
-          : selected
-            ? 'bg-background-subtle'
-            : 'hover:bg-state-base-hover',
+        'flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors',
+        selected ? 'bg-state-accent-hover' : 'hover:bg-state-base-hover',
       )}
     >
-      <Icon
-        className={cn(
-          'size-[15px] shrink-0',
-          accentSelected ? 'text-text-accent' : 'text-text-secondary',
-        )}
-        aria-hidden
-      />
+      {code ? (
+        <StateBadge code={code} size="xs" preview={false} />
+      ) : Icon ? (
+        <Icon
+          className={cn('size-[15px] shrink-0', selected ? 'text-text-accent' : 'text-text-secondary')}
+          aria-hidden
+        />
+      ) : null}
       <span
         className={cn(
           'min-w-0 flex-1 truncate text-base',
-          accentSelected
-            ? 'font-bold text-text-accent'
-            : selected
-              ? 'font-semibold text-text-primary'
-              : 'font-medium text-text-secondary',
+          selected ? 'font-semibold text-text-accent' : 'font-medium text-text-secondary',
         )}
       >
         {label}
@@ -346,8 +332,8 @@ function RailRow({
       ) : null}
       <span
         className={cn(
-          'shrink-0 text-xs font-semibold tabular-nums',
-          accentSelected ? 'text-text-accent' : 'text-text-muted',
+          'shrink-0 text-xs font-medium tabular-nums',
+          selected ? 'text-text-accent' : 'text-text-muted',
         )}
       >
         {count}

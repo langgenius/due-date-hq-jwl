@@ -62,6 +62,17 @@ const textLinkVariants = cva(
         // 10+ hand-rolled "text-text-accent hover:underline" inline
         // section affordances can use the primitive.
         accent: 'text-text-accent underline-offset-2 hover:underline',
+        // 2026-06-10: quiet variant — neutral (tertiary) at rest, becomes an
+        // accent underlined link on hover. The "looks like body text until you
+        // hover" affordance hand-rolled across coverage-tab + Step1Intake
+        // ("text-tertiary hover:text-accent hover:underline").
+        quiet: 'text-text-tertiary underline-offset-2 hover:text-text-accent hover:underline',
+        // 2026-06-10: destructive inline link (e.g. a "Dismiss"/"Remove" text
+        // action). Mirrors `accent` in the destructive tone.
+        destructive: 'text-text-destructive underline-offset-2 hover:underline',
+        // 2026-06-10: success inline link (e.g. a green "Undo" confirmation
+        // action). Mirrors `accent`/`destructive` in the success tone.
+        success: 'text-text-success underline-offset-2 hover:underline',
       },
       size: {
         default: 'text-xs',

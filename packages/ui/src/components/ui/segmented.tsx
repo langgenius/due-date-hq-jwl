@@ -32,6 +32,7 @@ export function Segmented<T extends string>({
   onValueChange,
   options,
   size = 'md',
+  disabled = false,
   className,
   ariaLabel,
 }: {
@@ -40,6 +41,8 @@ export function Segmented<T extends string>({
   options: ReadonlyArray<SegmentedOption<T>>
   /** `md` = h-7 items (toolbar default); `sm` = h-6 (dense rows). */
   size?: 'sm' | 'md'
+  /** Disable the whole control (e.g. a not-yet-wired setting). */
+  disabled?: boolean
   className?: string
   ariaLabel?: string
 }) {
@@ -47,8 +50,10 @@ export function Segmented<T extends string>({
     <div
       role="group"
       aria-label={ariaLabel}
+      aria-disabled={disabled || undefined}
       className={cn(
         'inline-flex w-fit items-center gap-0.5 rounded-lg bg-components-segmented-bg p-0.5',
+        disabled && 'opacity-50',
         className,
       )}
     >
@@ -59,12 +64,14 @@ export function Segmented<T extends string>({
           <button
             key={option.value}
             type="button"
+            disabled={disabled}
             onClick={() => onValueChange(option.value)}
             aria-pressed={active}
             aria-label={option.ariaLabel}
             className={cn(
               'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 rounded-lg font-medium whitespace-nowrap transition-colors outline-none',
               'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+              'disabled:cursor-not-allowed',
               size === 'sm' ? 'h-6 px-2 text-xs' : 'h-7 px-2.5 text-xs',
               active
                 ? 'border border-divider-subtle bg-components-segmented-item-bg-active text-components-segmented-text-active'

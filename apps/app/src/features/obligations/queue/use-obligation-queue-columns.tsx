@@ -15,6 +15,7 @@ import {
   type ObligationQueueSort,
 } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { TableHeaderMultiFilter } from '@/components/patterns/table-header-filter'
@@ -272,15 +273,16 @@ export function useObligationQueueColumns(
                     does click the eye. Visible on row hover, also on
                     keyboard focus for accessibility. */}
               <ClientPeekHoverCard clientId={tableRow.original.clientId}>
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
                   onClick={(event) => event.stopPropagation()}
                   aria-label={t`Peek ${tableRow.original.clientName} details`}
                   title={t`Peek client details`}
-                  className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 hover:text-text-primary focus-visible:opacity-100"
                 >
                   <EyeIcon className="size-3.5" aria-hidden />
-                </button>
+                </Button>
               </ClientPeekHoverCard>
             </div>
           )

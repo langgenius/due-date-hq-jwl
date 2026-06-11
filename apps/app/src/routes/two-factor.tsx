@@ -135,15 +135,16 @@ export function TwoFactorRoute() {
             <span className="text-xs font-medium text-text-tertiary">
               <Trans>Not your device?</Trans>
             </span>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="xs"
               onClick={() => {
                 void signOut().finally(() => navigate('/login', { replace: true }))
               }}
-              className="rounded-sm text-xs font-semibold text-text-primary transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="text-text-secondary hover:text-text-primary"
             >
               <Trans>Sign out</Trans>
-            </button>
+            </Button>
           </p>
         </form>
       </AuthCard>

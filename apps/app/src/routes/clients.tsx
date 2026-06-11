@@ -9,13 +9,13 @@ import { toast } from 'sonner'
 import type { ClientCreateInput, ClientPublic, ObligationStatus } from '@duedatehq/contracts'
 import type { ClientTaxClassification } from '@duedatehq/contracts/shared/enums'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
-import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { InfoBanner } from '@/components/patterns/info-banner'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
+import { CountPill } from '@/components/primitives/count-pill'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
 import { clientDetailPath } from '@/features/clients/client-url'
@@ -391,13 +391,14 @@ export function ClientsRoute() {
                 shows "N of M" so the CPA sees both the filtered subset AND
                 the total at a glance — keeping the unfiltered total would
                 make the chip lie about the visible list. */}
-            {/* Badge primitive (variant="secondary" size="lg") —
-                canonical PageHeader-title count chip. */}
-            <Badge variant="secondary" size="lg" className="tabular-nums">
+            {/* CountPill (tone="neutral") — the canonical PageHeader-title
+                count chip, shared with /deadlines. Neutral = a plain total
+                (no status dot). */}
+            <CountPill tone="neutral">
               {filteredClients.length === clients.length
                 ? clients.length
                 : t`${filteredClients.length} of ${clients.length}`}
-            </Badge>
+            </CountPill>
           </span>
         }
         actions={

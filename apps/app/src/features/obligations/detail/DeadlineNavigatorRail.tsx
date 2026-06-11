@@ -1,5 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CheckIcon, ChevronDownIcon, ListFilterIcon, SearchIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, ListFilterIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import type { ObligationQueueDetailTab, ObligationQueueRow } from '@duedatehq/contracts'
@@ -11,6 +11,7 @@ import {
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 import {
@@ -157,14 +158,12 @@ export function DeadlineNavigatorRail({
       {/* FilterRow — client-side search + optional status filter over the
           loaded rows (rzzww `kEi6B`). */}
       <div className="flex items-center gap-1.5 border-b border-divider-subtle px-4 py-2.5">
-        <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-        <input
-          type="search"
+        <SearchInput
+          variant="compact"
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={setSearch}
           placeholder={t`Search deadlines`}
-          aria-label={t`Search deadlines`}
-          className="min-w-0 flex-1 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
+          className="min-w-0 flex-1"
         />
         {/* Optional status filter. Trigger surfaces the active status label so
             it's clear the rail is filtered; "All statuses" clears it. */}

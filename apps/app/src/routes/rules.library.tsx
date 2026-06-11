@@ -832,20 +832,21 @@ function OverviewRecentChangesCard({
           </span>
         </div>
         <span className="flex-1" />
-        <button
-          type="button"
+        <TextLink
+          variant="accent"
+          size="sm"
           onClick={onViewAll}
-          className="group/viewall inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg text-base font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="group/viewall shrink-0 gap-1.5 text-base"
         >
           <Trans>View all changes</Trans>
           <ArrowRightIcon
             aria-hidden
             className="size-3.5 transition-transform duration-150 group-hover/viewall:translate-x-0.5"
           />
-        </button>
+        </TextLink>
       </div>
-      <ul className="flex flex-col">
-        {rules.map((rule, index) => {
+      <ul className="-mx-3 flex flex-col">
+        {rules.map((rule) => {
           const kind = ruleChangeKind(rule, now)
           const changedAt = ruleChangedAt(rule)
           const relative = changedAt ? formatRelativeTime(new Date(changedAt).toISOString()) : null
@@ -863,10 +864,7 @@ function OverviewRecentChangesCard({
               <button
                 type="button"
                 onClick={() => onRuleClick(rule)}
-                className={cn(
-                  'group/row flex w-full items-center gap-3.5 py-4 text-left outline-none transition-colors cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                  index > 0 && 'border-t border-divider-subtle',
-                )}
+                className="group/row flex w-full cursor-pointer items-center gap-3.5 rounded-lg px-3 py-3 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 <span
                   className={cn(
@@ -1223,15 +1221,9 @@ export function RulesLibraryRoute() {
 
   // Overview KPI-strip + eyebrow inputs (Pencil O0pyRO KPI Strip /
   // eyebrow). All derived from already-wired queries — no extra fetch.
-  //   jurisdictionCount / stateCount — one coverage row per jurisdiction
-  //   activeSources                  — sources reporting a healthy feed
-  //   changedLast30                  — rules touched in the trailing 30d
-  //   pendingRisk                    — high/med/low split of the review queue
+  //   jurisdictionCount — one coverage row per jurisdiction
+  //   changedLast30     — rules touched in the trailing 30d
   const jurisdictionCount = coverageRows.length
-  const stateCount = useMemo(
-    () => coverageRows.filter((row) => row.jurisdiction !== 'FED').length,
-    [coverageRows],
-  )
   // Rail library-section rows (Pencil O0pyRO — Sources / Temporary rules).
   const railSources = useMemo(() => {
     const data = sourcesQuery.data
@@ -1256,11 +1248,9 @@ export function RulesLibraryRoute() {
   }, [rules])
   // Overview stats-band subs (Pencil O0pyRO `p0WeNy`) — all derived from
   // already-wired queries, no fiction:
-  //   sourcesMonitored — total feeds the catalog watches
   //   coveragePct      — share of jurisdictions with zero entity gaps
   //   highImpactChanged — high-risk rules touched in the trailing 30d
   //   reviewedLast30    — rules explicitly reviewed by the practice in the trailing 30d
-  const sourcesMonitored = useMemo(() => sourcesQuery.data?.length ?? 0, [sourcesQuery.data])
   const coveragePct = useMemo(() => {
     if (coverageRows.length === 0) return 0
     let covered = 0
@@ -2187,32 +2177,6 @@ export function RulesLibraryRoute() {
               // lean two-button action cluster (Export + Add rule). The
               // catalog totals live in the subtitle + stats band below.
               <PageHeader
-                eyebrow={
-                  !statsLoading ? (
-                    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 tracking-normal normal-case">
-                      <PulsingDot tone="success" label={t`Library in sync`} />
-                      <span className="text-xs font-medium text-text-tertiary">
-                        <Trans>Live</Trans>
-                      </span>
-                      <span aria-hidden className="text-text-muted">
-                        ·
-                      </span>
-                      <span className="text-xs font-medium text-text-tertiary">
-                        <Trans>Federal + {stateCount} states</Trans>
-                      </span>
-                      <span aria-hidden className="text-text-muted">
-                        ·
-                      </span>
-                      <span className="text-xs font-medium text-text-tertiary">
-                        <Plural
-                          value={sourcesMonitored}
-                          one="# source monitored"
-                          other="# sources monitored"
-                        />
-                      </span>
-                    </span>
-                  ) : undefined
-                }
                 title={<Trans>Rule library</Trans>}
                 description={
                   !statsLoading ? (
@@ -3075,13 +3039,9 @@ function _GroupedRulesTable({
         </span>
         <div className="flex items-center gap-3">
           <RowNavHints />
-          <button
-            type="button"
-            onClick={someExpanded ? onCollapseAll : onExpandAll}
-            className="inline-flex items-center gap-1 text-sm font-medium text-text-secondary outline-none cursor-pointer hover:text-text-primary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
+          <TextLink variant="quiet" size="sm" onClick={someExpanded ? onCollapseAll : onExpandAll}>
             {someExpanded ? <Trans>Collapse all</Trans> : <Trans>Expand all</Trans>}
-          </button>
+          </TextLink>
         </div>
       </div>
       {/* Canonical workbench-table card frame (same recipe as /deadlines +
@@ -4288,13 +4248,9 @@ function BulkReviewBar({
         <span className="text-sm font-medium tabular-nums text-text-primary">
           <Plural value={count} one="# rule selected" other="# rules selected" />
         </span>
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-xs text-text-tertiary outline-none cursor-pointer hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
+        <TextLink variant="quiet" onClick={onClear}>
           <Trans>Clear</Trans>
-        </button>
+        </TextLink>
       </div>
       {showSelectAll ? (
         <>

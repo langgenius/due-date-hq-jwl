@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 import {
   displayNameFromEmail,
@@ -229,12 +230,12 @@ export function LoginRoute() {
 
               {/* Form card — Google + divider + email at 16px */}
               <div className="flex flex-col gap-4">
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
                   onClick={handleGoogleSignIn}
                   disabled={socialDisabled}
                   aria-busy={submittingProvider === 'google'}
-                  className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-divider-regular bg-background-default px-3.5 text-sm font-semibold tracking-[-0.1px] text-text-primary shadow-[0_1px_2px_rgba(16,24,40,0.06)] transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-60"
+                  className="h-12 w-full gap-3"
                 >
                   {submittingProvider === 'google' ? (
                     <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -248,15 +249,15 @@ export function LoginRoute() {
                       <Trans>Continue with Google</Trans>
                     )}
                   </span>
-                </button>
+                </Button>
 
                 {microsoftEnabled ? (
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
                     onClick={handleMicrosoftSignIn}
                     disabled={socialDisabled}
                     aria-busy={submittingProvider === 'microsoft'}
-                    className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-divider-regular bg-background-default px-3.5 text-sm font-semibold tracking-[-0.1px] text-text-primary shadow-[0_1px_2px_rgba(16,24,40,0.06)] transition-colors hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-60"
+                    className="h-12 w-full gap-3"
                   >
                     {submittingProvider === 'microsoft' ? (
                       <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -270,7 +271,7 @@ export function LoginRoute() {
                         <Trans>Continue with Microsoft</Trans>
                       )}
                     </span>
-                  </button>
+                  </Button>
                 ) : null}
 
                 {emailOtpEnabled ? (
@@ -315,13 +316,13 @@ export function LoginRoute() {
                 <span className="text-xs font-medium text-text-tertiary">
                   <Trans>Already have a magic link?</Trans>
                 </span>
-                <button
-                  type="button"
+                <TextLink
+                  variant="accent"
                   onClick={() => document.getElementById('login-email')?.focus()}
-                  className="rounded-sm text-xs font-semibold text-text-accent transition-colors hover:text-text-accent-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="font-semibold"
                 >
                   <Trans>Open it now →</Trans>
-                </button>
+                </TextLink>
               </p>
             </div>
 
@@ -668,18 +669,19 @@ function LoginEmailForm({
             </p>
             <p className="min-w-0 truncate font-mono text-sm text-text-primary">{sentEmail}</p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="xs"
             disabled={formDisabled}
             onClick={() => {
               noteInteraction()
               setSentEmail(null)
               setError(null)
             }}
-            className="shrink-0 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary disabled:opacity-60"
+            className="shrink-0 text-text-secondary hover:text-text-primary disabled:opacity-60"
           >
             <Trans>Change</Trans>
-          </button>
+          </Button>
         </div>
 
         <FieldShell error={error}>

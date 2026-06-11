@@ -205,6 +205,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { CountPill } from '@/components/primitives/count-pill'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { ClientPeekHoverCard } from '@/features/clients/ClientPeekHoverCard'
@@ -253,6 +254,7 @@ import { ObligationListRail } from '@/features/obligations/components/Obligation
 import { StageActions, type StageTask } from '@/features/obligations/StageActions'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
+import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { initialsFromName } from '@/lib/auth'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
@@ -2422,15 +2424,17 @@ export function ObligationQueueRoute() {
                   does click the eye. Visible on row hover, also on
                   keyboard focus for accessibility. */}
               <ClientPeekHoverCard clientId={tableRow.original.clientId}>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
                   type="button"
                   onClick={(event) => event.stopPropagation()}
                   aria-label={t`Peek ${tableRow.original.clientName} details`}
                   title={t`Peek client details`}
-                  className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
                 >
                   <EyeIcon className="size-3.5" aria-hidden />
-                </button>
+                </Button>
               </ClientPeekHoverCard>
             </div>
           )
@@ -3580,11 +3584,7 @@ export function ObligationQueueRoute() {
           // /rules/library).
           <span className="inline-flex items-center gap-2">
             <Trans>Deadlines</Trans>
-            {scopeTotal > 0 ? (
-              <Badge variant="secondary" size="lg" className="tabular-nums">
-                {scopeTotal}
-              </Badge>
-            ) : null}
+            {scopeTotal > 0 ? <CountPill tone="neutral">{scopeTotal}</CountPill> : null}
           </span>
         }
         actions={
@@ -3690,14 +3690,16 @@ export function ObligationQueueRoute() {
           // overlapping the metric line.
           className="relative flex flex-col gap-1 rounded-xl border border-divider-subtle bg-background-subtle px-5 py-3.5 pr-9"
         >
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
             type="button"
             onClick={dismissGlance}
             aria-label={t`Dismiss at-a-glance summary`}
-            className="absolute right-2.5 top-2.5 inline-flex size-6 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="absolute right-2.5 top-2.5"
           >
             <XIcon className="size-3.5" aria-hidden />
-          </button>
+          </Button>
           <p className="inline-flex items-center gap-2 text-caption font-medium tracking-eyebrow text-text-tertiary uppercase">
             <span
               className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt"
@@ -3875,26 +3877,24 @@ export function ObligationQueueRoute() {
             ) : null}
             <div className="flex flex-wrap items-center gap-2 pb-3">
               {/* Search — primary lookup across client / form / assignee. */}
-              <label className="inline-flex h-9 w-full min-w-0 shrink items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt sm:w-[320px]">
-                <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-                <input
-                  ref={searchInputRef}
-                  type="search"
-                  value={searchInput}
-                  onChange={(event) => {
-                    const nextSearch = event.target.value
-                    void setObligationQueueQuery(
-                      { q: nextSearch || null, obligation: null, row: null },
-                      nextSearch === ''
-                        ? undefined
-                        : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
-                    )
-                  }}
-                  placeholder={t`Search client, form, or assignee`}
-                  aria-label={t`Search client, form, or assignee`}
-                  className="min-w-0 flex-1 bg-transparent text-base text-text-primary outline-none placeholder:text-text-tertiary"
-                />
-              </label>
+              {/* Canonical SearchInput — unifies hover/focus/placeholder +
+                  the clear-(×)/Esc affordance with every other page search.
+                  The rate-limited URL write is preserved in the onChange; the
+                  clear button + Escape both route through it (next === ''). */}
+              <SearchInput
+                ref={searchInputRef}
+                value={searchInput}
+                onChange={(nextSearch) => {
+                  void setObligationQueueQuery(
+                    { q: nextSearch || null, obligation: null, row: null },
+                    nextSearch === ''
+                      ? undefined
+                      : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
+                  )
+                }}
+                placeholder={t`Search client, form, or assignee`}
+                className="w-full min-w-0 shrink sm:w-[320px]"
+              />
               {/* Filter sheet — one button (with an active-count badge) opens a
                   faceted popover (header · tab strip · per-facet typeahead body ·
                   Reset/Apply footer). Each dimension is a searchable checkbox
@@ -7153,7 +7153,9 @@ export function ObligationQueueDetailDrawer({
           // AlertDetailDrawer's close affordance, so both drawers' close X
           // sit at the identical corner inset.
           <div className="absolute right-3 top-3 flex items-center gap-0.5">
-            <button
+            <Button
+              variant="ghost"
+              size="icon-sm"
               type="button"
               aria-label={t`Copy link to this deadline`}
               title={t`Copy link to this deadline`}
@@ -7169,28 +7171,30 @@ export function ObligationQueueDetailDrawer({
                   toast.error(t`Couldn't copy link — your browser blocked clipboard access.`)
                 }
               }}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <LinkIcon className="size-4" aria-hidden />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
               type="button"
               aria-label={t`Close deadline detail`}
               onClick={onClose}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <XIcon className="size-4" aria-hidden />
-            </button>
+            </Button>
           </div>
         ) : mode === 'panel' ? (
-          <button
+          <Button
+            variant="ghost"
+            size="icon-sm"
             type="button"
             aria-label={t`Close deadline detail`}
             onClick={onClose}
-            className="absolute right-3 top-3 inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="absolute right-3 top-3"
           >
             <XIcon className="size-4" aria-hidden />
-          </button>
+          </Button>
         ) : null}
         {/* Client kicker — small label above the form code so the user
             knows whose return this is without burying the form
@@ -12984,13 +12988,15 @@ function ObligationFiltersPopover({
               />
             </span>
             {stagedTotal > 0 ? (
-              <button
+              <Button
+                variant="ghost"
+                size="xs"
                 type="button"
                 onClick={() => setStage(emptyStage)}
-                className="cursor-pointer text-caption-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                className="h-auto px-1.5 py-0.5 text-caption-xs"
               >
                 <Trans>Reset</Trans>
-              </button>
+              </Button>
             ) : null}
           </div>
           <div className="flex items-center gap-2">
@@ -13128,13 +13134,15 @@ function ObligationFacetSearchList({
           )}
         </span>
         {selectedCount > 0 ? (
-          <button
+          <Button
+            variant="ghost"
+            size="xs"
             type="button"
             onClick={onClear}
-            className="cursor-pointer text-caption-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="h-auto px-1.5 py-0.5 text-caption-xs"
           >
             <Trans>Clear</Trans>
-          </button>
+          </Button>
         ) : null}
       </div>
       <CommandList className="max-h-[260px]">
@@ -13357,14 +13365,16 @@ function ObligationActiveFilterChips({
           <span className="text-text-muted">{chip.dimension}</span>
           <span className="text-text-muted">·</span>
           <span className="truncate font-medium text-text-primary">{chip.label}</span>
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
             type="button"
             onClick={chip.onRemove}
             aria-label={t`Remove ${chip.label} filter`}
-            className="inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-full text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="size-4 shrink-0 rounded-full"
           >
             <XIcon className="size-3" aria-hidden />
-          </button>
+          </Button>
         </span>
       ))}
       <TextLink variant="secondary" className="ml-1 font-medium" onClick={onClearAll}>

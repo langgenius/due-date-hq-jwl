@@ -33,6 +33,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card } from '@duedatehq/ui/components/ui/card'
 import { Dialog, DialogContent, DialogTitle } from '@duedatehq/ui/components/ui/dialog'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -261,11 +262,11 @@ function DisclosureCard({
                 {detail}
               </div>
             ) : null}
-            <button
-              type="button"
+            <TextLink
+              variant="accent"
               onClick={() => setExpanded((value) => !value)}
               aria-expanded={expanded}
-              className="inline-flex w-fit cursor-pointer items-center gap-1 rounded-md text-base font-medium text-text-accent outline-none transition-colors hover:text-text-accent/80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="w-fit text-base"
             >
               {expanded ? (lessLabel ?? t`Show less`) : (moreLabel ?? t`Read more`)}
               <ChevronDownIcon
@@ -275,7 +276,7 @@ function DisclosureCard({
                   expanded && 'rotate-180',
                 )}
               />
-            </button>
+            </TextLink>
           </>
         ) : null}
       </div>
@@ -717,18 +718,18 @@ function RulePracticeReviewCard({ rule }: { rule: ObligationRule }) {
         />
         <div className="flex items-center gap-3">
           {notes.length > 0 ? (
-            <button
-              type="button"
+            <TextLink
+              variant="accent"
               onClick={() => setShowNotes((value) => !value)}
               aria-expanded={showNotes}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-md text-base font-medium text-text-accent outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="text-base"
             >
               <Plural value={notes.length} one="View # team note" other="View # team notes" />
               <ChevronDownIcon
                 aria-hidden
                 className={cn('size-3.5 transition-transform', showNotes && 'rotate-180')}
               />
-            </button>
+            </TextLink>
           ) : (
             <span className="text-base text-text-muted">
               <Trans>No team notes yet</Trans>
@@ -1381,14 +1382,16 @@ function ConfirmImpactDialog({
               </Trans>
             </p>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon-sm"
             type="button"
             aria-label={t`Close`}
             onClick={() => onOpenChange(false)}
-            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="-mr-1 -mt-1 shrink-0"
           >
             <XIcon className="size-4" aria-hidden />
-          </button>
+          </Button>
         </div>
         {/* Honest aggregate stats — only the numbers the API provides. */}
         <div className="flex items-center gap-5 border-b border-divider-subtle bg-background-subtle px-5 py-4">
@@ -1534,15 +1537,17 @@ function RejectReasonDialog({
               {rule.title}
             </p>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon-sm"
             type="button"
             aria-label={t`Close`}
             onClick={() => onOpenChange(false)}
             disabled={pending}
-            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-40"
+            className="-mr-1 -mt-1 shrink-0"
           >
             <XIcon className="size-4" aria-hidden />
-          </button>
+          </Button>
         </div>
         <div className="flex flex-col gap-2 px-5 py-4">
           <span className="text-xs font-medium text-text-secondary">

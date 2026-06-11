@@ -277,14 +277,16 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
           <ArrowRightIcon data-icon="inline-end" />
         </Button>
       ) : null}
-      <button
+      <Button
+        variant="ghost"
+        size="icon-xs"
         type="button"
         onClick={onClose}
         aria-label={t`Close morning sweep`}
-        className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-tertiary outline-none transition-colors hover:bg-state-accent-hover-alt hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="shrink-0 hover:bg-state-accent-hover-alt hover:text-text-primary"
       >
         <XIcon className="size-3.5" aria-hidden />
-      </button>
+      </Button>
     </section>
   )
 }

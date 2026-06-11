@@ -180,11 +180,20 @@ export function JurisdictionFilterBar({
   const sortValueFor = (field: RuleTableSort['field']) =>
     filter.sort?.field === field ? filter.sort.dir : 'none'
 
+  // Clear-filters affordance — same model as /clients and /alerts: always
+  // rendered, disabled when there's nothing to clear (no layout shift on a
+  // wrapping row). Clears the facet filters + sort + the search box; the
+  // status Segmented (All / Active / …) is a view scope, not a filter, so
+  // it's left untouched.
+  const filtersActive =
+    filter.types.size > 0 || filter.severities.size > 0 || filter.sort != null || search.length > 0
+
   return (
-    <div className="flex shrink-0 flex-wrap items-center gap-3">
+    <div className="flex shrink-0 flex-wrap items-center gap-2">
       <Segmented<RuleScope>
         value={scope}
         onValueChange={onScopeChange}
+        className="h-9 [&>button]:h-8"
         ariaLabel={t`Filter by status`}
         options={[
           { value: 'all', label: <Trans>All</Trans> },
@@ -313,6 +322,18 @@ export function JurisdictionFilterBar({
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={!filtersActive}
+        onClick={() => {
+          onFilterChange(EMPTY_RULE_TABLE_FILTER)
+          onSearchChange('')
+        }}
+      >
+        <Trans>Clear filters</Trans>
+      </Button>
     </div>
   )
 }
@@ -506,8 +527,8 @@ function JurisdictionRuleRow({
           This keeps "click the row to open & review" the obvious primary
           action and makes the checkbox a deliberate, secondary bulk gesture
           rather than competing for the same click. */}
-      <TableCell className="pl-4 align-top">
-        <span className="relative mt-0.5 inline-flex size-4 items-center justify-center">
+      <TableCell className="pl-4 align-middle">
+        <span className="relative inline-flex size-4 items-center justify-center">
           {selectable ? (
             <>
               <span
@@ -550,7 +571,7 @@ function JurisdictionRuleRow({
       </TableCell>
 
       {/* Rule name — jurisdiction code badge + title + one-line summary. */}
-      <TableCell className="py-3 align-top whitespace-normal">
+      <TableCell className="py-3 align-middle whitespace-normal">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex min-w-0 items-center gap-2">
             <span className="inline-flex shrink-0 items-center justify-center rounded bg-background-subtle px-1.5 py-0.5 font-mono text-caption-xs font-semibold text-text-tertiary">
@@ -567,9 +588,9 @@ function JurisdictionRuleRow({
       </TableCell>
 
       {/* Type — humanized tax type pill, truncated to its column. */}
-      <TableCell className="overflow-hidden px-2 py-3 align-top">
+      <TableCell className="overflow-hidden px-2 py-3 align-middle">
         <span
-          className="block max-w-full truncate rounded-full border border-divider-subtle bg-background-subtle px-2.5 py-0.5 text-center text-xs font-medium text-text-secondary"
+          className="inline-flex max-w-full items-center truncate rounded-full border border-divider-subtle bg-background-subtle px-2.5 py-0.5 text-xs font-medium text-text-secondary"
           title={typeLabel}
         >
           {typeLabel}
@@ -577,12 +598,12 @@ function JurisdictionRuleRow({
       </TableCell>
 
       {/* Effective — the rule's verified/effective date, mono. */}
-      <TableCell className="px-2 py-3 align-top">
+      <TableCell className="px-2 py-3 align-middle">
         <span className="font-mono text-sm text-text-secondary tabular-nums">{effective}</span>
       </TableCell>
 
       {/* Last modified — most recent review date. */}
-      <TableCell className="px-2 py-3 align-top">
+      <TableCell className="px-2 py-3 align-middle">
         {lastModified ? (
           <span className="text-sm text-text-tertiary tabular-nums">{lastModified}</span>
         ) : (
@@ -591,7 +612,7 @@ function JurisdictionRuleRow({
       </TableCell>
 
       {/* Severity — risk-level pill. */}
-      <TableCell className="px-2 py-3 align-top">
+      <TableCell className="px-2 py-3 align-middle">
         <span
           className={cn(
             'inline-flex items-center rounded-full px-2.5 py-0.5 text-caption-xs font-bold tracking-wide',
@@ -605,7 +626,7 @@ function JurisdictionRuleRow({
       {/* Status — label pill. (The dot is dropped: the leading row dot
           already carries the status colour, so a second dot here is
           redundant — keep just the labelled pill.) */}
-      <TableCell className="px-2 py-3 align-top">
+      <TableCell className="px-2 py-3 align-middle">
         <span
           className={cn(
             'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
@@ -619,11 +640,11 @@ function JurisdictionRuleRow({
 
       {/* Open affordance — a chevron that signals the row opens the rule
           detail; brightens + nudges +2px on hover. */}
-      <TableCell className="pr-4 align-top">
+      <TableCell className="pr-4 align-middle">
         <ChevronRightIcon
           aria-hidden
           className={cn(
-            'mt-1 size-4 shrink-0 transition-all duration-150 group-hover/row:translate-x-0.5',
+            'size-4 shrink-0 transition-all duration-150 group-hover/row:translate-x-0.5',
             active ? 'text-text-accent' : 'text-text-muted group-hover/row:text-text-tertiary',
           )}
         />
