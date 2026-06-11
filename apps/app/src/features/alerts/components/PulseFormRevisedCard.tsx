@@ -155,7 +155,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           {alert.jurisdiction}
         </span>
         {/* d5PWuK title: 18/600 ls -0.2 line-height 1.25 primary. */}
-        <h3 className="min-w-0 flex-1 truncate text-[18px] leading-[1.25] font-semibold tracking-[-0.2px] text-text-primary">
+        <h3 className="min-w-0 flex-1 truncate text-xl leading-[1.25] font-semibold tracking-[-0.2px] text-text-primary">
           {alert.title}
         </h3>
         {/* C9rliy "Open" muted: 20/500 ls -0.4 line-height 1.25. */}

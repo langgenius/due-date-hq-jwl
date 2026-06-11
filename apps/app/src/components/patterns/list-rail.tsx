@@ -58,9 +58,9 @@ export function ListRailHead({ className, children }: { className?: string; chil
   )
 }
 
-/** The canonical rail title text (`text-[16px] font-semibold`). */
+/** The canonical rail title text (`text-item-title`). */
 export function ListRailTitle({ children }: { children: ReactNode }) {
-  return <span className="text-[16px] font-semibold text-text-primary">{children}</span>
+  return <span className="text-item-title text-text-primary">{children}</span>
 }
 
 /**

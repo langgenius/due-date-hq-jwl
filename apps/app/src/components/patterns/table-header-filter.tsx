@@ -281,7 +281,7 @@ function tableHeaderFilterIconTrigger({
     >
       <ListFilterIcon className="size-3.5" aria-hidden />
       {activeCount > 0 ? (
-        <span className="absolute -top-0.5 -right-0.5 inline-flex size-3 items-center justify-center rounded-full bg-state-accent-active-alt text-[9px] font-medium leading-none text-text-accent-inverse">
+        <span className="absolute -top-0.5 -right-0.5 inline-flex size-3 items-center justify-center rounded-full bg-state-accent-active-alt text-micro font-medium leading-none text-text-accent-inverse">
           {activeCount}
         </span>
       ) : null}

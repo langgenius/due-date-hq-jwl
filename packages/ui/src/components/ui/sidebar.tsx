@@ -679,22 +679,22 @@ const sidebarMenuButtonVariants = cva(
     // Linear / Notion / Cloudflare sidebar density. Item height
     // stays h-8 (32px); icon size unchanged at size-4 (16px).
     // 2026-06-08 (Yuqi product-wide unification — "1px or 2px bigger text
-    // for the menu item"): nav label text-sm (14px) → text-[16px]. Item
+    // for the menu item"): nav label text-sm (14px) → 16px. Item
     // height stays h-8 (32px); icon stays size-4 (16px). Restores a touch
     // more presence to the nav without returning to the text-base (16px)
     // that previously competed with the firm-switcher anchor.
     // 2026-06-09 (Yuqi): height 36 (h-9 — "hover padding smaller", a
     // more compact tile now that rows sit flush at gap-0), gap 12
     // (gap-3 — "icon与text之间的gap稍微大一点"), px-3, rounded-lg. Label
-    // text-[16px]. Identical in both modes — collapsed re-centering is
+    // 16px. Identical in both modes — collapsed re-centering is
     // gone (see below).
     // 2026-06-10 (Yuqi "set to 15px" — sidebar is the product's sole 15px
-    // text size): nav label text-[16px] → text-[15px].
+    // text size): nav label text-[16px] → text-nav.
     // 2026-06-10 (Yuqi "delicacy" — tactile press): the row dips to 98% on
     // press (active:scale) for a crafted, responsive feel. transform is added
     // to the transition list (duration-150) so the dip + the icon hover-nudge
     // below both ease rather than snap.
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-[15px] font-normal text-text-secondary outline-none transition-[color,background-color,transform] duration-150 active:scale-[0.98]',
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-nav font-normal text-text-secondary outline-none transition-[color,background-color,transform] active:scale-[0.98]',
     // 2026-06-09 (Yuqi "icons should be vertically center aligned" in the
     // collapsed rail): the icon stays LEFT-aligned in both modes — no
     // justify-center. SIDEBAR_WIDTH_COLLAPSED is tuned so a left-aligned icon
@@ -899,7 +899,7 @@ export function SidebarMenuBadge({
   //
   // 2026-05-26 (Yuqi sidebar feedback — "icon position do not match"):
   // restored the canonical floating-pill pattern:
-  //   • Collapsed: smaller pill (h-3.5 min-w-3.5 px-0.5 text-[9px])
+  //   • Collapsed: smaller pill (h-3.5 min-w-3.5 px-0.5 text-micro)
   //     so it fits in the top-right CORNER without intruding on the
   //     icon's centered footprint. Positioned at `-top-0.5 -right-0.5`
   //     so it overhangs by 2px each direction. The SidebarMenuButton's

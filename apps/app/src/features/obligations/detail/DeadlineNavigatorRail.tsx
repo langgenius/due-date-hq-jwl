@@ -160,7 +160,7 @@ export function DeadlineNavigatorRail({
     <ListRail className="hidden w-[340px] lg:flex xl:w-[380px]">
       {/* ListHead — title + count chip (rzzww `mCfAZ`). */}
       <ListRailHead className="justify-between">
-        <span className="text-[16px] font-semibold text-text-primary">
+        <span className="text-item-title text-text-primary">
           <Trans>Deadlines</Trans>
         </span>
         {totalCount !== null ? (
@@ -325,7 +325,7 @@ function DeadlineNavigatorRow({
         <div className="flex items-start justify-between gap-2">
           <span
             className={cn(
-              'line-clamp-2 min-w-0 flex-1 text-[15px] leading-snug',
+              'line-clamp-2 min-w-0 flex-1 text-nav leading-snug',
               // Selected row reads stronger; unselected rows stay calm.
               active ? 'font-semibold text-text-primary' : 'font-medium text-text-secondary',
             )}

@@ -163,7 +163,7 @@ export function StateTilegram({ counts, activeState, onSelect, className }: Stat
             {hasCount ? (
               <span
                 className={cn(
-                  'mt-0.5 text-[9px] leading-none tabular-nums',
+                  'mt-0.5 text-micro leading-none tabular-nums',
                   active ? 'text-text-accent' : 'text-text-secondary',
                 )}
               >

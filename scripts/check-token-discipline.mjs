@@ -72,9 +72,12 @@ function scan(file) {
     FONT.lastIndex = 0
     while ((m = FONT.exec(line))) {
       const n = Number(m[1])
-      // 10–15px must be a token (caption/xs/sm/base). ≤9 is the intentional
+      // 9–18px + 28 + 32 must be tokens (micro/2xs/caption/xs/sm/base/nav/lg/
+      // xl/2xl/section-title). The 19–27/29-31/33+ display-ramp leftovers are
+      // baseline-grandfathered until the display scale consolidation.
       // micro tier (9px, Yuqi); ≥16 is display (no token). Both allowed.
-      if (n >= 10 && n <= 15) push(rel, i, m[0], `text-[${n}px] → font token`)
+      if ((n >= 9 && n <= 18) || n === 28 || n === 32)
+        push(rel, i, m[0], `text-[${n}px] → font token`)
     }
     const hex = line.match(HEX)
     if (hex) push(rel, i, hex[0], `hardcoded hex → color token`)

@@ -216,7 +216,7 @@ function SidebarQuickFind() {
       {/* 13px placeholder — a step below the 15px nav labels so the search
           hint reads as a quiet prompt, not a heading. (Was an oversized
           16px, which made the field look clunky.) */}
-      <span className="min-w-0 flex-1 truncate text-[13px] text-text-muted group-data-[collapsed=true]/sidebar:hidden">
+      <span className="min-w-0 flex-1 truncate text-sm text-text-muted group-data-[collapsed=true]/sidebar:hidden">
         {t`Quick find…`}
       </span>
       {/* ⌘K hint — plain muted mono text (no keycap box) so the field
@@ -307,7 +307,7 @@ function SidebarSystemStatus() {
             <span className="flex w-4 shrink-0 justify-center">
               <span className={cn('size-1.5 rounded-full', dotToneClass)} aria-hidden />
             </span>
-            <span className="min-w-0 flex-1 truncate text-[13px] text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
+            <span className="min-w-0 flex-1 truncate text-sm text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
               {lineLabel}
               {relativeChecked ? (
                 <span className="text-text-muted">

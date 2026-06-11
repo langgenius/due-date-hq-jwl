@@ -1140,7 +1140,7 @@ function EntityCoverageLegend() {
       <span className="inline-flex items-center gap-1.5">
         <span
           aria-hidden
-          className="inline-flex size-3.5 items-center justify-center rounded-full border border-text-muted text-[9px] font-semibold text-text-muted"
+          className="inline-flex size-3.5 items-center justify-center rounded-full border border-text-muted text-micro font-semibold text-text-muted"
         >
           S
         </span>

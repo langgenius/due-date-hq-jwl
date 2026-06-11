@@ -384,7 +384,7 @@ export function RuleDetailCompact({
           rule.dueDateLogic.kind === 'fixed_date' ? (
             // irBJ8 "Due {date}" block — concrete date + holiday-rollover hint.
             <div className="flex flex-col gap-1 rounded-lg bg-background-section px-3.5 py-3">
-              <span className="font-mono text-[16px] font-bold text-text-primary">
+              <span className="font-mono text-lg font-bold text-text-primary">
                 <Trans>
                   Due {formatDatePretty(rule.dueDateLogic.date, { alwaysShowYear: true })}
                 </Trans>

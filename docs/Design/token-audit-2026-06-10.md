@@ -65,3 +65,38 @@ Scale (~530 edits) makes this a multi-wave effort, not a single pass.
   caption→11px / caption-xs→10px live. Remaining (per design decisions): off-scale
   13/15/8, 12/14/16→xs/sm/base (larger lh delta), hex (19), radius (mostly auth /
   nested-radius — intentional).
+
+## 2026-06-11 — app-wide font-token sweep (Yuqi: "都用token了吗? be diligent")
+
+Full inventory: ~90 arbitrary `text-[Npx]` (guard only watched 10–15px), 27
+arbitrary leadings, 115 arbitrary trackings. Actions:
+
+**New tokens:** `--text-micro` 9px/12 (the old "≤9 intentional" carve-out,
+now real) · `--text-nav` 15px/20 (deadline navigator rail + ui-sidebar
+recipe; NOTE the app's own nav renders 16px per the 2026-06-08 15→16 fold).
+
+**Swapped (exact value/role matches, ~45 sites):** 9px→text-micro (×8) ·
+10px→text-2xs · 13px→text-sm (×2) · 15px→text-nav (×3) · 16px/600
+titles→text-item-title (×13, incl. list-rail's canonical RailTitle) ·
+16px mono-bold KPI→text-lg font-bold · 18px→text-xl (×5) · 28px→text-2xl ·
+32px→text-section-title (×3: StatBand, jurisdiction empty state,
+ClientsEmptyState) · the `[&_th_button]:!text-xs/!font-semibold/!tracking`
+triplets on /deadlines + /clients → `!text-column-label` (+ explicit
+`!font-semibold` retained — the Button primitive's --tw-font-weight var
+otherwise overrides the token's weight sub-key; caught as a live 600→500
+regression during verification and fixed).
+
+**Guard extended:** flags 9–18px + 28 + 32 (token-covered sizes) everywhere
+outside the auth-exempt paths. Baseline shrank 6 → 4 (the remaining 16/17px
+inside drawer condense-morphs + migration wizard).
+
+**Deliberately NOT swept (recorded backlog):**
+- Display ramp 20/22/24/26/30/44px (~12 sites: empty-state 22, stat-band 24,
+  drawer morph pairs 16↔22, PulseFormRevisedCard 20, migration 26, panels 30,
+  login 44) — needs a display-scale consolidation decision, not piecemeal
+  snapping.
+- Auth/onboarding surfaces — documented separate softer/larger scale
+  (EXEMPT_PATHS), teammate actively editing login.tsx.
+- 27 arbitrary leadings (mostly titles, allowed by doctrine) + 115 arbitrary
+  trackings — next sweep candidate: consolidate the eyebrow-family trackings
+  (0.5/0.6/0.7/0.8px) onto --tracking-eyebrow(-tight).

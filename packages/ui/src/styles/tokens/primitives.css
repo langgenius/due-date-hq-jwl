@@ -42,6 +42,15 @@
      preflight's `html { line-height: 1.5 }` — the source of the loose feel on
      every surface. Rule: titles keep their own leading — an explicit
      `leading-*` at the call site always beats these pairs. */
+  /* 2026-06-11 (Yuqi: app-wide token audit — no loose font sizes):
+     --text-micro is the sanctioned 9px floor (axis labels, count
+     superscripts; the old "≤9px is intentional" guard carve-out, now a real
+     token). --text-nav is the 15px nav-label size Yuqi set for the sidebar
+     (2026-06-08), shared by the deadline navigator rail. */
+  --text-micro: 9px;
+  --text-micro--line-height: 12px;
+  --text-nav: 15px;
+  --text-nav--line-height: 20px;
   --text-2xs: 0.625rem; /* 10px */
   --text-xs: 12px;
   --text-xs--line-height: 16px;

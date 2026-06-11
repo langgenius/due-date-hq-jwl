@@ -80,7 +80,7 @@ function SummaryCard({
     >
       <span
         className={cn(
-          'text-[28px] leading-none font-bold tracking-tight tabular-nums',
+          'text-2xl leading-none font-bold tracking-tight tabular-nums',
           tone === 'accent' && 'text-text-accent',
           tone === 'warning' && 'text-text-warning',
           tone === 'neutral' && 'text-text-secondary',

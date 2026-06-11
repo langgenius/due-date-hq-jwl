@@ -402,7 +402,7 @@ function EmailPreview({ subject, bodyText }: { subject: string; bodyText: string
             <Trans>Mon 9:00 AM</Trans>
           </span>
         </div>
-        <p className="text-[16px] font-semibold text-text-primary">
+        <p className="text-item-title text-text-primary">
           {applyVars(subject) || <Trans>No subject</Trans>}
         </p>
       </div>

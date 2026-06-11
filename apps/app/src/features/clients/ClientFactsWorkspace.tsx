@@ -1168,7 +1168,7 @@ export function ClientFactsWorkspace({
                 // (routes/obligations.tsx) — h-9 section-tinted header cells
                 // and UPPERCASE 11/600 tracking-[0.5px] sort-button labels,
                 // so the two workbench tables read identically.
-                className="table-fixed [&_th]:bg-background-section [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th_button]:!text-xs [&_th_button]:!font-semibold [&_th_button]:!tracking-[0.5px] [&_th_button]:!uppercase"
+                className="table-fixed [&_th]:bg-background-section [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th_button]:!text-column-label [&_th_button]:!font-semibold [&_th_button]:!uppercase"
               >
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (

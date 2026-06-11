@@ -4488,7 +4488,7 @@ export function ObligationQueueRoute() {
                     (not the <thead>) so its top corners can round
                     (`rounded-t[lr]`) — the gray header reads as the rounded top
                     of a sheet, while the rows below stay frameless. */}
-                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-xl [&_thead_tr_th:last-child]:rounded-tr-xl [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-column-label [&_th_button]:!uppercase [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-base">
+                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-xl [&_thead_tr_th:last-child]:rounded-tr-xl [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-column-label [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-base">
                   {/* Header (select-all + sort/filter controls) pins so column
                       labels stay visible as the buffer scrolls. In the
                       panel-open split it sticks to top-0 of its own scroll
@@ -10570,11 +10570,11 @@ function PathToFilingSummary({
                   with the stage label. */}
               <div className="mt-1 flex w-full flex-col items-center gap-0.5">
                 <span
-                  // Date is text-[9px] — one step smaller than the
+                  // Date is text-micro — one step smaller than the
                   // caption-xs stage label above, so the label keeps visual
                   // primacy and the date reads as meta.
                   className={cn(
-                    'text-center text-[9px] tabular-nums leading-none',
+                    'text-center text-micro tabular-nums leading-none',
                     state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
                   )}
                   // Hover hint surfaces the date-resolution policy in plain
@@ -13055,7 +13055,7 @@ function ObligationFilterTab({
       {count > 0 ? (
         <span
           className={cn(
-            'inline-flex items-center rounded-full px-1.5 py-px font-mono text-[10px] font-medium tabular-nums',
+            'inline-flex items-center rounded-full px-1.5 py-px font-mono text-2xs font-medium tabular-nums',
             active
               ? 'bg-text-primary text-text-inverted'
               : 'bg-background-subtle text-text-secondary',

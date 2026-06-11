@@ -763,7 +763,7 @@ export function KpiStrip({
             <span
               className={cn(
                 'font-semibold tabular-nums',
-                lg ? 'text-[32px] leading-none' : 'text-2xl',
+                lg ? 'text-section-title leading-none' : 'text-2xl',
                 stat.valueClass ?? 'text-text-primary',
               )}
             >

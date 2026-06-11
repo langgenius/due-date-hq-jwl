@@ -1,1 +1,4 @@
-
+apps/app/src/features/alerts/AlertDetailDrawer.tsx	text-[16px]
+apps/app/src/features/migration/OnboardingSkipModal.tsx	text-[17px]
+apps/app/src/features/migration/Step4Preview.tsx	text-[16px]
+apps/app/src/features/obligations/queue/ObligationQueueDetailDrawer.tsx	text-[16px]

@@ -2344,7 +2344,7 @@ export function RulesLibraryRoute() {
                     <EyeIcon className="size-[18px]" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[15px] font-semibold text-text-primary">
+                    <p className="text-nav font-semibold text-text-primary">
                       <Plural
                         value={totalPendingReview}
                         one="# rule needs your review"

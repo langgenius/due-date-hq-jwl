@@ -63,7 +63,7 @@ export function ObligationListRail({
     <ListRail>
       {/* ListHead — "Deadlines · N overdue / N open". */}
       <ListRailHead className="justify-between">
-        <span className="text-[16px] font-semibold text-text-primary">
+        <span className="text-item-title text-text-primary">
           <Trans>Deadlines</Trans>
         </span>
         {overdueCount > 0 ? (

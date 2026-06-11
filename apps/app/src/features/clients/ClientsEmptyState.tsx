@@ -115,7 +115,7 @@ export function ClientsEmptyState({
         <IntegrationStrip />
 
         <div className="flex max-w-[640px] flex-col gap-3">
-          <h2 className="text-2xl font-semibold tracking-tight text-text-primary md:text-[32px] md:leading-tight">
+          <h2 className="text-2xl font-semibold tracking-tight text-text-primary md:text-section-title md:leading-tight">
             <Trans>Plug in your tools. Walk away with a triage list.</Trans>
           </h2>
           <p className="text-sm leading-relaxed text-text-secondary md:text-base">

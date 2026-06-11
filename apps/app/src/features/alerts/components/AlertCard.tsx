@@ -282,7 +282,7 @@ export function AlertCard({
                   </span>
                 </span>
                 <h3
-                  className="line-clamp-1 min-w-0 text-[18px] leading-[1.25] font-semibold tracking-[-0.2px] text-text-primary"
+                  className="line-clamp-1 min-w-0 text-xl leading-[1.25] font-semibold tracking-[-0.2px] text-text-primary"
                   title={alert.title}
                 >
                   {alert.title}

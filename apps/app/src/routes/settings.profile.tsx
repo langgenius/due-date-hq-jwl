@@ -633,7 +633,7 @@ function SettingsCard({
           tone === 'danger' ? 'border-state-destructive-hover-alt' : 'border-divider-regular',
         )}
       >
-        <h2 className="text-[16px] font-semibold text-text-primary">{title}</h2>
+        <h2 className="text-item-title text-text-primary">{title}</h2>
         <p className="text-xs text-text-secondary">{subtitle}</p>
       </div>
       <div className="flex flex-col gap-5 px-6 py-5">{children}</div>
