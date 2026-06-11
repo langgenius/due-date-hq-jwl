@@ -216,7 +216,17 @@ export async function fetchTextSnapshot(
   }
 
   if (!response.ok) {
-    throw new Error(`Pulse source fetch failed for ${input.sourceId}: ${response.status}`)
+    // Surface the upstream error body: a bare status is undiagnosable when the
+    // failure happens inside a proxy (browserless schema/plan rejections all
+    // arrive as 400/4xx with the reason only in the body).
+    const detail = (await response.text().catch(() => ''))
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 220)
+    throw new Error(
+      `Pulse source fetch failed for ${input.sourceId}: ${response.status}${detail ? ` — ${detail}` : ''}`,
+    )
   }
 
   const parsedBody = await readSourceResponseText(response, input)
