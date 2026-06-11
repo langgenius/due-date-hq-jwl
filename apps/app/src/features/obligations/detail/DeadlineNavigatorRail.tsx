@@ -19,6 +19,7 @@ import {
 } from '@/components/patterns/list-rail'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
+import { describeTaxCode } from '@/lib/tax-codes'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 import { todayIsoDate } from '@/features/obligations/queue/helpers'
 import { daysBetween } from '@/lib/utils'
@@ -272,7 +273,11 @@ function DeadlineNavigatorRow({
 }) {
   const relative = relativeDueLabel(row)
   const showRelative = !RELATIVE_SUPPRESSED_STATUSES.has(row.status)
-  const title = row.formName ?? row.taxType
+  // Title is the plain-English description (e.g. "Individual income tax return"),
+  // not the form code — the code already shows in the TaxCodeBadge above, so
+  // repeating "Form 1040" as both badge AND title was redundant (Yuqi). Mirrors
+  // the detail hero's "{code} — {description}".
+  const title = describeTaxCode(row.taxType).description ?? row.formName ?? row.taxType
   const StatusIcon = STATUS_ICON[row.status]
 
   return (
@@ -318,7 +323,13 @@ function DeadlineNavigatorRow({
             status reads as an icon and expands to icon + label on the active
             (currently-viewed) row. */}
         <div className="flex items-start justify-between gap-2">
-          <span className="line-clamp-2 min-w-0 flex-1 text-[16px] font-medium leading-snug text-text-primary">
+          <span
+            className={cn(
+              'line-clamp-2 min-w-0 flex-1 text-[15px] leading-snug',
+              // Selected row reads stronger; unselected rows stay calm.
+              active ? 'font-semibold text-text-primary' : 'font-medium text-text-secondary',
+            )}
+          >
             {title}
           </span>
           <span className="flex shrink-0 items-center gap-1 pt-0.5" title={statusLabel}>
