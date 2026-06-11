@@ -101,3 +101,33 @@ batch. Changes:
   `text-caption`.
 - Audited for side-border highlight + rounded-corner combos: none exist on
   these surfaces.
+
+## Addendum 3 — spacing/arrangement audit, all findings applied
+
+Measured audit (DOM tape-measure, 1512×861) then fixes:
+
+- **Title eye-line**: "Priorities" sat at x=152 (sparkles circle pushed it off
+  the rail) vs "Alerts" at 114. Circle dropped; a small sparkles GLYPH now sits
+  after the title carrying the "Curated by Smart Priority" tooltip (the
+  original Priority Actions star's job). Open-section titles share x=114.
+- **Region anchor ≡ item headline collision**: section titles (16) matched
+  alert-card titles (16). All three section titles → text-xl (18). Page ramp:
+  28 / 18 / 16 / 14 / 13. Register A in section-header-style.md → 18px.
+- **Micro-gap drift**: Priorities gap-2.5 (10/11px) → gap-3 (12px), matching
+  Alerts' header→content rhythm.
+- **Row pitch**: Priorities [&_td]:py-3 → py-2.5 (row 68 → 64, nearer the
+  /deadlines 56 canonical with two-line stacks).
+- **Dismiss targets**: Daily Brief + /deadlines banner ✕ → size-7 (28px) hit
+  area (kept in sync per brief-banner checklist).
+- **Seam**: Daily Brief workload-counts line now renders ONLY when a real AI
+  sentence exists — no more duplicating the Priorities chips when the brief is
+  failed/empty.
+- **Impact-ordered alerts**: sorted by `matchedCount + needsReviewCount` — the
+  EXACT number the card displays as "N clients" (first attempt sorted by
+  matchedCount alone and read unsorted: "3 · 1 · 2"; second attempt via the
+  affected-clients batch was async + the wrong number — the card never
+  displays affectedClients.length). Synchronous, stable, no reorder-on-load.
+  Result: a 3-client WA alert surfaced into the top row, displacing a 1-client
+  alert recency had favoured.
+- Known, deliberately untouched: text-xs(13)/text-sm(14) 1px near-collision is
+  a token-level question for a future sweep, not a per-page fix.

@@ -110,16 +110,19 @@ export function DailyBriefCard({
           type="button"
           onClick={onClose}
           aria-label={t`Dismiss brief`}
-          className="absolute top-2.5 right-2.5 text-text-tertiary"
+          // size-7 (28px) hit area over the icon-xs default — the audit
+          // flagged the ~24px dismiss target as the floor.
+          className="absolute top-2 right-2 size-7 text-text-tertiary"
         >
           <XIcon className="size-3.5" aria-hidden />
         </Button>
       ) : null}
 
       {/* Title — a proper title (Yuqi: not a tracked-caps eyebrow, no dot),
-          sharing the /today section-title voice. Freshness chip rides beside. */}
+          sharing the /today section-title voice (text-xl, one step above the
+          16px card headlines). Freshness chip rides beside. */}
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-lg leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+        <h2 className="text-xl leading-tight font-semibold tracking-[-0.01em] text-text-primary">
           <Trans>Daily Brief</Trans>
         </h2>
         {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
@@ -133,12 +136,16 @@ export function DailyBriefCard({
         <FirmTodayLine concentration={concentration} counts={todayCounts} />
       )}
 
-      {/* Metric + recap — calm text-sm lines below the headline. Today's
-          workload counts first (the banner's metric line), then the
-          "while you were away" recap. */}
-      {showCounts || recap ? (
+      {/* Metric + recap — calm text-sm lines below the content. The workload
+          counts render ONLY when a real AI sentence exists (audit: otherwise
+          this line just duplicates the Priorities bucket chips ~100px below —
+          the digest shouldn't end by repeating the tool under it). The recap
+          is the brief's own information and always renders. */}
+      {(showCounts && aiEnabled && Boolean(brief?.text)) || recap ? (
         <div className="flex flex-col gap-0.5">
-          {showCounts ? <TodayCountsLine counts={todayCounts} /> : null}
+          {showCounts && aiEnabled && Boolean(brief?.text) ? (
+            <TodayCountsLine counts={todayCounts} />
+          ) : null}
           {recap ? <YesterdayLine recap={recap} /> : null}
         </div>
       ) : null}

@@ -3695,7 +3695,9 @@ export function ObligationQueueRoute() {
             type="button"
             onClick={dismissGlance}
             aria-label={t`Dismiss at-a-glance summary`}
-            className="absolute right-2.5 top-2.5"
+            // size-7 hit area — kept in sync with the /today Daily Brief ✕
+            // (brief-banner-language.md keep-in-sync checklist).
+            className="absolute right-2 top-2 size-7"
           >
             <XIcon className="size-3.5" aria-hidden />
           </Button>

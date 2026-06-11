@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { DueDateLabel } from '@/components/primitives/due-date-label'
@@ -131,22 +132,49 @@ export function MergedBriefCard({
     // OPEN section — header + lede float on the page like the Alerts section;
     // the table below is the page's single framed surface. Fewer borders
     // (Yuqi: avoid too much use of borders), and the section grammar matches
-    // the rest of /today: title row → content surface.
-    <section aria-label={t`Priorities`} className="flex w-full flex-col gap-2.5">
-      {/* Header — sparkles mark + title (the /today section-title voice) + the
-          count-chip bucket selector pinned right. */}
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
-        <span
-          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background-section"
-          aria-hidden
-        >
-          <SparklesIcon className="size-3.5 text-text-primary" />
-        </span>
+    // the rest of /today: title row → content surface. gap-3 = the one
+    // in-section gap token (audit: kill the 10/11/12 drift).
+    <section aria-label={t`Priorities`} className="flex w-full flex-col gap-3">
+      {/* Header — title first (flush with the page rail so all section titles
+          share one x — the audit's eye-line fix; the old leading icon-circle
+          pushed this title 38px off the rail) + the count-chip bucket selector
+          pinned right. */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         {/* "Priorities", not "Today's brief" — the card leads with overdue work,
             so a "today" headline would lie about its own content (Yuqi). */}
-        <h2 className="text-lg leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+        <h2 className="text-xl leading-tight font-semibold tracking-[-0.01em] text-text-primary">
           <Trans>Priorities</Trans>
         </h2>
+        {/* The sparkles now MEANS something: it marks the list as
+            Smart-Priority curated and opens the explainer on hover — the same
+            job the original Priority Actions header gave its star. */}
+        <Tooltip>
+          <TooltipTrigger
+            render={(props) => (
+              <button
+                type="button"
+                aria-label={t`About Priorities`}
+                className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                {...props}
+              >
+                <SparklesIcon className="size-3.5" aria-hidden />
+              </button>
+            )}
+          />
+          <TooltipContent>
+            <div className="flex max-w-[280px] flex-col gap-1 text-left">
+              <span className="font-semibold">
+                <Trans>Curated by Smart Priority</Trans>
+              </span>
+              <span>
+                <Trans>
+                  The top open deadlines in this view, ranked by Smart Priority and bucketed by
+                  due window — the next work most worth handling, not every deadline.
+                </Trans>
+              </span>
+            </div>
+          </TooltipContent>
+        </Tooltip>
 
         {/* Bucket selector borrowed from the /deadlines queue: rounded-full
             track, white active pill, tone dot + label + muted count. */}
@@ -317,8 +345,11 @@ function BriefTableRow({
       aria-label={t`Open ${verb} for ${row.clientName}`}
       // Interactivity + the `group` hook live here; zebra/border/transition
       // come from the canonical TableRow. The hover token is opaque so the
-      // Review mask below still hides the due date.
-      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-3"
+      // Review mask below still hides the due date. py-2.5 (not the default
+      // py-4): the two-line stacked cells already carry height — this lands
+      // the row near the canonical /deadlines 56px pitch instead of 68
+      // (spacing audit).
+      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none [&_td]:py-2.5"
     >
       {/* FORM */}
       <TableCell>

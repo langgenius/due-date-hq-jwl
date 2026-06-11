@@ -55,7 +55,16 @@ function NeedsAttentionSection() {
   // still shows what's being watched rather than going empty.
   const affectingAlerts = alerts.filter((alert) => alert.matchedCount > 0)
   const shownAlerts = affectingAlerts.length > 0 ? affectingAlerts : alerts
-  const visibleAlerts = shownAlerts.slice(0, VISIBLE_ALERTS)
+  // Impact-weighted ordering (critique): more affected clients = louder alert,
+  // so it leads the row. The sort key is EXACTLY the number the card displays —
+  // `matchedCount + needsReviewCount` (the card's `impacted`) — so the row
+  // never reads unsorted. Pure row data: synchronous, no reorder-on-load.
+  // `toSorted` is stable — ties keep the feed's recency order.
+  const visibleAlerts = shownAlerts
+    .toSorted(
+      (a, b) => b.matchedCount + b.needsReviewCount - (a.matchedCount + a.needsReviewCount),
+    )
+    .slice(0, VISIBLE_ALERTS)
   // One batched detail request for the visible cards instead of one
   // `getDetail` per card — the cards only need affected-client names.
   const affectedByAlert = useAlertsAffectedClients(visibleAlerts.map((alert) => alert.id))
@@ -173,11 +182,12 @@ function NeedsAttentionSection() {
       className="flex flex-col gap-3"
     >
       <div className="flex items-center justify-between gap-3">
-        {/* /today section titles share ONE voice — text-lg/600/dark ink
-            (Priorities, Daily Brief, Alerts) — replacing the old demoted
-            eyebrow treatment (Yuqi: the page read lofi/weak; proper titles).
-            See docs/Design/section-header-style.md. */}
-        <h2 className="flex items-center gap-2 text-lg leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+        {/* /today section titles share ONE voice — text-xl/600/dark ink
+            (Priorities, Daily Brief, Alerts). 18px, one step above the 16px
+            card headlines inside the section — the audit caught region anchor
+            and item title colliding at the same size. See
+            docs/Design/section-header-style.md. */}
+        <h2 className="flex items-center gap-2 text-xl leading-tight font-semibold tracking-[-0.01em] text-text-primary">
           {/* The title word links to /alerts; the count badge + MonitoringChip
               stay as non-link siblings. */}
           <Link
