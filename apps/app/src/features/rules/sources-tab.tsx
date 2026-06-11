@@ -473,18 +473,18 @@ function SourceCoverageSection() {
         <TableBody>
           {coverage.map((row) => (
             <TableRow key={row.jurisdiction} className="hover:bg-transparent">
-              <TableCell className="px-4 py-1.5">
+              <TableCell className="px-4 py-3">
                 <JurisdictionCode code={row.jurisdiction} />
               </TableCell>
-              <TableCell className="px-2 py-1.5">
+              <TableCell className="px-2 py-3">
                 <Badge variant={coverageLevelVariant[row.coverageLevel]} size="sm">
                   {row.coverageLevel}
                 </Badge>
               </TableCell>
-              <TableCell className="px-2 py-1.5 font-mono text-xs tabular-nums text-text-secondary">
+              <TableCell className="px-2 py-3 font-mono text-xs tabular-nums text-text-secondary">
                 {row.coveredRoles.length}/{row.requiredRoles.length}
               </TableCell>
-              <TableCell className="px-2 py-1.5">
+              <TableCell className="px-2 py-3">
                 {row.missingRoles.length === 0 ? (
                   <span className="text-xs text-text-tertiary">—</span>
                 ) : (
@@ -599,10 +599,13 @@ function SourceRow({
       tabIndex={-1}
       onClick={openSource}
       onKeyDown={handleKeyDown}
-      // `h-10 cursor-pointer` — compact source row + interactivity.
-      className="h-10 cursor-pointer"
+      // Row height h-14 (56px) matches /deadlines, /clients, and
+      // /rules/library so every workbench table shares one row pitch —
+      // the Sources table previously ran a tighter h-10 and read denser
+      // than the rest of the app.
+      className="h-14 cursor-pointer"
     >
-      <TableCell className="px-4 py-1.5">
+      <TableCell className="px-4 py-3">
         <a
           href={source.url}
           target="_blank"
@@ -611,30 +614,38 @@ function SourceRow({
           onClick={(event) => event.stopPropagation()}
           className="block min-w-0 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
-          <span className="block truncate text-xs font-medium text-text-primary">
+          {/* Title + id mirror the rules-library "Rule name" column — the
+              structurally identical registry primary cell: a text-base/600
+              title over a muted text-sm subtitle. Sources is a registry table
+              (one identity column), so it follows that treatment rather than
+              the denser workbench client-name scale. With the title at its
+              proper weight the row fills the same ~67px pitch as
+              /rules/library and /deadlines. */}
+          <span className="block truncate text-base font-semibold text-text-primary">
             {source.title}
           </span>
-          <span className="block truncate font-mono text-xs text-text-tertiary">{source.id}</span>
+          <span className="block truncate font-mono text-sm text-text-tertiary">{source.id}</span>
         </a>
       </TableCell>
-      <TableCell className="px-0 py-1.5">
-        {/* Accent-tinted jurisdiction pill (Pencil bf6Ni) — mono code on
-            a soft accent fill, matching the canvas Sources table. */}
-        <Badge variant="info" className="font-mono text-xs font-semibold">
-          {source.jurisdiction}
-        </Badge>
+      <TableCell className="px-2 py-3">
+        {/* Shared JurisdictionCode — the quiet gray mono chip used by the
+            coverage table on this same page and the /rules/library
+            jurisdiction table. Replaces a hand-rolled accent `<Badge>` so
+            the jurisdiction cell reads identically across every rules-console
+            table instead of being a lone blue-pill outlier. */}
+        <JurisdictionCode code={source.jurisdiction} />
       </TableCell>
-      <TableCell className="px-2 py-1.5">
+      <TableCell className="px-2 py-3">
         {/* Subtle type pill (Pencil bf6Ni). */}
         <Badge variant="secondary" className="text-xs font-medium">
           {sourceTypeLabel(source.sourceType, sourceTypeLabels)}
         </Badge>
       </TableCell>
-      <TableCell className="px-2 py-1.5 text-xs text-text-secondary">
+      <TableCell className="px-2 py-3 text-sm text-text-secondary">
         {source.cadence.replace('_', '-')}
       </TableCell>
       <TableCell
-        className="px-2 py-1.5"
+        className="px-2 py-3"
         title={
           needsAttention && health?.lastError
             ? t`Last error: ${health.lastError}`
@@ -646,14 +657,14 @@ function SourceRow({
         <HealthBadge health={source.healthStatus} />
       </TableCell>
       <TableCell
-        className="px-2 py-1.5 font-mono text-xs tabular-nums text-text-tertiary"
+        className="px-2 py-3 font-mono text-sm tabular-nums text-text-tertiary"
         // Exact ISO timestamp on hover; relative-time label in the cell
         // keeps the column scannable at a glance.
         title={health?.lastCheckedAt ?? undefined}
       >
         {health?.lastCheckedAt ? relativeTimeShort(health.lastCheckedAt) : '—'}
       </TableCell>
-      <TableCell className="px-0 py-1.5">
+      <TableCell className="px-0 py-3">
         <div className="flex items-center justify-center gap-0.5">
           {needsAttention ? (
             <Button
