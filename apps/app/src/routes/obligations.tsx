@@ -3687,7 +3687,7 @@ export function ObligationQueueRoute() {
           // eyebrow/headline/metric trio reads as one compact editorial block,
           // not a hero. `relative` + `pr-9` host the dismiss button without
           // overlapping the metric line.
-          className="relative flex flex-col gap-1 rounded-xl border border-divider-subtle bg-background-subtle px-5 py-3.5 pr-9"
+          className="relative flex flex-col gap-1.5 rounded-xl border border-divider-subtle bg-background-subtle px-5 py-4 pr-9"
         >
           <Button
             variant="ghost"
@@ -3845,7 +3845,7 @@ export function ObligationQueueRoute() {
                     type="button"
                     data-active={activeScope === 'all'}
                     onClick={() => void setObligationQueueQuery({ status: null })}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-accent"
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-accent"
                   >
                     <Trans>All</Trans>
                     <span className="tabular-nums text-text-tertiary">{scopeTotal}</span>
@@ -3856,7 +3856,7 @@ export function ObligationQueueRoute() {
                       type="button"
                       data-active={activeScope === status}
                       onClick={() => void setObligationQueueQuery({ status: [status] })}
-                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
                     >
                       <span
                         className={cn(

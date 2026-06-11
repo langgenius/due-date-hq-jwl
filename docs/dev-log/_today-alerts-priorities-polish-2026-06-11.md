@@ -57,3 +57,18 @@ direction. Dropped the now-unused `PulsingDot` + `CircleCheckIcon` imports.
 
 The local D1 was re-seeded from `mock/demo.sql` mid-session — the dev DB held
 stale alert rows where `verbatim_quote` predated the distinct demo bodies.
+
+## Addendum — brief banners unified (same day, later round)
+
+Yuqi: "cross reference to Deadlines page's brief — same style, same visual
+language. Elevate both." The `/today` `DailyBriefCard` was restyled in place
+onto the `/deadlines` at-a-glance banner's editorial language: accent wash →
+neutral `bg-background-subtle` + `border-divider-subtle`; accent-coloured
+`text-base` title → dot + tracked-caps eyebrow (`DAILY BRIEF` + freshness);
+the AI focus sentence promoted to the `text-lg leading-6 font-semibold`
+headline slot; the mono `YESTERDAY`/`TODAY` label grid retired — counts +
+recap now sit as calm `text-sm` metric lines under the headline; hand-rolled ✕
+→ ghost `icon-xs` Button at `top-2.5 right-2.5`. The deadlines banner got the
+matching micro-lift (`gap-1 → gap-1.5`, `py-3.5 → py-4`). Canonical spec +
+keep-in-sync checklist: `docs/Design/brief-banner-language.md` (includes why a
+shared component was deliberately NOT extracted yet).

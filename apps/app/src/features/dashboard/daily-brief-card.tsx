@@ -10,6 +10,7 @@ import type {
   DashboardRecap,
   DashboardSummary,
 } from '@duedatehq/contracts'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -91,64 +92,57 @@ export function DailyBriefCard({
   return (
     <section
       aria-label={t`Daily brief`}
-      // 2026-06-08 (Yuqi /today #1 "top padding reduce"): the section's
-      // top padding is trimmed (pt-3 vs the 18px on the other sides) so the
-      // title row sits closer to the top edge and the card reads tighter.
-      className="group flex flex-col gap-1 rounded-xl bg-state-accent-hover px-[18px] pt-3 pb-[18px]"
+      // Shares the /deadlines at-a-glance banner's editorial language (Yuqi:
+      // "same visual language, elevate both"): neutral bg-subtle + a subtle
+      // border — no accent wash — a dot + tracked-caps eyebrow, a text-lg
+      // headline (today's focus), then calm text-sm metric/recap lines.
+      // Keep both call sites in sync: see routes/obligations.tsx
+      // "Deadlines at a glance".
+      className="group relative flex flex-col gap-1.5 rounded-xl border border-divider-subtle bg-background-subtle px-5 py-4 pr-9"
     >
-      {/* TopRow — Pencil qYrr3 `LfcWh` */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Left — title + freshness (dot + mono age). Yuqi: icon removed;
-            the title takes the dark brand color on hover. */}
-        <div className="flex min-w-0 items-center gap-2.5">
-          <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
-            <Trans>Daily Brief</Trans>
-          </h2>
-          {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
-        </div>
-        {/* Right — dismiss only. The regenerate button is gone (manual
-            refresh retired); freshness is display-only. */}
-        <div className="flex shrink-0 items-center gap-2.5">
-          {/* 2026-06-08 (Yuqi /today #8 "able to close it"): dismiss the
-              brief for the day. The parent persists the dismissal keyed to
-              this brief's generation, so a freshly regenerated brief returns. */}
-          {onClose ? (
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={t`Dismiss brief`}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
-            >
-              <XIcon className="size-3.5" aria-hidden />
-            </button>
-          ) : null}
-        </div>
-      </div>
+      {/* Dismiss — ghost ✕ top-right, matching the /deadlines banner. The
+          parent persists the dismissal keyed to this brief's generation, so a
+          freshly regenerated brief returns. */}
+      {onClose ? (
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          type="button"
+          onClick={onClose}
+          aria-label={t`Dismiss brief`}
+          className="absolute top-2.5 right-2.5 text-text-tertiary"
+        >
+          <XIcon className="size-3.5" aria-hidden />
+        </Button>
+      ) : null}
 
-      {/* Body — the Yesterday / Today grid. Labels are mono eyebrows in
-          the freshness chip's voice; content lines stay 14px prose. */}
-      <div className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5 pt-1">
-        {recap ? (
-          <>
-            <BriefRowLabel title={t`Since ${formatRecapSince(recap.since)}`}>
-              <Trans>Yesterday</Trans>
-            </BriefRowLabel>
-            <YesterdayLine recap={recap} />
-          </>
-        ) : null}
-        <BriefRowLabel>
-          <Trans>Today</Trans>
-        </BriefRowLabel>
-        <div className="flex min-w-0 flex-col gap-0.5">
-          {aiEnabled ? (
-            <TodayLine brief={brief} pending={isPending} onOpenObligation={onOpenObligation} />
-          ) : (
-            <FirmTodayLine concentration={concentration} counts={todayCounts} />
-          )}
+      {/* Eyebrow — accent dot + label + freshness, the banner's eyebrow voice. */}
+      <p className="flex flex-wrap items-center gap-2 text-caption font-medium tracking-eyebrow text-text-tertiary uppercase">
+        <span className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt" aria-hidden />
+        <Trans>Daily Brief</Trans>
+        {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
+      </p>
+
+      {/* Headline — today's focus, the editorial anchor (text-lg). */}
+      {aiEnabled ? (
+        <TodayLine brief={brief} pending={isPending} onOpenObligation={onOpenObligation} />
+      ) : (
+        <FirmTodayLine concentration={concentration} counts={todayCounts} />
+      )}
+
+      {/* Metric + recap — calm text-sm lines below the headline. Today's
+          workload counts first (the banner's metric line), then the
+          "while you were away" recap. */}
+      {showCounts || recap ? (
+        <div className="flex flex-col gap-0.5">
           {showCounts ? <TodayCountsLine counts={todayCounts} /> : null}
-          <CatchupLine />
+          {recap ? <YesterdayLine recap={recap} /> : null}
         </div>
-      </div>
+      ) : null}
+      {/* Self-hiding (renders null at zero count), so it lives outside the
+          showCounts/recap gate — a brand-new firm with no counts or recap
+          still sees its already-in-effect obligations. */}
+      <CatchupLine />
     </section>
   )
 }
@@ -176,29 +170,6 @@ function CatchupLine() {
       </Link>
     </p>
   )
-}
-
-/** Mono uppercase row label — same voice as the freshness chip. */
-function BriefRowLabel({ children, title }: { children: React.ReactNode; title?: string }) {
-  return (
-    <span
-      title={title}
-      className="font-mono text-xs leading-[1.6] font-medium tracking-[0.4px] text-text-tertiary uppercase select-none"
-    >
-      {children}
-    </span>
-  )
-}
-
-function formatRecapSince(since: string): string {
-  const date = new Date(since)
-  if (Number.isNaN(date.getTime())) return since
-  return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date)
 }
 
 /**
@@ -291,7 +262,7 @@ function TodayLine({
   if (pending && !brief?.text) {
     return (
       <div aria-busy>
-        <Skeleton className="h-4 w-[70%]" />
+        <Skeleton className="h-5 w-[70%]" />
       </div>
     )
   }
@@ -323,7 +294,7 @@ function TodayLine({
       : ''
 
   return (
-    <p className="min-w-0 text-sm leading-[1.5] font-medium text-text-primary">
+    <p className="min-w-0 max-w-[64ch] text-lg leading-6 font-semibold text-text-primary">
       <BriefProse text={headline} citations={brief.citations} onOpenObligation={onOpenObligation} />
       {fallbackMarkers ? (
         <>
@@ -357,7 +328,7 @@ function FirmTodayLine({
   if (concentration && concentration.count >= 2) {
     const formLabel = formatTaxCode(concentration.taxType)
     return (
-      <p className="min-w-0 text-sm leading-[1.5] font-medium text-text-primary">
+      <p className="min-w-0 max-w-[64ch] text-lg leading-6 font-semibold text-text-primary">
         <Trans>
           Overdue work is concentrated in {formLabel} ({concentration.count} of{' '}
           {concentration.overdueTotal})
