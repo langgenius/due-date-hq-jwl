@@ -86,6 +86,7 @@ import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { StatBand } from '@/components/patterns/stat-band'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { SearchInput } from '@/components/primitives/search-input'
+import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { CandidateReviewSection, RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
 import {
   ENTITY_KEYS,
@@ -2625,36 +2626,15 @@ function EntityChipRow({
           const isActive = activeEntity === entity
           const hasGaps = gapCount > 0
           return (
-            <button
+            <ToggleChip
               key={entity}
-              type="button"
+              selected={isActive}
               onClick={() => (isActive ? onClear() : onSelect(entity))}
-              aria-pressed={isActive}
               title={
                 hasGaps
                   ? `${ENTITY_LABELS[entity]} — ${count} ${count === 1 ? 'rule' : 'rules'} · ${gapCount} ${gapCount === 1 ? 'jurisdiction' : 'jurisdictions'} missing a rule`
                   : `${ENTITY_LABELS[entity]} — ${count} ${count === 1 ? 'rule' : 'rules'}`
               }
-              className={cn(
-                // `items-center` (was `items-baseline`) — the active
-                // chip's destructive pill around the gap count has
-                // its own padding/leading and didn't sit on the text
-                // baseline, so it visibly bobbed up. Centering keeps
-                // the label + count + pill aligned on the same midline.
-                // Active state uses the canonical accent tone
-                // (bg-state-accent-hover-alt + text-text-accent +
-                // border-state-accent-solid) — the design system's pattern
-                // for selected/applied filter state (mirrors /deadlines +
-                // /clients chip filters). A dark fill would read as "this
-                // is the primary action" rather than "this filter is
-                // engaged"; the accent tint + colored border + accent text
-                // + bolder weight says "engaged" at a glance.
-                'group inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs outline-none transition-colors',
-                isActive
-                  ? 'border-state-accent-solid bg-state-accent-hover-alt font-medium text-text-accent'
-                  : 'border-divider-regular bg-background-default text-text-secondary hover:border-text-secondary hover:bg-state-base-hover hover:text-text-primary',
-                'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-              )}
             >
               <span>{ENTITY_LABELS[entity]}</span>
               <span
@@ -2700,7 +2680,7 @@ function EntityChipRow({
                   </span>
                 </>
               ) : null}
-            </button>
+            </ToggleChip>
           )
         })}
       </div>

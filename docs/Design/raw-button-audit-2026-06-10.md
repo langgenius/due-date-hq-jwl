@@ -116,5 +116,43 @@ composite multi-child links (client kicker, "outstanding · check materials" row
 + both regenerate buttons (icon + labeled) → ghost. `merged-brief-card.tsx` — no
 CONVERT buttons (its two are CUSTOM-OK: a segmented tab + a whole-row target).
 
-**Left by design:** Cluster D chips (toggle/filter chips — per-item calls),
-all CUSTOM-OK, all ALREADY-CANONICAL.
+**Left by design:** all CUSTOM-OK, all ALREADY-CANONICAL.
+
+## Cluster D — per-item dispositions (2026-06-10)
+
+Reviewed each. Verdict: **all stay custom** — none maps cleanly to `Segmented`
+(a fixed, non-wrapping 2–3 pick-one track) or a plain `Button` without either
+not fitting or breaking a local pairing. Rationale per item:
+
+- **state-rule-activation-selector** "Select all / Clear all" (~127) — a single
+  toggle-all action, BUT it's a matched pair with the `[N/56]` count chip beside
+  it (both `rounded-sm` / `border-divider-subtle` / `text-caption`). Converting
+  to `Button secondary xs` (rounded-md / 0.14 border / text-xs) would desync the
+  pair. **Keep custom.**
+- **obligations quick-filter chips** (`ObligationQueueActionChip`, ~12473+) and
+  the scope-tab pill track (~3849/3860) — **multi-select** quick-filters + the
+  sensitive deadlines scope row (overflow-x-auto, `data-[active]` styling).
+  Multi-select ≠ Segmented; the scope row is the "be careful" deadlines area.
+  **Keep custom.**
+- **rules.library entity filter chip** (~2627) — multi-select facet chip.
+  **Keep custom.**
+- **Step1Intake `PresetChip`** (~1058) — multi-select preset toggle chip with
+  selected/compact variants + a leading check inset. Cohesive bespoke component;
+  no primitive models it. **Keep custom.**
+- **CommandPalette scope pills** (~419) — wrapping pick-one scope filter inside
+  the modal palette; Segmented doesn't wrap and this is its own pattern.
+  **Keep custom.**
+
+**The real unification — DONE (2026-06-10):** built a shared **`ToggleChip`**
+primitive (`apps/app/src/components/primitives/toggle-chip.tsx`) — the canonical
+"engaged filter / pick-one" pill (active = accent tint + accent border + accent
+text, the design system's "engaged, not primary" treatment; `aria-pressed`
+toggle; optional leading icon; sm/md). Migrated **3** divergent hand-rolled
+chips onto it: rules-library **entity filter** chip (near-lossless — adopted its
+exact chrome as the canonical), **command-palette scope pills** (gained the
+canonical border + focus ring), and the **states-rail "Needs review"** toggle
+(rounded-lg → the canonical pill). Added to the `/preview#toggle-chip` gallery.
+Left bespoke: `PresetChip` (brand-logo tiles + scale animation) and the
+deadlines filter-popover track pills (segmented-in-a-track, sensitive area).
+(The obligations quick-filter chips this proposal originally named were already
+removed — those facets now live inside the filter popover.)

@@ -150,6 +150,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
 import { SearchInput } from '@/components/primitives/search-input'
+import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { AiProvenanceBadge } from '@/components/primitives/ai-provenance-badge'
 import { FieldLabel } from '@/components/primitives/field-label'
 import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
@@ -318,6 +319,7 @@ const TOC: Array<{ id: string; label: string }> = [
   { id: 'typography', label: 'Typography' },
   { id: 'spacing', label: 'Spacing' },
   { id: 'button', label: 'Button' },
+  { id: 'toggle-chip', label: 'ToggleChip' },
   { id: 'badge', label: 'Badge' },
   { id: 'input', label: 'Inputs' },
   { id: 'field', label: 'Field · InputGroup' },
@@ -619,6 +621,7 @@ export function PreviewRoute() {
   ])
   const [activeState, setActiveState] = useState<string | null>('CA')
   const [rulesFilter, setRulesFilter] = useState<'all' | 'verified' | 'draft'>('all')
+  const [chipOn, setChipOn] = useState(true)
   const [timezone, setTimezone] = useState<USFirmTimezone>('America/Los_Angeles')
   const [affectedSelection, setAffectedSelection] = useState<Set<string>>(
     () => new Set(['obl_mock_acme_q3', 'obl_mock_brightline_q3']),
@@ -878,6 +881,41 @@ export function PreviewRoute() {
               <Button variant="accent" disabled>
                 Accent
               </Button>
+            </Row>
+          </Section>
+
+          {/* ToggleChip */}
+          <Section
+            id="toggle-chip"
+            title="ToggleChip"
+            subtitle="The canonical engaged-filter / pick-one chip. Active = accent tint + accent border + accent text (an 'engaged' look, not a solid 'primary' fill). aria-pressed toggle. Used by the rules entity filter, command-palette scope pills, and the states-rail review toggle."
+          >
+            <Row label="Selected vs not" mono="selected=…">
+              <ToggleChip selected={chipOn} onClick={() => setChipOn((v) => !v)}>
+                Selected
+              </ToggleChip>
+              <ToggleChip selected={!chipOn} onClick={() => setChipOn((v) => !v)}>
+                Not selected
+              </ToggleChip>
+            </Row>
+            <Row label="With icon">
+              <ToggleChip selected icon={FilterIcon} onClick={() => {}}>
+                Needs review
+              </ToggleChip>
+            </Row>
+            <Row label="With trailing count">
+              <ToggleChip selected onClick={() => {}}>
+                <span>Partnership</span>
+                <span className="font-semibold tabular-nums text-text-accent">12</span>
+              </ToggleChip>
+            </Row>
+            <Row label="Sizes" mono="size=…">
+              <ToggleChip selected size="sm" onClick={() => {}}>
+                Small
+              </ToggleChip>
+              <ToggleChip selected size="md" onClick={() => {}}>
+                Medium
+              </ToggleChip>
             </Row>
           </Section>
 

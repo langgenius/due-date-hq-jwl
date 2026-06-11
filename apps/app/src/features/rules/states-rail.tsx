@@ -8,6 +8,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
+import { ToggleChip } from '@/components/primitives/toggle-chip'
 
 /**
  * `JurisdictionRail` — the left master pane of the Rule Library
@@ -109,23 +110,14 @@ export function JurisdictionRail({
         <span className="text-[16px] font-semibold text-text-primary">
           <Trans>Jurisdictions</Trans>
         </span>
-        <button
-          type="button"
+        <ToggleChip
+          selected={reviewOnly}
           onClick={() => setReviewOnly((v) => !v)}
-          aria-pressed={reviewOnly}
+          icon={ListFilterIcon}
           title={reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`}
-          aria-label={
-            reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
-          }
-          className={cn(
-            'inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-            reviewOnly
-              ? 'bg-state-accent-hover text-text-accent'
-              : 'text-text-secondary hover:bg-state-base-hover',
-          )}
         >
-          <ListFilterIcon className="size-3.5" />
-        </button>
+          <Trans>Needs review</Trans>
+        </ToggleChip>
       </div>
 
       {/* FilterRow — full-width search, separated by a `border-b` (same
@@ -307,10 +299,13 @@ function RailRow({
       )}
     >
       {code ? (
-        <StateBadge code={code} size="xs" preview={false} />
+        <StateBadge code={code} size="2xs" preview={false} />
       ) : Icon ? (
         <Icon
-          className={cn('size-[15px] shrink-0', selected ? 'text-text-accent' : 'text-text-secondary')}
+          className={cn(
+            'size-[15px] shrink-0',
+            selected ? 'text-text-accent' : 'text-text-secondary',
+          )}
           aria-hidden
         />
       ) : null}
@@ -322,10 +317,12 @@ function RailRow({
       >
         {label}
       </span>
-      {/* Quiet amber "needs review" dot — review pressure without shouting. */}
+      {/* Quiet amber "needs review" dot — review pressure without shouting.
+          size-1 (not 1.5) so a list where most rows carry one doesn't read as
+          a field of warning dots. */}
       {reviewCount > 0 ? (
         <span
-          className="size-1.5 shrink-0 rounded-full bg-state-warning-solid"
+          className="size-1 shrink-0 rounded-full bg-state-warning-solid"
           title={`${reviewCount} need review`}
           aria-label={`${reviewCount} rules need review`}
         />

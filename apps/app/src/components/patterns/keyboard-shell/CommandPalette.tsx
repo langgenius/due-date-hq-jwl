@@ -35,7 +35,7 @@ import {
   CommandList,
 } from '@duedatehq/ui/components/ui/command'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
-import { cn } from '@duedatehq/ui/lib/utils'
+import { ToggleChip } from '@/components/primitives/toggle-chip'
 
 import { orpc } from '@/lib/rpc'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
@@ -416,20 +416,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           {pills.map((entry) => {
             const active = pill === entry.id
             return (
-              <button
-                key={entry.id}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setPill(entry.id)}
-                className={cn(
-                  'cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors',
-                  active
-                    ? 'bg-state-accent-hover text-text-accent'
-                    : 'bg-background-subtle text-text-secondary hover:text-text-primary',
-                )}
-              >
+              <ToggleChip key={entry.id} selected={active} onClick={() => setPill(entry.id)}>
                 {entry.label}
-              </button>
+              </ToggleChip>
             )
           })}
         </div>
