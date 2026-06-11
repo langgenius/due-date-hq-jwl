@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CircleCheckIcon } from 'lucide-react'
+import { ArrowRightIcon, MegaphoneIcon, SlidersHorizontalIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
@@ -14,7 +14,6 @@ import {
   useAlertSourceHealthQueryOptions,
 } from '@/features/alerts/api'
 import { MonitoringChip } from '@/features/alerts/components/MonitoringChip'
-import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 
 import { NeedsAttentionCard } from './needs-attention-card'
 
@@ -67,59 +66,93 @@ function NeedsAttentionSection() {
   const hasNationalMonitoringCoverage =
     MVP_RULE_JURISDICTIONS.length === NATIONAL_MONITORING_JURISDICTION_COUNT
 
-  // ── Calm feed → thin single line, no tinted box ──
+  // ── Calm feed → centered "caught up" empty state (Yuqi: match the mockup).
+  //    The calm state earns a real illustration block now, not a thin line. ──
   if (totalAlertCount === 0) {
-    const watchedCount = sources.filter(
-      (source) => source.enabled && source.healthStatus !== 'paused',
-    ).length
-    const pausedCount = sources.filter(
-      (source) => source.enabled && source.healthStatus === 'paused',
-    ).length
+    const enabledSources = sources.filter((source) => source.enabled)
+    const watchedSources = enabledSources.filter((source) => source.healthStatus !== 'paused')
+    const pausedCount = enabledSources.length - watchedSources.length
+    // No watched sources is only a real state once the health query has loaded
+    // — during load we don't flash "no sources monitored".
+    const noSources = !sourceHealthQuery.isLoading && watchedSources.length === 0
+    // Real "last check" — the most recent poll across watched sources. Stays
+    // null (line hidden) until a source has actually been checked: no
+    // fabricated date.
+    const lastCheckedIso = watchedSources
+      .map((source) => source.lastCheckedAt)
+      .filter((value): value is string => Boolean(value))
+      .sort()
+      .at(-1)
+    const lastCheckedLabel = lastCheckedIso
+      ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(
+          new Date(lastCheckedIso),
+        )
+      : null
+    // Two real source labels make the "when X, Y… publishes" line concrete.
+    const exampleA = watchedSources[0]?.label
+    const exampleB = watchedSources[1]?.label
 
     return (
       <section
         aria-label={t`Alerts`}
-        className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1 py-0.5 text-xs text-text-tertiary"
+        className="flex flex-col items-center justify-center gap-5 px-6 py-14 text-center"
       >
-        <CircleCheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
-        <span className="font-medium text-text-secondary">
-          <Trans>Alerts</Trans>
+        {/* Megaphone in a light-accent disc — the alerts mark. Accent lives in
+            the container + icon, not the text (no coloured text on calm bg). */}
+        <span
+          className="flex size-16 items-center justify-center rounded-full bg-state-accent-hover"
+          aria-hidden
+        >
+          <MegaphoneIcon className="size-7 text-text-accent" strokeWidth={1.75} />
         </span>
-        {hasNationalMonitoringCoverage ? (
-          <>
-            <span aria-hidden>·</span>
-            <span className="inline-flex items-center gap-1.5">
-              <PulsingDot tone="success" active />
-              <Trans>Monitoring Federal + 50 states + DC</Trans>
-            </span>
-          </>
-        ) : null}
-        <span aria-hidden>·</span>
-        {sourceHealthQuery.isLoading ? (
-          <span>
-            <Trans>checking sources…</Trans>
-          </span>
-        ) : watchedCount === 0 ? (
-          <span className="text-text-warning">
-            <Trans>no sources monitored</Trans>
-          </span>
-        ) : pausedCount > 0 ? (
-          <span className="inline-flex items-center gap-2">
-            <span className="text-text-warning">
-              <Plural value={pausedCount} one="# source paused" other="# sources paused" />
-            </span>
-            <Link
-              to="/rules/sources"
-              className="underline-offset-2 hover:text-text-secondary hover:underline"
-            >
-              <Trans>View</Trans>
-            </Link>
-          </span>
-        ) : (
-          <span>
-            <Trans>nothing needs your review</Trans>
-          </span>
-        )}
+        <div className="flex max-w-md flex-col gap-2">
+          <h2 className="text-lg font-semibold text-text-primary">
+            {noSources ? (
+              <Trans>No sources monitored yet</Trans>
+            ) : (
+              <Trans>No alerts — you're caught up</Trans>
+            )}
+          </h2>
+          <p className="text-sm leading-relaxed text-text-secondary">
+            {noSources ? (
+              <Trans>Turn on a monitored source and policy changes will show up here.</Trans>
+            ) : exampleA && exampleB ? (
+              <Trans>
+                When {exampleA}, {exampleB}, or another monitored source publishes a change,
+                it will land here.
+              </Trans>
+            ) : exampleA ? (
+              <Trans>
+                When {exampleA} or another monitored source publishes a change, it will land
+                here.
+              </Trans>
+            ) : (
+              <Trans>When a monitored source publishes a change, it will land here.</Trans>
+            )}
+            {lastCheckedLabel ? (
+              <span className="text-text-tertiary">
+                {' '}
+                <Trans>Last check: {lastCheckedLabel}.</Trans>
+              </span>
+            ) : null}
+          </p>
+          {pausedCount > 0 ? (
+            <p className="text-sm font-medium text-text-warning">
+              <Plural
+                value={pausedCount}
+                one="# monitored source is paused"
+                other="# monitored sources are paused"
+              />
+            </p>
+          ) : null}
+        </div>
+        <Link
+          to="/rules/sources"
+          className="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-text-accent underline-offset-2 outline-none transition-colors hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <SlidersHorizontalIcon className="size-4" aria-hidden />
+          <Trans>Configure sources</Trans>
+        </Link>
       </section>
     )
   }
