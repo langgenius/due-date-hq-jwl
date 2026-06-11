@@ -228,3 +228,42 @@ contract. **Unified (accidental drift fixed 2026-06-11):**
   `JurisdictionLabel` with full state name.
 - Title sizes ramp by surface density (item-title card / lg row / base rail
   / 22px drawer) — same family, different altitude.
+
+---
+
+## Detail drawer: one home per fact (2026-06-11 de-duplication pass)
+
+Yuqi's page feedback on the alert detail ("aren't these repetitions? no
+highlights, hard to digest") — the Extracted-facts card restated header
+chrome and the Source & confidence card quoted the summary (usually the
+title verbatim) while a second lookalike quote box below the fact grid held
+the real excerpt. Contract now:
+
+**Each fact has exactly ONE home in the drawer body:**
+
+| Fact | Home | What was removed |
+| --- | --- | --- |
+| Source / authority | header meta link + S&C citation line | grid "Authority" cell |
+| Publish date | S&C citation line | grid "Published" cell |
+| Jurisdiction | header `JurisdictionLabel` chip | grid "Jurisdiction" cell (counties keep a cell — no other home) |
+| Verbatim excerpt | S&C quote box (with copy affordance) | excerpt block at the bottom of Extracted facts; S&C's summary-quote (title repeat) |
+| AI confidence | S&C confidence row | DeadlineChangeCard meta row |
+| Summary / dek | header (gated `summary ≠ title`) | DeadlineChangeCard body paragraph |
+| Audit note | footer "Every decision captured…" | DeadlineChangeCard "Every change logged…" |
+| Effective date | fact-grid cell (computed from `effectiveFrom`) | DeadlineChangeCard's hardcoded "Effective immediately" |
+
+**Highlight grammar** — exactly one hero block per card, sharing one recipe
+(gray `bg-background-subtle` box, big mono date, amber accents):
+
+- deadline-shift → `DeadlineChangeCard` (old strike → new 18/700 + signed
+  day delta).
+- protective-claim → action-deadline hero: `CalendarClockIcon` + amber
+  ACTION DEADLINE label + mono date + derived countdown ("N days left" amber
+  / "N days past" destructive), with the evidence-to-gather checklist as a
+  hairline sub-row (do-what-by-when in one block).
+
+**One grid, not two** — protective/deadline-shift AI facts (affected years /
+tax acts / authority refs / relief type / deadline types / opt-in) merge
+into the single hairline fact grid instead of stacking a second lookalike
+label/value box. Empty values drop their cell (no "—" renting a slot).
+Legal uncertainty stays a quiet `bg-background-soft` prose note below.

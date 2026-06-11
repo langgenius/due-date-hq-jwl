@@ -4,13 +4,13 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
   CircleAlertIcon,
+  CopyIcon,
   ExternalLinkIcon,
   LightbulbIcon,
   MailIcon,
   MessageSquareIcon,
   RotateCcwIcon,
   ShieldCheckIcon,
-  SparklesIcon,
   TriangleAlertIcon,
   UsersIcon,
   CheckIcon,
@@ -46,6 +46,7 @@ import {
 import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
@@ -60,10 +61,7 @@ import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { AlertStatusChip } from './components/AlertStatusChip'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
-import {
-  impactBadgeFromAlert,
-  isActiveAlert,
-} from './components/pulse-alert-chrome'
+import { impactBadgeFromAlert, isActiveAlert } from './components/pulse-alert-chrome'
 import { AffectedClientsTable } from './components/AffectedClientsTable'
 import { AlertStructuredFields } from './components/AlertStructuredFields'
 import { AlertTeamNotes } from './components/AlertTeamNotes'
@@ -154,7 +152,6 @@ function formatDeadlineDate(iso: string): string {
 }
 
 function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
-  const { t } = useLingui()
   const oldIso = detail.originalDueDate
   const newIso = detail.newDueDate
   if (detail.alert.actionMode !== 'due_date_overlay' || !oldIso || !newIso) return null
@@ -163,21 +160,14 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
       new Date(`${oldIso}T00:00:00.000Z`).getTime()) /
       86_400_000,
   )
-  // Header pill + "Effective immediately"; mono diff row (old strike →
-  // new 18/700) with a GREEN delta (an extension is relief, not a
-  // penalty); the source summary; then a hairline meta row of
-  // AI-confidence · source · audit ledger.
-  const confPct = Math.round(detail.alert.confidence * 100)
-  const confTone = aiConfidenceTier(detail.alert.confidence)
-  const confClass =
-    confTone === 'high'
-      ? 'text-text-success'
-      : confTone === 'medium'
-        ? 'text-text-tertiary'
-        : 'text-text-destructive'
+  // The hero does ONE thing: the date diff. One home per fact — the
+  // summary lives in the header dek, AI confidence in the Source &
+  // confidence card, the source link in the header meta, the audit note
+  // in the footer, and the effective date in the fact grid below; the
+  // rows that restated them here are gone.
   return (
     <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-subtle px-4 py-3.5">
-      {/* Header — ⚠ Deadline change · status chip · Effective immediately. */}
+      {/* Header — ⚠ Deadline change · status chip. */}
       <div className="flex flex-wrap items-center gap-2">
         <TriangleAlertIcon className="size-3.5 shrink-0 text-state-warning-solid" aria-hidden />
         <span className="text-base font-semibold text-text-primary">
@@ -196,10 +186,6 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
                 : formatRelativeTime(detail.alert.publishedAt)
           }
         />
-        <span className="flex-1" />
-        <span className="text-sm text-text-muted">
-          <Trans>Effective immediately</Trans>
-        </span>
       </div>
 
       {/* Diff row — old → new + signed delta (green when later = relief). */}
@@ -218,46 +204,6 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
           )}
         >
           {days >= 0 ? `+${days}` : `${days}`} <Trans>days</Trans>
-        </span>
-      </div>
-
-      {/* Source summary. */}
-      {detail.alert.summary && detail.alert.summary.trim() !== detail.alert.title.trim() ? (
-        <p className="text-base leading-[1.55] text-text-secondary">{detail.alert.summary}</p>
-      ) : null}
-
-      {/* Meta — AI confidence · source · audit ledger (top hairline). */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-divider-subtle pt-2.5 text-sm text-text-tertiary">
-        <span className="inline-flex items-center gap-1.5">
-          <SparklesIcon className={cn('size-3 shrink-0', confClass)} aria-hidden />
-          <span className={cn('font-semibold', confClass)}>{confPct}%</span>
-          <Trans>AI confidence</Trans>
-        </span>
-        <span aria-hidden className="text-text-muted">
-          ·
-        </span>
-        {detail.alert.sourceUrl ? (
-          <a
-            href={detail.alert.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-text-tertiary underline-offset-2 outline-none hover:text-text-secondary hover:underline"
-          >
-            <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
-            <span className="truncate">{detail.alert.source}</span>
-          </a>
-        ) : (
-          <span className="inline-flex items-center gap-1.5">
-            <ExternalLinkIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
-            {detail.alert.source}
-          </span>
-        )}
-        <span aria-hidden className="text-text-muted">
-          ·
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <ShieldCheckIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
-          {t`Every change logged in the audit ledger`}
         </span>
       </div>
     </section>
@@ -308,10 +254,6 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
   )
   // Only a forward shift earns "breathing room" — a same-day / earlier
   // deadline wouldn't read honestly, so bullet A is gated to days > 0.
-  // `months` feeds the <Plural> ICU message below ({months}); oxlint can't see
-  // interpolation inside Lingui message strings, so it misreads it as unused.
-  // eslint-disable-next-line no-unused-vars
-  const months = Math.max(1, Math.round(days / 30))
   const scopeArea =
     detail.counties.length > 0
       ? detail.counties.join(', ')
@@ -335,11 +277,19 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
               <UsersIcon className="size-3.5" aria-hidden />
             </span>
             <p className="text-base leading-[1.45] text-text-secondary">
-              <Plural
-                value={matchedCount}
-                one="# client gains ~{months} months of breathing room"
-                other="# clients gain ~{months} months of breathing room"
-              />
+              {/* Trans ternary (the ClientDetailWorkspace pattern), not a
+                  <Plural> string prop — a string prop leaves the inner
+                  {days} ICU placeholder valueless and it renders blank.
+                  The exact day delta matches the hero's "+N days" (one
+                  number per fact; "~1 months" for a 14-day shift read as
+                  fiction). */}
+              {matchedCount === 1 ? (
+                <Trans>1 client gains {days} extra days of breathing room</Trans>
+              ) : (
+                <Trans>
+                  {matchedCount} clients gain {days} extra days of breathing room
+                </Trans>
+              )}
             </p>
           </div>
         ) : null}
@@ -1170,55 +1120,55 @@ export function AlertDetailDrawer({
             </>
           ) : null}
         </nav>
-          <div className="flex shrink-0 items-center gap-3">
-            {/* Yuqi #13 — the A/D keyboard-action hints moved OUT of the
+        <div className="flex shrink-0 items-center gap-3">
+          {/* Yuqi #13 — the A/D keyboard-action hints moved OUT of the
                 footer (where they crowded the Mark-reviewed / Dismiss
                 buttons) and UP into this top bar, beside the "N of M"
                 pager read-out. Shown only on wide panels where there's
                 room, and only while the alert still accepts a decision. */}
-            {detail && !alertResolved ? (
-              <span className="hidden items-center gap-2.5 text-text-tertiary xl:inline-flex">
-                <span className="inline-flex items-center gap-1.5 text-caption">
-                  <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
-                    A
-                  </kbd>
-                  {/* The label tracks what `A` actually fires — Mark
+          {detail && !alertResolved ? (
+            <span className="hidden items-center gap-2.5 text-text-tertiary xl:inline-flex">
+              <span className="inline-flex items-center gap-1.5 text-caption">
+                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
+                  A
+                </kbd>
+                {/* The label tracks what `A` actually fires — Mark
                       reviewed on review-only / no-match alerts, the Apply
                       gate on due-date overlays (same `noActionReview`
                       branch as the hotkey handler + footer CTA). A hint
                       that says "Apply" while the key marks-reviewed
                       teaches a falsehood on the liability path. */}
-                  {detail.alert.actionMode === 'review_only' ||
-                  detail.alert.firmImpact === 'no_current_match' ? (
-                    <Trans>Review</Trans>
-                  ) : (
-                    <Trans>Apply</Trans>
-                  )}
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-caption">
-                  <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
-                    D
-                  </kbd>
-                  <Trans>Dismiss</Trans>
-                </span>
-                <span className="h-3.5 w-px bg-divider-regular" aria-hidden />
+                {detail.alert.actionMode === 'review_only' ||
+                detail.alert.firmImpact === 'no_current_match' ? (
+                  <Trans>Review</Trans>
+                ) : (
+                  <Trans>Apply</Trans>
+                )}
               </span>
-            ) : null}
-            {position && position.total > 0 ? (
-              <span className="text-sm text-text-muted tabular-nums">
-                {t`${position.index + 1} of ${position.total}`}
+              <span className="inline-flex items-center gap-1.5 text-caption">
+                <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border border-divider-regular bg-background-section px-1 font-mono text-caption-xs font-semibold text-text-secondary">
+                  D
+                </kbd>
+                <Trans>Dismiss</Trans>
               </span>
-            ) : null}
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              type="button"
-              onClick={onClose}
-              aria-label={t`Close alert detail`}
-            >
-              <XIcon className="size-4" aria-hidden />
-            </Button>
-          </div>
+              <span className="h-3.5 w-px bg-divider-regular" aria-hidden />
+            </span>
+          ) : null}
+          {position && position.total > 0 ? (
+            <span className="text-sm text-text-muted tabular-nums">
+              {t`${position.index + 1} of ${position.total}`}
+            </span>
+          ) : null}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            type="button"
+            onClick={onClose}
+            aria-label={t`Close alert detail`}
+          >
+            <XIcon className="size-4" aria-hidden />
+          </Button>
+        </div>
       </div>
 
       {/* Header padding overrides SheetHeader's primitive default
@@ -1360,9 +1310,7 @@ export function AlertDetailDrawer({
                 detail.alert.summary &&
                 detail.alert.summary.trim() !== detail.alert.title.trim() ? (
                   // Dek is body prose, not a sub-title — 14/400.
-                  <p className="text-base text-text-secondary">
-                    {detail.alert.summary}
-                  </p>
+                  <p className="text-base text-text-secondary">{detail.alert.summary}</p>
                 ) : null}
               </div>
             )
@@ -1709,8 +1657,12 @@ export function AlertDetailDrawer({
 
               {/* Citation line + verbatim quote. The "Source extract"
                   sub-header is gone (the card title says it); "Open
-                  original" rides the card's header band. */}
-              {detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
+                  original" rides the card's header band. The quote is the
+                  VERBATIM `sourceExcerpt` — its one home (it used to sit
+                  at the bottom of Extracted facts while this card
+                  re-quoted the summary, which is usually the title — two
+                  lookalike quote boxes, one of them a repeat). */}
+              {detail.sourceExcerpt.trim().length > 0 ? (
                 <section className="flex flex-col gap-2">
                   <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
                     <span className="font-mono">{detail.alert.source}</span>
@@ -1726,9 +1678,38 @@ export function AlertDetailDrawer({
                       </>
                     ) : null}
                   </div>
-                  <blockquote className="rounded-lg bg-background-section px-4 py-3 text-base leading-[1.55] text-text-secondary italic">
-                    &ldquo;{detail.alert.summary}&rdquo;
-                  </blockquote>
+                  <div className="group/excerpt relative">
+                    <blockquote className="break-words rounded-lg bg-background-section px-4 py-3 pr-10 text-base leading-[1.55] text-text-secondary italic">
+                      &ldquo;{detail.sourceExcerpt}&rdquo;
+                    </blockquote>
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={t`Copy source excerpt`}
+                            onClick={() => {
+                              void navigator.clipboard.writeText(detail.sourceExcerpt).then(
+                                () => toast.success(t`Source excerpt copied`),
+                                () => toast.error(t`Couldn't copy source excerpt`),
+                              )
+                            }}
+                            className={cn(
+                              'absolute right-2 top-2 opacity-0 transition-opacity',
+                              'group-hover/excerpt:opacity-100 focus-visible:opacity-100',
+                            )}
+                          >
+                            <CopyIcon aria-hidden />
+                          </Button>
+                        }
+                      />
+                      <TooltipContent>
+                        <Trans>Copy source excerpt</Trans>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                 </section>
               ) : null}
 
@@ -1782,11 +1763,7 @@ export function AlertDetailDrawer({
               title={<Trans>Activity &amp; notes</Trans>}
               headerRight={
                 <span className="tabular-nums">
-                  <Plural
-                    value={alertActivityEventCount(detail)}
-                    one="# event"
-                    other="# events"
-                  />
+                  <Plural value={alertActivityEventCount(detail)} one="# event" other="# events" />
                   {' · '}
                   <Trans>oldest first</Trans>
                 </span>

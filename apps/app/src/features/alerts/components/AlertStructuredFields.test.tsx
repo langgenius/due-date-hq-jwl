@@ -101,10 +101,25 @@ describe('AlertStructuredFields', () => {
     render(<AlertStructuredFields detail={reviewOnlyDetail()} />)
 
     expect(document.body.textContent).toContain('Review only')
-    expect(document.body.textContent).toContain('PTET election for tax year 2026')
     expect(document.body.textContent).not.toContain('Structured change')
     expect(document.body.textContent).not.toContain('"note"')
     expect(document.body.textContent).not.toContain('PTET election reminder only')
+    // The verbatim source excerpt lives in the Source & confidence card
+    // (its one home), not in the fact grid.
+    expect(document.body.textContent).not.toContain('PTET election for tax year 2026')
+  })
+
+  it('drops the cells that restate the header chrome (one home per fact)', () => {
+    render(<AlertStructuredFields detail={reviewOnlyDetail()} />)
+
+    // Authority / Published / bare Jurisdiction live in the header meta +
+    // Source & confidence citation — not in the fact grid.
+    expect(document.body.textContent).not.toContain('Authority')
+    expect(document.body.textContent).not.toContain('Published')
+    expect(document.body.textContent).not.toContain('New York')
+    // Scope facts with no other home stay.
+    expect(document.body.textContent).toContain('IT-204 · CT-3')
+    expect(document.body.textContent).toContain('partnership · c_corp')
   })
 
   it('shows a Revenue-Procedure pointer caveat (not the AI-extraction caveat) for threshold advisories', () => {
@@ -165,11 +180,12 @@ describe('AlertStructuredFields', () => {
       />,
     )
 
-    expect(document.body.textContent).toContain('Protective claim window')
     expect(document.body.textContent).toContain('Action deadline')
     expect(document.body.textContent).toContain('Jul 10, 2026')
     expect(document.body.textContent).toContain('2019 · 2020 · 2021 · 2022')
-    expect(document.body.textContent).toContain('filed return dates · claim support')
+    // Evidence renders as a checklist — one item per line, no ·-join.
+    expect(document.body.textContent).toContain('filed return dates')
+    expect(document.body.textContent).toContain('claim support')
     expect(document.body.textContent).toContain('CPA must review whether action is needed.')
     expect(document.body.textContent).not.toContain('"actionDeadline"')
   })

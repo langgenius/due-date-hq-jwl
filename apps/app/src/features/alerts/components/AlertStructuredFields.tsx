@@ -1,17 +1,11 @@
 import type { ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CopyIcon } from 'lucide-react'
-import { toast } from 'sonner'
+import { CalendarClockIcon } from 'lucide-react'
 
 import type { PulseDetail } from '@duedatehq/contracts'
-import { Button } from '@duedatehq/ui/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
-import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatDate, formatDatePretty } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
-import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
-
 
 interface AlertStructuredFieldsProps {
   detail: PulseDetail
@@ -127,62 +121,65 @@ function deadlineShiftFacts(detail: PulseDetail): DeadlineShiftFacts | null {
   return hasAnyFact ? facts : null
 }
 
+// Day distance from today to an ISO `YYYY-MM-DD` deadline — null for any
+// other string shape (the AI field is freeform text, so a non-date value
+// just renders without a countdown rather than guessing).
+function daysUntil(isoDate: string): number | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return null
+  const target = new Date(`${isoDate}T00:00:00.000Z`).getTime()
+  if (!Number.isFinite(target)) return null
+  return Math.ceil((target - Date.now()) / 86_400_000)
+}
+
 /**
- * The design's flat fact GRID — a 4-column (2 on narrow) matrix of
- * hairline-divided cells, each an uppercase mono label over a `13/600`
- * value.
+ * The structured-facts body of the "Extracted facts" card:
  *
- * The mock's exact cells include RELIEF TYPE / DEADLINE TYPES / OPT-IN,
- * which the contract doesn't carry. Rather than fabricate them, the
- * grid maps each slot to the real `PulseDetail` field nearest the
- * design's intent (Change type, Entity types, Apply mode) so every
- * value is true to the record while the layout matches 1:1.
+ *   1. Action-deadline hero (protective-claim alerts) — the one decision-
+ *      critical date gets the same hero grammar as DeadlineChangeCard
+ *      (big mono date + amber countdown), with the evidence checklist as
+ *      a hairline sub-row: "do this, by then" in one block.
+ *   2. ONE hairline fact grid (4-col, 2 on narrow) — uppercase mono label
+ *      over a 13/500 value. One home per fact: cells that restated the
+ *      header chrome or the Source & confidence card (Authority,
+ *      Published, bare Jurisdiction) are gone; type-specific facts
+ *      (affected years / tax acts / authority refs, relief type /
+ *      deadline types / opt-in) merge into this grid instead of stacking
+ *      a second lookalike grid below it.
+ *   3. Quiet prose notes (legal uncertainty, threshold-advisory caveat).
+ *
+ * The verbatim source excerpt lives in the Source & confidence card —
+ * its one home — not here.
  */
 export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
   const { t } = useLingui()
 
-  const copySourceExcerpt = () => {
-    void navigator.clipboard.writeText(detail.sourceExcerpt).then(
-      () => toast.success(t`Source excerpt copied`),
-      () => toast.error(t`Couldn't copy source excerpt`),
-    )
-  }
-
-  const stateName = RULE_JURISDICTION_LABELS[detail.jurisdiction] ?? detail.jurisdiction
   const effectiveValue = detail.effectiveFrom
     ? new Date(`${detail.effectiveFrom}T00:00:00.000Z`).getTime() <= Date.now()
       ? t`Immediate`
       : formatDate(detail.effectiveFrom)
     : '—'
-  const formsValue =
-    detail.forms.length > 0 ? detail.forms.map((form) => formatTaxCode(form)).join(' · ') : '—'
-  const jurisdictionValue =
-    detail.counties.length > 0
-      ? `${detail.counties.join(', ')} · ${detail.jurisdiction}`
-      : stateName
   const entityValue =
     detail.entityTypes.length > 0 ? detail.entityTypes.join(' · ') : t`All entity types`
   const applyModeValue =
     detail.alert.actionMode === 'due_date_overlay' ? t`Auto-applied` : t`Review only`
   const protectiveFacts = protectiveClaimFacts(detail)
   const deadlineFacts = deadlineShiftFacts(detail)
+  const actionDeadlineDays = protectiveFacts?.actionDeadline
+    ? daysUntil(protectiveFacts.actionDeadline)
+    : null
 
   // For deadline-shift alerts that carry AI-extracted relief facts, the
-  // three trailing slots show RELIEF TYPE / DEADLINE TYPES / OPT-IN
-  // instead of the generic Change type / Entity types / Apply mode. When
-  // those facts are ABSENT (every OLD alert), the generic cells keep the
-  // grid from showing empty. Each AI-derived cell stays under the
-  // section's "AI parsed — verify before Apply" subtitle.
+  // trailing slots show RELIEF TYPE / DEADLINE TYPES / OPT-IN instead of
+  // the generic Entity types / Apply mode. When those facts are ABSENT
+  // (every OLD alert), the generic cells keep the grid from showing
+  // empty. Each AI-derived cell stays under the section's "AI parsed —
+  // verify before Apply" subtitle.
   const deadlineTypesValue =
     deadlineFacts && deadlineFacts.deadlineTypes.length > 0
       ? deadlineFacts.deadlineTypes
           .map((kind) => (kind === 'filing' ? t`Filing` : t`Payment`))
           .join(' + ')
       : null
-  // No generic "Change type" fallback cell — the header's change-kind
-  // chip 60px above already names it verbatim, so the cell was pure
-  // duplication (and it truncated). The slot only renders when a
-  // deadline-shift alert carries a real AI-extracted relief type.
   const reliefCell = deadlineFacts?.reliefType
     ? {
         key: 'reliefType',
@@ -202,19 +199,63 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
         }
       : { key: 'apply', label: <Trans>Apply mode</Trans>, value: applyModeValue }
 
+  // One home per fact: no Authority cell (header meta + Source &
+  // confidence citation), no Published cell (same homes), no bare
+  // Jurisdiction cell (the header's seal chip) — counties are the only
+  // scope detail with no other home, so they keep a cell. Empty values
+  // ("—" forms) drop their cell instead of renting a slot to say nothing.
   const cells: Array<{ key: string; label: ReactNode; value: ReactNode }> = [
-    { key: 'authority', label: <Trans>Authority</Trans>, value: detail.alert.source },
-    { key: 'effective', label: <Trans>Effective</Trans>, value: effectiveValue },
-    { key: 'forms', label: <Trans>Affected forms</Trans>, value: formsValue },
+    ...(protectiveFacts && protectiveFacts.claimTaxYears.length > 0
+      ? [
+          {
+            key: 'claimYears',
+            label: <Trans>Affected years</Trans>,
+            value: protectiveFacts.claimTaxYears.join(' · '),
+          },
+        ]
+      : []),
+    ...(protectiveFacts && protectiveFacts.affectedTaxActs.length > 0
+      ? [
+          {
+            key: 'taxActs',
+            label: <Trans>Affected tax acts</Trans>,
+            value: protectiveFacts.affectedTaxActs.join(' · '),
+          },
+        ]
+      : []),
+    ...(protectiveFacts && protectiveFacts.authorityRefs.length > 0
+      ? [
+          {
+            key: 'authorityRefs',
+            label: <Trans>Authority refs</Trans>,
+            value: protectiveFacts.authorityRefs.join(' · '),
+          },
+        ]
+      : []),
     ...(reliefCell ? [reliefCell] : []),
-    { key: 'jurisdiction', label: <Trans>Jurisdiction</Trans>, value: jurisdictionValue },
     {
-      key: 'published',
-      label: <Trans>Published</Trans>,
-      // Pretty format ("May 20, 2026") — the grid showed ISO while every
-      // neighboring date rendered pretty; one date format per page.
-      value: formatDatePretty(detail.alert.publishedAt, { alwaysShowYear: true }),
+      key: 'effective',
+      label: <Trans>Effective</Trans>,
+      value: effectiveValue,
     },
+    ...(detail.forms.length > 0
+      ? [
+          {
+            key: 'forms',
+            label: <Trans>Affected forms</Trans>,
+            value: detail.forms.map((form) => formatTaxCode(form)).join(' · '),
+          },
+        ]
+      : []),
+    ...(detail.counties.length > 0
+      ? [
+          {
+            key: 'counties',
+            label: <Trans>Counties</Trans>,
+            value: detail.counties.join(', '),
+          },
+        ]
+      : []),
     deadlineTypesCell,
     optInCell,
   ]
@@ -234,6 +275,77 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
         </div>
       ) : null}
 
+      {/* Action-deadline hero — the protective-claim counterpart of
+          DeadlineChangeCard: the same gray box + big mono date grammar,
+          with the countdown and evidence checklist riding along so the
+          CPA's "do what, by when" reads in one glance. This is the one
+          highlighted block in the card; the grid below stays quiet. */}
+      {protectiveFacts &&
+      (protectiveFacts.actionDeadline || protectiveFacts.evidenceNeeded.length > 0) ? (
+        <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-subtle px-4 py-3.5">
+          {protectiveFacts.actionDeadline ? (
+            <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+              <span className="inline-flex items-center gap-1.5 self-center">
+                <CalendarClockIcon
+                  className="size-3.5 shrink-0 text-state-warning-solid"
+                  aria-hidden
+                />
+                <span className="text-xs font-semibold tracking-[0.3px] text-text-warning uppercase">
+                  <Trans>Action deadline</Trans>
+                </span>
+              </span>
+              <span className="font-mono text-xl font-bold tracking-[-0.2px] text-text-primary tabular-nums">
+                {formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}
+              </span>
+              {/* Derived countdown (deadline − today) — amber while the
+                  window is open, destructive once it has passed. */}
+              {actionDeadlineDays !== null ? (
+                actionDeadlineDays > 0 ? (
+                  <span className="text-sm font-semibold text-text-warning tabular-nums">
+                    <Plural value={actionDeadlineDays} one="# day left" other="# days left" />
+                  </span>
+                ) : actionDeadlineDays === 0 ? (
+                  <span className="text-sm font-semibold text-text-warning">
+                    <Trans>Due today</Trans>
+                  </span>
+                ) : (
+                  <span className="text-sm font-semibold text-text-destructive tabular-nums">
+                    <Plural value={-actionDeadlineDays} one="# day past" other="# days past" />
+                  </span>
+                )
+              ) : null}
+            </div>
+          ) : null}
+          {protectiveFacts.evidenceNeeded.length > 0 ? (
+            <div
+              className={
+                protectiveFacts.actionDeadline
+                  ? 'flex flex-col gap-1.5 border-t border-divider-subtle pt-2.5'
+                  : 'flex flex-col gap-1.5'
+              }
+            >
+              <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
+                <Trans>Evidence to gather</Trans>
+              </span>
+              <ul className="flex flex-col gap-1">
+                {protectiveFacts.evidenceNeeded.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2 text-sm font-medium text-text-primary"
+                  >
+                    <span
+                      className="mt-[7px] size-1 shrink-0 rounded-full bg-text-tertiary"
+                      aria-hidden
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
       {/* Yuqi #9 (avoid frame-in-frame): the grid no longer carries its own
           outer 1px border + radius — it sits inside DetailSectionCard's body,
           so a second framed box read as a nested frame. The cell hairlines
@@ -241,11 +353,10 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           card chrome above is the only outer frame. */}
       <div className="grid grid-cols-2 gap-px overflow-hidden bg-divider-subtle sm:grid-cols-4">
         {cells.map((cell) => (
-          // ExtractedFacts cell: padding [10,20] (px-5 py-2.5), 11/600
-          // uppercase tertiary label over a 13/medium primary value. The
-          // grid's gap-px + divider bg draw the right-/row-hairlines between
-          // cells. Yuqi #8: values are a consistent MEDIUM weight (was a
-          // mix of normal grid cells + semibold protective cells).
+          // Fact cell: padding [10,20] (px-5 py-3), 11/600 uppercase
+          // tertiary label over a 13/medium primary value. The grid's
+          // gap-px + divider bg draw the right-/row-hairlines between
+          // cells.
           <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-5 py-3">
             {/* Register B2 micro label — 12/500 CAPS tertiary (semibold read
                 chunky at the lifted xs size; medium is the canonical B2
@@ -253,16 +364,14 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
               {cell.label}
             </span>
-            {/* Wrap to two lines instead of ellipsizing — Authority /
-                Relief type are the identity values; hiding them behind
+            {/* Wrap to two lines instead of ellipsizing — Relief type /
+                Affected tax acts are identity values; hiding them behind
                 "…" defeated the grid. */}
             <span className="line-clamp-2 min-w-0 break-words text-base font-medium text-text-primary">
               {cell.value}
             </span>
           </div>
         ))}
-        {/* cells.length is 7 or 8, so one filler also squares the 2-col
-            mobile grid (7+1 = 4 rows of 2). */}
         {Array.from({ length: fillerCount }, (_, i) => (
           <div key={`filler-${i}`} className="bg-background-default" aria-hidden />
         ))}
@@ -279,101 +388,18 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
         </div>
       ) : null}
 
-      {protectiveFacts ? (
-        <div className="rounded-lg bg-background-soft px-4 py-3">
-          <div className="grid gap-3 sm:grid-cols-2">
-            {protectiveFacts.actionDeadline ? (
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
-                  <Trans>Action deadline</Trans>
-                </span>
-                <span className="text-sm font-medium text-text-primary">
-                  {formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}
-                </span>
-              </div>
-            ) : null}
-            {protectiveFacts.claimTaxYears.length > 0 ? (
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
-                  <Trans>Affected years</Trans>
-                </span>
-                <span className="break-words text-sm font-medium text-text-primary">
-                  {protectiveFacts.claimTaxYears.join(' · ')}
-                </span>
-              </div>
-            ) : null}
-            {protectiveFacts.affectedTaxActs.length > 0 ? (
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
-                  <Trans>Affected tax acts</Trans>
-                </span>
-                <span className="break-words text-sm font-medium text-text-primary">
-                  {protectiveFacts.affectedTaxActs.join(' · ')}
-                </span>
-              </div>
-            ) : null}
-            {protectiveFacts.evidenceNeeded.length > 0 ? (
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
-                  <Trans>Evidence to gather</Trans>
-                </span>
-                <span className="break-words text-sm font-medium text-text-primary">
-                  {protectiveFacts.evidenceNeeded.join(' · ')}
-                </span>
-              </div>
-            ) : null}
-          </div>
-          {protectiveFacts.legalUncertainty ? (
-            <div className="mt-3 flex flex-col gap-1">
-              <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
-                <Trans>Legal uncertainty</Trans>
-              </span>
-              <p className="text-sm leading-relaxed text-text-secondary">
-                {protectiveFacts.legalUncertainty}
-              </p>
-            </div>
-          ) : null}
-          {protectiveFacts.authorityRefs.length > 0 ? (
-            <div className="mt-3 flex flex-col gap-1">
-              <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
-                <Trans>Authority refs</Trans>
-              </span>
-              <p className="break-words text-sm leading-relaxed text-text-secondary">
-                {protectiveFacts.authorityRefs.join(' · ')}
-              </p>
-            </div>
-          ) : null}
+      {/* Legal uncertainty — prose caveat, deliberately quiet: it informs
+          the review but isn't a do-this fact like the hero above. */}
+      {protectiveFacts?.legalUncertainty ? (
+        <div className="flex flex-col gap-1 rounded-lg bg-background-soft px-4 py-3">
+          <span className="text-xs font-medium tracking-[0.5px] text-text-tertiary uppercase">
+            <Trans>Legal uncertainty</Trans>
+          </span>
+          <p className="text-sm leading-relaxed text-text-secondary">
+            {protectiveFacts.legalUncertainty}
+          </p>
         </div>
       ) : null}
-
-      {/* Source excerpt — flush bordered blockquote with copy affordance. */}
-      <div className="group/excerpt relative rounded-lg bg-background-soft px-4 py-3">
-        <blockquote className="break-words pr-8 text-sm italic leading-relaxed text-text-secondary">
-          &ldquo;{detail.sourceExcerpt}&rdquo;
-        </blockquote>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t`Copy source excerpt`}
-                onClick={copySourceExcerpt}
-                className={cn(
-                  'absolute right-2 top-2 opacity-0 transition-opacity',
-                  'group-hover/excerpt:opacity-100 focus-visible:opacity-100',
-                )}
-              >
-                <CopyIcon aria-hidden />
-              </Button>
-            }
-          />
-          <TooltipContent>
-            <Trans>Copy source excerpt</Trans>
-          </TooltipContent>
-        </Tooltip>
-      </div>
     </div>
   )
 }
