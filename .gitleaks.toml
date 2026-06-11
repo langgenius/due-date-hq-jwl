@@ -14,6 +14,16 @@
 [extend]
 useDefault = true
 
+# CI runs the scan AFTER `vp run ci` builds the workspace, so generated
+# bundles (apps/*/dist, .wrangler tmp output) are present and re-report
+# every string already scanned in source — minified, on kilometer-long
+# lines, at paths no source-scoped allowlist can match (this is exactly how
+# the readiness template ids re-failed the scan from apps/server/dist).
+# Artifacts are derived from scanned sources; exclude them.
+[[allowlists]]
+description = "Build artifacts are generated from already-scanned sources"
+paths = ['''(^|/)dist/''', '''(^|/)\.wrangler/''']
+
 [[allowlists]]
 description = "Readiness-template tax-form identifiers are not credentials"
 matchCondition = "AND"
