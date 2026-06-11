@@ -998,8 +998,14 @@ export function ClientDetailWorkspace({
                 */}
                 <ClientDetailTabTrigger value="work" activeTab={activeTab} compact={panelOpen}>
                   <ClipboardListIcon className="size-3.5" aria-hidden />
-                  <span data-tab-label>
-                    <Trans>Filing plan</Trans>
+                  <span data-tab-label className="inline-flex items-center gap-1.5">
+                    {/* Pencil VtC73: "Filings" + a count pill of the plan's rows. */}
+                    <Trans>Filings</Trans>
+                    {!panelOpen && obligations.length > 0 ? (
+                      <span className="rounded-full bg-background-section px-1.5 py-0.5 text-caption-xs font-semibold text-text-tertiary tabular-nums">
+                        {obligations.length}
+                      </span>
+                    ) : null}
                   </span>
                 </ClientDetailTabTrigger>
                 <ClientDetailTabTrigger value="info" activeTab={activeTab} compact={panelOpen}>
