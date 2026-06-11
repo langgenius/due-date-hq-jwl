@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRightIcon } from 'lucide-react'
+import { ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 import type { PulseAffectedClient } from '@duedatehq/contracts'
@@ -52,6 +52,14 @@ interface AffectedClientsTableProps {
   variant?: 'apply' | 'review'
 }
 
+// High-match alerts can carry dozens of rows (a CA 1040 shift can hit half
+// the client book) — collapsed, the table shows the first VISIBLE_COLLAPSED
+// rows plus a "Show all N" footer (the collapsible-density rule: long detail
+// cards must collapse). Below COLLAPSE_THRESHOLD everything renders and no
+// expander appears ("Show all 9" would be sillier than 9 rows).
+const COLLAPSE_THRESHOLD = 10
+const VISIBLE_COLLAPSED = 8
+
 // Affected clients table inside the Drawer body. One row per obligation; only
 // `eligible` rows are interactive. Other matchStatus values are surfaced with
 // a badge so CPAs see why a row isn't part of the apply set.
@@ -71,6 +79,32 @@ export function AffectedClientsTable({
   const selectableCount = rows.filter((row) => isSelectable(row, confirmedReviewIds)).length
   const selectedCount = countSelected(rows, selection, confirmedReviewIds)
   const allSelectableChecked = selectableCount > 0 && selectedCount === selectableCount
+
+  // Collapse state. Reset when the table is handed a different alert's rows
+  // (render-time setState per project rule — same pattern as the drawer's
+  // resetKey). Key off first-row id + length so switching alerts collapses
+  // again, while selection churn on the same alert doesn't.
+  const [showAll, setShowAll] = useState(false)
+  const [rowsKey, setRowsKey] = useState<string | null>(null)
+  const nextRowsKey = `${rows[0]?.obligationId ?? 'none'}:${rows.length}`
+  if (rowsKey !== nextRowsKey) {
+    setShowAll(false)
+    setRowsKey(nextRowsKey)
+  }
+  const collapsible = rows.length > COLLAPSE_THRESHOLD
+  // When the table collapses, rows the AI flagged `needs_review` sort to the
+  // TOP — the fold may only ever hide auto-matched rows, never one that
+  // needs human eyes. Below the threshold the server order is kept
+  // untouched (no behavior change for small sets, which is also what the
+  // demo data + E2E specs render).
+  const orderedRows = useMemo(() => {
+    if (!collapsible) return rows
+    return [...rows].sort(
+      (a, b) =>
+        (a.matchStatus === 'needs_review' ? 0 : 1) - (b.matchStatus === 'needs_review' ? 0 : 1),
+    )
+  }, [rows, collapsible])
+  const visibleRows = collapsible && !showAll ? orderedRows.slice(0, VISIBLE_COLLAPSED) : orderedRows
 
   const handleToggleAll = (checked: boolean) => {
     onChangeSelection(setAllSelection(rows, checked, confirmedReviewIds))
@@ -136,7 +170,7 @@ export function AffectedClientsTable({
             </TableRow>
           </TableHeader>
           <TableBody className="[&_td]:py-2 [&_td]:text-sm">
-            {rows.map((row) => {
+            {visibleRows.map((row) => {
               const checked = selection.has(row.obligationId)
               const reviewConfirmed = confirmedReviewIds.has(row.obligationId)
               const excluded = excludedIds.has(row.obligationId)
@@ -315,6 +349,34 @@ export function AffectedClientsTable({
             })}
           </TableBody>
         </Table>
+        {/* Expander footer — only when there's something folded. A quiet
+            full-width row inside the table frame; the header's select-all,
+            "Confirm N", and the selection summary all operate on the FULL
+            data set, so the collapsed view never lies about totals. */}
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={() => setShowAll((prev) => !prev)}
+            aria-expanded={showAll}
+            className="flex w-full cursor-pointer items-center justify-center gap-1.5 border-t border-divider-subtle bg-background-default py-2 text-sm font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt"
+          >
+            {showAll ? (
+              <>
+                <ChevronUpIcon className="size-3.5" aria-hidden />
+                <Trans>Show fewer</Trans>
+              </>
+            ) : (
+              <>
+                <ChevronDownIcon className="size-3.5" aria-hidden />
+                {/* Plain <Trans> with one variable — the count is always
+                    > COLLAPSE_THRESHOLD here so no plural branch needed
+                    (and <Plural> string props can't interpolate, per the
+                    lingui footgun). */}
+                <Trans>Show all {orderedRows.length} clients</Trans>
+              </>
+            )}
+          </button>
+        ) : null}
       </div>
 
       <Dialog
