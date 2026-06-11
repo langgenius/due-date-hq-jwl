@@ -346,7 +346,7 @@ function NeedsAttentionCard({
             )}
           >
             {/* "{N}% conf" — the same order the /alerts row meter uses. */}
-            <Trans>{confidencePct}% conf</Trans>
+            <Trans>{confidencePct}% confidence</Trans>
           </span>
         </span>
 

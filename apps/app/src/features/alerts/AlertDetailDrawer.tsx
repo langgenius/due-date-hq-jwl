@@ -505,7 +505,7 @@ function DecisionBanners({
           )
         }
         description={
-          <Trans>You can undo for the next 24 hours. After that, the change is committed.</Trans>
+          <Trans>You can undo for the next 24 hours. After that, it can't be undone.</Trans>
         }
         action={
           REVERTABLE_STATUSES.has(alert.status) ? (
@@ -810,7 +810,7 @@ export function AlertDetailDrawer({
       onSuccess: (result) => {
         invalidate()
         toast.success(t`Applied to ${result.appliedCount} clients`, {
-          description: t`Audit + evidence written. Undo within 24h.`,
+          description: t`Recorded in the audit log. Undo within 24 hours.`,
           action: {
             label: t`Undo`,
             onClick: () => revertMutation.mutate({ alertId: result.alert.id }),
@@ -893,7 +893,7 @@ export function AlertDetailDrawer({
         // managers") so the toast tracks the pulse.apply review-eligible
         // role set.
         toast.success(t`Review requested`, {
-          description: t`Notifications queued for ${requiredRolesLabel('pulse.apply')}.`,
+          description: t`Review request sent to ${requiredRolesLabel('pulse.apply')}.`,
         })
       },
       onError: (err) => {
@@ -925,7 +925,7 @@ export function AlertDetailDrawer({
       onSuccess: (result) => {
         invalidate()
         toast.success(t`Applied reviewed set to ${result.appliedCount} clients`, {
-          description: t`Audit + evidence written. Undo within 24h.`,
+          description: t`Recorded in the audit log. Undo within 24 hours.`,
           action: {
             label: t`Undo`,
             onClick: () => revertMutation.mutate({ alertId: result.alert.id }),
@@ -963,7 +963,7 @@ export function AlertDetailDrawer({
   const handleApply = () => {
     if (!detail) return
     if (!canApplyAlertDeadline(detail)) {
-      toast.error(t`Confirm the new date and deadlines before applying`)
+      toast.error(t`Complete the new date and deadlines before applying`)
       return
     }
     setApplyVerified(false)

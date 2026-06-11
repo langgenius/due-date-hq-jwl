@@ -20,21 +20,21 @@ function forbiddenDescriptor(): MessageDescriptor {
   // Match the `<Trans>Only {requiredRolesLabel(...)} can apply alert
   // changes.</Trans>` msgid in AlertDetailDrawer — both surfaces share
   // the same translation entry.
-  return msg`Only ${requiredRolesLabel('pulse.apply')} can apply alert changes.`
+  return msg`Only ${requiredRolesLabel('pulse.apply')} can apply alerts.`
 }
 
 const MESSAGE_BY_CODE: Partial<Record<ErrorCode, () => MessageDescriptor>> = {
   [ErrorCodes.PULSE_NOT_FOUND]: () => msg`This alert is no longer available.`,
   [ErrorCodes.PULSE_APPLY_CONFLICT]: () =>
     msg`Some deadlines have changed since you opened this alert. Refresh to load the latest list.`,
-  [ErrorCodes.PULSE_REVERT_EXPIRED]: () => msg`The 24h undo window has expired for this alert.`,
+  [ErrorCodes.PULSE_REVERT_EXPIRED]: () => msg`The 24-hour undo period has passed for this alert.`,
   [ErrorCodes.PULSE_NO_ELIGIBLE_OBLIGATIONS]: () => msg`No eligible deadlines are selected.`,
   [ErrorCodes.PULSE_NEEDS_DETAILS]: () =>
     msg`Complete the deadline details before applying this alert.`,
   [ErrorCodes.PULSE_REVIEW_UNAVAILABLE]: () =>
-    msg`This Alert is closed and cannot be sent for review.`,
+    msg`This alert is closed and can't be sent for review.`,
   [ErrorCodes.PULSE_REVIEW_ONLY]: () =>
-    msg`This alert is review-only and does not apply due-date overlays.`,
+    msg`This alert is review-only — no due date will change.`,
   [ErrorCodes.FIRM_FORBIDDEN]: forbiddenDescriptor,
   [ErrorCodes.MEMBER_FORBIDDEN]: forbiddenDescriptor,
 }
