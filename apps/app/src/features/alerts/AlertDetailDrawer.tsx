@@ -391,7 +391,6 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
             : {
                 tone: 'warning',
                 title: <Trans>Awaiting your decision</Trans>,
-                meta: <Trans>Apply, review, or dismiss to resolve.</Trans>,
               }
   events.push({ id: 'current', ...current })
 

@@ -635,7 +635,7 @@ export function DeadlineInputRequestDialog({
                   ))}
                   {!loadingRecipients && recipients.length === 0 ? (
                     <DropdownMenuItem disabled>
-                      <Trans>No owner or partner available</Trans>
+                      <Trans>No eligible recipients</Trans>
                     </DropdownMenuItem>
                   ) : null}
                 </DropdownMenuRadioGroup>
@@ -793,7 +793,7 @@ export function AuthorityRejectionDialog({
             />
             {reasonError ? (
               <FieldError id="authority-rejected-reason-error">
-                <Trans>Reason is required.</Trans>
+                <Trans>Add a reason.</Trans>
               </FieldError>
             ) : null}
           </Field>
@@ -866,7 +866,7 @@ export function MaterialsRequestPreviewDialog({
   const emailStatus = preview?.recipientEmail ? (
     preview.emailWillBeQueued ? (
       <Badge variant="success">
-        <Trans>Email will be queued</Trans>
+        <Trans>Email queued</Trans>
       </Badge>
     ) : (
       <Badge variant="secondary">

@@ -514,7 +514,7 @@ function DeadlineRowExpansion({
           ) : (
             <Button size="sm" onClick={() => onMarkFiled?.(deadline.id)}>
               <CheckIcon data-icon="inline-start" />
-              <Trans>Mark filed</Trans>
+              <Trans>Mark as filed</Trans>
             </Button>
           )}
           <Button size="sm" variant="outline" onClick={() => onReassign?.(deadline.id)}>

@@ -7097,7 +7097,7 @@ export function ObligationQueueDetailDrawer({
     }
     if (!reason) {
       setAuthorityRejectionReasonError(true)
-      toast.error(t`Reason is required.`)
+      toast.error(t`Add a reason.`)
       return
     }
 
@@ -7351,7 +7351,7 @@ export function ObligationQueueDetailDrawer({
       >
         {detailQuery.isLoading ? (
           <EmptyPanel className="py-8 text-center">
-            <Trans>Loading deadline detail…</Trans>
+            <Trans>Loading…</Trans>
           </EmptyPanel>
         ) : detailQuery.isError || !detail || !row ? (
           // Step 1-5 reaudit Alert primitive + Step 6 UX #147
@@ -9083,7 +9083,7 @@ function AuthorityRejectionDialog({
             />
             {reasonError ? (
               <FieldError id="authority-rejected-reason-error">
-                <Trans>Reason is required.</Trans>
+                <Trans>Add a reason.</Trans>
               </FieldError>
             ) : null}
           </Field>
@@ -9820,7 +9820,7 @@ function ReadinessOverview({
       switch (stageKey) {
         case 'waiting_on_client':
           return {
-            headline: t`All ${checklistCount} items in`,
+            headline: t`All ${checklistCount} items received`,
             subline: t`Move to In review when ready to draft.`,
           }
         case 'blocked':
@@ -9830,13 +9830,13 @@ function ReadinessOverview({
           }
         case 'review':
           return {
-            headline: t`All ${checklistCount} items in workpapers`,
+            headline: t`All ${checklistCount} items received`,
             subline: t`Drafting in progress with everything the client provided.`,
           }
         case 'pending':
         default:
           return {
-            headline: t`All ${checklistCount} items in`,
+            headline: t`All ${checklistCount} items received`,
             subline: t`Move forward when ready to start work.`,
           }
       }
@@ -9847,8 +9847,8 @@ function ReadinessOverview({
       case 'pending':
         if (latestRequest && receivedCount === 0) {
           return {
-            headline: t`Requested from client`,
-            subline: t`Sent ${checklistCount} items — awaiting client response.`,
+            headline: t`Awaiting client response`,
+            subline: t`Requested ${checklistCount} items from the client.`,
           }
         }
         return {

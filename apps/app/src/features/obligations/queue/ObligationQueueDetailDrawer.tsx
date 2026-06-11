@@ -209,7 +209,7 @@ function DeadlineTopActions({
           render={
             <Button variant="outline" size="sm" className="h-8 gap-1.5" disabled={assignPending}>
               <UserPlusIcon className="size-3.5" aria-hidden />
-              <Trans>Assign</Trans>
+              <Trans>Assign owner</Trans>
             </Button>
           }
         />
@@ -1450,7 +1450,7 @@ export function ObligationQueueDetailDrawer({
     }
     if (!reason) {
       setAuthorityRejectionReasonError(true)
-      toast.error(t`Reason is required.`)
+      toast.error(t`Add a reason.`)
       return
     }
 
@@ -2231,7 +2231,7 @@ export function ObligationQueueDetailDrawer({
         >
           {detailQuery.isLoading ? (
             <EmptyPanel className="py-8 text-center">
-              <Trans>Loading deadline detail…</Trans>
+              <Trans>Loading…</Trans>
             </EmptyPanel>
           ) : detailQuery.isError || !detail || !row ? (
             // Step 1-5 reaudit Alert primitive + Step 6 UX #147

@@ -261,7 +261,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       onSuccess: (result) => {
         if (result.failedIds.length > 0) {
           toast.warning(
-            t`Dismissed ${result.alerts.length} · ${result.failedIds.length} couldn't be dismissed`,
+            t`Dismissed ${result.alerts.length} — ${result.failedIds.length} couldn't be dismissed`,
           )
         } else {
           toast.success(t`Dismissed ${result.alerts.length} alerts`)

@@ -152,7 +152,7 @@ export function ReadinessOverview({
       switch (stageKey) {
         case 'waiting_on_client':
           return {
-            headline: t`All ${checklistCount} items in`,
+            headline: t`All ${checklistCount} items received`,
             subline: t`Move to In review when ready to draft.`,
           }
         case 'blocked':
@@ -162,13 +162,13 @@ export function ReadinessOverview({
           }
         case 'review':
           return {
-            headline: t`All ${checklistCount} items in workpapers`,
+            headline: t`All ${checklistCount} items received`,
             subline: t`Drafting in progress with everything the client provided.`,
           }
         case 'pending':
         default:
           return {
-            headline: t`All ${checklistCount} items in`,
+            headline: t`All ${checklistCount} items received`,
             subline: t`Move forward when ready to start work.`,
           }
       }
@@ -179,8 +179,8 @@ export function ReadinessOverview({
       case 'pending':
         if (latestRequest && receivedCount === 0) {
           return {
-            headline: t`Requested from client`,
-            subline: t`Sent ${checklistCount} items — awaiting client response.`,
+            headline: t`Awaiting client response`,
+            subline: t`Requested ${checklistCount} items from the client.`,
           }
         }
         return {
