@@ -427,9 +427,13 @@ describe('AlertsListPage work queue toggle', () => {
   })
 })
 
-describe('AlertsListPage Already-in-effect band', () => {
-  it('pins catchup rows outside the work queue, ordered by act-by date ascending', async () => {
-    const catchupSoon = listAlert({
+describe('AlertsListPage catchup rows in the stream', () => {
+  it('renders catchup alerts as ordinary cards routed through the Review/Active split', async () => {
+    // 2026-06-11 (owner): no separate "Already in effect" band — catchup rows
+    // (origin='catchup') use the SAME cards and the same Review/Active queue
+    // routing as live rows. Their state-not-news semantics live entirely in
+    // the backend (excluded from new-alert counters, no emails).
+    const catchupShift = listAlert({
       id: '56565656-5656-4565-8565-565656565656',
       pulseId: '67676767-6767-4676-8676-676767676767',
       title: 'GA wildfire relief',
@@ -437,33 +441,41 @@ describe('AlertsListPage Already-in-effect band', () => {
       actionDeadline: '2026-08-20T00:00:00.000Z',
       matchedCount: 2,
     })
-    const catchupLater = listAlert({
+    const reviewOnlyCatchup = listAlert({
       id: '78787878-7878-4787-8787-787878787878',
       pulseId: '89898989-8989-4898-8898-898989898989',
-      title: 'NMI typhoon relief',
+      title: 'NY MFI computation change',
       origin: 'catchup',
-      actionDeadline: '2026-11-02T00:00:00.000Z',
-      matchedCount: 1,
+      changeKind: 'filing_requirement',
+      actionMode: 'review_only',
+      firmImpact: 'review_only',
+      matchedCount: 0,
+      needsReviewCount: 0,
+      actionDeadline: null,
+      applyReadiness: { status: 'not_applicable', missing: [] },
     })
-    // Later-deadline row seeded FIRST: the band must reorder by act-by date.
     rpcMocks.listAlertsQueryFn.mockResolvedValue({
-      alerts: [listAlert(), catchupLater, catchupSoon],
+      alerts: [reviewOnlyCatchup, catchupShift],
       nextCursor: null,
     })
 
     await render(<AlertsListPage embedded />)
 
-    // Band renders under the default Review queue even though both catchup
-    // rows are deadline shifts (Active-queue material) — the band is exempt
-    // from the queue split and from every filter.
-    await waitForText('Already in effect')
-    expect(document.body.textContent).toContain('GA wildfire relief')
-    expect(document.body.textContent).toContain('NMI typhoon relief')
-    const text = document.body.textContent ?? ''
-    expect(text.indexOf('GA wildfire relief')).toBeLessThan(text.indexOf('NMI typhoon relief'))
-    // Band rows never leak into the news stream's day-grouped list — the
-    // seeded live alert is the only stream row (hidden under Review queue).
-    expect(document.body.textContent).toContain('Dismiss all')
+    // Default Review queue: the review-only catchup card shows; the
+    // deadline-shift catchup card is Active-queue material and stays out.
+    await waitForText('NY MFI computation change')
+    expect(document.body.textContent).not.toContain('GA wildfire relief')
+    expect(document.body.textContent).not.toContain('Already in effect')
+
+    const queueButtons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('[aria-label="Alert work queue"] button'),
+    )
+    await act(async () => {
+      queueButtons[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    await waitForText('GA wildfire relief')
+    expect(document.body.textContent).not.toContain('NY MFI computation change')
   })
 })
 
