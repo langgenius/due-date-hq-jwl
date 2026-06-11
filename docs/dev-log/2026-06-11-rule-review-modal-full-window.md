@@ -38,3 +38,29 @@ preview data to 0 rules (so no rule opens) and has this surface mid-redesign
 (10 pre-existing test failures in `rules.library.test.tsx`, unrelated to this
 change). Tightening the residual further (leaner footer / hero) is the next
 step once data returns.
+
+## Follow-up 2026-06-11 — residual closed (scroll-free at 861px)
+
+Data returned; measured the open modal live at 1512×861. The body region was
+358px for 425px of content (67px overflow → a short scroll). The cause was the
+hero (183px) + Decision footer (159px) eating 342px of the 701px dialog, not
+the column count — balanced columns are floored by the tallest single
+`break-inside-avoid` card, so bumping 4→5 columns barely moved the stack
+(425→413px) while cramping each card (clipped chips, the Evidence "Primary"
+badge overlapping the filename). Reverted to 4 columns and reclaimed the height
+instead:
+
+- **Hero** (`RuleDetailHeroCard`, `rules.library.tsx`): identity bar
+  `h-9 → h-8`, body `py-3.5 → py-2.5`, `gap-1.5 → gap-1`, panel wrapper
+  `pt-5 → pt-4`. 183 → 161px.
+- **Decision footer**: dropped the redundant "Decision" `RuleSectionHeading`
+  (the bordered footer + Accept/Reject buttons already name the zone; that was
+  its only caller, so the function was removed) and tightened the explainer
+  `text-sm → text-xs`; panel wrapper `py-3 → py-2.5`. 159 → 122px.
+- **Scroll body**: own padding `py-4 → py-3` (−8px of content height).
+
+Result: body 417px, content 417px → **0px overflow, no scroll** at 861px, with
+all seven reference cards + the commit footer visible at once. `tsc` clean;
+lint 0 errors; test count unchanged (7 pass / 10 pre-existing fails). Floor is
+~860px viewport height; shorter windows still scroll the body — the correct
+fallback.

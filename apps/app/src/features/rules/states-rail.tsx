@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { LayoutDashboardIcon, ListFilterIcon, TimerIcon } from 'lucide-react'
+import { LayoutDashboardIcon, TimerIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
@@ -14,7 +15,6 @@ import {
 } from '@/components/patterns/list-rail'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
-import { ToggleChip } from '@/components/primitives/toggle-chip'
 
 /**
  * `JurisdictionRail` — the left master pane of the Rule Library
@@ -100,21 +100,26 @@ export function JurisdictionRail({
 
   return (
     <ListRail ariaLabel={t`Jurisdictions`} {...(className ? { className } : {})}>
-      {/* ListHead — title + review-only filter toggle. Mirrors the canonical
-          list-rail head (AlertListRail / ObligationListRail): a single 15px
-          title row with a trailing control, separated by a `border-b`. */}
+      {/* ListHead — title + an All / Needs-review Segmented filter. The
+          two-segment control reads unmistakably as a filter (same chrome as
+          the per-jurisdiction Review/Active Segmented) where the lone chip
+          read as a static label. Mirrors the canonical list-rail head
+          (AlertListRail / ObligationListRail): a single 15px title row with a
+          trailing control, separated by a `border-b`. */}
       <ListRailHead className="justify-between">
         <ListRailTitle>
           <Trans>Jurisdictions</Trans>
         </ListRailTitle>
-        <ToggleChip
-          selected={reviewOnly}
-          onClick={() => setReviewOnly((v) => !v)}
-          icon={ListFilterIcon}
-          title={reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`}
-        >
-          <Trans>Awaiting review</Trans>
-        </ToggleChip>
+        <Segmented<'all' | 'review'>
+          value={reviewOnly ? 'review' : 'all'}
+          onValueChange={(next) => setReviewOnly(next === 'review')}
+          size="sm"
+          ariaLabel={t`Filter jurisdictions`}
+          options={[
+            { value: 'all', label: <Trans>All</Trans> },
+            { value: 'review', label: <Trans>Needs review</Trans> },
+          ]}
+        />
       </ListRailHead>
 
       {/* FilterRow — full-width search, separated by a `border-b` (same
@@ -314,23 +319,28 @@ function RailRow({
       >
         {label}
       </span>
-      {/* Quiet amber "needs review" dot — review pressure without shouting.
-          size-1 (not 1.5) so a list where most rows carry one doesn't read as
-          a field of warning dots. */}
-      {reviewCount > 0 ? (
+      {/* Trailing cluster — quiet amber "needs review" dot + the rule count
+          in a fixed-width right-aligned box. The fixed width keeps both the
+          counts AND the dots in clean vertical columns down the rail (a
+          1-digit vs 2-digit count would otherwise shift the dot left/right
+          row to row). size-1 dot (not 1.5) so a list where most rows carry
+          one doesn't read as a field of warning dots. */}
+      <span className="flex shrink-0 items-center gap-1.5">
+        {reviewCount > 0 ? (
+          <span
+            className="size-1 shrink-0 rounded-full bg-state-warning-solid"
+            title={`${reviewCount} need review`}
+            aria-label={`${reviewCount} rules need review`}
+          />
+        ) : null}
         <span
-          className="size-1 shrink-0 rounded-full bg-state-warning-solid"
-          title={`${reviewCount} need review`}
-          aria-label={`${reviewCount} rules need review`}
-        />
-      ) : null}
-      <span
-        className={cn(
-          'shrink-0 text-xs font-medium tabular-nums',
-          selected ? 'text-text-accent' : 'text-text-muted',
-        )}
-      >
-        {count}
+          className={cn(
+            'inline-block min-w-[2ch] text-right text-xs font-medium tabular-nums',
+            selected ? 'text-text-accent' : 'text-text-muted',
+          )}
+        >
+          {count}
+        </span>
       </span>
     </button>
   )

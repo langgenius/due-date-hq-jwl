@@ -352,7 +352,13 @@ export function RuleDetailCompact({
       className={cn(
         'min-w-0',
         columns
-          ? 'gap-3 [column-fill:balance] sm:columns-2 [&>*]:mb-3 [&>*]:break-inside-avoid lg:columns-3 xl:columns-4'
+          ? // Balanced CSS columns so the whole rule reads without scrolling.
+            // Capped at 4 columns: balance is floored by the tallest single
+            // card (break-inside-avoid), so 5–6 columns barely shorten the
+            // stack while cramping each card (clipped chips, overlapping
+            // badges). The scroll-free fit comes from the trimmed hero/footer
+            // + tighter body padding instead.
+            'gap-3 [column-fill:balance] sm:columns-2 [&>*]:mb-3 [&>*]:break-inside-avoid lg:columns-3 xl:columns-4'
           : 'flex flex-col gap-[18px]',
       )}
     >
@@ -1119,14 +1125,10 @@ function CandidateReviewForm({
   // its own border-t + tinted bg.
   const body = (
     <>
-      {/* Section header used to include a right-aligned "Needs review"
-          chip that duplicated the rule-status pill in the audit meta
-          line above. Dropped per /critique — one canonical "needs
-          review" signal is enough. */}
-      <RuleSectionHeading>
-        <Trans>Decision</Trans>
-      </RuleSectionHeading>
-      <p className="text-sm text-text-secondary">
+      {/* No "Decision" heading — the bordered commit footer + the
+          Accept/Reject buttons already name this zone; in the full-window
+          panel the heading was just height the reviewer must scroll past. */}
+      <p className="text-xs text-text-secondary">
         {sourceDefined && rule.status === 'active' ? (
           <Trans>
             This rule is active for client filings in {rule.jurisdiction} for {entitySummary}, but
@@ -1735,15 +1737,6 @@ function AiDraftReviewSkeleton() {
       <Skeleton className="h-3 w-3/4" />
     </div>
   )
-}
-
-function RuleSectionHeading({ children }: { children: React.ReactNode }) {
-  // Same canonical move as DetailSection above: the Practice review heading
-  // reads at the same weight as Applicability / Due date / Extension /
-  // Evidence so the action zone doesn't feel buried under meta. `text-base`
-  // gives every section title in the rule-detail surfaces a single voice at
-  // title-rank size.
-  return <h4 className="text-base font-semibold text-text-primary">{children}</h4>
 }
 
 function ApplicabilitySection({ rule }: { rule: ObligationRule }) {

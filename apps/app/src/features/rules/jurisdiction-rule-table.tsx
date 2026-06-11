@@ -1,5 +1,5 @@
 import { Fragment, useMemo, type ReactNode } from 'react'
-import { ChevronRightIcon, CircleCheckIcon, GitPullRequestArrowIcon } from 'lucide-react'
+import { CircleCheckIcon, GitPullRequestArrowIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationRule, RuleStatus } from '@duedatehq/contracts'
@@ -59,38 +59,32 @@ function isSelectable(status: RuleStatus): boolean {
   return status === 'pending_review' || status === 'candidate'
 }
 
-// Severity (rule riskLevel) → pill label + tone (Pencil oJL8o `SevPill`).
-// HIGH reads warning-brown; MED/LOW stay quiet on the subtle surface so
-// the eye lands on the high-severity rows.
-const SEVERITY_PILL: Record<ObligationRule['riskLevel'], { label: string; cls: string }> = {
-  high: { label: 'HIGH', cls: 'bg-state-warning-hover text-text-warning' },
-  med: { label: 'MED', cls: 'bg-background-subtle text-text-secondary' },
-  low: { label: 'LOW', cls: 'bg-background-subtle text-text-muted' },
+// Severity (rule riskLevel) → Badge variant (Pencil oJL8o `SevPill`).
+// HIGH reads warning-amber; MED/LOW stay quiet (secondary) so the eye
+// lands on the high-severity rows. LOW additionally mutes its text.
+const SEVERITY_PILL: Record<
+  ObligationRule['riskLevel'],
+  { label: string; variant: 'warning' | 'secondary'; cls?: string }
+> = {
+  high: { label: 'HIGH', variant: 'warning' },
+  med: { label: 'MED', variant: 'secondary' },
+  low: { label: 'LOW', variant: 'secondary', cls: 'text-text-muted' },
 }
 
-// Status tone → dot/text/bg for the row status pill (Pencil oJL8o
-// `StPill`). Mapped onto existing state tokens — Active reads success,
-// Pending reads warning, rejected destructive, archived/deprecated muted.
-const STATUS_PILL: Record<
+// Status tone → Badge variant for the row status pill (Pencil oJL8o
+// `StPill`). `review` maps to `info` (blue), matching the
+// rules-console-model contract ("review is its own tone — accent blue,
+// NOT warning") and the §4.10 ladder (in-flight review work = info;
+// amber is reserved for external pauses). The old hand-rolled pill
+// painted review amber, contradicting the blue leading row dot.
+const STATUS_PILL_VARIANT: Record<
   (typeof STATUS_TONE)[RuleStatus],
-  { dot: string; text: string; bg: string }
+  'success' | 'info' | 'destructive' | 'secondary'
 > = {
-  success: {
-    dot: 'bg-state-success-solid',
-    text: 'text-text-success',
-    bg: 'bg-state-success-hover',
-  },
-  review: {
-    dot: 'bg-state-warning-solid',
-    text: 'text-text-warning',
-    bg: 'bg-state-warning-hover',
-  },
-  destructive: {
-    dot: 'bg-state-destructive-solid',
-    text: 'text-text-destructive',
-    bg: 'bg-state-destructive-hover',
-  },
-  muted: { dot: 'bg-text-muted', text: 'text-text-muted', bg: 'bg-background-subtle' },
+  success: 'success',
+  review: 'info',
+  destructive: 'destructive',
+  muted: 'secondary',
 }
 
 // Humanized type label for a rule's tax type, with the jurisdiction's
@@ -196,8 +190,8 @@ export function JurisdictionFilterBar({
         className="h-9 [&>button]:h-8"
         ariaLabel={t`Filter by status`}
         options={[
-          { value: 'active', label: <Trans>Active</Trans> },
           { value: 'review', label: <Trans>Review</Trans> },
+          { value: 'active', label: <Trans>Active</Trans> },
         ]}
       />
       {/* Search flexes to absorb the row's slack so every control keeps an
@@ -349,6 +343,7 @@ export function JurisdictionRuleTable({
   activeRuleId,
   onRuleClick,
   onAddRule,
+  scope,
 }: {
   rules: readonly ObligationRule[]
   jurisdictionLabel: string
@@ -364,8 +359,19 @@ export function JurisdictionRuleTable({
   activeRuleId?: string | null
   onRuleClick: (rule: ObligationRule) => void
   onAddRule: (entity: EntityKey) => void
+  /** Active view scope — drives which columns show. Accepts the catalog-only
+      `missing` scope (gap rows) in addition to the four filter-bar scopes. */
+  scope: RuleScope | 'missing'
 }) {
   const { t } = useLingui()
+  // In the Review scope every row is a pending candidate, so the Status
+  // column reads "Needs review" on every line (redundant with the tab
+  // itself) and Last-modified is empty (candidates were never
+  // re-reviewed). Drop both there and let Rule name + Type breathe.
+  const reviewScope = scope === 'review'
+  const showLastModified = !reviewScope
+  const showStatus = !reviewScope
+  const bodyColSpan = 5 + (showLastModified ? 1 : 0) + (showStatus ? 1 : 0)
 
   // Selectable (needs-review) rule IDs in view — drives the header
   // select-all checkbox tri-state.
@@ -409,29 +415,34 @@ export function JurisdictionRuleTable({
             <TableHead className="min-w-0">
               <Trans>Rule name</Trans>
             </TableHead>
-            <TableHead className="w-[120px] px-2">
+            <TableHead className="w-[188px] px-2">
               <Trans>Type</Trans>
             </TableHead>
             <TableHead className="w-[120px] px-2">
               <Trans>Effective</Trans>
             </TableHead>
-            <TableHead className="w-[124px] px-2">
-              <Trans>Last modified</Trans>
-            </TableHead>
+            {showLastModified ? (
+              <TableHead className="w-[124px] px-2">
+                <Trans>Last modified</Trans>
+              </TableHead>
+            ) : null}
             <TableHead className="w-[96px] px-2">
               <Trans>Severity</Trans>
             </TableHead>
-            <TableHead className="w-[120px] px-2">
-              <Trans>Status</Trans>
-            </TableHead>
-            {/* Trailing chevron column — the "open this rule" affordance. */}
-            <TableHead className="w-10" aria-label={t`Open`} />
+            {showStatus ? (
+              <TableHead className="w-[120px] px-2">
+                <Trans>Status</Trans>
+              </TableHead>
+            ) : null}
           </TableRow>
         </TableHeader>
         <TableBody>
           {isEmpty ? (
             <TableRow>
-              <TableCell colSpan={8} className="py-10 text-center text-sm text-text-tertiary">
+              <TableCell
+                colSpan={bodyColSpan}
+                className="py-10 text-center text-sm text-text-tertiary"
+              >
                 <Trans>No rules in {jurisdictionLabel} for this view.</Trans>
               </TableCell>
             </TableRow>
@@ -447,6 +458,8 @@ export function JurisdictionRuleTable({
                   selected={selectedRuleIds.has(rule.id)}
                   active={activeRuleId === rule.id}
                   focused={focusedRowId === `rule:${rule.id}`}
+                  showLastModified={showLastModified}
+                  showStatus={showStatus}
                   onSelectChange={() => onToggleRuleSelection(rule.id)}
                   onClick={onRuleClick}
                 />
@@ -478,6 +491,8 @@ function JurisdictionRuleRow({
   selected,
   active,
   focused,
+  showLastModified,
+  showStatus,
   onSelectChange,
   onClick,
 }: {
@@ -488,6 +503,8 @@ function JurisdictionRuleRow({
   selected: boolean
   active: boolean
   focused: boolean
+  showLastModified: boolean
+  showStatus: boolean
   onSelectChange: (next: boolean) => void
   onClick: (rule: ObligationRule) => void
 }) {
@@ -502,7 +519,7 @@ function JurisdictionRuleRow({
     ? formatDatePretty(rule.reviewedAt, { alwaysShowYear: true })
     : null
   const severity = SEVERITY_PILL[rule.riskLevel]
-  const statusPill = STATUS_PILL[tone]
+  const statusVariant = STATUS_PILL_VARIANT[tone]
 
   // Open / active (its `?rule=` detail panel is showing) and checked-for-bulk
   // rows both read accent — the active bar is the canvas State-B selection
@@ -587,14 +604,12 @@ function JurisdictionRuleRow({
         </div>
       </TableCell>
 
-      {/* Type — humanized tax type pill, truncated to its column. */}
+      {/* Type — humanized tax type as an outline reference tag (§4.10:
+          metadata tag, not a status), truncated to its column. */}
       <TableCell className="overflow-hidden px-2 py-3 align-middle">
-        <span
-          className="inline-flex max-w-full items-center truncate rounded-full border border-divider-subtle bg-background-subtle px-2.5 py-0.5 text-xs font-medium text-text-secondary"
-          title={typeLabel}
-        >
-          {typeLabel}
-        </span>
+        <Badge variant="outline" className="max-w-full" title={typeLabel}>
+          <span className="truncate">{typeLabel}</span>
+        </Badge>
       </TableCell>
 
       {/* Effective — the rule's verified/effective date, mono. */}
@@ -602,53 +617,34 @@ function JurisdictionRuleRow({
         <span className="font-mono text-sm text-text-secondary tabular-nums">{effective}</span>
       </TableCell>
 
-      {/* Last modified — most recent review date. */}
-      <TableCell className="px-2 py-3 align-middle">
-        {lastModified ? (
-          <span className="text-sm text-text-tertiary tabular-nums">{lastModified}</span>
-        ) : (
-          <EmptyCellMark label="Created — not yet reviewed" />
-        )}
-      </TableCell>
-
-      {/* Severity — risk-level pill. */}
-      <TableCell className="px-2 py-3 align-middle">
-        <span
-          className={cn(
-            'inline-flex items-center rounded-full px-2.5 py-0.5 text-caption-xs font-bold tracking-wide',
-            severity.cls,
+      {/* Last modified — most recent review date. Hidden in the Review
+          scope, where every row is a never-re-reviewed candidate (—). */}
+      {showLastModified ? (
+        <TableCell className="px-2 py-3 align-middle">
+          {lastModified ? (
+            <span className="text-sm text-text-tertiary tabular-nums">{lastModified}</span>
+          ) : (
+            <EmptyCellMark label="Created — not yet reviewed" />
           )}
-        >
+        </TableCell>
+      ) : null}
+
+      {/* Severity — risk-level eyebrow chip (Badge `square` shape: the
+          uppercase-tag treatment, matching the alerts impact chips). */}
+      <TableCell className="px-2 py-3 align-middle">
+        <Badge variant={severity.variant} shape="square" className={severity.cls}>
           {severity.label}
-        </span>
+        </Badge>
       </TableCell>
 
-      {/* Status — label pill. (The dot is dropped: the leading row dot
-          already carries the status colour, so a second dot here is
-          redundant — keep just the labelled pill.) */}
-      <TableCell className="px-2 py-3 align-middle">
-        <span
-          className={cn(
-            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-            statusPill.bg,
-            statusPill.text,
-          )}
-        >
-          {STATUS_LABEL_SHORT[rule.status]}
-        </span>
-      </TableCell>
-
-      {/* Open affordance — a chevron that signals the row opens the rule
-          detail; brightens + nudges +2px on hover. */}
-      <TableCell className="pr-4 align-middle">
-        <ChevronRightIcon
-          aria-hidden
-          className={cn(
-            'size-4 shrink-0 transition-all group-hover/row:translate-x-0.5',
-            active ? 'text-text-accent' : 'text-text-muted group-hover/row:text-text-tertiary',
-          )}
-        />
-      </TableCell>
+      {/* Status — label pill. Hidden in the Review scope (every row would
+          read "Needs review" — redundant with the tab). The dot is dropped:
+          the leading row dot already carries the status colour. */}
+      {showStatus ? (
+        <TableCell className="px-2 py-3 align-middle">
+          <Badge variant={statusVariant}>{STATUS_LABEL_SHORT[rule.status]}</Badge>
+        </TableCell>
+      ) : null}
     </TableRow>
   )
 }
@@ -674,7 +670,7 @@ function GapRow({
       )}
     >
       <TableCell className="pl-4" />
-      <TableCell colSpan={6} className="py-2.5">
+      <TableCell colSpan={5} className="py-2.5">
         <div className="flex items-center gap-2">
           <span
             aria-hidden

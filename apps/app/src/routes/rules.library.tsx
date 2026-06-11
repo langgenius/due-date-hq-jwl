@@ -88,6 +88,7 @@ import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { StatBand } from '@/components/patterns/stat-band'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { SearchInput } from '@/components/primitives/search-input'
+import { StateBadge } from '@/components/primitives/state-badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { CandidateReviewSection, RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
 import {
@@ -1780,7 +1781,6 @@ export function RulesLibraryRoute() {
           monitored count). */}
       <Button
         variant="outline"
-        size="sm"
         onClick={() => void navigate('/rules/sources')}
         aria-label={t`View monitored sources`}
       >
@@ -1799,7 +1799,6 @@ export function RulesLibraryRoute() {
       </Button>
       <Button
         variant="outline"
-        size="sm"
         onClick={handleExport}
         disabled={rules.length === 0}
         aria-label={t`Export rules as CSV`}
@@ -1807,7 +1806,7 @@ export function RulesLibraryRoute() {
         <ArrowDownToLineIcon data-icon="inline-start" />
         <Trans>Export</Trans>
       </Button>
-      <Button size="sm" onClick={openNewRule}>
+      <Button onClick={openNewRule}>
         <PlusIcon data-icon="inline-start" />
         <Trans>Add rule</Trans>
       </Button>
@@ -2144,17 +2143,18 @@ export function RulesLibraryRoute() {
                 }
                 title={
                   <span className="inline-flex items-center gap-2.5">
+                    {/* Canonical jurisdiction mark — the same StateBadge seal
+                        the rail shows for the selected row, so the detail
+                        header reads as the same identity (not a one-off
+                        text pill). */}
+                    <StateBadge code={selectedGroup.jurisdiction} size="sm" preview={false} />
                     <span>{selectedGroup.label}</span>
-                    <span className="inline-flex items-center justify-center rounded bg-background-subtle px-2 py-[3px] font-mono text-base font-semibold text-text-secondary">
-                      {selectedGroup.jurisdiction}
-                    </span>
                   </span>
                 }
                 actions={
                   <>
                     <Button
                       variant="outline"
-                      size="sm"
                       onClick={handleExport}
                       disabled={rules.length === 0}
                       aria-label={t`Export rules as CSV`}
@@ -2163,7 +2163,6 @@ export function RulesLibraryRoute() {
                       <Trans>Export</Trans>
                     </Button>
                     <Button
-                      size="sm"
                       onClick={() => setNewRuleSeed({ jurisdiction: selectedGroup.jurisdiction })}
                     >
                       <PlusIcon data-icon="inline-start" />
@@ -2283,6 +2282,7 @@ export function RulesLibraryRoute() {
                         rules={jurisdictionTableRules}
                         jurisdictionLabel={selectedGroup.label}
                         gapEntities={selectedGroup.gapEntities}
+                        scope={activeScope}
                         showGaps={activeScope === 'missing'}
                         tierLabels={tierLabels}
                         selectedRuleIds={selectedRuleIds}
@@ -4101,7 +4101,7 @@ function RuleDetailPanel({
         {/* Pinned hero header — title · status · AI % · summary stay visible
             while the reference sections scroll beneath, so the panel always
             shows which rule you're reviewing. */}
-        <div className="shrink-0 px-5 pt-5">
+        <div className="shrink-0 px-5 pt-4">
           <RuleDetailHeroCard rule={rule} concreteDraft={concreteDraft} reviewTask={reviewTask} />
         </div>
         {/* Scrollable card-stack: Applicability · Due date · Evidence · Impact ·
@@ -4110,7 +4110,7 @@ function RuleDetailPanel({
         <div
           ref={scrollRef}
           tabIndex={-1}
-          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-4 outline-none"
+          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-3 outline-none"
         >
           <RuleEffectiveBanner rule={rule} />
           <RuleDetailCompact
@@ -4127,7 +4127,7 @@ function RuleDetailPanel({
             visible while the reference cards scroll. Only for reviewable
             rules; active rules have nothing to decide. */}
         {isReviewable ? (
-          <div className="shrink-0 border-t border-divider-regular bg-background-default px-5 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
+          <div className="shrink-0 border-t border-divider-regular bg-background-default px-5 py-2.5 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
             <CandidateReviewSection
               key={rule.id}
               rule={rule}
@@ -4175,7 +4175,7 @@ function RuleDetailHeroCard({
   const aiPct = confidence !== null ? Math.round(confidence * 100) : null
   return (
     <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
-      <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
+      <div className="flex h-8 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
         {isReviewable ? (
           <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0 text-text-warning" />
         ) : (
@@ -4201,7 +4201,7 @@ function RuleDetailHeroCard({
           </span>
         ) : null}
       </div>
-      <div className="flex flex-col gap-1.5 px-5 py-3.5">
+      <div className="flex flex-col gap-1 px-5 py-2.5">
         <h2 className="text-xl leading-tight font-bold tracking-tight text-text-primary">
           {rule.title}
         </h2>
