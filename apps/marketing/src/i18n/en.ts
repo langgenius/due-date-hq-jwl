@@ -195,7 +195,7 @@ const en: LandingCopy = {
         value: '30',
         unit: 'sec',
         description:
-          'See this week’s 5 most urgent clients on the Monday console. Deadline Radar is server-pre-aggregated, so the queue appears before the page even paints.',
+          'See this week’s 5 most urgent clients on the Monday console. Deadline Radar loads instantly — your Monday triage queue is ready before you are.',
       },
       {
         ruleNumber: 'RULE 00',
@@ -211,7 +211,7 @@ const en: LandingCopy = {
         value: '24',
         unit: 'hrs',
         description:
-          'Every state filing notice and IRS update reaches Today + email within 24 hours, with a source excerpt and an apply-to-12-clients button.',
+          'Monitored state filing notices and IRS updates reach Today and email within a day, with a source excerpt and a one-click apply across affected clients.',
       },
     ],
   },
@@ -220,7 +220,7 @@ const en: LandingCopy = {
     index: '01',
     title: 'Excel + Outlook + 50 state websites — priced in penalties.',
     paragraph:
-      '1–10-person CPA practices stitch together legacy desktop trackers, regulatory PDFs, and spreadsheet calendars. The result is foreseeable and expensive: missed deadlines, compounded penalties, and Monday triage that takes a full morning.',
+      '1–10-person CPA practices stitch together legacy desktop trackers, regulatory PDFs, and spreadsheet calendars. The result: deadline work scattered across tools, state changes buried in email, and Monday triage that takes a full morning.',
     footnote: 'IRS § 6651 · failure-to-file penalty → 5%/mo, capped at 25%',
     cards: [
       {
@@ -258,7 +258,7 @@ const en: LandingCopy = {
         severity: 'medium',
         cadence: 'avg / firm / yr',
         headline: '4 hours of typing to move 30 clients from File-In-Time to anywhere.',
-        body: 'Migration Copilot maps, normalizes and generates the year’s calendar in 30 minutes. Every imported client carries an evidence link to its source row.',
+        body: 'Migration Copilot maps, standardizes, and generates the year’s calendar in a typical 30-minute session — no per-client setup wizards. Every imported client carries an evidence link to its source row.',
         listTitle: 'File-In-Time export → spreadsheet',
         listSummary: '30 clients · 4 hrs typing',
         rows: [
@@ -291,7 +291,7 @@ const en: LandingCopy = {
         index: '01',
         tag: 'TRIAGE · 30 SECONDS',
         headline: 'The Monday console.',
-        body: 'Owner opens the laptop, sees five urgent clients, the evidence status, and the first action keystroke. Smart Priority is a pure-function sort — no LLM in the Today hot path.',
+        body: 'Owner opens the laptop, sees five urgent clients, the evidence status, and the first action keystroke. Smart Priority ranks by days remaining, evidence completeness, and alert status — no AI in the triage path.',
         hints: [
           { keys: '⌘K', label: 'Command' },
           { keys: 'E', label: 'Evidence' },
@@ -382,7 +382,7 @@ const en: LandingCopy = {
         index: '02',
         tag: 'MIGRATE · 30 MINUTES',
         headline: 'Paste, map, normalize, generate.',
-        body: 'Migration Copilot maps 30 fields per client with confidence-graded suggestions. Anything below 0.80 is non-blocking; the operator nudges, doesn’t retype.',
+        body: 'Migration Copilot maps 30 fields per client with confidence-graded suggestions. High-confidence matches apply automatically; lower-confidence ones are flagged for a quick human check — you nudge, you don’t retype.',
         hints: [
           { keys: '⌘V', label: 'Paste' },
           { keys: 'Tab', label: 'Next field' },
@@ -520,7 +520,7 @@ const en: LandingCopy = {
   security: {
     title: 'WHY CPAs TRUST IT',
     items: [
-      { pill: 'Per-firm', body: 'your data stays inside your practice workspace' },
+      { pill: 'Per-practice isolation', body: 'your data stays inside your own practice — never shared across firms' },
       { pill: 'Evidence', body: 'every claim · source + excerpt' },
       { pill: 'Audit log', body: 'apply · undo · revert recorded' },
       { pill: 'Email-first', body: 'no client portal vault required' },
@@ -547,7 +547,7 @@ const en: LandingCopy = {
       eyebrow: 'PRICING',
       title: 'Pay for the deadline risk you can actually see.',
       description:
-        'Start with one practice workspace on Solo, move to Pro or Team when that practice needs shared operations, and talk to us about Enterprise when multiple offices or workspaces become operational requirements.',
+        'Start with one practice on Solo, move to Pro or Team when that practice needs shared operations, and talk to us about Enterprise when you run multiple practices or offices.',
       note: 'Trial/demo workspace available · DueDateHQ never stores card numbers',
     },
     plansHeader: {
@@ -570,7 +570,7 @@ const en: LandingCopy = {
         cadence: '/ month',
         yearlyCadence: '/ mo, billed yearly',
         yearlySavings: 'Save $96/year',
-        description: 'For one owner running a single practice workspace.',
+        description: 'For one owner running a single practice.',
         seats: '1 PRACTICE WORKSPACE · 1 OWNER SEAT',
         aiLabel: 'Basic AI',
         aiDescription: 'Source-backed previews and lightweight migration help for one owner.',
@@ -579,7 +579,7 @@ const en: LandingCopy = {
         hrefKind: 'checkout',
         checkoutPlan: 'solo',
         features: [
-          '1 practice workspace',
+          '1 active practice',
           '1 owner seat',
           'Source-backed evidence',
           'Migration and rules preview',
@@ -604,7 +604,7 @@ const en: LandingCopy = {
         hrefKind: 'checkout',
         checkoutPlan: 'pro',
         features: [
-          '1 production practice',
+          '1 active practice',
           '3 seats included',
           'Shared deadline operations',
           'Alerts and Deadlines access',
@@ -628,7 +628,7 @@ const en: LandingCopy = {
         hrefKind: 'checkout',
         checkoutPlan: 'team',
         features: [
-          '1 production practice',
+          '1 active practice',
           '10 seats included',
           'Team workload and shared triage',
           'Manager-ready practice operations',
@@ -676,17 +676,17 @@ const en: LandingCopy = {
       {
         question: 'When should I choose Team?',
         answer:
-          'Team is for one production practice that needs up to ten seats and a larger operating group, but does not need multiple active practice workspaces.',
+          'Team is for one practice that needs up to ten seats and a larger operating group, but does not need multiple active practices.',
       },
       {
         question: 'Can I keep using Solo?',
         answer:
-          'Yes. Solo is the paid single-owner plan for one live practice workspace. Trial and demo workspaces can stay separate from production billing.',
+          'Yes. Solo is the paid single-owner plan for one live practice. Trial and demo practices stay separate from production billing.',
       },
       {
         question: 'Can I create multiple practices?',
         answer:
-          'Solo, Pro, and Team include one active practice workspace. Additional practices, offices, or demo/production separation are available on the Enterprise plan.',
+          'Solo, Pro, and Team include one active practice. Additional practices, offices, or demo/production separation are available on the Enterprise plan.',
       },
     ],
   },
