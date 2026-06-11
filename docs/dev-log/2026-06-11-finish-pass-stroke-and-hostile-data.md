@@ -52,3 +52,33 @@ it was alerts-only, so it was extended:
 - The full hostile-data INJECTION methodology (long titles into clamps)
   has only been applied to /alerts surfaces; other detail surfaces
   (deadline detail, client detail) are candidates for the same pass.
+
+## Full-app hostile-data sweep (same day, all 32 surfaces)
+
+Yuqi: "不要错过任何细节和页面" — the injection methodology was generalized
+into an automated iframe auditor (per route: icon-size-vs-text check,
+tabular-nums check, then 250-char injection into every truncate/line-clamp
+element + every h1–h3, then x-overflow / clamp-violation / unclamped-heading
+measurement) and run across every authenticated route, including the
+deadline detail's four tabs and the client detail.
+
+**Real findings (2):**
+- `reminder-templates-page.tsx` — template names are USER-editable and
+  rendered in an unclamped card `<h2>`; a long name stacked the card header
+  4 lines. Fixed: `line-clamp-2 min-w-0` + `title` attr. Re-verified: 2
+  lines under a hostile name.
+- `ObligationQueueDetailDrawer.tsx` — the deadline detail hero `<h2>` has
+  no clamp (4+ lines on all four tabs with a long obligation title). NOT
+  fixed here: the file is a parallel session's WIP. Recorded as an open
+  fix (memory + this log); the cure is the alert-hero pattern
+  (`line-clamp-3` + title attr).
+
+**Triaged as non-issues:** unclamped PageHeader h1s ("Rules", "Settings",
+"Billing"… — app-authored copy, bounded); the /deadlines + /obligations
+editorial-banner h2 (app-authored); Button-primitive 16px icons beside
+12px labels (primitive-enforced per icon-sizing.md); 18px icons inside
+size-9 decorative discs (icon-in-disc pattern). tabular-nums: zero
+violations app-wide against the `N% / N of M / N/M` patterns.
+
+Zero x-overflow and zero clamp violations everywhere else — the truncation
+infrastructure across the app held up under injection.

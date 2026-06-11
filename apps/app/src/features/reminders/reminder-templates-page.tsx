@@ -112,7 +112,14 @@ function TemplateCard({ template }: { template: ReminderTemplatePublic }) {
   return (
     <article className="flex flex-col gap-2.5 rounded-xl border border-divider-regular bg-background-default p-[18px_22px]">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-text-primary">{template.name}</h2>
+        {/* Template names are user-editable — clamp so a long name can't
+            stack the card header (2026-06-11 hostile-data sweep). */}
+        <h2
+          className="line-clamp-2 min-w-0 text-sm font-semibold text-text-primary"
+          title={template.name}
+        >
+          {template.name}
+        </h2>
         <span className="shrink-0 text-xs font-medium text-text-muted tabular-nums">
           <Trans>used {template.usageCount} times</Trans>
         </span>
