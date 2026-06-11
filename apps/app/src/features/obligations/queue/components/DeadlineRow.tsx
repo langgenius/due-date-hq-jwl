@@ -442,9 +442,12 @@ function DeadlineRowExpansion({
                 <span
                   className={cn(
                     'shrink-0 rounded-full transition-all',
+                    // Current stage reads as accent (positional), not warning —
+                    // "In review" isn't a warning. `blocked` never renders as a
+                    // green "passed" dot (it's a side-state, not a milestone).
                     isActive
-                      ? 'size-3 bg-state-warning-hover ring-2 ring-state-warning-solid'
-                      : isPast
+                      ? 'size-3 bg-state-accent-solid ring-2 ring-state-accent-active-alt'
+                      : isPast && stage.key !== 'blocked'
                         ? 'size-2 bg-state-success-solid'
                         : 'size-2 bg-divider-regular',
                   )}
@@ -454,8 +457,8 @@ function DeadlineRowExpansion({
                   className={cn(
                     'text-xs whitespace-nowrap',
                     isActive
-                      ? 'font-semibold text-text-warning'
-                      : isPast
+                      ? 'font-semibold text-text-primary'
+                      : isPast && stage.key !== 'blocked'
                         ? 'font-medium text-text-tertiary'
                         : 'font-medium text-text-muted opacity-60',
                   )}
@@ -498,33 +501,38 @@ function DeadlineRowExpansion({
         </p>
       ) : null}
 
-      {/* Section D — actions (hidden read-only, §7.2). */}
+      {/* Section D — state-aware actions (hidden read-only, §7.2). Terminal
+          rows show a quiet "Filed" affirmation instead of a dead, disabled
+          primary button; Snooze is dropped once filed. */}
       {canEdit ? (
         <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" disabled={isTerminal} onClick={() => onMarkFiled?.(deadline.id)}>
-            <CheckIcon data-icon="inline-start" />
-            <Trans>Mark filed</Trans>
-          </Button>
+          {isTerminal ? (
+            <span className="flex items-center gap-1.5 text-sm font-medium text-text-success">
+              <CheckIcon className="size-4 shrink-0" aria-hidden />
+              <Trans>Filed</Trans>
+            </span>
+          ) : (
+            <Button size="sm" onClick={() => onMarkFiled?.(deadline.id)}>
+              <CheckIcon data-icon="inline-start" />
+              <Trans>Mark filed</Trans>
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => onReassign?.(deadline.id)}>
             <UserRoundCogIcon data-icon="inline-start" />
             <Trans>Reassign</Trans>
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => onSnooze?.(deadline.id)}>
-            <AlarmClockIcon data-icon="inline-start" />
-            <Trans>Snooze</Trans>
-          </Button>
+          {!isTerminal ? (
+            <Button size="sm" variant="ghost" onClick={() => onSnooze?.(deadline.id)}>
+              <AlarmClockIcon data-icon="inline-start" />
+              <Trans>Snooze</Trans>
+            </Button>
+          ) : null}
         </div>
       ) : null}
 
-      {/* Section E — open full + (deferred) activity link. */}
-      <div className="flex items-center justify-between gap-2 border-t border-divider-subtle pt-2.5">
-        <Link
-          to={deadlineDetailHref({ obligationId: deadline.id, tab: 'audit' })}
-          onClick={(event) => event.stopPropagation()}
-          className="text-sm font-medium text-text-tertiary underline-offset-2 outline-none hover:text-text-secondary hover:underline"
-        >
-          <Trans>Activity on full page →</Trans>
-        </Link>
+      {/* Section E — single exit. The old "Activity on full page" link pointed
+          at a tab of the very page this button opens — redundant, removed. */}
+      <div className="flex items-center justify-end gap-2 border-t border-divider-subtle pt-2.5">
         <Link
           to={summaryHref}
           state={{ from: 'client' }}

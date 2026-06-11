@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router'
 import { useLingui } from '@lingui/react/macro'
 
 import type { ClientPublic, ObligationInstancePublic } from '@duedatehq/contracts'
-import { Badge } from '@duedatehq/ui/components/ui/badge'
-
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
+import { StateBadge } from '@/components/primitives/state-badge'
 
 import { useClientNextDue } from './use-client-next-due'
 
@@ -56,7 +55,7 @@ export function ClientSummaryStrip({
     for (const profile of client.filingProfiles) {
       if (!profile.archivedAt) set.add(profile.state)
     }
-    return [...set].sort()
+    return [...set].toSorted()
   }, [client.state, client.filingProfiles])
 
   const stats: StatBandItem[] = [
@@ -65,11 +64,9 @@ export function ClientSummaryStrip({
       label: t`Jurisdictions`,
       value:
         jurisdictions.length > 0 ? (
-          <span className="flex flex-wrap items-center gap-1">
+          <span className="flex flex-wrap items-center gap-1.5">
             {jurisdictions.map((code) => (
-              <Badge key={code} variant="outline" className="text-xs font-normal tabular-nums">
-                {code}
-              </Badge>
+              <StateBadge key={code} code={code} size="sm" />
             ))}
           </span>
         ) : (

@@ -1574,7 +1574,7 @@ function ClientDetailTabTrigger({
       // background. The active state stays chrome-free (bold text + the
       // motion underline carry it).
       className={cn(
-        'relative -mb-px !flex-none shrink-0 items-center gap-1.5 !rounded-lg !border-0 !bg-transparent px-3 py-1.5 text-base whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
+        'relative -mb-px !flex-none shrink-0 items-center gap-1.5 !rounded-lg !border-0 !bg-transparent px-3 py-2.5 text-base whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
         active
           ? 'font-medium text-text-primary'
           : 'cursor-pointer border-b-2 border-transparent text-text-secondary hover:bg-state-base-hover-alt hover:text-text-primary',
