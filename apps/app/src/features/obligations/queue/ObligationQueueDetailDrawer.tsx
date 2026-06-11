@@ -2005,21 +2005,33 @@ export function ObligationQueueDetailDrawer({
           {/* 2026-06-08 (Pencil HuYeb /deadlines detail): the form title sits
             on its own line; the standalone client kicker link was folded
             into the household chip in the row below per the design稿. */}
-          {row ? (
-            <h2
-              className={cn(
-                'pr-8 font-semibold tracking-[-0.4px] text-text-primary transition-all duration-300 ease-apple',
-                heroCollapsed
-                  ? 'line-clamp-1 text-[16px] leading-[1.3]'
-                  : 'text-[22px] leading-[1.25]',
-              )}
-            >
-              {(() => {
+          {row
+            ? (() => {
                 const meta = describeTaxCode(row.taxType)
-                return meta.description ? `${meta.label} — ${meta.description}` : meta.label
-              })()}
-            </h2>
-          ) : null}
+                const heroTitle = meta.description
+                  ? `${meta.label} — ${meta.description}`
+                  : meta.label
+                return (
+                  // Expanded state clamps at 3 lines — the same guard the
+                  // alert hero carries (2026-06-11 hostile-data sweep: an
+                  // unclamped long title ran 4+ lines and pushed the tab
+                  // content below the fold on all four tabs). Full text on
+                  // the title attr. leading-[1.3] expanded (was 1.25) per
+                  // the same cramped-two-line finding as the alert hero.
+                  <h2
+                    className={cn(
+                      'pr-8 font-semibold tracking-[-0.4px] text-text-primary transition-all duration-300 ease-apple',
+                      heroCollapsed
+                        ? 'line-clamp-1 text-[16px] leading-[1.3]'
+                        : 'line-clamp-3 text-[22px] leading-[1.3]',
+                    )}
+                    title={heroTitle}
+                  >
+                    {heroTitle}
+                  </h2>
+                )
+              })()
+            : null}
           {/* 2026-06-08 (Pencil HuYeb /deadlines detail): single chip row
             under the title — a clickable client-household chip (navigates
             to the client), the canonical status badge (subsumes the old
