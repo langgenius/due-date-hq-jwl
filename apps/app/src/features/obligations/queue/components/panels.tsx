@@ -320,11 +320,13 @@ function DeadlineDateCard({
 }) {
   return (
     <div
-      // Flat reference column: no surface, no border, no shadow — the
-      // three dates read as plain stacked columns separated by the grid
-      // gap. Overdue state is carried purely as a text-colour cue on the
-      // icon + date, never a filled card.
-      className="flex flex-col gap-1.5"
+      // 2026-06-10 (Yuqi page-polish #3 "where is the frame?"): each
+      // anchor-date column gets a subtle outline back — a light
+      // divider-subtle border + rounded-8 corner — for definition. Kept
+      // FLAT: no filled bg-background-subtle, no shadow; the frame reads
+      // as a quiet reference card, not a heavy filled tile. Overdue state
+      // stays a text-colour cue on the icon + date.
+      className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle px-3 py-2.5"
     >
       <div className="flex items-center gap-1.5">
         <Icon

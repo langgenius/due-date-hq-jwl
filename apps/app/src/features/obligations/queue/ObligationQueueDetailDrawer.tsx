@@ -1674,15 +1674,23 @@ export function ObligationQueueDetailDrawer({
       <header
         className={cn(
           'relative flex flex-col px-12 transition-all duration-200',
-          heroCollapsed ? 'gap-1 pt-3 pb-3' : 'gap-1.5 pt-10 pb-6',
-          // 2026-06-10 (Yuqi alert↔deadline parity #6/#7): page mode now
-          // matches the Alert detail hero EXACTLY — a soft gray
-          // (bg-background-subtle) masthead whose content centers on the
-          // same 760px document measure as the body/footer. The tonal step
-          // from the gray header to the white cards on the gray-wash body
-          // carries the separation; the layout is single-column now so the
-          // wider 1100px measure is gone.
-          isPageMode && 'bg-background-subtle [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+          // 2026-06-10 (Yuqi page-polish #1 "好奇怪的 top padding"): the
+          // page-mode hero leads the surface (the thin status banner + crumb
+          // bar above it carry no top gap of their own), so a full pt-10
+          // doubled the visual top inset and read as awkward dead space.
+          // Page mode uses a calmer pt-6; panel/sheet keep the canonical
+          // pt-10 cross-drawer rhythm.
+          heroCollapsed ? 'gap-1 pt-3 pb-3' : 'gap-1.5 pb-6',
+          !isPageMode && !heroCollapsed && 'pt-10',
+          // 2026-06-10 (Yuqi page-polish #4/#5 "should this be part of the
+          // header? / white background"): the page-mode header is the WHITE
+          // identity block — status banner (above) · title + meta · the three
+          // framed key-date columns (rendered below, inside this header). It
+          // sits on bg-background-default, contiguous with the title/meta; the
+          // gray content wash begins only at the tab content beneath. Content
+          // centers on the 760px document measure shared with the body/footer.
+          isPageMode && 'bg-background-default [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+          isPageMode && !heroCollapsed && 'pt-6',
         )}
       >
         {/* Panel mode owns its own close button — there's no Sheet
@@ -1768,10 +1776,16 @@ export function ObligationQueueDetailDrawer({
                 onClick={() =>
                   void navigate(clientDetailPath({ id: row.clientId, name: row.clientName }))
                 }
-                className="group/clientlink inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2.5 py-1 text-caption font-medium text-text-secondary outline-none transition-colors hover:border-state-accent-border hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                // 2026-06-10 (Yuqi page-polish #2 "client link 太小？"): the
+                // "Open {client}" chip was text-caption with a cramped
+                // px-2.5/py-1 hit area — it read as a footnote next to the
+                // h-6 status/flag chips. Bumped to text-sm, an h-7 chip
+                // height, a wider px-3 hit area, and a size-4 icon so it
+                // lands as a proper tappable chip consistent with the meta row.
+                className="group/clientlink inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 text-sm font-medium text-text-secondary outline-none transition-colors hover:border-state-accent-border hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 <UsersIcon
-                  className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover/clientlink:text-text-accent"
+                  className="size-4 shrink-0 text-text-tertiary transition-colors group-hover/clientlink:text-text-accent"
                   aria-hidden
                 />
                 {row.clientName}
@@ -1822,6 +1836,20 @@ export function ObligationQueueDetailDrawer({
             redundant affordances ("Start preparation" + "pending →
             review" picker dropdown both go to the same place).
             Status pill is the single source of truth now. */}
+        {/* 2026-06-10 (Yuqi page-polish #4/#5): the "Key deadlines" strip is
+            part of the WHITE header zone — it reads as the third line of the
+            identity block (status banner → title + meta → the three framed
+            key dates), on the same white surface as the title/meta above.
+            The gray content wash starts only below, at the tab content. The
+            strip stays visible even when the hero collapses on scroll — the
+            anchor dates are the headline context the collapsed hero keeps.
+            Page mode only; panel/sheet render the date strip inside the body
+            (below) as before. */}
+        {isPageMode && row ? (
+          <div className="pt-1.5">
+            <PrimaryDeadlineStrip row={row} variant="cards" />
+          </div>
+        ) : null}
       </header>
       {/* Body — in panel mode the aside has fixed height, so this
           inner div owns the scrolling. That lets the snapshot block
@@ -1971,16 +1999,16 @@ export function ObligationQueueDetailDrawer({
                 lets document text show through the date tiles/gutters.
                 White surface + subtle bottom rule preserves the drawer
                 body feel while giving the sticky layer a real backing. */}
-            <div
-              className={cn(
-                'flex flex-col gap-3',
-                // 2026-06-09 (Yuqi "header too tall, reading space limited"):
-                // on the standalone page the date strip is NOT sticky — it
-                // scrolls away with the content so the reading area grows; the
-                // collapsed hero keeps the title + dates' headline context.
-                isPageMode
-                  ? 'mb-2'
-                  : panelLayout
+            {/* 2026-06-10 (Yuqi page-polish #4/#5): in page mode the
+                "Key deadlines" strip moved UP into the white header zone
+                (rendered inside <header> above), so it's omitted here. Panel
+                and sheet modes keep it as the leading body block — sticky in
+                the panel rail, a plain spacer in the sheet. */}
+            {!isPageMode ? (
+              <div
+                className={cn(
+                  'flex flex-col gap-3',
+                  panelLayout
                     ? // 2026-05-27 (Yuqi drawer parity): negative bleed
                       // updated -mx-8 → -mx-12 to match the body's new
                       // px-12 padding. Inside px-12 re-applies the
@@ -1988,9 +2016,9 @@ export function ObligationQueueDetailDrawer({
                       // edge still aligns with the rest of the body.
                       'sticky top-0 z-20 -mx-12 bg-background-canvas-warm px-12 py-3'
                     : 'mb-4',
-              )}
-            >
-              {/* PrimaryDeadlineStrip (2026-05-23): the three dates the
+                )}
+              >
+                {/* PrimaryDeadlineStrip (2026-05-23): the three dates the
                   CPA actually checks first — Internal, Filing, Payment
                   — promoted out of the bottom dates panel into a
                   3-column strip at the top of the snapshot. Each
@@ -2002,8 +2030,8 @@ export function ObligationQueueDetailDrawer({
                   The remaining secondary dates (Statutory, Tax period,
                   Created, Last touched, e-file timestamps) still live
                   in the bottom FlatDateList under "Reference dates". */}
-              <PrimaryDeadlineStrip row={row} variant={isPageMode ? 'cards' : 'flat'} />
-              {/* 2026-05-23: StatutoryDatesPanel moved OUT of this
+                <PrimaryDeadlineStrip row={row} variant="flat" />
+                {/* 2026-05-23: StatutoryDatesPanel moved OUT of this
                   sticky snapshot block — relocated to AFTER the
                   TabsContent so the tabs sit immediately under the
                   stage card. The dates panel is reference info (most
@@ -2013,12 +2041,13 @@ export function ObligationQueueDetailDrawer({
                   wrong trade. New reading order: identity → milestone
                   → stage card → TABS → tab content → dates (scroll for
                   reference). */}
-              {/* `ObligationForwardingPanel` removed 2026-05-21 — the
+                {/* `ObligationForwardingPanel` removed 2026-05-21 — the
                   "Forward to task · bright-studio-…@duedatehq.com · Phase 2"
                   block was a feature stub crowding the drawer with chrome
                   for capability that isn't shipping yet. Restore when the
                   inbound-file routing actually goes live. */}
-            </div>
+              </div>
+            ) : null}
             {/* TabsList lives OUTSIDE the sticky snapshot block per
                 critique #4 ("shouldn't the tab belong to the
                 following information, not the top part information").
