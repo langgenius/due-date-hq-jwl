@@ -2387,12 +2387,16 @@ function AlertApplyVerificationDialog({
                     nativeButton={false}
                     variant="link"
                     size="sm"
-                    className="h-auto justify-start px-0 text-sm"
+                    // max-w-full + truncated inner span: the Button base is
+                    // whitespace-nowrap, so a long authority name would
+                    // otherwise overflow the 560px dialog horizontally
+                    // (hostile-data dialog audit).
+                    className="h-auto max-w-full justify-start px-0 text-sm"
                     render={
                       <a href={detail.alert.sourceUrl} target="_blank" rel="noopener noreferrer" />
                     }
                   >
-                    {detail.alert.source}
+                    <span className="min-w-0 truncate">{detail.alert.source}</span>
                     <ExternalLinkIcon data-icon="inline-end" />
                   </Button>
                 </div>
