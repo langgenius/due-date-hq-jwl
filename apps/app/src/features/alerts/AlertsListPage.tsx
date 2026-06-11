@@ -18,7 +18,6 @@ import {
   MapIcon,
   MegaphoneIcon,
   SatelliteDishIcon,
-  Settings2Icon,
   SlidersHorizontalIcon,
   Undo2Icon,
   XIcon,
@@ -1801,12 +1800,6 @@ function AlertsEmptyState({
             When IRS, CA FTB, or another monitored source publishes a change, it will land here.
           </Trans>
         )
-      }
-      cta={
-        <Button variant="link" size="sm" render={<Link to="/rules/sources" />}>
-          <Settings2Icon data-icon="inline-start" />
-          <Trans>Configure sources</Trans>
-        </Button>
       }
     />
   )

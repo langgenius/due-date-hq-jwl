@@ -4527,10 +4527,6 @@ msgstr "Confidence"
 msgid "confidence {confPct}%"
 msgstr "confidence {confPct}%"
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Configure sources"
-msgstr "Configure sources"
-
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "Confirm"
 msgstr "Confirm"

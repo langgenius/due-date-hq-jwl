@@ -12,3 +12,9 @@ Updated the no-alerts empty-state copy so IRS appears before CA FTB:
 
 The preview route and alerts product-design exact-copy spec were updated to match the implemented
 copy.
+
+## Follow-up
+
+Removed the `Configure sources` CTA from the no-alerts empty state so the card contains only the
+megaphone icon, title, and explanatory copy. The preview route and alerts product-design spec were
+updated to match.

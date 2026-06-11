@@ -215,11 +215,11 @@ Shared tokens seen across all frames:
 ### Design spec
 
 - Full-surface centered card. Icon circle (accent tint) with **`megaphone`** (size 36,
-  `#155aef`). CTA uses **`settings-2`** icon.
+  `#155aef`). No CTA.
 - **Title:** `No alerts — you're caught up` (20/600 `#101828`, tracking -0.2)
 - **Sub:** `When IRS, CA FTB, or another monitored source publishes a change, it will
 land here. Last check: 12 minutes ago.` (14/500 `#676f83`, centered, lh1.5)
-- **CTA:** `Configure sources` (13/500 `#155aef`, link/quiet, leading `settings-2` icon)
+- **CTA:** none.
 
 ### Current code
 
@@ -245,17 +245,10 @@ land here. Last check: 12 minutes ago.` (14/500 `#676f83`, centered, lh1.5)
         check: {lastCheck}.
       </Trans>
     }
-    cta={
-      <Button variant="link" render={<Link to="/rules/sources" />}>
-        <Settings2Icon data-icon="inline-start" />
-        <Trans>Configure sources</Trans>
-      </Button>
-    }
   />
   ```
-- Icon: `megaphone` → `MegaphoneIcon`; CTA icon `settings-2` → `Settings2Icon`.
-  Quiet CTA = `variant="link"`. "12 minutes ago" should be the live last-check
-  relative time (`lastCheck` from `sourceHealth`), not hardcoded.
+- Icon: `megaphone` → `MegaphoneIcon`. "12 minutes ago" should be the live last-check relative
+  time (`lastCheck` from `sourceHealth`), not hardcoded.
 
 ---
 

@@ -4548,10 +4548,6 @@ msgstr "置信度"
 msgid "confidence {confPct}%"
 msgstr "置信度 {confPct}%"
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Configure sources"
-msgstr "配置来源"
-
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "Confirm"
 msgstr "确认"
