@@ -1064,6 +1064,14 @@ export async function acceptTemplateRule(input: {
       // recompute failure must never fail the accept.
       try {
         await scoped.pulse.refreshMatchedCountsForObligations(generated.createdObligationIds)
+        // Day-one landscape for manual-onboarding firms: the recompute above
+        // only fixes counts on rows the firm already has — it never creates
+        // rows. If these are the firm's first obligations, materialize the
+        // still-open catch-up now instead of waiting for tomorrow's sweep.
+        await scoped.pulse.catchUpStillOpenWindowsOnFirstObligations(
+          generated.createdObligationIds.length,
+          input.reviewedAt,
+        )
       } catch (err) {
         console.error('[rules.accept] pulse matchedCount recompute failed', {
           firmId: scoped.pulse.firmId,

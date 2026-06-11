@@ -355,6 +355,12 @@ export interface PulseRepo {
   // this firm missed by joining / importing clients after approval. Returns the
   // number of firm alerts (re)materialized.
   catchUpStillOpenWindows(now?: Date): Promise<number>
+  // Onboarding trigger for the catch-up above: runs it exactly when the
+  // obligations just created are the firm's FIRST (total == createdCount), so
+  // every first-materialization path (import, rule accept, rule catalog) gets
+  // the day-one landscape without routing later additions away from the
+  // sweep's "new alert" channel.
+  catchUpStillOpenWindowsOnFirstObligations(createdCount: number, now?: Date): Promise<number>
   getDetail(alertId: string): Promise<PulseDetailRow>
   listPriorityQueue(opts?: { limit?: number }): Promise<PulsePriorityQueueItemRow[]>
   requestPriorityReview(input: {

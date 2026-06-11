@@ -421,7 +421,11 @@ export function makePulseOpsRepo(db: Db) {
       materialized += await refreshFirmAlertsForPulse(candidate.id, {
         ...(opts.firmId ? { firmIds: [opts.firmId] } : {}),
         preserveStatus: true,
-        skipZeroImpact: candidate.changeKind === 'deadline_shift',
+        // Both kinds skip zero-impact here (live approval fan-out stays
+        // firm-wide): a protective window materializing count-0 rows for every
+        // firm without a single in-scope client is the day-one noise wall in
+        // n=1 form — and via the daily sweep it would even count as "new".
+        skipZeroImpact: true,
         ...(opts.origin ? { origin: opts.origin } : {}),
       })
     }

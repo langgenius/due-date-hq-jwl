@@ -59,13 +59,14 @@ export function buildOrganizationHooks(db: Db): OrganizationHooks {
         })
         return
       }
-      // Onboarding is intentionally forward-only: a new firm starts with a clean
-      // alerts page and accrues alerts as regulatory changes are approved *after*
-      // it joins (the live fan-out reaches every firm that exists at approval
-      // time). We deliberately do NOT backfill the active landscape here — it
-      // surfaced ~30 firm-wide, matchedCount-0 alerts on day one that read as
-      // noise. makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(firmId)
-      // stays available for an explicit, opt-in catch-up if a firm ever needs one.
+      // Firm creation stays alert-free: at this point the firm has no clients,
+      // so a landscape backfill could only produce firm-wide, matchedCount-0
+      // rows (the ~30-alert day-one noise wall that got this hook removed).
+      // The catch-up instead fires when the firm's FIRST obligations
+      // materialize (import apply / rule accept / rule catalog all call
+      // scoped.pulse.catchUpStillOpenWindowsOnFirstObligations), where
+      // skipZeroImpact guarantees every row affects ≥1 client, stamped
+      // origin='catchup' so it reads as state, not news.
     },
     beforeAddMember: async ({ member }) => {
       if (member.role === 'owner') {

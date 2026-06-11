@@ -1303,6 +1303,60 @@ describe('makePulseOpsRepo', () => {
     expect(directStatements).toHaveLength(1)
   })
 
+  it('runs the first-obligations catch-up only when the firm total equals the created count', async () => {
+    // First materialization (total 5 == created 5): catch-up runs and lands a
+    // catchup-origin row. Selects: obligation count → still-open candidates →
+    // getPulse → active firms → protective scan.
+    const protectivePulse = {
+      id: 'pulse-protective',
+      status: 'approved' as const,
+      actionMode: 'review_only' as const,
+      changeKind: 'protective_claim_window' as const,
+      parsedJurisdiction: 'FED',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      reverifyRuleIdsJson: [],
+      structuredChangeJson: { kind: 'protective_claim_window', actionDeadline: '2026-07-10' },
+    }
+    const first = fakeDb([
+      [{ value: 5 }], // firm obligation total == createdCount
+      [{ id: 'pulse-protective', changeKind: 'protective_claim_window' }],
+      [protectivePulse],
+      [{ id: 'firm-new' }],
+      [{ firmId: 'firm-new', clientId: 'client-a', taxType: 'federal_1040' }],
+    ])
+    const firstCount = await makePulseRepo(
+      first.db,
+      'firm-new',
+    ).catchUpStillOpenWindowsOnFirstObligations(5, new Date('2026-06-01T00:00:00.000Z'))
+    expect(firstCount).toBe(1)
+    expect(
+      first.directStatements.some((statement) =>
+        statementHasValue(statement, { firmId: 'firm-new', origin: 'catchup' }),
+      ),
+    ).toBe(true)
+
+    // Later additions (total 8 != created 3): no catch-up — tomorrow's sweep
+    // reaches them as origin='live' news instead.
+    const later = fakeDb([[{ value: 8 }]])
+    const laterCount = await makePulseRepo(
+      later.db,
+      'firm-old',
+    ).catchUpStillOpenWindowsOnFirstObligations(3, new Date('2026-06-01T00:00:00.000Z'))
+    expect(laterCount).toBe(0)
+    expect(later.directStatements).toHaveLength(0)
+
+    // Zero created: no-op without even a count query.
+    const noop = fakeDb([])
+    const noopCount = await makePulseRepo(
+      noop.db,
+      'firm-x',
+    ).catchUpStillOpenWindowsOnFirstObligations(0)
+    expect(noopCount).toBe(0)
+  })
+
   it('keeps origin out of the upsert SET so a refresh never relabels a row', async () => {
     // First-writer-wins: the daily sweep refreshing a firm's 'live' row must not
     // flip it to 'catchup' (it would vanish from new-alert counters), and a
@@ -1604,17 +1658,18 @@ describe('makePulseOpsRepo', () => {
       new Date('2026-06-01T00:00:00.000Z'),
     )
 
-    expect(count).toBe(2)
+    expect(count).toBe(1)
     expect(
       directStatements.some((statement) =>
         statementHasValue(statement, { firmId: 'firm-a', needsReviewCount: 1 }),
       ),
     ).toBe(true)
+    // Zero-impact protective rows are skipped (skipZeroImpact covers both
+    // kinds): firm-b has no in-scope client, so no count-0 noise row — and no
+    // false "new alert" via the sweep.
     expect(
-      directStatements.some((statement) =>
-        statementHasValue(statement, { firmId: 'firm-b', needsReviewCount: 0 }),
-      ),
-    ).toBe(true)
+      directStatements.some((statement) => statementHasValue(statement, { firmId: 'firm-b' })),
+    ).toBe(false)
   })
 
   it('records early source failures without changing CPA-facing health', async () => {

@@ -566,6 +566,20 @@ async function createManualObligationsFromRuleSelections(input: {
     reason: 'Created from the client rule catalog.',
   })
 
+  // Day-one landscape: if these are the firm's FIRST obligations (manual
+  // client + rule-catalog onboarding), catch the firm up to the still-open
+  // regulatory windows now (origin='catchup') instead of waiting for
+  // tomorrow's sweep. Best-effort — never fail the create.
+  try {
+    await scoped.pulse.catchUpStillOpenWindowsOnFirstObligations(ids.length, now)
+  } catch (err) {
+    console.error('[obligations.createFromCatalog] still-open catch-up failed', {
+      firmId: scoped.firmId,
+      clientId: client.id,
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
+
   const idSet = new Set(ids)
   const rows = (await scoped.obligations.listByClient(client.id)).filter((row) => idSet.has(row.id))
   if (rows.length !== ids.length) {

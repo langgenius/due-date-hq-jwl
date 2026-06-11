@@ -1486,6 +1486,27 @@ export function makePulseRepo(db: Db, firmId: string) {
       return makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(firmId, now)
     },
 
+    // Onboarding trigger for the catch-up above: runs it exactly when the
+    // obligations just created are the firm's FIRST (total == createdCount).
+    // Later additions (a new client in a relief county, a second import) must
+    // NOT route through here — the daily sweep reaches them with origin='live',
+    // and "new alert" is their only notification channel. Decoupled from how
+    // clients enter (CSV import, manual + rule accept, rule catalog) so every
+    // first-materialization path gets the same day-one landscape.
+    async catchUpStillOpenWindowsOnFirstObligations(
+      createdCount: number,
+      now: Date = new Date(),
+    ): Promise<number> {
+      if (createdCount <= 0) return 0
+      const rows = await db
+        .select({ value: sqlCount() })
+        .from(obligationInstance)
+        .where(eq(obligationInstance.firmId, firmId))
+      const total = rows[0]?.value ?? 0
+      if (total !== createdCount) return 0
+      return makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(firmId, now)
+    },
+
     async getDetail(alertId: string): Promise<PulseDetailRow> {
       const alert = await getAlert(alertId, { includeSourceRevoked: true })
       const detail = await buildDetail(alert)

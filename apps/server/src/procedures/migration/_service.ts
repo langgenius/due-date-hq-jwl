@@ -776,6 +776,23 @@ export class MigrationService {
 
     await this.deps.scoped.migration.commitImport(plan)
 
+    // Day-one landscape: if this import materialized the firm's FIRST
+    // obligations, catch the firm up to the still-open regulatory windows
+    // (origin='catchup' — state, not news). Best-effort: a catch-up failure
+    // must never fail the import; tomorrow's sweep is the fallback.
+    try {
+      await this.deps.scoped.pulse.catchUpStillOpenWindowsOnFirstObligations(
+        plan.obligations.length,
+        plan.appliedAt,
+      )
+    } catch (err) {
+      console.error('[migration.apply] still-open catch-up failed', {
+        firmId: this.deps.scoped.firmId,
+        batchId,
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+
     // SuccessModal stats (Pencil uoNwI): distinct rules behind the new
     // obligations + how many fall due within 30 days of the apply moment.
     const thirtyDaysOut = new Date(plan.appliedAt.getTime() + 30 * 24 * 60 * 60 * 1000)
