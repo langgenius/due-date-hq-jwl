@@ -93,7 +93,7 @@ import seal_WI from './state-seals/WI.png?url'
 import seal_WV from './state-seals/WV.png?url'
 import seal_WY from './state-seals/WY.png?url'
 
-type StateBadgeSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+type StateBadgeSize = '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
 interface StateBadgeProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'title'> {
   /** Two-letter state code, "FED", or "IRS". Case-insensitive. */
@@ -110,6 +110,7 @@ interface StateBadgeProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 't
 }
 
 const sizePx: Record<StateBadgeSize, number> = {
+  '2xs': 16,
   xs: 20,
   sm: 28,
   md: 32,

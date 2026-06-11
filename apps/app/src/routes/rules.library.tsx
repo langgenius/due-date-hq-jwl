@@ -36,6 +36,7 @@ import type {
   RuleCoverageRow,
   RuleCustomRuleInput,
   RuleJurisdiction,
+  RuleReviewTask,
   RuleStatus,
 } from '@duedatehq/contracts'
 
@@ -1323,12 +1324,13 @@ export function RulesLibraryRoute() {
     if (!selectedGroup || activeScope === 'missing') return []
     let result = selectedGroup.rules
     if (activeEntity) result = result.filter((r) => r.entityApplicability.includes(activeEntity))
-    if (activeScope === 'active') {
-      result = result.filter((r) => r.status === 'active' || r.status === 'verified')
-    } else if (activeScope === 'review') {
+    // Jurisdiction view carries only the two working states: Review and
+    // Active (the default). Any non-'review' scope reads as Active —
+    // deprecated/archived rules aren't surfaced in this view.
+    if (activeScope === 'review') {
       result = result.filter((r) => statusGroupOf(r.status) === 'needs_review')
-    } else if (activeScope === 'archived') {
-      result = result.filter((r) => statusGroupOf(r.status) === 'archived')
+    } else {
+      result = result.filter((r) => r.status === 'active' || r.status === 'verified')
     }
     const q = (search ?? '').trim().toLowerCase()
     if (q) {
@@ -2222,8 +2224,8 @@ export function RulesLibraryRoute() {
                   // status breakdown).
                   <JurisdictionFilterBar
                     jurisdictionLabel={selectedGroup.label}
-                    scope={(activeScope === 'missing' ? 'all' : activeScope) as RuleScope}
-                    onScopeChange={(next) => void setScope(next === 'all' ? null : next)}
+                    scope={activeScope === 'review' ? 'review' : 'active'}
+                    onScopeChange={(next) => void setScope(next)}
                     search={search ?? ''}
                     onSearchChange={(next) => void setSearch(next || null)}
                     typeOptions={jurisdictionTypeOptions}
@@ -2330,6 +2332,43 @@ export function RulesLibraryRoute() {
               </>
             ) : (
               <>
+                {/* Review prompt — the counterpart to OverviewCaughtUpCard.
+                    When the queue is NOT clear, tell the CPA plainly that
+                    rules are waiting and give them a one-click way into the
+                    bulk review (select all pending → open the review list). */}
+                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-divider-subtle bg-state-accent-hover px-4 py-3.5">
+                  <span
+                    aria-hidden
+                    className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-background-default text-text-accent"
+                  >
+                    <EyeIcon className="size-[18px]" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[15px] font-semibold text-text-primary">
+                      <Plural
+                        value={totalPendingReview}
+                        one="# rule needs your review"
+                        other="# rules need your review"
+                      />
+                    </p>
+                    <p className="truncate text-sm font-medium text-text-tertiary">
+                      {oldestReviewRelative ? (
+                        <Trans>Oldest waiting since {oldestReviewRelative}</Trans>
+                      ) : (
+                        <Trans>Review them before they affect client filings</Trans>
+                      )}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      selectAllPending()
+                      setBulkListOpen(true)
+                    }}
+                  >
+                    <Trans>Start review</Trans>
+                  </Button>
+                </div>
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
                 <OverviewRecentChangesCard
                   rules={recentChanges}
@@ -4029,6 +4068,20 @@ function RuleDetailPanel({
 }) {
   const { t } = useLingui()
   const isReviewable = rule.status === 'candidate' || rule.status === 'pending_review'
+  // The hero (title · status · AI % · summary) is PINNED as a fixed header so
+  // the panel always shows what rule you're looking at. Previously it was the
+  // first scrolling card, and Base UI's open-focus scrolled it off-screen, so
+  // the panel opened with no visible title. `initialFocus` parks focus on the
+  // scroll body so nothing auto-scrolls.
+  const scrollRef = useRef<HTMLDivElement>(null)
+  // The open review task for this rule carries the queue age (`createdAt`) and
+  // why it's in review (`reason`) — surfaced in the hero, per the mock.
+  const reviewTasksQuery = useQuery(
+    orpc.rules.listReviewTasks.queryOptions({ input: { status: 'open' } }),
+  )
+  const reviewTask = isReviewable
+    ? (reviewTasksQuery.data?.find((task) => task.ruleId === rule.id) ?? null)
+    : null
   return (
     // 2026-06-10 (Yuqi): the rule detail is a big CENTERED MODAL — click a
     // rule row → popup with the full summary-first card-stack (the `N2X10V`
@@ -4038,17 +4091,26 @@ function RuleDetailPanel({
     <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
       <DialogContent
         showCloseButton
+        initialFocus={scrollRef}
         aria-label={t`Rule detail`}
         className="flex max-h-[90vh] w-[min(980px,calc(100vw-2rem))] max-w-[980px] flex-col gap-0 overflow-hidden bg-background-section p-0"
       >
-        {/* Visible title lives in the hero card; this satisfies the Dialog's
-            a11y label without duplicating it on screen. */}
+        {/* a11y label for the Dialog; the visible title lives in the pinned hero. */}
         <DialogTitle className="sr-only">{rule.title}</DialogTitle>
-        {/* Scrollable summary-first card-stack: hero · Applicability · Due date
-            · Evidence · Impact · Activity. Each card discloses independently;
-            the Decision is pinned as a sticky footer below (irBJ8). */}
-        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-5">
-          <RuleDetailHeroCard rule={rule} concreteDraft={concreteDraft} />
+        {/* Pinned hero header — title · status · AI % · summary stay visible
+            while the reference sections scroll beneath, so the panel always
+            shows which rule you're reviewing. */}
+        <div className="shrink-0 px-5 pt-5">
+          <RuleDetailHeroCard rule={rule} concreteDraft={concreteDraft} reviewTask={reviewTask} />
+        </div>
+        {/* Scrollable card-stack: Applicability · Due date · Evidence · Impact ·
+            Practice review · Activity. Each card discloses independently; the
+            Decision is pinned as a sticky footer below (irBJ8). */}
+        <div
+          ref={scrollRef}
+          tabIndex={-1}
+          className="flex min-h-0 flex-1 flex-col gap-[18px] overflow-y-auto px-5 py-5 outline-none"
+        >
           <RuleEffectiveBanner rule={rule} />
           <RuleDetailCompact
             key={rule.id}
@@ -4085,16 +4147,26 @@ function RuleDetailPanel({
  * title + identity meta + 2-line summary + a meta strip (AI % · audit ledger).
  *
  * Honest data only: the AI-confidence chip renders ONLY when a real concrete
- * draft confidence exists (the rule itself carries no confidence); the canvas's
- * "· 2d in queue" + "Reason:" line are omitted — no queue-timestamp / review-
- * reason is on the public rule.
+ * draft confidence exists (the rule itself carries no confidence). The queue age
+ * + review reason come from the rule's open `RuleReviewTask` (`createdAt` /
+ * `reason`) when one exists — omitted otherwise.
  */
+const REVIEW_REASON_LABEL: Record<RuleReviewTask['reason'], React.ReactNode> = {
+  new_template: <Trans>New template</Trans>,
+  source_changed: <Trans>Source changed</Trans>,
+  pulse_signal: <Trans>Pulse signal</Trans>,
+  custom_edit: <Trans>Custom edit</Trans>,
+  annual_review: <Trans>Annual review</Trans>,
+}
+
 function RuleDetailHeroCard({
   rule,
   concreteDraft,
+  reviewTask,
 }: {
   rule: ObligationRule
   concreteDraft: RuleConcreteDraftCacheEntry | null
+  reviewTask: RuleReviewTask | null
 }) {
   const isReviewable = rule.status === 'candidate' || rule.status === 'pending_review'
   const confidence = concreteDraft?.draft?.confidence ?? null
@@ -4115,6 +4187,16 @@ function RuleDetailHeroCard({
             <Clock3 aria-hidden className="size-2.5" />
             <Trans>Awaiting review</Trans>
           </Badge>
+        ) : null}
+        {reviewTask ? (
+          <span className="text-xs font-medium text-text-tertiary">
+            <Trans>In queue {formatRelativeTime(reviewTask.createdAt)}</Trans>
+          </span>
+        ) : null}
+        {reviewTask ? (
+          <span className="ml-auto text-xs font-medium text-text-tertiary">
+            <Trans>Reason</Trans>: {REVIEW_REASON_LABEL[reviewTask.reason]}
+          </span>
         ) : null}
       </div>
       <div className="flex flex-col gap-2.5 px-5 py-4">

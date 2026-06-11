@@ -344,7 +344,7 @@ export function RuleDetailCompact({
   // summary; the reviewer opts into depth per section. The Decision surface
   // (CandidateReviewSection) is the always-expanded commit footer.
   return (
-    <div className="flex min-w-0 flex-col gap-3">
+    <div className="flex min-w-0 flex-col gap-[18px]">
       {/* Applicability — 3 labeled chips (irBJ8); detail = full facts grid. */}
       <DisclosureCard
         title={<Trans>Applicability</Trans>}
@@ -378,7 +378,7 @@ export function RuleDetailCompact({
           detail = extension policy. */}
       <DisclosureCard
         title={<Trans>Due date logic</Trans>}
-        meta={<span className="font-mono">{rule.dueDateLogic.kind}</span>}
+        meta={formatEnumLabel(rule.dueDateLogic.kind)}
         moreLabel={<Trans>View extension rules</Trans>}
         summary={
           rule.dueDateLogic.kind === 'fixed_date' ? (

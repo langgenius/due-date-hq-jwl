@@ -196,21 +196,19 @@ export function JurisdictionFilterBar({
         className="h-9 [&>button]:h-8"
         ariaLabel={t`Filter by status`}
         options={[
-          { value: 'all', label: <Trans>All</Trans> },
           { value: 'active', label: <Trans>Active</Trans> },
-          { value: 'review', label: <Trans>Pending</Trans> },
-          { value: 'archived', label: <Trans>Deprecated</Trans> },
+          { value: 'review', label: <Trans>Review</Trans> },
         ]}
       />
-      <div className="w-full sm:w-[260px]">
+      {/* Search flexes to absorb the row's slack so every control keeps an
+          even gap-3 and the bar stays on one line (no dead spacer). */}
+      <div className="w-full min-w-[180px] sm:flex-1 sm:basis-0 sm:w-auto sm:max-w-[280px]">
         <SearchInput
           value={search}
           onChange={onSearchChange}
           placeholder={t`Search ${jurisdictionLabel} rules`}
         />
       </div>
-
-      <span className="hidden flex-1 sm:block" />
 
       {/* Type — multi-select by tax type. */}
       <DropdownMenu>
@@ -389,7 +387,9 @@ export function JurisdictionRuleTable({
           All-overview grouped table keeps its auto layout. */}
       <Table className="w-full table-fixed">
         <TableHeader className="sticky top-0 z-10">
-          <TableRow>
+          {/* Tighter header than the canonical py-3 — this dense rule table
+              reads better with a lower-profile head row (Yuqi 2026-06-10). */}
+          <TableRow className="[&>th]:py-2">
             <TableHead className="w-11 pl-4">
               {selectableIds.length > 0 ? (
                 <span
