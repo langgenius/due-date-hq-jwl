@@ -78,7 +78,7 @@ export function OnboardingSkipModal({
                   key: 'import-digest',
                   node: <Trans>Personalised digest tomorrow morning</Trans>,
                 },
-                { key: 'import-time', node: <Trans>~5 minutes of focused work</Trans> },
+                { key: 'import-time', node: <Trans>About 5 minutes of focused work</Trans> },
               ]}
             />
           </div>

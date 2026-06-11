@@ -86,8 +86,8 @@ describe('AlertDecisionStatusNotice', () => {
         applyReadiness: { status: 'needs_details', missing: ['affected_clients'] },
       }),
     )
-    expect(document.body.textContent).toContain('Needs deadline selection')
-    expect(document.body.textContent).toContain('choose the deadlines before Apply is enabled')
+    expect(document.body.textContent).toContain('Select deadlines before applying')
+    expect(document.body.textContent).toContain('select deadlines to apply')
 
     act(() => {
       root?.render(

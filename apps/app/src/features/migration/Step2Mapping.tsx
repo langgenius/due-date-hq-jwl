@@ -44,6 +44,8 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
+
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 
 import {
@@ -167,8 +169,8 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           </AlertTitle>
           <AlertDescription>
             <Trans>
-              AI wasn&apos;t available, so we matched your columns to DueDateHQ fields by their
-              names. Review the matches below — and fix any that look off — before continuing.
+              AI wasn&apos;t available, so we matched your columns by name. Review the matches
+              below and fix any mismatches before continuing.
             </Trans>
           </AlertDescription>
         </Alert>
@@ -448,12 +450,12 @@ function MappingBannerRow({
             animate={{
               height: 'auto',
               opacity: 1,
-              transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] },
+              transition: { duration: MOTION_DURATION.enter, ease: EASE_APPLE },
             }}
             exit={{
               height: 0,
               opacity: 0,
-              transition: { duration: 0.16, ease: [0.32, 0.72, 0, 1] },
+              transition: { duration: MOTION_DURATION.exit, ease: EASE_APPLE },
             }}
             className="overflow-hidden border-t border-divider-subtle"
           >

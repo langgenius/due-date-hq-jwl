@@ -123,7 +123,7 @@ describe('AlertCard readiness', () => {
         </AppI18nProvider>,
       )
     })
-    expect(document.body.textContent).toContain('Needs deadline selection')
+    expect(document.body.textContent).toContain('Select deadlines before applying')
 
     act(() => {
       root?.render(

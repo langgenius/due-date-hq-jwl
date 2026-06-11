@@ -312,7 +312,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
       // display name across all member surfaces, audit log, and hosted
       // billing — leading with "your firm's display name" anchors the
       // user instead of reading like generic input validation.
-      const message = t`Practice name needs at least 2 characters — this is your firm's display name across DueDateHQ.`
+      const message = t`Practice name needs at least 2 characters.`
       setError(message)
       toast.error(t`Couldn't update practice`, {
         description: message,
@@ -565,7 +565,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   unaffected. */}
               <FieldDescription tone="warning">
                 <Trans>
-                  Note: changes can't be reverted automatically — adjusting this back later won't
+                  Changes can't be reverted automatically — adjusting this back later won't
                   restore prior deadline dates. Historical audit entries stay intact.
                 </Trans>
               </FieldDescription>

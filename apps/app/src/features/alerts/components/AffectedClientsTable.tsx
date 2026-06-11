@@ -229,7 +229,7 @@ export function AffectedClientsTable({
                       </TableCell>
                       <TableCell>
                         <span className="text-xs font-medium tabular-nums leading-tight text-text-primary">
-                          {row.newDueDate ? formatDate(row.newDueDate) : <Trans>Unknown</Trans>}
+                          {row.newDueDate ? formatDate(row.newDueDate) : <Trans>Not yet set</Trans>}
                         </span>
                       </TableCell>
                     </>

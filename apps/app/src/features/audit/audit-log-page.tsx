@@ -250,31 +250,31 @@ function AuditKpiStrip({
       key: 'total',
       label: <Trans>Total loaded</Trans>,
       value: totalLoaded,
-      caption: <Trans>in current view</Trans>,
+      caption: <Trans>in this view</Trans>,
     },
     {
       key: 'filing',
       label: <Trans>Filings</Trans>,
       value: countsByType.filing,
-      caption: <Trans>filed / e-file</Trans>,
+      caption: <Trans>filed or e-filed</Trans>,
     },
     {
       key: 'amendment',
       label: <Trans>Amendments</Trans>,
       value: countsByType.amendment,
-      caption: <Trans>with reason</Trans>,
+      caption: <Trans>amended with reason</Trans>,
     },
     {
       key: 'access',
       label: <Trans>Access</Trans>,
       value: countsByType.access,
-      caption: <Trans>auth / export</Trans>,
+      caption: <Trans>logins and exports</Trans>,
     },
     {
       key: 'system',
       label: <Trans>System</Trans>,
       value: countsByType.system + countsByType.decision,
-      caption: <Trans>automated + decisions</Trans>,
+      caption: <Trans>auto-recorded and manual decisions</Trans>,
     },
   ]
   return (
@@ -713,8 +713,8 @@ export function AuditLogPage() {
           // description reflects FIRM_PERMISSION_ROLES['audit.read']
           // (owner/partner/manager/preparer) automatically.
           <Trans>
-            Practice-wide audit events are available to {requiredRolesLabel('audit.read')}. Contact
-            the practice owner if you need audit access.
+            Only {requiredRolesLabel('audit.read')} can see practice-wide audit events. Ask the
+            practice owner for access.
           </Trans>
         }
         secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}

@@ -470,7 +470,7 @@ export function SettingsProfileRoute() {
               </span>
               <span className="text-xs text-text-secondary">
                 <Trans>
-                  Removes your access. Firm data stays for 30 days, then is permanently destroyed.
+                  Removes your access. Your practice's data is kept for 30 days, then permanently deleted. This can't be undone.
                 </Trans>
               </span>
             </div>

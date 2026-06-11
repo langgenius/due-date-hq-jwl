@@ -30,6 +30,7 @@ import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import cchAxcessLogoUrl from './assets/source-logos/cch-axcess.png?url'
 import cchProSystemFxLogoUrl from './assets/source-logos/cch-prosystem-fx.png?url'
 import drakeLogoUrl from './assets/source-logos/drake.png?url'
@@ -56,11 +57,12 @@ import {
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024
 
-// Calm ease-out curve for the empty→detection state swap. ~280ms, no
-// bounce. Matches the brief's confident-typewriter motion principle.
+// Calm curve for the empty→detection state swap — the grammar's
+// content-enter tempo on EASE_APPLE. No bounce; matches the brief's
+// confident-typewriter motion principle.
 const STATE_TRANSITION = {
-  duration: 0.28,
-  ease: [0.32, 0.72, 0, 1] as [number, number, number, number],
+  duration: MOTION_DURATION.enter,
+  ease: EASE_APPLE,
 }
 
 const PRESET_LABELS: Record<PresetId, string> = {
@@ -695,10 +697,9 @@ export function Step1Intake({
           </AlertTitle>
           <AlertDescription>
             <Trans>
-              We blocked SSN-like patterns to protect your clients. Those columns won&apos;t be sent
-              to the AI. If a flagged column is actually an EIN, choose EIN yourself in Mapping;
-              true SSN/ITIN values should stay ignored. Columns flagged:{' '}
-              {ssnBlockedHeaders.join(', ')}.
+              We blocked SSN-like columns to protect client data — they&apos;re never sent to the
+              AI. If a flagged column is actually an EIN, map it yourself in the next step.
+              Blocked: {ssnBlockedHeaders.join(', ')}.
             </Trans>
           </AlertDescription>
         </Alert>

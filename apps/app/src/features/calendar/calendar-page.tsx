@@ -265,7 +265,7 @@ export function CalendarPage() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingRegenerate
-                ? t`Any device subscribed to the current ${pendingRegenerate.title} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one.`
+                ? t`All devices subscribed to the current ${pendingRegenerate.title} feed will disconnect — the old URL stops working. Share the new URL with everyone who had it.`
                 : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -594,7 +594,7 @@ function CalendarSubscriptionCard({
                     disabled={pending}
                   >
                     <UnlinkIcon data-icon="inline-start" />
-                    <Trans>Disable</Trans>
+                    <Trans>Disable feed</Trans>
                   </Button>
                 </>
               ) : (

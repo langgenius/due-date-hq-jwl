@@ -10,7 +10,7 @@ function readinessLabel(
 ) {
   if (firmImpact === 'no_current_match') return <Trans>No current match</Trans>
   if (readiness.status === 'ready') return <Trans>Ready to apply</Trans>
-  if (readiness.status === 'needs_details') return <Trans>Needs deadline selection</Trans>
+  if (readiness.status === 'needs_details') return <Trans>Select deadlines before applying</Trans>
   return <Trans>Review only</Trans>
 }
 
@@ -71,7 +71,7 @@ export function AlertDecisionStatusNotice({ alert }: { alert: PulseAlertPublic }
             The new due date and affected deadlines are confirmed. Continue to Apply when ready.
           </Trans>
         ) : readiness.status === 'needs_details' ? (
-          <Trans>Confirm the new due date and choose the deadlines before Apply is enabled.</Trans>
+          <Trans>Confirm the due date and select deadlines to apply.</Trans>
         ) : (
           <Trans>
             This alert is for review only. Mark it reviewed or dismiss it; no deadline overlay will

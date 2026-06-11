@@ -76,7 +76,7 @@ export function LowConfidenceBadge({ className }: { className?: string }) {
           prompt the CPA to manually verify the extracted facts against the
           source. Blocking logic (require sign-off before Apply, route to a
           review queue) is roadmapped but not built. */}
-      <TooltipContent>{t`AI extraction confidence below 50%. Verify the extracted details against the source before trusting them. This is a visual warning only — it does not currently block Apply, but you should double-check before applying.`}</TooltipContent>
+      <TooltipContent>{t`AI extraction confidence below 50%. Verify the extracted details against the source before applying.`}</TooltipContent>
     </Tooltip>
   )
 }

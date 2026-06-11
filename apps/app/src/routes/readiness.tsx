@@ -42,7 +42,7 @@ interface ResponseDraft {
 
 async function fetchReadinessPortal(token: string): Promise<ReadinessPublicPortal> {
   const response = await fetch(`/api/readiness/${encodeURIComponent(token)}`)
-  if (!response.ok) throw new Error('Readiness link is not available.')
+  if (!response.ok) throw new Error('This link is no longer active. Ask your CPA to send a new one.')
   const data: unknown = await response.json()
   return ReadinessPublicPortalSchema.parse(data)
 }
