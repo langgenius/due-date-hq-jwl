@@ -70,9 +70,24 @@ export function MergedBriefCard({
   }, [rows, asOf])
 
   const tabs = [
-    { key: 'overdue' as const, label: t`Overdue`, count: counts.overdue, dot: 'text-text-destructive' },
-    { key: 'today' as const, label: t`Ending today`, count: counts.endingToday, dot: 'text-text-warning' },
-    { key: 'week' as const, label: t`This week`, count: counts.thisWeek, dot: 'text-text-tertiary' },
+    {
+      key: 'overdue' as const,
+      label: t`Overdue`,
+      count: counts.overdue,
+      dot: 'text-text-destructive',
+    },
+    {
+      key: 'today' as const,
+      label: t`Ending today`,
+      count: counts.endingToday,
+      dot: 'text-text-warning',
+    },
+    {
+      key: 'week' as const,
+      label: t`This week`,
+      count: counts.thisWeek,
+      dot: 'text-text-tertiary',
+    },
   ]
 
   // No explicit pick yet → follow the data (first non-empty bucket, overdue
@@ -99,7 +114,7 @@ export function MergedBriefCard({
   return (
     <section
       aria-label={t`Priorities`}
-      className="flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default px-[18px] py-3.5"
+      className="flex w-full max-w-4xl flex-col gap-3 rounded-xl border border-divider-regular bg-background-default px-[18px] py-3.5"
     >
       {/* Header — sparkles + title + the count-chip selector + collapse. */}
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
@@ -130,7 +145,10 @@ export function MergedBriefCard({
                 aria-pressed={active}
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
               >
-                <span className={cn('size-1.5 shrink-0 rounded-full bg-current', tab.dot)} aria-hidden />
+                <span
+                  className={cn('size-1.5 shrink-0 rounded-full bg-current', tab.dot)}
+                  aria-hidden
+                />
                 <span className="whitespace-nowrap">{tab.label}</span>
                 <span className="tabular-nums text-text-tertiary">{tab.count}</span>
               </button>
@@ -142,57 +160,59 @@ export function MergedBriefCard({
       {/* Body — the selected bucket's rows. No dividers: rows separate by space
           + hover so the card stays calm. */}
       <div className="flex flex-col gap-0.5">
-          {/* Lede — one-line deterministic summary of the day. */}
-          <p className="px-2 pb-1.5 text-sm text-text-secondary">
-            {totalActive === 0 ? (
-              <Trans>You're clear — nothing due in the next week.</Trans>
-            ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
+        {/* Lede — one-line deterministic summary of the day. */}
+        <p className="px-2 pb-1.5 text-sm text-text-secondary">
+          {totalActive === 0 ? (
+            <Trans>You're clear — nothing due in the next week.</Trans>
+          ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
+            <Trans>
+              {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
+            </Trans>
+          ) : counts.overdue > 0 ? (
+            <Trans>{counts.overdue} overdue.</Trans>
+          ) : (
+            <Trans>{weekAhead} due this week, none overdue.</Trans>
+          )}
+        </p>
+        {shown.length === 0 ? (
+          <p className="px-2 py-1.5 text-sm text-text-tertiary">
+            {activeTotal > 0 ? (
               <Trans>
-                {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
+                None in the priority shortlist — open the queue to see all {activeTotal}.
               </Trans>
-            ) : counts.overdue > 0 ? (
-              <Trans>{counts.overdue} overdue.</Trans>
             ) : (
-              <Trans>{weekAhead} due this week, none overdue.</Trans>
+              <Trans>Nothing here. You're clear.</Trans>
             )}
           </p>
-          {shown.length === 0 ? (
-            <p className="px-2 py-1.5 text-sm text-text-tertiary">
-              {activeTotal > 0 ? (
-                <Trans>None in the priority shortlist — open the queue to see all {activeTotal}.</Trans>
-              ) : (
-                <Trans>Nothing here. You're clear.</Trans>
-              )}
-            </p>
-          ) : (
-            shown.map((row) => (
-              <BriefRow
-                key={row.obligationId}
-                row={row}
-                asOf={asOf}
-                asOfDate={asOfDate}
-                onOpen={onOpenObligation}
-              />
-            ))
-          )}
+        ) : (
+          shown.map((row) => (
+            <BriefRow
+              key={row.obligationId}
+              row={row}
+              asOf={asOf}
+              asOfDate={asOfDate}
+              onOpen={onOpenObligation}
+            />
+          ))
+        )}
 
-          {/* Footer — one link to the full list, with extra top padding so it
+        {/* Footer — one link to the full list, with extra top padding so it
               doesn't crowd the last row (Yuqi). */}
-          <div className="mt-3 flex items-center justify-end gap-2 px-2">
-            {moreCount > 0 ? (
-              <span className="text-caption tabular-nums text-text-tertiary">
-                <Trans>{moreCount} more not shown</Trans>
-              </span>
-            ) : null}
-            <Link
-              to="/deadlines"
-              className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-            >
-              <Trans>See all deadlines</Trans>
-              <ArrowRightIcon className="size-3" aria-hidden />
-            </Link>
-          </div>
+        <div className="mt-3 flex items-center justify-end gap-2 px-2">
+          {moreCount > 0 ? (
+            <span className="text-caption tabular-nums text-text-tertiary">
+              <Trans>{moreCount} more not shown</Trans>
+            </span>
+          ) : null}
+          <Link
+            to="/deadlines"
+            className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <Trans>See all deadlines</Trans>
+            <ArrowRightIcon className="size-3" aria-hidden />
+          </Link>
         </div>
+      </div>
     </section>
   )
 }
@@ -234,9 +254,7 @@ function BriefRow({
   // it once prep is done (review/blocked/filed/…) so an in-review row doesn't
   // contradict itself with a "Docs 0/3" reading.
   const showReadiness =
-    row.status === 'pending' ||
-    row.status === 'in_progress' ||
-    row.status === 'waiting_on_client'
+    row.status === 'pending' || row.status === 'in_progress' || row.status === 'waiting_on_client'
   // Payment-late is a SEPARATE obligation from the filing — it rides next to the
   // status as its own chip, so the due column can stay the filing countdown that
   // matches the action (Yuqi: two obligations, two homes).
@@ -253,11 +271,12 @@ function BriefRow({
       <span className="flex w-28 shrink-0 items-center">
         <TaxCodeBadge code={row.taxType} />
       </span>
-      {/* Client + the instruction/readiness sub-line. Capped width pulls the
-          status/owner/due cluster IN so the row isn't two islands with a dead
-          middle (Yuqi #3). Client name is the row anchor — bumped to semibold so
-          one thing is clearly primary (Yuqi #2). */}
-      <span className="flex min-w-0 max-w-[440px] flex-1 flex-col gap-0.5">
+      {/* Client + the instruction/readiness sub-line. Flexes to fill so the
+          status/owner/due cluster sits at the card's RIGHT edge — a normal
+          table, not a cluster floating mid-card with dead space trailing right
+          (Yuqi: the capped version read weird). Client name is the row anchor,
+          bumped to semibold so one thing is clearly primary. */}
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate text-sm font-semibold text-text-primary">{row.clientName}</span>
         <span className="flex min-w-0 items-center gap-1.5 text-caption text-text-tertiary">
           <span className="truncate">{verb}</span>
@@ -289,7 +308,11 @@ function BriefRow({
         ) : null}
       </span>
       <span className="flex w-6 shrink-0 items-center">
-        <AssigneeAvatar size="xs" name={row.assigneeName} title={row.assigneeName ?? t`Unassigned`} />
+        <AssigneeAvatar
+          size="xs"
+          name={row.assigneeName}
+          title={row.assigneeName ?? t`Unassigned`}
+        />
       </span>
       {/* Due = the FILING countdown (paymentDueDate nulled so payment-late doesn't
           hijack it) — it now matches the action verb instead of describing a
