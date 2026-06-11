@@ -426,9 +426,13 @@ export function DashboardRoute() {
           surface: replaces the old AI brief AND the Priority Actions table. */}
       <MergedBriefCard
         counts={{
+          // This week = today + the next-7-day bin; this month = the next-30-day
+          // bin; overdue as-is. (Yuqi: CPA buckets, drop "ending today".)
+          thisWeek:
+            (facets?.dueBuckets.find((b) => b.value === 'today')?.count ?? 0) +
+            (facets?.dueBuckets.find((b) => b.value === 'next_7_days')?.count ?? 0),
+          thisMonth: facets?.dueBuckets.find((b) => b.value === 'next_30_days')?.count ?? 0,
           overdue: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
-          endingToday: facets?.dueBuckets.find((b) => b.value === 'today')?.count ?? 0,
-          thisWeek: facets?.dueBuckets.find((b) => b.value === 'next_7_days')?.count ?? 0,
         }}
         rows={data?.topRows ?? []}
         asOfDate={data?.asOfDate ?? null}

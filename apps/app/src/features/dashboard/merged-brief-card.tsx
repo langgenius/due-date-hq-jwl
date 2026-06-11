@@ -26,12 +26,14 @@ import { ExtensionChip } from './extension-chip'
  * space + hover, not borders or dividers.
  */
 export interface MergedBriefCounts {
-  overdue: number
-  endingToday: number
   thisWeek: number
+  thisMonth: number
+  overdue: number
 }
 
-type Bucket = 'overdue' | 'today' | 'week'
+// CPA-aligned buckets (Yuqi): "ending today" isn't how CPAs frame their work —
+// they think in this week / this month / overdue. Order matches that.
+type Bucket = 'week' | 'month' | 'overdue'
 
 const ROWS_PER_BUCKET = 4
 
@@ -59,34 +61,34 @@ export function MergedBriefCard({
   const asOf = useMemo(() => (asOfDate ? new Date(asOfDate) : new Date()), [asOfDate])
 
   const byBucket = useMemo(() => {
-    const by: Record<Bucket, DashboardTopRow[]> = { overdue: [], today: [], week: [] }
+    const by: Record<Bucket, DashboardTopRow[]> = { week: [], month: [], overdue: [] }
     for (const r of rows) {
       const d = daysUntil(r.currentDueDate, asOf)
       if (d < 0) by.overdue.push(r)
-      else if (d === 0) by.today.push(r)
       else if (d <= 7) by.week.push(r)
+      else if (d <= 30) by.month.push(r)
     }
     return by
   }, [rows, asOf])
 
   const tabs = [
     {
+      key: 'week' as const,
+      label: t`This week`,
+      count: counts.thisWeek,
+      dot: 'text-text-secondary',
+    },
+    {
+      key: 'month' as const,
+      label: t`This month`,
+      count: counts.thisMonth,
+      dot: 'text-text-tertiary',
+    },
+    {
       key: 'overdue' as const,
       label: t`Overdue`,
       count: counts.overdue,
       dot: 'text-text-destructive',
-    },
-    {
-      key: 'today' as const,
-      label: t`Ending today`,
-      count: counts.endingToday,
-      dot: 'text-text-warning',
-    },
-    {
-      key: 'week' as const,
-      label: t`This week`,
-      count: counts.thisWeek,
-      dot: 'text-text-tertiary',
     },
   ]
 
@@ -94,13 +96,15 @@ export function MergedBriefCard({
   // leading). Derived (not initial-state) so it stays correct as counts load in;
   // once the user clicks a chip we honor that choice.
   const [override, setOverride] = useState<Bucket | null>(null)
+  // Default to the most actionable non-empty bucket: overdue first, then this
+  // week, then this month.
   const selected: Bucket =
-    override ?? (counts.overdue > 0 ? 'overdue' : counts.endingToday > 0 ? 'today' : 'week')
+    override ?? (counts.overdue > 0 ? 'overdue' : counts.thisWeek > 0 ? 'week' : 'month')
   const activeTotal =
     selected === 'overdue'
       ? counts.overdue
-      : selected === 'today'
-        ? counts.endingToday
+      : selected === 'month'
+        ? counts.thisMonth
         : counts.thisWeek
   const shown = byBucket[selected].slice(0, ROWS_PER_BUCKET)
   const moreCount = Math.max(0, activeTotal - shown.length)
@@ -108,13 +112,13 @@ export function MergedBriefCard({
   // One-line deterministic summary — the lede of the brief. It surfaces the
   // docs blocker the count chips can't, so it says something they don't.
   const overdueNeedingDocs = byBucket.overdue.filter((r) => r.evidenceCount === 0).length
-  const weekAhead = counts.endingToday + counts.thisWeek
-  const totalActive = counts.overdue + weekAhead
+  const upcoming = counts.thisWeek + counts.thisMonth
+  const totalActive = counts.overdue + upcoming
 
   return (
     <section
       aria-label={t`Priorities`}
-      className="flex w-full max-w-4xl flex-col gap-3 rounded-xl border border-divider-regular bg-background-default px-[18px] py-3.5"
+      className="flex w-full flex-col gap-3 rounded-xl border border-divider-regular bg-background-default px-5 py-4"
     >
       {/* Header — sparkles + title + the count-chip selector + collapse. */}
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
@@ -163,7 +167,7 @@ export function MergedBriefCard({
         {/* Lede — one-line deterministic summary of the day. */}
         <p className="px-2 pb-1.5 text-sm text-text-secondary">
           {totalActive === 0 ? (
-            <Trans>You're clear — nothing due in the next week.</Trans>
+            <Trans>You're clear — nothing due this month.</Trans>
           ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
             <Trans>
               {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
@@ -171,9 +175,28 @@ export function MergedBriefCard({
           ) : counts.overdue > 0 ? (
             <Trans>{counts.overdue} overdue.</Trans>
           ) : (
-            <Trans>{weekAhead} due this week, none overdue.</Trans>
+            <Trans>{upcoming} coming up, none overdue.</Trans>
           )}
         </p>
+        {/* Column header — turns the rows into a labeled table (Yuqi hybrid:
+            brief header above, table below). Mirrors BriefRow's column widths. */}
+        {shown.length > 0 ? (
+          <div className="flex items-center gap-2 border-b border-divider-subtle px-2.5 pb-1.5 text-caption-xs font-medium tracking-wider text-text-tertiary uppercase">
+            <span className="w-28 shrink-0">
+              <Trans>Form</Trans>
+            </span>
+            <span className="min-w-0 flex-1">
+              <Trans>Client</Trans>
+            </span>
+            <span className="w-[128px] shrink-0">
+              <Trans>Status</Trans>
+            </span>
+            <span className="w-6 shrink-0" aria-hidden />
+            <span className="w-[124px] shrink-0">
+              <Trans>Due</Trans>
+            </span>
+          </div>
+        ) : null}
         {shown.length === 0 ? (
           <p className="px-2 py-1.5 text-sm text-text-tertiary">
             {activeTotal > 0 ? (
@@ -292,9 +315,9 @@ function BriefRow({
       {/* Status / owner / due are each a fixed-width, LEFT-aligned column so
           they line up vertically across rows — a real table, not a right-pushed
           cluster whose x shifts with the status-pill width (Yuqi: obey columns). */}
-      <span className="flex w-[104px] shrink-0 flex-col items-start gap-1">
+      <span className="flex w-[128px] shrink-0 flex-col items-start gap-1">
         <span className="flex items-center gap-1.5">
-          <ObligationStatusReadBadge status={row.status} className="h-5 text-caption-xs" />
+          <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-xs" />
           {row.status === 'extended' ? <ExtensionChip /> : null}
         </span>
         {paymentLate ? (
