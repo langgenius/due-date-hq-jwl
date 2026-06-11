@@ -201,3 +201,22 @@ their leading-tight 22.5px; the /today component-level snug/tight passes from
 Addendum 6 remain as explicit equivalents). Visually verified on /today,
 /deadlines (densest table + banner), /clients (StatBand + registry table) —
 all intact, uniformly tighter.
+
+## Addendum 8 — micro-motion pass (动感, the restrained kind)
+
+Yuqi: "让UI更加有细节和动感." Three additions, all glyph/content-level motion
+— no surface lifts, no shadows (the banned floating-shadow pattern):
+
+- **Arrow nudge**: "View all" (Alerts) + "See all deadlines" (Priorities)
+  arrows translate-x-0.5 on link hover, 150ms, motion-reduce safe.
+- **Bucket-switch fade**: the Priorities table frame (and the empty-state
+  card) are keyed by the selected bucket and play the house `animate-in
+  fade-in duration-150` on switch — content change gets a soft acknowledgement
+  instead of an instant swap.
+- **Chip press feedback**: bucket selector chips get active:scale-[0.98] with
+  a combined color/transform 150ms transition.
+
+Existing motion kept: Review CTA fade-in w/ gradient mask, conf% hover
+fade-in on alert cards, LIVE PulsingDot. (Verification note: preview tab was
+in active use — classes follow the proven coverage-tab recipe; visual check
+deferred.)

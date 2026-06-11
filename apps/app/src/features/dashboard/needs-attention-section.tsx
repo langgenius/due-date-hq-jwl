@@ -215,10 +215,15 @@ function NeedsAttentionSection() {
             header. */}
         <Link
           to="/alerts"
-          className="inline-flex shrink-0 items-center gap-1 rounded-sm text-xs font-medium text-text-tertiary underline-offset-2 outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="group inline-flex shrink-0 items-center gap-1 rounded-sm text-xs font-medium text-text-tertiary underline-offset-2 outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <Trans>View all</Trans>
-          <ArrowRightIcon className="size-3.5" aria-hidden />
+          {/* Micro-detail: the arrow nudges forward on hover — motion carried
+              by the glyph, not the surface (no lifts/shadows). */}
+          <ArrowRightIcon
+            className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transition-none"
+            aria-hidden
+          />
         </Link>
       </div>
 

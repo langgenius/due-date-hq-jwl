@@ -188,7 +188,9 @@ export function MergedBriefCard({
                 data-active={active}
                 onClick={() => setOverride(tab.key)}
                 aria-pressed={active}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
+                // `active:scale-[0.98]` = a 1-frame press acknowledgement; the
+                // transition covers colors + transform together.
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-[color,background-color,transform] duration-150 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt active:scale-[0.98] data-[active=true]:bg-background-default data-[active=true]:text-text-primary motion-reduce:transition-none"
               >
                 <span
                   className={cn('size-1.5 shrink-0 rounded-full bg-current', tab.dot)}
@@ -218,7 +220,10 @@ export function MergedBriefCard({
       </p>
 
       {shown.length === 0 ? (
-        <p className="rounded-xl border border-divider-subtle px-5 py-6 text-center text-sm text-text-tertiary">
+        <p
+          key={selected}
+          className="rounded-xl border border-divider-subtle px-5 py-6 text-center text-sm text-text-tertiary animate-in fade-in duration-150 motion-reduce:animate-none"
+        >
           {activeTotal > 0 ? (
             <Trans>None in the priority shortlist — open the queue to see all {activeTotal}.</Trans>
           ) : (
@@ -229,8 +234,13 @@ export function MergedBriefCard({
         // The canonical table frame shared with the original Priority Actions
         // table + /deadlines (table-canonical-style.md): rounded-xl,
         // border-divider-regular, white fill, labeled header band. Zebra
-        // opted out so the queue reads as one flat surface.
-        <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+        // opted out so the queue reads as one flat surface. Keyed by the
+        // selected bucket so switching chips plays a quick fade-in (the
+        // house `animate-in` recipe; static for reduced-motion users).
+        <div
+          key={selected}
+          className="overflow-hidden rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none"
+        >
           <Table className="[&_tbody_tr]:even:bg-transparent">
             <TableHeader>
               <TableRow>
@@ -281,10 +291,14 @@ export function MergedBriefCard({
         ) : null}
         <Link
           to="/deadlines"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-sm text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="group inline-flex shrink-0 items-center gap-1.5 rounded-sm text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <Trans>See all deadlines</Trans>
-          <ArrowRightIcon className="size-3" aria-hidden />
+          {/* Arrow nudge on hover — motion on the glyph, not the surface. */}
+          <ArrowRightIcon
+            className="size-3 transition-transform duration-150 group-hover:translate-x-0.5 motion-reduce:transition-none"
+            aria-hidden
+          />
         </Link>
       </div>
     </section>
