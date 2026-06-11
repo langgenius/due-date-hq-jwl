@@ -952,7 +952,11 @@ export function ClientDetailWorkspace({
               // TabsContent fills the remaining height with its own
               // overflow-y-auto. Without this, the whole detail page
               // scrolls as one.
-              className="flex min-h-0 flex-1 flex-col"
+              // `-mt-4` cancels the Body section's gap above so the tab bar
+              // sits flush under the summary strip — reading as part of the
+              // header chrome (Yuqi: "the tabs should be part of the header"),
+              // not a floating control below it.
+              className="-mt-4 flex min-h-0 flex-1 flex-col"
             >
               {/* Tab bar matches the /deadlines scope-tabs visual —
                   left-aligned, hug-content triggers (no flex-1),

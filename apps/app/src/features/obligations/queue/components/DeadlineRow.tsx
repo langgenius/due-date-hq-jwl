@@ -203,7 +203,9 @@ export function DeadlineRow({
             // §1b — selected + open share one accent (VtC73 #eff4ff).
             isActive && 'bg-state-accent-hover',
             dim && 'opacity-80',
-            overdue && 'border-l-[3px] border-l-state-destructive-solid pl-[17px]',
+            // Overdue is signalled by the red due-countdown alone (Yuqi: red
+            // used too often) — no red left rule or warning icon, matching
+            // VtC73 which uses neither.
           )}
         >
           {/* DEADLINE (fill) */}
@@ -215,15 +217,7 @@ export function DeadlineRow({
               tabIndex={-1}
               aria-hidden
             >
-              <span className="flex items-center gap-1.5">
-                {overdue ? (
-                  <AlertTriangleIcon
-                    className="size-3.5 shrink-0 text-text-destructive"
-                    aria-hidden
-                  />
-                ) : null}
-                <TaxCodeBadge code={deadline.taxType} />
-              </span>
+              <TaxCodeBadge code={deadline.taxType} />
             </button>
             <div className="flex min-w-0 flex-col gap-0.5">
               <Link
