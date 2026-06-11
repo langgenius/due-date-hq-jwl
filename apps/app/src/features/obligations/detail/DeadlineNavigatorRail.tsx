@@ -20,6 +20,8 @@ import {
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
+import { todayIsoDate } from '@/features/obligations/queue/helpers'
+import { daysBetween } from '@/lib/utils'
 import {
   STATUS_ICON,
   STATUS_ICON_COLOR,
@@ -76,7 +78,9 @@ function relativeDueLabel(row: ObligationQueueRow): {
   text: string
   tone: 'late' | 'soon' | 'calm'
 } {
-  const days = row.daysUntilDue
+  // Live today-based count (matches the detail's date cards/banner) so the rail
+  // and the open deadline never disagree by a day on the server snapshot.
+  const days = daysBetween(todayIsoDate(), row.currentDueDate)
   if (days < 0) return { text: `${Math.abs(days)}d late`, tone: 'late' }
   if (days === 0) return { text: 'Today', tone: 'soon' }
   return { text: `in ${days}d`, tone: days <= 7 ? 'soon' : 'calm' }
