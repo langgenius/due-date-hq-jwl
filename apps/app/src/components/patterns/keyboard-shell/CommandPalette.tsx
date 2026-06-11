@@ -265,7 +265,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       {
         id: 'settings',
         label: t`Settings`,
-        description: t`Workspace configuration hub — Practice, team, billing, automation.`,
+        description: t`Practice settings hub — team, billing, automation.`,
         scope: 'settings',
         group: 'navigate',
         icon: SettingsIcon,

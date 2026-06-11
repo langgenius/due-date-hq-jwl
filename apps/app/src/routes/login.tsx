@@ -314,7 +314,7 @@ export function LoginRoute() {
                   a URL the user opens straight from their inbox. */}
               <p className="flex items-center justify-center gap-1.5 text-center">
                 <span className="text-xs font-medium text-text-tertiary">
-                  <Trans>Already have a magic link?</Trans>
+                  <Trans>Already have a sign-in link?</Trans>
                 </span>
                 <TextLink
                   variant="accent"

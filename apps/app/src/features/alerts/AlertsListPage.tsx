@@ -1246,8 +1246,8 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         title={<Trans>Dismiss {selectedCount} alerts?</Trans>}
         description={
           <Trans>
-            Dismissed alerts move off the active board into history. You can reopen them from the
-            History tab.
+            Dismissed alerts move off the active board into history. Restore them from the History
+            tab.
           </Trans>
         }
         confirmLabel={<Trans>Dismiss alerts</Trans>}

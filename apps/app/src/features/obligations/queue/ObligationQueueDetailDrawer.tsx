@@ -1656,9 +1656,9 @@ export function ObligationQueueDetailDrawer({
                 value="summary"
                 className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
               >
-                {/* rzzww: the milestone/workflow home is labelled
-                    "Status" on the standalone page. */}
-                {isPageMode ? <Trans>Status</Trans> : <Trans>Summary</Trans>}
+                {/* rzzww: the milestone/workflow home is "Status" in every
+                    mode — the locked 4-tab contract (copy audit S6). */}
+                <Trans>Status</Trans>
               </TabsTrigger>
             ) : null}
             {visibleTabs.has('readiness') ? (
@@ -1711,9 +1711,9 @@ export function ObligationQueueDetailDrawer({
                 className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
               >
                 <FileTextIcon className="size-3.5" aria-hidden />
-                {/* rzzww: the evidence/workpaper surface is labelled
-                    "Record" on the standalone page. */}
-                {isPageMode ? <Trans>Record</Trans> : <Trans>Evidence</Trans>}
+                {/* rzzww: the evidence/workpaper surface is "Record" in every
+                    mode — the locked 4-tab contract (copy audit S6). */}
+                <Trans>Record</Trans>
                 {/* Count pill only when there's something to count — a "0"
                     pill read as odd decoration (Yuqi). */}
                 {evidenceCount > 0 ? (

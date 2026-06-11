@@ -23,7 +23,7 @@ const CATALOGS: Record<Locale, MessageTable> = {
     'signInOtp.cta': 'Sign in to DueDateHQ',
   },
   'zh-CN': {
-    'invitation.subject': '加入 {organizationName} 的 DueDateHQ 工作区',
+    'invitation.subject': '加入 DueDateHQ 上的 {organizationName}',
     'invitation.body': '{inviterName} 邀请您以 {role} 身份加入 {organizationName}。',
     'invitation.cta': '接受邀请',
     'signInOtp.subject': '您的 DueDateHQ 登录验证码',

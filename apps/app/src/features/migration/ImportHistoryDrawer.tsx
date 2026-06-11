@@ -108,7 +108,7 @@ export function ImportHistoryDrawer({
       onSuccess: () => {
         refreshAfterRecovery()
         setPendingRecovery(null)
-        toast.success(t`Import reverted`)
+        toast.success(t`Import undone`)
       },
       onError: (error) => {
         toast.error(t`Couldn't revert import`, {
@@ -342,7 +342,7 @@ export function ImportHistoryDrawer({
                               disabled={!canRevertBatch || recoveryPending}
                             >
                               <RotateCcwIcon data-icon="inline-start" />
-                              <Trans>Revert batch</Trans>
+                              <Trans>Undo import</Trans>
                             </Button>
                           )}
                         </div>
@@ -452,7 +452,7 @@ export function ImportHistoryDrawer({
               ) : pendingRecovery?.kind === 'draft' ? (
                 <Trans>Discard draft</Trans>
               ) : (
-                <Trans>Revert batch ({pendingBatch?.successCount ?? 0})</Trans>
+                <Trans>Undo import ({pendingBatch?.successCount ?? 0})</Trans>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

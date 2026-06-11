@@ -399,7 +399,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         <MembersSectionHeader
           title={t`Pending invitations`}
           count={data.invitations.length}
-          note={t`${pendingCount} pending · ${expiredCount} expired · magic link, 7-day expiry`}
+          note={t`${pendingCount} pending · ${expiredCount} expired · invitation link, 7-day expiry`}
         />
         <PendingInvitationsTable
           invitations={data.invitations}
@@ -622,7 +622,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingInvitationCancel
-                ? t`The magic link sent to ${pendingInvitationCancel.inviteeLabel} will stop working. You can re-invite them later, but the original link can't be revived.`
+                ? t`The invitation link sent to ${pendingInvitationCancel.inviteeLabel} will stop working. You can re-invite them later, but the original link can't be revived.`
                 : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1110,7 +1110,7 @@ function InviteMemberDialog({
             <Trans>Invite member</Trans>
           </DialogTitle>
           <DialogDescription className="text-xs">
-            <Trans>Send a 7-day magic link to add a member to this practice.</Trans>
+            <Trans>Send a 7-day invitation link to add a member to this practice.</Trans>
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4">

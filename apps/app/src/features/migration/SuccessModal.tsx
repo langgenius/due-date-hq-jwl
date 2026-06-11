@@ -172,7 +172,7 @@ export function SuccessModal({
               onClick={onRevert}
             >
               <Undo2Icon data-icon="inline-start" />
-              <Trans>Revert batch</Trans>
+              <Trans>Undo import</Trans>
             </Button>
           </div>
 

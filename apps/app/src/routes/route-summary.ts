@@ -43,7 +43,7 @@ export const routeSummaries = {
   billing: { eyebrow: msg`Practice`, title: msg`Billing` },
   billingCheckout: { eyebrow: msg`Billing`, title: msg`Checkout` },
   accountSecurity: { eyebrow: msg`Account`, title: msg`Security` },
-  settings: { eyebrow: msg`Settings`, title: msg`Workspace settings` },
+  settings: { eyebrow: msg`Settings`, title: msg`Practice settings` },
   settingsProfile: { eyebrow: msg`Settings`, title: msg`Your account` },
   settingsPermissions: { eyebrow: msg`Settings`, title: msg`Permissions` },
 } satisfies Record<string, RouteSummaryMessages>
