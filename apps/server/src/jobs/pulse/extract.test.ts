@@ -1211,6 +1211,36 @@ describe('extractPulseSnapshot — confidence gating & race-safe de-duplication'
     )
   })
 
+  it('quarantines a restatement overlay — a standing deadline with no change language', async () => {
+    // "The estimated LLC fee payment is due on June 15" is the law, not a
+    // change. The prompt's decision test (pulse-extract@v5) should classify it
+    // no_regulatory_change; this is the deterministic backstop when the model
+    // still emits a deadline_shift overlay for it.
+    repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
+    const payload = regChange(0.9)
+    aiMocks.extractPulse.mockResolvedValue({
+      ...payload,
+      result: {
+        ...payload.result,
+        summary: 'The estimated LLC fee payment for calendar year LLCs is due on June 15.',
+        sourceExcerpt: 'For calendar year LLCs, June 15, is the date the estimated fee is due.',
+        originalDueDate: '2026-04-15',
+        newDueDate: '2026-10-15',
+      },
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-conf')
+
+    expect(result.status).toBe('created')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'quarantined' }),
+    )
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'pulse.extract.grounding_quarantined',
+      expect.objectContaining({ restatementOverlay: true }),
+    )
+  })
+
   it('quarantines an extract whose parsed date is not locatable in the source text', async () => {
     // The excerpt guard only proves the QUOTE exists — a misread or
     // hallucinated date sails through it. The deterministic grounding check

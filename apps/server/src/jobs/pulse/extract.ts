@@ -76,7 +76,7 @@ export function pulseAlertMinRelevantAt(now: Date): Date {
 const PULSE_MIN_ALERT_CONFIDENCE = 0.3
 const PULSE_PUBLISH_CONFIDENCE = 0.5
 
-// Scope backstop behind the pulse-extract@v4 prompt exclusions: form/summary
+// Scope backstop behind the pulse-extract@v5 prompt exclusions: form/summary
 // signals that an extracted "deadline" is an internal agency program window
 // (grant, clinic, advisory council, job posting) rather than a taxpayer
 // filing/payment obligation — e.g. the LITC matching-grant and IRSAC council
@@ -164,6 +164,20 @@ function groundedDateRenderings(date: Date): string[] {
     `${monthIndex + 1}/${day}/${String(year).slice(2)}`,
     `${year}-${mm}-${dd}`,
   ].map((rendering) => rendering.toLowerCase())
+}
+
+// Change language a due-date CHANGE plausibly uses. The prompt's decision
+// test is the primary restatement filter (pulse-extract@v5); this is the
+// deterministic backstop: an overlay alert whose summary + excerpt contain
+// none of these is a restatement of a standing deadline ("X is due April
+// 15"), not a change — live data showed several of those approved as
+// deadline_shift. Deliberately generous (disaster/emergency cover FEMA-class
+// precursors; conformity covers federal-conformity shifts).
+const CHANGE_LANGUAGE_RE =
+  /extend|extension|postpon|delay|relief|waiv|suspend|defer|now due|new (?:deadline|due date)|moved|revised|reschedul|pushed back|instead of|previously|disaster|emergency|conformity|grace period/i
+
+export function looksLikeDueDateChange(text: string): boolean {
+  return CHANGE_LANGUAGE_RE.test(text)
 }
 
 /**
@@ -633,6 +647,12 @@ async function runPulseExtractionAfterMark(
   // and a richer re-observation of the same event either promotes it via the
   // dedupe fold or lands as its own dated, approved pulse.
   const datelessOverlay = actionMode === 'due_date_overlay' && parsedOriginalDueDate === null
+  // Restatement backstop: an overlay whose own summary + excerpt carry no
+  // change language is a standing-deadline restatement the prompt's decision
+  // test should have classified no_regulatory_change. Degrade, don't trust.
+  const restatementOverlay =
+    actionMode === 'due_date_overlay' &&
+    !looksLikeDueDateChange(`${result.result.summary} ${result.result.sourceExcerpt}`)
   // Date grounding: every load-bearing parsed date must be locatable in the
   // source text the model read. The excerpt guard only proves the QUOTE
   // exists — a hallucinated or misread date sails through it and would drive
@@ -652,14 +672,16 @@ async function runPulseExtractionAfterMark(
     isEmailSourced ||
     result.result.confidence < PULSE_PUBLISH_CONFIDENCE ||
     datelessOverlay ||
+    restatementOverlay ||
     ungroundedDates.length > 0
       ? ('quarantined' as const)
       : ('approved' as const)
-  if (datelessOverlay || ungroundedDates.length > 0) {
+  if (datelessOverlay || restatementOverlay || ungroundedDates.length > 0) {
     recordPulseMetric('pulse.extract.grounding_quarantined', {
       snapshotId,
       sourceId: snapshot.sourceId,
       datelessOverlay,
+      restatementOverlay,
       ungroundedDates: ungroundedDates.join(',') || null,
     })
   }
