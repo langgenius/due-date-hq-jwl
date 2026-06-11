@@ -2,107 +2,115 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { useLingui } from '@lingui/react/macro'
 
-import type { ObligationInstancePublic } from '@duedatehq/contracts'
+import type { ClientPublic, ObligationInstancePublic } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
-import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
-import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
-import { formatDatePretty } from '@/lib/utils'
 
 import { useClientNextDue } from './use-client-next-due'
 
+// "Filed YTD" counts filings that are done/closed. `done` is the status that
+// displays as "Filed" (Filed ≠ Done per the workflow), `completed` is the v2
+// terminal, `paid` is filed + paid. `not_applicable` is deliberately excluded —
+// it's not a filing.
+const FILED_STATUSES: ReadonlySet<string> = new Set(['done', 'completed', 'paid'])
+
 /**
- * ClientSummaryStrip — three-stat anchor on /clients/[id]: Next filing /
- * Blocked / Open filing. Renders the shared `StatBand` — the same "card
- * summary" component the rule-library overview, /rules/sources, and
- * /alerts/history use — so the four surfaces never drift apart again.
- * Always renders all three slots so the strip stays a stable page anchor;
- * empty slots whisper in the muted tone.
+ * ClientSummaryStrip — the /clients/[id] hero meta strip. Matches Pencil
+ * `ibWOx`: Jurisdictions · Blocked · Open · Filed YTD. Reuses the shared
+ * `StatBand` (the canonical card-summary band) + the `Badge` outline chip the
+ * /clients list uses for state codes — no bespoke strip. Jurisdiction chips are
+ * the client's distinct filing states; the three counts come straight from the
+ * obligation set, color-coded per the canvas (blocked warm, filed green).
  *
- * Each stat is its own click target so the user drills straight into the
- * matching obligation (drawer) or filtered queue.
+ * Each numeric stat drills into the matching filtered deadlines queue.
  */
 export function ClientSummaryStrip({
-  clientId,
+  client,
   obligations,
 }: {
-  clientId: string
+  client: ClientPublic
   obligations: readonly ObligationInstancePublic[]
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  const { openDrawer: openObligationDrawer } = useObligationDrawer()
-  const { nextDue, openCount, paymentOverdueCount } = useClientNextDue(obligations)
+  const { openCount } = useClientNextDue(obligations)
 
-  // Whether the soonest deadline is already past — drives the warning
-  // tone on the "Next filing" sub so a late filing reads hot, matching
-  // the colored subs on the rule-library / alerts bands.
-  const nextDueOverdue = nextDue ? Date.parse(nextDue.currentDueDate) < Date.now() : false
-
-  // Blocked count tracks the destination filter (?status=blocked)
-  // exactly so the stat and the deadlines queue agree on what they
-  // mean. Earlier the count was a broader "at risk" set; the audit
-  // (L8) flagged the mismatch. Payment-overdue + efile-rejected
-  // still surface as row-level chips in the filing plan.
   const blockedCount = useMemo(
     () => obligations.filter((o) => o.status === 'blocked').length,
     [obligations],
   )
 
-  // `asChild` so TaxCodeLabel renders its TooltipTrigger as a <span>,
-  // not a <button>. The stat column itself is a <button> when next-due
-  // is set, so without `asChild` we'd get button-in-button DOM nesting
-  // and a hydration warning.
-  const nextDueValue: React.ReactNode = nextDue ? (
-    <TaxCodeLabel code={nextDue.taxType} asChild />
-  ) : (
-    '—'
+  // Filed YTD — obligations that have been filed/closed (see FILED_STATUSES).
+  const filedCount = useMemo(
+    () => obligations.filter((o) => FILED_STATUSES.has(o.status)).length,
+    [obligations],
   )
+
+  // Distinct filing jurisdictions: the primary state + each non-archived filing
+  // profile's state. Sorted, deduped — rendered as the same outline state chip
+  // the /clients list uses.
+  const jurisdictions = useMemo(() => {
+    const set = new Set<string>()
+    if (client.state) set.add(client.state)
+    for (const profile of client.filingProfiles) {
+      if (!profile.archivedAt) set.add(profile.state)
+    }
+    return [...set].sort()
+  }, [client.state, client.filingProfiles])
 
   const stats: StatBandItem[] = [
     {
-      key: 'next',
-      label: t`Next filing`,
-      value: nextDueValue,
-      valueClass: nextDue ? 'text-text-primary' : 'text-text-tertiary',
-      sub: nextDue ? t`Due ${formatDatePretty(nextDue.currentDueDate)}` : t`Nothing scheduled`,
-      subClass: nextDueOverdue ? 'text-text-warning' : 'text-text-tertiary',
-      ...(nextDue
-        ? { onClick: () => openObligationDrawer(nextDue.id), ariaLabel: t`Open next-due deadline` }
-        : {}),
+      key: 'jurisdictions',
+      label: t`Jurisdictions`,
+      value:
+        jurisdictions.length > 0 ? (
+          <span className="flex flex-wrap items-center gap-1">
+            {jurisdictions.map((code) => (
+              <Badge key={code} variant="outline" className="text-xs font-normal tabular-nums">
+                {code}
+              </Badge>
+            ))}
+          </span>
+        ) : (
+          '—'
+        ),
+      valueClass: jurisdictions.length > 0 ? 'text-text-primary' : 'text-text-tertiary',
     },
     {
       key: 'blocked',
       label: t`Blocked`,
       value: blockedCount,
-      valueClass: blockedCount > 0 ? 'text-text-destructive' : 'text-text-tertiary',
+      valueClass: blockedCount > 0 ? 'text-text-warning' : 'text-text-tertiary',
       sub: blockedCount > 0 ? t`Needs attention` : t`None blocked`,
-      subClass: blockedCount > 0 ? 'text-text-destructive' : 'text-text-tertiary',
+      subClass: blockedCount > 0 ? 'text-text-warning' : 'text-text-tertiary',
       ...(blockedCount > 0
         ? {
-            onClick: () => void navigate(`/deadlines?client=${clientId}&status=blocked`),
+            onClick: () => void navigate(`/deadlines?client=${client.id}&status=blocked`),
             ariaLabel: t`View blocked deadlines`,
           }
         : {}),
     },
     {
       key: 'open',
-      label: t`Open filing`,
+      label: t`Open`,
       value: openCount,
       valueClass: openCount > 0 ? 'text-text-primary' : 'text-text-tertiary',
-      sub:
-        openCount === 0
-          ? t`Nothing open`
-          : paymentOverdueCount > 0
-            ? t`${paymentOverdueCount} payment overdue`
-            : t`Payments current`,
-      subClass: paymentOverdueCount > 0 ? 'text-text-warning' : 'text-text-tertiary',
+      sub: openCount > 0 ? t`In progress` : t`Nothing open`,
       ...(openCount > 0
         ? {
-            onClick: () => void navigate(`/deadlines?client=${clientId}`),
+            onClick: () => void navigate(`/deadlines?client=${client.id}`),
             ariaLabel: t`View open filings for this client`,
           }
         : {}),
+    },
+    {
+      key: 'filed',
+      label: t`Filed YTD`,
+      value: filedCount,
+      valueClass: filedCount > 0 ? 'text-text-success' : 'text-text-tertiary',
+      sub: filedCount > 0 ? t`Closed out` : t`None filed`,
+      subClass: filedCount > 0 ? 'text-text-success' : 'text-text-tertiary',
     },
   ]
 

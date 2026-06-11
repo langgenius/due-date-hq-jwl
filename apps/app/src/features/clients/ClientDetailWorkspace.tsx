@@ -921,7 +921,7 @@ export function ClientDetailWorkspace({
               extensionPaymentMismatches={extensionPaymentMismatches}
             />
 
-            <ClientSummaryStrip clientId={client.id} obligations={obligations} />
+            <ClientSummaryStrip client={client} obligations={obligations} />
 
             {/* Tabbed body. Reasoning in
                 docs/Design/client-page-information-architecture.md.
