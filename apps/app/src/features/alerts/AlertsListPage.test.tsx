@@ -160,7 +160,7 @@ function source(overrides: Partial<PulseSourceHealth> = {}): PulseSourceHealth {
     sourceId: 'irs.disaster',
     label: 'IRS Disaster Relief',
     tier: 'T1',
-    jurisdiction: 'federal',
+    jurisdiction: 'FED',
     enabled: true,
     healthStatus: 'degraded',
     lastCheckedAt: '2026-05-06T10:00:00.000Z',

@@ -351,10 +351,6 @@ const EXPLICIT_LIVE_SOURCE_CATALOG: Record<
   },
 }
 
-function normalizeJurisdiction(jurisdiction: SourceAdapter['jurisdiction']): string {
-  return jurisdiction === 'federal' ? 'FED' : jurisdiction
-}
-
 function sourceIsPrimaryWeb(source: Pick<RuleSource, 'acquisitionMethod'>): boolean {
   return (
     source.acquisitionMethod === 'html_watch' ||
@@ -905,7 +901,7 @@ function explicitLiveAdapterMetadata(adapter: SourceAdapter): AlertSourceAdapter
   return {
     sourceId: adapter.id,
     label: EXPLICIT_LIVE_ADAPTER_LABELS[adapter.id] ?? adapter.id,
-    jurisdiction: normalizeJurisdiction(adapter.jurisdiction),
+    jurisdiction: adapter.jurisdiction,
     purpose: 'explicit_live_adapter',
     tier: adapter.tier,
     primaryWeb: true,
@@ -921,7 +917,7 @@ function ruleSourceAdapterMetadata(
   return {
     sourceId: adapter.id,
     label: source?.title ?? adapter.id,
-    jurisdiction: source?.jurisdiction ?? normalizeJurisdiction(adapter.jurisdiction),
+    jurisdiction: source?.jurisdiction ?? adapter.jurisdiction,
     purpose,
     tier: adapter.tier,
     primaryWeb: source ? sourceIsPrimaryWeb(source) : adapter.fetcher !== 'govdelivery',
@@ -934,7 +930,7 @@ function hiddenPolicyWatchAdapterMetadata(adapter: SourceAdapter): AlertSourceAd
   return {
     sourceId: adapter.id,
     label: source?.title ?? adapter.id,
-    jurisdiction: source?.jurisdiction ?? normalizeJurisdiction(adapter.jurisdiction),
+    jurisdiction: source?.jurisdiction ?? adapter.jurisdiction,
     purpose: 'hidden_policy_watch',
     tier: adapter.tier,
     primaryWeb: source ? source.acquisitionMethod !== 'email_subscription' : true,

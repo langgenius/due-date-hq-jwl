@@ -120,7 +120,7 @@ export const irsDisasterAdapter: SourceAdapter = {
   id: 'irs.disaster',
   tier: 'T1',
   cronIntervalMs: 60 * 60 * 1000,
-  jurisdiction: 'federal',
+  jurisdiction: 'FED',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: IRS_DISASTER_URL })]
   },
@@ -151,7 +151,7 @@ export const irsNewsroomAdapter: SourceAdapter = {
   id: 'irs.newsroom',
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
-  jurisdiction: 'federal',
+  jurisdiction: 'FED',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: IRS_NEWSROOM_URL })]
   },
@@ -171,7 +171,7 @@ export const irsGuidanceAdapter: SourceAdapter = {
   id: 'irs.guidance',
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
-  jurisdiction: 'federal',
+  jurisdiction: 'FED',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: IRS_GUIDANCE_URL })]
   },
@@ -191,7 +191,7 @@ export const irsTaxTipsAdapter: SourceAdapter = {
   id: 'irs.tips',
   tier: 'T2',
   cronIntervalMs: 120 * 60 * 1000,
-  jurisdiction: 'federal',
+  jurisdiction: 'FED',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: IRS_TAX_TIPS_URL })]
   },
@@ -424,7 +424,7 @@ export const femaDeclarationsAdapter: SourceAdapter = {
   id: 'fema.declarations',
   tier: 'T2',
   cronIntervalMs: 30 * 60 * 1000,
-  jurisdiction: 'federal',
+  jurisdiction: 'FED',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: FEMA_API_URL })]
   },

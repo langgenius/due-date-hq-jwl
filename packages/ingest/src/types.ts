@@ -1,4 +1,10 @@
 export type SourceTier = 'T1' | 'T2' | 'T3'
+// Canonical values: 'FED' or a 2-letter state/DC code — matching
+// RuleJurisdiction in @duedatehq/core/rules and PulseJurisdictionSchema in
+// @duedatehq/contracts (this package depends on neither, so the contract is
+// by convention). The value is persisted verbatim to pulse_source_state and
+// grouped/filtered on exactly (sources console, coverage matrix) — never
+// introduce case variants like 'federal'.
 export type SourceJurisdiction = string
 
 export type SourceId = string
