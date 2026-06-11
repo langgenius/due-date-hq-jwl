@@ -85,3 +85,84 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 14
+
+  # Screenshot regression of the key design surfaces
+  # (e2e/tests/visual-regression.spec.ts). Its own job so pixel comparison
+  # can never slow down or fail the functional suite above.
+  #
+  # TODO(visual-baselines): this job is NON-BLOCKING (continue-on-error)
+  # because no baselines are committed yet. Bootstrap: download the
+  # visual-regression-report artifact from the first run, commit the actuals
+  # as baselines under e2e/__screenshots__/visual/, then DELETE the
+  # `continue-on-error: true` line below to make visual drift block CI.
+  # See e2e/README.md "Visual regression".
+  visual:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      CI: 'true'
+      WRANGLER_SEND_METRICS: 'false'
+      E2E_VISUAL: '1'
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: '22'
+          cache: true
+
+      - run: vp install --frozen-lockfile
+
+      - name: Prepare local Worker env
+        run: |
+          cat > apps/server/.dev.vars <<'EOF'
+          ENV=development
+          AUTH_URL=http://127.0.0.1:8787
+          APP_URL=http://127.0.0.1:8787
+          AUTH_SECRET=e2e-local-auth-secret-at-least-32-chars
+          GOOGLE_CLIENT_ID=e2e-google-client
+          GOOGLE_CLIENT_SECRET=e2e-google-secret
+          EMAIL_FROM=noreply@duedatehq.test
+          RESEND_API_KEY=
+          RESEND_WEBHOOK_SECRET=
+          PULSE_BROWSERLESS_URL=
+          PULSE_BROWSERLESS_TOKEN=
+          PULSE_BROWSERLESS_SOURCE_IDS=
+          AI_GATEWAY_ACCOUNT_ID=
+          AI_GATEWAY_SLUG=duedatehq
+          AI_GATEWAY_PROVIDER=openrouter
+          AI_GATEWAY_PROVIDER_API_KEY=
+          AI_GATEWAY_API_KEY=
+          AI_GATEWAY_MODEL_FAST_JSON=google/gemini-2.5-flash-lite
+          AI_GATEWAY_MODEL_QUALITY_JSON=deepseek/deepseek-v3.2
+          AI_GATEWAY_MODEL_REASONING=openai/gpt-5-mini
+          AI_GATEWAY_QUALITY_REASONING_EFFORT=
+          AI_GATEWAY_FAST_REASONING_EFFORT=
+          VAPID_PUBLIC_KEY=
+          VAPID_PRIVATE_KEY=
+          VAPID_SUBJECT=mailto:ops@duedatehq.test
+          STRIPE_SECRET_KEY=stripe_e2e_secret
+          STRIPE_WEBHOOK_SECRET=stripe_e2e_webhook_secret
+          STRIPE_PRICE_FIRM_MONTHLY=
+          STRIPE_PRICE_FIRM_YEARLY=
+          STRIPE_PRICE_PRO_MONTHLY=price_pro_monthly_e2e
+          STRIPE_PRICE_PRO_YEARLY=
+          STRIPE_PRICE_TEAM_MONTHLY=price_team_monthly_e2e
+          STRIPE_PRICE_TEAM_YEARLY=
+          EOF
+
+      - name: Install Playwright browser
+        run: vp exec playwright install --with-deps chromium
+
+      - name: Run visual regression
+        run: vp exec playwright test --project=visual
+
+      - name: Upload visual diff artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

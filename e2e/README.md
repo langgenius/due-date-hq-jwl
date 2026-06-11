@@ -61,6 +61,46 @@ Current specs intentionally cover shipped behavior only:
 - pricing-to-billing handoff, protected billing checkout payloads, owner-only checkout, cancel recovery,
   webhook-backed success state, and Stripe Billing Portal request contracts
 
+## Visual Regression
+
+`tests/visual-regression.spec.ts` takes full-page `toHaveScreenshot()` snapshots of the key
+design surfaces so visual drift shows up as a CI pixel diff:
+
+- `/today` (dashboard)
+- `/deadlines` (list) and the deadline detail page (Status tab + Materials tab, reached via a
+  list row click — seeded obligation ids are random, so there is no stable `/deadlines/:ref`
+  literal to deep-link)
+- `/alerts` (list) and `/alerts?alert=<seeded-id>` (detail drawer, id from
+  `authSession.seeded.pulseAlerts[0]`)
+- `/rules/library`
+
+It runs only in the opt-in `visual` Playwright project (`E2E_VISUAL=1`), never in the default
+functional suite. Determinism measures: `expect.toHaveScreenshot` config defaults (animations
+disabled, caret hidden, CSS-pixel scale, `maxDiffPixelRatio: 0.01`), `reducedMotion: 'reduce'`
+for framer-motion, `page.clock.setFixedTime(...)` to pin client-rendered relative dates, and
+`mask: [page.locator('time')]` for server-wall-clock timestamps.
+
+### Baselines are Linux-only
+
+Screenshot rendering is font/OS-sensitive. Baselines live under
+`e2e/__screenshots__/visual/...` (`snapshotPathTemplate` in `playwright.config.ts`) and MUST
+be generated on Linux — the same image the CI `visual` job uses. The spec skips on
+non-Linux hosts (`E2E_VISUAL_FORCE=1` to override locally, expect diffs).
+
+### Bootstrap (no baselines committed yet)
+
+1. Push; the `visual` job in `.github/workflows/e2e.yml` is **non-blocking**
+   (`continue-on-error: true`). With no baselines, Playwright fails each shot with
+   "snapshot doesn't exist" and writes the actuals; the job uploads them in the
+   `visual-regression-report` artifact.
+2. Download the artifact, review the actual PNGs, copy them to
+   `e2e/__screenshots__/visual/visual-regression.spec.ts/<name>.png`, and commit.
+   Or regenerate inside the same Linux image CI uses:
+   `E2E_VISUAL=1 pnpm exec playwright test --project=visual --update-snapshots`
+   (e.g. in the `mcr.microsoft.com/playwright` Docker image).
+3. Once baselines are committed, remove `continue-on-error: true` from the `visual` job
+   (see the `TODO(visual-baselines)` marker) so visual drift blocks CI.
+
 ## Billing And Stripe
 
 Billing e2e uses two layers:
