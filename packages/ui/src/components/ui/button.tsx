@@ -26,7 +26,11 @@ const buttonVariants = cva(
     // browsers that ship the CSS Backgrounds & Borders L4 property
     // (Chromium 142+, WebKit experimental). Unsupported browsers
     // ignore it gracefully and just see the rounder corners.
-    'group/button inline-flex shrink-0 cursor-pointer items-center justify-center border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-colors outline-none select-none',
+    // `transition` (not just -colors) so the pressed scale springs back on
+    // the same 150ms default tempo; `active:scale-[0.98]` is the app-wide
+    // pressed state for discrete controls (2026-06-11 motion grammar —
+    // matches the sidebar; list rows/cells use a darker bg instead of scale).
+    'group/button inline-flex shrink-0 cursor-pointer items-center justify-center border border-transparent bg-clip-padding font-medium whitespace-nowrap transition outline-none select-none active:scale-[0.98]',
     '[corner-shape:squircle]',
     'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
     'disabled:pointer-events-none disabled:cursor-not-allowed data-[disabled]:cursor-not-allowed',

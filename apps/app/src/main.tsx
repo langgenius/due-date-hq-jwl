@@ -2,6 +2,7 @@ import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MotionConfig } from 'motion/react'
 import { Toaster } from '@duedatehq/ui/components/ui/sonner'
 import { TooltipProvider } from '@duedatehq/ui/components/ui/tooltip'
 import { bootstrapI18n } from '@/i18n/bootstrap'
@@ -49,11 +50,17 @@ async function startApp() {
     <StrictMode>
       <AppI18nProvider>
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <RouterProvider router={router} />
-            <Toaster />
-            <AppDevtools />
-          </TooltipProvider>
+          {/* reducedMotion="user" — every motion/react component in the app
+              respects prefers-reduced-motion from this ONE config (the CSS
+              side is killed globally in preset.css). Never hand-roll
+              per-component useReducedMotion guards. */}
+          <MotionConfig reducedMotion="user">
+            <TooltipProvider>
+              <RouterProvider router={router} />
+              <Toaster />
+              <AppDevtools />
+            </TooltipProvider>
+          </MotionConfig>
         </QueryClientProvider>
       </AppI18nProvider>
     </StrictMode>,

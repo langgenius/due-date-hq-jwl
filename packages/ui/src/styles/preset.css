@@ -562,23 +562,30 @@
     color: var(--text-primary);
   }
 
-  /* 2026-05-24 (B1): respect `prefers-reduced-motion: reduce` on
-   * loading spinners. Per WCAG 2.3.3, spinners are functional
-   * process indicators (not "animation from interactions"), so we
-   * keep them VISIBLE — slowing the rotation from ~1s to ~3s
-   * instead of hiding them with `animation: none`. Users who want
-   * less motion still see "something is happening"; the rotation
-   * just doesn't strobe.
+  /* 2026-06-11 (motion vocabulary — global reduced-motion kill switch):
+   * ONE rule covers every CSS transition/animation in the app instead of
+   * per-call-site `motion-reduce:` sprinkles. Near-zero (0.01ms) rather
+   * than `none` so `transitionend`/`animationend` handlers still fire.
+   * framer-motion components are covered separately by the root-level
+   * <MotionConfig reducedMotion="user"> in main.tsx.
    *
-   * Done as a single preset rule instead of editing 19 individual
-   * call sites that use `animate-spin` (Loader2Icon / LoaderCircleIcon
-   * / RefreshCwIcon during pending). Loader2Icon's animation is from
-   * Tailwind's built-in `.animate-spin` utility — overriding the
-   * duration here covers every consumer.
+   * Spinner exception (2026-05-24 B1, kept): per WCAG 2.3.3 spinners are
+   * functional process indicators, so they stay VISIBLE — slowed from
+   * ~1s to ~3s instead of frozen. Declared after the global rule with
+   * !important so it wins.
    */
   @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
     .animate-spin {
-      animation-duration: 3s;
+      animation-duration: 3s !important;
+      animation-iteration-count: infinite !important;
     }
   }
 }
