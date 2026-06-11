@@ -76,7 +76,7 @@ export function ReminderTemplatesPage() {
           </AlertTitle>
           <AlertDescription>
             {rpcErrorMessage(templatesQuery.error) ??
-              t`Check your network and try again. If this keeps happening, contact support.`}
+              t`Try again in a moment. If it keeps failing, contact support.`}
           </AlertDescription>
         </Alert>
       ) : null}

@@ -237,7 +237,7 @@ export function ClientsRoute() {
         toast.error(t`Couldn't create client`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -467,7 +467,7 @@ export function ClientsRoute() {
           </AlertTitle>
           <AlertDescription>
             {rpcErrorMessage(clientsQuery.error) ??
-              t`Check your network and try again. If this keeps happening, contact support.`}{' '}
+              t`Try again in a moment. If it keeps failing, contact support.`}{' '}
             {/* Retry uses the canonical `<Button variant="link">`
                 instead of an ad-hoc `<button className="underline">` —
                 same as the dashboard error-alert in /today. */}

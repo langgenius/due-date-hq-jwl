@@ -114,7 +114,7 @@ export function AcceptInviteRoute() {
         description:
           err instanceof Error
             ? err.message
-            : t`Check your network and try again. If this keeps happening, contact support.`,
+            : t`Try again in a moment. If it keeps failing, contact support.`,
       })
       setSubmitting(null)
     }
@@ -133,7 +133,7 @@ export function AcceptInviteRoute() {
         description:
           err instanceof Error
             ? err.message
-            : t`Check your network and try again. If this keeps happening, contact support.`,
+            : t`Try again in a moment. If it keeps failing, contact support.`,
       })
       setSubmitting(null)
     }

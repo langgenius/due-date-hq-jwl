@@ -112,7 +112,7 @@ export function CalendarPage() {
         toast.error(t`Couldn't update calendar subscription`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -127,7 +127,7 @@ export function CalendarPage() {
         toast.error(t`Couldn't regenerate calendar URL`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -142,7 +142,7 @@ export function CalendarPage() {
         toast.error(t`Couldn't disable calendar subscription`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -217,7 +217,7 @@ export function CalendarPage() {
           </AlertTitle>
           <AlertDescription>
             {rpcErrorMessage(subscriptionsQuery.error) ??
-              t`Check your network and try again. If this keeps happening, contact support.`}{' '}
+              t`Try again in a moment. If it keeps failing, contact support.`}{' '}
             <Button
               type="button"
               variant="link"

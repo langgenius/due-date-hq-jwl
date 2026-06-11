@@ -371,7 +371,7 @@ function TemplateDialog({
         toast.error(t`Couldn't update reminder template`, {
           description:
             rpcErrorMessage(error) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

@@ -1052,7 +1052,7 @@ export function PenaltyInputDialog({
         toast.error(t`Couldn't save penalty inputs`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

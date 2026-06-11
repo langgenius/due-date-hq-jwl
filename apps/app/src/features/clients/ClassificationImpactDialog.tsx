@@ -154,7 +154,7 @@ export function ClassificationImpactDialog({
         toast.error(t`Couldn't apply reclassification`, {
           description:
             rpcErrorMessage(error) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -222,7 +222,7 @@ export function ClassificationImpactDialog({
               </AlertTitle>
               <AlertDescription>
                 {rpcErrorMessage(previewQuery.error) ??
-                  t`Check your network and try again. If this keeps happening, contact support.`}{' '}
+                  t`Try again in a moment. If it keeps failing, contact support.`}{' '}
                 <Button
                   type="button"
                   variant="link"

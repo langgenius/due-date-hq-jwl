@@ -163,7 +163,7 @@ export function LoginRoute() {
       const message =
         err instanceof Error
           ? err.message
-          : t`Check your network and try again. If this keeps happening, contact support.`
+          : t`Try again in a moment. If it keeps failing, contact support.`
       if (!USER_CANCELED.test(message)) {
         toast.error(t`Unable to start Google sign-in`, { description: message })
       }
@@ -179,7 +179,7 @@ export function LoginRoute() {
       const message =
         err instanceof Error
           ? err.message
-          : t`Check your network and try again. If this keeps happening, contact support.`
+          : t`Try again in a moment. If it keeps failing, contact support.`
       if (!USER_CANCELED.test(message)) {
         toast.error(t`Unable to start Microsoft sign-in`, { description: message })
       }

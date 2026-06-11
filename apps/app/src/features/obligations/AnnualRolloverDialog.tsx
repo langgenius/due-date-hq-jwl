@@ -138,7 +138,7 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
         toast.error(t`Couldn't roll over deadlines`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

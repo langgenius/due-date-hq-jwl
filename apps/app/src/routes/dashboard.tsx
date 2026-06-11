@@ -340,7 +340,7 @@ export function DashboardRoute() {
           </AlertTitle>
           <AlertDescription>
             {rpcErrorMessage(dashboardQuery.error) ??
-              t`Check your network and try again. If this keeps happening, contact support.`}{' '}
+              t`Try again in a moment. If it keeps failing, contact support.`}{' '}
             {/* Retry uses the canonical `<Button variant="link">` instead
                 of an ad-hoc `<button className="underline">` — keeps the
                 button pattern consistent across the app and inherits the

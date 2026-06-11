@@ -507,7 +507,7 @@ export function ClientDetailWorkspace({
         toast.error(t`Couldn't save risk profile`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -532,7 +532,7 @@ export function ClientDetailWorkspace({
         toast.error(t`Couldn't save filing jurisdictions`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -551,7 +551,7 @@ export function ClientDetailWorkspace({
         toast.error(t`Couldn't save client details`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -584,7 +584,7 @@ export function ClientDetailWorkspace({
         toast.error(t`Couldn't queue risk summary`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -615,7 +615,7 @@ export function ClientDetailWorkspace({
         toast.error(t`Couldn't update owner`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -685,7 +685,7 @@ export function ClientDetailWorkspace({
         toast.error(t`Couldn't change status`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -717,7 +717,7 @@ export function ClientDetailWorkspace({
         toast.error(t`Couldn't delete client`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

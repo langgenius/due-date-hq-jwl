@@ -195,7 +195,7 @@ export function OnboardingRoute() {
       .catch((err: unknown) => {
         const message = readErrorMessage(
           err,
-          t`Check your network and try again. If this keeps happening, contact support.`,
+          t`Try again in a moment. If it keeps failing, contact support.`,
         )
         setError(message)
         toast.error(t`Couldn't create your practice`, { description: message })

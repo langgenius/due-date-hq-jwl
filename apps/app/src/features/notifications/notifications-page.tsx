@@ -93,7 +93,7 @@ export function NotificationsPage() {
         toast.error(t`Couldn't mark notification read`, {
           description:
             rpcErrorMessage(error) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -208,7 +208,7 @@ export function NotificationsPage() {
               </AlertTitle>
               <AlertDescription>
                 {rpcErrorMessage(notificationsQuery.error) ??
-                  t`Check your network and try again. If this keeps happening, contact support.`}
+                  t`Try again in a moment. If it keeps failing, contact support.`}
               </AlertDescription>
             </Alert>
           ) : null}

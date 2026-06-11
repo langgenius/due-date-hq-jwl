@@ -400,7 +400,7 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
         toast.error(t`Couldn't request export`, {
           description:
             rpcErrorMessage(error) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -900,7 +900,7 @@ export function AuditLogPage() {
               </AlertTitle>
               <AlertDescription>
                 {rpcErrorMessage(auditQuery.error) ??
-                  t`Check your network and try again. If this keeps happening, contact support.`}
+                  t`Try again in a moment. If it keeps failing, contact support.`}
               </AlertDescription>
             </Alert>
           ) : null}

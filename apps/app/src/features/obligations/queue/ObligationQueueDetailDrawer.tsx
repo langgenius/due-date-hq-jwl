@@ -470,7 +470,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't start deadline tip refresh`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -493,7 +493,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't send input request`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -701,7 +701,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't generate document list`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -783,7 +783,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't prepare materials request preview`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -798,7 +798,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't send materials request`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -825,7 +825,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't add document item`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -839,7 +839,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't update document item`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -854,7 +854,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't remove document item`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -869,7 +869,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't revoke request`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -886,7 +886,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't save tax year profile`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -904,7 +904,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't save extension plan`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -935,7 +935,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't mark accepted`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -956,7 +956,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't mark e-file rejected`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -982,7 +982,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't update assignee`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1000,7 +1000,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't snooze deadline`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1020,7 +1020,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't update e-file state`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1044,7 +1044,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't send reminder`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1074,7 +1074,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't change status`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1151,7 +1151,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't update step`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -1182,7 +1182,7 @@ export function ObligationQueueDetailDrawer({
         toast.error(t`Couldn't update step`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

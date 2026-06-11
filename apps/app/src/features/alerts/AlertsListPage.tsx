@@ -228,7 +228,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         toast.error(t`Couldn't restore alert`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -248,7 +248,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         toast.error(t`Couldn't dismiss alert`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -272,7 +272,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         toast.error(t`Couldn't dismiss alerts`, {
           description:
             rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
+            t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -648,7 +648,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
           </AlertTitle>
           <AlertDescription>
             {rpcErrorMessage(alertsQuery.error) ??
-              t`Check your network and try again. If this keeps happening, contact support.`}{' '}
+              t`Try again in a moment. If it keeps failing, contact support.`}{' '}
             {/* Canonical `<Button variant="link">` — Dashboard / clients
                 / obligations Retry buttons all use this exact shape (it
                 carries the focus-visible ring + accent color a
