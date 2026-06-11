@@ -2218,17 +2218,22 @@ describe('makePulseOpsRepo', () => {
     const chain = select.mock.results[0]?.value as { where: ReturnType<typeof vi.fn> }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- focused Drizzle test double.
     const query = new SQLiteSyncDialect().sqlToQuery(chain.where.mock.calls[0]?.[0] as SQL)
-    expect(query.params).toContain(
-      'GUARD_REJECTED: Pulse extract rejected because source excerpt could not be located%',
-    )
+    expect(query.params).toContain('GUARD_REJECTED: Pulse%could not be located%')
     expect(query.params).toContain('AI_GATEWAY_ERROR%')
-    // The full-message prefix is the only GUARD_REJECTED pattern — every other guard
+    // The Pulse-anchored pattern is the only GUARD_REJECTED pattern — every other guard
     // rejection class stays deterministic-dead so the sweep converges.
     expect(
       query.params.filter(
         (param) => typeof param === 'string' && param.startsWith('GUARD_REJECTED'),
       ),
     ).toHaveLength(1)
+    // D1 caps LIKE patterns at 50 chars (SQLITE_LIMIT_LIKE_PATTERN_LENGTH); an
+    // over-long pattern crashes the whole retry sweep with "pattern too complex".
+    for (const param of query.params) {
+      if (typeof param === 'string' && param.includes('%')) {
+        expect(param.length).toBeLessThanOrEqual(50)
+      }
+    }
   })
 })
 

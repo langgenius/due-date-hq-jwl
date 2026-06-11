@@ -1197,11 +1197,14 @@ export function makePulseOpsRepo(db: Db) {
               like(pulseSourceSnapshot.failureReason, 'AI_UNAVAILABLE%'),
               like(pulseSourceSnapshot.failureReason, 'AI_BUDGET_EXCEEDED%'),
               // Excerpt-grounding rejections became fuzzy-tolerant (P3 batch), so the
-              // stranded exact-match-era backlog is worth one re-drive. The full message
-              // prefix keeps every other guard rejection deterministic-dead.
+              // stranded exact-match-era backlog is worth one re-drive. The Pulse prefix
+              // plus the phrase keeps every other guard rejection deterministic-dead
+              // (rule-draft guards share the phrase but not the prefix). D1 caps LIKE
+              // patterns at 50 chars (SQLITE_LIMIT_LIKE_PATTERN_LENGTH) — longer ones
+              // throw "LIKE or GLOB pattern too complex" at runtime.
               like(
                 pulseSourceSnapshot.failureReason,
-                'GUARD_REJECTED: Pulse extract rejected because source excerpt could not be located%',
+                'GUARD_REJECTED: Pulse%could not be located%',
               ),
               // Legacy rows (pre code-prefix): transport-class messages only.
               like(pulseSourceSnapshot.failureReason, '%requires more credits%'),
