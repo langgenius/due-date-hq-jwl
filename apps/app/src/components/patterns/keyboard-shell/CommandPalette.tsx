@@ -40,6 +40,7 @@ import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { orpc } from '@/lib/rpc'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { clientDetailPath } from '@/features/clients/client-url'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { requiredRolesLabel, useFirmPermission } from '@/features/permissions/permission-gate'
 
 import { Kbd } from '@/components/patterns/kbd'
@@ -436,9 +437,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   value={`client-${client.id}`}
                   onSelect={() => selectClient(client)}
                 >
-                  <span className="grid size-7 place-items-center rounded-full bg-state-accent-solid text-xs font-semibold text-text-accent-inverse">
-                    {initials(client.name)}
-                  </span>
+                  <AssigneeAvatar name={client.name} title={client.name} size="sm" />
                   <span className="grid min-w-0 gap-0.5">
                     <span className="truncate text-sm">
                       <MatchedText text={client.name} query={search} />
@@ -518,11 +517,4 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       </Command>
     </CommandDialog>
   )
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
-  return `${parts[0]![0] ?? ''}${parts.at(-1)?.[0] ?? ''}`.toUpperCase()
 }

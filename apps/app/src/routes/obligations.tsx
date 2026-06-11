@@ -256,7 +256,6 @@ import { formatTaxCode } from '@/lib/tax-codes'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
-import { initialsFromName } from '@/lib/auth'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -5439,16 +5438,12 @@ function AssigneeQuickPicker({
               member.name.trim().toLowerCase() === currentUserName.toLowerCase()
             return (
               <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
-                <span
-                  className={cn(
-                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                    isCurrentUser
-                      ? 'bg-state-accent-hover-alt text-text-accent'
-                      : 'bg-background-subtle text-text-secondary',
-                  )}
-                >
-                  {initialsFromName(member.name)}
-                </span>
+                <AssigneeAvatar
+                  name={member.name}
+                  title={member.name}
+                  size="xs"
+                  isMine={isCurrentUser}
+                />
                 <span className="truncate">{member.name}</span>
               </DropdownMenuRadioItem>
             )
@@ -8919,9 +8914,7 @@ function DeadlineInputRequestDialog({
                 >
                   {recipients.map((recipient) => (
                     <DropdownMenuRadioItem key={recipient.assigneeId} value={recipient.assigneeId}>
-                      <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-caption-xs font-semibold uppercase text-text-secondary">
-                        {initialsFromName(recipient.name)}
-                      </span>
+                      <AssigneeAvatar name={recipient.name} title={recipient.name} size="xs" />
                       <span className="min-w-0 flex-1 truncate">{recipient.name}</span>
                       <span className="text-xs text-text-tertiary">
                         {roleLabels[recipient.role]}

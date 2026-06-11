@@ -31,10 +31,11 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { PageHeader } from '@/components/patterns/page-header'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { SettingsShell } from '@/features/settings/settings-sub-nav'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
-import { initialsFromName, useSession } from '@/lib/auth'
+import { useSession } from '@/lib/auth'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -186,12 +187,13 @@ export function SettingsProfileRoute() {
           subtitle={t`How your name and details appear across the app`}
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <span
-              aria-hidden
-              className="grid size-[72px] shrink-0 place-items-center rounded-full bg-state-accent-hover text-2xl font-semibold text-text-accent"
-            >
-              {initialsFromName(displayName || email)}
-            </span>
+            <AssigneeAvatar
+              name={displayName || email}
+              title={displayName || email}
+              size="xl"
+              isMine
+              className="shrink-0"
+            />
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <p className="text-base font-semibold text-text-primary">
                 <Trans>Profile photo</Trans>

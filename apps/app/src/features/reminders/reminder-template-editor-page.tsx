@@ -29,6 +29,7 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { PageHeader } from '@/components/patterns/page-header'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -388,9 +389,7 @@ function EmailPreview({ subject, bodyText }: { subject: string; bodyText: string
     <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
       <div className="flex flex-col gap-1.5 border-b border-divider-regular px-5 py-4">
         <div className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-full bg-state-accent-hover text-xs font-semibold text-text-accent">
-            JR
-          </span>
+          <AssigneeAvatar name="Jules Rivera" title="Jules Rivera" size="md" />
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="text-xs font-semibold text-text-primary">
               <Trans>Jules Rivera · Hawthorn CPA</Trans>

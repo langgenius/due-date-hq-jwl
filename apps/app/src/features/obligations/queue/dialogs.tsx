@@ -4,7 +4,7 @@ import { DropdownTriggerButton } from './components/primitives'
 import { parseMoneyCents, parseOwnerCount } from './helpers'
 import type { AuthorityRejectionDraft, SignatureReminderTarget } from './types'
 import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
-import { initialsFromName } from '@/lib/auth'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatTaxCode } from '@/lib/tax-codes'
@@ -626,9 +626,7 @@ export function DeadlineInputRequestDialog({
                 >
                   {recipients.map((recipient) => (
                     <DropdownMenuRadioItem key={recipient.assigneeId} value={recipient.assigneeId}>
-                      <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-caption-xs font-semibold uppercase text-text-secondary">
-                        {initialsFromName(recipient.name)}
-                      </span>
+                      <AssigneeAvatar name={recipient.name} title={recipient.name} size="xs" />
                       <span className="min-w-0 flex-1 truncate">{recipient.name}</span>
                       <span className="text-xs text-text-tertiary">
                         {roleLabels[recipient.role]}

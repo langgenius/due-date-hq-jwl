@@ -46,7 +46,7 @@ import { cn } from '@/lib/utils'
 //   image (optional) → renders <img> inside the same shape-aware
 //   wrapper with overflow-hidden; on load error, falls back to
 //   initials (or unassigned glyph if `name === null`).
-type AvatarSize = 'xs' | 'sm' | 'md' | 'lg'
+type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 type AvatarType = 'human' | 'ai' | 'unassigned' | 'firm'
 type AvatarShape = 'round' | 'square'
 
@@ -55,6 +55,9 @@ const sizeStyles: Record<AvatarSize, { box: string; text: string; icon: string }
   sm: { box: 'size-7', text: 'text-xs', icon: 'size-3.5' },
   md: { box: 'size-8', text: 'text-sm', icon: 'size-4' },
   lg: { box: 'size-10', text: 'text-base', icon: 'size-5' },
+  // 2026-06-10: `xl` (size-16/64px) for the hero profile avatar on
+  // /settings/profile (was a one-off `size-[72px]` circle).
+  xl: { box: 'size-16', text: 'text-xl', icon: 'size-6' },
 }
 
 export function AssigneeAvatar({

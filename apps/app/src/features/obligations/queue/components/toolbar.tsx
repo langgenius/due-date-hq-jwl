@@ -3,7 +3,7 @@
 import { nextHeaderSort } from '../helpers'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { SearchInput } from '@/components/primitives/search-input'
-import { initialsFromName } from '@/lib/auth'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { cn } from '@/lib/utils'
 import { type MemberAssigneeOption, type ObligationQueueSort } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -188,16 +188,12 @@ export function AssigneeQuickPicker({
               member.name.trim().toLowerCase() === currentUserName.toLowerCase()
             return (
               <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
-                <span
-                  className={cn(
-                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                    isCurrentUser
-                      ? 'bg-state-accent-hover-alt text-text-accent'
-                      : 'bg-background-subtle text-text-secondary',
-                  )}
-                >
-                  {initialsFromName(member.name)}
-                </span>
+                <AssigneeAvatar
+                  name={member.name}
+                  title={member.name}
+                  size="xs"
+                  isMine={isCurrentUser}
+                />
                 <span className="truncate">{member.name}</span>
               </DropdownMenuRadioItem>
             )

@@ -53,14 +53,14 @@ Verified live: deadlines "28" renders neutral fill `#f9fafb` / `text-secondary`
 
 ### Considered but deliberately NOT migrated (would be a downgrade/misfit)
 
-- **`/billing` Monthly/Yearly** — on inspection it's a *deliberately prominent*
+- **`/billing` Monthly/Yearly** — on inspection it's a _deliberately prominent_
   pricing toggle (h-11 track / h-9 items, accent-fill active + shadow, a
   "save %" badge in the Yearly option). The shared Segmented is a small
   toolbar control (h-7 items, flat white-fill active). Migrating would shrink it
   and drop the accent emphasis. Left as an intentional large variant — revisit
   only if we add a Segmented `size="lg"` + accent-active variant.
-- **`/alerts` time-range filter** (`TimeRangeFilter` pills) — a *wrapping,
-  label-above, accent-bordered filter-pill group*, not a single-track Segmented.
+- **`/alerts` time-range filter** (`TimeRangeFilter` pills) — a _wrapping,
+  label-above, accent-bordered filter-pill group_, not a single-track Segmented.
   Closer to the FilterTrigger family. Left as-is.
 - Genuine non-Segmented `aria-pressed` uses left alone: sortable table headers,
   map/tilegram state tiles, multi-select coverage/entity filter pills,

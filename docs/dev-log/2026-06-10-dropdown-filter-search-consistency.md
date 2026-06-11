@@ -6,7 +6,7 @@ Yuqi audited dropdown buttons + filters + the clear-filters interaction, then
 every page search ("their hover state… every state of search should be the
 same"). This fixes the bugs/gaps found, at the primitive level where possible.
 Explicitly left the **/deadlines consolidated filter popover + View menu**
-alone (sensitive, intentionally a different pattern) — only its toolbar *search*
+alone (sensitive, intentionally a different pattern) — only its toolbar _search_
 was migrated.
 
 ## Dropdown / filter
@@ -19,7 +19,7 @@ was migrated.
 - **Clear-filters standardized** on one model — **always rendered, `disabled`
   when nothing to clear, labeled "Clear filters"** (no layout reflow on the
   wrapping toolbar row):
-  - `/alerts`: was "Reset" that *unmounted* when inactive → now "Clear filters",
+  - `/alerts`: was "Reset" that _unmounted_ when inactive → now "Clear filters",
     always shown, disabled.
   - `/rules`: had **no** clear affordance → added one (clears facet filters +
     sort + search; leaves the status Segmented, which is a view scope).
@@ -52,7 +52,7 @@ The sidebar rail searches were a third species and weren't even consistent with
 each other: `AlertListRail` + `ObligationListRail` were hand-rolled (h-7,
 borderless, `state-base-hover` hover, no clear), `DeadlineNavigatorRail` was
 hand-rolled too (text-sm, no clear, sharing a row with a status dropdown), and
-`states-rail` already used `SearchInput` but with the bordered h-9 *default*.
+`states-rail` already used `SearchInput` but with the bordered h-9 _default_.
 Added `variant="compact"` to `SearchInput` — borderless h-7, transparent →
 state-base-hover on hover/focus, no ring, tighter icon/clear insets — sharing
 every other behavior with the default. Migrated **all four** rails to it, so a

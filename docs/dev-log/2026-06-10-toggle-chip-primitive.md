@@ -9,6 +9,7 @@ The last thread from the raw-button audit's Cluster D: the multi-select
 
 Built **`ToggleChip`** (`apps/app/src/components/primitives/toggle-chip.tsx`) —
 one canonical "engaged filter" pill:
+
 - active = accent **tint** (`state-accent-hover-alt`) + `state-accent-solid`
   border + accent text + medium weight (the "this filter is engaged" look, NOT
   a solid fill that reads as "primary action"). Mirrors the chip filters on
@@ -22,6 +23,7 @@ inline comment already declared that treatment the design-system standard), so
 its migration is near-lossless and the simpler chips snap up to it.
 
 Migrated:
+
 - **rules-library entity filter** chip — `<ToggleChip>`, label/count/"N missing"
   gap figure kept as children.
 - **command-palette scope pills** — gained the canonical border + focus ring
