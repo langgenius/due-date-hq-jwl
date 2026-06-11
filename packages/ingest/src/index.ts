@@ -29,6 +29,7 @@ export {
   announcementItemsFromSnapshotWithPdfLinks,
   announcementItemsFromHtml,
   announcementItemsFromSnapshot,
+  announcementPublishedAtFromText,
   linkLooksTaxAnnouncementRelevant,
   pdfAnnouncementItemsFromLinks,
   sourceSnapshotAnnouncementItem,

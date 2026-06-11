@@ -1,6 +1,17 @@
 import { createDb, makePulseOpsRepo } from '@duedatehq/db'
-import { createSourceFetcherRegistry } from '@duedatehq/ingest'
-import { hashText, ITEM_DEDUPE_HASH_PREFIX, withFetchTimeout } from '@duedatehq/ingest/http'
+import {
+  announcementPublishedAtFromText,
+  createSourceFetcherRegistry,
+  stripHtml,
+} from '@duedatehq/ingest'
+import {
+  DEFAULT_HEADERS,
+  hashText,
+  ITEM_DEDUPE_HASH_PREFIX,
+  normalizeSourceText,
+  textExcerpt,
+  withFetchTimeout,
+} from '@duedatehq/ingest/http'
 import { RATE_LIMIT } from '@duedatehq/ingest/http'
 import type { IngestCtx, ParsedItem, SourceAdapter } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
@@ -79,6 +90,7 @@ type PulseIngestRepo = Pick<
   | 'recordSourceFailure'
   | 'listSourceStates'
   | 'listItemSnapshotContentHashes'
+  | 'sourceSnapshotPresence'
 >
 
 function makePulseIngestRepo(db: ReturnType<typeof createDb>): PulseIngestRepo {
@@ -95,6 +107,7 @@ function makePulseIngestRepo(db: ReturnType<typeof createDb>): PulseIngestRepo {
     recordSourceFailure: (input) => repo.recordSourceFailure(input),
     listSourceStates: () => repo.listSourceStates(),
     listItemSnapshotContentHashes: (input) => repo.listItemSnapshotContentHashes(input),
+    sourceSnapshotPresence: (input) => repo.sourceSnapshotPresence(input),
   }
 }
 
@@ -179,6 +192,28 @@ export async function archivePulseRaw(
   }
 
   return { r2Key, contentHash }
+}
+
+// Fetch + normalize an announcement's detail page for ingest enrichment.
+// Best-effort: any failure returns null and the caller keeps the index
+// excerpt — an unreachable detail page must never fail the scan. Uses the
+// adapter-scoped fetch, so per-host politeness and timeouts apply.
+async function fetchAnnouncementDetailText(
+  ctx: Pick<IngestCtx, 'fetch'>,
+  url: string,
+): Promise<string | null> {
+  try {
+    const response = await ctx.fetch(url, { headers: DEFAULT_HEADERS })
+    if (!response.ok) return null
+    const contentType = response.headers.get('content-type') ?? ''
+    if (contentType && !/text\/html|text\/plain|application\/xhtml/i.test(contentType)) {
+      return null
+    }
+    const text = normalizeSourceText(stripHtml(await response.text()))
+    return text.length > 0 ? text : null
+  } catch {
+    return null
+  }
 }
 
 function sumCounts(rows: readonly IngestCounts[]): IngestCounts {
@@ -357,15 +392,62 @@ async function ingestAdapter(
       throw new Error(`selector_drift: ${adapter.id} produced no parsed items`)
     }
 
+    // Detail-enrichment budget per scan: only genuinely NEW link items fetch
+    // their detail page (steady state ≈ a handful/day across all sources), and
+    // a pathological listing can never trigger more than this many fetches.
+    let enrichBudget = 10
     const writes = parsedGroups.flatMap(({ rawSnapshot, items }) =>
       items.map(async (item): Promise<IngestCounts> => {
+        let body = item.rawText
+        let fullText = item.fullText
+        let publishedAt = item.publishedAt
+        // Listing-page link items (enrichFromUrl) carry a link-local dedupe
+        // identity, so new-vs-known is decidable BEFORE any fetch or archive:
+        //   same_hash  → exact duplicate; skip the detail fetch AND the
+        //                per-scan R2 re-archive the old flow paid every time.
+        //   other_hash → known item id under a different hash (dedupeText
+        //                rollout or a content update) — proceed unenriched so
+        //                a one-time rehash never causes a detail-fetch burst.
+        //   absent     → genuinely new: swap the index excerpt for the detail
+        //                page so the extractor sees the real announcement
+        //                (dates included) and the alert links to the item, not
+        //                the hub. The GA "Governor Kemp wildfire relief" alert
+        //                shipped date-less with a hub-page source for lack of
+        //                exactly this.
+        if (item.enrichFromUrl && item.dedupeText && !establishingBaseline) {
+          const contentHash = `${ITEM_DEDUPE_HASH_PREFIX}${await hashText(item.dedupeText)}`
+          const presence = await repo.sourceSnapshotPresence({
+            sourceId: item.sourceId,
+            externalId: item.externalId,
+            contentHash,
+          })
+          if (presence === 'same_hash') {
+            return { snapshots: 1, queued: 0, duplicates: 1, failures: 0 }
+          }
+          if (presence === 'absent' && enrichBudget > 0) {
+            enrichBudget -= 1
+            const detailText = await fetchAnnouncementDetailText(adapterCtx, item.enrichFromUrl)
+            if (detailText) {
+              const combined = [item.title, detailText].join(`
+
+`)
+              body = textExcerpt(combined)
+              if (combined.length > body.length) fullText = combined
+              publishedAt = announcementPublishedAtFromText(detailText) ?? item.publishedAt
+              recordPulseMetric('pulse.ingest.detail_enriched', {
+                sourceId: item.sourceId,
+                url: item.enrichFromUrl,
+              })
+            }
+          }
+        }
         const archived = await ctx.archiveRaw({
           sourceId: item.sourceId,
           externalId: item.externalId,
           fetchedAt: rawSnapshot.fetchedAt,
-          body: item.rawText,
+          body,
           contentType: 'text/plain; charset=utf-8',
-          ...(item.fullText ? { fullText: item.fullText } : {}),
+          ...(fullText ? { fullText } : {}),
           ...(item.dedupeText ? { dedupeText: item.dedupeText } : {}),
         })
         const result = await repo.createSourceSnapshot({
@@ -373,7 +455,7 @@ async function ingestAdapter(
           externalId: item.externalId,
           title: item.title,
           officialSourceUrl: item.officialSourceUrl,
-          publishedAt: item.publishedAt,
+          publishedAt,
           fetchedAt: rawSnapshot.fetchedAt,
           contentHash: archived.contentHash,
           rawR2Key: archived.r2Key,

@@ -308,7 +308,13 @@ describe('@duedatehq/ingest', () => {
     expect(firstItem?.dedupeText).toContain(firstItem?.officialSourceUrl ?? '')
   })
 
-  it('leaves dedupeText off whole-page-content items (RSS, source-snapshot fallback)', () => {
+  it('gives RSS items link-local identity + enrichment; fallback items keep neither', () => {
+    // 2026-06-11: RSS announcement items now carry dedupeText (item-local
+    // identity; the one-time rehash is absorbed by the ingest loop's
+    // suppressDedupeRehashMigration) and enrichFromUrl, so genuinely new feed
+    // items get their summary swapped for the detail page — same treatment as
+    // HTML link items. Whole-page fallback snapshots keep legacy whole-body
+    // hashing and never enrich.
     const rssItems = announcementItemsFromSnapshot(
       {
         id: 'az.temporary_announcements',
@@ -324,7 +330,8 @@ describe('@duedatehq/ingest', () => {
       },
     )
     expect(rssItems).toHaveLength(1)
-    expect(rssItems[0]?.dedupeText).toBeUndefined()
+    expect(rssItems[0]?.dedupeText).toContain('https://azdor.gov/news/relief')
+    expect(rssItems[0]?.enrichFromUrl).toBe('https://azdor.gov/news/relief')
 
     const fallbackItems = announcementItemsFromSnapshot(
       {

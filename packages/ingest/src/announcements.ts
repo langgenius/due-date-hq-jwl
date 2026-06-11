@@ -110,6 +110,49 @@ function linkPassesOptions(
   return effectiveRelevancePredicate(source, options)(link.text, link.href)
 }
 
+// Detail-page enrichment is for HTML pages only — PDFs ride the dedicated
+// pdfAnnouncementItemsFromLinks path, and feeding a PDF body through
+// stripHtml would replace a usable index excerpt with binary garbage.
+function enrichableDetailUrl(officialSourceUrl: string): string | null {
+  if (/\.pdf(?:[?#]|$)/i.test(officialSourceUrl)) return null
+  if (normalizedGoogleDrivePdfLink(officialSourceUrl)) return null
+  return officialSourceUrl
+}
+
+const MONTH_INDEX: Record<string, number> = {
+  jan: 0,
+  feb: 1,
+  mar: 2,
+  apr: 3,
+  may: 4,
+  jun: 5,
+  jul: 6,
+  aug: 7,
+  sep: 8,
+  oct: 9,
+  nov: 10,
+  dec: 11,
+}
+
+// Recover an announcement's real publication date from its detail-page text
+// ("May 11, 2026" style). Null when no date is present — callers keep their
+// fetchedAt fallback. Built via Date.UTC parts: "May 11, 2026T00:00:00Z" is
+// not valid ISO and parses to Invalid Date on some engines. Exported for the
+// ingest loop's detail enrichment.
+export function announcementPublishedAtFromText(text: string): Date | null {
+  const match =
+    /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+(\d{1,2}),\s+(\d{4})\b/i.exec(
+      text,
+    )
+  if (!match?.[1] || !match[2] || !match[3]) return null
+  const month = MONTH_INDEX[match[1].slice(0, 3).toLowerCase()]
+  const day = Number(match[2])
+  const year = Number(match[3])
+  if (month === undefined || day < 1 || day > 31) return null
+  const parsed = new Date(Date.UTC(year, month, day))
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
 export function announcementItemsFromHtml(
   source: AnnouncementSourceConfig,
   body: string,
@@ -122,6 +165,7 @@ export function announcementItemsFromHtml(
     .slice(0, limit)
     .map((link) => {
       const officialSourceUrl = normalizedGoogleDrivePdfLink(link.href)?.officialUrl ?? link.href
+      const enrichFromUrl = enrichableDetailUrl(officialSourceUrl)
       return Object.assign(
         {
           sourceId: source.id,
@@ -139,6 +183,10 @@ export function announcementItemsFromHtml(
           // unrelated page change — ~20 paid re-extracts per touch. Dedupe on the
           // item-local stable identity instead; same inputs as externalId.
           dedupeText: [normalizeSourceText(link.text), officialSourceUrl].join('\n'),
+          // New items get their rawText swapped for the detail page at ingest:
+          // the listing excerpt rarely carries the actual dates, which is how
+          // date-less deadline alerts with hub-page links used to ship.
+          ...(enrichFromUrl ? { enrichFromUrl } : {}),
         },
         source.jurisdiction ? { jurisdiction: source.jurisdiction } : {},
       )
@@ -174,13 +222,26 @@ export function announcementItemsFromSnapshot(
       xml: snapshot.body,
       limit,
       ...(source.jurisdiction ? { jurisdiction: source.jurisdiction } : {}),
-    }).filter((item) =>
-      linkPassesOptions(
-        source,
-        { text: `${item.title} ${item.rawText}`, href: item.officialSourceUrl },
-        options,
-      ),
-    )
+    })
+      .filter((item) =>
+        linkPassesOptions(
+          source,
+          { text: `${item.title} ${item.rawText}`, href: item.officialSourceUrl },
+          options,
+        ),
+      )
+      .map((item) => {
+        // Same item-local identity + detail enrichment as the HTML path. The
+        // dedupeText switch re-hashes existing feed items exactly once; the
+        // ingest loop's suppressDedupeRehashMigration absorbs that without a
+        // paid re-extract.
+        const enrichFromUrl = enrichableDetailUrl(item.officialSourceUrl)
+        return {
+          ...item,
+          dedupeText: [normalizeSourceText(item.title), item.officialSourceUrl].join('\n'),
+          ...(enrichFromUrl ? { enrichFromUrl } : {}),
+        }
+      })
     if (items.length > 0) return items
   }
 

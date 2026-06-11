@@ -1069,6 +1069,34 @@ export function makePulseOpsRepo(db: Db) {
     },
 
     /**
+     * Cheap pre-archive presence check for the ingest loop's detail
+     * enrichment. 'same_hash' = exact duplicate (skip the item entirely —
+     * saves the detail fetch AND the per-scan R2 re-archive); 'other_hash' =
+     * the item id is known under a different hash (rehash migration or a
+     * genuine content update — proceed WITHOUT enrichment so a one-time
+     * dedupeText rollout never triggers a detail-fetch burst); 'absent' =
+     * genuinely new (enrich).
+     */
+    async sourceSnapshotPresence(input: {
+      sourceId: string
+      externalId: string
+      contentHash: string
+    }): Promise<'same_hash' | 'other_hash' | 'absent'> {
+      const rows = await db
+        .select({ contentHash: pulseSourceSnapshot.contentHash })
+        .from(pulseSourceSnapshot)
+        .where(
+          and(
+            eq(pulseSourceSnapshot.sourceId, input.sourceId),
+            eq(pulseSourceSnapshot.externalId, input.externalId),
+          ),
+        )
+        .limit(50)
+      if (rows.length === 0) return 'absent'
+      return rows.some((row) => row.contentHash === input.contentHash) ? 'same_hash' : 'other_hash'
+    },
+
+    /**
      * Prior contentHashes recorded for one (sourceId, externalId) item, for the
      * dedupe-rehash migration check in the ingest jobs: "is this insert the
      * item's first dedupeText-based hash, with only legacy whole-page hashes

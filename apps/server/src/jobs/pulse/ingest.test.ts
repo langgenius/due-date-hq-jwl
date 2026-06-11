@@ -27,6 +27,7 @@ const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
     recordSourceFailure: vi.fn(),
     listSourceStates: vi.fn(),
     listItemSnapshotContentHashes: vi.fn(),
+    sourceSnapshotPresence: vi.fn(),
     apply: vi.fn(),
     applyReviewed: vi.fn(),
   }
@@ -128,6 +129,7 @@ describe('runPulseIngest', () => {
     })
     repoMocks.listSourceStates.mockResolvedValue([])
     repoMocks.listItemSnapshotContentHashes.mockResolvedValue([])
+    repoMocks.sourceSnapshotPresence.mockResolvedValue('absent')
     repoMocks.apply.mockRejectedValue(new Error('ingest must not apply deadline changes'))
     repoMocks.applyReviewed.mockRejectedValue(
       new Error('ingest must not apply reviewed deadline changes'),
@@ -155,6 +157,99 @@ describe('runPulseIngest', () => {
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
     expect(repoMocks.apply).not.toHaveBeenCalled()
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
+  })
+
+  // Detail enrichment: announcement link items (enrichFromUrl + dedupeText)
+  // swap their index excerpt for the detail page when genuinely NEW, so the
+  // extractor sees the real announcement (dates included) instead of the
+  // listing-page headline that produced the date-less GA Kemp alert.
+  // Each test gets its own host: the polite fetch's per-host slot state is
+  // module-global, so reusing a host would make a later test inherit a 30s
+  // politeness wait from an earlier one.
+  function enrichAdapter(host: string): SourceAdapter {
+    const detailUrl = `https://${host}/press-releases/2026-05-11/governor-kemp-announces-relief`
+    return adapter({
+      id: 'ga.temporary_announcements',
+      async parse() {
+        return [
+          {
+            sourceId: 'ga.temporary_announcements',
+            externalId: 'kemp-wildfire-relief',
+            title: 'Governor Kemp Announces Relief for Taxpayers Impacted by Wildfires',
+            publishedAt: new Date('2026-06-04T00:00:00.000Z'),
+            officialSourceUrl: detailUrl,
+            jurisdiction: 'GA',
+            rawText: 'index excerpt only — no dates here',
+            dedupeText: `governor kemp announces relief\n${detailUrl}`,
+            enrichFromUrl: detailUrl,
+          },
+        ]
+      },
+    })
+  }
+
+  it('enriches a NEW link item with its detail page text and recovered publish date', async () => {
+    const queueSend = vi.fn()
+    const detailHtml =
+      '<html><body><h1>Relief for Wildfire Victims</h1><p>May 11, 2026</p><p>Affected taxpayers have until August 20, 2026 to file.</p></body></html>'
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(detailHtml, { headers: { 'content-type': 'text/html' } })),
+    )
+    const testEnv = env(queueSend)
+
+    const result = await runPulseIngest(testEnv, [enrichAdapter('dor.enrich-a.example')])
+
+    expect(result).toMatchObject({ snapshots: 1, queued: 1 })
+    const put = (testEnv.R2_PULSE.put as ReturnType<typeof vi.fn>).mock.calls[0]
+    expect(String(put?.[1])).toContain('until August 20, 2026')
+    expect(String(put?.[1])).not.toContain('index excerpt only')
+    expect(repoMocks.createSourceSnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({ publishedAt: new Date('2026-05-11T00:00:00.000Z') }),
+    )
+  })
+
+  it('skips fetch, archive, and insert entirely for a same-hash duplicate', async () => {
+    const queueSend = vi.fn()
+    const fetchSpy = vi.fn()
+    vi.stubGlobal('fetch', fetchSpy)
+    repoMocks.sourceSnapshotPresence.mockResolvedValue('same_hash')
+    const testEnv = env(queueSend)
+
+    const result = await runPulseIngest(testEnv, [enrichAdapter('dor.enrich-a.example')])
+
+    expect(result).toMatchObject({ duplicates: 1, queued: 0 })
+    expect(fetchSpy).not.toHaveBeenCalled()
+    expect((testEnv.R2_PULSE.put as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0)
+    expect(repoMocks.createSourceSnapshot).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the index excerpt when the detail fetch fails, and never enriches other_hash items', async () => {
+    const queueSend = vi.fn()
+    // 404, not 5xx — the polite fetcher retries server errors with backoff,
+    // which would stall the test; a 404 detail page is a clean fallback case.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('nope', { status: 404 })),
+    )
+    let testEnv = env(queueSend)
+    await runPulseIngest(testEnv, [enrichAdapter('dor.enrich-c.example')])
+    let put = (testEnv.R2_PULSE.put as ReturnType<typeof vi.fn>).mock.calls[0]
+    expect(String(put?.[1])).toContain('index excerpt only')
+
+    // other_hash (rehash migration / content update): no detail fetch at all.
+    const fetchSpy = vi.fn()
+    vi.stubGlobal('fetch', fetchSpy)
+    repoMocks.sourceSnapshotPresence.mockResolvedValue('other_hash')
+    repoMocks.createSourceSnapshot.mockResolvedValue({
+      inserted: true,
+      snapshot: { id: 'snapshot-2' },
+    })
+    testEnv = env(queueSend)
+    await runPulseIngest(testEnv, [enrichAdapter('dor.enrich-d.example')])
+    expect(fetchSpy).not.toHaveBeenCalled()
+    put = (testEnv.R2_PULSE.put as ReturnType<typeof vi.fn>).mock.calls[0]
+    expect(String(put?.[1])).toContain('index excerpt only')
   })
 
   it('suppresses the one-time dedupe-rehash of a known item instead of re-extracting it', async () => {
@@ -521,6 +616,7 @@ describe('consumePulseIngestSource', () => {
     })
     repoMocks.listSourceStates.mockResolvedValue([])
     repoMocks.listItemSnapshotContentHashes.mockResolvedValue([])
+    repoMocks.sourceSnapshotPresence.mockResolvedValue('absent')
   })
 
   it('fetches the single named source and queues its extract', async () => {

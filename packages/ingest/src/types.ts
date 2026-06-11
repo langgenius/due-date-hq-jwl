@@ -62,6 +62,16 @@ export interface ParsedItem {
   // the legacy behavior, which is also correct for whole-page-is-the-content
   // snapshots (sourceSnapshotAnnouncementItem, parsedItemForSourceSnapshot).
   dedupeText?: string
+  // Detail-page URL the ingest loop should fetch to replace this item's
+  // index-derived rawText BEFORE archiving + extraction. Set by announcement
+  // adapters whose items are built from listing-page links: the listing
+  // excerpt usually lacks the dates the extractor needs (the GA "Governor
+  // Kemp wildfire relief" alert shipped date-less with a hub-page source for
+  // exactly this reason). Only honored alongside dedupeText — identity is
+  // link-local, so enrichment can't churn the snapshot hash — and only for
+  // items that are genuinely NEW (the loop prechecks the dedupe hash), so
+  // steady-state scans fetch nothing extra.
+  enrichFromUrl?: string
   jurisdiction?: string
 }
 
