@@ -511,7 +511,7 @@ function PulseAlertRow({
                     {/* Text first, trailing ↗ — the one external-link
                         order across the app (batch 4 #5). */}
                     <span className="truncate">{alert.source}</span>
-                    <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
+                    <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
                   </span>
                 )}
               />
@@ -527,7 +527,7 @@ function PulseAlertRow({
           ) : (
             <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-sm font-medium text-text-tertiary">
               <span className="truncate">{alert.source}</span>
-              <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
+              <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
             </span>
           )}
 
@@ -590,7 +590,7 @@ function PulseAlertRow({
                 </span>
                 <ArrowRightIcon
                   className="size-3 shrink-0 text-text-muted"
-                  strokeWidth={1.5}
+                 
                   aria-hidden
                 />
                 <span className="font-mono text-sm font-semibold text-text-primary tabular-nums">
@@ -698,7 +698,7 @@ function PulseAlertRow({
               to skim past"), not noise; demote it, never delete it. */}
           {impacted > 0 ? (
             <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-text-secondary">
-              <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
+              <UsersIcon className="size-3.5 shrink-0" aria-hidden />
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
             </span>
           ) : (

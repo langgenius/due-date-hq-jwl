@@ -56,6 +56,19 @@ genuinely text-lg+).
   flattened them back — accepting the loss because the label
   text disambiguates anyway.
 
+## Stroke width
+
+**One stroke: lucide's default 2.** Do not pass `strokeWidth` to lucide
+icons. A 2026-06-11 sweep found the same glyph rendering at 1.5 in the
+/alerts rows and 2 in the drawer — adjacent icons with mismatched stroke
+weight is exactly the "feels cheap" tier of inconsistency users sense but
+can't name. At the common size-3/3.5 render sizes, 1.5 also drops below
+1px effective stroke on 1x displays and renders fuzzy.
+
+Exception: hand-drawn inline `<svg>` glyphs (e.g. the ACTION elbow in
+`PulseAlertRow`) own their stroke as part of the drawing — they are not
+lucide icons and don't follow this rule.
+
 ## Common icon-to-text rules
 
 Beyond size, two patterns worth keeping consistent:

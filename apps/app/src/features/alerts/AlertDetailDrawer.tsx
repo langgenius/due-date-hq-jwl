@@ -1342,9 +1342,14 @@ export function AlertDetailDrawer({
                   className={cn(
                     // leading-[1.3] (was 1.25) — at 22px over two lines the
                     // tighter leading read cramped (batch 4 #3).
+                    // Expanded state clamps at 3 lines (hostile-data pass:
+                    // an unclamped 250-char title ran 4+ lines and pushed
+                    // the facts below the fold); the title attr carries
+                    // the full text on hover.
                     'font-semibold leading-[1.3] tracking-[-0.4px] text-text-primary transition-all duration-200',
-                    headerCollapsed ? 'line-clamp-1 text-[16px]' : 'text-[22px]',
+                    headerCollapsed ? 'line-clamp-1 text-[16px]' : 'line-clamp-3 text-[22px]',
                   )}
+                  title={detail.alert.title}
                 >
                   {detail.alert.title}
                 </h2>

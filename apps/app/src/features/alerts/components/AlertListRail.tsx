@@ -312,7 +312,7 @@ function RailItem({
               "text ↗"); the leading-icon variant was the odd one out
               (batch 4 #5). */}
           <span className="truncate">{alert.source}</span>
-          <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
+          <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
         </span>
 
         {/* Bottom meta — client impact, answered on EVERY row (it's
@@ -324,7 +324,7 @@ function RailItem({
             batch 4 #10). */}
         {impacted > 0 ? (
           <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm text-text-secondary">
-            <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
+            <UsersIcon className="size-3.5 shrink-0" aria-hidden />
             <Plural value={impacted} one="Affects # client" other="Affects # clients" />
           </span>
         ) : (
