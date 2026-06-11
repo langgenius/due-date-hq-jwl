@@ -136,7 +136,7 @@ export function StateTilegram({ counts, activeState, onSelect, className }: Stat
             type="button"
             onClick={() => onSelect(code)}
             aria-pressed={active}
-            aria-label={t`${code}: ${count} ${count === 1 ? 'alert' : 'alerts'}`}
+            aria-label={count === 1 ? t`${code}: 1 alert` : t`${code}: ${count} alerts`}
             disabled={!hasCount && !active}
             className={cn(
               'group/tile absolute inline-flex cursor-pointer flex-col items-center justify-center gap-0 rounded-lg border transition-all',

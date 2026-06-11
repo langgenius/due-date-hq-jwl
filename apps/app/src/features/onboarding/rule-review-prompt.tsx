@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { Trans } from '@lingui/react/macro'
+import { Plural, Trans } from '@lingui/react/macro'
 import { ArrowRightIcon, InfoIcon } from 'lucide-react'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -96,9 +96,11 @@ export function RuleReviewPrompt({
       {/* Heading */}
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-text-primary">
-          <Trans>
-            {reviewCount} jurisdiction{reviewCount === 1 ? '' : 's'} need a quick review
-          </Trans>
+          <Plural
+            value={reviewCount}
+            one="# jurisdiction needs a quick review"
+            other="# jurisdictions need a quick review"
+          />
         </h1>
         <p className="text-sm font-medium leading-relaxed text-text-tertiary">
           <Trans>

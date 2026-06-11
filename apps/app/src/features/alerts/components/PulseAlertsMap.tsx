@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { useMemo } from 'react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
@@ -109,6 +109,7 @@ function PulseAlertsMap({
   onSelect: (jurisdiction: string | null) => void
 }) {
   // Count alerts per jurisdiction once per render.
+  const { t } = useLingui()
   const countsByJurisdiction = useMemo(() => {
     const map = new Map<string, number>()
     for (const alert of alerts) {
@@ -164,9 +165,9 @@ function PulseAlertsMap({
               key={cell.code}
               type="button"
               onClick={() => onSelect(isSelected ? null : cell.code)}
-              aria-label={`${cell.name}: ${count} alerts`}
+              aria-label={count === 1 ? t`${cell.name}: 1 alert` : t`${cell.name}: ${count} alerts`}
               aria-pressed={isSelected}
-              title={`${cell.name} · ${count} alert${count === 1 ? '' : 's'}`}
+              title={count === 1 ? t`${cell.name} · 1 alert` : t`${cell.name} · ${count} alerts`}
               style={{
                 gridRowStart: cell.row + 1,
                 gridColumnStart: cell.col + 1,

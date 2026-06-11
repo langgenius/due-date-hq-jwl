@@ -2,7 +2,7 @@ import { useState, type SyntheticEvent } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { msg } from '@lingui/core/macro'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import type { I18n } from '@lingui/core'
 import { AlertTriangleIcon, EllipsisIcon, Loader2, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -315,9 +315,9 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
             <span className="flex flex-col gap-0.5">
               <Trans>Active members</Trans>
               <span className="text-xs text-text-muted">
-                <Trans>
-                  {ownerCount} owner · {managedCount} managed
-                </Trans>
+                <Plural value={ownerCount} one="# owner" other="# owners" />
+                {' · '}
+                <Plural value={managedCount} one="# managed" other="# managed" />
               </span>
             </span>
           }

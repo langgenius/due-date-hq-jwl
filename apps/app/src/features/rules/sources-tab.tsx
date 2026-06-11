@@ -401,7 +401,9 @@ function SourceCoverageSection() {
         void queryClient.invalidateQueries({ queryKey: orpc.pulse.activeCount.key() })
         toast.success(
           materializedCount > 0
-            ? t`Surfaced ${materializedCount} still-open alert(s) for your firm.`
+            ? materializedCount === 1
+              ? t`Surfaced 1 still-open alert for your firm.`
+              : t`Surfaced ${materializedCount} still-open alerts for your firm.`
             : t`No still-open windows to add.`,
         )
       },

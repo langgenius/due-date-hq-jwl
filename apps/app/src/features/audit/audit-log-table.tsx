@@ -1,5 +1,5 @@
 import { type KeyboardEvent, useCallback, useMemo } from 'react'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { Astroid } from 'lucide-react'
 
 import type { AuditEventPublic } from '@duedatehq/contracts'
@@ -114,7 +114,7 @@ export function AuditLogTable({
                 {relativePrefix ? `${relativePrefix} · ${bandLabel}` : bandLabel}
               </span>
               <span className="font-mono text-caption-xs font-semibold tracking-wide text-text-tertiary tabular-nums">
-                <Trans>{day.events.length} events</Trans>
+                <Plural value={day.events.length} one="# event" other="# events" />
               </span>
             </div>
             {day.events.map((event) => {
