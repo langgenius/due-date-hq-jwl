@@ -149,3 +149,29 @@ inside a rounded frame" pattern Yuqi banned. NOTE: the motif still lives in
 the primitive (packages/ui table.tsx) and renders on /deadlines, /clients,
 etc. — whether to remove it app-wide is an open design decision, not taken
 unilaterally here.
+
+## Addendum 5 — type quiet-down + Daily Brief never apologizes
+
+Yuqi: "too many mediums and too-large fonts; unimportant text lighter/smaller;
+don't use too many text styles per page" + "is the Daily Brief the best you
+can do?"
+
+**Token verdict**: the scale itself is fine (caption 11 / xs 12 / sm 13 /
+base 14 / lg 16 / xl 18 / 2xl 28 — primitives.css); the problem was usage.
+Page rule now: **medium+ weight is reserved for anchors (titles, client
+names), semantic chips (status, HIGH IMPACT), and interactive affordances
+(links, buttons, selector chips). Passive meta is regular weight.**
+
+Demoted to regular: alert-card "N clients", conf %, source link, absolute
+date under DUE, the Pay-late chip, the AI focus sentence + firm concentration
+line (the 18px title carries the card). Alert jurisdiction chip semibold →
+medium. Freshness chip (LIVE/FAILED/GENERATING/age) 12px → 11px caption.
+
+**Daily Brief content hierarchy** (the "best you can do" answer): the card
+never leads with an apology. Lead priority: AI focus sentence (or its
+skeleton) → deterministic since-last-visit recap ("Since your last visit:
+3 completed (2 filed · 1 paid) · 2 new alerts") → firm concentration line.
+A failed AI brief is a caption-level FOOTNOTE ("AI brief unavailable — it
+will retry automatically"); the freshness chip beside the title already
+carries the status. YesterdayLine gained a `lead` form (14px primary with
+intro) vs its secondary form (13px secondary under an AI sentence).

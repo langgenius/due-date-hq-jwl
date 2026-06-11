@@ -128,24 +128,26 @@ export function DailyBriefCard({
         {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
       </div>
 
-      {/* Content — today's focus sentence (the title anchors the card, so the
-          sentence reads as content, not a competing headline). */}
-      {aiEnabled ? (
+      {/* Lead — the card NEVER leads with an apology (Yuqi: "is this the best
+          you can do?"). Priority: the AI focus sentence (or its pending
+          skeleton) → the deterministic since-last-visit recap → the firm
+          concentration line. A failed AI brief demotes to the caption footnote
+          at the bottom; the freshness chip beside the title already carries
+          the status. */}
+      {(aiEnabled && Boolean(brief?.text)) || (aiEnabled && isPending) ? (
         <TodayLine brief={brief} pending={isPending} onOpenObligation={onOpenObligation} />
+      ) : recap ? (
+        <YesterdayLine recap={recap} lead />
       ) : (
         <FirmTodayLine concentration={concentration} counts={todayCounts} />
       )}
 
-      {/* Metric + recap — calm text-sm lines below the content. The workload
-          counts render ONLY when a real AI sentence exists (audit: otherwise
-          this line just duplicates the Priorities bucket chips ~100px below —
-          the digest shouldn't end by repeating the tool under it). The recap
-          is the brief's own information and always renders. */}
-      {(showCounts && aiEnabled && Boolean(brief?.text)) || recap ? (
+      {/* Secondary lines — only under a real AI sentence: the workload counts
+          (otherwise they'd duplicate the Priorities chips ~100px below) and
+          the recap demoted to a quiet second line. */}
+      {aiEnabled && Boolean(brief?.text) && (showCounts || recap) ? (
         <div className="flex flex-col gap-0.5">
-          {showCounts && aiEnabled && Boolean(brief?.text) ? (
-            <TodayCountsLine counts={todayCounts} />
-          ) : null}
+          {showCounts ? <TodayCountsLine counts={todayCounts} /> : null}
           {recap ? <YesterdayLine recap={recap} /> : null}
         </div>
       ) : null}
@@ -153,6 +155,13 @@ export function DailyBriefCard({
           showCounts/recap gate — a brand-new firm with no counts or recap
           still sees its already-in-effect obligations. */}
       <CatchupLine />
+
+      {/* Failure footnote — a quiet caption, never the headline. */}
+      {aiEnabled && brief?.status === 'failed' && !brief.text ? (
+        <p className="text-caption text-text-tertiary">
+          <Trans>AI brief unavailable — it will retry automatically.</Trans>
+        </p>
+      ) : null}
     </section>
   )
 }
@@ -188,7 +197,7 @@ function CatchupLine() {
  * to one muted sentence. The alerts segment links to /alerts (the only
  * segment with a dedicated review surface).
  */
-function YesterdayLine({ recap }: { recap: DashboardRecap }) {
+function YesterdayLine({ recap, lead = false }: { recap: DashboardRecap; lead?: boolean }) {
   const segments: React.ReactNode[] = []
 
   if (recap.completedCount > 0) {
@@ -238,7 +247,21 @@ function YesterdayLine({ recap }: { recap: DashboardRecap }) {
     )
   }
   return (
-    <p className="min-w-0 text-sm leading-[1.5] text-text-primary">
+    // As the LEAD (AI sentence absent) the recap reads as the card's content
+    // line — 14px regular primary with a natural-language intro. As the
+    // secondary line under an AI sentence it recedes to 13px secondary.
+    <p
+      className={
+        lead
+          ? 'min-w-0 max-w-[72ch] text-base leading-[1.5] text-text-primary'
+          : 'min-w-0 text-sm leading-[1.5] text-text-secondary'
+      }
+    >
+      {lead ? (
+        <>
+          <Trans>Since your last visit:</Trans>{' '}
+        </>
+      ) : null}
       {segments.map((segment, index) => (
         <Fragment key={index}>
           {index > 0 ? <span className="text-text-muted"> · </span> : null}
@@ -304,7 +327,7 @@ function TodayLine({
       : ''
 
   return (
-    <p className="min-w-0 max-w-[72ch] text-base leading-[1.5] font-medium text-text-primary">
+    <p className="min-w-0 max-w-[72ch] text-base leading-[1.5] text-text-primary">
       <BriefProse text={headline} citations={brief.citations} onOpenObligation={onOpenObligation} />
       {fallbackMarkers ? (
         <>
@@ -338,7 +361,7 @@ function FirmTodayLine({
   if (concentration && concentration.count >= 2) {
     const formLabel = formatTaxCode(concentration.taxType)
     return (
-      <p className="min-w-0 max-w-[72ch] text-base leading-[1.5] font-medium text-text-primary">
+      <p className="min-w-0 max-w-[72ch] text-base leading-[1.5] text-text-primary">
         <Trans>
           Overdue work is concentrated in {formLabel} ({concentration.count} of{' '}
           {concentration.overdueTotal})
@@ -414,7 +437,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5">
         <RotateCwIcon className="size-3 animate-spin text-text-secondary" aria-hidden />
-        <span className="font-mono text-xs font-medium tracking-[0.4px] text-text-secondary uppercase">
+        <span className="font-mono text-caption font-medium tracking-[0.4px] text-text-secondary uppercase">
           <Trans>Generating</Trans>
         </span>
       </span>
@@ -425,7 +448,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     // — recovery is the server's failed self-heal, not a user action. The
     // error code stays one hover away for support conversations.
     const failedText = (
-      <span className="text-xs font-medium tracking-[0.4px] text-text-secondary uppercase">
+      <span className="text-caption font-medium tracking-[0.4px] text-text-secondary uppercase">
         <Trans>Failed</Trans>
       </span>
     )
@@ -456,7 +479,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
       />
       <span
         className={cn(
-          'font-mono text-xs font-medium tracking-[0.4px] tabular-nums uppercase',
+          'font-mono text-caption font-medium tracking-[0.4px] tabular-nums uppercase',
           stale ? 'text-text-warning' : 'text-text-secondary',
         )}
       >

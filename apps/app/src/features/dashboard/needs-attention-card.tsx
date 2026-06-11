@@ -221,7 +221,7 @@ function NeedsAttentionCard({
             <TooltipTrigger
               render={(props) => (
                 <span
-                  className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold tracking-[0.2px] text-text-secondary outline-none"
+                  className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium tracking-[0.2px] text-text-secondary outline-none"
                   {...props}
                 >
                   <StateBadge
@@ -315,7 +315,7 @@ function NeedsAttentionCard({
             nothing matched, a quiet muted "No clients matched". */}
         {impacted > 0 ? (
           <span className="inline-flex min-w-0 shrink items-center gap-1.5 whitespace-nowrap">
-            <span className="font-medium text-text-secondary">
+            <span className="text-text-secondary">
               <Plural value={impacted} one="# client" other="# clients" />
             </span>
           </span>
@@ -336,7 +336,7 @@ function NeedsAttentionCard({
           </span>
           <span
             className={cn(
-              'text-xs font-medium tabular-nums text-text-secondary transition-colors',
+              'text-xs tabular-nums text-text-secondary transition-colors',
               confidenceHoverToneClass,
             )}
           >
@@ -353,7 +353,7 @@ function NeedsAttentionCard({
           <TooltipTrigger
             render={(props) => (
               <span
-                className="inline-flex min-w-0 max-w-[160px] cursor-pointer items-center gap-1 text-xs font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary"
+                className="inline-flex min-w-0 max-w-[160px] cursor-pointer items-center gap-1 text-xs text-text-tertiary outline-none transition-colors hover:text-text-secondary"
                 onClick={(event) => {
                   event.stopPropagation()
                   window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')

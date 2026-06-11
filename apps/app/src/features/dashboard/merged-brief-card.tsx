@@ -395,7 +395,7 @@ function BriefTableRow({
             {row.status === 'extended' ? <ExtensionChip /> : null}
           </div>
           {paymentLate ? (
-            <span className="inline-flex items-center rounded bg-background-subtle px-1.5 py-0.5 text-caption-xs font-medium text-text-secondary">
+            <span className="inline-flex items-center rounded bg-background-subtle px-1.5 py-0.5 text-caption-xs text-text-secondary">
               <Trans>Pay {paymentLateDays}d late</Trans>
             </span>
           ) : null}
@@ -421,7 +421,7 @@ function BriefTableRow({
       <TableCell>
         <div className="flex flex-col gap-0.5">
           <DueDateLabel days={d} status={row.status} paymentDueDate={null} asOfDate={asOfDate} />
-          <span className="text-xs font-medium tabular-nums text-text-tertiary">
+          <span className="text-xs tabular-nums text-text-tertiary">
             {formatDatePretty(row.currentDueDate)}
           </span>
         </div>
