@@ -544,11 +544,25 @@ async function runPulseExtractionAfterMark(
     snapshot.sourceId,
     result.result.jurisdiction,
   )
+  const parsedOriginalDueDate = nullableDateFromIsoDate(result.result.originalDueDate)
+  // Backfill-seeded snapshots (months-old announcements still in effect) route
+  // their pulses through the quiet fan-out: impact-scoped origin='catchup'
+  // rows, no digest emails / notifications — state, not news.
+  const fanOutMode = snapshot.ingestMethod === 'backfill_seed' ? ('quiet' as const) : undefined
+  // Backfill hard gate: a due_date_overlay alert without the original due date
+  // can never match an obligation (the fan-out matcher pins
+  // currentDueDate == parsedOriginalDueDate), so a quiet, impact-scoped seed
+  // would approve it and then materialize nothing — an invisible "approved"
+  // row. Quarantine instead; a richer re-observation promotes it via the
+  // dedupe fold. Live extracts keep today's behavior: incomplete overlay
+  // evidence still surfaces firm-wide as an Apply-readiness candidate.
+  const seedUnmatchable =
+    fanOutMode === 'quiet' && actionMode === 'due_date_overlay' && parsedOriginalDueDate === null
   // Low-confidence extracts land quarantined. The same band decides whether a
   // duplicate fold should promote a quarantined survivor (see
   // applyDuplicateExtractToPulse).
   const pulseStatus =
-    isEmailSourced || result.result.confidence < PULSE_PUBLISH_CONFIDENCE
+    isEmailSourced || result.result.confidence < PULSE_PUBLISH_CONFIDENCE || seedUnmatchable
       ? ('quarantined' as const)
       : ('approved' as const)
 
@@ -559,7 +573,7 @@ async function runPulseExtractionAfterMark(
     parsedCounties: result.result.counties,
     parsedForms: result.result.forms,
     parsedEntityTypes: result.result.entityTypes,
-    parsedOriginalDueDate: nullableDateFromIsoDate(result.result.originalDueDate),
+    parsedOriginalDueDate,
     parsedNewDueDate: nullableDateFromIsoDate(result.result.newDueDate),
     changeKind: result.result.changeKind,
     actionMode,
@@ -574,6 +588,7 @@ async function runPulseExtractionAfterMark(
       incomingStatus: pulseStatus,
       confidence: result.result.confidence,
       parsedCounties: result.result.counties,
+      ...(fanOutMode ? { fanOutMode } : {}),
     })
     // Promotion already ran the full first-publication fan-out (+ messages).
     const alertCount = fold.promoted
@@ -612,7 +627,7 @@ async function runPulseExtractionAfterMark(
     parsedCounties: result.result.counties,
     parsedForms: result.result.forms,
     parsedEntityTypes: result.result.entityTypes,
-    parsedOriginalDueDate: nullableDateFromIsoDate(result.result.originalDueDate),
+    parsedOriginalDueDate,
     parsedNewDueDate: nullableDateFromIsoDate(result.result.newDueDate),
     parsedEffectiveFrom: nullableDateFromIsoDate(result.result.effectiveFrom),
     parsedEffectiveUntil: nullableDateFromIsoDate(result.result.effectiveUntil),
@@ -634,6 +649,7 @@ async function runPulseExtractionAfterMark(
     // land quarantined (retained for review, never fanned out).
     dedupe: true,
     status: pulseStatus,
+    ...(fanOutMode ? { fanOutMode } : {}),
   })
 
   // The unique dedupe key caught a sibling/cross-feed extraction of the same
@@ -646,6 +662,7 @@ async function runPulseExtractionAfterMark(
       incomingStatus: pulseStatus,
       confidence: result.result.confidence,
       parsedCounties: result.result.counties,
+      ...(fanOutMode ? { fanOutMode } : {}),
     })
     if (!fold.promoted) await repo.refreshFirmAlertsForApprovedPulse(created.pulseId)
     await recordRuleSourceDrift(created.pulseId)

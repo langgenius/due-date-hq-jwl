@@ -16,6 +16,7 @@ import { publicDemoRoute } from './routes/public-demo'
 import { healthRoute } from './routes/health'
 import { icsRoute } from './routes/ics'
 import { notificationsRoute } from './routes/notifications'
+import { opsRoute } from './routes/ops'
 import { readinessRoute } from './routes/readiness'
 import { resendWebhook } from './webhooks/resend'
 import { rpcHandler } from './rpc'
@@ -97,6 +98,10 @@ export function createApp() {
   // /api/e2e/* — Playwright bootstrap. Development is open locally; staging
   // requires E2E_SEED_TOKEN; production always returns 404.
   app.route('/api/e2e', e2eRoute)
+
+  // /api/ops/* — operator one-shot maintenance jobs (pulse backfill seeding).
+  // Same access model as /api/e2e: dev open, staging token-gated, else 404.
+  app.route('/api/ops', opsRoute)
 
   // /api/demo — public no-signup read-only product tour (gated by ENABLE_PUBLIC_DEMO;
   // always on in development). IP rate-limited; it mints its own demo session, so no

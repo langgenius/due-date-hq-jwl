@@ -1243,6 +1243,64 @@ export function makePulseOpsRepo(db: Db) {
       return rows.map(toSnapshot)
     },
 
+    /**
+     * Backfill seeding, step 1: the still-in-effect landscape that predates a
+     * source's monitoring start lives in the snapshots its baseline scan
+     * archived but never extracted (parse_status='ignored',
+     * failureReason='monitoring_baseline_established' — see ingest.ts). Also
+     * picks up rows already marked 'backfill_seed' but still pending_extract,
+     * so a re-run after a partial failure re-queues instead of stranding them.
+     */
+    async listBackfillSeedCandidates(input: {
+      sourceIds: string[]
+      limit?: number
+    }): Promise<PulseSourceSnapshotRow[]> {
+      if (input.sourceIds.length === 0) return []
+      const limit = Math.min(Math.max(input.limit ?? 100, 1), 200)
+      const rows = await db
+        .select()
+        .from(pulseSourceSnapshot)
+        .where(
+          and(
+            inArray(pulseSourceSnapshot.sourceId, input.sourceIds),
+            or(
+              and(
+                eq(pulseSourceSnapshot.parseStatus, 'ignored'),
+                eq(pulseSourceSnapshot.failureReason, 'monitoring_baseline_established'),
+              ),
+              and(
+                eq(pulseSourceSnapshot.parseStatus, 'pending_extract'),
+                eq(pulseSourceSnapshot.ingestMethod, 'backfill_seed'),
+              ),
+            ),
+          ),
+        )
+        .orderBy(asc(pulseSourceSnapshot.publishedAt))
+        .limit(limit)
+      return rows.map(toSnapshot)
+    },
+
+    /**
+     * Backfill seeding, step 2: flip the candidates to pending_extract and tag
+     * them ingest_method='backfill_seed' so the extract pipeline routes their
+     * pulses through the quiet fan-out (impact-scoped catchup rows, no digest
+     * emails). Chunked to stay far below D1's 100-bind-param statement limit.
+     */
+    async markSnapshotsForBackfillExtract(snapshotIds: string[]): Promise<number> {
+      if (snapshotIds.length === 0) return 0
+      for (const chunk of chunkRows(snapshotIds, 50)) {
+        await db
+          .update(pulseSourceSnapshot)
+          .set({
+            parseStatus: 'pending_extract',
+            failureReason: null,
+            ingestMethod: 'backfill_seed',
+          })
+          .where(inArray(pulseSourceSnapshot.id, chunk))
+      }
+      return snapshotIds.length
+    },
+
     async updateSourceSnapshotStatus(
       snapshotId: string,
       patch: {
@@ -1339,6 +1397,7 @@ export function makePulseOpsRepo(db: Db) {
       incomingStatus: PulseStatus
       confidence: number
       parsedCounties: string[]
+      fanOutMode?: 'live' | 'quiet'
     }): Promise<{ promoted: boolean; countiesExpanded: boolean; alertCount: number }> {
       const row = await getPulse(input.pulseId)
       if (!row) return { promoted: false, countiesExpanded: false, alertCount: 0 }
@@ -1382,7 +1441,17 @@ export function makePulseOpsRepo(db: Db) {
       // First publication of this event: full fan-out + review messages, like
       // an extract that landed approved. preserveStatus is defense-in-depth —
       // a system-quarantined pulse has never fanned out, so there is no firm
-      // alert status to reset.
+      // alert status to reset. A quiet (backfill-seed) promotion materializes
+      // impact-scoped catchup rows and skips the messages — the event is
+      // months old; only firms it actually touches should see it, as state.
+      if (input.fanOutMode === 'quiet') {
+        const alertCount = await refreshFirmAlertsForPulse(input.pulseId, {
+          preserveStatus: true,
+          skipZeroImpact: true,
+          origin: 'catchup',
+        })
+        return { promoted: true, countiesExpanded: mergedCounties !== null, alertCount }
+      }
       const fanOut = await finalizePulseFanOut(input.pulseId, { preserveStatus: true })
       return {
         promoted: true,
@@ -1542,6 +1611,17 @@ export function makePulseOpsRepo(db: Db) {
       // fanned out to firms — refreshFirmAlertsForPulse requires 'approved'.
       if (status !== 'approved') {
         return { pulseId, alertCount: 0, deduped: false }
+      }
+      // Quiet fan-out (backfill seeds): a months-old announcement that is
+      // still in effect must not blast digest emails / notifications to every
+      // firm or read as firm-wide news — impact-scoped catchup rows only.
+      if (input.fanOutMode === 'quiet') {
+        const alertCount = await refreshFirmAlertsForPulse(pulseId, {
+          preserveStatus: true,
+          skipZeroImpact: true,
+          origin: 'catchup',
+        })
+        return { pulseId, alertCount, deduped: false }
       }
       const fanOut = await finalizePulseFanOut(pulseId)
       return { ...fanOut, deduped: false }

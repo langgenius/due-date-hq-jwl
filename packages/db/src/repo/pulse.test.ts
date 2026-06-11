@@ -1398,6 +1398,150 @@ describe('makePulseOpsRepo', () => {
     expect(Object.keys(conflictSet?.set ?? {})).not.toContain('origin')
   })
 
+  it('quiet fan-out materializes impact-scoped catchup rows and queues no messages', async () => {
+    // Backfill seed: approved pulse, fanOutMode 'quiet' → rows only where the
+    // firm has impact, origin='catchup', and zero email/notification writes.
+    const overlayPulse = {
+      id: 'pulse-backfill',
+      status: 'approved' as const,
+      actionMode: 'due_date_overlay' as const,
+      changeKind: 'deadline_shift' as const,
+      parsedJurisdiction: 'GA',
+      parsedCounties: [],
+      parsedForms: ['federal_1040'],
+      parsedEntityTypes: ['individual'],
+      parsedOriginalDueDate: new Date('2026-05-01T00:00:00.000Z'),
+      reverifyRuleIdsJson: [],
+      structuredChangeJson: null,
+    }
+    const { db, directStatements } = fakeDb([
+      [overlayPulse], // getPulse inside the fan-out
+      [{ id: 'firm-hit' }, { id: 'firm-miss' }], // active firms
+      [
+        {
+          firmId: 'firm-hit',
+          obligationId: 'oi-1',
+          currentDueDate: new Date('2026-05-01T00:00:00.000Z'),
+          county: null,
+          counties: null,
+        },
+      ], // overlay candidate scan
+      [], // active overlay due dates for firm-hit
+    ])
+
+    const created = await makePulseOpsRepo(db).createPulseForFirmReviewFromExtract({
+      snapshotId: 'snapshot-seed',
+      source: 'irs.disaster',
+      sourceUrl: 'https://www.irs.gov/newsroom/ga-relief',
+      publishedAt: new Date('2026-05-08T00:00:00.000Z'),
+      aiSummary: 'GA wildfire relief postpones deadlines to Aug 20.',
+      verbatimQuote: 'postponed to Aug. 20, 2026',
+      parsedJurisdiction: 'GA',
+      parsedCounties: [],
+      parsedForms: ['federal_1040'],
+      parsedEntityTypes: ['individual'],
+      parsedOriginalDueDate: new Date('2026-05-01T00:00:00.000Z'),
+      parsedNewDueDate: new Date('2026-08-20T00:00:00.000Z'),
+      confidence: 0.8,
+      status: 'approved',
+      fanOutMode: 'quiet',
+    })
+
+    expect(created.alertCount).toBe(1)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, {
+          pulseId: created.pulseId,
+          firmId: 'firm-hit',
+          origin: 'catchup',
+          matchedCount: 1,
+        }),
+      ),
+    ).toBe(true)
+    // No row for the zero-impact firm, and no email/notification writes: the
+    // only statements are the pulse insert, the snapshot-status update, and
+    // one alert upsert.
+    expect(
+      directStatements.some((statement) => statementHasValue(statement, { firmId: 'firm-miss' })),
+    ).toBe(false)
+    expect(directStatements).toHaveLength(3)
+  })
+
+  it('quiet promotion of a quarantined survivor also skips messages', async () => {
+    const quarantined = {
+      id: 'pulse-q-seed',
+      status: 'quarantined' as const,
+      reviewedAt: null,
+      confidence: 0.4,
+      parsedCounties: [],
+      actionMode: 'review_only' as const,
+      changeKind: 'protective_claim_window' as const,
+      parsedJurisdiction: 'FED',
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      reverifyRuleIdsJson: [],
+      structuredChangeJson: { kind: 'protective_claim_window', actionDeadline: '2026-07-10' },
+    }
+    const promoted = { ...quarantined, status: 'approved' as const, confidence: 0.8 }
+    const { db, directStatements } = fakeDb([
+      [quarantined], // fold reads the survivor
+      [promoted], // fan-out status guard re-reads
+      [{ id: 'firm-a' }], // active firms
+      [{ firmId: 'firm-a', clientId: 'client-a', taxType: 'federal_1040' }], // protective scan
+    ])
+
+    const result = await makePulseOpsRepo(db).applyDuplicateExtractToPulse({
+      pulseId: 'pulse-q-seed',
+      incomingStatus: 'approved',
+      confidence: 0.8,
+      parsedCounties: [],
+      fanOutMode: 'quiet',
+    })
+
+    expect(result.promoted).toBe(true)
+    expect(result.alertCount).toBe(1)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { firmId: 'firm-a', origin: 'catchup' }),
+      ),
+    ).toBe(true)
+    // Statements: the status-promotion update + one alert upsert. A live
+    // promotion would add review/digest message writes here.
+    expect(directStatements).toHaveLength(2)
+  })
+
+  it('lists baseline-ignored snapshots and marks them as backfill seeds in chunks', async () => {
+    const seedRows = Array.from({ length: 60 }, (_, index) => ({
+      id: `snapshot-${index}`,
+      sourceId: 'irs.disaster',
+      parseStatus: 'ignored',
+      failureReason: 'monitoring_baseline_established',
+    }))
+    const { db, directStatements } = fakeDb([seedRows])
+    const repo = makePulseOpsRepo(db)
+
+    const candidates = await repo.listBackfillSeedCandidates({ sourceIds: ['irs.disaster'] })
+    expect(candidates).toHaveLength(60)
+
+    const marked = await repo.markSnapshotsForBackfillExtract(candidates.map((row) => row.id))
+    expect(marked).toBe(60)
+    // 60 ids chunk into 2 UPDATEs (50 + 10), each flipping to pending_extract
+    // and stamping ingest_method='backfill_seed'.
+    const updates = directStatements.filter(
+      (statement) =>
+        statementHasValue(statement, {
+          parseStatus: 'pending_extract',
+          ingestMethod: 'backfill_seed',
+        }) && (statement as { kind?: string }).kind === 'update',
+    )
+    expect(updates).toHaveLength(2)
+
+    const empty = await repo.listBackfillSeedCandidates({ sourceIds: [] })
+    expect(empty).toHaveLength(0)
+    expect(await repo.markSnapshotsForBackfillExtract([])).toBe(0)
+  })
+
   it('stamps live re-fan-out rows origin=live', async () => {
     const protectivePulse = {
       id: 'pulse-protective',

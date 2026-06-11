@@ -1109,6 +1109,51 @@ describe('extractPulseSnapshot — confidence gating & race-safe de-duplication'
     expect(repoMocks.refreshFirmAlertsForApprovedPulse).not.toHaveBeenCalled()
   })
 
+  it('routes a backfill-seeded extract through the quiet fan-out', async () => {
+    // Months-old-but-still-in-effect relief re-driven from a baseline snapshot:
+    // approved (no human review), but fanOutMode='quiet' — impact-scoped
+    // origin='catchup' rows, no digest emails. Same payload via web fetch
+    // (test above) takes the live fan-out.
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      ...snapshot,
+      id: 'snapshot-seed',
+      ingestMethod: 'backfill_seed',
+    })
+    const payload = regChange(0.8)
+    aiMocks.extractPulse.mockResolvedValue({
+      ...payload,
+      result: { ...payload.result, originalDueDate: '2026-04-15' },
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-seed')
+
+    expect(result.status).toBe('created')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'approved', fanOutMode: 'quiet' }),
+    )
+  })
+
+  it('quarantines a backfill-seeded overlay that is missing the original due date', async () => {
+    // The fan-out matcher pins currentDueDate == parsedOriginalDueDate, and the
+    // quiet seed is impact-scoped — approving an unmatchable overlay would
+    // materialize nothing, silently. Quarantine keeps it promotable by a
+    // richer re-observation. Live extracts with the same gap stay approved
+    // (Apply-readiness candidate, firm-wide) — covered above.
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      ...snapshot,
+      id: 'snapshot-seed-nodate',
+      ingestMethod: 'backfill_seed',
+    })
+    aiMocks.extractPulse.mockResolvedValue(regChange(0.8)) // originalDueDate: null
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-seed-nodate')
+
+    expect(result.status).toBe('created')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'quarantined', fanOutMode: 'quiet' }),
+    )
+  })
+
   it('folds onto the survivor when the keyed insert loses the race', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
     aiMocks.extractPulse.mockResolvedValue(regChange(0.8))

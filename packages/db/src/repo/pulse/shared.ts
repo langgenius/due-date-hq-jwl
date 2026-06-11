@@ -389,6 +389,15 @@ export interface PulseExtractInput {
    * pass 'quarantined' so they are retained for review but never fanned out.
    */
   status?: PulseStatus
+  /**
+   * How an approved pulse reaches firms. 'live' (default) is the full
+   * first-publication fan-out: firm-wide rows + review/digest messages.
+   * 'quiet' is for backfill-seeded extracts of months-old announcements that
+   * are still in effect: rows materialize only where a firm has real impact
+   * (skipZeroImpact), stamped origin='catchup', and no messages are queued —
+   * state, not news.
+   */
+  fanOutMode?: 'live' | 'quiet'
 }
 
 export interface PulseExtractDuplicateInput extends Pick<

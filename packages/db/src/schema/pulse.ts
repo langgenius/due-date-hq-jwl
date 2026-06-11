@@ -177,7 +177,10 @@ export const pulseSourceSnapshot = sqliteTable(
     contentHash: text('content_hash').notNull(),
     rawR2Key: text('raw_r2_key').notNull(),
     // How the snapshot entered: NULL = web fetch, 'inbound_email' = email
-    // worker. Email-sourced pulses never auto-approve (extract.ts).
+    // worker, 'backfill_seed' = baseline-archived snapshot re-driven through
+    // extract to seed the still-in-effect landscape. Email-sourced pulses
+    // never auto-approve; backfill-seeded pulses take the quiet fan-out
+    // (impact-scoped origin='catchup' rows, no digest emails) — extract.ts.
     ingestMethod: text('ingest_method'),
     parseStatus: text('parse_status', {
       enum: PULSE_SOURCE_SNAPSHOT_STATUSES,
