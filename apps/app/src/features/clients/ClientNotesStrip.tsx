@@ -4,7 +4,6 @@ import { PencilLineIcon, ScrollTextIcon } from 'lucide-react'
 import type { ClientPublic } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card } from '@duedatehq/ui/components/ui/card'
-import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
  * `<ClientNotesStrip>` — inline preview of `client.notes` shown
@@ -63,25 +62,14 @@ export function ClientNotesStrip({
   if (notes.length === 0) return null
 
   return (
-    // Card primitive with the muted tone + xs size + md radius gives a
-    // quiet contextual surface. No `!important` overrides — every
-    // class is either a primitive default or a layout addition
-    // (flex direction + items alignment for the inner row).
+    // White labeled card matching the rail's Contacts/Alerts cards — a
+    // "Notes" eyebrow + the note body + a quiet pencil edit, not a washed-out
+    // muted strip (Yuqi: notes card "丑"). Whole card opens the slide-in.
     <Card
-      tone="muted"
-      radius="md"
-      size="xs"
-      // Interactive: the whole strip is the click target for the
-      // "open the slide-in to read more / edit" affordance. Same
-      // pattern the NeedsAttentionCard uses on /today — button
-      // wraps the Card chrome.
+      tone="default"
+      radius="xl"
       interactive
-      // Card defaults to a column flex; switch to row so icon + body
-      // + edit affordance sit on one line.
-      className="flex-row items-start gap-3 px-3 py-2"
-      // Make the strip itself a button via the `render` slot would
-      // be ideal — but Card uses a `<div>`, so we attach the
-      // interaction handlers + role at the consumer layer.
+      className="flex-col items-stretch gap-1.5 px-[18px] py-3.5"
       role="button"
       tabIndex={0}
       onClick={onOpenEditor}
@@ -93,43 +81,27 @@ export function ClientNotesStrip({
       }}
       aria-label={t`Open notes for ${client.name}`}
     >
-      {/* Leading icon — same ScrollText glyph the slide-in trigger
-          and Activity-tab empty state use, so the affordance reads
-          as the same family across surfaces. */}
-      <ScrollTextIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-text-tertiary" />
-
-      {/* Body — first 2 lines visible, truncation after.
-          `line-clamp-2` is a Tailwind plugin utility (already
-          enabled in this project — used in NeedsAttentionCard +
-          other surfaces). Whitespace-pre-wrap preserves line
-          breaks the coordinator entered intentionally. */}
-      <p
-        className={cn(
-          'line-clamp-2 min-w-0 flex-1 text-sm whitespace-pre-wrap text-text-secondary',
-        )}
-      >
-        {notes}
-      </p>
-
-      {/* Edit affordance — quiet ghost button. Stops propagation
-          so clicking Edit doesn't double-fire the outer strip's
-          onClick (both lead to the same place, but the doubled
-          click would flicker hover states on the way through). */}
-      {canWrite ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={(event) => {
-            event.stopPropagation()
-            onOpenEditor()
-          }}
-          aria-label={t`Edit notes for ${client.name}`}
-          className="shrink-0"
-        >
-          <PencilLineIcon data-icon="inline-start" />
-          <Trans>Edit</Trans>
-        </Button>
-      ) : null}
+      <div className="flex items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-eyebrow text-text-muted uppercase">
+          <ScrollTextIcon aria-hidden className="size-3.5" />
+          <Trans>Notes</Trans>
+        </span>
+        {canWrite ? (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="-mr-1.5 shrink-0"
+            onClick={(event) => {
+              event.stopPropagation()
+              onOpenEditor()
+            }}
+            aria-label={t`Edit notes for ${client.name}`}
+          >
+            <PencilLineIcon className="size-3.5" aria-hidden />
+          </Button>
+        ) : null}
+      </div>
+      <p className="line-clamp-3 text-sm whitespace-pre-wrap text-text-secondary">{notes}</p>
     </Card>
   )
 }
