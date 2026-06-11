@@ -1857,7 +1857,7 @@ function AlertsHistoryRecordLegend() {
     // wrapper (gap-6 column + mt-2) already supplies the separation from the
     // CTA above, so no extra padding-top here.
     <div className="flex flex-col items-center gap-2">
-      <p className="text-xs font-semibold tracking-[0.5px] text-text-muted uppercase">
+      <p className="text-column-label text-text-muted uppercase">
         <Trans>What gets recorded</Trans>
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">

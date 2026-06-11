@@ -283,7 +283,7 @@ export function DeadlineRow({
           <ChevronRightIcon
             aria-hidden
             className={cn(
-              'size-4 shrink-0 justify-self-end text-text-tertiary transition-transform duration-200',
+              'size-4 shrink-0 justify-self-end text-text-tertiary transition-transform',
               isExpanded && 'rotate-90',
             )}
           />

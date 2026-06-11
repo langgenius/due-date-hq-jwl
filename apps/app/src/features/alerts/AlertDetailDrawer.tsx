@@ -1360,7 +1360,7 @@ export function AlertDetailDrawer({
                 detail.alert.summary &&
                 detail.alert.summary.trim() !== detail.alert.title.trim() ? (
                   // Dek is body prose, not a sub-title — 14/400.
-                  <p className="text-base leading-[1.5] text-text-secondary">
+                  <p className="text-base text-text-secondary">
                     {detail.alert.summary}
                   </p>
                 ) : null}
@@ -1587,7 +1587,7 @@ export function AlertDetailDrawer({
                         <span className="text-base font-semibold text-text-success">
                           <Trans>Ready to apply · deadline selection confirmed</Trans>
                         </span>
-                        <p className="text-sm leading-[1.5] text-text-secondary">
+                        <p className="text-sm text-text-secondary">
                           <Plural
                             value={stats?.selectedCount ?? 0}
                             one="# client confirmed and matched to the new date."

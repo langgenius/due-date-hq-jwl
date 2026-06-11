@@ -317,10 +317,10 @@ export function AlertHistoryView() {
                     <TableRow className="even:bg-transparent hover:bg-transparent">
                       <TableCell colSpan={5} className="bg-background-subtle px-5 py-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold tracking-[0.5px] text-text-secondary uppercase">
+                          <span className="text-column-label text-text-secondary uppercase">
                             {month}
                           </span>
-                          <span className="text-xs font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
+                          <span className="text-column-label text-text-muted uppercase tabular-nums">
                             <Plural value={monthAlerts.length} one="# handled" other="# handled" />
                           </span>
                         </div>

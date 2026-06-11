@@ -644,7 +644,7 @@ function JurisdictionRuleRow({
         <ChevronRightIcon
           aria-hidden
           className={cn(
-            'size-4 shrink-0 transition-all duration-150 group-hover/row:translate-x-0.5',
+            'size-4 shrink-0 transition-all group-hover/row:translate-x-0.5',
             active ? 'text-text-accent' : 'text-text-muted group-hover/row:text-text-tertiary',
           )}
         />

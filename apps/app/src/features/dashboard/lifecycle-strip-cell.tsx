@@ -47,7 +47,7 @@ function LifecycleStripCell({
         'flex min-w-[140px] flex-1 flex-col items-start gap-1.5 px-5 py-3',
         // Hover transition at `duration-200` so the color shift feels
         // deliberate rather than snappy.
-        'outline-none transition-colors duration-200 hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        'outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         // A 1px divider on every cell EXCEPT the first (the first cell
         // carries the strip's left rounded corner instead). The
         // `divider-deep` tone matches the strip's outer card border so

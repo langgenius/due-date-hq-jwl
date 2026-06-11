@@ -341,7 +341,7 @@ function CategoryCard({ category }: { category: NormalizationCategory }) {
         </div>
         <ChevronDownIcon
           className={cn(
-            'size-4 shrink-0 text-text-tertiary transition-transform duration-200',
+            'size-4 shrink-0 text-text-tertiary transition-transform',
             expanded && 'rotate-180',
           )}
           aria-hidden
@@ -525,7 +525,7 @@ function MatrixDefaultsCard({
           </TextLink>
           <ChevronDownIcon
             className={cn(
-              'size-4 text-text-tertiary transition-transform duration-200',
+              'size-4 text-text-tertiary transition-transform',
               expanded && 'rotate-180',
             )}
             aria-hidden

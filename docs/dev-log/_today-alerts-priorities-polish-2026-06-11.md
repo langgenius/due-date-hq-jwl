@@ -311,3 +311,41 @@ token), conf% fade (200→token), Review-mask fade (200→token), arrow nudges,
 chip press, overflow chevron rotate (200→token). Verified via compiled CSS:
 transition utilities resolve var(--tw-duration, var(--default-transition-
 duration)).
+
+## Addendum 13 — APP-WIDE adoption sweep: tokens + skeleton audit
+
+Yuqi: "对于整个application都检查语义text token + 骨架态."
+
+**Skeleton audit (Explore agent, all 11 route surfaces):** /alerts,
+/alerts/history, /clients, /rules/library, /rules/sources, /audit, /members,
+/calendar, /workload, /notifications all correctly gate empty states on
+isLoading with skeletons ✓. The agent flagged /deadlines as a bug, but
+hand-verification showed a false positive — the whole Table (including its
+line-4544 empty state) lives in the ELSE branch of the `isInitialLoading ?
+skeleton : isError ? … : Table` ternary at obligations.tsx:4366. Verdict:
+the only two loading-masquerades-as-empty bugs in the app were /today's
+(fixed in Addendum 11). App-wide skeleton coverage: complete.
+
+**Token adoption sweep (zero-visual-change unifications):**
+- `text-column-label`: 9 hand-rolled `text-xs font-semibold tracking-[0.5px]`
+  group-band/label sites swapped (preview, obligations group bands,
+  severity-section, actions-list ×2, AlertsListPage, PulseAlertRow,
+  AlertHistoryView ×2) + the /deadlines th-button override
+  (`[&_th_button]:!text-…` triplet → `!text-column-label`).
+- `text-chip-label`: 2 exact-match caps chips (AlertListRail, PulseAlertRow).
+  Non-matching 0.4px-tracking sites (HIGH IMPACT 12/600, eyebrows) are
+  DIFFERENT roles — deliberately left.
+- leading-[1.5] shadows: last 4 app-wide removed (AlertTeamNotes,
+  AlertDetailDrawer ×2, detail-status-banner) — bodies fully token-driven.
+  `leading-relaxed` stays as the one legitimate long-form body register.
+- Motion: 15 more micro-interaction duration-100/150/200s swept app-wide
+  (arrow nudges, chevron rotates, hover colors/opacity across rules.library,
+  rule-detail-drawer, jurisdiction-rule-table, RelatedRuleRow, AlertCard,
+  deadlines-at-a-glance, lifecycle-strip, Step3Normalize, DeadlineRow,
+  app-shell-nav, actions-list Review mask, obligations) — all inherit the
+  150ms/ease-out tokens. Survivors are deliberate surface-scale only:
+  ease-apple slides, drawer header morphs (200), width/grid collapses
+  (200-500), app-shell progress (300).
+- NOT swapped (different roles, not the token's): rules.library "caught up"
+  empty-state heading (-0.015em, empty-state register, not a region anchor);
+  /deadlines workbench row names (12-13/500 archetype ≠ 14/600 row-anchor).

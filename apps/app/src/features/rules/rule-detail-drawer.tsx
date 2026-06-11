@@ -272,7 +272,7 @@ function DisclosureCard({
               <ChevronDownIcon
                 aria-hidden
                 className={cn(
-                  'size-3.5 transition-transform duration-150',
+                  'size-3.5 transition-transform',
                   expanded && 'rotate-180',
                 )}
               />

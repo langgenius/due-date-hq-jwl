@@ -463,7 +463,7 @@ function PulseAlertRow({
           {/* Demoted to caption/medium/muted — at xs/semibold the kind
               label out-shouted the title (Yuqi batch 3 #5: "too
               obvious"); it's classification metadata, not a signal. */}
-          <span className="text-caption-xs font-medium tracking-[0.4px] text-text-muted uppercase">
+          <span className="text-chip-label text-text-muted uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
 
@@ -983,7 +983,7 @@ function PulseAlertList({
                 the lighter tone keeps it from competing with the alert
                 rows beneath it. */}
                 <div className="flex items-center border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+                  <div className="flex items-center gap-1.5 text-column-label text-text-tertiary uppercase">
                     {isToday ? (
                       <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
                     ) : null}

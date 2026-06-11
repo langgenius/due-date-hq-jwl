@@ -4488,7 +4488,7 @@ export function ObligationQueueRoute() {
                     (not the <thead>) so its top corners can round
                     (`rounded-t[lr]`) — the gray header reads as the rounded top
                     of a sheet, while the rows below stay frameless. */}
-                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-xl [&_thead_tr_th:last-child]:rounded-tr-xl [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-xs [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_th_button]:!tracking-[0.5px] [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-base">
+                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-xl [&_thead_tr_th:last-child]:rounded-tr-xl [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-column-label [&_th_button]:!uppercase [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-base">
                   {/* Header (select-all + sort/filter controls) pins so column
                       labels stay visible as the buffer scrolls. In the
                       panel-open split it sticks to top-0 of its own scroll
@@ -4632,7 +4632,7 @@ export function ObligationQueueRoute() {
                                     <span className="flex w-10 shrink-0 items-center justify-center">
                                       <ChevronRightIcon
                                         className={cn(
-                                          'size-3.5 shrink-0 text-text-tertiary transition-transform duration-100 ease-out',
+                                          'size-3.5 shrink-0 text-text-tertiary transition-transform ease-out',
                                           !headerCollapsed && 'rotate-90',
                                         )}
                                         aria-hidden
@@ -4663,7 +4663,7 @@ export function ObligationQueueRoute() {
                                           11px/600/uppercase/tracking-[0.5px]/
                                           tertiary. The leading tone dot + count
                                           still carry urgency. */}
-                                      <span className="text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+                                      <span className="text-column-label text-text-tertiary uppercase">
                                         {groupHeader.label}
                                       </span>
                                       <span className="text-xs tracking-[0.5px] text-text-tertiary uppercase tabular-nums">

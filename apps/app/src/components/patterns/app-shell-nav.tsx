@@ -206,7 +206,7 @@ function SidebarQuickFind() {
         // centers like the nav rows.
         // transform added to the transition + active:scale-[0.98] for the
         // same tactile press as the nav rows (Yuqi "delicacy").
-        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg bg-background-default px-3 text-left text-text-muted outline-none transition-[color,background-color,transform] duration-150 active:scale-[0.98]',
+        'flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2 rounded-lg bg-background-default px-3 text-left text-text-muted outline-none transition-[color,background-color,transform] active:scale-[0.98]',
         'hover:bg-background-sidebar-hover hover:text-text-secondary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',

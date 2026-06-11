@@ -86,7 +86,7 @@ export function DetailStatusBanner({
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className={cn('text-base font-semibold', c.text)}>{title}</span>
         {description ? (
-          <span className="text-sm leading-[1.5] text-text-tertiary">{description}</span>
+          <span className="text-sm text-text-tertiary">{description}</span>
         ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

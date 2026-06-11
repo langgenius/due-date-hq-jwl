@@ -46,7 +46,7 @@ export function RelatedRuleRow({
       </span>
       <ChevronRightIcon
         aria-hidden
-        className="size-3.5 shrink-0 text-text-muted transition-transform duration-150 group-hover/related:translate-x-0.5"
+        className="size-3.5 shrink-0 text-text-muted transition-transform group-hover/related:translate-x-0.5"
       />
     </>
   )

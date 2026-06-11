@@ -230,7 +230,7 @@ function NarrativeTile({
     // Every element + text token below is matched to the /today alert
     // card (needs-attention-card.tsx) so the two surfaces read as one system —
     //   • card chrome → `rounded-xl bg-background-section p-[18px]` +
-    //     `hover:bg-background-subtle transition-colors duration-200`
+    //     `hover:bg-background-subtle transition-colors`
     //   • eyebrow label → `text-xs font-semibold tracking-[0.4px]
     //     text-text-tertiary uppercase` (matches the card's change-kind /
     //     meta eyebrow)
@@ -246,7 +246,7 @@ function NarrativeTile({
       aria-label={ariaLabel}
       className={cn(
         'flex cursor-pointer items-start gap-3 rounded-xl bg-background-section p-[18px] text-left',
-        'outline-none transition-colors duration-200 hover:bg-background-subtle',
+        'outline-none transition-colors hover:bg-background-subtle',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
     >

@@ -205,7 +205,7 @@ function ActionsTable({
               >
                 <TableCell
                   colSpan={5}
-                  className="bg-background-subtle px-[18px] py-1.5 text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase"
+                  className="bg-background-subtle px-[18px] py-1.5 text-column-label text-text-tertiary uppercase"
                 >
                   <StatusGroupLabel kind={currentStatusGroup} />
                 </TableCell>
@@ -343,7 +343,7 @@ function ActionsTableRow({
             keeps the whole-row click working; the button re-enables pointer
             events. `tabIndex={-1}`/`aria-hidden` keep it out of the tab
             order — the row itself is the focusable target. */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-default-hover from-55% to-transparent pr-[18px] pl-16 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-default-hover from-55% to-transparent pr-[18px] pl-16 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
           <Button
             type="button"
             size="xs"
@@ -796,7 +796,7 @@ function DashboardStatusLifecycleStrip({ rows }: { rows: DashboardTopRow[] }) {
     // the page wash. The eyebrow caption names the scope explicitly
     // (the strip is fed from `visible`, the top priority actions).
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+      <span className="text-column-label text-text-tertiary uppercase">
         <Trans>Status across priority actions</Trans>
       </span>
       <div className="flex flex-row flex-wrap overflow-hidden rounded-xl border border-divider-deep bg-background-default">

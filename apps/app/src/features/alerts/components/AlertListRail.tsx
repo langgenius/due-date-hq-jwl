@@ -271,7 +271,7 @@ function RailItem({
           {/* Change-kind — the SAME demoted treatment as the main /alerts
               row (caption-xs/medium/muted): classification metadata, not a
               signal (batch 4 #8). */}
-          <span className="text-caption-xs font-medium tracking-[0.4px] text-text-muted uppercase">
+          <span className="text-chip-label text-text-muted uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>

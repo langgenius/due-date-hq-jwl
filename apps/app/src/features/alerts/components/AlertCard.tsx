@@ -467,7 +467,7 @@ export function AlertCard({
               onReview()
             }}
             className={cn(
-              'font-semibold transition-opacity duration-150 focus-visible:underline',
+              'font-semibold transition-opacity focus-visible:underline',
               active
                 ? 'opacity-100'
                 : 'pointer-events-none opacity-0 group-hover/alert-card:pointer-events-auto group-hover/alert-card:opacity-100 group-focus-within/alert-card:pointer-events-auto group-focus-within/alert-card:opacity-100',
@@ -478,7 +478,7 @@ export function AlertCard({
           {!compact ? (
             <div
               className={cn(
-                'shrink-0 transition-opacity duration-150',
+                'shrink-0 transition-opacity',
                 active
                   ? 'opacity-100'
                   : 'pointer-events-none opacity-0 group-hover/alert-card:pointer-events-auto group-hover/alert-card:opacity-100 group-focus-within/alert-card:pointer-events-auto group-focus-within/alert-card:opacity-100',
