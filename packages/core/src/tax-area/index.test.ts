@@ -61,8 +61,13 @@ describe('taxAreaForTaxType', () => {
       fl_f1120: 'income_business',
       fl_cit_estimated_tax: 'income_business',
       federal_941: 'payroll_withholding',
+      federal_940: 'payroll_withholding',
+      federal_w2_w3: 'payroll_withholding',
       federal_payroll_deposit_monthly: 'payroll_withholding',
+      federal_709: 'income_individual',
       federal_1099_nec: 'info_compliance',
+      federal_1099_misc: 'info_compliance',
+      federal_5500: 'info_compliance',
       federal_fbar: 'info_compliance',
       ca_llc_annual_tax: 'franchise',
       ca_llc_estimated_fee: 'franchise',
@@ -110,6 +115,10 @@ describe('taxAreaForFormText (fuzzy fallback)', () => {
     expect(taxAreaForFormText('CA Franchise Tax')).toBe('franchise')
     expect(taxAreaForFormText('FBAR (FinCEN Form 114)')).toBe('info_compliance')
     expect(taxAreaForFormText('1099-NEC')).toBe('info_compliance')
+    expect(taxAreaForFormText('Form 940')).toBe('payroll_withholding')
+    expect(taxAreaForFormText('Form W-2')).toBe('payroll_withholding')
+    expect(taxAreaForFormText('Form 709 Gift Tax Return')).toBe('income_individual')
+    expect(taxAreaForFormText('Form 5500-SF')).toBe('info_compliance')
   })
 
   it('returns null for unrecognized text', () => {

@@ -7813,6 +7813,10 @@ msgstr "From $399"
 msgid "from matched rule"
 msgstr "from matched rule"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "From your rule library"
+msgstr "From your rule library"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Full client names"
 msgstr "Full client names"
@@ -10147,8 +10151,8 @@ msgid "No active practice is selected."
 msgstr "No active practice is selected."
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "No active rule"
-msgstr "No active rule"
+msgid "No active rule — accept or author one in the Rules library"
+msgstr "No active rule — accept or author one in the Rules library"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "No active rules for this jurisdiction."

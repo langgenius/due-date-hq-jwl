@@ -47,6 +47,7 @@ import { type ClientEntityType } from '@/features/clients/client-readiness'
 import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
 import {
   COMMON_FORM_VOUCHER_SUGGESTIONS,
+  isTaxTypeCoveredByDeadlineCategories,
   listDeadlineCategorySuggestions,
   listFormVoucherSuggestionsForInput,
   resolveDeadlineCategoryForInput,
@@ -783,18 +784,54 @@ export function CreateObligationDialog({
   })
   const allRules = rulesQuery.data ?? EMPTY_RULES
   const deadlineCategoryOptions = useMemo(listDeadlineCategorySuggestions, [])
+  // Accepted or practice-authored rules the static category catalog doesn't
+  // reach (e.g. a custom Form 720 rule, an accepted PTET election rule) become
+  // their own selectable categories so the dialog has no dead taxTypes.
+  const libraryCategoryOptions = useMemo((): DeadlineCategorySuggestion[] => {
+    const seen = new Set<string>()
+    return allRules
+      .filter(
+        (rule) =>
+          rule.status === 'active' &&
+          rule.dueDateLogic.kind !== 'source_defined_calendar' &&
+          !isTaxTypeCoveredByDeadlineCategories(rule.taxType),
+      )
+      .filter((rule) => {
+        const key = rule.taxType.trim().toLowerCase()
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      .map(
+        (rule): DeadlineCategorySuggestion => ({
+          value: rule.taxType,
+          label: rule.formName.trim() || formatTaxCode(rule.taxType),
+          description: rule.title,
+          generationStatus: 'rule_backed',
+          jurisdiction: rule.jurisdiction,
+          priority: 1000,
+        }),
+      )
+      .toSorted((a, b) => a.label.localeCompare(b.label))
+  }, [allRules])
   const deadlineCategorySuggestionGroups = useMemo(
     () =>
       [
         {
           options: deadlineCategoryOptions,
         },
+        ...(libraryCategoryOptions.length > 0
+          ? [{ heading: t`From your rule library`, options: libraryCategoryOptions }]
+          : []),
       ] satisfies readonly SuggestionGroup<DeadlineCategorySuggestion>[],
-    [deadlineCategoryOptions],
+    [deadlineCategoryOptions, libraryCategoryOptions, t],
   )
   const selectedCategory = useMemo(
-    () => deadlineCategoryOptions.find((option) => option.value === taxTypeValue) ?? null,
-    [deadlineCategoryOptions, taxTypeValue],
+    () =>
+      deadlineCategoryOptions.find((option) => option.value === taxTypeValue) ??
+      libraryCategoryOptions.find((option) => option.value === taxTypeValue) ??
+      null,
+    [deadlineCategoryOptions, libraryCategoryOptions, taxTypeValue],
   )
   const fixedJurisdiction = selectedCategory?.jurisdiction ?? null
   const selectedRuleJurisdictions = useMemo(
@@ -1333,7 +1370,7 @@ export function CreateObligationDialog({
                       ) : (
                         <>
                           <span> · </span>
-                          <Trans>No active rule</Trans>
+                          <Trans>No active rule — accept or author one in the Rules library</Trans>
                         </>
                       )}
                     </div>

@@ -161,6 +161,37 @@ export const DEADLINE_CATEGORY_SUGGESTIONS: readonly DeadlineCategorySuggestion[
     priority: 10,
   },
   {
+    value: 'nonprofit_annual_return',
+    label: 'Nonprofit annual return',
+    description: 'Annual information return for exempt organizations (990 series)',
+    generationStatus: 'rule_backed',
+    formName: 'Form 990 / 990-EZ / 990-N / 990-PF',
+    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_990' },
+    formNamesByJurisdiction: { FED: 'Form 990 / 990-EZ / 990-N / 990-PF' },
+    entityTypes: ['c_corp', 'other'],
+    priority: 12,
+  },
+  {
+    value: 'business_estimated_tax_payment',
+    label: 'Business estimated tax payment',
+    description:
+      'Quarterly estimated income tax payments for corporations; rule review required for the installment schedule',
+    generationStatus: 'rule_review_required',
+    formName: 'Estimated tax payments',
+    taxTypesByJurisdiction: { FED: 'federal_1120_estimated_tax' },
+    formNamesByJurisdiction: { FED: 'Estimated tax payments' },
+    stateGenericMappings: [
+      {
+        taxTypeSuffix: 'state_business_estimated_tax',
+        formName: 'State business estimated tax',
+      },
+    ],
+    obligationType: 'payment',
+    entityTypes: ['c_corp', 's_corp'],
+    priority: 22,
+  },
+  {
     value: 'business_return_extension',
     label: 'Business return extension',
     description: 'Extension request for business, trust, or estate income returns',
@@ -197,6 +228,66 @@ export const DEADLINE_CATEGORY_SUGGESTIONS: readonly DeadlineCategorySuggestion[
     priority: 40,
   },
   {
+    value: 'employer_annual_payroll_return',
+    label: 'Employer annual FUTA return',
+    description: 'Annual federal unemployment tax return for employers',
+    generationStatus: 'rule_backed',
+    formName: 'Form 940',
+    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_940' },
+    formNamesByJurisdiction: { FED: 'Form 940' },
+    flags: ['hasPayroll'],
+    priority: 41,
+  },
+  {
+    value: 'wage_statement_filing',
+    label: 'Wage statements',
+    description: 'Annual W-2 wage statement filing with the SSA plus employee copies',
+    generationStatus: 'rule_backed',
+    formName: 'Form W-2 / W-3',
+    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_w2_w3' },
+    formNamesByJurisdiction: { FED: 'Form W-2 / W-3' },
+    obligationType: 'information',
+    flags: ['hasPayroll'],
+    priority: 42,
+  },
+  {
+    value: 'state_payroll_withholding_return',
+    label: 'State payroll withholding return',
+    description:
+      'State income tax withholding returns and reconciliations for employers; use Jurisdiction for the state',
+    generationStatus: 'rule_review_required',
+    formName: 'State withholding tax return',
+    stateGenericMappings: [
+      {
+        taxTypeSuffix: 'state_withholding_tax',
+        formName: 'State withholding tax return',
+      },
+    ],
+    entityTypes: ['llc', 's_corp', 'partnership', 'c_corp', 'sole_prop'],
+    flags: ['hasPayroll'],
+    priority: 43,
+  },
+  {
+    value: 'state_unemployment_wage_report',
+    label: 'State unemployment wage report',
+    description:
+      'Quarterly state unemployment contribution and wage reports for employers; use Jurisdiction for the state',
+    generationStatus: 'rule_review_required',
+    formName: 'State unemployment contribution and wage report',
+    stateGenericMappings: [
+      {
+        taxTypeSuffix: 'state_ui_wage_report',
+        formName: 'State unemployment contribution and wage report',
+      },
+    ],
+    obligationType: 'information',
+    entityTypes: ['llc', 's_corp', 'partnership', 'c_corp', 'sole_prop'],
+    flags: ['hasPayroll'],
+    priority: 44,
+  },
+  {
     value: 'payroll_tax_deposit',
     label: 'Payroll tax deposit',
     description: 'Employer payroll tax deposit; rule review required for deposit schedule',
@@ -222,9 +313,22 @@ export const DEADLINE_CATEGORY_SUGGESTIONS: readonly DeadlineCategorySuggestion[
     priority: 50,
   },
   {
+    value: 'information_returns_misc',
+    label: 'Miscellaneous information returns',
+    description: 'Annual 1099-MISC reporting for rents, royalties, and other payments',
+    generationStatus: 'rule_backed',
+    formName: 'Form 1099-MISC',
+    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_1099_misc' },
+    formNamesByJurisdiction: { FED: 'Form 1099-MISC' },
+    obligationType: 'information',
+    flags: ['has1099Vendors'],
+    priority: 51,
+  },
+  {
     value: 'franchise_annual_tax_payment',
     label: 'Franchise or annual tax payment',
-    description: 'State business franchise, annual, or filing-fee payment',
+    description: 'State business franchise, annual report, or filing-fee payment',
     generationStatus: 'rule_backed',
     formName: 'Annual tax voucher',
     taxTypesByJurisdiction: {
@@ -264,6 +368,33 @@ export const DEADLINE_CATEGORY_SUGGESTIONS: readonly DeadlineCategorySuggestion[
     entityTypes: ['llc', 's_corp', 'partnership', 'c_corp', 'sole_prop'],
     flags: ['hasSalesTax'],
     priority: 70,
+  },
+  {
+    value: 'gift_tax_return',
+    label: 'Gift tax return',
+    description: 'Gift tax return for individuals who made reportable gifts',
+    generationStatus: 'rule_backed',
+    formName: 'Form 709',
+    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_709' },
+    formNamesByJurisdiction: { FED: 'Form 709' },
+    entityTypes: ['individual'],
+    priority: 85,
+    isSpecialty: true,
+  },
+  {
+    value: 'employee_benefit_plan_return',
+    label: 'Employee benefit plan return',
+    description: 'Annual retirement and benefit plan return for plan sponsors',
+    generationStatus: 'rule_backed',
+    formName: 'Form 5500',
+    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_5500' },
+    formNamesByJurisdiction: { FED: 'Form 5500' },
+    obligationType: 'information',
+    entityTypes: ['sole_prop', 'llc', 's_corp', 'partnership', 'c_corp'],
+    priority: 88,
+    isSpecialty: true,
   },
   {
     value: 'foreign_bank_account_report',
@@ -407,6 +538,27 @@ export function preferredDeadlineCategoryFormName(input: {
     resolveDeadlineCategoryForInput({ ...input, formName: '' }).candidates[0]?.formName ??
     deadlineCategoryOption(input.value)?.formName ??
     null
+  )
+}
+
+const STATE_GENERIC_TAX_TYPE_RE = /^[a-z]{2}_(state_[a-z0-9_]+)$/
+
+/**
+ * Whether some dropdown category already resolves to this rule taxType
+ * (explicitly or through a state-generic suffix). The create dialog uses the
+ * complement to surface accepted or custom rules the static catalog doesn't
+ * reach as their own selectable categories.
+ */
+export function isTaxTypeCoveredByDeadlineCategories(taxType: string): boolean {
+  const normalized = taxType.trim().toLowerCase()
+  if (normalized.length === 0) return true
+  const suffix = STATE_GENERIC_TAX_TYPE_RE.exec(normalized)?.[1] ?? null
+  return DEADLINE_CATEGORY_SUGGESTIONS.some(
+    (option) =>
+      Object.values(option.taxTypesByJurisdiction ?? {}).includes(normalized) ||
+      (suffix !== null &&
+        (option.stateGenericMappings?.some((mapping) => mapping.taxTypeSuffix === suffix) ??
+          false)),
   )
 }
 

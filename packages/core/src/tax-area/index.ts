@@ -80,9 +80,14 @@ const KEYWORD_RULES: ReadonlyArray<readonly [RegExp, TaxArea | null]> = [
   [/fincen/, 'info_compliance'],
   [/(^|_)boi(_|$)/, 'info_compliance'],
   [/beneficial_ownership/, 'info_compliance'],
+  [/5500/, 'info_compliance'],
 
   // Payroll & withholding.
   [/(^|_)941(_|$)/, 'payroll_withholding'],
+  [/(^|_)940(_|$)/, 'payroll_withholding'],
+  // W-2/W-3: matches both taxType ids (federal_w2_w3) and normalized
+  // parsedForms text ("Form W-2" → form_w_2).
+  [/(^|_)w_?[23](_|$)/, 'payroll_withholding'],
   [/payroll/, 'payroll_withholding'],
   [/withholding/, 'payroll_withholding'],
   [/ui_wage/, 'payroll_withholding'],
@@ -132,6 +137,8 @@ const KEYWORD_RULES: ReadonlyArray<readonly [RegExp, TaxArea | null]> = [
   // Individual & fiduciary income.
   [/1040/, 'income_individual'],
   [/1041/, 'income_individual'],
+  [/(^|_)709(_|$)/, 'income_individual'],
+  [/gift/, 'income_individual'],
   [/(^|_)540(_|$)/, 'income_individual'],
   [/(^|_)541(_|$)/, 'income_individual'],
   [/it201/, 'income_individual'],

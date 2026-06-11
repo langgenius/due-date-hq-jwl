@@ -4,6 +4,7 @@ import { listObligationRules } from '@duedatehq/core/rules'
 import {
   DEADLINE_CATEGORY_SUGGESTIONS,
   isDeadlineCategoryDefaultFormName,
+  isTaxTypeCoveredByDeadlineCategories,
   listDeadlineCategorySuggestions,
   listFormVoucherSuggestionsForInput,
   preferredDeadlineCategoryFormName,
@@ -88,9 +89,62 @@ describe('deadline category suggestions', () => {
     expect(labels).toContain('Trust and estate income tax return')
     expect(labels).toContain('Business return extension')
     expect(labels).toContain('Franchise or annual tax payment')
+    expect(labels).toContain('Nonprofit annual return')
+    expect(labels).toContain('Business estimated tax payment')
+    expect(labels).toContain('Employer annual FUTA return')
+    expect(labels).toContain('Wage statements')
+    expect(labels).toContain('Miscellaneous information returns')
+    expect(labels).toContain('State payroll withholding return')
+    expect(labels).toContain('State unemployment wage report')
+    expect(labels).toContain('Gift tax return')
+    expect(labels).toContain('Employee benefit plan return')
     expect(labels).not.toContain('LLC annual/minimum tax payment')
     expect(labels).not.toContain('LLC income/franchise return')
     expect(labels).not.toContain('Schedule K-1 dependency')
+  })
+
+  it('resolves the payroll and business-payment categories to rule tax types', () => {
+    expect(
+      candidateTaxTypes({ value: 'employer_annual_payroll_return', jurisdiction: 'FED' }),
+    ).toEqual(['federal_940'])
+    expect(candidateTaxTypes({ value: 'wage_statement_filing', jurisdiction: 'FED' })).toEqual([
+      'federal_w2_w3',
+    ])
+    expect(candidateTaxTypes({ value: 'information_returns_misc', jurisdiction: 'FED' })).toEqual([
+      'federal_1099_misc',
+    ])
+    expect(candidateTaxTypes({ value: 'gift_tax_return', jurisdiction: 'FED' })).toEqual([
+      'federal_709',
+    ])
+    expect(
+      candidateTaxTypes({ value: 'employee_benefit_plan_return', jurisdiction: 'FED' }),
+    ).toEqual(['federal_5500'])
+    expect(candidateTaxTypes({ value: 'nonprofit_annual_return', jurisdiction: 'FED' })).toEqual([
+      'federal_990',
+    ])
+    expect(
+      candidateTaxTypes({ value: 'business_estimated_tax_payment', jurisdiction: 'FED' }),
+    ).toEqual(['federal_1120_estimated_tax'])
+    expect(
+      candidateTaxTypes({ value: 'business_estimated_tax_payment', jurisdiction: 'CA' }),
+    ).toEqual(['ca_state_business_estimated_tax'])
+    expect(
+      candidateTaxTypes({ value: 'state_payroll_withholding_return', jurisdiction: 'CA' }),
+    ).toEqual(['ca_state_withholding_tax'])
+    expect(
+      candidateTaxTypes({ value: 'state_unemployment_wage_report', jurisdiction: 'NY' }),
+    ).toEqual(['ny_state_ui_wage_report'])
+  })
+
+  it('reports which rule tax types the static categories already reach', () => {
+    expect(isTaxTypeCoveredByDeadlineCategories('federal_1040')).toBe(true)
+    expect(isTaxTypeCoveredByDeadlineCategories('federal_940')).toBe(true)
+    expect(isTaxTypeCoveredByDeadlineCategories('ca_state_individual_income_tax')).toBe(true)
+    expect(isTaxTypeCoveredByDeadlineCategories('az_state_withholding_tax')).toBe(true)
+    expect(isTaxTypeCoveredByDeadlineCategories('ca_100')).toBe(true)
+    expect(isTaxTypeCoveredByDeadlineCategories('ny_ptet_election')).toBe(false)
+    expect(isTaxTypeCoveredByDeadlineCategories('ca_llc_568')).toBe(false)
+    expect(isTaxTypeCoveredByDeadlineCategories('federal_disaster_relief')).toBe(false)
   })
 
   it('resolves broad categories to jurisdiction-first rule candidates at submit time', () => {

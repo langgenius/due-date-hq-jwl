@@ -7846,6 +7846,10 @@ msgstr "$399 起"
 msgid "from matched rule"
 msgstr "来自匹配的规则"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "From your rule library"
+msgstr "来自规则库"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Full client names"
 msgstr "显示完整客户名"
@@ -10194,8 +10198,8 @@ msgid "No active practice is selected."
 msgstr "未选择当前事务所。"
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "No active rule"
-msgstr "无已激活规则"
+msgid "No active rule — accept or author one in the Rules library"
+msgstr "无已激活规则 — 请先在规则库中接受或创建规则"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "No active rules for this jurisdiction."
