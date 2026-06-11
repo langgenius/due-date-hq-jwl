@@ -1581,9 +1581,9 @@ export function ObligationQueueDetailDrawer({
         const outstandingMaterials = checklist.filter(
           (i) => i.status !== 'received' && i.status !== 'waived',
         ).length
-        const allMaterialsReceived = checklist.length > 0 && outstandingMaterials === 0
         const extensionSaved = Boolean(row?.extensionDecidedAt)
         const evidenceCount = detail?.evidence.length ?? 0
+        const auditCount = detail?.auditEvents.length ?? 0
         return (
           <TabsList
             variant="line"
@@ -1668,26 +1668,17 @@ export function ObligationQueueDetailDrawer({
               >
                 <PaperclipIcon className="size-3.5" aria-hidden />
                 <Trans>Materials</Trans>
+                {/* 2026-06-11 (Yuqi "standardize tab indicators"): ONE
+                    vocabulary across the bar — count pills, shown only when
+                    there's something to count. The green all-received ✓ glyph
+                    is gone (it mixed vocabularies); the accent tint stays as
+                    the "action needed here" tone. */}
                 {outstandingMaterials > 0 ? (
                   <span
                     aria-label={t`${outstandingMaterials} outstanding`}
-                    // 2026-05-26 (Yuqi feedback #3): badge subtler.
-                    // Was solid destructive red with white text —
-                    // that loudness made every Materials tab with
-                    // outstanding items shout "danger." Now: light
-                    // accent tint (state-accent-hover-alt) with
-                    // accent-tinted text. Communicates "13 items
-                    // here" without alarm chrome.
                     className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-accent-hover-alt px-1 text-caption-xs font-medium leading-none tabular-nums text-text-accent"
                   >
                     {outstandingMaterials}
-                  </span>
-                ) : allMaterialsReceived ? (
-                  <span
-                    aria-label={t`All received`}
-                    className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-success-hover px-1 text-caption-xs text-state-success-solid"
-                  >
-                    <CheckIcon className="size-3" aria-hidden />
                   </span>
                 ) : null}
               </TabsTrigger>
@@ -1723,12 +1714,16 @@ export function ObligationQueueDetailDrawer({
                 {/* rzzww: the evidence/workpaper surface is labelled
                     "Record" on the standalone page. */}
                 {isPageMode ? <Trans>Record</Trans> : <Trans>Evidence</Trans>}
-                <span
-                  aria-label={t`${evidenceCount} workpapers`}
-                  className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs tabular-nums text-text-tertiary"
-                >
-                  {evidenceCount}
-                </span>
+                {/* Count pill only when there's something to count — a "0"
+                    pill read as odd decoration (Yuqi). */}
+                {evidenceCount > 0 ? (
+                  <span
+                    aria-label={t`${evidenceCount} workpapers`}
+                    className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs tabular-nums text-text-tertiary"
+                  >
+                    {evidenceCount}
+                  </span>
+                ) : null}
               </TabsTrigger>
             ) : null}
             {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
@@ -1743,6 +1738,14 @@ export function ObligationQueueDetailDrawer({
               >
                 <HistoryIcon className="size-3.5" aria-hidden />
                 <Trans>Audit</Trans>
+                {auditCount > 0 ? (
+                  <span
+                    aria-label={t`${auditCount} events`}
+                    className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs tabular-nums text-text-tertiary"
+                  >
+                    {auditCount}
+                  </span>
+                ) : null}
               </TabsTrigger>
             ) : null}
           </TabsList>
@@ -2939,70 +2942,136 @@ export function ObligationQueueDetailDrawer({
                     year settings) reads as its own clear section
                     instead of one long stack. Cross-tab default. */}
                   <div className="grid gap-4">
-                    {/* Top-of-tab summary — explains what readiness IS
-                        + shows the at-a-glance state (PRD §3.2 says the
-                        biggest deadline risk isn't "CPA doesn't know the
-                        date," it's "CPA doesn't have enough info to
-                        finish the return"). This anchor + the per-item
-                        rows below replace the prior right sidebar. */}
-                    <ReadinessOverview
-                      row={row}
-                      latestRequest={latestRequest ?? null}
-                      checklistCount={checklist.length}
-                      receivedCount={checklist.filter((item) => item.status === 'received').length}
-                    />
-                    {/* Cluster 2 (Materials design `AYpfU` MatHeader): progress
+                    {/* 2026-06-11 (Yuqi tab-content unification): the Materials
+                        surface now lives in DetailSectionCards so all four tabs
+                        share the Status tab's card language. Card 1 — "Materials
+                        checklist": the readiness summary (demoted to a compact
+                        status line INSIDE the card — it used to out-weight the
+                        checklist as a free-floating green headline), progress +
+                        legend, then the checklist sections. One title per card
+                        (section-header-style.md §Register C): the band title is
+                        the only title; the reference badge + list actions live
+                        in headerRight. */}
+                    <DetailSectionCard
+                      title={<Trans>Materials checklist</Trans>}
+                      headerRight={
+                        <>
+                          {checklistReference ? (
+                            <Badge
+                              variant="outline"
+                              className="h-5 rounded-lg px-1.5 text-caption-xs font-medium text-text-secondary"
+                            >
+                              {checklistReference}
+                            </Badge>
+                          ) : null}
+                          {checklist.length > 0 ? (
+                            <>
+                              <span className="flex items-center gap-1.5 text-sm font-medium text-text-secondary">
+                                <Checkbox
+                                  aria-label={
+                                    correctionMaterialsMode
+                                      ? t`Select all received items`
+                                      : t`Select all`
+                                  }
+                                  checked={allMaterialsSelected}
+                                  disabled={
+                                    checklistItemIdsForSelection.length === 0 ||
+                                    checklistGenerating ||
+                                    updateChecklistItemMutation.isPending
+                                  }
+                                  onCheckedChange={() => {
+                                    if (allMaterialsSelected) clearMaterialsSelection()
+                                    else selectAllMaterials()
+                                  }}
+                                />
+                                {correctionMaterialsMode ? (
+                                  <Trans>Select received</Trans>
+                                ) : (
+                                  <Trans>Select all</Trans>
+                                )}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={addChecklistItem}
+                                disabled={
+                                  checklistGenerating ||
+                                  addChecklistItemMutation.isPending ||
+                                  checklist.length >= 30
+                                }
+                              >
+                                <PlusIcon data-icon="inline-start" />
+                                <Trans>Add item</Trans>
+                              </Button>
+                            </>
+                          ) : null}
+                        </>
+                      }
+                    >
+                      {/* Readiness summary — explains what readiness IS + shows
+                        the at-a-glance state (PRD §3.2 says the biggest
+                        deadline risk isn't "CPA doesn't know the date," it's
+                        "CPA doesn't have enough info to finish the return"). */}
+                      <ReadinessOverview
+                        row={row}
+                        latestRequest={latestRequest ?? null}
+                        checklistCount={checklist.length}
+                        receivedCount={
+                          checklist.filter((item) => item.status === 'received').length
+                        }
+                      />
+                      {/* Cluster 2 (Materials design `AYpfU` MatHeader): progress
                       bar + 3-dot legend. received = `received`; outstanding =
                       `missing` + `needs_review`; waived = `waived` (CPA marked
                       not-applicable this year). */}
-                    {checklist.length > 0 ? (
-                      <MaterialsProgressLegend
-                        counts={{
-                          received: checklist.filter((item) => item.status === 'received').length,
-                          outstanding: checklist.filter(
-                            (item) => item.status !== 'received' && item.status !== 'waived',
-                          ).length,
-                          waived: checklist.filter((item) => item.status === 'waived').length,
-                        }}
-                      />
-                    ) : null}
-                    {/* Three-class deadline display (PRD §7.2 + §3.2):
+                      {checklist.length > 0 ? (
+                        <MaterialsProgressLegend
+                          counts={{
+                            received: checklist.filter((item) => item.status === 'received').length,
+                            outstanding: checklist.filter(
+                              (item) => item.status !== 'received' && item.status !== 'waived',
+                            ).length,
+                            waived: checklist.filter((item) => item.status === 'waived').length,
+                          }}
+                        />
+                      ) : null}
+                      {/* Three-class deadline display (PRD §7.2 + §3.2):
                         client-action chip when a readiness request is
                         outstanding. The other two classes (statutory,
                         firm-internal) live in the drawer header. */}
-                    {latestRequest && latestRequest.status !== 'revoked' ? (
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <Badge
-                          variant="outline"
-                          className="border-state-warning-border bg-state-warning-hover text-text-warning"
-                        >
-                          <Trans>
-                            Client response due{' '}
-                            {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
-                          </Trans>
-                        </Badge>
-                        <span className="text-text-tertiary">
-                          <Trans>· firm-set deadline for this materials request</Trans>
-                        </span>
-                      </div>
-                    ) : null}
-                    {correctionMaterialsMode ? (
-                      <div className="flex items-start gap-2 rounded-lg border border-state-destructive-border bg-state-destructive-hover px-3 py-2 text-sm text-text-destructive">
-                        <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
-                        <div className="grid gap-1">
-                          <p className="font-medium">
-                            <Trans>Request corrected materials</Trans>
-                          </p>
-                          <p className="text-xs leading-snug">
+                      {latestRequest && latestRequest.status !== 'revoked' ? (
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <Badge
+                            variant="outline"
+                            className="border-state-warning-border bg-state-warning-hover text-text-warning"
+                          >
                             <Trans>
-                              Select received items that need changes, mark them needs correction,
-                              then send only those items to the client.
+                              Client response due{' '}
+                              {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
                             </Trans>
-                          </p>
+                          </Badge>
+                          <span className="text-text-tertiary">
+                            <Trans>· firm-set deadline for this materials request</Trans>
+                          </span>
                         </div>
-                      </div>
-                    ) : null}
-                    {/* K-1 / parent-obligation blocker editor removed
+                      ) : null}
+                      {correctionMaterialsMode ? (
+                        <div className="flex items-start gap-2 rounded-lg border border-state-destructive-border bg-state-destructive-hover px-3 py-2 text-sm text-text-destructive">
+                          <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
+                          <div className="grid gap-1">
+                            <p className="font-medium">
+                              <Trans>Request corrected materials</Trans>
+                            </p>
+                            <p className="text-xs leading-snug">
+                              <Trans>
+                                Select received items that need changes, mark them needs correction,
+                                then send only those items to the client.
+                              </Trans>
+                            </p>
+                          </div>
+                        </div>
+                      ) : null}
+                      {/* K-1 / parent-obligation blocker editor removed
                     2026-05-21 — it surfaced as a full picker on every
                     drawer open, even when not blocked. The queue row's
                     <BlockedByChip> still shows when a blocker is set,
@@ -3010,7 +3079,7 @@ export function ObligationQueueDetailDrawer({
                     chip + on-demand picker, or auto-detected from
                     related-entity rows) is parked for a later pass —
                     see docs/Design/obligation-drawer-ux-audit-2026-05-21.md. */}
-                    {/* Action hierarchy — 2026-05-21 redesign:
+                      {/* Action hierarchy — 2026-05-21 redesign:
                     - Empty checklist → single primary "Generate document
                       list" CTA. The other two buttons (Add item, Send to
                       client) are useless here, so they're hidden.
@@ -3021,7 +3090,7 @@ export function ObligationQueueDetailDrawer({
                     weight regardless of state, so the actual workflow
                     goal (send the request) had to fight Generate +
                     Add item for the user's eye. */}
-                    {/* 2026-05-26 (Yuqi fifty-eighth pass — section title
+                      {/* 2026-05-26 (Yuqi fifty-eighth pass — section title
                     semantics): label was "Documents received" + count
                     of `checklist.length` (TOTAL items). Yuqi flagged
                     "Documents Received and Outstanding - what is the
@@ -3041,161 +3110,103 @@ export function ObligationQueueDetailDrawer({
                         ├ Outstanding (N items)
                         └ Received (M items, M + N = 13)
                 */}
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-base font-semibold text-text-primary">
-                              <Trans>Materials checklist</Trans>
-                            </h3>
-                            {checklistReference ? (
-                              <Badge
-                                variant="outline"
-                                className="h-5 rounded-lg px-1.5 text-caption-xs font-medium text-text-secondary"
-                              >
-                                {checklistReference}
-                              </Badge>
-                            ) : null}
-                          </div>
-                          {(() => {
-                            if (row.status !== 'done' && row.status !== 'completed') return null
-                            const total = checklist.length
-                            const received = checklist.filter((i) => i.status === 'received').length
-                            const description =
-                              total === 0
-                                ? t`No document checklist was attached to this filing.`
-                                : received === 0
-                                  ? t`${total} checklist items weren't individually ticked during filing.`
-                                  : received < total
-                                    ? t`${received} of ${total} items recorded as received before filing.`
-                                    : t`All ${total} items recorded as received.`
-                            return (
-                              <p className="text-caption italic leading-snug text-text-tertiary">
-                                {description}
-                              </p>
-                            )
-                          })()}
-                        </div>
-                        {checklist.length > 0 ? (
-                          <div className="flex shrink-0 items-center gap-2">
-                            <div className="flex h-8 items-center gap-2 rounded-lg px-1 text-sm font-medium text-text-secondary">
-                              <Checkbox
-                                aria-label={
-                                  correctionMaterialsMode
-                                    ? t`Select all received items`
-                                    : t`Select all`
-                                }
-                                checked={allMaterialsSelected}
-                                disabled={
-                                  checklistItemIdsForSelection.length === 0 ||
-                                  checklistGenerating ||
-                                  updateChecklistItemMutation.isPending
-                                }
-                                onCheckedChange={() => {
-                                  if (allMaterialsSelected) clearMaterialsSelection()
-                                  else selectAllMaterials()
-                                }}
-                              />
-                              <span>
-                                {correctionMaterialsMode ? (
-                                  <Trans>Select received</Trans>
-                                ) : (
-                                  <Trans>Select all</Trans>
-                                )}
-                              </span>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={addChecklistItem}
-                              disabled={
-                                checklistGenerating ||
-                                addChecklistItemMutation.isPending ||
-                                checklist.length >= 30
-                              }
-                            >
-                              <PlusIcon data-icon="inline-start" />
-                              <Trans>Add item</Trans>
-                            </Button>
-                          </div>
-                        ) : null}
-                      </div>
-                      {checklist.length === 0 ? (
-                        autoGenerateChecklistQuery.isFetching ? (
-                          <EmptyPanel className="grid gap-3 text-text-secondary">
-                            <div className="flex items-center gap-2">
-                              <RefreshCwIcon className="size-4 animate-spin" aria-hidden />
-                              <span>
-                                <Trans>Preparing</Trans>
-                              </span>
-                            </div>
-                          </EmptyPanel>
-                        ) : autoGenerateChecklistQuery.isError ? (
-                          <EmptyPanel>
-                            <div className="flex flex-wrap items-center justify-center gap-2">
-                              <span>
-                                <Trans>Couldn't generate document list</Trans>
-                              </span>
-                              <Button
-                                size="xs"
-                                variant="outline"
-                                onClick={() => void autoGenerateChecklistQuery.refetch()}
-                              >
-                                <Trans>Retry</Trans>
-                              </Button>
-                            </div>
-                          </EmptyPanel>
-                        ) : (
-                          // Empty state — single primary CTA (Generate) sits
-                          // inside the empty panel as the obvious next step.
-                          // "Add item" is demoted to a small text link below
-                          // for users who want to bypass the AI generation.
-                          <EmptyPanel className="grid gap-3 text-center text-text-secondary">
-                            <p className="text-text-tertiary">
-                              <Trans>
-                                No documents listed yet. Generate an AI checklist or add items
-                                manually.
-                              </Trans>
+                      <div className="flex flex-col gap-2">
+                        {/* Terminal rows: archive framing — how complete the
+                          audit trail was at filing time. */}
+                        {(() => {
+                          if (row.status !== 'done' && row.status !== 'completed') return null
+                          const total = checklist.length
+                          const received = checklist.filter((i) => i.status === 'received').length
+                          const description =
+                            total === 0
+                              ? t`No document checklist was attached to this filing.`
+                              : received === 0
+                                ? t`${total} checklist items weren't individually ticked during filing.`
+                                : received < total
+                                  ? t`${received} of ${total} items recorded as received before filing.`
+                                  : t`All ${total} items recorded as received.`
+                          return (
+                            <p className="text-caption italic leading-snug text-text-tertiary">
+                              {description}
                             </p>
-                            <div className="flex flex-wrap items-center justify-center gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  generateChecklistMutation.mutate({
-                                    obligationId: row.id,
-                                  })
-                                }
-                                disabled={checklistGenerating}
-                              >
-                                <RefreshCwIcon
-                                  data-icon="inline-start"
-                                  className={cn(checklistGenerating ? 'animate-spin' : undefined)}
-                                />
-                                {checklistGenerating ? (
+                          )
+                        })()}
+                        {checklist.length === 0 ? (
+                          autoGenerateChecklistQuery.isFetching ? (
+                            <EmptyPanel className="grid gap-3 text-text-secondary">
+                              <div className="flex items-center gap-2">
+                                <RefreshCwIcon className="size-4 animate-spin" aria-hidden />
+                                <span>
                                   <Trans>Preparing</Trans>
-                                ) : (
-                                  <Trans>Generate document list</Trans>
-                                )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={addChecklistItem}
-                                disabled={
-                                  checklistGenerating ||
-                                  addChecklistItemMutation.isPending ||
-                                  checklist.length >= 30
-                                }
-                              >
-                                <PlusIcon data-icon="inline-start" />
-                                <Trans>Add item manually</Trans>
-                              </Button>
-                            </div>
-                          </EmptyPanel>
-                        )
-                      ) : (
-                        <>
-                          {/* 2026-05-26 (Step 9 AI Visibility Audit F-020):
+                                </span>
+                              </div>
+                            </EmptyPanel>
+                          ) : autoGenerateChecklistQuery.isError ? (
+                            <EmptyPanel>
+                              <div className="flex flex-wrap items-center justify-center gap-2">
+                                <span>
+                                  <Trans>Couldn't generate document list</Trans>
+                                </span>
+                                <Button
+                                  size="xs"
+                                  variant="outline"
+                                  onClick={() => void autoGenerateChecklistQuery.refetch()}
+                                >
+                                  <Trans>Retry</Trans>
+                                </Button>
+                              </div>
+                            </EmptyPanel>
+                          ) : (
+                            // Empty state — single primary CTA (Generate) sits
+                            // inside the empty panel as the obvious next step.
+                            // "Add item" is demoted to a small text link below
+                            // for users who want to bypass the AI generation.
+                            <EmptyPanel className="grid gap-3 text-center text-text-secondary">
+                              <p className="text-text-tertiary">
+                                <Trans>
+                                  No documents listed yet. Generate an AI checklist or add items
+                                  manually.
+                                </Trans>
+                              </p>
+                              <div className="flex flex-wrap items-center justify-center gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() =>
+                                    generateChecklistMutation.mutate({
+                                      obligationId: row.id,
+                                    })
+                                  }
+                                  disabled={checklistGenerating}
+                                >
+                                  <RefreshCwIcon
+                                    data-icon="inline-start"
+                                    className={cn(checklistGenerating ? 'animate-spin' : undefined)}
+                                  />
+                                  {checklistGenerating ? (
+                                    <Trans>Preparing</Trans>
+                                  ) : (
+                                    <Trans>Generate document list</Trans>
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={addChecklistItem}
+                                  disabled={
+                                    checklistGenerating ||
+                                    addChecklistItemMutation.isPending ||
+                                    checklist.length >= 30
+                                  }
+                                >
+                                  <PlusIcon data-icon="inline-start" />
+                                  <Trans>Add item manually</Trans>
+                                </Button>
+                              </div>
+                            </EmptyPanel>
+                          )
+                        ) : (
+                          <>
+                            {/* 2026-05-26 (Step 9 AI Visibility Audit F-020):
                         when the auto-generated checklist came back
                         with `degraded: true` the toast disappears in
                         4 seconds but the user keeps using the
@@ -3204,18 +3215,21 @@ export function ObligationQueueDetailDrawer({
                         fallback list is on screen — the AI's "I'm
                         not sure" signal needs to be persistent,
                         not transient. */}
-                          {checklistDegraded ? (
-                            <div className="flex items-start gap-2 rounded-lg border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
-                              <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                              <span>
-                                <Trans>
-                                  AI couldn't reach the full model — showing a fallback list. Review
-                                  each item against the deadline before relying on it.
-                                </Trans>
-                              </span>
-                            </div>
-                          ) : null}
-                          {/* 2026-05-26 (Yuqi fifty-second pass — Materials
+                            {checklistDegraded ? (
+                              <div className="flex items-start gap-2 rounded-lg border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
+                                <AlertTriangleIcon
+                                  className="mt-0.5 size-3.5 shrink-0"
+                                  aria-hidden
+                                />
+                                <span>
+                                  <Trans>
+                                    AI couldn't reach the full model — showing a fallback list.
+                                    Review each item against the deadline before relying on it.
+                                  </Trans>
+                                </span>
+                              </div>
+                            ) : null}
+                            {/* 2026-05-26 (Yuqi fifty-second pass — Materials
                         Outstanding/Received split from
                         design/deadlines-drawer-rework): checklist now
                         renders as two labeled sections — Outstanding
@@ -3231,74 +3245,74 @@ export function ObligationQueueDetailDrawer({
                         received-style chrome based on item.status —
                         the split is purely organizational, no new
                         renderer needed. */}
-                          {(() => {
-                            const outstandingItems = checklist.filter(
-                              (i) => i.status !== 'received' && i.status !== 'waived',
-                            )
-                            const receivedItems = checklist.filter((i) => i.status === 'received')
-                            const waivedItems = checklist.filter((i) => i.status === 'waived')
-                            function renderRow(item: (typeof checklist)[number]) {
-                              const response =
-                                latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
-                              const received = item.status === 'received'
-                              const selectable = correctionMaterialsMode
-                                ? received
-                                : item.status !== 'received' && item.status !== 'waived'
-                              const isSelected =
-                                selectable && materialsSelection.itemIds.has(item.id)
-                              return (
-                                <ChecklistItemRow
-                                  key={`${item.id}:${item.updatedAt}`}
-                                  item={item}
-                                  response={response}
-                                  correctionMode={correctionMaterialsMode}
-                                  pending={updateChecklistItemMutation.isPending}
-                                  selected={isSelected}
-                                  selectionDisabled={!selectable}
-                                  onToggleSelect={() => toggleMaterialsSelection(item.id)}
-                                  onStatusChange={(status) =>
-                                    updateDocumentChecklistItem(item.id, { status })
-                                  }
-                                  onLabelCommit={(label) =>
-                                    updateDocumentChecklistItem(item.id, { label })
-                                  }
-                                  onDescriptionCommit={(description) =>
-                                    updateDocumentChecklistItem(item.id, {
-                                      description: description || null,
-                                    })
-                                  }
-                                  onNoteCommit={(note) =>
-                                    updateDocumentChecklistItem(item.id, { note: note || null })
-                                  }
-                                  onRemove={() => removeChecklistItem(item.id)}
-                                />
+                            {(() => {
+                              const outstandingItems = checklist.filter(
+                                (i) => i.status !== 'received' && i.status !== 'waived',
                               )
-                            }
-                            // 2026-05-26 (Yuqi sixtieth pass — terminal-state
-                            // Materials framing): when the row is filed /
-                            // completed the checklist becomes an ARCHIVE,
-                            // not a to-do list. "Outstanding 13" on a
-                            // Filed row read as "13 items still to do"
-                            // when the work is closed — the items just
-                            // weren't ticked in the audit trail.
-                            // Terminal headings:
-                            //   • "Outstanding" → "Not in audit trail" —
-                            //     same items, but framed as "missing from
-                            //     the archive" not "still to be done."
-                            //   • "Received" → "Archived" — same items,
-                            //     historical record framing.
-                            const isTerminalRow =
-                              row.status === 'done' || row.status === 'completed'
-                            return (
-                              <div className="flex flex-col gap-4">
-                                {/* 2026-05-26 (Yuqi feedback #5): dropped the
+                              const receivedItems = checklist.filter((i) => i.status === 'received')
+                              const waivedItems = checklist.filter((i) => i.status === 'waived')
+                              function renderRow(item: (typeof checklist)[number]) {
+                                const response =
+                                  latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
+                                const received = item.status === 'received'
+                                const selectable = correctionMaterialsMode
+                                  ? received
+                                  : item.status !== 'received' && item.status !== 'waived'
+                                const isSelected =
+                                  selectable && materialsSelection.itemIds.has(item.id)
+                                return (
+                                  <ChecklistItemRow
+                                    key={`${item.id}:${item.updatedAt}`}
+                                    item={item}
+                                    response={response}
+                                    correctionMode={correctionMaterialsMode}
+                                    pending={updateChecklistItemMutation.isPending}
+                                    selected={isSelected}
+                                    selectionDisabled={!selectable}
+                                    onToggleSelect={() => toggleMaterialsSelection(item.id)}
+                                    onStatusChange={(status) =>
+                                      updateDocumentChecklistItem(item.id, { status })
+                                    }
+                                    onLabelCommit={(label) =>
+                                      updateDocumentChecklistItem(item.id, { label })
+                                    }
+                                    onDescriptionCommit={(description) =>
+                                      updateDocumentChecklistItem(item.id, {
+                                        description: description || null,
+                                      })
+                                    }
+                                    onNoteCommit={(note) =>
+                                      updateDocumentChecklistItem(item.id, { note: note || null })
+                                    }
+                                    onRemove={() => removeChecklistItem(item.id)}
+                                  />
+                                )
+                              }
+                              // 2026-05-26 (Yuqi sixtieth pass — terminal-state
+                              // Materials framing): when the row is filed /
+                              // completed the checklist becomes an ARCHIVE,
+                              // not a to-do list. "Outstanding 13" on a
+                              // Filed row read as "13 items still to do"
+                              // when the work is closed — the items just
+                              // weren't ticked in the audit trail.
+                              // Terminal headings:
+                              //   • "Outstanding" → "Not in audit trail" —
+                              //     same items, but framed as "missing from
+                              //     the archive" not "still to be done."
+                              //   • "Received" → "Archived" — same items,
+                              //     historical record framing.
+                              const isTerminalRow =
+                                row.status === 'done' || row.status === 'completed'
+                              return (
+                                <div className="flex flex-col gap-4">
+                                  {/* 2026-05-26 (Yuqi feedback #5): dropped the
                               "This deadline has been filed" banner. The
                               header status pill + the section title
                               ("Not in audit trail" / "Archived") +
                               ReadinessOverview's italic subline already
                               tell the historical-record story 3x over;
                               this green banner was a 4th. Removed. */}
-                                {/* 2026-05-26 (Yuqi seventieth pass #6,
+                                  {/* 2026-05-26 (Yuqi seventieth pass #6,
                                 #9): Outstanding / Received are now
                                 small kicker sub-headers (text-
                                 caption-xs uppercase tracking-wider
@@ -3309,193 +3323,197 @@ export function ObligationQueueDetailDrawer({
                                 are sub-section labels under it.
                                 Inner gap tightened from `gap-2 →
                                 gap-1.5` per #9. */}
-                                <section className="flex flex-col gap-1.5">
-                                  <header className="flex items-baseline gap-1.5">
-                                    <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
-                                      {isTerminalRow ? (
-                                        <Trans>Not in audit trail</Trans>
-                                      ) : (
-                                        <Trans>Outstanding</Trans>
-                                      )}
-                                    </h4>
-                                    <span
-                                      aria-label={t`${outstandingItems.length} items`}
-                                      className="text-caption-xs font-medium tabular-nums text-text-tertiary"
-                                    >
-                                      {outstandingItems.length}
-                                    </span>
-                                  </header>
-                                  {outstandingItems.length === 0 ? (
-                                    <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
-                                      <Trans>All items received.</Trans>
-                                    </p>
-                                  ) : (
-                                    <div className="grid gap-1.5">
-                                      {outstandingItems.map(renderRow)}
-                                    </div>
-                                  )}
-                                </section>
-                                {receivedItems.length > 0 ? (
                                   <section className="flex flex-col gap-1.5">
                                     <header className="flex items-baseline gap-1.5">
                                       <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
                                         {isTerminalRow ? (
-                                          <Trans>Archived</Trans>
+                                          <Trans>Not in audit trail</Trans>
                                         ) : (
-                                          <Trans>Received</Trans>
+                                          <Trans>Outstanding</Trans>
                                         )}
                                       </h4>
                                       <span
-                                        aria-label={t`${receivedItems.length} items`}
+                                        aria-label={t`${outstandingItems.length} items`}
                                         className="text-caption-xs font-medium tabular-nums text-text-tertiary"
                                       >
-                                        {receivedItems.length}
+                                        {outstandingItems.length}
                                       </span>
                                     </header>
-                                    <div className="grid gap-1.5">
-                                      {receivedItems.map(renderRow)}
-                                    </div>
+                                    {outstandingItems.length === 0 ? (
+                                      <p className="rounded-lg border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
+                                        <Trans>All items received.</Trans>
+                                      </p>
+                                    ) : (
+                                      <div className="grid gap-1.5">
+                                        {outstandingItems.map(renderRow)}
+                                      </div>
+                                    )}
                                   </section>
-                                ) : null}
-                                {/* Cluster 2 (Materials design `AYpfU > BGLC4`):
+                                  {receivedItems.length > 0 ? (
+                                    <section className="flex flex-col gap-1.5">
+                                      <header className="flex items-baseline gap-1.5">
+                                        <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                                          {isTerminalRow ? (
+                                            <Trans>Archived</Trans>
+                                          ) : (
+                                            <Trans>Received</Trans>
+                                          )}
+                                        </h4>
+                                        <span
+                                          aria-label={t`${receivedItems.length} items`}
+                                          className="text-caption-xs font-medium tabular-nums text-text-tertiary"
+                                        >
+                                          {receivedItems.length}
+                                        </span>
+                                      </header>
+                                      <div className="grid gap-1.5">
+                                        {receivedItems.map(renderRow)}
+                                      </div>
+                                    </section>
+                                  ) : null}
+                                  {/* Cluster 2 (Materials design `AYpfU > BGLC4`):
                                   Waived sub-section — items the CPA marked as
                                   not-applicable this filing year. Renders the
                                   real waived rows; falls back to the quiet
                                   empty state when none are waived. */}
-                                {!isTerminalRow ? (
-                                  <section className="flex flex-col gap-1.5">
-                                    <header className="flex items-baseline gap-1.5">
-                                      <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
-                                        <Trans>Waived</Trans>
-                                      </h4>
-                                      <span
-                                        aria-label={t`${waivedItems.length} items`}
-                                        className="text-caption-xs font-medium tabular-nums text-text-tertiary"
-                                      >
-                                        {waivedItems.length}
-                                      </span>
-                                    </header>
-                                    {waivedItems.length > 0 ? (
-                                      <div className="grid gap-1.5">
-                                        {waivedItems.map(renderRow)}
-                                      </div>
-                                    ) : (
-                                      <div className="flex flex-col items-center gap-1 rounded-lg border border-divider-subtle px-4 py-5 text-center">
-                                        <CircleOffIcon
-                                          className="size-4 text-text-tertiary"
-                                          aria-hidden
-                                        />
-                                        <p className="text-sm font-medium text-text-secondary">
-                                          <Trans>No items waived</Trans>
-                                        </p>
-                                        <p className="text-caption-xs text-text-tertiary">
-                                          <Trans>
-                                            Mark an outstanding doc as waived when it doesn't apply
-                                            this year.
-                                          </Trans>
-                                        </p>
-                                      </div>
-                                    )}
-                                  </section>
-                                ) : null}
-                              </div>
-                            )
-                          })()}
-                          {/* Primary CTA below the checklist — the actual
+                                  {!isTerminalRow ? (
+                                    <section className="flex flex-col gap-1.5">
+                                      <header className="flex items-baseline gap-1.5">
+                                        <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                                          <Trans>Waived</Trans>
+                                        </h4>
+                                        <span
+                                          aria-label={t`${waivedItems.length} items`}
+                                          className="text-caption-xs font-medium tabular-nums text-text-tertiary"
+                                        >
+                                          {waivedItems.length}
+                                        </span>
+                                      </header>
+                                      {waivedItems.length > 0 ? (
+                                        <div className="grid gap-1.5">
+                                          {waivedItems.map(renderRow)}
+                                        </div>
+                                      ) : (
+                                        <div className="flex flex-col items-center gap-1 rounded-lg border border-divider-subtle px-4 py-5 text-center">
+                                          <CircleOffIcon
+                                            className="size-4 text-text-tertiary"
+                                            aria-hidden
+                                          />
+                                          <p className="text-sm font-medium text-text-secondary">
+                                            <Trans>No items waived</Trans>
+                                          </p>
+                                          <p className="text-caption-xs text-text-tertiary">
+                                            <Trans>
+                                              Mark an outstanding doc as waived when it doesn't
+                                              apply this year.
+                                            </Trans>
+                                          </p>
+                                        </div>
+                                      )}
+                                    </section>
+                                  ) : null}
+                                </div>
+                              )
+                            })()}
+                            {/* Primary CTA below the checklist — the actual
                         workflow terminal action. Selection state now
                         lives in the same row, with client-send on the
                         left and selected-item batch actions on the right. */}
-                          {canShowMaterialsRequestAction || selectedChecklistItemCount > 0 ? (
-                            <div className="flex flex-wrap items-center gap-2 pt-1">
-                              {canShowMaterialsRequestAction ? (
-                                <Button
-                                  size="sm"
-                                  onClick={() => openMaterialsRequestPreview(row.id)}
-                                  disabled={
-                                    previewRequestEmailMutation.isPending ||
-                                    sendRequestMutation.isPending ||
-                                    !canOpenMaterialsRequestPreview
-                                  }
-                                >
-                                  <SendIcon data-icon="inline-start" />
-                                  {correctionMaterialsMode ? (
-                                    <Trans>Send correction request</Trans>
-                                  ) : (
-                                    <Trans>Send to client</Trans>
-                                  )}
-                                </Button>
-                              ) : null}
-                              {selectedChecklistItemCount > 0 ? (
-                                <div className="ml-auto flex flex-wrap items-center gap-2">
-                                  <span className="text-xs font-medium text-text-primary">
-                                    <Plural
-                                      value={selectedChecklistItemCount}
-                                      one="# item selected"
-                                      other="# items selected"
-                                    />
-                                  </span>
+                            {canShowMaterialsRequestAction || selectedChecklistItemCount > 0 ? (
+                              <div className="flex flex-wrap items-center gap-2 pt-1">
+                                {canShowMaterialsRequestAction ? (
                                   <Button
                                     size="sm"
-                                    variant="ghost"
-                                    onClick={clearMaterialsSelection}
-                                    disabled={updateChecklistItemMutation.isPending}
-                                  >
-                                    <Trans>Deselect</Trans>
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant={correctionMaterialsMode ? 'outline' : 'default'}
-                                    onClick={() =>
-                                      void (correctionMaterialsMode
-                                        ? batchMarkNeedsCorrection(
-                                            new Set(selectedChecklistItemIdsForAction),
-                                          )
-                                        : batchMarkReceived(
-                                            new Set(selectedChecklistItemIdsForAction),
-                                          ))
+                                    onClick={() => openMaterialsRequestPreview(row.id)}
+                                    disabled={
+                                      previewRequestEmailMutation.isPending ||
+                                      sendRequestMutation.isPending ||
+                                      !canOpenMaterialsRequestPreview
                                     }
-                                    disabled={updateChecklistItemMutation.isPending}
                                   >
+                                    <SendIcon data-icon="inline-start" />
                                     {correctionMaterialsMode ? (
-                                      <>
-                                        <Trans>Mark needs correction</Trans>
-                                        <AlertTriangleIcon data-icon="inline-end" />
-                                      </>
+                                      <Trans>Send correction request</Trans>
                                     ) : (
-                                      <>
-                                        <Trans>Mark client docs received</Trans>
-                                        <CheckCircle2Icon data-icon="inline-end" />
-                                      </>
+                                      <Trans>Send to client</Trans>
                                     )}
                                   </Button>
-                                </div>
-                              ) : null}
-                              {correctionMaterialsMode && correctionChecklistItems.length === 0 ? (
-                                <p className="text-xs text-text-tertiary">
-                                  <Trans>
-                                    Mark at least one received item needs correction first.
-                                  </Trans>
-                                </p>
-                              ) : null}
-                            </div>
-                          ) : null}
-                        </>
-                      )}
-                    </div>
+                                ) : null}
+                                {selectedChecklistItemCount > 0 ? (
+                                  <div className="ml-auto flex flex-wrap items-center gap-2">
+                                    <span className="text-xs font-medium text-text-primary">
+                                      <Plural
+                                        value={selectedChecklistItemCount}
+                                        one="# item selected"
+                                        other="# items selected"
+                                      />
+                                    </span>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={clearMaterialsSelection}
+                                      disabled={updateChecklistItemMutation.isPending}
+                                    >
+                                      <Trans>Deselect</Trans>
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant={correctionMaterialsMode ? 'outline' : 'default'}
+                                      onClick={() =>
+                                        void (correctionMaterialsMode
+                                          ? batchMarkNeedsCorrection(
+                                              new Set(selectedChecklistItemIdsForAction),
+                                            )
+                                          : batchMarkReceived(
+                                              new Set(selectedChecklistItemIdsForAction),
+                                            ))
+                                      }
+                                      disabled={updateChecklistItemMutation.isPending}
+                                    >
+                                      {correctionMaterialsMode ? (
+                                        <>
+                                          <Trans>Mark needs correction</Trans>
+                                          <AlertTriangleIcon data-icon="inline-end" />
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Trans>Mark client docs received</Trans>
+                                          <CheckCircle2Icon data-icon="inline-end" />
+                                        </>
+                                      )}
+                                    </Button>
+                                  </div>
+                                ) : null}
+                                {correctionMaterialsMode &&
+                                correctionChecklistItems.length === 0 ? (
+                                  <p className="text-xs text-text-tertiary">
+                                    <Trans>
+                                      Mark at least one received item needs correction first.
+                                    </Trans>
+                                  </p>
+                                ) : null}
+                              </div>
+                            ) : null}
+                          </>
+                        )}
+                      </div>
+                    </DetailSectionCard>
+                    {/* Card 2 — Client request: status badge moves to the band's
+                        headerRight (one title per card); the inner gray box is
+                        flattened (no frame-in-frame inside the white card). */}
                     {latestRequest ? (
-                      <section className="flex flex-col gap-2">
-                        <header className="flex items-baseline gap-2">
-                          <h3 className="text-sm font-semibold text-text-primary">
-                            <Trans>Client request</Trans>
-                          </h3>
+                      <DetailSectionCard
+                        title={<Trans>Client request</Trans>}
+                        headerRight={
                           <Badge
                             variant="outline"
                             className="text-caption-xs uppercase tracking-wide"
                           >
                             {latestRequest.status}
                           </Badge>
-                        </header>
-                        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-background-subtle p-3">
+                        }
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="text-xs text-text-secondary">
                             <Trans>
                               Sent to {latestRequest.recipientEmail ?? t`client`} · expires{' '}
@@ -3551,17 +3569,14 @@ export function ObligationQueueDetailDrawer({
                             ) : null}
                           </div>
                         </div>
-                      </section>
+                      </DetailSectionCard>
                     ) : null}
                     {/* 5b: prior materials requests — every earlier send with
                       its sent/opened/responded timeline. The drawer used to
                       read only readinessRequests[0]; the full history was
                       already in the payload, just never surfaced. */}
                     {(detail?.readinessRequests ?? []).length > 1 ? (
-                      <section className="flex flex-col gap-2">
-                        <h3 className="text-sm font-semibold text-text-primary">
-                          <Trans>Request history</Trans>
-                        </h3>
+                      <DetailSectionCard title={<Trans>Request history</Trans>}>
                         <ul className="flex flex-col gap-1.5">
                           {(detail?.readinessRequests ?? []).slice(1).map((request) => (
                             <li
@@ -3604,7 +3619,7 @@ export function ObligationQueueDetailDrawer({
                             </li>
                           ))}
                         </ul>
-                      </section>
+                      </DetailSectionCard>
                     ) : null}
                     {/* Tax year profile — relocated 2026-05-21 from the
                     top of the tab (where it dominated daily-driver
@@ -4234,46 +4249,33 @@ export function ObligationQueueDetailDrawer({
                       ]
                       const complete = cells.filter((c) => c.tone === 'success').length
                       return (
-                        <section className="flex flex-col gap-3.5">
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div className="grid gap-0.5">
-                              <p className="text-sm font-semibold text-text-primary">
-                                <Trans>Evidence to close out filing</Trans>
-                              </p>
-                              <p className="text-caption text-text-secondary">
-                                <Trans>
-                                  Four artefacts confirm the return is filed, accepted, and signed
-                                  off.
-                                </Trans>
-                              </p>
-                            </div>
+                        // 2026-06-11 (Yuqi tab-content unification): card chrome
+                        // matches the other tabs — band title + the complete/total
+                        // fraction in headerRight (one title per card).
+                        <DetailSectionCard
+                          title={<Trans>Evidence to close out filing</Trans>}
+                          headerRight={
                             <span className="font-mono text-sm font-semibold tabular-nums text-text-secondary">
                               {complete} / {cells.length}
                             </span>
-                          </div>
+                          }
+                        >
+                          <p className="text-caption text-text-secondary">
+                            <Trans>
+                              Four artefacts confirm the return is filed, accepted, and signed off.
+                            </Trans>
+                          </p>
                           <EvidenceArtifactStatusGrid cells={cells} />
-                        </section>
+                        </DetailSectionCard>
                       )
                     })()}
-                    {/* 2026-05-26 (Yuqi sixty-sixth pass — cross-tab
-                      section heading unify): workpapers heading was
-                      `text-xs uppercase tracking-wider text-text-
-                      tertiary` (kicker style); every other tab uses
-                      `text-sm font-semibold text-text-primary` for
-                      section labels. Aligned so all 4 tabs share
-                      one heading vocabulary. */}
-                    <section
-                      aria-labelledby="evidence-workpapers-heading"
-                      className="flex flex-col gap-2"
-                    >
-                      <header className="flex items-baseline justify-between gap-2">
-                        <h3
-                          id="evidence-workpapers-heading"
-                          className="text-sm font-semibold text-text-primary"
-                        >
-                          <Trans>Workpapers</Trans>
-                        </h3>
-                        <div className="flex items-center gap-2">
+                    {/* 2026-06-11 (Yuqi tab-content unification): Workpapers in
+                      the shared card chrome — count + the (stub) Add-workpaper
+                      CTA live in headerRight, the band title is the only title. */}
+                    <DetailSectionCard
+                      title={<Trans>Workpapers</Trans>}
+                      headerRight={
+                        <>
                           {detail.evidence.length > 0 ? (
                             <span className="text-xs tabular-nums text-text-tertiary">
                               {detail.evidence.length}
@@ -4295,8 +4297,9 @@ export function ObligationQueueDetailDrawer({
                           >
                             <Trans>Add workpaper</Trans>
                           </Button>
-                        </div>
-                      </header>
+                        </>
+                      }
+                    >
                       {detail.evidence.length > 0 ? (
                         <div className="grid gap-2">
                           {detail.evidence.map((item) => (
@@ -4312,7 +4315,7 @@ export function ObligationQueueDetailDrawer({
                           <Trans>No workpapers attached to this deadline yet.</Trans>
                         </EmptyPanel>
                       )}
-                    </section>
+                    </DetailSectionCard>
 
                     {/* Cluster 2 (Evidence design `KsbdI > FXD1b`): promote the
                       headline authority facts to an always-visible quiet
@@ -4479,18 +4482,30 @@ export function ObligationQueueDetailDrawer({
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
                   >
-                    {detail.auditEvents.length > 0 ? (
-                      <ObligationTimeline
-                        currentStatus={row.status}
-                        events={detail.auditEvents}
-                        labels={statusLabels}
-                        practiceTimezone={practiceTimezone}
-                      />
-                    ) : (
-                      <EmptyPanel className="py-8 text-center">
-                        <Trans>No activity recorded yet.</Trans>
-                      </EmptyPanel>
-                    )}
+                    {/* 2026-06-11 (Yuqi tab-content unification): the timeline
+                        sits in the shared card chrome like every other tab's
+                        primary content; event count in headerRight. */}
+                    <DetailSectionCard
+                      title={<Trans>Audit trail</Trans>}
+                      headerRight={
+                        detail.auditEvents.length > 0 ? (
+                          <span className="tabular-nums">{detail.auditEvents.length}</span>
+                        ) : undefined
+                      }
+                    >
+                      {detail.auditEvents.length > 0 ? (
+                        <ObligationTimeline
+                          currentStatus={row.status}
+                          events={detail.auditEvents}
+                          labels={statusLabels}
+                          practiceTimezone={practiceTimezone}
+                        />
+                      ) : (
+                        <EmptyPanel className="py-8 text-center">
+                          <Trans>No activity recorded yet.</Trans>
+                        </EmptyPanel>
+                      )}
+                    </DetailSectionCard>
                   </motion.div>
                 </TabsContent>
               ) : null}
