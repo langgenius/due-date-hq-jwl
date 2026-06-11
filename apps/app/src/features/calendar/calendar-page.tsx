@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  AlertCircleIcon,
   ArrowLeftIcon,
   CalendarDaysIcon,
   CopyIcon,
@@ -21,6 +22,7 @@ import type {
   CalendarSubscriptionScope,
   FirmRole,
 } from '@duedatehq/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -202,7 +204,32 @@ export function CalendarPage() {
         }
       />
 
-      {subscriptionsQuery.isLoading || firmsQuery.isLoading ? (
+      {subscriptionsQuery.isError ? (
+        // Error state (2026-06-11 state-completeness audit — calendar was
+        // the one surface with no error branch: a failed query rendered
+        // the cards as silently "not connected", which misreads as the
+        // user having no subscriptions). Same Alert + Retry pattern as
+        // the alerts/clients lists.
+        <Alert variant="destructive">
+          <AlertCircleIcon />
+          <AlertTitle>
+            <Trans>Couldn't load calendar subscriptions</Trans>
+          </AlertTitle>
+          <AlertDescription>
+            {rpcErrorMessage(subscriptionsQuery.error) ??
+              t`Check your network and try again. If this keeps happening, contact support.`}{' '}
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 align-baseline"
+              onClick={() => void subscriptionsQuery.refetch()}
+            >
+              <Trans>Retry</Trans>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : subscriptionsQuery.isLoading || firmsQuery.isLoading ? (
         <Skeleton className="h-72 max-w-2xl rounded-lg" />
       ) : (
         <div className="grid gap-4">

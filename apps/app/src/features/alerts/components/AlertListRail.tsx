@@ -92,12 +92,12 @@ export function AlertListRail({
           <button
             type="button"
             onClick={onCloseDetail}
-            className="-mx-1 cursor-pointer rounded-lg px-1 text-[16px] font-semibold text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="-mx-1 cursor-pointer rounded-lg px-1 text-item-title text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>Alerts</Trans>
           </button>
         ) : (
-          <span className="text-[16px] font-semibold text-text-primary">
+          <span className="text-item-title text-text-primary">
             <Trans>Alerts</Trans>
           </span>
         )}
@@ -267,7 +267,10 @@ function RailItem({
           <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular px-1.5 text-xs font-semibold text-text-secondary uppercase">
             {alert.jurisdiction}
           </span>
-          {form ? <TaxCodeBadge code={form} /> : null}
+          {/* rounded-lg — the same corner override the main row's form
+              chip carries, so the SAME alert wears the same chip in both
+              the row and the rail (same-entity-same-rendering audit). */}
+          {form ? <TaxCodeBadge code={form} className="rounded-lg" /> : null}
           {/* Change-kind — the SAME demoted treatment as the main /alerts
               row (caption-xs/medium/muted): classification metadata, not a
               signal (batch 4 #8). */}
@@ -288,32 +291,36 @@ function RailItem({
           {alert.title}
         </span>
 
-        {/* Source link — mirrors the main row's source slot
-            (ExternalLinkIcon + alert.source). Opens the bulletin in a new
-            tab; click is isolated so it doesn't also select the row. */}
-        <span
-          role="link"
-          tabIndex={0}
-          onClick={(event) => {
-            event.stopPropagation()
-            window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault()
+        {/* Source — interactive (text + trailing ↗, the one external-link
+            order app-wide) ONLY when a sourceUrl exists; otherwise a plain
+            non-clickable caption. Previously this called
+            window.open(null) on url-less alerts — a dead about:blank tab
+            (state-completeness audit). */}
+        {alert.sourceUrl ? (
+          <span
+            role="link"
+            tabIndex={0}
+            onClick={(event) => {
               event.stopPropagation()
               window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
-            }
-          }}
-          className="inline-flex min-w-0 cursor-pointer items-center gap-1 text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:text-text-secondary"
-        >
-          {/* Text first, trailing ↗ — the ONE external-link order across
-              the app (drawer header, Open original, list rows all read
-              "text ↗"); the leading-icon variant was the odd one out
-              (batch 4 #5). */}
-          <span className="truncate">{alert.source}</span>
-          <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
-        </span>
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                event.stopPropagation()
+                window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
+              }
+            }}
+            className="inline-flex min-w-0 cursor-pointer items-center gap-1 text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:text-text-secondary"
+          >
+            <span className="truncate">{alert.source}</span>
+            <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+          </span>
+        ) : (
+          <span className="inline-flex min-w-0 items-center text-sm text-text-tertiary">
+            <span className="truncate">{alert.source}</span>
+          </span>
+        )}
 
         {/* Bottom meta — client impact, answered on EVERY row (it's
             triage question #1: which alert do I open next?). Impacted

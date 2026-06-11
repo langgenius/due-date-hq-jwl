@@ -1,6 +1,6 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Plus, UsersIcon } from 'lucide-react'
+import { ExternalLinkIcon, Plus } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -209,9 +209,12 @@ function NeedsAttentionCard({
             after the form badge instead of being pushed to the far right edge
             by a justify-between split. */}
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          {/* HIGH IMPACT — only renders for high-impact alerts. */}
+          {/* HIGH IMPACT — only renders for high-impact alerts. The SAME
+              chip recipe as the /alerts row + drawer header (h-[20px]
+              rounded-lg bordered) — one alert, one pill, every surface
+              (same-entity-same-rendering audit). */}
           {severity.id === 'high' ? (
-            <span className="inline-flex shrink-0 items-center rounded bg-state-destructive-hover px-2 py-[3px] text-xs font-semibold tracking-[0.4px] text-text-destructive uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-destructive uppercase">
               <Trans>High impact</Trans>
             </span>
           ) : null}
@@ -320,9 +323,11 @@ function NeedsAttentionCard({
             </span>
           </span>
         ) : (
-          <span className="inline-flex shrink-0 items-center gap-1 text-text-muted">
-            <UsersIcon className="size-3 shrink-0" aria-hidden />
-            <Trans>No clients matched</Trans>
+          // Zero state matches the /alerts row + rail verbatim — "No
+          // client impact", muted, no icon (one phrasing for the zero
+          // answer across every alert surface).
+          <span className="shrink-0 whitespace-nowrap text-text-muted">
+            <Trans>No client impact</Trans>
           </span>
         )}
 
@@ -340,39 +345,49 @@ function NeedsAttentionCard({
               confidenceHoverToneClass,
             )}
           >
-            <Trans>conf {confidencePct}%</Trans>
+            {/* "{N}% conf" — the same order the /alerts row meter uses. */}
+            <Trans>{confidencePct}% conf</Trans>
           </span>
         </span>
 
         <span className="flex-1" />
 
-        {/* Source link — opens the authority page; URL on tooltip hover.
-            Yuqi #8: a simple arrow (ArrowUpRight) instead of the external-
-            link glyph. */}
-        <Tooltip>
-          <TooltipTrigger
-            render={(props) => (
-              <span
-                className="inline-flex min-w-0 max-w-[160px] cursor-pointer items-center gap-1 text-xs text-text-tertiary outline-none transition-colors hover:text-text-secondary"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
-                }}
-                {...props}
-              >
-                <span className="truncate text-right">{alert.source}</span>
-              </span>
-            )}
-          />
-          <TooltipContent>
-            <div className="flex max-w-[320px] flex-col gap-0.5 text-left">
-              <span className="font-semibold">
-                <Trans>Open source</Trans>
-              </span>
-              <span className="break-all text-text-secondary">{alert.sourceUrl}</span>
-            </div>
-          </TooltipContent>
-        </Tooltip>
+        {/* Source — text + trailing ↗, the one external-link order across
+            every alert surface (row / rail / drawer). Interactive only
+            when a sourceUrl exists; url-less alerts render a plain
+            caption instead of a dead window.open(null) click
+            (state-completeness audit). */}
+        {alert.sourceUrl ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={(props) => (
+                <span
+                  className="inline-flex min-w-0 max-w-[160px] cursor-pointer items-center gap-1 text-xs text-text-tertiary outline-none transition-colors hover:text-text-secondary"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
+                  }}
+                  {...props}
+                >
+                  <span className="truncate text-right">{alert.source}</span>
+                  <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+                </span>
+              )}
+            />
+            <TooltipContent>
+              <div className="flex max-w-[320px] flex-col gap-0.5 text-left">
+                <span className="font-semibold">
+                  <Trans>Open source</Trans>
+                </span>
+                <span className="break-all text-text-secondary">{alert.sourceUrl}</span>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <span className="inline-flex min-w-0 max-w-[160px] items-center text-xs text-text-tertiary">
+            <span className="truncate text-right">{alert.source}</span>
+          </span>
+        )}
       </div>
     </button>
   )

@@ -200,3 +200,31 @@ here to two." The card had drifted to red + accent-blue + success-green + a
 
 This mirrors the app-wide red discipline (red = urgency/lateness only) already
 applied to the /today Actions table due-countdown.
+
+---
+
+## 4-surface rendering contract (2026-06-11 same-entity audit)
+
+The same alert renders on FOUR surfaces — /today card (`needs-attention-card`),
+/alerts row (`PulseAlertRow`), detail rail item (`AlertListRail`), detail
+header (`AlertDetailDrawer`). One entity, one look; the table below is the
+contract. **Unified (accidental drift fixed 2026-06-11):**
+
+| Facet | Contract |
+| --- | --- |
+| HIGH IMPACT pill | `h-[20px] rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] uppercase` — identical on card/row/drawer (drawer previously used inline severity hexes; card used a borderless 4px-radius variant) |
+| Form chip | `TaxCodeBadge className="rounded-lg"` on row AND rail |
+| External link | text first, trailing `ExternalLinkIcon size-3`; interactive ONLY when `sourceUrl` exists (card + rail used to `window.open(null)`) |
+| Zero impact | "No client impact", muted, no icon — verbatim on card/row/rail |
+| Confidence read-out | "{N}% conf" word order everywhere it appears |
+| Change-kind label | caption-xs/medium/muted CAPS on row + rail |
+
+**Deliberate divergences (do NOT "fix"):**
+
+- /today card: count-only "N clients" (Yuqi ask), hover-revealed confidence,
+  no ACTIVE badge (queue mechanics are /alerts-local), StateBadge seal +
+  code (vs the row's plain bordered code chip).
+- Drawer header: mono accent change-kind chip (identity register),
+  `JurisdictionLabel` with full state name.
+- Title sizes ramp by surface density (item-title card / lg row / base rail
+  / 22px drawer) — same family, different altitude.

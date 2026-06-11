@@ -208,7 +208,7 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
           {formatDeadlineDate(oldIso)}
         </span>
         <ArrowRightIcon className="size-3.5 shrink-0 self-center text-text-muted" aria-hidden />
-        <span className="font-mono text-[18px] font-bold tracking-[-0.2px] text-text-primary tabular-nums">
+        <span className="font-mono text-xl font-bold tracking-[-0.2px] text-text-primary tabular-nums">
           {formatDeadlineDate(newIso)}
         </span>
         <span
@@ -1292,13 +1292,13 @@ export function AlertDetailDrawer({
                       <Trans>Active</Trans>
                     </span>
                   ) : null}
-                  {/* Impact pill reads "HIGH IMPACT" (not bare "HIGH"). */}
+                  {/* Impact pill — the SAME chip recipe as the /alerts row
+                      + /today card (token classes, not the severity
+                      helper's inline hexes): one alert, one pill, every
+                      surface (same-entity-same-rendering audit). */}
                   {showSeverityPill ? (
-                    <span
-                      className="inline-flex h-[22px] shrink-0 items-center rounded px-2 text-xs font-bold tracking-[0.7px] uppercase"
-                      style={{ backgroundColor: severity.bg, color: severity.text }}
-                    >
-                      {t`HIGH IMPACT`}
+                    <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-destructive uppercase">
+                      <Trans>High impact</Trans>
                     </span>
                   ) : null}
                   {/* The shared JurisdictionLabel primitive — seal + mono
@@ -1409,6 +1409,18 @@ export function AlertDetailDrawer({
               </Button>
             </AlertDescription>
           </Alert>
+        ) : null}
+
+        {/* Loading: card-shaped placeholders where the group cards will
+            land, so the panel never shows a bare gray wash while the
+            detail query resolves (state-completeness audit — the header
+            had a skeleton, the body had nothing). */}
+        {detailQuery.isLoading && !detail ? (
+          <div className="flex shrink-0 flex-col gap-4" aria-hidden>
+            <Skeleton className="h-48 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-40 w-full rounded-xl" />
+          </div>
         ) : null}
 
         {detail ? (
