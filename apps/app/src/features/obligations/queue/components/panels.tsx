@@ -835,7 +835,6 @@ export function PathToFilingSummary({
   )
   const currentIndex = timelineIndexForStatus(row.status)
   const stamps = useMemo(() => mineTimelineTimestamps(auditEvents), [auditEvents])
-  const isPastInternalDue = row.daysUntilDue < 0
   // Filed-stage index — used to project an expected date when Filed
   // is still upcoming (the row's internal deadline IS the expected
   // file date). Other upcoming stages don't get a projection.
@@ -2023,10 +2022,6 @@ export function ActiveStageDetailCard({
   // surface for the lateness story.
   const isPastInternalDue = row.daysUntilDue < 0
   const showOverdueBanner = isPastInternalDue && !TIMELINE_TERMINAL_STAGE_KEYS.has(stageKey)
-  // Live today-based count (matches the date cards' dayDiff) so the active-card
-  // overdue number agrees with the cards/banner instead of the server's
-  // `daysUntilDue` snapshot, which can lag a day.
-  const daysPastDeadline = Math.abs(daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()))
   // 2026-06-10 (Yuqi page-polish #4 "work on the UX and IA better"):
   // give the card ONE prominent headline that names the current
   // situation, sitting directly under the eyebrow (status pill · stage).

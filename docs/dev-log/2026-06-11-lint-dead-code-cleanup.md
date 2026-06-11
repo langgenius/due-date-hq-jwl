@@ -1,0 +1,3 @@
+# Lint — remove dead declarations left by design passes (2026-06-11)
+
+`npx vp check --no-fmt` was failing with 3 `no-unused-vars` errors, all leftovers from earlier design commits that removed the usages: `isPastInternalDue` in `PathToFilingSummary` (panels.tsx ~838, superseded by the pre-terminal OVERDUE logic), `daysPastDeadline` in `ActiveStageDetailCard` (panels.tsx ~2029, its live-count consumer was dropped in the headline rework) plus its describing comment, and the unused `type RuleScope` import in rules.library.tsx. Deleted all three; `vp check --no-fmt` now reports 0 errors (23 pre-existing warnings untouched).

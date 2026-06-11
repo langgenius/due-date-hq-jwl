@@ -107,7 +107,6 @@ import {
   JurisdictionKpiStrip,
   JurisdictionRuleTable,
   formatRuleTypeLabel,
-  type RuleScope,
   type RuleTableFilter,
 } from '@/features/rules/jurisdiction-rule-table'
 import { formatTaxCode } from '@/lib/tax-codes'
