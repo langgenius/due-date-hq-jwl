@@ -701,13 +701,67 @@ describe('createBrowserlessFetch', () => {
     expect(body).not.toHaveProperty('method')
     expect(body).not.toHaveProperty('headers')
     expect(body).not.toHaveProperty('body')
-    // Caller-provided User-Agent is hoisted to the top-level `userAgent` field.
-    expect(body.userAgent).toBe('DueDateHQ-PulseBot/1.0')
+    // Caller-provided User-Agent is hoisted to the top-level `userAgent` field —
+    // a CDP setUserAgentOverride-shaped OBJECT (cloud schema as of 2026-06-10).
+    expect(body.userAgent).toEqual({ userAgent: 'DueDateHQ-PulseBot/1.0' })
     const extraHeaders = body.setExtraHTTPHeaders as Record<string, string>
-    // Cache-Control and User-Agent are stripped from extra headers; Accept is kept.
+    // Cache-Control is stripped from extra headers; Accept is kept. The UA also
+    // rides as a header so a userAgent-field schema drift degrades gracefully.
     expect(extraHeaders['cache-control']).toBeUndefined()
-    expect(extraHeaders['user-agent']).toBeUndefined()
+    expect(extraHeaders['user-agent']).toBe('DueDateHQ-PulseBot/1.0')
     expect(extraHeaders.accept).toContain('text/html')
+  })
+
+  it('retries without the userAgent field when the cloud schema rejects it', async () => {
+    const fetchMock = vi
+      .fn(
+        async (_input: string | URL | Request, _init?: RequestInit) =>
+          new Response('<main>ok</main>'),
+      )
+      .mockImplementationOnce(
+        async () =>
+          new Response('POST Body validation failed: "userAgent" must be object', {
+            status: 400,
+          }),
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const browserlessFetch = createBrowserlessFetch({
+      endpoint: 'https://browserless.test/content',
+      token: 'secret-token',
+    })
+
+    const response = await browserlessFetch?.('https://state-tax.example/news', {
+      headers: { 'User-Agent': 'DueDateHQ-PulseBot/1.0' },
+    })
+
+    expect(response?.status).toBe(200)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    const retryBody = JSON.parse(fetchMock.mock.calls[1]![1]?.body as string) as Record<
+      string,
+      unknown
+    >
+    // The schema-rejected field is dropped; the UA survives as a target header.
+    expect(retryBody).not.toHaveProperty('userAgent')
+    expect((retryBody.setExtraHTTPHeaders as Record<string, string>)['user-agent']).toBe(
+      'DueDateHQ-PulseBot/1.0',
+    )
+  })
+
+  it('does not retry 400s unrelated to the userAgent field', async () => {
+    const fetchMock = vi.fn(
+      async () => new Response('POST Body validation failed: "url" must be uri', { status: 400 }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const browserlessFetch = createBrowserlessFetch({
+      endpoint: 'https://browserless.test/content',
+      token: 'secret-token',
+    })
+
+    const response = await browserlessFetch?.('https://state-tax.example/news')
+    expect(response?.status).toBe(400)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('maps target response codes reported by Browserless', async () => {

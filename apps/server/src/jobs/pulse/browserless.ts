@@ -19,21 +19,22 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 // The browserless `/content` API validates its JSON body against a fixed
-// schema (additionalProperties:false). Its accepted fields are url/html,
-// `userAgent` (string), `setExtraHTTPHeaders` (object), gotoOptions, waitFor*,
-// etc. — there is NO top-level `method`, `headers`, or `body`. Sending those
-// (as this client previously did) is rejected with HTTP 400, which silently
-// killed every browserless-routed source. Build only schema-valid fields:
-// the caller's User-Agent is hoisted to `userAgent`, and the remaining target
-// headers go to `setExtraHTTPHeaders` (Cache-Control is dropped — browserless
-// manages caching itself).
+// schema (additionalProperties:false) that has BROKEN COMPATIBILITY TWICE in
+// prod: top-level `method`/`headers`/`body` were rejected (fixed 06-01), and
+// on 2026-06-10 the cloud schema turned `userAgent` from a string into an
+// object ('"userAgent" must be object') while their docs still show a string
+// — every browserless-routed source 400'd for a day. Defend in depth: the
+// caller's User-Agent ALSO rides in `setExtraHTTPHeaders` (CDP applies it to
+// outgoing request headers), and any 400 that names `userAgent` retries once
+// without that field, so the next schema drift degrades to the header-level
+// override instead of killing the sources. Cache-Control is dropped —
+// browserless manages caching itself.
 function browserlessExtraHeaders(headers: RequestInit['headers']): Record<string, string> {
   const serializable = new Headers(headers)
   for (const [key, value] of Object.entries(BROWSERLESS_TARGET_HEADERS)) {
     serializable.set(key, value)
   }
   serializable.delete('Cache-Control')
-  serializable.delete('User-Agent')
   return Object.fromEntries(serializable.entries())
 }
 
@@ -102,18 +103,37 @@ export function createBrowserlessFetch(config: BrowserlessConfig): IngestFetch |
 
   return async (input, init) => {
     const targetUrl = input instanceof URL ? input.toString() : input
-    const response = await timedFetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
+    const userAgent = browserlessUserAgent(init?.headers)
+    const post = (body: Record<string, unknown>) =>
+      timedFetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+        body: JSON.stringify(body),
+      })
+    const baseBody = {
+      url: targetUrl,
+      setExtraHTTPHeaders: {
+        ...browserlessExtraHeaders(init?.headers),
+        'user-agent': userAgent,
       },
-      body: JSON.stringify({
-        url: targetUrl,
-        userAgent: browserlessUserAgent(init?.headers),
-        setExtraHTTPHeaders: browserlessExtraHeaders(init?.headers),
-      }),
-    })
+    }
+    // Cloud schema as of 2026-06-10: `userAgent` is a CDP
+    // setUserAgentOverride-shaped object, not a string.
+    let response = await post({ ...baseBody, userAgent: { userAgent } })
+    if (response.status === 400) {
+      const rejection = await response
+        .clone()
+        .text()
+        .catch(() => '')
+      // Schema drifted again around the userAgent field — fall back to the
+      // header-level override and keep the source alive.
+      if (/userAgent/i.test(rejection)) {
+        response = await post(baseBody)
+      }
+    }
     const contentType = response.headers.get('content-type') ?? ''
     if (contentType.includes('application/json')) {
       const parsed: unknown = await response.json()
