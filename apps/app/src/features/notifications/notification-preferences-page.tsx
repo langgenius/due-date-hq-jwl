@@ -208,9 +208,9 @@ function ChannelsCard({
               {/* TODO(data): the verified delivery address is not on the
                   notification-preference contract. */}
               <span className="font-mono text-xs text-text-secondary">jules@brightline.com</span>
-              <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 text-caption-xs font-semibold text-text-accent">
+              <Badge variant="info" className="text-caption-xs font-semibold">
                 <Trans>Verified</Trans>
-              </span>
+              </Badge>
             </span>
           }
           checked={preferences.emailEnabled}
@@ -563,9 +563,9 @@ function QuietHoursCard() {
             <span className="text-[16px] font-semibold text-text-primary">
               <Trans>Quiet hours</Trans>
             </span>
-            <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 text-caption-xs font-semibold text-text-accent">
+            <Badge variant="info" className="text-caption-xs font-semibold">
               <Trans>Active</Trans>
-            </span>
+            </Badge>
           </div>
           <span className="text-xs text-text-secondary">
             <Trans>

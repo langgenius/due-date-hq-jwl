@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   AlertDialog,
@@ -262,14 +263,14 @@ export function SettingsProfileRoute() {
                       <Trans>Two-factor authentication</Trans>
                     </span>
                     {status.twoFactorEnabled ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-state-success-hover px-2 py-0.5 text-xs font-semibold text-text-success">
+                      <Badge variant="success" className="gap-1.5 font-semibold">
                         <span aria-hidden className="size-1.5 rounded-full bg-current" />
                         <Trans>Enabled</Trans>
-                      </span>
+                      </Badge>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2 py-0.5 text-xs font-semibold text-text-secondary">
+                      <Badge variant="secondary" className="gap-1.5 font-semibold">
                         <Trans>Off</Trans>
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <p className="text-xs text-text-secondary">
@@ -368,9 +369,9 @@ export function SettingsProfileRoute() {
                           {s.userAgent || <Trans>Unknown browser</Trans>}
                         </span>
                         {s.isCurrent ? (
-                          <span className="rounded-full bg-state-accent-hover px-1.5 py-px text-xs font-medium text-text-accent">
+                          <Badge variant="info" className="px-1.5 py-px">
                             <Trans>This device</Trans>
-                          </span>
+                          </Badge>
                         ) : null}
                       </div>
                       <span className="truncate font-mono text-xs text-text-muted">

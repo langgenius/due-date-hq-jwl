@@ -6,6 +6,7 @@ import { AlertCircleIcon, ArrowRightIcon, Loader2Icon, MailIcon } from 'lucide-r
 import { toast } from 'sonner'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { AuthCard, CenteredAuthScreen } from '@/features/auth/auth-chrome'
@@ -64,10 +65,13 @@ function formatRole(role: string): string {
 
 function InvitePill() {
   return (
-    <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-state-accent-hover px-2.5 py-1 text-[11px] font-semibold tracking-[0.2px] text-text-accent">
+    <Badge
+      variant="info"
+      className="gap-1.5 px-2.5 py-1 text-[11px] font-semibold tracking-[0.2px]"
+    >
       <MailIcon className="size-3" aria-hidden />
       <Trans>Firm invitation</Trans>
-    </span>
+    </Badge>
   )
 }
 

@@ -5,6 +5,12 @@ import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import {
+  ListRail,
+  ListRailBody,
+  ListRailHead,
+  ListRailSection,
+} from '@/components/patterns/list-rail'
 import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
 import { useActiveAlertCount } from '@/features/alerts/api'
@@ -72,9 +78,9 @@ export function AlertListRail({
   )
 
   return (
-    <div className="flex h-full w-[380px] shrink-0 flex-col border-r border-divider-subtle bg-background-default">
+    <ListRail>
       {/* ListHead — "Alerts · N active". */}
-      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
+      <ListRailHead className="justify-between">
         {/* The head title closes the open detail and returns to the
             /alerts list. Rendered as a button when a close handler is
             wired; falls back to a plain label otherwise. */}
@@ -96,12 +102,12 @@ export function AlertListRail({
             <Plural value={activeCount} one="# active" other="# active" />
           </CountPill>
         ) : null}
-      </div>
+      </ListRailHead>
 
       {/* Work-queue toggle — echoes the main list's Active/Review switch so the
           queue can be changed while a detail is open. */}
       {workQueue && onWorkQueueChange ? (
-        <div className="flex shrink-0 items-center border-b border-divider-subtle px-4 py-2.5">
+        <ListRailSection>
           <Segmented
             className="h-8 w-full [&>button]:h-7 [&>button]:flex-1"
             ariaLabel={t`Alert work queue`}
@@ -132,12 +138,12 @@ export function AlertListRail({
               },
             ]}
           />
-        </div>
+        </ListRailSection>
       ) : null}
 
       {/* FilterRow — full-width search (no All/Unresolved segmented,
           see note above). */}
-      <div className="flex shrink-0 items-center gap-2 border-b border-divider-subtle px-4 py-2.5">
+      <ListRailSection>
         <SearchInput
           variant="compact"
           value={search}
@@ -145,10 +151,10 @@ export function AlertListRail({
           placeholder={t`Search alerts`}
           className="w-full"
         />
-      </div>
+      </ListRailSection>
 
       {/* ListBody — compact items, the open one accented. */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <ListRailBody>
         {visible.length === 0 ? (
           <p className="px-[18px] py-10 text-center text-base text-text-tertiary">
             <Trans>No alerts match.</Trans>
@@ -164,8 +170,8 @@ export function AlertListRail({
             />
           ))
         )}
-      </div>
-    </div>
+      </ListRailBody>
+    </ListRail>
   )
 }
 

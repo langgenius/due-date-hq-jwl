@@ -6,6 +6,12 @@ import { Trans, useLingui } from '@lingui/react/macro'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import {
+  ListRail,
+  ListRailHead,
+  ListRailSection,
+  ListRailTitle,
+} from '@/components/patterns/list-rail'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
@@ -93,23 +99,14 @@ export function JurisdictionRail({
   const shownStateCount = visibleStates.length
 
   return (
-    <aside
-      className={cn(
-        // Canonical list-rail recipe — identical to AlertListRail /
-        // ObligationListRail / DeadlineNavigatorRail (w-[380px], subtle
-        // right border, full-height flex column).
-        'flex h-full w-[380px] shrink-0 flex-col border-r border-divider-subtle bg-background-default',
-        className,
-      )}
-      aria-label={t`Jurisdictions`}
-    >
+    <ListRail ariaLabel={t`Jurisdictions`} {...(className ? { className } : {})}>
       {/* ListHead — title + review-only filter toggle. Mirrors the canonical
           list-rail head (AlertListRail / ObligationListRail): a single 15px
           title row with a trailing control, separated by a `border-b`. */}
-      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
-        <span className="text-[16px] font-semibold text-text-primary">
+      <ListRailHead className="justify-between">
+        <ListRailTitle>
           <Trans>Jurisdictions</Trans>
-        </span>
+        </ListRailTitle>
         <ToggleChip
           selected={reviewOnly}
           onClick={() => setReviewOnly((v) => !v)}
@@ -118,11 +115,11 @@ export function JurisdictionRail({
         >
           <Trans>Needs review</Trans>
         </ToggleChip>
-      </div>
+      </ListRailHead>
 
       {/* FilterRow — full-width search, separated by a `border-b` (same
           section rhythm as the canonical rails). */}
-      <div className="flex shrink-0 items-center border-b border-divider-subtle px-3 py-2.5">
+      <ListRailSection className="px-3">
         <SearchInput
           variant="compact"
           value={search}
@@ -131,7 +128,7 @@ export function JurisdictionRail({
           ariaLabel={t`Search jurisdictions`}
           className="w-full"
         />
-      </div>
+      </ListRailSection>
 
       {/* Scrolling jurisdiction list. */}
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
@@ -210,7 +207,7 @@ export function JurisdictionRail({
           {t`Showing ${shownStateCount} of ${states.length} states`}
         </span>
       </div>
-    </aside>
+    </ListRail>
   )
 }
 

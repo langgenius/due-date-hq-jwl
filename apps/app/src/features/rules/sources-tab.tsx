@@ -620,15 +620,15 @@ function SourceRow({
       <TableCell className="px-0 py-1.5">
         {/* Accent-tinted jurisdiction pill (Pencil bf6Ni) — mono code on
             a soft accent fill, matching the canvas Sources table. */}
-        <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 font-mono text-xs font-semibold text-text-accent">
+        <Badge variant="info" className="font-mono text-xs font-semibold">
           {source.jurisdiction}
-        </span>
+        </Badge>
       </TableCell>
       <TableCell className="px-2 py-1.5">
         {/* Subtle type pill (Pencil bf6Ni). */}
-        <span className="inline-flex items-center rounded-full bg-background-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">
+        <Badge variant="secondary" className="text-xs font-medium">
           {sourceTypeLabel(source.sourceType, sourceTypeLabels)}
-        </span>
+        </Badge>
       </TableCell>
       <TableCell className="px-2 py-1.5 text-xs text-text-secondary">
         {source.cadence.replace('_', '-')}

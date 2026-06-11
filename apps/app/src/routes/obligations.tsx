@@ -10199,9 +10199,12 @@ function DeadlineTile({
           {date ? formatDate(date) : '—'}
         </span>
         {lateLabel ? (
-          <span className="inline-flex items-center rounded-full bg-state-destructive-hover px-2 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-destructive">
+          <Badge
+            variant="destructive"
+            className="text-caption-xs font-medium uppercase tracking-eyebrow-tight"
+          >
             {lateLabel}
-          </span>
+          </Badge>
         ) : null}
       </div>
     </div>
@@ -11789,8 +11792,9 @@ function ActiveStageDetailCard({
         </h3>
         <div className="flex shrink-0 items-center gap-2">
           {row.status === 'completed' ? (
-            <span
-              className="inline-flex items-center gap-1 rounded-full bg-state-success-solid px-2 py-0.5 text-caption-xs font-medium text-text-inverted"
+            <Badge
+              variant="success-solid"
+              className="text-caption-xs"
               title={
                 row.efileAcceptedAt
                   ? `${t`Authority accepted the return`} · ${formatDatePretty(row.efileAcceptedAt.slice(0, 10))}`
@@ -11799,7 +11803,7 @@ function ActiveStageDetailCard({
             >
               <CheckCircle2Icon className="size-3" aria-hidden />
               <Trans>Accepted</Trans>
-            </span>
+            </Badge>
           ) : null}
           {stageEnteredAt ? (
             <p className="text-xs text-text-tertiary">
@@ -12783,9 +12787,12 @@ function ObligationFiltersPopover({
             )}
             valueLabel={
               committedActiveCount > 0 ? (
-                <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-state-accent-active px-1 font-mono text-caption-xs leading-none font-semibold tabular-nums text-text-inverted">
+                <Badge
+                  variant="accent-solid"
+                  className="min-w-4 px-1 font-mono text-caption-xs leading-none font-semibold tabular-nums"
+                >
                   {committedActiveCount}
-                </span>
+                </Badge>
               ) : undefined
             }
             hideChevron
@@ -12813,9 +12820,9 @@ function ObligationFiltersPopover({
               <Trans>Filters</Trans>
             </PopoverTitle>
             {stagedTotal > 0 ? (
-              <span className="inline-flex items-center rounded-full bg-background-subtle px-2 py-0.5 text-caption-xs font-medium tabular-nums text-text-secondary">
+              <Badge variant="secondary" className="text-caption-xs font-medium tabular-nums">
                 <Plural value={stagedTotal} one="# applied" other="# applied" />
-              </span>
+              </Badge>
             ) : null}
           </div>
           <button

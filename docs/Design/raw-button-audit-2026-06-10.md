@@ -4,15 +4,16 @@ Exhaustive pass over every raw `<button>` JSX element in `apps/app/src` (4
 parallel sweeps by area; tests + `.claude/worktrees` excluded). **~162 raw
 buttons** total.
 
-| Category | Count | Meaning |
-| --- | --- | --- |
-| **CONVERT** | ~70 | Should be `<Button>` or `<TextLink>` — replicates a canonical variant by hand |
-| **CUSTOM-OK** | ~63 | Legitimately custom — keep raw |
-| **ALREADY-CANONICAL** | ~29 | Already a primitive (`FilterTrigger`, `RowActionsMenu`, `DropdownMenuTrigger render`, `Button`, `TextLink`, stat-tile/band, SidebarMenuButton…) |
+| Category              | Count | Meaning                                                                                                                                         |
+| --------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CONVERT**           | ~70   | Should be `<Button>` or `<TextLink>` — replicates a canonical variant by hand                                                                   |
+| **CUSTOM-OK**         | ~63   | Legitimately custom — keep raw                                                                                                                  |
+| **ALREADY-CANONICAL** | ~29   | Already a primitive (`FilterTrigger`, `RowActionsMenu`, `DropdownMenuTrigger render`, `Button`, `TextLink`, stat-tile/band, SidebarMenuButton…) |
 
 ## CONVERT — broken into migration clusters
 
 ### Cluster A — icon-only ghost buttons (~35) → `<Button variant="ghost" size="icon-xs|icon-sm">`
+
 The biggest, cleanest, most mechanical group: square icon buttons with
 `hover:bg-state-base-hover hover:text-text-primary` + focus ring (= Button ghost
 icon). Close / dismiss / peek / help / retry / copy / cycle-arrow:
@@ -34,10 +35,11 @@ icon). Close / dismiss / peek / help / retry / copy / cycle-arrow:
 > Verify those visually.
 
 ### Cluster B — inline text links (~20) → `<TextLink>` (NOT Button)
+
 These are text links; per DESIGN §4.8 they belong on `TextLink`, not a Button
 `link` variant. Tones: accent / quiet / **success** / **destructive**.
 
-- `routes/obligations.tsx`: 7194, 11907, 12980, 13124; `rules.library.tsx`: 835, 957*, 961*, 3041, 4253 (*already use a `linkClass`)
+- `routes/obligations.tsx`: 7194, 11907, 12980, 13124; `rules.library.tsx`: 835, 957*, 961*, 3041, 4253 (\*already use a `linkClass`)
 - `routes/login.tsx`: 318; `two-factor.tsx`: 138; `accept-invite.tsx`: 298; `splash.tsx`: 192, 199
 - `features/alerts/`: `AlertHistoryView.tsx` 254 (accent), `AlertDetailDrawer.tsx` 556 (**success** "Undo"), `components/AlertTeamNotes.tsx` 86, `components/DecisionActions.tsx` 71
 - `features/migration/SuccessModal.tsx`: 207; `features/rules/rule-detail-drawer.tsx`: 264, 720 (accent show-more)
@@ -45,6 +47,7 @@ These are text links; per DESIGN §4.8 they belong on `TextLink`, not a Button
 > Needs a **`success`** TextLink variant for AlertDetailDrawer:556 (green Undo).
 
 ### Cluster C — filled / CTA / auth buttons (~8) → `<Button variant=…>`
+
 - `routes/login.tsx`: 232, 254 (Google/Microsoft → `secondary`)
 - `features/onboarding/rule-review-prompt.tsx`: 136 (Skip → `link`/`ghost`), 145 (Back → `secondary`), 153 (Review → `primary`)
 - `features/clients/ClientsEmptyState.tsx`: 151 (sample-data → `accent` — but it's a `rounded-full` pill, the documented animated-exception family; confirm)
@@ -52,8 +55,10 @@ These are text links; per DESIGN §4.8 they belong on `TextLink`, not a Button
 - `routes/dashboard.tsx`: 309 (import → `secondary` sm, but it's the rounded-full expand-pill exception)
 
 ### Cluster D — chips / pills that are really toggles or filters (~7) — DECIDE per item
+
 Borderline: some are filter chips (FilterTrigger-family), some are toggle
 internals. NOT plain Buttons. Review individually:
+
 - `routes/obligations.tsx`: 12949 (preset → tertiary?), 13194 (filter chip)
 - `routes/rules.library.tsx`: 2627 (entity filter chip)
 - `features/migration/Step1Intake.tsx`: 1061 (PresetChip toggle)
@@ -61,21 +66,25 @@ internals. NOT plain Buttons. Review individually:
 - `features/onboarding/state-rule-activation-selector.tsx`: 127 (select-all → secondary)
 
 ## CUSTOM-OK — keep raw (representative, ~63 total)
+
 Whole-row / whole-card click targets (rule rows, alert rows, brief rows,
 needs-attention cards, nav rows, stat-tile/band), `DropdownMenuTrigger render={<button/>}`
-+ `PopoverTrigger`/`CollapsibleTrigger` wrappers, Segmented/tab/aria-pressed
-toggle internals (billing interval, status-scope pills, deadline tabs), radio
-options (role="radio" cards), map/tilegram tiles (PulseAlertsMap, StateTilegram),
-the dashed assignee "?" picker, checkbox/matrix cells, the file-upload drop zone,
-the quick-find sidebar bar, date-picker field trigger, citation chips.
+
+- `PopoverTrigger`/`CollapsibleTrigger` wrappers, Segmented/tab/aria-pressed
+  toggle internals (billing interval, status-scope pills, deadline tabs), radio
+  options (role="radio" cards), map/tilegram tiles (PulseAlertsMap, StateTilegram),
+  the dashed assignee "?" picker, checkbox/matrix cells, the file-upload drop zone,
+  the quick-find sidebar bar, date-picker field trigger, citation chips.
 
 ## ALREADY-CANONICAL — the primitives themselves (~29)
+
 `filter-trigger.tsx`, `row-actions-menu.tsx`, `table-header-filter.tsx`,
 `stat-tile.tsx`, `stat-band.tsx`, `kbd.tsx` (uses Button), `search-input.tsx`
 clear-X, `app-shell-*` (SidebarMenuButton / DropdownMenuTrigger), combobox /
 iso-date-picker (PopoverTrigger). These ARE the wrappers — do not "convert."
 
 ## Migration plan / sequencing
+
 1. **Cluster A** (icon ghosts) — highest volume, lowest risk, do in batches by file.
 2. **Cluster B** — needs a `success` TextLink variant first, then migrate.
 3. **Cluster C/D** — per-item design calls (some are the documented pill
@@ -113,8 +122,9 @@ buttons → ghost + 2 footer text links ("Reset"/"Clear") → ghost xs; the 2
 composite multi-child links (client kicker, "outstanding · check materials" row)
 **left raw** — a sized Button breaks their group-hover/arrow layout (CUSTOM-OK).
 `dashboard.tsx` — sync/refresh → ghost icon-sm. `daily-brief-card.tsx` — dismiss
-+ both regenerate buttons (icon + labeled) → ghost. `merged-brief-card.tsx` — no
-CONVERT buttons (its two are CUSTOM-OK: a segmented tab + a whole-row target).
+
+- both regenerate buttons (icon + labeled) → ghost. `merged-brief-card.tsx` — no
+  CONVERT buttons (its two are CUSTOM-OK: a segmented tab + a whole-row target).
 
 **Left by design:** all CUSTOM-OK, all ALREADY-CANONICAL.
 

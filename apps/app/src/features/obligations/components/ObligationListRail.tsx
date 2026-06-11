@@ -4,6 +4,12 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import type { ObligationQueueRow } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import {
+  ListRail,
+  ListRailBody,
+  ListRailHead,
+  ListRailSection,
+} from '@/components/patterns/list-rail'
 import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
@@ -54,9 +60,9 @@ export function ObligationListRail({
   )
 
   return (
-    <div className="flex h-full w-[380px] shrink-0 flex-col border-r border-divider-subtle bg-background-default">
+    <ListRail>
       {/* ListHead — "Deadlines · N overdue / N open". */}
-      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
+      <ListRailHead className="justify-between">
         <span className="text-[16px] font-semibold text-text-primary">
           <Trans>Deadlines</Trans>
         </span>
@@ -69,10 +75,10 @@ export function ObligationListRail({
             <Plural value={rows.length} one="# open" other="# open" />
           </span>
         )}
-      </div>
+      </ListRailHead>
 
       {/* FilterRow — search. */}
-      <div className="flex shrink-0 items-center gap-2 border-b border-divider-subtle px-4 py-2.5">
+      <ListRailSection>
         <SearchInput
           variant="compact"
           value={search}
@@ -80,10 +86,10 @@ export function ObligationListRail({
           placeholder={t`Search deadlines`}
           className="w-full"
         />
-      </div>
+      </ListRailSection>
 
       {/* ListBody — compact items, the open one accented. */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <ListRailBody>
         {visible.length === 0 ? (
           <p className="px-[18px] py-10 text-center text-base text-text-tertiary">
             <Trans>No deadlines match.</Trans>
@@ -109,8 +115,8 @@ export function ObligationListRail({
             ) : null}
           </>
         )}
-      </div>
-    </div>
+      </ListRailBody>
+    </ListRail>
   )
 }
 

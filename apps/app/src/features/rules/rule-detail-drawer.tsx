@@ -1990,9 +1990,9 @@ function RuleEvidenceCard({
         <p className="line-clamp-2 text-sm text-text-secondary">{evidence.summary}</p>
       </div>
       {isPrimary ? (
-        <span className="shrink-0 self-start rounded-full bg-state-success-solid px-2.5 py-0.5 text-xs font-semibold text-white">
+        <Badge variant="success-solid" className="shrink-0 self-start px-2.5 font-semibold">
           <Trans>Primary</Trans>
-        </span>
+        </Badge>
       ) : (
         <AuthorityRoleBadge role={evidence.authorityRole} />
       )}

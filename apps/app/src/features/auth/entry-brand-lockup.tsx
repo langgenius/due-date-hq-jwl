@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import brandMark from '@duedatehq/ui/assets/brand/brand-favicon.svg?url'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 interface EntryBrandLockupProps {
@@ -32,9 +33,12 @@ export function EntryBrandLockup({ pill, className }: EntryBrandLockupProps) {
 // "PRIVATE BETA · JUN 2026"-style status pill used inside the brand lockup.
 export function EntryBetaPill({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-state-accent-hover-alt px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wide text-text-accent">
+    <Badge
+      variant="info"
+      className="gap-1.5 px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wide"
+    >
       <span aria-hidden className="block size-1.5 rounded-full bg-status-done" />
       {children}
-    </span>
+    </Badge>
   )
 }

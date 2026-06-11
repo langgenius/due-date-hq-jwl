@@ -200,10 +200,10 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
 
         {/* Step pills */}
         <div className="flex items-center gap-2 border-b border-divider-regular px-6 py-3.5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-state-accent-solid px-3 py-1.5 text-xs font-bold text-text-inverted">
+          <Badge variant="accent-solid" className="gap-1.5 px-3 py-1.5 font-bold">
             <span aria-hidden>1</span>
             <Trans>Preview</Trans>
-          </span>
+          </Badge>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 py-1.5 text-xs font-semibold text-text-secondary">
             <span aria-hidden className="text-text-muted">
               2

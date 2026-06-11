@@ -2074,8 +2074,9 @@ export function ActiveStageDetailCard({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {row.status === 'completed' ? (
-            <span
-              className="inline-flex items-center gap-1 rounded-full bg-state-success-solid px-2 py-0.5 text-caption-xs font-medium text-text-inverted"
+            <Badge
+              variant="success-solid"
+              className="text-caption-xs"
               title={
                 row.efileAcceptedAt
                   ? `${t`Authority accepted the return`} · ${formatDatePretty(row.efileAcceptedAt.slice(0, 10))}`
@@ -2084,7 +2085,7 @@ export function ActiveStageDetailCard({
             >
               <CheckCircle2Icon className="size-3" aria-hidden />
               <Trans>Accepted</Trans>
-            </span>
+            </Badge>
           ) : null}
           {stageEnteredAt ? (
             <p className="text-sm text-text-tertiary">

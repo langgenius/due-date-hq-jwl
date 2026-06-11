@@ -11,6 +11,12 @@ import {
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import {
+  ListRail,
+  ListRailBody,
+  ListRailHead,
+  ListRailSection,
+} from '@/components/patterns/list-rail'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
@@ -142,9 +148,9 @@ export function DeadlineNavigatorRail({
     // column; below lg the master-detail collapses to detail-only (rail hidden,
     // so the detail gets full width — the crumb's "Deadlines" link returns to
     // the table). Width 340 (lg) → 380 (xl).
-    <aside className="hidden h-full w-[340px] shrink-0 flex-col border-r border-divider-subtle bg-background-default lg:flex xl:w-[380px]">
+    <ListRail className="hidden w-[340px] lg:flex xl:w-[380px]">
       {/* ListHead — title + count chip (rzzww `mCfAZ`). */}
-      <div className="flex items-center justify-between gap-2 border-b border-divider-subtle px-[18px] py-3.5">
+      <ListRailHead className="justify-between">
         <span className="text-[16px] font-semibold text-text-primary">
           <Trans>Deadlines</Trans>
         </span>
@@ -153,11 +159,11 @@ export function DeadlineNavigatorRail({
             {t`${totalCount} active`}
           </span>
         ) : null}
-      </div>
+      </ListRailHead>
 
       {/* FilterRow — client-side search + optional status filter over the
           loaded rows (rzzww `kEi6B`). */}
-      <div className="flex items-center gap-1.5 border-b border-divider-subtle px-4 py-2.5">
+      <ListRailSection className="gap-1.5">
         <SearchInput
           variant="compact"
           value={search}
@@ -211,10 +217,10 @@ export function DeadlineNavigatorRail({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </ListRailSection>
 
       {/* ListBody */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <ListRailBody>
         {filteredRows.length === 0 ? (
           <p className="px-[18px] py-6 text-sm text-text-tertiary">
             <Trans>No deadlines match.</Trans>
@@ -240,8 +246,8 @@ export function DeadlineNavigatorRail({
             {isLoadingMore ? <Trans>Loading…</Trans> : <Trans>Load more deadlines</Trans>}
           </button>
         ) : null}
-      </div>
-    </aside>
+      </ListRailBody>
+    </ListRail>
   )
 }
 

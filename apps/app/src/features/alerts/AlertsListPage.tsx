@@ -1778,13 +1778,10 @@ function AlertsHistoryRecordLegend() {
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">
         {items.map(({ key, icon: ChipIcon, label }) => (
-          <span
-            key={key}
-            className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-3 py-1.5 text-xs font-medium text-text-secondary"
-          >
+          <Badge key={key} variant="secondary" className="gap-1.5 px-3 py-1.5 text-xs font-medium">
             <ChipIcon className="size-3 text-text-secondary" aria-hidden />
             {label}
-          </span>
+          </Badge>
         ))}
       </div>
     </div>

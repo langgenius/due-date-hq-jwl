@@ -2,6 +2,7 @@ import { type ReactNode } from 'react'
 import { Trans } from '@lingui/react/macro'
 import { ArrowRightIcon, InfoIcon } from 'lucide-react'
 
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
@@ -61,9 +62,9 @@ function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean
             </>
           ) : null}
           {item.blockedCount != null ? (
-            <span className="rounded-full bg-state-destructive-hover-alt px-2 py-0.5 text-[10px] font-bold text-text-destructive">
+            <Badge variant="destructive" className="text-[10px] font-bold">
               <Trans>{item.blockedCount} blocked</Trans>
-            </span>
+            </Badge>
           ) : null}
         </div>
         <p className="text-[11px] font-medium leading-relaxed text-text-tertiary">

@@ -42,6 +42,7 @@ import type {
 // `RuleTier` isn't re-exported from the contracts package today —
 // infer it from the same union literal the schema uses.
 type RuleTier = ObligationRule['ruleTier']
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
@@ -4110,10 +4111,10 @@ function RuleDetailHeroCard({
           {isReviewable ? <Trans>Rule under review</Trans> : <Trans>Active rule</Trans>}
         </span>
         {isReviewable ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-state-warning-hover px-2.5 py-0.5 text-xs font-semibold text-text-warning">
+          <Badge variant="warning" className="gap-1 px-2.5 font-semibold">
             <Clock3 aria-hidden className="size-2.5" />
             <Trans>Awaiting review</Trans>
-          </span>
+          </Badge>
         ) : null}
       </div>
       <div className="flex flex-col gap-2.5 px-5 py-4">
@@ -4504,14 +4505,17 @@ function BulkReviewListModal({
                   {/* Readiness/risk flag (real, from previewBulkRuleImpact). */}
                   {!isExcluded ? (
                     reason ? (
-                      <span className="inline-flex shrink-0 items-center rounded-full bg-state-warning-hover px-2 py-0.5 text-caption-xs font-semibold text-text-warning">
+                      <Badge variant="warning" className="shrink-0 text-caption-xs font-semibold">
                         {skipReasonLabel[reason]}
-                      </span>
+                      </Badge>
                     ) : preview ? (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-state-success-hover px-2 py-0.5 text-caption-xs font-semibold text-text-success">
+                      <Badge
+                        variant="success"
+                        className="shrink-0 gap-1 text-caption-xs font-semibold"
+                      >
                         <Check className="size-2.5" aria-hidden />
                         <Trans>Ready</Trans>
-                      </span>
+                      </Badge>
                     ) : null
                   ) : null}
                   <button

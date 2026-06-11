@@ -683,13 +683,14 @@ export function useObligationQueueColumns(
                 )
               ) : null}
               {obligationQueueRow.efileAcceptedAt && obligationQueueRow.status !== 'completed' ? (
-                <span
-                  className="inline-flex items-center gap-1 rounded-full bg-state-success-solid px-2 py-0.5 text-caption-xs font-medium text-text-inverted"
+                <Badge
+                  variant="success-solid"
+                  className="text-caption-xs"
                   title={`${t`Authority accepted the return`} · ${formatDatePretty(obligationQueueRow.efileAcceptedAt.slice(0, 10))}`}
                 >
                   <CheckCircle2Icon className="size-3" aria-hidden />
                   <Trans>Accepted</Trans>
-                </span>
+                </Badge>
               ) : null}
               {paymentLateDays !== null ? (
                 panelOpenIntent ? (

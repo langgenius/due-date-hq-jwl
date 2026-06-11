@@ -30,6 +30,13 @@ const badgeVariants = cva(
         warning: 'bg-components-badge-bg-warning-soft text-text-warning',
         info: 'bg-components-badge-bg-blue-soft text-text-accent',
         destructive: 'bg-components-badge-bg-red-soft text-text-destructive',
+        // 2026-06-10: SOLID emphasis tones. The default register is soft
+        // (terminal lifecycle states stay quiet), but a few high-signal
+        // milestone chips ("Accepted", "Primary", an active wizard step)
+        // intentionally read solid. These route those onto the primitive
+        // without softening them — use sparingly; soft is the default.
+        'success-solid': 'bg-state-success-solid text-text-inverted',
+        'accent-solid': 'bg-state-accent-solid text-text-inverted',
         outline: 'border-divider-regular text-text-secondary hover:[a]:bg-state-base-hover',
         ghost: 'text-text-secondary hover:bg-state-base-hover',
         link: 'text-text-accent underline-offset-4 hover:underline',
