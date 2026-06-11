@@ -121,7 +121,9 @@ export const SearchInput = forwardRef(function SearchInput(
           aria-hidden
           className={cn(
             'pointer-events-none absolute top-1/2 -translate-y-1/2 text-text-tertiary',
-            variant === 'compact' ? 'left-2 size-3.5' : 'left-2.5 size-4',
+            // 2026-06-11 (Yuqi rail feedback): compact icon sits flush at the
+            // left so the search reads as a clean inline bar, not an inset field.
+            variant === 'compact' ? 'left-0 size-3.5' : 'left-2.5 size-4',
           )}
         />
         <Input
@@ -142,8 +144,13 @@ export const SearchInput = forwardRef(function SearchInput(
           }}
           className={cn(
             'placeholder:text-text-secondary',
+            // 2026-06-11 (Yuqi rail feedback "clean search bar"): the compact
+            // (sidebar-rail) search is flat — transparent at rest AND on
+            // hover/focus (no fill), no border, no ring, and flush horizontal
+            // padding (icon at the left edge). Reads as a quiet inline filter
+            // line rather than a chip.
             variant === 'compact'
-              ? 'h-7 border-transparent bg-transparent pl-8 pr-8 hover:bg-state-base-hover focus-visible:border-transparent focus-visible:bg-state-base-hover focus-visible:ring-0'
+              ? 'h-7 border-transparent bg-transparent px-0 pl-6 pr-6 hover:bg-transparent focus-visible:border-transparent focus-visible:bg-transparent focus-visible:ring-0'
               : 'h-9 bg-background-default pl-9 pr-9',
           )}
         />
@@ -154,7 +161,7 @@ export const SearchInput = forwardRef(function SearchInput(
             onClick={() => onChange('')}
             className={cn(
               'absolute top-1/2 inline-flex -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-              variant === 'compact' ? 'right-1.5 size-5' : 'right-2 size-6',
+              variant === 'compact' ? 'right-0 size-5' : 'right-2 size-6',
             )}
           >
             <XIcon className="size-3.5" aria-hidden />

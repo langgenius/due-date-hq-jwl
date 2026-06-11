@@ -1,5 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CheckIcon, ChevronDownIcon, ListFilterIcon } from 'lucide-react'
+import { ArrowDownUpIcon, CheckIcon, ChevronDownIcon, ListFilterIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import type { ObligationQueueDetailTab, ObligationQueueRow } from '@duedatehq/contracts'
@@ -75,6 +75,12 @@ const STATUS_FILTER_ORDER: readonly ObligationStatus[] = [
   'not_applicable',
 ]
 
+// Rail sort keys. The rail receives rows in the queue's order, but the
+// navigator lets the user re-rank the loaded set client-side (and always
+// shows which ranking is active). `due` (soonest first) is the default —
+// the most intuitive ordering for a deadline navigator.
+type RailSort = 'due' | 'priority' | 'client' | 'status'
+
 function relativeDueLabel(row: ObligationQueueRow): {
   text: string
   tone: 'late' | 'soon' | 'calm'
@@ -121,6 +127,17 @@ export function DeadlineNavigatorRail({
   // Optional client-side status filter over the loaded rail rows. `all` shows
   // everything; otherwise only rows in the chosen status. Composes with search.
   const [statusFilter, setStatusFilter] = useState<ObligationStatus | 'all'>('all')
+  // Client-side re-rank of the loaded rail rows. Default `due` = soonest
+  // internal due date first. The active ranking is surfaced in the rail so the
+  // user always knows how the list is ordered (Yuqi rail feedback).
+  const [sortKey, setSortKey] = useState<RailSort>('due')
+  const sortOptions: readonly { key: RailSort; label: string }[] = [
+    { key: 'due', label: t`Due date` },
+    { key: 'priority', label: t`Priority` },
+    { key: 'client', label: t`Client` },
+    { key: 'status', label: t`Status` },
+  ]
+  const sortLabel = sortOptions.find((option) => option.key === sortKey)?.label ?? t`Due date`
 
   // Statuses present in the loaded set, with counts, in canonical urgency order
   // — the menu only offers statuses that actually exist in the rail.
@@ -151,6 +168,24 @@ export function DeadlineNavigatorRail({
       return haystack.includes(needle)
     })
   }, [rows, search, effectiveStatusFilter, statusLabels])
+
+  // Re-rank the filtered set by the active sort key. Stable within ties
+  // (toSorted is stable), so equal keys keep the incoming queue order.
+  const sortedRows = useMemo(() => {
+    return filteredRows.toSorted((a, b) => {
+      switch (sortKey) {
+        case 'priority':
+          return b.smartPriority.score - a.smartPriority.score
+        case 'client':
+          return a.clientName.localeCompare(b.clientName)
+        case 'status':
+          return STATUS_FILTER_ORDER.indexOf(a.status) - STATUS_FILTER_ORDER.indexOf(b.status)
+        default:
+          // Due date — soonest internal due first (ISO strings sort lexically).
+          return a.currentDueDate.localeCompare(b.currentDueDate)
+      }
+    })
+  }, [filteredRows, sortKey])
 
   return (
     // Rail is the xl/lg companion
@@ -228,14 +263,50 @@ export function DeadlineNavigatorRail({
         </DropdownMenu>
       </ListRailSection>
 
+      {/* RankRow — surfaces how the rail is ordered and lets the user
+          re-rank the loaded set. The label always states the active sort
+          ("Sorted by Due date") so the ranking is never a mystery. */}
+      <ListRailSection className="justify-between py-1.5">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <button
+                type="button"
+                aria-label={t`Change sort order`}
+                className="inline-flex cursor-pointer items-center gap-1 rounded-md py-0.5 text-caption-xs font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              >
+                <ArrowDownUpIcon className="size-3 shrink-0" aria-hidden />
+                <span>
+                  <Trans>Sorted by</Trans> {sortLabel}
+                </span>
+                <ChevronDownIcon className="size-3 shrink-0" aria-hidden />
+              </button>
+            }
+          />
+          <DropdownMenuContent align="start" className="min-w-[180px]">
+            {sortOptions.map((option) => (
+              <DropdownMenuItem key={option.key} onClick={() => setSortKey(option.key)}>
+                <span className="flex-1">{option.label}</span>
+                {sortKey === option.key ? (
+                  <CheckIcon className="size-3.5 text-text-accent" aria-hidden />
+                ) : null}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <span className="text-caption-xs tabular-nums text-text-tertiary">
+          {t`${sortedRows.length} shown`}
+        </span>
+      </ListRailSection>
+
       {/* ListBody */}
       <ListRailBody>
-        {filteredRows.length === 0 ? (
+        {sortedRows.length === 0 ? (
           <p className="px-[18px] py-6 text-sm text-text-tertiary">
             <Trans>No deadlines match.</Trans>
           </p>
         ) : (
-          filteredRows.map((row) => (
+          sortedRows.map((row) => (
             <DeadlineNavigatorRow
               key={row.id}
               row={row}
