@@ -13,6 +13,7 @@ import {
   extractPulseSnapshot,
   normalizeExtractJurisdiction,
   pulseAlertMinRelevantAt,
+  ungroundedAlertDates,
 } from './extract'
 
 const { aiMocks, coreMocks, dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
@@ -939,6 +940,31 @@ describe('extractPulseSnapshot', () => {
   })
 })
 
+describe('ungroundedAlertDates', () => {
+  const text =
+    'Returns originally due April 15th, 2026 are postponed to 10/15/2026 for affected taxpayers. Relief runs through 2026-12-31.'
+
+  it('grounds long-form, ordinal, numeric, and ISO renderings', () => {
+    expect(
+      ungroundedAlertDates(text, [
+        ['original_due_date', new Date('2026-04-15T00:00:00.000Z')],
+        ['new_due_date', new Date('2026-10-15T00:00:00.000Z')],
+        ['effective_until', new Date('2026-12-31T00:00:00.000Z')],
+      ]),
+    ).toEqual([])
+  })
+
+  it('flags dates the source never states and ignores null slots', () => {
+    expect(
+      ungroundedAlertDates(text, [
+        ['original_due_date', new Date('2026-04-15T00:00:00.000Z')],
+        ['new_due_date', new Date('2026-11-16T00:00:00.000Z')],
+        ['protective_action_deadline', null],
+      ]),
+    ).toEqual(['new_due_date'])
+  })
+})
+
 describe('pulseAlertMinRelevantAt', () => {
   it('floors at the start of the current year mid-year (matches the old hardcoded value)', () => {
     expect(pulseAlertMinRelevantAt(new Date('2026-06-10T12:00:00.000Z')).toISOString()).toBe(
@@ -1032,7 +1058,10 @@ describe('extractPulseSnapshot — confidence gating & race-safe de-duplication'
       counties: [],
       forms: [],
       entityTypes: [],
-      originalDueDate: null,
+      // Both dates appear in the default R2 source text ("extended from
+      // April 15, 2026 to October 15, 2026") — the grounding gate verifies
+      // parsed dates against it, and a date-less overlay quarantines.
+      originalDueDate: '2026-04-15',
       newDueDate: '2026-10-15',
       effectiveFrom: null,
       effectiveUntil: null,
@@ -1134,23 +1163,76 @@ describe('extractPulseSnapshot — confidence gating & race-safe de-duplication'
   })
 
   it('quarantines a backfill-seeded overlay that is missing the original due date', async () => {
-    // The fan-out matcher pins currentDueDate == parsedOriginalDueDate, and the
-    // quiet seed is impact-scoped — approving an unmatchable overlay would
-    // materialize nothing, silently. Quarantine keeps it promotable by a
-    // richer re-observation. Live extracts with the same gap stay approved
-    // (Apply-readiness candidate, firm-wide) — covered above.
+    // The fan-out matcher pins currentDueDate == parsedOriginalDueDate, so a
+    // date-less overlay can never match — and never expires. Since 2026-06-11
+    // the gate is UNIVERSAL (live extracts too); this case additionally
+    // verifies the seed path keeps its quiet fanOutMode on the quarantined
+    // row. Quarantine, never drop: promotable by a richer re-observation.
     repoMocks.getSourceSnapshot.mockResolvedValue({
       ...snapshot,
       id: 'snapshot-seed-nodate',
       ingestMethod: 'backfill_seed',
     })
-    aiMocks.extractPulse.mockResolvedValue(regChange(0.8)) // originalDueDate: null
+    const payload = regChange(0.8)
+    aiMocks.extractPulse.mockResolvedValue({
+      ...payload,
+      result: { ...payload.result, originalDueDate: null },
+    })
 
     const result = await extractPulseSnapshot(env(), 'snapshot-seed-nodate')
 
     expect(result.status).toBe('created')
     expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'quarantined', fanOutMode: 'quiet' }),
+    )
+  })
+
+  it('quarantines a LIVE overlay missing its original due date (universal matchability gate)', async () => {
+    // Owner decision 2026-06-11 (the GA Kemp hub-page alert): a date-less
+    // due_date_overlay can never match an obligation and never expires —
+    // degrade to quarantined instead of approving a forever-row. The old
+    // "Apply-readiness candidate" approve-anyway behavior is retired.
+    repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
+    const payload = regChange(0.9)
+    aiMocks.extractPulse.mockResolvedValue({
+      ...payload,
+      result: { ...payload.result, originalDueDate: null },
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-conf')
+
+    expect(result.status).toBe('created')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'quarantined' }),
+    )
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'pulse.extract.grounding_quarantined',
+      expect.objectContaining({ datelessOverlay: true }),
+    )
+  })
+
+  it('quarantines an extract whose parsed date is not locatable in the source text', async () => {
+    // The excerpt guard only proves the QUOTE exists — a misread or
+    // hallucinated date sails through it. The deterministic grounding check
+    // catches it and degrades (never drops): fields preserved, promotable by
+    // a clean re-observation.
+    repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
+    const payload = regChange(0.9)
+    aiMocks.extractPulse.mockResolvedValue({
+      ...payload,
+      // Source text says "October 15, 2026"; the model claims Nov 16.
+      result: { ...payload.result, newDueDate: '2026-11-16' },
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-conf')
+
+    expect(result.status).toBe('created')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'quarantined' }),
+    )
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'pulse.extract.grounding_quarantined',
+      expect.objectContaining({ ungroundedDates: 'new_due_date' }),
     )
   })
 

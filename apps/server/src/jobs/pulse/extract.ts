@@ -127,6 +127,71 @@ function hasCurrentProtectiveActionDeadline(structuredChange: unknown, now = new
  *      otherwise federal (`irs.*`, `fed.*`, unknown) -> `FED`.
  * The result is always contract-legal, so no extraction can poison the list.
  */
+const GROUNDING_MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const
+
+// The renderings US tax announcements actually use for a calendar date. UTC
+// parts — parsed dates are date-valued, never moments.
+function groundedDateRenderings(date: Date): string[] {
+  const year = date.getUTCFullYear()
+  const monthIndex = date.getUTCMonth()
+  const day = date.getUTCDate()
+  const month = GROUNDING_MONTHS[monthIndex] ?? ''
+  const mon = month.slice(0, 3)
+  const mm = String(monthIndex + 1).padStart(2, '0')
+  const dd = String(day).padStart(2, '0')
+  return [
+    `${month} ${day}, ${year}`,
+    `${month} ${day} ${year}`,
+    `${month} ${day}`,
+    `${mon} ${day}, ${year}`,
+    `${mon}. ${day}, ${year}`,
+    `${day} ${month} ${year}`,
+    `${monthIndex + 1}/${day}/${year}`,
+    `${mm}/${dd}/${year}`,
+    `${monthIndex + 1}/${day}/${String(year).slice(2)}`,
+    `${year}-${mm}-${dd}`,
+  ].map((rendering) => rendering.toLowerCase())
+}
+
+/**
+ * Which of the AI-parsed dates can NOT be located in the source text, in any
+ * of the renderings a US tax announcement plausibly uses. The excerpt guard
+ * only proves the verbatim quote exists; this is the deterministic check that
+ * the dates driving the matcher / apply flow / expiry predicate were actually
+ * read off the page rather than hallucinated or misparsed. Returns the labels
+ * of the offending dates; the caller degrades the pulse to 'quarantined'
+ * (never drops it — the fields stay reviewable and promotable).
+ */
+export function ungroundedAlertDates(
+  sourceText: string,
+  dates: ReadonlyArray<readonly [label: string, date: Date | null]>,
+): string[] {
+  const normalized = sourceText
+    .toLowerCase()
+    // "June 15th" → "June 15" so ordinal prose grounds the parsed date.
+    .replace(/(\d)(?:st|nd|rd|th)\b/g, '$1')
+    .replace(/\s+/g, ' ')
+  return dates
+    .filter(([, date]) => {
+      if (!date) return false
+      return !groundedDateRenderings(date).some((rendering) => normalized.includes(rendering))
+    })
+    .map(([label]) => label)
+}
+
 export function normalizeExtractJurisdiction(sourceId: string, jurisdiction: string): string {
   const value = jurisdiction.trim().toUpperCase()
   if (value === 'US' || value === 'USA') return 'FED'
@@ -545,26 +610,59 @@ async function runPulseExtractionAfterMark(
     result.result.jurisdiction,
   )
   const parsedOriginalDueDate = nullableDateFromIsoDate(result.result.originalDueDate)
+  const parsedNewDueDate = nullableDateFromIsoDate(result.result.newDueDate)
+  const parsedEffectiveUntil = nullableDateFromIsoDate(result.result.effectiveUntil)
+  // Promote the protective-claim action deadline into its own column so the
+  // still-actionable predicate and deadline sorting see it (review_only alerts
+  // leave parsedNewDueDate / parsedEffectiveUntil NULL). Only this change kind
+  // emits actionDeadline, but gate explicitly to match the column's semantics.
+  const protectiveActionDeadline =
+    result.result.changeKind === 'protective_claim_window'
+      ? protectiveActionDeadlineFromStructuredChange(result.result.structuredChange)
+      : null
   // Backfill-seeded snapshots (months-old announcements still in effect) route
   // their pulses through the quiet fan-out: impact-scoped origin='catchup'
   // rows, no digest emails / notifications — state, not news.
   const fanOutMode = snapshot.ingestMethod === 'backfill_seed' ? ('quiet' as const) : undefined
-  // Backfill hard gate: a due_date_overlay alert without the original due date
-  // can never match an obligation (the fan-out matcher pins
-  // currentDueDate == parsedOriginalDueDate), so a quiet, impact-scoped seed
-  // would approve it and then materialize nothing — an invisible "approved"
-  // row. Quarantine instead; a richer re-observation promotes it via the
-  // dedupe fold. Live extracts keep today's behavior: incomplete overlay
-  // evidence still surfaces firm-wide as an Apply-readiness candidate.
-  const seedUnmatchable =
-    fanOutMode === 'quiet' && actionMode === 'due_date_overlay' && parsedOriginalDueDate === null
+  // Matchability gate (universal since 2026-06-11, was backfill-only): a
+  // due_date_overlay alert without the original due date can never match an
+  // obligation (the fan-out matcher pins currentDueDate ==
+  // parsedOriginalDueDate) and never expires (the read-time predicate treats
+  // NULL dates as evergreen) — an un-dismissable forever-row that drives
+  // nothing. Quarantine instead of approve OR drop: the fields are preserved,
+  // and a richer re-observation of the same event either promotes it via the
+  // dedupe fold or lands as its own dated, approved pulse.
+  const datelessOverlay = actionMode === 'due_date_overlay' && parsedOriginalDueDate === null
+  // Date grounding: every load-bearing parsed date must be locatable in the
+  // source text the model read. The excerpt guard only proves the QUOTE
+  // exists — a hallucinated or misread date sails through it and would drive
+  // a wrong deadline overlay. effective_from is deliberately not checked
+  // (models legitimately infer it from publication context); the four dates
+  // below feed the matcher, the apply flow, and the expiry predicate.
+  const ungroundedDates = ungroundedAlertDates(rawText, [
+    ['original_due_date', parsedOriginalDueDate],
+    ['new_due_date', parsedNewDueDate],
+    ['effective_until', parsedEffectiveUntil],
+    ['protective_action_deadline', protectiveActionDeadline],
+  ])
   // Low-confidence extracts land quarantined. The same band decides whether a
   // duplicate fold should promote a quarantined survivor (see
   // applyDuplicateExtractToPulse).
   const pulseStatus =
-    isEmailSourced || result.result.confidence < PULSE_PUBLISH_CONFIDENCE || seedUnmatchable
+    isEmailSourced ||
+    result.result.confidence < PULSE_PUBLISH_CONFIDENCE ||
+    datelessOverlay ||
+    ungroundedDates.length > 0
       ? ('quarantined' as const)
       : ('approved' as const)
+  if (datelessOverlay || ungroundedDates.length > 0) {
+    recordPulseMetric('pulse.extract.grounding_quarantined', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      datelessOverlay,
+      ungroundedDates: ungroundedDates.join(',') || null,
+    })
+  }
 
   const duplicatePulseId = await repo.findDuplicatePulseForExtract({
     publishedAt: snapshot.publishedAt,
@@ -628,17 +726,10 @@ async function runPulseExtractionAfterMark(
     parsedForms: result.result.forms,
     parsedEntityTypes: result.result.entityTypes,
     parsedOriginalDueDate,
-    parsedNewDueDate: nullableDateFromIsoDate(result.result.newDueDate),
+    parsedNewDueDate,
     parsedEffectiveFrom: nullableDateFromIsoDate(result.result.effectiveFrom),
-    parsedEffectiveUntil: nullableDateFromIsoDate(result.result.effectiveUntil),
-    // Promote the protective-claim action deadline into its own column so the
-    // still-actionable predicate and deadline sorting see it (review_only alerts
-    // leave parsedNewDueDate / parsedEffectiveUntil NULL). Only this change kind
-    // emits actionDeadline, but gate explicitly to match the column's semantics.
-    protectiveActionDeadline:
-      result.result.changeKind === 'protective_claim_window'
-        ? protectiveActionDeadlineFromStructuredChange(result.result.structuredChange)
-        : null,
+    parsedEffectiveUntil,
+    protectiveActionDeadline,
     affectedRuleIds: result.result.affectedRuleIds,
     reverifyRuleIds,
     structuredChange: result.result.structuredChange,
