@@ -229,22 +229,9 @@ export const DashboardLoadOutputSchema = z.object({
 })
 export type DashboardLoadOutput = z.infer<typeof DashboardLoadOutputSchema>
 
-export const DashboardRequestBriefRefreshInputSchema = z
-  .object({
-    scope: DashboardBriefScopeSchema.default('firm').optional(),
-  })
-  .optional()
-export type DashboardRequestBriefRefreshInput = z.infer<
-  typeof DashboardRequestBriefRefreshInputSchema
->
-
-export const DashboardRequestBriefRefreshOutputSchema = z.object({
-  queued: z.boolean(),
-  brief: DashboardBriefPublicSchema.nullable(),
-})
-export type DashboardRequestBriefRefreshOutput = z.infer<
-  typeof DashboardRequestBriefRefreshOutputSchema
->
+// 2026-06-10: requestBriefRefresh (manual regenerate) retired — the brief
+// is a self-tending daily edition (missing/stale/failed all self-heal on
+// view), so the manual path and its daily rate limit are gone.
 
 // 2026-06-07 (Pencil QGZta /splash): the post-login "while you were away"
 // recap. `shouldShow` is true when the user last opened the dashboard on an
@@ -272,9 +259,6 @@ export type DashboardRecordVisitOutput = z.infer<typeof DashboardRecordVisitOutp
 
 export const dashboardContract = oc.router({
   load: oc.input(DashboardLoadInputSchema).output(DashboardLoadOutputSchema),
-  requestBriefRefresh: oc
-    .input(DashboardRequestBriefRefreshInputSchema)
-    .output(DashboardRequestBriefRefreshOutputSchema),
   // Read-only: compute the recap + whether to show the splash. Does NOT record
   // the visit (so it's safe to call from both the dashboard gate + /splash).
   welcomeRecap: oc.output(DashboardWelcomeRecapOutputSchema),

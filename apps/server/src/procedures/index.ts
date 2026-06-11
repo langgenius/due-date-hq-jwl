@@ -120,7 +120,6 @@ export const router = os.router({
   },
   dashboard: {
     load: dashboardHandlers.load,
-    requestBriefRefresh: dashboardHandlers.requestBriefRefresh,
     welcomeRecap: dashboardHandlers.welcomeRecap,
     recordDashboardVisit: dashboardHandlers.recordDashboardVisit,
   },

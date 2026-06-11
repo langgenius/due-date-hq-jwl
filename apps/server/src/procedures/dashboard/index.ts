@@ -7,7 +7,6 @@ import {
 import type { DashboardBriefRow } from '@duedatehq/ports/dashboard'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import { requireSession, requireTenant } from '../_context'
-import { requirePracticeAiWorkflow } from '../_plan-gates'
 import { os } from '../_root'
 
 interface DashboardRepoTopRow {
@@ -169,7 +168,17 @@ const load = os.dashboard.load.handler(async ({ input, context }) => {
   // dedupe skips the AI call entirely unless the (scoped) snapshot
   // actually changed — in practice at most one personal-brief generation
   // per user per day, and only for users who view My work.
-  if (scope === 'me' && (!result.brief || result.brief.status === 'stale')) {
+  // 2026-06-10 (manual refresh retired): the brief is a self-tending daily
+  // edition — failed generations now ALSO self-heal here (the inline
+  // "Regenerate" affordance is gone). Backoff: a failed brief only
+  // re-enqueues once its failure stamp is ≥30 min old, on top of the
+  // enqueue debounce and the AI stack's own fail-loop guards, so a hard
+  // provider outage costs at most ~2 attempts/hour/viewer.
+  const failedLongEnoughAgo =
+    result.brief?.status === 'failed' &&
+    (result.brief.generatedAt === null ||
+      Date.now() - result.brief.generatedAt.getTime() > 30 * 60 * 1000)
+  if (scope === 'me' && (!result.brief || result.brief.status === 'stale' || failedLongEnoughAgo)) {
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,
       scope: 'me',
@@ -213,25 +222,9 @@ const load = os.dashboard.load.handler(async ({ input, context }) => {
   } satisfies DashboardLoadOutput
 })
 
-const requestBriefRefresh = os.dashboard.requestBriefRefresh.handler(async ({ input, context }) => {
-  const { scoped, tenant, userId } = requireTenant(context)
-  requirePracticeAiWorkflow(tenant.plan)
-  const scope = input?.scope ?? 'firm'
-  const asOfDate = dateInTimezone(tenant.timezone)
-  const queued = await enqueueDashboardBriefRefresh(context.env, {
-    firmId: tenant.firmId,
-    scope,
-    userId: scope === 'me' ? userId : null,
-    asOfDate,
-    reason: 'manual_refresh',
-  })
-  const brief = await scoped.dashboard.findLatestBrief({
-    scope,
-    asOfDate,
-    userId: scope === 'me' ? userId : null,
-  })
-  return { queued, brief: toBriefPublic(brief) }
-})
+// 2026-06-10: requestBriefRefresh (manual regenerate) is retired — the
+// brief is a daily edition that self-heals on view (missing / stale /
+// failed-with-backoff above), so there is nothing for a user to refresh.
 
 // Pencil QGZta /splash — read-only recap + shouldShow gate. Computes whether
 // the user last opened the dashboard on an earlier calendar day (firm tz).
@@ -265,7 +258,6 @@ const recordDashboardVisit = os.dashboard.recordDashboardVisit.handler(async ({ 
 
 export const dashboardHandlers = {
   load,
-  requestBriefRefresh,
   welcomeRecap,
   recordDashboardVisit,
 }

@@ -60,3 +60,23 @@ retired: the daily cron fan-out (plus its weekend critical-risk probe) is
 removed and the consumer drops scope='firm' messages, which also turns the
 client-procedure data-change enqueues into no-ops. Personal ('me') briefs are
 unchanged.
+
+## Follow-up (same day): manual refresh retired — the brief tends itself
+
+Yuqi proposed midnight-cron generation + removing the refresh button. We kept
+the LAZY generation (the brief already rolls on the firm-tz day via asOfDate
+in the snapshot hash — first view of the new day regenerates; midnight
+pre-generation would flip cost from per-viewer to per-seat and serve staler
+content) and adopted the no-manual-refresh half:
+
+- Card: the regenerate button, the failed-chip retry icon, and the inline
+  "Regenerate/Generate brief" links are all gone. Freshness chip is
+  display-only; failed copy reads "…will retry automatically."
+- Self-heal now also covers FAILED briefs (previously missing/stale only —
+  a failed brief could strand forever without the manual button): re-enqueue
+  when the failure stamp is ≥30 min old, on top of the enqueue debounce and
+  the AI stack's fail-loop guards (≈2 attempts/hour/viewer worst case).
+- Retired: dashboard.requestBriefRefresh (contract + handler + router
+  wiring), the manual-refresh daily rate-limit infra in the enqueue, the
+  'manual_refresh' reason in the dashboard-brief message union, and one dead
+  firm-scope enqueue in obligations (consumer drops firm messages anyway).

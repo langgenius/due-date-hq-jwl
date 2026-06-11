@@ -34,8 +34,8 @@ describe('queue consumer', () => {
             body: {
               type: 'dashboard.brief.refresh',
               firmId: 'firm_1',
-              scope: 'firm',
-              reason: 'manual_refresh',
+              scope: 'me',
+              reason: 'scope_view',
               idempotencyKey: 'key',
               requestedAt: '2026-04-29T00:00:00.000Z',
             },

@@ -5001,10 +5001,6 @@ msgstr "Couldn't read your data"
 msgid "Couldn't regenerate calendar URL"
 msgstr "Couldn't regenerate calendar URL"
 
-#: src/routes/dashboard.tsx
-msgid "Couldn't regenerate the brief. Try again."
-msgstr "Couldn't regenerate the brief. Try again."
-
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Couldn't reject rule"
 msgstr "Couldn't reject rule"
@@ -7669,10 +7665,6 @@ msgstr "Generate a plain-English recap of this client's recent recorded changes 
 #: src/routes/obligations.tsx
 msgid "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
 msgstr "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
-
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "Generate brief"
-msgstr "Generate brief"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Generate deadlines"
@@ -10978,7 +10970,6 @@ msgid "Open deadline"
 msgstr "Open deadline"
 
 #: src/features/audit/audit-log-page.tsx
-#: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/members/members-page.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/billing.tsx
@@ -12734,10 +12725,6 @@ msgstr "Refreshing the AI mapping"
 #: src/routes/obligations.tsx
 msgid "Regenerate"
 msgstr "Regenerate"
-
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "Regenerate brief"
-msgstr "Regenerate brief"
 
 #: src/features/calendar/calendar-page.tsx
 #: src/routes/obligations.tsx
@@ -14826,10 +14813,6 @@ msgstr "Smart Priority {0} · rank #{rank}"
 #: src/routes/practice.tsx
 msgid "Smart Priority saved"
 msgstr "Smart Priority saved"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "SNAPSHOT"
-msgstr "SNAPSHOT"
 
 #: src/features/obligations/queue/components/DeadlineRow.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -16999,8 +16982,8 @@ msgid "We couldn't find what you were looking for."
 msgstr "We couldn't find what you were looking for."
 
 #: src/features/dashboard/daily-brief-card.tsx
-msgid "We couldn't generate today's brief."
-msgstr "We couldn't generate today's brief."
+msgid "We couldn't generate today's brief — it will retry automatically."
+msgstr "We couldn't generate today's brief — it will retry automatically."
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "We couldn't reach AI and no preset was selected. Please map columns manually before continuing."

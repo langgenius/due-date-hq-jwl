@@ -1,6 +1,6 @@
 import { AlertCircleIcon, PlusIcon, RotateCwIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
@@ -148,7 +148,6 @@ export function DashboardRoute() {
     rememberDashboardScope(next)
     void setDashboardParams({ scope: next })
   }
-  const queryClient = useQueryClient()
   // 2026-06-08 (Yuqi /today #8 "able to close it"): the Daily Brief is
   // dismissable. We persist the dismissal keyed to the brief's generation
   // stamp so closing it hides THIS brief but a freshly regenerated brief
@@ -189,16 +188,9 @@ export function DashboardRoute() {
         ? 4000
         : false,
   })
-  const requestBriefRefresh = useMutation(
-    orpc.dashboard.requestBriefRefresh.mutationOptions({
-      onSuccess: () => {
-        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
-      },
-      onError: (error) => {
-        toast.error(rpcErrorMessage(error) ?? t`Couldn't regenerate the brief. Try again.`)
-      },
-    }),
-  )
+  // 2026-06-10: the manual brief-refresh mutation is gone — the brief is a
+  // self-tending daily edition (regenerates on the firm-tz day rollover;
+  // failed/stale states self-heal server-side with backoff).
   // 2026-05-29 (Yuqi /today follow-up — "empty state: no clients vs no
   // deadlines"): a `totalOpen === 0` page used to render a single
   // "No deadlines yet, import clients" CTA. That copy was right for
@@ -554,8 +546,6 @@ export function DashboardRoute() {
                 facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0,
               dueThisWeekCount: data?.summary?.dueThisWeekCount ?? 0,
             }}
-            onRefresh={() => requestBriefRefresh.mutate({ scope })}
-            refreshing={requestBriefRefresh.isPending}
             onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
             onClose={
               briefKey

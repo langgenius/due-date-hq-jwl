@@ -566,11 +566,6 @@ async function createManualObligationsFromRuleSelections(input: {
     reason: 'Created from the client rule catalog.',
   })
 
-  await enqueueDashboardBriefRefresh(input.context.env, {
-    firmId: tenant.firmId,
-    reason: 'manual_refresh',
-  }).catch(() => false)
-
   const idSet = new Set(ids)
   const rows = (await scoped.obligations.listByClient(client.id)).filter((row) => idSet.has(row.id))
   if (rows.length !== ids.length) {

@@ -61,8 +61,6 @@ export function DailyBriefCard({
   recap,
   todayCounts,
   concentration,
-  onRefresh,
-  refreshing,
   onOpenObligation,
   onClose,
 }: {
@@ -71,8 +69,6 @@ export function DailyBriefCard({
   recap: DashboardRecap | null
   todayCounts: DailyBriefTodayCounts
   concentration: DashboardSummary['overdueConcentration']
-  onRefresh: () => void
-  refreshing: boolean
   onOpenObligation: (obligationId: string) => void
   onClose?: (() => void) | undefined
 }) {
@@ -80,11 +76,11 @@ export function DailyBriefCard({
   const aiEnabled = scope === 'me'
   if (!brief && !recap && !(scope === 'firm' && concentration)) return null
 
-  const isPending = aiEnabled && (brief?.status === 'pending' || refreshing)
-  // Refresh is only meaningful once a brief exists in some terminal-ish
-  // state; while it's generating the status label shows the spinner, and
-  // with no brief at all the Today row carries its own Generate link.
-  const canRefresh = aiEnabled && brief !== null && !isPending
+  // 2026-06-10 (manual refresh retired): the brief is a self-tending
+  // daily edition — it regenerates on the firm-tz day rollover and
+  // self-heals failed/stale states server-side, so the card carries NO
+  // refresh affordance anywhere. The freshness chip is display-only.
+  const isPending = aiEnabled && brief?.status === 'pending'
 
   return (
     <section
@@ -102,30 +98,11 @@ export function DailyBriefCard({
           <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
             <Trans>Daily Brief</Trans>
           </h2>
-          {aiEnabled && brief ? (
-            <BriefFreshness
-              brief={brief}
-              pending={isPending}
-              onRefresh={canRefresh ? onRefresh : undefined}
-            />
-          ) : null}
+          {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
         </div>
-        {/* Right — icon-only refresh + dismiss */}
+        {/* Right — dismiss only. The regenerate button is gone (manual
+            refresh retired); freshness is display-only. */}
         <div className="flex shrink-0 items-center gap-2.5">
-          {canRefresh && brief.status !== 'failed' ? (
-            <button
-              type="button"
-              onClick={onRefresh}
-              aria-label={t`Regenerate brief`}
-              // 2026-06-09 (Yuqi #5 "gray"): the regenerate control was a gray
-              // icon on the accent card — it read as disabled chrome. It now
-              // carries the card's accent ink at rest and lifts onto a white
-              // chip on hover, so it reads as the card's one live affordance.
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-lg text-text-accent transition-colors hover:bg-background-default hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
-            >
-              <RotateCwIcon className="size-3.5" aria-hidden />
-            </button>
-          ) : null}
           {/* 2026-06-08 (Yuqi /today #8 "able to close it"): dismiss the
               brief for the day. The parent persists the dismissal keyed to
               this brief's generation, so a freshly regenerated brief returns. */}
@@ -158,12 +135,7 @@ export function DailyBriefCard({
         </BriefRowLabel>
         <div className="flex min-w-0 flex-col gap-0.5">
           {aiEnabled ? (
-            <TodayLine
-              brief={brief}
-              pending={isPending}
-              onRefresh={onRefresh}
-              onOpenObligation={onOpenObligation}
-            />
+            <TodayLine brief={brief} pending={isPending} onOpenObligation={onOpenObligation} />
           ) : (
             <FirmTodayLine concentration={concentration} counts={todayCounts} />
           )}
@@ -267,20 +239,19 @@ function YesterdayLine({ recap }: { recap: DashboardRecap }) {
 /**
  * The one AI sentence: today's focus + where to start, citation chip
  * inline. Pending shows a single skeleton line; failed degrades to a
- * quiet inline retry (the deterministic rows around it keep rendering —
- * the AI path must never take the card down with it). Old multi-item
+ * quiet "will retry automatically" note — the server self-heals failed
+ * briefs with backoff, so there is no manual retry affordance and the
+ * deterministic rows around it keep rendering regardless. Old multi-item
  * briefs render their headline; if it carries no citation marker, the
  * first item's markers are appended so the deep-link affordance survives.
  */
 function TodayLine({
   brief,
   pending,
-  onRefresh,
   onOpenObligation,
 }: {
   brief: DashboardBriefPublic | null
   pending: boolean
-  onRefresh: () => void
   onOpenObligation: (obligationId: string) => void
 }) {
   const parsed = useMemo(() => (brief?.text ? parseBriefText(brief.text) : null), [brief?.text])
@@ -295,20 +266,14 @@ function TodayLine({
   if (brief && brief.status === 'failed' && !brief.text) {
     return (
       <p className="text-sm leading-[1.5] text-text-tertiary">
-        <Trans>We couldn't generate today's brief.</Trans>{' '}
-        <TextLink variant="accent" onClick={onRefresh} className="align-baseline">
-          <Trans>Regenerate brief</Trans>
-        </TextLink>
+        <Trans>We couldn't generate today's brief — it will retry automatically.</Trans>
       </p>
     )
   }
   if (!brief || !brief.text || !parsed) {
     return (
       <p className="text-sm leading-[1.5] text-text-tertiary">
-        <Trans>No brief for this view yet.</Trans>{' '}
-        <TextLink variant="accent" onClick={onRefresh} className="align-baseline">
-          <Trans>Generate brief</Trans>
-        </TextLink>
+        <Trans>No brief for this view yet.</Trans>
       </p>
     )
   }
@@ -431,16 +396,7 @@ function TodayCountsLine({ counts }: { counts: DailyBriefTodayCounts }) {
  * title. The dot's color is the only freshness cue (green = fresh, amber =
  * outdated, red = failed), so the rest of the title row reads neutral.
  */
-function BriefFreshness({
-  brief,
-  pending,
-  onRefresh,
-}: {
-  brief: DashboardBriefPublic
-  pending: boolean
-  onRefresh?: (() => void) | undefined
-}) {
-  const { t } = useLingui()
+function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pending: boolean }) {
   if (pending) {
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5">
@@ -452,10 +408,9 @@ function BriefFreshness({
     )
   }
   if (brief.status === 'failed') {
-    // 2026-06-08 (Yuqi: "move to FAILED icon, remove the left dot"): the
-    // failed state drops the red status dot and carries an inline retry
-    // icon right after the label, so recovery lives on the FAILED chip
-    // itself (the separate right-side regenerate button hides while failed).
+    // 2026-06-10 (manual refresh retired): the FAILED chip is display-only
+    // — recovery is the server's failed self-heal, not a user action. The
+    // error code stays one hover away for support conversations.
     const failedText = (
       <span className="text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
         <Trans>Failed</Trans>
@@ -471,16 +426,6 @@ function BriefFreshness({
         ) : (
           failedText
         )}
-        {onRefresh ? (
-          <button
-            type="button"
-            onClick={onRefresh}
-            aria-label={t`Regenerate brief`}
-            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
-          >
-            <RotateCwIcon className="size-3" aria-hidden />
-          </button>
-        ) : null}
       </span>
     )
   }
