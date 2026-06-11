@@ -297,7 +297,7 @@ function NeedsAttentionCard({
               full text still lives in the drawer. Skipped when absent or when it
               would just echo the title. */}
           {alert.verbatimQuote && alert.verbatimQuote.trim() !== alert.title.trim() ? (
-            <p className="line-clamp-2 min-w-0 text-xs leading-[1.5] text-text-secondary">
+            <p className="line-clamp-2 min-w-0 text-xs leading-snug text-text-secondary">
               {alert.verbatimQuote}
             </p>
           ) : null}

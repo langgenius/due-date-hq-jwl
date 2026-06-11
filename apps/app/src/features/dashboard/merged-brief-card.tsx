@@ -369,10 +369,10 @@ function BriefTableRow({
           right?"). The trailing spacer cell absorbs the leftover width. */}
       <TableCell>
         <div className="flex w-[440px] min-w-0 flex-col gap-0.5">
-          <span className="truncate text-base font-semibold text-text-primary">
+          <span className="truncate text-base leading-tight font-semibold text-text-primary">
             {row.clientName}
           </span>
-          <span className="flex min-w-0 items-center gap-1.5 text-xs text-text-tertiary transition-colors group-hover:text-text-secondary">
+          <span className="flex min-w-0 items-center gap-1.5 text-xs leading-tight text-text-tertiary transition-colors group-hover:text-text-secondary">
             <span className="truncate">{verb}</span>
             {showReadiness ? (
               <ReadinessIndicator
@@ -421,7 +421,7 @@ function BriefTableRow({
       <TableCell>
         <div className="flex flex-col gap-0.5">
           <DueDateLabel days={d} status={row.status} paymentDueDate={null} asOfDate={asOfDate} />
-          <span className="text-xs tabular-nums text-text-tertiary">
+          <span className="text-xs leading-tight tabular-nums text-text-tertiary">
             {formatDatePretty(row.currentDueDate)}
           </span>
         </div>

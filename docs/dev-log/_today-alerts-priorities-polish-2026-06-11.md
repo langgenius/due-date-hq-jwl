@@ -175,3 +175,12 @@ A failed AI brief is a caption-level FOOTNOTE ("AI brief unavailable — it
 will retry automatically"); the freshness chip beside the title already
 carries the status. YesterdayLine gained a `lead` form (14px primary with
 intro) vs its secondary form (13px secondary under an AI sentence).
+
+## Addendum 6 — line-height pass (titles keep, bodies tighten)
+
+Yuqi: two-line text blocks read rigid — body line-height was riding the 1.5
+"document default". Rule: titles keep their leading (alert title 1.3, section
+titles leading-tight); BODY/description text tightens to leading-snug (1.375)
+— alert verbatim body, Daily Brief sentence/recap/footnote/empty lines. The
+Priorities table's stacked cells (client name + verb, countdown + date) get
+leading-tight so a 2-line stack reads as one unit, not two spaced rows.
