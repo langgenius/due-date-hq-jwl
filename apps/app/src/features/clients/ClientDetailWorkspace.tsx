@@ -764,14 +764,18 @@ export function ClientDetailWorkspace({
               //            === 'needs_facts')
               // Both rows are `min-w-0` so they shrink gracefully when
               // the right panel opens and the H1 column collapses.
-              <span className="flex min-w-0 flex-col items-start gap-y-2">
+              // 2026-06-10 (Yuqi — Pencil ibWOx): the status chip moves
+              // INLINE with the title (a health pill, per the canvas),
+              // flex-wrapping below only when the title truncates. One chip,
+              // picked from the real state: needs-facts (config gap) wins;
+              // else a derived health pill — "At risk" when there are
+              // statutory-late unextended filings, "Healthy" otherwise.
+              <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
                 <ClientTitleSwitcher client={client} />
                 {readiness?.status === 'needs_facts' ? (
                   // Badge tone is warning, not destructive: "Add filing
-                  // state" is incomplete configuration, not a
-                  // destructive state; warning matches the needs-facts
-                  // banner tone and the canonical color reservation (red
-                  // is for late / hard errors / blocked).
+                  // state" is incomplete configuration, not a destructive
+                  // state; warning matches the needs-facts banner tone.
                   <Badge
                     variant="warning"
                     className="cursor-pointer text-xs"
@@ -780,7 +784,17 @@ export function ClientDetailWorkspace({
                     <SettingsIcon className="size-3" aria-hidden />
                     <MissingFactsActionLabel readiness={readiness} />
                   </Badge>
-                ) : null}
+                ) : workPlan.statutoryLateUnextendedCount > 0 ? (
+                  <Badge variant="warning" className="text-xs">
+                    <span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />
+                    <Trans>At risk</Trans>
+                  </Badge>
+                ) : (
+                  <Badge variant="success" className="text-xs">
+                    <span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />
+                    <Trans>Healthy</Trans>
+                  </Badge>
+                )}
               </span>
             }
             // `ClientContactMetaRow` (entity badge / owner pill / state
