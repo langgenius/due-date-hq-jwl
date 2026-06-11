@@ -93,6 +93,10 @@ export interface PulseAlertRow {
   // pulse.parsedForms), passed through to the public row so the alert card's
   // "Affecting" cell renders without a per-card detail fetch.
   forms: string[]
+  // 2026-06-11 (Yuqi: alert card body): the source's verbatim quote
+  // (pulse.verbatimQuote), surfaced so the /today card shows body text distinct
+  // from the AI headline. The scoped queries already select it.
+  verbatimQuote: string | null
   // 2026-06-10 (handoff Phase 1.2): lifecycle timestamps for the status chip
   // suffix ("Dismissed · Mar 5" / "Applied · Mar 4"). Only the detail query
   // populates them; list rows leave them null. Serialized as ISO (like
@@ -749,6 +753,7 @@ export function toAlert(row: AlertJoinedRow): PulseAlertRow {
     source: row.source,
     sourceUrl: row.sourceUrl,
     summary: row.aiSummary,
+    verbatimQuote: row.verbatimQuote,
     publishedAt: row.publishedAt,
     matchedCount: row.matchedCount,
     needsReviewCount: row.needsReviewCount,

@@ -183,6 +183,13 @@ export const PulseAlertPublicSchema = z.object({
   // else protectiveActionDeadline, else parsedEffectiveUntil. The band sorts
   // ascending on it (soonest obligation first); null sorts last.
   actionDeadline: z.iso.datetime().nullable(),
+  // 2026-06-11 (Yuqi: restore alert body on the /today card): the source's
+  // verbatim quote (pulse.verbatimQuote) — the authority's own words. Distinct
+  // from `title`/`summary` (both derive from the AI headline), so the card can
+  // show real body text under the title instead of echoing it. Nullish: the
+  // live list always provides it (string | null), but it's optional on the
+  // public contract so existing alert test fixtures don't all need updating.
+  verbatimQuote: z.string().nullish(),
 })
 export type PulseAlertPublic = z.infer<typeof PulseAlertPublicSchema>
 

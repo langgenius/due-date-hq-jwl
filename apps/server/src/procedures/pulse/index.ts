@@ -72,6 +72,10 @@ interface PulseAlertRow {
   // + actionDeadline (Date | null, serialized ISO in toAlertPublic).
   origin: PulseAlertPublic['origin']
   actionDeadline: Date | null
+  // 2026-06-11 (Yuqi: alert body): mirrors the repo PulseAlertRow.verbatimQuote
+  // — the source's verbatim quote, surfaced so the /today card can show body
+  // text distinct from the AI headline.
+  verbatimQuote: string | null
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -207,6 +211,7 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     source: SOURCE_LABELS[row.source] ?? row.source,
     sourceUrl: row.sourceUrl,
     summary: row.summary,
+    verbatimQuote: row.verbatimQuote,
     publishedAt: row.publishedAt.toISOString(),
     // 2026-06-10 (handoff Phase 1.2): lifecycle timestamps for the status chip.
     dismissedAt: row.dismissedAt ? row.dismissedAt.toISOString() : null,

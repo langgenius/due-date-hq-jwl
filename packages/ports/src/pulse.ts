@@ -68,6 +68,10 @@ export interface PulseAlertRow {
   // parsedNewDueDate, else protectiveActionDeadline, else parsedEffectiveUntil.
   // Drives the band's ascending act-by ordering; null sorts last.
   actionDeadline: Date | null
+  // 2026-06-11 (Yuqi: alert card body): the source's verbatim quote, surfaced
+  // so the /today card can show body text distinct from the AI headline. The
+  // repo already selects pulse.verbatimQuote.
+  verbatimQuote: string | null
 }
 
 export interface PulseAffectedClientRow {

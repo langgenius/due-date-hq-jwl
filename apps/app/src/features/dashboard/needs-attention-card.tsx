@@ -191,9 +191,9 @@ function NeedsAttentionCard({
         // focal point. Impact is carried by the High-impact pill +
         // "Affects N clients", not by a receding fill. No drop shadow.
         'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-3 rounded-xl bg-background-section p-5 text-left',
-        // Hover micro-interaction (Yuqi): a subtle lift + soft shadow on top of
-        // the bg step so the card feels responsive to the pointer.
-        'transition-all duration-200 hover:-translate-y-0.5 hover:bg-background-subtle hover:shadow-[0_2px_4px_rgba(16,24,40,0.06)]',
+        // Hover carried by the bg step alone — no lift, no floating shadow
+        // (Yuqi hated the floating-shadow interaction; restrained-shadows rule).
+        'transition-colors duration-200 hover:bg-background-subtle',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}
@@ -281,16 +281,26 @@ function NeedsAttentionCard({
             cursor-pointer + onClick→window.open(sourceUrl) so clicking it
             opens the official authority page in a new tab, with
             stopPropagation so the card's onReview doesn't also fire. */}
-        <div className="flex min-w-0 flex-col gap-1">
-          {/* Title — the card's signal (the full summary lives in the alert
-              drawer). `dedupeTitleSource` strips a leading source prefix so the
-              bottom source link doesn't echo it. */}
+        <div className="flex min-w-0 flex-col gap-1.5">
+          {/* Title — the card's signal. `dedupeTitleSource` strips a leading
+              source prefix so the bottom source link doesn't echo it. */}
           <h3
             className="line-clamp-2 min-w-0 text-lg font-semibold leading-[1.3] text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}
           </h3>
+          {/* Alert body — the source's verbatim quote under the headline (Yuqi:
+              add the body text back). This is the authority's own words, which
+              ARE distinct from the title (both title + summary derive from the
+              AI headline). Clamped to 2 lines so the card stays bounded; the
+              full text still lives in the drawer. Skipped when absent or when it
+              would just echo the title. */}
+          {alert.verbatimQuote && alert.verbatimQuote.trim() !== alert.title.trim() ? (
+            <p className="line-clamp-2 min-w-0 text-sm leading-snug text-text-secondary">
+              {alert.verbatimQuote}
+            </p>
+          ) : null}
         </div>
       </div>
 
