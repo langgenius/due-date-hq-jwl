@@ -148,7 +148,7 @@ function TemporaryRuleRow({
             <Trans>Due {rule.overrideDueDate}</Trans>
           </span>
         ) : rule.overrideType === 'extend_due_date' ? (
-          <Trans>Due-date extension</Trans>
+          <Trans>Extension</Trans>
         ) : (
           <Trans>Penalty waiver</Trans>
         )}

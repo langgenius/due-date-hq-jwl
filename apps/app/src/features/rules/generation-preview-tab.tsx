@@ -363,7 +363,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
 
         {!yearsValid ? (
           <p className="text-xs text-severity-medium">
-            <Trans>Target filing year must be exactly one year after the source filing year.</Trans>
+            <Trans>Target filing year must be one year after the source filing year.</Trans>
           </p>
         ) : null}
 

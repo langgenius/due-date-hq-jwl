@@ -265,7 +265,7 @@ function useStatusGroupLabels(): Record<StatusGroupKey, string> {
   const { t } = useLingui()
   return useMemo(
     () => ({
-      needs_review: t`Needs review`,
+      needs_review: t`Awaiting review`,
       active: t`Active`,
       rejected: t`Rejected`,
       archived: t`Archived`,
@@ -3902,7 +3902,7 @@ function SearchResultsTable({
                 type to search and back to browse without the table
                 shape changing). */}
             <TableHead className="w-[120px] text-right">
-              <Trans>Needs review</Trans>
+              <Trans>Awaiting review</Trans>
             </TableHead>
             {/* 2026-05-26 (Yuqi follow-up — "the header of Tier
                 should be left aligned"): dropped `text-right` so

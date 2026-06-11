@@ -353,9 +353,9 @@ function SourcesKpiStrip({
   const stats: StatBandItem[] = [
     {
       key: 'feeds',
-      label: t`Feeds monitored`,
+      label: t`Sources monitored`,
       value: feedsMonitored,
-      sub: paused > 0 ? t`${paused} paused` : t`All active`,
+      sub: paused > 0 ? t`${feedsMonitored - paused} active · ${paused} paused` : t`All active`,
       subClass: paused > 0 ? 'text-text-warning' : 'text-text-tertiary',
     },
     {

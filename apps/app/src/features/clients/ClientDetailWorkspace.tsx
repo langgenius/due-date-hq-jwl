@@ -170,7 +170,7 @@ function renderClientHeaderSubLine({
   if (workPlan.nextDueDate) {
     parts.push({
       id: 'due',
-      node: <span>next due {formatDatePretty(workPlan.nextDueDate)}</span>,
+      node: <span>Next due {formatDatePretty(workPlan.nextDueDate)}</span>,
     })
   }
   // Don't bottom-out at "All on track" whenever `overdueOpenCount`
@@ -292,7 +292,7 @@ function renderClientHeaderSubLine({
 
 function formatJurisdictionSummary(client: ClientPublic): string {
   const stateCount = getClientFilingStates(client).length
-  if (stateCount === 0) return 'Needs filing state'
+  if (stateCount === 0) return 'Missing filing state'
   const taxTypeCount = new Set(client.filingProfiles.flatMap((profile) => profile.taxTypes)).size
   const statesLabel = stateCount === 1 ? '1 state' : `${stateCount} states`
   const taxTypesLabel =

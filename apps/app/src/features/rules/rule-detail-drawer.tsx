@@ -404,7 +404,7 @@ export function RuleDetailCompact({
                 {rule.dueDateLogic.holidayRollover === 'next_business_day' ? (
                   <Trans>Weekend → next business day</Trans>
                 ) : (
-                  <Trans>Holiday rollover: source-adjusted</Trans>
+                  <Trans>Holidays: uses the source&apos;s published calendar</Trans>
                 )}
               </span>
             </div>
@@ -1190,7 +1190,7 @@ function CandidateReviewForm({
           decision is actually recorded, so naming one up front would be fiction. */}
       <div className="flex items-center gap-1.5 border-t border-divider-subtle pt-3 text-xs text-text-muted">
         <ShieldCheckIcon aria-hidden className="size-3.5 shrink-0" />
-        <Trans>Decisions are recorded in the audit ledger.</Trans>
+        <Trans>Your decision is recorded in the audit log.</Trans>
       </div>
       {confirmImpact ? (
         <ConfirmImpactDialog

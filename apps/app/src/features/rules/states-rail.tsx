@@ -113,7 +113,7 @@ export function JurisdictionRail({
           icon={ListFilterIcon}
           title={reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`}
         >
-          <Trans>Needs review</Trans>
+          <Trans>Awaiting review</Trans>
         </ToggleChip>
       </ListRailHead>
 

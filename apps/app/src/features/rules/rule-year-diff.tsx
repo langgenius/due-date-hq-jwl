@@ -86,7 +86,7 @@ function ClassificationBadge({ classification }: { classification: RuleDiff['cla
   if (classification === 'substantive') {
     return (
       <Badge variant="warning" size="sm">
-        <Trans>Needs review</Trans>
+        <Trans>Awaiting review</Trans>
       </Badge>
     )
   }

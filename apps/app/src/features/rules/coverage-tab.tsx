@@ -1135,7 +1135,7 @@ function EntityCoverageLegend() {
       </span>
       <span className="inline-flex items-center gap-1.5">
         <AlertTriangleIcon aria-hidden className="size-3.5 text-severity-medium" />
-        <Trans>Needs review</Trans>
+        <Trans>Awaiting review</Trans>
       </span>
       <span className="inline-flex items-center gap-1.5">
         <span
@@ -1729,7 +1729,7 @@ function RuleStatusChip({
 
   return (
     <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-review/10 px-1.5 text-caption-xs font-medium text-status-review">
-      <Trans>Needs review</Trans>
+      <Trans>Awaiting review</Trans>
     </span>
   )
 }

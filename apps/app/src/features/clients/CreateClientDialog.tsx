@@ -442,7 +442,7 @@ export function CreateClientDialog({
             <div className="grid gap-4 md:grid-cols-2">
               <Field>
                 <FieldLabel>
-                  <Trans>Client importance</Trans>
+                  <Trans>Importance</Trans>
                 </FieldLabel>
                 <Select
                   value={importanceWeight}

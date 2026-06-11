@@ -607,7 +607,7 @@ function JurisdictionRuleRow({
         {lastModified ? (
           <span className="text-sm text-text-tertiary tabular-nums">{lastModified}</span>
         ) : (
-          <EmptyCellMark label="Never re-reviewed" />
+          <EmptyCellMark label="Created — not yet reviewed" />
         )}
       </TableCell>
 
