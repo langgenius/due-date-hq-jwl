@@ -1,0 +1,25 @@
+# Repo-level gitleaks config — CI runs `gitleaks detect --source . --no-git`
+# (see .github/workflows/ci.yml) and picks this up automatically.
+#
+# Why this exists: the readiness-document templates key their checklists with
+# dotted/underscored tax-form ids (key: 'w3_941_reconciliation', templateKey:
+# '1040.individual_return.1099_income'); gitleaks' generic-api-key rule reads
+# any `key: '<long token>'` as a secret. The previous suppression pinned each
+# finding by LINE NUMBER in .gitleaksignore, so every template addition
+# shifted the lines and re-broke CI. This allowlist matches the SHAPE instead
+# — and only inside the readiness modules (matchCondition AND), so a real
+# secret elsewhere (or even a high-entropy value in these files that doesn't
+# look like a form id) still trips the scan.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Readiness-template tax-form identifiers are not credentials"
+matchCondition = "AND"
+paths = [
+  '''packages/core/src/readiness-documents/.*\.ts$''',
+  '''packages/db/src/repo/readiness(\.test)?\.ts$''',
+]
+regexTarget = "line"
+regexes = ['''(?:templateKey|key): '[a-z0-9][a-z0-9_.]*'(?:[,}]|$)''']

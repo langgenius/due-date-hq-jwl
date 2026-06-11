@@ -1,19 +1,12 @@
 # Allowlist false positives from docs / skill examples.
 # Format: <file>:<rule>:<line>
+# NOTE: entries here are pinned to LINE NUMBERS and break whenever the file
+# shifts — prefer shape-based allowlists in .gitleaks.toml for anything that
+# still grows (the readiness-template entries used to live here and re-broke
+# CI on every template addition).
 # Mock token in Playwright skill documentation (example code)
 .agents/skills/playwright-best-practices/advanced/authentication-flows.md:generic-api-key:54
 # Session tokens embedded in exported HTML slide decks (not live secrets)
 docs/html/DueDateHQ - 用户故事与价值主张画布.html:generic-api-key:1231
 docs/html/工程师集训.html:generic-api-key:1539
 docs/html/DueDateHQ - 商业计划书.html:generic-api-key:1236
-# Readiness document template identifiers in deterministic test snapshots
-packages/core/src/readiness-documents/index.test.ts:generic-api-key:22
-packages/core/src/readiness-documents/index.test.ts:generic-api-key:23
-packages/core/src/readiness-documents/index.test.ts:generic-api-key:24
-packages/core/src/readiness-documents/index.test.ts:generic-api-key:25
-packages/core/src/readiness-documents/index.test.ts:generic-api-key:26
-packages/core/src/readiness-documents/index.test.ts:generic-api-key:27
-packages/core/src/readiness-documents/index.test.ts:generic-api-key:30
-packages/db/src/repo/readiness.test.ts:generic-api-key:18
-packages/db/src/repo/readiness.test.ts:generic-api-key:25
-packages/db/src/repo/readiness.test.ts:generic-api-key:174
