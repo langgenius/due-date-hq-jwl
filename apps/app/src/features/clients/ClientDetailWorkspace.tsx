@@ -1640,14 +1640,21 @@ function ClientActiveAlertsCard({ match }: { match: ClientAlertMatch }) {
         <Badge variant="secondary" className="shrink-0 rounded-sm uppercase">
           {formatTaxCode(match.taxType)}
         </Badge>
-        <Button variant="ghost" size="sm" className="-mr-1.5 shrink-0" render={<Link to="/alerts" />}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-mr-1.5 shrink-0"
+          render={<Link to="/alerts" />}
+        >
           <Trans>Review</Trans>
           <ChevronRightIcon data-icon="inline-end" aria-hidden />
         </Button>
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-medium text-text-primary">{match.title}</p>
-        <p className="mt-0.5 text-xs text-text-tertiary">{match.source}</p>
+        {/* Clamp the (often long) alert title to 2 lines so the rail card
+            stays compact — the full text is one click away via Review. */}
+        <p className="line-clamp-2 text-sm font-medium text-text-primary">{match.title}</p>
+        <p className="mt-0.5 truncate text-xs text-text-tertiary">{match.source}</p>
       </div>
     </div>
   )

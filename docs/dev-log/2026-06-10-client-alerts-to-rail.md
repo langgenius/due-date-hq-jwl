@@ -16,3 +16,9 @@ hex (`text-text-primary` / `text-text-tertiary` / reused Badge + Button).
 
 The main column is now header → meta strip → tabs → filing plan. tsgo clean;
 verified live.
+
+## Refinement — clamp the rail alert title
+
+The long alert title sprawled down the narrow rail even at full width. Clamped
+it to 2 lines (`line-clamp-2`) + truncated the source, so each rail alert card
+stays compact; full text is one click away via Review.
