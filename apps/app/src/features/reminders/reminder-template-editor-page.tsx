@@ -187,7 +187,7 @@ function Editor({ template }: { template: ReminderTemplatePublic }) {
 
           <FormField
             label={<Trans>Subject line</Trans>}
-            hint={<Trans>· shown in inbox previews</Trans>}
+            hint={<Trans>· appears in the recipient&apos;s email preview</Trans>}
           >
             <Input
               value={subject}

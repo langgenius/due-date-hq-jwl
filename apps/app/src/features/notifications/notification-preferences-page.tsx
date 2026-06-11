@@ -192,7 +192,7 @@ function ChannelsCard({
       <CardHead
         title={<Trans>Channels</Trans>}
         subtitle={
-          <Trans>Where DueDateHQ can reach you. Per-type rules below override these.</Trans>
+          <Trans>How you get notified. Per-type rules below override these channels.</Trans>
         }
       />
       <div className="overflow-hidden rounded-xl border border-divider-regular">
@@ -569,7 +569,8 @@ function QuietHoursCard() {
           </div>
           <span className="text-xs text-text-secondary">
             <Trans>
-              During quiet hours we hold non-urgent items until your next active period.
+              During quiet hours, non-urgent notifications wait until your next active
+              period.
             </Trans>
           </span>
         </div>
@@ -628,8 +629,8 @@ function QuietHoursCard() {
           </span>
           <span className="text-xs text-text-secondary">
             <Trans>
-              High-impact alerts and same-day deadlines bypass quiet hours so nothing critical waits
-              until morning.
+              High-impact alerts and same-day deadlines always come through — nothing
+              critical waits until morning.
             </Trans>
           </span>
         </div>

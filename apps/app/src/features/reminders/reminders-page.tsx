@@ -87,15 +87,15 @@ function recipientLabel(kind: ReminderRecipientKind) {
 
 function templateListDescription(template: ReminderTemplatePublic) {
   if (template.templateKey === 'client-deadline-30-day-reminder') {
-    return <Trans>Sent to clients 30 days before the deadline as the early countdown email.</Trans>
+    return <Trans>Sent to clients 30 days before the deadline — the early countdown email.</Trans>
   }
   if (template.templateKey === 'client-deadline-7-day-reminder') {
-    return <Trans>Sent to clients 7 days before the deadline as the final countdown email.</Trans>
+    return <Trans>Sent to clients 7 days before the deadline — the final countdown email.</Trans>
   }
   if (template.kind === 'readiness_request') {
-    return <Trans>Used from Send to client to collect the current checklist from the client.</Trans>
+    return <Trans>Sent to clients from Send to client — collects the open materials checklist.</Trans>
   }
-  return <Trans>Practice-managed reminder template.</Trans>
+  return <Trans>Custom reminder template for this practice.</Trans>
 }
 
 function templateDialogDescription(template: ReminderTemplatePublic) {
@@ -287,7 +287,7 @@ function RecentSendsPanel({
         ) : reminders.length === 0 ? (
           // Canonical EmptyState — same as the sibling Upcoming reminders
           // panel.
-          <EmptyState title={<Trans>No reminder deliveries have been recorded yet.</Trans>} />
+          <EmptyState title={<Trans>No reminders sent yet.</Trans>} />
         ) : (
           <Table>
             <TableHeader>
@@ -423,7 +423,7 @@ function TemplateDialog({
                 <PauseCircleIcon className="size-4 text-text-tertiary" aria-hidden />
               )}
               <span>
-                <Trans>Template active</Trans>
+                <Trans>Active</Trans>
               </span>
             </FieldLabel>
             <Switch id="reminder-template-active" checked={active} onCheckedChange={setActive} />

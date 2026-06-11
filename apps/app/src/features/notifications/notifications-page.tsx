@@ -134,7 +134,8 @@ export function NotificationsPage() {
         title={<Trans>Inbox</Trans>}
         description={
           <Trans>
-            Everything that wants your attention — Alerts, deadline reminders, system updates.
+            Mentions, deadline reminders, and assignment changes — everything that needs
+            you, in one place.
           </Trans>
         }
         actions={
@@ -159,7 +160,7 @@ export function NotificationsPage() {
           value={searchQuery}
           onChange={(next) => void setSearchQuery(next.length > 0 ? next : null)}
           placeholder={t`Filter inbox`}
-          ariaLabel={t`Filter notifications`}
+          ariaLabel={t`Filter inbox`}
           className="md:max-w-sm"
           hotkey="/"
           hotkeyMeta={{
