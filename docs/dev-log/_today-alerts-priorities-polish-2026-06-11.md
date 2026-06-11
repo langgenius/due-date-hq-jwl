@@ -349,3 +349,15 @@ the only two loading-masquerades-as-empty bugs in the app were /today's
 - NOT swapped (different roles, not the token's): rules.library "caught up"
   empty-state heading (-0.015em, empty-state register, not a region anchor);
   /deadlines workbench row names (12-13/500 archetype ≠ 14/600 row-anchor).
+
+## Addendum 14 — app-wide font-token audit (see token-audit-2026-06-10.md §2026-06-11)
+
+Yuqi: "字体是不是都用token了? be diligent." Answer: it wasn't — ~90 arbitrary
+text-[Npx] beyond the guard's 10–15px watch. Swept all ~45 exact-match sites
+(9/10/13/15/16/18/28/32px → micro/2xs/sm/nav/item-title/xl/2xl/section-title),
+added --text-micro + --text-nav, extended the guard to 9–18+28+32, baseline
+6→4. Caught + fixed a live regression during verification: the th-button
+!text-column-label swap lost its 600 weight to Button's --tw-font-weight var
+(needs explicit !font-semibold alongside the token). Full detail + the
+deliberate backlog (display ramp 20–44, auth exemption, leading/tracking)
+recorded in docs/Design/token-audit-2026-06-10.md.
