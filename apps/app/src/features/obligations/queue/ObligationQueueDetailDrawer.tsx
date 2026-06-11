@@ -2146,7 +2146,9 @@ export function ObligationQueueDetailDrawer({
             `border-b` is the white→gray seam where the scroll body begins.
             Page mode only — panel/sheet render their tab bar inside the body
             (below), unchanged. */}
-          {isPageMode && row ? tabBar : null}
+          {/* `-mt-1.5` cancels the header's `gap-1.5` so the tab bar butts
+              flush under the key dates — no top-padding gap (Yuqi). */}
+          {isPageMode && row ? <div className="-mt-1.5">{tabBar}</div> : null}
         </header>
         {/* Body — in panel mode the aside has fixed height, so this
           inner div owns the scrolling. That lets the snapshot block
