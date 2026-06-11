@@ -437,7 +437,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5">
         <RotateCwIcon className="size-3 animate-spin text-text-secondary" aria-hidden />
-        <span className="font-mono text-caption font-medium tracking-[0.4px] text-text-secondary uppercase">
+        <span className="font-mono text-chip-label text-text-secondary uppercase">
           <Trans>Generating</Trans>
         </span>
       </span>
@@ -448,7 +448,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     // — recovery is the server's failed self-heal, not a user action. The
     // error code stays one hover away for support conversations.
     const failedText = (
-      <span className="text-caption font-medium tracking-[0.4px] text-text-secondary uppercase">
+      <span className="text-chip-label text-text-secondary uppercase">
         <Trans>Failed</Trans>
       </span>
     )
@@ -479,7 +479,7 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
       />
       <span
         className={cn(
-          'font-mono text-caption font-medium tracking-[0.4px] tabular-nums uppercase',
+          'font-mono text-chip-label tabular-nums uppercase',
           stale ? 'text-text-warning' : 'text-text-secondary',
         )}
       >

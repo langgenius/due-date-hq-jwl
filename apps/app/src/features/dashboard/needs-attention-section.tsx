@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
@@ -74,6 +75,26 @@ function NeedsAttentionSection() {
   // "monitoring 150 sources."
   const hasNationalMonitoringCoverage =
     MVP_RULE_JURISDICTIONS.length === NATIONAL_MONITORING_JURISDICTION_COUNT
+
+  // ── Loading → card-shaped skeletons. Without this branch the zero count
+  //    masquerades as the "caught up" empty state for a beat on every load. ──
+  if (alertsQuery.isLoading) {
+    return (
+      <section aria-label={t`Alerts`} aria-busy className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-region-title text-text-primary">
+            <Trans>Alerts</Trans>
+          </h2>
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="grid grid-cols-3 items-stretch gap-3">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-[150px] rounded-xl" />
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   // ── Calm feed → centered "caught up" empty state (Yuqi: match the mockup).
   //    The calm state earns a real illustration block now, not a thin line. ──

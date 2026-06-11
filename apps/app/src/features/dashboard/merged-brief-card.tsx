@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -64,11 +65,15 @@ export function MergedBriefCard({
   counts,
   rows,
   asOfDate,
+  isLoading = false,
   onOpenObligation,
 }: {
   counts: MergedBriefCounts
   rows: readonly DashboardTopRow[]
   asOfDate: string | null
+  // While the dashboard query loads, render the column-aligned skeleton —
+  // without it the zero counts masquerade as "Nothing here. You're clear."
+  isLoading?: boolean
   onOpenObligation: (obligationId: string) => void
 }) {
   const { t } = useLingui()
@@ -127,6 +132,75 @@ export function MergedBriefCard({
   const overdueNeedingDocs = byBucket.overdue.filter((r) => r.evidenceCount === 0).length
   const upcoming = counts.thisWeek + counts.thisMonth
   const totalActive = counts.overdue + upcoming
+
+  if (isLoading) {
+    // Shape-faithful skeleton: the REAL title + table frame + column header
+    // band render (they don't depend on data), only the data slots shimmer —
+    // so the page doesn't reflow when rows land. aria-busy for SRs.
+    return (
+      <section aria-label={t`Priorities`} aria-busy className="flex w-full flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+          <h2 className="text-region-title text-text-primary">
+            <Trans>Priorities</Trans>
+          </h2>
+          {/* chips slot */}
+          <Skeleton className="ml-auto h-[34px] w-72 rounded-full" />
+        </div>
+        {/* lede slot */}
+        <Skeleton className="h-4 w-64" />
+        <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <Trans>Form</Trans>
+                </TableHead>
+                <TableHead>
+                  <Trans>Client</Trans>
+                </TableHead>
+                <TableHead>
+                  <Trans>Status</Trans>
+                </TableHead>
+                <TableHead aria-hidden />
+                <TableHead>
+                  <Trans>Due</Trans>
+                </TableHead>
+                <TableHead aria-hidden className="w-full p-0" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[0, 1, 2].map((i) => (
+                <TableRow key={i} className="even:bg-transparent [&_td]:py-2.5">
+                  <TableCell>
+                    <Skeleton className="h-5 w-20 rounded" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex w-[440px] flex-col gap-1.5">
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-3 w-64" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-24 rounded" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="size-5 rounded-full" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1.5">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
+                  </TableCell>
+                  <TableCell aria-hidden className="p-0" />
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </section>
+    )
+  }
 
   return (
     // OPEN section — header + lede float on the page like the Alerts section;
@@ -383,7 +457,7 @@ function BriefTableRow({
           right?"). The trailing spacer cell absorbs the leftover width. */}
       <TableCell>
         <div className="flex w-[440px] min-w-0 flex-col gap-0.5">
-          <span className="truncate text-base font-semibold text-text-primary">
+          <span className="truncate text-row-anchor text-text-primary">
             {row.clientName}
           </span>
           <span className="flex min-w-0 items-center gap-1.5 text-xs text-text-tertiary transition-colors group-hover:text-text-secondary">

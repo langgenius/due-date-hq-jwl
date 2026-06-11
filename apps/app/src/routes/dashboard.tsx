@@ -436,6 +436,9 @@ export function DashboardRoute() {
         }}
         rows={data?.topRows ?? []}
         asOfDate={data?.asOfDate ?? null}
+        // While the dashboard query loads, the card renders a column-aligned
+        // skeleton instead of masquerading as "Nothing here. You're clear."
+        isLoading={dashboardQuery.isLoading}
         onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
       />
     </div>

@@ -77,6 +77,27 @@
   --text-region-title--line-height: 1.25;
   --text-region-title--font-weight: 600;
   --text-region-title--letter-spacing: -0.01em;
+  /* Same doctrine, the rest of the semantic text roles (2026-06-11): each is
+     ONE token family; call sites add only color (+ uppercase/font-mono where
+     the role demands it — text-transform/family aren't text-token sub-keys).
+     item-title = card/item headlines (alert card h3); row-anchor = the bold
+     first line of a table row (client names); column-label = table column
+     headers (consumed by the TableHead primitive); chip-label = small caps
+     status chips (LIVE / freshness). */
+  --text-item-title: 16px;
+  --text-item-title--line-height: 22px;
+  --text-item-title--font-weight: 600;
+  --text-row-anchor: 14px;
+  --text-row-anchor--line-height: 19px;
+  --text-row-anchor--font-weight: 600;
+  --text-column-label: 12px;
+  --text-column-label--line-height: 16px;
+  --text-column-label--font-weight: 600;
+  --text-column-label--letter-spacing: 0.5px;
+  --text-chip-label: 11px;
+  --text-chip-label--line-height: 15px;
+  --text-chip-label--font-weight: 500;
+  --text-chip-label--letter-spacing: 0.4px;
   --text-section-title: 32px;
   --text-section-title--line-height: 1.1875;
   --text-display-large: 36px;

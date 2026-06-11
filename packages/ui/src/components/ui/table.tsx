@@ -122,11 +122,12 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
   return (
     <th
       data-slot="table-head"
-      // Canonical column-label style: 11/600 uppercase tracking
-      // tertiary. Reads as caption-tier meta, not body text —
-      // visually subordinate to the row content below.
+      // Canonical column-label style via the semantic text token
+      // (--text-column-label: 12/16/600/+0.5px, tokens/primitives.css).
+      // Reads as caption-tier meta, not body text — visually subordinate
+      // to the row content below. Change the token, every table follows.
       className={cn(
-        'px-5 py-3 text-left align-middle text-xs font-semibold tracking-[0.5px] text-text-tertiary uppercase whitespace-nowrap [&:has([role=checkbox])]:pr-0',
+        'px-5 py-3 text-left align-middle text-column-label text-text-tertiary uppercase whitespace-nowrap [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}

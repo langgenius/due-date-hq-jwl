@@ -65,7 +65,7 @@ export function MonitoringChip({
     // Pinned to the same h-[22px] as the CountPill it sits beside in
     // page-header title rows (Yuqi: the count chip and LIVE chip must be
     // a matched-height pair — same height, only the tone differs).
-    'h-[22px] gap-1.5 rounded-full bg-state-success-hover px-2 py-0 text-caption font-medium uppercase tracking-[0.4px] text-text-success',
+    'h-[22px] gap-1.5 rounded-full bg-state-success-hover px-2 py-0 text-chip-label uppercase text-text-success',
     to ? 'cursor-pointer transition-colors hover:bg-state-success-active' : 'cursor-help',
     className,
   )

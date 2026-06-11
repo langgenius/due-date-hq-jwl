@@ -263,3 +263,31 @@ sub-keys; same pattern as the existing `--text-section-title`). Call sites
 write `text-region-title text-text-primary`, nothing else. Verified
 pixel-identical (18/22.5/600/−0.18px) on all three /today section titles.
 Register A in section-header-style.md now points at the token.
+
+## Addendum 11 — semantic text tokens batch 2 + skeleton states
+
+Continuation of the token doctrine (Yuqi: "要继续"):
+
+**Four more semantic text token families** in tokens/primitives.css, same
+sub-key pattern as --text-region-title:
+- `--text-item-title` 16/22/600 — card/item headlines (alert card h3)
+- `--text-row-anchor` 14/19/600 — bold first line of a table row (client names)
+- `--text-column-label` 12/16/600/+0.5px — table column headers; consumed by
+  the **TableHead primitive** (packages/ui table.tsx), so every table in the
+  app now reads the token — change it once, all tables follow
+- `--text-chip-label` 11/15/500/+0.4px — small caps status chips (LIVE,
+  freshness GENERATING/FAILED/age)
+Call sites write the utility + color (+ uppercase/font-mono where the role
+demands — those aren't text-token sub-keys). Verified via compiled CSS: all
+five utilities resolve size/lh/weight/tracking from the tokens.
+
+**Skeleton states — kill loading-masquerades-as-empty:**
+- MergedBriefCard: new `isLoading` prop (wired from dashboardQuery.isLoading).
+  Before: zero counts rendered "Nothing here. You're clear." during every
+  load. Now: a SHAPE-FAITHFUL skeleton — the real title + real table frame +
+  real column-header band render (no reflow when data lands), only the data
+  slots shimmer (form pill / client 2-line stack / status / avatar / due
+  stack, column-aligned). aria-busy set.
+- NeedsAttentionSection: alertsQuery.isLoading previously fell through to the
+  "caught up" empty state for a beat on every load. Now: title + 3
+  card-shaped skeletons in the same grid.
