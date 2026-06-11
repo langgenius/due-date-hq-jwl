@@ -98,9 +98,7 @@ export function ReminderTemplateEditorPage() {
           </AlertTitle>
           <AlertDescription>
             {templatesQuery.isError ? (
-              (rpcErrorMessage(templatesQuery.error) ?? (
-                <Trans>Try again in a moment.</Trans>
-              ))
+              (rpcErrorMessage(templatesQuery.error) ?? <Trans>Try again in a moment.</Trans>)
             ) : (
               <Trans>
                 This reminder template no longer exists. Return to the template library.
@@ -198,7 +196,7 @@ function Editor({ template }: { template: ReminderTemplatePublic }) {
             />
           </FormField>
 
-          <FormField label={<Trans>Body</Trans>} hint={<Trans>· supports markdown</Trans>}>
+          <FormField label={<Trans>Body</Trans>}>
             <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
               {/* Rich-text formatting is not wired to a markdown engine; the
                   toolbar is presentational. TODO(data): hook up bold/italic/

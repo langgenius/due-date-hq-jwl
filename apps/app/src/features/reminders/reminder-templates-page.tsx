@@ -56,7 +56,7 @@ export function ReminderTemplatesPage() {
         ]}
         title={<Trans>Reminder templates</Trans>}
         description={
-          <Trans>Reusable messages we send for you. Edit per tax type or per client tier.</Trans>
+          <Trans>Reusable messages we send for you. Customize the subject and body.</Trans>
         }
         actions={
           // No createTemplate contract endpoint exists yet, so the "New

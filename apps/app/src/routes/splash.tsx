@@ -187,24 +187,9 @@ export function SplashRoute() {
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
 
-          {/* Ghost links */}
-          <div className="flex items-center gap-2.5 text-xs font-medium text-text-tertiary">
-            <Button
-              variant="ghost"
-              size="xs"
-              className="text-text-tertiary hover:text-text-secondary"
-            >
-              <Trans>Quick tour (90 sec)</Trans>
-            </Button>
-            <span aria-hidden className="block size-[3px] rounded-full bg-text-muted" />
-            <Button
-              variant="ghost"
-              size="xs"
-              className="text-text-tertiary hover:text-text-secondary"
-            >
-              <Trans>What&apos;s new in 6.7</Trans>
-            </Button>
-          </div>
+          {/* Ghost links removed 2026-06-11 (copy audit S4 — no fiction):
+              "Quick tour" and "What's new" were wired to nothing. Restore
+              only when real destinations exist. */}
         </div>
       </main>
 

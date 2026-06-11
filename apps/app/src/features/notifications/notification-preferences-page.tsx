@@ -221,7 +221,7 @@ function ChannelsCard({
           label={t`Push`}
           name={<Trans>Push</Trans>}
           // TODO(data): push channel + registered devices not modeled.
-          sub={<Trans>DueDateHQ for iOS · 2 devices registered</Trans>}
+          sub={<Trans>Mobile push is not available yet.</Trans>}
           disabled
         />
         <ChannelRow
@@ -237,7 +237,7 @@ function ChannelsCard({
           iconMuted
           label={t`Slack`}
           name={<Trans>Slack</Trans>}
-          sub={<Trans>Connect your Slack workspace to receive @mentions and digests there.</Trans>}
+          sub={<Trans>Slack integration is coming soon.</Trans>}
           // TODO(data): Slack integration not modeled on the contract.
           action={
             <Button variant="secondary" size="sm" disabled>
