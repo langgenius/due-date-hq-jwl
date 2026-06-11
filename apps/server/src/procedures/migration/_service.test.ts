@@ -634,6 +634,11 @@ function buildScopedRepo(
 
   const pulse: ScopedRepo['pulse'] = {
     firmId,
+    // Expected call: apply() runs the first-obligations catch-up best-effort.
+    // 0 = "not the firm's first obligations" — the quiet no-op path.
+    async catchUpStillOpenWindowsOnFirstObligations() {
+      return 0
+    },
     async createSeedAlert() {
       return unexpectedRepoCall('pulse.createSeedAlert')
     },

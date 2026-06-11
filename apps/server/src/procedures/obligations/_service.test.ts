@@ -418,6 +418,11 @@ function buildScoped(firmId: string, rows: Row[]) {
 
   const pulse: ScopedRepo['pulse'] = {
     firmId,
+    // Expected call: rule-catalog creates run the first-obligations catch-up
+    // best-effort. 0 = "not the firm's first obligations" — the quiet no-op.
+    async catchUpStillOpenWindowsOnFirstObligations() {
+      return 0
+    },
     async createSeedAlert() {
       return unused('pulse.createSeedAlert')
     },
