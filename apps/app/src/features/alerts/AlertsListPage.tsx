@@ -1833,7 +1833,7 @@ function AlertsEmptyState({
         lastChecked ? (
           <Trans>
             When IRS, CA FTB, or another monitored source publishes a change, it will land here.
-            Last check: {formatRelativeTime(lastChecked)}.
+            Last checked {formatRelativeTime(lastChecked)}.
           </Trans>
         ) : (
           <Trans>

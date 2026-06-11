@@ -119,8 +119,8 @@ describe('StateRuleActivationSelector', () => {
     // verifies the user-facing phrases the new copy uses:
     // "the state's own calendar" + "marked for review".
     expect(document.body.textContent).toContain('Rule Library review required.')
-    expect(document.body.textContent).toContain("state's own calendar")
-    expect(document.body.textContent).toContain('marked for review')
+    expect(document.body.textContent).toContain('their own deadline calendars')
+    expect(document.body.textContent).toContain('review those rules')
   })
 
   it('hides the Rule Library review hint until a review-required state is selected', () => {

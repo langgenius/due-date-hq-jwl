@@ -100,7 +100,7 @@ export function AuthFooter() {
       </div>
       <span className="hidden flex-1 sm:block" />
       <div className="flex items-center gap-3.5">
-        <span className="font-mono text-[10px] text-text-muted">v2.18.4 · build 9c3a1f</span>
+        <span className="font-mono text-[10px] text-text-muted">v2.18.4</span>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default px-2.5 py-1">
           <GlobeIcon className="size-3 text-text-tertiary" aria-hidden />
           <span className="text-text-secondary">US East</span>

@@ -138,7 +138,7 @@ export function TwoFactorSetupPanel({
         </AlertTitle>
         <AlertDescription>
           <Trans>
-            They are only shown during setup. Store them somewhere private before verification.
+            They are only shown during setup. Save them in a password manager — they won't be shown again.
           </Trans>
         </AlertDescription>
       </Alert>

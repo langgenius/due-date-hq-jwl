@@ -151,7 +151,7 @@ export function AcceptInviteRoute() {
               <Trans>Invite link is missing</Trans>
             </AlertTitle>
             <AlertDescription>
-              <Trans>Ask the practice owner to send a new invitation.</Trans>
+              <Trans>Ask whoever invited you to send a new link.</Trans>
             </AlertDescription>
           </Alert>
           <div className="flex flex-wrap gap-2.5">

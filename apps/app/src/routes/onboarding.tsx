@@ -262,7 +262,7 @@ export function OnboardingRoute() {
                 minLength={MIN_NAME_LENGTH}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder={t`e.g. Brightline CPA`}
+                placeholder={t`e.g. Smith & Associates CPA`}
                 aria-invalid={error ? true : undefined}
                 aria-describedby={error ? 'practice-name-error' : undefined}
               />
@@ -342,7 +342,7 @@ export function OnboardingRoute() {
                 </>
               ) : (
                 <>
-                  <Trans>Create practice &amp; activate jurisdictions</Trans>
+                  <Trans>Create practice</Trans>
                   <ArrowRightIcon className="size-4" aria-hidden />
                 </>
               )}

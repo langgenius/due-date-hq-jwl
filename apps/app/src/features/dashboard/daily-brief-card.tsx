@@ -159,7 +159,7 @@ export function DailyBriefCard({
       {/* Failure footnote — a quiet caption, never the headline. */}
       {aiEnabled && brief?.status === 'failed' && !brief.text ? (
         <p className="text-caption text-text-tertiary">
-          <Trans>AI brief unavailable — it will retry automatically.</Trans>
+          <Trans>Brief unavailable — we'll retry shortly.</Trans>
         </p>
       ) : null}
     </section>
@@ -302,7 +302,7 @@ function TodayLine({
   if (brief && brief.status === 'failed' && !brief.text) {
     return (
       <p className="text-sm text-text-tertiary">
-        <Trans>We couldn't generate today's brief — it will retry automatically.</Trans>
+        <Trans>We couldn't generate today's brief — we'll retry shortly.</Trans>
       </p>
     )
   }

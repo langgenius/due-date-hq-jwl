@@ -162,7 +162,7 @@ function NeedsAttentionSection() {
             {lastCheckedLabel ? (
               <span className="text-text-tertiary">
                 {' '}
-                <Trans>Last check: {lastCheckedLabel}.</Trans>
+                <Trans>Last checked {lastCheckedLabel}.</Trans>
               </span>
             ) : null}
           </p>

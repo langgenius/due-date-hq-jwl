@@ -237,7 +237,7 @@ export function DashboardRoute() {
             <Trans>Today</Trans>
             {dashboardQuery.isLoading ? (
               <span className="text-2xl font-normal text-text-muted italic">
-                <Trans>loading…</Trans>
+                <Trans>Loading…</Trans>
               </span>
             ) : data?.asOfDate ? (
               // Date weight font-medium, color the lighter text-text-muted

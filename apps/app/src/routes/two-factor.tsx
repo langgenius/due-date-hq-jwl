@@ -118,10 +118,7 @@ export function TwoFactorRoute() {
             aria-busy={verifyMutation.isPending || undefined}
           >
             {verifyMutation.isPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" aria-hidden />
-                <Trans>Verifying…</Trans>
-              </>
+              <Loader2Icon className="size-4 animate-spin" aria-hidden />
             ) : (
               <>
                 <Trans>Verify &amp; continue</Trans>
