@@ -142,7 +142,7 @@ export function MergedBriefCard({
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         {/* "Priorities", not "Today's brief" — the card leads with overdue work,
             so a "today" headline would lie about its own content (Yuqi). */}
-        <h2 className="text-xl leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+        <h2 className="text-region-title text-text-primary">
           <Trans>Priorities</Trans>
         </h2>
         {/* The sparkles now MEANS something: it marks the list as

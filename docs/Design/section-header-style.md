@@ -18,8 +18,14 @@ confident, scannable signpost. Often paired with a count `<Badge>` and a
 right-aligned `<TextLink>View all</TextLink>`.
 
 ```
-text-xl leading-tight font-semibold tracking-[-0.01em] text-text-primary
+text-region-title text-text-primary
 ```
+
+`text-region-title` is a SEMANTIC TEXT TOKEN (tokens/primitives.css:
+`--text-region-title` 18px + paired line-height 1.25 / weight 600 /
+letter-spacing −0.01em). Never hand-roll the recipe at a call site — change
+the token, every region anchor follows (Yuqi: "text 细节应该直接改 token,
+不是每次散写 css").
 
 - **Title-case, NOT uppercase** (revised 2026-06-11 — Yuqi: at region scale the
   tracked-caps eyebrow read "lofi/weak"; proper titles elevate the page. This

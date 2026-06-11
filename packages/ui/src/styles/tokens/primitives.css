@@ -68,6 +68,15 @@
   --text-xl--line-height: 24px;
   --text-2xl: 28px; /* 2026-05-20: was 24px. Loud page/KPI anchor scale. */
   --text-2xl--line-height: 32px;
+  /* 2026-06-11 (Yuqi: "text 细节应该直接改 token,不是每次散写 css"):
+     Register A — the region-anchor section title (section-header-style.md) —
+     as ONE semantic token family. Call sites write `text-region-title` +
+     a color, nothing else; size/leading/weight/tracking all live here.
+     Canonical consumers: /today "Alerts" / "Daily Brief" / "Priorities". */
+  --text-region-title: 18px;
+  --text-region-title--line-height: 1.25;
+  --text-region-title--font-weight: 600;
+  --text-region-title--letter-spacing: -0.01em;
   --text-section-title: 32px;
   --text-section-title--line-height: 1.1875;
   --text-display-large: 36px;

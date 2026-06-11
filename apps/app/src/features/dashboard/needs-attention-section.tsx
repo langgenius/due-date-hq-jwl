@@ -187,7 +187,7 @@ function NeedsAttentionSection() {
             card headlines inside the section — the audit caught region anchor
             and item title colliding at the same size. See
             docs/Design/section-header-style.md. */}
-        <h2 className="flex items-center gap-2 text-xl leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+        <h2 className="flex items-center gap-2 text-region-title text-text-primary">
           {/* The title word links to /alerts; the count badge + MonitoringChip
               stay as non-link siblings. */}
           <Link

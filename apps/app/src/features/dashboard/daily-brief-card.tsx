@@ -122,7 +122,7 @@ export function DailyBriefCard({
           sharing the /today section-title voice (text-xl, one step above the
           16px card headlines). Freshness chip rides beside. */}
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-xl leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+        <h2 className="text-region-title text-text-primary">
           <Trans>Daily Brief</Trans>
         </h2>
         {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}

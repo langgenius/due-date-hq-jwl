@@ -251,3 +251,15 @@ Resulting page type system (17 styles, 7 sizes):
 
 Doctrine (now enforceable): body/meta NEVER sets leading (tokens own it);
 titles own theirs; weights = 600 anchor / 500 interactive+chip / 400 content.
+
+## Addendum 10 — Register A becomes a semantic text token
+
+Yuqi: "text 细节应该直接改 token,不是每次散写 css." The section-title recipe
+(`text-xl leading-tight font-semibold tracking-[-0.01em]`) was hand-rolled at
+3 call sites. Now ONE token family in tokens/primitives.css —
+`--text-region-title: 18px` with paired `--line-height: 1.25` /
+`--font-weight: 600` / `--letter-spacing: -0.01em` (Tailwind v4 text-token
+sub-keys; same pattern as the existing `--text-section-title`). Call sites
+write `text-region-title text-text-primary`, nothing else. Verified
+pixel-identical (18/22.5/600/−0.18px) on all three /today section titles.
+Register A in section-header-style.md now points at the token.
