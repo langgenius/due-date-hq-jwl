@@ -50,7 +50,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 // across the 3-card row. Title can line-clamp to 2 lines; if the
 // resulting card is shorter than this floor, the empty-state /
 // chip row pushes to the bottom edge via the parent's `justify-between`.
-const CARD_MIN_HEIGHT_CLASS = 'min-h-[160px]'
+const CARD_MIN_HEIGHT_CLASS = 'min-h-[120px]'
 
 // Returns the FULL deduplicated list of affected client names so the
 // Meta row's tooltip can render every name on hover (the card shows a
@@ -213,7 +213,7 @@ function NeedsAttentionCard({
         // regions and let the white table — the CPA's work — read as the
         // focal point. Impact is carried by the High-impact pill +
         // "Affects N clients", not by a receding fill. No drop shadow.
-        'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-4 rounded-xl bg-background-section p-[18px] text-left',
+        'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-3 rounded-xl bg-background-section p-4 text-left',
         // Hover is carried by the bg step alone (no border hairline).
         'transition-colors duration-200 hover:bg-background-subtle',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
