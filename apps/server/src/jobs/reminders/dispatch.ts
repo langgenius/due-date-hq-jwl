@@ -92,7 +92,12 @@ function internalRecipients(
   offsetDays: number,
 ): MemberRecipient[] {
   const owners = members.filter((member) => member.role === 'owner')
-  const managers = members.filter((member) => member.role === 'manager')
+  // Overdue escalation reaches the supervising roles. Partner sits above
+  // manager in the hierarchy, so wherever managers are pulled in, partners
+  // must be too (partners were silently skipped before 2026-06-11).
+  const supervisors = members.filter(
+    (member) => member.role === 'partner' || member.role === 'manager',
+  )
   const assigneeKey = normalize(obligation.assigneeName)
   const assignee = assigneeKey
     ? members.find(
@@ -102,7 +107,7 @@ function internalRecipients(
     : null
   if (offsetDays === 30) return uniqueMembers(assignee ? [assignee] : owners)
   if (offsetDays === 7) return uniqueMembers([...(assignee ? [assignee] : []), ...owners])
-  return uniqueMembers([...(assignee ? [assignee] : []), ...owners, ...managers])
+  return uniqueMembers([...(assignee ? [assignee] : []), ...owners, ...supervisors])
 }
 
 function reminderTitle(obligation: ObligationRow, offsetDays: number): string {

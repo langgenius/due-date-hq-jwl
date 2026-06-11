@@ -12205,8 +12205,8 @@ msgid "Primary web"
 msgstr "Primary web"
 
 #: src/features/members/members-page.tsx
-msgid "Principal authority — billing, members, full sign-off."
-msgstr "Principal authority — billing, members, full sign-off."
+msgid "Principal authority — final review, approvals, and full sign-off."
+msgstr "Principal authority — final review, approvals, and full sign-off."
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Prior return"
@@ -14317,10 +14317,13 @@ msgstr "Selected states activate with federal rules. Skip to use federal rules o
 msgid "Send a 7-day magic link to add a member to this practice."
 msgstr "Send a 7-day magic link to add a member to this practice."
 
-#: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Send an internal request to an owner or partner for this deadline."
 msgstr "Send an internal request to an owner or partner for this deadline."
+
+#: src/features/obligations/queue/dialogs.tsx
+msgid "Send an internal request to an owner, partner, or manager for this deadline."
+msgstr "Send an internal request to an owner, partner, or manager for this deadline."
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx

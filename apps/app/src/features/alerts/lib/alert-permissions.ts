@@ -25,6 +25,11 @@ export const REVIEW_UNAVAILABLE_STATUSES: ReadonlySet<PulseFirmAlertStatus> = ne
 ])
 export const SHOW_PRIORITY_REVIEW_UI = false
 
+// Preparer-only ON PURPOSE, and narrower than the server gate: the server
+// (`requestPulseReview`) accepts owner/partner/manager/preparer, but in the
+// drawer footer this affordance swaps in as the PRIMARY CTA and demotes
+// Apply to outline — so it is surfaced only for the role that cannot apply.
+// Reviewer roles keep Apply as their primary action.
 export function canRequestAlertReview(input: {
   role: FirmRole | null | undefined
   alertStatus: PulseFirmAlertStatus

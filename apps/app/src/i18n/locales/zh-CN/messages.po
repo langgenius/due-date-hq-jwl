@@ -12275,8 +12275,8 @@ msgid "Primary web"
 msgstr "主要网站"
 
 #: src/features/members/members-page.tsx
-msgid "Principal authority — billing, members, full sign-off."
-msgstr "Principal authority — billing, members, full sign-off."
+msgid "Principal authority — final review, approvals, and full sign-off."
+msgstr "Principal authority — final review, approvals, and full sign-off."
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Prior return"
@@ -14395,10 +14395,13 @@ msgstr "已选州将与联邦规则一同启用。如仅需联邦规则可跳过
 msgid "Send a 7-day magic link to add a member to this practice."
 msgstr "发送 7 天有效的 magic link，将成员添加到该事务所。"
 
-#: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Send an internal request to an owner or partner for this deadline."
 msgstr "向 owner 或 partner 发送关于这个 deadline 的内部请求。"
+
+#: src/features/obligations/queue/dialogs.tsx
+msgid "Send an internal request to an owner, partner, or manager for this deadline."
+msgstr "向 owner、partner 或 manager 发送关于这个 deadline 的内部请求。"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx

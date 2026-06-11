@@ -6793,8 +6793,11 @@ export function ObligationQueueDetailDrawer({
   })
   const requestRecipients = useMemo(
     () =>
+      // Reviewer roles (owner/partner/manager) — must mirror the server gate
+      // in obligations.requestInput and the Pulse review recipient set.
       (requestRecipientsQuery.data ?? []).filter(
-        (member) => member.role === 'owner' || member.role === 'partner',
+        (member) =>
+          member.role === 'owner' || member.role === 'partner' || member.role === 'manager',
       ),
     [requestRecipientsQuery.data],
   )

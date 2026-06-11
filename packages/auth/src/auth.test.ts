@@ -87,6 +87,24 @@ describe('@duedatehq/auth permissions', () => {
     expect(partner.member).toBeUndefined()
   })
 
+  // Hierarchy invariant (Owner > Partner >= Manager): manager must not hold
+  // any grant partner lacks. billing:read and audit:export both regressed
+  // this way once — keep them owner-only here and in core's matrix.
+  it('keeps manager grants inside the partner surface', () => {
+    const manager = roles.manager.statements as Record<string, readonly string[] | undefined>
+    expect(manager.billing).toBeUndefined()
+    expect(manager.audit).toEqual(['read'])
+  })
+
+  it('lets preparers reassign work while coordinators stay read-only (dev-file §3.2)', () => {
+    const preparer = roles.preparer.statements as Record<string, readonly string[] | undefined>
+    const coord = roles.coordinator.statements as Record<string, readonly string[] | undefined>
+    expect(preparer.obligation).toEqual(
+      expect.arrayContaining(['read', 'update:status', 'update:assignee']),
+    )
+    expect(coord.obligation).toEqual(['read'])
+  })
+
   it('hides dollars:read from the coordinator role (PRD §3.6 RBAC)', () => {
     const coord = roles.coordinator.statements as Record<string, readonly string[] | undefined>
     expect(coord.dollars).toBeUndefined()

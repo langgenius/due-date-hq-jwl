@@ -78,20 +78,21 @@ export const roles = {
   manager: accessControl.newRole({
     // Member administration is Owner-only in Members v1. Managers keep
     // business-domain permissions but no organization-plugin member surface.
-    // Business surface (PRD §3.6.3 column).
+    // Business surface (PRD §3.6.3 column). Role hierarchy invariant
+    // (Owner > Partner >= Manager): manager must never hold a grant partner
+    // lacks — billing and audit.export are Owner-only.
     client: ['create', 'read', 'update'],
     obligation: ['read', 'update:status', 'update:assignee'],
     pulse: ['read', 'approve', 'batch_apply', 'revert'],
     migration: ['run', 'revert'],
     rule: ['read', 'report_issue'],
-    billing: ['read'],
-    audit: ['read', 'export'],
+    audit: ['read'],
     dollars: ['read'],
   }),
 
   preparer: accessControl.newRole({
     client: ['create', 'read', 'update'],
-    obligation: ['read', 'update:status'],
+    obligation: ['read', 'update:status', 'update:assignee'],
     pulse: ['read'],
     migration: ['run'],
     rule: ['read', 'report_issue'],
@@ -101,7 +102,7 @@ export const roles = {
 
   coordinator: accessControl.newRole({
     client: ['read'],
-    obligation: ['read', 'update:assignee'],
+    obligation: ['read'],
     pulse: ['read'],
     rule: ['read', 'report_issue'],
     // Coordinator deliberately lacks `dollars:read` — PRD §3.6 RBAC matrix

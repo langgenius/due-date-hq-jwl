@@ -52,7 +52,13 @@ const SELECTABLE_ROLES: readonly FirmRole[] = [
 // FirmPermission that actually governs it — or to `null` when the
 // product has no distinct permission for that action (rendered as an
 // inert "—" cell rather than a fabricated toggle).
+//
+// `'all'` marks reads that every active member has (clients, deadlines,
+// rules, alerts): they're enforced by tenant membership, not by a
+// FirmPermission. Mapping those cells to the nearest *write* permission
+// used to render coordinators as unable to view surfaces they can open.
 type MatrixAction = 'view' | 'create' | 'edit' | 'delete' | 'approve' | 'export'
+type MatrixCell = FirmPermission | 'all' | null
 
 const ACTION_LABELS: Record<MatrixAction, MessageDescriptor> = {
   view: msg`View`,
@@ -68,8 +74,9 @@ interface MatrixScope {
   label: MessageDescriptor
   description: MessageDescriptor
   Icon: LucideIcon
-  // permission governing each action, or null when not applicable
-  cells: Record<MatrixAction, FirmPermission | null>
+  // permission governing each action, 'all' for membership-wide reads,
+  // or null when not applicable
+  cells: Record<MatrixAction, MatrixCell>
 }
 
 const SCOPES: readonly MatrixScope[] = [
@@ -79,7 +86,7 @@ const SCOPES: readonly MatrixScope[] = [
     description: msg`Client records, contacts, engagement letters`,
     Icon: UsersIcon,
     cells: {
-      view: 'client.write',
+      view: 'all',
       create: 'client.write',
       edit: 'client.write',
       delete: 'client.write',
@@ -93,7 +100,7 @@ const SCOPES: readonly MatrixScope[] = [
     description: msg`Obligation status, filings, internal due dates`,
     Icon: CalendarClockIcon,
     cells: {
-      view: 'obligation.status.update',
+      view: 'all',
       create: 'obligation.status.update',
       edit: 'obligation.status.update',
       delete: 'obligation.status.update',
@@ -107,7 +114,7 @@ const SCOPES: readonly MatrixScope[] = [
     description: msg`Jurisdiction rules, migrations, priority weighting`,
     Icon: ShieldIcon,
     cells: {
-      view: 'migration.run',
+      view: 'all',
       create: 'migration.run',
       edit: 'firm.priority.update',
       delete: 'migration.revert',
@@ -121,7 +128,7 @@ const SCOPES: readonly MatrixScope[] = [
     description: msg`Pulse alerts, reminders, calendar sync`,
     Icon: BellIcon,
     cells: {
-      view: 'pulse.apply',
+      view: 'all',
       create: 'pulse.apply',
       edit: 'firm.calendar.manage',
       delete: 'pulse.revert',
@@ -194,11 +201,12 @@ export function SettingsPermissionsRoute() {
   const selectedRoleMembers = memberCounts[selectedRole] ?? 0
   const isOwner = selectedRole === 'owner'
 
-  function can(permission: FirmPermission | null): 'yes' | 'no' | 'na' {
-    if (permission === null) return 'na'
+  function can(cell: MatrixCell): 'yes' | 'no' | 'na' {
+    if (cell === null) return 'na'
+    if (cell === 'all') return 'yes'
     return hasFirmPermission({
       role: selectedRole,
-      permission,
+      permission: cell,
       coordinatorCanSeeDollars: firm?.coordinatorCanSeeDollars,
     })
       ? 'yes'

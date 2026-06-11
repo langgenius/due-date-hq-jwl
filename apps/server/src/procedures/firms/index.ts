@@ -97,8 +97,9 @@ function isOwner(row: Pick<FirmRow, 'role' | 'ownerUserId'>, userId: string): bo
   return row.role === 'owner' || row.ownerUserId === userId
 }
 
+// billing.read is owner-only (mirrors core's FIRM_PERMISSION_ROLES).
 function canReadBilling(row: FirmRow, userId: string): boolean {
-  return isOwner(row, userId) || row.role === 'manager'
+  return isOwner(row, userId)
 }
 
 export function canCreateAdditionalFirm(

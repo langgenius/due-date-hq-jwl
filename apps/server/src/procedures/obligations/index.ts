@@ -1007,8 +1007,13 @@ const requestInput = os.obligations.requestInput.handler(async ({ input, context
   if (recipient.userId === userId) {
     throw new ORPCError('BAD_REQUEST', { message: 'Recipient must be another firm member.' })
   }
-  if (recipient.role !== 'owner' && recipient.role !== 'partner') {
-    throw new ORPCError('BAD_REQUEST', { message: 'Recipient must be an owner or partner.' })
+  // Reviewer roles only — mirrors the Pulse review-request recipient set
+  // (owner/partner/manager). Managers review and sign off on prepared work,
+  // so they must be reachable here too.
+  if (recipient.role !== 'owner' && recipient.role !== 'partner' && recipient.role !== 'manager') {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'Recipient must be an owner, partner, or manager.',
+    })
   }
   if (!scoped.notifications) {
     throw new Error('Notifications repo methods are not available.')

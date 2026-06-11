@@ -593,7 +593,9 @@ describe('obligations.requestInput', () => {
     expect(createNotification).not.toHaveBeenCalled()
   })
 
-  it('rejects recipients who are not active owners or partners', async () => {
+  // Managers review and sign off on prepared work, so they are valid
+  // request-input recipients (aligned with the Pulse review recipient set).
+  it('lets an active preparer notify an active manager', async () => {
     const manager = makeMember({
       id: 'member_manager',
       userId: 'user_manager_request',
@@ -613,6 +615,36 @@ describe('obligations.requestInput', () => {
         {
           obligationId: REQUEST_OBLIGATION_ID,
           recipientUserId: manager.userId,
+          message: 'Need review direction.',
+        },
+        { context },
+      ),
+    ).resolves.toMatchObject({ auditId: expect.any(String) })
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: manager.userId, type: 'internal_request' }),
+    )
+  })
+
+  it('rejects recipients below the reviewer roles', async () => {
+    const coordinator = makeMember({
+      id: 'member_coordinator',
+      userId: 'user_coordinator_request',
+      name: 'Cory Coordinator',
+      email: 'cory@example.com',
+      role: 'coordinator',
+    })
+    const { context, createNotification } = makeContext({
+      actor: makeMember({ role: 'preparer' }),
+      recipient: coordinator,
+      obligation: makeRequestObligation(),
+    })
+
+    await expect(
+      call(
+        obligationsHandlers.requestInput,
+        {
+          obligationId: REQUEST_OBLIGATION_ID,
+          recipientUserId: coordinator.userId,
           message: 'Need partner direction.',
         },
         { context },

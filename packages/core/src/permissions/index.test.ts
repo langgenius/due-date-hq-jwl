@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  FIRM_PERMISSION_ROLES,
   hasFirmPermission,
   isFirmRole,
   requiredRolesForFirmPermission,
@@ -50,11 +51,27 @@ describe('firm permissions', () => {
     })
   })
 
-  it('lets managers read billing and apply operational recovery actions', () => {
-    expect(hasFirmPermission({ role: 'manager', permission: 'billing.read' })).toBe(true)
+  it('lets managers apply operational recovery actions without billing access', () => {
+    expect(hasFirmPermission({ role: 'manager', permission: 'billing.read' })).toBe(false)
     expect(hasFirmPermission({ role: 'manager', permission: 'pulse.apply' })).toBe(true)
     expect(hasFirmPermission({ role: 'manager', permission: 'pulse.revert' })).toBe(true)
     expect(hasFirmPermission({ role: 'manager', permission: 'migration.revert' })).toBe(true)
+  })
+
+  // Role hierarchy invariant (Owner > Partner >= Manager > Preparer >
+  // Coordinator): once a role is denied, every role below it must be denied
+  // too. billing.read regressed this way once (owner+manager, no partner) —
+  // lock the monotonic shape for every permission.
+  it('keeps every permission upward-closed along the role hierarchy', () => {
+    const order: readonly FirmRole[] = ['owner', 'partner', 'manager', 'preparer', 'coordinator']
+    for (const permission of Object.keys(FIRM_PERMISSION_ROLES) as FirmPermission[]) {
+      const granted = order.map((role) => requiredRolesForFirmPermission(permission).includes(role))
+      const firstDenied = granted.indexOf(false)
+      if (firstDenied === -1) continue
+      expect
+        .soft(granted.slice(firstDenied).some(Boolean), `${permission} skips a higher role`)
+        .toBe(false)
+    }
   })
 
   it('lets partners control workflow without account-owner billing powers', () => {
@@ -91,7 +108,7 @@ describe('firm permissions', () => {
 
   it('exposes stable role requirements for UI copy and server guards', () => {
     expect(requiredRolesForFirmPermission('member.manage')).toEqual(['owner'])
-    expect(requiredRolesForFirmPermission('billing.read')).toEqual(['owner', 'manager'])
+    expect(requiredRolesForFirmPermission('billing.read')).toEqual(['owner'])
     expect(requiredRolesForFirmPermission('audit.read')).toEqual([
       'owner',
       'partner',

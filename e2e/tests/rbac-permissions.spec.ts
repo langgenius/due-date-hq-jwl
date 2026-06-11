@@ -14,7 +14,7 @@ test.describe('role permission surfaces', () => {
   test.describe('manager role', () => {
     test.use({ authRole: 'manager' })
 
-    test('AC: E2E-RBAC-MANAGER blocks Members but allows read-only billing overview', async ({
+    test('AC: E2E-RBAC-MANAGER blocks Members and owner-only billing surfaces', async ({
       authenticatedPage,
       billingPage,
       membersPage,
@@ -26,14 +26,21 @@ test.describe('role permission surfaces', () => {
       ).toBeVisible({ timeout: 20_000 })
       await expect(authenticatedPage.getByText('Current role: Manager')).toBeVisible()
 
+      // billing.read returned to owner-only (2026-06-11): the overview and
+      // checkout both render the permission gate for managers now.
       await billingPage.gotoBilling()
-      await expect(billingPage.billingHeading).toBeVisible()
-      await expect(billingPage.manageBillingButton).toBeDisabled()
+      await expect(
+        authenticatedPage.getByRole('heading', { name: 'Owner permission required' }),
+      ).toBeVisible()
+      await expect(billingPage.billingHeading).toHaveCount(0)
+      await expect(billingPage.manageBillingButton).toHaveCount(0)
 
       await billingPage.gotoCheckout()
-      await expect(billingPage.checkoutHeading).toBeVisible()
-      await expect(billingPage.ownerPermissionAlert).toBeVisible()
-      await expect(billingPage.continueToSecureCheckoutButton).toBeDisabled()
+      await expect(
+        authenticatedPage.getByRole('heading', { name: 'Owner permission required' }),
+      ).toBeVisible()
+      await expect(billingPage.checkoutHeading).toHaveCount(0)
+      await expect(billingPage.continueToSecureCheckoutButton).toHaveCount(0)
     })
   })
 

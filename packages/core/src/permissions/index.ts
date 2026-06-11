@@ -29,7 +29,7 @@ export interface FirmPermissionCheck {
 export const FIRM_PERMISSION_ROLES = {
   'audit.export': ['owner'],
   'audit.read': ['owner', 'partner', 'manager', 'preparer'],
-  'billing.read': ['owner', 'manager'],
+  'billing.read': ['owner'],
   'billing.update': ['owner'],
   'client.write': ['owner', 'partner', 'manager', 'preparer'],
   'dollars.read': ['owner', 'partner', 'manager', 'preparer'],

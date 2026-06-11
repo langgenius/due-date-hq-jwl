@@ -107,7 +107,7 @@ const statement = {
 | `migration.revert`                                      | ✓     | ✓       | ✓       | —        | —                         |
 | `member.invite`                                         | ✓     | —       | —       | —        | —                         |
 | `member.change_role`                                    | ✓     | —       | —       | —        | —                         |
-| `billing.read`                                          | ✓     | —       | ✓       | —        | —                         |
+| `billing.read`                                          | ✓     | —       | —       | —        | —                         |
 | `billing.update`                                        | ✓     | —       | —       | —        | —                         |
 | `audit.read`                                            | ✓     | ✓       | ✓       | ✓        | —                         |
 | `audit.export`                                          | ✓     | —       | —       | —        | —                         |
@@ -118,6 +118,17 @@ const statement = {
 Pulse/Rules 业务确认和补救动作；Owner 是 SaaS account / billing / firm 管理角色。Partner
 不自动继承 billing、member management、firm delete 或全 firm export。Members v1 mutation
 网关当前只允许 Owner；Manager/Partner 成员管理可在 P1 重新评估。
+
+**层级单调性（2026-06-11 起强制）：** 权限集合沿 Owner > Partner >= Manager > Preparer >
+Coordinator 向上封闭——任何权限一旦对某角色拒绝，其下所有角色必须同样拒绝（core 测试
+`keeps every permission upward-closed along the role hierarchy` 锁定）。历史违规已收口：
+`billing.read` 曾是 owner+manager（跳过 partner），现回归 Owner-only（恢复 PRD §3.6.3 边界，
+billing-hooks `list-subscription`、firms `listSubscriptions`、better-auth manager 角色同步）；
+better-auth 角色定义中 manager 曾持有 `audit:export`、coordinator 曾持有
+`obligation:update:assignee`（preparer 反而没有），均已与 core 矩阵对齐。逾期提醒升级
+（`jobs/reminders/dispatch.ts`）与 deadline input request 收件人（owner/partner/manager）
+也已把 partner / manager 补进对应档位。席位收缩（`seatOverflowMemberIds`）按角色层级
+从低到高挂起，同级按加入时间新者先停，owner 永不挂起。
 
 > 注：status 与 assignee 写操作在代码里共用同一权限组（`obligation.status.update` →
 > `OBLIGATION_STATUS_WRITE_ROLES`，含 preparer）；preparer 的「仅自己 assignee」细粒度限制未实现。

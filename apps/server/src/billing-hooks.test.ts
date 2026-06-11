@@ -3,7 +3,7 @@
  */
 import { describe, expect, it, vi } from 'vitest'
 import type { Db } from '@duedatehq/db'
-import { buildBillingHooks } from './billing-hooks'
+import { buildBillingHooks, seatOverflowMemberIds } from './billing-hooks'
 
 function makeAuthzDb(rows: Array<{ role: string; status: string }>) {
   const limit = vi.fn(async () => rows)
@@ -48,8 +48,8 @@ function makeOverLimitUpdateDb() {
 }
 
 describe('buildBillingHooks', () => {
-  it('allows billing readers to list subscriptions and reserves management for owners', async () => {
-    const { db } = makeAuthzDb([{ role: 'manager', status: 'active' }])
+  it('lets owners list subscriptions', async () => {
+    const { db } = makeAuthzDb([{ role: 'owner', status: 'active' }])
     const hooks = buildBillingHooks(db)
 
     await expect(
@@ -63,12 +63,9 @@ describe('buildBillingHooks', () => {
     ).resolves.toBe(true)
   })
 
-  it('rejects preparer and coordinator billing reads', async () => {
-    const coordinator = buildBillingHooks(
-      makeAuthzDb([{ role: 'coordinator', status: 'active' }]).db,
-    )
-    const preparer = buildBillingHooks(makeAuthzDb([{ role: 'preparer', status: 'active' }]).db)
-
+  // billing.read returned to owner-only (2026-06-11): manager used to pass
+  // this gate while partner did not, breaking Owner > Partner >= Manager.
+  it('rejects every non-owner billing read', async () => {
     const input = {
       userId: 'user_1',
       sessionId: 'session_1',
@@ -77,8 +74,10 @@ describe('buildBillingHooks', () => {
       action: 'list-subscription' as never,
     }
 
-    await expect(coordinator.authorizeReference(input)).resolves.toBe(false)
-    await expect(preparer.authorizeReference(input)).resolves.toBe(false)
+    for (const role of ['partner', 'manager', 'preparer', 'coordinator']) {
+      const hooks = buildBillingHooks(makeAuthzDb([{ role, status: 'active' }]).db)
+      await expect(hooks.authorizeReference(input)).resolves.toBe(false)
+    }
   })
 
   it('reserves billing management for owners', async () => {
@@ -173,5 +172,42 @@ describe('buildBillingHooks', () => {
 
     expect(set).toHaveBeenCalledWith(expect.objectContaining({ status: 'suspended' }))
     expect(set).toHaveBeenCalledWith(expect.objectContaining({ status: 'canceled' }))
+  })
+})
+
+describe('seatOverflowMemberIds', () => {
+  const at = (day: number) => new Date(`2026-01-0${day}T00:00:00.000Z`)
+
+  it('suspends the lowest-ranked roles first, not the newest members', () => {
+    // Coordinator joined first, partner joined last. A join-date policy would
+    // suspend the partner; the hierarchy policy keeps partner + manager.
+    const members = [
+      { id: 'member_owner', role: 'owner', createdAt: at(1) },
+      { id: 'member_coordinator', role: 'coordinator', createdAt: at(2) },
+      { id: 'member_manager', role: 'manager', createdAt: at(3) },
+      { id: 'member_partner', role: 'partner', createdAt: at(4) },
+    ]
+
+    expect(seatOverflowMemberIds(members, 3)).toEqual(['member_coordinator'])
+  })
+
+  it('breaks rank ties by suspending the newest member', () => {
+    const members = [
+      { id: 'member_owner', role: 'owner', createdAt: at(1) },
+      { id: 'member_preparer_old', role: 'preparer', createdAt: at(2) },
+      { id: 'member_preparer_new', role: 'preparer', createdAt: at(3) },
+    ]
+
+    expect(seatOverflowMemberIds(members, 2)).toEqual(['member_preparer_new'])
+  })
+
+  it('never suspends owners and returns empty when seats cover everyone', () => {
+    const members = [
+      { id: 'member_owner', role: 'owner', createdAt: at(1) },
+      { id: 'member_partner', role: 'partner', createdAt: at(2) },
+    ]
+
+    expect(seatOverflowMemberIds(members, 2)).toEqual([])
+    expect(seatOverflowMemberIds(members, 0)).toEqual(['member_partner'])
   })
 })

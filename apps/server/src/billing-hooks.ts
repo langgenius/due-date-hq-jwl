@@ -6,10 +6,6 @@ function isOwnerRole(role: string | null | undefined): boolean {
   return role === 'owner'
 }
 
-function canReadBilling(role: string | null | undefined): boolean {
-  return role === 'owner' || role === 'manager'
-}
-
 export function buildBillingHooks(db: Db): StripeBillingHooks {
   return {
     async authorizeReference(input) {
@@ -26,8 +22,9 @@ export function buildBillingHooks(db: Db): StripeBillingHooks {
         )
         .limit(1)
 
+      // billing.read is owner-only (mirrors core's FIRM_PERMISSION_ROLES) —
+      // every billing action, read or write, requires the owner role.
       if (!membership || membership.status !== 'active') return false
-      if (input.action === 'list-subscription') return canReadBilling(membership.role)
       return isOwnerRole(membership.role)
     },
 
@@ -48,6 +45,33 @@ export function buildBillingHooks(db: Db): StripeBillingHooks {
   }
 }
 
+// When the seat limit shrinks, keep the highest-ranked roles active and
+// suspend from the bottom of the hierarchy (Partner >= Manager > Preparer >
+// Coordinator); within a rank, the newest member is suspended first. Owners
+// never get suspended. Pure so the policy is unit-testable.
+const SEAT_KEEP_RANK: Record<string, number> = {
+  partner: 0,
+  manager: 1,
+  preparer: 2,
+  coordinator: 3,
+}
+
+export function seatOverflowMemberIds(
+  activeMembers: ReadonlyArray<{ id: string; role: string | null; createdAt: Date }>,
+  seatLimit: number,
+): string[] {
+  const ownerCount = activeMembers.filter((member) => isOwnerRole(member.role)).length
+  const nonOwnerSeatLimit = Math.max(seatLimit - ownerCount, 0)
+  const rank = (role: string | null) => SEAT_KEEP_RANK[role ?? ''] ?? Number.MAX_SAFE_INTEGER
+  return activeMembers
+    .filter((member) => !isOwnerRole(member.role))
+    .toSorted(
+      (a, b) => rank(a.role) - rank(b.role) || a.createdAt.getTime() - b.createdAt.getTime(),
+    )
+    .slice(nonOwnerSeatLimit)
+    .map((member) => member.id)
+}
+
 async function reconcileSeatLimit(db: Db, input: StripeSubscriptionSyncInput): Promise<void> {
   const activeMembers = await db
     .select({
@@ -64,10 +88,7 @@ async function reconcileSeatLimit(db: Db, input: StripeSubscriptionSyncInput): P
     )
     .orderBy(asc(authSchema.member.createdAt))
 
-  const ownerCount = activeMembers.filter((member) => isOwnerRole(member.role)).length
-  const nonOwnerSeatLimit = Math.max(input.seatLimit - ownerCount, 0)
-  const nonOwners = activeMembers.filter((member) => !isOwnerRole(member.role))
-  const suspendMemberIds = nonOwners.slice(nonOwnerSeatLimit).map((member) => member.id)
+  const suspendMemberIds = seatOverflowMemberIds(activeMembers, input.seatLimit)
 
   if (suspendMemberIds.length > 0) {
     await db

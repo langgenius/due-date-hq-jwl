@@ -101,10 +101,14 @@ const INVITE_MEMBER_ARIA_SHORTCUTS = 'Meta+I Control+I'
 // the invite-role <SelectItem>. CPA-vocabulary: Partner = principal
 // authority; Manager = review + sign-off; Preparer = assigned client
 // work; Coordinator = scheduling + intake but no preparation.
+// Partner copy must not promise billing or member management — both are
+// owner-only (FIRM_PERMISSION_ROLES), and this dialog is the promise the
+// invitee is onboarded against.
 // Uses `msg` + `i18n._` so the catalog extractor picks up every
 // variant (parameterized `t` inside a helper bypasses extraction).
 function inviteRoleDescription(role: MemberManagedRole, i18n: I18n): string {
-  if (role === 'partner') return i18n._(msg`Principal authority — billing, members, full sign-off.`)
+  if (role === 'partner')
+    return i18n._(msg`Principal authority — final review, approvals, and full sign-off.`)
   if (role === 'manager') return i18n._(msg`Reviews work and signs off on prepared filings.`)
   if (role === 'preparer') return i18n._(msg`Works assigned client deadlines and prepares filings.`)
   return i18n._(msg`Schedules work and handles client intake — no preparation rights.`)

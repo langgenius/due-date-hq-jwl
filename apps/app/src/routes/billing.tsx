@@ -294,7 +294,7 @@ export function BillingRoute() {
         permission="billing.read"
         firm={currentFirm}
         description={
-          // ROH-D11 — billing.read = owner/manager today (helper-aware
+          // ROH-D11 — billing.read = owner-only today (helper-aware
           // so if scope changes we don't drift again).
           <Trans>
             Billing overview is available to {requiredRolesLabel('billing.read')}. Contact the

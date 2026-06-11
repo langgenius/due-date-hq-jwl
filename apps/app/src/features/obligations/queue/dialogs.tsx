@@ -590,7 +590,9 @@ export function DeadlineInputRequestDialog({
             <Trans>Request input</Trans>
           </DialogTitle>
           <DialogDescription>
-            <Trans>Send an internal request to an owner or partner for this deadline.</Trans>
+            <Trans>
+              Send an internal request to an owner, partner, or manager for this deadline.
+            </Trans>
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 px-6 py-5">
