@@ -325,3 +325,24 @@ Voice is largely on-brand — no hype, specific CTAs, grounded AI framing. The r
 **Marketing site (apps/marketing)** — landing, pricing, rules, state-coverage, 404, trust pages, guides/states/compare/rules dynamic content, nav/footer/CTA components, `i18n/en.ts`.
 
 **Remaining out of scope:** zh-CN catalog parity for both apps (a localization pass should follow the English lock — note the one zh finding already filed: 工作区 in the invitation email), and AI prompt text (not user-facing).
+
+---
+
+## Disposition (closed 2026-06-11, same day)
+
+Applied across 15 commits (`copy(...)` series, batches 1–15; one dev-log entry per batch in docs/dev-log/2026-06-11-ux-copy-batch*.md). All P0s and P1s are fixed, P2s fixed except the explicitly-deferred set below. zh-CN app catalog fully translated for every new msgid.
+
+**Deliberately NOT changed (with reasons):**
+- "Couldn't [verb] [object]" error-title pattern — kept as canonical (the audit's own standard); only descriptions changed.
+- EN invitation subject "Join {organizationName} on DueDateHQ" — clear and standard; zh aligned to it instead.
+- Outbox fallback subject "DueDateHQ notification" — a generic fail-open shouldn't claim to be a deadline alert.
+- Inbox bell "{n} unread" — "unread" is invariant as an elliptical count; no plural error exists.
+- Disabled "Insert variable" chip and "Request export" button — affordance-level decisions (hide vs. wire), for a design pass.
+- App-shell system-status conditional frame — behavior design, not copy.
+- 2FA card "Disable" — its confirm dialog names the full action.
+- "Couldn't load deadline detail." — the inline Retry button is the recovery; adding a sentence would be noise.
+- Alerts "Needs review" badge (per-client AI flag) — a different state from rules' "Awaiting review"; both now used consistently within their domains.
+
+**Found already-resolved during application (no change needed):** "The change couldn't be written", DecisionBanners label split, clients "Nd late" (verbose `<Plural>` exists), bare "4 min" (labeled), "Couldn't apply rule" dialog (shows error.message + code), reminder status-badge casing.
+
+**Follow-ups owed:** zh-CN parity pass for the marketing site (en.ts changed; zh mirror untouched), and the copy standards in Part 3 should be folded into DESIGN.md §copy.
