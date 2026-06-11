@@ -12,6 +12,7 @@ import {
   MessageSquareTextIcon,
   SlidersHorizontalIcon,
   SparklesIcon,
+  StarIcon,
 } from 'lucide-react'
 import { Link } from 'react-router'
 
@@ -629,7 +630,7 @@ function ActionsListHeader({
     // table wrapper below; the previous padding created a stair-step that
     // read as broken alignment.
     <div className="flex items-center justify-between gap-3">
-      {/* The inline SparklesIcon (after the title text) does two jobs at
+      {/* The inline star icon (after the title text) does two jobs at
           once — it marks the section as Smart-Priority curated and it
           opens the explanation tooltip on hover — so the header needs no
           separate Info icon. */}
@@ -655,10 +656,10 @@ function ActionsListHeader({
                 <button
                   type="button"
                   aria-label={t`About Priority Actions`}
-                  className="inline-flex size-3.5 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="inline-flex size-3 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   {...props}
                 >
-                  <SparklesIcon className="size-3" aria-hidden />
+                  <StarIcon className="size-2.5" aria-hidden />
                 </button>
               )}
             />

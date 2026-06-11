@@ -59,8 +59,9 @@ export function MonitoringChip({
   )
   const badgeClass = cn(
     // Compact green "LIVE" pill; the full monitoring scope (Federal ·
-    // 50 States · DC) lives in the hover tooltip.
-    'gap-1.5 rounded-full border border-state-success-border bg-state-success-hover px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.4px] text-text-success',
+    // 50 States · DC) lives in the hover tooltip. Borderless — the green
+    // fill alone carries it (Yuqi: remove border).
+    'gap-1.5 rounded-full bg-state-success-hover px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.4px] text-text-success',
     to ? 'cursor-pointer transition-colors hover:bg-state-success-active' : 'cursor-help',
     className,
   )

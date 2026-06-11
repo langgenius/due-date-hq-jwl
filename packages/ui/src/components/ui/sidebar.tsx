@@ -436,7 +436,10 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           // 2026-06-09 (Yuqi "精致" / refinement): finer 1.5px icon
           // strokes across every rail glyph (Lucide defaults to 2px,
           // which reads heavy) — a more delicate, elegant icon set.
-          'absolute inset-y-3 left-3 z-30 flex flex-col gap-1 overflow-hidden rounded-xl bg-background-sidebar-card p-2.5 [&_svg]:[stroke-width:1.5] transition-[width,box-shadow] duration-[360ms] ease-apple motion-reduce:transition-none',
+          // px-2.5 py-1.5 (Yuqi "top/bottom padding too much"): trim the
+          // card's vertical inner padding (10px → 6px) while keeping the
+          // 10px sides; the header/footer no longer float in dead space.
+          'absolute inset-y-3 left-3 z-30 flex flex-col gap-1 overflow-hidden rounded-xl bg-background-sidebar-card px-2.5 py-1.5 [&_svg]:[stroke-width:1.5] transition-[width,box-shadow] duration-[360ms] ease-apple motion-reduce:transition-none',
           // No hard border ("no board"). Separation comes from a soft
           // 1px ring-shadow (defines every edge subtly, no hard line)
           // plus a blur lift — gentle when docked, prominent when the
@@ -661,7 +664,9 @@ const sidebarMenuButtonVariants = cva(
     // (gap-3 — "icon与text之间的gap稍微大一点"), px-3, rounded-lg. Label
     // text-[16px]. Identical in both modes — collapsed re-centering is
     // gone (see below).
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-[16px] font-normal text-text-secondary outline-none transition-colors',
+    // 2026-06-10 (Yuqi "set to 15px" — sidebar is the product's sole 15px
+    // text size): nav label text-[16px] → text-[15px].
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-[15px] font-normal text-text-secondary outline-none transition-colors',
     // 2026-06-09 (Yuqi "icons should be vertically center aligned" in the
     // collapsed rail): center the lone icon on the rail's centerline.
     // Drop the icon↔label gap and justify-center so the glyph isn't left-

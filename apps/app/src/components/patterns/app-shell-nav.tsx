@@ -125,7 +125,13 @@ function FirmIdentityHeader({ firm }: { firm: FirmPublic }) {
     // boundary. Collapsed mode overrides with `w-auto flex-none`
     // in the parent.
     <SidebarHeader className="min-w-0 flex-1">
-      <div title={firm.name} className="flex h-10 w-full min-w-0 items-center gap-2 rounded-xl p-1">
+      {/* Collapsed rail: center the monogram on the same centerline as the
+          nav icons below (justify-center + gap-0), so it doesn't sit
+          left-aligned while every icon under it is centered. */}
+      <div
+        title={firm.name}
+        className="flex h-10 w-full min-w-0 items-center gap-2 rounded-xl p-1 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0"
+      >
         {/* The workspace monogram is `sm` (28px) — same size as the
             footer user avatar so the top + bottom of the rail bookend as a
             matched pair. Shape stays SQUARE (org) vs the user's round
@@ -141,7 +147,9 @@ function FirmIdentityHeader({ firm }: { firm: FirmPublic }) {
           />
         </span>
         <span
-          className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
+          // 2026-06-10 (Yuqi "bigger one size up"): firm name text-sm (12px)
+          // → text-base (14px) so the workspace identity anchors the rail.
+          className="min-w-0 flex-1 truncate text-base font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
           translate="no"
         >
           {firm.name}
@@ -205,7 +213,7 @@ function SidebarQuickFind() {
       {/* 13px placeholder — a step below the 15px nav labels so the search
           hint reads as a quiet prompt, not a heading. (Was an oversized
           16px, which made the field look clunky.) */}
-      <span className="min-w-0 flex-1 truncate text-base text-text-muted group-data-[collapsed=true]/sidebar:hidden">
+      <span className="min-w-0 flex-1 truncate text-[13px] text-text-muted group-data-[collapsed=true]/sidebar:hidden">
         {t`Quick find…`}
       </span>
       {/* ⌘K hint — plain muted mono text (no keycap box) so the field

@@ -175,7 +175,12 @@ export function AppShell(props: AppShellProps) {
               between the firm identity and the nav, opening the global
               ⌘K command palette. The card's padding + the search box's
               own surface carry the separation the rib used to provide. */}
-          <SidebarQuickFind />
+          {/* pb-2 (Yuqi "some bottom padding"): the search needs air beneath
+              it before the nav starts, so it doesn't sit flush against the
+              first group. */}
+          <div className="pb-2">
+            <SidebarQuickFind />
+          </div>
           <SidebarContent>
             <NavGroups firm={props.firm} />
           </SidebarContent>

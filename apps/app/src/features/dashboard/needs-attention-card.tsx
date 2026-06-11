@@ -12,7 +12,6 @@ import { alertTone } from '@/features/alerts/alert-tone'
 // now renders inline in the subject block via `<ExternalLinkIcon>` +
 // truncated label with the URL on tooltip hover.
 import { impactBadgeFromAlert } from '@/features/alerts/components/pulse-alert-chrome'
-import { changeKindLabel } from '@/features/alerts/components/PulseChangeKindChip'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
@@ -57,26 +56,6 @@ const CARD_MIN_HEIGHT_CLASS = 'min-h-[120px]'
 // single "{N} clients" label with a tooltip-revealed roster, not a
 // chip cluster).
 //
-// Affected rows are batch-loaded by the parent section (one
-// `getDetailsBatch` for all visible cards via
-// `useAlertsAffectedClients`) and passed in, instead of each card
-// fetching its own `pulse.getDetail`. This keeps the dashboard at a
-// single batched request regardless of how many cards render.
-function uniqueAffectedClientNames(affected: PulseAffectedClient[]): {
-  allNames: string[]
-} {
-  const seen = new Set<string>()
-  const ordered: string[] = []
-  for (const row of affected) {
-    if (!seen.has(row.clientName)) {
-      seen.add(row.clientName)
-      ordered.push(row.clientName)
-    }
-  }
-  return {
-    allNames: ordered,
-  }
-}
 
 /**
  * When an alert title starts with the source name (e.g. title "FL DOR
@@ -138,15 +117,11 @@ function NeedsAttentionCard({
   // Dot tone comes from the canonical helper so the dashboard card +
   // drawer + alerts list all agree on the same alert's tone.
   const tone = alertTone(alert)
-  // Affected client names come from the parent's batched load (one
-  // request for all visible cards), not a per-card query.
-  const { allNames } = uniqueAffectedClientNames(affectedClients)
   // The section batch-loads detail, so derive the form code from the
   // first affected client's `taxType` to render the TaxCodeBadge in the
   // bottom row without an extra round-trip. Null when no clients matched.
   const firstForm = affectedClients[0]?.taxType ?? null
-  // VxRyF bottom-meta data: confidence %, the alert's own form code, and
-  // overlapping initial-avatars of the matched clients.
+  // VxRyF bottom-meta data: confidence % and the alert's own form code.
   const confidencePct = Math.round(alert.confidence * 100)
   // At rest the confidence pill stays neutral; on card hover it switches
   // to its confidence-tier color (high → green, medium → amber, low →
@@ -157,15 +132,6 @@ function NeedsAttentionCard({
     low: 'group-hover:text-text-destructive',
   }[aiConfidenceTier(alert.confidence)]
   const alertForm = alert.forms[0] ?? firstForm
-  const avatars = allNames.slice(0, 3).map((name) => ({
-    name,
-    initials: name
-      .split(/\s+/)
-      .map((word) => word[0] ?? '')
-      .join('')
-      .slice(0, 2)
-      .toUpperCase(),
-  }))
   // Mirror the AlertCard severity-pill + StateBadge vocabulary so the
   // dashboard summary and the alerts list speak the same visual language.
   // `impactBadgeFromAlert` is the shared helper from pulse-alert-chrome so
@@ -282,11 +248,6 @@ function NeedsAttentionCard({
             />
             <TooltipContent>{absoluteTime}</TooltipContent>
           </Tooltip>
-
-          {/* CHANGE KIND — hover-reveal label (opacity-0 reserves width). */}
-          <span className="shrink-0 text-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            {changeKindLabel(alert.changeKind)}
-          </span>
         </div>
 
         {/* Subject — title + source caption. The source is wrapped in a
@@ -313,48 +274,14 @@ function NeedsAttentionCard({
           source holds a fixed width on the right, so the two always share a
           single line. */}
       <div className="flex items-center gap-x-2 border-t border-divider-subtle pt-3 text-xs">
-        {/* The affected-clients signal leads with the AVATAR stack, then the
-            first client NAME + "+N more" — not an "Affects N clients" label.
-            Reads as "[av] Meridian +2 more". When nothing matched, a quiet
-            muted "No clients matched" with the users icon. */}
+        {/* The affected-clients signal is just the client COUNT ("N clients")
+            (Yuqi: don't show client names — back to the count label). When
+            nothing matched, a quiet muted "No clients matched". */}
         {impacted > 0 ? (
           <span className="inline-flex min-w-0 shrink items-center gap-1.5 whitespace-nowrap">
-            {avatars.length > 0 ? (
-              <span className="flex shrink-0 items-center">
-                {avatars.map((avatar, index) => (
-                  <Tooltip key={avatar.name}>
-                    <TooltipTrigger
-                      render={(props) => (
-                        <span
-                          className={cn(
-                            'inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-caption-xs font-semibold text-text-primary ring-[1.5px] ring-divider-regular outline-none',
-                            index > 0 && '-ml-1.5',
-                          )}
-                          {...props}
-                        >
-                          {avatar.initials}
-                        </span>
-                      )}
-                    />
-                    <TooltipContent>{avatar.name}</TooltipContent>
-                  </Tooltip>
-                ))}
-              </span>
-            ) : null}
-            {allNames[0] ? (
-              <span className="min-w-0 truncate font-medium text-text-secondary">
-                {allNames[0]}
-                {impacted > 1 ? (
-                  <span className="ml-1 font-normal text-text-tertiary tabular-nums">
-                    <Plural value={impacted - 1} one="+# more" other="+# more" />
-                  </span>
-                ) : null}
-              </span>
-            ) : (
-              <span className="font-medium text-text-secondary">
-                <Plural value={impacted} one="# client" other="# clients" />
-              </span>
-            )}
+            <span className="font-medium text-text-secondary">
+              <Plural value={impacted} one="# client" other="# clients" />
+            </span>
           </span>
         ) : (
           <span className="inline-flex shrink-0 items-center gap-1 text-text-muted">
