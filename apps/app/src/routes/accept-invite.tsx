@@ -155,10 +155,19 @@ export function AcceptInviteRoute() {
             </AlertDescription>
           </Alert>
           <div className="flex flex-wrap gap-2.5">
-            <Button className="h-11 flex-1 rounded-lg font-semibold" render={<Link to="/login" />}>
+            <Button
+              nativeButton={false}
+              className="h-11 flex-1 rounded-lg font-semibold"
+              render={<Link to="/login" />}
+            >
               <Trans>Sign in</Trans>
             </Button>
-            <Button variant="outline" className="h-11 flex-1 rounded-lg" render={<Link to="/" />}>
+            <Button
+              nativeButton={false}
+              variant="outline"
+              className="h-11 flex-1 rounded-lg"
+              render={<Link to="/" />}
+            >
               <Trans>Go to Today</Trans>
             </Button>
           </div>

@@ -53,7 +53,7 @@ export function RouteErrorBoundary() {
             <AlertTitle>{title}</AlertTitle>
             <AlertDescription>{message}</AlertDescription>
           </Alert>
-          <Button render={<Link to="/" />}>
+          <Button nativeButton={false} render={<Link to="/" />}>
             <Trans>Return home</Trans>
           </Button>
         </div>

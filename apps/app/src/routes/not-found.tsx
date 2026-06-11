@@ -34,7 +34,7 @@ export function NotFoundRoute() {
           </p>
         </header>
         <div className="flex flex-wrap items-center gap-2">
-          <Button render={<Link to="/" />}>
+          <Button nativeButton={false} render={<Link to="/" />}>
             <HomeIcon data-icon="inline-start" />
             <Trans>Go to Today</Trans>
           </Button>
