@@ -11,7 +11,9 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ClipboardCheckIcon,
+  CheckIcon,
   ClipboardListIcon,
+  CopyIcon,
   LightbulbIcon,
   MailIcon,
   MapPinIcon,
@@ -29,6 +31,7 @@ import { toast } from 'sonner'
 
 import type {
   AuditEventPublic,
+  AiInsightPublic,
   ClientPublic,
   MemberAssigneeOption,
   ObligationInstancePublic,
@@ -1002,9 +1005,12 @@ export function ClientDetailWorkspace({
                     {/* Pencil VtC73: "Filings" + a count pill of the plan's rows. */}
                     <Trans>Filings</Trans>
                     {!panelOpen && obligations.length > 0 ? (
-                      <span className="rounded-full bg-background-section px-1.5 py-0.5 text-caption-xs font-semibold text-text-tertiary tabular-nums">
+                      <Badge
+                        variant="secondary"
+                        className="px-1.5 text-caption-xs font-semibold tabular-nums"
+                      >
                         {obligations.length}
-                      </span>
+                      </Badge>
                     ) : null}
                   </span>
                 </ClientDetailTabTrigger>
@@ -1178,12 +1184,17 @@ export function ClientDetailWorkspace({
                 {/* Activity content only renders when the tab is the
                     active one — the surrounding TabsContent gates the
                     AI summary + audit log queries that fire inside. */}
-                <TabSection
+                <HistoryCard
                   title={t`Activity summary`}
-                  summary={
+                  sub={
                     riskSummaryQuery.data?.generatedAt
                       ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
-                      : t`Auto-drafted from recent activity`
+                      : t`Auto-drafted recap`
+                  }
+                  footer={
+                    riskSummaryQuery.data && riskSummaryQuery.data.sections.length > 0 ? (
+                      <CopyRecapButton insight={riskSummaryQuery.data} />
+                    ) : undefined
                   }
                   // The AI status badge + Refresh button cluster lives
                   // in the TabSection's `actions` slot so the badge +
@@ -1227,31 +1238,35 @@ export function ClientDetailWorkspace({
                     </>
                   }
                 >
-                  <div className="rounded-lg border border-divider-regular bg-background-default p-4">
-                    <ClientRiskSummaryPanel
-                      insight={riskSummaryQuery.data ?? null}
-                      isLoading={riskSummaryQuery.isLoading}
-                      canRefresh={practiceAiEnabled}
-                    />
-                  </div>
-                </TabSection>
+                  <ClientRiskSummaryPanel
+                    insight={riskSummaryQuery.data ?? null}
+                    isLoading={riskSummaryQuery.isLoading}
+                    canRefresh={practiceAiEnabled}
+                  />
+                </HistoryCard>
 
-                <TabSection
+                <HistoryCard
                   title={t`Activity log`}
-                  summary={t`Recent audited changes for this client record`}
+                  sub={t`Audit trail of every change`}
+                  actions={
+                    auditQuery.data && auditQuery.data.events.length > 0 ? (
+                      <span className="rounded-full bg-background-default px-1.5 py-0.5 text-caption-xs font-semibold text-text-tertiary tabular-nums">
+                        {auditQuery.data.events.length}
+                      </span>
+                    ) : null
+                  }
+                  // Flush body: ClientActivityPanel is frameless and its rows /
+                  // empty-state own their padding, so the card border + gray
+                  // heading row (rNqhy) is the only frame.
+                  bodyClassName="p-0"
                 >
-                  {/* ClientActivityPanel owns its own canonical outer
-                      frame internally (one frame, divide-y rows),
-                      matching the AI summary section treatment on this
-                      tab. No extra wrapper needed here — would
-                      double-frame. */}
                   <ClientActivityPanel
                     events={auditQuery.data?.events ?? []}
                     canReadAudit={canReadAudit}
                     isLoading={auditQuery.isLoading}
                     firmTimezone={firmTimezone}
                   />
-                </TabSection>
+                </HistoryCard>
               </TabsContent>
             </Tabs>
           </section>
@@ -1780,7 +1795,7 @@ function ClientActivityPanel({
   }
   if (isLoading) {
     return (
-      <div className="grid gap-2">
+      <div className="grid gap-2 px-4 py-4">
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
       </div>
@@ -1797,32 +1812,100 @@ function ClientActivityPanel({
       />
     )
   }
-  // Canonical pattern: ONE outer canonical frame
-  // (`rounded-lg border-divider-regular bg-background-default`) with
-  // `divide-y` between rows, rather than individual `rounded-lg border
-  // bg-background-section` cards in a grid gap. Matches the AI summary
-  // treatment on the same tab, and the page-family-canonical §9 rule
-  // (one section, one frame).
+  // Frameless: the parent <HistoryCard> (Pencil rNqhy) provides the outer
+  // frame + gray heading row, so this panel renders just the divide-y rows.
   return (
-    <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">
-      <ul className="divide-y divide-divider-subtle">
-        {events.map((event) => (
-          <li key={event.id} className="grid gap-1 px-4 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm font-medium text-text-primary">
-                {formatAuditActionLabel(event.action, actionLabels)}
-              </span>
-              <span className="text-xs tabular-nums text-text-tertiary">
-                {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
-              </span>
-            </div>
-            <p className="text-xs text-text-tertiary">
-              {event.actorLabel ?? event.actorId ?? 'System'}
-            </p>
-          </li>
-        ))}
-      </ul>
+    <ul className="divide-y divide-divider-subtle">
+      {events.map((event) => (
+        <li key={event.id} className="grid gap-1 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-sm font-medium text-text-primary">
+              {formatAuditActionLabel(event.action, actionLabels)}
+            </span>
+            <span className="text-xs tabular-nums text-text-tertiary">
+              {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
+            </span>
+          </div>
+          <p className="text-xs text-text-tertiary">
+            {event.actorLabel ?? event.actorId ?? 'System'}
+          </p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/**
+ * HistoryCard — the History-tab section chrome from Pencil rNqhy: a bordered
+ * card (rounded-xl, divider-regular) with a gray heading row (title · sub ·
+ * actions) + optional footer. Replaces the TabSection-above-a-panel treatment
+ * so the AI summary + audit log read as one card vocabulary, consistent with
+ * the deadline + alert detail surfaces.
+ */
+function HistoryCard({
+  title,
+  sub,
+  actions,
+  footer,
+  bodyClassName,
+  children,
+}: {
+  title: ReactNode
+  sub?: ReactNode
+  actions?: ReactNode
+  footer?: ReactNode
+  bodyClassName?: string
+  children: ReactNode
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+      <div className="flex items-center gap-2 border-b border-divider-subtle bg-background-section px-4 py-2.5">
+        <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
+        {sub ? (
+          <span className="truncate text-xs font-medium text-text-tertiary">
+            <span aria-hidden className="mr-1 text-text-muted">
+              ·
+            </span>
+            {sub}
+          </span>
+        ) : null}
+        {actions ? (
+          <div className="ml-auto flex shrink-0 items-center gap-2">{actions}</div>
+        ) : null}
+      </div>
+      <div className={bodyClassName ?? 'px-4 py-4'}>{children}</div>
+      {footer ? (
+        <div className="flex items-center gap-1.5 border-t border-divider-subtle bg-background-section/40 px-3 py-1.5">
+          {footer}
+        </div>
+      ) : null}
     </div>
+  )
+}
+
+/**
+ * CopyRecapButton — v1 of rNqhy's AI-summary footer actions. Only Copy is
+ * wired (Yuqi: "remove email, add to brief and flag for v1"); copies the
+ * recap's section labels + text to the clipboard.
+ */
+function CopyRecapButton({ insight }: { insight: AiInsightPublic | null }) {
+  const [copied, setCopied] = useState(false)
+  if (!insight || insight.sections.length === 0) return null
+  const recap = insight.sections.map((section) => `${section.label}\n${section.text}`).join('\n\n')
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={() => {
+        void navigator.clipboard?.writeText(recap)
+        setCopied(true)
+        window.setTimeout(() => setCopied(false), 1500)
+      }}
+    >
+      {copied ? <CheckIcon data-icon="inline-start" /> : <CopyIcon data-icon="inline-start" />}
+      {copied ? <Trans>Copied</Trans> : <Trans>Copy recap</Trans>}
+    </Button>
   )
 }
 
