@@ -184,6 +184,11 @@ function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
       <EntityAuditActivityPanel
         entityType="rule"
         entityId={rule.id}
+        // A rule's edit/review history is evidence — the panel's default
+        // 30-day window silently hid a 39-day-old review decision while the
+        // Practice-review card right below still showed it ("No edits yet"
+        // above "Reviewed by Miguel Chen"). History panels never window.
+        range="all"
         emptyTitle={<Trans>No audited rule changes yet</Trans>}
         emptyDescription={
           <Trans>Edits, version bumps, and review decisions for this rule will appear here.</Trans>
@@ -501,6 +506,9 @@ export function RuleDetailCompact({
           <EntityAuditActivityPanel
             entityType="rule"
             entityId={rule.id}
+            // Same contract as RuleVersionHistorySection: history is
+            // complete or it contradicts the Practice-review card below.
+            range="all"
             emptyTitle={<Trans>No audited rule changes yet</Trans>}
             emptyDescription={
               <Trans>
