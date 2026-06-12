@@ -4426,6 +4426,13 @@ function BulkReviewBar({
 // "Review N" entry per Yuqi 2026-06-10 (option a, with per-row flags).
 // ---------------------------------------------------------------------------
 
+/**
+ * Server-side batch ceiling for bulk accept + impact preview — mirrors
+ * `.max(100)` on `RuleBulkImpactPreviewInputSchema` and
+ * `RuleBulkAcceptTemplatesInputSchema` in @duedatehq/contracts. Keep in sync.
+ */
+const BULK_ACCEPT_BATCH_MAX = 100
+
 /** Honest impact/readiness pill — value + label, tone-keyed. */
 function BulkMetric({
   value,
@@ -4481,9 +4488,16 @@ function BulkReviewListModal({
     [included],
   )
 
+  // The preview + bulk-accept contracts cap a batch at 100 rules
+  // (`RuleBulkImpactPreviewInputSchema` / `RuleBulkAcceptTemplatesInputSchema`
+  // both say `.max(100)`). Firing the preview over that limit just fails
+  // input validation — which used to leave the modal on "Calculating
+  // impact…" forever. Don't fire it; say so instead. Reject is unaffected:
+  // it loops per-rule mutations, so it has no batch cap.
+  const overAcceptLimit = selections.length > BULK_ACCEPT_BATCH_MAX
   const previewQuery = useQuery({
     ...orpc.rules.previewBulkRuleImpact.queryOptions({ input: { rules: selections } }),
-    enabled: selections.length > 0,
+    enabled: selections.length > 0 && !overAcceptLimit,
   })
   const preview = previewQuery.data ?? null
   const skippedReasonById = useMemo(
@@ -4537,8 +4551,27 @@ function BulkReviewListModal({
   const noteTrimmed = note.trim()
   const readyCount = preview?.acceptReadyCount ?? 0
   const busy = acceptMutation.isPending || rejecting
-  const canAccept = readyCount > 0 && noteTrimmed.length > 0 && !busy
+  const canAccept = !overAcceptLimit && readyCount > 0 && noteTrimmed.length > 0 && !busy
   const canReject = included.length > 0 && noteTrimmed.length > 0 && !busy
+
+  // Every disabled footer button states its reason (the first gate that
+  // applies, in the order a reviewer can clear them). `null` when both
+  // actions are live — the footer then shows the standing open-a-rule hint.
+  const disabledReason = busy
+    ? null
+    : included.length === 0
+      ? t`Tick at least one rule to act on this batch.`
+      : overAcceptLimit
+        ? t`Accept handles up to ${BULK_ACCEPT_BATCH_MAX} rules per batch — untick down to ${BULK_ACCEPT_BATCH_MAX} or fewer. Reject has no batch cap.`
+        : noteTrimmed.length === 0
+          ? t`Add a review note to enable Accept and Reject — it's logged to the audit trail.`
+          : previewQuery.isError
+            ? t`Accept stays off — the impact preview failed, so readiness is unknown. Reject is still available.`
+            : !preview
+              ? t`Accept enables once the impact preview finishes.`
+              : readyCount === 0
+                ? t`None of these rules can be bulk-accepted — open each rule to review it individually.`
+                : null
 
   const toggleExcluded = (id: string) =>
     setExcluded((prev) => {
@@ -4603,7 +4636,10 @@ function BulkReviewListModal({
               <Trans>Bulk review</Trans>
             </DialogTitle>
             <p className="text-base text-text-tertiary">
-              <Plural value={rules.length} one="# rule selected" other="# rules selected" />
+              {/* One source of truth for "how many": the ticked rows below.
+                  Header, Reject N, and the impact preview all read
+                  `included` — unticking a row moves every number together. */}
+              <Plural value={included.length} one="# rule selected" other="# rules selected" />
             </p>
           </div>
           <button
@@ -4726,6 +4762,15 @@ function BulkReviewListModal({
             <span className="text-xs text-text-tertiary">
               {selections.length === 0 ? (
                 <Trans>Select at least one rule to preview impact.</Trans>
+              ) : overAcceptLimit ? (
+                // The preview RPC rejects batches over 100, so it isn't
+                // fired at all — say that instead of spinning forever.
+                <Trans>
+                  Impact preview covers up to {BULK_ACCEPT_BATCH_MAX} rules at a time —{' '}
+                  {selections.length} selected. Untick rules to see impact.
+                </Trans>
+              ) : previewQuery.isError ? (
+                <Trans>Couldn't calculate impact for this selection.</Trans>
               ) : (
                 <Trans>Calculating impact…</Trans>
               )}
@@ -4733,11 +4778,13 @@ function BulkReviewListModal({
           )}
         </div>
 
-        {/* Footer — Reject N (destructive outline) · Cancel · Accept N. */}
+        {/* Footer — Reject N (destructive outline) · Cancel · Accept N.
+            When either action is disabled, the leading caption states the
+            actual gate instead of a generic hint. */}
         <div className="flex flex-wrap items-center gap-2 border-t border-divider-subtle px-5 py-3.5">
           <span className="flex items-center gap-1.5 text-xs text-text-tertiary">
             <TriangleAlertIcon className="size-3.5 shrink-0" aria-hidden />
-            <Trans>Open any rule to review it individually.</Trans>
+            {disabledReason ?? <Trans>Open any rule to review it individually.</Trans>}
           </span>
           <span className="flex-1" aria-hidden />
           <Button
@@ -4760,7 +4807,9 @@ function BulkReviewListModal({
             ) : (
               <ShieldCheck data-icon="inline-start" />
             )}
-            <Trans>Accept {readyCount}</Trans>
+            {/* No fabricated "Accept 0" while readiness is unknown — the
+                count only appears once the impact preview has reported it. */}
+            {preview ? <Trans>Accept {readyCount}</Trans> : <Trans>Accept</Trans>}
           </Button>
         </div>
       </DialogContent>
