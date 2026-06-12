@@ -9,6 +9,14 @@ import { formatTaxCode } from '@/lib/tax-codes'
 
 interface AlertStructuredFieldsProps {
   detail: PulseDetail
+  /**
+   * 2026-06-12 (info-organisation pass — Yuqi "text hierarchy and
+   * organisation of information"): the do-by-when callout is the page's KEY
+   * FACT and renders in the HERO (`section="key-fact"`), not buried inside
+   * the details section. `details` (default) renders everything else — the
+   * fact grid + caveats.
+   */
+  section?: 'key-fact' | 'details'
 }
 
 interface ProtectiveClaimFacts {
@@ -150,7 +158,7 @@ function daysUntil(isoDate: string): number | null {
  * The verbatim source excerpt lives in the Source & confidence card —
  * its one home — not here.
  */
-export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
+export function AlertStructuredFields({ detail, section = 'details' }: AlertStructuredFieldsProps) {
   const { t } = useLingui()
 
   const effectiveValue = detail.effectiveFrom
@@ -263,29 +271,15 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
   // divider-colored bg shows through any unfilled slot as a gray block.
   const fillerCount = (4 - (cells.length % 4)) % 4
 
-  return (
-    <div className="flex flex-col gap-3">
-      {detail.alert.duplicateSourceSnapshotCount > 0 ? (
-        <div className="rounded-lg bg-background-soft px-3 py-2 text-xs text-text-secondary">
-          <Plural
-            value={detail.alert.duplicateSourceSnapshotCount}
-            one="# similar source update was merged into this alert."
-            other="# similar source updates were merged into this alert."
-          />
-        </div>
-      ) : null}
-
-      {/* Action-deadline hero — the protective-claim counterpart of
-          DeadlineChangeCard: the same gray box + big mono date grammar,
-          with the countdown and evidence checklist riding along so the
-          CPA's "do what, by when" reads in one glance. This is the one
-          highlighted block in the card; the grid below stays quiet. */}
-      {protectiveFacts &&
-      (protectiveFacts.actionDeadline || protectiveFacts.evidenceNeeded.length > 0) ? (
-        // 2026-06-12 (de-fill pass): the do-by-when callout is a LEFT RULE in
-        // the warning tone — structural emphasis, not a gray slab. The big
-        // mono date + countdown carry the urgency typographically.
-        <section className="flex flex-col gap-2.5 border-l-2 border-state-warning-solid py-1 pl-4">
+  // The do-by-when callout — built once, routed by `section`: the HERO
+  // renders it as the page's key fact; the details section excludes it.
+  const keyFactCallout =
+    protectiveFacts &&
+    (protectiveFacts.actionDeadline || protectiveFacts.evidenceNeeded.length > 0) ? (
+      // The callout is a LEFT RULE in the warning tone — structural
+      // emphasis, not a gray slab. The big mono date + countdown carry the
+      // urgency typographically.
+      <section className="flex flex-col gap-2.5 border-l-2 border-state-warning-solid py-1 pl-4">
           {protectiveFacts.actionDeadline ? (
             <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
               {/* 2026-06-12 (red triage — Yuqi "too messy"): the eyebrow is
@@ -328,7 +322,12 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             // the spacing step separates deadline from checklist inside the
             // one callout.
             <div className="flex flex-col gap-1.5 pt-1">
-              <span className="text-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
+              {/* T4 subhead (2026-06-12 label-ladder): sentence-case 13/600
+                  secondary — caps eyebrows are reserved for the fact GRID,
+                  where the table matrix earns them. Nine identical caps
+                  labels in one section meant the critical and the trivial
+                  dressed alike. */}
+              <span className="text-sm font-semibold text-text-secondary">
                 <Trans>Evidence to gather</Trans>
               </span>
               <ul className="flex flex-col gap-1">
@@ -348,6 +347,20 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             </div>
           ) : null}
         </section>
+      ) : null
+
+  if (section === 'key-fact') return keyFactCallout
+
+  return (
+    <div className="flex flex-col gap-3">
+      {detail.alert.duplicateSourceSnapshotCount > 0 ? (
+        <div className="rounded-lg bg-background-soft px-3 py-2 text-xs text-text-secondary">
+          <Plural
+            value={detail.alert.duplicateSourceSnapshotCount}
+            one="# similar source update was merged into this alert."
+            other="# similar source updates were merged into this alert."
+          />
+        </div>
       ) : null}
 
       {/* Yuqi #9 (avoid frame-in-frame): the grid no longer carries its own
@@ -403,7 +416,8 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
         // De-fill pass: a quiet neutral left rule — same callout anatomy as
         // the deadline rule above, in the neutral tone (informs, no urgency).
         <div className="flex flex-col gap-1 border-l-2 border-divider-deep py-0.5 pl-4">
-          <span className="text-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
+          {/* T4 subhead — sentence-case, not caps (label-ladder). */}
+          <span className="text-sm font-semibold text-text-secondary">
             <Trans>Legal uncertainty</Trans>
           </span>
           <p className="text-sm leading-relaxed text-text-secondary">

@@ -168,25 +168,31 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
     // section; the BIG date pair + day delta carry the emphasis through
     // type alone.
     <section className="flex flex-col gap-2.5">
-      {/* Header — ⚠ Deadline change · status chip. */}
+      {/* Header — ⚠ Deadline change · status chip. T4 subhead tier
+          (sentence-case 13/600 secondary): it sits INSIDE the "Extracted
+          facts" section, so its old 16/600 stacked two same-tier headers
+          back-to-back — a hierarchy bug (2026-06-12 label-ladder). */}
       <div className="flex flex-wrap items-center gap-2">
         <TriangleAlertIcon className="size-3.5 shrink-0 text-state-warning-solid" aria-hidden />
-        <span className="text-base font-semibold text-text-primary">
+        <span className="text-sm font-semibold text-text-secondary">
           <Trans>Deadline change</Trans>
         </span>
-        <AlertStatusChip
-          status={detail.alert.status}
-          // Terminal states show WHEN they resolved (date); awaiting shows how
-          // long it's been waiting (relative). dismissedAt / appliedAt come
-          // from the detail query (handoff Phase 1.2).
-          timestamp={
-            detail.alert.status === 'dismissed' && detail.alert.dismissedAt
-              ? formatDate(detail.alert.dismissedAt)
-              : detail.alert.status === 'applied' && detail.alert.appliedAt
-                ? formatDate(detail.alert.appliedAt)
-                : formatRelativeTime(detail.alert.publishedAt)
-          }
-        />
+        {/* Status rides here only for TERMINAL states (applied/dismissed —
+            with their resolution date). The pending state is already the
+            meta row's AwaitingDecisionChip a few px above; repeating it
+            here would put two "awaiting" indicators in one hero. */}
+        {detail.alert.status !== 'matched' ? (
+          <AlertStatusChip
+            status={detail.alert.status}
+            timestamp={
+              detail.alert.status === 'dismissed' && detail.alert.dismissedAt
+                ? formatDate(detail.alert.dismissedAt)
+                : detail.alert.status === 'applied' && detail.alert.appliedAt
+                  ? formatDate(detail.alert.appliedAt)
+                  : formatRelativeTime(detail.alert.publishedAt)
+            }
+          />
+        ) : null}
       </div>
 
       {/* Diff row — old → new + signed delta (green when later = relief).
@@ -1309,10 +1315,12 @@ export function AlertDetailDrawer({
                   <span className="shrink-0 text-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
-                  {/* Steady-state status lives HERE as a chip (amber dot),
-                      not as a 52px band above the hero. */}
-                  <AwaitingDecisionChip detail={detail} />
-                  <span className="ml-auto flex shrink-0 items-center gap-2 text-sm text-text-tertiary">
+                  <span className="ml-auto flex shrink-0 items-center gap-3 text-sm text-text-tertiary">
+                    {/* Steady-state status chip (amber dot) — RIGHT cluster
+                        with the temporal meta: identity reads left, status +
+                        provenance read right (2026-06-12 info-organisation
+                        pass). Not a 52px band above the hero. */}
+                    <AwaitingDecisionChip detail={detail} />
                     {detail.alert.sourceUrl ? (
                       <a
                         href={detail.alert.sourceUrl}
@@ -1367,6 +1375,20 @@ export function AlertDetailDrawer({
                 detail.alert.summary.trim() !== detail.alert.title.trim() ? (
                   // Dek is body prose, not a sub-title — 14/400.
                   <p className="text-base text-text-secondary">{detail.alert.summary}</p>
+                ) : null}
+
+                {/* KEY FACT — the do-by-when strip lives in the HERO
+                    (2026-06-12 info-organisation pass): the page's most
+                    important fact was buried inside the "Extracted facts"
+                    section. The hero now answers identity → headline → BY
+                    WHEN in one glance; the details section below carries
+                    only reference depth. Hidden when the header collapses
+                    (the body sections take over). */}
+                {!headerCollapsed ? (
+                  <div className="pt-1 empty:hidden">
+                    <DeadlineChangeCard detail={detail} />
+                    <AlertStructuredFields detail={detail} section="key-fact" />
+                  </div>
                 ) : null}
               </div>
             )
@@ -1505,24 +1527,20 @@ export function AlertDetailDrawer({
           // flex-shrink so the scroll container owns the scroll height.
           <div className="flex shrink-0 flex-col gap-10">
 
-            {/* GROUP 1 — Extracted facts. The group cards use the canonical
-                <DetailSectionCard> chrome — a gray header band (13/600
-                title) + white px-5/py-4 body. Yuqi #6/#7: the card itself
-                is titled "Extracted facts" (was "The change" + a repeated
-                inner "Extracted facts" section header) and the AI-parsed
-                caveat rides the card header's right slot — one title, one
-                caveat, no duplicate label inside the body. */}
+            {/* GROUP 1 — Change details (2026-06-12 info-organisation pass:
+                renamed from the system-speak "Extracted facts"; named by
+                MEANING like every other section). The do-by-when KEY FACT
+                (DeadlineChangeCard / action-deadline callout) was hoisted
+                into the HERO — this section carries only reference depth:
+                the fact grid, caveats, and the practice-impact read. */}
             <DetailSectionCard
               id="alert-section-facts"
               variant="flat"
               className="scroll-mt-16"
-              title={<Trans>Extracted facts</Trans>}
+              title={<Trans>Change details</Trans>}
               headerRight={<Trans>AI parsed — verify before Apply</Trans>}
             >
-              {/* Pencil `Qla5h KeyChange`: the prominent deadline-change hero. */}
-              <DeadlineChangeCard detail={detail} />
-
-              <AlertStructuredFields detail={detail} />
+              <AlertStructuredFields detail={detail} section="details" />
 
               {/* "What this means for your practice" — self-gates. */}
               <PracticeImpactSection detail={detail} />
@@ -1793,7 +1811,9 @@ export function AlertDetailDrawer({
               {detail.sourceExcerpt.trim().length > 0 ? (
                 <section className="flex flex-col gap-2">
                   <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
-                    <span className="font-mono">{detail.alert.source}</span>
+                    {/* Sans, not mono — mono is reserved for dates/numbers
+                        (mono-restraint); a publisher NAME isn't data. */}
+                    <span>{detail.alert.source}</span>
                     {detail.alert.publishedAt ? (
                       <>
                         <span aria-hidden>·</span>
@@ -1857,16 +1877,16 @@ export function AlertDetailDrawer({
                       ? 'text-text-tertiary'
                       : 'text-text-destructive'
                 const confTierLabel =
-                  confTier === 'high' ? t`HIGH` : confTier === 'medium' ? t`MEDIUM` : t`LOW`
+                  confTier === 'high' ? t`High` : confTier === 'medium' ? t`Medium` : t`Low`
                 return (
+                  // Label-ladder: sentence case (caps are the GRID's voice);
+                  // the % keeps the tier tone as the strong element.
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-divider-subtle pt-3">
                     <span className="inline-flex items-baseline gap-2">
                       <span className={cn('text-base font-semibold tabular-nums', confToneClass)}>
                         {confPct}%
                       </span>
-                      <span
-                        className={cn('text-xs font-medium tracking-wide uppercase', confToneClass)}
-                      >
+                      <span className={cn('text-sm font-medium', confToneClass)}>
                         <Trans>{confTierLabel} confidence</Trans>
                       </span>
                     </span>
