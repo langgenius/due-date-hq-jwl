@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ChevronDownIcon, ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
+import { ChevronDownIcon, ExternalLinkIcon, NewspaperIcon, RotateCwIcon, XIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type {
@@ -141,19 +141,41 @@ export function DailyBriefCard({
     }
   }
 
-  // ── Collapsed → the tab. A small accent-tinted chip in the brief's slot
-  //    (same tint family as the band it expands into), freshness dot + name
-  //    + chevron. When there is nothing to say, the deterministic all-quiet
-  //    line rides inline beside it so the fact isn't hidden behind a click. ──
+  // ── Collapsed → the tab: a folded morning paper waiting on the doorstep
+  //    (Yuqi: "be more playful and fun with this Daily brief idea"). A small
+  //    accent-tinted chip in the brief's slot — newspaper glyph + name +
+  //    freshness dot + chevron; hover tilts the paper and nudges the chevron
+  //    (motion on glyphs, never surfaces). When the brief has a real
+  //    headline, its first line rides beside the tab as a teaser — the
+  //    morning edition's "above the fold". When there is nothing to say, the
+  //    deterministic all-quiet line rides there instead, so neither fact
+  //    hides behind a click. ──
   if (collapsed) {
+    const teaser =
+      aiEnabled && brief?.text
+        ? (parseBriefText(brief.text).headline ?? brief.text)
+            .replace(/\[\d+\]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+        : null
     return (
-      <section aria-label={t`Daily brief`} className="flex flex-wrap items-center gap-3">
+      <section
+        aria-label={t`Daily brief`}
+        className="flex flex-wrap items-center gap-3 animate-in fade-in duration-150 motion-reduce:animate-none"
+      >
         <button
           type="button"
           onClick={() => setCollapsed(false)}
           aria-expanded={false}
-          className="inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-transparent bg-state-accent-hover px-3 text-xs font-medium text-text-accent outline-none transition-colors hover:border-state-accent-border focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="group/tab inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-transparent bg-state-accent-hover px-3 text-xs font-medium text-text-accent outline-none transition-colors hover:border-state-accent-border focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
+          {/* The masthead glyph — tilts a few degrees on hover, like picking
+              the paper up off the mat. */}
+          <NewspaperIcon
+            className="size-3.5 transition-transform group-hover/tab:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover/tab:rotate-0"
+            aria-hidden
+          />
+          <Trans>Daily Brief</Trans>
           {isPending ? (
             <RotateCwIcon className="size-3 animate-spin" aria-hidden />
           ) : (
@@ -169,10 +191,24 @@ export function DailyBriefCard({
               aria-hidden
             />
           )}
-          <Trans>Daily Brief</Trans>
-          <ChevronDownIcon className="size-3.5" aria-hidden />
+          {/* Chevron dips on hover — "pull down to unfold". */}
+          <ChevronDownIcon
+            className="size-3.5 transition-transform group-hover/tab:translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover/tab:translate-y-0"
+            aria-hidden
+          />
         </button>
-        {nothingToSay ? (
+        {teaser ? (
+          // Above-the-fold teaser — the real headline, one truncated line,
+          // muted. Clicking it opens the edition too (it IS the brief).
+          <button
+            type="button"
+            onClick={() => setCollapsed(false)}
+            className="min-w-0 flex-1 cursor-pointer truncate rounded-sm text-left text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            title={teaser}
+          >
+            {teaser}
+          </button>
+        ) : nothingToSay ? (
           <p className="text-sm text-text-tertiary">
             {/* The recap is deterministic truth — it doesn't need the AI brief.
                 Pairing it with "Brief unavailable" read as a contradiction
@@ -197,7 +233,9 @@ export function DailyBriefCard({
       // Same editorial bones as the /deadlines at-a-glance banner (title →
       // content sentence → metric lines); see
       // docs/Design/brief-banner-language.md.
-      className="group relative flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9"
+      // The unfold: expanding from the tab plays the house animate-in recipe
+      // (fade + 4px slide from the tab's position) — the paper opens.
+      className="group relative flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9 animate-in fade-in slide-in-from-top-1 duration-200 motion-reduce:animate-none"
     >
       {/* Collapse — ghost ✕ top-right folds the band back into the tab (it
           never deletes; the tab keeps the brief one click away). */}

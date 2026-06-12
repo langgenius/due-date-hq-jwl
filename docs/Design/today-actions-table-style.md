@@ -97,6 +97,30 @@ The table is **neutral by default**. Chromatic accent is rationed:
   late, or it's late by a different number of days. A row that read
   "Overdue · 7d late · Pay 7d late" was three signals for one fact.
 
+## Column geography (revised 2026-06-12 — the "dead right half" critique)
+
+The original pack-left layout (all five columns hugging CLIENT, a trailing
+spacer eating the leftover width) fixed "why are status/due so far right?"
+but created its inverse at wide viewports: ~40% of blank frame after DUE,
+the page's key signal hiding mid-table, and the hover Review CTA
+materializing in the void. Current contract:
+
+- **Identity cluster left** (FORM · CLIENT · STATUS), **ownership cluster
+  right** (OWNER · DUE), spacer BETWEEN the clusters.
+- **DUE is right-aligned on the frame's right rail** — the red countdowns
+  stack into one scannable column at the edge the eye expects (email-list
+  grammar: content left, time right). The hover Review reveal anchors over
+  it naturally.
+- The footer carries ONE affordance: when the shortlist truncates, the
+  count rides inside the link ("See all 12 deadlines"), not a separate
+  "{n} more not shown" caption.
+- Zero-count inactive bucket chips dim to 60% — full-strength "This week 0"
+  invited dead-end clicks.
+- Lede rule: when every overdue row shares the docs blocker, the lede says
+  ONLY the insight ("Every overdue deadline is waiting on source
+  documents.") — the count already lives in the Overdue chip (one home per
+  fact).
+
 ## Responsive (2026-06-12)
 
 - The CLIENT cell width steps with the viewport: `w-[220px] md:w-[300px]

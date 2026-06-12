@@ -164,11 +164,11 @@ export function MergedBriefCard({
                 <TableHead>
                   <Trans>Status</Trans>
                 </TableHead>
+                <TableHead aria-hidden className="w-full p-0" />
                 <TableHead aria-hidden />
-                <TableHead>
+                <TableHead className="text-right">
                   <Trans>Due</Trans>
                 </TableHead>
-                <TableHead aria-hidden className="w-full p-0" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -186,16 +186,16 @@ export function MergedBriefCard({
                   <TableCell>
                     <Skeleton className="h-5 w-24 rounded" />
                   </TableCell>
+                  <TableCell aria-hidden className="p-0" />
                   <TableCell>
                     <Skeleton className="size-5 rounded-full" />
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-col items-end gap-1.5">
                       <Skeleton className="h-4 w-16" />
                       <Skeleton className="h-3 w-12" />
                     </div>
                   </TableCell>
-                  <TableCell aria-hidden className="p-0" />
                 </TableRow>
               ))}
             </TableBody>
@@ -270,6 +270,11 @@ export function MergedBriefCard({
           <p className="text-sm text-text-secondary">
             {totalActive === 0 ? (
               <Trans>No open deadlines right now.</Trans>
+            ) : counts.overdue > 0 && overdueNeedingDocs === counts.overdue ? (
+              // The count already lives in the "Overdue N" chip 40px away —
+              // when every overdue row shares the blocker, the lede carries
+              // ONLY the insight the chips can't (one home per fact).
+              <Trans>Every overdue deadline is waiting on source documents.</Trans>
             ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
               <Trans>
                 {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
@@ -295,8 +300,14 @@ export function MergedBriefCard({
                 onClick={() => setOverride(tab.key)}
                 aria-pressed={active}
                 // `active:scale-[0.98]` = a 1-frame press acknowledgement; the
-                // transition covers colors + transform together.
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-[color,background-color,transform] hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt active:scale-[0.98] data-[active=true]:bg-background-default data-[active=true]:text-text-primary motion-reduce:transition-none"
+                // transition covers colors + transform together. An empty
+                // inactive bucket dims to 60% — a "This week 0" chip at full
+                // strength invites a dead-end click (still clickable, the
+                // empty state explains where the work sits).
+                className={cn(
+                  'inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-[color,background-color,transform,opacity] hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt active:scale-[0.98] data-[active=true]:bg-background-default data-[active=true]:text-text-primary motion-reduce:transition-none',
+                  tab.count === 0 && !active && 'opacity-60',
+                )}
               >
                 <span
                   className={cn('size-1.5 shrink-0 rounded-full bg-current', tab.dot)}
@@ -370,18 +381,24 @@ export function MergedBriefCard({
                 <TableHead>
                   <Trans>Status</Trans>
                 </TableHead>
+                {/* Spacer — absorbs the leftover width BETWEEN the identity
+                    cluster (form/client/status) and the ownership cluster
+                    (owner/due). Critique 2026-06-12 ("dead right half"): the
+                    old layout packed every column left and dumped ~40% of
+                    blank frame after DUE — the page's key signal hid
+                    mid-table and the hover Review CTA materialized in the
+                    void. DUE now pins to the frame's right rail,
+                    right-aligned, so the red countdowns stack into one
+                    scannable column at the edge the eye expects. */}
+                <TableHead aria-hidden className="w-full p-0" />
                 <TableHead>
                   <span className="sr-only">
                     <Trans>Owner</Trans>
                   </span>
                 </TableHead>
-                <TableHead>
+                <TableHead className="text-right">
                   <Trans>Due</Trans>
                 </TableHead>
-                {/* Spacer — absorbs the table's leftover width so the data
-                    columns stay packed left after CLIENT instead of spreading
-                    to the right edge. */}
-                <TableHead aria-hidden className="w-full p-0" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -399,19 +416,23 @@ export function MergedBriefCard({
         </div>
       )}
 
-      {/* Footer — one link to the full list. */}
+      {/* Footer — ONE link. When the shortlist truncates, the count rides
+          inside the link ("See all 12 deadlines") instead of a separate
+          "{n} more not shown" caption — information posing as an affordance
+          becomes the affordance (critique 2026-06-12). */}
       <div className="flex items-center justify-end gap-2">
-        {moreCount > 0 ? (
-          <span className="text-caption tabular-nums text-text-tertiary">
-            <Trans>{moreCount} more not shown</Trans>
-          </span>
-        ) : null}
         {/* Canonical `<TextLink>` accent — same primitive + variant as the
             Alerts section's "View all", so the page's two go-to-the-full-list
             affordances share one voice (the hand-rolled Link was a
             vocabulary violation). */}
         <TextLink variant="accent" render={<Link to="/deadlines" />} className="group shrink-0">
-          <Trans>See all deadlines</Trans>
+          {moreCount > 0 ? (
+            <span className="tabular-nums">
+              <Trans>See all {activeTotal} deadlines</Trans>
+            </span>
+          ) : (
+            <Trans>See all deadlines</Trans>
+          )}
           {/* Arrow nudge on hover — motion on the glyph, not the surface. */}
           <ArrowRightIcon
             className="size-3 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
@@ -547,7 +568,11 @@ function BriefTableRow({
           ) : null}
         </div>
       </TableCell>
-      {/* OWNER — xs avatar with the is-mine ring. */}
+      {/* Spacer — pairs with the header's spacer: identity cluster left,
+          ownership cluster (owner + due) pinned to the right rail. */}
+      <TableCell aria-hidden className="p-0" />
+      {/* OWNER — xs avatar with the is-mine ring, riding just left of the
+          date it answers for. */}
       <TableCell>
         <AssigneeAvatar
           size="xs"
@@ -563,15 +588,16 @@ function BriefTableRow({
         />
       </TableCell>
       {/* DUE — relative FILING countdown (paymentDueDate nulled so payment-late
-          doesn't hijack it) stacked over the absolute date. Late/due-today
-          countdowns step UP to 16px — Yuqi 2026-06-12: the REAL important
-          thing gets size. Weight stays the primitive's 500: red + 600 was
-          "tooooo strong" (Yuqi same day — never double-highlight; color and
-          size already carry it, bold would be a third channel). Future
-          countdowns ("in 10d") stay at the quiet 13/500 default so the
-          This week/This month buckets don't shout. */}
-      <TableCell>
-        <div className="flex flex-col gap-0.5">
+          doesn't hijack it) stacked over the absolute date, right-aligned on
+          the frame's right rail so the red countdowns stack into one scan
+          column. Late/due-today countdowns step UP to 16px — Yuqi 2026-06-12:
+          the REAL important thing gets size. Weight stays the primitive's
+          500: red + 600 was "tooooo strong" (Yuqi same day — never
+          double-highlight; color and size already carry it, bold would be a
+          third channel). Future countdowns ("in 10d") stay at the quiet
+          13/500 default so the This week/This month buckets don't shout. */}
+      <TableCell className="text-right">
+        <div className="flex flex-col items-end gap-0.5">
           <DueDateLabel
             days={d}
             status={row.status}
@@ -604,8 +630,6 @@ function BriefTableRow({
           </Button>
         </div>
       </TableCell>
-      {/* Spacer — pairs with the header's spacer column. */}
-      <TableCell aria-hidden className="p-0" />
     </TableRow>
   )
 }

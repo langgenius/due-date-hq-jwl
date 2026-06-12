@@ -70,6 +70,21 @@ JSON `{key, collapsed}`) **keyed to the brief's generation stamp** — a fresh
 day's brief auto-expands on its own; the user's collapse only pins THIS
 edition. (The old `brief-dismissed` remove-forever key is retired.)
 
+**The morning-paper personality** (2026-06-12, Yuqi: "be more playful and
+fun with this Daily brief idea") — the metaphor is a folded paper on the
+doorstep, played entirely through glyph motion (never surfaces/shadows):
+
+- `NewspaperIcon` masthead glyph leads the tab; on hover it tilts −6°
+  ("picking the paper up"), the chevron dips 2px ("pull to unfold").
+- **Above-the-fold teaser:** when the brief has a real AI headline and is
+  collapsed, the headline rides beside the tab as one truncated muted line
+  (citation `[n]` markers stripped) — itself a click target that opens the
+  edition. Real content only; the all-quiet line takes the slot when there
+  is nothing to say.
+- **The unfold:** expanding plays the house `animate-in fade-in
+  slide-in-from-top-1 duration-200`; the collapsed tab fades in at 150ms.
+  All motion `motion-reduce`-guarded.
+
 **Failure rule:** when the AI sentence failed AND the recap is all-quiet AND
 no catch-up rows exist, the card defaults COLLAPSED, with the deterministic
 all-quiet line riding inline beside the tab ("All quiet — no deadline
