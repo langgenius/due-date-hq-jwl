@@ -223,11 +223,23 @@ export function buildClientWorkPlanSummary(
   }
 }
 
+
+// A due-date-overlay alert with NO confirmed deadline match returns the
+// firm's open deadlines as a manual-selection MENU (matchStatus 'eligible',
+// applyReadiness.missing includes 'affected_clients'). Those rows are
+// candidates a human may pick — not matches — so client surfaces must skip
+// them: rendering the menu on a client page showed a trusts-only 1041 alert
+// as two "Review" entries on a C-corp (2026-06-12 critique).
+function detailHasConfirmedMatches(detail: PulseDetail): boolean {
+  return !detail.applyReadiness.missing.includes('affected_clients')
+}
+
 export function buildClientAlertMatches(
   details: readonly PulseDetail[],
   clientId: string,
 ): ClientAlertMatch[] {
   return details
+    .filter(detailHasConfirmedMatches)
     .flatMap((detail) =>
       detail.affectedClients
         .filter((row) => row.clientId === clientId)
@@ -258,6 +270,7 @@ export function buildAlertMatchesByClient(
 ): Map<string, ClientAlertMatch[]> {
   const byClient = new Map<string, ClientAlertMatch[]>()
   for (const detail of details) {
+    if (!detailHasConfirmedMatches(detail)) continue
     for (const row of detail.affectedClients) {
       if (!ALERT_MATCH_ACTIVE_STATUSES.has(row.matchStatus)) continue
       const match: ClientAlertMatch = {
