@@ -374,7 +374,20 @@ export function BillingCheckoutRoute() {
             <Trans>Checkout is not configured</Trans>
           </AlertTitle>
           <AlertDescription>
-            <Trans>Checkout is temporarily unavailable for this plan. Contact support.</Trans>
+            {/* "Contact support" must BE the contact — this page's one job is
+                upgrading, and a dead-end instruction with no address was the
+                only escape hatch (mailto matches the two-factor recovery
+                pattern). */}
+            <Trans>
+              Checkout is temporarily unavailable for this plan.{' '}
+              <a
+                href="mailto:support@duedatehq.com?subject=Plan%20upgrade"
+                className="font-medium text-text-accent underline-offset-2 hover:underline"
+              >
+                Email support
+              </a>{' '}
+              and we'll set the upgrade up for you.
+            </Trans>
           </AlertDescription>
         </Alert>
       ) : null}
