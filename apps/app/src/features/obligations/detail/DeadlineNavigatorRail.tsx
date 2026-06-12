@@ -372,7 +372,10 @@ function DeadlineNavigatorRow({
         {showRelative ? (
           <span
             className={cn(
-              'text-xs font-semibold tabular-nums',
+              // 500, not 600 — the rail had eight bold-red "31d late" cells
+              // in one column; when everything screams, nothing does. Color
+              // alone carries the tone (never double-highlight).
+              'text-xs font-medium tabular-nums',
               relative.tone === 'late'
                 ? 'text-text-destructive'
                 : relative.tone === 'soon'
