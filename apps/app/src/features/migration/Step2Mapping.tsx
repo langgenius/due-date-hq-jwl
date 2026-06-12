@@ -589,6 +589,17 @@ function ConfidenceText({ row, tier }: { row: MappingRow; tier: Tier }) {
       </Badge>
     )
   }
+  // Name-matcher fallback rows (model === null) carry an ASSIGNED 0.7, not
+  // a measured score — printing "Low match · 70%" on an exact header match
+  // reads as alarm about a number nobody computed. Say what happened
+  // instead; the row still floats into the review band.
+  if (row.model === null) {
+    return (
+      <Badge variant="warning" className="shrink-0">
+        <Trans>Name match — review</Trans>
+      </Badge>
+    )
+  }
   const pct = Math.round(row.confidence * 100)
   if (tier === 'low') {
     return (
