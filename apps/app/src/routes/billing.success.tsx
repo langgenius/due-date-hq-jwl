@@ -185,11 +185,11 @@ export function BillingSuccessRoute() {
               billing" demotes to outline. The verification path stays one
               click away for anyone who lands here intentionally to inspect
               invoices. */}
-          <Button render={<Link to="/" />}>
+          <Button nativeButton={false} render={<Link to="/" />}>
             <Trans>Go to Today</Trans>
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
-          <Button variant="outline" render={<Link to="/billing" />}>
+          <Button variant="outline" nativeButton={false} render={<Link to="/billing" />}>
             <Trans>Open billing</Trans>
           </Button>
         </CardFooter>

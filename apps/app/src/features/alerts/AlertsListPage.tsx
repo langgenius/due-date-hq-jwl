@@ -634,6 +634,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
               <Button
                 variant="outline"
                 size="sm"
+                nativeButton={false}
                 render={<Link to="/rules/sources" />}
                 aria-label={t`Manage alert sources`}
               >
@@ -644,6 +645,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 <Button
                   variant="outline"
                   size="sm"
+                  nativeButton={false}
                   render={<Link to="/alerts/history" />}
                   aria-label={t`View history`}
                 >
@@ -1823,7 +1825,7 @@ function AlertsEmptyState({
         }
         cta={
           // Pencil rR9X1: dark filled "Go to alerts" primary (not outline).
-          <Button render={<Link to="/alerts" />}>
+          <Button nativeButton={false} render={<Link to="/alerts" />}>
             <MegaphoneIcon data-icon="inline-start" />
             <Trans>Go to alerts</Trans>
           </Button>

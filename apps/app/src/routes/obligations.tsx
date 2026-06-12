@@ -3903,9 +3903,7 @@ export function ObligationQueueRoute() {
                         aria-hidden
                       />
                       <span className="whitespace-nowrap">{statusLabels[status]}</span>
-                      <span className="tabular-nums text-text-tertiary">
-                        {scopeCount(status)}
-                      </span>
+                      <span className="tabular-nums text-text-tertiary">{scopeCount(status)}</span>
                     </button>
                   ))}
                 </div>
@@ -9281,7 +9279,7 @@ function MaterialsRequestPreviewDialog({
           ) : null}
         </div>
         <DialogFooter className="border-t border-divider-subtle px-6 py-4">
-          <Button variant="outline" render={<Link to="/reminders" />}>
+          <Button variant="outline" nativeButton={false} render={<Link to="/reminders" />}>
             <ExternalLinkIcon data-icon="inline-start" />
             <Trans>Edit template in Email Template settings</Trans>
           </Button>

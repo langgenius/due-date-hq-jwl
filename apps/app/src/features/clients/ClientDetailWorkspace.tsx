@@ -1493,6 +1493,7 @@ function ClientActiveAlertsCard({ match }: { match: ClientAlertMatch }) {
           variant="ghost"
           size="sm"
           className="-mr-1.5 shrink-0"
+          nativeButton={false}
           render={<Link to="/alerts" />}
         >
           <Trans>Review</Trans>

@@ -557,7 +557,12 @@ function CalendarSubscriptionCard({
                     <Trans>Copy URL</Trans>
                   </Button>
                   {appleCalendarUrl ? (
-                    <Button variant="outline" size="sm" render={<a href={appleCalendarUrl} />}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      nativeButton={false}
+                      render={<a href={appleCalendarUrl} />}
+                    >
                       <ExternalLinkIcon data-icon="inline-start" />
                       <Trans>Apple Calendar</Trans>
                     </Button>

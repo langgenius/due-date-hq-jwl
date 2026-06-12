@@ -2952,7 +2952,7 @@ function _RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
         }
         cta={
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button size="sm" render={<Link to="/rules/sources" />}>
+            <Button size="sm" nativeButton={false} render={<Link to="/rules/sources" />}>
               <PlusIcon data-icon="inline-start" />
               <Trans>Import from sources</Trans>
             </Button>

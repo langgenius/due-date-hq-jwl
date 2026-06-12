@@ -147,7 +147,12 @@ export function ClientDetailRoute() {
               >
                 <Trans>Try again</Trans>
               </Button>
-              <Button variant="ghost" size="sm" render={<Link to="/clients" />}>
+              <Button
+                variant="ghost"
+                size="sm"
+                nativeButton={false}
+                render={<Link to="/clients" />}
+              >
                 <Trans>Back to clients</Trans>
               </Button>
             </div>

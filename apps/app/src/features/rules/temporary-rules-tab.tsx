@@ -172,6 +172,7 @@ function TemporaryRuleRow({
               variant="ghost"
               size="icon-sm"
               aria-label={t`Open official source`}
+              nativeButton={false}
               render={<a href={rule.sourceUrl} target="_blank" rel="noopener noreferrer" />}
             >
               <ExternalLinkIcon className="size-4" aria-hidden />

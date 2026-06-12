@@ -226,6 +226,7 @@ function EvidenceCard({ item, focused }: { item: EvidencePublic; focused: boolea
             <Button
               variant="ghost"
               size="sm"
+              nativeButton={false}
               render={<a href={item.sourceUrl} target="_blank" rel="noreferrer" />}
             >
               <ExternalLinkIcon data-icon="inline-start" />

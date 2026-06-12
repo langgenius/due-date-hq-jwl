@@ -279,6 +279,7 @@ function FixNeedsFactsRow({
             type="button"
             variant="outline"
             size="sm"
+            nativeButton={false}
             render={<Link to={`${clientDetailPath(client)}?tab=info`} />}
             onClick={() => closeSheet()}
           >

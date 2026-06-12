@@ -575,7 +575,12 @@ function DashboardActionsList({
               </Trans>
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <Button variant="outline" size="sm" render={<Link to="/practice" />}>
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                render={<Link to="/practice" />}
+              >
                 <SlidersHorizontalIcon data-icon="inline-start" />
                 <Trans>Adjust priority rules</Trans>
               </Button>
