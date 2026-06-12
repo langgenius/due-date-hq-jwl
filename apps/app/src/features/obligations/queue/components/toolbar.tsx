@@ -25,7 +25,6 @@ import {
   ChevronUp,
   SearchIcon,
   UserRoundIcon,
-  XIcon,
 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { type ReactNode } from 'react'
@@ -365,45 +364,6 @@ export function ObligationQueueScopeTab({
           transition={{ type: 'spring', stiffness: 500, damping: 38 }}
         />
       ) : null}
-    </button>
-  )
-}
-
-// Quick-filter chip: ghost when off, soft-tinted when on. Used for the
-// 4 CPA action filters under the scope tabs (Past due, Due this week,
-// Needs evidence, Penalty input needed). Pill-shaped per T3 —
-// indicator, not commit.
-//
-// When active, an inline × renders inside the chip as a visible
-// dismissal affordance. The whole chip is still the click target
-// (clicking anywhere on an active chip toggles it off) — the × is a
-// visual cue so users don't have to guess that "click again to remove."
-
-export function ObligationQueueActionChip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: ReactNode
-}) {
-  // Click target is ~30px (px-3 py-1 text-sm) so these filter chips —
-  // primary triage affordances — have a hit zone that matches a real
-  // button and a label that reads as body text instead of meta caption.
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors ${
-        active
-          ? 'border-accent-default bg-accent-tint font-medium text-text-accent'
-          : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-deep hover:text-text-primary'
-      }`}
-    >
-      <span>{children}</span>
-      {active ? <XIcon aria-hidden className="size-3.5" /> : null}
     </button>
   )
 }

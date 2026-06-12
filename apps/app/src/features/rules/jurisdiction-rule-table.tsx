@@ -188,7 +188,7 @@ export function JurisdictionFilterBar({
       <Segmented<RuleScope>
         value={scope}
         onValueChange={onScopeChange}
-        className="h-9 [&>button]:h-8"
+        size="lg"
         ariaLabel={t`Filter by status`}
         options={[
           { value: 'review', label: <Trans>Review</Trans> },

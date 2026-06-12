@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@duedatehq/ui/components/ui/card'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -660,50 +661,30 @@ function BillingIntervalToggle({
 }) {
   const { t } = useLingui()
 
+  // The shared <Segmented> primitive (lg = h-8 / 14px) replaces a hand-rolled
+  // h-11 track whose active state was a solid accent fill + shadow — the only
+  // toggle in the product that didn't use the flat white-pill language.
   return (
-    <div
-      role="group"
-      aria-label={t`Billing interval`}
-      className="inline-flex h-11 w-fit max-w-full items-center rounded-lg border border-divider-regular bg-background-default p-1"
-    >
-      <button
-        type="button"
-        aria-pressed={value === 'monthly'}
-        onClick={() => onChange('monthly')}
-        className={cn(
-          'inline-flex h-9 min-w-24 cursor-pointer items-center justify-center rounded-lg px-3 text-sm font-medium text-text-secondary transition-colors',
-          value === 'monthly'
-            ? 'bg-accent-default text-primary-foreground shadow-sm'
-            : 'hover:bg-state-base-hover hover:text-text-primary',
-        )}
-      >
-        <Trans>Monthly</Trans>
-      </button>
-      <button
-        type="button"
-        aria-pressed={value === 'yearly'}
-        onClick={() => onChange('yearly')}
-        className={cn(
-          'inline-flex h-9 min-w-40 cursor-pointer items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-text-secondary transition-colors',
-          value === 'yearly'
-            ? 'bg-accent-default text-primary-foreground shadow-sm'
-            : 'hover:bg-state-base-hover hover:text-text-primary',
-        )}
-      >
-        <span>
-          <Trans>Yearly</Trans>
-        </span>
-        <Badge
-          variant="success"
-          className={cn(
-            'text-caption-xs',
-            value === 'yearly' && 'bg-white/20 text-primary-foreground',
-          )}
-        >
-          <Trans>Save about 20%</Trans>
-        </Badge>
-      </button>
-    </div>
+    <Segmented<BillingInterval>
+      size="lg"
+      ariaLabel={t`Billing interval`}
+      value={value}
+      onValueChange={onChange}
+      options={[
+        { value: 'monthly', label: <Trans>Monthly</Trans> },
+        {
+          value: 'yearly',
+          label: (
+            <span className="inline-flex items-center gap-2">
+              <Trans>Yearly</Trans>
+              <Badge variant="success" className="text-caption-xs">
+                <Trans>Save about 20%</Trans>
+              </Badge>
+            </span>
+          ),
+        },
+      ]}
+    />
   )
 }
 

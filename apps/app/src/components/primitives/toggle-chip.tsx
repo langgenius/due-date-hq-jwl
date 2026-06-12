@@ -29,7 +29,7 @@ type ToggleChipProps = {
   icon?: ComponentType<SVGProps<SVGSVGElement>>
   /** `sm` = h-7 / text-xs (default); `md` = h-8 / text-sm. */
   size?: 'sm' | 'md'
-  disabled?: boolean
+  disabled?: boolean | undefined
   className?: string
   children: ReactNode
 } & Pick<React.ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label' | 'title'>

@@ -208,6 +208,7 @@ import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { Kbd } from '@/components/patterns/kbd'
 import { CountPill } from '@/components/primitives/count-pill'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
+import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { ClientPeekHoverCard } from '@/features/clients/ClientPeekHoverCard'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
@@ -13176,9 +13177,9 @@ function ObligationFacetSearchList({
   )
 }
 
-// One selectable pill inside the Filters popover — mirrors
-// AlertsListPage's `FilterPillSection` pill chrome (h-7, accent wash when
-// active). Generic across single-select (radio) + toggle usages.
+// One selectable pill inside the Filters popover — the canonical
+// <ToggleChip> (same chrome as AlertsListPage's `FilterPillSection`).
+// Generic across single-select (radio) + toggle usages.
 function ObligationFilterPill({
   active,
   onClick,
@@ -13191,20 +13192,9 @@ function ObligationFilterPill({
   children: ReactNode
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-pressed={active}
-      className={cn(
-        'inline-flex h-7 max-w-full cursor-pointer items-center rounded-lg border px-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
-        active
-          ? 'border-state-accent-border bg-state-accent-hover text-text-accent'
-          : 'border-divider-subtle text-text-secondary hover:bg-state-base-hover',
-      )}
-    >
+    <ToggleChip selected={active} onClick={onClick} disabled={disabled} className="max-w-full">
       <span className="truncate">{children}</span>
-    </button>
+    </ToggleChip>
   )
 }
 

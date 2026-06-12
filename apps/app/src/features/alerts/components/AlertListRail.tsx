@@ -119,7 +119,7 @@ export function AlertListRail({
       {workQueue && onWorkQueueChange ? (
         <ListRailSection>
           <Segmented
-            className="h-8 w-full [&>button]:h-7 [&>button]:flex-1"
+            className="w-full [&>button]:flex-1"
             ariaLabel={t`Alert work queue`}
             value={workQueue}
             onValueChange={onWorkQueueChange}
@@ -240,9 +240,7 @@ function RailItem({
         // DON'T border the sidebar; here the fill wash carries selection +
         // hover on its own. Inactive rows stay full-strength (no opacity
         // dimming — that read as "disabled").
-        active
-          ? 'bg-state-accent-hover'
-          : 'hover:bg-state-base-hover',
+        active ? 'bg-state-accent-hover' : 'hover:bg-state-base-hover',
       )}
     >
       {/* Time column (60px). */}

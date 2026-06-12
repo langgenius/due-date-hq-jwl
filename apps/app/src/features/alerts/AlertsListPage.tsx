@@ -52,6 +52,7 @@ import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SearchInput } from '@/components/primitives/search-input'
+import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { StatusBanner } from '@/components/patterns/status-banner'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 
@@ -758,10 +759,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     instead). */}
                 {!historyMode ? (
                   <Segmented
-                    // `text-base` (14px) across the toolbar controls — the
+                    // `lg` = 14px across the toolbar controls — the
                     // primitive's 11–12px default read undersized next to
                     // the 14px checkbox label sharing the row (Yuqi #4).
-                    className="h-9 shrink-0 [&>button]:h-8 [&>button]:text-base"
+                    size="lg"
+                    className="shrink-0"
                     ariaLabel={t`Alert work queue`}
                     value={workQueue}
                     onValueChange={setWorkQueue}
@@ -1019,7 +1021,8 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         this one reads as a view affordance, not a second
                         queue (Yuqi batch 3 #1). */}
                     <Segmented
-                      className="h-9 shrink-0 [&>button]:h-8"
+                      size="lg"
+                      className="shrink-0"
                       ariaLabel={t`View mode`}
                       value={viewMode}
                       onValueChange={setViewMode}
@@ -1622,25 +1625,11 @@ function FilterPillSection<T extends string>({
         {label}
       </span>
       <div className="flex flex-wrap gap-1">
-        {options.map((option) => {
-          const active = option === value
-          return (
-            <button
-              key={option}
-              type="button"
-              onClick={() => onSelect(option)}
-              aria-pressed={active}
-              className={cn(
-                'inline-flex h-7 cursor-pointer items-center rounded-lg border px-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                active
-                  ? 'border-state-accent-border bg-state-accent-hover text-text-accent'
-                  : 'border-divider-subtle text-text-secondary hover:bg-state-base-hover',
-              )}
-            >
-              {getLabel(option)}
-            </button>
-          )
-        })}
+        {options.map((option) => (
+          <ToggleChip key={option} selected={option === value} onClick={() => onSelect(option)}>
+            {getLabel(option)}
+          </ToggleChip>
+        ))}
       </div>
     </div>
   )

@@ -39,8 +39,13 @@ export function Segmented<T extends string>({
   value: T
   onValueChange: (value: T) => void
   options: ReadonlyArray<SegmentedOption<T>>
-  /** `md` = h-7 items (toolbar default); `sm` = h-6 (dense rows). */
-  size?: 'sm' | 'md'
+  /**
+   * `md` = h-7 items (toolbar default); `sm` = h-6 (dense rows);
+   * `lg` = h-8 items with `text-base` — for toolbars whose neighboring
+   * controls set a 14px text scale (the 11–12px default reads undersized
+   * next to them). Use the size prop, never `[&>button]` overrides.
+   */
+  size?: 'sm' | 'md' | 'lg'
   /** Disable the whole control (e.g. a not-yet-wired setting). */
   disabled?: boolean
   className?: string
@@ -72,7 +77,11 @@ export function Segmented<T extends string>({
               'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 rounded-lg font-medium whitespace-nowrap transition-colors outline-none',
               'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'disabled:cursor-not-allowed',
-              size === 'sm' ? 'h-6 px-2 text-xs' : 'h-7 px-2.5 text-xs',
+              size === 'sm'
+                ? 'h-6 px-2 text-xs'
+                : size === 'lg'
+                  ? 'h-8 px-3 text-base'
+                  : 'h-7 px-2.5 text-xs',
               active
                 ? 'border border-divider-subtle bg-components-segmented-item-bg-active text-components-segmented-text-active'
                 : 'border border-transparent text-components-segmented-text hover:text-components-segmented-text-active',

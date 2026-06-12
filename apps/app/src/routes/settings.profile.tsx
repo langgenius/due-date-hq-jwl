@@ -39,6 +39,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { LOCALE_LABELS, SUPPORTED_LOCALES, type Locale } from '@duedatehq/i18n'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -479,9 +480,9 @@ export function SettingsProfileRoute() {
             <span className="text-xs font-medium text-text-secondary">
               <Trans>Time format</Trans>
             </span>
-            <SegmentedControl
+            <Segmented<TimeFormatPreference>
               ariaLabel={t`Time format`}
-              options={TIME_FORMAT_OPTIONS}
+              options={TIME_FORMAT_OPTIONS.map((format) => ({ value: format, label: format }))}
               value={displayPreferences.timeFormat}
               onValueChange={switchTimeFormatPreference}
             />
@@ -819,43 +820,6 @@ function DateFormatSelect({
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
-
-function SegmentedControl<T extends string>({
-  ariaLabel,
-  options,
-  value,
-  onValueChange,
-}: {
-  ariaLabel: string
-  options: readonly T[]
-  value: T
-  onValueChange: (next: T) => void
-}) {
-  return (
-    <div
-      role="group"
-      aria-label={ariaLabel}
-      className="inline-flex shrink-0 gap-0.5 rounded-lg border border-divider-regular bg-background-section p-0.5"
-    >
-      {options.map((opt) => (
-        <button
-          type="button"
-          key={opt}
-          aria-pressed={opt === value}
-          onClick={() => onValueChange(opt)}
-          className={cn(
-            'min-w-12 rounded-lg px-3 py-1.5 text-xs transition-colors',
-            opt === value
-              ? 'bg-background-default font-semibold text-text-primary shadow-sm'
-              : 'font-medium text-text-secondary hover:bg-state-base-hover hover:text-text-primary',
-          )}
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
   )
 }
 

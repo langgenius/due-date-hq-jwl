@@ -324,7 +324,7 @@ const TOC: Array<{ id: string; label: string }> = [
   { id: 'badge', label: 'Badge' },
   { id: 'input', label: 'Inputs' },
   { id: 'field', label: 'Field · InputGroup' },
-  { id: 'checkbox', label: 'Checkbox / Switch' },
+  { id: 'checkbox', label: 'Checkbox / Switch / Segmented' },
   { id: 'select', label: 'Select' },
   { id: 'combobox', label: 'Combobox' },
   { id: 'collapsible', label: 'Collapsible' },
@@ -625,6 +625,7 @@ export function PreviewRoute() {
   const [activeState, setActiveState] = useState<string | null>('CA')
   const [rulesFilter, setRulesFilter] = useState<'all' | 'verified' | 'draft'>('all')
   const [chipOn, setChipOn] = useState(true)
+  const [segmentedValue, setSegmentedValue] = useState<'list' | 'map'>('list')
   const [timezone, setTimezone] = useState<USFirmTimezone>('America/Los_Angeles')
   const [affectedSelection, setAffectedSelection] = useState<Set<string>>(
     () => new Set(['obl_mock_acme_q3', 'obl_mock_brightline_q3']),
@@ -1028,11 +1029,11 @@ export function PreviewRoute() {
             </Row>
           </Section>
 
-          {/* Checkbox / Switch */}
+          {/* Checkbox / Switch / Segmented */}
           <Section
             id="checkbox"
-            title="Checkbox · Switch · Separator"
-            subtitle="Selection primitives. Use Switch for instant-apply settings, Checkbox for multi-select and form fields."
+            title="Checkbox · Switch · Segmented · Separator"
+            subtitle="Selection primitives. Use Switch for instant-apply settings, Checkbox for multi-select and form fields, Segmented for pick-one-of-2–3 view/scope toggles."
           >
             <Row label="Checkbox">
               <div className="flex items-center gap-2">
@@ -1050,6 +1051,27 @@ export function PreviewRoute() {
               <div className="flex items-center gap-2">
                 <Switch id="sw" checked={switched} onCheckedChange={setSwitched} />
                 <Label htmlFor="sw">Auto-file when ready</Label>
+              </div>
+            </Row>
+            <Row label="Segmented" mono="<Segmented />">
+              {/* Pick-one of 2–3, flat white-pill active state. Three sizes —
+                  use the size prop, never `[&>button]` className overrides:
+                  sm (h-6, dense rows) · md (h-7, toolbar default) ·
+                  lg (h-8 + 14px text, toolbars whose neighbors set a 14px scale). */}
+              <div className="flex flex-wrap items-center gap-4">
+                {(['sm', 'md', 'lg'] as const).map((size) => (
+                  <Segmented<'list' | 'map'>
+                    key={size}
+                    size={size}
+                    ariaLabel={`Segmented ${size}`}
+                    value={segmentedValue}
+                    onValueChange={setSegmentedValue}
+                    options={[
+                      { value: 'list', label: 'List' },
+                      { value: 'map', label: 'Map' },
+                    ]}
+                  />
+                ))}
               </div>
             </Row>
             <Row label="Separator" mono="<Separator />">

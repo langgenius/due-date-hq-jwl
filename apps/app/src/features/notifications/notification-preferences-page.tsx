@@ -42,6 +42,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -719,27 +720,19 @@ function MorningDigestCard({
               <Trans>Days</Trans>
             </span>
             <div className="flex flex-wrap gap-2">
-              {DIGEST_DAYS.map((day) => {
-                const active = preferences.morningDigestDays.includes(day.key)
-                return (
-                  <button
-                    key={day.key}
-                    type="button"
-                    aria-pressed={active}
-                    aria-label={day.key}
-                    disabled={saving && !active}
-                    onClick={() => toggleDay(day.key)}
-                    className={cn(
-                      'flex h-10 w-[54px] cursor-pointer items-center justify-center rounded-lg text-xs font-semibold transition-colors disabled:cursor-not-allowed',
-                      active
-                        ? 'bg-state-accent-solid text-text-inverted'
-                        : 'border border-divider-regular bg-background-default text-text-secondary hover:bg-background-section',
-                    )}
-                  >
-                    {day.label}
-                  </button>
-                )
-              })}
+              {DIGEST_DAYS.map((day) => (
+                <ToggleChip
+                  key={day.key}
+                  selected={preferences.morningDigestDays.includes(day.key)}
+                  onClick={() => toggleDay(day.key)}
+                  aria-label={day.key}
+                  disabled={saving && !preferences.morningDigestDays.includes(day.key)}
+                  size="md"
+                  className="w-[54px] justify-center"
+                >
+                  {day.label}
+                </ToggleChip>
+              ))}
             </div>
           </div>
         </div>
