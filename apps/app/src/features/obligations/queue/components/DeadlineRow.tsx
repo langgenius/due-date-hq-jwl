@@ -228,7 +228,10 @@ export function DeadlineRow({
                 state={{ from: 'client' }}
                 onClick={(event) => event.stopPropagation()}
                 aria-label={`Open ${deadline.formName} for ${deadline.clientName} detail page`}
-                className="w-fit truncate text-row-name text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                // max-w-full keeps w-fit (hover underline hugs the text) from
+                // defeating truncate — without the cap, long form names paint
+                // over the status chip instead of ellipsizing.
+                className="w-fit max-w-full truncate text-row-name text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 {deadline.formName}
               </Link>
@@ -332,7 +335,7 @@ export function DeadlineRow({
               state={{ from: 'client' }}
               onClick={(event) => event.stopPropagation()}
               aria-label={`Open ${deadline.formName} for ${deadline.clientName} detail page`}
-              className="w-fit truncate text-sm font-semibold text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="w-fit max-w-full truncate text-sm font-semibold text-text-primary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               {deadline.formName}
             </Link>
