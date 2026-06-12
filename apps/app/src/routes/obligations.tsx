@@ -4176,6 +4176,11 @@ export function ObligationQueueRoute() {
                 thisWeekFilterActive={thisWeekFilterActive}
                 evidence={evidence}
                 awaitingSignature={awaitingSignature}
+                assigneeName={assignee}
+                owner={owner}
+                ruleSelected={ruleQuery}
+                dueWithin={dueWithin}
+                projected={projected}
                 taxTypeSelected={taxTypeQuery}
                 taxTypeOptions={taxTypeOptions}
                 clientSelected={clientQuery}
@@ -13245,6 +13250,11 @@ function ObligationActiveFilterChips({
   thisWeekFilterActive,
   evidence,
   awaitingSignature,
+  assigneeName,
+  owner,
+  ruleSelected,
+  dueWithin,
+  projected,
   taxTypeSelected,
   taxTypeOptions,
   clientSelected,
@@ -13262,6 +13272,14 @@ function ObligationActiveFilterChips({
   thisWeekFilterActive: boolean
   evidence: string | null
   awaitingSignature: boolean | null
+  // Deep-link-only params (workload jump links, rule-library cross-links):
+  // they filter the table but have no facet UI, so without a chip the user
+  // sees 7 rows under a header claiming 28 with no visible cause.
+  assigneeName: string | null
+  owner: string | null
+  ruleSelected: readonly string[]
+  dueWithin: number | null
+  projected: boolean | null
   taxTypeSelected: readonly string[]
   taxTypeOptions: readonly FilterOption[]
   clientSelected: readonly string[]
@@ -13321,6 +13339,51 @@ function ObligationActiveFilterChips({
       dimension: t`Condition`,
       label: t`Awaiting signature`,
       onRemove: () => onPatch({ awaitingSignature: null }),
+    })
+  }
+  if (assigneeName) {
+    chips.push({
+      key: 'assignee-name',
+      dimension: t`Assignee`,
+      label: assigneeName,
+      onRemove: () => onPatch({ assignee: null, obligation: null, row: null }),
+    })
+  }
+  if (owner === 'unassigned') {
+    chips.push({
+      key: 'owner-unassigned',
+      dimension: t`Assignee`,
+      label: t`Unassigned`,
+      onRemove: () => onPatch({ owner: null, obligation: null, row: null }),
+    })
+  }
+  for (const value of ruleSelected) {
+    chips.push({
+      key: `rule-${value}`,
+      dimension: t`Rule`,
+      label: value,
+      onRemove: () =>
+        onPatch({
+          rule: ruleSelected.filter((v) => v !== value),
+          obligation: null,
+          row: null,
+        }),
+    })
+  }
+  if (dueWithin && dueWithin > 0) {
+    chips.push({
+      key: 'due-within',
+      dimension: t`Due`,
+      label: t`Within ${dueWithin} days`,
+      onRemove: () => onPatch({ dueWithin: null }),
+    })
+  }
+  if (projected === true) {
+    chips.push({
+      key: 'projected',
+      dimension: t`Condition`,
+      label: t`Projected only`,
+      onRemove: () => onPatch({ projected: null }),
     })
   }
   for (const value of taxTypeSelected) {
