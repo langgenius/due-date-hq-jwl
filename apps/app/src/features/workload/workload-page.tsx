@@ -396,9 +396,9 @@ function WorkloadTable({
             <NumericCell value={row.overdue} href={workloadRowOverdueHref(row, asOfDate)} danger />
             <NumericCell
               value={row.waiting}
-              href={`${workloadRowHref(row)}&status=waiting_on_client`}
+              href={workloadRowHref(row, 'waiting_on_client')}
             />
-            <NumericCell value={row.review} href={`${workloadRowHref(row)}&status=review`} />
+            <NumericCell value={row.review} href={workloadRowHref(row, 'review')} />
             <TableCell>
               {/* Progress primitive (shared with members SeatStat / rules coverage). */}
               <div className="flex items-center gap-2">
