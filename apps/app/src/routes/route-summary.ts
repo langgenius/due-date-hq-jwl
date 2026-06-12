@@ -43,6 +43,7 @@ export const routeSummaries = {
   settings: { eyebrow: msg`Settings`, title: msg`Practice settings` },
   settingsProfile: { eyebrow: msg`Settings`, title: msg`Your account` },
   settingsPermissions: { eyebrow: msg`Settings`, title: msg`Permissions` },
+  notFound: { eyebrow: msg`Error`, title: msg`Page not found` },
 } satisfies Record<string, RouteSummaryMessages>
 
 export function routeHandle(routeSummary: RouteSummaryMessages): RouteHandle {

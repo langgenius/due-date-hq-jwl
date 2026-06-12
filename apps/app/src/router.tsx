@@ -17,6 +17,7 @@ import { EntryShell } from '@/routes/_entry-layout'
 import { RootLayout, ShellSkeleton } from '@/routes/_layout'
 import { RouteErrorBoundary } from '@/routes/error'
 import { EntryRouteHydrateFallback, RouteHydrateFallback } from '@/routes/fallback'
+import { NotFoundRoute } from '@/routes/not-found'
 import { routeHandle, routeSummaries } from '@/routes/route-summary'
 import { RouteDocumentTitle } from '@/routes/route-title'
 
@@ -868,13 +869,13 @@ export function createAppRouter() {
             // so authenticated users hitting a bad URL still see the
             // sidebar + nav and can recover. Unauth users get bounced
             // to login by `protectedLoader` first, same as any other
-            // protected path.
+            // protected path. Eagerly imported (the route is tiny) so
+            // unknown paths render the 404 synchronously instead of
+            // flashing a loading skeleton while a lazy chunk fetches.
             {
               path: '*',
-              lazy: async () => {
-                const { NotFoundRoute } = await import('@/routes/not-found')
-                return { Component: NotFoundRoute }
-              },
+              handle: routeHandle(routeSummaries.notFound),
+              Component: NotFoundRoute,
             },
           ],
         },
