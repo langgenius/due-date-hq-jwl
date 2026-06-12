@@ -202,7 +202,11 @@ function makeReadinessContext(input: {
       receivedAt: new Date('2026-05-22T00:00:00.000Z'),
     },
   ]
-  const reconcileDocumentChecklistItems = vi.fn(async () => checklistRows)
+  const reconcileDocumentChecklistItems = vi.fn(async () => ({
+    rows: checklistRows,
+    inserted: 0,
+    updated: 0,
+  }))
   const createRequest = vi.fn(
     async (request: Parameters<ScopedRepo['readiness']['createRequest']>[0]) => ({
       ...request,
@@ -753,7 +757,11 @@ describe('readiness procedure helpers', () => {
   })
 
   it('reconciles through the repository with versioned template metadata', async () => {
-    const reconcileDocumentChecklistItems = vi.fn(async () => [])
+    const reconcileDocumentChecklistItems = vi.fn(async () => ({
+      rows: [],
+      inserted: 0,
+      updated: 0,
+    }))
 
     await reconcileChecklistForObligation({
       readiness: { reconcileDocumentChecklistItems },

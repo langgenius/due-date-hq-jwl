@@ -221,13 +221,15 @@ async function loadReadinessRequestEmailDraft(input: {
   if (!client) throw new ORPCError('NOT_FOUND', { message: 'Client not found.' })
 
   const documentChecklist = toPublicDocumentChecklist(
-    await reconcileChecklistForObligation({
-      readiness: input.scoped.readiness,
-      obligation,
-      client,
-      userId: input.userId,
-      now: new Date(),
-    }),
+    (
+      await reconcileChecklistForObligation({
+        readiness: input.scoped.readiness,
+        obligation,
+        client,
+        userId: input.userId,
+        now: new Date(),
+      })
+    ).rows,
   )
   const correctionOnly = obligation.status === 'review' && obligation.efileRejectedAt !== null
   const requestChecklist = correctionOnly
@@ -331,7 +333,7 @@ const generateChecklist = os.readiness.generateChecklist.handler(async ({ input,
     throw new ORPCError('NOT_FOUND', { message: 'Client not found for deadline.' })
   }
 
-  const rows = await reconcileChecklistForObligation({
+  const { rows, inserted, updated } = await reconcileChecklistForObligation({
     readiness: scoped.readiness,
     obligation,
     client,
@@ -339,14 +341,19 @@ const generateChecklist = os.readiness.generateChecklist.handler(async ({ input,
     now: new Date(),
   })
   // Reconcile can add/remove document-checklist items in bulk; the per-item
-  // add/update/delete siblings all audit, so the bulk rebuild should too.
-  await scoped.audit.write({
-    actorId: userId,
-    entityType: 'obligation_instance',
-    entityId: obligation.id,
-    action: 'readiness.checklist.regenerated',
-    after: { itemCount: rows.length },
-  })
+  // add/update/delete siblings all audit, so the bulk rebuild should too —
+  // but ONLY when it actually changed something. Viewing the Materials tab
+  // triggers this lazily, and an idempotent no-op must never mint an
+  // audit-ledger event (the ledger is evidence, not a page-view counter).
+  if (inserted + updated > 0) {
+    await scoped.audit.write({
+      actorId: userId,
+      entityType: 'obligation_instance',
+      entityId: obligation.id,
+      action: 'readiness.checklist.regenerated',
+      after: { itemCount: rows.length, inserted, updated },
+    })
+  }
   return {
     checklist: toPublicDocumentChecklist(rows),
     degraded: false,

@@ -108,7 +108,11 @@ function makeScoped(input: {
   }))
   const writeAudit = vi.fn(async () => ({ id: 'audit_1' }))
   const reconcileDocumentChecklistItems = vi.fn(
-    async (_input: Parameters<ScopedRepo['readiness']['reconcileDocumentChecklistItems']>[0]) => [],
+    async (_input: Parameters<ScopedRepo['readiness']['reconcileDocumentChecklistItems']>[0]) => ({
+      rows: [],
+      inserted: 0,
+      updated: 0,
+    }),
   )
   const createBatch = vi.fn(async (rows: ObligationCreateInput[]) => {
     createdInputs.push(...rows)

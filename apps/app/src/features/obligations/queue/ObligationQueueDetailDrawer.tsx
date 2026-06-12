@@ -722,8 +722,14 @@ export function ObligationQueueDetailDrawer({
       },
     }),
   )
+  // Only auto-generate when the deadline has NO stored checklist yet — a
+  // populated checklist must never be re-reconciled by merely viewing the
+  // tab (the server call is a mutation; views don't mutate).
   const shouldAutoGenerateChecklist = Boolean(
-    row && visibleTabs.has('readiness') && !generateChecklistMutation.isPending,
+    row &&
+    visibleTabs.has('readiness') &&
+    storedChecklist.length === 0 &&
+    !generateChecklistMutation.isPending,
   )
   const autoGenerateChecklistMutationOptions = orpc.readiness.generateChecklist.mutationOptions()
   const autoGenerateChecklistQuery = useQuery({

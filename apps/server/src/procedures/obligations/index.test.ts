@@ -263,7 +263,11 @@ function makeContext(input: {
     }),
   )
   const reconcileDocumentChecklistItems = vi.fn(
-    async (_input: Parameters<ScopedRepo['readiness']['reconcileDocumentChecklistItems']>[0]) => [],
+    async (_input: Parameters<ScopedRepo['readiness']['reconcileDocumentChecklistItems']>[0]) => ({
+      rows: [],
+      inserted: 0,
+      updated: 0,
+    }),
   )
 
   const client = input.client === undefined ? makeClient() : input.client

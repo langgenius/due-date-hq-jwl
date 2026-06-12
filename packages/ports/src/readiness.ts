@@ -126,7 +126,13 @@ export interface ReadinessRepo {
       source: 'template'
     }>
     now: Date
-  }): Promise<ReadinessDocumentChecklistItemRow[]>
+  }): Promise<{
+    rows: ReadinessDocumentChecklistItemRow[]
+    // Counts let callers distinguish a real rebuild from an idempotent
+    // no-op — audit rows must only be written when something changed.
+    inserted: number
+    updated: number
+  }>
   updateDocumentChecklistItem(input: {
     id: string
     label?: string

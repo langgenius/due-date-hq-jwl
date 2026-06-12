@@ -467,7 +467,11 @@ export function makeReadinessRepo(db: Db, firmId: string) {
       ]
       await Promise.all(writes)
 
-      return this.listDocumentChecklistByObligation(input.obligationInstanceId)
+      return {
+        rows: await this.listDocumentChecklistByObligation(input.obligationInstanceId),
+        inserted: insertRows.length,
+        updated: plan.updates.length,
+      }
     },
 
     async updateDocumentChecklistItem(input: {
