@@ -43,6 +43,12 @@ the token, every region anchor follows (Yuqi: "text 细节应该直接改 token,
   further step to 14/600 `text-row-anchor` so the monitor stops out-shouting
   the 14px Priorities work rows — the /today ramp is now 28 / 18 / 14 / 13.
   `text-item-title` 16px remains the item-headline tier on /alerts surfaces.)
+  (Same-day second revision — Yuqi: "so many bold things, people lost focus":
+  /today's repeated anchors — card titles AND client names — demoted again to
+  14/**500**. The 600 budget on an overview page is the page title, the
+  section anchors, and the ONE urgency signal, which gets SIZE instead of
+  company: the late countdown renders 16/600 red while everything around it
+  is ≤500. Importance = bigger, not just bolder; repetition cancels weight.)
 - **Color: `text-text-primary`** (gray-900). The section title is a primary read.
 - **Canonical examples:** `/today` — "Alerts" (`needs-attention-section.tsx`),
   "Priorities" (`merged-brief-card.tsx`), "Daily Brief" (`daily-brief-card.tsx`,

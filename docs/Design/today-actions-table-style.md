@@ -120,6 +120,14 @@ The table is **neutral by default**. Chromatic accent is rationed:
   dates. (Form codes are mono everywhere — same treatment as the /alerts table.)
 - Prompt is the one body-weight read; it darkens + medium-weights on row hover
   to confirm the row is the click target.
+- **Client name is 14/500, not 600** (2026-06-12, `merged-brief-card.tsx` —
+  Yuqi: "so many bold things, people lost focus"): five 600-weight names made
+  the page a wall of equal bolds. The name is key data (500 tier).
+- **The late/due-today countdown is the row's one LOUD element**: DUE's
+  relative label steps up to 16/600 destructive (`text-[16px] leading-[22px]
+  font-semibold` over the DueDateLabel default 13/500) when `days <= 0`.
+  Future countdowns ("in 10d") keep the quiet default so This week / This
+  month buckets don't shout. Importance = bigger, not just bolder.
 
 ## Section header (above the table)
 

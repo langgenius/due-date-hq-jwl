@@ -290,13 +290,14 @@ function NeedsAttentionCard({
         <div className="flex min-w-0 flex-col gap-1.5">
           {/* Title — the card's signal. `dedupeTitleSource` strips a leading
               source prefix so the bottom source link doesn't echo it.
-              `text-row-anchor` (14/600), NOT `text-item-title` (16/600): three
-              16px-semibold news headlines were the heaviest text mass on
-              /today while the Priorities client names — the actual work — sat
-              at 14px. The monitor now matches the work's voice instead of
-              out-shouting it (critique 2026-06-12). */}
+              14/500, two demotions from the original 16/600 item-title:
+              first to 14 (the monitor must not out-size the work, critique
+              2026-06-12), then to 500 (Yuqi same day: "so many bold things
+              on the page, people lost focus" — the 600 budget on /today is
+              the page title + the two section anchors; everything else is
+              ≤500 so the red lateness countdowns own the attention). */}
           <h3
-            className="line-clamp-2 min-w-0 text-row-anchor text-text-primary"
+            className="line-clamp-2 min-w-0 text-base font-medium text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}

@@ -228,11 +228,13 @@ contract. **Unified (accidental drift fixed 2026-06-11):**
   `JurisdictionLabel` with full state name.
 - Title sizes ramp by surface density (lg row / base rail / 22px drawer) —
   same family, different altitude. **Exception (2026-06-12 critique): the
-  /today dashboard card title is `text-row-anchor` (14/600), NOT
-  `text-item-title` (16/600)** — three 16px-semibold news headlines were the
-  heaviest text mass on /today while the Priorities client names (the work)
-  sat at 14px. On the dashboard the monitor matches the work's voice; on
-  /alerts, where alerts ARE the work, the larger sizes stand.
+  /today dashboard card title is 14/500 (`text-base font-medium`), NOT
+  `text-item-title` (16/600)** — first demoted to 14 (three 16px-semibold
+  news headlines were the heaviest text mass on /today while the Priorities
+  client names sat at 14px), then to weight 500 the same day (Yuqi: "so many
+  bold things, people lost focus" — /today's 600 budget is page + section
+  titles + the red late countdown only). On /alerts, where alerts ARE the
+  work, the larger sizes stand.
 - /today demotes zero-impact alerts (`matchedCount + needsReviewCount === 0`)
   from cards to quiet one-line rows (`NeedsAttentionQuietRow`, 2026-06-12): a
   ~150px card whose own footer says "No client impact" hasn't earned card
