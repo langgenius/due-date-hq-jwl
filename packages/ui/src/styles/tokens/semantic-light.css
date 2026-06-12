@@ -262,7 +262,11 @@
   --components-segmented-item-bg-active: #ffffff;
   --components-segmented-item-bg-hover: rgb(255 255 255 / 0.6);
   --components-segmented-text: var(--color-util-colors-gray-600);
-  --components-segmented-text-active: var(--color-util-colors-gray-900);
+  /* 2026-06-12 (Yuqi /alerts #2 "how to highlight Review? maybe accent"):
+     the active segmented item reads in the accent — selection = accent is
+     the product's "you are here" color. Light theme only; dark keeps
+     near-white text per the no-colored-text-on-dark rule. */
+  --components-segmented-text-active: var(--text-accent);
 
   /* ===== Components: panel (popover/dialog/sheet/dropdown surfaces) ===== */
   --components-panel-bg: #ffffff;

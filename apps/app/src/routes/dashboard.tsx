@@ -214,7 +214,9 @@ export function DashboardRoute() {
     // /rules/library, /alerts); generous pb-12 keeps the last action row
     // from feeling cramped against the viewport edge when the page is
     // short enough not to scroll.
-    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-6 pb-12 md:px-8 md:pt-6 md:pb-12">
+    // pt-8 (Yuqi /alerts #9, applied app-wide): the page title centers on the
+    // sidebar's firm avatar across every top-level page.
+    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12">
       {/* /today routes through the same `<PageHeader>` primitive as
           /clients, /deadlines, /alerts, and /rules/library — date sits
           in the canonical pill chip slot so it matches the family's

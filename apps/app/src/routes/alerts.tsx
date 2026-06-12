@@ -144,13 +144,11 @@ export function AlertsRoute() {
           panelOpen && '!max-w-none !gap-0 !p-0 md:!p-0',
         )}
         actions={
-          // The "Alert history" button is variant="outline" (not ghost)
-          // so it matches /clients's "Import history" sibling — both are
-          // navigation-to-history affordances on a top-level page, so
-          // they read with the same weight. Ghost on the light-grey app
-          // background disappeared entirely (no border, no fill — only
-          // the icon carried weight); outline keeps it quieter than the
-          // title without collapsing into pure text.
+          // 2026-06-12 (Yuqi /alerts #10 "ghost buttons, remove borders"):
+          // header actions are GHOST. The old outline rationale ("ghost
+          // disappeared on the light-grey app background") died when list
+          // pages went white — on white, ghost text+icon reads fine and
+          // the borders were just chrome. Hover restores a soft fill.
           <>
             {/* The saved-view button renders FIRST in the actions
               cluster. Its toggle state + the alert-list filter override
@@ -167,7 +165,7 @@ export function AlertsRoute() {
                 in the title row chip. Actions cluster is My morning sweep
                 + Alert history, matching the design. */}
             <MorningSweepHeaderButton />
-            <Button nativeButton={false} variant="outline" render={<Link to="/alerts/history" />}>
+            <Button nativeButton={false} variant="ghost" render={<Link to="/alerts/history" />}>
               <HistoryIcon data-icon="inline-start" />
               <Trans>Alert history</Trans>
             </Button>
@@ -187,8 +185,8 @@ export function AlertsRoute() {
  * differentiation: when `active` we use Button variant="secondary" (a
  * tinted filled button) to signal "this preset is currently applied",
  * matching the active state of the FilterTrigger pills inside the page.
- * When inactive: variant="outline" so it sits in the same family as
- * Sources / Alert history.
+ * When inactive: variant="ghost" so it sits in the same (borderless)
+ * family as Alert history (Yuqi /alerts #10).
  */
 function MorningSweepHeaderButton() {
   const { t } = useLingui()
@@ -210,7 +208,7 @@ function MorningSweepHeaderButton() {
       <TooltipTrigger
         render={
           <Button
-            variant={sweep.digestOpen ? 'secondary' : 'outline'}
+            variant={sweep.digestOpen ? 'secondary' : 'ghost'}
             // `icon` (size-9 / 36px) makes the coffee button the same
             // height as the h-9 "Alert history" button beside it so the
             // two header actions align (icon-sm/32px would sit shorter).

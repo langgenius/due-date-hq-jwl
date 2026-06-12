@@ -3539,7 +3539,7 @@ export function ObligationQueueRoute() {
         // matches /today's vertical breathing room at standard viewport
         // heights; the `xl:pb-0` override below keeps the pagination footer
         // flush at tall viewports where the queue fills the screen.
-        'mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-6 pb-12 md:px-8 md:pt-6 md:pb-12',
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-12 md:px-8 md:pt-8 md:pb-12',
         // The xl height-cap + overflow-hidden (which turns the queue into an
         // inner-table scroll) applies ONLY when the detail panel is open — the
         // side-by-side split needs a full-height rail. With the panel closed
@@ -6399,8 +6399,14 @@ export function ObligationQueueDetailDrawer({
       },
     }),
   )
+  // Only auto-generate when the deadline has NO stored checklist yet — a
+  // populated checklist must never be re-reconciled by merely viewing the
+  // tab (the server call is a mutation; views don't mutate).
   const shouldAutoGenerateChecklist = Boolean(
-    row && visibleTabs.has('readiness') && !generateChecklistMutation.isPending,
+    row &&
+    visibleTabs.has('readiness') &&
+    storedChecklist.length === 0 &&
+    !generateChecklistMutation.isPending,
   )
   const autoGenerateChecklistMutationOptions = orpc.readiness.generateChecklist.mutationOptions()
   const autoGenerateChecklistQuery = useQuery({

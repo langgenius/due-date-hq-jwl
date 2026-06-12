@@ -923,19 +923,21 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       />
                     ) : null}
 
-                    {/* Clear filters sits next to the State dropdown. Always
-                    rendered, disabled when there's nothing to clear — matches
-                    /clients + /rules so the affordance never reflows the
-                    wrapping toolbar row as filters come and go. */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={!filtersActive}
-                      onClick={resetFilters}
-                      className="text-base"
-                    >
-                      <Trans>Clear filters</Trans>
-                    </Button>
+                    {/* Clear filters appears ONLY when there's something to
+                    clear (Yuqi /alerts #4 "hide clear filters on default") —
+                    a permanently-disabled ghost was resting-state clutter. It
+                    sits at the END of the narrowing cluster so its appearance
+                    never shifts the controls before it. */}
+                    {filtersActive ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetFilters}
+                        className="text-base"
+                      >
+                        <Trans>Clear filters</Trans>
+                      </Button>
+                    ) : null}
 
                     {/* Spacer — narrowing cluster left, display cluster
                         right (Yuqi batch 3 #8). */}

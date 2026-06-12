@@ -103,9 +103,12 @@ export function RulesPageShell({
             as every other page in the app rather than a denser outlier. */}
         <div
           className={cn(
-            // pt-6 (24px) so RulesPageShell pages (/alerts, /rules) sit at
-            // the same title height as /today + /deadlines (both pt-6).
-            'mx-auto flex w-full flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pb-6',
+            // 2026-06-12 (Yuqi /alerts #9): pt-8 (32px) centers the page
+            // title on the sidebar's firm avatar (title 32px tall at y34 →
+            // center 50 = avatar center 50); pb-5 (20px) matches the
+            // sidebar's ~18px bottom inset so the page and rail end
+            // together. /today + /deadlines moved to pt-8 in the same pass.
+            'mx-auto flex w-full flex-col gap-6 px-4 pt-8 pb-5 md:px-6',
             wide ? 'max-w-page-expanded' : 'max-w-page-wide',
             lockViewport && 'h-full min-h-0',
             contentClassName,

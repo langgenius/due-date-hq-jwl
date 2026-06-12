@@ -194,6 +194,7 @@ function PulseAlertRow({
   priority,
   highImpact = false,
   showAction = true,
+  showRailDate = true,
 }: {
   alert: PulseAlertPublic
   active: boolean
@@ -232,6 +233,13 @@ function PulseAlertRow({
    * When false, the ACTION suggestion line is hidden. Default true.
    */
   showAction?: boolean
+  /**
+   * 2026-06-12 (Yuqi /alerts #6 "do we show the date again? we have the
+   * date in the header already"): when the list renders day-group bands,
+   * the band owns the date — the time rail shows only the wall-clock.
+   * Flat (ungrouped) lists keep date + time. Default true (flat).
+   */
+  showRailDate?: boolean
 }) {
   const { t } = useLingui()
   // Cache-only subscription — the date-diff / form fields fill in when the
@@ -373,27 +381,50 @@ function PulseAlertRow({
           The rail is unmounted in `compact` mode; the relative time
           relocates to the head-row right cluster. */}
       {!compact ? (
-        <div className="flex w-[90px] shrink-0 flex-col gap-1">
-          {/* The third rail line (railRelative) is dropped — hovering
-              the date surfaces "N days ago" instead, so the rail is just
-              date + wall-clock at rest. */}
-          <Tooltip>
-            <TooltipTrigger
-              render={(props) => (
-                <span
-                  className="w-fit cursor-help text-base font-medium text-text-primary outline-none"
-                  {...props}
-                >
-                  {railDate}
-                </span>
-              )}
-            />
-            <TooltipContent>{railRelative}</TooltipContent>
-          </Tooltip>
-          <span className="text-xs font-medium text-text-tertiary tabular-nums">
-            {absoluteTime}
-          </span>
-        </div>
+        showRailDate ? (
+          <div className="flex w-[90px] shrink-0 flex-col gap-1">
+            {/* The third rail line (railRelative) is dropped — hovering
+                the date surfaces "N days ago" instead, so the rail is just
+                date + wall-clock at rest. */}
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <span
+                    className="w-fit cursor-help text-base font-medium text-text-primary outline-none"
+                    {...props}
+                  >
+                    {railDate}
+                  </span>
+                )}
+              />
+              <TooltipContent>{railRelative}</TooltipContent>
+            </Tooltip>
+            <span className="text-xs font-medium text-text-tertiary tabular-nums">
+              {absoluteTime}
+            </span>
+          </div>
+        ) : (
+          // Day-grouped lists (Yuqi #6): the band above owns the date, so
+          // the rail is wall-clock only — narrower (64px), with the full
+          // date + relative age one hover away.
+          <div className="flex w-[64px] shrink-0 flex-col">
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <span
+                    className="w-fit cursor-help text-sm font-medium text-text-tertiary tabular-nums outline-none"
+                    {...props}
+                  >
+                    {absoluteTime}
+                  </span>
+                )}
+              />
+              <TooltipContent>
+                {railDate} · {railRelative}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )
       ) : null}
 
       {/* Main column — gap-2 (8px) gives slight breathing room between
@@ -626,13 +657,16 @@ function PulseAlertRow({
                 >
                   <path d="M4 2.5v3a1.5 1.5 0 0 0 1.5 1.5H9" />
                 </svg>
-                {/* Token classes, not hex literals — the amber recipe is
-                    the shared state-warning pair (batch 3 #4 polish). */}
-                <div className="inline-flex items-center gap-2 self-start rounded bg-state-warning-hover px-3 py-1">
-                  <span className="text-xs font-semibold tracking-[0.3px] text-text-warning uppercase">
+                {/* 2026-06-12 (Yuqi /alerts #5 "does this need to be red?"):
+                    the suggestion chip is NEUTRAL — every row carries one, so
+                    any hot color here saturates the list and nothing reads
+                    urgent. Heat stays with the URGENT/HIGH level pills and the
+                    date-diff; a suggestion is quiet guidance, not an alarm. */}
+                <div className="inline-flex items-center gap-2 self-start rounded bg-background-subtle px-3 py-1">
+                  <span className="text-xs font-semibold tracking-[0.3px] text-text-tertiary uppercase">
                     <Trans>Action</Trans>
                   </span>
-                  <span className="text-sm font-medium text-text-warning">{actionText}</span>
+                  <span className="text-sm font-medium text-text-secondary">{actionText}</span>
                 </div>
               </div>
             ) : null}
@@ -936,21 +970,29 @@ function PulseAlertList({
       priority={priorityById?.get(alert.id)}
       highImpact={highImpactIds?.has(alert.id) ?? false}
       showAction={showAction}
+      // Day-grouped lists: the band owns the date, rows show time only
+      // (Yuqi #6). Flat lists (impact sort / map rail) keep date + time.
+      showRailDate={!grouped}
     />
   )
 
   return (
-    // List frame uses the ActionsTable canonical chrome —
-    // `rounded-xl border-divider-regular` — so /today, /alerts,
-    // /deadlines share one outer frame language.
-    // `overflow-hidden` clips the full-bleed gray day-group bands (square
-    // corners) to the rounded-12 frame. Tooltips/popovers inside rows
-    // portal to <body>, so the clip doesn't truncate them.
+    // List frame — rounded-12 white surface, NO border stroke.
+    // 2026-06-12 (Yuqi /alerts #1 "hide the border"): the outer
+    // border-divider-regular is dropped; the rounded encapsulation
+    // survives via the clipped gray day-group bands at the frame's top
+    // corners and the row hairlines inside. (/today + /deadlines tables
+    // keep the bordered canonical frame — they're column tables; this is
+    // a card-list registry.)
+    // `overflow-clip` (not -hidden) clips the full-bleed day bands to the
+    // rounded frame WITHOUT creating a scroll container — position:sticky
+    // on the day bands (Yuqi #7) dies inside overflow-hidden but survives
+    // clip. Tooltips/popovers portal to <body>, so the clip never
+    // truncates them.
     // `shrink-0` so the list frame keeps its full content height inside
     // the overflow-y-auto list column — without it flex shrinks the frame
-    // to fit and the clip swallows the rest, so nothing scrolls. At full
-    // height there's no vertical clip.
-    <div className="flex shrink-0 flex-col overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+    // to fit and the clip swallows the rest, so nothing scrolls.
+    <div className="flex shrink-0 flex-col overflow-clip rounded-xl bg-background-default">
       {/* No BulkSelectStrip ("Select all · N dispatches", Pencil
           `TAamJ`): per-row checkboxes drive bulk selection in selectable
           mode, and the floating BulkActionBar appears once rows are
@@ -978,7 +1020,12 @@ function PulseAlertList({
                 text-tertiary: it's a quiet date separator, not a lede, so
                 the lighter tone keeps it from competing with the alert
                 rows beneath it. */}
-                <div className="flex items-center border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
+                {/* 2026-06-12 (Yuqi #7 "will it be sticky if there are a lot
+                    of alerts in a day?"): yes — the band sticks below the
+                    sticky toolbar (top-12 ≈ its h-9 controls + pb-3) while its
+                    day's rows scroll under, so "when" stays answered on long
+                    days. Requires the frame's overflow-clip (not hidden). */}
+                <div className="sticky top-12 z-10 flex items-center border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
                   <div className="flex items-center gap-1.5 text-column-label text-text-tertiary uppercase">
                     {isToday ? (
                       <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />

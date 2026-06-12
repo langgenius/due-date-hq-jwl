@@ -2138,7 +2138,7 @@ export function RulesLibraryRoute() {
           {/* Inner panel is centered + width-capped (like /today) so the
               overview reads as a focused dashboard with side breathing
               room, not an edge-to-edge wall. */}
-          <div className="mx-auto flex min-h-0 w-full max-w-page-expanded flex-1 flex-col gap-8 px-4 pt-6 pb-0 md:px-8 md:pb-0">
+          <div className="mx-auto flex min-h-0 w-full max-w-page-expanded flex-1 flex-col gap-8 px-4 pt-8 pb-0 md:px-8 md:pb-0">
             {selectedGroup ? (
               // Selected-jurisdiction header (Pencil O0pyRO `oJL8o`): a
               // sync/coverage eyebrow, the state name + mono code pill, and
