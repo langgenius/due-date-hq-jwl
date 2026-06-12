@@ -34,6 +34,7 @@ import type { ObligationStatus } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
+import { useCurrentUserName } from '@/lib/use-current-user-name'
 
 const TRIAGE_TAB_KEYS = ['this_week', 'this_month', 'long_term'] as const
 const DASHBOARD_DUE_BUCKETS = [
@@ -147,6 +148,10 @@ export function DashboardRoute() {
     rememberDashboardScope(next)
     void setDashboardParams({ scope: next })
   }
+  // Masthead greeting inputs — the member's first name + the local clock.
+  const currentUserName = useCurrentUserName()
+  const firstName = currentUserName?.trim().split(/\s+/)[0] ?? null
+  const hourOfDay = new Date().getHours()
   const dashboardAsOfDate = ISO_DATE_RE.test(asOfDate) ? asOfDate : null
   const clientQuery = useMemo(() => cleanEntityIdFilters(client), [client])
   const taxTypeQuery = useMemo(() => cleanStringFilters(taxType), [taxType])
@@ -219,10 +224,20 @@ export function DashboardRoute() {
           propagates here automatically. */}
       <PageHeader
         eyebrow={
-          // No eyebrow row — the sync indicator moved into the actions
-          // cluster as an icon + tooltip, reclaiming a row of vertical
-          // space.
-          undefined
+          // The masthead dateline (Yuqi: "bring more FUN" — /today may bend
+          // the layout). A time-of-day greeting in the eyebrow's tracked-caps
+          // register reads like a newspaper dateline over the TODAY masthead
+          // — pairing with the Daily Brief's morning-paper tab. Real data
+          // only: the firm member's name + the actual clock.
+          firstName ? (
+            hourOfDay < 12 ? (
+              <Trans>Good morning, {firstName}</Trans>
+            ) : hourOfDay < 17 ? (
+              <Trans>Good afternoon, {firstName}</Trans>
+            ) : (
+              <Trans>Good evening, {firstName}</Trans>
+            )
+          ) : undefined
         }
         title={
           // The title→date gap is tight (`gap-2`, 8px) and the date is

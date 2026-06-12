@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, SparklesIcon } from 'lucide-react'
+import { ArrowRightIcon, CoffeeIcon, SparklesIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
@@ -266,11 +266,12 @@ export function MergedBriefCard({
             </Tooltip>
           </div>
 
-          {/* Lede — one-line deterministic summary, tight under the title. */}
+          {/* Lede — one-line deterministic summary, tight under the title.
+              Suppressed in the all-clear state: the celebration block below
+              already says it, and saying it twice would deflate the moment. */}
+          {totalActive === 0 ? null : (
           <p className="text-sm text-text-secondary">
-            {totalActive === 0 ? (
-              <Trans>No open deadlines right now.</Trans>
-            ) : counts.overdue > 0 && overdueNeedingDocs === counts.overdue ? (
+            {counts.overdue > 0 && overdueNeedingDocs === counts.overdue ? (
               // The count already lives in the "Overdue N" chip 40px away —
               // when every overdue row shares the blocker, the lede carries
               // ONLY the insight the chips can't (one home per fact).
@@ -285,11 +286,16 @@ export function MergedBriefCard({
               <Trans>{upcoming} coming up, none overdue.</Trans>
             )}
           </p>
+          )}
         </div>
 
         {/* Bucket selector borrowed from the /deadlines queue: rounded-full
-            track, white active pill, tone dot + label + muted count. */}
-        <div className="flex items-center gap-0.5 rounded-full bg-background-subtle p-1">
+            track, white active pill, tone dot + label + muted count. Hidden
+            entirely when nothing is open — a track of three zeros is chrome
+            with no decision in it (the all-clear block below carries the
+            state). */}
+        {totalActive > 0 ? (
+          <div className="flex items-center gap-0.5 rounded-full bg-background-subtle p-1">
           {tabs.map((tab) => {
             const active = tab.key === selected
             return (
@@ -318,10 +324,33 @@ export function MergedBriefCard({
               </button>
             )
           })}
-        </div>
+          </div>
+        ) : null}
       </div>
 
-      {shown.length === 0 ? (
+      {totalActive === 0 ? (
+        // The all-clear moment (Yuqi: "bring more FUN" — empty states are
+        // where playfulness is free). Mirrors the Alerts empty-state anatomy
+        // (icon in an accent disc + headline + one sub-line) so the two
+        // sections celebrate the same way. Coffee, not confetti: the calm
+        // brand's idea of a party. Every word is real state — no fiction.
+        <div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center animate-in fade-in duration-150 motion-reduce:animate-none">
+          <span
+            className="flex size-14 items-center justify-center rounded-full bg-state-accent-hover"
+            aria-hidden
+          >
+            <CoffeeIcon className="size-6 text-text-accent" strokeWidth={1.75} />
+          </span>
+          <div className="flex max-w-md flex-col gap-1">
+            <p className="text-base font-medium text-text-primary">
+              <Trans>All clear — nothing due, nothing late.</Trans>
+            </p>
+            <p className="text-sm text-text-tertiary">
+              <Trans>New deadlines land here as rules match your clients.</Trans>
+            </p>
+          </div>
+        </div>
+      ) : shown.length === 0 ? (
         <p
           key={selected}
           className="rounded-xl border border-divider-subtle px-5 py-6 text-center text-sm text-text-tertiary animate-in fade-in duration-150 motion-reduce:animate-none"
@@ -340,18 +369,14 @@ export function MergedBriefCard({
               </Link>{' '}
               to see all {activeTotal}.
             </Trans>
-          ) : totalActive > 0 ? (
+          ) : counts.overdue > 0 ? (
             // The selected WINDOW is empty but work exists in other tabs —
             // claiming "No open deadlines" while the lede above says
             // "2 overdue" is a same-screen contradiction. Name where the
             // work actually sits.
-            counts.overdue > 0 ? (
-              <Trans>Nothing in this window — {counts.overdue} overdue in the Overdue tab.</Trans>
-            ) : (
-              <Trans>Nothing in this window — {totalActive} coming up in the other tabs.</Trans>
-            )
+            <Trans>Nothing in this window — {counts.overdue} overdue in the Overdue tab.</Trans>
           ) : (
-            <Trans>No open deadlines.</Trans>
+            <Trans>Nothing in this window — {totalActive} coming up in the other tabs.</Trans>
           )}
         </p>
       ) : (
@@ -507,14 +532,15 @@ function BriefTableRow({
       tabIndex={0}
       aria-label={t`Open ${verb} for ${row.clientName}`}
       // Interactivity + the `group` hook live here; zebra/border/transition
-      // come from the canonical TableRow. The hover token is opaque so the
-      // Review mask below still hides the due date. py-2.5 (not the default
+      // come from the canonical TableRow. The hover Review CTA renders in
+      // the spacer CELL (between the clusters) — no absolute overlay, no
+      // mask, the due date stays readable on hover. py-2.5 (not the default
       // py-4): the two-line stacked cells already carry height — this lands
       // the row near the canonical /deadlines 56px pitch instead of 68
       // (spacing audit). hover:shadow-none suppresses the primitive's 2px
       // inset left accent bar — Yuqi: no side-border highlight inside a
       // rounded frame.
-      className="group relative cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt [&_td]:py-2.5"
+      className="group cursor-pointer hover:!bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt [&_td]:py-2.5"
     >
       {/* FORM */}
       <TableCell>
@@ -569,8 +595,33 @@ function BriefTableRow({
         </div>
       </TableCell>
       {/* Spacer — pairs with the header's spacer: identity cluster left,
-          ownership cluster (owner + due) pinned to the right rail. */}
-      <TableCell aria-hidden className="p-0" />
+          ownership cluster (owner + due) pinned to the right rail. The
+          hover-revealed Review CTA lives HERE, in the breathing room between
+          the clusters (Yuqi: the old absolute overlay + gradient mask
+          covered the due date on hover — the exact column being scanned).
+          Nothing sits under the button now, so the mask is gone entirely. */}
+      <TableCell aria-hidden className="relative p-0">
+        {/* Absolutely positioned so the button contributes ZERO min-content
+            width to the spacer column — with in-flow content the `w-full`
+            spacer broke the table's width math and pushed DUE past the
+            frame edge (clipped countdowns). Absolute content keeps the
+            spacer layout-empty while the button still appears in the gap. */}
+        <div className="absolute inset-y-0 right-4 flex items-center opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none">
+          <Button
+            type="button"
+            size="xs"
+            variant="primary"
+            tabIndex={-1}
+            aria-hidden
+            onClick={(event) => {
+              event.stopPropagation()
+              onOpen(row.obligationId)
+            }}
+          >
+            <Trans>Review</Trans>
+          </Button>
+        </div>
+      </TableCell>
       {/* OWNER — xs avatar with the is-mine ring, riding just left of the
           date it answers for. */}
       <TableCell>
@@ -608,26 +659,6 @@ function BriefTableRow({
           <span className="text-xs tabular-nums text-text-tertiary">
             {formatDatePretty(row.currentDueDate)}
           </span>
-        </div>
-        {/* Hover-revealed Review CTA (from the original actions table): an
-            absolutely-positioned primary button anchored to the row's right
-            edge, with a left-fading mask in the hover tone so it always reads
-            cleanly. Out of the tab order — the row is the focus target. */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end bg-gradient-to-l from-background-default-hover from-55% to-transparent pr-5 pl-16 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-          <Button
-            type="button"
-            size="xs"
-            variant="primary"
-            tabIndex={-1}
-            aria-hidden
-            onClick={(event) => {
-              event.stopPropagation()
-              onOpen(row.obligationId)
-            }}
-            className="pointer-events-auto"
-          >
-            <Trans>Review</Trans>
-          </Button>
         </div>
       </TableCell>
     </TableRow>
