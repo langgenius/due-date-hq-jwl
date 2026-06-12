@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
+import { AlertTriangleIcon, ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { PulseAlertSourceCoverage, PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
@@ -102,6 +102,20 @@ export function SourcesTab() {
 
   const rows = useMemo(() => sourcesQuery.data ?? EMPTY_SOURCE_ROWS, [sourcesQuery.data])
   const counts = useMemo(() => countSourcesByHealth(rows), [rows])
+  // Sources the sidebar "N sources need attention" line is counting — the
+  // EXACT predicate `SidebarSystemStatus` applies to the same
+  // `pulse.listSourceHealth` payload (enabled + degraded/failing). These
+  // watchers may not exist in the RuleSource registry at all (e.g. a
+  // news-RSS watcher), so they're surfaced as a pinned section rather than
+  // a row filter — a registry filter would silently show zero rows.
+  const needsAttentionEntries = useMemo(
+    () =>
+      (sourceHealthQuery.data?.sources ?? []).filter(
+        (entry) =>
+          entry.enabled && (entry.healthStatus === 'degraded' || entry.healthStatus === 'failing'),
+      ),
+    [sourceHealthQuery.data],
+  )
   // KPI strip stats (Pencil bf6Ni). Derived from the wired source +
   // health + rule payloads — no new query.
   const kpiStats = useMemo(() => {
@@ -209,6 +223,11 @@ export function SourcesTab() {
         rulesDerived={kpiStats.rulesDerived}
         fetched24h={kpiStats.fetched24h}
         paused={counts.paused}
+      />
+      <NeedsAttentionSection
+        entries={needsAttentionEntries}
+        onRetry={(sourceId) => retryMutation.mutate({ sourceId })}
+        retryingSourceId={retryingSourceId}
       />
       <div className="flex items-center gap-4">
         <FilterChips
@@ -350,6 +369,11 @@ function SourcesKpiStrip({
   paused: number
 }) {
   const { t } = useLingui()
+  // "0 of N fetched" is not a neutral fact — it means the monitoring sweep
+  // hasn't run in a day, which contradicts the green "Watched" pills below.
+  // Carry that honestly in the band: warning tone + an explicit caption
+  // instead of the quiet "of N feeds" sub.
+  const monitoringStale = fetched24h === 0 && feedsMonitored > 0
   const stats: StatBandItem[] = [
     {
       key: 'feeds',
@@ -371,10 +395,89 @@ function SourcesKpiStrip({
       key: 'fetched',
       label: t`Fetched last 24h`,
       value: fetched24h,
-      sub: t`of ${feedsMonitored} feeds`,
+      valueClass: monitoringStale ? 'text-text-warning' : 'text-text-primary',
+      sub: monitoringStale ? t`Monitoring has not run in 24h` : t`of ${feedsMonitored} feeds`,
+      subClass: monitoringStale ? 'text-text-warning' : 'text-text-tertiary',
     },
   ]
   return <StatBand stats={stats} ariaLabel={t`Source feed summary`} />
+}
+
+/**
+ * NeedsAttentionSection — the page-level answer to the sidebar's
+ * "N sources need attention" line, which links here. Same query
+ * (`pulse.listSourceHealth`), same predicate (enabled + degraded/failing),
+ * so the count can't drift. Pinned above the registry table because these
+ * watchers aren't necessarily registry rows — a degraded news-RSS watcher
+ * has no `RuleSource` entry, so a table filter would show nothing.
+ * Renders nothing while everything is healthy.
+ */
+function NeedsAttentionSection({
+  entries,
+  onRetry,
+  retryingSourceId,
+}: {
+  entries: readonly PulseSourceHealth[]
+  onRetry: (sourceId: string) => void
+  retryingSourceId: string | null
+}) {
+  const { t } = useLingui()
+  if (entries.length === 0) return null
+
+  return (
+    <SectionFrame>
+      <div className="flex items-center gap-2 px-4 py-3">
+        <AlertTriangleIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
+        <h2 className="text-sm font-semibold text-text-primary">
+          <Trans>Needs attention</Trans>
+        </h2>
+        <span className="text-sm tabular-nums text-text-tertiary">{entries.length}</span>
+      </div>
+      <ul className="flex flex-col">
+        {entries.map((entry) => {
+          const retrying = retryingSourceId === entry.sourceId
+          return (
+            <li
+              key={entry.sourceId}
+              className="flex items-center gap-3 border-t border-divider-subtle px-4 py-3"
+            >
+              <JurisdictionCode code={entry.jurisdiction} />
+              <div className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-text-primary">
+                  {entry.label}
+                </span>
+                <span className="block truncate text-xs text-text-tertiary">
+                  {/* The honest reason, straight from the watcher record. */}
+                  {entry.lastError ?? t`No error recorded`}
+                  {entry.lastCheckedAt ? (
+                    <>
+                      {' · '}
+                      <Trans>last checked {relativeTimeShort(entry.lastCheckedAt)} ago</Trans>
+                    </>
+                  ) : null}
+                </span>
+              </div>
+              <Badge
+                variant={entry.healthStatus === 'failing' ? 'destructive' : 'warning'}
+                size="sm"
+              >
+                {entry.healthStatus === 'failing' ? t`Failing` : t`Degraded`}
+              </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => onRetry(entry.sourceId)}
+                disabled={retrying}
+              >
+                {retrying ? <Trans>Re-checking…</Trans> : <Trans>Re-check now</Trans>}
+              </Button>
+            </li>
+          )
+        })}
+      </ul>
+    </SectionFrame>
+  )
 }
 
 /**
