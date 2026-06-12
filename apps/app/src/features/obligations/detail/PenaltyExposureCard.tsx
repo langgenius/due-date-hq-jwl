@@ -1,6 +1,7 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon } from 'lucide-react'
 import type { ObligationQueueRow } from '@duedatehq/contracts'
+import { smartPriorityBand } from '@duedatehq/core/priority'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
@@ -162,9 +163,12 @@ export function PenaltyExposureCard({ row }: { row: ObligationQueueRow }) {
             ) : null}
           </div>
 
-          {/* Right column — Priority panel (real smartPriority + riskLevel).
-              Replaces ne4Fd's fabricated "First-Time Abatement / Risk score"
-              mitigation block with the honest priority signal. */}
+          {/* Right column — Priority panel (real smartPriority). The word
+              next to the score is derived FROM the score via the canonical
+              smartPriorityBand — pairing the score with the unrelated
+              riskLevel field produced "94/100 · Moderate risk", which reads
+              as a broken scale. Replaces ne4Fd's fabricated "First-Time
+              Abatement / Risk score" mitigation block. */}
           <div className="flex w-full shrink-0 flex-col gap-1.5 rounded-lg bg-background-subtle p-4 lg:w-[220px]">
             <span className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
               <Trans>Priority score</Trans>
@@ -172,24 +176,29 @@ export function PenaltyExposureCard({ row }: { row: ObligationQueueRow }) {
             <span className="text-xl font-semibold leading-none tracking-tight text-text-primary tabular-nums">
               {Math.round(row.smartPriority.score)}/100
             </span>
-            <span
-              className={cn(
-                'w-fit rounded-full px-2 py-0.5 text-caption-xs font-medium',
-                row.riskLevel === 'high'
-                  ? 'bg-state-destructive-hover text-text-destructive'
-                  : row.riskLevel === 'med'
-                    ? 'bg-state-warning-hover text-text-warning'
-                    : 'bg-background-default text-text-tertiary',
-              )}
-            >
-              {row.riskLevel === 'high' ? (
-                <Trans>High risk</Trans>
-              ) : row.riskLevel === 'med' ? (
-                <Trans>Moderate risk</Trans>
-              ) : (
-                <Trans>Low risk</Trans>
-              )}
-            </span>
+            {(() => {
+              const band = smartPriorityBand(row.smartPriority.score)
+              return (
+                <span
+                  className={cn(
+                    'w-fit rounded-full px-2 py-0.5 text-caption-xs font-medium',
+                    band === 'high'
+                      ? 'bg-state-destructive-hover text-text-destructive'
+                      : band === 'elevated'
+                        ? 'bg-state-warning-hover text-text-warning'
+                        : 'bg-background-default text-text-tertiary',
+                  )}
+                >
+                  {band === 'high' ? (
+                    <Trans>High priority</Trans>
+                  ) : band === 'elevated' ? (
+                    <Trans>Elevated priority</Trans>
+                  ) : (
+                    <Trans>Normal priority</Trans>
+                  )}
+                </span>
+              )
+            })()}
           </div>
         </div>
       )}

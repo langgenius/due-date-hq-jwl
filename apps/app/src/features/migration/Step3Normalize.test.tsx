@@ -110,7 +110,10 @@ describe('Step3Normalize matrix state context', () => {
     // "Adjust tax type defaults" toggle is required anymore.
     expect(document.body.textContent).toContain('Saved as default')
     expect(document.body.textContent).toContain('State context added')
-    expect(document.body.textContent).toContain('tx_state_franchise_or_entity_tax')
+    // Tax types render through TaxCodeBadge: human label inline, raw
+    // snake_case code only in the tooltip (2026-05-19 design decision).
+    expect(document.body.textContent).toContain('TX State Franchise or Entity Tax')
+    expect(document.body.textContent).not.toContain('tx_state_franchise_or_entity_tax')
     expect(document.body.textContent).toContain('Use suggested filings')
     expect(document.body.textContent).not.toContain('Use for this group')
     expect(document.body.textContent).not.toContain('Apply to all')

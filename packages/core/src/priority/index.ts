@@ -300,6 +300,18 @@ export function scoreSmartPriority(
   }
 }
 
+// Canonical qualitative band for a 0–100 smart-priority score. Any surface
+// that shows the score with a word must derive the word from THIS band —
+// never juxtapose the score with an unrelated risk field (a 94/100 labelled
+// "Moderate risk" reads as a broken scale and poisons trust in the number).
+export type SmartPriorityBand = 'high' | 'elevated' | 'normal'
+
+export function smartPriorityBand(score: number): SmartPriorityBand {
+  if (score >= 75) return 'high'
+  if (score >= 45) return 'elevated'
+  return 'normal'
+}
+
 export function compareSmartPriority(
   a: Pick<SmartPriorityInput, 'obligationId' | 'currentDueDate'> & {
     smartPriority: Pick<SmartPriorityBreakdown, 'score'>

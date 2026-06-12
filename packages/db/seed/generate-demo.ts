@@ -795,12 +795,17 @@ function buildObligationRow(firm: Firm, spec: OblSpec): { sql: string; id: strin
   }
 
   const decidedAt = ts('2026-04-20 10:00:00')
-  const exposure = (cents: number, label: string, formula: string) => {
-    r.estimated_exposure_cents = cents
+  // Penalty exposure must COMPUTE — a CPA recomputes any dollar figure in
+  // their head, so breakdown items have to be arithmetic-true, derive from
+  // the client's real seeded balance, and cite the right statute for the
+  // form. Never hardcode a total next to a formula that doesn't produce it.
+  const money = (cents: number) => `$${(cents / 100).toLocaleString('en-US')}`
+  const exposure = (
+    items: { key: string; label: string; amountCents: number; formula: string }[],
+  ) => {
+    r.estimated_exposure_cents = items.reduce((sum, item) => sum + item.amountCents, 0)
     r.exposure_status = s('ready')
-    r.penalty_breakdown_json = s(
-      JSON.stringify([{ key: 'late_filing', label, amountCents: cents, formula }]),
-    )
+    r.penalty_breakdown_json = s(JSON.stringify(items))
     r.penalty_formula_version = s('penalty-v1')
     r.exposure_calculated_at = ts(SEED_TS)
   }
@@ -842,9 +847,29 @@ function buildObligationRow(firm: Firm, spec: OblSpec): { sql: string; id: strin
       break
     case 'this_week':
       break
-    case 'overdue_penalty':
-      exposure(240000, 'Late filing exposure', '$245 x 3 x 3 months')
+    case 'overdue_penalty': {
+      // §6651 on the client's unpaid balance, projected 3 months out. FTF
+      // runs at 4.5%/mo net of the concurrent 0.5%/mo FTP offset (combined
+      // 5%/mo, 25% cap) — the individual-return model, NOT the per-partner
+      // 1065 flat rate this row previously displayed.
+      const balance = client.liabilityCents ?? 0
+      const months = 3
+      exposure([
+        {
+          key: 'late_filing',
+          label: 'Late filing — §6651(a)(1)',
+          amountCents: Math.round(balance * 0.045 * months),
+          formula: `4.5% x ${money(balance)} unpaid x ${months} months (net of failure-to-pay offset)`,
+        },
+        {
+          key: 'failure_to_pay',
+          label: 'Failure to pay — §6651(a)(2)',
+          amountCents: Math.round(balance * 0.005 * months),
+          formula: `0.5% x ${money(balance)} unpaid x ${months} months`,
+        },
+      ])
       break
+    }
     case 'in_progress_prep':
       r.status = s('in_progress')
       r.prep_stage = s('in_prep')
@@ -873,10 +898,25 @@ function buildObligationRow(firm: Firm, spec: OblSpec): { sql: string; id: strin
       r.status = s('blocked')
       r.blocked_by_obligation_instance_id = s(uuid(firm.oblPfx, spec.blockedBy!))
       break
-    case 'extended_auto':
+    case 'extended_auto': {
       extend(false)
-      exposure(180000, 'Failure-to-pay (payment not extended)', '0.5% x balance x months')
+      // Filing is extended but payment was NOT — §6651(a)(2) keeps running
+      // on the unpaid balance. Only rows that actually carry a federal
+      // payment date + balance get exposure (information returns like the
+      // FBAR have no failure-to-pay concept; fabricating one is fiction).
+      if (tax.jur === 'FED' && tax.type !== 'information' && client.liabilityCents) {
+        const months = 3
+        exposure([
+          {
+            key: 'failure_to_pay',
+            label: 'Failure to pay (payment not extended) — §6651(a)(2)',
+            amountCents: Math.round(client.liabilityCents * 0.005 * months),
+            formula: `0.5% x ${money(client.liabilityCents)} balance x ${months} months`,
+          },
+        ])
+      }
       break
+    }
     case 'extended_manual':
       extend(true)
       break

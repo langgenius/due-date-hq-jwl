@@ -300,10 +300,17 @@ function inferJurisdiction(code: string): TaxJurisdiction {
   return JURISDICTION_PREFIX[prefix] ?? 'Unknown'
 }
 
+// Connective words inside a generated code (`tx_state_franchise_or_entity_tax`)
+// are English, not codes — without this, the 2-letter rule below renders
+// "Franchise OR Entity Tax". First-segment jurisdiction prefixes ("tx", "ca",
+// "or" = Oregon) still uppercase.
+const CONNECTIVE_WORDS = new Set(['or', 'of', 'and', 'to', 'in', 'on', 'for', 'per'])
+
 function prettifyCode(code: string): string {
   return code
     .split('_')
-    .map((segment) => {
+    .map((segment, index) => {
+      if (index > 0 && CONNECTIVE_WORDS.has(segment)) return segment
       const upper = segment.toUpperCase()
       if (segment.length === 2 || /^\d/.test(segment)) return upper
       return segment.charAt(0).toUpperCase() + segment.slice(1)

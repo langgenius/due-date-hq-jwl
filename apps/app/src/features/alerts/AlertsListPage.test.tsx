@@ -523,8 +523,11 @@ describe('AlertsListPage affected-client batching', () => {
     await waitForText('Affects 1 client')
     // The disabled row observer re-renders when the batch seed lands — the
     // old→new due-date line is detail-only data, so its presence proves the
-    // cache subscription works without a per-row fetch.
-    await waitForText('Mar 15, 2026')
+    // cache subscription works without a per-row fetch. Matched without the
+    // year: dateShort drops it for current-year dates and appends it
+    // otherwise (date-formatting-canon), so the bare month-day form is
+    // present either way.
+    await waitForText('Mar 15')
     expect(rpcMocks.getDetailQueryFn).not.toHaveBeenCalled()
     expect(rpcMocks.getDetailsBatchQueryFn).toHaveBeenCalledTimes(1)
   })
