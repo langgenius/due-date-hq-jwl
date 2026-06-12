@@ -271,88 +271,64 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
   // divider-colored bg shows through any unfilled slot as a gray block.
   const fillerCount = (4 - (cells.length % 4)) % 4
 
-  // The do-by-when callout — built once, routed by `section`: the HERO
-  // renders it as the page's key fact; the details section excludes it.
-  const keyFactCallout =
-    protectiveFacts &&
-    (protectiveFacts.actionDeadline || protectiveFacts.evidenceNeeded.length > 0) ? (
-      // The callout is a LEFT RULE in the warning tone — structural
-      // emphasis, not a gray slab. The big mono date + countdown carry the
-      // urgency typographically.
-      <section className="flex flex-col gap-2.5 border-l-2 border-state-warning-solid py-1 pl-4">
-          {protectiveFacts.actionDeadline ? (
-            <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-              {/* 2026-06-12 (red triage — Yuqi "too messy"): the eyebrow is
-                  QUIET — muted icon, tertiary label like every other section
-                  label. The hot tone lives on the countdown alone, so exactly
-                  one element in the panel says "urgent". */}
-              <span className="inline-flex items-center gap-1.5 self-center">
-                <CalendarClockIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-                <span className="text-xs font-semibold tracking-[0.3px] text-text-tertiary uppercase">
-                  <Trans>Action deadline</Trans>
-                </span>
-              </span>
-              {/* 2026-06-12 ("no hierarchy, no focus"): the date is the
-                  document's FOCAL FACT — stat-tier 24px mono. The biggest
-                  type on the panel after the title belongs to "by when". */}
-              <span className="font-mono text-2xl font-bold tracking-title text-text-primary tabular-nums">
-                {formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}
-              </span>
-              {/* Derived countdown (deadline − today) — amber while the
-                  window is open, destructive once it has passed. */}
-              {actionDeadlineDays !== null ? (
-                actionDeadlineDays > 0 ? (
-                  <span className="text-sm font-semibold text-text-warning tabular-nums">
-                    <Plural value={actionDeadlineDays} one="# day left" other="# days left" />
-                  </span>
-                ) : actionDeadlineDays === 0 ? (
-                  <span className="text-sm font-semibold text-text-warning">
-                    <Trans>Due today</Trans>
-                  </span>
-                ) : (
-                  <span className="text-sm font-semibold text-text-destructive tabular-nums">
-                    <Plural value={-actionDeadlineDays} one="# day past" other="# days past" />
-                  </span>
-                )
-              ) : null}
-            </div>
-          ) : null}
-          {protectiveFacts.evidenceNeeded.length > 0 ? (
-            // No internal hairline (Yuqi "frames in frames in just lines"):
-            // the spacing step separates deadline from checklist inside the
-            // one callout.
-            <div className="flex flex-col gap-1.5 pt-1">
-              {/* T4 subhead (2026-06-12 label-ladder): sentence-case 13/600
-                  secondary — caps eyebrows are reserved for the fact GRID,
-                  where the table matrix earns them. Nine identical caps
-                  labels in one section meant the critical and the trivial
-                  dressed alike. */}
-              <span className="text-sm font-semibold text-text-secondary">
-                <Trans>Evidence to gather</Trans>
-              </span>
-              <ul className="flex flex-col gap-1">
-                {protectiveFacts.evidenceNeeded.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2 text-sm font-medium text-text-primary"
-                  >
-                    <span
-                      className="mt-[7px] size-1 shrink-0 rounded-full bg-text-tertiary"
-                      aria-hidden
-                    />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </section>
-      ) : null
+  // HERO key fact — ONE refined line (2026-06-12, Yuqi "太粗糙了…好难看"):
+  // the first cut hoisted the whole callout (warning rule + caps eyebrow +
+  // 28px date + evidence list) into the masthead, where the rule read as an
+  // error marker and the date OUTSIZED the 22px title. Now: quiet sentence
+  // lead-in, 20px mono date (one step under the title), countdown as the
+  // single hot word. The evidence checklist lives in the details section.
+  const keyFactLine = protectiveFacts?.actionDeadline ? (
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      <span className="inline-flex items-center gap-1.5 self-center text-sm font-medium text-text-tertiary">
+        <CalendarClockIcon className="size-3.5 shrink-0" aria-hidden />
+        <Trans>Act by</Trans>
+      </span>
+      <span className="font-mono text-xl font-bold tracking-title text-text-primary tabular-nums">
+        {formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}
+      </span>
+      {actionDeadlineDays !== null ? (
+        actionDeadlineDays > 0 ? (
+          <span className="text-sm font-semibold text-text-warning tabular-nums">
+            · <Plural value={actionDeadlineDays} one="# day left" other="# days left" />
+          </span>
+        ) : actionDeadlineDays === 0 ? (
+          <span className="text-sm font-semibold text-text-warning">
+            · <Trans>Due today</Trans>
+          </span>
+        ) : (
+          <span className="text-sm font-semibold text-text-destructive tabular-nums">
+            · <Plural value={-actionDeadlineDays} one="# day past" other="# days past" />
+          </span>
+        )
+      ) : null}
+    </div>
+  ) : null
 
-  if (section === 'key-fact') return keyFactCallout
+  if (section === 'key-fact') return keyFactLine
 
   return (
     <div className="flex flex-col gap-3">
+      {/* Evidence checklist — a to-do, so it leads the details depth (the
+          hero carries only the one-line by-when fact). */}
+      {protectiveFacts && protectiveFacts.evidenceNeeded.length > 0 ? (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm font-semibold text-text-secondary">
+            <Trans>Evidence to gather</Trans>
+          </span>
+          <ul className="flex flex-col gap-1">
+            {protectiveFacts.evidenceNeeded.map((item) => (
+              <li
+                key={item}
+                className="flex items-start gap-2 text-sm font-medium text-text-primary"
+              >
+                <span className="mt-[7px] size-1 shrink-0 rounded-full bg-text-tertiary" aria-hidden />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       {detail.alert.duplicateSourceSnapshotCount > 0 ? (
         <div className="rounded-lg bg-background-soft px-3 py-2 text-xs text-text-secondary">
           <Plural

@@ -31,7 +31,14 @@ export function ListRail({
     <aside
       aria-label={ariaLabel}
       className={cn(
-        'flex h-full w-[380px] shrink-0 flex-col border-r border-divider-subtle bg-background-default',
+        // border-l (2026-06-12, Yuqi "don't like the gap between the alert
+        // list and the sidebar"): the rail sits ~30px from the floating
+        // sidebar card (the shell's 12px slot margin + the rail's own
+        // content padding) with nothing marking where the pane begins — the
+        // void read as sloppy. The left hairline gives the rail an EDGE so
+        // the gutter reads as the app's intentional margin, mirroring the
+        // border-r against the detail pane.
+        'flex h-full w-[380px] shrink-0 flex-col border-r border-l border-divider-subtle bg-background-default',
         className,
       )}
     >

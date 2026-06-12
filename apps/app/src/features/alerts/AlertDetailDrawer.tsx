@@ -196,14 +196,15 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
       </div>
 
       {/* Diff row — old → new + signed delta (green when later = relief).
-          The NEW date is the document's focal fact: stat-tier 24px mono
-          (2026-06-12 "no hierarchy, no focus"). */}
+          The NEW date is the focal fact at 20px mono — ONE step under the
+          22px hero title (the earlier 24px+ render outsized the title, an
+          inversion Yuqi read as crude). */}
       <div className="flex flex-wrap items-baseline gap-2.5">
         <span className="font-mono text-base font-medium text-text-muted line-through tabular-nums">
           {formatDeadlineDate(oldIso)}
         </span>
         <ArrowRightIcon className="size-3.5 shrink-0 self-center text-text-muted" aria-hidden />
-        <span className="font-mono text-2xl font-bold tracking-title text-text-primary tabular-nums">
+        <span className="font-mono text-xl font-bold tracking-title text-text-primary tabular-nums">
           {formatDeadlineDate(newIso)}
         </span>
         <span
@@ -1430,7 +1431,10 @@ export function AlertDetailDrawer({
         // 2026-06-12 (Yuqi "white, gray, white, gray — so bad UI"): the body
         // is ONE WHITE SURFACE. Layering comes from hairlines + type + the
         // spacing rhythm, never from alternating fills.
-        className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto bg-background-default px-6 pt-6 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]"
+        // pt-4 (was pt-6): with the key fact in the hero, the hero→nav void
+        // ran ~36px of dead air (Yuqi "floating"); the nav's sticky -top
+        // matches this padding below.
+        className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto bg-background-default px-6 pt-4 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]"
       >
         {/* Scroll-spy section nav (Yuqi — deadline-tab orientation on one
             long document). Sticky under the container top; deliberately
@@ -1439,9 +1443,10 @@ export function AlertDetailDrawer({
         {detail ? (
           <nav
             aria-label={t`Alert sections`}
-            // -mt only (critique #6): trimming both margins collapsed the
-            // nav→card gap to 12px against the body's 24px rhythm.
-            className="sticky -top-6 z-10 -mt-3 shrink-0 bg-background-default py-3"
+            // No negative margins (the old -mt-3 paired with pt-6; against
+            // pt-4 it crushed the header→nav gap to 4px). -top matches the
+            // container's pt-4 so the nav pins flush.
+            className="sticky -top-4 z-10 shrink-0 bg-background-default py-3"
           >
             <div className="flex items-center gap-5 border-b border-divider-subtle pb-2">
               {sectionNavItems.map((item) => {
