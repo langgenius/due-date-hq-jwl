@@ -26,6 +26,7 @@ export function DetailSectionCard({
   bodyClassName,
   className,
   id,
+  variant = 'card',
 }: {
   title: ReactNode
   /** Right-aligned header meta or actions (e.g. "Verify before apply", a count,
@@ -38,7 +39,36 @@ export function DetailSectionCard({
   className?: string
   /** Anchor id — lets a section nav (scroll-spy) target the card. */
   id?: string
+  /**
+   * 2026-06-12 (Yuqi "hate frames in frames in just lines — hard to
+   * distinguish sections"): `flat` drops the outline entirely — the section
+   * is a DOCUMENT region whose boundary is its strong header + the parent's
+   * generous inter-section whitespace, not a box. Inner content that is
+   * semantically a table keeps its own frame. `card` keeps the outlined
+   * chrome (deadline detail).
+   */
+  variant?: 'card' | 'flat'
 }) {
+  if (variant === 'flat') {
+    return (
+      <section id={id} className={cn('flex flex-col gap-4', className)}>
+        <header className="flex items-baseline gap-2">
+          {/* Section header = the hierarchy carrier in the flat document:
+              one full type-tier above body text, no band, no rule. */}
+          <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
+          {headerRight ? (
+            <>
+              <span className="flex-1" />
+              <span className="flex items-center gap-2 text-xs text-text-tertiary">
+                {headerRight}
+              </span>
+            </>
+          ) : null}
+        </header>
+        <div className={cn(flush ? '' : 'flex flex-col gap-4', bodyClassName)}>{children}</div>
+      </section>
+    )
+  }
   return (
     <section
       id={id}

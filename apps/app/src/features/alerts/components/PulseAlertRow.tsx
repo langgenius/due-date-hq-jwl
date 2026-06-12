@@ -875,24 +875,23 @@ function formatDayHeader(
   today: string,
 ): {
   label: string
+  weekday: string
   isToday: boolean
 } {
   const isToday = dayKey === today
-  // "TUE · SEP 24, 2024" — weekday + month/day/year in mono.
+  // 2026-06-12 (Yuqi "the date is toooo hard to read"): the date is the
+  // band's PAYLOAD, so it renders strong sentence-case ("May 20, 2026");
+  // the weekday is supporting context and stays quiet. Returned as parts
+  // so the JSX can weight them differently.
   const date = new Date(`${dayKey}T12:00:00.000Z`)
-  const formatted = new Intl.DateTimeFormat('en-US', {
-    weekday: 'short',
+  const dateLabel = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
     timeZone,
   }).format(date)
-  // Convert "Tue, Sep 24, 2024" → "TUE · SEP 24, 2024" uppercase
-  // with dot separators (matches Pencil's mono header format).
-  const parts = formatted.replace(',', '').split(' ')
-  const weekday = parts[0]?.toUpperCase() ?? ''
-  const rest = parts.slice(1).join(' ').toUpperCase()
-  return { label: `${weekday} · ${rest}`, isToday }
+  const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone }).format(date)
+  return { label: dateLabel, weekday, isToday }
 }
 
 function PulseAlertList({
@@ -1025,13 +1024,13 @@ function PulseAlertList({
       {!grouped
         ? alerts.map(renderRow)
         : Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
-            const { label, isToday } = formatDayHeader(dayKey, firmTimezone, todayKey)
+            const { label, weekday, isToday } = formatDayHeader(dayKey, firmTimezone, todayKey)
             const yesterdayKey = (() => {
               const d = new Date(`${todayKey}T12:00:00.000Z`)
               d.setUTCDate(d.getUTCDate() - 1)
               return d.toISOString().slice(0, 10)
             })()
-            const dayWord = isToday ? t`TODAY` : dayKey === yesterdayKey ? t`YESTERDAY` : null
+            const dayWord = isToday ? t`Today` : dayKey === yesterdayKey ? t`Yesterday` : null
 
             return (
               <div key={dayKey} className="flex flex-col">
@@ -1062,13 +1061,25 @@ function PulseAlertList({
                     selectable ? 'pl-12' : 'pl-5',
                   )}
                 >
-                  <div className="flex items-center gap-1.5 text-column-label text-text-tertiary uppercase">
+                  {/* 2026-06-12 (Yuqi "the date is toooo hard to read"): the
+                      DATE is the band's payload → strong sentence-case
+                      13/600 primary ("May 20, 2026" / "Today"); the weekday
+                      recedes to quiet supporting text. The strong date is
+                      also the list's rhythm anchor — each day group now has
+                      a visible head instead of a whisper. */}
+                  <div className="flex items-baseline gap-2">
                     {isToday ? (
-                      <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
+                      <SunIcon
+                        className="size-3 shrink-0 self-center text-text-accent"
+                        aria-hidden
+                      />
                     ) : null}
-                    {dayWord ? <span>{dayWord}</span> : null}
-                    {dayWord ? <span className="text-text-muted">·</span> : null}
-                    <span>{label}</span>
+                    <span className="text-sm font-semibold text-text-primary">
+                      {dayWord ?? label}
+                    </span>
+                    <span className="text-xs text-text-tertiary">
+                      {dayWord ? label : weekday}
+                    </span>
                   </div>
                 </div>
 

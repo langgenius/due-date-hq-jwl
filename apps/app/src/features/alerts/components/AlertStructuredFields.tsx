@@ -298,7 +298,10 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
                   <Trans>Action deadline</Trans>
                 </span>
               </span>
-              <span className="font-mono text-xl font-bold tracking-title text-text-primary tabular-nums">
+              {/* 2026-06-12 ("no hierarchy, no focus"): the date is the
+                  document's FOCAL FACT — stat-tier 24px mono. The biggest
+                  type on the panel after the title belongs to "by when". */}
+              <span className="font-mono text-2xl font-bold tracking-title text-text-primary tabular-nums">
                 {formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}
               </span>
               {/* Derived countdown (deadline − today) — amber while the
@@ -321,13 +324,10 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             </div>
           ) : null}
           {protectiveFacts.evidenceNeeded.length > 0 ? (
-            <div
-              className={
-                protectiveFacts.actionDeadline
-                  ? 'flex flex-col gap-1.5 border-t border-divider-subtle pt-2.5'
-                  : 'flex flex-col gap-1.5'
-              }
-            >
+            // No internal hairline (Yuqi "frames in frames in just lines"):
+            // the spacing step separates deadline from checklist inside the
+            // one callout.
+            <div className="flex flex-col gap-1.5 pt-1">
               <span className="text-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
                 <Trans>Evidence to gather</Trans>
               </span>

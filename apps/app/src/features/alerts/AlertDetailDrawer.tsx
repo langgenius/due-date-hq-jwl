@@ -189,13 +189,15 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
         />
       </div>
 
-      {/* Diff row — old → new + signed delta (green when later = relief). */}
+      {/* Diff row — old → new + signed delta (green when later = relief).
+          The NEW date is the document's focal fact: stat-tier 24px mono
+          (2026-06-12 "no hierarchy, no focus"). */}
       <div className="flex flex-wrap items-baseline gap-2.5">
         <span className="font-mono text-base font-medium text-text-muted line-through tabular-nums">
           {formatDeadlineDate(oldIso)}
         </span>
         <ArrowRightIcon className="size-3.5 shrink-0 self-center text-text-muted" aria-hidden />
-        <span className="font-mono text-xl font-bold tracking-title text-text-primary tabular-nums">
+        <span className="font-mono text-2xl font-bold tracking-title text-text-primary tabular-nums">
           {formatDeadlineDate(newIso)}
         </span>
         <span
@@ -542,36 +544,49 @@ function DecisionBanners({
     alert.firmImpact !== 'no_current_match' &&
     detail.applyReadiness.status !== 'ready'
   ) {
-    // The compact single-line band is pinned to the Segmented size="sm"
-    // track height (h-7) via DetailStatusBanner, matching the rail's
-    // All/Unresolved control.
-    return (
-      <DetailStatusBanner
-        compact
-        // 2026-06-12 (Yuqi detail critique "too messy — six colored signals
-        // before any scroll"): pending = quiet gray, not warning-amber. An
-        // open decision isn't an alarm; the panel's ONE hot cue is the
-        // action-deadline countdown in the facts card.
-        tone="pending"
-        icon={CircleAlertIcon}
-        // "Awaiting your decision" — the SAME phrase the Activity
-        // timeline's current-state node uses, so the banner and the
-        // timeline speak one status vocabulary. (The header's separate
-        // "Needs Action" pill was removed for restating this banner in
-        // different words — one state, one phrasing.)
-        title={<Trans>Awaiting your decision</Trans>}
-        // The confidence % is dropped from this banner — it lives in the
-        // dedicated "AI confidence" block below (which for low-confidence
-        // alerts is the prominent actionable warning), so the banner
-        // carries only status + the due-date timing (no duplication).
-        note={
-          dueInDays !== null && dueInDays >= 0 ? <span>{t`due in ${dueInDays} days`}</span> : null
-        }
-      />
-    )
+    // 2026-06-12 (Yuqi "the alert detail looks plain… floating" + earlier
+    // "avoid so many sections"): the steady-state pending status no longer
+    // spends a full 52px band on three words — it renders as a status CHIP
+    // in the hero meta row (see AwaitingDecisionChip), which removes a whole
+    // horizontal stripe and anchors the status where the eye starts. The
+    // richer error/applied banners above stay: they carry actions.
+    return null
   }
 
   return null
+}
+
+/**
+ * Hero status chip — the "Awaiting your decision" steady state, rendered in
+ * the header meta row (amber dot + quiet text + optional due note). Same
+ * phrase the Activity timeline's current node uses.
+ */
+function AwaitingDecisionChip({ detail }: { detail: PulseDetail }) {
+  const { t } = useLingui()
+  const alert = detail.alert
+  if (
+    alert.status !== 'matched' ||
+    alert.firmImpact === 'no_current_match' ||
+    detail.applyReadiness.status === 'ready'
+  ) {
+    return null
+  }
+  const dueInDays = detail.newDueDate
+    ? Math.round(
+        (new Date(`${detail.newDueDate}T00:00:00.000Z`).getTime() - Date.now()) / 86_400_000,
+      )
+    : null
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-text-secondary">
+      <span className="size-1.5 shrink-0 rounded-full bg-text-warning" aria-hidden />
+      <Trans>Awaiting your decision</Trans>
+      {dueInDays !== null && dueInDays >= 0 ? (
+        <span className="font-normal text-text-tertiary tabular-nums">
+          · {t`due in ${dueInDays} days`}
+        </span>
+      ) : null}
+    </span>
+  )
 }
 
 // Alert detail drawer: AI summary + structured fields + affected clients + apply
@@ -1292,6 +1307,9 @@ export function AlertDetailDrawer({
                   <span className="shrink-0 text-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
+                  {/* Steady-state status lives HERE as a chip (amber dot),
+                      not as a 52px band above the hero. */}
+                  <AwaitingDecisionChip detail={detail} />
                   <span className="ml-auto flex shrink-0 items-center gap-2 text-sm text-text-tertiary">
                     {detail.alert.sourceUrl ? (
                       <a
@@ -1475,19 +1493,15 @@ export function AlertDetailDrawer({
         ) : null}
 
         {detail ? (
-          // The body is a `gap-4` stack of up-to-four white group cards on
-          // the gray-wash body (see the per-group comment below). Kept out
-          // of flex-shrink so the scroll container owns the scroll height.
-          <div className="flex shrink-0 flex-col gap-4">
-            {/* The body is four white cards on the gray wash —
-                  1. Extracted facts  (deadline shift + fact grid + impact)
-                  2. Affected clients (scope table + apply/review controls)
-                  3. Source & confidence (warnings + source extract + provenance)
-                  4. Activity         (lifecycle timeline + team notes)
-                No new section labels: each card's boundary + its existing inner
-                headers carry the grouping, so the panel reads as four obvious
-                blocks. Card radius 12 (canonical wrapper); white fill pops
-                against the gray body. */}
+          // 2026-06-12 (Yuqi "plain, no hierarchy, floating… hate frames in
+          // frames in just lines"): the body is a flat DOCUMENT of four
+          // regions — Extracted facts / Affected clients / Source &
+          // confidence / Activity — separated by a 40px whitespace rhythm
+          // (gap-10) and led by 16/600 section headers (variant="flat", no
+          // outlines). Proximity + type do the grouping; the only framed
+          // things are semantic tables (affected clients). Kept out of
+          // flex-shrink so the scroll container owns the scroll height.
+          <div className="flex shrink-0 flex-col gap-10">
 
             {/* GROUP 1 — Extracted facts. The group cards use the canonical
                 <DetailSectionCard> chrome — a gray header band (13/600
@@ -1498,6 +1512,7 @@ export function AlertDetailDrawer({
                 caveat, no duplicate label inside the body. */}
             <DetailSectionCard
               id="alert-section-facts"
+              variant="flat"
               className="scroll-mt-16"
               title={<Trans>Extracted facts</Trans>}
               headerRight={<Trans>AI parsed — verify before Apply</Trans>}
@@ -1529,6 +1544,7 @@ export function AlertDetailDrawer({
             {showClientsGroup ? (
               <DetailSectionCard
                 id="alert-section-clients"
+                variant="flat"
                 className="scroll-mt-16"
                 title={
                   <>
@@ -1699,6 +1715,7 @@ export function AlertDetailDrawer({
                 is just citation → quote → confidence. */}
             <DetailSectionCard
               id="alert-section-source"
+              variant="flat"
               className="scroll-mt-16"
               title={<Trans>Source &amp; confidence</Trans>}
               headerRight={
@@ -1872,6 +1889,7 @@ export function AlertDetailDrawer({
                 (Yuqi #11) so the timeline body needs no second header. */}
             <DetailSectionCard
               id="alert-section-activity"
+              variant="flat"
               className="scroll-mt-16"
               title={<Trans>Activity &amp; notes</Trans>}
               headerRight={
@@ -2135,7 +2153,15 @@ export function DrawerActions({
   onDismiss: () => void
 }) {
   const { t } = useLingui()
-  const showRevert = REVERTABLE_STATUSES.has(alertStatus)
+  // The server rejects reverts past REVERT_WINDOW_MS (24h from apply), so
+  // the footer only offers Undo while the window is genuinely open. After
+  // that, a quiet closed-window line replaces the button — never an enabled
+  // control the server would refuse.
+  const undoClosesAt = appliedAt ? revertExpiresAt(appliedAt) : null
+  const undoWindowOpen = undoClosesAt === null || isWithinRevertWindow(undoClosesAt)
+  const showRevert = REVERTABLE_STATUSES.has(alertStatus) && undoWindowOpen
+  const showUndoWindowClosed =
+    REVERTABLE_STATUSES.has(alertStatus) && !undoWindowOpen && undoClosesAt !== null
   const showReactivate = alertStatus === 'reverted'
   const isDismissed = alertStatus === 'dismissed'
   const sourceRevoked = sourceStatus === 'source_revoked'
@@ -2172,6 +2198,11 @@ export function DrawerActions({
             <RotateCcwIcon data-icon="inline-start" />
             <Trans>Undo (24h)</Trans>
           </Button>
+        ) : null}
+        {showUndoWindowClosed && undoClosesAt !== null ? (
+          <span className="shrink-0 text-xs text-text-tertiary">
+            <Trans>Undo window closed {formatDatePretty(undoClosesAt.toISOString())}</Trans>
+          </span>
         ) : null}
         {showReactivate ? (
           <Button
@@ -2226,7 +2257,9 @@ export function DrawerActions({
           title={
             noActionReview && reverifyIncomplete
               ? t`Re-verify all rules below before marking this alert reviewed.`
-              : undefined
+              : !noActionReview && needsDeadlineDetails
+                ? t`Confirm the due date and select deadlines above before applying.`
+                : undefined
           }
           onClick={noActionReview ? onMarkReviewed : onApply}
           aria-busy={isMutating || undefined}
