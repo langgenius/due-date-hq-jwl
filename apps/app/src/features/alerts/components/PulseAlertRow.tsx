@@ -30,9 +30,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
 
 import { useAlertDetailFromCacheQueryOptions } from '../api'
-import { ActiveQueueChip } from './ActiveQueueChip'
 import { changeKindLabel } from './PulseChangeKindChip'
-import { isActiveAlert } from './pulse-alert-chrome'
 
 /**
  * `PulseAlertRow` — list-row rendering of an alert, replacing the
@@ -435,10 +433,14 @@ function PulseAlertRow({
             level → state → form → change-kind (text) · sources →
             spacer → source link → why. */}
         <div className="flex min-w-0 items-center gap-2">
-          {/* ACTIVE badge — due-date-overlay alerts are the actionable
-              "Active" queue; a green dot+label flags them on the row (and
-              the detail header). Review-only alerts carry no badge. */}
-          {isActiveAlert(alert) ? <ActiveQueueChip /> : null}
+          {/* 2026-06-12 (Yuqi "using a pill to show Active in the Active
+              tab is not reasonable or logical"): the ACTIVE badge is GONE
+              from queue rows — the Review/Active tab already states which
+              queue you're in, so the per-row pill was pure redundancy.
+              The queues differ structurally instead: Active rows carry the
+              date-diff KeyChange + affected clients; Review rows read
+              "No client impact". (ActiveQueueChip still marks the DETAIL
+              header + history, where queues mix.) */}
           {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
               when the alert is in the priority queue. */}
           {levelPill ? (
@@ -602,7 +604,13 @@ function PulseAlertRow({
           // `text-lg` (the 16px token, not a literal) + text-primary —
           // the title is the row's primary read, so it takes the primary
           // ink while everything around it recedes (batch 3 #3 polish).
-          className="line-clamp-2 min-w-0 text-lg font-medium tracking-title text-text-primary"
+          // 2026-06-12 (Yuqi "is it because it is too wide — the alerts
+          // are so hard to read?" → attack): titles ran ~140ch at full
+          // row width, double the readable measure, so the eye lost the
+          // line on every return sweep. Capped at 72ch — long titles now
+          // wrap to two lines (distinct row silhouettes), and the freed
+          // right side stays meta-only.
+          className="line-clamp-2 min-w-0 max-w-[72ch] text-lg font-medium tracking-title text-text-primary"
           title={alert.title}
         >
           {alert.title}

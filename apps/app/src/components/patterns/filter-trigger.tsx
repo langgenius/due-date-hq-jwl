@@ -28,9 +28,11 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *   - hover: deepens to `state-base-hover` (consistent across all states).
  *
  * New API:
- *   - `valueLabel` — optional Geist Mono 11/600 secondary text rendered
- *     after the main label, matching Pencil's "all"/"any" counters
- *     (`tk7tC`/`MHfb5` etc.).
+ *   - `valueLabel` — optional CURRENT-VALUE text rendered after the label
+ *     behind a hairline vertical divider, in the accent tone — the
+ *     `Label │ Value ⌄` two-tone pill (2026-06-12, Yuqi's Stripe
+ *     reference: "Date range │ All time ⌄"). The label says what the
+ *     control filters; the accent value says what's currently applied.
  *   - `variant` — `'filter' | 'saved'`. Defaults to `'filter'`.
  *   - `leadingIconColor` — Tailwind text-color class for the leading
  *     icon. Pencil uses `text-text-accent` (#155aef blue) on active
@@ -45,10 +47,11 @@ type FilterTriggerProps = {
   /** Hide the trailing chevron — useful for icon-only triggers in narrow rows. */
   hideChevron?: boolean
   /**
-   * Optional secondary mono-text rendered after the label (Pencil's
-   * `tk7tC`/`MHfb5` counter pattern). Renders in 11/600 Geist Mono
-   * `text-text-muted` (#98a2b2). Typical values: "all", "any", or a
-   * concrete count like "3".
+   * The control's CURRENT value, rendered after the label behind a
+   * hairline divider in the accent tone (`Label │ Value ⌄`). Typical
+   * values: "All time", "Newest", a state code, or a count. Omit when
+   * the control is at rest with nothing applied — the pill then reads
+   * as a quiet label-only trigger.
    */
   valueLabel?: ReactNode
   /**
@@ -106,11 +109,12 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
         type="button"
         data-active={active ? 'true' : 'false'}
         className={cn(
-          // Round 83 (Yuqi #16 "all of these can be slightly
-          // smaller. just to be more delicate"): height 10 → 9,
-          // horizontal pad 4 → 3, text 13 → 12. The filter row
-          // reads as a quieter, more deliberate strip.
-          'inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-xl border border-divider-regular px-3 text-sm font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
+          // 2026-06-12 (Yuqi — Stripe pill reference "Date range │ All
+          // time ⌄"): the trigger is a full PILL (rounded-full = the 999
+          // step of the radius scale) so the filter row reads as a strip
+          // of pills, distinct from the rectangular buttons around it.
+          // Height stays h-9 / px-3 / 13px-500 from the round-83 sizing.
+          'inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular px-3 text-sm font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           variantBg,
           'disabled:cursor-not-allowed disabled:opacity-50',
@@ -123,11 +127,24 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
         ) : null}
         {children}
         {valueLabel != null ? (
-          <span className="font-mono text-xs font-semibold text-text-muted">{valueLabel}</span>
+          // The Stripe two-tone read: hairline divider, then the current
+          // value in the accent. The label stays gray (what this filters);
+          // the value is the colored, scannable part (what's applied).
+          <>
+            <span className="h-3.5 w-px shrink-0 bg-divider-regular" aria-hidden />
+            <span className="font-medium text-text-accent tabular-nums">{valueLabel}</span>
+          </>
         ) : null}
         {hideChevron ? null : (
           <ChevronDownIcon
-            className="size-3.5 shrink-0 text-text-tertiary opacity-70"
+            className={cn(
+              'size-3.5 shrink-0',
+              // Chevron follows the value: accent when a value is applied,
+              // quiet tertiary at rest.
+              valueLabel != null || active
+                ? 'text-text-accent'
+                : 'text-text-tertiary opacity-70',
+            )}
             aria-hidden
           />
         )}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon, UsersIcon } from 'lucide-react'
 
@@ -19,9 +19,7 @@ import { useActiveAlertCount } from '@/features/alerts/api'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
-import { ActiveQueueChip } from './ActiveQueueChip'
 import { changeKindLabel } from './PulseChangeKindChip'
-import { isActiveAlert } from './pulse-alert-chrome'
 
 /**
  * The 380px alert-list secondary sidebar shown on the full-page detail
@@ -197,6 +195,22 @@ function RailItem({
   onSelect: () => void
 }) {
   const { t } = useLingui()
+
+  // 2026-06-12 (Yuqi "…go to the alert detail WITH THAT ALERT SELECTED AND
+  // SCROLLED TO THE TOP"): on the rail's first paint the selected item
+  // scrolls to the TOP of the list viewport (arriving from /today or a
+  // shared URL, the selection is visible immediately, leading the list).
+  // Later activations (↑/↓ paging) use 'nearest' so the rail never
+  // teleports under an in-rail click — a click target is already visible.
+  const itemRef = useRef<HTMLButtonElement | null>(null)
+  const hasPainted = useRef(false)
+  useEffect(() => {
+    if (active) {
+      itemRef.current?.scrollIntoView({ block: hasPainted.current ? 'nearest' : 'start' })
+    }
+    hasPainted.current = true
+  }, [active])
+
   const published = new Date(alert.publishedAt)
   const dateLabel = new Intl.DateTimeFormat('en-US', {
     month: 'short',
@@ -221,6 +235,7 @@ function RailItem({
 
   return (
     <button
+      ref={itemRef}
       type="button"
       onClick={onSelect}
       aria-pressed={active}
@@ -259,9 +274,9 @@ function RailItem({
           narrower rail width. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          {/* ACTIVE badge — mirrors the main row's actionable-queue flag
-              (shared ActiveQueueChip) for due-date-overlay alerts. */}
-          {isActiveAlert(alert) ? <ActiveQueueChip /> : null}
+          {/* No ACTIVE badge (2026-06-12, Yuqi): the rail's own
+              Review/Active toggle states the queue, so a per-item pill
+              repeating it was noise — same call as the main list rows. */}
           {/* Shared JurisdictionChip primitive (outline reference tag,
               no StateBadge seal), matching the /alerts row. */}
           <JurisdictionChip code={alert.jurisdiction} />

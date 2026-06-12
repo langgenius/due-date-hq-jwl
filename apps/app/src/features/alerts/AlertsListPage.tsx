@@ -193,6 +193,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // changes is the higher-priority action; Active (apply due-date changes)
   // follows.
   const [workQueue, setWorkQueue] = useState<'active' | 'review'>('review')
+  // Sync-key for the open-alert → queue-tab sync below (declared here with
+  // its sibling state; the sync itself runs after `alerts` is derived).
+  const [queueSyncedAlertId, setQueueSyncedAlertId] = useState<string | null>(null)
 
   // Local selection set of alert ids. Drives the per-row checkboxes, the
   // BulkSelectStrip's tri-state "Select all", and the floating
@@ -290,6 +293,20 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
+
+  // 2026-06-12 (Yuqi "if it is active already, you should land in the right
+  // tab"): opening an alert (deep link from /today, URL share, prev/next
+  // paging) syncs the queue toggle to THAT alert's queue, so the rail/list
+  // never shows a selection that isn't in the visible tab. Render-time
+  // setState with a sync-key bail-out (project convention, no useEffect);
+  // the user can still flip the toggle freely afterwards — we only re-sync
+  // when a DIFFERENT alert opens.
+  const openAlert = openAlertId ? alerts.find((alert) => alert.id === openAlertId) : undefined
+  if (!historyMode && openAlert && queueSyncedAlertId !== openAlert.id) {
+    const alertQueue = isActiveAlert(openAlert) ? 'active' : 'review'
+    if (workQueue !== alertQueue) setWorkQueue(alertQueue)
+    setQueueSyncedAlertId(openAlert.id)
+  }
   // Batch the affected-client rows for every alert in ONE request and hand each
   // card its slice, instead of every AlertCard firing its own `getDetail`.
   // Keyed off the full (stable) `alerts` set — not `filteredAlerts` — so
@@ -794,6 +811,26 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   />
                 ) : null}
 
+                {/* Suggested-action toggle rides NEXT TO the queue switch
+                    (Yuqi /alerts #3) — both decide what the rows ARE
+                    (which queue, with or without the suggestion line),
+                    while the narrowing/sorting tools cluster right. */}
+                {panelOpen ? null : (
+                  <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-sm text-text-secondary select-none">
+                    <Checkbox
+                      checked={showSuggestedAction}
+                      onCheckedChange={(next) => setShowSuggestedAction(next)}
+                    />
+                    <Trans>Suggested action</Trans>
+                  </label>
+                )}
+
+                {/* Spacer — reading controls left, finding controls right
+                    (Yuqi /alerts #3: "put search, filters, state close to
+                    the sort dropdown"). Collapses below lg so the wrap
+                    order stays sane on narrow viewports. */}
+                <span className="hidden flex-1 lg:block" aria-hidden />
+
                 <SearchInput
                   value={searchQuery}
                   onChange={setSearchQuery}
@@ -826,12 +863,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 {/* When the detail panel is open, every filter control
                     AFTER the Search hides — see the closing `)}` below.
 
-                    Toolbar order (Yuqi batch 3 #1/#8): NARROWING controls
-                    lead, left-to-right — [Queue toggle] [Search] [Filters]
-                    [State] [Clear] — then the spacer, then the DISPLAY
-                    controls flush right — [Suggested action] [Sort] [view
-                    icons]. One labeled toggle per row: the List/Map switch
-                    is icon-only at the far end so it reads as a view
+                    Toolbar order (Yuqi /alerts #3, 2026-06-12): READING
+                    controls left — [Queue toggle] [Suggested action] —
+                    they decide what the rows ARE; then the spacer, then
+                    the FINDING controls clustered right — [Search]
+                    [Filters] [State] [Clear] [Sort] [view icons]. One
+                    labeled toggle per row: the List/Map switch is
+                    icon-only at the far end so it reads as a view
                     switcher, not a second queue toggle. */}
                 {panelOpen ? null : (
                   <>
@@ -941,51 +979,30 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       </Button>
                     ) : null}
 
-                    {/* Spacer — narrowing cluster left, display cluster
-                        right (Yuqi batch 3 #8). */}
-                    <span className="hidden flex-1 lg:block" aria-hidden />
-
-                    {/* Display settings — quiet 13px label (Yuqi batch 3
-                        #2: 更小), then Sort, then the icon-only view
-                        switcher. */}
-                    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-sm text-text-secondary select-none">
-                      <Checkbox
-                        checked={showSuggestedAction}
-                        onCheckedChange={(next) => setShowSuggestedAction(next)}
-                      />
-                      <Trans>Suggested action</Trans>
-                    </label>
-
                     {/* Sort by — three options matching the sortOrder
-                    enum. The current value is shown inline on the trigger
-                    so the dropdown reads "Sort by Newest" / "Oldest" /
-                    "Impact" without opening. Fixed `w-[200px]` so the
-                    trigger doesn't reflow every time the selection
-                    changes, with the label + value left-aligned and the
-                    chevron pinned right. */}
+                    enum. The current value rides the FilterTrigger's
+                    canonical `Label │ Value ⌄` slot (Stripe two-tone pill,
+                    2026-06-12) so the trigger reads "Sort by │ Newest"
+                    without opening, in the same grammar as Filters/State. */}
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
                           <FilterTrigger
                             noLeadingIcon
                             aria-label={t`Sort alerts`}
-                            className="w-[200px] justify-start text-left text-base"
-                          >
-                            <span className="text-text-tertiary">
-                              <Trans>Sort by</Trans>
-                            </span>
-                            {/* `mr-auto` on the value pushes the trailing
-                                chevron to the right edge of the
-                                fixed-width chip while the label + value
-                                stay left-aligned. */}
-                            <span className="mr-auto">
-                              {sortOrder === 'oldest' ? (
+                            className="text-base"
+                            valueLabel={
+                              sortOrder === 'oldest' ? (
                                 <Trans>Oldest</Trans>
                               ) : sortOrder === 'highest_impact' ? (
                                 <Trans>Impact</Trans>
                               ) : (
                                 <Trans>Newest</Trans>
-                              )}
+                              )
+                            }
+                          >
+                            <span>
+                              <Trans>Sort by</Trans>
                             </span>
                           </FilterTrigger>
                         }
@@ -1411,25 +1428,20 @@ function StateFilterPopover({
             active={Boolean(activeState)}
             aria-label={t`Filter by state`}
             className="text-base"
+            // Stripe two-tone slot (2026-06-12): the label always reads
+            // "State"; the applied state + its count ride the accent
+            // `│ value` segment ("State │ CA · 4").
+            valueLabel={
+              activeState ? (
+                <>
+                  {activeState} · <Plural value={activeCount} one="# alert" other="# alerts" />
+                </>
+              ) : undefined
+            }
           >
-            {activeState ? (
-              <>
-                {/* No SVG StateBadge — the 2-letter code with the
-                    FilterTrigger's active surface already telegraphs the
-                    active filter. */}
-                <span className="font-medium">{activeState}</span>
-                <span className="tabular-nums text-text-accent/70">
-                  <Plural value={activeCount} one="# alert" other="# alerts" />
-                </span>
-              </>
-            ) : (
-              <span>
-                {/* At-rest label is "State" (not "Any state") so the chip
-                    reads consistently with the other filter triggers
-                    ("Severity" / "Change types" / "Status"). */}
-                <Trans>State</Trans>
-              </span>
-            )}
+            <span>
+              <Trans>State</Trans>
+            </span>
           </FilterTrigger>
         }
       />
@@ -1534,15 +1546,15 @@ function AlertFiltersPopover({
         render={
           <FilterTrigger
             active={activeCount > 0}
-            // The consolidated Filters entry leads the filter cluster and
-            // carries the gray `saved` fill at rest so it reads as a real
-            // control, not another quiet pill (Yuqi batch 3 #7: "more
-            // obvious"). Active filters switch to the accent wash.
-            variant={activeCount > 0 ? 'filter' : 'saved'}
+            // 2026-06-12 (Yuqi /alerts #8 "State feels like a different
+            // colour to Filters"): the gray `saved` fill is dropped — every
+            // trigger in the cluster shares ONE at-rest chrome, and the
+            // applied-state emphasis comes from the canonical accent
+            // `│ value` slot instead of a heavier resting fill.
             leadingIcon={SlidersHorizontalIcon}
             valueLabel={activeCount > 0 ? String(activeCount) : undefined}
             aria-label={t`Filters`}
-            className="text-base font-medium text-text-primary"
+            className="text-base"
           >
             <span>
               <Trans>Filters</Trans>
