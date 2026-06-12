@@ -298,6 +298,7 @@ export function NotificationsPage() {
                   <span className="flex items-center gap-1">
                     {item.href ? (
                       <Button
+                        nativeButton={false}
                         render={
                           <Link
                             to={item.href}
