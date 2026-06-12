@@ -139,15 +139,17 @@ export function MergedBriefCard({
     // so the page doesn't reflow when rows land. aria-busy for SRs.
     return (
       <section aria-label={t`Priorities`} aria-busy className="flex w-full flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
-          <h2 className="text-region-title text-text-primary">
-            <Trans>Priorities</Trans>
-          </h2>
+        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <h2 className="text-region-title text-text-primary">
+              <Trans>Priorities</Trans>
+            </h2>
+            {/* lede slot — tight under the title, mirroring the loaded view */}
+            <Skeleton className="h-4 w-64" />
+          </div>
           {/* chips slot */}
-          <Skeleton className="ml-auto h-[34px] w-72 rounded-full" />
+          <Skeleton className="h-8 w-72 rounded-full" />
         </div>
-        {/* lede slot */}
-        <Skeleton className="h-4 w-64" />
         <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
           <Table>
             <TableHeader>
@@ -213,46 +215,72 @@ export function MergedBriefCard({
           share one x — the audit's eye-line fix; the old leading icon-circle
           pushed this title 38px off the rail) + the count-chip bucket selector
           pinned right. */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
-        {/* "Priorities", not "Today's brief" — the card leads with overdue work,
-            so a "today" headline would lie about its own content (Yuqi). */}
-        <h2 className="text-region-title text-text-primary">
-          <Trans>Priorities</Trans>
-        </h2>
-        {/* The sparkles now MEANS something: it marks the list as
-            Smart-Priority curated and opens the explainer on hover — the same
-            job the original Priority Actions header gave its star. */}
-        <Tooltip>
-          <TooltipTrigger
-            render={(props) => (
-              <button
-                type="button"
-                aria-label={t`About Priorities`}
-                className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                {...props}
-              >
-                <SparklesIcon className="size-3.5" aria-hidden />
-              </button>
+      {/* 2026-06-12 (Yuqi /today #6 "spacing between Priorities title and body
+          is too much — do the math"): the bucket selector (32px) is taller than
+          the title (23px), so a shared `items-center` row centered the title and
+          left ~17px to the lede (5px row-slack + 12px section gap) while the
+          title-to-row-top was only 5px — lopsided. Title + lede now form a tight
+          title/subtitle pair (gap-1.5 = 6px) in a left column; the chip group
+          pins right and `items-start` aligns it to the TITLE so it never
+          inflates the title→lede gap again. */}
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            {/* "Priorities", not "Today's brief" — the card leads with overdue
+                work, so a "today" headline would lie about its own content. */}
+            <h2 className="text-region-title text-text-primary">
+              <Trans>Priorities</Trans>
+            </h2>
+            {/* The sparkles marks the list as Smart-Priority curated and opens
+                the explainer on hover. */}
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <button
+                    type="button"
+                    aria-label={t`About Priorities`}
+                    className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    {...props}
+                  >
+                    <SparklesIcon className="size-3.5" aria-hidden />
+                  </button>
+                )}
+              />
+              <TooltipContent>
+                <div className="flex max-w-[280px] flex-col gap-1 text-left">
+                  <span className="font-semibold">
+                    <Trans>Curated by Smart Priority</Trans>
+                  </span>
+                  <span>
+                    <Trans>
+                      The top open deadlines in this view, ranked by Smart Priority and bucketed by
+                      due window — the next work most worth handling, not every deadline.
+                    </Trans>
+                  </span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          {/* Lede — one-line deterministic summary, tight under the title. */}
+          <p className="text-sm text-text-secondary">
+            {totalActive === 0 ? (
+              <Trans>No open deadlines right now.</Trans>
+            ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
+              <Trans>
+                {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
+              </Trans>
+            ) : counts.overdue > 0 ? (
+              <Trans>{counts.overdue} overdue.</Trans>
+            ) : (
+              <Trans>{upcoming} coming up, none overdue.</Trans>
             )}
-          />
-          <TooltipContent>
-            <div className="flex max-w-[280px] flex-col gap-1 text-left">
-              <span className="font-semibold">
-                <Trans>Curated by Smart Priority</Trans>
-              </span>
-              <span>
-                <Trans>
-                  The top open deadlines in this view, ranked by Smart Priority and bucketed by due
-                  window — the next work most worth handling, not every deadline.
-                </Trans>
-              </span>
-            </div>
-          </TooltipContent>
-        </Tooltip>
+          </p>
+        </div>
 
         {/* Bucket selector borrowed from the /deadlines queue: rounded-full
             track, white active pill, tone dot + label + muted count. */}
-        <div className="ml-auto flex items-center gap-0.5 rounded-full bg-background-subtle p-1">
+        <div className="flex items-center gap-0.5 rounded-full bg-background-subtle p-1">
           {tabs.map((tab) => {
             const active = tab.key === selected
             return (
@@ -277,21 +305,6 @@ export function MergedBriefCard({
           })}
         </div>
       </div>
-
-      {/* Lede — one-line deterministic summary of the day. */}
-      <p className="text-sm text-text-secondary">
-        {totalActive === 0 ? (
-          <Trans>No open deadlines right now.</Trans>
-        ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
-          <Trans>
-            {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
-          </Trans>
-        ) : counts.overdue > 0 ? (
-          <Trans>{counts.overdue} overdue.</Trans>
-        ) : (
-          <Trans>{upcoming} coming up, none overdue.</Trans>
-        )}
-      </p>
 
       {shown.length === 0 ? (
         <p
