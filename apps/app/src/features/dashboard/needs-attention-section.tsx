@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
@@ -237,10 +238,14 @@ function NeedsAttentionSection() {
         </h2>
         {/* "View all N" link — opens the full /alerts surface from the section
             header; it carries the section count (demoted from the old title
-            chip) so the number keeps one home. */}
-        <Link
-          to="/alerts"
-          className="group inline-flex shrink-0 items-center gap-1 rounded-sm text-xs font-medium text-text-tertiary underline-offset-2 outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            chip) so the number keeps one home. Canonical `<TextLink>` (the
+            primitive this exact pattern exists for — the hand-rolled Link
+            was a vocabulary violation), accent variant so the section's one
+            navigation affordance reads as a link, not gray meta. */}
+        <TextLink
+          variant="accent"
+          render={<Link to="/alerts" />}
+          className="group shrink-0"
         >
           <span className="tabular-nums">
             <Trans>View all {totalAlertCount}</Trans>
@@ -251,7 +256,7 @@ function NeedsAttentionSection() {
             className="size-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
             aria-hidden
           />
-        </Link>
+        </TextLink>
       </div>
 
       {cardAlerts.length > 0 ? (

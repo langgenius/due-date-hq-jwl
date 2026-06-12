@@ -82,15 +82,18 @@ function DueDateLabel({
       </span>
     )
   }
-  // Pre-terminal countdown — destructive for past dates, secondary
-  // for future. `today` renders as a single Trans-string so locales
-  // can translate it as a word.
+  // Pre-terminal countdown — destructive for past dates, accent for
+  // today, secondary for future (2026-06-12: implementation caught up
+  // with the header contract above, which always specified accent for
+  // today — "today" was silently rendering in the future-gray).
+  // `today` renders as a single Trans-string so locales can translate
+  // it as a word.
   const past = days < 0
   return (
     <span
       className={cn(
         'inline-flex shrink-0 items-baseline whitespace-nowrap text-sm font-medium tabular-nums',
-        past ? 'text-text-destructive' : 'text-text-secondary',
+        past ? 'text-text-destructive' : days === 0 ? 'text-text-accent' : 'text-text-secondary',
         className,
       )}
     >

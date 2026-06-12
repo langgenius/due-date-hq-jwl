@@ -109,8 +109,15 @@ The table is **neutral by default**. Chromatic accent is rationed:
   silently amputating data. Corner clipping is unchanged when content fits.
 - The empty-bucket message links its own verb ("<open the queue>" →
   /deadlines) — the action lives on the words, not only in the footer link.
-- **Accent (Dify blue)** appears only on the **Smart Priority** marks — the
-  sparkle in the rank cell and the header's sparkle/tooltip trigger.
+- **Accent (Dify blue)** budget (expanded 2026-06-12, Yuqi "bring in accent
+  colours"): the **Smart Priority marks** (sparkle now accent at REST, not
+  hover-only — a gray sparkle hid the one mark the budget was spent on), the
+  **go-to-full-list `<TextLink variant="accent">`s** ("View all N" /
+  "See all deadlines" — previously hand-rolled gray Links, a vocabulary
+  violation), and the **due-today countdown** (`DueDateLabel` days === 0 —
+  implementation caught up with its own "accent for today" contract; it was
+  silently rendering future-gray). Accent = navigation + intelligence +
+  today; red stays lateness-only.
 - Everything else (client, prompt, form chip, readiness, dates) lives in the
   gray text ramp (`text-text-secondary` / `text-text-tertiary`).
 

@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -232,14 +233,17 @@ export function MergedBriefCard({
               <Trans>Priorities</Trans>
             </h2>
             {/* The sparkles marks the list as Smart-Priority curated and opens
-                the explainer on hover. */}
+                the explainer on hover. Accent at REST, not just on hover —
+                per the two-color discipline (today-actions-table-style.md)
+                accent belongs on exactly the Smart Priority marks; a gray
+                sparkle was hiding the one mark the budget is spent on. */}
             <Tooltip>
               <TooltipTrigger
                 render={(props) => (
                   <button
                     type="button"
                     aria-label={t`About Priorities`}
-                    className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-accent outline-none transition-colors hover:text-text-accent-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                     {...props}
                   >
                     <SparklesIcon className="size-3.5" aria-hidden />
@@ -392,17 +396,18 @@ export function MergedBriefCard({
             <Trans>{moreCount} more not shown</Trans>
           </span>
         ) : null}
-        <Link
-          to="/deadlines"
-          className="group inline-flex shrink-0 items-center gap-1.5 rounded-sm text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
+        {/* Canonical `<TextLink>` accent — same primitive + variant as the
+            Alerts section's "View all", so the page's two go-to-the-full-list
+            affordances share one voice (the hand-rolled Link was a
+            vocabulary violation). */}
+        <TextLink variant="accent" render={<Link to="/deadlines" />} className="group shrink-0">
           <Trans>See all deadlines</Trans>
           {/* Arrow nudge on hover — motion on the glyph, not the surface. */}
           <ArrowRightIcon
             className="size-3 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
             aria-hidden
           />
-        </Link>
+        </TextLink>
       </div>
     </section>
   )
