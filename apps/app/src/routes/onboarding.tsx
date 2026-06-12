@@ -234,7 +234,7 @@ export function OnboardingRoute() {
         >
           {/* Heading */}
           <div className="flex flex-col gap-2">
-            <h1 className="text-[32px] font-semibold leading-tight tracking-[-0.6px] text-text-primary">
+            <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.6px] text-text-primary">
               <Trans>Set up your practice</Trans>
             </h1>
             <p className="text-sm font-medium leading-normal text-text-tertiary">

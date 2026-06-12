@@ -201,7 +201,7 @@ export function LoginRoute() {
 
         <main
           id="sign-in"
-          className="mx-auto flex max-h-full w-full max-w-[584px] flex-col self-center overflow-y-auto rounded-xl border border-divider-subtle bg-background-default px-6 py-10 shadow-[0_8px_32px_-4px_rgba(16,24,40,0.08)] lg:mx-0 lg:px-[72px] lg:py-16"
+          className="mx-auto flex max-h-full w-full max-w-[584px] flex-col self-center overflow-y-auto rounded-xl border border-divider-subtle bg-background-default px-6 py-10 shadow-[0_4px_16px_-4px_rgba(16,24,40,0.08)] lg:mx-0 lg:px-[72px] lg:py-16"
         >
           <div className="mx-auto flex w-full max-w-[440px] flex-col gap-7">
             {/* Frame 21 — brand, heading, form, reassurance, and foot share the
@@ -230,7 +230,7 @@ export function LoginRoute() {
                   onClick={handleGoogleSignIn}
                   disabled={socialDisabled}
                   aria-busy={submittingProvider === 'google'}
-                  className="w-full gap-3 rounded-xl"
+                  className="w-full gap-3 rounded-lg"
                 >
                   {submittingProvider === 'google' ? (
                     <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -253,7 +253,7 @@ export function LoginRoute() {
                     onClick={handleMicrosoftSignIn}
                     disabled={socialDisabled}
                     aria-busy={submittingProvider === 'microsoft'}
-                    className="w-full gap-3 rounded-xl"
+                    className="w-full gap-3 rounded-lg"
                   >
                     {submittingProvider === 'microsoft' ? (
                       <Loader2Icon className="size-[18px] animate-spin" aria-hidden />
@@ -702,7 +702,7 @@ function LoginEmailForm({
           <Button
             type="submit"
             size="lg"
-            className="justify-center gap-2 rounded-xl font-semibold"
+            className="justify-center gap-2 rounded-lg font-semibold"
             disabled={formDisabled || normalizeCode(code).length !== 6}
             aria-busy={pendingAction === 'verify'}
           >
@@ -715,7 +715,7 @@ function LoginEmailForm({
             type="button"
             variant="outline"
             size="lg"
-            className="rounded-xl px-4"
+            className="rounded-lg px-4"
             disabled={formDisabled}
             onClick={() => void sendCode('resend')}
             aria-busy={pendingAction === 'resend'}
@@ -773,7 +773,7 @@ function LoginEmailForm({
       <Button
         type="submit"
         size="lg"
-        className="w-full justify-center gap-2 rounded-xl font-semibold"
+        className="w-full justify-center gap-2 rounded-lg font-semibold"
         disabled={formDisabled}
         aria-busy={pendingAction === 'send'}
       >
@@ -787,13 +787,13 @@ function LoginEmailForm({
   )
 }
 
-// Shared 48px field shell — white surface, rounded-xl, inner-aligned
+// Shared 48px field shell — white surface, rounded-lg, inner-aligned
 // content, focus-within ring, destructive recolor on error.
 function FieldShell({ children, error }: { children: ReactNode; error: string | null }) {
   return (
     <div
       className={cn(
-        'flex h-11 items-center gap-2.5 rounded-xl border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
+        'flex h-11 items-center gap-2.5 rounded-lg border bg-background-default px-3.5 transition-colors focus-within:ring-1 focus-within:ring-inset focus-within:ring-state-accent-active-alt',
         error
           ? 'border-state-destructive-border focus-within:ring-state-destructive-active'
           : 'border-divider-regular focus-within:border-state-accent-solid',

@@ -728,14 +728,22 @@ function PlanOption({
         current ? 'border-state-accent-active-alt bg-accent-tint shadow-sm' : undefined,
       )}
     >
-      {current ? <CurrentPlanRibbon /> : null}
-      <CardHeader className={cn('min-h-[132px] content-start', current ? 'pr-28' : undefined)}>
+      <CardHeader className="min-h-[132px] content-start">
         <CardTitle>{plan.name}</CardTitle>
         <CardDescription className="line-clamp-3 min-h-[72px] leading-6">
           {plan.description}
         </CardDescription>
         <CardAction>
-          {!current && plan.badge ? <Badge variant="info">{plan.badge}</Badge> : null}
+          {/* Plain badge in the header slot — the diagonal rotated ribbon
+              was the only rotated element in the product, a party trick on
+              the calm-surface page where the owner decides about money. */}
+          {current ? (
+            <Badge variant="info">
+              <Trans>Current plan</Trans>
+            </Badge>
+          ) : plan.badge ? (
+            <Badge variant="info">{plan.badge}</Badge>
+          ) : null}
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-4">
@@ -814,12 +822,4 @@ function PlanOption({
   )
 }
 
-function CurrentPlanRibbon() {
-  return (
-    <div className="pointer-events-none absolute -top-2 -right-2 z-10 h-28 w-28" aria-hidden="true">
-      <span className="absolute top-8 -right-10 flex h-8 w-40 rotate-45 items-center justify-center bg-accent-default text-caption-xs leading-none font-bold text-primary-foreground uppercase shadow-sm">
-        <Trans>current</Trans>
-      </span>
-    </div>
-  )
-}
+
