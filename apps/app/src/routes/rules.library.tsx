@@ -793,6 +793,10 @@ const RECENT_CHANGE_PILL_CLASS: Record<RuleChangeKind, string> = {
   effective: 'bg-state-warning-hover text-text-warning',
 }
 
+// One trailing window shared by the CHANGED (30D) stat and the Recent
+// changes card — two windows is how "0 changed" ends up above 5 rows.
+const CHANGED_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
+
 /**
  * OverviewRecentChangesCard — the most-recently-touched rules (Pencil
  * O0pyRO `lDTO0`). A flush, full-width section (header + hairline-
@@ -805,19 +809,40 @@ const RECENT_CHANGE_PILL_CLASS: Record<RuleChangeKind, string> = {
 function OverviewRecentChangesCard({
   rules,
   changedTotal,
+  lastChangeAt,
   onRuleClick,
   onViewAll,
 }: {
   rules: ObligationRule[]
   /** Total rules changed in the trailing window — drives the "N of M" sub. */
   changedTotal: number
+  /** Most recent change across ALL rules — powers the honest empty state. */
+  lastChangeAt: number | null
   onRuleClick: (rule: ObligationRule) => void
   onViewAll: () => void
 }) {
   const { t } = useLingui()
   const changeKindLabels = useRuleChangeKindLabels()
   const now = Date.now()
-  if (rules.length === 0) return null
+  if (rules.length === 0) {
+    return (
+      <div className="flex shrink-0 flex-col gap-2">
+        <span className="text-region-title text-text-primary">
+          <Trans>Recent changes</Trans>
+        </span>
+        <span className="text-sm text-text-tertiary">
+          {lastChangeAt !== null ? (
+            <Trans>
+              No changes in the last 30 days — last change{' '}
+              {formatDatePretty(new Date(lastChangeAt).toISOString())}
+            </Trans>
+          ) : (
+            <Trans>No rule changes recorded yet.</Trans>
+          )}
+        </span>
+      </div>
+    )
+  }
   return (
     <div className="flex shrink-0 flex-col gap-5">
       <div className="flex items-center gap-3">
@@ -1195,11 +1220,26 @@ export function RulesLibraryRoute() {
   // Recent Changes card; `oldestReviewRelative` is the age of the
   // longest-waiting pending-review rule for the ActionHero "oldest Nd"
   // chip.
+  // Windowed to the SAME trailing 30 days as the CHANGED (30D) stat tile —
+  // a "Last 30 days" header listing 45-day-old rows above a stat saying 0
+  // is the exact data-consistency breach this page is supposed to prevent.
   const recentChanges = useMemo(() => {
+    const cutoff = Date.now() - CHANGED_WINDOW_MS
     return rules
-      .filter((rule) => ruleChangedAt(rule) !== null)
+      .filter((rule) => {
+        const changed = ruleChangedAt(rule)
+        return changed !== null && changed >= cutoff
+      })
       .toSorted((a, b) => (ruleChangedAt(b) ?? 0) - (ruleChangedAt(a) ?? 0))
       .slice(0, 5)
+  }, [rules])
+  const lastChangeAt = useMemo(() => {
+    let latest: number | null = null
+    for (const rule of rules) {
+      const changed = ruleChangedAt(rule)
+      if (changed !== null && (latest === null || changed > latest)) latest = changed
+    }
+    return latest
   }, [rules])
   const oldestReviewRelative = useMemo(() => {
     let oldest = Number.POSITIVE_INFINITY
@@ -1243,7 +1283,7 @@ export function RulesLibraryRoute() {
     }
   }, [temporaryQuery.data])
   const changedLast30 = useMemo(() => {
-    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
+    const cutoff = Date.now() - CHANGED_WINDOW_MS
     return rules.filter((rule) => {
       const changed = ruleChangedAt(rule)
       return changed !== null && changed >= cutoff
@@ -2401,6 +2441,7 @@ export function RulesLibraryRoute() {
                 <OverviewRecentChangesCard
                   rules={recentChanges}
                   changedTotal={changedLast30}
+                  lastChangeAt={lastChangeAt}
                   onRuleClick={handleRuleClick}
                   onViewAll={handleViewAllChanges}
                 />
