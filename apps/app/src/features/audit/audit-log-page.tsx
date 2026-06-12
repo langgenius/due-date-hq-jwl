@@ -129,6 +129,18 @@ function useAuditRangeLabels(): Record<(typeof AUDIT_RANGE_OPTIONS)[number], str
   }
 }
 
+// Sentence-position captions for the KPI strip ("Events · last 30 days"),
+// distinct from the Select trigger labels above ("Last 30d").
+function useAuditRangeCaptions(): Record<(typeof AUDIT_RANGE_OPTIONS)[number], string> {
+  const { t } = useLingui()
+  return {
+    '24h': t`last 24 hours`,
+    '7d': t`last 7 days`,
+    '30d': t`last 30 days`,
+    all: t`all time`,
+  }
+}
+
 function sanitizeAuditFilter(value: string): string {
   return value.trim().slice(0, AUDIT_FILTER_MAX_LENGTH)
 }
@@ -240,17 +252,21 @@ function AuditFilterSelect({
 // true totals across the selected range.
 function AuditKpiStrip({
   totalLoaded,
+  totalCaption,
   countsByType,
 }: {
   totalLoaded: number
+  totalCaption: ReactNode
   countsByType: Record<AuditTimelineType, number>
 }) {
   const columns: Array<{ key: string; label: ReactNode; value: number; caption: ReactNode }> = [
     {
       key: 'total',
-      label: <Trans>Total loaded</Trans>,
+      // "Events · last 30 days", not "Total loaded · in this view" —
+      // label what the number means to a CPA, not how it got fetched.
+      label: <Trans>Events</Trans>,
       value: totalLoaded,
-      caption: <Trans>in this view</Trans>,
+      caption: totalCaption,
     },
     {
       key: 'filing',
@@ -309,6 +325,7 @@ function AuditLogPagination({
   firstItemNumber,
   lastItemNumber,
   loadedCount,
+  hasMoreOnServer,
   hasPreviousPage,
   hasNextPage,
   isFetchingNextPage,
@@ -319,6 +336,7 @@ function AuditLogPagination({
   firstItemNumber: number
   lastItemNumber: number
   loadedCount: number
+  hasMoreOnServer: boolean
   hasPreviousPage: boolean
   hasNextPage: boolean
   isFetchingNextPage: boolean
@@ -335,9 +353,18 @@ function AuditLogPagination({
           <Trans>Page {pageNumber}</Trans>
         </span>
         <span>
-          <Trans>
-            Showing {firstItemNumber}-{lastItemNumber} of {loadedCount} loaded events
-          </Trans>
+          {/* "loaded" is pagination dev-speak. Say what the count means;
+              when the server still has older events, the trailing "+"
+              keeps the number honest without the jargon. */}
+          {hasMoreOnServer ? (
+            <Trans>
+              Showing {firstItemNumber}-{lastItemNumber} of {loadedCount}+ events
+            </Trans>
+          ) : (
+            <Trans>
+              Showing {firstItemNumber}-{lastItemNumber} of {loadedCount} events
+            </Trans>
+          )}
         </span>
       </div>
       <div className="flex items-center gap-2">
@@ -523,6 +550,7 @@ export function AuditLogPage() {
   const { t } = useLingui()
   const categoryLabels = useAuditCategoryLabels()
   const rangeLabels = useAuditRangeLabels()
+  const rangeCaptions = useAuditRangeCaptions()
   const actionLabels = useAuditActionLabels()
   const entityTypeLabels = useAuditEntityTypeLabels()
   const [query, setQuery] = useQueryStates(auditLogSearchParamsParsers)
@@ -749,7 +777,13 @@ export function AuditLogPage() {
         }
       />
 
-      <AuditKpiStrip totalLoaded={filteredEvents.length} countsByType={countsByType} />
+      <AuditKpiStrip
+        totalLoaded={filteredEvents.length}
+        totalCaption={
+          filtersActive ? <Trans>matching current filters</Trans> : rangeCaptions[query.range]
+        }
+        countsByType={countsByType}
+      />
 
       <Card>
         <CardHeader>
@@ -859,7 +893,13 @@ export function AuditLogPage() {
               label={t`Entity type`}
               value={entityTypeFilter}
               allLabel={t`All entity types`}
-              fallbackLabel={entityTypeFilter}
+              fallbackLabel={
+                // Humanize even when the URL carries a type no loaded event
+                // matches — never show the raw enum ("client_batch").
+                entityTypeFilter
+                  ? formatAuditEntityTypeLabel(entityTypeFilter, entityTypeLabels)
+                  : ''
+              }
               options={entityTypeOptions}
               onValueChange={(value) => {
                 setPageIndex(0)
@@ -952,6 +992,7 @@ export function AuditLogPage() {
                 firstItemNumber={firstItemNumber}
                 lastItemNumber={lastItemNumber}
                 loadedCount={filteredEvents.length}
+                hasMoreOnServer={Boolean(auditQuery.hasNextPage)}
                 hasPreviousPage={hasPreviousPage}
                 hasNextPage={hasNextPage}
                 isFetchingNextPage={auditQuery.isFetchingNextPage}

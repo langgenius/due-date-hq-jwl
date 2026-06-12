@@ -35,6 +35,10 @@ import {
   type AuditTimelineType,
 } from './audit-timeline-model'
 
+// Snapshot "name" fields occasionally carry a bare UUID (e.g. obligationId);
+// a UUID is not a human name, so the meta chip falls back to the short id.
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 /**
  * AuditLogTable — the practice audit stream rendered as a day-grouped
  * timeline (Pencil `RqOJw`). Each day is introduced by a sticky-feel
@@ -118,8 +122,14 @@ export function AuditLogTable({
               </span>
             </div>
             {day.events.map((event) => {
+              // Prefer the human label; an unresolvable actorId is shortened
+              // (full value lives on the row's title attribute) rather than
+              // printed as a full UUID in prose.
               const actor =
-                event.actorType === 'ai' ? t`AI` : (event.actorLabel ?? event.actorId ?? t`System`)
+                event.actorType === 'ai'
+                  ? t`AI`
+                  : (event.actorLabel ??
+                    (event.actorId ? shortenAuditId(event.actorId) : t`System`))
               const actionLabel = formatAuditActionLabel(event.action, actionLabels)
               const entityTypeLabel = formatAuditEntityTypeLabel(event.entityType, entityTypeLabels)
               const entityDisplay = getAuditEntityDisplay(event, entityTypeLabel)
@@ -180,6 +190,20 @@ function AuditTimelineRow({
   const absolute = formatDateTimeWithTimezone(event.createdAt, firmTimezone)
   const hash = event.ipHash ? shortenAuditId(event.ipHash) : null
 
+  // "SYSTEM · Sarah Martinez" reads as a contradiction: the eyebrow is the
+  // derived timeline category, but when a person performed the action the
+  // category fallback ("system" = anything unmatched) must not outrank the
+  // actor. Person present → drop the SYSTEM eyebrow. Conversely, a true
+  // system event with no actor would render "SYSTEM · System" — drop the
+  // redundant actor there.
+  const actorIsPerson =
+    (event.actorType === 'user' || event.actorType === 'ai_assisted') &&
+    Boolean(event.actorLabel ?? event.actorId)
+  const showTypeEyebrow = !(type === 'system' && actorIsPerson)
+  const actorIsSystemFallback =
+    event.actorType !== 'ai' && !event.actorLabel && !event.actorId
+  const showActor = !(type === 'system' && actorIsSystemFallback)
+
   const handleClick = useCallback(() => onOpenEvent(event.id), [event.id, onOpenEvent])
   const handleKeyDown = useCallback(
     (keyboardEvent: KeyboardEvent<HTMLDivElement>) => {
@@ -191,11 +215,20 @@ function AuditTimelineRow({
     [event.id, onOpenEvent],
   )
 
-  // Meta chips: entity type + short id, plus reason when present. Mono,
-  // bullet-separated — the design's "form 1120 · client cobalt · …".
-  const metaChips = [
-    `${entityTypeLabel.toLowerCase()} ${shortenAuditId(event.entityId)}`,
-    ...(event.reason ? [event.reason] : []),
+  // Meta chips: entity type + the entity's human name when the change
+  // snapshot carries one ("client Hudson River Imports"), plus reason when
+  // present. The raw id is demoted to the chip's title attribute — hover
+  // (or the drawer) for forensics, prose for people.
+  const entityName =
+    entityDisplay.primary !== entityTypeLabel && !UUID_PATTERN.test(entityDisplay.primary)
+      ? entityDisplay.primary
+      : null
+  const metaChips: Array<{ text: string; title?: string }> = [
+    {
+      text: `${entityTypeLabel.toLowerCase()} ${entityName ?? shortenAuditId(event.entityId)}`,
+      title: event.entityId,
+    },
+    ...(event.reason ? [{ text: event.reason }] : []),
   ]
 
   return (
@@ -232,11 +265,22 @@ function AuditTimelineRow({
       {/* Body */}
       <div className="grid min-w-0 flex-1 gap-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-caption-xs font-bold tracking-wide text-text-tertiary uppercase">
-            {typeLabel}
-          </span>
-          <span className="size-1 rounded-full bg-text-tertiary/50" aria-hidden />
-          <span className="text-xs font-semibold text-text-secondary">{actor}</span>
+          {showTypeEyebrow ? (
+            <span className="font-mono text-caption-xs font-bold tracking-wide text-text-tertiary uppercase">
+              {typeLabel}
+            </span>
+          ) : null}
+          {showTypeEyebrow && showActor ? (
+            <span className="size-1 rounded-full bg-text-tertiary/50" aria-hidden />
+          ) : null}
+          {showActor ? (
+            <span
+              className="text-xs font-semibold text-text-secondary"
+              title={event.actorId ?? undefined}
+            >
+              {actor}
+            </span>
+          ) : null}
           {event.actorType === 'ai_assisted' ? (
             <Badge
               variant="info"
@@ -250,7 +294,10 @@ function AuditTimelineRow({
           ) : null}
           <span className="grow" />
           {hash ? (
-            <span className="font-mono text-caption-xs text-text-tertiary tabular-nums">
+            <span
+              className="font-mono text-caption-xs text-text-tertiary tabular-nums"
+              title={event.ipHash ?? undefined}
+            >
               {hash}
             </span>
           ) : null}
@@ -262,11 +309,13 @@ function AuditTimelineRow({
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-0.5">
           {metaChips.map((chip, index) => (
-            <span key={chip} className="inline-flex items-center gap-2">
+            <span key={chip.text} className="inline-flex items-center gap-2">
               {index > 0 ? (
                 <span className="size-1 rounded-full bg-text-tertiary/50" aria-hidden />
               ) : null}
-              <span className="font-mono text-caption-xs text-text-tertiary">{chip}</span>
+              <span className="font-mono text-caption-xs text-text-tertiary" title={chip.title}>
+                {chip.text}
+              </span>
             </span>
           ))}
         </div>
