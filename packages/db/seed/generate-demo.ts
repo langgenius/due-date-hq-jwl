@@ -2121,6 +2121,37 @@ for (const f of FIRMS) {
   )
 
   // audit_event — a few representative actions.
+  // Rule-review decisions MUST have matching ledger events: the drawer's
+  // Practice-review card reads reviewed_by/reviewed_at off the decision row,
+  // and its Activity panel reads the audit ledger — seeding one without the
+  // other renders "No review decisions yet" directly above "Reviewed by
+  // Miguel Chen" (2026-06-12 critique P0). Brightline is the only firm with
+  // preserved rule_review_decision rows (69000000-…-0001/2/3).
+  if (f.id === 'mock_firm_brightline') {
+    add(
+      'audit_event',
+      ...[
+        ['fed.1120s.return.2026', '10:00:00'],
+        ['fed.1065.return.2026', '10:01:00'],
+        ['fed.1041.return.2026', '10:02:00'],
+      ].map(([ruleId, time], idx) =>
+        row(
+          s(sid('60', i, 90 + idx)),
+          s(f.id),
+          s('mock_user_manager_miguel'),
+          s('rule'),
+          s(ruleId!),
+          s('rules.accepted'),
+          'NULL',
+          s('{"status":"verified","version":1}'),
+          s('Annual rollover review.'),
+          s('iphash_demo'),
+          s('uahash_demo'),
+          ts(`2026-05-04 ${time}`),
+        ),
+      ),
+    )
+  }
   add(
     'audit_event',
     row(
@@ -2318,6 +2349,30 @@ for (const f of FIRMS) {
       'NULL',
       'NULL',
       ts('2026-06-01 09:45:00'),
+    ),
+    // A SENT client email reminder so the /reminders template table has a
+    // real, attributable send — without one, the 30-day template forever
+    // reads "Sent 0" beside a delivery log that shows sent rows (the exact
+    // same-screen contradiction the 2026-06-12 critique flagged).
+    row(
+      s(sid('65', i, 3)),
+      s(f.id),
+      s(obl(f, 1)),
+      s(cli(f, 1)),
+      s('client'),
+      'NULL',
+      s(`contact@${CLIENTS.find((c) => c.seq === 1)!.name.toLowerCase().replace(/[^a-z0-9]+/g, '')}.test`),
+      s('email'),
+      30,
+      s('2026-05-23'),
+      s('sent'),
+      'NULL',
+      'NULL',
+      s(`client-reminder:${f.id}:${obl(f, 1)}:contact:30:2026-05-23`),
+      ts('2026-05-23 09:05:00'),
+      'NULL',
+      'NULL',
+      ts('2026-05-23 09:00:00'),
     ),
     row(
       s(sid('65', i, 2)),

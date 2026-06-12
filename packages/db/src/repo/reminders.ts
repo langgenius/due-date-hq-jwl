@@ -170,20 +170,39 @@ export function makeRemindersRepo(db: Db, firmId: string) {
     const reminderRows = await db
       .select({
         templateId: reminder.templateId,
+        recipientKind: reminder.recipientKind,
+        offsetDays: reminder.offsetDays,
         sentAt: reminder.sentAt,
         createdAt: reminder.createdAt,
       })
       .from(reminder)
       .where(and(eq(reminder.firmId, firmId), eq(reminder.status, 'sent')))
 
+    // Usage attributes by template KEY. Sends under the code-default
+    // templates carry template_id = NULL (defaults have no DB row), so an
+    // id-only join read "Sent 0" forever next to a delivery log full of
+    // sent rows. NULL-id reminders attribute deterministically from the
+    // dispatch routing facts (recipient kind + offset) — the same facts
+    // that picked the template at send time.
+    const idToKey = new Map(rows.map((row) => [row.id, row.templateKey]))
+    const keyForReminder = (row: (typeof reminderRows)[number]): string | null => {
+      if (row.templateId) return idToKey.get(row.templateId) ?? null
+      if (row.recipientKind === 'member') return 'member-deadline-reminder'
+      if (row.recipientKind === 'client') {
+        if (row.offsetDays >= 30) return CLIENT_30_DAY_TEMPLATE_KEY
+        if (row.offsetDays <= 7) return CLIENT_7_DAY_TEMPLATE_KEY
+      }
+      return null
+    }
     const stats = new Map<string, { usageCount: number; lastSentAt: Date | null }>()
     for (const row of reminderRows) {
-      if (!row.templateId) continue
-      const current = stats.get(row.templateId) ?? { usageCount: 0, lastSentAt: null }
+      const key = keyForReminder(row)
+      if (!key) continue
+      const current = stats.get(key) ?? { usageCount: 0, lastSentAt: null }
       const sentAt = row.sentAt ?? row.createdAt
       current.usageCount += 1
       if (!current.lastSentAt || sentAt > current.lastSentAt) current.lastSentAt = sentAt
-      stats.set(row.templateId, current)
+      stats.set(key, current)
     }
 
     const byKey = new Map<string, ReminderTemplateRow>()
@@ -191,7 +210,7 @@ export function makeRemindersRepo(db: Db, firmId: string) {
       const current = byKey.get(row.templateKey)
       const shouldReplace = !current || (current.firmId === null && row.firmId === firmId)
       if (!shouldReplace) continue
-      const rowStats = stats.get(row.id) ?? { usageCount: 0, lastSentAt: null }
+      const rowStats = stats.get(row.templateKey) ?? { usageCount: 0, lastSentAt: null }
       const defaultTemplate = defaultTemplateForKey(row.templateKey)
       const isSystemDefault = row.firmId === null && row.isSystem
       byKey.set(row.templateKey, {
@@ -212,8 +231,14 @@ export function makeRemindersRepo(db: Db, firmId: string) {
     }
 
     for (const template of DEFAULT_REMINDER_TEMPLATES) {
-      if (!byKey.has(template.templateKey))
-        byKey.set(template.templateKey, emptyTemplateRow(template))
+      if (!byKey.has(template.templateKey)) {
+        const rowStats = stats.get(template.templateKey) ?? { usageCount: 0, lastSentAt: null }
+        byKey.set(template.templateKey, {
+          ...emptyTemplateRow(template),
+          usageCount: rowStats.usageCount,
+          lastSentAt: rowStats.lastSentAt,
+        })
+      }
     }
 
     return Array.from(byKey.values()).toSorted((left, right) =>
