@@ -1494,7 +1494,10 @@ function ClientActiveAlertsCard({ match }: { match: ClientAlertMatch }) {
           size="sm"
           className="-mr-1.5 shrink-0"
           nativeButton={false}
-          render={<Link to="/alerts" />}
+          // Deep-link straight to THIS alert — the alerts page's
+          // DrawerProvider opens the `?alert=` id on arrival, so the CPA
+          // lands on the matched alert instead of the bare list.
+          render={<Link to={`/alerts?alert=${encodeURIComponent(match.alertId)}`} />}
         >
           <Trans>Review</Trans>
           <ChevronRightIcon data-icon="inline-end" aria-hidden />
