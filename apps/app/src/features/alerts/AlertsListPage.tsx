@@ -728,6 +728,17 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         <div
           className={cn(
             'flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto [scrollbar-gutter:stable]',
+            // 2026-06-12 (Yuqi round 2 "is it because it is too wide — the
+            // alerts are so hard to read?" → attack, structurally this time):
+            // the alerts list is a reading FEED, not a data table — at the
+            // page's full 1366px the row stretched into a sparse L (title
+            // left, source pinned ~600px away at the far edge, dead middle).
+            // The list column caps at 1040px, LEFT-PINNED so the page title /
+            // toolbar / rows share one left rail; everything in a row now
+            // sits in one comfortable eye-span. Map view keeps the full
+            // width (a map earns the span), and the rail+detail layout is
+            // untouched (panelOpen strips caps entirely).
+            !panelOpen && viewMode === 'list' && 'max-w-[1040px]',
             panelOpen && 'hidden',
           )}
         >

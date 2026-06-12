@@ -1050,23 +1050,29 @@ function PulseAlertList({
                     their own; the gray slab stacked with the per-row gray
                     chips into a gray-on-gray wall. Opaque white keeps the
                     sticky pin masking rows that scroll under. */}
-                <div
-                  className={cn(
-                    'sticky top-12 z-10 flex items-center border-b border-divider-subtle bg-background-default py-1.5 pr-5',
-                    // Critique #3 (alignment): the band label sits ON the
-                    // content grid — selectable rows indent their content by
-                    // the 18px checkbox + 10px gap, so the label matches the
-                    // time column (pl-12 = 20+28) instead of floating 28px
-                    // left of everything beneath it.
-                    selectable ? 'pl-12' : 'pl-5',
-                  )}
-                >
-                  {/* 2026-06-12 (Yuqi "the date is toooo hard to read"): the
-                      DATE is the band's payload → strong sentence-case
-                      13/600 primary ("May 20, 2026" / "Today"); the weekday
-                      recedes to quiet supporting text. The strong date is
-                      also the list's rhythm anchor — each day group now has
-                      a visible head instead of a whisper. */}
+                <div className="sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-default px-5 py-1.5">
+                  {/* Day select-all (Yuqi: "should a day have a select all
+                      option") — tri-state: checked when every alert in the
+                      day is selected, indeterminate on a partial pick. Sits
+                      in the SAME slot as the row checkboxes below it, which
+                      also keeps the date on the content grid for free. */}
+                  {selectable ? (
+                    <Checkbox
+                      checked={dayAlerts.every((a) => selectedIds?.has(a.id) ?? false)}
+                      indeterminate={
+                        dayAlerts.some((a) => selectedIds?.has(a.id) ?? false) &&
+                        !dayAlerts.every((a) => selectedIds?.has(a.id) ?? false)
+                      }
+                      onCheckedChange={(next) => {
+                        for (const dayAlert of dayAlerts) onToggleSelected?.(dayAlert.id, next)
+                      }}
+                      aria-label={t`Select all alerts on ${label}`}
+                      className="size-[18px] rounded"
+                    />
+                  ) : null}
+                  {/* Day head register (Yuqi: 600/primary was "too obvious"):
+                      13/500 SECONDARY date — legible without competing with
+                      the 16/600 row titles — weekday quiet beside it. */}
                   <div className="flex items-baseline gap-2">
                     {isToday ? (
                       <SunIcon
@@ -1074,13 +1080,18 @@ function PulseAlertList({
                         aria-hidden
                       />
                     ) : null}
-                    <span className="text-sm font-semibold text-text-primary">
+                    <span className="text-sm font-medium text-text-secondary">
                       {dayWord ?? label}
                     </span>
                     <span className="text-xs text-text-tertiary">
                       {dayWord ? label : weekday}
                     </span>
                   </div>
+                  {/* Day size — the section's content summary, right-pinned
+                      (Yuqi: "better section organise"). */}
+                  <span className="ml-auto text-xs text-text-tertiary tabular-nums">
+                    <Plural value={dayAlerts.length} one="# alert" other="# alerts" />
+                  </span>
                 </div>
 
                 {/* Alert rows for this day. `compact` propagates from
