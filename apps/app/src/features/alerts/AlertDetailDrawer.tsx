@@ -495,9 +495,11 @@ function DecisionBanners({
     // (packages/db/src/repo/pulse/shared.ts) via the shared revert-window
     // helper. Once the window closes the server would reject the revert, so
     // the banner states the closed window quietly instead of offering an
-    // Undo it can't honor.
+    // Undo it can't honor. A null appliedAt means no active application rows
+    // exist (the server's revert would return no_eligible), so that case
+    // makes no undo claims at all.
     const undoClosesAt = alert.appliedAt ? revertExpiresAt(alert.appliedAt) : null
-    const undoOpen = undoClosesAt === null || isWithinRevertWindow(undoClosesAt)
+    const undoOpen = undoClosesAt !== null && isWithinRevertWindow(undoClosesAt)
     return (
       <DetailStatusBanner
         tone="success"
@@ -514,14 +516,14 @@ function DecisionBanners({
           )
         }
         description={
-          undoOpen || undoClosesAt === null ? (
+          undoOpen ? (
             <Trans>You can undo for the next 24 hours. After that, it can't be undone.</Trans>
-          ) : (
+          ) : undoClosesAt !== null ? (
             <Trans>
               Undo window closed {formatDatePretty(undoClosesAt.toISOString())} — 24 hours after
               apply.
             </Trans>
-          )
+          ) : undefined
         }
         action={
           undoOpen && REVERTABLE_STATUSES.has(alert.status) ? (
@@ -2156,9 +2158,11 @@ export function DrawerActions({
   // The server rejects reverts past REVERT_WINDOW_MS (24h from apply), so
   // the footer only offers Undo while the window is genuinely open. After
   // that, a quiet closed-window line replaces the button — never an enabled
-  // control the server would refuse.
+  // control the server would refuse. A null appliedAt means no active
+  // application rows exist (revert would return no_eligible): no Undo
+  // affordance, and no closed-window date to state.
   const undoClosesAt = appliedAt ? revertExpiresAt(appliedAt) : null
-  const undoWindowOpen = undoClosesAt === null || isWithinRevertWindow(undoClosesAt)
+  const undoWindowOpen = undoClosesAt !== null && isWithinRevertWindow(undoClosesAt)
   const showRevert = REVERTABLE_STATUSES.has(alertStatus) && undoWindowOpen
   const showUndoWindowClosed =
     REVERTABLE_STATUSES.has(alertStatus) && !undoWindowOpen && undoClosesAt !== null

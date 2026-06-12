@@ -1080,6 +1080,15 @@ VALUES
   ('41000000-0000-4000-8000-000000004020', '40000000-0000-4000-8000-000000000020', 'mock_firm_plan_team', 'matched', 0, 0, NULL, NULL, CAST(unixepoch('2026-05-20 10:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-20 10:05:00') * 1000 AS INTEGER)),
   ('41000000-0000-4000-8000-000000004021', '40000000-0000-4000-8000-000000000021', 'mock_firm_plan_team', 'matched', 0, 0, NULL, NULL, CAST(unixepoch('2026-01-10 10:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-01-10 10:05:00') * 1000 AS INTEGER));
 
+INSERT INTO pulse_application
+  (id, pulse_id, obligation_instance_id, client_id, firm_id, applied_by, applied_at, reverted_by, reverted_at, before_due_date, after_due_date)
+VALUES
+  ('44000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000005', '10000000-0000-4000-8000-000000000003', 'mock_firm_brightline', 'mock_user_owner_sarah', CAST(unixepoch('2026-05-17 08:31:00') * 1000 AS INTEGER), NULL, NULL, CAST(unixepoch('2026-04-30 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-30 00:00:00') * 1000 AS INTEGER)),
+  ('44000000-0000-4000-8000-000000001001', '40000000-0000-4000-8000-000000000002', '24000000-0000-4000-8000-000000000005', '14000000-0000-4000-8000-000000000003', 'mock_firm_solo', 'mock_user_owner_sarah', CAST(unixepoch('2026-05-17 08:31:00') * 1000 AS INTEGER), NULL, NULL, CAST(unixepoch('2026-04-30 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-30 00:00:00') * 1000 AS INTEGER)),
+  ('44000000-0000-4000-8000-000000002001', '40000000-0000-4000-8000-000000000002', '21000000-0000-4000-8000-000000000005', '11000000-0000-4000-8000-000000000003', 'mock_firm_plan_solo', 'mock_user_plan_solo', CAST(unixepoch('2026-05-17 08:31:00') * 1000 AS INTEGER), NULL, NULL, CAST(unixepoch('2026-04-30 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-30 00:00:00') * 1000 AS INTEGER)),
+  ('44000000-0000-4000-8000-000000003001', '40000000-0000-4000-8000-000000000002', '22000000-0000-4000-8000-000000000005', '12000000-0000-4000-8000-000000000003', 'mock_firm_plan_pro', 'mock_user_plan_pro', CAST(unixepoch('2026-05-17 08:31:00') * 1000 AS INTEGER), NULL, NULL, CAST(unixepoch('2026-04-30 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-30 00:00:00') * 1000 AS INTEGER)),
+  ('44000000-0000-4000-8000-000000004001', '40000000-0000-4000-8000-000000000002', '23000000-0000-4000-8000-000000000005', '13000000-0000-4000-8000-000000000003', 'mock_firm_plan_team', 'mock_user_plan_team', CAST(unixepoch('2026-05-17 08:31:00') * 1000 AS INTEGER), NULL, NULL, CAST(unixepoch('2026-04-30 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-30 00:00:00') * 1000 AS INTEGER));
+
 INSERT INTO pulse_priority_review
   (id, firm_id, alert_id, pulse_id, status, priority_score, priority_reasons_json, selected_obligation_ids_json, confirmed_obligation_ids_json, excluded_obligation_ids_json, note, requested_by, reviewed_by, reviewed_at, created_at, updated_at)
 VALUES

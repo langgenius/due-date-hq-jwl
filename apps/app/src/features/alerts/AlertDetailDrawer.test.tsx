@@ -164,6 +164,7 @@ function renderDrawerActions({
           actionMode="due_date_overlay"
           firmImpact="no_current_match"
           requiresDeadlineDetails={false}
+          appliedAt={null}
           canApply
           canRevert
           canRequestReview={false}

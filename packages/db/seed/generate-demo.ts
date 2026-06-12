@@ -2588,6 +2588,33 @@ for (const f of FIRMS) {
     ),
   )
 
+  // pulse_application — the per-obligation apply record behind the n=2
+  // "applied" alert (CA FTB 568 overlay). The status flag above alone is a
+  // fiction: getDetail aggregates min(applied_at) from THIS table to expose
+  // `appliedAt`, and the 24h undo window (REVERT_WINDOW_MS) is computed
+  // from it — without the row the detail showed an enabled Undo the server
+  // would reject with no_eligible. Obligation seq 5 is the firm's CA 568
+  // (client 3, Arbor & Vale LLC) — the same row the pulse matched. The
+  // before/after dates mirror the pulse overlay (2026-04-30 → 2026-05-30),
+  // and applied_at matches the alert's 2026-05-17 08:31 handled time, so
+  // the demo's undo window reads as closed (May 18) — the honest state.
+  add(
+    'pulse_application',
+    row(
+      s(sid('44', i, 1)),
+      s(uuid('40', 2)),
+      s(obl(f, 5)),
+      s(cli(f, 3)),
+      s(f.id),
+      s(f.owner),
+      ts('2026-05-17 08:31:00'),
+      'NULL',
+      'NULL',
+      ts('2026-04-30'),
+      ts('2026-05-30'),
+    ),
+  )
+
   // pulse_priority_review — a preparer flagged these alerts for review.
   // The presence of `requested_by` is what `listPriorityQueue` reads as
   // the `preparer_requested` (+30) scoring signal (see repo/pulse/scoped
@@ -2719,6 +2746,9 @@ const SUPPORT_ORDER = [
   'client_email_suppression',
   'llm_log',
   'pulse_firm_alert',
+  // FK-safe: references pulse.id / obligation_instance.id / client.id, all
+  // emitted above.
+  'pulse_application',
   // FK-safe: references pulse_firm_alert.id + pulse.id, both emitted above.
   'pulse_priority_review',
 ]
@@ -3006,6 +3036,19 @@ const SUPPORT_COLS: Record<string, string[]> = {
     'dismissed_at',
     'created_at',
     'updated_at',
+  ],
+  pulse_application: [
+    'id',
+    'pulse_id',
+    'obligation_instance_id',
+    'client_id',
+    'firm_id',
+    'applied_by',
+    'applied_at',
+    'reverted_by',
+    'reverted_at',
+    'before_due_date',
+    'after_due_date',
   ],
   pulse_priority_review: [
     'id',
