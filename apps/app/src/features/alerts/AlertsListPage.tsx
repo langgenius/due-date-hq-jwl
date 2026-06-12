@@ -228,8 +228,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       onError: (err) => {
         toast.error(t`Couldn't restore alert`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -248,8 +247,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       onError: (err) => {
         toast.error(t`Couldn't dismiss alert`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -272,8 +270,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       onError: (err) => {
         toast.error(t`Couldn't dismiss alerts`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -836,7 +833,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     switcher, not a second queue toggle. */}
                 {panelOpen ? null : (
                   <>
-
                     {/* Avoid a greedy `flex-1` spacer between the
                     Search/View cluster and the dropdowns: in a `flex-wrap`
                     row a growing spacer eats the rest of line 1, forcing

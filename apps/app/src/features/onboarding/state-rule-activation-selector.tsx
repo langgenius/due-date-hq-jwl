@@ -118,8 +118,8 @@ export function StateRuleActivationSelector({
         </p>
         <p className="text-sm leading-relaxed text-text-muted">
           <Trans>
-            Add state rules alongside federal. Start with federal only and add states
-            later from the Rule Library.
+            Add state rules alongside federal. Start with federal only and add states later from the
+            Rule Library.
           </Trans>
         </p>
       </div>
@@ -198,8 +198,8 @@ export function StateRuleActivationSelector({
             <Trans>Rule Library review required.</Trans>
           </span>{' '}
           <Trans>
-            These states publish their own deadline calendars. After setup, review those
-            rules in the Rule Library — deadlines generate once you approve them.
+            These states publish their own deadline calendars. After setup, review those rules in
+            the Rule Library — deadlines generate once you approve them.
           </Trans>
         </div>
       ) : null}

@@ -258,9 +258,7 @@ export function Step1Intake({
       const parsed = parseTabular(text, { kind: 'paste' })
       if (parsed.rowCount === 0) {
         resetParsedRows()
-        onParseError(
-          t`We found column names but no clients. Add at least one client to continue.`,
-        )
+        onParseError(t`We found column names but no clients. Add at least one client to continue.`)
         return
       }
       const ssn = detectSsnColumns(parsed.headers, parsed.rows)
@@ -698,8 +696,8 @@ export function Step1Intake({
           <AlertDescription>
             <Trans>
               We blocked SSN-like columns to protect client data — they&apos;re never sent to the
-              AI. If a flagged column is actually an EIN, map it yourself in the next step.
-              Blocked: {ssnBlockedHeaders.join(', ')}.
+              AI. If a flagged column is actually an EIN, map it yourself in the next step. Blocked:{' '}
+              {ssnBlockedHeaders.join(', ')}.
             </Trans>
           </AlertDescription>
         </Alert>
@@ -890,9 +888,17 @@ function DetectionHero({
         )}
       >
         {isReadingFile ? (
-          <LoaderCircleIcon strokeWidth={1.75} className="size-9 shrink-0 animate-spin text-text-accent" aria-hidden />
+          <LoaderCircleIcon
+            strokeWidth={1.75}
+            className="size-9 shrink-0 animate-spin text-text-accent"
+            aria-hidden
+          />
         ) : (
-          <FileCheck2Icon strokeWidth={1.75} className="size-9 shrink-0 text-text-success" aria-hidden />
+          <FileCheck2Icon
+            strokeWidth={1.75}
+            className="size-9 shrink-0 text-text-success"
+            aria-hidden
+          />
         )}
 
         {isReadingFile ? (

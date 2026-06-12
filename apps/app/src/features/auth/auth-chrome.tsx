@@ -41,9 +41,7 @@ export function AuthStatusPill() {
     <Badge
       variant="outline"
       className="bg-background-default text-text-secondary transition-colors hover:border-divider-regular"
-      render={
-        <a href="https://status.duedatehq.com" target="_blank" rel="noreferrer noopener" />
-      }
+      render={<a href="https://status.duedatehq.com" target="_blank" rel="noreferrer noopener" />}
     >
       <BadgeStatusDot tone="success" className="size-1.5" />
       <Trans>All systems normal</Trans>

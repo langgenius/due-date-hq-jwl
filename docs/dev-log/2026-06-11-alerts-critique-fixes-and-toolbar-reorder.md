@@ -63,7 +63,7 @@ page, plus Yuqi's third /alerts feedback batch (toolbar + row polish).
 
 - tsgo clean, no console errors. DOM-probed at 1512×861: toolbar order as
   specced; Filters chip gray-filled w/ primary ink; row hover carries accent
-  + inset bar; change-kind 11/500 muted; zero "No matching clients" rows;
-  detail hint reads "A Review" on a review-only alert; grid = 7 cells, no
-  CHANGE TYPE, "May 20, 2026", 7 values clamped; protective labels sans
-  12/500; soft boxes 0px border.
+  - inset bar; change-kind 11/500 muted; zero "No matching clients" rows;
+    detail hint reads "A Review" on a review-only alert; grid = 7 cells, no
+    CHANGE TYPE, "May 20, 2026", 7 values clamped; protective labels sans
+    12/500; soft boxes 0px border.

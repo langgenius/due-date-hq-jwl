@@ -11,6 +11,7 @@ loaded, and "no client impact" is precisely the fact that lets a CPA skim
 past an advisory quickly.
 
 Restored as the QUIET form in both `PulseAlertRow` and `AlertListRail`:
+
 - impacted > 0 → loud: Users icon + "Affects N clients" (secondary ink)
 - impacted = 0 → quiet: "No client impact" (muted, no icon)
 

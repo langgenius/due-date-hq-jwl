@@ -3,6 +3,7 @@
 **Reference:** docs/Design/ux-copy-audit-2026-06-11.md §2.3 + §2.4 leftovers.
 
 Deadlines (drawer + panels + dialogs + the obligations.tsx twins of the same panel code):
+
 - "Mark filed" (row action) → "Mark as filed" (matches the drawer footer).
 - Bare "Assign" hero button → "Assign owner".
 - Materials headlines unified: "All {n} items in" / "All {n} items in workpapers" (3 sites + 2 twins) → "All {n} items received".
@@ -12,6 +13,7 @@ Deadlines (drawer + panels + dialogs + the obligations.tsx twins of the same pan
 - Validation "Reason is required." (3 sites) → "Add a reason."; badge "Email will be queued" → "Email queued".
 
 Alerts:
+
 - Bulk toast "Dismissed {n} · {m} couldn't be dismissed" → "Dismissed {n} — {m} couldn't be dismissed" (sentence, not metadata).
 - Activity event meta "Apply, review, or dismiss to resolve." removed — it restated the three visible buttons.
 - The "Pending your review"/"Awaiting your decision" consolidation was already done by a parallel pass; only a stale comment mentions the old label.

@@ -63,6 +63,7 @@ measurement) and run across every authenticated route, including the
 deadline detail's four tabs and the client detail.
 
 **Real findings (2):**
+
 - `reminder-templates-page.tsx` — template names are USER-editable and
   rendered in an unclamped card `<h2>`; a long name stacked the card header
   4 lines. Fixed: `line-clamp-2 min-w-0` + `title` attr. Re-verified: 2

@@ -4,7 +4,7 @@ import { CalendarClockIcon } from 'lucide-react'
 
 import type { PulseDetail } from '@duedatehq/contracts'
 
-import { formatDate, formatDatePretty } from '@/lib/utils'
+import { formatDatePretty } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 
 interface AlertStructuredFieldsProps {

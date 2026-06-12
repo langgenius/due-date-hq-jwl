@@ -77,8 +77,7 @@ function scan(file) {
       // ramp, 2026-06-11). 33+ display sizes (display-large/hero) + the
       // auth-exempt paths remain outside the net.
       // micro tier (9px, Yuqi); ≥16 is display (no token). Both allowed.
-      if (n >= 9 && n <= 32)
-        push(rel, i, m[0], `text-[${n}px] → font token`)
+      if (n >= 9 && n <= 32) push(rel, i, m[0], `text-[${n}px] → font token`)
     }
     const hex = line.match(HEX)
     if (hex) push(rel, i, hex[0], `hardcoded hex → color token`)

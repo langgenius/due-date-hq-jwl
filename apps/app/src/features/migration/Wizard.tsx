@@ -278,8 +278,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
     dispatch({ type: 'INTAKE_SUBMIT_ERROR', error: null })
     const handleError = (err: unknown) => {
       const description =
-        rpcErrorMessage(err) ??
-        t`Try again in a moment. If it keeps failing, contact support.`
+        rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`
       dispatch({ type: 'INTAKE_SUBMIT_ERROR', error: description })
       toast.error(t`Couldn't start the import`, { description })
     }
@@ -358,8 +357,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
     const handleError = (err: unknown) => {
       toast.error(t`Couldn't save mapping`, {
         description:
-          rpcErrorMessage(err) ??
-          t`Try again in a moment. If it keeps failing, contact support.`,
+          rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
       })
     }
 
@@ -434,8 +432,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
     const handleError = (err: unknown) => {
       toast.error(t`Couldn't apply tax type suggestions`, {
         description:
-          rpcErrorMessage(err) ??
-          t`Try again in a moment. If it keeps failing, contact support.`,
+          rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
       })
     }
 

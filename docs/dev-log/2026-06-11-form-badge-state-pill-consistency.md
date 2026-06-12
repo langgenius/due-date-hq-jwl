@@ -25,7 +25,7 @@ pill = `Badge` (`ui/badge`) on the §4.10 tone ladder. Both swept app-wide.
     tooltip for free).
   - `generation-preview-tab` TAX TYPES chips — rounded/white span → stock.
   - `ClientDetailWorkspace` active-alerts card — `Badge variant="secondary"
-    uppercase` → TaxCodeBadge.
+uppercase` → TaxCodeBadge.
   - `DeadlineNavigatorRail` — its padding/text overrides became
     `size="compact"`.
   - Deleted `PulseFormChip.tsx` (unused, redundant with TaxCodeBadge).
@@ -56,7 +56,7 @@ pill = `Badge` (`ui/badge`) on the §4.10 tone ladder. Both swept app-wide.
   changes.
 - **Temporary rules:** dropped the freelance `h-[22px]` → stock Badge h-5.
 - **Auth chrome:** `AuthStatusPill` hand-rolled `<a>` → `Badge
-  variant="outline"` + `BadgeStatusDot` with `render={<a/>}` (established
+variant="outline"` + `BadgeStatusDot` with `render={<a/>}` (established
   pattern, cf. MonitoringChip).
 - **Onboarding:** "{n} to review" hand-rolled warning span →
   `CountPill tone="warning"`.

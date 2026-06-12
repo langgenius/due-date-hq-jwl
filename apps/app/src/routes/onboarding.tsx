@@ -239,8 +239,8 @@ export function OnboardingRoute() {
             </h1>
             <p className="text-sm font-medium leading-normal text-text-tertiary">
               <Trans>
-                A few details so DueDateHQ can schedule your deadlines. You can change any of
-                this later in Settings.
+                A few details so DueDateHQ can schedule your deadlines. You can change any of this
+                later in Settings.
               </Trans>
             </p>
           </div>

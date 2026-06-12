@@ -93,7 +93,9 @@ function templateListDescription(template: ReminderTemplatePublic) {
     return <Trans>Sent to clients 7 days before the deadline — the final countdown email.</Trans>
   }
   if (template.kind === 'readiness_request') {
-    return <Trans>Sent to clients from Send to client — collects the open materials checklist.</Trans>
+    return (
+      <Trans>Sent to clients from Send to client — collects the open materials checklist.</Trans>
+    )
   }
   return <Trans>Custom reminder template for this practice.</Trans>
 }

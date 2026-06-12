@@ -199,8 +199,7 @@ export function WorkloadPage() {
               title={<Trans>No deadlines due in the selected window.</Trans>}
               description={
                 <Trans>
-                  Workload updates as deadlines approach. Add clients, or widen the window
-                  above.
+                  Workload updates as deadlines approach. Add clients, or widen the window above.
                 </Trans>
               }
             />

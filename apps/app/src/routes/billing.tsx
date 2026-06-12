@@ -296,8 +296,8 @@ export function BillingRoute() {
           // ROH-D11 — billing.read = owner-only today (helper-aware
           // so if scope changes we don't drift again).
           <Trans>
-            Only {requiredRolesLabel('billing.read')} can view billing. Ask the practice
-            owner for plan or invoice access.
+            Only {requiredRolesLabel('billing.read')} can view billing. Ask the practice owner for
+            plan or invoice access.
           </Trans>
         }
         secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}

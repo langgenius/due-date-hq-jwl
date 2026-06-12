@@ -99,12 +99,13 @@ export function AffectedClientsTable({
   // demo data + E2E specs render).
   const orderedRows = useMemo(() => {
     if (!collapsible) return rows
-    return [...rows].sort(
+    return [...rows].toSorted(
       (a, b) =>
         (a.matchStatus === 'needs_review' ? 0 : 1) - (b.matchStatus === 'needs_review' ? 0 : 1),
     )
   }, [rows, collapsible])
-  const visibleRows = collapsible && !showAll ? orderedRows.slice(0, VISIBLE_COLLAPSED) : orderedRows
+  const visibleRows =
+    collapsible && !showAll ? orderedRows.slice(0, VISIBLE_COLLAPSED) : orderedRows
 
   const handleToggleAll = (checked: boolean) => {
     onChangeSelection(setAllSelection(rows, checked, confirmedReviewIds))

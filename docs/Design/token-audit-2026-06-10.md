@@ -91,6 +91,7 @@ outside the auth-exempt paths. Baseline shrank 6 → 4 (the remaining 16/17px
 inside drawer condense-morphs + migration wizard).
 
 **Deliberately NOT swept (recorded backlog):**
+
 - Display ramp 20/22/24/26/30/44px (~12 sites: empty-state 22, stat-band 24,
   drawer morph pairs 16↔22, PulseFormRevisedCard 20, migration 26, panels 30,
   login 44) — needs a display-scale consolidation decision, not piecemeal

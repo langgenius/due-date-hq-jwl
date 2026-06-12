@@ -108,6 +108,7 @@ import {
   JurisdictionKpiStrip,
   JurisdictionRuleTable,
   formatRuleTypeLabel,
+  type RuleScope,
   type RuleTableFilter,
 } from '@/features/rules/jurisdiction-rule-table'
 import { formatTaxCode } from '@/lib/tax-codes'
@@ -1309,6 +1310,35 @@ export function RulesLibraryRoute() {
     () => unfilteredGroups.find((g) => g.jurisdiction === activeJurisdiction) ?? null,
     [unfilteredGroups, activeJurisdiction],
   )
+  const selectedJurisdictionScope = useMemo<'review' | 'active' | 'missing'>(() => {
+    if (activeScope === 'missing') return 'missing'
+    if (activeScope === 'active') return 'active'
+    if (!selectedGroup) return 'active'
+    if (activeScope === 'review' && selectedGroup.pendingReviewCount > 0) return 'review'
+    return selectedGroup.pendingReviewCount > 0 ? 'review' : 'active'
+  }, [activeScope, selectedGroup])
+  const selectJurisdiction = useCallback(
+    (jurisdiction: string | null) => {
+      void setJurisdiction(jurisdiction)
+      if (!jurisdiction) {
+        void setScope(null)
+        return
+      }
+      const nextGroup = unfilteredGroups.find((group) => group.jurisdiction === jurisdiction)
+      void setScope(nextGroup && nextGroup.pendingReviewCount === 0 ? 'active' : 'review')
+    },
+    [setJurisdiction, setScope, unfilteredGroups],
+  )
+  const setJurisdictionScope = useCallback(
+    (next: RuleScope) => {
+      if (next === 'review' && selectedGroup?.pendingReviewCount === 0) {
+        void setScope('active')
+        return
+      }
+      void setScope(next === 'all' ? null : next)
+    },
+    [selectedGroup, setScope],
+  )
   // oJL8o facet-filter state (Type / Severity / sort). Ephemeral, not
   // URL-bound; reset whenever the selected jurisdiction changes so the
   // chips never carry stale selections between states.
@@ -1320,13 +1350,13 @@ export function RulesLibraryRoute() {
   // active scope (active/review/archived) + entity + rule search.
   // 'missing' scope shows gap rows only (handled in the render).
   const jurisdictionTableRules = useMemo(() => {
-    if (!selectedGroup || activeScope === 'missing') return []
+    if (!selectedGroup || selectedJurisdictionScope === 'missing') return []
     let result = selectedGroup.rules
     if (activeEntity) result = result.filter((r) => r.entityApplicability.includes(activeEntity))
     // Jurisdiction view carries only the two working states: Review and
-    // Active (the default). Any non-'review' scope reads as Active —
-    // deprecated/archived rules aren't surfaced in this view.
-    if (activeScope === 'review') {
+    // Active. When a state is opened without an explicit working scope,
+    // prefer Review if there is pending work; otherwise fall back to Active.
+    if (selectedJurisdictionScope === 'review') {
       result = result.filter((r) => statusGroupOf(r.status) === 'needs_review')
     } else {
       result = result.filter((r) => r.status === 'active' || r.status === 'verified')
@@ -1362,7 +1392,7 @@ export function RulesLibraryRoute() {
       )
     }
     return result.toSorted(compareByStatusGroupPriority)
-  }, [selectedGroup, activeScope, activeEntity, search, tableFilter])
+  }, [selectedGroup, selectedJurisdictionScope, activeEntity, search, tableFilter])
   // Distinct tax-type options for the selected jurisdiction's Type filter.
   const jurisdictionTypeOptions = useMemo(() => {
     if (!selectedGroup) return []
@@ -2097,7 +2127,7 @@ export function RulesLibraryRoute() {
           items={railItems}
           totalRuleCount={totalRules}
           selected={activeJurisdiction}
-          onSelect={(jur) => void setJurisdiction(jur)}
+          onSelect={selectJurisdiction}
           search={railSearch}
           onSearchChange={setRailSearch}
           temporary={railTemporary}
@@ -2221,8 +2251,8 @@ export function RulesLibraryRoute() {
                   // status breakdown).
                   <JurisdictionFilterBar
                     jurisdictionLabel={selectedGroup.label}
-                    scope={activeScope === 'review' ? 'review' : 'active'}
-                    onScopeChange={(next) => void setScope(next)}
+                    scope={selectedJurisdictionScope === 'review' ? 'review' : 'active'}
+                    onScopeChange={setJurisdictionScope}
                     search={search ?? ''}
                     onSearchChange={(next) => void setSearch(next || null)}
                     typeOptions={jurisdictionTypeOptions}
@@ -2282,8 +2312,8 @@ export function RulesLibraryRoute() {
                         rules={jurisdictionTableRules}
                         jurisdictionLabel={selectedGroup.label}
                         gapEntities={selectedGroup.gapEntities}
-                        scope={activeScope}
-                        showGaps={activeScope === 'missing'}
+                        scope={selectedJurisdictionScope}
+                        showGaps={selectedJurisdictionScope === 'missing'}
                         tierLabels={tierLabels}
                         selectedRuleIds={selectedRuleIds}
                         onToggleRuleSelection={toggleRuleSelection}

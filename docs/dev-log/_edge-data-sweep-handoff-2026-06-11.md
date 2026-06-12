@@ -28,15 +28,15 @@ default.
 
 Inject realistic-hostile values, never fictional features:
 
-| Dimension | Values |
-|---|---|
-| Names | client/form names at 60–80 chars ("Hudson & Wexford Riverside Properties Management Holding LLC (Pro Plan)"); unicode + diacritics ("Müller, Søren & 王"); single-char name |
-| Counts | 0 items · exactly 1 (plural check) · 14 · 200+ (rails/tables/timeline/checklist — checklist caps at 30, verify the cap UX) |
-| Money | $0 · $0.01 · $1,234,567.89 · null cents (`estimatedTaxDueCents` absent) |
-| Dates | due today · due yesterday · 400 days overdue · 3 years future · `null` filing/payment dates · fiscal-year ends · timezone edges (practiceTimezone vs UTC midnight — the codebase parses ISO by parts deliberately, see `formatRailDate`) |
-| Missing fields | no assignee · no rule bound (`matchedRule` null) · no checklist · no penalty breakdown · no formName (falls back to taxType) · client record missing (orphaned deadline — there's a warning chip path) |
-| Status | every one of the 10 ObligationStatus values; blocked WITH and WITHOUT `blockedByObligationInstanceId` |
-| Text | a 500-char alert summary; an alert source-extract with markdown/HTML chars; empty-string vs null |
+| Dimension      | Values                                                                                                                                                                                                                                   |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Names          | client/form names at 60–80 chars ("Hudson & Wexford Riverside Properties Management Holding LLC (Pro Plan)"); unicode + diacritics ("Müller, Søren & 王"); single-char name                                                              |
+| Counts         | 0 items · exactly 1 (plural check) · 14 · 200+ (rails/tables/timeline/checklist — checklist caps at 30, verify the cap UX)                                                                                                               |
+| Money          | $0 · $0.01 · $1,234,567.89 · null cents (`estimatedTaxDueCents` absent)                                                                                                                                                                  |
+| Dates          | due today · due yesterday · 400 days overdue · 3 years future · `null` filing/payment dates · fiscal-year ends · timezone edges (practiceTimezone vs UTC midnight — the codebase parses ISO by parts deliberately, see `formatRailDate`) |
+| Missing fields | no assignee · no rule bound (`matchedRule` null) · no checklist · no penalty breakdown · no formName (falls back to taxType) · client record missing (orphaned deadline — there's a warning chip path)                                   |
+| Status         | every one of the 10 ObligationStatus values; blocked WITH and WITHOUT `blockedByObligationInstanceId`                                                                                                                                    |
+| Text           | a 500-char alert summary; an alert source-extract with markdown/HTML chars; empty-string vs null                                                                                                                                         |
 
 ## 2. How to inject
 

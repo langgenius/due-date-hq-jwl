@@ -6,17 +6,17 @@ A quiet queue is a fact, not an achievement. The congratulatory "caught up" fami
 
 ## Cheer family (9 sites)
 
-| File | Before | After |
-|---|---|---|
-| splash.tsx | "Nothing changed while you were away — you're all caught up." | "No activity since your last visit." |
-| needs-attention-section.tsx | "No alerts — you're caught up" | "No alerts right now" |
-| AlertsListPage.tsx | "No alerts — you're caught up" | "No alerts right now" |
-| preview.tsx (specimen) | same | "No alerts right now" |
-| actions-list.tsx | "You're all caught up" | "Your queue is clear" |
-| rules.library.tsx | "You're all caught up" | "Review queue is clear" |
-| FixNeedsFactsSheet.tsx | "All caught up" (badge) | "All resolved" |
-| SurfaceSummaryStrip.tsx | "All caught up" (zero-state) | "Nothing pending" |
-| sources-tab.tsx | "You're already caught up — no still-open windows to add." | "No still-open windows to add." |
+| File                        | Before                                                        | After                                |
+| --------------------------- | ------------------------------------------------------------- | ------------------------------------ |
+| splash.tsx                  | "Nothing changed while you were away — you're all caught up." | "No activity since your last visit." |
+| needs-attention-section.tsx | "No alerts — you're caught up"                                | "No alerts right now"                |
+| AlertsListPage.tsx          | "No alerts — you're caught up"                                | "No alerts right now"                |
+| preview.tsx (specimen)      | same                                                          | "No alerts right now"                |
+| actions-list.tsx            | "You're all caught up"                                        | "Your queue is clear"                |
+| rules.library.tsx           | "You're all caught up"                                        | "Review queue is clear"              |
+| FixNeedsFactsSheet.tsx      | "All caught up" (badge)                                       | "All resolved"                       |
+| SurfaceSummaryStrip.tsx     | "All caught up" (zero-state)                                  | "Nothing pending"                    |
+| sources-tab.tsx             | "You're already caught up — no still-open windows to add."    | "No still-open windows to add."      |
 
 ## Factual / grammar / tone bugs
 

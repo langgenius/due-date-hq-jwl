@@ -1051,8 +1051,7 @@ export function PenaltyInputDialog({
       onError: (err) => {
         toast.error(t`Couldn't save penalty inputs`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

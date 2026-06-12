@@ -85,9 +85,7 @@ export function DetailStatusBanner({
       <Icon className={cn('mt-0.5 size-4 shrink-0', c.text)} aria-hidden />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className={cn('text-base font-semibold', c.text)}>{title}</span>
-        {description ? (
-          <span className="text-sm text-text-tertiary">{description}</span>
-        ) : null}
+        {description ? <span className="text-sm text-text-tertiary">{description}</span> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>

@@ -5,10 +5,10 @@ style, same visual language. Elevate both.")
 
 Two surfaces open with a short editorial read of where the work stands:
 
-| Surface | Component |
-| --- | --- |
+| Surface      | Component                                                           |
+| ------------ | ------------------------------------------------------------------- |
 | `/deadlines` | "Deadlines at a glance" narrative banner — `routes/obligations.tsx` |
-| `/today` | `DailyBriefCard` — `features/dashboard/daily-brief-card.tsx` |
+| `/today`     | `DailyBriefCard` — `features/dashboard/daily-brief-card.tsx`        |
 
 They previously spoke different dialects: the deadlines banner was a calm
 neutral editorial block, while the Daily Brief was an accent-washed card with a
@@ -21,11 +21,11 @@ Anatomy, top to bottom (single `flex-col gap-1.5` stack):
 
 1. **Eyebrow** — `size-1.5` accent dot (`bg-state-accent-active-alt`) +
    tracked-caps label, `text-caption font-medium tracking-eyebrow
-   text-text-tertiary uppercase`. The deadlines banner puts the date here
+text-text-tertiary uppercase`. The deadlines banner puts the date here
    ("THU JUN 11"); the Daily Brief puts its name + freshness chip
    ("DAILY BRIEF · FRESH").
 2. **Headline** — the one editorial sentence, `text-lg leading-6 font-semibold
-   text-text-primary max-w-[64ch]`. Deadlines: the narrative ("6 overdue —
+text-text-primary max-w-[64ch]`. Deadlines: the narrative ("6 overdue —
    clear the urgent set to pull the week back on track."). Daily Brief: the AI
    focus sentence (or the deterministic firm-concentration line / quiet
    pending-failed note).

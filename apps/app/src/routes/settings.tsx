@@ -37,8 +37,7 @@ export function SettingsRoute() {
           title={<Trans>Settings</Trans>}
           description={
             <Trans>
-              Practice settings — account, identity, team, billing,
-              compliance, and automation.
+              Practice settings — account, identity, team, billing, compliance, and automation.
             </Trans>
           }
         />

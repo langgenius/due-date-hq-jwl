@@ -1,6 +1,6 @@
 # UX Copy Audit — Full Application (2026-06-11)
 
-**Scope:** every route and feature surface in `apps/app` (~45 routes, 21 feature areas), audited against the voice contract in `.impeccable.md` — *calm · capable · sharp; a 15-year-veteran tax partner; never cheeky, never apologetic, never enterprise-speak* — plus the established copy rules (no fiction on canvas, status is observed not chosen, demote don't delete).
+**Scope:** every route and feature surface in `apps/app` (~45 routes, 21 feature areas), audited against the voice contract in `.impeccable.md` — _calm · capable · sharp; a 15-year-veteran tax partner; never cheeky, never apologetic, never enterprise-speak_ — plus the established copy rules (no fiction on canvas, status is observed not chosen, demote don't delete).
 
 **Method:** ten parallel read-only audits (auth/entry, today, alerts, deadlines, clients, rules, migration/readiness, reminders/notifications, settings/admin, calendar/workload/audit/shell), plus a five-pass gap-closing sweep (shared primitives & command palette, the remaining 25 alerts components, exhaustive line-indexed extraction of the three largest files, server-sent copy — emails/digest/push/ICS, and the marketing site). Synthesized and editorially curated. Every quoted string was read from source; the highest-impact claims were re-verified by grep before publication.
 
@@ -8,27 +8,27 @@
 
 Overall grade by area:
 
-| Area | Grade | One-line diagnosis |
-|---|---|---|
-| Deadlines detail | B | Strong domain copy; tab-label split and materials vocabulary drift |
-| Clients | B+ | Cleanest area; minor casing and grammar variance |
-| Alerts | B− | Strong verbs (Apply/Dismiss/Revert), but engineering jargon leaks into toasts |
-| Today | B− | Good empty-state branching; "caught up" cheer + "% conf" abbreviation |
-| Rules | C+ | "Concrete draft" and bureaucratic passives undercut authority |
-| Migration | C+ | The trust-building moment says "rows" and "data" instead of "clients" |
-| Auth & onboarding | C | "The engine", "source-defined calendar", error boilerplate |
-| Reminders/notifications | C− | Worst fiction offender: promises features that don't exist |
-| Settings/admin | C− | "Workspace configuration", poetic subtitles, 13+ pasted error fallbacks |
-| Calendar/workload/audit | C+ | "Event stream", "actor", "window" — engineering-first labels |
-| Shared primitives/palette | A− | Cleanest layer in the app; one "workspace" leak in the document title |
-| Server-sent emails | C | Client-facing reminders sound like a subscription service, not a CPA |
-| Marketing site | B | On-brand voice; unqualified time/SLA claims and tier-name wobble |
+| Area                      | Grade | One-line diagnosis                                                            |
+| ------------------------- | ----- | ----------------------------------------------------------------------------- |
+| Deadlines detail          | B     | Strong domain copy; tab-label split and materials vocabulary drift            |
+| Clients                   | B+    | Cleanest area; minor casing and grammar variance                              |
+| Alerts                    | B−    | Strong verbs (Apply/Dismiss/Revert), but engineering jargon leaks into toasts |
+| Today                     | B−    | Good empty-state branching; "caught up" cheer + "% conf" abbreviation         |
+| Rules                     | C+    | "Concrete draft" and bureaucratic passives undercut authority                 |
+| Migration                 | C+    | The trust-building moment says "rows" and "data" instead of "clients"         |
+| Auth & onboarding         | C     | "The engine", "source-defined calendar", error boilerplate                    |
+| Reminders/notifications   | C−    | Worst fiction offender: promises features that don't exist                    |
+| Settings/admin            | C−    | "Workspace configuration", poetic subtitles, 13+ pasted error fallbacks       |
+| Calendar/workload/audit   | C+    | "Event stream", "actor", "window" — engineering-first labels                  |
+| Shared primitives/palette | A−    | Cleanest layer in the app; one "workspace" leak in the document title         |
+| Server-sent emails        | C     | Client-facing reminders sound like a subscription service, not a CPA          |
+| Marketing site            | B     | On-brand voice; unqualified time/SLA claims and tier-name wobble              |
 
 ---
 
 ## Part 1 — Systemic failures (fix once, fix everywhere)
 
-These six patterns account for the majority of all findings. Fixing them as *patterns* (not as individual strings) is the only way the app converges on one voice.
+These six patterns account for the majority of all findings. Fixing them as _patterns_ (not as individual strings) is the only way the app converges on one voice.
 
 ### S1. The 108× error fallback — `[P0]`
 
@@ -39,24 +39,26 @@ These six patterns account for the majority of all findings. Fixing them as *pat
 Pasted **108 times** across auth, settings, practice, reminders, clients, calendar. It blames the user's network for every failure (validation, permissions, server errors alike), offers no diagnosis, and reads as a shrug. A 15-year-veteran partner doesn't say "probably your wifi" to every question.
 
 **Canonical error pattern (adopt app-wide):**
+
 - **Title:** `Couldn't [verb] [object]` — keep this existing pattern; it is active, honest, human. (Reject "X failed" — system-speak.)
-- **Description:** the *specific* cause when the RPC error carries one (`rpcErrorMessage()` already does this on /calendar — that page is the model), else ONE concrete recovery step tied to the action ("Check the email address and resend", "Refresh and try again"). "Contact support" is a last resort, not a chorus.
+- **Description:** the _specific_ cause when the RPC error carries one (`rpcErrorMessage()` already does this on /calendar — that page is the model), else ONE concrete recovery step tied to the action ("Check the email address and resend", "Refresh and try again"). "Contact support" is a last resort, not a chorus.
 - Never "Please". Never "Something went wrong" without a noun.
 
 ### S2. The "caught up" cheer family — `[P0]`
 
 Six live sites speak congratulatory fintech to a stressed CPA:
 
-| Site | Current |
-|---|---|
-| `splash.tsx:160` | "Nothing changed while you were away — you're all caught up." |
-| `needs-attention-section.tsx:143` | "No alerts — you're caught up" |
-| `AlertsListPage.tsx:1837` | "No alerts — you're caught up" |
-| `actions-list.tsx:508` | "You're all caught up" |
-| `rules.library.tsx:947` | "You're all caught up" |
-| `routes/preview.tsx:1751` | (specimen copy of the same) |
+| Site                              | Current                                                       |
+| --------------------------------- | ------------------------------------------------------------- |
+| `splash.tsx:160`                  | "Nothing changed while you were away — you're all caught up." |
+| `needs-attention-section.tsx:143` | "No alerts — you're caught up"                                |
+| `AlertsListPage.tsx:1837`         | "No alerts — you're caught up"                                |
+| `actions-list.tsx:508`            | "You're all caught up"                                        |
+| `rules.library.tsx:947`           | "You're all caught up"                                        |
+| `routes/preview.tsx:1751`         | (specimen copy of the same)                                   |
 
-A quiet queue is a *fact*, not an achievement. Replace with factual calm, one phrasing per surface type:
+A quiet queue is a _fact_, not an achievement. Replace with factual calm, one phrasing per surface type:
+
 - Alert queues: **"No alerts right now."** (+ existing "when {source} publishes a change…" body)
 - Review queues: **"Review queue is clear."**
 - Splash: **"No activity since your last visit."**
@@ -65,36 +67,36 @@ A quiet queue is a *fact*, not an achievement. Replace with factual calm, one ph
 
 The backend's vocabulary is visible on screen. Kill list (verbatim, with canonical replacement):
 
-| Current (user-facing) | Where | Replace with |
-|---|---|---|
-| "Audit + evidence written. Undo within 24h." | AlertDetailDrawer.tsx:863, 978 | "Recorded in the audit log. Undo within 24 hours." |
-| "After that, the change is committed." | AlertDetailDrawer.tsx:558 | "After that, it can't be undone." |
-| "Notifications queued for…" | AlertDetailDrawer.tsx:943 | "Review request sent to…" |
-| "no data rows" / "up to 1,000 rows" | Step1Intake.tsx:251, 262, 599 | "clients" — the wizard imports clients, not rows |
-| "the engine" | onboarding.tsx:241 | "DueDateHQ" |
-| "source-defined calendar" | rule-review-prompt.tsx:72 | "this state publishes its own deadline calendar" |
-| "Accepted AI concrete draft from rule detail review." | rule-detail-drawer.tsx:1066 | "Verified the AI-drafted due-date logic" |
-| "how often this fires" | reminder-template-editor-page.tsx:241 | "how often we send this" |
-| "Trigger · anchor point" | reminder-template-editor-page.tsx:257 | "When to send · days before or after the deadline" |
-| "Recent digest runs" / "No morning digests have run yet." | notification-preferences-page.tsx:756, 764 | "Recent digests" / "No digests sent yet." |
-| "Event stream" (card title) | audit-log-table.tsx:887 | "Audit log" — one name; the sidebar, page title, and card must agree |
-| "Search actor, entity, action, reason" | audit-log-page.tsx:782 | "Search by person, item, action, or reason" |
-| "Workload window" | workload-page.tsx:102 | "Next 7 / 14 / 30 days" |
-| "before deadlines fan out" | SuccessModal.tsx:187 | "before deadlines generate" |
-| "AI summarisation unavailable." | MorningSweepDialog.tsx:247 | British spelling + jargon: "Briefing unavailable." |
+| Current (user-facing)                                     | Where                                      | Replace with                                                         |
+| --------------------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
+| "Audit + evidence written. Undo within 24h."              | AlertDetailDrawer.tsx:863, 978             | "Recorded in the audit log. Undo within 24 hours."                   |
+| "After that, the change is committed."                    | AlertDetailDrawer.tsx:558                  | "After that, it can't be undone."                                    |
+| "Notifications queued for…"                               | AlertDetailDrawer.tsx:943                  | "Review request sent to…"                                            |
+| "no data rows" / "up to 1,000 rows"                       | Step1Intake.tsx:251, 262, 599              | "clients" — the wizard imports clients, not rows                     |
+| "the engine"                                              | onboarding.tsx:241                         | "DueDateHQ"                                                          |
+| "source-defined calendar"                                 | rule-review-prompt.tsx:72                  | "this state publishes its own deadline calendar"                     |
+| "Accepted AI concrete draft from rule detail review."     | rule-detail-drawer.tsx:1066                | "Verified the AI-drafted due-date logic"                             |
+| "how often this fires"                                    | reminder-template-editor-page.tsx:241      | "how often we send this"                                             |
+| "Trigger · anchor point"                                  | reminder-template-editor-page.tsx:257      | "When to send · days before or after the deadline"                   |
+| "Recent digest runs" / "No morning digests have run yet." | notification-preferences-page.tsx:756, 764 | "Recent digests" / "No digests sent yet."                            |
+| "Event stream" (card title)                               | audit-log-table.tsx:887                    | "Audit log" — one name; the sidebar, page title, and card must agree |
+| "Search actor, entity, action, reason"                    | audit-log-page.tsx:782                     | "Search by person, item, action, or reason"                          |
+| "Workload window"                                         | workload-page.tsx:102                      | "Next 7 / 14 / 30 days"                                              |
+| "before deadlines fan out"                                | SuccessModal.tsx:187                       | "before deadlines generate"                                          |
+| "AI summarisation unavailable."                           | MorningSweepDialog.tsx:247                 | British spelling + jargon: "Briefing unavailable."                   |
 
 ### S4. Fiction in copy — promises the product doesn't keep — `[P0]`
 
 Violates the no-fiction rule directly. Copy must trace to real behavior:
 
-| Claim | Reality | Fix |
-|---|---|---|
-| "Body · supports markdown" (reminder-template-editor-page.tsx:201) | The formatting toolbar is `disabled` | Remove the hint or ship the toolbar |
-| "Connect your Slack workspace to receive @mentions and digests there." (notification-preferences-page.tsx:240) | Code comment: "Slack integration not modeled" | Hide the row or label it honestly |
-| "DueDateHQ for iOS · 2 devices registered" (notification-preferences-page.tsx:224) | Hardcoded sample | Data-drive or remove |
-| "Edit per tax type or per client tier." (reminder-templates-page.tsx:59) | No such fields on the contract | "Customize the subject and body." |
-| "Quick tour (90 sec)" / "What's new in 6.7" (splash.tsx:197, 205) | Buttons wired to nothing | Remove until real |
-| "Insert variable" (editor, disabled, unexplained) | Not shipped | Remove or explain |
+| Claim                                                                                                          | Reality                                       | Fix                                 |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ----------------------------------- |
+| "Body · supports markdown" (reminder-template-editor-page.tsx:201)                                             | The formatting toolbar is `disabled`          | Remove the hint or ship the toolbar |
+| "Connect your Slack workspace to receive @mentions and digests there." (notification-preferences-page.tsx:240) | Code comment: "Slack integration not modeled" | Hide the row or label it honestly   |
+| "DueDateHQ for iOS · 2 devices registered" (notification-preferences-page.tsx:224)                             | Hardcoded sample                              | Data-drive or remove                |
+| "Edit per tax type or per client tier." (reminder-templates-page.tsx:59)                                       | No such fields on the contract                | "Customize the subject and body."   |
+| "Quick tour (90 sec)" / "What's new in 6.7" (splash.tsx:197, 205)                                              | Buttons wired to nothing                      | Remove until real                   |
+| "Insert variable" (editor, disabled, unexplained)                                                              | Not shipped                                   | Remove or explain                   |
 
 ### S5. Broken and hand-rolled plurals — `[P1]`, some crash-adjacent
 
@@ -104,27 +106,27 @@ Hardcoded English plurals read as bugs and break localization (and note the know
 - `members-page.tsx:319` — "{ownerCount} owner · {managedCount} managed" — wrong above 1
 - `rule-review-prompt.tsx:98` — `jurisdiction{count === 1 ? '' : 's'}` — ternary plural, migrate to `<Plural>`
 - `generation-preview-tab.tsx:1098` — "${n} deadline, will fire 30 / 7-day reminders" — singular/plural mismatch mid-sentence
-- `alerts-notifications-bell.tsx:163` — "{unreadCount} unread" — unread *what*
+- `alerts-notifications-bell.tsx:163` — "{unreadCount} unread" — unread _what_
 - `migration.new.tsx:263` — "rule is queued / rules are queued… they can become" — tense drifts inside the plural branches
 
 ### S6. One concept, many names — the consistency table
 
 This is the cohesion failure you asked about. Lock these now; every future string checks against this table:
 
-| Concept | Variants found in UI today | **Canonical** | Notes |
-|---|---|---|---|
-| The firm's account | practice · workspace · firm · organization | **practice** | Four confirmed "workspace" sites: `settings.tsx:40`, the **document title** `route-summary.ts:46` ("Workspace settings \| DueDateHQ" — in every browser tab), `CommandPalette.tsx:268`, and the zh invitation email (`messages.ts:26` "工作区"). Marketing also wobbles: "practice workspace" (Solo) vs "production practice" (Pro/Team). |
-| A tracked due item | deadline (UI) · obligation (internal) · filing plan | **deadline** | Already mostly right. "Filing plans" (onboarding.tsx:351) leaks internals. |
-| Detail tab 1 | Status (page mode) · Summary (panel/sheet mode) — `ObligationQueueDetailDrawer.tsx:1662` | **Status** | The 4-tab contract is locked (Status · Materials · Record · Audit). The panel label is a leftover. |
-| Detail tab 3 | Record (page mode) · Evidence (panel/sheet mode) — `ObligationQueueDetailDrawer.tsx:1720` | **Record** | Same disease as tab 1, found in the gap pass. "Evidence" additionally collides with the workpapers vocabulary inside the tab itself. |
-| Client paperwork being collected | materials · documents · items · evidence · source documents | **materials** (flow/tab) · **items** (inside a checklist) · **source documents** only when distinguishing originals | "Evidence" never user-facing. |
-| Pulse feature objects | Alerts (feature) vs "deadline alerts", "important deadline alerts" in notifications copy | **alert = Pulse only** | Generic notification copy says "reminders" / "notifications" — `notifications-page.tsx:236` collides today. |
-| Reversal verbs | Undo · Revert · Restore · Reopen · roll back | **Undo** (time-boxed reversal of apply/import) · **Restore** (bring back a dismissed alert) | "Reopen" (AlertsListPage.tsx:1254) and "Revert batch" (SuccessModal.tsx:175) break it. |
-| Invite mechanism | magic link · invitation link · invite | **invitation link** | "Magic link" (members-page.tsx:402, 625, 1113) is consumer-fintech voice. |
-| One-time auth code | 6-digit code · verification code · code · OTP | **code** ("the code we sent to {email}") | |
-| Monitored authority feed | source · feed · source feed · rule sources | **source** | StatBand "Feeds monitored" vs page "sources" disagree today. |
-| Audit surface | Audit log · Event stream · audit events · Activity | **Audit log** | |
-| Member states | Suspend / Remove / Revoke | (already clean — keep) | Suspend = reversible, Remove = permanent, Revoke = sessions. Good distinction; document it. |
+| Concept                          | Variants found in UI today                                                                | **Canonical**                                                                                                       | Notes                                                                                                                                                                                                                                                                                                                                     |
+| -------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The firm's account               | practice · workspace · firm · organization                                                | **practice**                                                                                                        | Four confirmed "workspace" sites: `settings.tsx:40`, the **document title** `route-summary.ts:46` ("Workspace settings \| DueDateHQ" — in every browser tab), `CommandPalette.tsx:268`, and the zh invitation email (`messages.ts:26` "工作区"). Marketing also wobbles: "practice workspace" (Solo) vs "production practice" (Pro/Team). |
+| A tracked due item               | deadline (UI) · obligation (internal) · filing plan                                       | **deadline**                                                                                                        | Already mostly right. "Filing plans" (onboarding.tsx:351) leaks internals.                                                                                                                                                                                                                                                                |
+| Detail tab 1                     | Status (page mode) · Summary (panel/sheet mode) — `ObligationQueueDetailDrawer.tsx:1662`  | **Status**                                                                                                          | The 4-tab contract is locked (Status · Materials · Record · Audit). The panel label is a leftover.                                                                                                                                                                                                                                        |
+| Detail tab 3                     | Record (page mode) · Evidence (panel/sheet mode) — `ObligationQueueDetailDrawer.tsx:1720` | **Record**                                                                                                          | Same disease as tab 1, found in the gap pass. "Evidence" additionally collides with the workpapers vocabulary inside the tab itself.                                                                                                                                                                                                      |
+| Client paperwork being collected | materials · documents · items · evidence · source documents                               | **materials** (flow/tab) · **items** (inside a checklist) · **source documents** only when distinguishing originals | "Evidence" never user-facing.                                                                                                                                                                                                                                                                                                             |
+| Pulse feature objects            | Alerts (feature) vs "deadline alerts", "important deadline alerts" in notifications copy  | **alert = Pulse only**                                                                                              | Generic notification copy says "reminders" / "notifications" — `notifications-page.tsx:236` collides today.                                                                                                                                                                                                                               |
+| Reversal verbs                   | Undo · Revert · Restore · Reopen · roll back                                              | **Undo** (time-boxed reversal of apply/import) · **Restore** (bring back a dismissed alert)                         | "Reopen" (AlertsListPage.tsx:1254) and "Revert batch" (SuccessModal.tsx:175) break it.                                                                                                                                                                                                                                                    |
+| Invite mechanism                 | magic link · invitation link · invite                                                     | **invitation link**                                                                                                 | "Magic link" (members-page.tsx:402, 625, 1113) is consumer-fintech voice.                                                                                                                                                                                                                                                                 |
+| One-time auth code               | 6-digit code · verification code · code · OTP                                             | **code** ("the code we sent to {email}")                                                                            |                                                                                                                                                                                                                                                                                                                                           |
+| Monitored authority feed         | source · feed · source feed · rule sources                                                | **source**                                                                                                          | StatBand "Feeds monitored" vs page "sources" disagree today.                                                                                                                                                                                                                                                                              |
+| Audit surface                    | Audit log · Event stream · audit events · Activity                                        | **Audit log**                                                                                                       |                                                                                                                                                                                                                                                                                                                                           |
+| Member states                    | Suspend / Remove / Revoke                                                                 | (already clean — keep)                                                                                              | Suspend = reversible, Remove = permanent, Revoke = sessions. Good distinction; document it.                                                                                                                                                                                                                                               |
 
 ---
 
@@ -330,9 +332,10 @@ Voice is largely on-brand — no hype, specific CTAs, grounded AI framing. The r
 
 ## Disposition (closed 2026-06-11, same day)
 
-Applied across 15 commits (`copy(...)` series, batches 1–15; one dev-log entry per batch in docs/dev-log/2026-06-11-ux-copy-batch*.md). All P0s and P1s are fixed, P2s fixed except the explicitly-deferred set below. zh-CN app catalog fully translated for every new msgid.
+Applied across 15 commits (`copy(...)` series, batches 1–15; one dev-log entry per batch in docs/dev-log/2026-06-11-ux-copy-batch\*.md). All P0s and P1s are fixed, P2s fixed except the explicitly-deferred set below. zh-CN app catalog fully translated for every new msgid.
 
 **Deliberately NOT changed (with reasons):**
+
 - "Couldn't [verb] [object]" error-title pattern — kept as canonical (the audit's own standard); only descriptions changed.
 - EN invitation subject "Join {organizationName} on DueDateHQ" — clear and standard; zh aligned to it instead.
 - Outbox fallback subject "DueDateHQ notification" — a generic fail-open shouldn't claim to be a deadline alert.

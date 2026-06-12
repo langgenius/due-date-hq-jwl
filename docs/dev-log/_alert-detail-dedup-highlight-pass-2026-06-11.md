@@ -30,11 +30,11 @@ design layout, show the information in a UX-friendly way".
 
 - NEW action-deadline hero for protective-claim alerts — same recipe as
   `DeadlineChangeCard` (gray box, big mono date, amber accents): CalendarClock
-  + ACTION DEADLINE + `formatDatePretty` date + derived countdown
-  ("29 days left" amber / "N days past" destructive / "Due today"), and the
-  evidence-to-gather list as a checklist sub-row under a hairline (one
-  do-this-by-then block). Countdown only computed for ISO `YYYY-MM-DD`
-  values (the AI field is freeform).
+  - ACTION DEADLINE + `formatDatePretty` date + derived countdown
+    ("29 days left" amber / "N days past" destructive / "Due today"), and the
+    evidence-to-gather list as a checklist sub-row under a hairline (one
+    do-this-by-then block). Countdown only computed for ISO `YYYY-MM-DD`
+    values (the AI field is freeform).
 - ONE fact grid: protective facts (affected years / tax acts / authority
   refs) and deadline-shift facts (relief type / deadline types / opt-in)
   merge into the main hairline grid; Authority / Published / bare
@@ -56,7 +56,7 @@ design layout, show the information in a UX-friendly way".
   paragraph, and hardcoded "Effective immediately" removed (homes: S&C
   card / header dek / fact grid).
 - **Bug fix** in PracticeImpactSection: `~{months} months of breathing room`
-  rendered as "~ months" — `{months}` inside a `<Plural>` *string prop* is
+  rendered as "~ months" — `{months}` inside a `<Plural>` _string prop_ is
   never bound by the macro (the ICU placeholder stays valueless). Replaced
   with the repo's `count === 1 ? <Trans>` ternary pattern
   (ClientDetailWorkspace precedent) and switched the copy to the exact

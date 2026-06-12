@@ -520,7 +520,10 @@ const en: LandingCopy = {
   security: {
     title: 'WHY CPAs TRUST IT',
     items: [
-      { pill: 'Per-practice isolation', body: 'your data stays inside your own practice — never shared across firms' },
+      {
+        pill: 'Per-practice isolation',
+        body: 'your data stays inside your own practice — never shared across firms',
+      },
       { pill: 'Evidence', body: 'every claim · source + excerpt' },
       { pill: 'Audit log', body: 'apply · undo · revert recorded' },
       { pill: 'Email-first', body: 'no client portal vault required' },

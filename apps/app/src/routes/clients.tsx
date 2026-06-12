@@ -236,8 +236,7 @@ export function ClientsRoute() {
       onError: (err) => {
         toast.error(t`Couldn't create client`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

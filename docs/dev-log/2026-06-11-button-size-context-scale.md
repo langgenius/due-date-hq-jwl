@@ -22,7 +22,7 @@ but it was **ad hoc at the edges**. Tally: `sm` 337, implicit-`default` ~92,
    (h-8). → Standardized ALL modal footers (Dialog + AlertDialog) to **`default`**
    by dropping `size="sm"`. (13 buttons.) The AnnualRollover `DialogTrigger`
    (toolbar button) correctly stays `sm` — it's a trigger, not a footer.
-3. **No documented rule.** §4.8 listed the sizes but never said *when* to use
+3. **No documented rule.** §4.8 listed the sizes but never said _when_ to use
    each. → Added the **size → context** table to DESIGN §4.8 (the enforceable
    rule): `lg` = auth/entry + empty-state hero; `default` = page-header actions +
    all modal footers; `sm` = toolbars / rows / inline; `xs` = dense. Same context

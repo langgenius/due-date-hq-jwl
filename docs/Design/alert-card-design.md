@@ -210,14 +210,14 @@ The same alert renders on FOUR surfaces — /today card (`needs-attention-card`)
 header (`AlertDetailDrawer`). One entity, one look; the table below is the
 contract. **Unified (accidental drift fixed 2026-06-11):**
 
-| Facet | Contract |
-| --- | --- |
-| HIGH IMPACT pill | `h-[20px] rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] uppercase` — identical on card/row/drawer (drawer previously used inline severity hexes; card used a borderless 4px-radius variant) |
-| Form chip | `TaxCodeBadge className="rounded-lg"` on row AND rail |
-| External link | text first, trailing `ExternalLinkIcon size-3`; interactive ONLY when `sourceUrl` exists (card + rail used to `window.open(null)`) |
-| Zero impact | "No client impact", muted, no icon — verbatim on card/row/rail |
-| Confidence read-out | "{N}% conf" word order everywhere it appears |
-| Change-kind label | caption-xs/medium/muted CAPS on row + rail |
+| Facet               | Contract                                                                                                                                                                                                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| HIGH IMPACT pill    | `h-[20px] rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] uppercase` — identical on card/row/drawer (drawer previously used inline severity hexes; card used a borderless 4px-radius variant) |
+| Form chip           | `TaxCodeBadge className="rounded-lg"` on row AND rail                                                                                                                                                                                                                    |
+| External link       | text first, trailing `ExternalLinkIcon size-3`; interactive ONLY when `sourceUrl` exists (card + rail used to `window.open(null)`)                                                                                                                                       |
+| Zero impact         | "No client impact", muted, no icon — verbatim on card/row/rail                                                                                                                                                                                                           |
+| Confidence read-out | "{N}% conf" word order everywhere it appears                                                                                                                                                                                                                             |
+| Change-kind label   | caption-xs/medium/muted CAPS on row + rail                                                                                                                                                                                                                               |
 
 **Deliberate divergences (do NOT "fix"):**
 
@@ -241,16 +241,16 @@ the real excerpt. Contract now:
 
 **Each fact has exactly ONE home in the drawer body:**
 
-| Fact | Home | What was removed |
-| --- | --- | --- |
-| Source / authority | header meta link + S&C citation line | grid "Authority" cell |
-| Publish date | S&C citation line | grid "Published" cell |
-| Jurisdiction | header `JurisdictionLabel` chip | grid "Jurisdiction" cell (counties keep a cell — no other home) |
-| Verbatim excerpt | S&C quote box (with copy affordance) | excerpt block at the bottom of Extracted facts; S&C's summary-quote (title repeat) |
-| AI confidence | S&C confidence row | DeadlineChangeCard meta row |
-| Summary / dek | header (gated `summary ≠ title`) | DeadlineChangeCard body paragraph |
-| Audit note | footer "Every decision captured…" | DeadlineChangeCard "Every change logged…" |
-| Effective date | fact-grid cell (computed from `effectiveFrom`) | DeadlineChangeCard's hardcoded "Effective immediately" |
+| Fact               | Home                                           | What was removed                                                                   |
+| ------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Source / authority | header meta link + S&C citation line           | grid "Authority" cell                                                              |
+| Publish date       | S&C citation line                              | grid "Published" cell                                                              |
+| Jurisdiction       | header `JurisdictionLabel` chip                | grid "Jurisdiction" cell (counties keep a cell — no other home)                    |
+| Verbatim excerpt   | S&C quote box (with copy affordance)           | excerpt block at the bottom of Extracted facts; S&C's summary-quote (title repeat) |
+| AI confidence      | S&C confidence row                             | DeadlineChangeCard meta row                                                        |
+| Summary / dek      | header (gated `summary ≠ title`)               | DeadlineChangeCard body paragraph                                                  |
+| Audit note         | footer "Every decision captured…"              | DeadlineChangeCard "Every change logged…"                                          |
+| Effective date     | fact-grid cell (computed from `effectiveFrom`) | DeadlineChangeCard's hardcoded "Effective immediately"                             |
 
 **Highlight grammar** — exactly one hero block per card, sharing one recipe
 (gray `bg-background-subtle` box, big mono date, amber accents):

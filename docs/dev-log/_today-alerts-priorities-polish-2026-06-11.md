@@ -193,8 +193,8 @@ preflight's `html { line-height: 1.5 }` — the source of the loose feel on
 every surface. Fixed in tokens/primitives.css with paired line-heights at
 snug ratios:
 
-  xs 12/16 · sm 13/18 · description 13/18 · base 14/19 · md 14/19 ·
-  lg 16/22 · xl 18/24 · 2xl 28/32
+xs 12/16 · sm 13/18 · description 13/18 · base 14/19 · md 14/19 ·
+lg 16/22 · xl 18/24 · 2xl 28/32
 
 Explicit `leading-*` at call sites still wins (verified: section titles keep
 their leading-tight 22.5px; the /today component-level snug/tight passes from
@@ -211,7 +211,7 @@ Yuqi: "让UI更加有细节和动感." Three additions, all glyph/content-level 
   arrows translate-x-0.5 on link hover, 150ms, motion-reduce safe.
 - **Bucket-switch fade**: the Priorities table frame (and the empty-state
   card) are keyed by the selected bucket and play the house `animate-in
-  fade-in duration-150` on switch — content change gets a soft acknowledgement
+fade-in duration-150` on switch — content change gets a soft acknowledgement
   instead of an instant swap.
 - **Chip press feedback**: bucket selector chips get active:scale-[0.98] with
   a combined color/transform 150ms transition.
@@ -225,7 +225,8 @@ deferred.)
 
 Yuqi: "你需要认真地做typesetting和spacing audit." Method: DOM crawl of every
 text-carrying element (clustered by size/lh/weight/tracking/transform/family)
-+ every vertical sibling gap in the main column.
+
+- every vertical sibling gap in the main column.
 
 **Spacing verdict: already converged.** Exactly five values, each a level:
 32px (section rhythm ×3) · 12px (in-section/in-card primary ×7) · 8px (card
@@ -241,13 +242,13 @@ suffix in the page title was font-medium (the largest non-anchor medium on
 the page) → font-normal; LIVE chip 600 vs FAILED 500 → both 500.
 
 Resulting page type system (17 styles, 7 sizes):
-  28/600 page title · 28/400 date suffix · 18/600 sections · 16/600 item
-  headlines · 14/600 row anchors · 13/500 buttons+DueDateLabel · 13/400 lede ·
-  12/600-caps column labels · 12/500 interactive · 12/500-mono form codes ·
-  12/400 body+meta (the ×22 workhorse) · 11/500-caps status chips ·
-  11/400 captions · 11/600-caps avatar initials · 11/500-mono kbd ·
-  12/500 jurisdiction (+0.2 tracking) · 12/500 count badge (−0.18) —
-  the last two are component-level chip variants.
+28/600 page title · 28/400 date suffix · 18/600 sections · 16/600 item
+headlines · 14/600 row anchors · 13/500 buttons+DueDateLabel · 13/400 lede ·
+12/600-caps column labels · 12/500 interactive · 12/500-mono form codes ·
+12/400 body+meta (the ×22 workhorse) · 11/500-caps status chips ·
+11/400 captions · 11/600-caps avatar initials · 11/500-mono kbd ·
+12/500 jurisdiction (+0.2 tracking) · 12/500 count badge (−0.18) —
+the last two are component-level chip variants.
 
 Doctrine (now enforceable): body/meta NEVER sets leading (tokens own it);
 titles own theirs; weights = 600 anchor / 500 interactive+chip / 400 content.
@@ -270,6 +271,7 @@ Continuation of the token doctrine (Yuqi: "要继续"):
 
 **Four more semantic text token families** in tokens/primitives.css, same
 sub-key pattern as --text-region-title:
+
 - `--text-item-title` 16/22/600 — card/item headlines (alert card h3)
 - `--text-row-anchor` 14/19/600 — bold first line of a table row (client names)
 - `--text-column-label` 12/16/600/+0.5px — table column headers; consumed by
@@ -277,11 +279,12 @@ sub-key pattern as --text-region-title:
   app now reads the token — change it once, all tables follow
 - `--text-chip-label` 11/15/500/+0.4px — small caps status chips (LIVE,
   freshness GENERATING/FAILED/age)
-Call sites write the utility + color (+ uppercase/font-mono where the role
-demands — those aren't text-token sub-keys). Verified via compiled CSS: all
-five utilities resolve size/lh/weight/tracking from the tokens.
+  Call sites write the utility + color (+ uppercase/font-mono where the role
+  demands — those aren't text-token sub-keys). Verified via compiled CSS: all
+  five utilities resolve size/lh/weight/tracking from the tokens.
 
 **Skeleton states — kill loading-masquerades-as-empty:**
+
 - MergedBriefCard: new `isLoading` prop (wired from dashboardQuery.isLoading).
   Before: zero counts rendered "Nothing here. You're clear." during every
   load. Now: a SHAPE-FAITHFUL skeleton — the real title + real table frame +
@@ -297,10 +300,10 @@ five utilities resolve size/lh/weight/tracking from the tokens.
 The third lever from the finish-quality list: ONE canonical micro-interaction
 tempo, owned by tokens in primitives.css:
 
-  --default-transition-duration: 150ms
-  --default-transition-timing-function: cubic-bezier(0, 0, 0.2, 1)  (ease-out
-  — state changes decelerate into place; replaces Tailwind's default
-  ease-in-out for ALL un-eased transitions app-wide)
+--default-transition-duration: 150ms
+--default-transition-timing-function: cubic-bezier(0, 0, 0.2, 1) (ease-out
+— state changes decelerate into place; replaces Tailwind's default
+ease-in-out for ALL un-eased transitions app-wide)
 
 Doctrine: ordinary hover/press/fade call sites write `transition-*` with NO
 duration/easing — the token owns the tempo; retuning the whole app is a
@@ -327,6 +330,7 @@ the only two loading-masquerades-as-empty bugs in the app were /today's
 (fixed in Addendum 11). App-wide skeleton coverage: complete.
 
 **Token adoption sweep (zero-visual-change unifications):**
+
 - `text-column-label`: 9 hand-rolled `text-xs font-semibold tracking-[0.5px]`
   group-band/label sites swapped (preview, obligations group bands,
   severity-section, actions-list ×2, AlertsListPage, PulseAlertRow,

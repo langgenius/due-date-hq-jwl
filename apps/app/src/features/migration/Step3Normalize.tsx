@@ -96,7 +96,8 @@ export function Step3Normalize({
         <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
           <LockIcon className="size-3.5 shrink-0" aria-hidden />
           <Trans>
-            Your uploaded file stays unchanged — this standardized version is used only when you import.
+            Your uploaded file stays unchanged — this standardized version is used only when you
+            import.
           </Trans>
         </p>
       </div>

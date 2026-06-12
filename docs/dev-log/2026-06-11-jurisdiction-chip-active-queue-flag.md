@@ -30,7 +30,7 @@ AlertHistoryView had its own):
 - `PulseAlertRow` + `AlertListRail` — bordered `rounded-lg` h-20 semibold
   span → stock chip.
 - `PulseFormRevisedCard` — Pencil tCuD7 one-off (14/700 `bg-background-
-  section`, tracking 0.8) → stock chip.
+section`, tracking 0.8) → stock chip.
 - `jurisdiction-rule-table` rule-name cell — `bg-background-subtle`
   caption-xs mono span → stock chip.
 - `AlertHistoryView` JURIS column — `rounded-lg bg-background-subtle`

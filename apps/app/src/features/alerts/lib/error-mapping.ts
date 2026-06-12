@@ -33,8 +33,7 @@ const MESSAGE_BY_CODE: Partial<Record<ErrorCode, () => MessageDescriptor>> = {
     msg`Complete the deadline details before applying this alert.`,
   [ErrorCodes.PULSE_REVIEW_UNAVAILABLE]: () =>
     msg`This alert is closed and can't be sent for review.`,
-  [ErrorCodes.PULSE_REVIEW_ONLY]: () =>
-    msg`This alert is review-only — no due date will change.`,
+  [ErrorCodes.PULSE_REVIEW_ONLY]: () => msg`This alert is review-only — no due date will change.`,
   [ErrorCodes.FIRM_FORBIDDEN]: forbiddenDescriptor,
   [ErrorCodes.MEMBER_FORBIDDEN]: forbiddenDescriptor,
 }

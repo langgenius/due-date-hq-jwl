@@ -10,7 +10,7 @@ LAYER 2 (primitives):
 
 - **Global reduced-motion kill switch** (preset.css): one
   `@media (prefers-reduced-motion: reduce)` rule zeroes every CSS
-  transition/animation (0.01ms, not `none`, so *end events still fire).
+  transition/animation (0.01ms, not `none`, so \*end events still fire).
   Spinner exception kept visible at 3s per WCAG 2.3.3.
 - **`<MotionConfig reducedMotion="user">`** at the app root (main.tsx) —
   every motion/react component respects the OS setting from one config.

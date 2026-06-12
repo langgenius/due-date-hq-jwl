@@ -92,9 +92,7 @@ export function AlertTeamNotes({ alertId }: { alertId: string }) {
                   <Trans>Reply</Trans>
                 </TextLink>
               </div>
-              <p className="text-base whitespace-pre-wrap text-text-secondary">
-                {note.body}
-              </p>
+              <p className="text-base whitespace-pre-wrap text-text-secondary">{note.body}</p>
             </li>
           ))}
         </ol>

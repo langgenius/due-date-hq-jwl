@@ -106,8 +106,7 @@ export function ClientNotesPanel({
       onError: (err) => {
         toast.error(t`Couldn't save notes`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

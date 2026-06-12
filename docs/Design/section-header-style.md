@@ -107,23 +107,23 @@ fix pattern, now canonical:
 
 ## Picking a register
 
-| The header…                                       | Register                                |
-| ------------------------------------------------- | --------------------------------------- |
-| anchors a region on a dense overview page (Today) | **A** — 18px primary title-case         |
-| labels a group of rows / a table column / a value | **B1** — 11px tertiary uppercase        |
-| labels a field inside a detail drawer/document    | **B2** — 12px tertiary uppercase        |
-| titles a settings/billing/form card               | **C** — 16px primary title-case (calm)  |
+| The header…                                       | Register                               |
+| ------------------------------------------------- | -------------------------------------- |
+| anchors a region on a dense overview page (Today) | **A** — 18px primary title-case        |
+| labels a group of rows / a table column / a value | **B1** — 11px tertiary uppercase       |
+| labels a field inside a detail drawer/document    | **B2** — 12px tertiary uppercase       |
+| titles a settings/billing/form card               | **C** — 16px primary title-case (calm) |
 
 ---
 
 ## Cross-reference: the four named pages
 
-| Page                         | Region anchors (A)                                | Field/group labels (B)                        | Card titles (C) |
-| ---------------------------- | ------------------------------------------------- | --------------------------------------------- | --------------- |
+| Page                         | Region anchors (A)                                 | Field/group labels (B)                        | Card titles (C) |
+| ---------------------------- | -------------------------------------------------- | --------------------------------------------- | --------------- |
 | **Today** (`/`)              | Alerts, Daily Brief, Priorities → **A, primary** ✓ | table column labels → B1 ✓                    | —               |
-| **Alerts** (`/alerts`)       | list is a single table — no A-level region titles | row meta labels → B1 ✓                        | —               |
-| **Alert detail** (drawer)    | —                                                 | SOURCE EXTRACT, PROVENANCE, … → B2 tertiary ✓ | —               |
-| **Deadline detail** (drawer) | —                                                 | field labels → B2 tertiary ✓                  | —               |
+| **Alerts** (`/alerts`)       | list is a single table — no A-level region titles  | row meta labels → B1 ✓                        | —               |
+| **Alert detail** (drawer)    | —                                                  | SOURCE EXTRACT, PROVENANCE, … → B2 tertiary ✓ | —               |
+| **Deadline detail** (drawer) | —                                                  | field labels → B2 tertiary ✓                  | —               |
 
 The detail drawers (alert + deadline) are deliberately **all Register B** — they
 are calm documents, so they carry no loud Register-A titles. This matches the

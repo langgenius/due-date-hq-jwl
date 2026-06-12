@@ -88,9 +88,7 @@ test.describe('today + deadlines surfaces', () => {
 
   test('VISUAL: /deadlines list', async ({ authenticatedPage }) => {
     await gotoFrozen(authenticatedPage, '/deadlines')
-    await expect(
-      authenticatedPage.getByRole('heading', { name: 'Deadlines' }),
-    ).toBeVisible()
+    await expect(authenticatedPage.getByRole('heading', { name: 'Deadlines' })).toBeVisible()
     await expect(authenticatedPage.getByText('Arbor & Vale LLC').first()).toBeVisible()
 
     await expect(authenticatedPage).toHaveScreenshot(
@@ -150,9 +148,7 @@ test.describe('alerts surfaces', () => {
 
   test('VISUAL: /alerts list', async ({ authenticatedPage }) => {
     await gotoFrozen(authenticatedPage, '/alerts')
-    await expect(
-      authenticatedPage.getByRole('group', { name: 'Alert work queue' }),
-    ).toBeVisible()
+    await expect(authenticatedPage.getByRole('group', { name: 'Alert work queue' })).toBeVisible()
 
     await expect(authenticatedPage).toHaveScreenshot(
       'alerts-list.png',

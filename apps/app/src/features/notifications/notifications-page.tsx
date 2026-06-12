@@ -134,8 +134,8 @@ export function NotificationsPage() {
         title={<Trans>Inbox</Trans>}
         description={
           <Trans>
-            Mentions, deadline reminders, and assignment changes — everything that needs
-            you, in one place.
+            Mentions, deadline reminders, and assignment changes — everything that needs you, in one
+            place.
           </Trans>
         }
         actions={

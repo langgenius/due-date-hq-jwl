@@ -169,8 +169,8 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           </AlertTitle>
           <AlertDescription>
             <Trans>
-              AI wasn&apos;t available, so we matched your columns by name. Review the matches
-              below and fix any mismatches before continuing.
+              AI wasn&apos;t available, so we matched your columns by name. Review the matches below
+              and fix any mismatches before continuing.
             </Trans>
           </AlertDescription>
         </Alert>

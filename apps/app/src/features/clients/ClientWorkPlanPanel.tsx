@@ -254,8 +254,7 @@ export function ClientWorkPlanPanel({
       onError: (err) => {
         toast.error(t`Couldn't update status`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

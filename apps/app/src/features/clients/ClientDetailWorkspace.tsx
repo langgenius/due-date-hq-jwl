@@ -7,7 +7,6 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
   AlertTriangleIcon,
-  CheckCircle2Icon,
   ChevronDownIcon,
   ChevronRightIcon,
   ClipboardCheckIcon,
@@ -65,7 +64,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { InfoBanner } from '@/components/patterns/info-banner'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
 import { PageHeader } from '@/components/patterns/page-header'
-import { formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
+import { formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
@@ -117,179 +116,10 @@ import {
   findExtensionWithoutPaymentObligations,
   type ClientHeaderContactItem,
   type ClientAlertMatch,
-  type ClientWorkPlanSummary,
 } from './client-detail-model'
 
 const EMPTY_OBLIGATIONS: readonly ObligationInstancePublic[] = []
 const EMPTY_QUEUE_ROWS: readonly ObligationQueueRow[] = []
-
-function taxClassificationLabel(value: ClientPublic['taxClassification']): string | null {
-  switch (value) {
-    case 'partnership':
-      return 'taxed as partnership'
-    case 's_corp':
-      return 'taxed as S corp'
-    case 'c_corp':
-      return 'taxed as C corp'
-    case 'disregarded_entity':
-      return 'disregarded entity'
-    case 'individual':
-    case 'trust':
-    case 'estate':
-    case 'nonprofit':
-    case 'foreign_reporting_company':
-    case 'unknown':
-    default:
-      return null
-  }
-}
-
-function renderClientHeaderSubLine({
-  workPlan,
-  entityType,
-  taxClassification,
-}: {
-  workPlan: ClientWorkPlanSummary
-  entityType: ClientPublic['entityType']
-  taxClassification: ClientPublic['taxClassification']
-}): ReactNode {
-  // Daily-driver signal line under the client name. Tone-coded so a
-  // CPA scanning the page in <1 second can spot "anything overdue?"
-  // without reading prose. Order mirrors the four canonical questions
-  // (what kind of client → urgency → tone).
-  //
-  // No "N open filings" segment: the Open Filing summary tile is the
-  // canonical surface for that number; repeating it in the subtitle,
-  // the tile, AND the year-section badge gave CPAs three
-  // nearly-identical counts with three different scopes — they had to
-  // compute the relationship instead of just reading. Subtitle carries
-  // only the qualitative tail: classification, next-due date, and the
-  // late / on-track tone marker.
-  const parts: Array<{ id: string; node: ReactNode }> = []
-  const taxLabel = entityType === 'llc' ? taxClassificationLabel(taxClassification) : null
-  if (taxLabel) parts.push({ id: 'tax', node: <span>{taxLabel}</span> })
-  if (workPlan.nextDueDate) {
-    parts.push({
-      id: 'due',
-      node: <span>Next due {formatDatePretty(workPlan.nextDueDate)}</span>,
-    })
-  }
-  // Don't bottom-out at "All on track" whenever `overdueOpenCount`
-  // (currentDueDate-based) is zero — that hides two real product states
-  // from the CPA:
-  //
-  //   1. Statutory date missed but no extension on the wire (the row
-  //      that quietly looked fine because `currentDueDate` still equals
-  //      `baseDueDate` and we were rendered before re-render)
-  //   2. Extension filed but payment not yet settled — the canonical
-  //      anti-pattern #1 ("extension does NOT mean payment is extended")
-  //
-  // Priority order, most severe first, so the CPA always sees the
-  // truest negative state and "Extended" / "All on track" stop being
-  // lazy fall-throughs.
-  if (workPlan.statutoryLateUnextendedCount > 0) {
-    parts.push({
-      id: 'statutory-late',
-      node: (
-        <Badge variant="destructive" className="text-xs">
-          <AlertTriangleIcon className="size-3" aria-hidden />
-          <span>
-            {workPlan.statutoryLateUnextendedCount === 1
-              ? '1 statutory late'
-              : `${workPlan.statutoryLateUnextendedCount} statutory late`}
-          </span>
-        </Badge>
-      ),
-    })
-  } else if (workPlan.filedPaymentOverdueCount > 0) {
-    // The FILING-track version of anti-pattern #1 ("Filed ≠ Paid"). A
-    // client whose every filing is done but whose payment hasn't
-    // cleared must not flow into the "All on track" bottom-out — a
-    // silent green that hides the real urgency. Priority order: ahead
-    // of extensionPaymentDueCount
-    // (which is also anti-pattern #1 but on the extension track) and
-    // "Extended" / "All on track" fall-throughs. Destructive tone
-    // because penalty interest accrues until the wire lands; a
-    // 71-day-overdue payment is NOT amber, it's red.
-    parts.push({
-      id: 'filed-payment-overdue',
-      node: (
-        <Badge variant="destructive" className="text-xs">
-          <AlertTriangleIcon className="size-3" aria-hidden />
-          <span>
-            {workPlan.filedPaymentOverdueCount === 1
-              ? '1 filed — payment overdue'
-              : `${workPlan.filedPaymentOverdueCount} filed — payments overdue`}
-          </span>
-        </Badge>
-      ),
-    })
-  } else if (workPlan.extensionPaymentDueCount > 0) {
-    parts.push({
-      id: 'extension-payment-due',
-      node: (
-        <Badge variant="warning" className="text-xs">
-          <AlertTriangleIcon className="size-3" aria-hidden />
-          <span>
-            {workPlan.extensionPaymentDueCount === 1
-              ? 'Extension filed — payment still due'
-              : `${workPlan.extensionPaymentDueCount} extensions — payments still due`}
-          </span>
-        </Badge>
-      ),
-    })
-  } else if (workPlan.overdueOpenCount > 0) {
-    parts.push({
-      id: 'late',
-      node: (
-        <span className="font-medium text-text-destructive">
-          {workPlan.overdueOpenCount === 1 ? '1 late' : `${workPlan.overdueOpenCount} late`}
-        </span>
-      ),
-    })
-  } else if (workPlan.extensionFiledOpenCount > 0) {
-    // Informational blue, not green: a client on an extension is on a
-    // different track than "All on track" — the work shifted, not
-    // disappeared. Says "Extended" rather than the count because
-    // the per-row state lives in the filing-plan table below.
-    parts.push({
-      id: 'extended',
-      node: (
-        <Badge variant="info" className="text-xs">
-          <span>Extended</span>
-        </Badge>
-      ),
-    })
-  } else if (workPlan.openCount > 0) {
-    // Positive-state chip. Stops the app from relying on "absence of
-    // red" as the implicit positive — every other surface that ends
-    // a daily-driver line cleanly should use this same Badge variant.
-    // See critique D-3 cont. "positive status visual vocabulary".
-    parts.push({
-      id: 'ontrack',
-      node: (
-        <Badge variant="success" className="text-xs">
-          <CheckCircle2Icon className="size-3" aria-hidden />
-          <span>All on track</span>
-        </Badge>
-      ),
-    })
-  }
-  return (
-    <span className="inline-flex flex-wrap items-baseline gap-x-1.5">
-      {parts.map((part, index) => (
-        <span key={part.id} className="inline-flex items-baseline gap-x-1.5">
-          {part.node}
-          {index < parts.length - 1 ? (
-            <span aria-hidden className="text-text-tertiary">
-              ·
-            </span>
-          ) : null}
-        </span>
-      ))}
-    </span>
-  )
-}
 
 function formatJurisdictionSummary(client: ClientPublic): string {
   const stateCount = getClientFilingStates(client).length
@@ -507,8 +337,7 @@ export function ClientDetailWorkspace({
       onError: (err) => {
         toast.error(t`Couldn't save risk profile`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -532,8 +361,7 @@ export function ClientDetailWorkspace({
       onError: (err) => {
         toast.error(t`Couldn't save filing jurisdictions`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -551,8 +379,7 @@ export function ClientDetailWorkspace({
       onError: (err) => {
         toast.error(t`Couldn't save client details`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -584,8 +411,7 @@ export function ClientDetailWorkspace({
       onError: (err) => {
         toast.error(t`Couldn't queue risk summary`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -615,8 +441,7 @@ export function ClientDetailWorkspace({
       onError: (err) => {
         toast.error(t`Couldn't update owner`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -685,8 +510,7 @@ export function ClientDetailWorkspace({
       onError: (err) => {
         toast.error(t`Couldn't change status`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),
@@ -717,8 +541,7 @@ export function ClientDetailWorkspace({
       onError: (err) => {
         toast.error(t`Couldn't delete client`, {
           description:
-            rpcErrorMessage(err) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
         })
       },
     }),

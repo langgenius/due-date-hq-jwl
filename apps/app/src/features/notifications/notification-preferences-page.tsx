@@ -569,8 +569,7 @@ function QuietHoursCard() {
           </div>
           <span className="text-xs text-text-secondary">
             <Trans>
-              During quiet hours, non-urgent notifications wait until your next active
-              period.
+              During quiet hours, non-urgent notifications wait until your next active period.
             </Trans>
           </span>
         </div>
@@ -629,8 +628,8 @@ function QuietHoursCard() {
           </span>
           <span className="text-xs text-text-secondary">
             <Trans>
-              High-impact alerts and same-day deadlines always come through — nothing
-              critical waits until morning.
+              High-impact alerts and same-day deadlines always come through — nothing critical waits
+              until morning.
             </Trans>
           </span>
         </div>

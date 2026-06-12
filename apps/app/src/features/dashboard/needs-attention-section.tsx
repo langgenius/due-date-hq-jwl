@@ -62,9 +62,7 @@ function NeedsAttentionSection() {
   // never reads unsorted. Pure row data: synchronous, no reorder-on-load.
   // `toSorted` is stable — ties keep the feed's recency order.
   const visibleAlerts = shownAlerts
-    .toSorted(
-      (a, b) => b.matchedCount + b.needsReviewCount - (a.matchedCount + a.needsReviewCount),
-    )
+    .toSorted((a, b) => b.matchedCount + b.needsReviewCount - (a.matchedCount + a.needsReviewCount))
     .slice(0, VISIBLE_ALERTS)
   // One batched detail request for the visible cards instead of one
   // `getDetail` per card — the cards only need affected-client names.
@@ -111,7 +109,7 @@ function NeedsAttentionSection() {
     const lastCheckedIso = watchedSources
       .map((source) => source.lastCheckedAt)
       .filter((value): value is string => Boolean(value))
-      .sort()
+      .toSorted()
       .at(-1)
     const lastCheckedLabel = lastCheckedIso
       ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(
@@ -148,13 +146,12 @@ function NeedsAttentionSection() {
               <Trans>Turn on a monitored source and policy changes will show up here.</Trans>
             ) : exampleA && exampleB ? (
               <Trans>
-                When {exampleA}, {exampleB}, or another monitored source publishes a change,
-                it will land here.
+                When {exampleA}, {exampleB}, or another monitored source publishes a change, it will
+                land here.
               </Trans>
             ) : exampleA ? (
               <Trans>
-                When {exampleA} or another monitored source publishes a change, it will land
-                here.
+                When {exampleA} or another monitored source publishes a change, it will land here.
               </Trans>
             ) : (
               <Trans>When a monitored source publishes a change, it will land here.</Trans>

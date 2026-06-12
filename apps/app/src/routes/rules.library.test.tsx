@@ -130,6 +130,10 @@ vi.mock('@/lib/rpc', () => ({
       },
       listReviewTasks: {
         key: () => ['rules', 'listReviewTasks'],
+        queryOptions: ({ input }: { input: unknown }) => ({
+          queryKey: ['rules', 'listReviewTasks', input],
+          queryFn: async () => [],
+        }),
       },
       listReviewDecisions: {
         key: () => ['rules', 'listReviewDecisions'],
@@ -724,7 +728,7 @@ describe('RulesLibraryRoute', () => {
     expect(tableFrame?.textContent).not.toContain('v2')
   })
 
-  it('orders selected jurisdiction rules needing review before active rules', async () => {
+  it('defaults a selected jurisdiction to review when pending rules exist', async () => {
     nuqsMocks.jurisdiction = 'FED'
     const activeRule = obligationRule({
       id: 'fed.1040.return.active.2026',
@@ -754,8 +758,60 @@ describe('RulesLibraryRoute', () => {
     const activeIndex = rowTexts.findIndex((text) => text.includes('Individual income tax return'))
 
     expect(reviewIndex).toBeGreaterThanOrEqual(0)
-    expect(activeIndex).toBeGreaterThanOrEqual(0)
-    expect(reviewIndex).toBeLessThan(activeIndex)
+    expect(activeIndex).toBe(-1)
+  })
+
+  it('falls back to active for a selected jurisdiction with no pending review rules', async () => {
+    nuqsMocks.jurisdiction = 'AK'
+    const activeRule = obligationRule({
+      id: 'ak.business_income_return.active.2026',
+      title: 'Alaska business income tax return',
+      jurisdiction: 'AK',
+      formName: 'Alaska business form',
+      status: 'active',
+    })
+    rpcMocks.listRulesQueryFn.mockResolvedValue([activeRule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Business income tax return')
+
+    expect(document.body.textContent).not.toContain('No rules in Alaska for this view.')
+  })
+
+  it('sets the jurisdiction scope to review first when switching states from the rail', async () => {
+    const activeAlaskaRule = obligationRule({
+      id: 'ak.business_income_return.active.2026',
+      title: 'Alaska business income tax return',
+      jurisdiction: 'AK',
+      status: 'active',
+    })
+    const pendingAlabamaRule = obligationRule({
+      id: 'al.individual_income_return.candidate.2026',
+      title: 'Alabama individual income tax return',
+      jurisdiction: 'AL',
+      status: 'candidate',
+    })
+    rpcMocks.listRulesQueryFn.mockResolvedValue([pendingAlabamaRule, activeAlaskaRule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Alabama')
+
+    const alabamaButton = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Alabama'),
+    )
+    const alaskaButton = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Alaska'),
+    )
+
+    await act(async () => {
+      alabamaButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    await act(async () => {
+      alaskaButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(nuqsMocks.setScope).toHaveBeenNthCalledWith(1, 'review')
+    expect(nuqsMocks.setScope).toHaveBeenNthCalledWith(2, 'active')
   })
 
   it('lists rail jurisdictions with Federal first and states alphabetical', async () => {
