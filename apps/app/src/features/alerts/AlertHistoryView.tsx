@@ -199,8 +199,11 @@ export function AlertHistoryView() {
       key: 'reverted',
       label: t`Reverted`,
       value: stats.reverted,
-      sub: t`all with reason`,
-      subClass: 'text-text-warning',
+      // Amber only when something WAS reverted — a warning-toned zero
+      // signals a problem that doesn't exist, and "all with reason" is a
+      // vacuous claim about an empty set.
+      sub: stats.reverted > 0 ? t`all with reason` : t`none in 90 days`,
+      subClass: stats.reverted > 0 ? 'text-text-warning' : 'text-text-tertiary',
     },
     {
       key: 'expired',
