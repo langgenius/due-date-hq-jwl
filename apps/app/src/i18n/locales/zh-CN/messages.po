@@ -1675,17 +1675,9 @@ msgstr "1099 供应商"
 msgid "11 tools"
 msgstr "11 个工具"
 
-#: src/routes/settings.profile.tsx
-msgid "12h"
-msgstr "12 小时制"
-
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "2-3"
 msgstr "2-3"
-
-#: src/routes/settings.profile.tsx
-msgid "24h"
-msgstr "24 小时制"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -1897,6 +1889,10 @@ msgstr "访问更高权限的工作流范围"
 #: src/routes/route-summary.ts
 msgid "Account"
 msgstr "账号"
+
+#: src/routes/settings.profile.tsx
+msgid "Account initials"
+msgstr "账户缩写"
 
 #. placeholder {0}: user.name || user.email
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -8609,10 +8605,6 @@ msgstr "斜体"
 msgid "Items"
 msgstr "项目"
 
-#: src/routes/settings.profile.tsx
-msgid "JPG or PNG, at least 256×256"
-msgstr "JPG 或 PNG，至少 256×256"
-
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Jules Rivera · Hawthorn CPA"
 msgstr "Jules Rivera · Hawthorn CPA"
@@ -8714,8 +8706,8 @@ msgid "Language"
 msgstr "语言"
 
 #: src/routes/settings.profile.tsx
-msgid "Language, date, time, and week-start formats"
-msgstr "语言、日期、时间与每周起始日格式"
+msgid "Language, date, and time formats"
+msgstr "语言、日期和时间格式"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Last 24 hours"
@@ -9686,10 +9678,6 @@ msgstr "修改时间"
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Mon 9:00 AM"
 msgstr "周一 上午 9:00"
-
-#: src/routes/settings.profile.tsx
-msgid "Monday"
-msgstr "星期一"
 
 #: src/routes/rules.library.tsx
 msgid "Monitor sources"
@@ -12584,10 +12572,6 @@ msgstr "正式提醒操作需要 Pro 及以上权限。"
 msgid "Profile"
 msgstr "个人资料"
 
-#: src/routes/settings.profile.tsx
-msgid "Profile photo"
-msgstr "头像"
-
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Projected"
@@ -13200,7 +13184,6 @@ msgstr "提醒"
 
 #: src/features/migration/Step1Intake.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
-#: src/routes/settings.profile.tsx
 msgid "Remove"
 msgstr "移除"
 
@@ -15676,10 +15659,6 @@ msgstr "概述 Authority 拒绝了什么，以及需要修正什么。"
 msgid "Summary"
 msgstr "摘要"
 
-#: src/routes/settings.profile.tsx
-msgid "Sunday"
-msgstr "星期日"
-
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Superseded"
 msgstr "已被取代"
@@ -16997,10 +16976,6 @@ msgstr "升级到 Pro"
 msgid "Upgrade to Team"
 msgstr "升级到 Team"
 
-#: src/routes/settings.profile.tsx
-msgid "Upload"
-msgstr "上传"
-
 #: src/features/migration/intake-files.ts
 msgid "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
 msgstr "上传 CSV、Excel .xlsx、ZIP、TXT/TSV 或 IIF。"
@@ -17141,6 +17116,10 @@ msgstr "当另一份申报、通知或问题阻止该截止日推进时使用。
 #: src/features/reminders/reminder-templates-page.tsx
 msgid "used {0} times"
 msgstr "已使用 {0} 次"
+
+#: src/routes/settings.profile.tsx
+msgid "Used to identify your account across the workspace"
+msgstr "用于在工作区中识别你的账号"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "User"
@@ -17484,10 +17463,6 @@ msgstr "我们会保存应用权限所需的计划和席位上限。"
 #: src/routes/obligations.tsx
 msgid "We'll let you attach PDFs and exports here as soon as ingest lands."
 msgstr "导入功能上线后即可在此附加 PDF 与导出文件。"
-
-#: src/routes/settings.profile.tsx
-msgid "Week starts on"
-msgstr "每周开始于"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Weekend → next business day"

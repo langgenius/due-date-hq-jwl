@@ -1669,17 +1669,9 @@ msgstr "1099 vendors"
 msgid "11 tools"
 msgstr "11 tools"
 
-#: src/routes/settings.profile.tsx
-msgid "12h"
-msgstr "12h"
-
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "2-3"
 msgstr "2-3"
-
-#: src/routes/settings.profile.tsx
-msgid "24h"
-msgstr "24h"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -1889,6 +1881,10 @@ msgstr "Access to elevated workflow scopes"
 #: src/routes/route-summary.ts
 msgid "Account"
 msgstr "Account"
+
+#: src/routes/settings.profile.tsx
+msgid "Account initials"
+msgstr "Account initials"
 
 #. placeholder {0}: user.name || user.email
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -8575,10 +8571,6 @@ msgstr "Italic"
 msgid "Items"
 msgstr "Items"
 
-#: src/routes/settings.profile.tsx
-msgid "JPG or PNG, at least 256×256"
-msgstr "JPG or PNG, at least 256×256"
-
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Jules Rivera · Hawthorn CPA"
 msgstr "Jules Rivera · Hawthorn CPA"
@@ -8680,8 +8672,8 @@ msgid "Language"
 msgstr "Language"
 
 #: src/routes/settings.profile.tsx
-msgid "Language, date, time, and week-start formats"
-msgstr "Language, date, time, and week-start formats"
+msgid "Language, date, and time formats"
+msgstr "Language, date, and time formats"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Last 24 hours"
@@ -9644,10 +9636,6 @@ msgstr "Modified"
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Mon 9:00 AM"
 msgstr "Mon 9:00 AM"
-
-#: src/routes/settings.profile.tsx
-msgid "Monday"
-msgstr "Monday"
 
 #: src/routes/rules.library.tsx
 msgid "Monitor sources"
@@ -12520,10 +12508,6 @@ msgstr "Production alert actions require Pro or above."
 msgid "Profile"
 msgstr "Profile"
 
-#: src/routes/settings.profile.tsx
-msgid "Profile photo"
-msgstr "Profile photo"
-
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Projected"
@@ -13134,7 +13118,6 @@ msgstr "Reminders"
 
 #: src/features/migration/Step1Intake.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
-#: src/routes/settings.profile.tsx
 msgid "Remove"
 msgstr "Remove"
 
@@ -15603,10 +15586,6 @@ msgstr "Summarize what the authority rejected and what needs correction."
 msgid "Summary"
 msgstr "Summary"
 
-#: src/routes/settings.profile.tsx
-msgid "Sunday"
-msgstr "Sunday"
-
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Superseded"
 msgstr "Superseded"
@@ -16920,10 +16899,6 @@ msgstr "Upgrade to Pro"
 msgid "Upgrade to Team"
 msgstr "Upgrade to Team"
 
-#: src/routes/settings.profile.tsx
-msgid "Upload"
-msgstr "Upload"
-
 #: src/features/migration/intake-files.ts
 msgid "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
 msgstr "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
@@ -17064,6 +17039,10 @@ msgstr "Use when another return, notice, or issue is stopping this deadline."
 #: src/features/reminders/reminder-templates-page.tsx
 msgid "used {0} times"
 msgstr "used {0} times"
+
+#: src/routes/settings.profile.tsx
+msgid "Used to identify your account across the workspace"
+msgstr "Used to identify your account across the workspace"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "User"
@@ -17406,10 +17385,6 @@ msgstr "We store the plan and seat limit needed for app permissions."
 #: src/routes/obligations.tsx
 msgid "We'll let you attach PDFs and exports here as soon as ingest lands."
 msgstr "We'll let you attach PDFs and exports here as soon as ingest lands."
-
-#: src/routes/settings.profile.tsx
-msgid "Week starts on"
-msgstr "Week starts on"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Weekend → next business day"

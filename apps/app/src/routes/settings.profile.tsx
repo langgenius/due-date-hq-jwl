@@ -1,4 +1,10 @@
-import { useState, type ReactNode, type SyntheticEvent } from 'react'
+import {
+  useCallback,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react'
 import { useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -12,7 +18,6 @@ import {
   ShieldIcon,
   SmartphoneIcon,
   Trash2Icon,
-  UploadIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -44,13 +49,48 @@ import { SettingsShell } from '@/features/settings/settings-sub-nav'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { useLocaleSwitch } from '@/i18n/provider'
 import { useSession } from '@/lib/auth'
-import { formatDateTimeWithTimezone } from '@/lib/utils'
+import {
+  DATE_FORMAT_LABELS,
+  DATE_FORMAT_OPTIONS,
+  TIME_FORMAT_OPTIONS,
+  formatDateTimeWithDisplayPreferences,
+  getServerDisplayPreferences,
+  getStoredDisplayPreferences,
+  subscribeToDisplayPreferences,
+  switchDateFormatPreference as persistDateFormatPreference,
+  switchTimeFormatPreference as persistTimeFormatPreference,
+  type DateFormatPreference,
+  type DisplayPreferences,
+  type TimeFormatPreference,
+} from '@/lib/display-preference-store'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
   TwoFactorSetupPanel,
   type PendingTwoFactorSetup,
 } from './account-security-two-factor-setup'
+
+function useDisplayPreferenceSwitch(): {
+  displayPreferences: DisplayPreferences
+  switchDateFormatPreference: (next: DateFormatPreference) => void
+  switchTimeFormatPreference: (next: TimeFormatPreference) => void
+} {
+  const displayPreferences = useSyncExternalStore(
+    subscribeToDisplayPreferences,
+    getStoredDisplayPreferences,
+    getServerDisplayPreferences,
+  )
+
+  const switchDateFormatPreference = useCallback((next: DateFormatPreference) => {
+    persistDateFormatPreference(next)
+  }, [])
+
+  const switchTimeFormatPreference = useCallback((next: TimeFormatPreference) => {
+    persistTimeFormatPreference(next)
+  }, [])
+
+  return { displayPreferences, switchDateFormatPreference, switchTimeFormatPreference }
+}
 
 export function SettingsProfileRoute() {
   const { t } = useLingui()
@@ -59,6 +99,8 @@ export function SettingsProfileRoute() {
   const session = useSession()
   const practiceTimezone = usePracticeTimezone()
   const { locale, switchLocale } = useLocaleSwitch()
+  const { displayPreferences, switchDateFormatPreference, switchTimeFormatPreference } =
+    useDisplayPreferenceSwitch()
 
   const statusQuery = useQuery(orpc.security.status.queryOptions({ input: undefined }))
   const securityKey = orpc.security.key()
@@ -203,23 +245,11 @@ export function SettingsProfileRoute() {
             />
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <p className="text-base font-semibold text-text-primary">
-                <Trans>Profile photo</Trans>
+                <Trans>Account initials</Trans>
               </p>
               <p className="text-xs text-text-secondary">
-                <Trans>JPG or PNG, at least 256×256</Trans>
+                <Trans>Used to identify your account across the workspace</Trans>
               </p>
-            </div>
-            {/* TODO(data): no profile-image upload RPC (avatars come from the
-                OAuth provider via better-auth). Disabled until an upload
-                endpoint exists. */}
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled>
-                <UploadIcon data-icon="inline-start" />
-                <Trans>Upload</Trans>
-              </Button>
-              <Button variant="ghost" size="sm" disabled>
-                <Trans>Remove</Trans>
-              </Button>
             </div>
           </div>
 
@@ -376,7 +406,11 @@ export function SettingsProfileRoute() {
                       </div>
                       <span className="truncate font-mono text-xs text-text-muted">
                         {s.ipAddress || '—'} ·{' '}
-                        {formatDateTimeWithTimezone(s.createdAt, practiceTimezone)}
+                        {formatDateTimeWithDisplayPreferences(
+                          s.createdAt,
+                          practiceTimezone,
+                          displayPreferences,
+                        )}
                       </span>
                     </div>
                     {s.isCurrent ? (
@@ -410,32 +444,28 @@ export function SettingsProfileRoute() {
         </SettingsCard>
 
         {/* Preferences */}
-        <SettingsCard
-          title={t`Preferences`}
-          subtitle={t`Language, date, time, and week-start formats`}
-        >
-          {/* TODO(data): no user-preferences store for date / time /
-              week-start. Those controls render disabled with sensible static
-              defaults until a preferences contract lands. Language uses the
-              existing persisted app locale switcher. */}
+        <SettingsCard title={t`Preferences`} subtitle={t`Language, date, and time formats`}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t`Language`}>
               <LanguageSelect value={locale} onValueChange={switchLocale} />
             </Field>
             <Field label={t`Date format`}>
-              <ReadonlyValue
-                value="MMM d, yyyy"
-                trailing={<ChevronDownIcon className="size-3.5 text-text-muted" aria-hidden />}
+              <DateFormatSelect
+                value={displayPreferences.dateFormat}
+                onValueChange={switchDateFormatPreference}
               />
             </Field>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t`Time format`}>
-              <SegmentedControl options={[t`12h`, t`24h`]} value={t`12h`} />
-            </Field>
-            <Field label={t`Week starts on`}>
-              <SegmentedControl options={[t`Sunday`, t`Monday`]} value={t`Monday`} />
-            </Field>
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-divider-regular bg-background-default px-3 py-2.5">
+            <span className="text-xs font-medium text-text-secondary">
+              <Trans>Time format</Trans>
+            </span>
+            <SegmentedControl
+              ariaLabel={t`Time format`}
+              options={TIME_FORMAT_OPTIONS}
+              value={displayPreferences.timeFormat}
+              onValueChange={switchTimeFormatPreference}
+            />
           </div>
         </SettingsCard>
 
@@ -580,7 +610,11 @@ export function SettingsProfileRoute() {
               </p>
               <p className="font-mono text-xs text-text-muted">
                 {pendingSessionRevoke.ipAddress || '—'} ·{' '}
-                {formatDateTimeWithTimezone(pendingSessionRevoke.createdAt, practiceTimezone)}
+                {formatDateTimeWithDisplayPreferences(
+                  pendingSessionRevoke.createdAt,
+                  practiceTimezone,
+                  displayPreferences,
+                )}
               </p>
             </div>
           ) : null}
@@ -713,7 +747,7 @@ function LanguageSelect({
         </span>
         <ChevronDownIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-(--radix-dropdown-menu-trigger-width)">
+      <DropdownMenuContent align="start" className="w-[var(--anchor-width)]">
         {SUPPORTED_LOCALES.map((code) => (
           <DropdownMenuItem
             key={code}
@@ -730,26 +764,77 @@ function LanguageSelect({
   )
 }
 
-// Static segmented control — visual-only until a preferences store exists.
-function SegmentedControl({ options, value }: { options: [string, string]; value: string }) {
+function DateFormatSelect({
+  value,
+  onValueChange,
+}: {
+  value: DateFormatPreference
+  onValueChange: (next: DateFormatPreference) => void
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-divider-regular bg-background-default px-3 py-2.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
+          />
+        }
+      >
+        <span className="truncate text-base font-medium text-text-primary">
+          {DATE_FORMAT_LABELS[value]}
+        </span>
+        <ChevronDownIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-[var(--anchor-width)]">
+        {DATE_FORMAT_OPTIONS.map((format) => (
+          <DropdownMenuItem
+            key={format}
+            onClick={() => onValueChange(format)}
+            aria-checked={value === format}
+            className="flex items-center justify-between"
+          >
+            <span>{DATE_FORMAT_LABELS[format]}</span>
+            {value === format ? <CheckIcon className="size-4" aria-hidden /> : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function SegmentedControl<T extends string>({
+  ariaLabel,
+  options,
+  value,
+  onValueChange,
+}: {
+  ariaLabel: string
+  options: readonly T[]
+  value: T
+  onValueChange: (next: T) => void
+}) {
   return (
     <div
       role="group"
-      aria-disabled
-      className="inline-flex w-fit gap-0.5 rounded-lg border border-divider-regular bg-background-section p-0.5"
+      aria-label={ariaLabel}
+      className="inline-flex shrink-0 gap-0.5 rounded-lg border border-divider-regular bg-background-section p-0.5"
     >
       {options.map((opt) => (
-        <span
+        <button
+          type="button"
           key={opt}
+          aria-pressed={opt === value}
+          onClick={() => onValueChange(opt)}
           className={cn(
-            'rounded-lg px-4 py-1.5 text-xs',
+            'min-w-12 rounded-lg px-3 py-1.5 text-xs transition-colors',
             opt === value
               ? 'bg-background-default font-semibold text-text-primary shadow-sm'
-              : 'font-medium text-text-secondary',
+              : 'font-medium text-text-secondary hover:bg-state-base-hover hover:text-text-primary',
           )}
         >
           {opt}
-        </span>
+        </button>
       ))}
     </div>
   )

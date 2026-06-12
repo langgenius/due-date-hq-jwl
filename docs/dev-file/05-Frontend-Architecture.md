@@ -78,7 +78,8 @@ apps/app/
 │   │   ├── utils.ts          ← app-level format helpers + cn re-export
 │   │   ├── query-rate-limit.ts ← 跨页面 URL query 文本输入 debounce
 │   │   ├── rpc-error.ts      ← ORPCError → 用户可读文案（配合 i18n-error.ts 的 code 映射）
-│   │   └── theme-preference-store.ts ← browser theme preference adapter
+│   │   ├── theme-preference-store.ts ← browser theme preference adapter
+│   │   └── display-preference-store.ts ← browser date/time display preference adapter
 │   ├── hooks/
 │   ├── styles/
 │   │   └── globals.css       ← Tailwind 编译入口 + @duedatehq/ui preset + @source
@@ -122,8 +123,8 @@ Marketing 的 Tailwind 入口必须导入共享 preset，并扫描 shared UI：
 
 业务代码按 vertical 归位。一个能力的 model、URL parser、私有 helper、局部 UI 和测试优先放在
 `apps/app/src/features/<vertical>/`，即使它被多个 route 使用。`apps/app/src/lib` 只放 app
-runtime / integration 入口，例如 auth client、oRPC client、RPC error mapping、theme storage
-adapter、跨页面 URL input debounce；不得放 billing plan、dashboard row、rules table 等带业务语义的
+runtime / integration 入口，例如 auth client、oRPC client、RPC error mapping、theme / display
+preference storage adapter、跨页面 URL input debounce；不得放 billing plan、dashboard row、rules table 等带业务语义的
 model 或 component。`apps/app/src/components/primitives` 只放真正跨 feature 的 app 专属 UI primitive；
 单一 vertical 的展示组件留在对应 feature 内。
 
