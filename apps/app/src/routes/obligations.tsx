@@ -594,6 +594,11 @@ const DEFAULT_HIDDEN_COLUMN_IDS = [
   'dueDateExact',
   'daysUntilDue',
   'evidenceCount',
+  // Dollar exposure is "—" for every row that isn't already late with a
+  // computed penalty — a near-empty column spending prime width on most
+  // firms. Hidden by default; the View menu brings it back, and the
+  // detail page's Penalty exposure card stays the real home of the math.
+  'estimatedExposureCents',
   // The broad TAX category ("Income tax" / "Payroll") is secondary to the FORM
   // chip that already anchors each row; hidden by default, still toggleable
   // from the View menu.
