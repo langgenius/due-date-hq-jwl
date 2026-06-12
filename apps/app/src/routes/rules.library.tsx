@@ -5282,12 +5282,18 @@ function NewRuleModal({
               // Full jurisdiction + entity pickers would expand scope;
               // for now we route users back to a specific gap row so
               // the rule has unambiguous applicability.
-              <div className="rounded-lg border border-divider-subtle bg-background-subtle px-3 py-3 text-xs text-text-secondary">
+              <div className="flex flex-col gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-3 text-xs text-text-secondary">
                 <Trans>
-                  Custom rules currently need to be created from a missing-rule row in the table
-                  below so the jurisdiction and entity are unambiguous. Close this dialog and click
-                  "+ Add rule" on the row you want to fill in.
+                  Custom rules start from a missing-rule row, so the jurisdiction and entity are
+                  unambiguous. Click "+ Add rule" on a coverage-gap row in a jurisdiction group —
+                  or review what's missing across next year's deadlines:
                 </Trans>
+                <Link
+                  to="/rules/preview"
+                  className="w-fit font-medium text-text-accent underline-offset-2 hover:underline"
+                >
+                  <Trans>Open the Annual rollover preview →</Trans>
+                </Link>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
@@ -5381,9 +5387,10 @@ function NewRuleModal({
           </div>
           <footer className="flex items-center justify-end gap-2 border-t border-divider-subtle px-5 py-3">
             <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-              <Trans>Cancel</Trans>
+              {needsPicker ? <Trans>Close</Trans> : <Trans>Cancel</Trans>}
             </Button>
-            <Button type="submit" size="sm" disabled={!canSubmit} aria-busy={mutation.isPending}>
+            {needsPicker ? null : (
+              <Button type="submit" size="sm" disabled={!canSubmit} aria-busy={mutation.isPending}>
               {mutation.isPending ? (
                 <>
                   <Loader2 data-icon="inline-start" className="animate-spin" />
@@ -5392,7 +5399,8 @@ function NewRuleModal({
               ) : (
                 <Trans>Create rule</Trans>
               )}
-            </Button>
+              </Button>
+            )}
           </footer>
         </form>
       </DialogContent>
