@@ -75,7 +75,10 @@ export function AlertsRoute() {
           and same look in both the page header and the detail rail head. */}
       {alertCount > 0 ? (
         <CountPill>
-          <Plural value={alertCount} one="# active" other="# active" />
+          {/* 2026-06-12 (Yuqi): "open", not "active" — the chip counts every
+              unresolved alert (Review + Active queues combined), so "active"
+              both undercounts the read and collides with the Active tab. */}
+          <Plural value={alertCount} one="# open" other="# open" />
         </CountPill>
       ) : null}
       {/* The Monitoring chip is the shared `<MonitoringChip>` — the exact

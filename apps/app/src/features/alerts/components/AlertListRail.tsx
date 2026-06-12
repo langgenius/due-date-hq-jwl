@@ -105,7 +105,11 @@ export function AlertListRail({
         )}
         {activeCount > 0 ? (
           <CountPill>
-            <Plural value={activeCount} one="# active" other="# active" />
+            {/* 2026-06-12 (Yuqi: "'9 active' is confusing — it's Review +
+                Active, so why 'active'?"): the head count is every unresolved
+                alert (review + active queues), so the label is "open", not
+                "active" — "active" collides with the Active tab below. */}
+            <Plural value={activeCount} one="# open" other="# open" />
           </CountPill>
         ) : null}
       </ListRailHead>
@@ -227,17 +231,18 @@ function RailItem({
         // a touch more column gap so the rail breathes.
         'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
-        // Selected vs unselected is carried by the 2px left accent + bg
-        // wash on the active row, and a hover wash on the rest. The
-        // inactive row stays full-strength (no opacity dimming — that read
-        // as "disabled") so every row looks active/clickable; the only
-        // distinction is the accent + fill, not contrast.
-        // Hover takes the same accent wash + left-bar motif as the active
-        // row (the canonical interactive-row treatment; dev-log
-        // 2026-06-10-hover-accent-bar-rows listed this rail as follow-up).
+        // Selected vs unselected is carried by the bg WASH alone — no left
+        // accent bar. 2026-06-12 (Yuqi: "the side border doesn't work when the
+        // item sits next to a floating sidebar on the left"): this rail abuts
+        // the app's floating icon sidebar, so a 2px left bar doubled up against
+        // that edge and read as a clash. The canonical hover-accent-bar motif
+        // (dev-log 2026-06-10-hover-accent-bar-rows) still applies to rows that
+        // DON'T border the sidebar; here the fill wash carries selection +
+        // hover on its own. Inactive rows stay full-strength (no opacity
+        // dimming — that read as "disabled").
         active
-          ? 'border-l-2 border-l-state-accent-solid bg-state-accent-hover'
-          : 'border-l-2 border-l-transparent hover:border-l-state-accent-solid hover:bg-state-accent-hover',
+          ? 'bg-state-accent-hover'
+          : 'hover:bg-state-base-hover',
       )}
     >
       {/* Time column (60px). */}
