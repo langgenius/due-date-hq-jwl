@@ -610,7 +610,10 @@ function PulseAlertRow({
           // line on every return sweep. Capped at 72ch — long titles now
           // wrap to two lines (distinct row silhouettes), and the freed
           // right side stays meta-only.
-          className="line-clamp-2 min-w-0 max-w-[72ch] text-lg font-medium tracking-title text-text-primary"
+          // 2026-06-12 (Yuqi "flat hierarchies, nothing strong"): title takes
+          // the 600 title tier (was 500) — the one BIG ink jump per row, so
+          // the headline unmistakably leads and everything else recedes.
+          className="line-clamp-2 min-w-0 max-w-[72ch] text-lg font-semibold tracking-title text-text-primary"
           title={alert.title}
         >
           {alert.title}
@@ -676,7 +679,12 @@ function PulseAlertRow({
                   <span className="text-xs font-semibold tracking-[0.3px] text-text-tertiary uppercase">
                     <Trans>Action</Trans>
                   </span>
-                  <span className="text-sm font-medium text-text-secondary">{actionText}</span>
+                  {/* The verb is the row's ONE chromatic anchor (Yuqi "no
+                      focus, no highlights"): accent = do-this, the same
+                      semantic the accent carries app-wide. Title leads in
+                      ink; the verb leads in color; everything else is gray
+                      TEXT (not gray boxes). */}
+                  <span className="text-sm font-medium text-text-accent">{actionText}</span>
                 </span>
               </div>
             ) : null}

@@ -25,11 +25,12 @@ const TONE: Record<DetailBannerTone, { band: string; text: string }> = {
   danger: { band: 'bg-state-destructive-hover', text: 'text-text-destructive' },
   success: { band: 'bg-components-badge-bg-green-soft', text: 'text-text-success' },
   warning: { band: 'bg-state-warning-hover', text: 'text-text-warning' },
-  // 2026-06-12 (Yuqi detail critique — too many hot signals in the first
-  // viewport): "awaiting your decision" is OPEN WORK, not danger — a quiet
-  // gray band keeps the panel's one hot cue for the actual deadline
-  // countdown.
-  pending: { band: 'bg-background-subtle', text: 'text-text-secondary' },
+  // 2026-06-12 (Yuqi detail critique — too many hot signals; then "white,
+  // gray, white, gray is so bad UI"): "awaiting your decision" is OPEN WORK,
+  // not danger — a plain white status LINE (the border-b carries the edge),
+  // keeping the panel one continuous surface and the one hot cue for the
+  // actual deadline countdown.
+  pending: { band: 'bg-background-default', text: 'text-text-secondary' },
 }
 
 export function DetailStatusBanner({

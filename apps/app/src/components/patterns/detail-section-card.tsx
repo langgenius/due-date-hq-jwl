@@ -6,15 +6,17 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * `DetailSectionCard` — the canonical section card for the master-detail pages
  * (alert detail + deadline detail), matching Pencil `BbQAK`/`Y8xrR`.
  *
- * Anatomy (Pencil-exact):
+ * Anatomy (2026-06-12 — Yuqi "white, gray, white, gray backgrounds is so bad
+ * UI"; layering by LINE, not fill):
  *   • Card: `rounded-xl` (12) white fill, 1px `divider-subtle` hairline, clipped.
- *   • Header band: `bg-background-section` (#f9fafb) gray strip, `px-5`, ~36px
- *     tall — a `13/600 text-primary` title (NOT uppercase) on the left and an
- *     optional right-aligned meta/action cluster.
+ *   • Header: NO gray band — a `13/600 text-primary` title (NOT uppercase) over
+ *     a bottom hairline, optional right-aligned meta/action cluster. The line
+ *     does the separating; the fill is gone.
  *   • Body: white, `px-5 py-4` by default. Pass `flush` for edge-to-edge content
  *     (tables, fact grids) that own their own padding + row hairlines.
  *
- * Sits on the gray page wash (`bg-background-subtle`); cards pop white off it.
+ * Sits on a WHITE page body; the hairline outline + spacing rhythm carry the
+ * grouping (no alternating washes, no shadows).
  */
 export function DetailSectionCard({
   title,
@@ -45,7 +47,7 @@ export function DetailSectionCard({
         className,
       )}
     >
-      <header className="flex min-h-9 items-center gap-2 bg-background-section px-5 py-2.5">
+      <header className="flex min-h-9 items-center gap-2 border-b border-divider-subtle px-5 py-2.5">
         {/* <h3> (not a span) so each section is a real heading — accessible and
             satisfies getByRole('heading', …) specs. */}
         <h3 className="text-base font-semibold text-text-primary">{title}</h3>

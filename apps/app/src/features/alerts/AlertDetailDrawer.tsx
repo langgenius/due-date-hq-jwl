@@ -163,7 +163,10 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
   // in the footer, and the effective date in the fact grid below; the
   // rows that restated them here are gone.
   return (
-    <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-subtle px-4 py-3.5">
+    // 2026-06-12 (de-fill pass): no box — the hero sits flat in the facts
+    // section; the BIG date pair + day delta carry the emphasis through
+    // type alone.
+    <section className="flex flex-col gap-2.5">
       {/* Header — ⚠ Deadline change · status chip. */}
       <div className="flex flex-wrap items-center gap-2">
         <TriangleAlertIcon className="size-3.5 shrink-0 text-state-warning-solid" aria-hidden />
@@ -1363,7 +1366,10 @@ export function AlertDetailDrawer({
             setActiveSection((prev) => (prev === current ? prev : current))
           }
         }}
-        className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto bg-background-subtle px-6 pt-6 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]"
+        // 2026-06-12 (Yuqi "white, gray, white, gray — so bad UI"): the body
+        // is ONE WHITE SURFACE. Layering comes from hairlines + type + the
+        // spacing rhythm, never from alternating fills.
+        className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto bg-background-default px-6 pt-6 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]"
       >
         {/* Scroll-spy section nav (Yuqi — deadline-tab orientation on one
             long document). Sticky under the container top; deliberately
@@ -1372,7 +1378,7 @@ export function AlertDetailDrawer({
         {detail ? (
           <nav
             aria-label={t`Alert sections`}
-            className="sticky -top-6 z-10 -my-3 shrink-0 bg-background-subtle py-3"
+            className="sticky -top-6 z-10 -my-3 shrink-0 bg-background-default py-3"
           >
             <div className="flex items-center gap-5 border-b border-divider-subtle pb-2">
               {sectionNavItems.map((item) => {
@@ -1761,7 +1767,9 @@ export function AlertDetailDrawer({
                     ) : null}
                   </div>
                   <div className="group/excerpt relative">
-                    <blockquote className="break-words rounded-lg bg-background-section px-4 py-3 pr-10 text-base leading-relaxed text-text-secondary italic">
+                    {/* Classic quote anatomy (de-fill pass): a left rule, not
+                        a gray slab — the italic + bar say "verbatim source". */}
+                    <blockquote className="break-words border-l-2 border-divider-deep py-0.5 pr-10 pl-4 text-base leading-relaxed text-text-secondary italic">
                       &ldquo;{detail.sourceExcerpt}&rdquo;
                     </blockquote>
                     <Tooltip>

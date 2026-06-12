@@ -282,7 +282,10 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           highlighted block in the card; the grid below stays quiet. */}
       {protectiveFacts &&
       (protectiveFacts.actionDeadline || protectiveFacts.evidenceNeeded.length > 0) ? (
-        <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-subtle px-4 py-3.5">
+        // 2026-06-12 (de-fill pass): the do-by-when callout is a LEFT RULE in
+        // the warning tone — structural emphasis, not a gray slab. The big
+        // mono date + countdown carry the urgency typographically.
+        <section className="flex flex-col gap-2.5 border-l-2 border-state-warning-solid py-1 pl-4">
           {protectiveFacts.actionDeadline ? (
             <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
               {/* 2026-06-12 (red triage — Yuqi "too messy"): the eyebrow is
@@ -382,7 +385,9 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
       </div>
 
       {detail.alert.changeKind === 'threshold_advisory' ? (
-        <div className="rounded-lg bg-background-soft px-4 py-3">
+        // De-fill pass: neutral left-rule callout, same anatomy as the other
+        // caveats (no gray slab).
+        <div className="border-l-2 border-divider-deep py-0.5 pl-4">
           <p className="text-sm leading-relaxed text-text-secondary">
             <Trans>
               This alert points to the official IRS Revenue Procedure and asserts no specific
@@ -395,7 +400,9 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
       {/* Legal uncertainty — prose caveat, deliberately quiet: it informs
           the review but isn't a do-this fact like the hero above. */}
       {protectiveFacts?.legalUncertainty ? (
-        <div className="flex flex-col gap-1 rounded-lg bg-background-soft px-4 py-3">
+        // De-fill pass: a quiet neutral left rule — same callout anatomy as
+        // the deadline rule above, in the neutral tone (informs, no urgency).
+        <div className="flex flex-col gap-1 border-l-2 border-divider-deep py-0.5 pl-4">
           <span className="text-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
             <Trans>Legal uncertainty</Trans>
           </span>
