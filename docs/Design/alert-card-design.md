@@ -238,6 +238,12 @@ contract. **Unified (accidental drift fixed 2026-06-11):**
   ~150px card whose own footer says "No client impact" hasn't earned card
   height. The row keeps jurisdiction + title + time + the canonical "No
   client impact" phrase and opens the same drawer.
+- /today card grid is responsive (2026-06-12): `grid-cols-1` base,
+  `md:grid-cols-2` for 2+ cards, `xl:grid-cols-3` for 3+ — same xl baseline
+  as the /alerts responsive contract. A hard-coded 3-up squeezed cards to
+  ~200px at tablet (titles cut mid-word, source links reduced to a bare ↗).
+  The loading skeleton mirrors the same breakpoints. The /today footer
+  client count ("N clients") is `font-medium` — it is the card's key datum.
 
 ---
 

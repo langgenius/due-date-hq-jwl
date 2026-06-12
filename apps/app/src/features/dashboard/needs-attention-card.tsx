@@ -326,7 +326,10 @@ function NeedsAttentionCard({
             nothing matched, a quiet muted "No clients matched". */}
         {impacted > 0 ? (
           <span className="inline-flex min-w-0 shrink items-center gap-1.5 whitespace-nowrap">
-            <span className="text-text-secondary">
+            {/* font-medium: the affected-client count is the card's key
+                datum (it's WHY the alert earned a card) — 500 per the
+                type-weight ladder, while the rest of the footer stays 400. */}
+            <span className="font-medium text-text-secondary">
               <Plural value={impacted} one="# client" other="# clients" />
             </span>
           </span>

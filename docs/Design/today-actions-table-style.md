@@ -96,6 +96,19 @@ The table is **neutral by default**. Chromatic accent is rationed:
   says something the DUE column's filing countdown doesn't — the filing isn't
   late, or it's late by a different number of days. A row that read
   "Overdue · 7d late · Pay 7d late" was three signals for one fact.
+
+## Responsive (2026-06-12)
+
+- The CLIENT cell width steps with the viewport: `w-[220px] md:w-[300px]
+  xl:w-[440px]` (rows AND skeleton). The original hard 440px shoved
+  STATUS / owner / DUE past the frame edge at tablet width, where
+  `overflow-hidden` clipped them invisibly — the CPA lost exactly the two
+  columns that matter.
+- The table frame is `overflow-x-auto`, not `overflow-hidden`: when columns
+  genuinely can't fit (phone widths), the frame scrolls sideways instead of
+  silently amputating data. Corner clipping is unchanged when content fits.
+- The empty-bucket message links its own verb ("<open the queue>" →
+  /deadlines) — the action lives on the words, not only in the footer link.
 - **Accent (Dify blue)** appears only on the **Smart Priority** marks — the
   sparkle in the rank cell and the header's sparkle/tooltip trigger.
 - Everything else (client, prompt, form chip, readiness, dates) lives in the

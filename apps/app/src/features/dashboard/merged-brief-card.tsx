@@ -177,7 +177,7 @@ export function MergedBriefCard({
                     <Skeleton className="h-5 w-20 rounded" />
                   </TableCell>
                   <TableCell>
-                    <div className="flex w-[440px] flex-col gap-1.5">
+                    <div className="flex w-[220px] flex-col gap-1.5 md:w-[300px] xl:w-[440px]">
                       <Skeleton className="h-4 w-48" />
                       <Skeleton className="h-3 w-64" />
                     </div>
@@ -312,7 +312,19 @@ export function MergedBriefCard({
           className="rounded-xl border border-divider-subtle px-5 py-6 text-center text-sm text-text-tertiary animate-in fade-in duration-150 motion-reduce:animate-none"
         >
           {activeTotal > 0 ? (
-            <Trans>None in the priority shortlist — open the queue to see all {activeTotal}.</Trans>
+            // "open the queue" is a real link — the message names the next
+            // action, so the action lives on the words themselves instead of
+            // making the user hunt for the footer link.
+            <Trans>
+              None in the priority shortlist —{' '}
+              <Link
+                to="/deadlines"
+                className="text-text-accent underline-offset-2 hover:underline"
+              >
+                open the queue
+              </Link>{' '}
+              to see all {activeTotal}.
+            </Trans>
           ) : (
             <Trans>No open deadlines.</Trans>
           )}
@@ -326,7 +338,11 @@ export function MergedBriefCard({
         // house `animate-in` recipe; static for reduced-motion users).
         <div
           key={selected}
-          className="overflow-hidden rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none"
+          // overflow-x-auto (not -hidden): when the columns genuinely can't
+          // fit (phone widths), the frame scrolls sideways instead of
+          // silently amputating STATUS/owner/DUE. Corner clipping behaves
+          // the same when content fits.
+          className="overflow-x-auto rounded-xl border border-divider-regular bg-background-default animate-in fade-in duration-150 motion-reduce:animate-none"
         >
           <Table className="[&_tbody_tr]:even:bg-transparent">
             <TableHeader>
@@ -469,13 +485,16 @@ function BriefTableRow({
         <TaxCodeBadge code={row.taxType} />
       </TableCell>
       {/* CLIENT — name (row anchor) + the instruction/readiness sub-line,
-          stacked like the original actions table. Fixed 440px (the original
-          ActionsTable's client width) so STATUS / owner / DUE follow right
-          after the content instead of being pushed to the table's far edge by
-          a greedy flex column (Yuqi: "why are status/due/assignee so far
-          right?"). The trailing spacer cell absorbs the leftover width. */}
+          stacked like the original actions table. Fixed width (440px at xl,
+          the original ActionsTable's client width) so STATUS / owner / DUE
+          follow right after the content instead of being pushed to the
+          table's far edge by a greedy flex column (Yuqi: "why are
+          status/due/assignee so far right?"). The trailing spacer cell
+          absorbs the leftover width. Width steps DOWN with the viewport —
+          a hard 440px at tablet width shoved STATUS/owner/DUE past the
+          frame edge where overflow clipped them invisibly. */}
       <TableCell>
-        <div className="flex w-[440px] min-w-0 flex-col gap-0.5">
+        <div className="flex w-[220px] min-w-0 flex-col gap-0.5 md:w-[300px] xl:w-[440px]">
           <span className="truncate text-row-anchor text-text-primary">{row.clientName}</span>
           <span className="flex min-w-0 items-center gap-1.5 text-xs text-text-tertiary transition-colors group-hover:text-text-secondary">
             <span className="truncate">{verb}</span>

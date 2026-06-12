@@ -94,7 +94,9 @@ function NeedsAttentionSection() {
           </h2>
           <Skeleton className="h-4 w-16" />
         </div>
-        <div className="grid grid-cols-3 items-stretch gap-3">
+        {/* Skeleton mirrors the loaded grid's breakpoints so the page
+            doesn't reflow column-count when cards land. */}
+        <div className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-[150px] rounded-xl" />
           ))}
@@ -261,10 +263,13 @@ function NeedsAttentionSection() {
             // No `px-3` on the cards grid so card left edges align with
             // the section header above, the page H1, and the
             // ActionsTable wrapper below.
-            'grid items-stretch gap-3',
-            cardAlerts.length === 1 && 'grid-cols-1',
-            cardAlerts.length === 2 && 'grid-cols-2',
-            cardAlerts.length >= 3 && 'grid-cols-3',
+            // Responsive: a hard-coded 3-up squeezed cards to ~200px at
+            // tablet widths (titles cut mid-word, source links truncated
+            // to a bare ↗). Stack at base, pair at md, 3-up only ≥xl —
+            // same xl baseline the /alerts surfaces use.
+            'grid grid-cols-1 items-stretch gap-3',
+            cardAlerts.length === 2 && 'md:grid-cols-2',
+            cardAlerts.length >= 3 && 'md:grid-cols-2 xl:grid-cols-3',
           )}
         >
           {cardAlerts.map((alert) => (

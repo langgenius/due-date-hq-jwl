@@ -6577,6 +6577,10 @@ msgstr "EIN · ##-#######"
 msgid "Elevated access"
 msgstr "更高权限访问"
 
+#: src/features/obligations/detail/PenaltyExposureCard.tsx
+msgid "Elevated priority"
+msgstr "优先级较高"
+
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "Eligible"
 msgstr "可应用"
@@ -8010,8 +8014,8 @@ msgid "HIGH IMPACT"
 msgstr "高影响"
 
 #: src/features/obligations/detail/PenaltyExposureCard.tsx
-msgid "High risk"
-msgstr "高风险"
+msgid "High priority"
+msgstr "高优先级"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "High-impact alerts and same-day deadlines always come through — nothing critical waits until morning."
@@ -9106,10 +9110,6 @@ msgstr "低影响"
 msgid "Low match · {pct}%"
 msgstr "Low match · {pct}%"
 
-#: src/features/obligations/detail/PenaltyExposureCard.tsx
-msgid "Low risk"
-msgstr "低风险"
-
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Manage alert sources"
 msgstr "管理提醒来源"
@@ -9666,10 +9666,6 @@ msgstr "Model"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Model is confident — review and apply when ready."
 msgstr "模型置信度较高 — 准备好后请审查并应用。"
-
-#: src/features/obligations/detail/PenaltyExposureCard.tsx
-msgid "Moderate risk"
-msgstr "中等风险"
 
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Modified"
@@ -10792,8 +10788,8 @@ msgid "None filed"
 msgstr "尚无申报"
 
 #: src/features/dashboard/merged-brief-card.tsx
-msgid "None in the priority shortlist — open the queue to see all {activeTotal}."
-msgstr "优先清单中暂无项目 — 打开队列查看全部 {activeTotal} 项。"
+msgid "None in the priority shortlist — <0>open the queue</0> to see all {activeTotal}."
+msgstr "优先清单中暂无项目 — <0>打开队列</0>查看全部 {activeTotal} 项。"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "None yet"
@@ -10803,6 +10799,10 @@ msgstr "暂无"
 #: src/routes/clients.tsx
 msgid "Nonprofit"
 msgstr "非营利组织"
+
+#: src/features/obligations/detail/PenaltyExposureCard.tsx
+msgid "Normal priority"
+msgstr "普通优先级"
 
 #: src/features/migration/Stepper.tsx
 msgid "Normalize"

@@ -6551,6 +6551,10 @@ msgstr "EIN · ##-#######"
 msgid "Elevated access"
 msgstr "Elevated access"
 
+#: src/features/obligations/detail/PenaltyExposureCard.tsx
+msgid "Elevated priority"
+msgstr "Elevated priority"
+
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "Eligible"
 msgstr "Eligible"
@@ -7978,8 +7982,8 @@ msgid "HIGH IMPACT"
 msgstr "HIGH IMPACT"
 
 #: src/features/obligations/detail/PenaltyExposureCard.tsx
-msgid "High risk"
-msgstr "High risk"
+msgid "High priority"
+msgstr "High priority"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "High-impact alerts and same-day deadlines always come through — nothing critical waits until morning."
@@ -9069,10 +9073,6 @@ msgstr "LOW IMPACT"
 msgid "Low match · {pct}%"
 msgstr "Low match · {pct}%"
 
-#: src/features/obligations/detail/PenaltyExposureCard.tsx
-msgid "Low risk"
-msgstr "Low risk"
-
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Manage alert sources"
 msgstr "Manage alert sources"
@@ -9624,10 +9624,6 @@ msgstr "Model"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Model is confident — review and apply when ready."
 msgstr "Model is confident — review and apply when ready."
-
-#: src/features/obligations/detail/PenaltyExposureCard.tsx
-msgid "Moderate risk"
-msgstr "Moderate risk"
 
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Modified"
@@ -10744,8 +10740,8 @@ msgid "None filed"
 msgstr "None filed"
 
 #: src/features/dashboard/merged-brief-card.tsx
-msgid "None in the priority shortlist — open the queue to see all {activeTotal}."
-msgstr "None in the priority shortlist — open the queue to see all {activeTotal}."
+msgid "None in the priority shortlist — <0>open the queue</0> to see all {activeTotal}."
+msgstr "None in the priority shortlist — <0>open the queue</0> to see all {activeTotal}."
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "None yet"
@@ -10755,6 +10751,10 @@ msgstr "None yet"
 #: src/routes/clients.tsx
 msgid "Nonprofit"
 msgstr "Nonprofit"
+
+#: src/features/obligations/detail/PenaltyExposureCard.tsx
+msgid "Normal priority"
+msgstr "Normal priority"
 
 #: src/features/migration/Stepper.tsx
 msgid "Normalize"
