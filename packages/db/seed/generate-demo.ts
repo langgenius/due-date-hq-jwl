@@ -2294,9 +2294,15 @@ for (const f of FIRMS) {
     ),
   )
 
-  // in_app_notification — a couple per owner.
+  // in_app_notification — a couple per owner. Deep links + copy carry the
+  // entity context (2026-06-12 UX-honesty critique): a notification that
+  // names no client and lands on a bare list drops the reader exactly where
+  // the work isn't.
   add(
     'in_app_notification',
+    // Obligation seq 3 = client 2's overdue federal 1040 — name the client
+    // in the body and link straight to that deadline's detail page
+    // (/deadlines/<ref12>, same ref scheme as deadlineRefFromObligationId).
     row(
       s(sid('63', i, 1)),
       s(f.id),
@@ -2305,12 +2311,18 @@ for (const f of FIRMS) {
       s('obligation_instance'),
       s(obl(f, 3)),
       s('Overdue return needs attention'),
-      s('A federal 1040 is overdue and carries late-filing exposure.'),
-      s('/deadlines'),
+      s(
+        `${CLIENTS.find((c) => c.seq === 2)!.name} — Form 1040 is overdue and carries late-filing exposure.`,
+      ),
+      s(`/deadlines/${obl(f, 3).replace(/-/g, '').slice(-12)}`),
       s('{"severity":"critical"}'),
       'NULL',
       ts('2026-06-02 09:50:00'),
     ),
+    // "ready to download" was fiction for most demo firms — the audit export
+    // is gated to Team/Enterprise owners, so the seeded copy promises a
+    // download the recipient can't perform. State what's true everywhere:
+    // the package is recorded in the audit log.
     row(
       s(sid('63', i, 2)),
       s(f.id),
@@ -2318,8 +2330,8 @@ for (const f of FIRMS) {
       s('audit_package_ready'),
       s('audit_evidence_package'),
       s(sid('61', i, 1)),
-      s('Evidence package ready'),
-      s('Your firm audit evidence package is ready to download.'),
+      s('Evidence package recorded'),
+      s('Your firm audit evidence package was assembled and recorded in the audit log.'),
       s('/audit'),
       s('{}'),
       ts('2026-06-02 10:05:00'),
