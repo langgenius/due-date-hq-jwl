@@ -246,6 +246,11 @@ const TAX_CODES: Record<string, TaxCodeMeta> = {
     jurisdiction: 'Texas',
     description: 'Texas franchise report',
   },
+  tx_pir_oir: {
+    label: 'TX PIR/OIR',
+    jurisdiction: 'Texas',
+    description: 'Texas Public/Ownership Information Report',
+  },
   tx_franchise_extension: {
     label: 'TX Franchise Extension',
     jurisdiction: 'Texas',
@@ -306,6 +311,10 @@ function inferJurisdiction(code: string): TaxJurisdiction {
 // "or" = Oregon) still uppercase.
 const CONNECTIVE_WORDS = new Set(['or', 'of', 'and', 'to', 'in', 'on', 'for', 'per'])
 
+// Statutory acronyms longer than 2 letters — title-casing these reads as
+// corrupted data to the CPA who files them ("TX Pir Oir").
+const ACRONYM_SEGMENTS = new Set(['pir', 'oir', 'llc', 'fbar', 'nec', 'ptet', 'cat', 'ein'])
+
 function prettifyCode(code: string): string {
   return code
     .split('_')
@@ -313,6 +322,7 @@ function prettifyCode(code: string): string {
       if (index > 0 && CONNECTIVE_WORDS.has(segment)) return segment
       const upper = segment.toUpperCase()
       if (segment.length === 2 || /^\d/.test(segment)) return upper
+      if (ACRONYM_SEGMENTS.has(segment)) return upper
       return segment.charAt(0).toUpperCase() + segment.slice(1)
     })
     .join(' ')
