@@ -102,11 +102,10 @@ export function AlertListRail({
           </span>
         )}
         {activeCount > 0 ? (
-          <CountPill>
-            {/* 2026-06-12 (Yuqi: "'9 active' is confusing — it's Review +
-                Active, so why 'active'?"): the head count is every unresolved
-                alert (review + active queues), so the label is "open", not
-                "active" — "active" collides with the Active tab below. */}
+          // Neutral tone (critique #2): a standing count isn't an alarm — red
+          // stays reserved for URGENT pills + overdue countdowns. "open" (not
+          // "active") because the count spans both queues.
+          <CountPill tone="neutral">
             <Plural value={activeCount} one="# open" other="# open" />
           </CountPill>
         ) : null}

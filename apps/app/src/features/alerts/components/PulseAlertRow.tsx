@@ -733,7 +733,10 @@ function PulseAlertRow({
             gap-y-1`) with `whitespace-nowrap` / `shrink-0` on the text
             + pill — otherwise it wraps mid-unit ("Affects 2 / clients",
             "94% / conf"). */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-sm text-text-muted">
+        {/* Critique #4 (AA): bottom meta reads in tertiary (≈4.8:1), not
+            muted (≈2.9:1 — failed contrast at this size). Still clearly
+            subordinate to the 600 title. */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-sm text-text-tertiary">
           {/* The affected-clients line uses the Users icon — one
               clients-affected glyph across the AlertCard, this row, and
               the dashboard card. Impacted rows step to text-secondary;
@@ -1048,7 +1051,17 @@ function PulseAlertList({
                     their own; the gray slab stacked with the per-row gray
                     chips into a gray-on-gray wall. Opaque white keeps the
                     sticky pin masking rows that scroll under. */}
-                <div className="sticky top-12 z-10 flex items-center border-b border-divider-subtle bg-background-default px-5 py-1.5">
+                <div
+                  className={cn(
+                    'sticky top-12 z-10 flex items-center border-b border-divider-subtle bg-background-default py-1.5 pr-5',
+                    // Critique #3 (alignment): the band label sits ON the
+                    // content grid — selectable rows indent their content by
+                    // the 18px checkbox + 10px gap, so the label matches the
+                    // time column (pl-12 = 20+28) instead of floating 28px
+                    // left of everything beneath it.
+                    selectable ? 'pl-12' : 'pl-5',
+                  )}
+                >
                   <div className="flex items-center gap-1.5 text-column-label text-text-tertiary uppercase">
                     {isToday ? (
                       <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />

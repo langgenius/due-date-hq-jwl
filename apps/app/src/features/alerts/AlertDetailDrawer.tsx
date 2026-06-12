@@ -89,6 +89,7 @@ import {
   REVERTABLE_STATUSES,
   useAlertPermissions,
 } from './lib/alert-permissions'
+import { isWithinRevertWindow, revertExpiresAt } from './lib/revert-window'
 
 // The drawer's window-level hotkeys (A/D, ArrowUp/ArrowDown pager) must go
 // quiet while ANY modal layer is stacked above the drawer — the
@@ -488,6 +489,13 @@ function DecisionBanners({
   }
 
   if (alert.status === 'applied' || alert.status === 'partially_applied') {
+    // The 24h undo window mirrors the server's REVERT_WINDOW_MS gate
+    // (packages/db/src/repo/pulse/shared.ts) via the shared revert-window
+    // helper. Once the window closes the server would reject the revert, so
+    // the banner states the closed window quietly instead of offering an
+    // Undo it can't honor.
+    const undoClosesAt = alert.appliedAt ? revertExpiresAt(alert.appliedAt) : null
+    const undoOpen = undoClosesAt === null || isWithinRevertWindow(undoClosesAt)
     return (
       <DetailStatusBanner
         tone="success"
@@ -504,10 +512,17 @@ function DecisionBanners({
           )
         }
         description={
-          <Trans>You can undo for the next 24 hours. After that, it can't be undone.</Trans>
+          undoOpen || undoClosesAt === null ? (
+            <Trans>You can undo for the next 24 hours. After that, it can't be undone.</Trans>
+          ) : (
+            <Trans>
+              Undo window closed {formatDatePretty(undoClosesAt.toISOString())} — 24 hours after
+              apply.
+            </Trans>
+          )
         }
         action={
-          REVERTABLE_STATUSES.has(alert.status) ? (
+          undoOpen && REVERTABLE_STATUSES.has(alert.status) ? (
             <TextLink variant="success" size="sm" onClick={onUndo} className="font-semibold">
               <Trans>Undo</Trans>
             </TextLink>
@@ -1270,7 +1285,11 @@ export function AlertDetailDrawer({
                       code + full name, identical to the deadline detail
                       header. */}
                   <JurisdictionLabel code={detail.alert.jurisdiction} />
-                  <span className="inline-flex h-[22px] shrink-0 items-center rounded bg-state-accent-hover px-2 font-mono text-xs font-bold tracking-eyebrow text-text-accent uppercase">
+                  {/* Critique #5 (one vocabulary per fact): the change-kind
+                      reads in the SAME quiet tracked-caps voice the list rows
+                      use — the blue mono chip said the same fact in a louder
+                      second dialect and muddied accent = action semantics. */}
+                  <span className="shrink-0 text-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
                   <span className="ml-auto flex shrink-0 items-center gap-2 text-sm text-text-tertiary">
@@ -1378,7 +1397,9 @@ export function AlertDetailDrawer({
         {detail ? (
           <nav
             aria-label={t`Alert sections`}
-            className="sticky -top-6 z-10 -my-3 shrink-0 bg-background-default py-3"
+            // -mt only (critique #6): trimming both margins collapsed the
+            // nav→card gap to 12px against the body's 24px rhythm.
+            className="sticky -top-6 z-10 -mt-3 shrink-0 bg-background-default py-3"
           >
             <div className="flex items-center gap-5 border-b border-divider-subtle pb-2">
               {sectionNavItems.map((item) => {
@@ -1893,8 +1914,11 @@ export function AlertDetailDrawer({
             centered under the same column the header + body share. */}
         <div className="mx-auto flex w-full max-w-[760px] flex-row items-center gap-6">
           {detail ? (
-            <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-success xl:inline-flex">
-              <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
+            // Critique #7 (standing signals aren't events): the reassurance
+            // line reads tertiary with only the shield icon in green — a
+            // permanently green sentence claimed success-event semantics.
+            <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-tertiary xl:inline-flex">
+              <ShieldCheckIcon className="size-3 shrink-0 text-text-success" aria-hidden />
               <Trans>Every decision captured to audit ledger</Trans>
             </span>
           ) : null}
@@ -1907,6 +1931,7 @@ export function AlertDetailDrawer({
                 actionMode={detail.alert.actionMode}
                 firmImpact={detail.alert.firmImpact}
                 requiresDeadlineDetails={missingDeadlineDetails}
+                appliedAt={detail.alert.appliedAt}
                 canApply={canApply}
                 // ROH-D15 — Undo button now gates on `pulse.revert` instead
                 // of the `pulse.apply` proxy.
@@ -2058,6 +2083,7 @@ export function DrawerActions({
   actionMode,
   firmImpact,
   requiresDeadlineDetails,
+  appliedAt,
   canApply,
   canRevert,
   canRequestReview,
@@ -2081,6 +2107,8 @@ export function DrawerActions({
   actionMode: PulseDetail['alert']['actionMode']
   firmImpact: PulseDetail['alert']['firmImpact']
   requiresDeadlineDetails: boolean
+  /** When the alert was applied — bounds the 24h undo window client-side. */
+  appliedAt: string | null
   canApply: boolean
   // ROH-D15 — gate the Undo button on the dedicated `pulse.revert`
   // permission instead of borrowing `canApply`. Same role set today,

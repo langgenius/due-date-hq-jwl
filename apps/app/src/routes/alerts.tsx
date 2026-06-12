@@ -74,10 +74,12 @@ export function AlertsRoute() {
           read as a tappable button. Same metric ("N active" = matched)
           and same look in both the page header and the detail rail head. */}
       {alertCount > 0 ? (
-        <CountPill>
-          {/* 2026-06-12 (Yuqi): "open", not "active" — the chip counts every
-              unresolved alert (Review + Active queues combined), so "active"
-              both undercounts the read and collides with the Active tab. */}
+        // 2026-06-12 (critique #2 — red restraint): a STANDING count isn't an
+        // alarm. The pill was permanently red, which broke the one-hot-cue
+        // rule the rest of the page now obeys (red = URGENT pills + overdue
+        // countdowns only). Neutral tone; the wording stays "open" (the chip
+        // counts Review + Active combined, so "active" collided with the tab).
+        <CountPill tone="neutral">
           <Plural value={alertCount} one="# open" other="# open" />
         </CountPill>
       ) : null}

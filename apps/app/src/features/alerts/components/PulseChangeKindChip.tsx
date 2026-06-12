@@ -26,13 +26,20 @@ function changeKindLabel(kind: PulseAlertPublic['changeKind']) {
       return <Trans>Form updated</Trans>
     case 'source_status':
       return <Trans>Source status</Trans>
+    case 'rule_source_drift':
+      return <Trans>Source drift</Trans>
     case 'new_obligation':
       return <Trans>New rule added</Trans>
     case 'protective_claim_window':
       return <Trans>Protective claim window</Trans>
+    case 'threshold_advisory':
+      return <Trans>Threshold advisory</Trans>
     case 'other':
       return <Trans>Other change</Trans>
   }
+  // 2026-06-12 (critique: "THRESHOLD_ADVISORY" leaked raw on the list + rail):
+  // every PulseChangeKind member is mapped above — this fallback only catches
+  // future enum additions.
   return kind
 }
 
