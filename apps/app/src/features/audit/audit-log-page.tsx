@@ -53,6 +53,7 @@ import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/p
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { SearchInput } from '@/components/primitives/search-input'
 
 import { AuditEventDrawer } from './audit-event-drawer'
@@ -259,55 +260,45 @@ function AuditKpiStrip({
   totalCaption: ReactNode
   countsByType: Record<AuditTimelineType, number>
 }) {
-  const columns: Array<{ key: string; label: ReactNode; value: number; caption: ReactNode }> = [
+  // Canonical <StatBand> — this strip was the last bespoke fork of the
+  // shared summary band (mono/bold caps labels + bordered card while the
+  // other five surfaces share one sentence-case hairline band). Same
+  // pattern, audit content.
+  const stats: StatBandItem[] = [
     {
       key: 'total',
       // "Events · last 30 days", not "Total loaded · in this view" —
       // label what the number means to a CPA, not how it got fetched.
       label: <Trans>Events</Trans>,
-      value: totalLoaded,
-      caption: totalCaption,
+      value: totalLoaded.toLocaleString(),
+      sub: totalCaption,
     },
     {
       key: 'filing',
       label: <Trans>Filings</Trans>,
-      value: countsByType.filing,
-      caption: <Trans>filed or e-filed</Trans>,
+      value: countsByType.filing.toLocaleString(),
+      sub: <Trans>filed or e-filed</Trans>,
     },
     {
       key: 'amendment',
       label: <Trans>Amendments</Trans>,
-      value: countsByType.amendment,
-      caption: <Trans>amended with reason</Trans>,
+      value: countsByType.amendment.toLocaleString(),
+      sub: <Trans>amended with reason</Trans>,
     },
     {
       key: 'access',
       label: <Trans>Access</Trans>,
-      value: countsByType.access,
-      caption: <Trans>logins and exports</Trans>,
+      value: countsByType.access.toLocaleString(),
+      sub: <Trans>logins and exports</Trans>,
     },
     {
       key: 'system',
       label: <Trans>System</Trans>,
-      value: countsByType.system + countsByType.decision,
-      caption: <Trans>auto-recorded and manual decisions</Trans>,
+      value: (countsByType.system + countsByType.decision).toLocaleString(),
+      sub: <Trans>auto-recorded and manual decisions</Trans>,
     },
   ]
-  return (
-    <div className="flex flex-col divide-y divide-divider-subtle rounded-xl border border-divider-subtle bg-background-default px-2 py-4 sm:flex-row sm:divide-x sm:divide-y-0">
-      {columns.map((column) => (
-        <div key={column.key} className="grid flex-1 gap-1 px-5 py-1">
-          <span className="font-mono text-caption-xs font-bold tracking-wide text-text-tertiary uppercase">
-            {column.label}
-          </span>
-          <span className="text-2xl font-semibold tracking-tight text-text-primary tabular-nums">
-            {column.value.toLocaleString()}
-          </span>
-          <span className="font-mono text-caption-xs text-text-tertiary">{column.caption}</span>
-        </div>
-      ))}
-    </div>
-  )
+  return <StatBand stats={stats} />
 }
 
 function AuditSkeleton() {
