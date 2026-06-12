@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
+  CheckIcon,
   ChevronDownIcon,
   DownloadIcon,
   LaptopIcon,
@@ -27,14 +28,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { LOCALE_LABELS, SUPPORTED_LOCALES, type Locale } from '@duedatehq/i18n'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { PageHeader } from '@/components/patterns/page-header'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
-import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { SettingsShell } from '@/features/settings/settings-sub-nav'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
+import { useLocaleSwitch } from '@/i18n/provider'
 import { useSession } from '@/lib/auth'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
@@ -49,8 +57,8 @@ export function SettingsProfileRoute() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const session = useSession()
-  const { firm } = useFirmPermission()
   const practiceTimezone = usePracticeTimezone()
+  const { locale, switchLocale } = useLocaleSwitch()
 
   const statusQuery = useQuery(orpc.security.status.queryOptions({ input: undefined }))
   const securityKey = orpc.security.key()
@@ -70,7 +78,6 @@ export function SettingsProfileRoute() {
   const user = session.data?.user
   const displayName = user?.name ?? ''
   const email = user?.email ?? ''
-  const timezone = firm?.timezone ?? practiceTimezone
 
   const enableMutation = useMutation(
     orpc.security.enableTwoFactor.mutationOptions({
@@ -236,15 +243,6 @@ export function SettingsProfileRoute() {
               <ReadonlyValue value={email || t`Not set`} muted />
             </Field>
           </div>
-
-          <Field label={t`Timezone`}>
-            {/* Timezone is a practice-level setting; editing lives on the
-                Practice profile. Surfaced read-only here for reference. */}
-            <ReadonlyValue
-              value={timezone}
-              trailing={<ChevronDownIcon className="size-3.5 text-text-muted" aria-hidden />}
-            />
-          </Field>
         </SettingsCard>
 
         {/* Security */}
@@ -377,7 +375,8 @@ export function SettingsProfileRoute() {
                         ) : null}
                       </div>
                       <span className="truncate font-mono text-xs text-text-muted">
-                        {s.ipAddress || '—'} · {formatDateTimeWithTimezone(s.createdAt, timezone)}
+                        {s.ipAddress || '—'} ·{' '}
+                        {formatDateTimeWithTimezone(s.createdAt, practiceTimezone)}
                       </span>
                     </div>
                     {s.isCurrent ? (
@@ -411,16 +410,17 @@ export function SettingsProfileRoute() {
         </SettingsCard>
 
         {/* Preferences */}
-        <SettingsCard title={t`Preferences`} subtitle={t`Language, date, time, and week-start formats`}>
-          {/* TODO(data): no user-preferences store (language / date / time
-              format / week-start). Controls render disabled with sensible
-              static defaults until a preferences contract lands. */}
+        <SettingsCard
+          title={t`Preferences`}
+          subtitle={t`Language, date, time, and week-start formats`}
+        >
+          {/* TODO(data): no user-preferences store for date / time /
+              week-start. Those controls render disabled with sensible static
+              defaults until a preferences contract lands. Language uses the
+              existing persisted app locale switcher. */}
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t`Language`}>
-              <ReadonlyValue
-                value={t`English (United States)`}
-                trailing={<ChevronDownIcon className="size-3.5 text-text-muted" aria-hidden />}
-              />
+              <LanguageSelect value={locale} onValueChange={switchLocale} />
             </Field>
             <Field label={t`Date format`}>
               <ReadonlyValue
@@ -470,7 +470,8 @@ export function SettingsProfileRoute() {
               </span>
               <span className="text-xs text-text-secondary">
                 <Trans>
-                  Removes your access. Your practice's data is kept for 30 days, then permanently deleted. This can't be undone.
+                  Removes your access. Your practice's data is kept for 30 days, then permanently
+                  deleted. This can't be undone.
                 </Trans>
               </span>
             </div>
@@ -579,7 +580,7 @@ export function SettingsProfileRoute() {
               </p>
               <p className="font-mono text-xs text-text-muted">
                 {pendingSessionRevoke.ipAddress || '—'} ·{' '}
-                {formatDateTimeWithTimezone(pendingSessionRevoke.createdAt, timezone)}
+                {formatDateTimeWithTimezone(pendingSessionRevoke.createdAt, practiceTimezone)}
               </p>
             </div>
           ) : null}
@@ -687,6 +688,45 @@ function ReadonlyValue({
       </span>
       {trailing}
     </div>
+  )
+}
+
+function LanguageSelect({
+  value,
+  onValueChange,
+}: {
+  value: Locale
+  onValueChange: (next: Locale) => void
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-divider-regular bg-background-default px-3 py-2.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
+          />
+        }
+      >
+        <span className="truncate text-base font-medium text-text-primary">
+          {LOCALE_LABELS[value]}
+        </span>
+        <ChevronDownIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-(--radix-dropdown-menu-trigger-width)">
+        {SUPPORTED_LOCALES.map((code) => (
+          <DropdownMenuItem
+            key={code}
+            onClick={() => onValueChange(code)}
+            aria-checked={value === code}
+            className="flex items-center justify-between"
+          >
+            <span>{LOCALE_LABELS[code]}</span>
+            {value === code ? <CheckIcon className="size-4" aria-hidden /> : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
