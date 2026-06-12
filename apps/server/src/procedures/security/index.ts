@@ -152,7 +152,10 @@ const status = os.security.status.handler(async ({ context }) => {
 })
 
 const enableTwoFactor = os.security.enableTwoFactor.handler(async ({ context }) => {
-  requireTenant(context)
+  const { userId } = requireTenant(context)
+  const authSessions = context.vars.authSessions
+  if (!authSessions) throw new Error('Tenant middleware did not provide auth session access.')
+  await authSessions.deleteUnverifiedTwoFactorSetups(userId)
   const auth = createWorkerAuth(context.env)
   const result = await callAuth(
     auth.api.enableTwoFactor({

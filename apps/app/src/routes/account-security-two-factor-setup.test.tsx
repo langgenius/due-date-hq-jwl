@@ -29,6 +29,7 @@ function renderSetup(
     onCodeChange?: (code: string) => void
     onCopyBackupCodes?: () => void
     onCopySetupUri?: () => void
+    onMissingRecoveryCodeAcknowledgement?: () => void
     onVerify?: (event: SyntheticEvent<HTMLFormElement>) => void
   } = {},
 ) {
@@ -46,6 +47,9 @@ function renderSetup(
           onCodeChange={input.onCodeChange ?? vi.fn()}
           onCopyBackupCodes={input.onCopyBackupCodes ?? vi.fn()}
           onCopySetupUri={input.onCopySetupUri ?? vi.fn()}
+          onMissingRecoveryCodeAcknowledgement={
+            input.onMissingRecoveryCodeAcknowledgement ?? vi.fn()
+          }
           onVerify={input.onVerify ?? vi.fn()}
         />
       </AppI18nProvider>,
@@ -77,18 +81,48 @@ describe('TwoFactorSetupPanel', () => {
     expect(document.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(true)
   })
 
-  it('submits verification only after a code is present', () => {
+  it('keeps the verification row stable and prompts when recovery-code acknowledgement is missing', () => {
     const onVerify = vi.fn((event: SyntheticEvent<HTMLFormElement>) => event.preventDefault())
-    renderSetup({ code: '123456', onVerify })
+    const onMissingRecoveryCodeAcknowledgement = vi.fn()
+    renderSetup({ code: '123456', onMissingRecoveryCodeAcknowledgement, onVerify })
 
     const form = document.querySelector('form')
     expect(form).toBeInstanceOf(HTMLFormElement)
+    expect(document.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(false)
+    expect(document.body.textContent).not.toContain(
+      'Save the recovery codes and check the confirmation above before enabling MFA.',
+    )
+
+    act(() => {
+      form?.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }))
+    })
+
+    expect(onMissingRecoveryCodeAcknowledgement).toHaveBeenCalledTimes(1)
+    expect(onVerify).not.toHaveBeenCalled()
+  })
+
+  it('submits verification only after a code and recovery-code acknowledgement are present', () => {
+    const onVerify = vi.fn((event: SyntheticEvent<HTMLFormElement>) => event.preventDefault())
+    const onMissingRecoveryCodeAcknowledgement = vi.fn()
+    renderSetup({ code: '123456', onMissingRecoveryCodeAcknowledgement, onVerify })
+
+    const form = document.querySelector('form')
+    const acknowledgement = document.querySelector<HTMLElement>('[role="checkbox"]')
+    expect(form).toBeInstanceOf(HTMLFormElement)
+    expect(acknowledgement).toBeInstanceOf(HTMLElement)
+
+    act(() => {
+      acknowledgement?.click()
+    })
+
+    expect(document.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(false)
 
     act(() => {
       form?.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }))
     })
 
     expect(onVerify).toHaveBeenCalledTimes(1)
+    expect(onMissingRecoveryCodeAcknowledgement).not.toHaveBeenCalled()
   })
 
   it('exposes separate copy actions for URI and recovery codes', () => {

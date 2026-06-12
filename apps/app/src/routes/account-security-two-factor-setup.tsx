@@ -27,6 +27,7 @@ type TwoFactorSetupPanelProps = {
   onCodeChange: (code: string) => void
   onCopyBackupCodes: () => void
   onCopySetupUri: () => void
+  onMissingRecoveryCodeAcknowledgement: () => void
   onVerify: (event: SyntheticEvent<HTMLFormElement>) => void
 }
 
@@ -37,6 +38,7 @@ export function TwoFactorSetupPanel({
   onCodeChange,
   onCopyBackupCodes,
   onCopySetupUri,
+  onMissingRecoveryCodeAcknowledgement,
   onVerify,
 }: TwoFactorSetupPanelProps) {
   const { t } = useLingui()
@@ -64,9 +66,27 @@ export function TwoFactorSetupPanel({
     onCopyBackupCodes()
     setCopiedField('codes')
   }
+  const hasCompleteCode = code.trim().length >= 6
+  const verifyDisabled = verifyPending || !hasCompleteCode
+
+  function handleVerify(event: SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (verifyDisabled) {
+      return
+    }
+    if (!acknowledgedCodes) {
+      onMissingRecoveryCodeAcknowledgement()
+      return
+    }
+
+    onVerify(event)
+  }
 
   return (
-    <form onSubmit={onVerify} className="grid gap-4 rounded-lg border border-border-default p-4">
+    <form
+      onSubmit={handleVerify}
+      className="grid gap-4 rounded-lg border border-border-default p-4"
+    >
       <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
         <div className="grid place-items-center rounded-lg border border-border-default bg-background-default p-4">
           <div
@@ -138,7 +158,8 @@ export function TwoFactorSetupPanel({
         </AlertTitle>
         <AlertDescription>
           <Trans>
-            They are only shown during setup. Save them in a password manager — they won't be shown again.
+            They are only shown during setup. Save them in a password manager — they won't be shown
+            again.
           </Trans>
         </AlertDescription>
       </Alert>
@@ -201,11 +222,7 @@ export function TwoFactorSetupPanel({
             onChange={(event) => onCodeChange(event.target.value)}
           />
         </Field>
-        <Button
-          type="submit"
-          className="w-fit"
-          disabled={verifyPending || code.trim().length < 6 || !acknowledgedCodes}
-        >
+        <Button type="submit" className="w-fit" disabled={verifyDisabled}>
           {verifyPending ? <Loader2Icon className="size-4 animate-spin" aria-hidden /> : null}
           <Trans>Verify and enable</Trans>
         </Button>

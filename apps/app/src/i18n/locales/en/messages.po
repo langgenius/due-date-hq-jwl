@@ -14147,6 +14147,11 @@ msgstr "Save the export as EXPORT.CSV or choose your own CSV file name."
 msgid "Save the firm's internal extension plan. The internal target must be on or before the extended filing deadline. This does not file with the authority or change client records."
 msgstr "Save the firm's internal extension plan. The internal target must be on or before the extended filing deadline. This does not file with the authority or change client records."
 
+#: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
+msgid "Save the recovery codes and check the confirmation above before enabling MFA."
+msgstr "Save the recovery codes and check the confirmation above before enabling MFA."
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Save the reviewed client set before applying when a Pulse has low confidence, review flags, or a preparer escalation."
 msgstr "Save the reviewed client set before applying when a Pulse has low confidence, review flags, or a preparer escalation."
@@ -15906,6 +15911,11 @@ msgstr "Temporary rules appear here after {0} apply an alert to matched deadline
 msgid "Thanks — you're all set"
 msgstr "Thanks — you're all set"
 
+#: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
+msgid "That code didn't match this setup. In Microsoft Authenticator, delete older DueDateHQ entries for this email, scan the current QR code again, then enter the newest 6-digit code. Also make sure your phone's time is set automatically."
+msgstr "That code didn't match this setup. In Microsoft Authenticator, delete older DueDateHQ entries for this email, scan the current QR code again, then enter the newest 6-digit code. Also make sure your phone's time is set automatically."
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "That deadline already exists for this client and tax year."
 msgstr "That deadline already exists for this client and tax year."
@@ -16534,8 +16544,10 @@ msgid "Try again"
 msgstr "Try again"
 
 #: src/features/reminders/reminder-template-editor-page.tsx
+#: src/routes/account.security.tsx
 #: src/routes/clients.tsx
 #: src/routes/obligations.tsx
+#: src/routes/settings.profile.tsx
 msgid "Try again in a moment."
 msgstr "Try again in a moment."
 

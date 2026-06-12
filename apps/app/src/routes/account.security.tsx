@@ -93,7 +93,7 @@ export function AccountSecurityRoute() {
       },
       onError: (err) => {
         toast.error(t`Couldn't verify the code`, {
-          description: rpcErrorMessage(err) ?? err.message,
+          description: verifySetupErrorDescription(err),
         })
       },
     }),
@@ -153,6 +153,20 @@ export function AccountSecurityRoute() {
     const trimmed = code.trim()
     if (trimmed.length < 6) return
     verifyMutation.mutate({ code: trimmed })
+  }
+
+  function handleCodeChange(next: string) {
+    setCode(next)
+    if (verifyMutation.isError) verifyMutation.reset()
+  }
+
+  function verifySetupErrorDescription(error: unknown) {
+    const message = rpcErrorMessage(error)
+    if (message === 'INVALID_CODE' || message?.toLowerCase().includes('invalid code')) {
+      return t`That code didn't match this setup. In Microsoft Authenticator, delete older DueDateHQ entries for this email, scan the current QR code again, then enter the newest 6-digit code. Also make sure your phone's time is set automatically.`
+    }
+
+    return message ?? (error instanceof Error ? error.message : t`Try again in a moment.`)
   }
 
   async function copyText(value: string, successMessage: string) {
@@ -239,7 +253,7 @@ export function AccountSecurityRoute() {
                 <Trans>Disable MFA</Trans>
               </Button>
             </div>
-          ) : (
+          ) : pendingSetup ? null : (
             <Button
               className="w-fit"
               onClick={() => enableMutation.mutate(undefined)}
@@ -259,9 +273,14 @@ export function AccountSecurityRoute() {
               code={code}
               pendingSetup={pendingSetup}
               verifyPending={verifyMutation.isPending}
-              onCodeChange={setCode}
+              onCodeChange={handleCodeChange}
               onCopyBackupCodes={copyBackupCodes}
               onCopySetupUri={copySetupUri}
+              onMissingRecoveryCodeAcknowledgement={() =>
+                toast.error(
+                  t`Save the recovery codes and check the confirmation above before enabling MFA.`,
+                )
+              }
               onVerify={handleVerify}
             />
           ) : null}

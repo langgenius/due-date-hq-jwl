@@ -96,11 +96,13 @@ export function TwoFactorRoute() {
               autoFocus
               aria-describedby="two-factor-code-helper"
             />
-            <div className="flex items-center gap-2">
-              <span id="two-factor-code-helper" className="text-[11px] font-medium text-text-muted">
+            <div className="flex flex-col items-start gap-1.5">
+              <span
+                id="two-factor-code-helper"
+                className="whitespace-nowrap text-[11px] font-medium text-text-muted"
+              >
                 <Trans>Google Authenticator, 1Password, Authy, or similar.</Trans>
               </span>
-              <span className="flex-1" />
               <a
                 href="mailto:support@duedatehq.com?subject=Two-factor%20recovery"
                 className="text-xs font-medium text-text-accent transition-colors hover:text-text-accent-secondary"
