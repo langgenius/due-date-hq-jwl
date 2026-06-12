@@ -148,6 +148,16 @@ function calendarAliasLoader({ request }: LoaderFunctionArgs) {
   redirectToPathPreservingRequest(request, '/deadlines/calendar')
 }
 
+function legacyReminderTemplatesAliasLoader({ request }: LoaderFunctionArgs) {
+  // 301: the full-page template editor was retired 2026-06-12 — it advertised
+  // a variable vocabulary ({{deadline_date}}, {{cpa_name}}, {{firm_name}})
+  // the send pipeline never supplies, previewed under a fictional firm
+  // identity, and duplicated the real editor on /reminders with a second
+  // save path. ONE editor, ONE variable registry (the send path's):
+  // /reminders is the canonical home.
+  redirectToPathPreservingRequest(request, '/reminders', 301)
+}
+
 // /rules/coverage → /rules/library, preserving ?rule=… and any other
 // query params for deep-link compatibility. The Coverage matrix is the
 // Library's default view, so this is a lossless URL collapse.
@@ -612,24 +622,15 @@ export function createAppRouter() {
             },
             {
               path: 'settings/reminders/templates',
-              handle: routeHandle(routeSummaries.reminderTemplates),
+              loader: legacyReminderTemplatesAliasLoader,
+              Component: RedirectOnlyRoute,
               HydrateFallback: RouteHydrateFallback,
-              lazy: async () => {
-                const { ReminderTemplatesRoute } = await import('@/routes/reminders.templates')
-
-                return { Component: ReminderTemplatesRoute }
-              },
             },
             {
               path: 'settings/reminders/templates/edit',
-              handle: routeHandle(routeSummaries.reminderTemplateEdit),
+              loader: legacyReminderTemplatesAliasLoader,
+              Component: RedirectOnlyRoute,
               HydrateFallback: RouteHydrateFallback,
-              lazy: async () => {
-                const { ReminderTemplateEditRoute } =
-                  await import('@/routes/reminders.templates.edit')
-
-                return { Component: ReminderTemplateEditRoute }
-              },
             },
             {
               path: 'clients',

@@ -26,8 +26,6 @@ export const routeSummaries = {
   notifications: { eyebrow: msg`Operations`, title: msg`Notifications` },
   notificationPreferences: { eyebrow: msg`Settings`, title: msg`Notification preferences` },
   reminders: { eyebrow: msg`Settings`, title: msg`Email Template` },
-  reminderTemplates: { eyebrow: msg`Settings`, title: msg`Reminder templates` },
-  reminderTemplateEdit: { eyebrow: msg`Settings`, title: msg`Edit reminder template` },
   clients: { eyebrow: msg`Clients`, title: msg`Clients` },
   clientDetail: { eyebrow: msg`Clients`, title: msg`Client detail` },
   audit: { eyebrow: msg`Practice`, title: msg`Audit log` },
