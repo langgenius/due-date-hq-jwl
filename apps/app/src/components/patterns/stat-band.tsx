@@ -25,9 +25,11 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * `text-tertiary`/`font-semibold` eyebrows, separate StatTile tiles vs a
  * single band).
  *
- * Visual contract (Pencil O0pyRO `p0WeNy`):
+ * Visual contract (Pencil O0pyRO `p0WeNy`; label restyled 2026-06-12):
  *  - Frame: `border-y border-divider-subtle py-7`, no card border
- *  - Eyebrow: `text-xs font-semibold tracking-eyebrow text-text-muted uppercase`
+ *  - Label: sentence-case `text-sm font-medium text-text-secondary` — the
+ *    Stripe stat grammar Yuqi asked for ("Gross volume / £216.20 / 12:08"),
+ *    replacing the tracked-caps eyebrow. Calm label, big value, quiet sub.
  *  - Value: `text-section-title leading-none font-medium tracking-tight tabular-nums`,
  *    tone-coded via `valueClass` (default `text-text-primary`)
  *  - Sub: `text-sm font-medium`, tone-coded via `subClass`
@@ -85,9 +87,11 @@ export function StatBand({
       {stats.map((stat) => {
         const body = (
           <>
-            <span className="text-xs font-semibold tracking-eyebrow text-text-muted uppercase">
-              {stat.label}
-            </span>
+            {/* 2026-06-12 (Yuqi Stripe stat reference — component-level):
+                sentence-case medium label, not a tracked-caps eyebrow. All 5
+                summary surfaces (clients ×2, sources, library, alert history)
+                pick this up together. */}
+            <span className="truncate text-sm font-medium text-text-secondary">{stat.label}</span>
             <span
               className={cn(
                 'text-stat-value font-medium tracking-tight tabular-nums',
