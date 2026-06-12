@@ -665,17 +665,19 @@ function PulseAlertRow({
                 >
                   <path d="M4 2.5v3a1.5 1.5 0 0 0 1.5 1.5H9" />
                 </svg>
-                {/* 2026-06-12 (Yuqi /alerts #5 "does this need to be red?"):
-                    the suggestion chip is NEUTRAL — every row carries one, so
-                    any hot color here saturates the list and nothing reads
-                    urgent. Heat stays with the URGENT/HIGH level pills and the
-                    date-diff; a suggestion is quiet guidance, not an alarm. */}
-                <div className="inline-flex items-center gap-2 self-start rounded bg-background-subtle px-3 py-1">
+                {/* 2026-06-12 (Yuqi #5 "does this need to be red?" + "too much
+                    gray"): the suggestion is a BOXLESS text line. First pass
+                    de-redded it into a gray slab — but every row carries one,
+                    so the boxes stacked into gray soup (band + form chip +
+                    action slab per row). The elbow glyph + small-caps ACTION
+                    label already structure the line; no container needed.
+                    Heat stays with URGENT/HIGH + the date-diff. */}
+                <span className="inline-flex items-baseline gap-2 self-start">
                   <span className="text-xs font-semibold tracking-[0.3px] text-text-tertiary uppercase">
                     <Trans>Action</Trans>
                   </span>
                   <span className="text-sm font-medium text-text-secondary">{actionText}</span>
-                </div>
+                </span>
               </div>
             ) : null}
           </div>
@@ -1032,8 +1034,13 @@ function PulseAlertList({
                     of alerts in a day?"): yes — the band sticks below the
                     sticky toolbar (top-12 ≈ its h-9 controls + pb-3) while its
                     day's rows scroll under, so "when" stays answered on long
-                    days. Requires the frame's overflow-clip (not hidden). */}
-                <div className="sticky top-12 z-10 flex items-center border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
+                    days. Requires the frame's overflow-clip (not hidden).
+                    2026-06-12 ("too much gray"): the band fill goes WHITE —
+                    the small-caps label + hairline carry the day break on
+                    their own; the gray slab stacked with the per-row gray
+                    chips into a gray-on-gray wall. Opaque white keeps the
+                    sticky pin masking rows that scroll under. */}
+                <div className="sticky top-12 z-10 flex items-center border-b border-divider-subtle bg-background-default px-5 py-1.5">
                   <div className="flex items-center gap-1.5 text-column-label text-text-tertiary uppercase">
                     {isToday ? (
                       <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
