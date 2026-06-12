@@ -148,6 +148,10 @@ function calendarAliasLoader({ request }: LoaderFunctionArgs) {
   redirectToPathPreservingRequest(request, '/deadlines/calendar')
 }
 
+function legacyAccountSecurityAliasLoader({ request }: LoaderFunctionArgs) {
+  redirectToPathPreservingRequest(request, '/settings/profile', 301)
+}
+
 function legacyReminderTemplatesAliasLoader({ request }: LoaderFunctionArgs) {
   // 301: the full-page template editor was retired 2026-06-12 — it advertised
   // a variable vocabulary ({{deadline_date}}, {{cpa_name}}, {{firm_name}})
@@ -812,13 +816,13 @@ export function createAppRouter() {
             },
             {
               path: 'account/security',
-              handle: routeHandle(routeSummaries.accountSecurity),
+              // 301: the standalone security page was a 1:1 duplicate of the
+              // Profile page's Security card with diverging vocabulary
+              // ("Current" vs "This device") and no settings sub-rail —
+              // retired 2026-06-12; /settings/profile is the one home.
+              loader: legacyAccountSecurityAliasLoader,
+              Component: RedirectOnlyRoute,
               HydrateFallback: RouteHydrateFallback,
-              lazy: async () => {
-                const { AccountSecurityRoute } = await import('@/routes/account.security')
-
-                return { Component: AccountSecurityRoute }
-              },
             },
             {
               path: 'billing',

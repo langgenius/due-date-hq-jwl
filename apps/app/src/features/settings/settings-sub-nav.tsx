@@ -38,7 +38,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *   • Calendar sync (/deadlines/calendar) — dropped from Settings; the
  *     feature stays a Deadlines-domain surface (header popover + ⌘K).
  *
- * Personal account settings (/account/security, sign-out) stay in the
+ * Personal account settings (security on /settings/profile, sign-out) stay in the
  * sidebar's UserMenuTrigger dropdown — a different conceptual level.
  */
 

@@ -308,7 +308,7 @@ function UserMenuTrigger({
             </DropdownMenuSubContent>
           </DropdownMenuSub>
         ) : null}
-        <DropdownMenuItem onClick={() => void navigate('/account/security')}>
+        <DropdownMenuItem onClick={() => void navigate('/settings/profile')}>
           <ShieldCheckIcon />
           <span>
             <Trans>Security</Trans>
