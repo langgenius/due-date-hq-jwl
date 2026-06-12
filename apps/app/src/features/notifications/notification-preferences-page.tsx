@@ -10,11 +10,8 @@ import {
   ClipboardListIcon,
   MailIcon,
   MessageSquareIcon,
-  PlugIcon,
   SendIcon,
   ServerIcon,
-  ShieldIcon,
-  SmartphoneIcon,
   TimerIcon,
   TriangleAlertIcon,
   UserPlusIcon,
@@ -43,6 +40,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
+import { useSession } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -188,6 +186,10 @@ function ChannelsCard({
   onUpdate: (patch: Partial<NotificationPreferencePublic>) => void
 }) {
   const { t } = useLingui()
+  // The delivery address is the signed-in user's account email — the
+  // notification-preference contract carries no separate address.
+  const session = useSession()
+  const sessionUser = session.data?.user
   return (
     <Card>
       <CardHead
@@ -202,28 +204,24 @@ function ChannelsCard({
           label={t`Email`}
           name={<Trans>Email</Trans>}
           sub={
-            <span className="flex flex-wrap items-center gap-1.5">
-              <span className="text-text-secondary">
-                <Trans>Email ·</Trans>
+            sessionUser ? (
+              <span className="flex flex-wrap items-center gap-1.5">
+                <span className="text-text-secondary">
+                  <Trans>Email ·</Trans>
+                </span>
+                <span className="font-mono text-xs text-text-secondary">{sessionUser.email}</span>
+                {sessionUser.emailVerified ? (
+                  <Badge variant="info" className="text-caption-xs font-semibold">
+                    <Trans>Verified</Trans>
+                  </Badge>
+                ) : null}
               </span>
-              {/* TODO(data): the verified delivery address is not on the
-                  notification-preference contract. */}
-              <span className="font-mono text-xs text-text-secondary">jules@brightline.com</span>
-              <Badge variant="info" className="text-caption-xs font-semibold">
-                <Trans>Verified</Trans>
-              </Badge>
-            </span>
+            ) : (
+              <Trans>Sent to your account email</Trans>
+            )
           }
           checked={preferences.emailEnabled}
           onCheckedChange={(checked) => onUpdate({ emailEnabled: checked })}
-        />
-        <ChannelRow
-          icon={SmartphoneIcon}
-          label={t`Push`}
-          name={<Trans>Push</Trans>}
-          // TODO(data): push channel + registered devices not modeled.
-          sub={<Trans>Mobile push is not available yet.</Trans>}
-          disabled
         />
         <ChannelRow
           icon={AppWindowIcon}
@@ -232,53 +230,34 @@ function ChannelsCard({
           sub={<Trans>Inbox bell badge + notification center</Trans>}
           checked={preferences.inAppEnabled}
           onCheckedChange={(checked) => onUpdate({ inAppEnabled: checked })}
-        />
-        <ChannelRow
-          icon={MessageSquareIcon}
-          iconMuted
-          label={t`Slack`}
-          name={<Trans>Slack</Trans>}
-          sub={<Trans>Slack integration is coming soon.</Trans>}
-          // TODO(data): Slack integration not modeled on the contract.
-          action={
-            <Button variant="secondary" size="sm" disabled>
-              <PlugIcon data-icon="inline-start" />
-              <Trans>Connect Slack</Trans>
-            </Button>
-          }
-          disabled
           last
         />
       </div>
+      <p className="text-xs text-text-tertiary">
+        <Trans>Push and Slack channels are planned — email and in-app are live today.</Trans>
+      </p>
     </Card>
   )
 }
 
 function ChannelRow({
   icon: Icon,
-  iconMuted,
   label,
   name,
   sub,
   checked,
   onCheckedChange,
-  action,
-  disabled,
   last,
 }: {
   icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
-  iconMuted?: boolean
   // Plain-string accessible name for the channel toggle.
   label: string
   name: ReactNode
   sub: ReactNode
-  checked?: boolean
-  onCheckedChange?: (checked: boolean) => void
-  action?: ReactNode
-  disabled?: boolean
+  checked: boolean
+  onCheckedChange: (checked: boolean) => void
   last?: boolean
 }) {
-  const isOn = checked ?? false
   return (
     <div
       className={cn(
@@ -286,36 +265,23 @@ function ChannelRow({
         last ? null : 'border-b border-divider-regular',
       )}
     >
-      <span
-        className={cn(
-          'flex size-9 shrink-0 items-center justify-center rounded-lg',
-          iconMuted
-            ? 'bg-background-subtle text-text-tertiary'
-            : 'bg-state-accent-hover text-text-accent',
-        )}
-      >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover text-text-accent">
         <Icon className="size-[18px]" aria-hidden />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-sm font-semibold text-text-primary">{name}</span>
         <span className="text-xs text-text-secondary">{sub}</span>
       </div>
-      {action}
       <div className="flex items-center gap-2.5">
         <span
           className={cn(
             'text-xs font-semibold tracking-wide uppercase',
-            disabled ? 'text-text-tertiary' : isOn ? 'text-text-success' : 'text-text-tertiary',
+            checked ? 'text-text-success' : 'text-text-tertiary',
           )}
         >
-          {disabled ? <Trans>Disabled</Trans> : isOn ? <Trans>Enabled</Trans> : <Trans>Off</Trans>}
+          {checked ? <Trans>Enabled</Trans> : <Trans>Off</Trans>}
         </span>
-        <Switch
-          checked={isOn}
-          onCheckedChange={onCheckedChange}
-          disabled={disabled || !onCheckedChange}
-          aria-label={label}
-        />
+        <Switch checked={checked} onCheckedChange={onCheckedChange} aria-label={label} />
       </div>
     </div>
   )
@@ -426,7 +392,7 @@ function TypesMatrixCard({
         subtitle={<Trans>Fine-tune which events reach you and how.</Trans>}
       />
       <div className="overflow-x-auto">
-        <div className="min-w-[760px] overflow-hidden rounded-xl border border-divider-regular">
+        <div className="min-w-[640px] overflow-hidden rounded-xl border border-divider-regular">
           {/* Header */}
           <div className="flex items-center gap-3.5 border-b border-divider-regular bg-background-section px-5 py-3">
             <span className="flex-1 text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
@@ -437,12 +403,6 @@ function TypesMatrixCard({
             </MatrixColHead>
             <MatrixColHead>
               <Trans>In-app</Trans>
-            </MatrixColHead>
-            <MatrixColHead muted>
-              <Trans>Push</Trans>
-            </MatrixColHead>
-            <MatrixColHead muted>
-              <Trans>Slack</Trans>
             </MatrixColHead>
             <span className="w-[150px] text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
               <Trans>Cadence</Trans>
@@ -483,8 +443,6 @@ function TypesMatrixCard({
                   interactive={Boolean(flag)}
                   onToggle={toggle}
                 />
-                <MatrixCell on={false} muted />
-                <MatrixCell on={false} muted />
                 <span className="w-[150px]">
                   <span className="inline-flex items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary">
                     <TimerIcon className="size-2.5 text-text-tertiary" aria-hidden />
@@ -500,14 +458,9 @@ function TypesMatrixCard({
   )
 }
 
-function MatrixColHead({ children, muted }: { children: ReactNode; muted?: boolean }) {
+function MatrixColHead({ children }: { children: ReactNode }) {
   return (
-    <span
-      className={cn(
-        'w-[60px] text-center text-caption-xs font-bold tracking-wide uppercase',
-        muted ? 'text-text-tertiary' : 'text-text-secondary',
-      )}
-    >
+    <span className="w-[60px] text-center text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
       {children}
     </span>
   )
@@ -515,12 +468,10 @@ function MatrixColHead({ children, muted }: { children: ReactNode; muted?: boole
 
 function MatrixCell({
   on,
-  muted,
   interactive,
   onToggle,
 }: {
   on: boolean
-  muted?: boolean
   interactive?: boolean
   onToggle?: (() => void) | undefined
 }) {
@@ -536,7 +487,7 @@ function MatrixCell({
   )
   return (
     <span className="flex w-[60px] justify-center">
-      {interactive && onToggle && !muted ? (
+      {interactive && onToggle ? (
         <button type="button" onClick={onToggle} aria-pressed={on} className="cursor-pointer">
           {content}
         </button>
@@ -552,89 +503,28 @@ function MatrixCell({
 /* ----------------------------------------------------------------------- */
 
 function QuietHoursCard() {
-  // TODO(data): quiet-hours (active days + time range + timezone + enabled)
-  // is not on NotificationPreferencePublic. Rendered as a static, disabled
-  // surface matching the canvas until the contract carries it.
-  const activeDays = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'])
+  // Quiet hours are not on NotificationPreferencePublic — the schedule is
+  // fixed platform behavior, not a per-user setting. Say so in plain text
+  // instead of rendering editable-looking controls that don't save.
   return (
     <Card>
-      <div className="flex items-start gap-3.5">
-        <div className="flex flex-1 flex-col gap-1">
-          <div className="flex items-center gap-2.5">
-            <span className="text-item-title text-text-primary">
-              <Trans>Quiet hours</Trans>
-            </span>
-            <Badge variant="info" className="text-caption-xs font-semibold">
-              <Trans>Active</Trans>
-            </Badge>
-          </div>
-          <span className="text-xs text-text-secondary">
-            <Trans>
-              During quiet hours, non-urgent notifications wait until your next active period.
-            </Trans>
-          </span>
-        </div>
-        <Switch checked disabled aria-label="Quiet hours" />
-      </div>
-
-      <div className="flex flex-wrap gap-6">
-        <div className="flex flex-col gap-2.5">
-          <span className="text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
-            <Trans>Active days</Trans>
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {DIGEST_DAYS.map((day) => {
-              const on = activeDays.has(day.label)
-              return (
-                <span
-                  key={day.key}
-                  className={cn(
-                    'flex h-10 w-[54px] items-center justify-center rounded-lg text-xs font-semibold',
-                    on
-                      ? 'bg-state-accent-solid text-text-inverted'
-                      : 'border border-divider-regular bg-background-default text-text-secondary',
-                  )}
-                >
-                  {day.label}
-                </span>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2.5">
-          <span className="text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
-            <Trans>Time range</Trans>
-          </span>
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-base text-text-primary">
-              19:00
-            </span>
-            <span className="text-text-tertiary">→</span>
-            <span className="inline-flex items-center rounded-lg border border-divider-regular bg-background-default px-4 py-2.5 font-mono text-base text-text-primary">
-              07:30
-            </span>
-            <span className="inline-flex items-center rounded-lg bg-background-subtle px-2.5 py-1.5 font-mono text-xs text-text-secondary">
-              America/New_York
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-2.5 rounded-lg bg-background-section px-4 py-3">
-        <ShieldIcon className="mt-0.5 size-3.5 shrink-0 text-text-secondary" aria-hidden />
-        <div className="flex flex-col gap-0.5">
-          <span className="text-xs font-semibold text-text-secondary">
-            <Trans>Urgent overrides still come through</Trans>
-          </span>
-          <span className="text-xs text-text-secondary">
-            <Trans>
-              High-impact alerts and same-day deadlines always come through — nothing critical waits
-              until morning.
-            </Trans>
-          </span>
-        </div>
-      </div>
+      <CardHead
+        title={<Trans>Quiet hours</Trans>}
+        subtitle={
+          <Trans>
+            During quiet hours, non-urgent notifications wait until your next active period.
+          </Trans>
+        }
+      />
+      <p className="text-sm text-text-primary">
+        <Trans>
+          Non-urgent notifications hold from 7:00 PM to 7:30 AM (America/New_York), Monday through
+          Friday. High-impact alerts and same-day deadlines always come through.
+        </Trans>
+      </p>
+      <p className="text-xs text-text-tertiary">
+        <Trans>This schedule is fixed for now — per-user quiet hours aren't configurable yet.</Trans>
+      </p>
     </Card>
   )
 }
