@@ -118,7 +118,11 @@ export function DailyBriefCard({
     return (
       <section aria-label={t`Daily brief`}>
         <p className="text-sm text-text-tertiary">
-          <Trans>No changes since your last visit. Brief unavailable — we'll retry shortly.</Trans>
+          {/* The recap is deterministic truth — it doesn't need the AI brief.
+              Pairing it with "Brief unavailable" read as a contradiction
+              ("am I caught up or is it broken?"). The brief self-heals
+              server-side, so the failure earns no apology here. */}
+          <Trans>All quiet — no deadline changes, new alerts, or reminders since your last visit.</Trans>
         </p>
       </section>
     )
