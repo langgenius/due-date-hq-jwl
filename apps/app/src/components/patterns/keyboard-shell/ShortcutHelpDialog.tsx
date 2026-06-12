@@ -1,5 +1,9 @@
-import { useMemo } from 'react'
-import { useHotkeyRegistrations } from '@tanstack/react-hotkeys'
+import { useMemo, useState } from 'react'
+import {
+  getHotkeyManager,
+  getSequenceManager,
+  toHotkeyRegistrationView,
+} from '@tanstack/react-hotkeys'
 import { Trans } from '@lingui/react/macro'
 
 import {
@@ -66,7 +70,21 @@ const CATEGORY_LABELS: Record<ShortcutCategory, string> = {
 }
 
 export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogProps) {
-  const { hotkeys, sequences } = useHotkeyRegistrations()
+  // Mount-time snapshot instead of the reactive useHotkeyRegistrations():
+  // useHotkey/useHotkeySequence sync their options into the registration
+  // store DURING RENDER (`registration.setOptions(...)` in the hook body), so
+  // a live subscription here means every binding re-render while this dialog
+  // is mounted schedules an update on it mid-render — React logs "Cannot
+  // update a component (ShortcutHelpDialog) while rendering a different
+  // component (GlobalKeyboardBindings/…)" once per binding. KeyboardProvider
+  // remounts the dialog on every open and the modal blocks navigation while
+  // open, so the snapshot can't go stale in practice.
+  const [{ hotkeys, sequences }] = useState(() => ({
+    hotkeys: Array.from(getHotkeyManager().registrations.state.values()).map(
+      toHotkeyRegistrationView,
+    ),
+    sequences: Array.from(getSequenceManager().registrations.state.values()),
+  }))
 
   const items = useMemo<ShortcutHelpItem[]>(() => {
     const registeredHotkeys = hotkeys
