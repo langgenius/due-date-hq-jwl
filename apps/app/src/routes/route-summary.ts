@@ -21,7 +21,9 @@ export const routeSummaries = {
   splash: { eyebrow: msg`Operations`, title: msg`Welcome back` },
   migrationNew: { eyebrow: msg`Setup`, title: msg`Import clients` },
   deadlines: { eyebrow: msg`Operations`, title: msg`Deadlines` },
-  calendarSync: { eyebrow: msg`Deadlines`, title: msg`Calendar` },
+  // "Calendar sync" matches the page H1 — the surface manages feed
+  // subscriptions; it is not a calendar view.
+  calendarSync: { eyebrow: msg`Deadlines`, title: msg`Calendar sync` },
   workload: { eyebrow: msg`Practice`, title: msg`Team workload` },
   notifications: { eyebrow: msg`Operations`, title: msg`Notifications` },
   notificationPreferences: { eyebrow: msg`Settings`, title: msg`Notification preferences` },

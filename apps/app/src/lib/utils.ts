@@ -128,6 +128,28 @@ export function formatDateTimeWithTimezone(value: string, timeZone: string): str
   return `${readPart(parts, 'year')}-${readPart(parts, 'month')}-${readPart(parts, 'day')} ${readPart(parts, 'hour')}:${readPart(parts, 'minute')}:${readPart(parts, 'second')} ${zoneName}`
 }
 
+/**
+ * Prose-format a timestamp for user-facing UI: "May 18, 2026, 2:20 AM PDT".
+ * The datetime sibling of `formatDatePretty` — use it wherever a CPA reads
+ * a moment in time (settings panes, import history, sync status).
+ * `formatDateTimeWithTimezone` (ISO `YYYY-MM-DD HH:mm:ss`) stays for
+ * audit-ledger rows and exports, where machine precision is the point.
+ */
+export function formatDateTimePretty(value: string, timeZone: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    numberingSystem: 'latn',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  }).format(date)
+}
+
 // The ISO `2026-05-01 02:50:00 PDT` shape `formatDateTimeWithTimezone`
 // returns is the right
 // answer for audit-log rows (where precision is the value) but the

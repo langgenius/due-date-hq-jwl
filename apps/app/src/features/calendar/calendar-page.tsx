@@ -63,7 +63,7 @@ import {
 } from '@/features/permissions/permission-gate'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { formatDateTimePretty } from '@/lib/utils'
 
 type CalendarCardConfig = {
   scope: CalendarSubscriptionScope
@@ -499,7 +499,15 @@ function CalendarSubscriptionCard({
                   disabled={pending}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    {/* Explicit label — a bare SelectValue falls back to the
+                        raw enum value ("redacted"). */}
+                    <SelectValue>
+                      {privacyMode === 'full' ? (
+                        <Trans>Full client names</Trans>
+                      ) : (
+                        <Trans>Redacted client names</Trans>
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="redacted">
@@ -529,7 +537,7 @@ function CalendarSubscriptionCard({
                 label={t`Created`}
                 value={
                   subscription
-                    ? formatDateTimeWithTimezone(subscription.createdAt, practiceTimezone)
+                    ? formatDateTimePretty(subscription.createdAt, practiceTimezone)
                     : t`Not enabled`
                 }
               />
@@ -537,7 +545,7 @@ function CalendarSubscriptionCard({
                 label={t`Last accessed`}
                 value={
                   subscription?.lastAccessedAt
-                    ? formatDateTimeWithTimezone(subscription.lastAccessedAt, practiceTimezone)
+                    ? formatDateTimePretty(subscription.lastAccessedAt, practiceTimezone)
                     : t`Never`
                 }
               />
