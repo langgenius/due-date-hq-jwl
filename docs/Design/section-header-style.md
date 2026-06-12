@@ -14,8 +14,12 @@ read as one product.
 ## Register A — Section title (region anchor)
 
 The title that anchors a major region of a **dense overview** page. Reads as a
-confident, scannable signpost. Often paired with a count `<Badge>` and a
-right-aligned `<TextLink>View all</TextLink>`.
+confident, scannable signpost. Often paired with a right-aligned
+`<TextLink>View all</TextLink>`. **One chip max beside the title** (2026-06-12
+critique: "Alerts · 4 · LIVE" was chip-soup — a count chip AND a status chip on
+one h2). When a section has both, the status chip keeps the title slot and the
+count folds into the right-aligned link ("View all 4") so the number keeps one
+home without crowding the anchor.
 
 ```
 text-region-title text-text-primary
@@ -35,6 +39,10 @@ the token, every region anchor follows (Yuqi: "text 细节应该直接改 token,
   collided with the 16px card headlines INSIDE the section (alert-card titles)
   — identical type, position doing all the work. One step up gives the page a
   real ramp: 28 page / 18 section / 16 item headline / 14 body / 13 fine print.
+  (2026-06-12 critique revision: on /today the alert-card headline dropped a
+  further step to 14/600 `text-row-anchor` so the monitor stops out-shouting
+  the 14px Priorities work rows — the /today ramp is now 28 / 18 / 14 / 13.
+  `text-item-title` 16px remains the item-headline tier on /alerts surfaces.)
 - **Color: `text-text-primary`** (gray-900). The section title is a primary read.
 - **Canonical examples:** `/today` — "Alerts" (`needs-attention-section.tsx`),
   "Priorities" (`merged-brief-card.tsx`), "Daily Brief" (`daily-brief-card.tsx`,

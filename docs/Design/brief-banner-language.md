@@ -52,6 +52,18 @@ as content (`text-base font-medium`) under that title. The /deadlines banner
 stays title-less — its `text-lg` narrative sentence IS the anchor, with the
 date eyebrow above. No tracked-caps eyebrow or dot on the Daily Brief.
 
+## Nothing to say → say it quietly (2026-06-12 critique)
+
+A failed AI brief with an all-quiet recap used to spend the page's one
+accent-tinted band + an 18px title on three lines, two of them apologies ("No
+changes since your last visit." / "Brief unavailable — we'll retry shortly.")
+— an empty blue billboard between the monitor and the work. Rule: when the AI
+sentence failed AND the recap has no activity AND no catch-up rows exist, the
+whole Daily Brief demotes to a **single muted `text-sm text-text-tertiary`
+line** (both facts, one sentence pair, no tint / title / chip / dismiss). A
+regenerated brief restores the full card on its own. The accent band must
+always be carried by real content.
+
 ## Why not a shared component (yet)
 
 The two banners' middles differ structurally — the Daily Brief's headline slot

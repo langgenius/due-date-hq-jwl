@@ -91,6 +91,11 @@ The table is **neutral by default**. Chromatic accent is rationed:
 
 - **Red** is carried **once per row** — by the DUE cell's payment-late branch
   (`Payment N days late`). Status pills stay neutral so red isn't double-spent.
+- **One lateness story per row** (2026-06-12 critique, `merged-brief-card.tsx`):
+  the gray `Pay Nd late` chip under STATUS renders only when payment lateness
+  says something the DUE column's filing countdown doesn't — the filing isn't
+  late, or it's late by a different number of days. A row that read
+  "Overdue · 7d late · Pay 7d late" was three signals for one fact.
 - **Accent (Dify blue)** appears only on the **Smart Priority** marks — the
   sparkle in the rank cell and the header's sparkle/tooltip trigger.
 - Everything else (client, prompt, form chip, readiness, dates) lives in the

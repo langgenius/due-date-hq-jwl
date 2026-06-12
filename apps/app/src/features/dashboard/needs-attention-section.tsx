@@ -4,7 +4,6 @@ import { ArrowRightIcon, MegaphoneIcon, SlidersHorizontalIcon } from 'lucide-rea
 import { Link } from 'react-router'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
-import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -16,7 +15,7 @@ import {
 } from '@/features/alerts/api'
 import { MonitoringChip } from '@/features/alerts/components/MonitoringChip'
 
-import { NeedsAttentionCard } from './needs-attention-card'
+import { NeedsAttentionCard, NeedsAttentionQuietRow } from './needs-attention-card'
 
 // Dashboard "Alerts" section — promotes state-policy Alerts (the
 // product's wedge: "a rule changed → here are the affected clients")
@@ -64,9 +63,19 @@ function NeedsAttentionSection() {
   const visibleAlerts = shownAlerts
     .toSorted((a, b) => b.matchedCount + b.needsReviewCount - (a.matchedCount + a.needsReviewCount))
     .slice(0, VISIBLE_ALERTS)
+  // A card earns its ~150px height only when clients are affected (critique:
+  // three bold no-impact cards were the loudest block on the page while their
+  // own footer said "No client impact"). Zero-impact alerts demote to quiet
+  // one-line rows in the same section — the fact survives, the volume drops.
+  const cardAlerts = visibleAlerts.filter(
+    (alert) => alert.matchedCount + alert.needsReviewCount > 0,
+  )
+  const quietAlerts = visibleAlerts.filter(
+    (alert) => alert.matchedCount + alert.needsReviewCount === 0,
+  )
   // One batched detail request for the visible cards instead of one
   // `getDetail` per card — the cards only need affected-client names.
-  const affectedByAlert = useAlertsAffectedClients(visibleAlerts.map((alert) => alert.id))
+  const affectedByAlert = useAlertsAffectedClients(cardAlerts.map((alert) => alert.id))
   const totalAlertCount = shownAlerts.length
   // Describes jurisdiction coverage, not raw adapter count, so hidden
   // policy-watch adapters can grow without the header reading
@@ -214,14 +223,9 @@ function NeedsAttentionSection() {
           >
             <Trans>Alerts</Trans>
           </Link>
-          {totalAlertCount > 0 ? (
-            // Bare count in a gray `outline` chip: the number is a scope
-            // signal, not an urgency one — the PulsingDot + card chrome
-            // already carry the alarm semantics.
-            <Badge variant="outline" className="tabular-nums">
-              <span>{totalAlertCount}</span>
-            </Badge>
-          ) : null}
+          {/* No count chip beside the title (critique: two chips on one h2 is
+              chip-soup; LIVE earns its slot, the count duplicates "View all").
+              The count now rides inside the View-all link on the right. */}
           {hasNationalMonitoringCoverage ? (
             // Shared `<MonitoringChip>` so /today + /alerts render
             // identically. The passive (no `to`) variant keeps the
@@ -229,13 +233,16 @@ function NeedsAttentionSection() {
             <MonitoringChip />
           ) : null}
         </h2>
-        {/* "View all" link — opens the full /alerts surface from the section
-            header. */}
+        {/* "View all N" link — opens the full /alerts surface from the section
+            header; it carries the section count (demoted from the old title
+            chip) so the number keeps one home. */}
         <Link
           to="/alerts"
           className="group inline-flex shrink-0 items-center gap-1 rounded-sm text-xs font-medium text-text-tertiary underline-offset-2 outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
-          <Trans>View all</Trans>
+          <span className="tabular-nums">
+            <Trans>View all {totalAlertCount}</Trans>
+          </span>
           {/* Micro-detail: the arrow nudges forward on hover — motion carried
               by the glyph, not the surface (no lifts/shadows). */}
           <ArrowRightIcon
@@ -245,33 +252,47 @@ function NeedsAttentionSection() {
         </Link>
       </div>
 
-      {totalAlertCount > 0 ? (
+      {cardAlerts.length > 0 ? (
         // Horizontal grid: up to 3 alert cards sit as equal-width
         // parallel tiles like the rest of the dashboard surfaces.
         // Overflow surfaces via the section-level "View all" link.
-        <>
-          <div
-            className={cn(
-              // No `px-3` on the cards grid so card left edges align with
-              // the section header above, the page H1, and the
-              // ActionsTable wrapper below.
-              'grid items-stretch gap-3',
-              alerts.length === 1 && 'grid-cols-1',
-              alerts.length === 2 && 'grid-cols-2',
-              alerts.length >= 3 && 'grid-cols-3',
-            )}
-          >
-            {visibleAlerts.map((alert) => (
-              <div key={alert.id} className="h-full min-w-0">
-                <NeedsAttentionCard
-                  alert={alert}
-                  affectedClients={affectedByAlert.get(alert.id) ?? []}
-                  onReview={() => openAlert(alert.id)}
-                />
-              </div>
-            ))}
-          </div>
-        </>
+        <div
+          className={cn(
+            // No `px-3` on the cards grid so card left edges align with
+            // the section header above, the page H1, and the
+            // ActionsTable wrapper below.
+            'grid items-stretch gap-3',
+            cardAlerts.length === 1 && 'grid-cols-1',
+            cardAlerts.length === 2 && 'grid-cols-2',
+            cardAlerts.length >= 3 && 'grid-cols-3',
+          )}
+        >
+          {cardAlerts.map((alert) => (
+            <div key={alert.id} className="h-full min-w-0">
+              <NeedsAttentionCard
+                alert={alert}
+                affectedClients={affectedByAlert.get(alert.id) ?? []}
+                onReview={() => openAlert(alert.id)}
+              />
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {quietAlerts.length > 0 ? (
+        // No-impact alerts — one quiet line each, not a 150px card. The
+        // monitor still reports what changed; it just stops shouting about
+        // changes that touch zero clients (critique: cards earn their height
+        // only when clients are affected).
+        <div className="flex flex-col">
+          {quietAlerts.map((alert) => (
+            <NeedsAttentionQuietRow
+              key={alert.id}
+              alert={alert}
+              onReview={() => openAlert(alert.id)}
+            />
+          ))}
+        </div>
       ) : null}
     </section>
   )

@@ -254,8 +254,11 @@ function NeedsAttentionCard({
               for the state framing: the announcement is months old, so
               "5mo ago" reads as stale news — what matters is that it is in
               effect and when the firm must act. */}
+          {/* text-text-tertiary, not text-muted: the muted token measures
+              ~2.9:1 at this size — an AA failure for real information (the
+              publish date is decision input, not decoration). */}
           {alert.origin === 'catchup' ? (
-            <span className="shrink-0 whitespace-nowrap text-xs font-normal text-text-muted tabular-nums">
+            <span className="shrink-0 whitespace-nowrap text-xs font-normal text-text-tertiary tabular-nums">
               {alert.actionDeadline ? (
                 <Trans>In effect · act by {formatActByDate(alert.actionDeadline)}</Trans>
               ) : (
@@ -267,7 +270,7 @@ function NeedsAttentionCard({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="shrink-0 whitespace-nowrap text-xs font-normal text-text-muted tabular-nums outline-none"
+                    className="shrink-0 whitespace-nowrap text-xs font-normal text-text-tertiary tabular-nums outline-none"
                     {...props}
                   >
                     {formatRelativeTime(alert.publishedAt)}
@@ -286,9 +289,14 @@ function NeedsAttentionCard({
             stopPropagation so the card's onReview doesn't also fire. */}
         <div className="flex min-w-0 flex-col gap-1.5">
           {/* Title — the card's signal. `dedupeTitleSource` strips a leading
-              source prefix so the bottom source link doesn't echo it. */}
+              source prefix so the bottom source link doesn't echo it.
+              `text-row-anchor` (14/600), NOT `text-item-title` (16/600): three
+              16px-semibold news headlines were the heaviest text mass on
+              /today while the Priorities client names — the actual work — sat
+              at 14px. The monitor now matches the work's voice instead of
+              out-shouting it (critique 2026-06-12). */}
           <h3
-            className="line-clamp-2 min-w-0 text-item-title text-text-primary"
+            className="line-clamp-2 min-w-0 text-row-anchor text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}
@@ -402,6 +410,55 @@ function NeedsAttentionCard({
   )
 }
 
+// Quiet one-line form of the alert — used by `NeedsAttentionSection` for
+// alerts whose impact is zero (matchedCount + needsReviewCount === 0). A
+// full card whose punchline is "No client impact" spends ~150px of hero
+// real estate apologizing; the row keeps the fact (what changed, where,
+// when, that nobody's affected) at one line of quiet type. Click still
+// opens the same drawer as the card.
+function NeedsAttentionQuietRow({
+  alert,
+  onReview,
+}: {
+  alert: PulseAlertPublic
+  onReview: () => void
+}) {
+  const { t } = useLingui()
+  return (
+    <button
+      type="button"
+      onClick={onReview}
+      aria-label={t`Open Pulse alert details: ${alert.title}`}
+      className={cn(
+        '-mx-2 flex h-9 min-w-0 cursor-pointer items-center gap-2 rounded-lg px-2 text-left',
+        'transition-colors hover:bg-background-section',
+        'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+      )}
+    >
+      {/* Same jurisdiction vocabulary as the card's meta row, one size down. */}
+      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium tracking-[0.2px] text-text-secondary">
+        <StateBadge
+          code={alert.jurisdiction}
+          size="xs"
+          preview={false}
+          style={{ width: 14, height: 14 }}
+        />
+        {alert.jurisdiction}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-sm text-text-primary" title={alert.title}>
+        {dedupeTitleSource(alert.title, alert.source)}
+      </span>
+      <span className="shrink-0 whitespace-nowrap text-xs text-text-tertiary tabular-nums">
+        {formatRelativeTime(alert.publishedAt)}
+      </span>
+      {/* The zero answer keeps the same phrasing every alert surface uses. */}
+      <span className="shrink-0 whitespace-nowrap text-xs text-text-tertiary">
+        <Trans>No client impact</Trans>
+      </span>
+    </button>
+  )
+}
+
 // Overflow tile rendered next to the alert cards when there are more
 // alerts than the dashboard's `VISIBLE_ALERTS` cap allows.
 function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: () => void }) {
@@ -435,4 +492,4 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
   )
 }
 
-export { NeedsAttentionCard, NeedsAttentionOverflowCard }
+export { NeedsAttentionCard, NeedsAttentionOverflowCard, NeedsAttentionQuietRow }

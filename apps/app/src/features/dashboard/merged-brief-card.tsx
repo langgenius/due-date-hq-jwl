@@ -437,6 +437,12 @@ function BriefTableRow({
   // matches the action (Yuqi: two obligations, two homes).
   const paymentLate = isPaymentOverdue(row.paymentDueDate, asOfDate)
   const paymentLateDays = paymentOverdueDays(row.paymentDueDate, asOfDate)
+  // …but one row tells ONE lateness story (critique 2026-06-12: "Overdue" badge
+  // + red "7d late" + gray "Pay 7d late" is three signals for one fact). The
+  // chip only renders when payment lateness says something the DUE column's
+  // filing countdown doesn't — i.e. the filing isn't late, or it's late by a
+  // different number of days.
+  const showPaymentLateChip = paymentLate && (d >= 0 || paymentLateDays !== -d)
   return (
     <TableRow
       onClick={() => onOpen(row.obligationId)}
@@ -493,7 +499,7 @@ function BriefTableRow({
             <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-xs" />
             {row.status === 'extended' ? <ExtensionChip /> : null}
           </div>
-          {paymentLate ? (
+          {showPaymentLateChip ? (
             <span className="inline-flex items-center rounded bg-background-subtle px-1.5 py-0.5 text-caption-xs text-text-secondary">
               <Trans>Pay {paymentLateDays}d late</Trans>
             </span>

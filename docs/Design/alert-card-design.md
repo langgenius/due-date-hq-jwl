@@ -226,8 +226,18 @@ contract. **Unified (accidental drift fixed 2026-06-11):**
   code (vs the row's plain bordered code chip).
 - Drawer header: mono accent change-kind chip (identity register),
   `JurisdictionLabel` with full state name.
-- Title sizes ramp by surface density (item-title card / lg row / base rail
-  / 22px drawer) — same family, different altitude.
+- Title sizes ramp by surface density (lg row / base rail / 22px drawer) —
+  same family, different altitude. **Exception (2026-06-12 critique): the
+  /today dashboard card title is `text-row-anchor` (14/600), NOT
+  `text-item-title` (16/600)** — three 16px-semibold news headlines were the
+  heaviest text mass on /today while the Priorities client names (the work)
+  sat at 14px. On the dashboard the monitor matches the work's voice; on
+  /alerts, where alerts ARE the work, the larger sizes stand.
+- /today demotes zero-impact alerts (`matchedCount + needsReviewCount === 0`)
+  from cards to quiet one-line rows (`NeedsAttentionQuietRow`, 2026-06-12): a
+  ~150px card whose own footer says "No client impact" hasn't earned card
+  height. The row keeps jurisdiction + title + time + the canonical "No
+  client impact" phrase and opens the same drawer.
 
 ---
 

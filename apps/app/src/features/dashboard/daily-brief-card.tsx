@@ -81,6 +81,11 @@ export function DailyBriefCard({
 }) {
   const { t } = useLingui()
   const aiEnabled = scope === 'me'
+  // Hoisted from `<CatchupLine>` (same cache key, shared entry) so the
+  // empty-failed demotion below can know whether the catch-up line would
+  // render before deciding the card has nothing to say.
+  const catchupQuery = useQuery(useAlertsListQueryOptions(50, 'catchup'))
+  const catchupCount = catchupQuery.data?.alerts.length ?? 0
   if (!brief && !recap && !(scope === 'firm' && concentration)) return null
 
   // 2026-06-10 (manual refresh retired): the brief is a self-tending
@@ -88,6 +93,36 @@ export function DailyBriefCard({
   // self-heals failed/stale states server-side, so the card carries NO
   // refresh affordance anywhere. The freshness chip is display-only.
   const isPending = aiEnabled && brief?.status === 'pending'
+
+  const recapHasActivity = Boolean(
+    recap &&
+      (recap.completedCount > 0 ||
+        recap.newAlertCount > 0 ||
+        recap.dueDateMovedCount > 0 ||
+        recap.remindersSentCount > 0),
+  )
+
+  // Nothing to say → say it quietly (critique 2026-06-12: a failed brief
+  // with an all-quiet recap spent the page's one accent-tinted band + an
+  // 18px title on three lines, two of them apologies). When the AI sentence
+  // failed AND the recap has no activity AND no catch-up rows exist, the
+  // whole card demotes to a single muted line — no tint, no title, no chip.
+  // A regenerated brief brings the full card back on its own.
+  if (
+    aiEnabled &&
+    brief?.status === 'failed' &&
+    !brief.text &&
+    !recapHasActivity &&
+    catchupCount === 0
+  ) {
+    return (
+      <section aria-label={t`Daily brief`}>
+        <p className="text-sm text-text-tertiary">
+          <Trans>No changes since your last visit. Brief unavailable — we'll retry shortly.</Trans>
+        </p>
+      </section>
+    )
+  }
 
   return (
     <section
