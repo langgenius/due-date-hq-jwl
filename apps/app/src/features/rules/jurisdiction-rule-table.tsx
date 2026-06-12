@@ -413,7 +413,10 @@ export function JurisdictionRuleTable({
                 </span>
               ) : null}
             </TableHead>
-            <TableHead className="min-w-0">
+            {/* min-width independent of body content — with zero rows the
+                flexible column collapsed to ~60px and the header overlapped
+                "Type". */}
+            <TableHead className="min-w-[220px]">
               <Trans>Rule name</Trans>
             </TableHead>
             <TableHead className="w-[188px] px-2">
