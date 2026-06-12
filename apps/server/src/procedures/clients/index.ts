@@ -1076,13 +1076,26 @@ async function clientHistoryFallback(
           .join('; ')}.`
       : 'No recorded changes in the recent activity window.'
 
-  const entity = client.entityType ?? 'unclassified'
+  // The recap is prose a CPA reads — "Entity: c_corp" leaks the enum.
+  const ENTITY_PROSE: Record<string, string> = {
+    c_corp: 'C corporation',
+    s_corp: 'S corporation',
+    partnership: 'Partnership',
+    llc: 'LLC',
+    sole_prop: 'Sole proprietorship',
+    individual: 'Individual',
+    trust: 'Trust',
+    nonprofit: 'Nonprofit',
+  }
+  const entity = client.entityType
+    ? (ENTITY_PROSE[client.entityType] ?? client.entityType.replace(/_/g, ' '))
+    : 'Unclassified'
   const lateCount = client.lateFilingCountLast12mo ?? 0
   const lateNote =
     lateCount > 0
       ? `, ${lateCount} late filing${lateCount === 1 ? '' : 's'} in the last 12 months`
       : ''
-  const standingText = `Entity: ${entity}${lateNote}. See the activity log below for the full record.`
+  const standingText = `${entity}${lateNote}. See the activity log below for the full record.`
 
   return [
     { key: 'recap', label: 'Recent activity', text: recapText, citationRefs: [] },
