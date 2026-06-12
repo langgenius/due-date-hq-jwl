@@ -533,7 +533,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             </Field>
             <Field>
               <FieldLabel htmlFor="firm-internal-deadline-offset">
-                <Trans>Internal deadline</Trans>
+                {/* The unit lives in the label — a bare "14" reads as a
+                    mystery number until the description two lines down. */}
+                <Trans>Internal deadline buffer (days)</Trans>
               </FieldLabel>
               <Input
                 id="firm-internal-deadline-offset"
@@ -554,17 +556,18 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   Changing this recalculates current deadline dates.
                 </Trans>
               </FieldDescription>
-              {/* Make the one-way nature of the change explicit.
-                  Reducing the offset recalculates every open deadline
-                  forward; reverting the number doesn't restore the prior
-                  dates. Audit history (the historical record) is
-                  unaffected. */}
-              <FieldDescription tone="warning">
-                <Trans>
-                  Changes can't be reverted automatically — adjusting this back later won't restore
-                  prior deadline dates. Historical audit entries stay intact.
-                </Trans>
-              </FieldDescription>
+              {/* Make the one-way nature of the change explicit — but only
+                  once the user has actually changed the value. A standing
+                  red warning on an untouched form is alarm fatigue (the
+                  calm-surface rule); the consequence belongs to the edit. */}
+              {internalDeadlineOffsetDays !== firm.internalDeadlineOffsetDays ? (
+                <FieldDescription tone="warning">
+                  <Trans>
+                    Changes can't be reverted automatically — adjusting this back later won't
+                    restore prior deadline dates. Historical audit entries stay intact.
+                  </Trans>
+                </FieldDescription>
+              ) : null}
             </Field>
             <Field>
               <FieldLabel>
