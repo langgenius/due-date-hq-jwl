@@ -125,8 +125,12 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
       // (--text-column-label: 12/16/600/+0.5px, tokens/primitives.css).
       // Reads as caption-tier meta, not body text — visually subordinate
       // to the row content below. Change the token, every table follows.
+      // 2026-06-12 (Yuqi "all table heads should be the same, shorter height —
+      // like the Alerts list"): header band tightened `py-3` → `py-2` (40px →
+      // 32px) app-wide so the column-label row reads as a compact rule over the
+      // data, not a tall band competing with it. Body cells keep `py-4`.
       className={cn(
-        'px-5 py-3 text-left align-middle text-column-label text-text-tertiary uppercase whitespace-nowrap [&:has([role=checkbox])]:pr-0',
+        'px-5 py-2 text-left align-middle text-column-label text-text-tertiary uppercase whitespace-nowrap [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}
