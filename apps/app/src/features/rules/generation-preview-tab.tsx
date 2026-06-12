@@ -624,7 +624,10 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
     <div className="overflow-hidden rounded-lg border border-divider-regular">
       <div className="grid grid-cols-7 gap-0 border-b border-divider-regular bg-background-subtle">
         <RolloverMetric
-          label={t`Source deadlines`}
+          // "Source deadlines" truncated to "SOURCE DEAD…" in the 7-up
+          // metric grid — an unfortunate word to amputate in a deadlines
+          // product. The help popover keeps the full definition.
+          label={t`Source rows`}
           value={result.summary.seedObligationCount}
           description={t`Closed source-year deadlines eligible for rollover. Only done, paid, and extended rows count as source deadlines.`}
         />
@@ -905,6 +908,20 @@ function rolloverCreatedIds(result: AnnualRolloverOutput | undefined): string[] 
 
 function targetStatusLabel(status: 'pending' | 'review', t: ReturnType<typeof useLingui>['t']) {
   return status === 'pending' ? t`Pending` : t`Review`
+}
+
+// Vocabulary from packages/core/src/rules `buildReviewReasons` — every code
+// gets a plain-words chip; unknown/free-text reasons fall back to a
+// de-snake-cased sentence.
+function reviewReasonLabel(reason: string, t: ReturnType<typeof useLingui>['t']): string {
+  if (reason === 'rule_requires_applicability_review') return t`Needs applicability review`
+  if (reason === 'rule_tier_applicability_review') return t`Applicability-review tier`
+  if (reason === 'coverage_manual') return t`Manual coverage`
+  if (reason === 'coverage_partial') return t`Partial coverage`
+  if (reason === 'local_fact_requirements_missing') return t`Missing local client facts`
+  if (reason === 'due_date_requires_review') return t`Due-date logic needs review`
+  const words = reason.replace(/_/g, ' ')
+  return words.charAt(0).toUpperCase() + words.slice(1)
 }
 
 function skippedReasonLabel(reason: string | null, t: ReturnType<typeof useLingui>['t']): string {
@@ -1199,9 +1216,13 @@ function PreviewResultRow({
             {row.reviewReasons.map((reason) => (
               <span
                 key={reason}
-                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 font-mono text-caption-xs text-severity-medium"
+                // Raw enum stays inspectable on hover; the chip itself
+                // speaks CPA ("Needs applicability review"), not developer
+                // console ("rule_requires_applicability_review").
+                title={reason}
+                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 text-caption-xs font-medium text-severity-medium"
               >
-                {reason}
+                {reviewReasonLabel(reason, t)}
               </span>
             ))}
           </div>
