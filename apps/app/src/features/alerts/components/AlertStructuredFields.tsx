@@ -285,12 +285,13 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
         <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-subtle px-4 py-3.5">
           {protectiveFacts.actionDeadline ? (
             <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+              {/* 2026-06-12 (red triage — Yuqi "too messy"): the eyebrow is
+                  QUIET — muted icon, tertiary label like every other section
+                  label. The hot tone lives on the countdown alone, so exactly
+                  one element in the panel says "urgent". */}
               <span className="inline-flex items-center gap-1.5 self-center">
-                <CalendarClockIcon
-                  className="size-3.5 shrink-0 text-state-warning-solid"
-                  aria-hidden
-                />
-                <span className="text-xs font-semibold tracking-[0.3px] text-text-warning uppercase">
+                <CalendarClockIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+                <span className="text-xs font-semibold tracking-[0.3px] text-text-tertiary uppercase">
                   <Trans>Action deadline</Trans>
                 </span>
               </span>

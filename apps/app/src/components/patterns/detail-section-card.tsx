@@ -23,6 +23,7 @@ export function DetailSectionCard({
   flush = false,
   bodyClassName,
   className,
+  id,
 }: {
   title: ReactNode
   /** Right-aligned header meta or actions (e.g. "Verify before apply", a count,
@@ -33,9 +34,12 @@ export function DetailSectionCard({
   flush?: boolean
   bodyClassName?: string
   className?: string
+  /** Anchor id — lets a section nav (scroll-spy) target the card. */
+  id?: string
 }) {
   return (
     <section
+      id={id}
       className={cn(
         'overflow-hidden rounded-xl border border-divider-subtle bg-background-default',
         className,

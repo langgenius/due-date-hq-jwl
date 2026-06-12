@@ -19,12 +19,17 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *     right-side `action` (e.g. Retry / Undo). Used for the richer error /
  *     applied states.
  */
-export type DetailBannerTone = 'danger' | 'success' | 'warning'
+export type DetailBannerTone = 'danger' | 'success' | 'warning' | 'pending'
 
 const TONE: Record<DetailBannerTone, { band: string; text: string }> = {
   danger: { band: 'bg-state-destructive-hover', text: 'text-text-destructive' },
   success: { band: 'bg-components-badge-bg-green-soft', text: 'text-text-success' },
   warning: { band: 'bg-state-warning-hover', text: 'text-text-warning' },
+  // 2026-06-12 (Yuqi detail critique — too many hot signals in the first
+  // viewport): "awaiting your decision" is OPEN WORK, not danger — a quiet
+  // gray band keeps the panel's one hot cue for the actual deadline
+  // countdown.
+  pending: { band: 'bg-background-subtle', text: 'text-text-secondary' },
 }
 
 export function DetailStatusBanner({

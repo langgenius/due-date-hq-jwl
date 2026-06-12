@@ -530,7 +530,11 @@ function DecisionBanners({
     return (
       <DetailStatusBanner
         compact
-        tone="warning"
+        // 2026-06-12 (Yuqi detail critique "too messy — six colored signals
+        // before any scroll"): pending = quiet gray, not warning-amber. An
+        // open decision isn't an alarm; the panel's ONE hot cue is the
+        // action-deadline countdown in the facts card.
+        tone="pending"
         icon={CircleAlertIcon}
         // "Awaiting your decision" — the SAME phrase the Activity
         // timeline's current-state node uses, so the banner and the
@@ -1075,6 +1079,26 @@ export function AlertDetailDrawer({
       (detail.alert.firmImpact !== 'no_current_match' && !canApply) ||
       (detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady))
 
+  // 2026-06-12 (Yuqi: "have the tabs from the Deadline Detail panel as well,
+  // but the content is a long scroll — scrolling just indicates which tab
+  // you're on"): a SCROLL-SPY section nav, not real tabs. The alert detail
+  // is one decide-flow document (facts + clients + source must be visible
+  // together), so true tabs would hide evidence mid-decision; the spy nav
+  // gives the deadline-tabs orientation while staying a table of contents.
+  // Active section = the last group card whose top has crossed the pinned
+  // nav line; computed in the body's existing onScroll (no extra listener).
+  const sectionNavItems = detail
+    ? [
+        { id: 'alert-section-facts', label: <Trans>Change</Trans> },
+        ...(showClientsGroup
+          ? [{ id: 'alert-section-clients', label: <Trans>Clients</Trans> }]
+          : []),
+        { id: 'alert-section-source', label: <Trans>Source</Trans> },
+        { id: 'alert-section-activity', label: <Trans>Activity</Trans> },
+      ]
+    : []
+  const [activeSection, setActiveSection] = useState('alert-section-facts')
+
   const body = (
     <>
       {/* Top bar — back-to-Alerts breadcrumb on the left, "N of M"
@@ -1316,11 +1340,73 @@ export function AlertDetailDrawer({
           action bar. */}
       <div
         onScroll={(event) => {
-          const next = event.currentTarget.scrollTop > 16
+          const container = event.currentTarget
+          const next = container.scrollTop > 16
           setHeaderCollapsed((prev) => (prev === next ? prev : next))
+          // Scroll-spy: active = the LAST section whose top has crossed the
+          // pinned nav line (~64px under the container top). Scoped
+          // querySelector so the spy never reads a different panel's ids.
+          if (sectionNavItems.length > 0) {
+            const containerTop = container.getBoundingClientRect().top
+            let current = sectionNavItems[0]!.id
+            for (const item of sectionNavItems) {
+              const el = container.querySelector(`#${item.id}`)
+              if (el && el.getBoundingClientRect().top - containerTop <= 64) current = item.id
+            }
+            // Bottom clamp: short documents can end before the last
+            // section's top ever crosses the spy line — once the container
+            // is scrolled to (within 8px of) the bottom, the last section
+            // is the one being read.
+            if (container.scrollTop + container.clientHeight >= container.scrollHeight - 8) {
+              current = sectionNavItems[sectionNavItems.length - 1]!.id
+            }
+            setActiveSection((prev) => (prev === current ? prev : current))
+          }
         }}
         className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto bg-background-subtle px-6 pt-6 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]"
       >
+        {/* Scroll-spy section nav (Yuqi — deadline-tab orientation on one
+            long document). Sticky under the container top; deliberately
+            LIGHTER than the deadline detail's pill tabs (text + underline)
+            so it reads as a table of contents, not behavior-switching tabs. */}
+        {detail ? (
+          <nav
+            aria-label={t`Alert sections`}
+            className="sticky -top-6 z-10 -my-3 shrink-0 bg-background-subtle py-3"
+          >
+            <div className="flex items-center gap-5 border-b border-divider-subtle pb-2">
+              {sectionNavItems.map((item) => {
+                const sectionActive = item.id === activeSection
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={(event) =>
+                      event.currentTarget
+                        .closest('[class*="overflow-y-auto"]')
+                        ?.querySelector(`#${item.id}`)
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                    className={cn(
+                      'relative cursor-pointer pb-0.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                      sectionActive
+                        ? 'text-text-accent'
+                        : 'text-text-tertiary hover:text-text-secondary',
+                    )}
+                  >
+                    {item.label}
+                    {sectionActive ? (
+                      <span
+                        className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                        aria-hidden
+                      />
+                    ) : null}
+                  </button>
+                )
+              })}
+            </div>
+          </nav>
+        ) : null}
         {/* Body order leads with the decision banner + key change + facts
             + affected clients, and keeps the verbatim SOURCE EXTRACT quote
             as a supporting anchor near the bottom (just before
@@ -1384,6 +1470,8 @@ export function AlertDetailDrawer({
                 caveat rides the card header's right slot — one title, one
                 caveat, no duplicate label inside the body. */}
             <DetailSectionCard
+              id="alert-section-facts"
+              className="scroll-mt-16"
               title={<Trans>Extracted facts</Trans>}
               headerRight={<Trans>AI parsed — verify before Apply</Trans>}
             >
@@ -1413,6 +1501,8 @@ export function AlertDetailDrawer({
             {/* GROUP 2 — Affected clients + apply/review controls. */}
             {showClientsGroup ? (
               <DetailSectionCard
+                id="alert-section-clients"
+                className="scroll-mt-16"
                 title={
                   <>
                     <Trans>Affected clients</Trans>
@@ -1581,6 +1671,8 @@ export function AlertDetailDrawer({
                 title + header-band link now carry all of it, and the body
                 is just citation → quote → confidence. */}
             <DetailSectionCard
+              id="alert-section-source"
+              className="scroll-mt-16"
               title={<Trans>Source &amp; confidence</Trans>}
               headerRight={
                 detail.alert.sourceUrl ? (
@@ -1750,6 +1842,8 @@ export function AlertDetailDrawer({
                 The "N events · oldest first" meta rides the card header
                 (Yuqi #11) so the timeline body needs no second header. */}
             <DetailSectionCard
+              id="alert-section-activity"
+              className="scroll-mt-16"
               title={<Trans>Activity &amp; notes</Trans>}
               headerRight={
                 <span className="tabular-nums">
