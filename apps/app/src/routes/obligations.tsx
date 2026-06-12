@@ -224,6 +224,7 @@ import { paidPlanActive } from '@/features/billing/model'
 import {
   ALL_STATUSES,
   LIFECYCLE_V2_STATUSES,
+  LIFECYCLE_V2_STATUS_SETS,
   ObligationQueueStatusControl,
   ObligationStatusReadBadge,
   STATUS_ICON_COLOR,
@@ -2119,7 +2120,15 @@ export function ObligationQueueRoute() {
         if (r.currentDueDate < earliest) earliest = r.currentDueDate
         absDaysSum += Math.abs(daysUntilEffectiveInternalDueDate(r))
         // "Late" = past internal due AND non-terminal (still actionable).
-        if (r.daysUntilDue < 0 && r.status !== 'done' && r.status !== 'completed') {
+        // Same terminal set as the narrative banner — paid / not-applicable
+        // rows can't be late either.
+        if (
+          r.daysUntilDue < 0 &&
+          r.status !== 'done' &&
+          r.status !== 'paid' &&
+          r.status !== 'completed' &&
+          r.status !== 'not_applicable'
+        ) {
           lateCount++
         }
       }
@@ -3128,8 +3137,14 @@ export function ObligationQueueRoute() {
     let dueToday = 0
     let penaltyCents = 0
     for (const r of glanceRows) {
+      // Terminal set mirrors workload's open-statuses complement (a `paid`
+      // payment can't be overdue) — the banner and /workload must publish
+      // the same overdue number or the CPA triages a phantom.
       const terminal =
-        r.status === 'done' || r.status === 'completed' || r.status === 'not_applicable'
+        r.status === 'done' ||
+        r.status === 'paid' ||
+        r.status === 'completed' ||
+        r.status === 'not_applicable'
       const days = daysUntilEffectiveInternalDueDate(r)
       if (!terminal && days < 0) overdue++
       if (!terminal && days === 0) dueToday++
@@ -3150,19 +3165,40 @@ export function ObligationQueueRoute() {
     return `${weekday} ${monthDay}`.toUpperCase()
   }, [asOf])
   const scopeStatuses = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
-  const activeScope: ObligationStatus | 'all' =
-    statusQuery.length === 1 && isObligationStatus(statusQuery[0]!) ? statusQuery[0] : 'all'
+  // A v2 scope tab filters to the FULL set of raw statuses that display
+  // under its label (see LIFECYCLE_V2_STATUS_SETS) — so the active tab is
+  // the one whose set matches the current status filter exactly.
+  const scopeStatusSet = useCallback(
+    (status: ObligationStatus): readonly ObligationStatus[] =>
+      lifecycleV2 && status in LIFECYCLE_V2_STATUS_SETS
+        ? LIFECYCLE_V2_STATUS_SETS[status as keyof typeof LIFECYCLE_V2_STATUS_SETS]
+        : [status],
+    [lifecycleV2],
+  )
+  const activeScope: ObligationStatus | 'all' = useMemo(() => {
+    if (statusQuery.length === 0) return 'all'
+    const sortedQuery = [...statusQuery].sort().join(',')
+    for (const status of scopeStatuses) {
+      if ([...scopeStatusSet(status)].sort().join(',') === sortedQuery) return status
+    }
+    return 'all'
+  }, [statusQuery, scopeStatuses, scopeStatusSet])
   // Auto-hide zero-count scopes. Keeps the bar honest about what the
   // user can actually triage — and respects the cognitive-load cap
   // when the firm has nothing in `Blocked` or `Completed`. The active
   // scope is always shown even if its count is zero (otherwise the
   // selected tab vanishes and the UI looks broken).
+  // Tab count = sum across every raw status displaying under the label,
+  // so "In review" counts in_progress + review + extended — the same rows
+  // that visibly wear the "In review" chip in the table below.
+  const scopeCount = useCallback(
+    (status: ObligationStatus): number =>
+      scopeStatusSet(status).reduce((sum, raw) => sum + (statusFacetCounts.get(raw) ?? 0), 0),
+    [scopeStatusSet, statusFacetCounts],
+  )
   const visibleScopeStatuses = useMemo(
-    () =>
-      scopeStatuses.filter(
-        (status) => (statusFacetCounts.get(status) ?? 0) > 0 || status === activeScope,
-      ),
-    [scopeStatuses, statusFacetCounts, activeScope],
+    () => scopeStatuses.filter((status) => scopeCount(status) > 0 || status === activeScope),
+    [scopeStatuses, scopeCount, activeScope],
   )
   const hideableColumns = useMemo(
     () => table.getAllLeafColumns().filter((column) => column.getCanHide()),
@@ -3854,7 +3890,9 @@ export function ObligationQueueRoute() {
                       key={status}
                       type="button"
                       data-active={activeScope === status}
-                      onClick={() => void setObligationQueueQuery({ status: [status] })}
+                      onClick={() =>
+                        void setObligationQueueQuery({ status: [...scopeStatusSet(status)] })
+                      }
                       className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
                     >
                       <span
@@ -3866,7 +3904,7 @@ export function ObligationQueueRoute() {
                       />
                       <span className="whitespace-nowrap">{statusLabels[status]}</span>
                       <span className="tabular-nums text-text-tertiary">
-                        {statusFacetCounts.get(status) ?? 0}
+                        {scopeCount(status)}
                       </span>
                     </button>
                   ))}

@@ -56,6 +56,20 @@ const LIFECYCLE_V2_STATUSES = [
   'completed',
 ] as const satisfies readonly ObligationStatus[]
 
+// Raw statuses that DISPLAY under each v2 stage label (the exact inverse
+// of `useLifecycleV2StatusLabels`). Any surface that counts or filters by
+// a v2 stage must use this set — counting only the canonical status while
+// rows wear the merged label produces "In review 3" above 10 visible
+// "In review" chips (in_progress + review + extended all display as one).
+const LIFECYCLE_V2_STATUS_SETS = {
+  pending: ['pending', 'not_applicable'],
+  waiting_on_client: ['waiting_on_client'],
+  blocked: ['blocked'],
+  review: ['in_progress', 'review', 'extended'],
+  done: ['done', 'paid'],
+  completed: ['completed'],
+} as const satisfies Record<(typeof LIFECYCLE_V2_STATUSES)[number], readonly ObligationStatus[]>
+
 // `extended` renders as `secondary` (gray pill) with a blue dot —
 // distinct from in_progress (blue pill + blue dot) and from pending
 // (gray pill + gray dot). in_progress means "we're actively
@@ -393,6 +407,7 @@ function ObligationStatusReadBadge({
 export {
   ALL_STATUSES,
   LIFECYCLE_V2_STATUSES,
+  LIFECYCLE_V2_STATUS_SETS,
   ObligationQueueStatusControl,
   ObligationStatusReadBadge,
   STATUS_ICON,
