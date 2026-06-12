@@ -329,6 +329,16 @@ export function MergedBriefCard({
               </Link>{' '}
               to see all {activeTotal}.
             </Trans>
+          ) : totalActive > 0 ? (
+            // The selected WINDOW is empty but work exists in other tabs —
+            // claiming "No open deadlines" while the lede above says
+            // "2 overdue" is a same-screen contradiction. Name where the
+            // work actually sits.
+            counts.overdue > 0 ? (
+              <Trans>Nothing in this window — {counts.overdue} overdue in the Overdue tab.</Trans>
+            ) : (
+              <Trans>Nothing in this window — {totalActive} coming up in the other tabs.</Trans>
+            )
           ) : (
             <Trans>No open deadlines.</Trans>
           )}
