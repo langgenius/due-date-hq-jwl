@@ -1,7 +1,7 @@
-import { Fragment, useMemo } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
+import { ChevronDownIcon, ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type {
@@ -22,6 +22,12 @@ import { useAlertsListQueryOptions } from '@/features/alerts/api'
 import { parseBriefText } from './brief-text'
 
 type DashboardBriefCitation = NonNullable<DashboardBriefPublic['citations']>[number]
+
+// Collapse pref storage — JSON { key: <brief generation stamp>, collapsed }.
+// Keyed to the generation so a new day's brief reopens itself. Supersedes
+// the old `ddhq:dashboard:brief-dismissed` remove-forever key (stale values
+// there are simply ignored now).
+const BRIEF_COLLAPSED_STORAGE_KEY = 'ddhq:dashboard:brief-collapsed'
 
 export interface DailyBriefTodayCounts {
   overdueCount: number
@@ -65,7 +71,6 @@ export function DailyBriefCard({
   todayCounts,
   concentration,
   onOpenObligation,
-  onClose,
   showCounts = true,
 }: {
   scope: DashboardBriefScope
@@ -74,7 +79,6 @@ export function DailyBriefCard({
   todayCounts: DailyBriefTodayCounts
   concentration: DashboardSummary['overdueConcentration']
   onOpenObligation: (obligationId: string) => void
-  onClose?: (() => void) | undefined
   // Suppress the count chips when another surface (the Priorities card) already
   // carries them, so the digest reads as narrative only (Yuqi).
   showCounts?: boolean
@@ -82,10 +86,26 @@ export function DailyBriefCard({
   const { t } = useLingui()
   const aiEnabled = scope === 'me'
   // Hoisted from `<CatchupLine>` (same cache key, shared entry) so the
-  // empty-failed demotion below can know whether the catch-up line would
+  // nothing-to-say default below can know whether the catch-up line would
   // render before deciding the card has nothing to say.
   const catchupQuery = useQuery(useAlertsListQueryOptions(50, 'catchup'))
   const catchupCount = catchupQuery.data?.alerts.length ?? 0
+  // Collapse pref — persisted per BRIEF GENERATION (Yuqi feedback #4: a
+  // closed brief must be reopenable, "like a 'tab' on the page you click
+  // to open"). ✕ collapses to the tab instead of removing the section; the
+  // pref is keyed to the brief's generation stamp so a freshly generated
+  // brief auto-expands on its own. Replaces the old dismissed-forever model.
+  const [collapsePref, setCollapsePref] = useState<{ key: string; collapsed: boolean } | null>(
+    () => {
+      if (typeof window === 'undefined') return null
+      try {
+        const raw = window.localStorage.getItem(BRIEF_COLLAPSED_STORAGE_KEY)
+        return raw ? (JSON.parse(raw) as { key: string; collapsed: boolean }) : null
+      } catch {
+        return null
+      }
+    },
+  )
   if (!brief && !recap && !(scope === 'firm' && concentration)) return null
 
   // 2026-06-10 (manual refresh retired): the brief is a self-tending
@@ -102,28 +122,67 @@ export function DailyBriefCard({
         recap.remindersSentCount > 0),
   )
 
-  // Nothing to say → say it quietly (critique 2026-06-12: a failed brief
-  // with an all-quiet recap spent the page's one accent-tinted band + an
-  // 18px title on three lines, two of them apologies). When the AI sentence
-  // failed AND the recap has no activity AND no catch-up rows exist, the
-  // whole card demotes to a single muted line — no tint, no title, no chip.
-  // A regenerated brief brings the full card back on its own.
-  if (
-    aiEnabled &&
-    brief?.status === 'failed' &&
-    !brief.text &&
-    !recapHasActivity &&
-    catchupCount === 0
-  ) {
+  // Nothing to say = the AI sentence failed AND the recap is all-quiet AND
+  // no catch-up rows exist. The card defaults COLLAPSED in that state
+  // (critique 2026-06-12: an apologetic band between monitor and work was
+  // an empty blue billboard) — the tab + a deterministic all-quiet hint
+  // carry the same facts at one line. The user can still expand it.
+  const nothingToSay =
+    aiEnabled && brief?.status === 'failed' && !brief.text && !recapHasActivity && catchupCount === 0
+
+  const briefKey = brief?.generatedAt ?? brief?.status ?? 'none'
+  const collapsed =
+    collapsePref?.key === briefKey ? collapsePref.collapsed : nothingToSay
+  const setCollapsed = (next: boolean) => {
+    const pref = { key: briefKey, collapsed: next }
+    setCollapsePref(pref)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(BRIEF_COLLAPSED_STORAGE_KEY, JSON.stringify(pref))
+    }
+  }
+
+  // ── Collapsed → the tab. A small accent-tinted chip in the brief's slot
+  //    (same tint family as the band it expands into), freshness dot + name
+  //    + chevron. When there is nothing to say, the deterministic all-quiet
+  //    line rides inline beside it so the fact isn't hidden behind a click. ──
+  if (collapsed) {
     return (
-      <section aria-label={t`Daily brief`}>
-        <p className="text-sm text-text-tertiary">
-          {/* The recap is deterministic truth — it doesn't need the AI brief.
-              Pairing it with "Brief unavailable" read as a contradiction
-              ("am I caught up or is it broken?"). The brief self-heals
-              server-side, so the failure earns no apology here. */}
-          <Trans>All quiet — no deadline changes, new alerts, or reminders since your last visit.</Trans>
-        </p>
+      <section aria-label={t`Daily brief`} className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setCollapsed(false)}
+          aria-expanded={false}
+          className="inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-transparent bg-state-accent-hover px-3 text-xs font-medium text-text-accent outline-none transition-colors hover:border-state-accent-border focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          {isPending ? (
+            <RotateCwIcon className="size-3 animate-spin" aria-hidden />
+          ) : (
+            <span
+              className={cn(
+                'size-1.5 rounded-full',
+                brief?.status === 'failed'
+                  ? 'bg-text-destructive'
+                  : brief?.status === 'stale'
+                    ? 'bg-text-warning'
+                    : 'bg-text-success',
+              )}
+              aria-hidden
+            />
+          )}
+          <Trans>Daily Brief</Trans>
+          <ChevronDownIcon className="size-3.5" aria-hidden />
+        </button>
+        {nothingToSay ? (
+          <p className="text-sm text-text-tertiary">
+            {/* The recap is deterministic truth — it doesn't need the AI brief.
+                Pairing it with "Brief unavailable" read as a contradiction
+                ("am I caught up or is it broken?"). The brief self-heals
+                server-side, so the failure earns no apology here. */}
+            <Trans>
+              All quiet — no deadline changes, new alerts, or reminders since your last visit.
+            </Trans>
+          </p>
+        ) : null}
       </section>
     )
   }
@@ -140,22 +199,20 @@ export function DailyBriefCard({
       // docs/Design/brief-banner-language.md.
       className="group relative flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9"
     >
-      {/* Dismiss — ghost ✕ top-right. The parent persists the dismissal keyed
-          to this brief's generation, so a freshly regenerated brief returns. */}
-      {onClose ? (
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          type="button"
-          onClick={onClose}
-          aria-label={t`Dismiss brief`}
-          // size-7 (28px) hit area over the icon-xs default — the audit
-          // flagged the ~24px dismiss target as the floor.
-          className="absolute top-2 right-2 size-7 text-text-tertiary"
-        >
-          <XIcon className="size-3.5" aria-hidden />
-        </Button>
-      ) : null}
+      {/* Collapse — ghost ✕ top-right folds the band back into the tab (it
+          never deletes; the tab keeps the brief one click away). */}
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        type="button"
+        onClick={() => setCollapsed(true)}
+        aria-label={t`Collapse brief`}
+        // size-7 (28px) hit area over the icon-xs default — the audit
+        // flagged the ~24px dismiss target as the floor.
+        className="absolute top-2 right-2 size-7 text-text-tertiary"
+      >
+        <XIcon className="size-3.5" aria-hidden />
+      </Button>
 
       {/* Title — a proper title (Yuqi: not a tracked-caps eyebrow, no dot),
           sharing the /today section-title voice (text-xl, one step above the

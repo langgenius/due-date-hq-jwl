@@ -52,17 +52,37 @@ as content (`text-base font-medium`) under that title. The /deadlines banner
 stays title-less — its `text-lg` narrative sentence IS the anchor, with the
 date eyebrow above. No tracked-caps eyebrow or dot on the Daily Brief.
 
-## Nothing to say → say it quietly (2026-06-12 critique)
+## The tab pattern — collapse, never dismiss (2026-06-12, supersedes the quiet-line)
 
-A failed AI brief with an all-quiet recap used to spend the page's one
-accent-tinted band + an 18px title on three lines, two of them apologies ("No
-changes since your last visit." / "Brief unavailable — we'll retry shortly.")
-— an empty blue billboard between the monitor and the work. Rule: when the AI
-sentence failed AND the recap has no activity AND no catch-up rows exist, the
-whole Daily Brief demotes to a **single muted `text-sm text-text-tertiary`
-line** (both facts, one sentence pair, no tint / title / chip / dismiss). A
-regenerated brief restores the full card on its own. The accent band must
-always be carried by real content.
+Yuqi feedback #4: "what if the user closes it but wants to reopen it? can it
+be something like a 'tab' on the page you can click to open?" The Daily Brief
+now has TWO states in the same page slot:
+
+- **Expanded** — the accent band (spec above). The top-right ✕ **collapses**
+  (aria-label "Collapse brief"); nothing ever deletes the brief.
+- **Collapsed** — a small tab chip: `h-7 rounded-lg bg-state-accent-hover
+  text-xs font-medium text-text-accent` (same tint family as the band it
+  expands into), anatomy = freshness dot (green fresh / amber stale / red
+  failed / spinner pending) + "Daily Brief" + chevron-down. Click expands.
+
+State is persisted in localStorage (`ddhq:dashboard:brief-collapsed`,
+JSON `{key, collapsed}`) **keyed to the brief's generation stamp** — a fresh
+day's brief auto-expands on its own; the user's collapse only pins THIS
+edition. (The old `brief-dismissed` remove-forever key is retired.)
+
+**Failure rule:** when the AI sentence failed AND the recap is all-quiet AND
+no catch-up rows exist, the card defaults COLLAPSED, with the deterministic
+all-quiet line riding inline beside the tab ("All quiet — no deadline
+changes, new alerts, or reminders since your last visit." — no failure
+apology; the recap is deterministic truth and the brief self-heals
+server-side). The accent band must always be carried by real content.
+
+**Why a page tab and not a right insight panel:** the brief is 1–3 lines of
+editorial; a persistent right panel is layout machinery it hasn't earned,
+competes with the obligation/alert drawer pattern, and dies at <xl widths.
+The tab keeps the page's Monitor → Work structure with the brief one click
+away. If the brief grows real content (citation stacks, activity stream),
+revisit the panel then.
 
 ## Why not a shared component (yet)
 

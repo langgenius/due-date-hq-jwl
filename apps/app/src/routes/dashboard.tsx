@@ -1,5 +1,5 @@
 import { AlertCircleIcon, PlusIcon, RotateCwIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
@@ -63,7 +63,8 @@ const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 // still be in the temporal dead zone at that moment ("Cannot access
 // 'SCOPE_STORAGE_KEY' before initialization").
 const SCOPE_STORAGE_KEY = 'ddhq:dashboard:scope'
-const BRIEF_DISMISSED_STORAGE_KEY = 'ddhq:dashboard:brief-dismissed'
+// (The old `ddhq:dashboard:brief-dismissed` key is retired — the brief's
+// collapse-to-tab pref lives inside DailyBriefCard now.)
 
 function storedDashboardScope(): DashboardBriefScope {
   if (typeof window === 'undefined') return 'me'
@@ -146,13 +147,6 @@ export function DashboardRoute() {
     rememberDashboardScope(next)
     void setDashboardParams({ scope: next })
   }
-  // The Daily Brief is dismissable — persist the dismissal keyed to the brief's
-  // generation stamp so closing it hides THIS brief but a freshly regenerated
-  // one returns on its own. localStorage survives a reload within the day.
-  const [dismissedBriefKey, setDismissedBriefKey] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    return window.localStorage.getItem(BRIEF_DISMISSED_STORAGE_KEY)
-  })
   const dashboardAsOfDate = ISO_DATE_RE.test(asOfDate) ? asOfDate : null
   const clientQuery = useMemo(() => cleanEntityIdFilters(client), [client])
   const taxTypeQuery = useMemo(() => cleanStringFilters(taxType), [taxType])
@@ -290,46 +284,82 @@ export function DashboardRoute() {
             {/* ONE scope toggle for the whole page — daily brief, Priority
                 Actions rows/ranks, and every count switch together. Lives
                 in the header action cluster (not on the brief card)
-                precisely because it governs more than the brief. "My work"
-                = assigned to me + unassigned; the choice is remembered per
-                browser. */}
-            <Segmented
-              value={scope}
-              onValueChange={setScope}
-              ariaLabel={t`View scope`}
-              options={[
-                { value: 'me', label: t`My work` },
-                { value: 'firm', label: t`Everyone` },
-              ]}
-            />
-            {/* "Import clients" — always-labeled so it reads as a real button
-                (Yuqi: 更明显的 button) instead of a circle that expands on hover.
-                text-sm to match every other button (was text-base). Neutral
-                bordered: import is a setup task, not a daily CTA. Permission
-                guard + aria-label tooltip preserved. */}
-            <button
-              type="button"
-              className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3.5 text-sm font-medium text-text-secondary transition-colors hover:border-divider-deep hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default focus-visible:outline-none"
-              onClick={() => {
-                if (!canRunMigration) {
-                  toast.error(
-                    t`Importing clients requires ${requiredRolesLabel('migration.run')} access.`,
-                  )
-                  return
-                }
-                openWizard()
-              }}
-              aria-label={
-                canRunMigration
-                  ? t`Import clients`
-                  : t`Import clients (requires ${requiredRolesLabel('migration.run')} access)`
-              }
-            >
-              <PlusIcon className="size-3.5 shrink-0" />
-              <span className="whitespace-nowrap">
+                precisely because it governs more than the brief. The choice
+                is remembered per browser. Tooltip spells out the difference
+                (Yuqi feedback #2: "what is the difference between My work
+                and Everyone work?") — the labels alone don't say that
+                "My work" includes unassigned deadlines. */}
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <span className="inline-flex" {...props}>
+                    <Segmented
+                      value={scope}
+                      onValueChange={setScope}
+                      ariaLabel={t`View scope`}
+                      options={[
+                        { value: 'me', label: t`My work` },
+                        { value: 'firm', label: t`Everyone` },
+                      ]}
+                    />
+                  </span>
+                )}
+              />
+              <TooltipContent>
+                <div className="flex max-w-[280px] flex-col gap-1 text-left">
+                  <span>
+                    <Trans>
+                      <span className="font-semibold">My work</span> — deadlines assigned to you,
+                      plus unassigned ones (so nothing unclaimed disappears).
+                    </Trans>
+                  </span>
+                  <span>
+                    <Trans>
+                      <span className="font-semibold">Everyone</span> — every deadline across the
+                      firm.
+                    </Trans>
+                  </span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+            {/* "Import clients" — icon-only PRIMARY button (Yuqi feedback #1:
+                "default collapsed state, in primary colours"; supersedes the
+                earlier always-labeled neutral pill). Import is the header's
+                one real action, so it carries the primary fill; the label
+                lives in the tooltip + aria-label. Canonical <Button>, not a
+                hand-rolled element. Permission guard preserved. */}
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="icon-sm"
+                    className="shrink-0 rounded-full"
+                    onClick={() => {
+                      if (!canRunMigration) {
+                        toast.error(
+                          t`Importing clients requires ${requiredRolesLabel('migration.run')} access.`,
+                        )
+                        return
+                      }
+                      openWizard()
+                    }}
+                    aria-label={
+                      canRunMigration
+                        ? t`Import clients`
+                        : t`Import clients (requires ${requiredRolesLabel('migration.run')} access)`
+                    }
+                    {...props}
+                  >
+                    <PlusIcon className="size-4 shrink-0" aria-hidden />
+                  </Button>
+                )}
+              />
+              <TooltipContent>
                 <Trans>Import clients</Trans>
-              </span>
-            </button>
+              </TooltipContent>
+            </Tooltip>
           </>
         }
       />
@@ -376,9 +406,11 @@ export function DashboardRoute() {
           on the brief. The section self-filters to client-affecting alerts. */}
       <NeedsAttentionSection />
 
-      {/* Daily brief — my teammate's (Gigi's) version, restored verbatim: the
-          server-generated Yesterday/Today digest WITH its count chips + dismiss
-          affordance, mounted above the Priorities list (Yuqi). */}
+      {/* Daily brief — the server-generated Yesterday/Today digest. Collapse
+          (the page-tab pattern, Yuqi feedback #4) lives INSIDE the card now:
+          ✕ folds the band into a small "Daily Brief" tab in the same slot,
+          persisted per generation, reopenable with one click. The route just
+          mounts it. */}
       {(() => {
         const brief =
           data?.brief ??
@@ -393,8 +425,6 @@ export function DashboardRoute() {
                 errorCode: null,
               } as const)
             : null)
-        const briefKey = brief?.generatedAt ?? brief?.status ?? null
-        if (brief && briefKey && dismissedBriefKey === briefKey) return null
         return (
           <DailyBriefCard
             scope={scope}
@@ -408,16 +438,6 @@ export function DashboardRoute() {
               dueThisWeekCount: data?.summary?.dueThisWeekCount ?? 0,
             }}
             onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
-            onClose={
-              briefKey
-                ? () => {
-                    setDismissedBriefKey(briefKey)
-                    if (typeof window !== 'undefined') {
-                      window.localStorage.setItem(BRIEF_DISMISSED_STORAGE_KEY, briefKey)
-                    }
-                  }
-                : undefined
-            }
           />
         )
       })()}

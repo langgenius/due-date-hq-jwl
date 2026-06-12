@@ -246,6 +246,17 @@ contract. **Unified (accidental drift fixed 2026-06-11):**
   ~200px at tablet (titles cut mid-word, source links reduced to a bare ↗).
   The loading skeleton mirrors the same breakpoints. The /today footer
   client count ("N clients") is `font-medium` — it is the card's key datum.
+- /today card micro-interactions (2026-06-12, Yuqi feedback #3):
+  `active:scale-[0.99]` press acknowledgment (the bucket-chip recipe) + an
+  ↗ `ArrowUpRightIcon` that fades in top-right on hover/focus with a
+  diagonal nudge — the whole-card click target gets its own "this opens the
+  alert" hint, distinct from the footer's source link. Motion on glyphs and
+  scale only, never shadows; `motion-reduce` zeroes both.
+- /today card click → `/alerts?alert=<id>` (DrawerProvider navigates when
+  off-route). The /alerts page auto-syncs the Review/Active toggle to the
+  opened alert's queue and the rail scrolls the selection into view
+  (`scrollIntoView block:'start'` on first paint) — verified end-to-end
+  2026-06-12.
 
 ---
 

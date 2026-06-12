@@ -131,10 +131,12 @@ The table is **neutral by default**. Chromatic accent is rationed:
   Yuqi: "so many bold things, people lost focus"): five 600-weight names made
   the page a wall of equal bolds. The name is key data (500 tier).
 - **The late/due-today countdown is the row's one LOUD element**: DUE's
-  relative label steps up to 16/600 destructive (`text-[16px] leading-[22px]
-  font-semibold` over the DueDateLabel default 13/500) when `days <= 0`.
-  Future countdowns ("in 10d") keep the quiet default so This week / This
-  month buckets don't shout. Importance = bigger, not just bolder.
+  relative label steps up to 16px (`text-[16px] leading-[22px]` over the
+  DueDateLabel default 13px) when `days <= 0` — weight stays the primitive's
+  500. Revised same day (Yuqi: red at 16/600 was "tooooo strong" — **never
+  double-highlight: one signal, one channel**; color + size already carry
+  lateness, bold would be a third). Future countdowns ("in 10d") keep the
+  quiet default so This week / This month buckets don't shout.
 
 ## Section header (above the table)
 

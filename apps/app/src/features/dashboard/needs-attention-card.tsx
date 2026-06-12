@@ -1,6 +1,6 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon, Plus } from 'lucide-react'
+import { ArrowUpRightIcon, ExternalLinkIcon, Plus } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -190,14 +190,26 @@ function NeedsAttentionCard({
         // regions and let the white table — the CPA's work — read as the
         // focal point. Impact is carried by the High-impact pill +
         // "Affects N clients", not by a receding fill. No drop shadow.
-        'group flex h-full w-full min-w-0 cursor-pointer flex-col gap-3 rounded-xl bg-background-section p-5 text-left',
+        'group relative flex h-full w-full min-w-0 cursor-pointer flex-col gap-3 rounded-xl bg-background-section p-5 text-left',
         // Hover carried by the bg step alone — no lift, no floating shadow
-        // (Yuqi hated the floating-shadow interaction; restrained-shadows rule).
-        'transition-colors hover:bg-background-subtle',
+        // (Yuqi hated the floating-shadow interaction; restrained-shadows
+        // rule). Micro-interactions (Yuqi feedback #3): a 1-frame press
+        // scale acknowledges the click — same recipe as the bucket chips —
+        // and the open-affordance arrow below fades in on hover. Motion on
+        // glyphs and scale, never shadows.
+        'transition-[background-color,transform] hover:bg-background-subtle active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}
     >
+      {/* Open affordance — ↗ fades in at the top-right corner on hover/focus
+          and nudges diagonally, telling the user the whole card is the click
+          target (the footer's source link opens elsewhere, so the card needed
+          its own "this opens the alert" hint). */}
+      <ArrowUpRightIcon
+        className="pointer-events-none absolute top-4 right-4 size-4 text-text-tertiary opacity-0 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
+        aria-hidden
+      />
       {/* Outer block holding the head row + the subject stack. */}
       <div className="flex min-w-0 flex-col gap-2">
         {/* Top row — meta strip. LEFT (severity + state pill) +

@@ -43,6 +43,13 @@ function NeedsAttentionSection() {
   const { t } = useLingui()
   const { openDrawer: openAlert } = useAlertDrawer()
 
+  // Visibility contract (verified 2026-06-12 — Yuqi: "what is the showing
+  // mechanism?"): pulse.listAlerts returns only OPEN alerts — server filters
+  // to firmAlert.status IN ('matched','partially_applied') on an approved
+  // pulse, minus expired (packages/db repo pulse/scoped.ts). Mark reviewed /
+  // dismiss / apply / revert all set a closing status, so the mutation's
+  // invalidation drops the card from /today immediately and the alert moves
+  // to /alerts/history. Nothing here re-filters by handled-state.
   const alertsQuery = useQuery(useAlertsListQueryOptions(TODAY_ALERTS_LIMIT))
   // Source-health rides alongside the alert count so an empty list can
   // distinguish "all good" from "feed paused / broken" — same UI,

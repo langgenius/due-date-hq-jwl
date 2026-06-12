@@ -564,11 +564,12 @@ function BriefTableRow({
       </TableCell>
       {/* DUE — relative FILING countdown (paymentDueDate nulled so payment-late
           doesn't hijack it) stacked over the absolute date. Late/due-today
-          countdowns step UP to 16/600 (the item-title recipe) — Yuqi
-          2026-06-12: the REAL important thing gets size. With names and card
-          titles demoted to 500, the red countdown is the page's one loud
-          element per row. Future countdowns ("in 10d") stay at the quiet
-          13/500 default so the This week/This month buckets don't shout. */}
+          countdowns step UP to 16px — Yuqi 2026-06-12: the REAL important
+          thing gets size. Weight stays the primitive's 500: red + 600 was
+          "tooooo strong" (Yuqi same day — never double-highlight; color and
+          size already carry it, bold would be a third channel). Future
+          countdowns ("in 10d") stay at the quiet 13/500 default so the
+          This week/This month buckets don't shout. */}
       <TableCell>
         <div className="flex flex-col gap-0.5">
           <DueDateLabel
@@ -576,7 +577,7 @@ function BriefTableRow({
             status={row.status}
             paymentDueDate={null}
             asOfDate={asOfDate}
-            className={cn(d <= 0 && 'text-[16px] leading-[22px] font-semibold')}
+            className={cn(d <= 0 && 'text-[16px] leading-[22px]')}
           />
           <span className="text-xs tabular-nums text-text-tertiary">
             {formatDatePretty(row.currentDueDate)}

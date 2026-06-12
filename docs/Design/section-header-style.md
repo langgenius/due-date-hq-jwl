@@ -45,10 +45,11 @@ the token, every region anchor follows (Yuqi: "text 细节应该直接改 token,
   `text-item-title` 16px remains the item-headline tier on /alerts surfaces.)
   (Same-day second revision — Yuqi: "so many bold things, people lost focus":
   /today's repeated anchors — card titles AND client names — demoted again to
-  14/**500**. The 600 budget on an overview page is the page title, the
-  section anchors, and the ONE urgency signal, which gets SIZE instead of
-  company: the late countdown renders 16/600 red while everything around it
-  is ≤500. Importance = bigger, not just bolder; repetition cancels weight.)
+  14/**500**. The 600 budget on an overview page is the page title and the
+  section anchors. The ONE urgency signal gets SIZE instead of company: the
+  late countdown renders 16px red at weight 500 — third revision same day,
+  Yuqi: red+bold was "tooooo strong"; **never double-highlight — one signal,
+  one channel**. Importance = bigger, not bolder; repetition cancels weight.)
 - **Color: `text-text-primary`** (gray-900). The section title is a primary read.
 - **Canonical examples:** `/today` — "Alerts" (`needs-attention-section.tsx`),
   "Priorities" (`merged-brief-card.tsx`), "Daily Brief" (`daily-brief-card.tsx`,
