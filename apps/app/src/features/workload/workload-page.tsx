@@ -144,10 +144,20 @@ export function WorkloadPage() {
       <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
         <MetricCard label={t`Open`} value={data?.summary.open} />
         <MetricCard label={t`Due soon`} value={data?.summary.dueSoon} />
-        <MetricCard label={t`Overdue`} value={data?.summary.overdue} intent="critical" />
+        {/* Chromatic intent only when the number is non-zero — a red or
+            amber 0 signals a problem that doesn't exist (red economy). */}
+        <MetricCard
+          label={t`Overdue`}
+          value={data?.summary.overdue}
+          intent={data?.summary.overdue ? 'critical' : 'neutral'}
+        />
         <MetricCard label={t`Waiting`} value={data?.summary.waiting} />
         <MetricCard label={t`Review`} value={data?.summary.review} />
-        <MetricCard label={t`Unassigned`} value={data?.summary.unassigned} intent="warning" />
+        <MetricCard
+          label={t`Unassigned`}
+          value={data?.summary.unassigned}
+          intent={data?.summary.unassigned ? 'warning' : 'neutral'}
+        />
       </div>
 
       {data?.managerInsights ? <ManagerInsights insights={data.managerInsights} /> : null}
@@ -367,7 +377,10 @@ function WorkloadTable({
             <Trans>Review</Trans>
           </TableHead>
           <TableHead className="w-[180px]">
-            <Trans>Load</Trans>
+            {/* Share-of-max normalization, NOT capacity — "Load 100%" told
+                a partner the busiest member was maxed out when it only
+                means "has the most open work". Name what it measures. */}
+            <Trans>Share of open work</Trans>
           </TableHead>
           <TableHead className="w-[128px] text-right">
             <Trans>Action</Trans>
