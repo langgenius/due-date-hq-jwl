@@ -217,7 +217,10 @@ function TemplatesPanel({
                   <Trans>Status</Trans>
                 </TableHead>
                 <TableHead>
-                  <Trans>Usage</Trans>
+                  {/* Counts SENT reminders only (repo: status='sent') — the
+                      header must say what the number means or it reads as
+                      contradicting the pending rows in Recent delivery. */}
+                  <Trans>Sent</Trans>
                 </TableHead>
                 <TableHead className="w-[96px]" />
               </TableRow>
