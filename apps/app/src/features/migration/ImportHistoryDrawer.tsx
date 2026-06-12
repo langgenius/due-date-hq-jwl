@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, EyeIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -35,7 +35,6 @@ import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { PermissionInlineNotice, useFirmPermission } from '@/features/permissions/permission-gate'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatDateTimeWithTimezone } from '@/lib/utils'
 
 import { useMigrationWizard } from './WizardProvider'
 
@@ -50,9 +49,35 @@ type PendingRecovery =
   | { kind: 'batch'; batchId: string }
   | { kind: 'client'; batchId: string; client: ClientPublic }
 
+// "May 18, 2026, 2:20 AM PDT" — the app's prose date vocabulary, not the
+// audit-ledger "2026-05-18 02:20:00 PDT" machine shape. Time + zone stay
+// because the undo window is hour-precise.
 function formatMigrationDate(value: string | null, timeZone: string): string {
   if (!value) return '—'
-  return formatDateTimeWithTimezone(value, timeZone)
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    numberingSystem: 'latn',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  }).format(date)
+}
+
+function useMigrationBatchStatusLabels(): Record<MigrationBatch['status'], string> {
+  const { t } = useLingui()
+  return {
+    draft: t`Draft`,
+    mapping: t`Mapping`,
+    reviewing: t`In review`,
+    applied: t`Applied`,
+    reverted: t`Reverted`,
+    failed: t`Failed`,
+  }
 }
 
 function batchLabel(batch: MigrationBatch): string {
@@ -74,6 +99,7 @@ export function ImportHistoryDrawer({
 }: ImportHistoryDrawerProps) {
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
+  const batchStatusLabels = useMigrationBatchStatusLabels()
   const queryClient = useQueryClient()
   const permission = useFirmPermission()
   // 820-880px wide drawer — auto-collapse the sidebar while open, restore on
@@ -255,12 +281,14 @@ export function ImportHistoryDrawer({
                     <Card key={batch.id}>
                       <CardHeader className="flex flex-row items-start justify-between gap-4">
                         <div className="grid min-w-0 gap-1">
-                          <CardTitle className="truncate text-base">{batchLabel(batch)}</CardTitle>
-                          <p className="truncate font-mono text-xs text-text-tertiary">
-                            {batch.id}
-                          </p>
+                          {/* Batch UUID demoted to the title attribute — hover
+                              (or the audit log) for forensics; the filename is
+                              the name a CPA recognizes. */}
+                          <CardTitle className="truncate text-base" title={batch.id}>
+                            {batchLabel(batch)}
+                          </CardTitle>
                         </div>
-                        <Badge variant="outline">{batch.status}</Badge>
+                        <Badge variant="outline">{batchStatusLabels[batch.status]}</Badge>
                       </CardHeader>
                       <CardContent className="grid gap-4">
                         <div className="grid gap-2 text-sm text-text-secondary sm:grid-cols-4">
@@ -293,7 +321,12 @@ export function ImportHistoryDrawer({
                         <BatchClients
                           batchId={batch.id}
                           enabled={open && batch.status === 'applied'}
-                          canUndo={canRevertMigration && batch.status === 'applied'}
+                          // Same window as the batch-level "Undo import"
+                          // button: once revertExpiresAt passes, per-client
+                          // Undo must disable too — both revert paths are
+                          // gated by the same server-side expiry.
+                          canUndo={canRevertMigration && isBatchRevertible(batch)}
+                          successCount={batch.successCount}
                           recoveryPending={recoveryPending}
                           onViewClient={onViewClient}
                           onUndo={(client) =>
@@ -512,6 +545,7 @@ function BatchClients({
   batchId,
   enabled,
   canUndo,
+  successCount,
   recoveryPending,
   onViewClient,
   onUndo,
@@ -519,6 +553,7 @@ function BatchClients({
   batchId: string
   enabled: boolean
   canUndo: boolean
+  successCount: number
   recoveryPending: boolean
   onViewClient: (clientId: string) => void
   onUndo: (client: ClientPublic) => void
@@ -531,13 +566,18 @@ function BatchClients({
   const clients = clientsQuery.data?.clients ?? []
   if (clientsQuery.isLoading) return <Skeleton className="h-16 w-full" />
   if (clients.length === 0) return null
+  const shownClients = clients.slice(0, 8)
+  // "Success: 10" above a 2-row list reads like a bug. When the import
+  // created more clients than this list shows (long batches are truncated,
+  // and some rows may no longer link back to the batch), say so.
+  const unlistedCount = Math.max(clients.length, successCount) - shownClients.length
   // Card xs already sets py-3; CardContent supplies px-3. gap-2 stays for the
   // dense row rhythm (Card xs default gap is gap-2, applied via the card flex
   // column).
   return (
     <Card size="xs" tone="muted" radius="md">
       <CardContent className="grid gap-2">
-        {clients.slice(0, 8).map((client) => (
+        {shownClients.map((client) => (
           <div key={client.id} className="flex items-center justify-between gap-3 text-sm">
             <span className="min-w-0 truncate">{client.name}</span>
             <div className="flex shrink-0 items-center gap-1">
@@ -562,6 +602,15 @@ function BatchClients({
             </div>
           </div>
         ))}
+        {unlistedCount > 0 ? (
+          <p className="text-xs text-text-tertiary">
+            <Plural
+              value={unlistedCount}
+              one="and # more client from this import"
+              other="and # more clients from this import"
+            />
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   )
