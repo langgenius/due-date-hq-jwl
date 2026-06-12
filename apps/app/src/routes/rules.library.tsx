@@ -1279,6 +1279,10 @@ export function RulesLibraryRoute() {
     const active = data.filter((rule) => rule.status === 'active')
     return {
       activeCount: active.length,
+      // Total includes expired/reverted overrides — proving a PAST override
+      // existed is precisely the compliance need, so the rail row must stay
+      // reachable when nothing is currently active.
+      totalCount: data.length,
       obligationCount: active.reduce((acc, rule) => acc + rule.activeObligationCount, 0),
     }
   }, [temporaryQuery.data])

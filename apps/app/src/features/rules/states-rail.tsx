@@ -70,7 +70,7 @@ export function JurisdictionRail({
    * to its standalone route; omitted while loading or when none are active.
    * (Sources moved to a button on the Overview header.)
    */
-  temporary?: { activeCount: number; obligationCount: number } | undefined
+  temporary?: { activeCount: number; totalCount: number; obligationCount: number } | undefined
   className?: string
 }) {
   const { t } = useLingui()
@@ -149,17 +149,31 @@ export function JurisdictionRail({
                 selected={selected === null}
                 onSelect={() => onSelect(null)}
               />
-              {temporary && temporary.activeCount > 0 ? (
+              {/* Render whenever ANY override exists (active or expired) —
+                  the page is the audit trail of past deadline overrides, and
+                  an audit trail that disappears when its content expires is
+                  unreachable exactly when a CPA needs to prove it existed. */}
+              {temporary && temporary.totalCount > 0 ? (
                 <RailNavRow
                   icon={TimerIcon}
                   label={t`Temporary rules`}
                   href="/rules/temporary"
                   inlineMeta={
-                    <span className="shrink-0 text-xs font-semibold whitespace-nowrap text-text-warning">
-                      {t`${temporary.activeCount} active`}
-                    </span>
+                    temporary.activeCount > 0 ? (
+                      <span className="shrink-0 text-xs font-semibold whitespace-nowrap text-text-warning">
+                        {t`${temporary.activeCount} active`}
+                      </span>
+                    ) : (
+                      <span className="shrink-0 text-xs font-medium whitespace-nowrap text-text-tertiary">
+                        {t`${temporary.totalCount} expired`}
+                      </span>
+                    )
                   }
-                  subtext={t`Applied to ${temporary.obligationCount} obligations`}
+                  subtext={
+                    temporary.activeCount > 0
+                      ? t`Applied to ${temporary.obligationCount} obligations`
+                      : t`Past deadline overrides`
+                  }
                 />
               ) : null}
             </>
