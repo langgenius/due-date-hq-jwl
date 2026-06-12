@@ -233,9 +233,14 @@ export function SettingsPermissionsRoute() {
               }}
             >
               <SelectTrigger className="min-w-[220px]" aria-label={t`Role`}>
-                <SelectValue />
+                {/* Explicit label — the bare SelectValue falls back to the
+                    raw enum ("preparer"), not the formatted item text. */}
+                <SelectValue>{roleLabel(selectedRole, i18n)}</SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              {/* alignItemWithTrigger pins the selected item to the trigger
+                  and height-crops the popup to ~3 rows near the page top;
+                  5 fixed roles should always be visible at once. */}
+              <SelectContent alignItemWithTrigger={false}>
                 {SELECTABLE_ROLES.map((role) => (
                   <SelectItem key={role} value={role}>
                     {roleLabel(role, i18n)}
@@ -335,6 +340,24 @@ export function SettingsPermissionsRoute() {
             </div>
           </div>
         </div>
+
+        {/* Legend — say plainly what the two "negative" cells mean: ✕ is a
+            permission this role doesn't have; — is an action the product has
+            no separate permission for. */}
+        <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-tertiary">
+          <span className="flex items-center gap-1.5">
+            <CheckIcon className="size-3.5 text-text-success" aria-hidden />
+            <Trans>this role can do this</Trans>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <XIcon className="size-3.5" aria-hidden />
+            <Trans>this role can't</Trans>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span aria-hidden>—</span>
+            <Trans>doesn't apply — no separate permission exists for this action</Trans>
+          </span>
+        </p>
 
         {/* Footer */}
         <div className="flex flex-wrap items-center justify-between gap-3">
