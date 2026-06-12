@@ -1087,7 +1087,11 @@ for (const f of FIRMS) {
     return `  (${[
       s(uuid(f.clientPfx, c.seq)),
       s(f.id),
-      s(`${c.name} (${f.short})`),
+      // Plain client name — the old " (FirmShort)" suffix existed to tell
+      // five demo firms apart in dev, but inside a firm's own app it ate
+      // the disambiguating tail of every truncated name column ("Meridian
+      // Multista…"). The firm switcher already says whose data you see.
+      s(c.name),
       s(c.ein),
       s(c.state),
       s(c.county),

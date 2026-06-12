@@ -571,7 +571,12 @@ export function ClientFactsWorkspace({
                     while regular weight keeps it from feeling heavy.
                     Deadlines + Rules library share this canonical title
                     scale. */}
-                <span className="truncate text-base text-text-primary group-hover:underline">
+                <span
+                  className="truncate text-base text-text-primary group-hover:underline"
+                  // The truncated tail is the disambiguating part of a
+                  // client name — keep it recoverable on hover.
+                  title={row.original.name}
+                >
                   {row.original.name}
                 </span>
                 {row.original.isSample ? (
