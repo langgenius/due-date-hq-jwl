@@ -323,12 +323,14 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
           }
         />
         <StatTile
-          value={pendingCount}
+          value={data.invitations.length}
           label={
             <span className="flex flex-col gap-0.5">
               <Trans>Pending invites</Trans>
               <span className="text-xs text-text-muted">
-                <Trans>{expiredCount} expired needs resend</Trans>
+                <Trans>
+                  {pendingCount} active · {expiredCount} expired
+                </Trans>
               </span>
             </span>
           }
@@ -399,7 +401,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         <MembersSectionHeader
           title={t`Pending invitations`}
           count={data.invitations.length}
-          note={t`${pendingCount} pending · ${expiredCount} expired · invitation link, 7-day expiry`}
+          note={t`${pendingCount} active · ${expiredCount} expired · invitation link, 7-day expiry`}
         />
         <PendingInvitationsTable
           invitations={data.invitations}
@@ -663,6 +665,11 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
 // the used-seats fill.
 function SeatStat({ data }: { data: MembersListOutput }) {
   const usedPct = data.seatLimit > 0 ? Math.min((data.usedSeats / data.seatLimit) * 100, 100) : 0
+  // usedSeats = active members + open invitations (an invite holds a seat).
+  // Spelling the sum out in the caption is what keeps this tile and the
+  // "Active members" tile next to it from reading as a contradiction.
+  const activeCount = data.members.filter((member) => member.status === 'active').length
+  const inviteCount = data.invitations.length
   return (
     <div className="flex flex-col gap-2">
       <StatTile
@@ -676,7 +683,11 @@ function SeatStat({ data }: { data: MembersListOutput }) {
           <span className="flex flex-col gap-0.5">
             <Trans>Seats used</Trans>
             <span className="text-xs text-text-muted">
-              <Trans>{data.availableSeats} available seats</Trans>
+              <Plural value={activeCount} one="# member" other="# members" />
+              {' + '}
+              <Plural value={inviteCount} one="# invite" other="# invites" />
+              {' · '}
+              <Trans>{data.availableSeats} available</Trans>
             </span>
           </span>
         }
