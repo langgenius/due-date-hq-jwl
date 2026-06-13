@@ -1083,9 +1083,7 @@ function PulseAlertList({
                     <span className="text-sm font-medium text-text-secondary">
                       {dayWord ?? label}
                     </span>
-                    <span className="text-xs text-text-tertiary">
-                      {dayWord ? label : weekday}
-                    </span>
+                    <span className="text-xs text-text-tertiary">{dayWord ? label : weekday}</span>
                   </div>
                   {/* Day size — the section's content summary, right-pinned
                       (Yuqi: "better section organise"). */}

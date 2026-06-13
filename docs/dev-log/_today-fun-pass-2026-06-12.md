@@ -20,7 +20,7 @@ button on hover."
 2. **App-boot fix that wasn't ours**: the parallel session's router.tsx
    refactor (eager 404) referenced `NotFoundRoute` without importing it —
    the WHOLE app rendered a blank #root for 80+ minutes (silent: `void
-   startApp()` swallows the createAppRouter throw). Added the one-line
+startApp()` swallows the createAppRouter throw). Added the one-line
    import in the working tree; NOT committed here — it rides with their
    refactor commit. (Boot failure mode noted: a throw in createAppRouter
    = silent blank page.)

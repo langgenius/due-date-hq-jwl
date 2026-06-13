@@ -61,7 +61,7 @@ now has TWO states in the same page slot:
 - **Expanded** — the accent band (spec above). The top-right ✕ **collapses**
   (aria-label "Collapse brief"); nothing ever deletes the brief.
 - **Collapsed** — a small tab chip: `h-7 rounded-lg bg-state-accent-hover
-  text-xs font-medium text-text-accent` (same tint family as the band it
+text-xs font-medium text-text-accent` (same tint family as the band it
   expands into), anatomy = freshness dot (green fresh / amber stale / red
   failed / spinner pending) + "Daily Brief" + chevron-down. Click expands.
 
@@ -82,7 +82,7 @@ doorstep, played entirely through glyph motion (never surfaces/shadows):
   edition. Real content only; the all-quiet line takes the slot when there
   is nothing to say.
 - **The unfold:** expanding plays the house `animate-in fade-in
-  slide-in-from-top-1 duration-200`; the collapsed tab fades in at 150ms.
+slide-in-from-top-1 duration-200`; the collapsed tab fades in at 150ms.
   All motion `motion-reduce`-guarded.
 
 **Failure rule:** when the AI sentence failed AND the recap is all-quiet AND

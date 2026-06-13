@@ -4,7 +4,8 @@ import { expect, test } from '../fixtures/test'
 // PRD: Pricing + Stripe payment loop
 // AC: E2E-BILLING-PRICING-DEEPLINK, E2E-BILLING-PRICING-LOCALE
 
-const appBaseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:8787'
+const localWorkerPort = process.env.E2E_WORKER_PORT ?? '8787'
+const appBaseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${localWorkerPort}`
 const marketingBaseURL = process.env.E2E_MARKETING_BASE_URL ?? 'http://127.0.0.1:4321'
 
 test.skip(

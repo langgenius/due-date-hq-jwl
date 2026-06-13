@@ -5285,8 +5285,8 @@ function NewRuleModal({
               <div className="flex flex-col gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-3 text-xs text-text-secondary">
                 <Trans>
                   Custom rules start from a missing-rule row, so the jurisdiction and entity are
-                  unambiguous. Click "+ Add rule" on a coverage-gap row in a jurisdiction group —
-                  or review what's missing across next year's deadlines:
+                  unambiguous. Click "+ Add rule" on a coverage-gap row in a jurisdiction group — or
+                  review what's missing across next year's deadlines:
                 </Trans>
                 <Link
                   to="/rules/preview"
@@ -5391,14 +5391,14 @@ function NewRuleModal({
             </Button>
             {needsPicker ? null : (
               <Button type="submit" size="sm" disabled={!canSubmit} aria-busy={mutation.isPending}>
-              {mutation.isPending ? (
-                <>
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
-                  <Trans>Creating…</Trans>
-                </>
-              ) : (
-                <Trans>Create rule</Trans>
-              )}
+                {mutation.isPending ? (
+                  <>
+                    <Loader2 data-icon="inline-start" className="animate-spin" />
+                    <Trans>Creating…</Trans>
+                  </>
+                ) : (
+                  <Trans>Create rule</Trans>
+                )}
               </Button>
             )}
           </footer>

@@ -200,8 +200,7 @@ function AuditTimelineRow({
     (event.actorType === 'user' || event.actorType === 'ai_assisted') &&
     Boolean(event.actorLabel ?? event.actorId)
   const showTypeEyebrow = !(type === 'system' && actorIsPerson)
-  const actorIsSystemFallback =
-    event.actorType !== 'ai' && !event.actorLabel && !event.actorId
+  const actorIsSystemFallback = event.actorType !== 'ai' && !event.actorLabel && !event.actorId
   const showActor = !(type === 'system' && actorIsSystemFallback)
 
   const handleClick = useCallback(() => onOpenEvent(event.id), [event.id, onOpenEvent])

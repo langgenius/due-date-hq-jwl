@@ -14,10 +14,8 @@ test('AC: E2E-SMOKE-NOT-FOUND renders the in-shell 404 boundary', async ({ authe
 
   await expect(authenticatedPage.getByRole('heading', { name: 'Page not found' })).toBeVisible()
   await expect(authenticatedPage.getByText('/not-a-real-route')).toBeVisible()
-  await expect(authenticatedPage.getByRole('link', { name: 'Go to Today' })).toHaveAttribute(
-    'href',
-    '/',
-  )
+  await authenticatedPage.getByRole('button', { name: 'Go to Today' }).click()
+  await expect(authenticatedPage).toHaveURL(/\/$/)
 })
 
 test('AC: E2E-SMOKE-NOT-FOUND renders localized 404 copy', async ({ authenticatedPage }) => {
@@ -25,8 +23,6 @@ test('AC: E2E-SMOKE-NOT-FOUND renders localized 404 copy', async ({ authenticate
 
   await expect(authenticatedPage.getByRole('heading', { name: '未找到页面' })).toBeVisible()
   await expect(authenticatedPage.getByText('/not-a-real-route')).toBeVisible()
-  await expect(authenticatedPage.getByRole('link', { name: '前往今天' })).toHaveAttribute(
-    'href',
-    '/',
-  )
+  await authenticatedPage.getByRole('button', { name: '前往今天' }).click()
+  await expect(authenticatedPage).toHaveURL(/\/$/)
 })

@@ -14,14 +14,14 @@ fixed here too.
 The test asserted the raw `tx_state_franchise_or_entity_tax` enum appears
 in body text. The matrix cell now renders tax types through the shared
 `<TaxCodeBadge>` primitive (human label inline, raw code only in the
-tooltip), per the 2026-05-19 "no raw snake_case on any surface" decision —
-Step4Preview's test already asserted the *absence* of the raw code. The
+tooltip), per the 2026-05-19 "no raw snake*case on any surface" decision —
+Step4Preview's test already asserted the \_absence* of the raw code. The
 component is correct; the assertion now expects the human label and the
 absence of the raw enum, matching Step4Preview.
 
 ## 2. prettifyCode capitalized "or" like a state code
 
-`tx_state_franchise_or_entity_tax` is a *generated* family code
+`tx_state_franchise_or_entity_tax` is a _generated_ family code
 (`{state}_state_franchise_or_entity_tax` from `default-matrix`), so it
 isn't in the static `TAX_CODES` label table and falls through to
 `prettifyCode`. That fallback uppercased every 2-letter segment (meant

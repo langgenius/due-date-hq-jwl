@@ -407,10 +407,7 @@ function WorkloadTable({
               href={workloadRowDueSoonHref(row, asOfDate, windowDays)}
             />
             <NumericCell value={row.overdue} href={workloadRowOverdueHref(row, asOfDate)} danger />
-            <NumericCell
-              value={row.waiting}
-              href={workloadRowHref(row, 'waiting_on_client')}
-            />
+            <NumericCell value={row.waiting} href={workloadRowHref(row, 'waiting_on_client')} />
             <NumericCell value={row.review} href={workloadRowHref(row, 'review')} />
             <TableCell>
               {/* Progress primitive (shared with members SeatStat / rules coverage). */}

@@ -29,7 +29,7 @@ Verified live: expand → band, ✕ → tab, pref persists. Doc:
   drops `font-semibold` → 16px / weight-500 / red. Measured 16/500
   rgb(217,45,32). Docs + type-weight memory updated with the principle.
 - **Import clients** (feedback #1): canonical `<Button variant="primary"
-  size="icon-sm">` round icon button + tooltip — collapsed by default, in
+size="icon-sm">` round icon button + tooltip — collapsed by default, in
   primary colours, replacing the hand-rolled labeled pill.
 - **Scope toggle** (feedback #2): tooltip on the Segmented spelling out
   My work (assigned to you + unassigned) vs Everyone (whole firm).

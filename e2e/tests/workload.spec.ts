@@ -90,7 +90,13 @@ test.describe('seeded team workload', () => {
     await workloadPage.goto()
     await workloadPage.rowFor('Unassigned').getByRole('button', { name: 'Open' }).click()
 
-    await expect(authenticatedPage).toHaveURL(/\/deadlines\?owner=unassigned$/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines\?/)
+    await expect
+      .poll(() => new URL(authenticatedPage.url()).searchParams.get('owner'))
+      .toBe('unassigned')
+    await expect
+      .poll(() => new URL(authenticatedPage.url()).searchParams.get('status'))
+      .toBe('pending,in_progress,waiting_on_client,review,blocked')
     await expect(obligationQueuePage.rowFor('Unassigned Foundry LLC')).toBeVisible()
     await expect(obligationQueuePage.rowFor('Copperline Studios')).toBeHidden()
   })

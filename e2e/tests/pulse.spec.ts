@@ -197,7 +197,7 @@ test.describe('seeded Pulse alerts', () => {
       await expect(notification).toContainText('E2E Preparer requested Partner/Manager review')
       await expect(notification).toContainText('Please confirm LA County applicability.')
 
-      await notification.getByRole('link', { name: 'Open' }).click()
+      await notification.getByRole('button', { name: 'Open' }).click()
       await expect(authenticatedPage).toHaveURL(/\/alerts\?alert=/)
       await expect(
         pulseDetailDrawer(authenticatedPage).getByRole('heading', { name: /IRS CA storm relief/ }),

@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 export class ObligationQueuePage {
   readonly heading: Locator
@@ -68,21 +68,41 @@ export class ObligationQueuePage {
     await this.statusScopeButton(name).click()
   }
 
-  // Opens View ▸ Columns so callers can toggle `columnVisibilityOption`s.
-  // The Columns entry is a Base UI submenu trigger that opens on hover; its
-  // popup re-renders enough while opening that Playwright's actionability
-  // check never sees it stable ("element is not stable" → "detached").
-  // Dispatch the hover pointer event directly instead of a real hover.
+  // Opens View ▸ Columns so callers can toggle `columnVisibilityOption`s`.
+  // The Columns entry is a Base UI submenu trigger. Depending on browser timing
+  // it may open from real hover, keyboard ArrowRight, or click, so try the same
+  // user-level paths Playwright can drive and stop as soon as the submenu appears.
   async openColumnsMenu() {
     await this.viewMenuButton.click()
     const columnsTrigger = this.page.getByRole('menuitem', { name: /^Columns\b/ })
     await columnsTrigger.waitFor({ state: 'visible' })
-    await columnsTrigger.dispatchEvent('pointermove')
-    await columnsTrigger.dispatchEvent('mousemove')
-    await this.page
-      .getByRole('menuitemcheckbox')
-      .first()
-      .waitFor({ state: 'visible', timeout: 10_000 })
+    const firstCheckbox = this.page.getByRole('menuitemcheckbox').first()
+
+    const openSubmenu = async () => {
+      if (await firstCheckbox.isVisible().catch(() => false)) {
+        return true
+      }
+      await columnsTrigger.hover().catch(() => undefined)
+      if (await firstCheckbox.isVisible().catch(() => false)) {
+        return true
+      }
+      await columnsTrigger.press('ArrowRight').catch(() => undefined)
+      if (await firstCheckbox.isVisible().catch(() => false)) {
+        return true
+      }
+      await columnsTrigger.press('Enter').catch(() => undefined)
+      if (await firstCheckbox.isVisible().catch(() => false)) {
+        return true
+      }
+      await columnsTrigger.click().catch(() => undefined)
+      if (await firstCheckbox.isVisible().catch(() => false)) {
+        return true
+      }
+      await this.page.keyboard.press('ArrowRight').catch(() => undefined)
+      return firstCheckbox.isVisible().catch(() => false)
+    }
+
+    await expect.poll(openSubmenu, { timeout: 10_000 }).toBe(true)
   }
 
   // Toggle one column checkbox inside the open Columns submenu. Same

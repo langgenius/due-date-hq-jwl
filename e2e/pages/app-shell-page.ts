@@ -34,18 +34,34 @@ export class AppShellPage {
     await this.primaryNavigation.waitFor({ state: 'visible' })
   }
 
-  /**
-   * Open the import/migration wizard from the dashboard header.
-   *
-   * `canRunMigration` is gated on the non-blocking `firms.listMine` query
-   * (permission-gate.tsx): until it resolves the button renders with the
-   * "(requires … access)" name and a click only fires a permission toast —
-   * it never opens the wizard. Wait for the button to reach its ungated name
-   * before clicking. (A real user can't out-race the query; a test can.)
-   */
   async openImportWizard() {
-    await expect(this.importClientsButton).toHaveAccessibleName(/^Import clients$/)
-    await this.importClientsButton.click()
+    const wizardDialog = this.page.getByRole('dialog', { name: /Import clients · Step/ })
+
+    const openWhenAllowed = async (attempt: number): Promise<void> => {
+      await this.primaryNavigation.waitFor({ state: 'visible' })
+
+      try {
+        // `canRunMigration` is gated on `firms.listMine`; while that query is
+        // loading or has transiently failed, the button stays enabled but its
+        // accessible name advertises the missing permission and clicking it only
+        // fires a toast. Wait for the actionable name before driving the click.
+        await expect(this.importClientsButton).toHaveAccessibleName(/^Import clients$/, {
+          timeout: 10_000,
+        })
+        await this.importClientsButton.click()
+        await expect(wizardDialog).toBeVisible()
+        return
+      } catch (error) {
+        if (attempt >= 2) {
+          throw error
+        }
+
+        await this.page.reload({ waitUntil: 'domcontentloaded' })
+        return openWhenAllowed(attempt + 1)
+      }
+    }
+
+    await openWhenAllowed(0)
   }
 
   async openCommandPalette() {

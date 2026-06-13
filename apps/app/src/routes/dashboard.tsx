@@ -269,14 +269,17 @@ export function DashboardRoute() {
                 <TooltipTrigger
                   render={(props) => (
                     <button
+                      {...props}
                       type="button"
-                      onClick={() => void dashboardQuery.refetch()}
+                      onClick={(event) => {
+                        props.onClick?.(event)
+                        if (!event.defaultPrevented) void dashboardQuery.refetch()
+                      }}
                       disabled={dashboardQuery.isFetching}
                       aria-label={
                         syncedLabel === 'just now' ? t`Synced just now` : t`Synced ${syncedLabel}`
                       }
                       className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-text-tertiary outline-none transition-colors hover:bg-background-section hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
-                      {...props}
                     >
                       <RotateCwIcon
                         className={cn('size-3.5', dashboardQuery.isFetching && 'animate-spin')}
@@ -347,11 +350,14 @@ export function DashboardRoute() {
               <TooltipTrigger
                 render={(props) => (
                   <Button
+                    {...props}
                     type="button"
                     variant="primary"
                     size="icon-sm"
                     className="shrink-0 rounded-full"
-                    onClick={() => {
+                    onClick={(event) => {
+                      props.onClick?.(event)
+                      if (event.defaultPrevented) return
                       if (!canRunMigration) {
                         toast.error(
                           t`Importing clients requires ${requiredRolesLabel('migration.run')} access.`,
@@ -365,7 +371,6 @@ export function DashboardRoute() {
                         ? t`Import clients`
                         : t`Import clients (requires ${requiredRolesLabel('migration.run')} access)`
                     }
-                    {...props}
                   >
                     <PlusIcon className="size-4 shrink-0" aria-hidden />
                   </Button>

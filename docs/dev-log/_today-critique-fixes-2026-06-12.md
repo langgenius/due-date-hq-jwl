@@ -27,9 +27,10 @@ New `NeedsAttentionQuietRow` in `needs-attention-card.tsx`; the section splits
 `visibleAlerts` into `cardAlerts` (impacted > 0) and `quietAlerts`
 (impacted === 0). A ~150px card whose own footer says "No client impact"
 hasn't earned card height — the row keeps jurisdiction + title + relative time
-+ the canonical "No client impact" phrase at one line of quiet type and opens
-the same drawer. (Current demo data has all visible alerts impacting clients,
-so the rows branch shows only for no-impact feeds — e.g. fresh firms.)
+
+- the canonical "No client impact" phrase at one line of quiet type and opens
+  the same drawer. (Current demo data has all visible alerts impacting clients,
+  so the rows branch shows only for no-impact feeds — e.g. fresh firms.)
 
 ## 4. Daily Brief "empty blue billboard" → one muted line
 
@@ -44,11 +45,12 @@ Doc: `brief-banner-language.md` new section.
 ## 5. Priorities: one lateness story per row
 
 `merged-brief-card.tsx` — one row fired "Overdue" badge + red "7d late" (DUE)
-+ gray "Pay 7d late" (STATUS): three signals, one fact. The Pay chip now
-renders only when payment lateness differs from the filing countdown (filing
-not late, or late by a different day count) — the "two obligations, two homes"
-rule survives exactly when the two obligations actually tell different
-stories. Doc: `today-actions-table-style.md` two-color discipline.
+
+- gray "Pay 7d late" (STATUS): three signals, one fact. The Pay chip now
+  renders only when payment lateness differs from the filing countdown (filing
+  not late, or late by a different day count) — the "two obligations, two homes"
+  rule survives exactly when the two obligations actually tell different
+  stories. Doc: `today-actions-table-style.md` two-color discipline.
 
 ## 6. Timestamp contrast AA fix
 

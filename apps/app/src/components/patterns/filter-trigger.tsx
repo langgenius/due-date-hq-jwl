@@ -141,9 +141,7 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
               'size-3.5 shrink-0',
               // Chevron follows the value: accent when a value is applied,
               // quiet tertiary at rest.
-              valueLabel != null || active
-                ? 'text-text-accent'
-                : 'text-text-tertiary opacity-70',
+              valueLabel != null || active ? 'text-text-accent' : 'text-text-tertiary opacity-70',
             )}
             aria-hidden
           />

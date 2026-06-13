@@ -249,11 +249,7 @@ function NeedsAttentionSection() {
             primitive this exact pattern exists for — the hand-rolled Link
             was a vocabulary violation), accent variant so the section's one
             navigation affordance reads as a link, not gray meta. */}
-        <TextLink
-          variant="accent"
-          render={<Link to="/alerts" />}
-          className="group shrink-0"
-        >
+        <TextLink variant="accent" render={<Link to="/alerts" />} className="group shrink-0">
           <span className="tabular-nums">
             <Trans>View all {totalAlertCount}</Trans>
           </span>

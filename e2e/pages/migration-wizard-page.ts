@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 export class MigrationWizardPage {
   readonly dialog: Locator
@@ -63,11 +63,9 @@ export class MigrationWizardPage {
   }
 
   async openUndoImportConfirmation() {
-    // 2026-06-07 (Cluster 3 — SuccessModal "Applied success surface"): the
-    // post-import undo trigger is now "Revert batch" in the success modal; it
-    // opens the "Undo this import?" confirm dialog (whose button stays "Undo
-    // import", handled by confirmUndoImport()).
-    await this.page.getByRole('button', { name: 'Revert batch' }).click()
+    const successDialog = this.page.getByRole('dialog', { name: 'Import complete' })
+    await expect(successDialog).toBeVisible()
+    await successDialog.getByRole('button', { name: 'Undo import' }).click()
   }
 
   async confirmUndoImport() {

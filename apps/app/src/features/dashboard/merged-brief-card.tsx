@@ -270,22 +270,22 @@ export function MergedBriefCard({
               Suppressed in the all-clear state: the celebration block below
               already says it, and saying it twice would deflate the moment. */}
           {totalActive === 0 ? null : (
-          <p className="text-sm text-text-secondary">
-            {counts.overdue > 0 && overdueNeedingDocs === counts.overdue ? (
-              // The count already lives in the "Overdue N" chip 40px away —
-              // when every overdue row shares the blocker, the lede carries
-              // ONLY the insight the chips can't (one home per fact).
-              <Trans>Every overdue deadline is waiting on source documents.</Trans>
-            ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
-              <Trans>
-                {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
-              </Trans>
-            ) : counts.overdue > 0 ? (
-              <Trans>{counts.overdue} overdue.</Trans>
-            ) : (
-              <Trans>{upcoming} coming up, none overdue.</Trans>
-            )}
-          </p>
+            <p className="text-sm text-text-secondary">
+              {counts.overdue > 0 && overdueNeedingDocs === counts.overdue ? (
+                // The count already lives in the "Overdue N" chip 40px away —
+                // when every overdue row shares the blocker, the lede carries
+                // ONLY the insight the chips can't (one home per fact).
+                <Trans>Every overdue deadline is waiting on source documents.</Trans>
+              ) : counts.overdue > 0 && overdueNeedingDocs > 0 ? (
+                <Trans>
+                  {counts.overdue} overdue, {overdueNeedingDocs} awaiting source documents.
+                </Trans>
+              ) : counts.overdue > 0 ? (
+                <Trans>{counts.overdue} overdue.</Trans>
+              ) : (
+                <Trans>{upcoming} coming up, none overdue.</Trans>
+              )}
+            </p>
           )}
         </div>
 
@@ -296,34 +296,34 @@ export function MergedBriefCard({
             state). */}
         {totalActive > 0 ? (
           <div className="flex items-center gap-0.5 rounded-full bg-background-subtle p-1">
-          {tabs.map((tab) => {
-            const active = tab.key === selected
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                data-active={active}
-                onClick={() => setOverride(tab.key)}
-                aria-pressed={active}
-                // `active:scale-[0.98]` = a 1-frame press acknowledgement; the
-                // transition covers colors + transform together. An empty
-                // inactive bucket dims to 60% — a "This week 0" chip at full
-                // strength invites a dead-end click (still clickable, the
-                // empty state explains where the work sits).
-                className={cn(
-                  'inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-[color,background-color,transform,opacity] hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt active:scale-[0.98] data-[active=true]:bg-background-default data-[active=true]:text-text-primary motion-reduce:transition-none',
-                  tab.count === 0 && !active && 'opacity-60',
-                )}
-              >
-                <span
-                  className={cn('size-1.5 shrink-0 rounded-full bg-current', tab.dot)}
-                  aria-hidden
-                />
-                <span className="whitespace-nowrap">{tab.label}</span>
-                <span className="tabular-nums text-text-tertiary">{tab.count}</span>
-              </button>
-            )
-          })}
+            {tabs.map((tab) => {
+              const active = tab.key === selected
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  data-active={active}
+                  onClick={() => setOverride(tab.key)}
+                  aria-pressed={active}
+                  // `active:scale-[0.98]` = a 1-frame press acknowledgement; the
+                  // transition covers colors + transform together. An empty
+                  // inactive bucket dims to 60% — a "This week 0" chip at full
+                  // strength invites a dead-end click (still clickable, the
+                  // empty state explains where the work sits).
+                  className={cn(
+                    'inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-[color,background-color,transform,opacity] hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt active:scale-[0.98] data-[active=true]:bg-background-default data-[active=true]:text-text-primary motion-reduce:transition-none',
+                    tab.count === 0 && !active && 'opacity-60',
+                  )}
+                >
+                  <span
+                    className={cn('size-1.5 shrink-0 rounded-full bg-current', tab.dot)}
+                    aria-hidden
+                  />
+                  <span className="whitespace-nowrap">{tab.label}</span>
+                  <span className="tabular-nums text-text-tertiary">{tab.count}</span>
+                </button>
+              )
+            })}
           </div>
         ) : null}
       </div>
@@ -361,10 +361,7 @@ export function MergedBriefCard({
             // making the user hunt for the footer link.
             <Trans>
               None in the priority shortlist —{' '}
-              <Link
-                to="/deadlines"
-                className="text-text-accent underline-offset-2 hover:underline"
-              >
+              <Link to="/deadlines" className="text-text-accent underline-offset-2 hover:underline">
                 open the queue
               </Link>{' '}
               to see all {activeTotal}.
@@ -562,9 +559,7 @@ function BriefTableRow({
               client names plus three card titles plus three section titles
               made eleven equal bolds; nothing won. The name is key data (500);
               the row's ONE loud element is the red lateness in DUE. */}
-          <span className="truncate text-base font-medium text-text-primary">
-            {row.clientName}
-          </span>
+          <span className="truncate text-base font-medium text-text-primary">{row.clientName}</span>
           <span className="flex min-w-0 items-center gap-1.5 text-xs text-text-tertiary transition-colors group-hover:text-text-secondary">
             <span className="truncate">{verb}</span>
             {showReadiness ? (

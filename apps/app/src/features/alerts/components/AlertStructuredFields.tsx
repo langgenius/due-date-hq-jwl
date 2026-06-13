@@ -321,7 +321,10 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
                 key={item}
                 className="flex items-start gap-2 text-sm font-medium text-text-primary"
               >
-                <span className="mt-[7px] size-1 shrink-0 rounded-full bg-text-tertiary" aria-hidden />
+                <span
+                  className="mt-[7px] size-1 shrink-0 rounded-full bg-text-tertiary"
+                  aria-hidden
+                />
                 {item}
               </li>
             ))}

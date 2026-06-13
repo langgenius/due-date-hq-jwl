@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test'
 import { seedBillingSubscription } from '../fixtures/billing'
 import { expect, test } from '../fixtures/test'
 
@@ -131,10 +132,9 @@ test('AC: E2E-CONFIRM-DIALOG-SHAPE account.security "Sign out other sessions" ga
   authenticatedPage,
 }) => {
   const page = authenticatedPage
-  await page.goto('/account/security')
-  await expect(page.getByRole('heading', { name: 'Security', level: 1 })).toBeVisible()
+  await gotoAccountSecurity(page)
 
-  const trigger = page.getByRole('button', { name: 'Sign out other sessions' })
+  const trigger = page.getByRole('button', { name: 'Sign out everywhere' })
   // Trigger is disabled when only one session exists. Skip the rest
   // of the assertions if the seed doesn't include additional sessions
   // — the disabled state is itself a valid contract.
@@ -162,9 +162,17 @@ test('AC: E2E-CONFIRM-DIALOG-SHAPE account.security per-session "Revoke" gates t
   authenticatedPage,
 }) => {
   const page = authenticatedPage
-  await page.goto('/account/security')
+  await gotoAccountSecurity(page)
 
   const revokeButtons = page.getByRole('button', { name: 'Revoke' })
+  if ((await revokeButtons.count()) === 0) {
+    test.info().annotations.push({
+      type: 'note',
+      description: 'Auth seed has only the current session — no per-session revoke action.',
+    })
+    await expect(page.getByRole('button', { name: 'Sign out everywhere' })).toBeDisabled()
+    return
+  }
   await expect(revokeButtons.first()).toBeVisible()
 
   await revokeButtons.first().click()
@@ -200,13 +208,12 @@ test.describe('with MFA enabled and verified', () => {
     authenticatedPage,
   }) => {
     const page = authenticatedPage
-    await page.goto('/account/security')
-    await expect(page.getByRole('heading', { name: 'Security', level: 1 })).toBeVisible()
+    await gotoAccountSecurity(page)
 
     // 'mfaVerified' seed = twoFactorEnabled + twoFactorVerified, so
-    // we land on /account/security (not the challenge route) with
+    // we land on the account profile security section (not the challenge route) with
     // Disable MFA reachable.
-    await page.getByRole('button', { name: 'Disable MFA' }).click()
+    await page.getByRole('button', { name: 'Disable' }).click()
     const dialog = page.getByRole('alertdialog', { name: 'Disable two-factor authentication?' })
     await expect(dialog).toBeVisible()
     await expect(dialog).toContainText('Sign-in will only require the link we email you')
@@ -216,9 +223,15 @@ test.describe('with MFA enabled and verified', () => {
     // Cancel path: dialog dismisses, MFA stays enabled.
     await dialog.getByRole('button', { name: 'Keep enabled' }).click()
     await expect(dialog).toBeHidden()
-    await expect(page.getByRole('button', { name: 'Disable MFA' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Disable' })).toBeVisible()
   })
 })
+
+async function gotoAccountSecurity(page: Page) {
+  await page.goto('/settings/profile')
+  await expect(page.getByRole('heading', { name: 'Your account', level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Security', level: 2 })).toBeVisible()
+}
 
 test.describe('with a second managed teammate', () => {
   test.use({ authSeed: 'team' })

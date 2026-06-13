@@ -10,7 +10,7 @@ export class BillingPage {
   readonly ownerPermissionAlert: Locator
   readonly subscriptionActiveHeading: Locator
   readonly stillWaitingHeading: Locator
-  readonly restartCheckoutLink: Locator
+  readonly restartCheckoutButton: Locator
   readonly proPlanLink: Locator
 
   constructor(readonly page: Page) {
@@ -39,7 +39,7 @@ export class BillingPage {
     this.stillWaitingHeading = page.getByRole('alert').filter({
       hasText: 'Still waiting on confirmation',
     })
-    this.restartCheckoutLink = page.getByRole('link', { name: 'Restart checkout' })
+    this.restartCheckoutButton = page.getByRole('button', { name: 'Restart checkout' })
     this.proPlanLink = page.getByRole('link', { name: /Upgrade to Pro/ })
   }
 

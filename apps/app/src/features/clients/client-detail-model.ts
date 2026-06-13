@@ -223,7 +223,6 @@ export function buildClientWorkPlanSummary(
   }
 }
 
-
 // A due-date-overlay alert with NO confirmed deadline match returns the
 // firm's open deadlines as a manual-selection MENU (matchStatus 'eligible',
 // applyReadiness.missing includes 'affected_clients'). Those rows are

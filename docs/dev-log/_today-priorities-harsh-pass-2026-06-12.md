@@ -1,7 +1,8 @@
 # Priorities table harsh pass + morning-paper brief tab (2026-06-12, round 6)
 
 Yuqi: "spend some time on the Priorities table — be professional and harsh"
-+ "be more playful and fun with this Daily brief idea."
+
+- "be more playful and fun with this Daily brief idea."
 
 ## The harsh findings → fixes (merged-brief-card.tsx)
 
@@ -28,13 +29,14 @@ Yuqi: "spend some time on the Priorities table — be professional and harsh"
 ## The morning-paper tab (daily-brief-card.tsx)
 
 Metaphor: a folded paper on the doorstep, played through glyph motion only:
+
 - NewspaperIcon masthead; hover tilts it −6° ("pick the paper up"),
   chevron dips 2px ("pull to unfold").
 - **Above-the-fold teaser**: collapsed + real AI headline → the headline
   rides beside the tab, one truncated muted line ([n] markers stripped),
   itself a click target. All-quiet line takes the slot when nothing to say.
 - **The unfold**: expand plays `animate-in fade-in slide-in-from-top-1
-  duration-200`; the tab fades in at 150. All `motion-reduce`-guarded.
+duration-200`; the tab fades in at 150. All `motion-reduce`-guarded.
 
 ## Verification caveat
 

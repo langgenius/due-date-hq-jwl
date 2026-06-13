@@ -3182,9 +3182,9 @@ export function ObligationQueueRoute() {
   )
   const activeScope: ObligationStatus | 'all' = useMemo(() => {
     if (statusQuery.length === 0) return 'all'
-    const sortedQuery = [...statusQuery].sort().join(',')
+    const sortedQuery = [...statusQuery].toSorted().join(',')
     for (const status of scopeStatuses) {
-      if ([...scopeStatusSet(status)].sort().join(',') === sortedQuery) return status
+      if ([...scopeStatusSet(status)].toSorted().join(',') === sortedQuery) return status
     }
     return 'all'
   }, [statusQuery, scopeStatuses, scopeStatusSet])
@@ -13122,7 +13122,6 @@ function ObligationFacetSearchList({
   onToggle: (value: string) => void
   onClear: () => void
 }) {
-  const { t } = useLingui()
   const selectedSet = new Set(selected)
   const selectedCount = selectedSet.size
   if (disabled) {
@@ -13158,8 +13157,8 @@ function ObligationFacetSearchList({
           {selectedCount > 0 ? (
             <Plural
               value={selectedCount}
-              one={t`# selected · ${options.length} options`}
-              other={t`# selected · ${options.length} options`}
+              one={`# selected · ${options.length} options`}
+              other={`# selected · ${options.length} options`}
             />
           ) : (
             <Plural value={options.length} one="# option" other="# options" />

@@ -3,6 +3,7 @@
 Second half of the /alerts critique sweep (detail panel).
 
 ## Scroll-spy section nav (Yuqi: "tabs like the Deadline Detail panel, but the
+
 ## content is a long scroll — scrolling indicates which tab you're on")
 
 Scroll-spy ANCHORS, not real tabs: the alert detail is one decide-flow document
@@ -23,6 +24,7 @@ behaving as a table of contents:
 ## Red triage (Yuqi: "too messy — ensure the user can focus")
 
 First viewport previously fired six colored signals. Now:
+
 - "Awaiting your decision" banner → new `pending` tone on DetailStatusBanner
   (quiet gray band, secondary text). Open work isn't an alarm.
 - ACTION DEADLINE eyebrow + icon → muted/tertiary like every section label.

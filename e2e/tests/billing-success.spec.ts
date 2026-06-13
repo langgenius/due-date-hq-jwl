@@ -63,10 +63,8 @@ test('AC: E2E-BILLING-CANCEL-RECOVERY keeps selected plan available after cancel
   await billingPage.gotoCancel()
 
   await expect(billingPage.cancelHeading).toBeVisible()
-  await expect(billingPage.restartCheckoutLink).toHaveAttribute(
-    'href',
-    '/billing/checkout?plan=pro&interval=monthly',
-  )
+  await billingPage.restartCheckoutButton.click()
+  await expect(billingPage.page).toHaveURL(/\/billing\/checkout\?plan=pro&interval=monthly$/)
 })
 
 async function interceptBillingPortal(

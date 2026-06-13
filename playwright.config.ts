@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:8787'
+const localWorkerPort = process.env.E2E_WORKER_PORT ?? '8787'
+const baseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${localWorkerPort}`
 const marketingBaseURL = process.env.E2E_MARKETING_BASE_URL ?? 'http://127.0.0.1:4321'
 const marketingPort = new URL(marketingBaseURL).port || '4321'
 const usesExternalTarget = Boolean(process.env.E2E_BASE_URL)
@@ -19,7 +20,7 @@ const localWorkerCommand = [
     '--config wrangler.toml',
   ].join(' '),
   [
-    'pnpm --dir apps/server exec wrangler dev --local --ip 127.0.0.1 --port 8787',
+    `pnpm --dir apps/server exec wrangler dev --local --ip 127.0.0.1 --port ${localWorkerPort}`,
     wranglerPersistArg,
     '--var AI_GATEWAY_PROVIDER_API_KEY:',
     '--var AI_GATEWAY_API_KEY:',

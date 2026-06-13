@@ -523,7 +523,9 @@ function QuietHoursCard() {
         </Trans>
       </p>
       <p className="text-xs text-text-tertiary">
-        <Trans>This schedule is fixed for now — per-user quiet hours aren't configurable yet.</Trans>
+        <Trans>
+          This schedule is fixed for now — per-user quiet hours aren't configurable yet.
+        </Trans>
       </p>
     </Card>
   )

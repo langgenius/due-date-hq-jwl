@@ -7,6 +7,7 @@ key-fact block "太粗糙了……好难看" (too crude… so ugly).
 
 The first hoist moved the WHOLE callout (warning left-rule + caps eyebrow +
 28px mono date + evidence checklist) into the masthead, where:
+
 - the rule read as an error marker,
 - the 28px date OUTSIZED the 22px title (hierarchy inversion),
 - the evidence to-do list weighed the masthead down,

@@ -116,10 +116,10 @@ export function DailyBriefCard({
 
   const recapHasActivity = Boolean(
     recap &&
-      (recap.completedCount > 0 ||
-        recap.newAlertCount > 0 ||
-        recap.dueDateMovedCount > 0 ||
-        recap.remindersSentCount > 0),
+    (recap.completedCount > 0 ||
+      recap.newAlertCount > 0 ||
+      recap.dueDateMovedCount > 0 ||
+      recap.remindersSentCount > 0),
   )
 
   // Nothing to say = the AI sentence failed AND the recap is all-quiet AND
@@ -128,11 +128,14 @@ export function DailyBriefCard({
   // an empty blue billboard) — the tab + a deterministic all-quiet hint
   // carry the same facts at one line. The user can still expand it.
   const nothingToSay =
-    aiEnabled && brief?.status === 'failed' && !brief.text && !recapHasActivity && catchupCount === 0
+    aiEnabled &&
+    brief?.status === 'failed' &&
+    !brief.text &&
+    !recapHasActivity &&
+    catchupCount === 0
 
   const briefKey = brief?.generatedAt ?? brief?.status ?? 'none'
-  const collapsed =
-    collapsePref?.key === briefKey ? collapsePref.collapsed : nothingToSay
+  const collapsed = collapsePref?.key === briefKey ? collapsePref.collapsed : nothingToSay
   const setCollapsed = (next: boolean) => {
     const pref = { key: briefKey, collapsed: next }
     setCollapsePref(pref)

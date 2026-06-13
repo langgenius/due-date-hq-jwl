@@ -4,7 +4,7 @@ Yuqi's Stripe reference ("Gross volume / £216.20 / 12:08") applied to the share
 StatBand primitive — "to the component, not a single element":
 
 - Stat label: tracked-caps eyebrow → sentence-case `text-sm font-medium
-  text-text-secondary`. Calm label, big value, quiet sub — the Stripe read.
+text-text-secondary`. Calm label, big value, quiet sub — the Stripe read.
 - Value/sub lines unchanged (tone-coding via valueClass/subClass intact).
 
 One component, five surfaces update together: /clients, /clients/[id],

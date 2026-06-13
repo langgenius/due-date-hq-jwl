@@ -35,11 +35,10 @@ test.describe('seeded obligations', () => {
     await authenticatedPage.goto('/')
 
     const actions = authenticatedPage.getByRole('region', { name: 'Priorities' })
-    // Priority rows render as buttons whose accessible name concatenates form,
-    // client, action verb, readiness, status, and due ("Form 1065 Arbor & Vale
-    // LLC Attach the source document Docs 0/3 …"). Match client + action verb.
-    const arborAction = actions.getByRole('button', {
-      name: /Arbor & Vale LLC.*Attach the source document/,
+    // Priority actions are table rows with click handlers; match the stable
+    // client + action text without depending on the rest of the row summary.
+    const arborAction = actions.getByRole('row', {
+      name: /Attach the source document for Arbor & Vale LLC/,
     })
     await arborAction.click()
 
@@ -71,9 +70,12 @@ test.describe('seeded obligations', () => {
     await obligationQueuePage.clearSearch()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
     // 2026-06-11 (queue toolbar): the status scope is a segmented control —
-    // click the "In review" pill; it becomes the active (data-active) scope.
+    // click the "In review" pill; it becomes the active (data-active) scope
+    // and maps to the full review-ish status set.
     await obligationQueuePage.selectStatusScope('In review')
-    await expect(authenticatedPage).toHaveURL(/\/deadlines\?status=review$/)
+    await expect
+      .poll(() => new URL(authenticatedPage.url()).searchParams.get('status'))
+      .toBe('in_progress,review,extended')
     await expect(obligationQueuePage.rowFor('Northstar Dental Group')).toBeVisible()
     await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeHidden()
     await expect(obligationQueuePage.statusScopeButton('In review')).toHaveAttribute(

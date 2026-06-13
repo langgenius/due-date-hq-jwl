@@ -468,13 +468,7 @@ function DecisionBanners({
   onRetry: () => void
   onUndo: () => void
 }) {
-  const { t } = useLingui()
   const alert = detail.alert
-  const dueInDays = detail.newDueDate
-    ? Math.round(
-        (new Date(`${detail.newDueDate}T00:00:00.000Z`).getTime() - Date.now()) / 86_400_000,
-      )
-    : null
 
   if (applyError) {
     return (
@@ -1531,7 +1525,6 @@ export function AlertDetailDrawer({
           // things are semantic tables (affected clients). Kept out of
           // flex-shrink so the scroll container owns the scroll height.
           <div className="flex shrink-0 flex-col gap-10">
-
             {/* GROUP 1 — Change details (2026-06-12 info-organisation pass:
                 renamed from the system-speak "Extracted facts"; named by
                 MEANING like every other section). The do-by-when KEY FACT

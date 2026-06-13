@@ -22,7 +22,7 @@ test('AC: E2E-MEMBERS-INVITE-CANCEL-AUDIT invites, cancels, and exposes audit hi
   await membersPage.goto()
 
   await expect(membersPage.heading).toBeVisible()
-  await expect(membersPage.page.getByText(/2 available seats/)).toBeVisible()
+  await expect(membersPage.page.getByText(/2 available/)).toBeVisible()
 
   await membersPage.invite({ email, role: 'Preparer' })
 

@@ -124,7 +124,7 @@ materializing in the void. Current contract:
 ## Responsive (2026-06-12)
 
 - The CLIENT cell width steps with the viewport: `w-[220px] md:w-[300px]
-  xl:w-[440px]` (rows AND skeleton). The original hard 440px shoved
+xl:w-[440px]` (rows AND skeleton). The original hard 440px shoved
   STATUS / owner / DUE past the frame edge at tablet width, where
   `overflow-hidden` clipped them invisibly — the CPA lost exactly the two
   columns that matter.
@@ -156,8 +156,7 @@ materializing in the void. Current contract:
   the page a wall of equal bolds. The name is key data (500 tier).
 - **The late/due-today countdown is the row's one LOUD element**: DUE's
   relative label steps up to 16px (`text-[16px] leading-[22px]` over the
-  DueDateLabel default 13px) when `days <= 0` — weight stays the primitive's
-  500. Revised same day (Yuqi: red at 16/600 was "tooooo strong" — **never
+  DueDateLabel default 13px) when `days <= 0` — weight stays the primitive's 500. Revised same day (Yuqi: red at 16/600 was "tooooo strong" — **never
   double-highlight: one signal, one channel**; color + size already carry
   lateness, bold would be a third). Future countdowns ("in 10d") keep the
   quiet default so This week / This month buckets don't shout.

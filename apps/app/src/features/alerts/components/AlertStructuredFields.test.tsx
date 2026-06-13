@@ -157,30 +157,33 @@ describe('AlertStructuredFields', () => {
   })
 
   it('renders protective claim window facts without exposing raw structured JSON', () => {
+    const detail = reviewOnlyDetail({
+      alert: {
+        ...reviewOnlyDetail().alert,
+        changeKind: 'protective_claim_window',
+        source: 'Taxpayer Advocate Service Blog',
+        sourceUrl: 'https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/',
+      },
+      structuredChange: {
+        kind: 'protective_claim_window',
+        actionDeadline: '2026-07-10',
+        claimTaxYears: ['2019', '2020', '2021', '2022'],
+        affectedTaxActs: ['COVID disaster period refund claims'],
+        evidenceNeeded: ['filed return dates', 'claim support'],
+        legalUncertainty: 'CPA must review whether action is needed.',
+        authorityRefs: ['Taxpayer Advocate Service'],
+      },
+      sourceExcerpt: 'taxpayers should review protective claims before July 10, 2026.',
+    })
+
     render(
-      <AlertStructuredFields
-        detail={reviewOnlyDetail({
-          alert: {
-            ...reviewOnlyDetail().alert,
-            changeKind: 'protective_claim_window',
-            source: 'Taxpayer Advocate Service Blog',
-            sourceUrl: 'https://www.taxpayeradvocate.irs.gov/taxnews-information/blogs-nta/',
-          },
-          structuredChange: {
-            kind: 'protective_claim_window',
-            actionDeadline: '2026-07-10',
-            claimTaxYears: ['2019', '2020', '2021', '2022'],
-            affectedTaxActs: ['COVID disaster period refund claims'],
-            evidenceNeeded: ['filed return dates', 'claim support'],
-            legalUncertainty: 'CPA must review whether action is needed.',
-            authorityRefs: ['Taxpayer Advocate Service'],
-          },
-          sourceExcerpt: 'taxpayers should review protective claims before July 10, 2026.',
-        })}
-      />,
+      <>
+        <AlertStructuredFields detail={detail} section="key-fact" />
+        <AlertStructuredFields detail={detail} />
+      </>,
     )
 
-    expect(document.body.textContent).toContain('Action deadline')
+    expect(document.body.textContent).toContain('Act by')
     expect(document.body.textContent).toContain('Jul 10, 2026')
     expect(document.body.textContent).toContain('2019 · 2020 · 2021 · 2022')
     // Evidence renders as a checklist — one item per line, no ·-join.
