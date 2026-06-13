@@ -64,6 +64,22 @@ export function formatDate(value: string): string {
   return `${readPart(parts, 'year')}-${readPart(parts, 'month')}-${readPart(parts, 'day')}`
 }
 
+export function formatDateWithTimezone(value: string, timeZone: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
+
+  const date = new Date(value)
+  if (!Number.isFinite(date.getTime())) return value
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    numberingSystem: 'latn',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+  return `${readPart(parts, 'year')}-${readPart(parts, 'month')}-${readPart(parts, 'day')}`
+}
+
 /**
  * Prose-format a date for user-facing UI: "May 6, 2026" (or just "May 6"
  * when the date is in the current year so the year tag doesn't add noise

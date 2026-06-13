@@ -1792,7 +1792,7 @@ out.push(`\nINSERT INTO pulse_source_state
 VALUES
   ('irs.disaster', 'T1', 'US', 1, 1800000, 'healthy', ${ts('2026-05-01 09:45:00')}, ${ts('2026-05-01 09:45:00')}, ${ts('2026-05-01 07:35:00')}, ${ts('2026-05-01 10:15:00')}, 0, NULL, 'mock-etag-irs-disaster', 'Fri, 01 May 2026 07:35:00 GMT', ${ts('2026-05-01 07:00:00')}, ${ts('2026-05-01 09:45:00')}),
   ('ca.ftb.newsroom', 'T1', 'CA', 1, 1800000, 'healthy', ${ts('2026-05-01 09:40:00')}, ${ts('2026-05-01 09:40:00')}, ${ts('2026-04-30 15:10:00')}, ${ts('2026-05-01 10:10:00')}, 0, NULL, 'mock-etag-ca-ftb', 'Thu, 30 Apr 2026 15:10:00 GMT', ${ts('2026-05-01 07:00:00')}, ${ts('2026-05-01 09:40:00')}),
-  ('tx.cpa.rss', 'T1', 'TX', 1, 3600000, 'degraded', ${ts('2026-05-01 09:20:00')}, ${ts('2026-05-01 07:20:00')}, NULL, ${ts('2026-05-01 10:20:00')}, 1, 'RSS returned 304 after one retry.', NULL, NULL, ${ts('2026-05-01 07:00:00')}, ${ts('2026-05-01 09:20:00')}),
+  ('tx.cpa.rss', 'T1', 'TX', 1, 3600000, 'healthy', ${ts('2026-05-01 09:20:00')}, ${ts('2026-05-01 09:20:00')}, NULL, ${ts('2026-05-01 10:20:00')}, 0, NULL, NULL, NULL, ${ts('2026-05-01 07:00:00')}, ${ts('2026-05-01 09:20:00')}),
   ('wa.dor.news', 'T1', 'WA', 1, 3600000, 'healthy', ${ts('2026-05-01 09:10:00')}, ${ts('2026-05-01 09:10:00')}, NULL, ${ts('2026-05-01 10:10:00')}, 0, NULL, NULL, NULL, ${ts('2026-05-01 07:00:00')}, ${ts('2026-05-01 09:10:00')})
 ON CONFLICT(source_id) DO UPDATE SET
   tier = excluded.tier,
@@ -2377,7 +2377,11 @@ for (const f of FIRMS) {
       s(cli(f, 1)),
       s('client'),
       'NULL',
-      s(`contact@${CLIENTS.find((c) => c.seq === 1)!.name.toLowerCase().replace(/[^a-z0-9]+/g, '')}.test`),
+      s(
+        `contact@${CLIENTS.find((c) => c.seq === 1)!
+          .name.toLowerCase()
+          .replace(/[^a-z0-9]+/g, '')}.test`,
+      ),
       s('email'),
       30,
       s('2026-05-23'),

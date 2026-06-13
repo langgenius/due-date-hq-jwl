@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { activateLocale } from '@/i18n/i18n'
-import { cn, formatCents, formatDate, formatDatePretty, formatDateTimeWithTimezone } from './utils'
+import {
+  cn,
+  formatCents,
+  formatDate,
+  formatDatePretty,
+  formatDateTimeWithTimezone,
+  formatDateWithTimezone,
+} from './utils'
 
 describe('utils', () => {
   afterEach(() => {
@@ -31,6 +38,12 @@ describe('utils', () => {
 
   it('formats date-only values as YYYY-MM-DD', () => {
     expect(formatDate('2026-03-15')).toBe('2026-03-15')
+  })
+
+  it('formats datetimes as YYYY-MM-DD in the requested IANA timezone', () => {
+    expect(formatDateWithTimezone('2026-04-29T02:14:32.883Z', 'America/Los_Angeles')).toBe(
+      '2026-04-28',
+    )
   })
 
   it('formats datetimes as YYYY-MM-DD HH:mm:ss plus timezone', () => {

@@ -18,7 +18,7 @@ import {
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
-import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { formatDateWithTimezone } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 import {
@@ -97,11 +97,11 @@ export function TemporaryRulesTab() {
           <TableHeader>
             <TableRow>
               <TableHead>TEMPORARY RULE</TableHead>
-              <TableHead className="w-[74px]">JUR</TableHead>
-              <TableHead className="w-[118px]">OVERRIDE</TableHead>
-              <TableHead className="w-[106px]">OBLIGATIONS</TableHead>
-              <TableHead className="w-[96px]">STATUS</TableHead>
-              <TableHead className="w-[112px]">UPDATED</TableHead>
+              <TableHead className="w-[74px] text-center">JUR</TableHead>
+              <TableHead className="w-[118px] text-center">OVERRIDE</TableHead>
+              <TableHead className="w-[106px] text-center">OBLIGATIONS</TableHead>
+              <TableHead className="w-[96px] text-center">STATUS</TableHead>
+              <TableHead className="w-[112px] text-center">UPDATED</TableHead>
               <TableHead className="w-[96px]" />
             </TableRow>
           </TableHeader>
@@ -139,10 +139,12 @@ function TemporaryRuleRow({
           <span className="truncate font-mono text-xs text-text-tertiary">{formatScope(rule)}</span>
         </div>
       </TableCell>
-      <TableCell className="px-0 py-2">
-        <JurisdictionCode code={rule.jurisdiction} />
+      <TableCell className="px-0 py-2 text-center">
+        <div className="flex justify-center">
+          <JurisdictionCode code={rule.jurisdiction} />
+        </div>
       </TableCell>
-      <TableCell className="px-0 py-2 text-xs text-text-secondary">
+      <TableCell className="px-0 py-2 text-center text-xs text-text-secondary">
         {rule.overrideDueDate ? (
           <span>
             <Trans>Due {rule.overrideDueDate}</Trans>
@@ -153,16 +155,18 @@ function TemporaryRuleRow({
           <Trans>Penalty waiver</Trans>
         )}
       </TableCell>
-      <TableCell className="px-0 py-2">
+      <TableCell className="px-0 py-2 text-center">
         <span className="text-xs tabular-nums text-text-secondary">
           {rule.activeObligationCount}/{rule.appliedObligationCount}
         </span>
       </TableCell>
-      <TableCell className="px-0 py-2">
-        <TemporaryRuleStatusBadge status={rule.status} />
+      <TableCell className="px-0 py-2 text-center">
+        <div className="flex justify-center">
+          <TemporaryRuleStatusBadge status={rule.status} />
+        </div>
       </TableCell>
-      <TableCell className="px-0 py-2 text-xs tabular-nums text-text-tertiary">
-        {formatDateTimeWithTimezone(rule.lastActivityAt, practiceTimezone)}
+      <TableCell className="px-0 py-2 text-center text-xs tabular-nums text-text-tertiary">
+        {formatDateWithTimezone(rule.lastActivityAt, practiceTimezone)}
       </TableCell>
       <TableCell className="px-0 py-2">
         <div className="flex items-center justify-end gap-1 pr-2">

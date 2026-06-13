@@ -81,8 +81,8 @@ export function SourcesTab() {
   const queryClient = useQueryClient()
   const retryMutation = useMutation(
     orpc.pulse.retrySourceHealth.mutationOptions({
-      onSuccess: () => {
-        void queryClient.invalidateQueries({ queryKey: orpc.pulse.listSourceHealth.key() })
+      onSuccess: (data) => {
+        queryClient.setQueryData(orpc.pulse.listSourceHealth.key(), data)
       },
       onError: () => {
         toast.error(t`Couldn't re-check that source`)
