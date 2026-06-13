@@ -117,6 +117,10 @@ For deployed staging/prod, verify in this order:
   subaddressing is enabled.
 - Plus-address mail routes as unmatched: confirm the base route is `pulse-ingest@...`, not only a
   literal plus-address route, and confirm the source has `inboundEmail.localParts` configured.
+- `pulse.email.auth_reject` reports `auth_results_missing`: inspect the stored R2 artifact's raw
+  RFC822 section for `Authentication-Results` / `ARC-Authentication-Results`. The Worker accepts
+  Cloudflare `mx.cloudflare.net` verdicts from either runtime headers or raw RFC822 headers; missing
+  in both places means the message is stored unmatched and not queued.
 - Snapshot exists but no CPA Alert appears: check `parse_status` and the `pulse.extract.result`
   metric. `ignored` means the extractor found no regulatory change; `failed` needs the failure
   reason; `duplicate` should refresh firm alerts when it points to an approved Pulse.

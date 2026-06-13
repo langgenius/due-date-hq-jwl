@@ -1,7 +1,7 @@
 import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import { listRuleSources, type RuleSource } from '@duedatehq/core/rules'
 import { hashText } from '@duedatehq/ingest/http'
-import PostalMime from 'postal-mime'
+import PostalMime, { type Email } from 'postal-mime'
 import type { Env } from '../../env'
 import { dispatchOpsAlert, type OpsAlertEnv } from '../ops-alerts'
 import { buildEmailArchiveArtifact, buildEmailCanonicalText } from './email-artifact'
@@ -20,6 +20,10 @@ type InboundEmailRuleSource = RuleSource & { inboundEmail: NonNullable<RuleSourc
 const UNMATCHED_SOURCE_ID = 'govdelivery.inbound.unmatched'
 const FALLBACK_LOCAL_PARTS = new Set(['pulse-ingest'])
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
+const AUTH_RESULT_HEADER_NAMES = ['authentication-results', 'arc-authentication-results'] as const
+const CLOUDFLARE_AUTH_RESULT_RE = /\bmx\.cloudflare\.net\b/
+
+type ParsedEmailHeader = Email['headers'][number]
 
 const STATE_CODES = new Set([
   'AL',
@@ -188,15 +192,37 @@ export interface EmailAuthVerdicts {
   dmarcFail: boolean
 }
 
+function authResultHeaderValues(
+  headers: Headers,
+  parsedHeaders: readonly ParsedEmailHeader[],
+): string[] {
+  const runtimeValue = headers.get('authentication-results')?.trim()
+  if (runtimeValue) return [runtimeValue]
+
+  for (const key of AUTH_RESULT_HEADER_NAMES) {
+    const values = parsedHeaders
+      .filter((header) => header.key === key)
+      .map((header) => header.value.trim())
+      .filter((value) => CLOUDFLARE_AUTH_RESULT_RE.test(value.toLowerCase()))
+    if (values.length > 0) return values
+  }
+
+  return []
+}
+
 /**
- * Read the Authentication-Results header Cloudflare Email Routing prepends.
+ * Read the Authentication-Results verdicts Cloudflare Email Routing adds.
  * Cloudflare rejects mail failing BOTH SPF and DKIM and enforces the sender's
  * DMARC policy at the edge — but a no-DMARC domain with a spoofed From: still
- * reaches the worker, so the verdicts must be read per message. Parsed
- * defensively: header formats vary by intermediary.
+ * reaches the worker, so the verdicts must be read per message. Some real Email
+ * Routing deliveries expose these verdicts only in message.raw, so the raw
+ * RFC822 headers are the fallback after the runtime Headers object.
  */
-export function readAuthVerdicts(headers: Headers): EmailAuthVerdicts {
-  const value = headers.get('authentication-results')?.toLowerCase() ?? ''
+export function readAuthVerdicts(
+  headers: Headers,
+  parsedHeaders: readonly ParsedEmailHeader[] = [],
+): EmailAuthVerdicts {
+  const value = authResultHeaderValues(headers, parsedHeaders).join('\n').toLowerCase()
   return {
     present: value.length > 0,
     dkimPass: /\bdkim=pass\b/.test(value),
@@ -218,12 +244,13 @@ export function readAuthVerdicts(headers: Headers): EmailAuthVerdicts {
 function emailAttributionTrusted(input: {
   source: InboundEmailRuleSource
   message: InboundEmailMessage
+  parsedHeaders: readonly ParsedEmailHeader[]
   requireAuth: boolean
 }): { trusted: boolean; reason: string | null } {
   if (!senderMatchesSource(input.source, input.message)) {
     return { trusted: false, reason: 'sender_domain_mismatch' }
   }
-  const verdicts = readAuthVerdicts(input.message.headers)
+  const verdicts = readAuthVerdicts(input.message.headers, input.parsedHeaders)
   if (verdicts.dmarcFail) return { trusted: false, reason: 'dmarc_fail' }
   if (input.requireAuth) {
     if (!verdicts.present) return { trusted: false, reason: 'auth_results_missing' }
@@ -387,6 +414,7 @@ export async function ingestGovDeliveryEmail(
     const trust = emailAttributionTrusted({
       source: resolution.source,
       message,
+      parsedHeaders: parsedEmail.headers,
       // Default ON: opt out only by setting the var to "false".
       requireAuth: env.PULSE_EMAIL_REQUIRE_AUTH !== 'false',
     })

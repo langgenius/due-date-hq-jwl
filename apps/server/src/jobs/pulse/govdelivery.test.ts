@@ -297,6 +297,67 @@ describe('ingestGovDeliveryEmail', () => {
     })
   })
 
+  it('accepts Cloudflare auth verdicts from raw RFC822 when runtime headers omit them', async () => {
+    const queueSend = vi.fn()
+    const message = inboundMessage({
+      from: [
+        '0100019ebd374513-a0b37459-437e-4b0e-8baf-a8e7ac793da5-000000',
+        '@bounce-1.public.govdelivery.com',
+      ].join(''),
+      to: 'pulse-ingest+oh-tax-alerts@langgenius.app',
+      headers: {
+        subject: 'The Business Tax Division Seeks Comments on Proposed Rule Change',
+      },
+      raw: [
+        'ARC-Authentication-Results: i=1; mx.cloudflare.net;',
+        '\tdkim=pass header.d=public.govdelivery.com;',
+        '\tdmarc=pass header.from=public.govdelivery.com;',
+        '\tspf=pass smtp.mailfrom=bounce-1.public.govdelivery.com;',
+        'Authentication-Results: mx.cloudflare.net;',
+        '\tdkim=pass header.d=public.govdelivery.com;',
+        '\tdmarc=pass header.from=public.govdelivery.com;',
+        '\tspf=pass smtp.mailfrom=bounce-1.public.govdelivery.com;',
+        'From: Ohio Department of Taxation <OHTAXATION@public.govdelivery.com>',
+        'To: pulse-ingest+oh-tax-alerts@langgenius.app',
+        'X-Accountcode: OHTAX',
+        'Subject: The Business Tax Division Seeks Comments on Proposed Rule Change',
+        [
+          'Message-ID: <0100019ebd374513-a0b37459-437e-4b0e-8baf-a8e7ac793da5',
+          '-000000@us-east-1.messagingfabric.com>',
+        ].join(''),
+        'Content-Type: text/plain; charset=utf-8',
+        '',
+        'The Business Tax Division Seeks Comments on Proposed Rule Change',
+        'https://content.govdelivery.com/accounts/OHTAX/bulletins/41bb776',
+      ].join('\r\n'),
+    })
+    message.headers.delete('authentication-results')
+
+    const result = await ingestGovDeliveryEmail(env(queueSend), message)
+
+    expect(result).toMatchObject({
+      inserted: true,
+      matched: true,
+      queued: true,
+      snapshotId: 'snapshot-oh.temporary_announcements',
+    })
+    expect(repoMocks.createSourceSnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: 'oh.temporary_announcements',
+        title: 'The Business Tax Division Seeks Comments on Proposed Rule Change',
+        officialSourceUrl: 'https://content.govdelivery.com/accounts/OHTAX/bulletins/41bb776',
+      }),
+    )
+    expect(queueSend).toHaveBeenCalledWith({
+      type: 'pulse.extract',
+      snapshotId: 'snapshot-oh.temporary_announcements',
+    })
+    expect(metricsMocks.recordPulseMetric).not.toHaveBeenCalledWith(
+      'pulse.govdelivery.auth_reject',
+      expect.anything(),
+    )
+  })
+
   it.each([
     {
       label: 'Florida TIP subscriptions',
