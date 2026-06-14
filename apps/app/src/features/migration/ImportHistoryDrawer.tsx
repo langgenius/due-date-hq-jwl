@@ -520,7 +520,15 @@ function RelativeUndoCountdown({
 
   if (status !== 'applied' || !revertExpiresAt) return null
   const remainingMs = Date.parse(revertExpiresAt) - now
-  if (Number.isNaN(remainingMs) || remainingMs <= 0) return null
+  // Window closed: explain why the (now-disabled) Undo can't fire, instead
+  // of vanishing and leaving a greyed button with no stated reason.
+  if (Number.isNaN(remainingMs) || remainingMs <= 0) {
+    return (
+      <span className="text-xs text-text-tertiary">
+        <Trans>Revert window closed — undo no longer available</Trans>
+      </span>
+    )
+  }
 
   const remainingMinutesTotal = Math.floor(remainingMs / 60_000)
   const hours = Math.floor(remainingMinutesTotal / 60)

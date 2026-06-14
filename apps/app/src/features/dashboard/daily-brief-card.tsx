@@ -185,11 +185,11 @@ export function DailyBriefCard({
             <span
               className={cn(
                 'size-1.5 rounded-full',
-                brief?.status === 'failed'
-                  ? 'bg-text-destructive'
-                  : brief?.status === 'stale'
-                    ? 'bg-text-warning'
-                    : 'bg-text-success',
+                // Failed = amber, not red: a missing optional AI sentence is
+                // not a destructive error (the recap is still accurate).
+                brief?.status === 'failed' || brief?.status === 'stale'
+                  ? 'bg-text-warning'
+                  : 'bg-text-success',
               )}
               aria-hidden
             />
@@ -581,12 +581,14 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
     )
   }
   if (brief.status === 'failed') {
-    // 2026-06-10 (manual refresh retired): the FAILED chip is display-only
-    // — recovery is the server's failed self-heal, not a user action. The
-    // error code stays one hover away for support conversations.
+    // Display-only — recovery is the server's self-heal, not a user action.
+    // Wording is "Couldn't update", NOT "FAILED": only the optional AI
+    // sentence is missing; the deterministic recap below is still accurate,
+    // so the primary dashboard must not read as a broken product (re-critique
+    // 2026-06-14). Error code stays one hover away for support.
     const failedText = (
-      <span className="text-chip-label text-text-secondary uppercase">
-        <Trans>Failed</Trans>
+      <span className="text-chip-label text-text-tertiary uppercase">
+        <Trans>Couldn't update</Trans>
       </span>
     )
     return (
