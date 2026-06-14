@@ -1712,6 +1712,69 @@ Two helpers in `apps/app/src/lib/utils.ts`:
 
 `formatDateTimeWithTimezone(iso, tz)` is the canonical for timestamps that need precision (e.g. "Last updated 2026-05-01 02:27:00 PDT"). Used in drawer footer audit lines and the audit-log table; not for body content.
 
+### §16.21 Alert detail — document model (2026-06-14)
+
+The `/alerts` master-detail pane (`AlertDetailDrawer`, panel mode) is a **flat
+white document**, not a stack of cards or alternating washes. The model,
+arrived at over several Yuqi passes ("too many frames" → "white/gray/white/gray
+is bad" → "loose/shattered" → "too much waste"):
+
+- **One surface, one scroll.** The whole pane (hero + body) is a single
+  `overflow-y-auto` container on `bg-background-default`; only the top bar +
+  footer are fixed. The hero scrolls away with the content (no collapse-header
+  state) — a wheel anywhere scrolls. Context on scroll = the top-bar breadcrumb
+  (carries the title) + the sticky section nav.
+- **Layering by line + type + color, never fills or shadows.** The only filled
+  zone is the fact grid (one light-gray `bg-background-subtle` reference panel,
+  2-col, hairline-divided). Callouts are 2px LEFT RULES (accent = the value
+  lead, warning = a deadline). Section boundaries are whitespace + ranked
+  headers, never dividers ("just lines" were rejected too).
+- **Ranked sections.** `DetailSectionCard variant="flat"` + `tone`: action
+  sections (Change, Clients) get an 18/600 primary header; reference sections
+  (Source, Activity) a quieter 14/600 secondary header. Inter-section rhythm
+  **24px**.
+- **Hero order = identity → headline → key fact → lifecycle.** Meta row (seal ·
+  jurisdiction code [accent when the alert is active] · change-kind = icon +
+  sentence-case medium · source · full date) → 22/600 title → the ONE key fact
+  (deadline diff / "Claim window closes" — the biggest type after the title,
+  20px mono) → the lifecycle strip.
+- **Lifecycle strip** (`AlertLifecycleStrip`): a one-line stepper —
+  ✓ Monitored · ✓ AI parsed N% · ✓ Matched N · ● Your decision · ○ Applied —
+  auto steps checked, the human step in accent, the outcome a future ring.
+  Makes the pipeline (monitor → AI-extract+confidence → match → review/apply →
+  audit) legible and is the panel's orientation anchor.
+- **Reading measure 880px** (centered), NOT the list's 72ch — the pane is
+  already a narrow column, so 760 wasted ~28% of it in gutters.
+- **Value before reference.** The plain-language read ("What this means" /
+  "Evidence to gather", accent-anchored) leads each section; the raw fact grid
+  follows.
+- **Change-kind is one vocabulary everywhere** (list row, rail item, detail
+  hero): `ChangeKindIcon` + `changeKindLabel`, sentence-case 12–14/medium
+  secondary. Per-kind icon map in `PulseChangeKindChip.tsx`.
+- **Action labels say what they do:** footer "Apply to N clients" (not "Apply
+  Deadline Exception"); APPLY MODE "Adjusts due dates" (not "Auto-applied" —
+  the app never auto-applies).
+
+The **deadline detail** keeps `variant="card"` on its warm-gray wash; this
+flat-document model is the **alert** pane's alone — don't assume parity.
+
+### §16.22 Stripe component grammar (2026-06-12)
+
+- **FilterTrigger** = a `rounded-full` pill, `Label │ Value ⌄` two-tone: gray
+  label (what it filters) + a hairline divider + the accent current value (what
+  is applied); chevron follows the value's tone. One at-rest chrome for every
+  trigger in a cluster (no gray `saved` fill).
+- **StatBand** stat label = sentence-case `text-sm font-medium text-secondary`
+  (not a tracked-caps eyebrow) — the "Gross volume / £216.20" grammar.
+- **Selection = accent**: the active `Segmented` item reads in `--text-accent`
+  (light theme; dark keeps near-white per the no-colored-text-on-dark rule).
+
+### §16.23 Page padding aligns to the sidebar (2026-06-12)
+
+Top-level pages use `pt-8`: the page `<h1>` centers on the sidebar's firm
+avatar (both centers at ~50px). Shell bottom padding ≈ the sidebar's ~18px
+bottom inset, so page and rail end together.
+
 ---
 
 _This document is a single source of truth. If in doubt, choose density over decoration, precision over friendliness._
