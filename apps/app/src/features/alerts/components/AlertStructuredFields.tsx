@@ -350,13 +350,19 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
       {/* 4-col only ≥xl — below 1280 the detail pane runs 560–820px wide
           (rail + sidebar take the rest), where 4 columns crushed each cell
           to ~116px (alerts responsive contract). */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden bg-divider-subtle xl:grid-cols-4">
+      {/* 2026-06-14 (Yuqi #1 "light light gray background"): the fact grid is
+          a contained light-gray REFERENCE panel — cells sit on
+          `bg-background-subtle`, hairline-divided, rounded, no outer border.
+          On the all-white document this zones the structured reference data
+          apart from the prose. This is ONE intentional data block, not the
+          alternating white/gray washes that were rejected earlier. */}
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-divider-subtle xl:grid-cols-4">
         {cells.map((cell) => (
           // Fact cell: padding [10,20] (px-5 py-3), 11/600 uppercase
           // tertiary label over a 13/medium primary value. The grid's
           // gap-px + divider bg draw the right-/row-hairlines between
           // cells.
-          <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-5 py-3">
+          <div key={cell.key} className="flex flex-col gap-1 bg-background-subtle px-5 py-3">
             {/* Register B2 micro label — 12/500 CAPS tertiary (semibold read
                 chunky at the lifted xs size; medium is the canonical B2
                 weight, see section-header-style.md). */}
@@ -372,7 +378,7 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
           </div>
         ))}
         {Array.from({ length: fillerCount }, (_, i) => (
-          <div key={`filler-${i}`} className="bg-background-default" aria-hidden />
+          <div key={`filler-${i}`} className="bg-background-subtle" aria-hidden />
         ))}
       </div>
 

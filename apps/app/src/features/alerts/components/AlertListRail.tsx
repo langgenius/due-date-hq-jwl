@@ -245,16 +245,14 @@ function RailItem({
         // a touch more column gap so the rail breathes.
         'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
-        // Selected vs unselected is carried by the bg WASH alone — no left
-        // accent bar. 2026-06-12 (Yuqi: "the side border doesn't work when the
-        // item sits next to a floating sidebar on the left"): this rail abuts
-        // the app's floating icon sidebar, so a 2px left bar doubled up against
-        // that edge and read as a clash. The canonical hover-accent-bar motif
-        // (dev-log 2026-06-10-hover-accent-bar-rows) still applies to rows that
-        // DON'T border the sidebar; here the fill wash carries selection +
-        // hover on its own. Inactive rows stay full-strength (no opacity
-        // dimming — that read as "disabled").
-        active ? 'bg-state-accent-hover' : 'hover:bg-state-base-hover',
+        // 2026-06-14 (Yuqi: "active state — let's not have it on a colour
+        // background"): selection is now a NEUTRAL gray fill, not the accent
+        // wash (the chromatic fill read as too loud for a steady selected
+        // state, and accent is the product's action color). Active = the
+        // strongest neutral step (`bg-state-base-active`); hover = the lighter
+        // `bg-state-base-hover`, so the two stay distinct. No left accent bar
+        // (it doubled against the rail's own left border).
+        active ? 'bg-state-base-active' : 'hover:bg-state-base-hover',
       )}
     >
       {/* Time column (60px). */}

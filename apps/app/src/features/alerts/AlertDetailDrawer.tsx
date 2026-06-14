@@ -167,7 +167,10 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
     // 2026-06-12 (de-fill pass): no box — the hero sits flat in the facts
     // section; the BIG date pair + day delta carry the emphasis through
     // type alone.
-    <section className="flex flex-col gap-2.5">
+    // 2026-06-14 (Yuqi #6 "closer as they are together"): the "Deadline
+    // change" label and its date diff are one unit — gap-1.5 (was 2.5) pulls
+    // the label onto the diff instead of floating above it.
+    <section className="flex flex-col gap-1.5">
       {/* Header — ⚠ Deadline change · status chip. T4 subhead tier
           (sentence-case 13/600 secondary): it sits INSIDE the "Extracted
           facts" section, so its old 16/600 stacked two same-tier headers
@@ -1333,10 +1336,14 @@ export function AlertDetailDrawer({
                       </span>
                     )}
                     <span aria-hidden>·</span>
-                    {/* Last activity — the freshest real timestamp, replacing
-                        the standalone publish date (also surfaced verbatim in
-                        the source-extract citation below). */}
-                    <span className="tabular-nums">{formatRelativeTime(lastActivityIso)}</span>
+                    {/* Last activity — the freshest real timestamp. 2026-06-14
+                        (Yuqi #4 "be complete with the date"): the COMPLETE
+                        absolute date with year ("May 18, 2026"), not a clipped
+                        "May 18" or a relative "3 weeks ago" — the masthead
+                        states exactly when, in full. */}
+                    <span className="tabular-nums">
+                      {formatDatePretty(lastActivityIso, { alwaysShowYear: true })}
+                    </span>
                   </span>
                 </div>
 
@@ -1946,7 +1953,12 @@ export function AlertDetailDrawer({
           what squeezed Mark-reviewed into overlapping Dismiss. `py-4`
           (was py-3) gives the action row the extra bottom breathing room
           Yuqi asked for. */}
-      <SheetFooter className="min-h-16 flex-row items-center gap-6 border-t border-divider-subtle bg-background-default px-6 py-4 sm:flex-row xl:px-12">
+      {/* 2026-06-14 (Yuqi #2 "background on a coloured background?"): the
+          explicit white fill is dropped — the footer is a non-overlapping
+          sibling of the scroll area (nothing scrolls under it), so the fill
+          was a redundant background-on-background. The top hairline alone
+          separates the action bar from the document. */}
+      <SheetFooter className="min-h-16 flex-row items-center gap-6 border-t border-divider-subtle px-6 py-4 sm:flex-row xl:px-12">
         {/* The footer chrome spans full width; its actions cap to the
             760px `mx-auto` document measure so the action row sits
             centered under the same column the header + body share. */}
