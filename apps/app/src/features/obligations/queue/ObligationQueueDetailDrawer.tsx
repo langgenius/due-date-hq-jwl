@@ -113,6 +113,7 @@ import {
   SheetDescription,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
@@ -2285,9 +2286,26 @@ export function ObligationQueueDetailDrawer({
           }
         >
           {detailQuery.isLoading ? (
-            <EmptyPanel className="py-8 text-center">
-              <Trans>Loading…</Trans>
-            </EmptyPanel>
+            // Shape-matched skeleton (hero strip + a couple of body sections)
+            // so the detail paints in place instead of a centered "Loading…"
+            // that jolts when the real tabs land.
+            <div className="flex flex-col gap-4" aria-busy aria-label={t`Loading deadline detail`}>
+              <div className="flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-4">
+                <Skeleton className="h-6 w-2/3" />
+                <div className="flex flex-wrap gap-2">
+                  <Skeleton className="h-5 w-24 rounded-full" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                  <Skeleton className="h-5 w-28 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+              <Skeleton className="h-9 w-full rounded-lg" />
+              <div className="flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-16 w-full rounded-lg" />
+                <Skeleton className="h-16 w-full rounded-lg" />
+              </div>
+            </div>
           ) : detailQuery.isError || !detail || !row ? (
             // Step 1-5 reaudit Alert primitive + Step 6 UX #147
             // Button-link retry.

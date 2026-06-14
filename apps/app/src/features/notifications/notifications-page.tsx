@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Link } from 'react-router'
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CheckCheckIcon, CheckIcon, InboxIcon } from 'lucide-react'
+import { ArrowRightIcon, CheckCheckIcon, CheckIcon, InboxIcon, Loader2 } from 'lucide-react'
 import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { toast } from 'sonner'
 
@@ -345,7 +345,10 @@ export function NotificationsPage() {
               aria-busy={notificationsQuery.isFetchingNextPage}
             >
               {notificationsQuery.isFetchingNextPage ? (
-                <Trans>Loading…</Trans>
+                <>
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Trans>Loading…</Trans>
+                </>
               ) : (
                 <Trans>Load more</Trans>
               )}

@@ -161,11 +161,14 @@ export function Step3Normalize({
             onToggleApplyToAll={onToggleApplyToAll}
           />
 
-          {/* "Nothing applies until step 4" reassurance line, green shield. */}
+          {/* Reassurance line — identical sentence to Step 2 (2026-06-12 polish):
+              references the renamed final step ("confirm"), drops the
+              "normalization" jargon, consistent across both steps. */}
           <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
             <ShieldCheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
             <Trans>
-              Nothing applies until step 4. Every normalization is logged and reversible for 24h.
+              Nothing&apos;s applied until you confirm — every change is logged and reversible for 24
+              hours.
             </Trans>
           </p>
         </>

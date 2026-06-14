@@ -270,12 +270,17 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
         </div>
       )}
 
-      {/* "Nothing applies until step 4" reassurance line. Quiet inline note,
-          green shield. */}
+      {/* Reassurance line — one consistent sentence shared with Step 3 (2026-06-12
+          polish): references the renamed final step ("confirm") instead of the
+          stale "step 4", and carries the strongest combined reassurance. Quiet
+          inline note, green shield. */}
       {mapping.status !== 'loading' ? (
         <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
           <ShieldCheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
-          <Trans>Nothing applies until step 4. Every change is logged in the audit trail.</Trans>
+          <Trans>
+            Nothing&apos;s applied until you confirm — every change is logged and reversible for 24
+            hours.
+          </Trans>
         </p>
       ) : null}
     </div>

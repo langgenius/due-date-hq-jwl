@@ -481,7 +481,14 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 rounded-lg border border-divider-subtle p-3 text-sm">
-            {latest ? (
+            {packagesQuery.isLoading ? (
+              // Don't assert "No export packages yet" before the lookup
+              // resolves — there may already be a ready package to download.
+              <div className="flex justify-between gap-3">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+            ) : latest ? (
               <>
                 <div className="flex justify-between gap-3">
                   <span className="text-text-secondary">
@@ -505,7 +512,14 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
             <Button variant="ghost" onClick={() => setOpen(false)}>
               <Trans>Close</Trans>
             </Button>
-            {latest?.status === 'ready' ? (
+            {packagesQuery.isLoading ? (
+              // Hold the action until the lookup resolves so we don't offer
+              // "Request export" when a ready package is about to appear.
+              <Button disabled aria-busy>
+                <Loader2 data-icon="inline-start" className="animate-spin" />
+                <Trans>Loading…</Trans>
+              </Button>
+            ) : latest?.status === 'ready' ? (
               <Button
                 onClick={() => createDownloadUrl.mutate({ id: latest.id })}
                 disabled={createDownloadUrl.isPending}

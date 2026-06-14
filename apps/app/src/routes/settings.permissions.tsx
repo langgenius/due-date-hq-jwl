@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { PageHeader } from '@/components/patterns/page-header'
 import { roleLabel, useFirmPermission } from '@/features/permissions/permission-gate'
@@ -199,6 +200,11 @@ export function SettingsPermissionsRoute() {
   }, [membersQuery.data])
 
   const selectedRoleMembers = memberCounts[selectedRole] ?? 0
+  // Member counts come from a separate query; until it resolves, every count
+  // is 0. Suppress the count copy while loading so the footer / dropdown never
+  // assert a false "0 active members". The matrix pills are static (built-in
+  // role model) and render immediately regardless.
+  const membersLoading = membersQuery.isLoading
   const isOwner = selectedRole === 'owner'
 
   function can(cell: MatrixCell): 'yes' | 'no' | 'na' {
@@ -244,11 +250,15 @@ export function SettingsPermissionsRoute() {
                 {SELECTABLE_ROLES.map((role) => (
                   <SelectItem key={role} value={role}>
                     {roleLabel(role, i18n)}
-                    {' · '}
-                    {(memberCounts[role] ?? 0) === 1 ? (
-                      <Trans>1 member</Trans>
-                    ) : (
-                      <Trans>{memberCounts[role] ?? 0} members</Trans>
+                    {membersLoading ? null : (
+                      <>
+                        {' · '}
+                        {(memberCounts[role] ?? 0) === 1 ? (
+                          <Trans>1 member</Trans>
+                        ) : (
+                          <Trans>{memberCounts[role] ?? 0} members</Trans>
+                        )}
+                      </>
                     )}
                   </SelectItem>
                 ))}
@@ -359,18 +369,24 @@ export function SettingsPermissionsRoute() {
           </span>
         </p>
 
-        {/* Footer */}
+        {/* Footer — a <div> (not <p>) so the loading Skeleton, which renders a
+            block <div>, is valid as a descendant. */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="flex items-center gap-2 text-xs text-text-tertiary">
+          <div className="flex items-center gap-2 text-xs text-text-tertiary">
             <InfoIcon className="size-3.5 shrink-0" aria-hidden />
-            {selectedRoleMembers === 1 ? (
+            {membersLoading ? (
+              <span className="flex items-center gap-2">
+                <Trans>{roleLabel(selectedRole, i18n)} applies to</Trans>
+                <Skeleton className="h-3 w-24" />
+              </span>
+            ) : selectedRoleMembers === 1 ? (
               <Trans>{roleLabel(selectedRole, i18n)} applies to 1 active member.</Trans>
             ) : (
               <Trans>
                 {roleLabel(selectedRole, i18n)} applies to {selectedRoleMembers} active members.
               </Trans>
             )}
-          </p>
+          </div>
           {/* No Save/Discard here: the banner above states this view is
               read-only (no per-role override store yet). Disabled Save
               buttons contradicted that in pixels — honest in prose, lying in

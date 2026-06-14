@@ -1084,7 +1084,11 @@ function PresetChip({ id, label, selected, compact = false, onToggle }: PresetCh
       <span
         aria-hidden
         className={cn(
-          'grid shrink-0 place-items-center overflow-hidden rounded-sm bg-background-subtle ring-1 ring-divider-subtle transition-transform',
+          // White tile (not gray): brand logos carry their own colour and
+          // read muddy on a gray fill atop the white modal. A white tile +
+          // hairline ring is the canonical app-icon presentation (2026-06-12
+          // critique: "look at the logo designs").
+          'grid shrink-0 place-items-center overflow-hidden rounded-sm bg-background-default ring-1 ring-divider-subtle transition-transform',
           compact ? 'size-5' : 'size-5.5',
           logo.tileClassName,
           selected && 'scale-105',
@@ -1146,7 +1150,7 @@ function PresetExportGuideCard({
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-sm bg-background-subtle ring-1 ring-divider-subtle">
+        <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-sm bg-background-default ring-1 ring-divider-subtle">
           <img
             src={logo.src}
             alt=""

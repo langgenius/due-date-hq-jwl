@@ -110,7 +110,20 @@ export function SplashRoute() {
           {/* Greeting */}
           <div className="flex w-full flex-col items-center gap-2.5">
             <h1 className="text-center text-[clamp(2rem,5vw,2.75rem)] font-semibold leading-[1.1] tracking-tight text-text-primary">
-              {data?.userName ? (
+              {recapQuery.isLoading ? (
+                // Reserve the name with an inline skeleton so it doesn't pop in
+                // ~half a second after the greeting — keeps the load in sync
+                // with the recap skeletons below instead of staggering. Uses an
+                // inline <span> (not the block <Skeleton> div) so it's valid
+                // phrasing content inside the <h1>.
+                <span className="inline-flex items-baseline gap-2">
+                  <Trans>Welcome back,</Trans>
+                  <span
+                    aria-hidden
+                    className="inline-block h-[0.7em] w-44 animate-pulse rounded-md bg-state-base-hover-alt align-middle"
+                  />
+                </span>
+              ) : data?.userName ? (
                 <Trans>Welcome back, {data.userName}</Trans>
               ) : (
                 <Trans>Welcome back</Trans>

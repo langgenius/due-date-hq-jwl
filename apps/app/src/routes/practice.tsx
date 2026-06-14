@@ -11,6 +11,7 @@ import {
   CalculatorIcon,
   CircleAlertIcon,
   GaugeIcon,
+  Loader2,
   MinusIcon,
   RotateCcwIcon,
   SlidersHorizontalIcon,
@@ -784,7 +785,11 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                               Boolean(previewDisabledReason)
                             }
                           >
-                            <CalculatorIcon className="size-4" aria-hidden />
+                            {previewMutation.isPending ? (
+                              <Loader2 className="size-4 animate-spin" aria-hidden />
+                            ) : (
+                              <CalculatorIcon className="size-4" aria-hidden />
+                            )}
                             {previewMutation.isPending ? (
                               <Trans>Calculating…</Trans>
                             ) : (
@@ -809,7 +814,10 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                     }
                   >
                     {priorityUpdateMutation.isPending ? (
-                      <Trans>Saving…</Trans>
+                      <>
+                        <Loader2 className="size-4 animate-spin" aria-hidden />
+                        <Trans>Saving…</Trans>
+                      </>
                     ) : (
                       <Trans>Save Smart Priority</Trans>
                     )}

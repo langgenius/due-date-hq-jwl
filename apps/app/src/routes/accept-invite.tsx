@@ -276,8 +276,21 @@ export function AcceptInviteRoute() {
           </div>
         ) : (
           <div className="flex flex-col gap-7">
-            {/* Context row — inviter avatar + the role you'll join as. */}
-            {inviteQuery.data ? (
+            {/* Context row — inviter avatar + the role you'll join as. A
+                shape-matched skeleton holds its space while the invite loads so
+                the card doesn't jump when the row lands. */}
+            {inviteQuery.isLoading ? (
+              <div
+                aria-hidden
+                className="flex items-center gap-3 rounded-xl border border-divider-subtle bg-bg-subtle px-4 py-3.5"
+              >
+                <Skeleton className="size-9 shrink-0 rounded-full" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-28" />
+                </div>
+              </div>
+            ) : inviteQuery.data ? (
               <div className="flex items-center gap-3 rounded-xl border border-divider-subtle bg-bg-subtle px-4 py-3.5">
                 <span
                   aria-hidden

@@ -74,7 +74,17 @@ export function Step4Preview({
             <Trans>You&apos;re about to create:</Trans>
           </p>
         </div>
-        <div className="grid grid-cols-3 divide-x divide-divider-regular">
+        {/* While a dedup-toggle re-run is in flight the counts below are stale.
+            Dim + pulse the grid (and mark it aria-busy) so the numbers read as
+            "refreshing" instead of silently snapping to new values when the
+            dry-run returns. */}
+        <div
+          aria-busy={isUpdatingPreview}
+          className={cn(
+            'grid grid-cols-3 divide-x divide-divider-regular transition-opacity',
+            isUpdatingPreview && 'animate-pulse opacity-50',
+          )}
+        >
           <HeroMetric
             value={clientCount}
             unit={<Trans>Clients</Trans>}

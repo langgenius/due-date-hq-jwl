@@ -1181,6 +1181,10 @@ msgstr "{impacted} clients may be affected"
 msgid "{inviteCount, plural, one {# invite} other {# invites}}"
 msgstr "{inviteCount, plural, one {# invite} other {# invites}}"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "{jurisdictionLabel} rule summary"
+msgstr "{jurisdictionLabel} rule summary"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{jurisdictions, plural, one {Monitoring # jurisdiction} other {Monitoring # jurisdictions}}"
 msgstr "{jurisdictions, plural, one {Monitoring # jurisdiction} other {Monitoring # jurisdictions}}"
@@ -1400,12 +1404,12 @@ msgid "{ruleReviewCount} rules pending review"
 msgstr "{ruleReviewCount} rules pending review"
 
 #: src/routes/obligations.tsx
-msgid "{scopeTotal, plural, one {# active filing} other {# active filings}}"
-msgstr "{scopeTotal, plural, one {# active filing} other {# active filings}}"
-
-#: src/routes/obligations.tsx
 msgid "{scopeTotal, plural, one {# deadline tracked} other {# deadlines tracked}}"
 msgstr "{scopeTotal, plural, one {# deadline tracked} other {# deadlines tracked}}"
+
+#: src/routes/obligations.tsx
+msgid "{scopeTotal, plural, one {# filing tracked} other {# filings tracked}}"
+msgstr "{scopeTotal, plural, one {# filing tracked} other {# filings tracked}}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -6605,9 +6609,7 @@ msgid "Email signal"
 msgstr "Email signal"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/reminders/reminders-page.tsx
 #: src/features/settings/settings-sub-nav.tsx
-#: src/routes/route-summary.ts
 msgid "Email Template"
 msgstr "Email Template"
 
@@ -8964,6 +8966,10 @@ msgstr "Loading clients for preview…"
 msgid "Loading clients…"
 msgstr "Loading clients…"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Loading deadline detail"
+msgstr "Loading deadline detail"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Loading deadline preview…"
 msgstr "Loading deadline preview…"
@@ -9027,7 +9033,6 @@ msgstr "Loading workload metrics"
 #: src/features/audit/audit-log-page.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/obligations/detail/DeadlineNavigatorRail.tsx
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 msgid "Loading…"
@@ -9509,6 +9514,7 @@ msgstr "member@example.com"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/members/members-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.permissions.tsx
 msgid "Members"
@@ -10228,10 +10234,9 @@ msgstr "No buffer — same as filing"
 msgid "No change"
 msgstr "No change"
 
-#. placeholder {0}: formatDatePretty(new Date(lastChangeAt).toISOString())
 #: src/routes/rules.library.tsx
-msgid "No changes in the last 30 days — last change {0}"
-msgstr "No changes in the last 30 days — last change {0}"
+msgid "No changes in the last 30 days"
+msgstr "No changes in the last 30 days"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "No changes since your last visit."
@@ -10584,8 +10589,8 @@ msgid "No rule changes are waiting on review. We'll surface new updates from sou
 msgstr "No rule changes are waiting on review. We'll surface new updates from sources as they're published."
 
 #: src/routes/rules.library.tsx
-msgid "No rule changes recorded yet."
-msgstr "No rule changes recorded yet."
+msgid "No rule changes have been recorded yet."
+msgstr "No rule changes have been recorded yet."
 
 #. placeholder {0}: group.label
 #: src/routes/rules.library.tsx
@@ -10908,14 +10913,6 @@ msgstr "Notes saved"
 msgid "Nothing — re-enabling later issues a brand-new URL"
 msgstr "Nothing — re-enabling later issues a brand-new URL"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "Nothing applies until step 4. Every change is logged in the audit trail."
-msgstr "Nothing applies until step 4. Every change is logged in the audit trail."
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Nothing applies until step 4. Every normalization is logged and reversible for 24h."
-msgstr "Nothing applies until step 4. Every normalization is logged and reversible for 24h."
-
 #: src/components/patterns/alerts-notifications-bell.tsx
 msgid "Nothing here."
 msgstr "Nothing here."
@@ -10952,6 +10949,11 @@ msgstr "Nothing scheduled"
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Nothing to fix"
 msgstr "Nothing to fix"
+
+#: src/features/migration/Step2Mapping.tsx
+#: src/features/migration/Step3Normalize.tsx
+msgid "Nothing's applied until you confirm — every change is logged and reversible for 24 hours."
+msgstr "Nothing's applied until you confirm — every change is logged and reversible for 24 hours."
 
 #. placeholder {0}: formatRelativeTime(lastSeenAt)
 #: src/features/dashboard/changes-since-last-section.tsx
@@ -11117,8 +11119,8 @@ msgid "Only practice owners can start or change a subscription."
 msgstr "Only practice owners can start or change a subscription."
 
 #: src/features/notifications/notification-preferences-page.tsx
-msgid "Only sends when deadlines, Pulse alerts, or delivery failures need attention."
-msgstr "Only sends when deadlines, Pulse alerts, or delivery failures need attention."
+msgid "Only sends when deadlines, regulatory alerts, or delivery failures need attention."
+msgstr "Only sends when deadlines, regulatory alerts, or delivery failures need attention."
 
 #: src/routes/practice.tsx
 msgid "Only the practice owner can change Smart Priority settings."
@@ -12513,6 +12515,7 @@ msgid "Production alert actions require Pro or above."
 msgstr "Production alert actions require Pro or above."
 
 #: src/features/settings/settings-sub-nav.tsx
+#: src/routes/route-summary.ts
 #: src/routes/settings.profile.tsx
 msgid "Profile"
 msgstr "Profile"
@@ -13096,6 +13099,11 @@ msgstr "Reminder couldn't be sent"
 #: src/features/settings/settings-sub-nav.tsx
 msgid "Reminder email templates and recent delivery."
 msgstr "Reminder email templates and recent delivery."
+
+#: src/features/reminders/reminders-page.tsx
+#: src/routes/route-summary.ts
+msgid "Reminder emails"
+msgstr "Reminder emails"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Reminder opened"
@@ -15803,7 +15811,6 @@ msgstr "Tax-type sources"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
-#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -17359,6 +17366,10 @@ msgstr "Weekly digest"
 msgid "Welcome back"
 msgstr "Welcome back"
 
+#: src/routes/splash.tsx
+msgid "Welcome back,"
+msgstr "Welcome back,"
+
 #. placeholder {0}: data.userName
 #: src/routes/splash.tsx
 msgid "Welcome back, {0}"
@@ -17719,11 +17730,6 @@ msgstr "you@firm.com"
 msgid "you@yourpractice.com"
 msgstr "you@yourpractice.com"
 
-#: src/routes/route-summary.ts
-#: src/routes/settings.profile.tsx
-msgid "Your account"
-msgstr "Your account"
-
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
 msgstr "Your account isn't linked to a practice yet."
@@ -17807,6 +17813,11 @@ msgstr "Your review queue is empty"
 #: src/routes/rules.library.tsx
 msgid "Your rule catalog is empty."
 msgstr "Your rule catalog is empty."
+
+#. placeholder {0}: formatDatePretty(new Date(lastChangeAt).toISOString())
+#: src/routes/rules.library.tsx
+msgid "Your rule library is current. Last change {0}."
+msgstr "Your rule library is current. Last change {0}."
 
 #: src/routes/billing.success.tsx
 msgid "Your subscription is confirmed and the plan is active."

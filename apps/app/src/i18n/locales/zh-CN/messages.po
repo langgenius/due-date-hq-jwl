@@ -1186,6 +1186,10 @@ msgstr "{impacted} 个客户可能受影响"
 msgid "{inviteCount, plural, one {# invite} other {# invites}}"
 msgstr "{inviteCount, plural, one {# 个邀请} other {# 个邀请}}"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "{jurisdictionLabel} rule summary"
+msgstr "{jurisdictionLabel} 规则概要"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{jurisdictions, plural, one {Monitoring # jurisdiction} other {Monitoring # jurisdictions}}"
 msgstr "{jurisdictions, plural, other {正在监控 # 个辖区}}"
@@ -1405,12 +1409,12 @@ msgid "{ruleReviewCount} rules pending review"
 msgstr "{ruleReviewCount} 条规则待复核"
 
 #: src/routes/obligations.tsx
-msgid "{scopeTotal, plural, one {# active filing} other {# active filings}}"
-msgstr "{scopeTotal, plural, other {# 项活跃申报}}"
-
-#: src/routes/obligations.tsx
 msgid "{scopeTotal, plural, one {# deadline tracked} other {# deadlines tracked}}"
 msgstr "{scopeTotal, plural, other {已跟踪 # 个截止事项}}"
+
+#: src/routes/obligations.tsx
+msgid "{scopeTotal, plural, one {# filing tracked} other {# filings tracked}}"
+msgstr "{scopeTotal, plural, one {已跟踪 # 项申报} other {已跟踪 # 项申报}}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -6631,9 +6635,7 @@ msgid "Email signal"
 msgstr "邮件信号"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/reminders/reminders-page.tsx
 #: src/features/settings/settings-sub-nav.tsx
-#: src/routes/route-summary.ts
 msgid "Email Template"
 msgstr "邮件模板"
 
@@ -9000,6 +9002,10 @@ msgstr "正在加载用于预览的客户…"
 msgid "Loading clients…"
 msgstr "正在加载客户…"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Loading deadline detail"
+msgstr "正在加载截止事项详情"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Loading deadline preview…"
 msgstr "正在加载截止事项预览…"
@@ -9063,7 +9069,6 @@ msgstr "正在加载工作负载指标"
 #: src/features/audit/audit-log-page.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/obligations/detail/DeadlineNavigatorRail.tsx
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 msgid "Loading…"
@@ -9550,6 +9555,7 @@ msgstr "member@example.com"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/members/members-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.permissions.tsx
 msgid "Members"
@@ -10270,10 +10276,9 @@ msgstr "无缓冲 — 与申报日相同"
 msgid "No change"
 msgstr "无变化"
 
-#. placeholder {0}: formatDatePretty(new Date(lastChangeAt).toISOString())
 #: src/routes/rules.library.tsx
-msgid "No changes in the last 30 days — last change {0}"
-msgstr "过去 30 天没有变更 — 最近一次变更 {0}"
+msgid "No changes in the last 30 days"
+msgstr "过去 30 天没有变更"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "No changes since your last visit."
@@ -10628,7 +10633,7 @@ msgid "No rule changes are waiting on review. We'll surface new updates from sou
 msgstr "没有等待审核的规则变更。来源发布新更新后，我们会第一时间呈现。"
 
 #: src/routes/rules.library.tsx
-msgid "No rule changes recorded yet."
+msgid "No rule changes have been recorded yet."
 msgstr "尚未记录任何规则变更。"
 
 #. placeholder {0}: group.label
@@ -10956,14 +10961,6 @@ msgstr "备注已保存"
 msgid "Nothing — re-enabling later issues a brand-new URL"
 msgstr "不会保留任何内容，之后重新启用会生成全新的 URL"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "Nothing applies until step 4. Every change is logged in the audit trail."
-msgstr "在第 4 步之前不会应用任何更改。每项更改都会记入审计轨迹。"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Nothing applies until step 4. Every normalization is logged and reversible for 24h."
-msgstr "在第 4 步之前不会应用任何更改。每项规范化都会记录，并可在 24 小时内撤销。"
-
 #: src/components/patterns/alerts-notifications-bell.tsx
 msgid "Nothing here."
 msgstr "这里暂无内容。"
@@ -11000,6 +10997,11 @@ msgstr "暂无排期"
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Nothing to fix"
 msgstr "无需修复"
+
+#: src/features/migration/Step2Mapping.tsx
+#: src/features/migration/Step3Normalize.tsx
+msgid "Nothing's applied until you confirm — every change is logged and reversible for 24 hours."
+msgstr "在你确认之前不会应用任何更改 — 每项更改都会记录，并可在 24 小时内撤销。"
 
 #. placeholder {0}: formatRelativeTime(lastSeenAt)
 #: src/features/dashboard/changes-since-last-section.tsx
@@ -11167,8 +11169,8 @@ msgid "Only practice owners can start or change a subscription."
 msgstr "只有事务所 Owner 可以创建或变更订阅。"
 
 #: src/features/notifications/notification-preferences-page.tsx
-msgid "Only sends when deadlines, Pulse alerts, or delivery failures need attention."
-msgstr "仅在截止日、Pulse 提醒或投递失败需要处理时发送。"
+msgid "Only sends when deadlines, regulatory alerts, or delivery failures need attention."
+msgstr "仅在截止事项、监管提醒或发送失败需要关注时才发送。"
 
 #: src/routes/practice.tsx
 msgid "Only the practice owner can change Smart Priority settings."
@@ -12576,6 +12578,7 @@ msgid "Production alert actions require Pro or above."
 msgstr "正式提醒操作需要 Pro 及以上权限。"
 
 #: src/features/settings/settings-sub-nav.tsx
+#: src/routes/route-summary.ts
 #: src/routes/settings.profile.tsx
 msgid "Profile"
 msgstr "个人资料"
@@ -13161,6 +13164,11 @@ msgstr "提醒无法发送"
 #: src/features/settings/settings-sub-nav.tsx
 msgid "Reminder email templates and recent delivery."
 msgstr "提醒邮件模板与最近投递。"
+
+#: src/features/reminders/reminders-page.tsx
+#: src/routes/route-summary.ts
+msgid "Reminder emails"
+msgstr "催办邮件"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Reminder opened"
@@ -15876,7 +15884,6 @@ msgstr "税种来源"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
-#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -17436,6 +17443,10 @@ msgstr "每周摘要"
 msgid "Welcome back"
 msgstr "欢迎回来"
 
+#: src/routes/splash.tsx
+msgid "Welcome back,"
+msgstr "欢迎回来，"
+
 #. placeholder {0}: data.userName
 #: src/routes/splash.tsx
 msgid "Welcome back, {0}"
@@ -17798,11 +17809,6 @@ msgstr "you@firm.com"
 msgid "you@yourpractice.com"
 msgstr "you@yourpractice.com"
 
-#: src/routes/route-summary.ts
-#: src/routes/settings.profile.tsx
-msgid "Your account"
-msgstr "您的账户"
-
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
 msgstr "你的账户尚未关联任何事务所。"
@@ -17887,6 +17893,11 @@ msgstr "您的审核队列为空"
 #: src/routes/rules.library.tsx
 msgid "Your rule catalog is empty."
 msgstr "你的规则目录为空。"
+
+#. placeholder {0}: formatDatePretty(new Date(lastChangeAt).toISOString())
+#: src/routes/rules.library.tsx
+msgid "Your rule library is current. Last change {0}."
+msgstr "你的规则库已是最新。最近一次变更 {0}。"
 
 #: src/routes/billing.success.tsx
 msgid "Your subscription is confirmed and the plan is active."
