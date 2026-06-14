@@ -446,7 +446,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
             icon: MegaphoneIcon,
             end: false,
             ...(alertBadge !== undefined
-              ? { badge: alertBadge, badgeTooltip: t`${alertCount} active alerts` }
+              ? { badge: alertBadge, badgeTooltip: t`${alertCount} open alerts` }
               : {}),
           },
           {
@@ -545,7 +545,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           icon: MegaphoneIcon,
           end: false,
           ...(alertBadge !== undefined
-            ? { badge: alertBadge, badgeTooltip: t`${alertCount} active alerts` }
+            ? { badge: alertBadge, badgeTooltip: t`${alertCount} open alerts` }
             : {}),
         },
       ],

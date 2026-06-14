@@ -10,6 +10,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import {
+  useActiveAlertCount,
   useAlertsAffectedClients,
   useAlertsListQueryOptions,
   useAlertSourceHealthQueryOptions,
@@ -85,6 +86,13 @@ function NeedsAttentionSection() {
   // `getDetail` per card — the cards only need affected-client names.
   const affectedByAlert = useAlertsAffectedClients(cardAlerts.map((alert) => alert.id))
   const totalAlertCount = shownAlerts.length
+  // "View all N" must quote the DESTINATION's total (the canonical active
+  // count the /alerts page + sidebar badge use), not the count of cards this
+  // section happens to show. They disagreed — nav said "9 active alerts"
+  // while this read "View all 4" yet linked to a page with 9 (re-critique).
+  // One number, one source. (totalAlertCount stays the section's own
+  // stream length, which drives the caught-up empty state below.)
+  const viewAllCount = useActiveAlertCount()
   // Describes jurisdiction coverage, not raw adapter count, so hidden
   // policy-watch adapters can grow without the header reading
   // "monitoring 150 sources."
@@ -251,7 +259,7 @@ function NeedsAttentionSection() {
             navigation affordance reads as a link, not gray meta. */}
         <TextLink variant="accent" render={<Link to="/alerts" />} className="group shrink-0">
           <span className="tabular-nums">
-            <Trans>View all {totalAlertCount}</Trans>
+            <Trans>View all {viewAllCount}</Trans>
           </span>
           {/* Micro-detail: the arrow nudges forward on hover — motion carried
               by the glyph, not the surface (no lifts/shadows). */}

@@ -130,8 +130,10 @@ export function NotificationsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
+      {/* "Notifications" matches the route title, breadcrumb, nav, and the
+          sibling "Notification preferences" — the H1 was the lone "Inbox". */}
       <PageHeader
-        title={<Trans>Inbox</Trans>}
+        title={<Trans>Notifications</Trans>}
         description={
           <Trans>
             Mentions, deadline reminders, and assignment changes — everything that needs you, in one
@@ -159,14 +161,14 @@ export function NotificationsPage() {
         <SearchInput
           value={searchQuery}
           onChange={(next) => void setSearchQuery(next.length > 0 ? next : null)}
-          placeholder={t`Filter inbox`}
-          ariaLabel={t`Filter inbox`}
+          placeholder={t`Filter notifications`}
+          ariaLabel={t`Filter notifications`}
           className="md:max-w-sm"
           hotkey="/"
           hotkeyMeta={{
             id: 'notifications.focus-search',
-            name: 'Filter inbox',
-            description: 'Focus the inbox filter input.',
+            name: 'Filter notifications',
+            description: 'Focus the notifications filter input.',
             category: 'practice',
             scope: 'route',
           }}
@@ -181,7 +183,11 @@ export function NotificationsPage() {
           }}
         >
           <SelectTrigger className="w-full md:w-52" aria-label={t`Filter by type`}>
-            <SelectValue />
+            {/* Explicit label — a bare <SelectValue/> renders the raw enum
+                ("all" lowercase); show the formatted option text instead. */}
+            <SelectValue>
+              {typeFilter === 'all' ? <Trans>All types</Trans> : notificationTypeLabel(typeFilter)}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {NOTIFICATION_TYPE_FILTERS.map((filterValue) => (

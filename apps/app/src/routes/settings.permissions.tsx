@@ -125,7 +125,7 @@ const SCOPES: readonly MatrixScope[] = [
   {
     key: 'alerts',
     label: msg`Alerts`,
-    description: msg`Pulse alerts, reminders, calendar sync`,
+    description: msg`Regulatory alerts, reminders, calendar sync`,
     Icon: BellIcon,
     cells: {
       view: 'all',

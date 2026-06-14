@@ -798,7 +798,10 @@ function PulseAlertRow({
                 )
               })}
             </span>
-            {t`${confidencePct}% conf`}
+            {/* Spell out "confidence" — "conf" read as cryptic jargon
+                (re-critique). The row meta is flex-wrap, so the longer
+                word wraps as a whole unit in the compact panel. */}
+            {t`${confidencePct}% confidence`}
           </span>
 
           {/* Hover-only action cluster — Dismiss / Review.
