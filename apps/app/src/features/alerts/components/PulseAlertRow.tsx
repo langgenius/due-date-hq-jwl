@@ -477,17 +477,11 @@ function PulseAlertRow({
               className override on /alerts). */}
           {formLabel ? <TaxCodeBadge code={formLabel} /> : null}
 
-          {/* CHANGE KIND — aligned to the dashboard NeedsAttentionCard's
-              change-kind treatment — SANS (not mono), text-xs
-              font-semibold tracking-[0.4px], neutral text-tertiary (not
-              accent). One change-kind type signature across /today +
-              /alerts. The change-kind label stands alone here; the bottom
-              confidence pill already leads with "N sources · X% conf", so
-              the corroboration signal isn't duplicated in the head. */}
-          {/* Demoted to caption/medium/muted — at xs/semibold the kind
-              label out-shouted the title (Yuqi batch 3 #5: "too
-              obvious"); it's classification metadata, not a signal. */}
-          <span className="text-chip-label text-text-muted uppercase">
+          {/* CHANGE KIND — 2026-06-14 (Yuqi "Protective claim window is
+              different on the list and the detail"): sentence-case medium
+              secondary, matching the detail hero exactly. One treatment
+              across list + rail + detail. (Was tracked-caps muted.) */}
+          <span className="text-xs font-medium text-text-secondary">
             {changeKindLabel(alert.changeKind)}
           </span>
 

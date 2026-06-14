@@ -280,10 +280,9 @@ function RailItem({
               chip in the row and the rail, and both match the app-wide
               form-badge treatment (same-entity-same-rendering audit). */}
           {form ? <TaxCodeBadge code={form} /> : null}
-          {/* Change-kind — the SAME demoted treatment as the main /alerts
-              row (caption-xs/medium/muted): classification metadata, not a
-              signal (batch 4 #8). */}
-          <span className="text-chip-label text-text-muted uppercase">
+          {/* Change-kind — sentence-case medium secondary, matching the
+              main row + detail hero (2026-06-14 consistency pass). */}
+          <span className="text-xs font-medium text-text-secondary">
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>

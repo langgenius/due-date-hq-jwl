@@ -272,9 +272,9 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
     deadlineTypesCell,
     optInCell,
   ]
-  // Pad the hairline matrix to a full 4-column row — the grid wrapper's
+  // Pad the hairline matrix to a full 2-column row — the grid wrapper's
   // divider-colored bg shows through any unfilled slot as a gray block.
-  const fillerCount = (4 - (cells.length % 4)) % 4
+  const fillerCount = (2 - (cells.length % 2)) % 2
 
   // HERO key fact — ONE refined line (2026-06-12, Yuqi "太粗糙了…好难看"):
   // the first cut hoisted the whole callout (warning rule + caps eyebrow +
@@ -356,16 +356,18 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
           so a second framed box read as a nested frame. The cell hairlines
           (gap-px over the divider bg) remain to delineate the matrix; the
           card chrome above is the only outer frame. */}
-      {/* 4-col only ≥xl — below 1280 the detail pane runs 560–820px wide
-          (rail + sidebar take the rest), where 4 columns crushed each cell
-          to ~116px (alerts responsive contract). */}
+      {/* 2026-06-14 (Yuqi "the table is ugly + hard to read"): TWO columns,
+          not four. At the pane width 4 cols squeezed values to ~190px so
+          "COVID disaster relief postponements" wrapped to ragged 2-line
+          cells; 2 cols give each value room to read on one line, as clean
+          key→value pairs. */}
       {/* 2026-06-14 (Yuqi #1 "light light gray background"): the fact grid is
           a contained light-gray REFERENCE panel — cells sit on
           `bg-background-subtle`, hairline-divided, rounded, no outer border.
           On the all-white document this zones the structured reference data
           apart from the prose. This is ONE intentional data block, not the
           alternating white/gray washes that were rejected earlier. */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-divider-subtle xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-divider-subtle">
         {cells.map((cell) => (
           // Fact cell: padding [10,20] (px-5 py-3), 11/600 uppercase
           // tertiary label over a 13/medium primary value. The grid's
@@ -408,17 +410,17 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
       {/* Legal uncertainty — prose caveat, deliberately quiet: it informs
           the review but isn't a do-this fact like the hero above. */}
       {protectiveFacts?.legalUncertainty ? (
-        // De-fill pass: a quiet neutral left rule — same callout anatomy as
-        // the deadline rule above, in the neutral tone (informs, no urgency).
-        <div className="flex flex-col gap-1 border-l-2 border-divider-deep py-0.5 pl-4">
-          {/* T4 subhead — sentence-case, not caps (label-ladder). */}
-          <span className="text-sm font-semibold text-text-secondary">
-            <Trans>Legal uncertainty</Trans>
-          </span>
-          <p className="text-sm leading-relaxed text-text-secondary">
-            {protectiveFacts.legalUncertainty}
-          </p>
-        </div>
+        // 2026-06-14 (Yuqi "shattered"): the left rule is dropped — three
+        // different callout treatments (accent rule / gray grid / neutral
+        // rule) read as unrelated fragments. This is just a quiet caption:
+        // a tertiary inline label + secondary prose, so Change details reads
+        // as ONE section (accent action → gray data → quiet caveat).
+        <p className="text-sm leading-relaxed text-text-secondary">
+          <span className="font-semibold text-text-tertiary">
+            <Trans>Legal uncertainty:</Trans>
+          </span>{' '}
+          {protectiveFacts.legalUncertainty}
+        </p>
       ) : null}
     </div>
   )

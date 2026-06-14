@@ -1602,15 +1602,13 @@ export function AlertDetailDrawer({
         ) : null}
 
         {detail ? (
-          // 2026-06-12 (Yuqi "plain, no hierarchy, floating… hate frames in
-          // frames in just lines"): the body is a flat DOCUMENT of four
-          // regions — Extracted facts / Affected clients / Source &
-          // confidence / Activity — separated by a 40px whitespace rhythm
-          // (gap-10) and led by 16/600 section headers (variant="flat", no
-          // outlines). Proximity + type do the grouping; the only framed
-          // things are semantic tables (affected clients). Kept out of
-          // flex-shrink so the scroll container owns the scroll height.
-          <div className="flex shrink-0 flex-col gap-10">
+          // 2026-06-14 (Yuqi "too loose / shattered"): the inter-section
+          // rhythm tightens 40px → 32px (gap-8). 40px of pure whitespace read
+          // as floating islands; 32px still separates the ranked section
+          // headers cleanly but keeps the document cohesive. No dividers
+          // (Yuqi dislikes "just lines"); type hierarchy + the gray data
+          // panel do the grouping.
+          <div className="flex shrink-0 flex-col gap-8">
             {/* GROUP 1 — Change details (2026-06-12 info-organisation pass:
                 renamed from the system-speak "Extracted facts"; named by
                 MEANING like every other section). The do-by-when KEY FACT
