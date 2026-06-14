@@ -154,7 +154,9 @@ export function SuccessModal({
             <Undo2Icon className="size-[18px] shrink-0 text-text-warning" aria-hidden />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span className="text-sm font-semibold text-text-warning">
-                <Trans>Roll back this import within 24 hours, no questions asked</Trans>
+                {/* "Undo", not "Roll back" — matches the button below + the
+                    word used everywhere else in the import surfaces. */}
+                <Trans>Undo this import within 24 hours, no questions asked</Trans>
               </span>
               <span className="text-caption font-medium text-text-secondary tabular-nums">
                 {/* batchId shortened for display; countdown is live. */}

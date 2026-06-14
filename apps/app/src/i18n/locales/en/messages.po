@@ -2397,6 +2397,10 @@ msgid "AI output id"
 msgstr "AI output id"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+msgid "AI parsed"
+msgstr "AI parsed"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
 msgid "AI parsed — verify before Apply"
 msgstr "AI parsed — verify before Apply"
 
@@ -2469,6 +2473,10 @@ msgstr "Alert dismissed"
 #: src/routes/alerts.tsx
 msgid "Alert history"
 msgstr "Alert history"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Alert lifecycle"
+msgstr "Alert lifecycle"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Alert marked reviewed"
@@ -2905,6 +2913,7 @@ msgstr "Applicability"
 msgid "Applicability review"
 msgstr "Applicability review"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/AlertCard.tsx
@@ -3824,7 +3833,6 @@ msgstr "Cc · Bcc"
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/login.tsx
-#: src/routes/settings.profile.tsx
 msgid "Change"
 msgstr "Change"
 
@@ -3929,6 +3937,10 @@ msgstr "Check the selected rows and try again."
 #: src/routes/rules.library.tsx
 msgid "Check the selection and try again."
 msgstr "Check the selection and try again."
+
+#: src/features/migration/Stepper.tsx
+msgid "Check values"
+msgstr "Check values"
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClassificationImpactDialog.tsx
@@ -4557,6 +4569,7 @@ msgid "Configure sources"
 msgstr "Configure sources"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
+#: src/features/migration/Stepper.tsx
 msgid "Confirm"
 msgstr "Confirm"
 
@@ -5914,10 +5927,6 @@ msgstr "Decision memo is required."
 msgid "Default"
 msgstr "Default"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Default Matrix · {defaultMatrix}"
-msgstr "Default Matrix · {defaultMatrix}"
-
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Default order"
 msgstr "Default order"
@@ -6264,10 +6273,6 @@ msgstr "drives alert + digest timing"
 #: src/features/migration/Step1Intake.tsx
 msgid "Drop a file or click to browse"
 msgstr "Drop a file or click to browse"
-
-#: src/features/migration/Stepper.tsx
-msgid "Dry run"
-msgstr "Dry run"
 
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -6722,8 +6727,8 @@ msgid "Entity type"
 msgstr "Entity type"
 
 #: src/features/migration/Step2Mapping.tsx
-msgid "Entity type · enum"
-msgstr "Entity type · enum"
+msgid "Entity type · category"
+msgstr "Entity type · category"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "entity types"
@@ -8383,10 +8388,6 @@ msgstr "Instant"
 msgid "Instructions"
 msgstr "Instructions"
 
-#: src/features/migration/Stepper.tsx
-msgid "Intake"
-msgstr "Intake"
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Internal"
 msgstr "Internal"
@@ -9152,7 +9153,6 @@ msgstr "Map view"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/migration/ImportHistoryDrawer.tsx
-#: src/features/migration/Stepper.tsx
 msgid "Mapping"
 msgstr "Mapping"
 
@@ -9310,6 +9310,11 @@ msgstr "Match"
 msgid "Match {matched}/{total}"
 msgstr "Match {matched}/{total}"
 
+#: src/features/migration/Stepper.tsx
+msgid "Match columns"
+msgstr "Match columns"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/audit/audit-log-labels.ts
 msgid "Matched"
 msgstr "Matched"
@@ -9603,6 +9608,10 @@ msgstr "Modified"
 msgid "Monitor sources"
 msgstr "Monitor sources"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Monitored"
+msgstr "Monitored"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Monitoring {sourceCount} sources across {jurisdictions} jurisdictions"
 msgstr "Monitoring {sourceCount} sources across {jurisdictions} jurisdictions"
@@ -9773,6 +9782,10 @@ msgstr "My work"
 #: src/features/audit/audit-log-labels.ts
 msgid "Name"
 msgstr "Name"
+
+#: src/routes/settings.profile.tsx
+msgid "Name and email come from your sign-in provider and can't be edited here."
+msgstr "Name and email come from your sign-in provider and can't be edited here."
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Name match — review"
@@ -10741,10 +10754,6 @@ msgstr "Nonprofit"
 msgid "Normal priority"
 msgstr "Normal priority"
 
-#: src/features/migration/Stepper.tsx
-msgid "Normalize"
-msgstr "Normalize"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Not allowed"
 msgstr "Not allowed"
@@ -10757,10 +10766,6 @@ msgstr "Not allowed."
 #: src/features/rules/coverage-tab.tsx
 msgid "Not applicable"
 msgstr "Not applicable"
-
-#: src/routes/settings.profile.tsx
-msgid "Not available yet"
-msgstr "Not available yet"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Not enabled"
@@ -13010,6 +13015,10 @@ msgstr "Rejected date"
 msgid "Rejected date is required."
 msgstr "Rejected date is required."
 
+#: src/features/workload/workload-page.tsx
+msgid "Relative load"
+msgstr "Relative load"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Relief / disaster"
 msgstr "Relief / disaster"
@@ -13698,10 +13707,6 @@ msgstr "Role"
 #: src/routes/settings.permissions.tsx
 msgid "Roles map to a fixed permission model. Changes here would need a per-role override store, which isn't available yet — this view is read-only."
 msgstr "Roles map to a fixed permission model. Changes here would need a per-role override store, which isn't available yet — this view is read-only."
-
-#: src/features/migration/SuccessModal.tsx
-msgid "Roll back this import within 24 hours, no questions asked"
-msgstr "Roll back this import within 24 hours, no questions asked"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Roll over all {totalCount} (review {requiresReviewCount})"
@@ -14752,10 +14757,6 @@ msgstr "Setup URI copied"
 msgid "Severity"
 msgstr "Severity"
 
-#: src/features/workload/workload-page.tsx
-msgid "Share of open work"
-msgstr "Share of open work"
-
 #: src/routes/billing.checkout.tsx
 msgid "Shared deadline operations"
 msgstr "Shared deadline operations"
@@ -15253,10 +15254,6 @@ msgstr "Source-changed rules are skipped from bulk accept. Review them one by on
 msgid "Source-changed rules should be checked against evidence before accepting."
 msgstr "Source-changed rules should be checked against evidence before accepting."
 
-#: src/features/onboarding/rule-review-prompt.tsx
-msgid "Source-defined calendar — confirm before deadlines generate for clients."
-msgstr "Source-defined calendar — confirm before deadlines generate for clients."
-
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-defined rules are skipped from bulk accept. Generate and review their AI draft one by one."
 msgstr "Source-defined rules are skipped from bulk accept. Generate and review their AI draft one by one."
@@ -15412,6 +15409,7 @@ msgstr "Statutory deadline"
 msgid "Stay and import"
 msgstr "Stay and import"
 
+#: src/routes/migration.new.tsx
 #: src/routes/onboarding.tsx
 msgid "Step {step} of {total}"
 msgstr "Step {step} of {total}"
@@ -15696,6 +15694,10 @@ msgstr "Tax type"
 #: src/features/migration/Step3Normalize.tsx
 msgid "Tax type defaults"
 msgstr "Tax type defaults"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "Tax type defaults · {defaultMatrix}"
+msgstr "Tax type defaults · {defaultMatrix}"
 
 #: src/features/concepts/concept-help.tsx
 msgid "Tax type suggestions"
@@ -16319,6 +16321,10 @@ msgstr "This stage hasn't been reached yet. We only project the Filed date (usin
 msgid "This stage was skipped — no date applies."
 msgstr "This stage was skipped — no date applies."
 
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "This state publishes its own filing calendar — confirm it before deadlines generate."
+msgstr "This state publishes its own filing calendar — confirm it before deadlines generate."
+
 #: src/features/reminders/reminders-page.tsx
 msgid "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 msgstr "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
@@ -16703,6 +16709,10 @@ msgstr "Undo import ({0})"
 msgid "Undo this import for 24 hours — the audit log records every change"
 msgstr "Undo this import for 24 hours — the audit log records every change"
 
+#: src/features/migration/SuccessModal.tsx
+msgid "Undo this import within 24 hours, no questions asked"
+msgstr "Undo this import within 24 hours, no questions asked"
+
 #: src/features/migration/Wizard.tsx
 msgid "Undo this import?"
 msgstr "Undo this import?"
@@ -16830,6 +16840,10 @@ msgstr "Upgrade to Pro"
 #: src/routes/billing.tsx
 msgid "Upgrade to Team"
 msgstr "Upgrade to Team"
+
+#: src/features/migration/Stepper.tsx
+msgid "Upload"
+msgstr "Upload"
 
 #: src/features/migration/intake-files.ts
 msgid "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
@@ -17586,8 +17600,8 @@ msgid "You"
 msgstr "You"
 
 #: src/features/onboarding/rule-review-prompt.tsx
-msgid "You activated {totalRulesActivated} rules. For {codeList}, our source-defined calendars need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
-msgstr "You activated {totalRulesActivated} rules. For {codeList}, our source-defined calendars need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
+msgid "You activated {totalRulesActivated} rules. {codeList} publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
+msgstr "You activated {totalRulesActivated} rules. {codeList} publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
 
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "You can also skip this and review rules later from the Rule Library."
@@ -17718,6 +17732,10 @@ msgstr "Your current role doesn't include this permission."
 #: src/features/calendar/calendar-page.tsx
 msgid "Your deadlines and assignments inside DueDateHQ"
 msgstr "Your deadlines and assignments inside DueDateHQ"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Your decision"
+msgstr "Your decision"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Your decision is recorded in the audit log."

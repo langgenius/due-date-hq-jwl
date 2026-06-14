@@ -158,12 +158,12 @@ export function StateRuleActivationSelector({
                         aria-label={selectedState ? t`${label}, selected` : label}
                         aria-pressed={selectedState}
                         style={{ gridRow: row, gridColumn: column }}
-                        // Tile label is text-[10px] +
-                        // font-medium so the 2-letter code reads
-                        // as a state abbreviation, not a button
-                        // label competing with the tile itself.
+                        // Tile bumped 28→32px and label 10→11px (2026-06-12
+                        // critique: 28/10 was hard to read and below a usable
+                        // touch target). The 2-letter code still reads as an
+                        // abbreviation, not a competing button label.
                         className={cn(
-                          'relative flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-sm border font-mono text-[10px] font-medium transition-colors outline-none',
+                          'relative flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm border font-mono text-[11px] font-medium transition-colors outline-none',
                           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
                           selectedState
                             ? 'border-state-accent-active-alt bg-state-accent-solid text-text-inverted shadow-sm'

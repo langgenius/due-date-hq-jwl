@@ -70,7 +70,11 @@ function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean
         </div>
         <p className="text-[11px] font-medium leading-relaxed text-text-tertiary">
           {item.detail ?? (
-            <Trans>Source-defined calendar — confirm before deadlines generate for clients.</Trans>
+            // Plain gloss, not the internal term "source-defined calendar"
+            // (2026-06-12 critique) — matches the state-selector's phrasing.
+            <Trans>
+              This state publishes its own filing calendar — confirm it before deadlines generate.
+            </Trans>
           )}
         </p>
       </div>
@@ -105,9 +109,9 @@ export function RuleReviewPrompt({
         </h1>
         <p className="text-sm font-medium leading-relaxed text-text-tertiary">
           <Trans>
-            You activated {totalRulesActivated} rules. For {codeList}, our source-defined calendars
-            need your eyes before they generate deadlines for your clients. A few minutes here saves
-            filing-day surprises later.
+            You activated {totalRulesActivated} rules. {codeList} publish their own filing calendars,
+            so they need your eyes before they generate deadlines for your clients. A few minutes here
+            saves filing-day surprises later.
           </Trans>
         </p>
       </div>

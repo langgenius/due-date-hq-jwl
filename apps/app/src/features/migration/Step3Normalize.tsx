@@ -197,7 +197,10 @@ function NormalizePillStrip({
         <Trans>Confirm · {confirm}</Trans>
       </Badge>
       <Badge variant="outline" className="tabular-nums">
-        <Trans>Default Matrix · {defaultMatrix}</Trans>
+        {/* "Tax type defaults", not "Default Matrix" — the chip names the same
+            thing its own card below is titled (2026-06-12 critique: "Matrix"
+            is system vocabulary). */}
+        <Trans>Tax type defaults · {defaultMatrix}</Trans>
       </Badge>
       <span className="text-xs text-text-tertiary">
         <Trans>Audit logged</Trans>

@@ -677,7 +677,7 @@ function destinationDataTypeLabel(
   if (target === 'client.ein') return <Trans>EIN · ##-#######</Trans>
   if (target === 'client.state') return <Trans>US state code · 2 letters</Trans>
   if (target === 'client.filing_states') return <Trans>List of US state codes</Trans>
-  if (target === 'client.entity_type') return <Trans>Entity type · enum</Trans>
+  if (target === 'client.entity_type') return <Trans>Entity type · category</Trans>
   if (target === 'client.tax_types') return <Trans>Tax types · list</Trans>
   if (target === 'client.postal_code') return <Trans>ZIP / postal code</Trans>
   if (target === 'client.email' || target === 'client.primary_contact_email') {

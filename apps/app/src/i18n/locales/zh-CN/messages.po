@@ -2409,6 +2409,10 @@ msgid "AI output id"
 msgstr "AI output id"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+msgid "AI parsed"
+msgstr "AI 已解析"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
 msgid "AI parsed — verify before Apply"
 msgstr "AI 解析 — 应用前请核实"
 
@@ -2481,6 +2485,10 @@ msgstr "已忽略提醒"
 #: src/routes/alerts.tsx
 msgid "Alert history"
 msgstr "提醒历史"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Alert lifecycle"
+msgstr "提醒生命周期"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Alert marked reviewed"
@@ -2918,6 +2926,7 @@ msgstr "适用范围"
 msgid "Applicability review"
 msgstr "适用性审核"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/AlertCard.tsx
@@ -3839,7 +3848,6 @@ msgstr "抄送 · 密送"
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/login.tsx
-#: src/routes/settings.profile.tsx
 msgid "Change"
 msgstr "变更"
 
@@ -3945,6 +3953,10 @@ msgstr "请检查所选行后重试。"
 #: src/routes/rules.library.tsx
 msgid "Check the selection and try again."
 msgstr "请检查所选内容后重试。"
+
+#: src/features/migration/Stepper.tsx
+msgid "Check values"
+msgstr "核对取值"
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClassificationImpactDialog.tsx
@@ -4577,6 +4589,7 @@ msgid "Configure sources"
 msgstr "配置来源"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
+#: src/features/migration/Stepper.tsx
 msgid "Confirm"
 msgstr "确认"
 
@@ -5938,10 +5951,6 @@ msgstr "必须填写决策备注。"
 msgid "Default"
 msgstr "默认"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Default Matrix · {defaultMatrix}"
-msgstr "默认矩阵 · {defaultMatrix}"
-
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Default order"
 msgstr "默认排序"
@@ -6290,10 +6299,6 @@ msgstr "决定提醒与摘要的发送时间"
 #: src/features/migration/Step1Intake.tsx
 msgid "Drop a file or click to browse"
 msgstr "Drop a file or click to browse"
-
-#: src/features/migration/Stepper.tsx
-msgid "Dry run"
-msgstr "试运行"
 
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -6748,9 +6753,8 @@ msgid "Entity type"
 msgstr "实体类型"
 
 #: src/features/migration/Step2Mapping.tsx
-#, fuzzy
-msgid "Entity type · enum"
-msgstr "实体类型"
+msgid "Entity type · category"
+msgstr "实体类型 · 类别"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "entity types"
@@ -8416,10 +8420,6 @@ msgstr "即时"
 msgid "Instructions"
 msgstr "说明"
 
-#: src/features/migration/Stepper.tsx
-msgid "Intake"
-msgstr "入料"
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Internal"
 msgstr "内部"
@@ -9190,7 +9190,6 @@ msgstr "地图视图"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/migration/ImportHistoryDrawer.tsx
-#: src/features/migration/Stepper.tsx
 msgid "Mapping"
 msgstr "字段映射"
 
@@ -9348,6 +9347,11 @@ msgstr "匹配"
 msgid "Match {matched}/{total}"
 msgstr "匹配 {matched}/{total}"
 
+#: src/features/migration/Stepper.tsx
+msgid "Match columns"
+msgstr "匹配列"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/audit/audit-log-labels.ts
 msgid "Matched"
 msgstr "已匹配"
@@ -9645,6 +9649,10 @@ msgstr "修改时间"
 msgid "Monitor sources"
 msgstr "监控来源"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Monitored"
+msgstr "监测中"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Monitoring {sourceCount} sources across {jurisdictions} jurisdictions"
 msgstr "正在监控 {jurisdictions} 个辖区的 {sourceCount} 个来源"
@@ -9815,6 +9823,10 @@ msgstr "我的工作"
 #: src/features/audit/audit-log-labels.ts
 msgid "Name"
 msgstr "名称"
+
+#: src/routes/settings.profile.tsx
+msgid "Name and email come from your sign-in provider and can't be edited here."
+msgstr "姓名和邮箱来自你的登录提供方，无法在此编辑。"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Name match — review"
@@ -10789,10 +10801,6 @@ msgstr "非营利组织"
 msgid "Normal priority"
 msgstr "普通优先级"
 
-#: src/features/migration/Stepper.tsx
-msgid "Normalize"
-msgstr "规范化"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Not allowed"
 msgstr "不允许"
@@ -10805,10 +10813,6 @@ msgstr "不允许。"
 #: src/features/rules/coverage-tab.tsx
 msgid "Not applicable"
 msgstr "不适用"
-
-#: src/routes/settings.profile.tsx
-msgid "Not available yet"
-msgstr "尚不可用"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Not enabled"
@@ -13076,6 +13080,10 @@ msgstr "拒绝日期"
 msgid "Rejected date is required."
 msgstr "必须填写拒绝日期。"
 
+#: src/features/workload/workload-page.tsx
+msgid "Relative load"
+msgstr "相对负载"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Relief / disaster"
 msgstr "救济 / 灾害"
@@ -13766,10 +13774,6 @@ msgstr "角色"
 #: src/routes/settings.permissions.tsx
 msgid "Roles map to a fixed permission model. Changes here would need a per-role override store, which isn't available yet — this view is read-only."
 msgstr "角色映射到固定的权限模型。此处的更改需要按角色的覆盖存储，目前尚不可用 — 此视图为只读。"
-
-#: src/features/migration/SuccessModal.tsx
-msgid "Roll back this import within 24 hours, no questions asked"
-msgstr "可在 24 小时内无条件回滚此次导入"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Roll over all {totalCount} (review {requiresReviewCount})"
@@ -14824,10 +14828,6 @@ msgstr "设置 URI 已复制"
 msgid "Severity"
 msgstr "严重程度"
 
-#: src/features/workload/workload-page.tsx
-msgid "Share of open work"
-msgstr "未完成工作占比"
-
 #: src/routes/billing.checkout.tsx
 msgid "Shared deadline operations"
 msgstr "共享截止日运营"
@@ -15325,10 +15325,6 @@ msgstr "来源变更的规则已从批量接受中跳过。请逐条审核。"
 msgid "Source-changed rules should be checked against evidence before accepting."
 msgstr "来源已变更的规则在接受前应先对照证据检查。"
 
-#: src/features/onboarding/rule-review-prompt.tsx
-msgid "Source-defined calendar — confirm before deadlines generate for clients."
-msgstr "来源定义的日历 — 在为客户生成截止事项前请先确认。"
-
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-defined rules are skipped from bulk accept. Generate and review their AI draft one by one."
 msgstr "来源定义规则会跳过批量接受。请逐条生成并审核其 AI 草案。"
@@ -15485,6 +15481,7 @@ msgstr "法定截止日"
 msgid "Stay and import"
 msgstr "留下并导入"
 
+#: src/routes/migration.new.tsx
 #: src/routes/onboarding.tsx
 msgid "Step {step} of {total}"
 msgstr "第 {step} 步，共 {total} 步"
@@ -15769,6 +15766,10 @@ msgstr "税种"
 #: src/features/migration/Step3Normalize.tsx
 msgid "Tax type defaults"
 msgstr "税种默认值"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "Tax type defaults · {defaultMatrix}"
+msgstr "税种默认设置 · {defaultMatrix}"
 
 #: src/features/concepts/concept-help.tsx
 msgid "Tax type suggestions"
@@ -16393,6 +16394,10 @@ msgstr "尚未到达此阶段。我们仅预估「已申报」日期（使用内
 msgid "This stage was skipped — no date applies."
 msgstr "此阶段已跳过 — 无适用日期。"
 
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "This state publishes its own filing calendar — confirm it before deadlines generate."
+msgstr "该州自行发布申报日历 — 请在生成截止事项前确认。"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 msgstr "此模板用于 Materials 发送 checklist 收集请求。变量：client_name、tax_type、due_date、request_url、outstanding_checklist 和 received_checklist。"
@@ -16780,6 +16785,10 @@ msgstr "撤销导入（{0}）"
 msgid "Undo this import for 24 hours — the audit log records every change"
 msgstr "本次导入可在 24 小时内撤销 — 审计日志会记录每一次变更"
 
+#: src/features/migration/SuccessModal.tsx
+msgid "Undo this import within 24 hours, no questions asked"
+msgstr "24 小时内可撤销此次导入，无需说明原因"
+
 #: src/features/migration/Wizard.tsx
 msgid "Undo this import?"
 msgstr "撤销这次导入？"
@@ -16907,6 +16916,10 @@ msgstr "升级到 Pro"
 #: src/routes/billing.tsx
 msgid "Upgrade to Team"
 msgstr "升级到 Team"
+
+#: src/features/migration/Stepper.tsx
+msgid "Upload"
+msgstr "上传"
 
 #: src/features/migration/intake-files.ts
 msgid "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
@@ -17666,8 +17679,8 @@ msgid "You"
 msgstr "你"
 
 #: src/features/onboarding/rule-review-prompt.tsx
-msgid "You activated {totalRulesActivated} rules. For {codeList}, our source-defined calendars need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
-msgstr "您已激活 {totalRulesActivated} 条规则。对于 {codeList}，我们的来源定义日历需要您查看后才能为您的客户生成截止日期。在此花几分钟可避免日后申报日的意外。"
+msgid "You activated {totalRulesActivated} rules. {codeList} publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
+msgstr "你已启用 {totalRulesActivated} 条规则。{codeList} 自行发布申报日历，因此在为客户生成截止事项前需要你过目确认。现在花几分钟，可避免申报当天的意外。"
 
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "You can also skip this and review rules later from the Rule Library."
@@ -17799,6 +17812,10 @@ msgstr "当前角色不包含此权限。"
 #: src/features/calendar/calendar-page.tsx
 msgid "Your deadlines and assignments inside DueDateHQ"
 msgstr "DueDateHQ 中的截止日期和分配任务"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Your decision"
+msgstr "你的决定"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Your decision is recorded in the audit log."

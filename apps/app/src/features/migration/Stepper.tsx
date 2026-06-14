@@ -13,11 +13,16 @@ import type { StepIndex } from './state'
  * which read as code rather than wizard navigation), matching the body type
  * elsewhere in the app.
  */
+// Labels are user OUTCOMES, not ETL stage names (2026-06-12 critique): the
+// pipeline words "Intake / Mapping / Normalize / Dry run" have no CPA mental
+// model — "Normalize" is opaque and "Dry run" reads as risky. The body copy
+// was already plain ("Ready to import"); these labels now match it. Each is
+// distinct from the others (Check values ≠ the final Confirm).
 const STEP_LABELS: ReadonlyArray<{ index: StepIndex; key: string; label: ReactNode }> = [
-  { index: 1, key: 'intake', label: <Trans>Intake</Trans> },
-  { index: 2, key: 'mapping', label: <Trans>Mapping</Trans> },
-  { index: 3, key: 'normalize', label: <Trans>Normalize</Trans> },
-  { index: 4, key: 'dry_run', label: <Trans>Dry run</Trans> },
+  { index: 1, key: 'intake', label: <Trans>Upload</Trans> },
+  { index: 2, key: 'mapping', label: <Trans>Match columns</Trans> },
+  { index: 3, key: 'normalize', label: <Trans>Check values</Trans> },
+  { index: 4, key: 'dry_run', label: <Trans>Confirm</Trans> },
 ]
 
 export function Stepper({ current }: { current: StepIndex }) {
