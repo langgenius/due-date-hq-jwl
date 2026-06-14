@@ -826,20 +826,31 @@ function OverviewRecentChangesCard({
   const now = Date.now()
   if (rules.length === 0) {
     return (
-      <div className="flex shrink-0 flex-col gap-2">
+      <div className="flex shrink-0 flex-col gap-4">
         <span className="text-region-title text-text-primary">
           <Trans>Recent changes</Trans>
         </span>
-        <span className="text-sm text-text-tertiary">
-          {lastChangeAt !== null ? (
-            <Trans>
-              No changes in the last 30 days — last change{' '}
-              {formatDatePretty(new Date(lastChangeAt).toISOString())}
-            </Trans>
-          ) : (
-            <Trans>No rule changes recorded yet.</Trans>
-          )}
-        </span>
+        {/* Intentional empty state (canonical EmptyState primitive) instead of
+            a lone grey line stranded in the dashboard's lower half. The feed
+            stays windowed to 30 days — surfacing older changes here would
+            contradict the "Changed (30d)" stat, the data-consistency breach
+            this page guards against — so the empty state stays honest. */}
+        <EmptyState
+          density="compact"
+          icon={CircleCheck}
+          iconTone="neutral"
+          title={<Trans>No changes in the last 30 days</Trans>}
+          description={
+            lastChangeAt !== null ? (
+              <Trans>
+                Your rule library is current. Last change{' '}
+                {formatDatePretty(new Date(lastChangeAt).toISOString())}.
+              </Trans>
+            ) : (
+              <Trans>No rule changes have been recorded yet.</Trans>
+            )
+          }
+        />
       </div>
     )
   }
@@ -4178,12 +4189,11 @@ function RuleDetailPanel({
       >
         {/* a11y label for the Dialog; the visible title lives in the pinned hero. */}
         <DialogTitle className="sr-only">{rule.title}</DialogTitle>
-        {/* Pinned hero header — title · status · AI % · summary stay visible
+        {/* Pinned header band — title · status · provenance stay visible
             while the reference sections scroll beneath, so the panel always
-            shows which rule you're reviewing. */}
-        <div className="shrink-0 px-5 pt-4">
-          <RuleDetailHeroCard rule={rule} concreteDraft={concreteDraft} reviewTask={reviewTask} />
-        </div>
+            shows which rule you're reviewing. Flush (its own border-b),
+            not a card, so it reads as the surface header. */}
+        <RuleDetailHeroCard rule={rule} concreteDraft={concreteDraft} reviewTask={reviewTask} />
         {/* Scrollable card-stack: Applicability · Due date · Evidence · Impact ·
             Practice review · Activity. Each card discloses independently; the
             Decision is pinned as a sticky footer below (irBJ8). */}
@@ -4253,63 +4263,60 @@ function RuleDetailHeroCard({
   const isReviewable = rule.status === 'candidate' || rule.status === 'pending_review'
   const confidence = concreteDraft?.draft?.confidence ?? null
   const aiPct = confidence !== null ? Math.round(confidence * 100) : null
+  // Flush header band (not a bordered card): the rule TITLE is the one
+  // dominant element, with a status pill + provenance demoted to a quiet
+  // eyebrow above it. Replaces the old card-with-a-bar-header hero, which
+  // read as just another of the body cards and buried the title under a
+  // same-weight "Rule under review" label. `pr-12` on the eyebrow keeps the
+  // Dialog close button's top-right corner clear.
   return (
-    <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
-      <div className="flex h-8 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
-        {isReviewable ? (
-          <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0 text-text-warning" />
-        ) : (
-          <CircleCheck aria-hidden className="size-3.5 shrink-0 text-text-success" />
-        )}
-        <span className="text-base font-semibold text-text-primary">
-          {isReviewable ? <Trans>Rule under review</Trans> : <Trans>Active rule</Trans>}
-        </span>
-        {isReviewable ? (
-          <Badge variant="warning" className="gap-1 px-2.5 font-semibold">
+    <header className="shrink-0 border-b border-divider-regular bg-background-default px-6 pt-5 pb-4">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pr-12">
+        <Badge variant={isReviewable ? 'warning' : 'success'} className="gap-1 px-2 font-semibold">
+          {isReviewable ? (
             <Clock3 aria-hidden className="size-2.5" />
-            <Trans>Awaiting review</Trans>
-          </Badge>
-        ) : null}
+          ) : (
+            <CircleCheck aria-hidden className="size-2.5" />
+          )}
+          {isReviewable ? <Trans>Awaiting review</Trans> : <Trans>Active</Trans>}
+        </Badge>
         {reviewTask ? (
           <span className="text-xs font-medium text-text-tertiary">
             <Trans>In queue {formatRelativeTime(reviewTask.createdAt)}</Trans>
           </span>
         ) : null}
         {reviewTask ? (
-          <span className="ml-auto text-xs font-medium text-text-tertiary">
-            <Trans>Reason</Trans>: {REVIEW_REASON_LABEL[reviewTask.reason]}
-          </span>
+          <>
+            <span aria-hidden className="text-text-muted">
+              ·
+            </span>
+            <span className="text-xs font-medium text-text-tertiary">
+              <Trans>Reason</Trans>: {REVIEW_REASON_LABEL[reviewTask.reason]}
+            </span>
+          </>
+        ) : null}
+        {aiPct !== null ? (
+          <>
+            <span aria-hidden className="text-text-muted">
+              ·
+            </span>
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-text-success">
+              <Sparkles aria-hidden className="size-2.5" />
+              <Trans>AI {aiPct}%</Trans>
+            </span>
+          </>
         ) : null}
       </div>
-      <div className="flex flex-col gap-1 px-5 py-2.5">
-        <h2 className="text-xl leading-tight font-bold tracking-tight text-text-primary">
-          {rule.title}
-        </h2>
-        <p className="text-sm font-medium text-text-secondary">
-          {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
-        </p>
-        {rule.defaultTip ? (
-          <p className="line-clamp-1 text-sm text-text-secondary">{rule.defaultTip}</p>
-        ) : null}
-        <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-medium">
-          {aiPct !== null ? (
-            <>
-              <span className="inline-flex items-center gap-1 text-text-success">
-                <Sparkles aria-hidden className="size-2.5" />
-                <Trans>AI {aiPct}%</Trans>
-              </span>
-              <span aria-hidden className="text-text-muted">
-                ·
-              </span>
-            </>
-          ) : null}
-          <span className="inline-flex items-center gap-1 text-text-tertiary">
-            <ShieldCheck aria-hidden className="size-2.5" />
-            <Trans>Logged in audit ledger</Trans>
-          </span>
-        </div>
-      </div>
-    </div>
+      <h2 className="mt-2 text-2xl leading-tight font-semibold tracking-tight text-text-primary">
+        {rule.title}
+      </h2>
+      <p className="mt-1 text-sm text-text-secondary">
+        {rule.jurisdiction} · {rule.formName} · <Trans>Tax season {rule.applicableYear}</Trans>
+      </p>
+      {rule.defaultTip ? (
+        <p className="mt-1 line-clamp-1 text-sm text-text-tertiary">{rule.defaultTip}</p>
+      ) : null}
+    </header>
   )
 }
 

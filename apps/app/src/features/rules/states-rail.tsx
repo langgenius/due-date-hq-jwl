@@ -135,8 +135,12 @@ export function JurisdictionRail({
         />
       </ListRailSection>
 
-      {/* Scrolling jurisdiction list. */}
-      <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+      {/* Scrolling jurisdiction list. `flex-initial` (grow 0 / shrink 1), not
+          `flex-1`: with a short list (a firm covering just a few states) the
+          nav collapses to its content so the "Showing N of M" footer hugs the
+          list instead of leaving a tall void pinned above the bottom edge.
+          With a long list it still shrinks + scrolls, footer pinned. */}
+      <nav className="min-h-0 flex-initial overflow-y-auto px-2 py-3">
         <div className="flex flex-col gap-0.5">
           {/* Overview — the All-jurisdictions surface, always first. */}
           {!query ? (

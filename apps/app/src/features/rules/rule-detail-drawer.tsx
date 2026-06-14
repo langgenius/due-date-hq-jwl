@@ -1169,38 +1169,46 @@ function CandidateReviewForm({
           (irBJ8). Accept's draft gating is unchanged: it reads `draft` from the
           `concreteDraft` prop, which the route re-reads after that card's
           generate invalidates `listConcreteDrafts`. */}
-      <div className="flex justify-end gap-2">
-        {/* Reject is available in every review context — the single-rule
-            detail AND the batch walkthrough. Skip still defers without
-            a decision; Reject records the destructive one with a reason.
-            Reject does NOT depend on a concrete draft being ready (unlike
-            Accept). */}
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => setRejectOpen(true)}
-          disabled={reviewDisabled}
-          data-rule-action="reject"
-        >
-          <Trans>Reject</Trans>
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          onClick={confirmImpact ? () => setConfirmOpen(true) : submitAccept}
-          disabled={acceptDisabled}
-          data-rule-action="accept"
-        >
-          <Trans>Accept rule</Trans>
-        </Button>
-      </div>
-      {/* Signed line (irBJ8 footer foot) — the decision is audit-logged. The
-          canvas's "signed by {name}" is dropped: there's no signer until the
-          decision is actually recorded, so naming one up front would be fiction. */}
-      <div className="flex items-center gap-1.5 border-t border-divider-subtle pt-3 text-xs text-text-muted">
-        <ShieldCheckIcon aria-hidden className="size-3.5 shrink-0" />
-        <Trans>Your decision is recorded in the audit log.</Trans>
+      {/* Action bar — gate status on the left, the two decision actions on
+          the right. When Accept is blocked, the REASON sits here next to the
+          disabled button (not only in the "Before you accept" scroll card),
+          so a greyed-out Accept is never unexplained. Otherwise the left
+          carries the audit-log assurance (the canvas's "signed by {name}" is
+          dropped — there's no signer until the decision is recorded).
+          Reject never depends on a draft being ready; Accept does. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-divider-subtle pt-3">
+        {acceptDisabledReason ? (
+          <span className="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-text-warning">
+            <TriangleAlertIcon aria-hidden className="size-3.5 shrink-0" />
+            <span className="min-w-0 truncate">{acceptDisabledReason}</span>
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-xs text-text-muted">
+            <ShieldCheckIcon aria-hidden className="size-3.5 shrink-0" />
+            <Trans>Your decision is recorded in the audit log.</Trans>
+          </span>
+        )}
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setRejectOpen(true)}
+            disabled={reviewDisabled}
+            data-rule-action="reject"
+          >
+            <Trans>Reject</Trans>
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={confirmImpact ? () => setConfirmOpen(true) : submitAccept}
+            disabled={acceptDisabled}
+            data-rule-action="accept"
+          >
+            <Trans>Accept rule</Trans>
+          </Button>
+        </div>
       </div>
       {confirmImpact ? (
         <ConfirmImpactDialog
