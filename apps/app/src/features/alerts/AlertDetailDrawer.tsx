@@ -68,7 +68,7 @@ import { AffectedClientsTable } from './components/AffectedClientsTable'
 import { AlertStructuredFields } from './components/AlertStructuredFields'
 import { AlertTeamNotes } from './components/AlertTeamNotes'
 import { ReverifyRulesSection } from './components/ReverifyRulesSection'
-import { changeKindLabel } from './components/PulseChangeKindChip'
+import { ChangeKindIcon, changeKindLabel } from './components/PulseChangeKindChip'
 import {
   useAlertsInvalidation,
   useAlertDetailQueryOptions,
@@ -1329,329 +1329,357 @@ export function AlertDetailDrawer({
       >
         {/* Hero — scrolls with the document (white masthead → content). */}
         <SheetHeader className="bg-background-default px-6 pt-8 pb-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
-        {detailQuery.isLoading || !detail ? (
-          <DetailHeaderSkeleton />
-        ) : (
-          (() => {
-            const severity = impactBadgeFromAlert(detail.alert)
-            // Gate the impact pill to HIGH only — the same rule
-            // NeedsAttentionCard / PulseAlertRow / AlertCard use.
-            const showSeverityPill = severity.id === 'high'
-            // Batch 4 #1/#2 — the header meta carries ONLY identity
-            // (Active / High-impact / jurisdiction / change-kind) plus
-            // source · time. The AI-confidence % lives in the Source &
-            // confidence card (its one home), and the Needs-Action pill
-            // is gone: it restated the status banner above in different
-            // words, and two competing state vocabularies confused the
-            // read ("Pending your review" vs "Needs Action").
-            // The freshest real timestamp on the record: a terminal alert
-            // shows when it resolved; an open one shows when it arrived.
-            const lastActivityIso =
-              detail.reviewedAt ??
-              (detail.alert.status === 'dismissed' ? detail.alert.dismissedAt : null) ??
-              (detail.alert.status === 'applied' ? detail.alert.appliedAt : null) ??
-              detail.alert.publishedAt
-            return (
-              <div className="flex flex-col gap-2">
-                {/* Meta row — severity (HIGH only) + state pill +
+          {detailQuery.isLoading || !detail ? (
+            <DetailHeaderSkeleton />
+          ) : (
+            (() => {
+              const severity = impactBadgeFromAlert(detail.alert)
+              // Gate the impact pill to HIGH only — the same rule
+              // NeedsAttentionCard / PulseAlertRow / AlertCard use.
+              const showSeverityPill = severity.id === 'high'
+              // Batch 4 #1/#2 — the header meta carries ONLY identity
+              // (Active / High-impact / jurisdiction / change-kind) plus
+              // source · time. The AI-confidence % lives in the Source &
+              // confidence card (its one home), and the Needs-Action pill
+              // is gone: it restated the status banner above in different
+              // words, and two competing state vocabularies confused the
+              // read ("Pending your review" vs "Needs Action").
+              // The freshest real timestamp on the record: a terminal alert
+              // shows when it resolved; an open one shows when it arrived.
+              const lastActivityIso =
+                detail.reviewedAt ??
+                (detail.alert.status === 'dismissed' ? detail.alert.dismissedAt : null) ??
+                (detail.alert.status === 'applied' ? detail.alert.appliedAt : null) ??
+                detail.alert.publishedAt
+              return (
+                <div className="flex flex-col gap-2">
+                  {/* Meta row — severity (HIGH only) + state pill +
                     change-kind + source · time + action pill. The
                     change-kind label uses the SAME `changeKindLabel`
                     helper PulseAlertRow uses (not a drawer-specific
                     variant) so the exact wording matches across surfaces. */}
-                <div className="flex flex-wrap items-center gap-2">
-                  {/* ACTIVE badge — flags the actionable
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* ACTIVE badge — flags the actionable
                       due-date-overlay queue, mirroring the row badge
                       (shared ActiveQueueChip). */}
-                  {isActiveAlert(detail.alert) ? <ActiveQueueChip /> : null}
-                  {/* Impact pill — the SAME chip recipe as the /alerts row
+                    {isActiveAlert(detail.alert) ? <ActiveQueueChip /> : null}
+                    {/* Impact pill — the SAME chip recipe as the /alerts row
                       + /today card (token classes, not the severity
                       helper's inline hexes): one alert, one pill, every
                       surface (same-entity-same-rendering audit). */}
-                  {showSeverityPill ? (
-                    <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-destructive uppercase">
-                      <Trans>High impact</Trans>
-                    </span>
-                  ) : null}
-                  {/* The shared JurisdictionLabel primitive — seal + mono
+                    {showSeverityPill ? (
+                      <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-destructive uppercase">
+                        <Trans>High impact</Trans>
+                      </span>
+                    ) : null}
+                    {/* The shared JurisdictionLabel primitive — seal + mono
                       code + full name. 2026-06-14 (Yuqi "give colour to the
                       state badge when active"): the code reads in the accent
                       for an active alert, so the actionable queue gets a live
                       jurisdiction mark instead of all-gray. */}
-                  <JurisdictionLabel
-                    code={detail.alert.jurisdiction}
-                    active={isActiveAlert(detail.alert)}
-                  />
-                  {/* 2026-06-14 (Yuqi "I love the original change chip — lower
-                      case, medium"): sentence-case medium, not tracked caps
-                      tertiary — calmer and matches the jurisdiction name's
-                      weight on the same line. */}
-                  <span className="shrink-0 text-sm font-medium text-text-secondary">
-                    {changeKindLabel(detail.alert.changeKind)}
-                  </span>
-                  <span className="ml-auto flex shrink-0 items-center gap-3 text-sm text-text-tertiary">
-                    {/* 2026-06-14 (Yuqi "header is so messy"): the
+                    <JurisdictionLabel
+                      code={detail.alert.jurisdiction}
+                      active={isActiveAlert(detail.alert)}
+                    />
+                    {/* 2026-06-14 (Yuqi "lower case, medium" + "add an icon
+                      before it"): icon + sentence-case medium, matching the
+                      jurisdiction name's weight on the same line. */}
+                    <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-text-secondary">
+                      <ChangeKindIcon changeKind={detail.alert.changeKind} />
+                      {changeKindLabel(detail.alert.changeKind)}
+                    </span>
+                    <span className="ml-auto flex shrink-0 items-center gap-3 text-sm text-text-tertiary">
+                      {/* 2026-06-14 (Yuqi "header is so messy"): the
                         "Awaiting your decision" chip is GONE from the meta —
                         the lifecycle strip's "Your decision" node right below
                         carries the exact same status, so the chip was a
                         duplicate crowding the row. Meta is now identity (left)
                         · source + date (right), one clean line. */}
-                    {detail.alert.sourceUrl ? (
-                      <a
-                        href={detail.alert.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(event) => event.stopPropagation()}
-                        className="inline-flex items-center gap-1 text-text-tertiary underline-offset-2 hover:text-text-secondary hover:underline"
-                      >
-                        <span className="truncate">{detail.alert.source}</span>
-                        <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
-                      </a>
-                    ) : (
-                      <span className="truncate underline-offset-2 hover:underline">
-                        {detail.alert.source}
-                      </span>
-                    )}
-                    <span aria-hidden>·</span>
-                    {/* Last activity — the freshest real timestamp. 2026-06-14
+                      {detail.alert.sourceUrl ? (
+                        <a
+                          href={detail.alert.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(event) => event.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-text-tertiary underline-offset-2 hover:text-text-secondary hover:underline"
+                        >
+                          <span className="truncate">{detail.alert.source}</span>
+                          <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+                        </a>
+                      ) : (
+                        <span className="truncate underline-offset-2 hover:underline">
+                          {detail.alert.source}
+                        </span>
+                      )}
+                      <span aria-hidden>·</span>
+                      {/* Last activity — the freshest real timestamp. 2026-06-14
                         (Yuqi #4 "be complete with the date"): the COMPLETE
                         absolute date with year ("May 18, 2026"), not a clipped
                         "May 18" or a relative "3 weeks ago" — the masthead
                         states exactly when, in full. */}
-                    <span className="tabular-nums">
-                      {formatDatePretty(lastActivityIso, { alwaysShowYear: true })}
+                      <span className="tabular-nums">
+                        {formatDatePretty(lastActivityIso, { alwaysShowYear: true })}
+                      </span>
                     </span>
-                  </span>
-                </div>
+                  </div>
 
-                {/* Title at 22px (600 weight, tight leading). The drawer
+                  {/* Title at 22px (600 weight, tight leading). The drawer
                     chrome above (top bar + meta strip) claims enough of
                     the fold that a larger title would push the Source
                     Extract below it; 22px keeps the title as the lede
                     without dominating the panel. */}
-                <h2
-                  className={cn(
-                    // (was 1.25) — at 22px over two lines the
-                    // tighter leading read cramped (batch 4 #3).
-                    // Expanded state clamps at 3 lines (hostile-data pass:
-                    // an unclamped 250-char title ran 4+ lines and pushed
-                    // the facts below the fold); the title attr carries
-                    // the full text on hover.
-                    'font-semibold tracking-display text-text-primary',
-                    'line-clamp-3 text-surface-title',
-                  )}
-                  title={detail.alert.title}
-                >
-                  {detail.alert.title}
-                </h2>
+                  <h2
+                    className={cn(
+                      // (was 1.25) — at 22px over two lines the
+                      // tighter leading read cramped (batch 4 #3).
+                      // Expanded state clamps at 3 lines (hostile-data pass:
+                      // an unclamped 250-char title ran 4+ lines and pushed
+                      // the facts below the fold); the title attr carries
+                      // the full text on hover.
+                      'font-semibold tracking-display text-text-primary',
+                      'line-clamp-3 text-surface-title',
+                    )}
+                    title={detail.alert.title}
+                  >
+                    {detail.alert.title}
+                  </h2>
 
-                {/* Summary / dek — body prose, not a sub-title (14/400). */}
-                {detail.alert.summary &&
-                detail.alert.summary.trim() !== detail.alert.title.trim() ? (
-                  <p className="text-base text-text-secondary">{detail.alert.summary}</p>
-                ) : null}
+                  {/* Summary / dek — body prose, not a sub-title (14/400). */}
+                  {detail.alert.summary &&
+                  detail.alert.summary.trim() !== detail.alert.title.trim() ? (
+                    <p className="text-base text-text-secondary">{detail.alert.summary}</p>
+                  ) : null}
 
-                {/* KEY FACT — the do-by-when strip lives in the HERO: identity
+                  {/* KEY FACT — the do-by-when strip lives in the HERO: identity
                     → headline → BY WHEN in one glance; the details section
                     below carries only reference depth. */}
-                <div className="pt-1 empty:hidden">
-                  <DeadlineChangeCard detail={detail} />
-                  <AlertStructuredFields detail={detail} section="key-fact" />
-                </div>
+                  <div className="pt-1 empty:hidden">
+                    <DeadlineChangeCard detail={detail} />
+                    <AlertStructuredFields detail={detail} section="key-fact" />
+                  </div>
 
-                {/* Lifecycle strip — the hero's orientation anchor, above a
+                  {/* Lifecycle strip — the hero's orientation anchor, above a
                     hairline: what it is → by when → where it is in the
                     pipeline. */}
-                <div className="mt-1 border-t border-divider-subtle pt-3">
-                  <AlertLifecycleStrip detail={detail} />
+                  <div className="mt-1 border-t border-divider-subtle pt-3">
+                    <AlertLifecycleStrip detail={detail} />
+                  </div>
                 </div>
-              </div>
-            )
-          })()
-        )}
-      </SheetHeader>
+              )
+            })()
+          )}
+        </SheetHeader>
 
-      {/* Document body — a NON-scrolling content column inside the shared
+        {/* Document body — a NON-scrolling content column inside the shared
           scroll wrapper above. `pb-24` buffers the sticky footer so the last
           row never hides behind it. */}
-      <div className="flex flex-col gap-6 bg-background-default px-6 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
-        {/* Scroll-spy section nav (deadline-tab orientation on one long
+        <div className="flex flex-col gap-6 bg-background-default px-6 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
+          {/* Scroll-spy section nav (deadline-tab orientation on one long
             document). Sticky at the scroll viewport top; lighter than the
             deadline pill tabs (text + underline) so it reads as a table of
             contents, not behaviour-switching tabs. */}
-        {detail ? (
-          <nav
-            aria-label={t`Alert sections`}
-            className="sticky top-0 z-10 shrink-0 bg-background-default py-3"
-          >
-            <div className="flex items-center gap-5 border-b border-divider-subtle pb-2">
-              {sectionNavItems.map((item) => {
-                const sectionActive = item.id === activeSection
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={(event) =>
-                      event.currentTarget
-                        .closest('[class*="overflow-y-auto"]')
-                        ?.querySelector(`#${item.id}`)
-                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    }
-                    className={cn(
-                      'relative cursor-pointer pb-0.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                      sectionActive
-                        ? 'text-text-accent'
-                        : 'text-text-tertiary hover:text-text-secondary',
-                    )}
-                  >
-                    {item.label}
-                    {sectionActive ? (
-                      <span
-                        className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
-                        aria-hidden
-                      />
-                    ) : null}
-                  </button>
-                )
-              })}
-            </div>
-          </nav>
-        ) : null}
-        {/* Body order leads with the decision banner + key change + facts
+          {detail ? (
+            <nav
+              aria-label={t`Alert sections`}
+              className="sticky top-0 z-10 shrink-0 bg-background-default py-3"
+            >
+              <div className="flex items-center gap-5 border-b border-divider-subtle pb-2">
+                {sectionNavItems.map((item) => {
+                  const sectionActive = item.id === activeSection
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={(event) =>
+                        event.currentTarget
+                          .closest('[class*="overflow-y-auto"]')
+                          ?.querySelector(`#${item.id}`)
+                          ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      }
+                      className={cn(
+                        'relative cursor-pointer pb-0.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                        sectionActive
+                          ? 'text-text-accent'
+                          : 'text-text-tertiary hover:text-text-secondary',
+                      )}
+                    >
+                      {item.label}
+                      {sectionActive ? (
+                        <span
+                          className="absolute right-0 -bottom-[9px] left-0 h-0.5 rounded-full bg-state-accent-solid"
+                          aria-hidden
+                        />
+                      ) : null}
+                    </button>
+                  )
+                })}
+              </div>
+            </nav>
+          ) : null}
+          {/* Body order leads with the decision banner + key change + facts
             + affected clients, and keeps the verbatim SOURCE EXTRACT quote
             as a supporting anchor near the bottom (just before
             Provenance). */}
-        {detailQuery.isError ? (
-          // No leading icon, so the drawer's alert chrome stays
-          // consistent — title + body only.
-          <Alert variant="destructive">
-            <AlertTitle>
-              <Trans>Couldn't load this alert</Trans>
-            </AlertTitle>
-            <AlertDescription>
-              {i18n._(alertErrorDescriptor(detailQuery.error))}{' '}
-              {/* Canonical `<Button variant="link">` so both alert retry
+          {detailQuery.isError ? (
+            // No leading icon, so the drawer's alert chrome stays
+            // consistent — title + body only.
+            <Alert variant="destructive">
+              <AlertTitle>
+                <Trans>Couldn't load this alert</Trans>
+              </AlertTitle>
+              <AlertDescription>
+                {i18n._(alertErrorDescriptor(detailQuery.error))}{' '}
+                {/* Canonical `<Button variant="link">` so both alert retry
                   sites match dashboard/clients/obligations. */}
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                className="h-auto p-0 align-baseline"
-                onClick={() => void detailQuery.refetch()}
-              >
-                <Trans>Retry</Trans>
-              </Button>
-            </AlertDescription>
-          </Alert>
-        ) : null}
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 align-baseline"
+                  onClick={() => void detailQuery.refetch()}
+                >
+                  <Trans>Retry</Trans>
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : null}
 
-        {/* Loading: card-shaped placeholders where the group cards will
+          {/* Loading: card-shaped placeholders where the group cards will
             land, so the panel never shows a bare gray wash while the
             detail query resolves (state-completeness audit — the header
             had a skeleton, the body had nothing). */}
-        {detailQuery.isLoading && !detail ? (
-          <div className="flex shrink-0 flex-col gap-4" aria-hidden>
-            <Skeleton className="h-48 w-full rounded-xl" />
-            <Skeleton className="h-32 w-full rounded-xl" />
-            <Skeleton className="h-40 w-full rounded-xl" />
-          </div>
-        ) : null}
+          {detailQuery.isLoading && !detail ? (
+            <div className="flex shrink-0 flex-col gap-4" aria-hidden>
+              <Skeleton className="h-48 w-full rounded-xl" />
+              <Skeleton className="h-32 w-full rounded-xl" />
+              <Skeleton className="h-40 w-full rounded-xl" />
+            </div>
+          ) : null}
 
-        {detail ? (
-          // 2026-06-14 (Yuqi "too loose / shattered"): the inter-section
-          // rhythm tightens 40px → 32px (gap-8). 40px of pure whitespace read
-          // as floating islands; 32px still separates the ranked section
-          // headers cleanly but keeps the document cohesive. No dividers
-          // (Yuqi dislikes "just lines"); type hierarchy + the gray data
-          // panel do the grouping.
-          <div className="flex shrink-0 flex-col gap-8">
-            {/* GROUP 1 — Change details (2026-06-12 info-organisation pass:
+          {detail ? (
+            // 2026-06-14 (Yuqi "too loose / shattered"): the inter-section
+            // rhythm tightens 40px → 32px (gap-8). 40px of pure whitespace read
+            // as floating islands; 32px still separates the ranked section
+            // headers cleanly but keeps the document cohesive. No dividers
+            // (Yuqi dislikes "just lines"); type hierarchy + the gray data
+            // panel do the grouping.
+            <div className="flex shrink-0 flex-col gap-8">
+              {/* GROUP 1 — Change details (2026-06-12 info-organisation pass:
                 renamed from the system-speak "Extracted facts"; named by
                 MEANING like every other section). The do-by-when KEY FACT
                 (DeadlineChangeCard / action-deadline callout) was hoisted
                 into the HERO — this section carries only reference depth:
                 the fact grid, caveats, and the practice-impact read. */}
-            <DetailSectionCard
-              id="alert-section-facts"
-              variant="flat"
-              className="scroll-mt-16"
-              title={<Trans>Change details</Trans>}
-              headerRight={<Trans>AI parsed — verify before Apply</Trans>}
-            >
-              {/* 2026-06-14 (Yuqi critique — "eyes don't know where to go"):
+              <DetailSectionCard
+                id="alert-section-facts"
+                variant="flat"
+                className="scroll-mt-16"
+                title={<Trans>Change details</Trans>}
+                headerRight={<Trans>AI parsed — verify before Apply</Trans>}
+              >
+                {/* 2026-06-14 (Yuqi critique — "eyes don't know where to go"):
                   VALUE before REFERENCE. "What this means for your practice"
                   (self-gating, accent-anchored) now LEADS the section — the
                   plain-language read the CPA actually needs — and the raw
                   fact grid follows as supporting reference. */}
-              <PracticeImpactSection detail={detail} />
+                <PracticeImpactSection detail={detail} />
 
-              <AlertStructuredFields detail={detail} section="details" />
-            </DetailSectionCard>
+                <AlertStructuredFields detail={detail} section="details" />
+              </DetailSectionCard>
 
-            {/* Rules to re-verify — the task list that clears the
+              {/* Rules to re-verify — the task list that clears the
                 Mark-reviewed gate (`reverifyIncomplete`, footer + 'A'
                 shortcut), so the disabled CTA's "rules below" tooltip
                 points at a real surface. Sits between The change and
                 Affected clients — it is the action the change demands. */}
-            {detail.reverifyRuleIds.length > 0 ? (
-              <ReverifyRulesSection
-                reverifyRuleIds={detail.reverifyRuleIds}
-                onReverified={() => {
-                  void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
-                }}
-              />
-            ) : null}
+              {detail.reverifyRuleIds.length > 0 ? (
+                <ReverifyRulesSection
+                  reverifyRuleIds={detail.reverifyRuleIds}
+                  onReverified={() => {
+                    void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
+                  }}
+                />
+              ) : null}
 
-            {/* GROUP 2 — Affected clients + apply/review controls. */}
-            {showClientsGroup ? (
-              <DetailSectionCard
-                id="alert-section-clients"
-                variant="flat"
-                className="scroll-mt-16"
-                title={
-                  <>
-                    <Trans>Affected clients</Trans>
-                    {detail.affectedClients.length > 0 ? (
-                      <span className="ml-2 font-normal tabular-nums text-text-tertiary">
-                        {detail.affectedClients.length}
-                      </span>
-                    ) : null}
-                  </>
-                }
-                headerRight={
-                  // Pencil `G24tQh` header: bulk Confirm / Exclude on the right
-                  // (overlay + apply permission). Otherwise the read-only count.
-                  detail.alert.actionMode === 'due_date_overlay' && canApply && stats ? (
+              {/* GROUP 2 — Affected clients + apply/review controls. */}
+              {showClientsGroup ? (
+                <DetailSectionCard
+                  id="alert-section-clients"
+                  variant="flat"
+                  className="scroll-mt-16"
+                  title={
                     <>
-                      <button
-                        type="button"
-                        onClick={handleConfirmAllNeedsReview}
-                        disabled={stats.needsReviewCount === 0}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-[3px] text-xs font-semibold text-white outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                      >
-                        <CheckIcon className="size-3 shrink-0" aria-hidden />
-                        {t`Confirm ${stats.needsReviewCount}`}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleExcludeSelected}
-                        disabled={stats.selectedCount === 0}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-[3px] text-xs font-semibold text-text-secondary outline-none transition-colors hover:bg-state-base-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                      >
-                        <XIcon className="size-3 shrink-0" aria-hidden />
-                        <Trans>Exclude</Trans>
-                      </button>
+                      <Trans>Affected clients</Trans>
+                      {detail.affectedClients.length > 0 ? (
+                        <span className="ml-2 font-normal tabular-nums text-text-tertiary">
+                          {detail.affectedClients.length}
+                        </span>
+                      ) : null}
                     </>
-                  ) : stats ? (
-                    <SelectionSummary stats={stats} />
-                  ) : undefined
-                }
-              >
-                {/* Due-date overlay: per-row Confirm / Exclude is the
+                  }
+                  headerRight={
+                    // Pencil `G24tQh` header: bulk Confirm / Exclude on the right
+                    // (overlay + apply permission). Otherwise the read-only count.
+                    detail.alert.actionMode === 'due_date_overlay' && canApply && stats ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleConfirmAllNeedsReview}
+                          disabled={stats.needsReviewCount === 0}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-state-accent-solid px-2 py-[3px] text-xs font-semibold text-white outline-none transition-opacity hover:opacity-90 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        >
+                          <CheckIcon className="size-3 shrink-0" aria-hidden />
+                          {t`Confirm ${stats.needsReviewCount}`}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleExcludeSelected}
+                          disabled={stats.selectedCount === 0}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-divider-subtle bg-background-default px-2 py-[3px] text-xs font-semibold text-text-secondary outline-none transition-colors hover:bg-state-base-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        >
+                          <XIcon className="size-3 shrink-0" aria-hidden />
+                          <Trans>Exclude</Trans>
+                        </button>
+                      </>
+                    ) : stats ? (
+                      <SelectionSummary stats={stats} />
+                    ) : undefined
+                  }
+                >
+                  {/* Due-date overlay: per-row Confirm / Exclude is the
                     confirmation surface — always renders for due-date alerts. */}
-                {detail.alert.actionMode === 'due_date_overlay' &&
-                detail.alert.firmImpact !== 'no_current_match' ? (
-                  <section className="flex flex-col gap-2">
-                    {detail.affectedClients.length > 0 ? (
+                  {detail.alert.actionMode === 'due_date_overlay' &&
+                  detail.alert.firmImpact !== 'no_current_match' ? (
+                    <section className="flex flex-col gap-2">
+                      {detail.affectedClients.length > 0 ? (
+                        <AffectedClientsTable
+                          rows={detail.affectedClients}
+                          selection={selection}
+                          confirmedReviewIds={confirmedReviewIds}
+                          excludedIds={excludedIds}
+                          onChangeSelection={setSelection}
+                          onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
+                          onToggleExcluded={
+                            permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
+                          }
+                          readOnly={!canApply || !deadlineApplyReady}
+                        />
+                      ) : (
+                        <p className="rounded-lg border border-divider-subtle bg-background-soft px-4 py-3 text-sm text-text-secondary">
+                          <Trans>
+                            No clients matched this alert's scope. You can dismiss it or wait — if a
+                            new client is added that matches the scope, the alert will reopen.
+                          </Trans>
+                        </p>
+                      )}
+                    </section>
+                  ) : null}
+
+                  {/* Review-only (rule-change / source-drift): read-only blast
+                    radius — which clients have open obligations on the rule. */}
+                  {detail.alert.actionMode === 'review_only' &&
+                  detail.affectedClients.length > 0 ? (
+                    <section className="flex flex-col gap-3">
                       <AffectedClientsTable
                         rows={detail.affectedClients}
                         selection={selection}
@@ -1659,114 +1687,90 @@ export function AlertDetailDrawer({
                         excludedIds={excludedIds}
                         onChangeSelection={setSelection}
                         onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
-                        onToggleExcluded={
-                          permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
-                        }
-                        readOnly={!canApply || !deadlineApplyReady}
+                        readOnly
+                        variant="review"
                       />
-                    ) : (
-                      <p className="rounded-lg border border-divider-subtle bg-background-soft px-4 py-3 text-sm text-text-secondary">
-                        <Trans>
-                          No clients matched this alert's scope. You can dismiss it or wait — if a
-                          new client is added that matches the scope, the alert will reopen.
-                        </Trans>
-                      </p>
-                    )}
-                  </section>
-                ) : null}
+                    </section>
+                  ) : null}
 
-                {/* Review-only (rule-change / source-drift): read-only blast
-                    radius — which clients have open obligations on the rule. */}
-                {detail.alert.actionMode === 'review_only' && detail.affectedClients.length > 0 ? (
-                  <section className="flex flex-col gap-3">
-                    <AffectedClientsTable
-                      rows={detail.affectedClients}
-                      selection={selection}
-                      confirmedReviewIds={confirmedReviewIds}
-                      excludedIds={excludedIds}
-                      onChangeSelection={setSelection}
-                      onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
-                      readOnly
-                      variant="review"
+                  {detail.alert.firmImpact !== 'no_current_match' && !canApply ? (
+                    <PermissionInlineNotice
+                      permission="pulse.apply"
+                      currentRole={permissions.role}
                     />
-                  </section>
-                ) : null}
+                  ) : null}
 
-                {detail.alert.firmImpact !== 'no_current_match' && !canApply ? (
-                  <PermissionInlineNotice permission="pulse.apply" currentRole={permissions.role} />
-                ) : null}
+                  {detail.alert.actionMode === 'due_date_overlay' &&
+                  permissions.canViewPriorityQueue &&
+                  deadlineApplyReady ? (
+                    <ManagerReviewPanel
+                      canManage={permissions.canManagePriorityReview}
+                      reviewStatus={priorityReview?.status ?? null}
+                      selectedCount={stats?.selectedCount ?? 0}
+                      excludedCount={excludedIds.size}
+                      needsReviewCount={stats?.needsReviewCount ?? 0}
+                      isMutating={isMutating}
+                      onConfirmAll={handleConfirmAllNeedsReview}
+                      onSave={() =>
+                        reviewPriorityMutation.mutate({
+                          alertId: detail.alert.id,
+                          selectedObligationIds: Array.from(selection),
+                          confirmedObligationIds: Array.from(confirmedReviewIds),
+                          excludedObligationIds: Array.from(excludedIds),
+                        })
+                      }
+                    />
+                  ) : null}
 
-                {detail.alert.actionMode === 'due_date_overlay' &&
-                permissions.canViewPriorityQueue &&
-                deadlineApplyReady ? (
-                  <ManagerReviewPanel
-                    canManage={permissions.canManagePriorityReview}
-                    reviewStatus={priorityReview?.status ?? null}
-                    selectedCount={stats?.selectedCount ?? 0}
-                    excludedCount={excludedIds.size}
-                    needsReviewCount={stats?.needsReviewCount ?? 0}
-                    isMutating={isMutating}
-                    onConfirmAll={handleConfirmAllNeedsReview}
-                    onSave={() =>
-                      reviewPriorityMutation.mutate({
-                        alertId: detail.alert.id,
-                        selectedObligationIds: Array.from(selection),
-                        confirmedObligationIds: Array.from(confirmedReviewIds),
-                        excludedObligationIds: Array.from(excludedIds),
-                      })
-                    }
-                  />
-                ) : null}
-
-                {/* Pencil `sbs7M ReadyToApply`: green ready-to-apply
+                  {/* Pencil `sbs7M ReadyToApply`: green ready-to-apply
                     affirmation + Apply-now shortcut (same verification gate as
                     the footer). Real data: selected-client count + confidence. */}
-                {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
-                  <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4">
-                    <div className="flex items-start gap-3">
-                      <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-text-success/15 text-text-success">
-                        <ShieldCheckIcon className="size-4" aria-hidden />
-                      </span>
-                      <div className="flex min-w-0 flex-1 flex-col gap-1">
-                        <span className="text-base font-semibold text-text-success">
-                          <Trans>Ready to apply · deadline selection confirmed</Trans>
+                  {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
+                    <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4">
+                      <div className="flex items-start gap-3">
+                        <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-text-success/15 text-text-success">
+                          <ShieldCheckIcon className="size-4" aria-hidden />
                         </span>
-                        <p className="text-sm text-text-secondary">
-                          <Plural
-                            value={stats?.selectedCount ?? 0}
-                            one="# client confirmed and matched to the new date."
-                            other="# clients confirmed and matched to the new date."
-                          />{' '}
-                          <Trans>
-                            Every decision is captured to the audit ledger and reversible for 24
-                            hours.
-                          </Trans>
-                        </p>
+                        <div className="flex min-w-0 flex-1 flex-col gap-1">
+                          <span className="text-base font-semibold text-text-success">
+                            <Trans>Ready to apply · deadline selection confirmed</Trans>
+                          </span>
+                          <p className="text-sm text-text-secondary">
+                            <Plural
+                              value={stats?.selectedCount ?? 0}
+                              one="# client confirmed and matched to the new date."
+                              other="# clients confirmed and matched to the new date."
+                            />{' '}
+                            <Trans>
+                              Every decision is captured to the audit ledger and reversible for 24
+                              hours.
+                            </Trans>
+                          </p>
+                        </div>
+                        <span className="hidden shrink-0 font-mono text-xs font-bold text-text-success tabular-nums sm:inline">
+                          {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
+                        </span>
                       </div>
-                      <span className="hidden shrink-0 font-mono text-xs font-bold text-text-success tabular-nums sm:inline">
-                        {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
-                      </span>
-                    </div>
-                    {canApply ? (
-                      <div className="flex justify-end">
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={handleApply}
-                          disabled={isMutating}
-                          className="bg-text-success hover:bg-text-success/90"
-                        >
-                          <Trans>Apply now</Trans>
-                          <ArrowRightIcon data-icon="inline-end" />
-                        </Button>
-                      </div>
-                    ) : null}
-                  </section>
-                ) : null}
-              </DetailSectionCard>
-            ) : null}
+                      {canApply ? (
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={handleApply}
+                            disabled={isMutating}
+                            className="bg-text-success hover:bg-text-success/90"
+                          >
+                            <Trans>Apply now</Trans>
+                            <ArrowRightIcon data-icon="inline-end" />
+                          </Button>
+                        </div>
+                      ) : null}
+                    </section>
+                  ) : null}
+                </DetailSectionCard>
+              ) : null}
 
-            {/* GROUP 3 — Source & confidence: warnings, the verbatim source
+              {/* GROUP 3 — Source & confidence: warnings, the verbatim source
                 extract, and a single confidence row. Batch 4 #15/#17: the
                 card had two inner sub-headers ("Source extract", "How
                 confident we are · where this came from") plus a 2-col
@@ -1774,209 +1778,214 @@ export function AlertDetailDrawer({
                 date, and audit note already shown elsewhere — the card
                 title + header-band link now carry all of it, and the body
                 is just citation → quote → confidence. */}
-            <DetailSectionCard
-              id="alert-section-source"
-              variant="flat"
-              tone="reference"
-              className="scroll-mt-16"
-              title={<Trans>Source &amp; confidence</Trans>}
-              headerRight={
-                detail.alert.sourceUrl ? (
-                  <a
-                    href={detail.alert.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                  >
-                    <Trans>Open original</Trans>
-                    <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
-                  </a>
-                ) : undefined
-              }
-            >
-              {/* Low AI confidence — a "double-check this" cue (amber, not
+              <DetailSectionCard
+                id="alert-section-source"
+                variant="flat"
+                tone="reference"
+                className="scroll-mt-16"
+                title={<Trans>Source &amp; confidence</Trans>}
+                headerRight={
+                  detail.alert.sourceUrl ? (
+                    <a
+                      href={detail.alert.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    >
+                      <Trans>Open original</Trans>
+                      <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+                    </a>
+                  ) : undefined
+                }
+              >
+                {/* Low AI confidence — a "double-check this" cue (amber, not
                   destructive). Names the % and explains what to verify. */}
-              {isLowAiConfidence(detail.alert.confidence) ? (
-                <Alert variant="warning">
-                  <AlertTitle>
-                    <ConceptLabel concept="aiConfidence">
+                {isLowAiConfidence(detail.alert.confidence) ? (
+                  <Alert variant="warning">
+                    <AlertTitle>
+                      <ConceptLabel concept="aiConfidence">
+                        {detail.alert.firmImpact === 'no_current_match' ? (
+                          <Trans>
+                            AI confidence {Math.round(detail.alert.confidence * 100)}% — review
+                            source
+                          </Trans>
+                        ) : (
+                          <Trans>
+                            AI confidence {Math.round(detail.alert.confidence * 100)}% — review
+                            source before applying
+                          </Trans>
+                        )}
+                      </ConceptLabel>
+                    </AlertTitle>
+                    <AlertDescription>
                       {detail.alert.firmImpact === 'no_current_match' ? (
                         <Trans>
-                          AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
+                          The model extracted these fields with low confidence. Compare against the
+                          source excerpt below and the structured scope before marking it reviewed.
                         </Trans>
                       ) : (
                         <Trans>
-                          AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
-                          before applying
+                          The model extracted these fields with low confidence. Compare against the
+                          source excerpt below and the structured scope before pushing changes to
+                          clients.
                         </Trans>
                       )}
-                    </ConceptLabel>
-                  </AlertTitle>
-                  <AlertDescription>
-                    {detail.alert.firmImpact === 'no_current_match' ? (
-                      <Trans>
-                        The model extracted these fields with low confidence. Compare against the
-                        source excerpt below and the structured scope before marking it reviewed.
-                      </Trans>
-                    ) : (
-                      <Trans>
-                        The model extracted these fields with low confidence. Compare against the
-                        source excerpt below and the structured scope before pushing changes to
-                        clients.
-                      </Trans>
-                    )}
-                  </AlertDescription>
-                </Alert>
-              ) : null}
+                    </AlertDescription>
+                  </Alert>
+                ) : null}
 
-              {detail.alert.sourceStatus === 'source_revoked' ? (
-                <Alert variant="destructive">
-                  <AlertTitle>
-                    <Trans>Source revoked</Trans>
-                  </AlertTitle>
-                  <AlertDescription>
-                    <Trans>
-                      This source is no longer trusted. The historical alert remains visible, but
-                      new apply, review, dismiss, and undo actions are disabled.
-                    </Trans>
-                  </AlertDescription>
-                </Alert>
-              ) : null}
+                {detail.alert.sourceStatus === 'source_revoked' ? (
+                  <Alert variant="destructive">
+                    <AlertTitle>
+                      <Trans>Source revoked</Trans>
+                    </AlertTitle>
+                    <AlertDescription>
+                      <Trans>
+                        This source is no longer trusted. The historical alert remains visible, but
+                        new apply, review, dismiss, and undo actions are disabled.
+                      </Trans>
+                    </AlertDescription>
+                  </Alert>
+                ) : null}
 
-              {/* Citation line + verbatim quote. The "Source extract"
+                {/* Citation line + verbatim quote. The "Source extract"
                   sub-header is gone (the card title says it); "Open
                   original" rides the card's header band. The quote is the
                   VERBATIM `sourceExcerpt` — its one home (it used to sit
                   at the bottom of Extracted facts while this card
                   re-quoted the summary, which is usually the title — two
                   lookalike quote boxes, one of them a repeat). */}
-              {detail.sourceExcerpt.trim().length > 0 ? (
-                <section className="flex flex-col gap-2">
-                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
-                    {/* Sans, not mono — mono is reserved for dates/numbers
+                {detail.sourceExcerpt.trim().length > 0 ? (
+                  <section className="flex flex-col gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
+                      {/* Sans, not mono — mono is reserved for dates/numbers
                         (mono-restraint); a publisher NAME isn't data. */}
-                    <span>{detail.alert.source}</span>
-                    {detail.alert.publishedAt ? (
-                      <>
-                        <span aria-hidden>·</span>
-                        <span>
-                          <Trans>Published</Trans>{' '}
-                          <span className="tabular-nums">
-                            {formatDatePretty(detail.alert.publishedAt)}
+                      <span>{detail.alert.source}</span>
+                      {detail.alert.publishedAt ? (
+                        <>
+                          <span aria-hidden>·</span>
+                          <span>
+                            <Trans>Published</Trans>{' '}
+                            <span className="tabular-nums">
+                              {formatDatePretty(detail.alert.publishedAt)}
+                            </span>
                           </span>
-                        </span>
-                      </>
-                    ) : null}
-                  </div>
-                  <div className="group/excerpt relative">
-                    {/* Classic quote anatomy (de-fill pass): a left rule, not
+                        </>
+                      ) : null}
+                    </div>
+                    <div className="group/excerpt relative">
+                      {/* Classic quote anatomy (de-fill pass): a left rule, not
                         a gray slab — the italic + bar say "verbatim source". */}
-                    <blockquote className="break-words border-l-2 border-divider-deep py-0.5 pr-10 pl-4 text-base leading-relaxed text-text-secondary italic">
-                      &ldquo;{detail.sourceExcerpt}&rdquo;
-                    </blockquote>
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label={t`Copy source excerpt`}
-                            onClick={() => {
-                              void navigator.clipboard.writeText(detail.sourceExcerpt).then(
-                                () => toast.success(t`Source excerpt copied`),
-                                () => toast.error(t`Couldn't copy source excerpt`),
-                              )
-                            }}
-                            className={cn(
-                              'absolute right-2 top-2 opacity-0 transition-opacity',
-                              'group-hover/excerpt:opacity-100 focus-visible:opacity-100',
-                            )}
-                          >
-                            <CopyIcon aria-hidden />
-                          </Button>
-                        }
-                      />
-                      <TooltipContent>
-                        <Trans>Copy source excerpt</Trans>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </section>
-              ) : null}
+                      <blockquote className="break-words border-l-2 border-divider-deep py-0.5 pr-10 pl-4 text-base leading-relaxed text-text-secondary italic">
+                        &ldquo;{detail.sourceExcerpt}&rdquo;
+                      </blockquote>
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={t`Copy source excerpt`}
+                              onClick={() => {
+                                void navigator.clipboard.writeText(detail.sourceExcerpt).then(
+                                  () => toast.success(t`Source excerpt copied`),
+                                  () => toast.error(t`Couldn't copy source excerpt`),
+                                )
+                              }}
+                              className={cn(
+                                'absolute right-2 top-2 opacity-0 transition-opacity',
+                                'group-hover/excerpt:opacity-100 focus-visible:opacity-100',
+                              )}
+                            >
+                              <CopyIcon aria-hidden />
+                            </Button>
+                          }
+                        />
+                        <TooltipContent>
+                          <Trans>Copy source excerpt</Trans>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </section>
+                ) : null}
 
-              {/* Confidence — one hairline row: % + tier left, the
+                {/* Confidence — one hairline row: % + tier left, the
                   what-to-do-about-it guidance right. The old 2-col
                   provenance grid duplicated the source link (header band),
                   publish date (citation above), and audit note (footer). */}
-              {(() => {
-                const confPct = Math.round(detail.alert.confidence * 100)
-                const confTier = aiConfidenceTier(detail.alert.confidence)
-                const confToneClass =
-                  confTier === 'high'
-                    ? 'text-text-success'
-                    : confTier === 'medium'
-                      ? 'text-text-tertiary'
-                      : 'text-text-destructive'
-                const confTierLabel =
-                  confTier === 'high' ? t`High` : confTier === 'medium' ? t`Medium` : t`Low`
-                return (
-                  // Label-ladder: sentence case (caps are the GRID's voice);
-                  // the % keeps the tier tone as the strong element.
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-divider-subtle pt-3">
-                    <span className="inline-flex items-baseline gap-2">
-                      <span className={cn('text-base font-semibold tabular-nums', confToneClass)}>
-                        {confPct}%
+                {(() => {
+                  const confPct = Math.round(detail.alert.confidence * 100)
+                  const confTier = aiConfidenceTier(detail.alert.confidence)
+                  const confToneClass =
+                    confTier === 'high'
+                      ? 'text-text-success'
+                      : confTier === 'medium'
+                        ? 'text-text-tertiary'
+                        : 'text-text-destructive'
+                  const confTierLabel =
+                    confTier === 'high' ? t`High` : confTier === 'medium' ? t`Medium` : t`Low`
+                  return (
+                    // Label-ladder: sentence case (caps are the GRID's voice);
+                    // the % keeps the tier tone as the strong element.
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-divider-subtle pt-3">
+                      <span className="inline-flex items-baseline gap-2">
+                        <span className={cn('text-base font-semibold tabular-nums', confToneClass)}>
+                          {confPct}%
+                        </span>
+                        <span className={cn('text-sm font-medium', confToneClass)}>
+                          <Trans>{confTierLabel} confidence</Trans>
+                        </span>
                       </span>
-                      <span className={cn('text-sm font-medium', confToneClass)}>
-                        <Trans>{confTierLabel} confidence</Trans>
+                      <span className="text-xs text-text-tertiary">
+                        {confTier === 'low' ? (
+                          <Trans>
+                            Verify the extract matches the official source before applying.
+                          </Trans>
+                        ) : confTier === 'medium' ? (
+                          <Trans>Quick-confirm the extracted fields look right.</Trans>
+                        ) : (
+                          <Trans>Model is confident — review and apply when ready.</Trans>
+                        )}
                       </span>
-                    </span>
-                    <span className="text-xs text-text-tertiary">
-                      {confTier === 'low' ? (
-                        <Trans>
-                          Verify the extract matches the official source before applying.
-                        </Trans>
-                      ) : confTier === 'medium' ? (
-                        <Trans>Quick-confirm the extracted fields look right.</Trans>
-                      ) : (
-                        <Trans>Model is confident — review and apply when ready.</Trans>
-                      )}
-                    </span>
-                  </div>
-                )
-              })()}
-            </DetailSectionCard>
+                    </div>
+                  )
+                })()}
+              </DetailSectionCard>
 
-            {/* GROUP 4 — Activity & notes: lifecycle timeline + team notes.
+              {/* GROUP 4 — Activity & notes: lifecycle timeline + team notes.
                 The "N events · oldest first" meta rides the card header
                 (Yuqi #11) so the timeline body needs no second header. */}
-            <DetailSectionCard
-              id="alert-section-activity"
-              variant="flat"
-              tone="reference"
-              className="scroll-mt-16"
-              title={<Trans>Activity &amp; notes</Trans>}
-              headerRight={
-                <span className="tabular-nums">
-                  <Plural value={alertActivityEventCount(detail)} one="# event" other="# events" />
-                  {' · '}
-                  <Trans>oldest first</Trans>
-                </span>
-              }
-            >
-              {/* Pencil `gRY5g Activity`: lifecycle timeline built from the
+              <DetailSectionCard
+                id="alert-section-activity"
+                variant="flat"
+                tone="reference"
+                className="scroll-mt-16"
+                title={<Trans>Activity &amp; notes</Trans>}
+                headerRight={
+                  <span className="tabular-nums">
+                    <Plural
+                      value={alertActivityEventCount(detail)}
+                      one="# event"
+                      other="# events"
+                    />
+                    {' · '}
+                    <Trans>oldest first</Trans>
+                  </span>
+                }
+              >
+                {/* Pencil `gRY5g Activity`: lifecycle timeline built from the
                   alert's real timestamps (received → matched → reviewed →
                   current) — every node is a fact already on the record. */}
-              <AlertActivityTimeline detail={detail} />
+                <AlertActivityTimeline detail={detail} />
 
-              {/* Pencil Aogxu §7 "Team notes": internal discussion threaded on
+                {/* Pencil Aogxu §7 "Team notes": internal discussion threaded on
                   the alert. Wired to pulse.listAlertNotes / pulse.addAlertNote. */}
-              <AlertTeamNotes alertId={detail.alert.id} />
-            </DetailSectionCard>
-          </div>
-        ) : null}
-      </div>
+                <AlertTeamNotes alertId={detail.alert.id} />
+              </DetailSectionCard>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {/* Sticky action footer — a committed decision surface, not

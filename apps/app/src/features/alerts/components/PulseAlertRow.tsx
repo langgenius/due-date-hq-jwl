@@ -30,7 +30,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
 
 import { useAlertDetailFromCacheQueryOptions } from '../api'
-import { changeKindLabel } from './PulseChangeKindChip'
+import { ChangeKindIcon, changeKindLabel } from './PulseChangeKindChip'
 
 /**
  * `PulseAlertRow` — list-row rendering of an alert, replacing the
@@ -477,11 +477,11 @@ function PulseAlertRow({
               className override on /alerts). */}
           {formLabel ? <TaxCodeBadge code={formLabel} /> : null}
 
-          {/* CHANGE KIND — 2026-06-14 (Yuqi "Protective claim window is
-              different on the list and the detail"): sentence-case medium
-              secondary, matching the detail hero exactly. One treatment
-              across list + rail + detail. (Was tracked-caps muted.) */}
-          <span className="text-xs font-medium text-text-secondary">
+          {/* CHANGE KIND — icon + sentence-case medium secondary, matching
+              the detail hero exactly (2026-06-14). One treatment across
+              list + rail + detail. */}
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+            <ChangeKindIcon changeKind={alert.changeKind} />
             {changeKindLabel(alert.changeKind)}
           </span>
 

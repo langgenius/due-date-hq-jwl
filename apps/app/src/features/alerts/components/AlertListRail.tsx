@@ -19,7 +19,7 @@ import { useActiveAlertCount } from '@/features/alerts/api'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
-import { changeKindLabel } from './PulseChangeKindChip'
+import { ChangeKindIcon, changeKindLabel } from './PulseChangeKindChip'
 
 /**
  * The 380px alert-list secondary sidebar shown on the full-page detail
@@ -280,9 +280,10 @@ function RailItem({
               chip in the row and the rail, and both match the app-wide
               form-badge treatment (same-entity-same-rendering audit). */}
           {form ? <TaxCodeBadge code={form} /> : null}
-          {/* Change-kind — sentence-case medium secondary, matching the
-              main row + detail hero (2026-06-14 consistency pass). */}
-          <span className="text-xs font-medium text-text-secondary">
+          {/* Change-kind — icon + sentence-case medium secondary, matching
+              the main row + detail hero (2026-06-14 consistency pass). */}
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+            <ChangeKindIcon changeKind={alert.changeKind} />
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>
