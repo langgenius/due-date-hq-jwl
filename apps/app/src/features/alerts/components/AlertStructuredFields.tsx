@@ -285,8 +285,12 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
   const keyFactLine = protectiveFacts?.actionDeadline ? (
     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
       <span className="inline-flex items-center gap-1.5 self-center text-sm font-medium text-text-tertiary">
+        {/* 2026-06-14 (Yuqi "hard to know Act by relates to Protective claim
+            window"): this key-fact only renders for protective-claim alerts,
+            so it NAMES the thing — "Claim window closes" ties the date to the
+            "Protective claim window" change-kind in the meta above. */}
         <CalendarClockIcon className="size-3.5 shrink-0" aria-hidden />
-        <Trans>Act by</Trans>
+        <Trans>Claim window closes</Trans>
       </span>
       <span className="font-mono text-xl font-bold tracking-title text-text-primary tabular-nums">
         {formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}
