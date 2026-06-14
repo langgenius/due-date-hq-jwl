@@ -415,6 +415,16 @@ export {
   substantialCohortYears,
 } from './catalog-release'
 export type { RuleCohort } from './catalog-release'
+export {
+  PIPELINE_LIVE_SINCE,
+  RECALL_GROUND_TRUTH_EVENTS,
+  RECALL_LAG_BUDGET_DEFAULT_DAYS,
+} from './recall-events'
+export type {
+  RecallEventOrigin,
+  RecallExpectedChangeKind,
+  RecallGroundTruthEvent,
+} from './recall-events'
 
 export type RuleGenerationEntity = Exclude<EntityApplicability, 'any_business'> | 'other'
 

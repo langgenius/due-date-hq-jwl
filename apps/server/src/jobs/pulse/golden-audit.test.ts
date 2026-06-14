@@ -4,7 +4,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SourceAdapter } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
-import { GOLDEN_AUDIT_SOURCE_IDS, runPulseGoldenAudit, shouldRunGoldenAudit } from './golden-audit'
+import {
+  GOLDEN_AUDIT_KV_KEY,
+  GOLDEN_AUDIT_SOURCE_IDS,
+  runPulseGoldenAudit,
+  shouldRunGoldenAudit,
+} from './golden-audit'
 
 const { dbMocks, metricsMocks, opsMocks, repoMocks } = vi.hoisted(() => {
   const repo = { listItemSnapshotContentHashes: vi.fn() }
@@ -83,9 +88,13 @@ function fullGoldenSet(): SourceAdapter[] {
   return GOLDEN_AUDIT_SOURCE_IDS.map((id) => goldenAdapter({ id }))
 }
 
-const env = { DB: {} as D1Database } as Pick<Env, 'DB'> & {
-  OPS_ALERT_EMAIL?: string
-}
+const kvPut = vi.fn<
+  (key: string, value: string, opts?: { expirationTtl?: number }) => Promise<void>
+>(async () => undefined)
+const env = {
+  DB: {} as D1Database,
+  CACHE: { put: kvPut, get: vi.fn(async () => null) } as unknown as KVNamespace,
+} as Pick<Env, 'DB'> & { OPS_ALERT_EMAIL?: string; CACHE: KVNamespace }
 
 describe('GOLDEN_AUDIT_SOURCE_IDS', () => {
   it('every golden id exists in the live adapter registry', async () => {
@@ -111,6 +120,7 @@ describe('runPulseGoldenAudit', () => {
     Object.values(dbMocks).forEach((mock) => mock.mockClear())
     Object.values(metricsMocks).forEach((mock) => mock.mockReset())
     opsMocks.dispatchOpsAlert.mockClear()
+    kvPut.mockClear()
     repoMocks.listItemSnapshotContentHashes.mockReset()
   })
 
@@ -166,6 +176,40 @@ describe('runPulseGoldenAudit', () => {
       'pulse.golden_audit.misses',
       expect.objectContaining({ misses: 0 }),
     )
+  })
+
+  it('persists the result to KV with a ranAt stamp for the weekly scorecard', async () => {
+    repoMocks.listItemSnapshotContentHashes
+      .mockResolvedValueOnce(['item-v2:abc'])
+      .mockResolvedValueOnce([])
+    const now = new Date('2026-06-15T10:05:00.000Z')
+
+    const result = await runPulseGoldenAudit(env, [goldenAdapter()], now)
+
+    expect(result.ranAt).toBe('2026-06-15T10:05:00.000Z')
+    expect(kvPut).toHaveBeenCalledTimes(1)
+    const [key, payload, opts] = kvPut.mock.calls[0]!
+    expect(key).toBe(GOLDEN_AUDIT_KV_KEY)
+    expect(opts).toEqual({ expirationTtl: 30 * 24 * 60 * 60 })
+    const persisted = JSON.parse(payload) as {
+      ranAt: string
+      misses: unknown[]
+      missingAdapterIds: string[]
+    }
+    expect(persisted.ranAt).toBe('2026-06-15T10:05:00.000Z')
+    expect(persisted.misses).toHaveLength(1)
+    expect(persisted.missingAdapterIds).toEqual(
+      GOLDEN_AUDIT_SOURCE_IDS.filter((id) => id !== 'irs.disaster'),
+    )
+  })
+
+  it('a KV persist failure does not fail the audit', async () => {
+    repoMocks.listItemSnapshotContentHashes.mockResolvedValue(['item-v2:abc'])
+    kvPut.mockRejectedValueOnce(new Error('kv down'))
+
+    const result = await runPulseGoldenAudit(env, [goldenAdapter()])
+
+    expect(result.parsedItems).toBe(2)
   })
 
   it('one dead source cannot abort the rest of the audit', async () => {

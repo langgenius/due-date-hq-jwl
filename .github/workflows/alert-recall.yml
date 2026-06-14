@@ -1,0 +1,143 @@
+name: Alert Quality Weekly
+
+# Weekly end-to-end recall scorecard for the alerts/pulse pipeline
+# (scripts/eval-alert-recall.ts). Reads the curated ground-truth event set,
+# queries the remote staging D1 (read-only) + the golden-audit KV blob, and
+# folds rule-source health into ONE "Alert 监听质量周报" issue (label
+# `alert-quality-weekly`) that stays permanently open — the scorecard IS the
+# product, green or red. Schedule/dispatch ONLY; never a branch-protection check.
+#
+# Runs Monday 11:17 UTC — after rule-source-health (06:17) and the in-Worker
+# golden audit (10:00–10:29), so all three Monday quality signals land together.
+on:
+  schedule:
+    - cron: '17 11 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: read
+  # `issues: write` is needed to upsert the scorecard issue.
+
+concurrency:
+  group: alert-recall
+  cancel-in-progress: false
+
+jobs:
+  recall-scorecard:
+    runs-on: ubuntu-latest
+    # Reaches CLOUDFLARE_API_TOKEN (read-only D1/KV) the deploy job already uses.
+    # If this environment ever gains required reviewers, mint a least-privilege
+    # D1/KV-read token as repo secret CLOUDFLARE_D1_READ_TOKEN and use it instead.
+    environment: due-date-hq-staging
+    permissions:
+      contents: read
+      issues: write
+    env:
+      CLOUDFLARE_ACCOUNT_ID: 8f7d374db5cb1f025b7f71e28b84c9bb
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      WRANGLER_SEND_METRICS: 'false'
+      GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version: '22'
+          cache: true
+
+      - run: vp install --frozen-lockfile
+
+      - name: Evaluate alert recall
+        id: eval
+        run: |
+          set +e
+          ./node_modules/.bin/tsx scripts/eval-alert-recall.ts --json alert-recall.json | tee alert-recall.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alert-recall
+          path: |
+            alert-recall.json
+            alert-recall.txt
+          retention-days: 30
+
+      - name: Upsert weekly quality issue
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs')
+            const label = 'alert-quality-weekly'
+            const report = JSON.parse(fs.readFileSync('alert-recall.json', 'utf8'))
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+
+            // Section 3: rule-source health — read the sibling tracking issue's state.
+            const { data: sourceIssues } = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: 'open',
+              labels: 'rule-source-health',
+            })
+            const sourceHealth = sourceIssues[0]
+              ? `⚠️ [${sourceIssues[0].title}](${sourceIssues[0].html_url})`
+              : '✅ all registry source URLs reachable (no open rule-source-health issue)'
+
+            // Infra failure → never a recall verdict; say so loudly.
+            if (report.infraError) {
+              var body = [
+                `## Alert 监听质量周报 — ${report.generatedAt}`,
+                '',
+                `> ❌ **Run failed (infrastructure, not a recall result):** \`${report.infraError}\``,
+                `> The remote D1/KV query did not complete. Recall was NOT measured this run. ${runUrl}`,
+                '',
+                `### Source health`,
+                sourceHealth,
+              ].join('\n')
+              var title = `Alert 监听质量周报 — run failed (infra)`
+            } else {
+              const m = report.metrics
+              const historyLine = report.historyLine
+              body = [
+                report.scorecardMarkdown,
+                '',
+                '## Source health (URL reachability)',
+                sourceHealth,
+                '',
+                '---',
+                `_Run: ${runUrl}_`,
+              ].join('\n')
+              const pctR = Math.round(m.headlineRecall * 100)
+              title =
+                m.countableLive > 0
+                  ? `Alert 监听质量周报: recall ${pctR}% (${m.headlineCaught}/${m.countableLive})`
+                  : `Alert 监听质量周报: ${m.filteredPass}/${m.filteredTotal} filtered held, ${m.backtestCaught}/${m.backtestTotal} backtest`
+            }
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: 'open',
+              labels: label,
+            })
+            const existing = open[0]
+            if (existing) {
+              await github.rest.issues.update({
+                ...context.repo,
+                issue_number: existing.number,
+                title,
+                body,
+              })
+              // History stream: one line per run (skip on infra failure).
+              if (!report.infraError && report.historyLine) {
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number: existing.number,
+                  body: report.historyLine,
+                })
+              }
+            } else {
+              await github.rest.issues.create({ ...context.repo, title, body, labels: [label] })
+            }
+
+      - name: Reflect failures in the run status
+        if: steps.eval.outputs.exit_code != '0'
+        run: exit 1

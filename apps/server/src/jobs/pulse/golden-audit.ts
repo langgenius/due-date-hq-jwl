@@ -28,11 +28,20 @@ export interface GoldenAuditMiss {
 }
 
 export interface GoldenAuditResult {
+  // ISO timestamp the audit ran — the weekly recall scorecard reads this from
+  // KV and treats a stale ranAt (>7d) as "audit didn't run" rather than green.
+  ranAt: string
   auditedSources: number
   parsedItems: number
   misses: GoldenAuditMiss[]
   missingAdapterIds: string[]
 }
+
+// KV key the audit writes its latest result to. The Worker is the only writer;
+// the out-of-band weekly recall scorecard (a CI job) is the only reader — email
+// alone wasn't queryable, so the scorecard couldn't fold the audit in.
+export const GOLDEN_AUDIT_KV_KEY = 'golden-audit:last'
+const GOLDEN_AUDIT_KV_TTL_SECONDS = 30 * 24 * 60 * 60
 
 // Weekly, Monday 10:00–10:29 UTC — one slot of the */30 cron, an hour after
 // the daily still-open sweep so the tick stays light.
@@ -52,6 +61,7 @@ export function shouldRunGoldenAudit(now: Date): boolean {
 export async function runPulseGoldenAudit(
   env: Pick<Env, 'DB'> & OpsAlertEnv,
   adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
+  now: Date = new Date(),
 ): Promise<GoldenAuditResult> {
   const byId = new Map(adapters.map((adapter) => [adapter.id, adapter]))
   const missingAdapterIds = GOLDEN_AUDIT_SOURCE_IDS.filter((id) => !byId.has(id))
@@ -125,7 +135,29 @@ export async function runPulseGoldenAudit(
     await dispatchOpsAlert(env, 'pulse.golden_audit.misses', fields)
   }
 
-  return { auditedSources, parsedItems, misses, missingAdapterIds }
+  const result: GoldenAuditResult = {
+    ranAt: now.toISOString(),
+    auditedSources,
+    parsedItems,
+    misses,
+    missingAdapterIds,
+  }
+
+  // Persist for the weekly recall scorecard to fold in. Best-effort: a KV write
+  // failure must not fail the audit itself (the email alert already fired).
+  if (env.CACHE) {
+    try {
+      await env.CACHE.put(GOLDEN_AUDIT_KV_KEY, JSON.stringify(result), {
+        expirationTtl: GOLDEN_AUDIT_KV_TTL_SECONDS,
+      })
+    } catch (error) {
+      console.error('pulse.golden_audit.persist_failed', {
+        message: error instanceof Error ? error.message : String(error),
+      })
+    }
+  }
+
+  return result
 }
 
 // Cron-facing wrapper: no-op outside the weekly slot.
@@ -134,5 +166,5 @@ export async function runScheduledGoldenAudit(
   now: Date,
 ): Promise<GoldenAuditResult | null> {
   if (!shouldRunGoldenAudit(now)) return null
-  return runPulseGoldenAudit(env)
+  return runPulseGoldenAudit(env, liveRegulatorySourceAdapters, now)
 }
