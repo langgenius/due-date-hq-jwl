@@ -183,7 +183,7 @@ describe('AlertStructuredFields', () => {
       </>,
     )
 
-    expect(document.body.textContent).toContain('Act by')
+    expect(document.body.textContent).toContain('Claim window closes')
     expect(document.body.textContent).toContain('Jul 10, 2026')
     expect(document.body.textContent).toContain('2019 · 2020 · 2021 · 2022')
     // Evidence renders as a checklist — one item per line, no ·-join.
