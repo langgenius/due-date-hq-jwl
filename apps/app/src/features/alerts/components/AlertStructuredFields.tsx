@@ -313,21 +313,25 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Evidence checklist — a to-do, so it leads the details depth (the
-          hero carries only the one-line by-when fact). */}
+      {/* Evidence checklist — the actionable lead of a protective-claim
+          alert (what you need to file). 2026-06-14 (Yuqi "still flat — the
+          evidence + bullets read loose"): it gets the SAME accent value-
+          anchor as "What this means" (left rule + accent header), so it's the
+          clear top layer of the section; the bullets tighten to leading-snug
+          with accent dots tying them to the block. */}
       {protectiveFacts && protectiveFacts.evidenceNeeded.length > 0 ? (
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-semibold text-text-secondary">
+        <div className="flex flex-col gap-2 border-l-2 border-state-accent-border pl-4">
+          <span className="text-sm font-semibold text-text-accent">
             <Trans>Evidence to gather</Trans>
           </span>
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-1.5">
             {protectiveFacts.evidenceNeeded.map((item) => (
               <li
                 key={item}
-                className="flex items-start gap-2 text-sm font-medium text-text-primary"
+                className="flex items-start gap-2.5 text-sm leading-snug text-text-primary"
               >
                 <span
-                  className="mt-[7px] size-1 shrink-0 rounded-full bg-text-tertiary"
+                  className="mt-1.5 size-1.5 shrink-0 rounded-full bg-state-accent-solid"
                   aria-hidden
                 />
                 {item}
@@ -367,17 +371,18 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
           // tertiary label over a 13/medium primary value. The grid's
           // gap-px + divider bg draw the right-/row-hairlines between
           // cells.
-          <div key={cell.key} className="flex flex-col gap-1 bg-background-subtle px-5 py-3">
-            {/* Register B2 micro label — 12/500 CAPS tertiary (semibold read
-                chunky at the lifted xs size; medium is the canonical B2
-                weight, see section-header-style.md). */}
-            <span className="text-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
+          // 2026-06-14 (Yuqi "table hierarchy is loose"): a tight key→value
+          // pair — label = small 11px caption, value = 14/600 primary answer,
+          // gap-0.5 so they bind as one unit, py-2.5 so the grid reads dense.
+          // The size + weight gap (11/tertiary → 14/600 primary) is the layer.
+          <div key={cell.key} className="flex flex-col gap-0.5 bg-background-subtle px-5 py-2.5">
+            <span className="text-[11px] font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
               {cell.label}
             </span>
             {/* Wrap to two lines instead of ellipsizing — Relief type /
                 Affected tax acts are identity values; hiding them behind
                 "…" defeated the grid. */}
-            <span className="line-clamp-2 min-w-0 break-words text-base font-medium text-text-primary">
+            <span className="line-clamp-2 min-w-0 break-words text-sm font-semibold leading-snug text-text-primary">
               {cell.value}
             </span>
           </div>

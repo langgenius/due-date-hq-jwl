@@ -245,14 +245,13 @@ function RailItem({
         // a touch more column gap so the rail breathes.
         'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
-        // 2026-06-14 (Yuqi: "active state — let's not have it on a colour
-        // background"): selection is now a NEUTRAL gray fill, not the accent
-        // wash (the chromatic fill read as too loud for a steady selected
-        // state, and accent is the product's action color). Active = the
-        // strongest neutral step (`bg-state-base-active`); hover = the lighter
-        // `bg-state-base-hover`, so the two stay distinct. No left accent bar
-        // (it doubled against the rail's own left border).
-        active ? 'bg-state-base-active' : 'hover:bg-state-base-hover',
+        // 2026-06-14 (Yuqi: "active bg is too dark"): selection is a LIGHT
+        // neutral fill — `state-base-hover` (0.2) instead of the heavier
+        // `state-base-active` (0.4). Hover on unselected rows drops to the
+        // faint `state-base-hover-subtle` (0.08) so the selected row still
+        // reads as the most present without being dark. No accent (steady
+        // selection isn't the action color), no left bar (rail has its edge).
+        active ? 'bg-state-base-hover' : 'hover:bg-state-base-hover-subtle',
       )}
     >
       {/* Time column (60px). */}
