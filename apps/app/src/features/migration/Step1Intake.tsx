@@ -1322,10 +1322,10 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
         steps: [
           i18n._(msg`Open HomeBase View and make sure you are not inside a client return.`),
           i18n._(
-            msg`Optionally customize HomeBase columns for client status, return type, address, phone, email, and preparer.`,
+            msg`In ProSeries Professional you can customize HomeBase columns (client status, return type, address, phone, email) from the HomeBase menu; ProSeries Basic can't add address columns and built-in views like EF Center or All Tax Returns can't be customized.`,
           ),
           i18n._(
-            msg`Use HomeBase > Export Contacts, then upload the exported contacts CSV; the file name can be anything.`,
+            msg`Use HomeBase > Export Contacts; ProSeries saves it automatically as Contacts.csv in its Common Exports folder (ProWinYY for Professional, BasWinYY for Basic) with no Save As prompt — upload that file.`,
           ),
         ],
         note: i18n._(
@@ -1351,12 +1351,16 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
     case 'proconnect_tax':
       return {
         title: i18n._(msg`Export ProConnect Tax clients`),
-        preferredFiles: i18n._(msg`XLSX or CSV`),
+        preferredFiles: i18n._(msg`CSV`),
         steps: [
-          i18n._(msg`For the client list, open Clients and use the top-right download arrow.`),
-          i18n._(msg`Export the client list to Excel; it includes client names and addresses.`),
           i18n._(
-            msg`For return facts, use Reporting > Download return data to download the eligible e-filed return CSV.`,
+            msg`For the client list, open Clients and use the download icon at the top-right.`,
+          ),
+          i18n._(
+            msg`It downloads a CSV (opens in Excel) of client names, addresses, phones, and emails from each client profile — not the latest return data, DOB, or SSN.`,
+          ),
+          i18n._(
+            msg`For return facts, use Reporting > Download 1040 data (still named that, but now covers e-filed 1040/1120/1120-S/1065/1041/990); only the firm's primary admin can run it.`,
           ),
           i18n._(
             msg`For supplemental organizer data, open Intuit Link and download client responses as CSV.`,

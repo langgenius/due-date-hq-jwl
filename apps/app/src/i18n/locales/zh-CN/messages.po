@@ -7060,10 +7060,6 @@ msgid "Export TaxDome accounts and contacts"
 msgstr "导出 TaxDome 账户和联系人"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Export the client list to Excel; it includes client names and addresses."
-msgstr "将客户清单导出为 Excel；其中包含客户姓名和地址。"
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Export to Excel 97-2003 Workbook and include column headings when prompted."
 msgstr "导出为 Excel 97-2003 Workbook，并在提示时包含列标题。"
 
@@ -7681,8 +7677,8 @@ msgid "For practices coordinating a larger operations team."
 msgstr "适合协调较大运营团队的事务所。"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "For return facts, use Reporting > Download return data to download the eligible e-filed return CSV."
-msgstr "如需申报事实，请使用 Reporting > Download return data 下载符合条件的 e-filed return CSV。"
+msgid "For return facts, use Reporting > Download 1040 data (still named that, but now covers e-filed 1040/1120/1120-S/1065/1041/990); only the firm's primary admin can run it."
+msgstr "获取报税数据：使用 Reporting > Download 1040 data（按钮名未变，但现已覆盖已 e-file 的 1040/1120/1120-S/1065/1041/990）；仅事务所的 primary admin 可执行。"
 
 #: src/components/patterns/kbd.tsx
 #, fuzzy
@@ -7702,8 +7698,8 @@ msgid "For supplemental organizer data, open Intuit Link and download client res
 msgstr "如需补充 organizer 数据，请打开 Intuit Link 并将客户回复下载为 CSV。"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "For the client list, open Clients and use the top-right download arrow."
-msgstr "如需客户清单，请打开 Clients，并使用右上角下载箭头。"
+msgid "For the client list, open Clients and use the download icon at the top-right."
+msgstr "获取客户名单：打开 Clients，点击右上角的下载图标。"
 
 #: src/routes/_entry-layout.tsx
 msgid "For US CPA practices"
@@ -8302,6 +8298,10 @@ msgstr "今日生效"
 msgid "In progress"
 msgstr "进行中"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "In ProSeries Professional you can customize HomeBase columns (client status, return type, address, phone, email) from the HomeBase menu; ProSeries Basic can't add address columns and built-in views like EF Center or All Tax Returns can't be customized."
+msgstr "在 ProSeries Professional 中，可通过 HomeBase 菜单自定义 HomeBase 列（客户状态、申报表类型、地址、电话、邮箱）；ProSeries Basic 无法添加地址列，且 EF Center、All Tax Returns 等内置视图不可自定义。"
+
 #. placeholder {0}: formatRelativeTime(reviewTask.createdAt)
 #: src/routes/rules.library.tsx
 msgid "In queue {0}"
@@ -8587,6 +8587,10 @@ msgstr "发布"
 #: src/routes/obligations.tsx
 msgid "Issues"
 msgstr "问题"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "It downloads a CSV (opens in Excel) of client names, addresses, phones, and emails from each client profile — not the latest return data, DOB, or SSN."
+msgstr "下载的是 CSV 文件（可用 Excel 打开），包含各客户资料中的姓名、地址、电话和邮箱——不含最新报税数据、出生日期或 SSN。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Items"
@@ -11471,10 +11475,6 @@ msgstr "可选备注"
 #: src/features/migration/Step1Intake.tsx
 msgid "Optional: export Workflow > Jobs if you want TaxDome due dates and internal deadlines."
 msgstr "可选：如果需要 TaxDome due dates 和 internal deadlines，请导出 Workflow > Jobs。"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Optionally customize HomeBase columns for client status, return type, address, phone, email, and preparer."
-msgstr "可先自定义 HomeBase 列，加入 client status、return type、address、phone、email 和 preparer。"
 
 #: src/routes/accept-invite.tsx
 #: src/routes/login.tsx
@@ -17002,8 +17002,8 @@ msgid "Use Generic CSV instead"
 msgstr "改用通用 CSV"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Use HomeBase > Export Contacts, then upload the exported contacts CSV; the file name can be anything."
-msgstr "使用 HomeBase > Export Contacts，然后上传导出的联系人 CSV；文件名可以是任意名称。"
+msgid "Use HomeBase > Export Contacts; ProSeries saves it automatically as Contacts.csv in its Common Exports folder (ProWinYY for Professional, BasWinYY for Basic) with no Save As prompt — upload that file."
+msgstr "使用 HomeBase > Export Contacts；ProSeries 会自动将文件保存为 Contacts.csv，放在其 Common Exports 文件夹（Professional 为 ProWinYY，Basic 为 BasWinYY），不弹另存对话框——上传该文件即可。"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -17630,10 +17630,6 @@ msgstr "XLSX"
 #: src/features/migration/Step1Intake.tsx
 msgid "XLSX couldn't be parsed. Export as CSV and re-upload."
 msgstr "无法解析 XLSX。请导出为 CSV 并重新上传。"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "XLSX or CSV"
-msgstr "XLSX 或 CSV"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "XLSX or IIF"
