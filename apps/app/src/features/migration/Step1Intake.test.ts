@@ -137,43 +137,43 @@ describe('client export file intake adapters', () => {
   it.each([
     [
       'drake-client-ef-export.csv',
-      'Client ID,Name,EIN,Entity,State,Return Type,Staff\n100,Acme LLC,99-1000001,LLC,CA,Form 1065,Pat\n',
+      'Client Name,SSN/EIN,Return Type,State,Preparer\nAcme LLC,99-1000001,1065,CA,J. Doe\n',
       'drake',
       'drake',
     ],
     [
       'cch-axcess.csv',
-      'Client ID,Client Sub-ID,Name Line 1,Federal ID,State\n100,00,Acme LLC,12-3456789,CA\n',
+      'Client ID,Sub-ID,Client Name,SSN/FEIN,Responsible Staff,Business Unit\n100,00,Acme LLC,12-3456789,J. Doe,Tax\n',
       'cch_axcess',
       'cch_axcess',
     ],
     [
       'PortalSaaSClient.csv',
-      'Client ID,Partner,Manager,Preparer,Name Line 1\n100,Pat,Mia,Chris,Acme LLC\n',
+      'Client ID,Client Sub-ID,Client GUID,NameLine1,ClientType\n100,00,3f2504e0-4f89-41d3-9a0c-0305e82c3301,Acme LLC,LLC\n',
       'cch_prosystem_fx',
       'cch_prosystem_fx',
     ],
     [
       'lacerte-export.csv',
-      'Client Number,Client Name,Taxpayer E-mail Address,State\n100,Acme LLC,a@example.com,CA\n',
+      'Client Number,Client Full name,Taxpayer E-mail Address,State\n100,Acme LLC,a@example.com,CA\n',
       'lacerte',
       'lacerte',
     ],
     [
       'Contacts.csv',
-      'Client Name,Client Status,Client Street and Apt Address,Client State\nAcme,Active,1 Main,CA\n',
+      'Client Name,Client Status,Client Street and Apt Address,Client City State and Zip\nAcme,Active,1 Main,"Austin, TX 78701"\n',
       'proseries',
       'proseries',
     ],
     [
       'ultratax.csv',
-      'Client ID,Client Name,Entity,SSN/EIN,Preparer,Status\n100,Acme,1065,12-3456789,Pat,Ready\n',
+      'Client ID,Client Name,Contact Name,Entity,Work Phone\n100,Acme,Pat Owner,1065,555-0100\n',
       'ultratax_cs',
       'ultratax_cs',
     ],
     [
       'proconnect.csv',
-      'Taxpayer name,Taxpayer email address,Taxpayer phone number,Return type\nAcme,a@example.com,555-0100,1120S\n',
+      'Taxpayer name,Business name,Total tax,Total balance due,Preparer\n,Acme LLC,1200.00,85.00,J. Doe\n',
       'proconnect_tax',
       'proconnect_tax',
     ],
@@ -248,7 +248,7 @@ describe('client export file intake adapters', () => {
       'drake',
       'drake',
       'client_list',
-      ['Client ID', 'EIN', 'EF Status'],
+      ['SSN/EIN', 'Return Type', 'Preparer'],
     ],
     [
       'karbon-all-contacts.xlsx',
@@ -256,7 +256,7 @@ describe('client export file intake adapters', () => {
       'karbon',
       'karbon',
       'contact_list',
-      ['ContactKey', 'OrganizationKey', 'Client Owner'],
+      ['Client Owner', 'Entity Type', 'Client Manager'],
     ],
     [
       'quickbooks-online-customer-contact-list.xlsx',
@@ -267,12 +267,12 @@ describe('client export file intake adapters', () => {
       ['Customer', 'Customer Type', 'Open Balance'],
     ],
     [
-      'file-in-time-client-information.txt',
+      'file-in-time-task-view.txt',
       'text/plain',
       'file_in_time',
       'file_in_time',
-      'client_list',
-      ['ClientName', 'Service', 'AssignedStaff'],
+      'task_view',
+      ['Client', 'Service', 'Key person'],
     ],
     [
       'cch-axcess-client-manager-grid.csv',
@@ -280,7 +280,7 @@ describe('client export file intake adapters', () => {
       'cch_axcess',
       'cch_axcess',
       'client_list',
-      ['Client GUID', 'Name Line 1', 'Federal ID'],
+      ['Client Name', 'SSN/FEIN', 'Responsible Staff'],
     ],
     [
       'PortalSaaSClient_20260525_093000.csv',
@@ -288,7 +288,7 @@ describe('client export file intake adapters', () => {
       'cch_prosystem_fx',
       'cch_prosystem_fx',
       'client_list',
-      ['Client ID', 'Partner', 'Preparer'],
+      ['NameLine1', 'Client GUID', 'Federal ID'],
     ],
     [
       'EXPORT.CSV',
@@ -296,7 +296,7 @@ describe('client export file intake adapters', () => {
       'lacerte',
       'lacerte',
       'client_list',
-      ['Client Number', 'Taxpayer E-mail Address', 'SSN/EIN'],
+      ['Client Number', 'Taxpayer E-mail Address', 'Federal ID Number'],
     ],
     [
       'Contacts.csv',
@@ -304,7 +304,7 @@ describe('client export file intake adapters', () => {
       'proseries',
       'proseries',
       'contact_list',
-      ['Client Status', 'Client Street and Apt Address', 'EF Status'],
+      ['Client Status', 'Client Street and Apt Address', 'Return Type'],
     ],
     [
       'ultratax-client-listing-report.csv',
@@ -312,7 +312,7 @@ describe('client export file intake adapters', () => {
       'ultratax_cs',
       'ultratax_cs',
       'client_listing_report',
-      ['Entity', 'SSN/EIN', 'Preparer'],
+      ['Client Name', 'Contact Name', 'Entity'],
     ],
     [
       'proconnect-return-data-2025.csv',
@@ -320,7 +320,7 @@ describe('client export file intake adapters', () => {
       'proconnect_tax',
       'proconnect_tax',
       'return_data',
-      ['Tax year', 'Taxpayer name', 'Return type'],
+      ['Business name', 'Total tax', 'Preparer'],
     ],
   ] as const)(
     'detects realistic %s fixture',

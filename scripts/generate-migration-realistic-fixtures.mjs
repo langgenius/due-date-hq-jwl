@@ -96,8 +96,8 @@ const sourceRows = [
   ],
   [
     'Golden Gate Studio (TEST)',
-    'Sole Proprietor',
-    'Schedule C',
+    'Individual',
+    '1040',
     'CA',
     'San Francisco',
     '94105',
@@ -105,7 +105,7 @@ const sourceRows = [
     'Alex',
     'Nguyen',
     'ANGUYEN',
-    'Needs bookkeeping',
+    'Sole-proprietor Schedule C',
   ],
   [
     'Brooklyn Outreach Foundation (TEST)',
@@ -200,8 +200,8 @@ const sourceRows = [
   ],
   [
     'Dallas Market Studio (TEST)',
-    'Sole Proprietor',
-    'Schedule C',
+    'Individual',
+    '1040',
     'TX',
     'Dallas',
     '75201',
@@ -209,7 +209,7 @@ const sourceRows = [
     'Emerson',
     'Gray',
     'EGRAY',
-    'Mileage log pending',
+    'Sole-proprietor Schedule C',
   ],
   [
     'Orlando Harbor LLC (TEST)',
@@ -254,27 +254,27 @@ const sourceRows = [
     'North Star Clinic LLC (TEST)',
     'LLC',
     '1065',
-    '',
-    'Remote',
-    '00000',
-    '',
+    'CO',
+    'Denver',
+    '80202',
+    'Denver',
     'Sloane',
     'Carter',
     'SCARTER',
-    'Review: missing filing state',
+    'Quarterly estimates',
   ],
   [
     'Pacific Crest Therapy Inc (TEST)',
     'S-Corp',
     '1120S',
-    'C.A.',
+    'CA',
     'Irvine',
     '92614',
     'Orange',
     'Dakota',
     'Price',
     'DPRICE',
-    'Review: state exported as C.A.',
+    'Officer comp review',
   ],
   [
     'Queensboro Catering LP (TEST)',
@@ -337,17 +337,19 @@ const clients = sourceRows.map((row, index) => {
   const email = `test+realistic${String(id).padStart(3, '0')}@example.com`
   return {
     id,
-    accountId: `TD-${String(1000 + id)}`,
-    axcessGuid: `AX-${String(900000 + id)}`,
-    clientId: `CL-${String(2000 + id)}`,
+    // QuickBooks Desktop assigns REFNUM as an internal sequential integer.
+    refNum: id,
+    // TaxDome account IDs are 1-2 name initials + a uniquifying number (e.g. MH1).
+    accountId: taxDomeAccountId(name, id),
+    // Karbon keys are opaque alphanumeric strings, not human-readable codes.
+    karbonKey: karbonKey(id),
+    // CCH ProSystem fx Portal client lists carry a mandatory 36-char Client GUID.
+    clientGuid: clientGuid(id),
     clientNumber: String(5000 + id),
-    contactKey: `KCON-${String(3000 + id)}`,
-    customerRef: `QB-${String(4000 + id)}`,
     ein: `99-${String(1000000 + id).padStart(7, '0')}`,
     name,
     entity,
     returnType,
-    formLabel: taxFormLabel(returnType),
     state,
     city,
     zip,
@@ -355,17 +357,15 @@ const clients = sourceRows.map((row, index) => {
     firstName,
     lastName,
     contactName: `${firstName} ${lastName}`,
-    staffCode,
-    partner: partnerFor(index),
-    manager: managerFor(index),
-    preparer: staffCode,
+    // Real exports show preparer/staff as named people, not login codes.
+    preparer: staffName(staffCode),
+    manager: managerName(index),
     email,
     phone: `555-01${String(id).padStart(2, '0')}`,
     address: `${1000 + id} Ledger Lane`,
     terms: id % 3 === 0 ? 'Due on receipt' : id % 2 === 0 ? 'Net 15' : 'Net 30',
     customerType: returnType === '1040' ? 'Individual' : entity,
     balance: (id % 5 === 0 ? 0 : 250 + id * 37).toFixed(2),
-    taxYear: '2025',
     dueDate: dueDateFor(returnType),
     note,
   }
@@ -388,54 +388,54 @@ writeUnsupportedSamples()
 console.log(`Generated ${clients.length} realistic client rows into ${outputDir}`)
 
 function writeTaxDome() {
+  // TaxDome's account export lists custom CRM fields as their own columns (no
+  // "Custom field - " prefix) and reports counts for jobs/tasks/proposals/
+  // organizers plus account roles. Status uses the activation vocabulary.
   const accountHeaders = [
     'Account ID',
     'Account name',
-    'State',
+    'Status',
     'Type',
-    'Total bills',
-    'Credit',
-    'Assigned team members',
     'Tags',
-    'Last login',
-    'Created date',
-    'Updated date',
+    'Assigned team members',
     'Active jobs',
     'Active tasks',
-    'Timezone',
-    'Custom field - Entity type',
-    'Custom field - Tax return type',
-    'Custom field - Filing state',
-    'Custom field - Federal ID',
+    'Active proposals',
+    'Active organizers',
+    'Account roles',
+    'Created date',
+    'Updated date',
+    'Entity type',
+    'Tax return type',
+    'Filing state',
+    'Federal ID',
     'Linked contact #1',
-    'Notes',
   ]
   const accountRows = clients.map((client) => ({
     'Account ID': client.accountId,
     'Account name': client.name,
-    State: 'Active',
+    Status: client.id % 6 === 0 ? 'Pending activation' : 'Activated',
     Type: taxDomeAccountType(client),
-    'Total bills': client.balance,
-    Credit: client.id % 7 === 0 ? '50.00' : '0.00',
+    Tags: `${client.returnType}; ${client.state}`,
     'Assigned team members': `${client.preparer}; ${client.manager}`,
-    Tags: `${client.returnType};${client.state || 'MISSING-STATE'}`,
-    'Last login': client.id % 4 === 0 ? '' : '05/20/2026',
-    'Created date': '01/15/2024',
-    'Updated date': '05/25/2026',
     'Active jobs': client.id % 3 === 0 ? '2' : '1',
     'Active tasks': client.id % 4 === 0 ? '4' : '2',
-    Timezone: 'America/New_York',
-    'Custom field - Entity type': client.entity,
-    'Custom field - Tax return type': client.formLabel,
-    'Custom field - Filing state': client.state,
-    'Custom field - Federal ID': client.ein,
+    'Active proposals': client.id % 5 === 0 ? '1' : '0',
+    'Active organizers': client.id % 2 === 0 ? '1' : '0',
+    'Account roles': `Account Manager: ${client.manager}; Preparer: ${client.preparer}`,
+    'Created date': '01/15/2024',
+    'Updated date': '05/25/2026',
+    'Entity type': client.entity,
+    'Tax return type': client.returnType,
+    'Filing state': client.state,
+    'Federal ID': client.ein,
     'Linked contact #1': client.contactName,
-    Notes: client.note,
   }))
 
   const contactHeaders = [
     'Contact name',
     'First name',
+    'Middle name',
     'Last name',
     'Phone number',
     'Company name',
@@ -445,14 +445,15 @@ function writeTaxDome() {
     'Country',
     'Zip code',
     'Email address',
-    'Tags',
     'Timezone',
+    'Created date',
+    'Updated date',
     'Linked account #1',
-    'Notes',
   ]
   const contactRows = clients.map((client) => ({
     'Contact name': client.contactName,
     'First name': client.firstName,
+    'Middle name': '',
     'Last name': client.lastName,
     'Phone number': client.phone,
     'Company name': client.name,
@@ -462,10 +463,10 @@ function writeTaxDome() {
     Country: 'United States',
     'Zip code': client.zip,
     'Email address': client.email,
-    Tags: 'primary contact',
     Timezone: 'America/New_York',
+    'Created date': '01/15/2024',
+    'Updated date': '05/25/2026',
     'Linked account #1': client.name,
-    Notes: client.note,
   }))
 
   writeZip('taxdome-client-export.zip', {
@@ -475,98 +476,104 @@ function writeTaxDome() {
 }
 
 function writeDrake() {
+  // Drake's "Export Client/EF Data" client export keys clients by SSN/EIN
+  // (no alphanumeric client ID), labels staff "Preparer", and shows return
+  // types as bare form numbers. EF acknowledgement data is a separate export.
   const headers = [
-    'Client ID',
-    'Name',
-    'EIN',
-    'Entity',
-    'State',
+    'Client Name',
+    'SSN/EIN',
     'Return Type',
-    'EF Status',
-    'Staff',
+    'State',
+    'Preparer',
     'Email',
     'Phone',
-    'Address',
+    'Street Address',
     'City',
     'ZIP',
-    'Notes',
   ]
   writeText(
     'drake-client-ef-export.csv',
     csv(
       headers,
       clients.map((client) => ({
-        'Client ID': `D${client.clientNumber}`,
-        Name: client.name,
-        EIN: client.ein,
-        Entity: client.entity,
+        'Client Name': client.name,
+        'SSN/EIN': client.ein,
+        'Return Type': client.returnType,
         State: client.state,
-        'Return Type': client.formLabel,
-        'EF Status': efStatusFor(client, 'drake'),
-        Staff: client.preparer,
+        Preparer: client.preparer,
         Email: client.email,
         Phone: client.phone,
-        Address: client.address,
+        'Street Address': client.address,
         City: client.city,
         ZIP: client.zip,
-        Notes: client.note,
       })),
     ),
   )
 }
 
 function writeKarbon() {
+  // Karbon's self-serve contact export keys each row by an opaque key and uses
+  // colleague full names for Client Owner / Client Manager. Tax identifiers and
+  // accounting details are NOT in this export (they require a Support request),
+  // and Karbon has no contact "tags"/notes-status columns. Real export is CSV;
+  // we keep .xlsx to retain xlsx-parser coverage (Karbon also surfaces
+  // spreadsheet downloads) — documented in the fixtures README.
   const headers = [
-    'ContactKey',
-    'OrganizationKey',
-    'Organization Name',
-    'Contact Name',
-    'Contact Email',
-    'Client Owner',
+    'Key',
     'Contact Type',
-    'Tax ID',
-    'Country',
+    'Full Name',
+    'First Name',
+    'Last Name',
+    'Entity Type',
+    'Client Owner',
+    'Client Manager',
+    'Email',
+    'Phone',
+    'Street',
+    'City',
     'State',
-    'Tags',
-    'Notes',
+    'Postal Code',
+    'Country',
   ]
   writeXlsx(
     'karbon-all-contacts.xlsx',
     'All contacts',
     headers,
     clients.map((client) => ({
-      ContactKey: client.contactKey,
-      OrganizationKey: `KORG-${client.clientNumber}`,
-      'Organization Name': client.name,
-      'Contact Name': client.contactName,
-      'Contact Email': client.email,
-      'Client Owner': client.manager,
-      'Contact Type': client.entity === 'Individual' ? 'Person' : 'Organization',
-      'Tax ID': client.ein,
-      Country: 'United States',
+      Key: client.karbonKey,
+      'Contact Type': 'Client',
+      'Full Name': client.contactName,
+      'First Name': client.firstName,
+      'Last Name': client.lastName,
+      'Entity Type': client.entity,
+      'Client Owner': client.preparer,
+      'Client Manager': client.manager,
+      Email: client.email,
+      Phone: client.phone,
+      Street: client.address,
+      City: client.city,
       State: client.state,
-      Tags: `${client.returnType}; ${workflowStatusFor(client)}`,
-      Notes: client.note,
+      'Postal Code': client.zip,
+      Country: 'United States',
     })),
   )
 }
 
 function writeQuickBooksOnline() {
+  // QuickBooks Online's US "Customer Contact List" report exports a single
+  // "Billing Address" column and labels phones "Phone Numbers"; "Tax
+  // Registration No." is a VAT-region (non-US) field and does not appear.
+  // A raw export has company/title rows above the headings that users are told
+  // to delete — we start at the heading row (the app parses row 1 as headers).
   const headers = [
     'Customer',
     'Customer Type',
-    'Company Name',
     'Full Name',
-    'Billing Street',
-    'Billing City',
-    'Billing State',
-    'Billing ZIP',
-    'Phone',
+    'Billing Address',
+    'Phone Numbers',
     'Email',
     'Terms',
     'Open Balance',
-    'Tax Registration No.',
-    'Notes',
   ]
   writeXlsx(
     'quickbooks-online-customer-contact-list.xlsx',
@@ -575,83 +582,95 @@ function writeQuickBooksOnline() {
     clients.map((client) => ({
       Customer: client.name,
       'Customer Type': client.customerType,
-      'Company Name': client.name,
       'Full Name': client.contactName,
-      'Billing Street': client.address,
-      'Billing City': client.city,
-      'Billing State': client.state,
-      'Billing ZIP': client.zip,
-      Phone: client.phone,
+      'Billing Address': `${client.address}, ${client.city}, ${client.state} ${client.zip}`,
+      'Phone Numbers': client.phone,
       Email: client.email,
       Terms: client.terms,
       'Open Balance': client.balance,
-      'Tax Registration No.': client.ein,
-      Notes: client.note,
     })),
   )
 }
 
 function writeQuickBooksDesktopIif() {
+  // A real "Lists to IIF Files" export opens with an !HDR section identifying
+  // the QuickBooks product, and the !CUST header is the full fixed field set.
+  // REFNUM is QuickBooks' internal sequential integer; customer notes export in
+  // NOTEPAD (NOTE is a vendor field) and the customer type lives in CTYPE.
+  const hdr = [
+    '!HDR\tPROD\tVER\tREL\tIIFVER\tDATE\tTIME\tACCNTNT\tACCNTNTSPLITTIME',
+    'HDR\tQuickBooks Desktop\tVersion 33.0\tRelease R5P\t1\t05/25/2026\t1450\tN\t0',
+  ]
   const headers = [
     '!CUST',
     'NAME',
     'REFNUM',
+    'TIMESTAMP',
     'BADDR1',
     'BADDR2',
     'BADDR3',
+    'BADDR4',
+    'BADDR5',
     'PHONE1',
     'PHONE2',
+    'FAXNUM',
     'EMAIL',
-    'CUSTFLD1',
-    'NOTE',
+    'CONT1',
+    'CTYPE',
+    'TERMS',
+    'NOTEPAD',
+    'COMPANYNAME',
+    'FIRSTNAME',
+    'LASTNAME',
   ]
   const rows = clients.map((client) =>
     [
       'CUST',
       client.name,
-      client.customerRef,
+      String(client.refNum),
+      String(1716600000 + client.id * 137),
       client.name,
       client.address,
       `${client.city}, ${client.state} ${client.zip}`,
+      '',
+      '',
       client.phone,
       '',
+      '',
       client.email,
+      client.contactName,
       client.customerType,
+      client.terms,
       client.note,
+      client.name,
+      client.firstName,
+      client.lastName,
     ].join('\t'),
   )
-  writeText('quickbooks-desktop-customers.iif', `${headers.join('\t')}\n${rows.join('\n')}\n`)
+  writeText(
+    'quickbooks-desktop-customers.iif',
+    `${hdr.join('\n')}\n${headers.join('\t')}\n${rows.join('\n')}\n`,
+  )
 }
 
 function writeFileInTime() {
-  const headers = [
-    'ClientName',
-    'Service',
-    'DueDate',
-    'Status',
-    'AssignedStaff',
-    'Entity',
-    'State',
-    'County',
-    'Email',
-    'Phone',
-    'Notes',
-  ]
+  // File In Time's deadline data lives in the Task View, whose documented
+  // default columns are Client, Service, Due Date, Status, Key person,
+  // Extended, Notes (User's Guide p.22) — not CamelCase headers, an "Entity",
+  // a "County", or an "AssignedStaff" field. We model the Task View export
+  // (Tools > Export Task View Data), which is the deadline-bearing one.
+  const headers = ['Client', 'Service', 'Due Date', 'Status', 'Key person', 'Extended', 'Notes']
   writeText(
-    'file-in-time-client-information.txt',
+    'file-in-time-task-view.txt',
     tsv(
       headers,
       clients.map((client) => ({
-        ClientName: client.name,
-        Service: client.formLabel,
-        DueDate: client.dueDate,
+        Client: client.name,
+        Service: client.returnType,
+        'Due Date': client.dueDate,
         Status: workflowStatusFor(client),
-        AssignedStaff: client.preparer,
-        Entity: client.entity,
-        State: client.state,
-        County: client.county,
-        Email: client.email,
-        Phone: client.phone,
+        'Key person': client.preparer,
+        Extended: client.returnType === '1065' || client.returnType === '1120S' ? 'Yes' : 'No',
         Notes: client.note,
       })),
     ),
@@ -659,14 +678,17 @@ function writeFileInTime() {
 }
 
 function writeCchAxcess() {
+  // CCH Axcess Client Manager grid columns: the primary name column is "Client
+  // Name" (not "Name Line 1"), the tax-id column is "SSN/FEIN" (not "Federal
+  // ID"), the classification field is "Client Type" (not "Entity"), the
+  // sub-identifier is "Sub-ID", client Status is Active/Inactive, and the
+  // internal Client GUID is not a selectable grid column.
   const headers = [
-    'Client GUID',
     'Client ID',
-    'Client Sub-ID',
-    'Name Line 1',
-    'Federal ID',
-    'Entity',
-    'Return Type',
+    'Sub-ID',
+    'Client Name',
+    'SSN/FEIN',
+    'Client Type',
     'Address Line 1',
     'City',
     'State',
@@ -683,13 +705,11 @@ function writeCchAxcess() {
     csv(
       headers,
       clients.map((client) => ({
-        'Client GUID': client.axcessGuid,
         'Client ID': client.clientNumber,
-        'Client Sub-ID': '00',
-        'Name Line 1': client.name,
-        'Federal ID': client.ein,
-        Entity: client.entity,
-        'Return Type': client.formLabel,
+        'Sub-ID': '00',
+        'Client Name': client.name,
+        'SSN/FEIN': client.ein,
+        'Client Type': client.entity,
         'Address Line 1': client.address,
         City: client.city,
         State: client.state,
@@ -699,73 +719,71 @@ function writeCchAxcess() {
         'Business Unit': 'Tax',
         'Email Address': client.email,
         Phone: client.phone,
-        Status: workflowStatusFor(client),
+        Status: client.id % 8 === 0 ? 'Inactive' : 'Active',
       })),
     ),
   )
 }
 
 function writeCchProSystemFx() {
+  // "Create client list for Portal" emits the batch client-linking schema:
+  // Client ID, Client Sub-ID, a mandatory Client GUID, NameLine1/NameLine2
+  // (no spaces; first/last for individuals), SortName, Federal ID, ClientType,
+  // FYE, and Client Email ID. Partner/Manager/Preparer, return type, status,
+  // and street address are not part of this utility's output.
   const headers = [
     'Client ID',
     'Client Sub-ID',
-    'Name Line 1',
-    'Partner',
-    'Manager',
-    'Preparer',
+    'Client GUID',
+    'NameLine1',
+    'NameLine2',
+    'SortName',
     'Federal ID',
-    'Entity',
-    'Return Type',
-    'Address 1',
-    'City',
-    'State',
-    'Zip',
-    'Email',
-    'Phone',
-    'Status',
+    'ClientType',
+    'FYE',
+    'Client Email ID',
   ]
   writeText(
     'PortalSaaSClient_20260525_093000.csv',
     csv(
       headers,
-      clients.map((client) => ({
-        'Client ID': client.clientNumber,
-        'Client Sub-ID': '00',
-        'Name Line 1': client.name,
-        Partner: client.partner,
-        Manager: client.manager,
-        Preparer: client.preparer,
-        'Federal ID': client.ein,
-        Entity: client.entity,
-        'Return Type': client.formLabel,
-        'Address 1': client.address,
-        City: client.city,
-        State: client.state,
-        Zip: client.zip,
-        Email: client.email,
-        Phone: client.phone,
-        Status: workflowStatusFor(client),
-      })),
+      clients.map((client) => {
+        const isIndividual = client.entity === 'Individual'
+        return {
+          'Client ID': client.clientNumber,
+          'Client Sub-ID': '00',
+          'Client GUID': client.clientGuid,
+          NameLine1: isIndividual ? client.firstName : client.name,
+          NameLine2: isIndividual ? client.lastName : '',
+          SortName: isIndividual ? `${client.lastName}, ${client.firstName}` : client.name,
+          'Federal ID': client.ein,
+          ClientType: client.entity,
+          FYE: '12/31',
+          'Client Email ID': client.email,
+        }
+      }),
     ),
   )
 }
 
 function writeLacerte() {
+  // Lacerte's Client > Export > Export to File uses these selectable field
+  // labels. There is no "Return Type", "Preparer", or "Status" export field;
+  // the name label is "Client Full name", phones are spelled out, and the tax
+  // id is "Federal ID Number" / "Type of Entity". (Lacerte exports per module;
+  // a single mixed file is a fixture simplification — see the README.)
   const headers = [
     'Client Number',
-    'Client Name',
+    'Client Full name',
     'Taxpayer E-mail Address',
-    'Spouse E-mail Address',
-    'Taxpayer Phone Number',
+    'Spouse Email Address',
+    'Taxpayer Home Telephone Number',
     'Street Address',
     'City',
     'State',
     'Zip Code',
-    'SSN/EIN',
-    'Entity Type',
-    'Return Type',
-    'Preparer',
-    'Status',
+    'Federal ID Number',
+    'Type of Entity',
   ]
   writeText(
     'EXPORT.CSV',
@@ -773,40 +791,36 @@ function writeLacerte() {
       headers,
       clients.map((client) => ({
         'Client Number': client.clientNumber,
-        'Client Name': client.name,
+        'Client Full name': client.name,
         'Taxpayer E-mail Address': client.email,
-        'Spouse E-mail Address': '',
-        'Taxpayer Phone Number': client.phone,
+        'Spouse Email Address': '',
+        'Taxpayer Home Telephone Number': client.phone,
         'Street Address': client.address,
         City: client.city,
         State: client.state,
         'Zip Code': client.zip,
-        'SSN/EIN': client.ein,
-        'Entity Type': client.entity,
-        'Return Type': client.formLabel,
-        Preparer: client.preparer,
-        Status: workflowStatusFor(client),
+        'Federal ID Number': client.ein,
+        'Type of Entity': client.entity,
       })),
     ),
   )
 }
 
 function writeProSeries() {
+  // ProSeries HomeBase > Export Contacts writes contact info only (no tax
+  // return data): "HomeBase View" is the view dropdown (not a column), and
+  // EF Status / SSN / Notes are out of scope for the contacts export. City,
+  // state, and zip are a single customizable field ("Client City, State, and
+  // Zip"). Return type displays as a bare form number.
   const headers = [
     'Client Name',
     'Client Status',
     'Client Street and Apt Address',
-    'Client City',
-    'Client State',
-    'Client ZIP Code',
+    'Client City State and Zip',
     'Client Phone',
     'Client Email Address',
-    'Client SSN/EIN',
     'Return Type',
-    'HomeBase View',
     'Preparer',
-    'EF Status',
-    'Notes',
   ]
   writeText(
     'Contacts.csv',
@@ -816,39 +830,35 @@ function writeProSeries() {
         'Client Name': client.name,
         'Client Status': workflowStatusFor(client),
         'Client Street and Apt Address': client.address,
-        'Client City': client.city,
-        'Client State': client.state,
-        'Client ZIP Code': client.zip,
+        'Client City State and Zip': `${client.city}, ${client.state} ${client.zip}`,
         'Client Phone': client.phone,
         'Client Email Address': client.email,
-        'Client SSN/EIN': client.ein,
-        'Return Type': client.formLabel,
-        'HomeBase View': 'Current Year',
+        'Return Type': client.returnType,
         Preparer: client.preparer,
-        'EF Status': efStatusFor(client, 'proseries'),
-        Notes: client.note,
       })),
     ),
   )
 }
 
 function writeUltraTax() {
+  // Modeled on UltraTax CS's "Client Contact" listing report — the only one
+  // that carries email/phone. Its documented columns are client ID, client
+  // name, contact name, entity type, email, contact address, work phone, and
+  // home phone. Preparer/status/TIN and federal/state "products" belong to the
+  // General Client/Return Information reports, not this one, so no single
+  // export produces the old chimera column set.
   const headers = [
     'Client ID',
     'Client Name',
+    'Contact Name',
     'Entity',
-    'SSN/EIN',
+    'Email Address',
     'Address',
     'City',
     'State',
     'Zip',
-    'Preparer',
-    'Status',
-    'Email',
-    'Phone',
-    'Federal Product',
-    'State Product',
-    'Fiscal Year End',
+    'Work Phone',
+    'Home Phone',
   ]
   writeText(
     'ultratax-client-listing-report.csv',
@@ -857,63 +867,59 @@ function writeUltraTax() {
       clients.map((client) => ({
         'Client ID': client.clientNumber,
         'Client Name': client.name,
+        'Contact Name': client.contactName,
         Entity: client.returnType,
-        'SSN/EIN': client.ein,
+        'Email Address': client.email,
         Address: client.address,
         City: client.city,
         State: client.state,
         Zip: client.zip,
-        Preparer: client.preparer,
-        Status: workflowStatusFor(client),
-        Email: client.email,
-        Phone: client.phone,
-        'Federal Product': client.formLabel,
-        'State Product': client.state ? `${client.state} ${client.formLabel}` : '',
-        'Fiscal Year End': '12/31',
+        'Work Phone': client.phone,
+        'Home Phone': client.returnType === '1040' ? client.phone : '',
       })),
     ),
   )
 }
 
 function writeProConnect() {
+  // ProConnect's Reporting download (the CSV of e-filed returns) uses real
+  // field labels and populates Taxpayer name for individual returns and
+  // Business name for entity returns. "Tax year", "Return type", and "Return
+  // status" are not documented export columns, and the export only contains
+  // already-e-filed returns (so there is no in-progress "Return status").
   const headers = [
-    'Tax year',
     'Taxpayer name',
-    'Taxpayer email address',
-    'Taxpayer phone number',
     'Business name',
-    'Signing officer',
+    'Email address',
+    'Phone number',
     'Street address',
     'City',
     'State',
-    'ZIP',
-    'Return type',
-    'Return status',
-    'Preparer',
+    'Zip code',
     'Total tax',
-    'Taxes owed',
+    'Total balance due',
+    'Preparer',
   ]
   writeText(
     'proconnect-return-data-2025.csv',
     csv(
       headers,
-      clients.map((client) => ({
-        'Tax year': client.taxYear,
-        'Taxpayer name': client.returnType === '1040' ? client.contactName : client.name,
-        'Taxpayer email address': client.email,
-        'Taxpayer phone number': client.phone,
-        'Business name': client.returnType === '1040' ? '' : client.name,
-        'Signing officer': client.contactName,
-        'Street address': client.address,
-        City: client.city,
-        State: client.state,
-        ZIP: client.zip,
-        'Return type': client.formLabel,
-        'Return status': workflowStatusFor(client),
-        Preparer: client.preparer,
-        'Total tax': (1000 + client.id * 185).toFixed(2),
-        'Taxes owed': (client.id % 4 === 0 ? 0 : 75 + client.id * 11).toFixed(2),
-      })),
+      clients.map((client) => {
+        const isIndividual = client.returnType === '1040'
+        return {
+          'Taxpayer name': isIndividual ? client.contactName : '',
+          'Business name': isIndividual ? '' : client.name,
+          'Email address': client.email,
+          'Phone number': client.phone,
+          'Street address': client.address,
+          City: client.city,
+          State: client.state,
+          'Zip code': client.zip,
+          'Total tax': (1000 + client.id * 185).toFixed(2),
+          'Total balance due': (client.id % 4 === 0 ? 0 : 75 + client.id * 11).toFixed(2),
+          Preparer: client.preparer,
+        }
+      }),
     ),
   )
 }
@@ -1076,27 +1082,6 @@ function columnName(index) {
   return result
 }
 
-function taxFormLabel(returnType) {
-  switch (returnType) {
-    case '1065':
-      return 'Form 1065'
-    case '1120S':
-      return 'Form 1120-S'
-    case '1120':
-      return 'Form 1120'
-    case '1040':
-      return 'Form 1040'
-    case '1041':
-      return 'Form 1041'
-    case '990':
-      return 'Form 990'
-    case 'Schedule C':
-      return 'Schedule C'
-    default:
-      return returnType
-  }
-}
-
 function dueDateFor(returnType) {
   switch (returnType) {
     case '1065':
@@ -1118,17 +1103,61 @@ function taxDomeAccountType(client) {
   return 'Company'
 }
 
-function partnerFor(index) {
-  return ['P-ALVAREZ', 'P-BENNETT', 'P-CHEN'][index % 3]
+// Staff/managers display as named people in real exports. Preparer codes like
+// "JDOE" expand to "J. Doe"; managers come from a small named pool.
+function staffName(code) {
+  return `${code[0]}. ${code[1]}${code.slice(2).toLowerCase()}`
 }
 
-function managerFor(index) {
-  return ['M-LEE', 'M-PARK', 'M-RIVERA', 'M-STONE'][index % 4]
+function managerName(index) {
+  return ['Dana Lee', 'Avery Park', 'Robin Rivera', 'Sky Stone'][index % 4]
+}
+
+// TaxDome account IDs are 1-2 name initials + a uniquifying number (e.g. MH1).
+function taxDomeAccountId(name, id) {
+  const initials = name
+    .replace(/\(TEST\)/, '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join('')
+  return `${initials}${id}`
+}
+
+// Karbon keys are opaque 12-char alphanumerics. Deterministic by id (no RNG so
+// regenerating is stable).
+function karbonKey(id) {
+  const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let n = (id * 2654435761) % 2 ** 31
+  let key = ''
+  for (let i = 0; i < 12; i += 1) {
+    key += alphabet[n % alphabet.length]
+    n = Math.floor(n / alphabet.length) + id * 7 + i + 1
+  }
+  return key
+}
+
+// Deterministic hex segment of a given length from a seed (for GUID building).
+function hexSeg(seed, len) {
+  let n = (seed * 2654435761) >>> 0
+  let out = ''
+  while (out.length < len) {
+    out += (n % 16).toString(16)
+    n = Math.floor(n / 16) + seed + out.length
+  }
+  return out.slice(0, len)
+}
+
+// CCH ProSystem fx Portal client lists carry a mandatory 36-char Client GUID in
+// 8-4-4-4-12 hex form. Deterministic by id.
+function clientGuid(id) {
+  return `${hexSeg(id, 8)}-${hexSeg(id * 3, 4)}-4${hexSeg(id * 5, 3)}-${hexSeg(id * 7, 4)}-${hexSeg(id * 11, 12)}`
 }
 
 function officeFor(client) {
   if (client.state === 'NY' || client.state === 'IL') return 'East'
-  if (client.state === 'CA' || client.state === 'WA' || client.state === 'C.A.') return 'West'
+  if (client.state === 'CA' || client.state === 'WA' || client.state === 'CO') return 'West'
   if (client.state === 'TX' || client.state === 'FL') return 'South'
   return 'Unassigned'
 }
@@ -1145,21 +1174,4 @@ function workflowStatusFor(client) {
     'Not Started',
   ]
   return statuses[client.id % statuses.length]
-}
-
-// Real e-file acknowledgement statuses (NOT workflow notes). Drake also shows
-// single-letter ACK codes (A/P/R) in some views; spelled-out forms are used
-// here for readability. ProSeries surfaces its own transmit/ack vocabulary.
-function efStatusFor(client, vendor) {
-  const drake = ['Accepted', 'Accepted', 'Pending', 'Rejected', 'Not transmitted']
-  const proSeries = [
-    'Accepted',
-    'Accepted',
-    'Ready to transmit',
-    'Sent to Intuit',
-    'Rejected',
-    'Not ready',
-  ]
-  const set = vendor === 'proseries' ? proSeries : drake
-  return set[client.id % set.length]
 }

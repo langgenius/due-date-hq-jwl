@@ -1,0 +1,25 @@
+Client	Service	Due Date	Status	Key person	Extended	Notes
+Marin Harbor Analytics LLC (TEST)	1065	09/15/2026	Ready for Review	J. Doe	Yes	In Progress
+Hudson Ledger Partners LP (TEST)	1065	09/15/2026	On Extension	R. Chen	Yes	Waiting on client
+Austin Foundry Inc (TEST)	1120	10/15/2026	Waiting on Client	M. Lee	No	Ready for review
+Bayview Stone Household (TEST)	1040	10/15/2026	Complete	T. Kim	No	Organizer sent
+Cascade Orchard LLC (TEST)	1065	09/15/2026	Not Started	P. Vu	Yes	Open items
+Prairie Oak Trust (TEST)	1041	09/30/2026	In Progress	S. Rivera	No	Extension filed
+Golden Gate Studio (TEST)	1040	10/15/2026	Ready for Review	A. Nguyen	No	Sole-proprietor Schedule C
+Brooklyn Outreach Foundation (TEST)	990	11/16/2026	On Extension	C. Brooks	No	Board review
+Hill Country Advisors LLC (TEST)	1065	09/15/2026	Waiting on Client	J. Patel	Yes	In progress
+Palm River Dental PC (TEST)	1120S	09/15/2026	Complete	A. Stone	Yes	Ready for e-file
+Puget Sound Robotics Inc (TEST)	1120	10/15/2026	Not Started	D. Morris	No	R&D credit review
+Lincoln Park Household (TEST)	1040	10/15/2026	In Progress	Q. Reed	No	Missing K-1
+Silicon Coast Ventures LP (TEST)	1065	09/15/2026	Ready for Review	H. Flores	Yes	Partner capital review
+Rochester Maple Trust (TEST)	1041	09/30/2026	On Extension	R. Foster	No	Beneficiary update
+Dallas Market Studio (TEST)	1040	10/15/2026	Waiting on Client	E. Gray	No	Sole-proprietor Schedule C
+Orlando Harbor LLC (TEST)	1065	09/15/2026	Complete	H. Miles	Yes	Multi-member LLC
+Spokane Design Group Inc (TEST)	1120S	09/15/2026	Not Started	F. Cooper	Yes	Payroll tie-out
+River North Supply Inc (TEST)	1120	10/15/2026	In Progress	R. Bennett	No	Inventory review
+North Star Clinic LLC (TEST)	1065	09/15/2026	Ready for Review	S. Carter	Yes	Quarterly estimates
+Pacific Crest Therapy Inc (TEST)	1120S	09/15/2026	On Extension	D. Price	Yes	Officer comp review
+Queensboro Catering LP (TEST)	1065	09/15/2026	Waiting on Client	S. Ward	Yes	Owner basis review
+Fort Worth Household (TEST)	1040	10/15/2026	Complete	B. Young	No	Schedule E rental
+Sarasota Family Trust (TEST)	1041	09/30/2026	Not Started	K. Bell	No	Estimated tax review
+Tacoma Arts Alliance (TEST)	990	11/16/2026	In Progress	L. Diaz	No	Grant schedule review

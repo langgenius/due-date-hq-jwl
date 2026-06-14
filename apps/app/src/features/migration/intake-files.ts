@@ -421,21 +421,24 @@ function detectSource(
 
   if (
     lowerName.includes('drake') ||
-    (headers.has('client id') &&
-      headers.has('ein') &&
+    (headers.has('ssn/ein') &&
       headers.has('return type') &&
-      headers.has('staff'))
+      headers.has('preparer') &&
+      !headers.has('business unit'))
   ) {
     return {
       product: 'drake',
       role: 'client_list',
       confidence: 0.9,
-      reason: 'Drake client and EF export headers detected.',
+      reason: 'Drake client export headers detected.',
       suggestedPreset: 'drake',
     }
   }
 
-  if (headers.has('contactkey') || headers.has('organizationkey') || headers.has('client owner')) {
+  if (
+    lowerName.includes('karbon') ||
+    (headers.has('client owner') && (headers.has('client manager') || headers.has('entity type')))
+  ) {
     return {
       product: 'karbon',
       role: 'contact_list',
@@ -460,28 +463,24 @@ function detectSource(
   }
 
   if (
-    headers.has('clientname') ||
-    headers.has('assignedstaff') ||
-    lowerName.includes('fileintime') ||
     lowerName.includes('file-in-time') ||
-    lowerName.includes('taskview')
+    lowerName.includes('fileintime') ||
+    lowerName.includes('taskview') ||
+    (headers.has('service') && headers.has('key person')) ||
+    (headers.has('client') && headers.has('due date') && headers.has('status'))
   ) {
     return {
       product: 'file_in_time',
-      role:
-        lowerName.includes('taskview') || headers.has('task name') ? 'task_view' : 'client_list',
+      role: 'task_view',
       confidence: 0.84,
-      reason: 'File In Time-style client/task headers detected.',
+      reason: 'File In Time Task View export headers detected.',
       suggestedPreset: 'file_in_time',
     }
   }
 
   if (
     lowerName.includes('portalsaasclient') ||
-    (headers.has('partner') &&
-      headers.has('manager') &&
-      headers.has('preparer') &&
-      headers.has('client id'))
+    (headers.has('nameline1') && headers.has('client guid') && headers.has('clienttype'))
   ) {
     return {
       product: 'cch_prosystem_fx',
@@ -493,10 +492,8 @@ function detectSource(
   }
 
   if (
-    headers.has('client guid') ||
-    (headers.has('client sub-id') && headers.has('name line 1')) ||
-    (headers.has('client id') && headers.has('name line 1') && headers.has('federal id')) ||
-    (headers.has('responsible staff') && headers.has('federal id'))
+    (headers.has('responsible staff') && headers.has('business unit')) ||
+    (headers.has('client name') && headers.has('ssn/fein') && headers.has('sub id'))
   ) {
     return {
       product: 'cch_axcess',
@@ -537,10 +534,8 @@ function detectSource(
   }
 
   if (
-    headers.has('entity') &&
-    headers.has('ssn/ein') &&
-    headers.has('preparer') &&
-    headers.has('status')
+    lowerName.includes('ultratax') ||
+    (headers.has('contact name') && headers.has('entity') && headers.has('work phone'))
   ) {
     return {
       product: 'ultratax_cs',
@@ -552,17 +547,12 @@ function detectSource(
   }
 
   if (
-    headers.has('taxpayer name') ||
-    headers.has('taxpayer email address') ||
-    (headers.has('business name') && headers.has('signing officer'))
+    (headers.has('taxpayer name') || headers.has('business name')) &&
+    (headers.has('total tax') || headers.has('total balance due'))
   ) {
-    const role =
-      headers.has('taxpayer name') || headers.has('business name')
-        ? 'return_data'
-        : 'questionnaire_responses'
     return {
       product: 'proconnect_tax',
-      role,
+      role: 'return_data',
       confidence: 0.87,
       reason: 'ProConnect Tax reporting export headers detected.',
       suggestedPreset: 'proconnect_tax',
@@ -652,6 +642,15 @@ function quickBooksIifToTsv(text: string): string {
   const dataRows = records.filter((cells) => cells[0] === 'CUST')
   const idx = (name: string) =>
     header.findIndex((cell) => normalizeHeader(cell) === normalizeHeader(name))
+  // Resolve a cell by the first header name that exists and is non-empty, so we
+  // read both modern exported field names and the legacy import-kit ones.
+  const valueOf = (cells: string[], ...names: string[]): string => {
+    for (const name of names) {
+      const i = idx(name)
+      if (i >= 0 && (cells[i] ?? '') !== '') return cells[i] ?? ''
+    }
+    return ''
+  }
   const headers = [
     'Customer',
     'External ID',
@@ -681,8 +680,8 @@ function quickBooksIifToTsv(text: string): string {
       cells[idx('PHONE1')] ?? '',
       cells[idx('PHONE2')] ?? '',
       cells[idx('EMAIL')] ?? '',
-      cells[idx('CUSTFLD1')] ?? '',
-      cells[idx('NOTE')] ?? '',
+      valueOf(cells, 'CTYPE', 'CUSTFLD1'),
+      valueOf(cells, 'NOTEPAD', 'NOTE'),
     ]
   })
   return rowsToTsv(headers, rows)

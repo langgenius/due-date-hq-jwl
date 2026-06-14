@@ -17,7 +17,7 @@ const primaryFixtures = [
   'drake-client-ef-export.csv',
   'karbon-all-contacts.xlsx',
   'quickbooks-online-customer-contact-list.xlsx',
-  'file-in-time-client-information.txt',
+  'file-in-time-task-view.txt',
   'cch-axcess-client-manager-grid.csv',
   'PortalSaaSClient_20260525_093000.csv',
   'EXPORT.CSV',
@@ -75,8 +75,10 @@ function validateTextFixtures() {
 
 function validateQuickBooksIif() {
   const text = readFileSync(pathFor('quickbooks-desktop-customers.iif'), 'utf8')
-  assert(text.startsWith('!CUST\tNAME\tREFNUM'), 'QuickBooks IIF header drifted')
-  assert(lineCount(text) === 25, 'QuickBooks IIF should have 24 CUST rows plus a header')
+  assert(text.startsWith('!HDR\t'), 'QuickBooks IIF should open with an !HDR section')
+  assert(text.includes('!CUST\tNAME\tREFNUM\tTIMESTAMP'), 'QuickBooks IIF !CUST header drifted')
+  const custRows = text.split(/\r?\n/).filter((line) => line.startsWith('CUST\t')).length
+  assert(custRows === 24, 'QuickBooks IIF should have 24 CUST rows')
 }
 
 function validateUnsupportedMarkers() {
