@@ -1161,13 +1161,11 @@ export function AlertDetailDrawer({
   // obligation drawer pattern (see `ObligationQueueDetailDrawer` in
   // routes/obligations.tsx).
   //
-  // The hero header shrinks once the body scrolls past a small threshold —
-  // the big title drops to a single compact line and the summary dek +
-  // roomy padding fall away, reclaiming vertical space for the content
-  // below. Driven by the body scroll container's onScroll; the setter
-  // bails out when the boolean doesn't change so scrolling doesn't thrash
-  // renders.
-  const [headerCollapsed, setHeaderCollapsed] = useState(false)
+  // 2026-06-14 (Yuqi "scrolling on the header does nothing"): the panel is
+  // ONE scroll container — the hero scrolls WITH the body, so there's no
+  // dead zone over a fixed header. The collapse-on-scroll behaviour is gone
+  // (the hero just scrolls away; the top-bar breadcrumb keeps the title in
+  // view, and the sticky section nav keeps orientation).
 
   // The "Affected clients" group card renders only when it has real
   // content — a client surface (overlay or review-only) OR an
@@ -1309,19 +1307,28 @@ export function AlertDetailDrawer({
         />
       ) : null}
 
-      {/* Yuqi #1 (batch2) — the hero header is WHITE (bg-background-default),
-          matching the deadline detail's white identity block. The body's gray
-          wash (bg-background-subtle) begins below the header, so the tonal
-          step now runs the OTHER way (white masthead → gray content), and the
-          header's lightweight meta strip (source · confidence · jurisdiction ·
-          last activity, per #7/#10/#11) reads as header-level metadata sitting
-          on the same white surface as the title. */}
-      <SheetHeader
-        className={cn(
-          'bg-background-default px-6 transition-all xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
-          headerCollapsed ? 'pt-4 pb-4' : 'pt-10 pb-6',
-        )}
+      {/* 2026-06-14 (Yuqi "scrolling on the header does nothing"): ONE scroll
+          container wraps the hero + the document body, so a wheel anywhere
+          below the top bar scrolls. The spy-spy onScroll lives here now. */}
+      <div
+        onScroll={(event) => {
+          const container = event.currentTarget
+          if (sectionNavItems.length === 0) return
+          const containerTop = container.getBoundingClientRect().top
+          let current = sectionNavItems[0]!.id
+          for (const item of sectionNavItems) {
+            const el = container.querySelector(`#${item.id}`)
+            if (el && el.getBoundingClientRect().top - containerTop <= 72) current = item.id
+          }
+          if (container.scrollTop + container.clientHeight >= container.scrollHeight - 8) {
+            current = sectionNavItems[sectionNavItems.length - 1]!.id
+          }
+          setActiveSection((prev) => (prev === current ? prev : current))
+        }}
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-background-default"
       >
+        {/* Hero — scrolls with the document (white masthead → content). */}
+        <SheetHeader className="bg-background-default px-6 pt-8 pb-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
         {detailQuery.isLoading || !detail ? (
           <DetailHeaderSkeleton />
         ) : (
@@ -1429,104 +1436,52 @@ export function AlertDetailDrawer({
                     // an unclamped 250-char title ran 4+ lines and pushed
                     // the facts below the fold); the title attr carries
                     // the full text on hover.
-                    'font-semibold tracking-display text-text-primary transition-all',
-                    headerCollapsed
-                      ? 'line-clamp-1 text-item-title'
-                      : 'line-clamp-3 text-surface-title',
+                    'font-semibold tracking-display text-text-primary',
+                    'line-clamp-3 text-surface-title',
                   )}
                   title={detail.alert.title}
                 >
                   {detail.alert.title}
                 </h2>
 
-                {/* Summary / dek — hidden once the header collapses on scroll so
-                    the masthead shrinks to title-only. */}
-                {!headerCollapsed &&
-                detail.alert.summary &&
+                {/* Summary / dek — body prose, not a sub-title (14/400). */}
+                {detail.alert.summary &&
                 detail.alert.summary.trim() !== detail.alert.title.trim() ? (
-                  // Dek is body prose, not a sub-title — 14/400.
                   <p className="text-base text-text-secondary">{detail.alert.summary}</p>
                 ) : null}
 
-                {/* KEY FACT — the do-by-when strip lives in the HERO
-                    (2026-06-12 info-organisation pass): the page's most
-                    important fact was buried inside the "Extracted facts"
-                    section. The hero now answers identity → headline → BY
-                    WHEN in one glance; the details section below carries
-                    only reference depth. Hidden when the header collapses
-                    (the body sections take over). */}
-                {!headerCollapsed ? (
-                  <div className="pt-1 empty:hidden">
-                    <DeadlineChangeCard detail={detail} />
-                    <AlertStructuredFields detail={detail} section="key-fact" />
-                  </div>
-                ) : null}
+                {/* KEY FACT — the do-by-when strip lives in the HERO: identity
+                    → headline → BY WHEN in one glance; the details section
+                    below carries only reference depth. */}
+                <div className="pt-1 empty:hidden">
+                  <DeadlineChangeCard detail={detail} />
+                  <AlertStructuredFields detail={detail} section="key-fact" />
+                </div>
 
-                {/* Lifecycle strip — the hero's orientation anchor (Yuqi: put
-                    it in the hero). Sits above a hairline, below the key fact,
-                    so the masthead reads: what it is → by when → where it is in
-                    the pipeline. Hidden when the header collapses on scroll. */}
-                {!headerCollapsed ? (
-                  <div className="mt-1 border-t border-divider-subtle pt-3">
-                    <AlertLifecycleStrip detail={detail} />
-                  </div>
-                ) : null}
+                {/* Lifecycle strip — the hero's orientation anchor, above a
+                    hairline: what it is → by when → where it is in the
+                    pipeline. */}
+                <div className="mt-1 border-t border-divider-subtle pt-3">
+                  <AlertLifecycleStrip detail={detail} />
+                </div>
               </div>
             )
           })()
         )}
       </SheetHeader>
 
-      {/* Body shares the header's `px-12` so the whole panel reads as one
-          continuous paper surface from edge to edge. The large bottom
-          padding (`pb-24`, ~96px) buffers the sticky footer (≈64–80px
-          tall): it overlays the body's bottom edge when scrolled, so
-          without the buffer the last content row would hide behind the
-          action bar. */}
-      <div
-        onScroll={(event) => {
-          const container = event.currentTarget
-          const next = container.scrollTop > 16
-          setHeaderCollapsed((prev) => (prev === next ? prev : next))
-          // Scroll-spy: active = the LAST section whose top has crossed the
-          // pinned nav line (~64px under the container top). Scoped
-          // querySelector so the spy never reads a different panel's ids.
-          if (sectionNavItems.length > 0) {
-            const containerTop = container.getBoundingClientRect().top
-            let current = sectionNavItems[0]!.id
-            for (const item of sectionNavItems) {
-              const el = container.querySelector(`#${item.id}`)
-              if (el && el.getBoundingClientRect().top - containerTop <= 64) current = item.id
-            }
-            // Bottom clamp: short documents can end before the last
-            // section's top ever crosses the spy line — once the container
-            // is scrolled to (within 8px of) the bottom, the last section
-            // is the one being read.
-            if (container.scrollTop + container.clientHeight >= container.scrollHeight - 8) {
-              current = sectionNavItems[sectionNavItems.length - 1]!.id
-            }
-            setActiveSection((prev) => (prev === current ? prev : current))
-          }
-        }}
-        // 2026-06-12 (Yuqi "white, gray, white, gray — so bad UI"): the body
-        // is ONE WHITE SURFACE. Layering comes from hairlines + type + the
-        // spacing rhythm, never from alternating fills.
-        // pt-4 (was pt-6): with the key fact in the hero, the hero→nav void
-        // ran ~36px of dead air (Yuqi "floating"); the nav's sticky -top
-        // matches this padding below.
-        className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto bg-background-default px-6 pt-4 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]"
-      >
-        {/* Scroll-spy section nav (Yuqi — deadline-tab orientation on one
-            long document). Sticky under the container top; deliberately
-            LIGHTER than the deadline detail's pill tabs (text + underline)
-            so it reads as a table of contents, not behavior-switching tabs. */}
+      {/* Document body — a NON-scrolling content column inside the shared
+          scroll wrapper above. `pb-24` buffers the sticky footer so the last
+          row never hides behind it. */}
+      <div className="flex flex-col gap-6 bg-background-default px-6 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
+        {/* Scroll-spy section nav (deadline-tab orientation on one long
+            document). Sticky at the scroll viewport top; lighter than the
+            deadline pill tabs (text + underline) so it reads as a table of
+            contents, not behaviour-switching tabs. */}
         {detail ? (
           <nav
             aria-label={t`Alert sections`}
-            // No negative margins (the old -mt-3 paired with pt-6; against
-            // pt-4 it crushed the header→nav gap to 4px). -top matches the
-            // container's pt-4 so the nav pins flush.
-            className="sticky -top-4 z-10 shrink-0 bg-background-default py-3"
+            className="sticky top-0 z-10 shrink-0 bg-background-default py-3"
           >
             <div className="flex items-center gap-5 border-b border-divider-subtle pb-2">
               {sectionNavItems.map((item) => {
@@ -2021,6 +1976,7 @@ export function AlertDetailDrawer({
             </DetailSectionCard>
           </div>
         ) : null}
+      </div>
       </div>
 
       {/* Sticky action footer — a committed decision surface, not
