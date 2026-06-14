@@ -6,7 +6,7 @@ know where to go."
 New `AlertLifecycleStrip` (AlertDetailDrawer.tsx) — a one-line stepper in the
 hero, below the key fact, above a hairline + the tabs:
 
-  ✓ Monitored · ✓ AI parsed 94% · ✓ Matched 1 · ◉ Your decision · ○ Applied
+✓ Monitored · ✓ AI parsed 94% · ✓ Matched 1 · ◉ Your decision · ○ Applied
 
 - First three nodes: auto + done (check, tertiary ink). They show the system
   did the work (parse confidence %, matched client count).

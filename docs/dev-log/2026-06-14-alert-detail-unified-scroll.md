@@ -20,6 +20,7 @@ ONE scroll container wrapping the hero + the document body:
   sticky footer.
 
 ## Verify
+
 tsgo clean; live on 5173: the scroll container wraps the hero
 (scrollerWrapsHeader true); scrolling moves the hero up out of view
 (headerTop -248) and the section nav sticks at 52px (under the top bar);

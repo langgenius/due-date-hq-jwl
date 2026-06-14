@@ -15,7 +15,7 @@ Yuqi /alerts?alert=…3001 batch. The clear styling items, shipped:
   (`bg-state-base-active`); hover stays the lighter `bg-state-base-hover`. No
   left bar (doubled the rail's own left border).
 - **#4 hero date complete.** `formatRelativeTime` → `formatDatePretty(…,
-  {alwaysShowYear:true})` — "May 18, 2026", not a clipped "May 18".
+{alwaysShowYear:true})` — "May 18, 2026", not a clipped "May 18".
 - **#6 "Deadline change" closer to its diff.** Section gap-2.5 → gap-1.5 so the
   label reads as one unit with the old→new date.
 

@@ -68,9 +68,7 @@ export function DetailSectionCard({
           <h3
             className={cn(
               'font-semibold',
-              tone === 'reference'
-                ? 'text-base text-text-secondary'
-                : 'text-lg text-text-primary',
+              tone === 'reference' ? 'text-base text-text-secondary' : 'text-lg text-text-primary',
             )}
           >
             {title}

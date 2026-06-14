@@ -109,9 +109,9 @@ export function RuleReviewPrompt({
         </h1>
         <p className="text-sm font-medium leading-relaxed text-text-tertiary">
           <Trans>
-            You activated {totalRulesActivated} rules. {codeList} publish their own filing calendars,
-            so they need your eyes before they generate deadlines for your clients. A few minutes here
-            saves filing-day surprises later.
+            You activated {totalRulesActivated} rules. {codeList} publish their own filing
+            calendars, so they need your eyes before they generate deadlines for your clients. A few
+            minutes here saves filing-day surprises later.
           </Trans>
         </p>
       </div>

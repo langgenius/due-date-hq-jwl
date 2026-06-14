@@ -167,8 +167,8 @@ export function Step3Normalize({
           <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
             <ShieldCheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
             <Trans>
-              Nothing&apos;s applied until you confirm — every change is logged and reversible for 24
-              hours.
+              Nothing&apos;s applied until you confirm — every change is logged and reversible for
+              24 hours.
             </Trans>
           </p>
         </>

@@ -10,6 +10,7 @@ responsive; **desktop-xl is the target** (so sub-lg collapse is deferred).
 ## Landed this round
 
 **Regressions I owned:**
+
 - Workload "Share of open work" (which summed to ~167% across owners) →
   "Relative load" — the value is busiest-anchored, not share-of-total.
 - 404 tab title was empty (an inline `<title>` competed with the app-wide
@@ -17,6 +18,7 @@ responsive; **desktop-xl is the target** (so sub-lg collapse is deferred).
   single source.
 
 **Honest affordances (Tranche 1):**
+
 - Profile name/email rendered as white input-shaped boxes (provider-owned,
   read-only) → locked treatment (lock glyph, no input chrome) + one caption.
   Danger-zone Export/Delete state their disabled reason as visible captions.
@@ -32,6 +34,7 @@ responsive; **desktop-xl is the target** (so sub-lg collapse is deferred).
   accurate).
 
 **Consistency + counts (Tranche 2):**
+
 - One name per page: "Reminder emails" (was "Email Template"), "Profile" (H1
   was "Your account"), Members nav label (was "Team").
 - Last "Pulse" codename leak (morning-digest copy) → "regulatory alerts".
@@ -45,6 +48,7 @@ The other session is actively rebuilding `alerts/*`, `notifications-page`,
 `sidebar`, and `permissions` this round (live HMR syntax errors in
 AlertStructuredFields confirm it). Editing them now would clobber in-flight
 work. Deferred until they settle:
+
 - Alerts portfolio count 9 (nav) vs 4 (Today section) reconciliation.
 - "conf" abbreviation on the alerts list.
 - Notifications "Inbox" vs "Notifications" name; lowercase "all" filter.

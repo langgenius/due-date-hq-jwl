@@ -31,8 +31,8 @@ Two further refinements landed in the same critique pass:
 
 - **Active weight `font-semibold` (600) → `font-medium` (500).** 400→600 jumped
   two steps and visibly reflowed the label width on activation; the accent color
-  + bg tint already signal the current route, so a single 400→500 step is enough
-  emphasis with a far smaller width shift.
+  - bg tint already signal the current route, so a single 400→500 step is enough
+    emphasis with a far smaller width shift.
 - **Inventory count badge `text-text-muted` (#98a2b2) → `text-text-tertiary`
   (#676f83).** Muted sat at only ~2.43:1 on the #f6f8fa card (below WCAG AA), so
   the Deadlines / Clients counts were nearly invisible; tertiary is ~4.68:1
@@ -42,14 +42,14 @@ Two further refinements landed in the same critique pass:
 
 Resulting rail hierarchy (verified via computed styles in the browser):
 
-| Tier               | Token                       | Size / weight / color                 |
-| ------------------ | --------------------------- | ------------------------------------- |
-| Firm name (anchor) | `text-base font-medium`     | 14px / 500 / text-primary             |
-| Nav labels         | `text-base font-normal`     | 14px / 400 / text-secondary           |
-| Nav · active       | `text-base font-medium`     | 14px / 500 / text-accent + tint bg    |
-| Quick find         | `text-sm`                   | 13px / 400 / text-muted               |
-| Group eyebrows     | `text-caption-xs`           | 11px / 600 / text-tertiary, uppercase |
-| Count badges       | `font-mono` 12px            | text-tertiary (#676f83) both tones    |
+| Tier               | Token                   | Size / weight / color                 |
+| ------------------ | ----------------------- | ------------------------------------- |
+| Firm name (anchor) | `text-base font-medium` | 14px / 500 / text-primary             |
+| Nav labels         | `text-base font-normal` | 14px / 400 / text-secondary           |
+| Nav · active       | `text-base font-medium` | 14px / 500 / text-accent + tint bg    |
+| Quick find         | `text-sm`               | 13px / 400 / text-muted               |
+| Group eyebrows     | `text-caption-xs`       | 11px / 600 / text-tertiary, uppercase |
+| Count badges       | `font-mono` 12px        | text-tertiary (#676f83) both tones    |
 
 Firm name and nav share 14px, but the firm row keeps its 500 weight + square
 monogram, so it still anchors above the 400-weight nav — no inversion. Item
