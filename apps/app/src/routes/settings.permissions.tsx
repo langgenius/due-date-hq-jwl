@@ -371,18 +371,10 @@ export function SettingsPermissionsRoute() {
               </Trans>
             )}
           </p>
-          <div className="flex items-center gap-2">
-            {/* TODO(data): editing is gated on a per-role override RPC that
-                doesn't exist. Disabled until the contract lands so we don't
-                ship a no-op save. */}
-            <Button variant="outline" size="sm" disabled>
-              <Trans>Discard</Trans>
-            </Button>
-            <Button size="sm" disabled>
-              <CheckIcon data-icon="inline-start" />
-              <Trans>Save permissions</Trans>
-            </Button>
-          </div>
+          {/* No Save/Discard here: the banner above states this view is
+              read-only (no per-role override store yet). Disabled Save
+              buttons contradicted that in pixels — honest in prose, lying in
+              chrome. They return with the override RPC. */}
         </div>
       </div>
     </SettingsShell>

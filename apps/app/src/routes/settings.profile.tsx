@@ -14,6 +14,7 @@ import {
   DownloadIcon,
   LaptopIcon,
   Loader2Icon,
+  LockIcon,
   MonitorIcon,
   ShieldIcon,
   SmartphoneIcon,
@@ -268,25 +269,23 @@ export function SettingsProfileRoute() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t`Full name`}>
-              {/* TODO(data): no user.updateProfile RPC — name is owned by the
-                  identity provider. Shown read-only. */}
-              <ReadonlyValue value={displayName || t`Not set`} />
-            </Field>
-            <Field
-              label={t`Email`}
-              action={
-                <span
-                  className="text-xs font-medium text-text-disabled"
-                  title={t`Not available yet`}
-                >
-                  <Trans>Change</Trans>
-                </span>
-              }
-            >
-              <ReadonlyValue value={email || t`Not set`} muted />
-            </Field>
+          <div className="flex flex-col gap-3">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {/* Name + email are owned by the sign-in provider (no
+                  user.updateProfile RPC). Rendered as locked facts, NOT as
+                  input-shaped boxes a CPA would click expecting to type —
+                  the re-critique flagged the old white-bordered treatment as
+                  a fake field. The lock glyph + caption below say why. */}
+              <Field label={t`Full name`}>
+                <ReadonlyValue value={displayName || t`Not set`} locked />
+              </Field>
+              <Field label={t`Email`}>
+                <ReadonlyValue value={email || t`Not set`} locked muted />
+              </Field>
+            </div>
+            <p className="text-caption text-text-tertiary">
+              <Trans>Name and email come from your sign-in provider and can't be edited here.</Trans>
+            </p>
           </div>
         </SettingsCard>
 
@@ -504,11 +503,17 @@ export function SettingsProfileRoute() {
                 <Trans>Download a JSON archive of clients, deadlines, rules, and audit log</Trans>
               </span>
             </div>
-            {/* TODO(data): no account.export RPC yet. */}
-            <Button variant="outline" size="sm" disabled>
-              <DownloadIcon data-icon="inline-start" />
-              <Trans>Request export</Trans>
-            </Button>
+            {/* TODO(data): no account.export RPC yet. Disabled controls
+                state their reason (visible caption, not just a title). */}
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <Button variant="outline" size="sm" disabled title={t`Not available yet`}>
+                <DownloadIcon data-icon="inline-start" />
+                <Trans>Request export</Trans>
+              </Button>
+              <span className="text-caption-xs text-text-tertiary">
+                <Trans>Not available yet</Trans>
+              </span>
+            </div>
           </div>
 
           <div className="h-px w-full bg-state-destructive-hover-alt" />
@@ -526,10 +531,20 @@ export function SettingsProfileRoute() {
               </span>
             </div>
             {/* TODO(data): no account.delete RPC yet. */}
-            <Button variant="destructive-primary" size="sm" disabled>
-              <Trash2Icon data-icon="inline-start" />
-              <Trans>Delete account</Trans>
-            </Button>
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <Button
+                variant="destructive-primary"
+                size="sm"
+                disabled
+                title={t`Not available yet — contact your practice owner`}
+              >
+                <Trash2Icon data-icon="inline-start" />
+                <Trans>Delete account</Trans>
+              </Button>
+              <span className="text-caption-xs text-text-tertiary">
+                <Trans>Contact your practice owner</Trans>
+              </span>
+            </div>
           </div>
         </SettingsCard>
       </div>
@@ -719,12 +734,34 @@ function Field({
 function ReadonlyValue({
   value,
   muted = false,
+  locked = false,
   trailing,
 }: {
   value: string
   muted?: boolean
+  // `locked`: render a non-editable identity fact (no input chrome, a lock
+  // glyph) so it can't be mistaken for a text field. Without it the box
+  // reads exactly like an <input> — the deception the re-critique flagged.
+  locked?: boolean
   trailing?: ReactNode
 }) {
+  if (locked) {
+    return (
+      <div className="flex items-center justify-between gap-2 py-1.5">
+        <span
+          className={cn(
+            'truncate text-base font-medium',
+            muted ? 'text-text-secondary' : 'text-text-primary',
+          )}
+        >
+          {value}
+        </span>
+        {trailing ?? (
+          <LockIcon className="size-3.5 shrink-0 text-text-tertiary" aria-label="Read-only" />
+        )}
+      </div>
+    )
+  }
   return (
     <div
       className={cn(
