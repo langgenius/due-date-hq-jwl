@@ -377,10 +377,12 @@ function WorkloadTable({
             <Trans>Review</Trans>
           </TableHead>
           <TableHead className="w-[180px]">
-            {/* Share-of-max normalization, NOT capacity — "Load 100%" told
-                a partner the busiest member was maxed out when it only
-                means "has the most open work". Name what it measures. */}
-            <Trans>Share of open work</Trans>
+            {/* Share-of-MAX normalization (busiest owner = 100%), NOT
+                share-of-total and NOT capacity. "Share of open work" was
+                wrong twice over — it implied the bars sum to 100% (they sum
+                to ~167% across owners) and that 100% = maxed out. "Relative
+                load" is the honest name for a busiest-anchored bar. */}
+            <Trans>Relative load</Trans>
           </TableHead>
           <TableHead className="w-[128px] text-right">
             <Trans>Action</Trans>

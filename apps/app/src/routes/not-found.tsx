@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Trans } from '@lingui/react/macro'
 import { ArrowLeftIcon, HomeIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -12,12 +12,14 @@ import { Button } from '@duedatehq/ui/components/ui/button'
  * `RouteErrorBoundary`.
  */
 export function NotFoundRoute() {
-  const { t } = useLingui()
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  // No inline <title> here: the app-wide <RouteDocumentTitle> (router.tsx)
+  // already renders the title from this route's `notFound` handle. A second
+  // <title> element competed with it and the pair resolved to an empty tab
+  // title. One source — the route handle — wins.
   return (
     <>
-      <title>{t`Page not found`} | DueDateHQ</title>
       <div className="flex w-full flex-col gap-6 px-6 py-8">
         <header className="flex flex-col gap-2">
           <p className="text-caption-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
