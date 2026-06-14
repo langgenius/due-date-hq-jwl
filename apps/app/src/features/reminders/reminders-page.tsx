@@ -144,8 +144,8 @@ export function RemindersPage() {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <PageHeader
-        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Email Template` }]}
-        title={<Trans>Email Template</Trans>}
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Reminder emails` }]}
+        title={<Trans>Reminder emails</Trans>}
       />
 
       <div className="grid gap-4">

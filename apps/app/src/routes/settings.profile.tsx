@@ -240,7 +240,7 @@ export function SettingsProfileRoute() {
       <div className="flex flex-col gap-6">
         <PageHeader
           breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Profile` }]}
-          title={<Trans>Your account</Trans>}
+          title={<Trans>Profile</Trans>}
           description={
             <Trans>Personal details, security, and how the product looks for you.</Trans>
           }
@@ -284,7 +284,9 @@ export function SettingsProfileRoute() {
               </Field>
             </div>
             <p className="text-caption text-text-tertiary">
-              <Trans>Name and email come from your sign-in provider and can't be edited here.</Trans>
+              <Trans>
+                Name and email come from your sign-in provider and can't be edited here.
+              </Trans>
             </p>
           </div>
         </SettingsCard>

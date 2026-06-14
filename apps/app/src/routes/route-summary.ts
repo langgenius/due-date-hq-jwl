@@ -27,7 +27,7 @@ export const routeSummaries = {
   workload: { eyebrow: msg`Practice`, title: msg`Team workload` },
   notifications: { eyebrow: msg`Operations`, title: msg`Notifications` },
   notificationPreferences: { eyebrow: msg`Settings`, title: msg`Notification preferences` },
-  reminders: { eyebrow: msg`Settings`, title: msg`Email Template` },
+  reminders: { eyebrow: msg`Settings`, title: msg`Reminder emails` },
   clients: { eyebrow: msg`Clients`, title: msg`Clients` },
   clientDetail: { eyebrow: msg`Clients`, title: msg`Client detail` },
   audit: { eyebrow: msg`Practice`, title: msg`Audit log` },
@@ -43,7 +43,7 @@ export const routeSummaries = {
   billing: { eyebrow: msg`Practice`, title: msg`Billing` },
   billingCheckout: { eyebrow: msg`Billing`, title: msg`Checkout` },
   settings: { eyebrow: msg`Settings`, title: msg`Practice settings` },
-  settingsProfile: { eyebrow: msg`Settings`, title: msg`Your account` },
+  settingsProfile: { eyebrow: msg`Settings`, title: msg`Profile` },
   settingsPermissions: { eyebrow: msg`Settings`, title: msg`Permissions` },
   notFound: { eyebrow: msg`Error`, title: msg`Page not found` },
 } satisfies Record<string, RouteSummaryMessages>

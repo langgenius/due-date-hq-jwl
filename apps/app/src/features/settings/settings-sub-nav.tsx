@@ -95,7 +95,9 @@ export function useSettingsNavSections(): SettingsNavSection[] {
         },
         {
           to: '/members',
-          label: t`Team`,
+          // "Members" everywhere — the route, page H1, breadcrumb, and
+          // route-summary all say Members; this nav label was the lone "Team".
+          label: t`Members`,
           description: t`Invite teammates and manage roles.`,
           Icon: UsersIcon,
         },

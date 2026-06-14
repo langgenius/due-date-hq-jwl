@@ -570,7 +570,7 @@ function MorningDigestCard({
           </span>
           <span className="text-xs text-text-secondary">
             <Trans>
-              Only sends when deadlines, Pulse alerts, or delivery failures need attention.
+              Only sends when deadlines, regulatory alerts, or delivery failures need attention.
             </Trans>
           </span>
         </div>
