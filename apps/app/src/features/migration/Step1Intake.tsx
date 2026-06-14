@@ -1218,17 +1218,17 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
     case 'karbon':
       return {
         title: i18n._(msg`Export Karbon contacts`),
-        preferredFiles: i18n._(msg`Spreadsheet`),
+        preferredFiles: i18n._(msg`CSV`),
         steps: [
+          i18n._(msg`Open Contacts and click the cloud icon; Admin permissions are required.`),
           i18n._(
-            msg`Open Contacts and select the cloud export icon; Admin access may be required.`,
-          ),
-          i18n._(
-            msg`Choose the contact data to download; Karbon saves a spreadsheet to your device.`,
+            msg`Choose the contact data (All contacts, People, Organizations, or Client Groups); Karbon downloads a CSV to your device.`,
           ),
           i18n._(msg`For deadline history, export Work separately from the Work page cloud icon.`),
         ],
-        note: i18n._(msg`Karbon columns vary by firm setup, so keep the header row in the file.`),
+        note: i18n._(
+          msg`Client groups and accounting details aren't in this export — request them from Karbon Support; keep the header row in the file.`,
+        ),
       }
     case 'quickbooks':
       return {
@@ -1308,7 +1308,7 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
           i18n._(msg`Use Client > Export > Export to File, then choose Comma Delimited.`),
           i18n._(msg`Save the export as EXPORT.CSV or choose your own CSV file name.`),
           i18n._(
-            msg`Include client number, client name, email, phone, address, return type, and preparer fields.`,
+            msg`Include client number, client name, email, phone, address, entity type, and SSN/EIN fields.`,
           ),
         ],
         note: i18n._(

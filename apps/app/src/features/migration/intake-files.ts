@@ -78,7 +78,7 @@ export function unsupportedUploadForFileName(fileName: string): UnsupportedUploa
   if (ext === 'rtnbak' || ext === 'rctrl') return { code: 'cch_axcess_backup', fileName }
   if (ext === 'dbf' || ext === 'mdx') return { code: 'lacerte_data_file', fileName }
   if (/clntbkup/i.test(fileName)) return { code: 'cch_prosystem_fx_backup', fileName }
-  if (/^\d{2}[ipcps]$/i.test(ext)) return { code: 'proseries_return_file', fileName }
+  if (/^\d{2}[ipcsef]$/i.test(ext)) return { code: 'proseries_return_file', fileName }
   if (ext === 'csd') return { code: 'ultratax_client_data', fileName }
   if (ext === 'dif') return { code: 'ultratax_dif', fileName }
   if (ext === 'pdf') return { code: 'pdf_report', fileName }
@@ -152,7 +152,7 @@ export function unsupportedUploadMessageDescriptor(input: UnsupportedUpload): Me
     case 'quickbooks_company':
       return msg`This looks like a QuickBooks Desktop company file. Export Customer Contact List to Excel/CSV or Customers to an IIF file.`
     case 'qbo_archive':
-      return msg`This looks like a QuickBooks Online Advanced archive. Export Customers or Customer Contact List to Excel instead.`
+      return msg`This looks like a Windows .cab archive (such as a QuickBooks Online Advanced cloud backup). Export Customers or the Customer Contact List to Excel instead.`
     case 'cch_axcess_backup':
       return msg`This looks like a CCH return file we can't read. Export your client list from CCH Axcess (Client Manager or Return Manager grid → CSV/XLSX), or from ProSystem fx (Create client list for Portal).`
     case 'cch_prosystem_fx_backup':

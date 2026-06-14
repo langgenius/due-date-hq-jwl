@@ -4051,8 +4051,8 @@ msgid "Choose Solo, Pro, or Team to start the hosted checkout flow."
 msgstr "选择 Solo、Pro 或 Team 以开始托管 checkout 流程。"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Choose the contact data to download; Karbon saves a spreadsheet to your device."
-msgstr "选择要下载的联系人数据；Karbon 会将电子表格保存到你的设备。"
+msgid "Choose the contact data (All contacts, People, Organizations, or Client Groups); Karbon downloads a CSV to your device."
+msgstr "选择要导出的联系人数据（All contacts、People、Organizations 或 Client Groups）；Karbon 会把 CSV 下载到你的设备。"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Citation {n} — open deadline"
@@ -4243,6 +4243,10 @@ msgstr "客户邮件草稿已复制"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "CLIENT FILTER"
 msgstr "客户筛选"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Client groups and accounting details aren't in this export — request them from Karbon Support; keep the header row in the file."
+msgstr "Client groups 和会计明细不在此导出中——需向 Karbon Support 申请；请保留文件的表头行。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Client import batch"
@@ -8351,8 +8355,8 @@ msgid "Include {0} in this batch"
 msgstr "将 {0} 加入此批次"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Include client number, client name, email, phone, address, return type, and preparer fields."
-msgstr "包含 client number、client name、email、phone、address、return type 和 preparer 字段。"
+msgid "Include client number, client name, email, phone, address, entity type, and SSN/EIN fields."
+msgstr "勾选 client number、client name、email、电话、地址、entity type 和 SSN/EIN 字段。"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Include Federal"
@@ -8634,10 +8638,6 @@ msgstr "等待日历审核的辖区"
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "K-1 activity"
 msgstr "K-1 活动"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Karbon columns vary by firm setup, so keep the header row in the file."
-msgstr "Karbon 列会随事务所设置变化，请保留文件表头。"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Keep editing"
@@ -11256,8 +11256,8 @@ msgid "Open client to fix entity"
 msgstr "打开客户以补充实体类型"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Open Contacts and select the cloud export icon; Admin access may be required."
-msgstr "打开 Contacts 并选择云朵导出图标；可能需要 Admin 权限。"
+msgid "Open Contacts and click the cloud icon; Admin permissions are required."
+msgstr "打开 Contacts，点击云朵图标；需要 Admin 权限。"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Open deadline"
@@ -15370,10 +15370,6 @@ msgid "Specific date range"
 msgstr "特定日期范围"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Spreadsheet"
-msgstr "电子表格"
-
-#: src/features/migration/Step1Intake.tsx
 #, fuzzy
 msgid "SSN-like columns are blocked before anything goes to the AI."
 msgstr "在向 AI 发送任何内容前，我们会先拦截疑似 SSN 的模式。"
@@ -16283,8 +16279,8 @@ msgid "This looks like a QuickBooks Desktop company file. Export Customer Contac
 msgstr "这看起来像 QuickBooks Desktop 公司文件。请将 Customer Contact List 导出为 Excel/CSV，或将 Customers 导出为 IIF 文件。"
 
 #: src/features/migration/intake-files.ts
-msgid "This looks like a QuickBooks Online Advanced archive. Export Customers or Customer Contact List to Excel instead."
-msgstr "这看起来像 QuickBooks Online Advanced 归档。请改为将 Customers 或 Customer Contact List 导出为 Excel。"
+msgid "This looks like a Windows .cab archive (such as a QuickBooks Online Advanced cloud backup). Export Customers or the Customer Contact List to Excel instead."
+msgstr "这看起来是一个 Windows .cab 归档（例如 QuickBooks Online Advanced 的云备份）。请改为导出 Customers 或 Customer Contact List 到 Excel。"
 
 #: src/features/migration/intake-files.ts
 msgid "This looks like an UltraTax CS client data file. Export a Client Listing Report and re-save it as CSV or XLSX."

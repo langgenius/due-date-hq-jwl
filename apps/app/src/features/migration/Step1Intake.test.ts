@@ -360,6 +360,7 @@ describe('client export file intake adapters', () => {
     ['client-clntbkup.zip', 'cch_prosystem_fx_backup'],
     ['client.dbf', 'lacerte_data_file'],
     ['sample.24i', 'proseries_return_file'],
+    ['sample.24e', 'proseries_return_file'],
     ['client.csd', 'ultratax_client_data'],
   ] as const)('rejects %s with specific unsupported guidance', async (fileName, code) => {
     await expect(prepareUploadFile(unsupportedSampleFile(fileName))).rejects.toMatchObject({

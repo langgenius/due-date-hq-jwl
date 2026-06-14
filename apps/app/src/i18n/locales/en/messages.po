@@ -4034,8 +4034,8 @@ msgid "Choose Solo, Pro, or Team to start the hosted checkout flow."
 msgstr "Choose Solo, Pro, or Team to start the hosted checkout flow."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Choose the contact data to download; Karbon saves a spreadsheet to your device."
-msgstr "Choose the contact data to download; Karbon saves a spreadsheet to your device."
+msgid "Choose the contact data (All contacts, People, Organizations, or Client Groups); Karbon downloads a CSV to your device."
+msgstr "Choose the contact data (All contacts, People, Organizations, or Client Groups); Karbon downloads a CSV to your device."
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Citation {n} — open deadline"
@@ -4225,6 +4225,10 @@ msgstr "Client email draft copied"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "CLIENT FILTER"
 msgstr "CLIENT FILTER"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Client groups and accounting details aren't in this export — request them from Karbon Support; keep the header row in the file."
+msgstr "Client groups and accounting details aren't in this export — request them from Karbon Support; keep the header row in the file."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Client import batch"
@@ -8318,8 +8322,8 @@ msgid "Include {0} in this batch"
 msgstr "Include {0} in this batch"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Include client number, client name, email, phone, address, return type, and preparer fields."
-msgstr "Include client number, client name, email, phone, address, return type, and preparer fields."
+msgid "Include client number, client name, email, phone, address, entity type, and SSN/EIN fields."
+msgstr "Include client number, client name, email, phone, address, entity type, and SSN/EIN fields."
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Include Federal"
@@ -8600,10 +8604,6 @@ msgstr "Jurisdictions awaiting calendar review"
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "K-1 activity"
 msgstr "K-1 activity"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Karbon columns vary by firm setup, so keep the header row in the file."
-msgstr "Karbon columns vary by firm setup, so keep the header row in the file."
 
 #: src/features/migration/WizardShell.tsx
 msgid "Keep editing"
@@ -11205,8 +11205,8 @@ msgid "Open client to fix entity"
 msgstr "Open client to fix entity"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Open Contacts and select the cloud export icon; Admin access may be required."
-msgstr "Open Contacts and select the cloud export icon; Admin access may be required."
+msgid "Open Contacts and click the cloud icon; Admin permissions are required."
+msgstr "Open Contacts and click the cloud icon; Admin permissions are required."
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Open deadline"
@@ -15298,10 +15298,6 @@ msgid "Specific date range"
 msgstr "Specific date range"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Spreadsheet"
-msgstr "Spreadsheet"
-
-#: src/features/migration/Step1Intake.tsx
 msgid "SSN-like columns are blocked before anything goes to the AI."
 msgstr "SSN-like columns are blocked before anything goes to the AI."
 
@@ -16209,8 +16205,8 @@ msgid "This looks like a QuickBooks Desktop company file. Export Customer Contac
 msgstr "This looks like a QuickBooks Desktop company file. Export Customer Contact List to Excel/CSV or Customers to an IIF file."
 
 #: src/features/migration/intake-files.ts
-msgid "This looks like a QuickBooks Online Advanced archive. Export Customers or Customer Contact List to Excel instead."
-msgstr "This looks like a QuickBooks Online Advanced archive. Export Customers or Customer Contact List to Excel instead."
+msgid "This looks like a Windows .cab archive (such as a QuickBooks Online Advanced cloud backup). Export Customers or the Customer Contact List to Excel instead."
+msgstr "This looks like a Windows .cab archive (such as a QuickBooks Online Advanced cloud backup). Export Customers or the Customer Contact List to Excel instead."
 
 #: src/features/migration/intake-files.ts
 msgid "This looks like an UltraTax CS client data file. Export a Client Listing Report and re-save it as CSV or XLSX."
