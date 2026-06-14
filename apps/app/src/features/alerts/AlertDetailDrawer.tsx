@@ -1328,7 +1328,7 @@ export function AlertDetailDrawer({
         className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-background-default"
       >
         {/* Hero — scrolls with the document (white masthead → content). */}
-        <SheetHeader className="bg-background-default px-6 pt-8 pb-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
+        <SheetHeader className="bg-background-default px-6 pt-6 pb-5 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
           {detailQuery.isLoading || !detail ? (
             <DetailHeaderSkeleton />
           ) : (
@@ -1473,7 +1473,7 @@ export function AlertDetailDrawer({
         {/* Document body — a NON-scrolling content column inside the shared
           scroll wrapper above. `pb-24` buffers the sticky footer so the last
           row never hides behind it. */}
-        <div className="flex flex-col gap-6 bg-background-default px-6 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]">
+        <div className="flex flex-col gap-6 bg-background-default px-6 pb-24 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
           {/* Scroll-spy section nav (deadline-tab orientation on one long
             document). Sticky at the scroll viewport top; lighter than the
             deadline pill tabs (text + underline) so it reads as a table of
@@ -1557,13 +1557,12 @@ export function AlertDetailDrawer({
           ) : null}
 
           {detail ? (
-            // 2026-06-14 (Yuqi "too loose / shattered"): the inter-section
-            // rhythm tightens 40px → 32px (gap-8). 40px of pure whitespace read
-            // as floating islands; 32px still separates the ranked section
-            // headers cleanly but keeps the document cohesive. No dividers
-            // (Yuqi dislikes "just lines"); type hierarchy + the gray data
-            // panel do the grouping.
-            <div className="flex shrink-0 flex-col gap-8">
+            // 2026-06-14 (Yuqi "too much waste of spacing"): inter-section
+            // rhythm 40 → 32 → 24px (gap-6). The ranked section headers
+            // (action 18/600 vs reference 14/600) carry the separation; 24px
+            // is enough air without the page reading as empty. No dividers
+            // (Yuqi dislikes "just lines").
+            <div className="flex shrink-0 flex-col gap-6">
               {/* GROUP 1 — Change details (2026-06-12 info-organisation pass:
                 renamed from the system-speak "Extracted facts"; named by
                 MEANING like every other section). The do-by-when KEY FACT
@@ -2010,7 +2009,7 @@ export function AlertDetailDrawer({
         {/* The footer chrome spans full width; its actions cap to the
             760px `mx-auto` document measure so the action row sits
             centered under the same column the header + body share. */}
-        <div className="mx-auto flex w-full max-w-[760px] flex-row items-center gap-6">
+        <div className="mx-auto flex w-full max-w-[880px] flex-row items-center gap-6">
           {detail ? (
             // Critique #7 (standing signals aren't events): the reassurance
             // line reads tertiary with only the shield icon in green — a
@@ -2135,7 +2134,7 @@ export function AlertDetailDrawer({
           // the white body. The panel FILLS its column (`w-full`) so the
           // surface reaches the viewport edge, while the document CONTENT
           // inside stays capped to a 760px reading measure and CENTERED via
-          // the per-region `mx-auto max-w-[760px]` wrappers.
+          // the per-region `mx-auto max-w-[880px]` wrappers.
           className="relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background-default shadow-subtle"
         >
           {/* The only close affordance lives in the body's BackStrip top
