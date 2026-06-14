@@ -733,12 +733,14 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
             // the alerts list is a reading FEED, not a data table — at the
             // page's full 1366px the row stretched into a sparse L (title
             // left, source pinned ~600px away at the far edge, dead middle).
-            // The list column caps at 1040px, LEFT-PINNED so the page title /
-            // toolbar / rows share one left rail; everything in a row now
-            // sits in one comfortable eye-span. Map view keeps the full
-            // width (a map earns the span), and the rail+detail layout is
-            // untouched (panelOpen strips caps entirely).
-            !panelOpen && viewMode === 'list' && 'max-w-[1040px]',
+            // The column caps at 1040px, LEFT-PINNED so the page title /
+            // toolbar / rows share one left rail; everything in a row sits in
+            // one comfortable eye-span. 2026-06-14 (Yuqi "anything left"): the
+            // cap now applies in BOTH list AND map mode, so toggling
+            // List↔Map no longer shifts the toolbar width (the heatmap fits
+            // comfortably inside 1040). The rail+detail layout is untouched
+            // (panelOpen strips caps entirely).
+            !panelOpen && 'max-w-[1040px]',
             panelOpen && 'hidden',
           )}
         >
