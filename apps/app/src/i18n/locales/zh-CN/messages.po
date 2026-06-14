@@ -5531,12 +5531,12 @@ msgid "CSV or TXT"
 msgstr "CSV 或 TXT"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 clients · 5 MB"
-msgstr "CSV、Excel、ZIP、TXT 或 IIF · 最多 1,000 位客户 · 5 MB"
+msgid "CSV or XLSX"
+msgstr "CSV 或 XLSX"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "CSV, XLS, or XLSX"
-msgstr "CSV、XLS 或 XLSX"
+msgid "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 clients · 5 MB"
+msgstr "CSV、Excel、ZIP、TXT 或 IIF · 最多 1,000 位客户 · 5 MB"
 
 #: src/features/dashboard/merged-brief-card.tsx
 msgid "Curated by Smart Priority"
@@ -11391,6 +11391,10 @@ msgstr "打开正在阻塞当前行的截止日期：{label}。"
 msgid "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
 msgstr "打开截止日期抽屉以保存笔记；当前创建接口尚不接受笔记。"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Open the exported .xls in Excel and re-save it as .xlsx or CSV before uploading; DueDateHQ cannot read UltraTax .xls or .dif files directly yet."
+msgstr "在 Excel 中打开导出的 .xls 文件，另存为 .xlsx 或 CSV 后再上传；DueDateHQ 暂时无法直接读取 UltraTax 的 .xls 或 .dif 文件。"
+
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the linked deadline that's blocking this row."
 msgstr "打开正在阻塞当前行的关联截止日期。"
@@ -14164,8 +14168,8 @@ msgid "Save template"
 msgstr "保存模板"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Save the client list as CSV, XLS, or XLSX before uploading."
-msgstr "上传前将客户清单保存为 CSV、XLS 或 XLSX。"
+msgid "Save the client list as CSV or XLSX before uploading — not legacy .xls, which DueDateHQ cannot read yet."
+msgstr "上传前将客户清单保存为 CSV 或 XLSX——不要用旧版 .xls，DueDateHQ 暂时无法读取。"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Save the export as EXPORT.CSV or choose your own CSV file name."
@@ -17618,10 +17622,6 @@ msgstr "工作区事件历史与导出"
 #: src/features/clients/EmailComposeDialog.tsx
 msgid "Write your message…"
 msgstr "撰写您的邮件…"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "XLS or DIF"
-msgstr "XLS 或 DIF"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "XLSX"

@@ -1266,13 +1266,15 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
     case 'cch_axcess':
       return {
         title: i18n._(msg`Export CCH Axcess clients`),
-        preferredFiles: i18n._(msg`CSV, XLS, or XLSX`),
+        preferredFiles: i18n._(msg`CSV or XLSX`),
         steps: [
           i18n._(
             msg`Use Dashboard > Application Links > Utilities > Create client list for Portal.`,
           ),
           i18n._(msg`Select Quick Search criteria, run Go, then choose Export.`),
-          i18n._(msg`Save the client list as CSV, XLS, or XLSX before uploading.`),
+          i18n._(
+            msg`Save the client list as CSV or XLSX before uploading — not legacy .xls, which DueDateHQ cannot read yet.`,
+          ),
           i18n._(
             msg`Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid.`,
           ),
@@ -1282,14 +1284,16 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
     case 'cch_prosystem_fx':
       return {
         title: i18n._(msg`Export CCH ProSystem fx clients`),
-        preferredFiles: i18n._(msg`CSV, XLS, or XLSX`),
+        preferredFiles: i18n._(msg`CSV or XLSX`),
         steps: [
           i18n._(
             msg`Use Create client list for Portal to export a client-list spreadsheet, not Office Manager backup.`,
           ),
           i18n._(msg`Go to Dashboard > Applications > Utilities > Create client list for Portal.`),
           i18n._(msg`Select Quick Search criteria, run Go, then choose Export.`),
-          i18n._(msg`Save the client list as CSV, XLS, or XLSX before uploading.`),
+          i18n._(
+            msg`Save the client list as CSV or XLSX before uploading — not legacy .xls, which DueDateHQ cannot read yet.`,
+          ),
         ],
         note: i18n._(
           msg`Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import.`,
@@ -1331,13 +1335,16 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
     case 'ultratax_cs':
       return {
         title: i18n._(msg`Export UltraTax CS client reports`),
-        preferredFiles: i18n._(msg`XLS or DIF`),
+        preferredFiles: i18n._(msg`CSV or XLSX`),
         steps: [
           i18n._(msg`Use Utilities > Client Listing Reports.`),
           i18n._(
             msg`Choose Client Contact, General Client Information, or General Return Information, then select clients.`,
           ),
           i18n._(msg`Export to Excel 97-2003 Workbook and include column headings when prompted.`),
+          i18n._(
+            msg`Open the exported .xls in Excel and re-save it as .xlsx or CSV before uploading; DueDateHQ cannot read UltraTax .xls or .dif files directly yet.`,
+          ),
         ],
         note: i18n._(msg`Do not upload CSD client data files; export a listing report instead.`),
       }

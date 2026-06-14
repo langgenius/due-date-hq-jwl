@@ -5508,12 +5508,12 @@ msgid "CSV or TXT"
 msgstr "CSV or TXT"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 clients · 5 MB"
-msgstr "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 clients · 5 MB"
+msgid "CSV or XLSX"
+msgstr "CSV or XLSX"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "CSV, XLS, or XLSX"
-msgstr "CSV, XLS, or XLSX"
+msgid "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 clients · 5 MB"
+msgstr "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 clients · 5 MB"
 
 #: src/features/dashboard/merged-brief-card.tsx
 msgid "Curated by Smart Priority"
@@ -11339,6 +11339,10 @@ msgstr "Open the deadline blocking this row: {label}."
 msgid "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
 msgstr "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Open the exported .xls in Excel and re-save it as .xlsx or CSV before uploading; DueDateHQ cannot read UltraTax .xls or .dif files directly yet."
+msgstr "Open the exported .xls in Excel and re-save it as .xlsx or CSV before uploading; DueDateHQ cannot read UltraTax .xls or .dif files directly yet."
+
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the linked deadline that's blocking this row."
 msgstr "Open the linked deadline that's blocking this row."
@@ -14095,8 +14099,8 @@ msgid "Save template"
 msgstr "Save template"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Save the client list as CSV, XLS, or XLSX before uploading."
-msgstr "Save the client list as CSV, XLS, or XLSX before uploading."
+msgid "Save the client list as CSV or XLSX before uploading — not legacy .xls, which DueDateHQ cannot read yet."
+msgstr "Save the client list as CSV or XLSX before uploading — not legacy .xls, which DueDateHQ cannot read yet."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Save the export as EXPORT.CSV or choose your own CSV file name."
@@ -17538,10 +17542,6 @@ msgstr "Workspace event history and exports"
 #: src/features/clients/EmailComposeDialog.tsx
 msgid "Write your message…"
 msgstr "Write your message…"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "XLS or DIF"
-msgstr "XLS or DIF"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "XLSX"
