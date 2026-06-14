@@ -690,11 +690,18 @@ const sidebarMenuButtonVariants = cva(
     // gone (see below).
     // 2026-06-10 (Yuqi "set to 15px" — sidebar is the product's sole 15px
     // text size): nav label 16px → text-nav.
+    // 2026-06-14 (Yuqi "文字更精致 — 现在有些粗糙和'大'"): nav label
+    // text-nav (15px) → text-base (14px). The bespoke 15px was the product's
+    // single largest non-heading text AND out-sized the 14px firm-name anchor
+    // above it (a hierarchy inversion). Dropping to the 14px body scale reads
+    // more delicate and restores firm-name(14px/500 + avatar) > nav(14px/400)
+    // as the rail's top anchor. `tracking-[-0.006em]` is a hair of negative
+    // letter-spacing — at 14px it crisps the labels without reading condensed.
     // 2026-06-10 (Yuqi "delicacy" — tactile press): the row dips to 98% on
     // press (active:scale) for a crafted, responsive feel. transform is added
     // to the transition list (duration-150) so the dip + the icon hover-nudge
     // below both ease rather than snap.
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-nav font-normal text-text-secondary outline-none transition-[color,background-color,transform] active:scale-[0.98]',
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-base font-normal tracking-[-0.006em] text-text-secondary outline-none transition-[color,background-color,transform] active:scale-[0.98]',
     // 2026-06-09 (Yuqi "icons should be vertically center aligned" in the
     // collapsed rail): the icon stays LEFT-aligned in both modes — no
     // justify-center. SIDEBAR_WIDTH_COLLAPSED is tuned so a left-aligned icon
