@@ -1880,7 +1880,12 @@ export function RulesLibraryRoute() {
         <ArrowDownToLineIcon data-icon="inline-start" />
         <Trans>Export</Trans>
       </Button>
-      <Button onClick={openNewRule}>
+      {/* Secondary, not primary: a global "Add rule" can't actually create
+          a rule (custom rules need a jurisdiction+entity seed from a gap row
+          or the rollover preview), so the dialog it opens is a signpost.
+          Dressing a signpost as the page's primary CTA was the re-critique
+          finding — the page's real primary action is reviewing the queue. */}
+      <Button variant="outline" onClick={openNewRule}>
         <PlusIcon data-icon="inline-start" />
         <Trans>Add rule</Trans>
       </Button>
@@ -4433,6 +4438,12 @@ function BulkReviewBar({
  */
 const BULK_ACCEPT_BATCH_MAX = 100
 
+// Rejecting compliance rules is final and audited. Above this many in one
+// batch, the Reject button arms first (two-step confirm) — the re-critique
+// flagged that you could reject 400+ statutory rules in a single click while
+// Accept was capped at 100, i.e. the friction sat on the SAFE action.
+const REJECT_CONFIRM_THRESHOLD = 10
+
 /** Honest impact/readiness pill — value + label, tone-keyed. */
 function BulkMetric({
   value,
@@ -4481,6 +4492,8 @@ function BulkReviewListModal({
   const [note, setNote] = useState('')
   const [excluded, setExcluded] = useState<ReadonlySet<string>>(() => new Set())
   const [rejecting, setRejecting] = useState(false)
+  // Two-step arm for mass reject (see REJECT_CONFIRM_THRESHOLD).
+  const [rejectArmed, setRejectArmed] = useState(false)
 
   const included = useMemo(() => rules.filter((r) => !excluded.has(r.id)), [rules, excluded])
   const selections = useMemo(
@@ -4573,13 +4586,28 @@ function BulkReviewListModal({
                 ? t`None of these rules can be bulk-accepted — open each rule to review it individually.`
                 : null
 
-  const toggleExcluded = (id: string) =>
+  const needsRejectConfirm = included.length > REJECT_CONFIRM_THRESHOLD
+
+  const toggleExcluded = (id: string) => {
+    setRejectArmed(false) // selection changed — re-confirm a mass reject
     setExcluded((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
       return next
     })
+  }
+
+  // Reject button click: arm first for large batches, execute on the
+  // second click (or immediately for small, low-risk batches).
+  function handleRejectClick() {
+    if (!canReject) return
+    if (needsRejectConfirm && !rejectArmed) {
+      setRejectArmed(true)
+      return
+    }
+    void handleReject()
+  }
 
   function handleAccept() {
     if (!canAccept) return
@@ -4735,7 +4763,10 @@ function BulkReviewListModal({
           <Textarea
             id="bulk-review-note"
             value={note}
-            onChange={(event) => setNote(event.target.value)}
+            onChange={(event) => {
+              setRejectArmed(false) // note changed — re-confirm a mass reject
+              setNote(event.target.value)
+            }}
             maxLength={1000}
             disabled={busy}
             placeholder={t`Why are you accepting or rejecting these rules?`}
@@ -4782,21 +4813,41 @@ function BulkReviewListModal({
             When either action is disabled, the leading caption states the
             actual gate instead of a generic hint. */}
         <div className="flex flex-wrap items-center gap-2 border-t border-divider-subtle px-5 py-3.5">
-          <span className="flex items-center gap-1.5 text-xs text-text-tertiary">
+          <span
+            className={cn(
+              'flex items-center gap-1.5 text-xs',
+              rejectArmed ? 'font-medium text-text-destructive' : 'text-text-tertiary',
+            )}
+          >
             <TriangleAlertIcon className="size-3.5 shrink-0" aria-hidden />
-            {disabledReason ?? <Trans>Open any rule to review it individually.</Trans>}
+            {rejectArmed ? (
+              <Trans>
+                Reject {included.length} rules? Each records a final, audited decision. Click again
+                to confirm.
+              </Trans>
+            ) : (
+              (disabledReason ?? <Trans>Open any rule to review it individually.</Trans>)
+            )}
           </span>
           <span className="flex-1" aria-hidden />
           <Button
             type="button"
             size="sm"
-            variant="outline"
-            onClick={handleReject}
+            variant={rejectArmed ? 'destructive-primary' : 'outline'}
+            onClick={handleRejectClick}
             disabled={!canReject}
-            className="text-text-destructive hover:bg-state-destructive-hover hover:text-text-destructive"
+            className={
+              rejectArmed
+                ? undefined
+                : 'text-text-destructive hover:bg-state-destructive-hover hover:text-text-destructive'
+            }
           >
             {rejecting ? <Loader2 data-icon="inline-start" className="animate-spin" /> : null}
-            <Trans>Reject {included.length}</Trans>
+            {rejectArmed ? (
+              <Trans>Confirm — reject {included.length}</Trans>
+            ) : (
+              <Trans>Reject {included.length}</Trans>
+            )}
           </Button>
           <Button type="button" size="sm" variant="ghost" onClick={onClose} disabled={busy}>
             <Trans>Cancel</Trans>
