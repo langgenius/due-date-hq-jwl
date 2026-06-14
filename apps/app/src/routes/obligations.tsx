@@ -3767,7 +3767,11 @@ export function ObligationQueueRoute() {
           </h2>
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-secondary">
             <span className="tabular-nums">
-              <Plural value={scopeTotal} one="# active filing" other="# active filings" />
+              {/* scopeTotal is every tracked deadline (incl. filed/completed),
+                  NOT the "open" count the nav/Today/Workload show. Label it
+                  "tracked", never "active" — "active" collided with "open"
+                  and made 28-vs-15 read as a contradiction (re-critique). */}
+              <Plural value={scopeTotal} one="# filing tracked" other="# filings tracked" />
             </span>
             <span aria-hidden>·</span>
             <span className="tabular-nums">
