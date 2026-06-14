@@ -695,13 +695,17 @@ const sidebarMenuButtonVariants = cva(
     // single largest non-heading text AND out-sized the 14px firm-name anchor
     // above it (a hierarchy inversion). Dropping to the 14px body scale reads
     // more delicate and restores firm-name(14px/500 + avatar) > nav(14px/400)
-    // as the rail's top anchor. `tracking-[-0.006em]` is a hair of negative
-    // letter-spacing — at 14px it crisps the labels without reading condensed.
+    // as the rail's top anchor.
+    // 2026-06-14 (Yuqi critique — consistency): tracking left at `normal`.
+    // The 14px firm name + user-chip name carry no letter-spacing, so the
+    // nav (same 14px, 8px away) matches them rather than freelancing a
+    // sub-pixel `-0.006em` that wasn't earning its keep. One tracking rule
+    // for every 14px rail text.
     // 2026-06-10 (Yuqi "delicacy" — tactile press): the row dips to 98% on
     // press (active:scale) for a crafted, responsive feel. transform is added
     // to the transition list (duration-150) so the dip + the icon hover-nudge
     // below both ease rather than snap.
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-base font-normal tracking-[-0.006em] text-text-secondary outline-none transition-[color,background-color,transform] active:scale-[0.98]',
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-3 overflow-hidden rounded-lg px-[11px] text-left text-base font-normal text-text-secondary outline-none transition-[color,background-color,transform] active:scale-[0.98]',
     // 2026-06-09 (Yuqi "icons should be vertically center aligned" in the
     // collapsed rail): the icon stays LEFT-aligned in both modes — no
     // justify-center. SIDEBAR_WIDTH_COLLAPSED is tuned so a left-aligned icon
@@ -736,12 +740,14 @@ const sidebarMenuButtonVariants = cva(
     // `#eff4ff` light / 14 % Dify blue dark) — calm enough to honor "color only
     // serves risk" while still visibly identifying the active route. No 2 px
     // accent border, no `accent-text` label color.
-    // 2026-06-09 (Yuqi "selected": light accent bg + semibold accent
-    // label + accent icon). The active row now also bumps to
-    // `font-semibold` so the selected destination reads with extra
-    // weight, not just color — matching the reference.
-    "data-[active=true]:bg-accent-tint data-[active=true]:font-semibold data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
-    "aria-[current=page]:bg-accent-tint aria-[current=page]:font-semibold aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
+    // 2026-06-09 (Yuqi "selected": light accent bg + accent label + accent
+    // icon). 2026-06-14 (Yuqi critique): active weight semibold (600) →
+    // medium (500). 400→600 jumped two steps and visibly reflowed the label
+    // width on activation; the accent color + bg tint already carry "this is
+    // the current route," so a single 400→500 step is enough emphasis with a
+    // far smaller width shift.
+    "data-[active=true]:bg-accent-tint data-[active=true]:font-medium data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
+    "aria-[current=page]:bg-accent-tint aria-[current=page]:font-medium aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
     // 2026-06-09 (Yuqi "copy exactly from pencil"): no collapsed
     // left-bar marker. Pencil's collapsed NavToday keeps the SAME full
     // `#eff4ff` tinted tile as expanded (just narrower) — the active
@@ -942,9 +948,15 @@ export function SidebarMenuBadge({
           pillBaseExpanded,
           expandedPos,
           // 2026-06-09 (Yuqi delicacy pass): reference counts are bare
-          // tabular numbers (no pill) in the muted tone (#98a2b2) — the
-          // quietest layer, reading as delicate metadata beside the label.
-          'text-text-muted',
+          // tabular numbers (no pill) beside the label.
+          // 2026-06-14 (Yuqi critique — contrast): muted #98a2b2 sat at only
+          // 2.43:1 on the #f6f8fa card (below WCAG AA), so the Deadlines /
+          // Clients counts were nearly invisible. Lifted to text-tertiary
+          // (#676f83, 4.68:1 — passes AA). This matches the inactive urgent
+          // count tone, which is intended: "reference vs actionable" is now
+          // carried by the active-route red pill on urgent badges, not by a
+          // brightness difference too subtle to decode.
+          'text-text-tertiary',
           collapsedPos,
           className,
         )}

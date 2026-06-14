@@ -10,9 +10,17 @@
 
 export type OverlayItemVariant = 'default' | 'destructive'
 
-/* Highlightable row inside an overlay (menu item, select option). */
+/* Highlightable row inside an overlay (menu item, select option).
+ *
+ * 2026-06-14 (Yuqi "all dropdown buttons should have left padding more than
+ * right padding"): the row is left-weighted — `pl-3 pr-2` (12px / 8px), the
+ * same asymmetry the Select trigger already uses. The leading label/icon gets
+ * the generous inset; a trailing chevron / ml-auto indicator sits tighter on
+ * the right. Checkbox/radio/select items override pl/pr for their indicator
+ * slot (a right-side radio check is the one structural exception to left>right).
+ */
 export const overlayRowClassName =
-  'mx-1 flex h-8 cursor-pointer items-center gap-2 rounded-lg px-2 outline-hidden select-none data-highlighted:bg-state-base-hover data-disabled:cursor-not-allowed data-disabled:opacity-50'
+  'mx-1 flex h-8 cursor-pointer items-center gap-2 rounded-lg pl-3 pr-2 outline-hidden select-none data-highlighted:bg-state-base-hover data-disabled:cursor-not-allowed data-disabled:opacity-50'
 
 /* Adds destructive variant styling on top of overlayRowClassName. */
 export const overlayDestructiveClassName =
