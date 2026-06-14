@@ -495,6 +495,11 @@ msgstr "{0} 及其导入的截止事项"
 
 #. placeholder {0}: roleLabel(selectedRole, i18n)
 #: src/routes/settings.permissions.tsx
+msgid "{0} applies to"
+msgstr "{0} 适用于"
+
+#. placeholder {0}: roleLabel(selectedRole, i18n)
+#: src/routes/settings.permissions.tsx
 msgid "{0} applies to {selectedRoleMembers} active members."
 msgstr "{0} 适用于 {selectedRoleMembers} 名活跃成员。"
 
@@ -1027,6 +1032,10 @@ msgstr "已附加 {count} 个来源"
 msgid "{count} tax-type services managed for this client"
 msgstr "为该客户管理的 {count} 个税种服务"
 
+#: src/features/migration/SuccessModal.tsx
+msgid "{countdown} left · you can also undo a single client from any client page"
+msgstr "剩余 {countdown} · 你也可以在任意客户页面撤销单个客户"
+
 #: src/routes/rules.library.tsx
 msgid "{coveragePct}% coverage"
 msgstr "覆盖率 {coveragePct}%"
@@ -1426,6 +1435,10 @@ msgstr "已选择 {selectedCount} 条"
 msgid "{selectedCount} selected · {excludedCount} excluded"
 msgstr "已选择 {selectedCount} 个 · 已排除 {excludedCount} 个"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{selectionCount, plural, one {Apply to # client} other {Apply to # clients}}"
+msgstr "{selectionCount, plural, one {应用到 # 个客户} other {应用到 # 个客户}}"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "{skipped, plural, one {# row will be skipped (see errors)} other {# rows will be skipped (see errors)}}"
 msgstr "{skipped, plural, other {# 行将被跳过（见错误明细）}}"
@@ -1757,6 +1770,10 @@ msgstr "只会创建材料链接。"
 #: src/features/concepts/concept-help.tsx
 msgid "A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes."
 msgstr "模型对抽取或匹配结果的置信信号。置信度低表示应用前应先复核来源。"
+
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "A morning summary of what's due, starting tomorrow"
+msgstr "每天早晨汇总当日待办，从明天开始"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "A new high-impact alert needs attention"
@@ -2267,6 +2284,10 @@ msgstr "调整优先级规则"
 #: src/features/migration/Step3Normalize.tsx
 msgid "Adjust tax type defaults"
 msgstr "调整税种默认值"
+
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Adjusts due dates"
+msgstr "调整截止日期"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Affected clients"
@@ -2992,10 +3013,6 @@ msgid "Apply an internal extension plan to the selected deadlines"
 msgstr "对所选截止日期应用内部延期方案"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Apply Deadline Exception"
-msgstr "应用截止事项例外"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Apply deadline shift"
 msgstr "应用截止日期变更"
 
@@ -3321,10 +3338,6 @@ msgstr "税务机关拒绝了电子申报"
 msgid "Authority response"
 msgstr "Authority 回执"
 
-#: src/features/alerts/components/AlertStructuredFields.tsx
-msgid "Auto-applied"
-msgstr "自动应用"
-
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Auto-drafted recap"
 msgstr "自动起草的摘要"
@@ -3460,11 +3473,6 @@ msgstr "备用码已复制"
 #: src/routes/rules.library.tsx
 msgid "Basic"
 msgstr "基础"
-
-#. placeholder {0}: shortBatchId(data.batchId)
-#: src/features/migration/SuccessModal.tsx
-msgid "Batch #{0} · countdown: {countdown} · single-client undo also available from any client page"
-msgstr "批次 #{0} · 倒计时：{countdown} · 也可在任意客户页面撤销单个客户"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "BATCH REVIEW NOTE"
@@ -4422,7 +4430,6 @@ msgstr "关闭"
 #: src/features/clients/ClientNotesPanel.tsx
 #: src/features/clients/EmailComposeDialog.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
-#: src/features/migration/WizardShell.tsx
 #: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
@@ -4593,6 +4600,11 @@ msgstr "配置来源"
 msgid "Confirm"
 msgstr "确认"
 
+#. placeholder {0}: included.length
+#: src/routes/rules.library.tsx
+msgid "Confirm — reject {0}"
+msgstr "确认 — 拒绝 {0}"
+
 #: src/features/migration/Step3Normalize.tsx
 msgid "Confirm · {confirm}"
 msgstr "确认 · {confirm}"
@@ -4727,6 +4739,10 @@ msgstr "联系销售"
 #: src/routes/readiness.tsx
 msgid "Contact your CPA to request a new link. They can re-send the readiness check from their workbench."
 msgstr "请联系您的注册会计师以获取新链接。他们可以从工作台重新发送准备情况检查。"
+
+#: src/routes/settings.profile.tsx
+msgid "Contact your practice owner"
+msgstr "请联系你的事务所所有者"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "CONTACTS"
@@ -5358,6 +5374,10 @@ msgstr "无法撤销客户"
 #: src/features/migration/Wizard.tsx
 msgid "Couldn't undo import"
 msgstr "无法撤销导入"
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Couldn't update"
+msgstr "无法更新"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't update assignee"
@@ -6075,7 +6095,6 @@ msgstr "正在停用…"
 
 #: src/features/clients/EmailComposeDialog.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
-#: src/routes/settings.permissions.tsx
 msgid "Discard"
 msgstr "放弃"
 
@@ -7222,7 +7241,6 @@ msgstr "因子权重"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactPanels.tsx
-#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -10814,6 +10832,14 @@ msgstr "不允许。"
 msgid "Not applicable"
 msgstr "不适用"
 
+#: src/routes/settings.profile.tsx
+msgid "Not available yet"
+msgstr "尚不可用"
+
+#: src/routes/settings.profile.tsx
+msgid "Not available yet — contact your practice owner"
+msgstr "尚不可用 — 请联系你的事务所所有者"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Not enabled"
 msgstr "未启用"
@@ -12067,10 +12093,6 @@ msgstr "个人详细信息、安全性，以及产品对您的呈现方式。"
 msgid "Personal info"
 msgstr "个人信息"
 
-#: src/features/migration/OnboardingSkipModal.tsx
-msgid "Personalised digest tomorrow morning"
-msgstr "明天早上的个性化摘要"
-
 #: src/features/migration/Step2Mapping.tsx
 #, fuzzy
 msgid "Phone number"
@@ -12733,6 +12755,10 @@ msgstr "读取字段"
 msgid "Read field values"
 msgstr "读取字段值"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Read it as a plain CSV instead"
+msgstr "改为按普通 CSV 读取"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Read more"
 msgstr "查看更多"
@@ -13036,6 +13062,11 @@ msgstr "拒绝"
 #: src/routes/rules.library.tsx
 msgid "Reject {0}"
 msgstr "拒绝 {0} 项"
+
+#. placeholder {0}: included.length
+#: src/routes/rules.library.tsx
+msgid "Reject {0} rules? Each records a final, audited decision. Click again to confirm."
+msgstr "拒绝 {0} 条规则？每条都会记录一项最终的、可审计的决定。再次点击确认。"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -13428,6 +13459,10 @@ msgstr "撤销此导入批次？"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Revert until"
 msgstr "可撤销至"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Revert window closed — undo no longer available"
+msgstr "撤销窗口已关闭 — 无法再撤销"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertHistoryView.tsx
@@ -14146,10 +14181,6 @@ msgstr "保存备注"
 #: src/features/migration/WizardShell.tsx
 msgid "Save organized values"
 msgstr "保存整理后的值"
-
-#: src/routes/settings.permissions.tsx
-msgid "Save permissions"
-msgstr "保存权限"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Save preferences"
@@ -16147,6 +16178,11 @@ msgstr "这些当前纳税年度的截止事项将被删除。请逐项勾选确
 msgid "These deadlines will be created across your current clients:"
 msgstr "将为当前客户创建这些截止日："
 
+#. placeholder {0}: ssnBlockedHeaders.join(', ')
+#: src/features/migration/Step1Intake.tsx
+msgid "These never reach the AI — we hid them to protect client data. If one is really an EIN, you can map it on the next step (Match columns). Hidden: {0}."
+msgstr "这些内容绝不会发送给 AI — 我们已将其隐藏以保护客户数据。如果其中某列其实是 EIN，可在下一步（匹配列）中自行映射。已隐藏：{0}。"
+
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "These states publish their own deadline calendars. After setup, review those rules in the Rule Library — deadlines generate once you approve them."
 msgstr "这些州发布自己的截止日历。设置完成后，请在规则库中审核这些规则 — 批准后即生成截止日期。"
@@ -17007,10 +17043,6 @@ msgid "Use Evidence to track the paper filing packet."
 msgstr "使用 Evidence 跟踪纸质申报材料包。"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Use Generic CSV instead"
-msgstr "改用通用 CSV"
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Use HomeBase > Export Contacts; ProSeries saves it automatically as Contacts.csv in its Common Exports folder (ProWinYY for Professional, BasWinYY for Basic) with no Save As prompt — upload that file."
 msgstr "使用 HomeBase > Export Contacts；ProSeries 会自动将文件保存为 Contacts.csv，放在其 Common Exports 文件夹（Professional 为 ProWinYY，Basic 为 BasWinYY），不弹另存对话框——上传该文件即可。"
 
@@ -17338,11 +17370,6 @@ msgstr "已监控"
 #: src/features/rules/coverage-tab.tsx
 msgid "Watched sources"
 msgstr "关注的来源"
-
-#. placeholder {0}: ssnBlockedHeaders.join(', ')
-#: src/features/migration/Step1Intake.tsx
-msgid "We blocked SSN-like columns to protect client data — they're never sent to the AI. If a flagged column is actually an EIN, map it yourself in the next step. Blocked: {0}."
-msgstr "为保护客户数据，我们拦截了疑似 SSN 的列 — 它们绝不会发送给 AI。如果被标记的列实际是 EIN，请在下一步自行映射。已拦截：{0}。"
 
 #. placeholder {0}: input.fileName
 #: src/features/migration/intake-files.ts

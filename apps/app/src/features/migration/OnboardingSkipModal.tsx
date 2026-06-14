@@ -76,7 +76,7 @@ export function OnboardingSkipModal({
                 { key: 'import-clients', node: <Trans>Your real clients on day one</Trans> },
                 {
                   key: 'import-digest',
-                  node: <Trans>Personalised digest tomorrow morning</Trans>,
+                  node: <Trans>A morning summary of what&apos;s due, starting tomorrow</Trans>,
                 },
                 { key: 'import-time', node: <Trans>About 5 minutes of focused work</Trans> },
               ]}
@@ -116,11 +116,19 @@ function CompareCard({
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-divider-regular p-3.5">
       <span className="inline-flex items-center gap-1.5 text-caption font-semibold tracking-eyebrow text-text-muted uppercase">
+        {/* Both eyebrows carry a same-size icon square so the two cards read
+            as balanced (2026-06-12 critique: the iconless neutral card looked
+            broken next to the green success one). Tone still differentiates:
+            green check = the encouraged path, gray skip = the lateral exit. */}
         {tone === 'success' ? (
           <span className="grid size-4 place-items-center rounded bg-state-success-solid text-text-primary-on-surface">
             <CheckIcon className="size-3" aria-hidden />
           </span>
-        ) : null}
+        ) : (
+          <span className="grid size-4 place-items-center rounded bg-background-subtle text-text-tertiary">
+            <SkipForwardIcon className="size-3" aria-hidden />
+          </span>
+        )}
         {eyebrow}
       </span>
       <ul className="flex flex-col gap-1.5">

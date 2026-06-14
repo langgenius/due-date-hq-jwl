@@ -694,9 +694,13 @@ export function Step1Intake({
             <Trans>SSN-like columns blocked</Trans>
           </AlertTitle>
           <AlertDescription>
+            {/* Tightened (2026-06-12 critique): lead with the reassurance, name
+                the columns, and frame the EIN recovery as a forward action
+                ("Match columns" = the next step's renamed label) without
+                assuming the user can see that step yet. */}
             <Trans>
-              We blocked SSN-like columns to protect client data — they&apos;re never sent to the
-              AI. If a flagged column is actually an EIN, map it yourself in the next step. Blocked:{' '}
+              These never reach the AI — we hid them to protect client data. If one is really an
+              EIN, you can map it on the next step (Match columns). Hidden:{' '}
               {ssnBlockedHeaders.join(', ')}.
             </Trans>
           </AlertDescription>
@@ -855,7 +859,7 @@ function DetectionHero({
             {hasPreset ? (
               <Button variant="secondary" size="sm" className="w-fit" onClick={onUseGenericCsv}>
                 <ShuffleIcon data-icon="inline-start" />
-                <Trans>Use Generic CSV instead</Trans>
+                <Trans>Read it as a plain CSV instead</Trans>
               </Button>
             ) : null}
           </AlertDescription>

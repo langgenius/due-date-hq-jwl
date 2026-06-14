@@ -159,10 +159,12 @@ export function SuccessModal({
                 <Trans>Undo this import within 24 hours, no questions asked</Trans>
               </span>
               <span className="text-caption font-medium text-text-secondary tabular-nums">
-                {/* batchId shortened for display; countdown is live. */}
+                {/* Batch ID demoted (2026-06-12 critique: "Batch #BAT-XXXX" is
+                    recovery jargon for the headline). Lead with the live
+                    countdown; the batch reference lives in Import History where
+                    recovery actually happens. */}
                 <Trans>
-                  Batch #{shortBatchId(data.batchId)} · countdown: {countdown} · single-client undo
-                  also available from any client page
+                  {countdown} left · you can also undo a single client from any client page
                 </Trans>
               </span>
             </div>
@@ -278,12 +280,6 @@ function NextStep({
       <ArrowRightIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
     </button>
   )
-}
-
-/** "#BAT-2026-0607-001"-style short id from a long batch UUID. */
-function shortBatchId(batchId: string): string {
-  const tail = batchId.replace(/-/g, '').slice(-6).toUpperCase()
-  return `BAT-${tail}`
 }
 
 /**

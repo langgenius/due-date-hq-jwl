@@ -493,6 +493,11 @@ msgstr "{0} and its imported deadlines"
 
 #. placeholder {0}: roleLabel(selectedRole, i18n)
 #: src/routes/settings.permissions.tsx
+msgid "{0} applies to"
+msgstr "{0} applies to"
+
+#. placeholder {0}: roleLabel(selectedRole, i18n)
+#: src/routes/settings.permissions.tsx
 msgid "{0} applies to {selectedRoleMembers} active members."
 msgstr "{0} applies to {selectedRoleMembers} active members."
 
@@ -1022,6 +1027,10 @@ msgstr "{count} sources attached"
 msgid "{count} tax-type services managed for this client"
 msgstr "{count} tax-type services managed for this client"
 
+#: src/features/migration/SuccessModal.tsx
+msgid "{countdown} left · you can also undo a single client from any client page"
+msgstr "{countdown} left · you can also undo a single client from any client page"
+
 #: src/routes/rules.library.tsx
 msgid "{coveragePct}% coverage"
 msgstr "{coveragePct}% coverage"
@@ -1421,6 +1430,10 @@ msgstr "{selectedCount} selected"
 msgid "{selectedCount} selected · {excludedCount} excluded"
 msgstr "{selectedCount} selected · {excludedCount} excluded"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{selectionCount, plural, one {Apply to # client} other {Apply to # clients}}"
+msgstr "{selectionCount, plural, one {Apply to # client} other {Apply to # clients}}"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "{skipped, plural, one {# row will be skipped (see errors)} other {# rows will be skipped (see errors)}}"
 msgstr "{skipped, plural, one {# row will be skipped (see errors)} other {# rows will be skipped (see errors)}}"
@@ -1750,6 +1763,10 @@ msgstr "A materials link will be created only."
 #: src/features/concepts/concept-help.tsx
 msgid "A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes."
 msgstr "A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes."
+
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "A morning summary of what's due, starting tomorrow"
+msgstr "A morning summary of what's due, starting tomorrow"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "A new high-impact alert needs attention"
@@ -2255,6 +2272,10 @@ msgstr "Adjust priority rules"
 #: src/features/migration/Step3Normalize.tsx
 msgid "Adjust tax type defaults"
 msgstr "Adjust tax type defaults"
+
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "Adjusts due dates"
+msgstr "Adjusts due dates"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Affected clients"
@@ -2979,10 +3000,6 @@ msgid "Apply an internal extension plan to the selected deadlines"
 msgstr "Apply an internal extension plan to the selected deadlines"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Apply Deadline Exception"
-msgstr "Apply Deadline Exception"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Apply deadline shift"
 msgstr "Apply deadline shift"
 
@@ -3307,10 +3324,6 @@ msgstr "Authority rejected the e-file"
 msgid "Authority response"
 msgstr "Authority response"
 
-#: src/features/alerts/components/AlertStructuredFields.tsx
-msgid "Auto-applied"
-msgstr "Auto-applied"
-
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Auto-drafted recap"
 msgstr "Auto-drafted recap"
@@ -3446,11 +3459,6 @@ msgstr "Backup codes copied"
 #: src/routes/rules.library.tsx
 msgid "Basic"
 msgstr "Basic"
-
-#. placeholder {0}: shortBatchId(data.batchId)
-#: src/features/migration/SuccessModal.tsx
-msgid "Batch #{0} · countdown: {countdown} · single-client undo also available from any client page"
-msgstr "Batch #{0} · countdown: {countdown} · single-client undo also available from any client page"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "BATCH REVIEW NOTE"
@@ -4403,7 +4411,6 @@ msgstr "close"
 #: src/features/clients/ClientNotesPanel.tsx
 #: src/features/clients/EmailComposeDialog.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
-#: src/features/migration/WizardShell.tsx
 #: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
@@ -4573,6 +4580,11 @@ msgstr "Configure sources"
 msgid "Confirm"
 msgstr "Confirm"
 
+#. placeholder {0}: included.length
+#: src/routes/rules.library.tsx
+msgid "Confirm — reject {0}"
+msgstr "Confirm — reject {0}"
+
 #: src/features/migration/Step3Normalize.tsx
 msgid "Confirm · {confirm}"
 msgstr "Confirm · {confirm}"
@@ -4705,6 +4717,10 @@ msgstr "Contact sales"
 #: src/routes/readiness.tsx
 msgid "Contact your CPA to request a new link. They can re-send the readiness check from their workbench."
 msgstr "Contact your CPA to request a new link. They can re-send the readiness check from their workbench."
+
+#: src/routes/settings.profile.tsx
+msgid "Contact your practice owner"
+msgstr "Contact your practice owner"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "CONTACTS"
@@ -5335,6 +5351,10 @@ msgstr "Couldn't undo client"
 #: src/features/migration/Wizard.tsx
 msgid "Couldn't undo import"
 msgstr "Couldn't undo import"
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Couldn't update"
+msgstr "Couldn't update"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Couldn't update assignee"
@@ -6049,7 +6069,6 @@ msgstr "Disabling…"
 
 #: src/features/clients/EmailComposeDialog.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
-#: src/routes/settings.permissions.tsx
 msgid "Discard"
 msgstr "Discard"
 
@@ -7196,7 +7215,6 @@ msgstr "Factor weights"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactPanels.tsx
-#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -10767,6 +10785,14 @@ msgstr "Not allowed."
 msgid "Not applicable"
 msgstr "Not applicable"
 
+#: src/routes/settings.profile.tsx
+msgid "Not available yet"
+msgstr "Not available yet"
+
+#: src/routes/settings.profile.tsx
+msgid "Not available yet — contact your practice owner"
+msgstr "Not available yet — contact your practice owner"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Not enabled"
 msgstr "Not enabled"
@@ -12009,10 +12035,6 @@ msgstr "Personal details, security, and how the product looks for you."
 msgid "Personal info"
 msgstr "Personal info"
 
-#: src/features/migration/OnboardingSkipModal.tsx
-msgid "Personalised digest tomorrow morning"
-msgstr "Personalised digest tomorrow morning"
-
 #: src/features/migration/Step2Mapping.tsx
 msgid "Phone number"
 msgstr "Phone number"
@@ -12670,6 +12692,10 @@ msgstr "Read columns"
 msgid "Read field values"
 msgstr "Read field values"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Read it as a plain CSV instead"
+msgstr "Read it as a plain CSV instead"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Read more"
 msgstr "Read more"
@@ -12972,6 +12998,11 @@ msgstr "Reject"
 #: src/routes/rules.library.tsx
 msgid "Reject {0}"
 msgstr "Reject {0}"
+
+#. placeholder {0}: included.length
+#: src/routes/rules.library.tsx
+msgid "Reject {0} rules? Each records a final, audited decision. Click again to confirm."
+msgstr "Reject {0} rules? Each records a final, audited decision. Click again to confirm."
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -13363,6 +13394,10 @@ msgstr "Revert this import batch?"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Revert until"
 msgstr "Revert until"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Revert window closed — undo no longer available"
+msgstr "Revert window closed — undo no longer available"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertHistoryView.tsx
@@ -14078,10 +14113,6 @@ msgstr "Save notes"
 #: src/features/migration/WizardShell.tsx
 msgid "Save organized values"
 msgstr "Save organized values"
-
-#: src/routes/settings.permissions.tsx
-msgid "Save permissions"
-msgstr "Save permissions"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Save preferences"
@@ -16074,6 +16105,11 @@ msgstr "These current-year deadlines will be removed. Check each one before appl
 msgid "These deadlines will be created across your current clients:"
 msgstr "These deadlines will be created across your current clients:"
 
+#. placeholder {0}: ssnBlockedHeaders.join(', ')
+#: src/features/migration/Step1Intake.tsx
+msgid "These never reach the AI — we hid them to protect client data. If one is really an EIN, you can map it on the next step (Match columns). Hidden: {0}."
+msgstr "These never reach the AI — we hid them to protect client data. If one is really an EIN, you can map it on the next step (Match columns). Hidden: {0}."
+
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "These states publish their own deadline calendars. After setup, review those rules in the Rule Library — deadlines generate once you approve them."
 msgstr "These states publish their own deadline calendars. After setup, review those rules in the Rule Library — deadlines generate once you approve them."
@@ -16931,10 +16967,6 @@ msgid "Use Evidence to track the paper filing packet."
 msgstr "Use Evidence to track the paper filing packet."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Use Generic CSV instead"
-msgstr "Use Generic CSV instead"
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Use HomeBase > Export Contacts; ProSeries saves it automatically as Contacts.csv in its Common Exports folder (ProWinYY for Professional, BasWinYY for Basic) with no Save As prompt — upload that file."
 msgstr "Use HomeBase > Export Contacts; ProSeries saves it automatically as Contacts.csv in its Common Exports folder (ProWinYY for Professional, BasWinYY for Basic) with no Save As prompt — upload that file."
 
@@ -17261,11 +17293,6 @@ msgstr "Watched"
 #: src/features/rules/coverage-tab.tsx
 msgid "Watched sources"
 msgstr "Watched sources"
-
-#. placeholder {0}: ssnBlockedHeaders.join(', ')
-#: src/features/migration/Step1Intake.tsx
-msgid "We blocked SSN-like columns to protect client data — they're never sent to the AI. If a flagged column is actually an EIN, map it yourself in the next step. Blocked: {0}."
-msgstr "We blocked SSN-like columns to protect client data — they're never sent to the AI. If a flagged column is actually an EIN, map it yourself in the next step. Blocked: {0}."
 
 #. placeholder {0}: input.fileName
 #: src/features/migration/intake-files.ts

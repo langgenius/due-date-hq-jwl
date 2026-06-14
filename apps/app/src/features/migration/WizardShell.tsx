@@ -23,7 +23,6 @@ import {
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { useAppHotkey, isEditableEventTarget } from '@/components/patterns/keyboard-shell'
-import { KbdHint } from '@/components/patterns/kbd'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 
 import { Stepper } from './Stepper'
@@ -54,7 +53,6 @@ interface WizardFrameProps {
    */
   onOpenImportHistory?: (() => void) | undefined
   closeLabel?: ReactNode | undefined
-  closeShortcutLabel?: string | undefined
   hotkeysEnabled?: boolean | undefined
   backDisabled?: boolean | undefined
   children: ReactNode
@@ -85,7 +83,6 @@ function WizardFrame({
   showCloseControl = true,
   onOpenImportHistory,
   closeLabel,
-  closeShortcutLabel,
   hotkeysEnabled = true,
   backDisabled,
   children,
@@ -177,28 +174,19 @@ function WizardFrame({
             </Button>
           ) : null}
           {showCloseControl ? (
-            <>
-              {/* Canonical KbdHint pattern. The sm:inline-flex breakpoint
-                gates the hint to wider viewports. */}
-              <KbdHint
-                className="hidden sm:inline-flex"
-                items={[
-                  {
-                    keys: ['Esc'],
-                    label: busy ? t`Working…` : (closeShortcutLabel ?? t`Close`),
-                  },
-                ]}
-              />
-              <Button
-                variant="ghost"
-                size={closeLabel ? 'sm' : 'icon-sm'}
-                aria-label={t`Close wizard`}
-                disabled={busy}
-                onClick={onRequestClose}
-              >
-                {closeLabel ?? <XIcon />}
-              </Button>
-            </>
+            // The persistent "Esc Close" KbdHint was removed (2026-06-12
+            // critique: header clutter) — the ✕ already affords close and
+            // Esc still works via onRequestClose. The button keeps its
+            // aria-label so the shortcut isn't lost to assistive tech.
+            <Button
+              variant="ghost"
+              size={closeLabel ? 'sm' : 'icon-sm'}
+              aria-label={t`Close wizard`}
+              disabled={busy}
+              onClick={onRequestClose}
+            >
+              {closeLabel ?? <XIcon />}
+            </Button>
           ) : null}
         </div>
       </header>
