@@ -273,13 +273,13 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
       : getJurisdictionName(detail.jurisdiction)
 
   return (
-    // Flattened — no gray box / padding, since this sits inside the white
-    // "The change" group card. Its Lightbulb header carries the
-    // delineation.
-    <section className="flex flex-col gap-3">
+    // 2026-06-14 (Yuqi critique): this is the VALUE read, so it leads the
+    // Change section with one quiet accent anchor (left-rule + accent header)
+    // — enough to make the eye land here first, without a filled box.
+    <section className="flex flex-col gap-3 border-l-2 border-state-accent-border pl-4">
       <header className="flex items-center gap-1.5">
-        <LightbulbIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-        <span className="text-sm font-semibold text-text-secondary">
+        <LightbulbIcon className="size-3.5 shrink-0 text-text-accent" aria-hidden />
+        <span className="text-sm font-semibold text-text-accent">
           <Trans>What this means for your practice</Trans>
         </span>
       </header>
@@ -1651,10 +1651,14 @@ export function AlertDetailDrawer({
               title={<Trans>Change details</Trans>}
               headerRight={<Trans>AI parsed — verify before Apply</Trans>}
             >
-              <AlertStructuredFields detail={detail} section="details" />
-
-              {/* "What this means for your practice" — self-gates. */}
+              {/* 2026-06-14 (Yuqi critique — "eyes don't know where to go"):
+                  VALUE before REFERENCE. "What this means for your practice"
+                  (self-gating, accent-anchored) now LEADS the section — the
+                  plain-language read the CPA actually needs — and the raw
+                  fact grid follows as supporting reference. */}
               <PracticeImpactSection detail={detail} />
+
+              <AlertStructuredFields detail={detail} section="details" />
             </DetailSectionCard>
 
             {/* Rules to re-verify — the task list that clears the
@@ -1847,6 +1851,7 @@ export function AlertDetailDrawer({
             <DetailSectionCard
               id="alert-section-source"
               variant="flat"
+              tone="reference"
               className="scroll-mt-16"
               title={<Trans>Source &amp; confidence</Trans>}
               headerRight={
@@ -2023,6 +2028,7 @@ export function AlertDetailDrawer({
             <DetailSectionCard
               id="alert-section-activity"
               variant="flat"
+              tone="reference"
               className="scroll-mt-16"
               title={<Trans>Activity &amp; notes</Trans>}
               headerRight={
@@ -2415,10 +2421,12 @@ export function DrawerActions({
           ) : selectionCount === 0 ? (
             <Trans>Select deadlines to apply</Trans>
           ) : (
-            // No trailing "to N deadline(s)" count — the selection
-            // checkbox above already shows it. Title case reads as a
-            // deliberate decision verb.
-            <Trans>Apply Deadline Exception</Trans>
+            // 2026-06-14 (Yuqi #9 "what is Apply Deadline Exception — same as
+            // Confirm/Exclude?"): the button now NAMES its target — "Apply to
+            // N clients" — so it reads as the commit step on the selected rows,
+            // distinct from the per-row Confirm/Exclude that build the
+            // selection. (Count = selected rows the CPA ticked.)
+            <Plural value={selectionCount} one="Apply to # client" other="Apply to # clients" />
           )}
         </Button>
         {canApplyReviewed && !noActionReview ? (

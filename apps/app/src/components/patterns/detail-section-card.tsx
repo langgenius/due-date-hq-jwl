@@ -27,6 +27,7 @@ export function DetailSectionCard({
   className,
   id,
   variant = 'card',
+  tone = 'action',
 }: {
   title: ReactNode
   /** Right-aligned header meta or actions (e.g. "Verify before apply", a count,
@@ -48,14 +49,32 @@ export function DetailSectionCard({
    * chrome (deadline detail).
    */
   variant?: 'card' | 'flat'
+  /**
+   * 2026-06-14 (Yuqi critique — "eyes don't know where to go"): flat sections
+   * are ranked. `action` = the decision-critical sections (Change, Clients):
+   * 18/600 primary header. `reference` = supporting depth (Source, Activity):
+   * a quieter 14/600 secondary header, so the eye reads the action zones
+   * first and treats the rest as look-up. Flat variant only.
+   */
+  tone?: 'action' | 'reference'
 }) {
   if (variant === 'flat') {
     return (
       <section id={id} className={cn('flex flex-col gap-4', className)}>
         <header className="flex items-baseline gap-2">
-          {/* Section header = the hierarchy carrier in the flat document:
-              one full type-tier above body text, no band, no rule. */}
-          <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
+          {/* Section header = the hierarchy carrier in the flat document. The
+              `tone` ranks action sections (18/600 primary) above reference
+              sections (14/600 secondary) — no band, no rule. */}
+          <h3
+            className={cn(
+              'font-semibold',
+              tone === 'reference'
+                ? 'text-base text-text-secondary'
+                : 'text-lg text-text-primary',
+            )}
+          >
+            {title}
+          </h3>
           {headerRight ? (
             <>
               <span className="flex-1" />

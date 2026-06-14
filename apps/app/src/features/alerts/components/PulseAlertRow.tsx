@@ -748,8 +748,14 @@ function PulseAlertRow({
               (muted, no icon) — "No client impact" is information ("safe
               to skim past"), not noise; demote it, never delete it. */}
           {impacted > 0 ? (
-            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-text-secondary">
-              <UsersIcon className="size-3.5 shrink-0" aria-hidden />
+            // 2026-06-14 (Yuqi critique #4 "urgent rows look identical to
+            // advisories"): a row that touches clients IS the actionable kind,
+            // so its impact line reads in present primary/medium ink — visibly
+            // heavier in the scan — while a no-impact advisory stays muted and
+            // recedes. The weight differential is the urgency cue (no extra
+            // color: the accent stays on the suggested-action verb).
+            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-medium text-text-primary">
+              <UsersIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
             </span>
           ) : (

@@ -168,8 +168,13 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
     : '—'
   const entityValue =
     detail.entityTypes.length > 0 ? detail.entityTypes.join(' · ') : t`All entity types`
+  // 2026-06-14 (Yuqi #9 "Auto-applied" was confusing next to a manual Apply
+  // button): the app NEVER auto-applies — apply is always human-triggered.
+  // "Auto-applied" described the IRS relief being automatic for taxpayers,
+  // which read as "DueDateHQ did it for you". Reworded to what the alert does
+  // in the app: a due-date overlay you apply vs. a review-only advisory.
   const applyModeValue =
-    detail.alert.actionMode === 'due_date_overlay' ? t`Auto-applied` : t`Review only`
+    detail.alert.actionMode === 'due_date_overlay' ? t`Adjusts due dates` : t`Review only`
   const protectiveFacts = protectiveClaimFacts(detail)
   const deadlineFacts = deadlineShiftFacts(detail)
   const actionDeadlineDays = protectiveFacts?.actionDeadline
