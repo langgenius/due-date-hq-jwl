@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -592,6 +592,102 @@ function AwaitingDecisionChip({ detail }: { detail: PulseDetail }) {
         </span>
       ) : null}
     </span>
+  )
+}
+
+/**
+ * 2026-06-14 (Yuqi: "make the process clear" + "my eyes don't know where to
+ * go"): the alert LIFECYCLE strip — a one-line stepper in the hero that shows
+ * where this alert sits in the pipeline and which steps the system ran
+ * automatically vs. the one step that's the firm's:
+ *
+ *   ✓ Monitored · ✓ AI parsed 90% · ✓ Matched 1 · ◉ Your decision · ○ Applied
+ *
+ * The first three are auto + done (check). "Your decision" is the human step
+ * (accent = where the eye should land). "Applied" is the outcome (future ring
+ * while open; check once applied; relabels for dismissed/reverted). This is
+ * the page's orientation anchor — it answers "what happened, what's left".
+ */
+function AlertLifecycleStrip({ detail }: { detail: PulseDetail }) {
+  const { t } = useLingui()
+  const alert = detail.alert
+  const confPct = Math.round(alert.confidence * 100)
+  const matched = alert.matchedCount + alert.needsReviewCount
+  const open = alert.status === 'matched'
+  const applied = alert.status === 'applied' || alert.status === 'partially_applied'
+
+  // The final node reflects the real resolution: Applied / Dismissed /
+  // Reverted / Reviewed, or a future "Applied" ring while the decision is open.
+  const finalNode =
+    alert.status === 'dismissed'
+      ? { label: t`Dismissed`, state: 'done' as const }
+      : alert.status === 'reverted'
+        ? { label: t`Reverted`, state: 'done' as const }
+        : alert.status === 'reviewed'
+          ? { label: t`Reviewed`, state: 'done' as const }
+          : { label: t`Applied`, state: applied ? ('done' as const) : ('future' as const) }
+
+  type NodeState = 'done' | 'current' | 'future'
+  const nodes: { key: string; label: string; value?: string; state: NodeState }[] = [
+    { key: 'monitored', label: t`Monitored`, state: 'done' },
+    { key: 'parsed', label: t`AI parsed`, value: `${confPct}%`, state: 'done' },
+    {
+      key: 'matched',
+      label: t`Matched`,
+      ...(matched > 0 ? { value: String(matched) } : {}),
+      state: 'done',
+    },
+    { key: 'decision', label: t`Your decision`, state: open ? 'current' : 'done' },
+    finalNode.state === 'future'
+      ? { key: 'final', label: finalNode.label, state: 'future' }
+      : { key: 'final', label: finalNode.label, state: 'done' },
+  ]
+
+  return (
+    <ol className="flex flex-wrap items-center gap-x-2 gap-y-1.5" aria-label={t`Alert lifecycle`}>
+      {nodes.map((node, index) => (
+        <Fragment key={node.key}>
+          {index > 0 ? (
+            <span
+              className={cn(
+                'h-px w-4 shrink-0',
+                node.state === 'future' ? 'bg-divider-subtle' : 'bg-divider-regular',
+              )}
+              aria-hidden
+            />
+          ) : null}
+          <li className="flex shrink-0 items-center gap-1.5">
+            {node.state === 'done' ? (
+              <CheckIcon className="size-3 shrink-0 text-text-tertiary" aria-hidden />
+            ) : node.state === 'current' ? (
+              <span className="size-1.5 shrink-0 rounded-full bg-state-accent-solid" aria-hidden />
+            ) : (
+              <span
+                className="size-1.5 shrink-0 rounded-full border border-divider-deep"
+                aria-hidden
+              />
+            )}
+            <span
+              className={cn(
+                'text-xs',
+                node.state === 'current'
+                  ? 'font-semibold text-text-accent'
+                  : node.state === 'future'
+                    ? 'text-text-muted'
+                    : 'font-medium text-text-secondary',
+              )}
+            >
+              {node.label}
+              {node.value ? (
+                <span className="ml-1 font-normal text-text-tertiary tabular-nums">
+                  {node.value}
+                </span>
+              ) : null}
+            </span>
+          </li>
+        </Fragment>
+      ))}
+    </ol>
   )
 }
 
@@ -1390,6 +1486,16 @@ export function AlertDetailDrawer({
                   <div className="pt-1 empty:hidden">
                     <DeadlineChangeCard detail={detail} />
                     <AlertStructuredFields detail={detail} section="key-fact" />
+                  </div>
+                ) : null}
+
+                {/* Lifecycle strip — the hero's orientation anchor (Yuqi: put
+                    it in the hero). Sits above a hairline, below the key fact,
+                    so the masthead reads: what it is → by when → where it is in
+                    the pipeline. Hidden when the header collapses on scroll. */}
+                {!headerCollapsed ? (
+                  <div className="mt-1 border-t border-divider-subtle pt-3">
+                    <AlertLifecycleStrip detail={detail} />
                   </div>
                 ) : null}
               </div>
