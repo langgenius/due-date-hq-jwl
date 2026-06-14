@@ -22,7 +22,6 @@ import {
   type FirmPermission,
   type FirmRole,
 } from '@duedatehq/core/permissions'
-import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Select,
   SelectContent,

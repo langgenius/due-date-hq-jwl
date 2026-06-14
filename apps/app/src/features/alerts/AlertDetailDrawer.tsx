@@ -563,39 +563,6 @@ function DecisionBanners({
 }
 
 /**
- * Hero status chip — the "Awaiting your decision" steady state, rendered in
- * the header meta row (amber dot + quiet text + optional due note). Same
- * phrase the Activity timeline's current node uses.
- */
-function AwaitingDecisionChip({ detail }: { detail: PulseDetail }) {
-  const { t } = useLingui()
-  const alert = detail.alert
-  if (
-    alert.status !== 'matched' ||
-    alert.firmImpact === 'no_current_match' ||
-    detail.applyReadiness.status === 'ready'
-  ) {
-    return null
-  }
-  const dueInDays = detail.newDueDate
-    ? Math.round(
-        (new Date(`${detail.newDueDate}T00:00:00.000Z`).getTime() - Date.now()) / 86_400_000,
-      )
-    : null
-  return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-text-secondary">
-      <span className="size-1.5 shrink-0 rounded-full bg-text-warning" aria-hidden />
-      <Trans>Awaiting your decision</Trans>
-      {dueInDays !== null && dueInDays >= 0 ? (
-        <span className="font-normal text-text-tertiary tabular-nums">
-          · {t`due in ${dueInDays} days`}
-        </span>
-      ) : null}
-    </span>
-  )
-}
-
-/**
  * 2026-06-14 (Yuqi: "make the process clear" + "my eyes don't know where to
  * go"): the alert LIFECYCLE strip — a one-line stepper in the hero that shows
  * where this alert sits in the pipeline and which steps the system ran
@@ -1399,22 +1366,28 @@ export function AlertDetailDrawer({
                     </span>
                   ) : null}
                   {/* The shared JurisdictionLabel primitive — seal + mono
-                      code + full name, identical to the deadline detail
-                      header. */}
-                  <JurisdictionLabel code={detail.alert.jurisdiction} />
-                  {/* Critique #5 (one vocabulary per fact): the change-kind
-                      reads in the SAME quiet tracked-caps voice the list rows
-                      use — the blue mono chip said the same fact in a louder
-                      second dialect and muddied accent = action semantics. */}
-                  <span className="shrink-0 text-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase">
+                      code + full name. 2026-06-14 (Yuqi "give colour to the
+                      state badge when active"): the code reads in the accent
+                      for an active alert, so the actionable queue gets a live
+                      jurisdiction mark instead of all-gray. */}
+                  <JurisdictionLabel
+                    code={detail.alert.jurisdiction}
+                    active={isActiveAlert(detail.alert)}
+                  />
+                  {/* 2026-06-14 (Yuqi "I love the original change chip — lower
+                      case, medium"): sentence-case medium, not tracked caps
+                      tertiary — calmer and matches the jurisdiction name's
+                      weight on the same line. */}
+                  <span className="shrink-0 text-sm font-medium text-text-secondary">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
                   <span className="ml-auto flex shrink-0 items-center gap-3 text-sm text-text-tertiary">
-                    {/* Steady-state status chip (amber dot) — RIGHT cluster
-                        with the temporal meta: identity reads left, status +
-                        provenance read right (2026-06-12 info-organisation
-                        pass). Not a 52px band above the hero. */}
-                    <AwaitingDecisionChip detail={detail} />
+                    {/* 2026-06-14 (Yuqi "header is so messy"): the
+                        "Awaiting your decision" chip is GONE from the meta —
+                        the lifecycle strip's "Your decision" node right below
+                        carries the exact same status, so the chip was a
+                        duplicate crowding the row. Meta is now identity (left)
+                        · source + date (right), one clean line. */}
                     {detail.alert.sourceUrl ? (
                       <a
                         href={detail.alert.sourceUrl}

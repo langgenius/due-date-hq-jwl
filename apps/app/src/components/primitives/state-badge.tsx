@@ -385,7 +385,22 @@ export function JurisdictionChip({ code, className }: { code: string; className?
   )
 }
 
-export function JurisdictionLabel({ code, className }: { code: string; className?: string }) {
+export function JurisdictionLabel({
+  code,
+  className,
+  active = false,
+}: {
+  code: string
+  className?: string
+  /**
+   * 2026-06-14 (Yuqi "give colour to the state badge when active"): when the
+   * alert is in the actionable queue, the jurisdiction CODE reads in the
+   * accent — a live colour cue beside the (already-colour) seal — instead of
+   * all-gray. Default false, so review alerts + the deadline detail stay
+   * neutral.
+   */
+  active?: boolean
+}) {
   return (
     <span
       className={cn(
@@ -394,7 +409,14 @@ export function JurisdictionLabel({ code, className }: { code: string; className
       )}
     >
       <StateBadge code={code} size="xs" style={{ width: 16, height: 16 }} />
-      <span className="font-mono text-sm font-bold tracking-eyebrow uppercase">{code}</span>
+      <span
+        className={cn(
+          'font-mono text-sm font-bold tracking-eyebrow uppercase',
+          active && 'text-text-accent',
+        )}
+      >
+        {code}
+      </span>
       {/* Name sits in meta rows next to text-sm chips — text-base made it
           the loudest thing on the line (Yuqi #5 meta-row asymmetry). */}
       <span className="text-sm font-medium">{getJurisdictionName(code)}</span>
