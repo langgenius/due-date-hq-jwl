@@ -1,4 +1,4 @@
-import { Fragment, useMemo, type ReactNode } from 'react'
+import { useMemo } from 'react'
 import { CircleCheckIcon, GitPullRequestArrowIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
@@ -27,6 +27,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { SearchInput } from '@/components/primitives/search-input'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import {
@@ -553,7 +554,12 @@ function JurisdictionRuleRow({
           {selectable ? (
             <>
               <span
-                aria-hidden
+                // The blue dot is the "needs review" marker — give it a
+                // label/title so it isn't a mystery glyph (re-critique: every
+                // row carried an unexplained blue dot). Gray dots are inert.
+                aria-label={tone === 'review' ? 'Needs review' : undefined}
+                aria-hidden={tone === 'review' ? undefined : true}
+                title={tone === 'review' ? 'Needs review' : undefined}
                 className={cn(
                   'absolute size-1.5 rounded-full transition-opacity',
                   tone === 'review' ? 'bg-state-accent-solid' : 'bg-divider-regular',
@@ -701,92 +707,20 @@ function GapRow({
 }
 
 /**
- * A single KPI column descriptor.
- *  - `valueClass` tones the large number (default text-primary).
- *  - `subClass` tones the sub caption (default text-secondary). The
- *    overview strip colors the *sub* (success/warning) while keeping the
- *    value neutral; the per-jurisdiction strip colors the *value*.
- */
-export interface KpiStat {
-  key: string
-  label: string
-  value: ReactNode
-  sub: ReactNode
-  valueClass?: string
-  subClass?: string
-}
-
-/**
- * `KpiStrip` — a horizontal band of stat columns split by vertical
- * hairlines (Pencil `O0pyRO` KPI Strip). One white rounded card; each
- * column is eyebrow (10/700 caps) + value (24/600) + sub caption.
- *
- * Shared by the all-jurisdictions overview (`Total rules · Jurisdictions
- * · Changed 30 days · Pending review`) and the per-jurisdiction detail
- * pane (`JurisdictionKpiStrip` below). On narrow viewports the columns
- * wrap to a 2-up grid so the values never crush together or force the
- * card to scroll horizontally.
- */
-export function KpiStrip({
-  stats,
-  size = 'default',
-}: {
-  stats: KpiStat[]
-  /** `lg` renders larger values + roomier padding for the overview dashboard. */
-  size?: 'default' | 'lg'
-}) {
-  const lg = size === 'lg'
-  return (
-    <div
-      className={cn(
-        'grid shrink-0 grid-cols-2 gap-y-4 rounded-xl border border-divider-subtle bg-background-default px-2 sm:flex sm:items-center sm:gap-y-0',
-        lg ? 'py-6' : 'py-[18px]',
-      )}
-    >
-      {stats.map((stat, index) => (
-        <Fragment key={stat.key}>
-          {index > 0 ? (
-            <span
-              className={cn(
-                'hidden w-px shrink-0 bg-divider-subtle sm:block',
-                lg ? 'h-12' : 'h-11',
-              )}
-              aria-hidden
-            />
-          ) : null}
-          <div className="flex min-w-0 flex-1 flex-col gap-1 px-4">
-            <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
-              {stat.label}
-            </span>
-            <span
-              className={cn(
-                'font-semibold tabular-nums',
-                lg ? 'text-section-title leading-none' : 'text-2xl',
-                stat.valueClass ?? 'text-text-primary',
-              )}
-            >
-              {stat.value}
-            </span>
-            <span
-              className={cn('truncate text-xs font-medium', stat.subClass ?? 'text-text-secondary')}
-            >
-              {stat.sub}
-            </span>
-          </div>
-        </Fragment>
-      ))}
-    </div>
-  )
-}
-
-/**
- * `JurisdictionKpiStrip` — the 4-stat KPI band above the selected
+ * `JurisdictionKpiStrip` — the 4-stat summary band above the selected
  * jurisdiction's rule table (Pencil `O0pyRO`/`G6P12y` KPI Strip).
  *
- * Four columns: TOTAL (all rules) · EFFECTIVE (in force, success-green) ·
- * PENDING (awaiting review, warning-brown) · DEPRECATED (superseded,
- * muted). Counts are derived in the route from the selected
- * jurisdiction's status breakdown. Built on the shared `KpiStrip`.
+ * Four columns: Total (all rules) · Effective (in force, success-green) ·
+ * Pending (awaiting review, warning) · Deprecated (superseded, muted).
+ * Counts are derived in the route from the selected jurisdiction's status
+ * breakdown.
+ *
+ * Renders the canonical shared `StatBand` — the same summary band the
+ * overview + clients + sources + alert-history + audit surfaces use — so
+ * there is ONE number-summary design across the product (sentence-case
+ * label · big value · quiet sub). The per-status semantic colour the
+ * jurisdiction detail wants rides on `StatBand`'s `valueClass`, so the big
+ * numbers stay green/warning/muted without a second component.
  */
 export function JurisdictionKpiStrip({
   total,
@@ -802,14 +736,8 @@ export function JurisdictionKpiStrip({
   jurisdictionLabel: string
 }) {
   const { t } = useLingui()
-  const stats: KpiStat[] = [
-    {
-      key: 'total',
-      label: t`Total`,
-      value: total,
-      sub: t`All ${jurisdictionLabel} rules`,
-      valueClass: 'text-text-primary',
-    },
+  const stats: StatBandItem[] = [
+    { key: 'total', label: t`Total`, value: total, sub: t`All ${jurisdictionLabel} rules` },
     {
       key: 'effective',
       label: t`Effective`,
@@ -832,7 +760,7 @@ export function JurisdictionKpiStrip({
       valueClass: 'text-text-muted',
     },
   ]
-  return <KpiStrip stats={stats} />
+  return <StatBand stats={stats} ariaLabel={t`${jurisdictionLabel} rule summary`} />
 }
 
 /**
