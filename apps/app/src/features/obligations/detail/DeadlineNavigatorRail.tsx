@@ -1,6 +1,6 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowDownUpIcon, CheckIcon, ChevronDownIcon, ListFilterIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import type { ObligationQueueDetailTab, ObligationQueueRow } from '@duedatehq/contracts'
 import {
@@ -306,15 +306,29 @@ export function DeadlineNavigatorRail({
             <Trans>No deadlines match.</Trans>
           </p>
         ) : (
-          sortedRows.map((row) => (
-            <DeadlineNavigatorRow
-              key={row.id}
-              row={row}
-              active={row.id === activeObligationId}
-              activeTab={activeTab}
-              statusLabel={statusLabels[row.status]}
-            />
-          ))
+          sortedRows.map((row, index) => {
+            // When sorted by client, lead each client's cluster with a client
+            // name header so the grouping is unmistakable (Yuqi: "you can't
+            // tell it's sorted by client"). Rows are already clientName-ordered.
+            const showClientHeader =
+              sortKey === 'client' &&
+              (index === 0 || sortedRows[index - 1]!.clientName !== row.clientName)
+            return (
+              <Fragment key={row.id}>
+                {showClientHeader ? (
+                  <div className="sticky top-0 z-[1] border-b border-divider-subtle bg-background-subtle px-[18px] py-1.5 text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
+                    {row.clientName}
+                  </div>
+                ) : null}
+                <DeadlineNavigatorRow
+                  row={row}
+                  active={row.id === activeObligationId}
+                  activeTab={activeTab}
+                  statusLabel={statusLabels[row.status]}
+                />
+              </Fragment>
+            )
+          })
         )}
         {hasMore ? (
           <button
