@@ -808,12 +808,25 @@ const CHANGED_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 function OverviewReviewBreakdown({
   jurisdictions,
   reasonCounts,
+  backlogSeverity,
   onSelectJurisdiction,
 }: {
   jurisdictions: ReadonlyArray<{ jurisdiction: string; label: string; pendingReviewCount: number }>
   reasonCounts: ReadonlyArray<[RuleReviewTask['reason'], number]>
+  backlogSeverity: { high: number; med: number; low: number }
   onSelectJurisdiction: (jurisdiction: string) => void
 }) {
+  const { t } = useLingui()
+  // Bars are scaled to the busiest jurisdiction so the ranking reads as a
+  // weighted chart, not a flat list (the magnitude is the point).
+  const maxPending = jurisdictions[0]?.pendingReviewCount ?? 1
+  const severityRows = [
+    { key: 'high', label: t`High`, count: backlogSeverity.high, bar: 'bg-state-warning-solid' },
+    { key: 'med', label: t`Medium`, count: backlogSeverity.med, bar: 'bg-text-muted' },
+    { key: 'low', label: t`Low`, count: backlogSeverity.low, bar: 'bg-divider-deep' },
+  ] as const
+  const maxSeverity = Math.max(backlogSeverity.high, backlogSeverity.med, backlogSeverity.low, 1)
+
   return (
     <section className="flex shrink-0 flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
@@ -824,45 +837,91 @@ function OverviewReviewBreakdown({
           <Trans>Most pending first</Trans>
         </span>
       </div>
-      {/* By-reason strip — why the queue grew (New template · Source changed · …). */}
-      {reasonCounts.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2">
-          {reasonCounts.map(([reason, count]) => (
-            <span
-              key={reason}
-              className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2.5 py-1 text-xs font-medium text-text-secondary"
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
+        {/* Ranked jurisdictions — a horizontal bar chart of the backlog; each
+            row drills into its review queue. */}
+        <div className="min-w-0 flex-1 overflow-hidden rounded-xl border border-divider-subtle xl:flex-[3]">
+          {jurisdictions.map((g, index) => (
+            <button
+              key={g.jurisdiction}
+              type="button"
+              onClick={() => onSelectJurisdiction(g.jurisdiction)}
+              className={cn(
+                'group/row flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-state-base-hover',
+                index > 0 && 'border-t border-divider-subtle',
+              )}
             >
-              {REVIEW_REASON_LABEL[reason]}
-              <span className="tabular-nums text-text-tertiary">{count}</span>
-            </span>
+              <StateBadge code={g.jurisdiction} size="sm" preview={false} />
+              <span className="w-36 shrink-0 truncate text-base font-medium text-text-primary">
+                {g.label}
+              </span>
+              {/* Magnitude bar — fills the row's mid-span (the dead gap before). */}
+              <span className="relative hidden h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-background-section sm:block">
+                <span
+                  className="absolute inset-y-0 left-0 rounded-full bg-state-warning-solid"
+                  style={{
+                    width: `${Math.max(6, Math.round((g.pendingReviewCount / maxPending) * 100))}%`,
+                  }}
+                  aria-hidden
+                />
+              </span>
+              <span className="w-20 shrink-0 text-right text-sm font-semibold tabular-nums text-text-warning">
+                <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
+              </span>
+              <ChevronRightIcon
+                aria-hidden
+                className="size-4 shrink-0 text-text-muted transition-all group-hover/row:translate-x-0.5 group-hover/row:text-text-tertiary"
+              />
+            </button>
           ))}
         </div>
-      ) : null}
-      {/* Ranked jurisdictions — each row drills into its review queue. */}
-      <div className="flex flex-col overflow-hidden rounded-xl border border-divider-subtle">
-        {jurisdictions.map((g, index) => (
-          <button
-            key={g.jurisdiction}
-            type="button"
-            onClick={() => onSelectJurisdiction(g.jurisdiction)}
-            className={cn(
-              'group/row flex cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-state-base-hover',
-              index > 0 && 'border-t border-divider-subtle',
-            )}
-          >
-            <StateBadge code={g.jurisdiction} size="sm" preview={false} />
-            <span className="min-w-0 flex-1 truncate text-base font-medium text-text-primary">
-              {g.label}
+
+        {/* Composition panel — fills the right-hand space with the backlog's
+            make-up: by severity (review the high ones first) + by reason. */}
+        <div className="flex shrink-0 flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default p-4 xl:flex-[2]">
+          <span className="text-item-title text-text-primary">
+            <Trans>Backlog composition</Trans>
+          </span>
+          <div className="flex flex-col gap-2.5">
+            <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+              <Trans>By severity</Trans>
             </span>
-            <span className="shrink-0 text-sm font-semibold tabular-nums text-text-warning">
-              <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
-            </span>
-            <ChevronRightIcon
-              aria-hidden
-              className="size-4 shrink-0 text-text-muted transition-all group-hover/row:translate-x-0.5 group-hover/row:text-text-tertiary"
-            />
-          </button>
-        ))}
+            {severityRows.map((row) => (
+              <div key={row.key} className="flex items-center gap-3">
+                <span className="w-16 shrink-0 text-sm font-medium text-text-secondary">
+                  {row.label}
+                </span>
+                <span className="relative h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-background-section">
+                  <span
+                    className={cn('absolute inset-y-0 left-0 rounded-full', row.bar)}
+                    style={{ width: `${Math.round((row.count / maxSeverity) * 100)}%` }}
+                    aria-hidden
+                  />
+                </span>
+                <span className="w-8 shrink-0 text-right text-sm font-semibold tabular-nums text-text-primary">
+                  {row.count}
+                </span>
+              </div>
+            ))}
+          </div>
+          {reasonCounts.length > 0 ? (
+            <div className="flex flex-col gap-2 border-t border-divider-subtle pt-4">
+              <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+                <Trans>By reason</Trans>
+              </span>
+              {reasonCounts.map(([reason, count]) => (
+                <div key={reason} className="flex items-center justify-between gap-3">
+                  <span className="min-w-0 truncate text-sm font-medium text-text-secondary">
+                    {REVIEW_REASON_LABEL[reason]}
+                  </span>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">
+                    {count}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
     </section>
   )
@@ -1477,14 +1536,17 @@ export function RulesLibraryRoute() {
     () => unfilteredGroups.filter((g) => g.gapEntities.length > 0),
     [unfilteredGroups],
   )
-  const highSeverityPending = useMemo(
-    () =>
-      rules.filter(
-        (r) =>
-          (r.status === 'candidate' || r.status === 'pending_review') && r.riskLevel === 'high',
-      ).length,
-    [rules],
-  )
+  // Severity mix of the review backlog (drives the stat + the composition
+  // panel's by-severity bars).
+  const backlogSeverity = useMemo(() => {
+    const mix = { high: 0, med: 0, low: 0 }
+    for (const r of rules) {
+      if (r.status !== 'candidate' && r.status !== 'pending_review') continue
+      mix[r.riskLevel] += 1
+    }
+    return mix
+  }, [rules])
+  const highSeverityPending = backlogSeverity.high
   // Open review tasks → counts by reason (the "why the queue grew" strip).
   const overviewReviewTasksQuery = useQuery(
     orpc.rules.listReviewTasks.queryOptions({ input: { status: 'open' } }),
@@ -2624,6 +2686,7 @@ export function RulesLibraryRoute() {
                 <OverviewReviewBreakdown
                   jurisdictions={topReviewJurisdictions}
                   reasonCounts={reviewReasonCounts}
+                  backlogSeverity={backlogSeverity}
                   onSelectJurisdiction={selectJurisdiction}
                 />
                 {/* Coverage gaps — renders nothing unless something's uncovered. */}
