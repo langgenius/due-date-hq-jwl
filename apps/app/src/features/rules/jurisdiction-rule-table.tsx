@@ -215,19 +215,21 @@ export function JurisdictionFilterBar({
         options={[
           {
             value: 'review',
+            // Whole tab (label + count) reads in the warning tone when it
+            // carries work — matching the rail's needs-review dot + the
+            // StatBand pending value, so Review is unambiguously the urgent
+            // scope. The override beats the Segmented's selected-accent on the
+            // label; selection still reads via the chip bg + border. Not bold
+            // (red+bold is a banned double-highlight). Active stays neutral.
             label: (
-              <span className="inline-flex items-center gap-1.5">
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1.5',
+                  reviewCount > 0 && 'text-text-warning',
+                )}
+              >
                 <Trans>Review</Trans>
-                {/* Pending count reads in the warning tone (matches the rail's
-                    needs-review dot + the StatBand's pending value) so the
-                    Review tab pulls the eye when it carries work. Weight 500,
-                    not bold — red+bold is a banned double-highlight. */}
-                <span
-                  className={cn(
-                    'tabular-nums',
-                    reviewCount > 0 ? 'font-medium text-text-warning' : 'text-text-tertiary',
-                  )}
-                >
+                <span className={cn('tabular-nums', reviewCount === 0 && 'text-text-tertiary')}>
                   {reviewCount}
                 </span>
               </span>
