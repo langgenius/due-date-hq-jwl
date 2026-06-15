@@ -225,7 +225,7 @@ function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
  */
 /**
  * `DisclosureCard` — the canonical bar-header card (same chrome as the
- * deadline-detail cards / `PenaltyExposureCard`: `rounded-xl`, `divider-subtle`
+ * deadline-detail cards: `rounded-xl`, `divider-subtle`
  * border, `bg-default`, an `h-9` `bg-subtle` bar with a 13/600 title + an
  * `ml-auto` right meta slot) plus the summary-first disclosure contract from
  * `docs/Design/rule-library-review-flow.md`: the `summary` body shows by
