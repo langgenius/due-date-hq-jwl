@@ -266,7 +266,7 @@ function DisclosureCard({
           variant="accent"
           onClick={() => setExpanded((value) => !value)}
           aria-expanded={expanded}
-          className="w-fit text-base"
+          className="w-fit text-sm"
         >
           {expanded ? (lessLabel ?? t`Show less`) : (moreLabel ?? t`Read more`)}
           <ChevronDownIcon
@@ -612,20 +612,28 @@ export function RuleDetailCompact({
   if (splitRail) {
     return (
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-        {/* LEFT — header + rule facts (white, scrolls independently). */}
+        {/* LEFT — header + rule facts (white, scrolls independently). The fact
+            sections are delineated by full-width hairlines + per-section
+            padding (`divide-y` + `[&>*]:py-5`), not boxes — so each reads as a
+            distinct band and the section heading stays closer to its own
+            content than to the neighbour (Law of Proximity). */}
         <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
           {header}
-          <div className="flex min-w-0 flex-col gap-3 px-6 pt-5 pb-4">
-            <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+          <div className="flex min-w-0 flex-col px-6 pt-5">
+            <span className="pb-3 text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Verify the facts</Trans>
             </span>
-            {applicabilityCard}
-            {dueDateCard}
-            {evidenceCard}
-            {verificationCard}
+            <div className="flex min-w-0 flex-col divide-y divide-divider-regular border-t border-divider-regular [&>*]:py-5">
+              {applicabilityCard}
+              {dueDateCard}
+              {evidenceCard}
+              {verificationCard}
+            </div>
           </div>
           {/* Informational footer — version + full history, no actions. */}
-          <div className="mt-auto px-6 pb-5">{activityCard}</div>
+          <div className="mt-auto border-t border-divider-regular px-6 [&>*]:py-5">
+            {activityCard}
+          </div>
         </div>
 
         {/* RIGHT — the decision rail (gray, scrolls independently). */}
