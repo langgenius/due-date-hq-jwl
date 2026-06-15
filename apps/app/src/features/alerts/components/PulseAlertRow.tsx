@@ -24,7 +24,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
-import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
+import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
@@ -196,6 +196,7 @@ function PulseAlertRow({
   compact = false,
   selectable = false,
   selected = false,
+  selectionActive = false,
   onToggleSelected,
   priority,
   highImpact = false,
@@ -216,6 +217,13 @@ function PulseAlertRow({
    */
   selectable?: boolean
   selected?: boolean
+  /**
+   * 2026-06-15 (critique #8): true when a bulk selection is already in
+   * progress (≥1 row ticked anywhere in the list). While active, every row's
+   * checkbox stays visible; otherwise the checkbox is hover-revealed so the
+   * read-first triage list isn't fronted by a column of empty boxes.
+   */
+  selectionActive?: boolean
   onToggleSelected?: (next: boolean) => void
   /** Smart-priority inset data (Pencil `IciLB`). Undefined hides the
    *  inset + the "Why?" toggle entirely. */
@@ -312,13 +320,16 @@ function PulseAlertRow({
   // no-deadline alerts, so silence stays the signal.
   const timeTag = proximityTimeTag(proximity)
 
-  const confidenceTier = aiConfidenceTier(alert.confidence)
-  // Confidence pill (Pencil aUZTy) — surfaced ONLY when the extraction isn't
-  // high-confidence, as a single "Low confidence" flag (Yuqi 2026-06-15: dropped
-  // the "Very low" tier — it read as alarming and split one signal in two).
-  // 'high' shows nothing (the absence is the all-clear). Amber-family, never red
+  // Confidence flag (Pencil aUZTy) — surfaced ONLY when the extraction is
+  // genuinely low-confidence (< 0.5, the canonical `isLowAiConfidence` floor),
+  // the SAME threshold the detail's low-confidence banner fires on — so the list
+  // pill, the rail pill, and the detail banner always agree (2026-06-15 critique
+  // #1/#3: the row used to flag the whole non-high band, stamping a 58% alert
+  // "Low confidence" while its detail calmly said "Medium" — same record, two
+  // words). Medium/high now show nothing here; the absence is the all-clear and
+  // the detail Source card still states the exact tier. Amber-family, never red
   // (the row's single red stays on the urgent deadline pill).
-  const showLowConfidence = confidenceTier !== 'high'
+  const showLowConfidence = isLowAiConfidence(alert.confidence)
 
   // Unread/needs-attention dot (aUZTy) — true while the alert is still awaiting
   // a decision (not yet applied / dismissed / reviewed / reverted). Drives the
@@ -384,7 +395,7 @@ function PulseAlertRow({
         // clients-list treatment baked into TableRow, applied here
         // directly since this row doesn't use the table primitive; see
         // dev-log 2026-06-10-hover-accent-bar-rows).
-        'group/row flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-colors',
+        'group/row relative flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-colors',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
           ? 'bg-state-accent-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]'
@@ -398,7 +409,16 @@ function PulseAlertRow({
           rather than centered, matching the design. */}
       {selectable ? (
         <div
-          className="flex shrink-0 items-start pt-0.5"
+          className={cn(
+            // 2026-06-15 critique #8: the slot ALWAYS reserves its width (revealing
+            // the box never shifts the row), but the box itself is hover-revealed
+            // unless this row is ticked or a selection is already underway — so a
+            // read-first triage list isn't led by a column of empty checkboxes.
+            'flex shrink-0 items-start pt-0.5 transition-opacity',
+            selected || selectionActive
+              ? 'opacity-100'
+              : 'opacity-0 group-hover/row:opacity-100 focus-within:opacity-100',
+          )}
           onClick={(event) => event.stopPropagation()}
         >
           <Checkbox
@@ -506,13 +526,14 @@ function PulseAlertRow({
             </span>
           ) : null}
 
-          {/* HIGH IMPACT — the three alerts hitting the most clients
-              carry a soft destructive flag (the row's impact IS its
-              urgent cue). Destructive red, NOT amber — amber is reserved
-              for the ACTION pill below, so the two never read as the same
-              signal. */}
+          {/* HIGH IMPACT — the three alerts hitting the most clients. NEUTRAL
+              gray chip, NOT red (2026-06-15 critique #4): red is reserved for the
+              single URGENT priority pill, so a row never wears two reds (urgency
+              + reach reading as one alarm). Client reach is carried by weight + a
+              quiet chip; it sits on a different axis from the urgency tier, so it
+              must look different from it too. */}
           {highImpact ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-state-destructive-border bg-state-destructive-hover px-1.5 text-xs font-semibold tracking-[0.3px] text-text-destructive uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-divider-regular bg-background-subtle px-1.5 text-xs font-semibold tracking-[0.3px] text-text-secondary uppercase">
               <Trans>High impact</Trans>
             </span>
           ) : null}
@@ -548,6 +569,14 @@ function PulseAlertRow({
             </span>
           ) : null}
 
+          {/* SOURCE — moved into the left identity cluster (2026-06-15 critique
+              #6). Pinned to the far right it left a wide dead gap between the
+              title and "where this came from", a long horizontal eye-sweep on
+              every row. It now reads beside the change-kind — "what kind of
+              change, from where" as one phrase — and shrinks/truncates so it
+              never crowds the right-side time-to-act. */}
+          <AlertSourceLink source={alert.source} sourceUrl={alert.sourceUrl} withTooltip />
+
           {/* Spacer NdGpw (fill_container) */}
           <span className="flex-1" aria-hidden />
 
@@ -581,12 +610,6 @@ function PulseAlertRow({
               <TooltipContent>{absoluteTime}</TooltipContent>
             </Tooltip>
           ) : null}
-
-          {/* HeadRight — source via the shared `AlertSourceLink` (the one
-              source-link treatment: 12/medium text-tertiary, trailing ↗,
-              row-safe `stopPropagation`). The change-kind pill lives in the
-              head-left meta strip, so this slot is source-only. */}
-          <AlertSourceLink source={alert.source} sourceUrl={alert.sourceUrl} withTooltip />
 
           {/* "Why?" toggle (Pencil g5kKJQ `X6enpJ whyAff`) — expands
               the smart-priority reason inset below. Only renders when
@@ -677,12 +700,14 @@ function PulseAlertRow({
 
             {actionText ? (
               <div className="flex">
-                {/* Suggested action (Pencil aUZTy) — a subtle accent wand pill.
-                    The do-this affordance reads in accent so it's scannable as
-                    "the next step", but on a LIGHT tint, not a saturated fill
-                    (Yuqi: "subtle blue wand pill … not too accent heavy"). The
-                    elbow + small-caps ACTION label it replaces was busier. */}
-                <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-state-accent-hover px-2.5 py-1 text-sm font-medium text-text-accent">
+                {/* Suggested action (Pencil aUZTy) — the do-this affordance.
+                    2026-06-15 critique #5: dropped the filled accent pill. When
+                    EVERY row wore a filled blue pill the accent stopped meaning
+                    "act here" — a wall of blue. It now reads as quiet accent text
+                    + wand: still scannable as the next step, weightless enough
+                    that a genuinely accented control (the detail CTA) keeps its
+                    meaning. */}
+                <span className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-text-accent">
                   <WandSparklesIcon className="size-3 shrink-0" aria-hidden />
                   {actionText}
                 </span>
@@ -725,95 +750,69 @@ function PulseAlertRow({
           </div>
         ) : null}
 
-        {/* Bottom row vracc — a `border-t border-divider-subtle` shelf
-            with the affected-clients line, confidence meter, and the
-            hover-revealed Dismiss / Review buttons.
-            In panel-open (compact) mode the list column is ~40% wide,
-            so this meta row must wrap as whole units (`flex-wrap
-            gap-y-1`) with `whitespace-nowrap` / `shrink-0` on the text
-            + pill — otherwise it wraps mid-unit ("Affects 2 / clients",
-            "94% / conf"). */}
-        {/* Critique #4 (AA): bottom meta reads in tertiary (≈4.8:1), not
-            muted (≈2.9:1 — failed contrast at this size). Still clearly
-            subordinate to the 600 title. */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-sm text-text-tertiary">
-          {/* The affected-clients line uses the Users icon — one
-              clients-affected glyph across the AlertCard, this row, and
-              the dashboard card. Impacted rows step to text-secondary;
-              no-match advisories stay muted, mirroring the dashboard
-              NeedsAttentionCard affects-clients line. */}
-          {/* Client impact is triage question #1 — EVERY row answers it,
-              including zero. Impacted rows are the loud form (icon +
-              secondary ink); zero-match rows state the conclusion quietly
-              (muted, no icon) — "No client impact" is information ("safe
-              to skim past"), not noise; demote it, never delete it. */}
-          {impacted > 0 ? (
-            // 2026-06-14 (Yuqi critique #4 "urgent rows look identical to
-            // advisories"): a row that touches clients IS the actionable kind,
-            // so its impact line reads in present primary/medium ink — visibly
-            // heavier in the scan — while a no-impact advisory stays muted and
-            // recedes. The weight differential is the urgency cue (no extra
-            // color: the accent stays on the suggested-action verb).
+        {/* Impact shelf — rendered ONLY when the row touches clients (2026-06-15
+            critique #7). Impacted rows answer triage question #1 in the loud form
+            (icon + primary ink, visibly heavier in the scan); no-impact rows stay
+            SILENT — "No client impact" repeated muted on every row was absence
+            taking a line, so the list isn't padded with it (the line's presence
+            is the signal, matching the Active tab; the detail still states impact
+            explicitly). The hover Dismiss/Review cluster floats separately (below)
+            so a no-impact row carries no empty shelf at rest. */}
+        {impacted > 0 ? (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-sm">
             <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-medium text-text-primary">
               <UsersIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
             </span>
-          ) : (
-            <span className="shrink-0 whitespace-nowrap text-text-muted">
-              <Trans>No client impact</Trans>
-            </span>
-          )}
-          {/* AI confidence moved OUT of the bottom meta — it's now a categorical
-              warning pill in the head row (Pencil aUZTy), shown only when shaky.
-              The bottom meta stays just client-impact + the hover actions. */}
-
-          {/* Hover-only action cluster — Dismiss / Review.
-              Fades in via group-hover so the row reads as a quiet
-              shelf at rest. Each button stopPropagation so the
-              row's onClick doesn't bubble. */}
-          <span
-            className="ml-auto inline-flex items-center gap-1 opacity-0 transition-opacity group-hover/row:opacity-100"
-            aria-hidden={!active}
-          >
-            {/* Dismiss uses the canonical <Button> primitive (outline
-                xs) so it matches Review beside it and every other button
-                in the app. */}
-            {onDismiss ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                // Override the Button base's squircle corner to a plain
-                // circular rounded-lg so these row buttons match the
-                // row's chips (state/form/etc.).
-                className="rounded-lg [corner-shape:round]"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onDismiss()
-                }}
-                aria-label={t`Dismiss alert`}
-              >
-                <ArchiveIcon data-icon="inline-start" />
-                <Trans>Dismiss</Trans>
-              </Button>
-            ) : null}
-            {/* Review uses the canonical `<Button>` primary (filled
-                primary token) — the same primitive every other primary
-                action across the app uses, for cross-page consistency. */}
-            <Button
-              type="button"
-              size="xs"
-              className="rounded-lg [corner-shape:round]"
-              onClick={(event) => {
-                event.stopPropagation()
-                onReview()
-              }}
-            >
-              <Trans>Review</Trans>
-            </Button>
-          </span>
-        </div>
+          </div>
+        ) : null}
       </div>
+
+      {/* Hover action cluster — Dismiss / Review. Floated into the row's empty
+          right gutter (the title is width-capped, so that column is blank),
+          vertically centred and absolute so it reserves NO height: dropping the
+          "No client impact" line (critique #7) would otherwise leave an empty
+          shelf on every no-impact row, or growing it on hover would shove the
+          rows below. Fades in on row hover; each button stopPropagation so the
+          row's onClick doesn't bubble. */}
+      <span
+        className="absolute top-1/2 right-5 inline-flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100"
+        aria-hidden={!active}
+      >
+        {/* Dismiss uses the canonical <Button> primitive (outline xs) so it
+            matches Review beside it and every other button in the app. The
+            squircle corner is overridden to a plain rounded-lg so these row
+            buttons match the row's chips. */}
+        {onDismiss ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            className="rounded-lg [corner-shape:round]"
+            onClick={(event) => {
+              event.stopPropagation()
+              onDismiss()
+            }}
+            aria-label={t`Dismiss alert`}
+          >
+            <ArchiveIcon data-icon="inline-start" />
+            <Trans>Dismiss</Trans>
+          </Button>
+        ) : null}
+        {/* Review uses the canonical `<Button>` primary — the same primitive
+            every other primary action across the app uses. */}
+        <Button
+          type="button"
+          size="xs"
+          className="rounded-lg [corner-shape:round]"
+          onClick={(event) => {
+            event.stopPropagation()
+            onReview()
+          }}
+        >
+          <Trans>Review</Trans>
+        </Button>
+      </span>
     </article>
   )
 }
@@ -926,6 +925,10 @@ function PulseAlertList({
   // rail) overrides the derived value.
   const panelOpen = compact ?? openAlertId !== null
 
+  // A bulk selection is "active" once any row is ticked — every checkbox then
+  // stays visible (critique #8); at zero selection the boxes hover-reveal.
+  const selectionActive = (selectedIds?.size ?? 0) > 0
+
   // Group alerts by firm-local date, preserving the (already
   // sort-ordered) array order. Map preserves insertion order so
   // earlier days come first when the sort is "Newest first".
@@ -950,6 +953,7 @@ function PulseAlertList({
       compact={panelOpen}
       selectable={selectable}
       selected={selectedIds?.has(alert.id) ?? false}
+      selectionActive={selectionActive}
       {...(onToggleSelected
         ? { onToggleSelected: (next: boolean) => onToggleSelected(alert.id, next) }
         : {})}
@@ -1001,10 +1005,13 @@ function PulseAlertList({
                     under it; requires the frame's overflow-clip. The faint
                     `bg-background-subtle` fill (matching aUZTy) gives a clean
                     section break without the busier label competing with rows. */}
-                <div className="sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-2">
+                <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-2">
                   {/* Day select-all (Yuqi: "should a day have a select all
                       option") — tri-state, in the SAME slot as the row
-                      checkboxes below so the date stays on the content grid. */}
+                      checkboxes below so the date stays on the content grid.
+                      Hover-revealed like the row checkboxes (critique #8) unless a
+                      selection is underway; the slot keeps its width so the date
+                      label never shifts. */}
                   {selectable ? (
                     <Checkbox
                       checked={dayAlerts.every((a) => selectedIds?.has(a.id) ?? false)}
@@ -1016,7 +1023,12 @@ function PulseAlertList({
                         for (const dayAlert of dayAlerts) onToggleSelected?.(dayAlert.id, next)
                       }}
                       aria-label={t`Select all alerts on ${label}`}
-                      className="size-[18px] rounded"
+                      className={cn(
+                        'size-[18px] rounded transition-opacity',
+                        selectionActive
+                          ? 'opacity-100'
+                          : 'opacity-0 group-hover/band:opacity-100 focus-visible:opacity-100',
+                      )}
                     />
                   ) : null}
                   <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums">

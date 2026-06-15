@@ -6,7 +6,7 @@ import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
+import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
 import {
   ListRail,
@@ -241,9 +241,11 @@ function RailItem({
   // Parity with the main /alerts row (Pencil aUZTy) so the rail speaks the same
   // visual language — a smooth hand-off from the list into the detail layout:
   //   • unread dot leads the time column while the alert awaits a decision
-  //   • a low-only confidence pill (Low / Very low) sits in the badge row
+  //   • a confidence pill that fires on the SAME < 0.5 threshold as the main
+  //     row + the detail banner (2026-06-15 critique #1/#3), so one alert never
+  //     reads "Low" here and "Medium" in its detail
   const unread = alert.status === 'matched' || alert.status === 'partially_applied'
-  const showLowConfidence = aiConfidenceTier(alert.confidence) !== 'high'
+  const showLowConfidence = isLowAiConfidence(alert.confidence)
 
   // Bottom-meta parity with the main /alerts row (PulseAlertRow):
   // affected-clients count (matched + needs-review) and the AI
@@ -363,23 +365,18 @@ function RailItem({
             window.open(null) tab). */}
         <AlertSourceLink source={alert.source} sourceUrl={alert.sourceUrl} />
 
-        {/* Bottom meta — client impact, answered on EVERY row (it's
-            triage question #1: which alert do I open next?). Impacted
-            rows are loud (icon + secondary); zero-match rows state the
-            conclusion quietly (muted, no icon) so the rail still ranks
-            by impact at a glance. The AI-confidence meter stays out —
-            that's an apply-time fact, owned by the detail panel (Yuqi
-            batch 4 #10). */}
+        {/* Bottom meta — client impact. Impacted rows are loud (icon +
+            secondary); no-impact rows now stay SILENT (2026-06-15 critique #7),
+            matching the main /alerts row: the line's presence is the signal, so
+            the rail isn't padded with a muted "No client impact" on every item.
+            The AI-confidence meter stays out — that's an apply-time fact, owned
+            by the detail panel (Yuqi batch 4 #10). */}
         {impacted > 0 ? (
           <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm text-text-secondary">
             <UsersIcon className="size-3.5 shrink-0" aria-hidden />
             <Plural value={impacted} one="Affects # client" other="Affects # clients" />
           </span>
-        ) : (
-          <span className="whitespace-nowrap text-sm text-text-muted">
-            <Trans>No client impact</Trans>
-          </span>
-        )}
+        ) : null}
       </div>
     </button>
   )
