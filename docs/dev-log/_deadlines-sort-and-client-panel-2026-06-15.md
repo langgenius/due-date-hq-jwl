@@ -52,6 +52,22 @@ decision: slide-in panel, keep the user anchored.
 - Files: `ClientDetailWorkspace.tsx`, `ClientWorkPlanPanel.tsx`,
   `DeadlineRow.tsx`. Commit `d240fec2`.
 
+### 3a. Tab parity — panel matches the locked-4 page set
+
+Follow-up: the side panel reused `ObligationQueueDetailDrawer` in `mode="panel"`,
+which kept the fuller tab set (Status · Materials · **Extension** · Record ·
+Audit = 5). The standalone `/deadlines/:ref` page (page mode) shows the locked
+4-tab set (memory: tab count locked). Showing the *same filing* with 5 tabs in
+the panel and 4 on the page was an inconsistency.
+
+Fix: the locked-4 filter in `visibleTabsList` now gates on `panelLayout`
+(panel **or** page) instead of `isPageMode` alone — every persistent panel
+surface gets the locked-4; only the legacy floating sheet keeps `base`.
+`ObligationPanelDispatcher` (the client-detail panel) is the sole `mode="panel"`
+consumer, so this affects only that surface. Verified live: client panel + page
+both render Status · Materials · Record · Audit.
+File: `ObligationQueueDetailDrawer.tsx`.
+
 ## 4. nuGN9 (HeroCard banner) — already present, confirmed
 
 Pencil `nuGN9` is the editorial banner (eyebrow date + headline + metric

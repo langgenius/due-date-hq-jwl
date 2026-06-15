@@ -560,11 +560,18 @@ export function ObligationQueueDetailDrawer({
     // Risk — Extension folds into the Status workflow as a follow-up;
     // Risk was already unmounted. The set still adapts per obligation
     // type (a payment row keeps Status/Record/Audit, no Materials).
-    if (!isPageMode) return base
+    //
+    // 2026-06-15 (Yuqi): the locked-4 set applies to every persistent
+    // panel surface, not just the page. The client-detail side panel
+    // (ObligationPanelDispatcher, mode="panel") is the same filing the
+    // user would otherwise open at /deadlines/:ref — showing it 5 tabs
+    // there and 4 on the page was an inconsistency. Gate on `panelLayout`
+    // (panel + page) so both match; the legacy floating sheet keeps base.
+    if (!panelLayout) return base
     return base.filter(
       (tab) => tab === 'summary' || tab === 'readiness' || tab === 'evidence' || tab === 'audit',
     )
-  }, [row?.obligationType, isPageMode])
+  }, [row?.obligationType, panelLayout])
   const visibleTabs = useMemo(() => new Set(visibleTabsList), [visibleTabsList])
   // If the URL pins a tab that this obligation type doesn't expose
   // (e.g. ?tab=extension on a payment row), bounce to the first tab
