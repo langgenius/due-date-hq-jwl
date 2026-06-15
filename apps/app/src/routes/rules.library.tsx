@@ -863,28 +863,21 @@ function OverviewReviewBreakdown({
                   <span className="truncate text-base font-medium text-text-primary">
                     {g.label}
                   </span>
+                  {/* Subline carries only the row's *differentiators*: high
+                      severity (when present) + how long it's waited. The
+                      absolute "oldest {date}" lived here too, but it restates
+                      the same timestamp as "Nd waiting" and is identical on
+                      every row in single-cohort data — the StatBand owns the
+                      absolute date. "No high-severity" is dropped: absence
+                      reads as none without a label on 4-of-6 rows. */}
                   <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
-                    <span className={g.highCount > 0 ? 'text-text-warning' : undefined}>
-                      {g.highCount > 0 ? (
+                    {g.highCount > 0 ? (
+                      <span className="text-text-warning">
                         <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
-                      ) : (
-                        <Trans>No high-severity</Trans>
-                      )}
-                    </span>
-                    {g.oldest != null ? (
-                      <>
-                        <span aria-hidden>·</span>
-                        <span>
-                          <Trans>oldest {formatDatePretty(new Date(g.oldest).toISOString())}</Trans>
-                        </span>
-                        {days != null ? (
-                          <>
-                            <span aria-hidden>·</span>
-                            <span>{t`${days}d waiting`}</span>
-                          </>
-                        ) : null}
-                      </>
+                      </span>
                     ) : null}
+                    {g.highCount > 0 && days != null ? <span aria-hidden>·</span> : null}
+                    {days != null ? <span>{t`${days}d waiting`}</span> : null}
                   </span>
                 </div>
                 <span className="shrink-0 text-sm font-semibold tabular-nums text-text-warning">
@@ -913,7 +906,9 @@ function OverviewReviewBreakdown({
             <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>By severity</Trans>
             </span>
-            {severityRows.map((row) => (
+            {severityRows
+              .filter((row) => row.count > 0)
+              .map((row) => (
               <div key={row.key} className="flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-text-secondary">{row.label}</span>
                 <span
@@ -927,7 +922,10 @@ function OverviewReviewBreakdown({
               </div>
             ))}
           </div>
-          {reasonCounts.length > 0 ? (
+          {/* "By reason" only earns its space when there's a mix — a single
+              reason just restates the pending total (already in the StatBand
+              + banner), so it's hidden rather than duplicated. */}
+          {reasonCounts.length > 1 ? (
             <div className="flex flex-col gap-2 border-t border-divider-subtle pt-4">
               <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
                 <Trans>By reason</Trans>
@@ -2714,22 +2712,30 @@ export function RulesLibraryRoute() {
                         other="# rules need your review"
                       />
                     </p>
+                    {/* Action framing, not the date — the oldest-waiting date
+                        is owned by the StatBand's PENDING REVIEW sub, so the
+                        banner doesn't restate it. */}
                     <p className="truncate text-sm font-medium text-text-tertiary">
-                      {oldestReviewRelative ? (
-                        <Trans>Oldest waiting since {oldestReviewRelative}</Trans>
-                      ) : (
-                        <Trans>Review them before they affect client filings</Trans>
-                      )}
+                      <Trans>Review them before they affect client filings</Trans>
                     </p>
                   </div>
                   <Button
                     size="sm"
                     onClick={() => {
-                      selectAllPending()
+                      // Scope to one previewable batch (the impact preview +
+                      // bulk accept cap at BULK_ACCEPT_BATCH_MAX). Selecting all
+                      // 456 opened the modal over the cap — Accept disabled and
+                      // "untick to see impact" instead of a real readiness read.
+                      // A capped batch opens previewable; the rest stay queued.
+                      setSelectedRuleIds(new Set(allReviewableRuleIds.slice(0, BULK_ACCEPT_BATCH_MAX)))
                       setBulkListOpen(true)
                     }}
                   >
-                    <Trans>Start review</Trans>
+                    {allReviewableRuleIds.length > BULK_ACCEPT_BATCH_MAX ? (
+                      <Trans>Start review ({BULK_ACCEPT_BATCH_MAX})</Trans>
+                    ) : (
+                      <Trans>Start review</Trans>
+                    )}
                   </Button>
                 </div>
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />

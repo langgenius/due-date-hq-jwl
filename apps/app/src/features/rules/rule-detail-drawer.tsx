@@ -425,7 +425,10 @@ export function RuleDetailCompact({
     <DisclosureCard
       flat={splitRail}
       title={<Trans>Applicability</Trans>}
-      meta={<Trans>Verify before Accept</Trans>}
+      // No right-meta: the other sections' metas are facts (classification /
+      // source count / version); "Verify before Accept" was an instruction
+      // that the group eyebrow ("Verify the facts") already states. Dropping
+      // it keeps the meta slot meaning one thing — a fact — across sections.
       moreLabel={<Trans>Show all fields</Trans>}
       summary={
         <div className="flex min-w-0 flex-wrap items-center gap-2.5">
@@ -1358,10 +1361,12 @@ function CandidateReviewForm({
             it still needs concrete due-date logic before it can create deadlines.
           </Trans>
         ) : (
+          // Only the unique skip-guidance here — the "accepting activates this
+          // rule" consequence is already stated by the Impact card at the top
+          // of this rail, so it isn't repeated next to the buttons.
           <Trans>
-            Accepting activates this rule for client filings in {rule.jurisdiction} for{' '}
-            {entitySummary}. Skip it if the evidence, applicability, due-date logic, or extension
-            handling needs more review.
+            Skip it if the evidence, applicability, due-date logic, or extension handling needs more
+            review.
           </Trans>
         )}
       </p>
@@ -1428,13 +1433,10 @@ function CandidateReviewForm({
           </Button>
         </div>
       </div>
-      {/* Footer hint (TkpJG) — names what unlocks Accept, so the disabled state
-          reads as a temporary gate rather than a dead end. */}
-      {acceptDisabled && !reviewDisabled ? (
-        <p className="text-xs font-medium text-text-tertiary">
-          <Trans>Accept unlocks once the draft is ready.</Trans>
-        </p>
-      ) : null}
+      {/* No separate "Accept unlocks once the draft is ready" hint here — it
+          restated the ⚠ disabled-reason that already sits next to the locked
+          Accept above (and the actionable home is the "Before you accept"
+          gate card). One home per fact. */}
       {confirmImpact ? (
         <ConfirmImpactDialog
           open={confirmOpen}
