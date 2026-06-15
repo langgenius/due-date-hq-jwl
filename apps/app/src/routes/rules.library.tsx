@@ -2028,19 +2028,6 @@ export function RulesLibraryRoute() {
     setBatchReviewDirty(false)
   }, [allReviewableRuleIds])
 
-  // The floating bulk bar's "Select all" is scoped to what the user is
-  // looking at: on a jurisdiction page it selects that state's pending rules
-  // (not all 456), on the overview it selects the whole backlog.
-  const reviewBarScopeIds = useMemo(() => {
-    if (!selectedGroup) return allReviewableRuleIds
-    return selectedGroup.rules
-      .filter((r) => r.status === 'candidate' || r.status === 'pending_review')
-      .map((r) => r.id)
-  }, [selectedGroup, allReviewableRuleIds])
-  const selectAllInScope = useCallback(() => {
-    setSelectedRuleIds(new Set(reviewBarScopeIds))
-  }, [reviewBarScopeIds])
-
   // Header actions cluster — sits inline with the page title via the
   // shell's `actions` slot. Replaces the prior standalone PageActions
   // row (which left a ~48px dead zone between the title and the next
@@ -2752,9 +2739,7 @@ export function RulesLibraryRoute() {
       {selectedReviewRules.length > 0 && !bulkListOpen ? (
         <BulkReviewBar
           count={selectedReviewRules.length}
-          totalPending={reviewBarScopeIds.length}
           onReview={() => setBulkListOpen(true)}
-          onSelectAll={selectAllInScope}
           onClear={clearSelection}
         />
       ) : null}
@@ -4594,36 +4579,18 @@ function RuleEffectiveBanner({ rule }: { rule: ObligationRule }) {
 
 function BulkReviewBar({
   count,
-  totalPending,
   onReview,
-  onSelectAll,
   onClear,
 }: {
   count: number
-  totalPending: number
   onReview: () => void
-  onSelectAll: () => void
   onClear: () => void
 }) {
   const { t } = useLingui()
-  // Only show the "select all N" link when there are MORE pending
-  // rules than the user has currently selected — otherwise it's a
-  // no-op that just clutters the bar.
-  const showSelectAll = totalPending > count
-  // 2026-05-26 (Yuqi feedback — "Bulk review actions look ugly and not
-  // UX friendly"): bar internals restructured for clearer hierarchy.
-  // Three named slots, separated by a single muted divider:
-  //   [ count-line + Clear ] | [ Select-all link ] | [ Review CTA ]
-  //
-  // Count is sm (was xs) so it carries weight as the primary status
-  // line. "Clear" sits as a quiet tertiary link DIRECTLY next to the
-  // count — same group ("what's selected"). "Select all" lives in its
-  // own slot — separate action of expanding the selection — only when
-  // it'd actually do something. The primary "Review" button keeps its
-  // place at the right end as the canonical "act on selection" CTA;
-  // the count is also baked into its label ("Review N rules") so a
-  // user who already knows what they selected can fire the action
-  // without re-reading the count line.
+  // No "Select all N" here — the table's header checkbox already owns
+  // select-all for the visible/state rows, and the table has no pagination,
+  // so a second select-all in the bar just duplicated it (Yuqi). The bar's
+  // job is acting on the current selection: count + Clear + Review N.
   return (
     <FloatingActionBar ariaLabel={t`Bulk review actions`}>
       <div className="flex items-center gap-2">
@@ -4634,14 +4601,6 @@ function BulkReviewBar({
           <Trans>Clear</Trans>
         </TextLink>
       </div>
-      {showSelectAll ? (
-        <>
-          <span aria-hidden className="h-4 w-px bg-divider-subtle" />
-          <TextLink variant="accent" onClick={onSelectAll}>
-            <Trans>Select all {totalPending}</Trans>
-          </TextLink>
-        </>
-      ) : null}
       <span aria-hidden className="h-4 w-px bg-divider-subtle" />
       <Button
         type="button"
@@ -4652,9 +4611,6 @@ function BulkReviewBar({
         <Trans>Review {count}</Trans>
         <ChevronRightIcon data-icon="inline-end" />
       </Button>
-      {/* Step 6 cont R3.1 wanted a canonical Button Clear; HEAD already
-          renders a `Clear` link at the left of the bar (L3347-3353).
-          Skipped duplicate to avoid two Clear buttons in the same bar. */}
     </FloatingActionBar>
   )
 }
