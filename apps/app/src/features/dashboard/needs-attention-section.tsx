@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, MegaphoneIcon, SlidersHorizontalIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
@@ -126,7 +126,6 @@ function NeedsAttentionSection() {
   if (totalAlertCount === 0) {
     const enabledSources = sources.filter((source) => source.enabled)
     const watchedSources = enabledSources.filter((source) => source.healthStatus !== 'paused')
-    const pausedCount = enabledSources.length - watchedSources.length
     // No watched sources is only a real state once the health query has loaded
     // — during load we don't flash "no sources monitored".
     const noSources = !sourceHealthQuery.isLoading && watchedSources.length === 0
@@ -190,15 +189,6 @@ function NeedsAttentionSection() {
               </span>
             ) : null}
           </p>
-          {pausedCount > 0 ? (
-            <p className="text-sm font-medium text-text-warning">
-              <Plural
-                value={pausedCount}
-                one="# monitored source is paused"
-                other="# monitored sources are paused"
-              />
-            </p>
-          ) : null}
         </div>
         <Link
           to="/rules/sources"

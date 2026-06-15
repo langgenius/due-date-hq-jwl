@@ -229,17 +229,20 @@ function SidebarQuickFind() {
 }
 
 /**
- * SidebarSystemStatus — a quiet "is monitoring actually working?" line in the
+ * SidebarSystemStatus — a quiet "what are we watching" reassurance line in the
  * footer zone (just under Audit log / Settings). Reads the canonical
- * `pulse.listSourceHealth` query (the SAME one the Sources tab uses, so the two
- * can't drift) and derives two facts: whether any enabled source is degraded /
- * failing, and when the sweep last ran.
+ * `pulse.listSourceHealth` query for the monitoring SCOPE (source + jurisdiction
+ * counts, last sweep time).
  *
- * The DOT carries the tone (green / amber / red); the label stays neutral —
- * chromatic accent lives in the container, never the rail text. Clicking opens
- * `/rules/sources` to investigate. Renders nothing until data loads or when
- * there are no enabled sources. Collapsed rail: just the tone dot, full status
- * on hover. The dot sits in a 16px slot so it centers on the nav-icon column.
+ * Deliberately positive-only: it never surfaces per-source failures. Which
+ * government sites we scrape and whether one is throwing a bot-challenge or a
+ * 5xx is an internal/dev concern a CPA firm can't act on, so the rail shows a
+ * steady success-tone dot and the scope, never a red "N sources need attention".
+ * Source failures are handled out-of-band (ops alerts + the weekly source-health
+ * workflow). Clicking opens `/rules/sources` (coverage view). Renders nothing
+ * until data loads or when there are no enabled sources. Collapsed rail: just
+ * the dot, full status on hover. The dot sits in a 16px slot so it centers on
+ * the nav-icon column.
  */
 function SidebarSystemStatus() {
   const { t } = useLingui()
@@ -251,9 +254,6 @@ function SidebarSystemStatus() {
 
   if (healthQuery.isPending || enabled.length === 0) return null
 
-  const failing = enabled.filter((source) => source.healthStatus === 'failing').length
-  const degraded = enabled.filter((source) => source.healthStatus === 'degraded').length
-  const needAttention = failing + degraded
   const sourceCount = enabled.length
   const jurisdictions = new Set(enabled.map((source) => source.jurisdiction)).size
   const lastChecked =
@@ -264,32 +264,21 @@ function SidebarSystemStatus() {
       .at(-1) ?? null
   const relativeChecked = lastChecked ? formatRelativeTime(lastChecked) : null
 
-  const dotToneClass =
-    failing > 0 ? 'bg-text-destructive' : degraded > 0 ? 'bg-text-warning' : 'bg-text-success'
+  // Source health is an internal/dev concern — which government sites we scrape
+  // and whether one is throwing a bot-challenge or a 5xx isn't something a CPA
+  // firm can act on, and surfacing it as a red "N sources need attention" only
+  // erodes trust. The rail pill stays a positive reassurance: a steady-tone dot
+  // and the monitoring SCOPE ("what are we watching"). Failures are handled
+  // out-of-band (ops alerts + the weekly source-health workflow).
+  const dotToneClass = 'bg-text-success'
 
-  // The DOT carries health; the line text shows the monitoring SCOPE while
-  // everything's healthy ("what are we watching"), then swaps to the problem
-  // the moment a source degrades/fails. The tooltip always carries both.
-  const healthLabel =
-    needAttention === 0 ? (
-      <Trans>All sources healthy</Trans>
-    ) : (
-      <Plural
-        value={needAttention}
-        one="# source needs attention"
-        other="# sources need attention"
-      />
-    )
-  const lineLabel =
-    needAttention === 0 ? (
-      <Plural
-        value={jurisdictions}
-        one="Monitoring # jurisdiction"
-        other="Monitoring # jurisdictions"
-      />
-    ) : (
-      healthLabel
-    )
+  const scopeLabel = (
+    <Plural
+      value={jurisdictions}
+      one="Monitoring # jurisdiction"
+      other="Monitoring # jurisdictions"
+    />
+  )
 
   return (
     <Tooltip>
@@ -308,7 +297,7 @@ function SidebarSystemStatus() {
               <span className={cn('size-1.5 rounded-full', dotToneClass)} aria-hidden />
             </span>
             <span className="min-w-0 flex-1 truncate text-sm text-text-tertiary group-data-[collapsed=true]/sidebar:hidden">
-              {lineLabel}
+              {scopeLabel}
               {relativeChecked ? (
                 <span className="text-text-muted">
                   {' · '}
@@ -321,7 +310,7 @@ function SidebarSystemStatus() {
       />
       <TooltipContent>
         <div className="flex max-w-[240px] flex-col gap-1 text-left">
-          <span className="font-semibold">{healthLabel}</span>
+          <span className="font-semibold">{scopeLabel}</span>
           <span>
             <Trans>
               Monitoring {sourceCount} sources across {jurisdictions} jurisdictions

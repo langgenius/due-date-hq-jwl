@@ -16,7 +16,6 @@ const rpcMocks = vi.hoisted(() => ({
   listRulesQueryFn: vi.fn(),
   sourceCoverageQueryFn: vi.fn(),
   sourceHealthQueryFn: vi.fn(),
-  retrySourceHealthMutationFn: vi.fn(),
   catchUpStillOpenWindowsMutationFn: vi.fn(),
 }))
 
@@ -61,12 +60,6 @@ vi.mock('@/lib/rpc', () => ({
       },
       activeCount: {
         key: () => ['pulse', 'activeCount'],
-      },
-      retrySourceHealth: {
-        mutationOptions: (options: Record<string, unknown>) => ({
-          mutationFn: rpcMocks.retrySourceHealthMutationFn,
-          ...options,
-        }),
       },
     },
   },
@@ -114,17 +107,6 @@ async function waitForText(text: string, attempts = 100): Promise<void> {
   throw new Error(`Expected text not found: ${text}; body=${document.body.textContent ?? ''}`)
 }
 
-async function waitForTextToDisappear(text: string, attempts = 100): Promise<void> {
-  if (!document.body.textContent?.includes(text)) return
-  if (attempts > 0) {
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 10))
-    })
-    return waitForTextToDisappear(text, attempts - 1)
-  }
-  throw new Error(`Expected text to disappear: ${text}; body=${document.body.textContent ?? ''}`)
-}
-
 beforeEach(() => {
   bootstrapI18n()
   rpcMocks.listSourcesQueryFn.mockReset()
@@ -134,7 +116,6 @@ beforeEach(() => {
   rpcMocks.sourceCoverageQueryFn.mockReset()
   rpcMocks.sourceCoverageQueryFn.mockResolvedValue({ coverage: [] })
   rpcMocks.sourceHealthQueryFn.mockReset()
-  rpcMocks.retrySourceHealthMutationFn.mockReset()
   rpcMocks.catchUpStillOpenWindowsMutationFn.mockReset()
   rpcMocks.catchUpStillOpenWindowsMutationFn.mockResolvedValue({ materializedCount: 0 })
 })
@@ -150,8 +131,10 @@ afterEach(() => {
   activateLocale('en')
 })
 
-describe('SourcesTab source health retry', () => {
-  it('removes the needs-attention banner when retry returns a healthy source list', async () => {
+describe('SourcesTab (positive coverage only)', () => {
+  it('never surfaces source failures to the customer — no needs-attention banner or re-check, even for a failing source', async () => {
+    // Source health is an internal/dev concern: a failing watcher must NOT bleed
+    // into the customer-facing Sources view as a red banner or a re-check lever.
     rpcMocks.sourceHealthQueryFn.mockResolvedValue({
       sources: [
         {
@@ -163,52 +146,27 @@ describe('SourcesTab source health retry', () => {
           primaryWeb: true,
           relatedSourceIds: [],
           enabled: true,
-          healthStatus: 'degraded',
+          healthStatus: 'failing',
           lastCheckedAt: '2026-05-01T09:20:00.000Z',
           lastSuccessAt: '2026-05-01T07:20:00.000Z',
           nextCheckAt: '2026-05-01T10:20:00.000Z',
-          consecutiveFailures: 1,
-          lastError: 'RSS returned 304 after one retry.',
-        },
-      ],
-    })
-    rpcMocks.retrySourceHealthMutationFn.mockResolvedValue({
-      sources: [
-        {
-          sourceId: 'tx.cpa.rss',
-          label: 'TX Comptroller News',
-          tier: 'T1',
-          jurisdiction: 'TX',
-          purpose: 'rule_source_watch',
-          primaryWeb: true,
-          relatedSourceIds: [],
-          enabled: true,
-          healthStatus: 'healthy',
-          lastCheckedAt: '2026-06-13T03:30:00.000Z',
-          lastSuccessAt: '2026-06-13T03:30:00.000Z',
-          nextCheckAt: '2026-06-13T04:30:00.000Z',
-          consecutiveFailures: 0,
-          lastError: null,
+          consecutiveFailures: 14,
+          lastError: 'robots.txt disallows /news',
         },
       ],
     })
 
     await render(<SourcesTab />)
-    await waitForText('Needs attention')
-    await waitForText('TX Comptroller News')
+    // KPI strip always renders once the source query settles — a stable anchor
+    // proving the tab mounted before we assert on absences.
+    await waitForText('Sources monitored')
 
-    const retryButton = Array.from(document.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Re-check now'),
-    )
-    expect(retryButton).toBeDefined()
-
-    await act(async () => {
-      retryButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
-    expect(rpcMocks.retrySourceHealthMutationFn.mock.calls[0]?.[0]).toEqual({
-      sourceId: 'tx.cpa.rss',
-    })
-    await waitForTextToDisappear('Needs attention')
+    expect(document.body.textContent).not.toContain('Needs attention')
+    expect(document.body.textContent).not.toContain('robots.txt disallows /news')
+    expect(
+      Array.from(document.querySelectorAll('button')).some((button) =>
+        button.textContent?.includes('Re-check now'),
+      ),
+    ).toBe(false)
   })
 })

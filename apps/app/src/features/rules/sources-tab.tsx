@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
+import { ExternalLinkIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { PulseAlertSourceCoverage, PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
@@ -76,23 +76,6 @@ export function SourcesTab() {
     return map
   }, [sourceHealthQuery.data])
 
-  // Force a re-poll of a degraded/failing source instead of waiting for its
-  // scheduled `nextCheckAt`. (`retrySourceHealth` was previously unused.)
-  const queryClient = useQueryClient()
-  const retryMutation = useMutation(
-    orpc.pulse.retrySourceHealth.mutationOptions({
-      onSuccess: (data) => {
-        queryClient.setQueryData(orpc.pulse.listSourceHealth.key(), data)
-      },
-      onError: () => {
-        toast.error(t`Couldn't re-check that source`)
-      },
-    }),
-  )
-  const retryingSourceId = retryMutation.isPending
-    ? (retryMutation.variables?.sourceId ?? null)
-    : null
-
   // Rule catalog size powers the "Rules derived" KPI (Pencil bf6Ni KPI
   // strip). Reuses the same `listRules` payload the library already
   // fetches, so it's a warm cache hit in practice.
@@ -102,20 +85,6 @@ export function SourcesTab() {
 
   const rows = useMemo(() => sourcesQuery.data ?? EMPTY_SOURCE_ROWS, [sourcesQuery.data])
   const counts = useMemo(() => countSourcesByHealth(rows), [rows])
-  // Sources the sidebar "N sources need attention" line is counting — the
-  // EXACT predicate `SidebarSystemStatus` applies to the same
-  // `pulse.listSourceHealth` payload (enabled + degraded/failing). These
-  // watchers may not exist in the RuleSource registry at all (e.g. a
-  // news-RSS watcher), so they're surfaced as a pinned section rather than
-  // a row filter — a registry filter would silently show zero rows.
-  const needsAttentionEntries = useMemo(
-    () =>
-      (sourceHealthQuery.data?.sources ?? []).filter(
-        (entry) =>
-          entry.enabled && (entry.healthStatus === 'degraded' || entry.healthStatus === 'failing'),
-      ),
-    [sourceHealthQuery.data],
-  )
   // KPI strip stats (Pencil bf6Ni). Derived from the wired source +
   // health + rule payloads — no new query.
   const kpiStats = useMemo(() => {
@@ -224,11 +193,6 @@ export function SourcesTab() {
         fetched24h={kpiStats.fetched24h}
         paused={counts.paused}
       />
-      <NeedsAttentionSection
-        entries={needsAttentionEntries}
-        onRetry={(sourceId) => retryMutation.mutate({ sourceId })}
-        retryingSourceId={retryingSourceId}
-      />
       <div className="flex items-center gap-4">
         <FilterChips
           options={filterOptions}
@@ -301,8 +265,6 @@ export function SourcesTab() {
                 source={source}
                 health={sourceHealthBySourceId.get(source.id)}
                 sourceTypeLabels={sourceTypeLabels}
-                onRetry={(sourceId) => retryMutation.mutate({ sourceId })}
-                retrying={retryingSourceId === source.id}
               />
             ))}
             {visibleRows.length === 0 ? (
@@ -401,83 +363,6 @@ function SourcesKpiStrip({
     },
   ]
   return <StatBand stats={stats} ariaLabel={t`Source feed summary`} />
-}
-
-/**
- * NeedsAttentionSection — the page-level answer to the sidebar's
- * "N sources need attention" line, which links here. Same query
- * (`pulse.listSourceHealth`), same predicate (enabled + degraded/failing),
- * so the count can't drift. Pinned above the registry table because these
- * watchers aren't necessarily registry rows — a degraded news-RSS watcher
- * has no `RuleSource` entry, so a table filter would show nothing.
- * Renders nothing while everything is healthy.
- */
-function NeedsAttentionSection({
-  entries,
-  onRetry,
-  retryingSourceId,
-}: {
-  entries: readonly PulseSourceHealth[]
-  onRetry: (sourceId: string) => void
-  retryingSourceId: string | null
-}) {
-  const { t } = useLingui()
-  if (entries.length === 0) return null
-
-  return (
-    <SectionFrame>
-      <div className="flex items-center gap-2 px-4 py-3">
-        <AlertTriangleIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
-        <h2 className="text-sm font-semibold text-text-primary">
-          <Trans>Needs attention</Trans>
-        </h2>
-        <span className="text-sm tabular-nums text-text-tertiary">{entries.length}</span>
-      </div>
-      <ul className="flex flex-col">
-        {entries.map((entry) => {
-          const retrying = retryingSourceId === entry.sourceId
-          return (
-            <li
-              key={entry.sourceId}
-              className="flex items-center gap-3 border-t border-divider-subtle px-4 py-3"
-            >
-              <JurisdictionCode code={entry.jurisdiction} />
-              <div className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-text-primary">
-                  {entry.label}
-                </span>
-                <span className="block truncate text-xs text-text-tertiary">
-                  {/* The honest reason, straight from the watcher record. */}
-                  {entry.lastError ?? t`No error recorded`}
-                  {entry.lastCheckedAt ? (
-                    <>
-                      {' · '}
-                      <Trans>last checked {relativeTimeShort(entry.lastCheckedAt)} ago</Trans>
-                    </>
-                  ) : null}
-                </span>
-              </div>
-              <Badge
-                variant={entry.healthStatus === 'failing' ? 'destructive' : 'warning'}
-                size="sm"
-              >
-                {entry.healthStatus === 'failing' ? t`Failing` : t`Degraded`}
-              </Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                onClick={() => onRetry(entry.sourceId)}
-                disabled={retrying}
-              >
-                {retrying ? <Trans>Re-checking…</Trans> : <Trans>Re-check now</Trans>}
-              </Button>
-            </li>
-          )
-        })}
-      </ul>
-    </SectionFrame>
-  )
 }
 
 /**
@@ -663,20 +548,12 @@ function SourceRow({
   source,
   health,
   sourceTypeLabels,
-  onRetry,
-  retrying,
 }: {
   source: RuleSource
   health: PulseSourceHealth | undefined
   sourceTypeLabels: SourceTypeLabelMap
-  onRetry: (sourceId: string) => void
-  retrying: boolean
 }) {
   const { t } = useLingui()
-  // A source "needs attention" when the watcher has a failure streak or a
-  // recorded last error — that's when the manual re-check is worth offering.
-  const needsAttention = Boolean(health && (health.consecutiveFailures > 0 || health.lastError))
-
   // Keep every interactive affordance on this row pointed at the exact
   // RuleSource.url from the registry. The title and trailing icon are native
   // anchors; the row-level handler is only a larger mouse target.
@@ -752,11 +629,9 @@ function SourceRow({
       <TableCell
         className="px-2 py-3"
         title={
-          needsAttention && health?.lastError
-            ? t`Last error: ${health.lastError}`
-            : health?.lastCheckedAt
-              ? t`Last checked: ${relativeTimeShort(health.lastCheckedAt)}`
-              : undefined
+          health?.lastCheckedAt
+            ? t`Last checked: ${relativeTimeShort(health.lastCheckedAt)}`
+            : undefined
         }
       >
         <HealthBadge health={source.healthStatus} />
@@ -771,22 +646,6 @@ function SourceRow({
       </TableCell>
       <TableCell className="px-0 py-3">
         <div className="flex items-center justify-center gap-0.5">
-          {needsAttention ? (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation()
-                onRetry(source.id)
-              }}
-              disabled={retrying}
-              aria-label={t`Re-check ${source.title} now`}
-              title={t`Re-check now`}
-            >
-              <RefreshCwIcon className={`size-3.5 ${retrying ? 'animate-spin' : ''}`} aria-hidden />
-            </Button>
-          ) : null}
           <a
             href={source.url}
             target="_blank"

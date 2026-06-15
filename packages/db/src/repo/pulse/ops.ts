@@ -176,6 +176,26 @@ export function pulseExpiredCondition(now: Date) {
   )
 }
 
+// A watcher can fail for two structurally different reasons. A transient/dead
+// fetch (timeout, 5xx, an upstream Cloudflare 525, an intermittent WAF 403)
+// should climb the degraded→failing streak and keep retrying every ~15 min so
+// it self-heals. But a *standing refusal of automated access* — the target's
+// robots.txt disallowing our path, or a Cloudflare "Just a moment" bot
+// challenge a plain fetch can't clear — will never clear on retry and should
+// not sit red in the health UI or page ops forever. We park those in the
+// terminal 'paused' state (excluded from failed-fetch counts, idle alerts, and
+// the streak climb) with the honest reason preserved in lastError, and back the
+// re-probe off to weekly so we still notice if the block is ever lifted.
+const SOURCE_BLOCKED_RECHECK_MS = 7 * 24 * 60 * 60 * 1000
+function isTerminalSourceBlock(error: string): boolean {
+  // We deliberately obey robots.txt (assertRobotsAllowed) — retrying can't help.
+  if (error.includes('robots.txt disallows')) return true
+  // Cloudflare interstitial bot-challenge: the "Just a moment…" holding page a
+  // direct (or browser-UA) fetch can't pass without stealth/unblock fetching.
+  if (/just a moment/i.test(error)) return true
+  return false
+}
+
 export function makePulseOpsRepo(db: Db) {
   async function getPulse(pulseId: string) {
     const rows = await db.select().from(pulse).where(eq(pulse.id, pulseId)).limit(1)
@@ -998,12 +1018,21 @@ export function makePulseOpsRepo(db: Db) {
       const checkedAt = input.checkedAt ?? new Date()
       const current = await getSourceStateRow(input.sourceId)
       const consecutiveFailures = (current?.consecutiveFailures ?? 0) + 1
+      // A standing refusal of automated access (robots disallow / Cloudflare
+      // challenge) is parked terminal instead of climbing red forever — see
+      // isTerminalSourceBlock. Re-probe weekly so a lifted block self-heals via
+      // recordSourceSuccess (→ healthy).
+      const blocked = isTerminalSourceBlock(input.error)
+      const nextCheckAt = blocked
+        ? new Date(checkedAt.getTime() + SOURCE_BLOCKED_RECHECK_MS)
+        : input.nextCheckAt
       // Derive the visible health from the failure streak — nothing ever wrote
       // 'degraded'/'failing' before, so months-dead sources read healthy in the
       // sources UI. At the 15-min failure retry cap, 12 failures ≈ 3 hours of
       // sustained death. recordSourceSuccess resets to healthy.
-      const derivedHealth =
-        current?.healthStatus === 'paused'
+      const derivedHealth = blocked
+        ? ('paused' as const)
+        : current?.healthStatus === 'paused'
           ? null
           : consecutiveFailures >= 12
             ? ('failing' as const)
@@ -1014,7 +1043,7 @@ export function makePulseOpsRepo(db: Db) {
         .update(pulseSourceState)
         .set({
           lastCheckedAt: checkedAt,
-          nextCheckAt: input.nextCheckAt,
+          nextCheckAt,
           consecutiveFailures,
           lastError: input.error.slice(0, 500),
           ...(derivedHealth ? { healthStatus: derivedHealth } : {}),

@@ -2529,6 +2529,37 @@ describe('makePulseOpsRepo', () => {
     ).toBe(false)
   })
 
+  it('parks standing-block failures (robots / Cloudflare challenge) as paused on a weekly back-off', async () => {
+    const blockedUpdate = async (error: string) => {
+      const { db, directStatements } = fakeDb([
+        [{ consecutiveFailures: 20, healthStatus: 'failing' }],
+      ])
+      await makePulseOpsRepo(db).recordSourceFailure({
+        sourceId: 'ak.temporary_announcements',
+        checkedAt: new Date('2026-06-15T00:00:00.000Z'),
+        // Caller's 15-min retry cadence — the block branch must override it.
+        nextCheckAt: new Date('2026-06-15T00:15:00.000Z'),
+        error,
+      })
+      const update = directStatements.find((statement) => isKind(statement, 'update')) as {
+        value: Record<string, unknown>
+      }
+      return update.value
+    }
+
+    const weekLater = new Date('2026-06-22T00:00:00.000Z')
+    // robots.txt disallow: a standing refusal we deliberately obey — retrying
+    // can't help, so park terminal (paused, off the red streak) and re-probe
+    // weekly so a lifted block still self-heals.
+    const robots = await blockedUpdate('Pulse source robots.txt disallows /programs/whatsnew.aspx')
+    expect(robots).toMatchObject({ healthStatus: 'paused', nextCheckAt: weekLater })
+    // Cloudflare "Just a moment" interstitial: same standing-block treatment.
+    const challenge = await blockedUpdate(
+      'Pulse source fetch failed for ri.temporary_announcements: 403 — Just a moment...',
+    )
+    expect(challenge).toMatchObject({ healthStatus: 'paused', nextCheckAt: weekLater })
+  })
+
   it('re-drives excerpt-location guard rejections but keeps other guard rejections dead', async () => {
     const { db } = fakeDb([[]])
 
