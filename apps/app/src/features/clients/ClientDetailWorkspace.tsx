@@ -613,7 +613,11 @@ export function ClientDetailWorkspace({
                     <MissingFactsActionLabel readiness={readiness} />
                   </Badge>
                 ) : workPlan.statutoryLateUnextendedCount > 0 ? (
-                  <Badge variant="warning" className="text-xs">
+                  // Destructive tone (red), matching Pencil V1kJX's At-Risk
+                  // pill (state-destructive-hover): statutory-late unextended
+                  // filings are a genuine-risk state, not a config warning, so
+                  // it reads red — distinct from the amber needs-facts chip.
+                  <Badge variant="destructive" className="text-xs">
                     <span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />
                     <Trans>At risk</Trans>
                   </Badge>

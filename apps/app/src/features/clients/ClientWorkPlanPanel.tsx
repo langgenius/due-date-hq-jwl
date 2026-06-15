@@ -559,12 +559,15 @@ function FilingPlanYearSection({
           {isUnknown ? <Trans>No tax year</Trans> : group.year}
         </span>
         {group.isCurrent ? (
-          <span className="text-xs leading-4 text-text-tertiary">
-            <Trans>· current tax year</Trans>
+          // Italic year-marker tag matching Pencil V1kJX ("· Current tax
+          // year"): sentence-leading capital + italic so it reads as an
+          // annotation on the year heading, not a second label.
+          <span className="text-xs italic leading-4 text-text-tertiary">
+            <Trans>· Current tax year</Trans>
           </span>
         ) : group.isUpcoming ? (
-          <span className="text-xs leading-4 text-text-tertiary">
-            <Trans>· projected</Trans>
+          <span className="text-xs italic leading-4 text-text-tertiary">
+            <Trans>· Projected</Trans>
           </span>
         ) : null}
         {group.openCount > 0 ? (
