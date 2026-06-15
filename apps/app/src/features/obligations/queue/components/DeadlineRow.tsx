@@ -200,6 +200,9 @@ export function DeadlineRow({
           role="article"
           tabIndex={0}
           aria-expanded={isExpanded}
+          // When this surface opens the obligation in a side panel (isActive),
+          // the row is the selected master item — announce it as current.
+          aria-current={isActive ? 'true' : undefined}
           aria-labelledby={titleId}
           onClick={handleRowClick}
           onKeyDown={handleKeyDown}

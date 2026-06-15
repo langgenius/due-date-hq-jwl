@@ -54,3 +54,43 @@ tsgo clean; "Filed" verified live on the detail strip.
   Fix-now" but the real control is the "Fix now" button. Dropped the hyphen.
 
 tsgo clean; detail page verified live.
+
+## Cluster 3 — master/detail row feedback + empty state
+- **Opened row had no selected state [P1]**: clicking a filing row opens the
+  obligation in the side panel (`activeObligationId`), but that id was never
+  threaded into `DeadlineRow`, so `isActive` stayed false and nothing showed
+  which row produced the open panel. Threaded `activeObligationId` →
+  `ClientWorkPlanPanel` → `FilingPlanYearSection` → `DeadlineRow isActive`
+  (the accent fill already existed) and added `aria-current="true"` on the
+  active row. Verified live: the open row now carries the accent + announces
+  as current.
+- **Filing-plan empty state de-jargoned [P1]**: "Run migration or generate
+  rules…" (engineering verbs, no next step) → "Add this client's filing
+  state and entity type in Setup, and the rule library generates its
+  deadlines automatically" — CPA-facing, points to the Setup tab.
+
+Deferred (scoped follow-ups, need DeadlineRow keyboard/aria rework or
+panel-level handling, riskier than warranted here):
+- The inline-expand disclosure chevron never rotates on this surface (the
+  row opens a panel, not inline content) — now cosmetically a static "open"
+  affordance; a proper open-in-panel glyph / mode is a follow-up. `isActive`
+  + `aria-current` resolve the core "no feedback" problem.
+- Keyboard Escape on a focused row doesn't close the panel it opened (best
+  fixed at the panel level — Escape-to-close on the obligation aside).
+- Filing-plan tab count (unbounded) vs rows (capped 100) — only diverges at
+  >100 deadlines/client (documented rare edge); add "showing N of M" later.
+
+Cohort decisions flagged, NOT changed (would fork app-wide conventions):
+- Filing-plan column legend `font-bold` (700) uppercase micro-label — the
+  identical class is the convention on /alerts + ~15 surfaces; changing one
+  line forks the cohort. Type-weight cap vs convention is an app-wide call.
+- Four Setup section frames hand-roll `rounded-lg border p-4` rather than the
+  Card primitive — but Card adds `shadow-xs`; the shadowless inset-frame is
+  the app-wide inset-section pattern, so converting would add unwanted lift.
+
+Note: ClientWorkPlanPanel also carries the prior (stopped) session's
+floating-bar scroll-clearance change (complete, builds on the earlier
+TabSection refactor) — included here since it's clients work in a file this
+pass owns.
+
+tsgo clean; master/detail highlight verified live on Meridian.

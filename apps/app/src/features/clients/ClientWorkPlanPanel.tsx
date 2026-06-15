@@ -28,7 +28,10 @@ import {
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { EmptyState } from '@/components/patterns/empty-state'
-import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
+import {
+  FloatingActionBar,
+  FLOATING_ACTION_BAR_SCROLL_PADDING,
+} from '@/components/patterns/floating-action-bar'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { DeadlineRow } from '@/features/obligations/queue/components/DeadlineRow'
@@ -178,6 +181,7 @@ export function ClientWorkPlanPanel({
   isStatusChangePending: _isStatusChangePending,
   canChangeStatus,
   expandedFilingId,
+  activeObligationId,
   onExpandFiling,
   onCollapseFiling,
   compact = false,
@@ -190,6 +194,8 @@ export function ClientWorkPlanPanel({
   isStatusChangePending: boolean
   canChangeStatus: boolean
   expandedFilingId: string
+  /** The obligation open in the side panel — its row gets the active accent. */
+  activeObligationId: string | null
   onExpandFiling: (id: string) => void
   onCollapseFiling: () => void
   // When the obligation side panel is open the left column squeezes; render
@@ -303,7 +309,15 @@ export function ClientWorkPlanPanel({
     // redundant-header anti-pattern). Only the quiet grouping hint (sort
     // order) survives — `pl-3`/`gap-3` keep the workbench gutter + rhythm
     // that TabSection used to supply.
-    <section className="flex flex-col gap-3">
+    <section
+      className={cn(
+        'flex flex-col gap-3',
+        // Reserve clearance for the floating bulk bar while a selection
+        // exists, so the last rows scroll clear of the fixed bar instead of
+        // being occluded (this section scrolls inside the tab's overflow-y-auto).
+        selectedIds.size > 0 && FLOATING_ACTION_BAR_SCROLL_PADDING,
+      )}
+    >
       <span className="pl-3 text-xs text-text-tertiary">{subtitle}</span>
       {/* Each year section is wrapped in its own framed block using
           the canonical `rounded-lg border-divider-regular
@@ -323,7 +337,10 @@ export function ClientWorkPlanPanel({
           icon={ClipboardListIcon}
           title={<Trans>No deadlines yet</Trans>}
           description={
-            <Trans>Run migration or generate rules before this client has due-date work.</Trans>
+            <Trans>
+              Add this client's filing state and entity type in Setup, and the rule library
+              generates its deadlines automatically.
+            </Trans>
           }
         />
       ) : (
@@ -334,6 +351,7 @@ export function ClientWorkPlanPanel({
                 key={group.year}
                 group={group}
                 sort={sort}
+                activeObligationId={activeObligationId}
                 selectedIds={selectedIds}
                 onToggleRow={toggleRow}
                 onSetYearSelection={setYearSelection}
@@ -490,6 +508,7 @@ function FilingPlanBulkBar({
 function FilingPlanYearSection({
   group,
   sort,
+  activeObligationId,
   selectedIds,
   onToggleRow,
   onSetYearSelection,
@@ -502,6 +521,7 @@ function FilingPlanYearSection({
 }: {
   group: FilingPlanYearGroup
   sort: FilingPlanSort
+  activeObligationId: string | null
   selectedIds: Set<string>
   onToggleRow: (id: string) => void
   onSetYearSelection: (ids: readonly string[], on: boolean) => void
@@ -643,6 +663,7 @@ function FilingPlanYearSection({
             deadline={obligation}
             mode="inline-expand"
             compact={compact}
+            isActive={activeObligationId === obligation.id}
             isExpanded={expandedFilingId === obligation.id}
             isSelected={selectedIds.has(obligation.id)}
             multiSelectMode={selectedIds.size > 0}

@@ -923,6 +923,7 @@ export function ClientDetailWorkspace({
                   onChangeStatus={handleChangeObligationStatus}
                   isStatusChangePending={changeStatusMutation.isPending}
                   canChangeStatus={canUpdateObligationStatus}
+                  activeObligationId={activeObligationId}
                   expandedFilingId={expandedFilingId}
                   // 2026-06-15 (Yuqi): clicking a filing opens the obligation
                   // detail in the in-page side panel (the right <aside> that
