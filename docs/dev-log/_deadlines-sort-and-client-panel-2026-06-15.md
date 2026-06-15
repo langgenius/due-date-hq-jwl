@@ -55,8 +55,13 @@ decision: slide-in panel, keep the user anchored.
 ## 4. nuGN9 (HeroCard banner) — already present, confirmed
 
 Pencil `nuGN9` is the editorial banner (eyebrow date + headline + metric
-line). It already ships on the main list. The frame's sub-line carries
-`$7,890 penalty exposure` and `est. 3h focus` — both deliberately **omitted**
-(penalty UI hidden in `ea886787`; ETA/dollar figures are on the no-fiction
-banned list). The live metric line is the factual subset:
-`28 filings tracked · across 10 entities`. No change needed.
+line). It already ships on the main list. The frame's sub-line also carried a
+penalty-exposure dollar figure and an ETA — both deliberately **omitted** from
+the live UI (penalty UI removed by a teammate in `ea886787`; ETA/dollar figures
+are on the no-fiction banned list). The live metric line is the factual subset:
+`28 filings tracked · across 10 entities`.
+
+**Do not reintroduce penalty-exposure or dollar figures anywhere** (banner,
+detail tabs, marketing). The `nuGN9` frame sub-line was updated to drop that
+clause so a future "replicate the frame" pass won't copy it back. The dead
+`PenaltyExposureCard.tsx` is no longer mounted (kept only as a teammate file).
