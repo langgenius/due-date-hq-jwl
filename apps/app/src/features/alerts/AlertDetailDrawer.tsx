@@ -1716,6 +1716,48 @@ export function AlertDetailDrawer({
                 </Alert>
               ) : null}
 
+              {/* LOW-CONFIDENCE banner (Pencil gsl8K) — when the model is unsure
+                  (<50%), the "double-check this" cue is hoisted to the TOP of the
+                  body (it used to sit buried inside the Source section) so it is
+                  the first thing the CPA reads, with a concrete verify checklist
+                  instead of one prose sentence. Warning tone; the source excerpt
+                  + structured scope it points at live in the Change / Source
+                  sections below. */}
+              {isLowAiConfidence(detail.alert.confidence) ? (
+                <Alert variant="warning">
+                  <TriangleAlertIcon />
+                  <AlertTitle>
+                    <ConceptLabel concept="aiConfidence">
+                      <Trans>
+                        Low AI confidence ({Math.round(detail.alert.confidence * 100)}%) — verify
+                        before you act
+                      </Trans>
+                    </ConceptLabel>
+                  </AlertTitle>
+                  <AlertDescription>
+                    {detail.alert.firmImpact === 'no_current_match' ? (
+                      <Trans>
+                        The model extracted these fields with low confidence. Before marking this
+                        reviewed, confirm:
+                      </Trans>
+                    ) : (
+                      <Trans>
+                        The model extracted these fields with low confidence. Before pushing changes
+                        to clients, confirm:
+                      </Trans>
+                    )}
+                    <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-4">
+                      <li>
+                        <Trans>the parsed fields match the source excerpt below</Trans>
+                      </li>
+                      <li>
+                        <Trans>the structured scope is right for your clients</Trans>
+                      </li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+
               {/* GROUP 1 — Change details (2026-06-12 info-organisation pass:
                 renamed from the system-speak "Extracted facts"; named by
                 MEANING like every other section). The do-by-when KEY FACT
@@ -1942,42 +1984,6 @@ export function AlertDetailDrawer({
                 className="scroll-mt-16"
                 title={<Trans>Source</Trans>}
               >
-                {/* Low AI confidence — a "double-check this" cue (amber, not
-                  destructive). Names the % and explains what to verify. */}
-                {isLowAiConfidence(detail.alert.confidence) ? (
-                  <Alert variant="warning">
-                    <AlertTitle>
-                      <ConceptLabel concept="aiConfidence">
-                        {detail.alert.firmImpact === 'no_current_match' ? (
-                          <Trans>
-                            AI confidence {Math.round(detail.alert.confidence * 100)}% — review
-                            source
-                          </Trans>
-                        ) : (
-                          <Trans>
-                            AI confidence {Math.round(detail.alert.confidence * 100)}% — review
-                            source before applying
-                          </Trans>
-                        )}
-                      </ConceptLabel>
-                    </AlertTitle>
-                    <AlertDescription>
-                      {detail.alert.firmImpact === 'no_current_match' ? (
-                        <Trans>
-                          The model extracted these fields with low confidence. Compare against the
-                          source excerpt below and the structured scope before marking it reviewed.
-                        </Trans>
-                      ) : (
-                        <Trans>
-                          The model extracted these fields with low confidence. Compare against the
-                          source excerpt below and the structured scope before pushing changes to
-                          clients.
-                        </Trans>
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                ) : null}
-
                 {detail.alert.sourceStatus === 'source_revoked' ? (
                   <Alert variant="destructive">
                     <AlertTitle>

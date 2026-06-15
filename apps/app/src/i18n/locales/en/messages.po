@@ -2358,16 +2358,6 @@ msgstr "AI CONCRETE DRAFTS"
 msgid "AI confidence"
 msgstr "AI confidence"
 
-#. placeholder {0}: Math.round(detail.alert.confidence * 100)
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "AI confidence {0}% — review source"
-msgstr "AI confidence {0}% — review source"
-
-#. placeholder {0}: Math.round(detail.alert.confidence * 100)
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "AI confidence {0}% — review source before applying"
-msgstr "AI confidence {0}% — review source before applying"
-
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "AI confidence {confidencePct}%"
 msgstr "AI confidence {confidencePct}%"
@@ -9120,6 +9110,11 @@ msgstr "Lost your authenticator?"
 #: src/routes/rules.library.tsx
 msgid "Low"
 msgstr "Low"
+
+#. placeholder {0}: Math.round(detail.alert.confidence * 100)
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Low AI confidence ({0}%) — verify before you act"
+msgstr "Low AI confidence ({0}%) — verify before you act"
 
 #: src/components/primitives/low-confidence-badge.tsx
 msgid "Low confidence"
@@ -16061,12 +16056,12 @@ msgid "The matched active practice rule and period, or the reason this row is du
 msgstr "The matched active practice rule and period, or the reason this row is duplicate or skipped."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before marking it reviewed."
-msgstr "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before marking it reviewed."
+msgid "The model extracted these fields with low confidence. Before marking this reviewed, confirm:"
+msgstr "The model extracted these fields with low confidence. Before marking this reviewed, confirm:"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before pushing changes to clients."
-msgstr "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before pushing changes to clients."
+msgid "The model extracted these fields with low confidence. Before pushing changes to clients, confirm:"
+msgstr "The model extracted these fields with low confidence. Before pushing changes to clients, confirm:"
 
 #. placeholder {0}: formatDatePretty(new Date(lastChangeAt).toISOString())
 #: src/routes/rules.library.tsx
@@ -16092,6 +16087,10 @@ msgstr "The operating surface for deadline work: filter, sort, assign owners, up
 #: src/routes/not-found.tsx
 msgid "The page at <0>{pathname}</0> doesn't exist. The link may be out of date, or the page may have moved."
 msgstr "The page at <0>{pathname}</0> doesn't exist. The link may be out of date, or the page may have moved."
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "the parsed fields match the source excerpt below"
+msgstr "the parsed fields match the source excerpt below"
 
 #: src/routes/billing.tsx
 msgid "The payment provider manages checkout, invoices, and payment methods. DueDateHQ shows the active plan here."
@@ -16148,6 +16147,10 @@ msgstr "The status assigned if this row is generated: pending for reminder-ready
 #: src/features/concepts/concept-help.tsx
 msgid "The stored deadline risk view, mainly based on due date pressure, materials state, client history, and evidence status."
 msgstr "The stored deadline risk view, mainly based on due date pressure, materials state, client history, and evidence status."
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "the structured scope is right for your clients"
+msgstr "the structured scope is right for your clients"
 
 #: src/features/concepts/concept-help.tsx
 msgid "The system found a possible deadline, but a CPA, owner, or manager must confirm it before it is treated as final."
