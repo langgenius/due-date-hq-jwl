@@ -651,7 +651,10 @@ function BriefTableRow({
             asOfDate={asOfDate}
             className={cn(d <= 0 && 'text-[16px] leading-[22px]')}
           />
-          <span className="text-xs tabular-nums text-text-tertiary">
+          {/* text-caption (11px), down from 12px (Yuqi 2026-06-15): the
+              absolute date is the quiet second line under the countdown — it
+              recedes further so the relative countdown owns the cell. */}
+          <span className="text-caption tabular-nums text-text-tertiary">
             {formatDatePretty(row.currentDueDate)}
           </span>
         </div>

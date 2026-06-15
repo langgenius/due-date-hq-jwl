@@ -1,7 +1,17 @@
 import { Fragment, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ChevronDownIcon, ExternalLinkIcon, NewspaperIcon, RotateCwIcon, XIcon } from 'lucide-react'
+import {
+  ArrowRightIcon,
+  CalendarClockIcon,
+  ChevronDownIcon,
+  ClockIcon,
+  ExternalLinkIcon,
+  NewspaperIcon,
+  RotateCwIcon,
+  TriangleAlertIcon,
+  XIcon,
+} from 'lucide-react'
 import { Link } from 'react-router'
 
 import type {
@@ -293,6 +303,11 @@ export function DailyBriefCard({
           still sees its already-in-effect obligations. */}
       <CatchupLine />
 
+      {/* Action pills (Pencil t9nO3) — quick jumps to the surfaces the brief
+          summarizes, each with a live count. Self-hiding per pill + whole
+          row, so no empty/fictional pills appear. */}
+      <BriefActionPills counts={todayCounts} />
+
       {/* Failure footnote — a quiet caption, never the headline. */}
       {aiEnabled && brief?.status === 'failed' && !brief.text ? (
         <p className="text-caption text-text-tertiary">
@@ -300,6 +315,96 @@ export function DailyBriefCard({
         </p>
       ) : null}
     </section>
+  )
+}
+
+/**
+ * Action pills under the brief (Pencil t9nO3) — a row of quick-jump chips,
+ * each `icon + label + live count + →`, white on the accent band with a
+ * hairline border. Every count is REAL (no fiction): the alert count comes
+ * from the same `listAlerts` cache the page already warms; Waiting / Overdue
+ * read the `todayCounts` the card already receives. A pill renders only when
+ * its count > 0, and the whole row hides when nothing is pending — so the
+ * brief never shows an empty or invented pill. (The design's 4th "Sweep"
+ * pill is omitted until there's a cheap real change-count to back it.)
+ */
+function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
+  const { t } = useLingui()
+  // Shares the page's alerts cache (NeedsAttentionSection + CatchupLine use
+  // the same key) — no extra request. "Affecting" = matched a client's
+  // obligation, the same bar the Alerts section uses to earn a card.
+  const alertsQuery = useQuery(useAlertsListQueryOptions(50))
+  const alertCount = (alertsQuery.data?.alerts ?? []).filter(
+    (alert) => alert.matchedCount > 0,
+  ).length
+
+  const pills: Array<{
+    key: string
+    icon: typeof TriangleAlertIcon
+    iconClass: string
+    label: React.ReactNode
+    count: number
+    to: string
+    ariaLabel: string
+  }> = []
+  if (alertCount > 0) {
+    pills.push({
+      key: 'alerts',
+      icon: TriangleAlertIcon,
+      iconClass: 'text-text-destructive',
+      label: <Trans>Alerts</Trans>,
+      count: alertCount,
+      to: '/alerts',
+      ariaLabel: t`${alertCount} client-affecting alerts`,
+    })
+  }
+  if (counts.waitingOnClientCount > 0) {
+    pills.push({
+      key: 'waiting',
+      icon: ClockIcon,
+      iconClass: 'text-text-tertiary',
+      label: <Trans>Waiting</Trans>,
+      count: counts.waitingOnClientCount,
+      to: '/deadlines',
+      ariaLabel: t`${counts.waitingOnClientCount} deadlines waiting on the client`,
+    })
+  }
+  if (counts.overdueCount > 0) {
+    pills.push({
+      key: 'overdue',
+      icon: CalendarClockIcon,
+      iconClass: 'text-text-tertiary',
+      label: <Trans>Overdue</Trans>,
+      count: counts.overdueCount,
+      to: '/deadlines',
+      ariaLabel: t`${counts.overdueCount} overdue deadlines`,
+    })
+  }
+
+  if (pills.length === 0) return null
+
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-2">
+      {pills.map((pill) => {
+        const Icon = pill.icon
+        return (
+          <Link
+            key={pill.key}
+            to={pill.to}
+            aria-label={pill.ariaLabel}
+            className="group/pill inline-flex items-center gap-1.5 rounded-full border border-divider-subtle bg-background-default py-1 pr-2 pl-2.5 text-caption outline-none transition-colors hover:border-divider-regular hover:bg-background-section focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <Icon className={cn('size-3 shrink-0', pill.iconClass)} aria-hidden />
+            <span className="font-medium text-text-primary">{pill.label}</span>
+            <span className="tabular-nums text-text-tertiary">{pill.count}</span>
+            <ArrowRightIcon
+              className="size-2.5 shrink-0 text-text-muted transition-transform group-hover/pill:translate-x-0.5 motion-reduce:transition-none"
+              aria-hidden
+            />
+          </Link>
+        )
+      })}
+    </div>
   )
 }
 

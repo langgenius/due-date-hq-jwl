@@ -102,7 +102,10 @@
   --text-row-anchor: 14px;
   --text-row-anchor--line-height: 19px;
   --text-row-anchor--font-weight: 600;
-  --text-column-label: 12px;
+  /* 11px (2026-06-15, Yuqi "table header CAPS smaller by 1px"): the
+     uppercase column labels read a touch smaller than the 12px body so the
+     header band recedes further under the data. App-wide via TableHead. */
+  --text-column-label: 11px;
   --text-column-label--line-height: 16px;
   --text-column-label--font-weight: 600;
   --text-column-label--letter-spacing: 0.5px;

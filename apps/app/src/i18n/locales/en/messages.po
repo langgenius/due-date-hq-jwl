@@ -590,6 +590,11 @@ msgstr "{0} deadlines in this band are past the internal target"
 msgid "{0} deadlines moved to {1}"
 msgstr "{0} deadlines moved to {1}"
 
+#. placeholder {0}: counts.waitingOnClientCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0} deadlines waiting on the client"
+msgstr "{0} deadlines waiting on the client"
+
 #. placeholder {0}: deadline.evidenceCount
 #: src/features/obligations/queue/components/DeadlineRow.tsx
 msgid "{0} documents attached"
@@ -722,6 +727,11 @@ msgstr "{0} other"
 #: src/routes/obligations.tsx
 msgid "{0} overdue — clear the urgent set to pull the week back on track."
 msgstr "{0} overdue — clear the urgent set to pull the week back on track."
+
+#. placeholder {0}: counts.overdueCount
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{0} overdue deadlines"
+msgstr "{0} overdue deadlines"
 
 #. placeholder {0}: deadlinesNarrative.overdue
 #. placeholder {1}: deadlinesNarrative.dueToday
@@ -932,6 +942,10 @@ msgstr "{affectedReviewClients, plural, one {# client has state deadlines waitin
 #: src/routes/alerts.tsx
 msgid "{alertCount, plural, one {# open} other {# open}}"
 msgstr "{alertCount, plural, one {# open} other {# open}}"
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "{alertCount} client-affecting alerts"
+msgstr "{alertCount} client-affecting alerts"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{alertCount} open alerts"
@@ -2575,6 +2589,7 @@ msgstr "Alert: priority alert review"
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/concepts/concept-help.tsx
+#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/dashboard/needs-attention-section.tsx
 #: src/routes/alerts.history.tsx
 #: src/routes/alerts.tsx
@@ -3440,6 +3455,10 @@ msgstr "Back to clients"
 msgid "Back to Deadlines"
 msgstr "Back to Deadlines"
 
+#: src/routes/rules.library.tsx
+msgid "Backlog composition"
+msgstr "Backlog composition"
+
 #: src/routes/settings.profile.tsx
 msgid "Backup codes copied"
 msgstr "Backup codes copied"
@@ -3617,6 +3636,14 @@ msgstr "by {0}"
 #: src/routes/accept-invite.tsx
 msgid "By accepting you agree to the Terms and Privacy Policy."
 msgstr "By accepting you agree to the Terms and Privacy Policy."
+
+#: src/routes/rules.library.tsx
+msgid "By reason"
+msgstr "By reason"
+
+#: src/routes/rules.library.tsx
+msgid "By severity"
+msgstr "By severity"
 
 #: src/routes/clients.tsx
 msgid "C corp"
@@ -7948,6 +7975,7 @@ msgstr "Hide"
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/dashboard/severity-section.tsx
+#: src/routes/rules.library.tsx
 msgid "High"
 msgstr "High"
 
@@ -9035,6 +9063,7 @@ msgstr "Lost your authenticator?"
 #: src/features/alerts/components/AlertConfidencePill.tsx
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/clients/CreateClientDialog.tsx
+#: src/routes/rules.library.tsx
 msgid "Low"
 msgstr "Low"
 
@@ -9418,6 +9447,7 @@ msgstr "Materials still outstanding"
 #: src/features/alerts/components/AlertConfidencePill.tsx
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/clients/CreateClientDialog.tsx
+#: src/routes/rules.library.tsx
 msgid "Medium"
 msgstr "Medium"
 
@@ -11518,6 +11548,7 @@ msgid "Over your client limit"
 msgstr "Over your client limit"
 
 #: src/features/clients/ClientSummaryStrip.tsx
+#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -17212,6 +17243,7 @@ msgstr "Visible columns"
 msgid "WA subtotal minus credits"
 msgstr "WA subtotal minus credits"
 
+#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Waiting"
 msgstr "Waiting"

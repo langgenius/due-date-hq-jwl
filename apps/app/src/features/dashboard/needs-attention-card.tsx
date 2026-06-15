@@ -317,11 +317,11 @@ function NeedsAttentionCard({
           {/* Alert body — the source's verbatim quote under the headline (Yuqi:
               add the body text back). This is the authority's own words, which
               ARE distinct from the title (both title + summary derive from the
-              AI headline). Clamped to 2 lines so the card stays bounded; the
-              full text still lives in the drawer. Skipped when absent or when it
-              would just echo the title. */}
+              AI headline). Clamped to ONE line (Yuqi 2026-06-15) so the card
+              stays tight; the full text lives in the drawer. Skipped when
+              absent or when it would just echo the title. */}
           {alert.verbatimQuote && alert.verbatimQuote.trim() !== alert.title.trim() ? (
-            <p className="line-clamp-2 min-w-0 text-xs text-text-secondary">
+            <p className="line-clamp-1 min-w-0 text-xs text-text-secondary">
               {alert.verbatimQuote}
             </p>
           ) : null}
