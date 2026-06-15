@@ -1592,7 +1592,7 @@ export function AlertDetailDrawer({
         {/* Document body — a NON-scrolling content column inside the shared
           scroll wrapper above. `pb-24` buffers the sticky footer so the last
           row never hides behind it. */}
-        <div className="flex flex-col gap-6 bg-background-default px-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
+        <div className="flex flex-1 flex-col gap-6 bg-background-default px-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
           {/* Scroll-spy section nav (deadline-tab orientation on one long
             document). Sticky at the scroll viewport top; lighter than the
             deadline pill tabs (text + underline) so it reads as a table of
@@ -2172,34 +2172,31 @@ export function AlertDetailDrawer({
               </DetailSectionCard>
             </div>
           ) : null}
-        </div>
 
-        {/* Stage 6 — decision-card terminus + docking footer. The committed
-            decision surface lives INSIDE the scroll flow as the last child:
-            `mt-auto` pins it to the bottom when the document is short, while
-            `sticky bottom-0` makes it FLOAT over the document and then DOCK at
-            the end on long alerts. `decisionDocked` (set in onScroll) drops the
-            float elevation once the reader reaches the end, so the docked state
-            reads as a calm terminus rather than a hovering bar. The white fill
-            is back (unlike the old non-overlapping footer) because the document
-            now scrolls UNDER it; actions cap to the 880px document measure. */}
-        {detail ? (
-          <div
-            className={cn(
-              'sticky bottom-0 z-20 mt-auto min-h-16 border-t bg-background-default px-6 py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none xl:px-12',
-              decisionDocked ? 'border-transparent' : 'border-divider-subtle',
-            )}
-            // Float elevation as an inline style — an arbitrary
-            // `shadow-[…rgba(),…]` class gets dropped by tailwind-merge in cn()
-            // (commas/parens), so the lift never rendered. The upward shadow
-            // only shows while floating (not docked).
-            style={
-              decisionDocked
-                ? undefined
-                : { boxShadow: '0 -10px 28px -16px rgba(16, 24, 40, 0.18)' }
-            }
-          >
-            <div className="mx-auto flex w-full max-w-[880px] flex-row items-center gap-6">
+          {/* Stage 6 — decision-card terminus + docking footer. The decision
+              bar is the LAST item in the section column, so it inherits the
+              880px measure and the section rhythm: docked, it sits below the
+              last section with a gap above it and reads as the closing region,
+              not chrome jammed to the edge. `mt-auto` pins it to the bottom
+              when the document is short; `sticky bottom-0` floats it over the
+              document, then docks at the end. `decisionDocked` drops the float
+              elevation once the reader reaches the end. The white fill masks the
+              document scrolling under it (the bar is on the same column). */}
+          {detail ? (
+            <div
+              className={cn(
+                'sticky bottom-0 z-20 mt-auto flex min-h-16 flex-row items-center gap-6 border-t bg-background-default py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
+                decisionDocked ? 'border-transparent' : 'border-divider-subtle',
+              )}
+              // Float elevation as an inline style — an arbitrary
+              // `shadow-[…rgba(),…]` class gets dropped by tailwind-merge in cn()
+              // (commas/parens), so the lift never rendered. Only while floating.
+              style={
+                decisionDocked
+                  ? undefined
+                  : { boxShadow: '0 -10px 28px -16px rgba(16, 24, 40, 0.18)' }
+              }
+            >
               {detail ? (
                 // Critique #7 (standing signals aren't events): the reassurance
                 // line reads tertiary with only the shield icon in green — a
@@ -2247,13 +2244,13 @@ export function AlertDetailDrawer({
                 ) : null}
               </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
         {/* Bottom breathing room below the docked decision footer (Yuqi:
-            "proper bigger padding at the bottom") — with this spacer the sticky
-            bar lifts off the viewport edge as you reach the end and settles
-            into the document with space beneath it, reading as the closing
-            region rather than a bar jammed to the edge. */}
+            "proper bigger padding") — the spacer sits after the section column
+            so the docked bar settles into the document with space beneath it,
+            reading as the closing region, not a bar jammed to the viewport
+            edge. */}
         <div className="h-10 shrink-0" aria-hidden />
       </div>
     </>
