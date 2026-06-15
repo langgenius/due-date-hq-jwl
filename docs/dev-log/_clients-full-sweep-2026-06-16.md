@@ -43,6 +43,38 @@ surfaces I hadn't deep-polished, driven by a focused inventory.
 - **CreateClientDialog / ClassificationImpactDialog / ClientCombobox** —
   clean (real RPCs, correct primitives, honest counters). No changes.
 
+## Empty-state fidelity to Pencil jQFBx / T4eNmw
+Yuqi: /design-critique + /critique the clients flow against Node IDs
+T4eNmw, jQFBx.
+
+Both nodes are the /clients empty state — `jQFBx` ("empty state", the
+canonical/primary) and `T4eNmw` ("empty (skipped import)", a variant).
+Pulled both from Pencil and compared to the live `ClientsEmptyState`.
+
+Findings that mattered:
+- The live state already matches `jQFBx`'s headline/body/CTA/sample-chip
+  copy verbatim, and `jQFBx` has **no stat band** — so removing the
+  "4 min / SOC 2 / 11 tools" stats (earlier this sweep) was correct, not a
+  regression. `T4eNmw`'s strip is actually a **3-step process** ("Export →
+  AI maps & confirm → Done"), i.e. teaching, not metrics — the live code's
+  stats had drifted from that into fiction.
+- Two real fidelity gaps closed (to `jQFBx`):
+  1. **"● Get started" eyebrow** pill above the integration strip (accent
+     dot + 11/600 secondary, bordered 999-radius).
+  2. **Subtle top brand wash** — `from-state-accent-hover-alt/45` →
+     transparent over the card top (a theme token, so it adapts to dark
+     mode; the mock's #eff4ff hardcode would not). Card wrapped
+     `relative overflow-hidden`; content sits in a `relative` inner column.
+  3. DD destination tile shadow `sm`→`md` so it pops as the import endpoint
+     (canonical intent).
+- Kept real logos on neutral tiles (better than the mock's tinted
+  placeholders); left the 3-step teaching strip out of the primary state
+  (it belongs to the `T4eNmw` variant, which the live code doesn't split).
+- Card radius stays `rounded-xl` (12) — the mocks freelance 18/14, so the
+  live token scale is the more consistent choice; not matched.
+- Verified live via a throwaway `/preview` specimen (the empty state needs a
+  zero-client firm to render normally); specimen reverted. tsgo clean.
+
 ## Notes
 - tsgo clean; Setup tab verified live (classification at-rest now just the
   selector + hint; posture chips are pills). Empty state not visually
