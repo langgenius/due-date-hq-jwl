@@ -1,17 +1,8 @@
-import {
-  type KeyboardEvent,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { type KeyboardEvent, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import {
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
@@ -24,8 +15,6 @@ import {
   AlertTriangleIcon,
   ArrowDownIcon,
   ArrowUpIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   ExternalLinkIcon,
   EyeIcon,
   LinkIcon,
@@ -103,13 +92,11 @@ type ClientFactsWorkspaceProps = {
   // route debounces if needed).
   searchQuery: string
   onSearchChange: (value: string) => void
-  clientFilter: readonly string[]
   entityFilter: readonly ClientEntityType[]
   stateFilter: readonly string[]
   ownerFilter: readonly string[]
   alertMatchesByClient: ReadonlyMap<string, readonly ClientAlertMatch[]>
   obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
-  onClientFilterChange: (value: string[]) => void
   onEntityFilterChange: (value: string[]) => void
   onStateFilterChange: (value: string[]) => void
   onOwnerFilterChange: (value: string[]) => void
@@ -123,19 +110,6 @@ type ClientFactsWorkspaceProps = {
   // Onboarding "Load sample data" chip in the empty-state hero.
   onSampleData?: (() => void) | undefined
 }
-
-// /clients adopts the /deadlines responsive page-size pattern so the
-// table fills the visible viewport instead of paginating at a fixed
-// count regardless of monitor height. Constants mirror obligations.tsx
-// so both surfaces share the same row-fit math.
-// Row height is h-14 (56px). The constant must stay in sync so the
-// responsive page-size math accurately measures rows-that-fit.
-const CLIENTS_ROW_HEIGHT_PX = 57 // h-14 + 1px border
-const CLIENTS_PAGE_SIZE_MIN = 8
-const CLIENTS_PAGE_SIZE_MAX = 50
-// Inside-card chrome subtracted from the table-card's clientHeight:
-//   TableHeader (≈40) + Pagination footer (≈44) + 1px borders + buffer
-const CLIENTS_INSIDE_CHROME_PX = 96
 
 // Column widths for the /clients table. Centralized so the live
 // `meta.{header,cell}ClassName` blocks and the loading-skeleton
@@ -151,35 +125,6 @@ const CLIENTS_COL_WIDTH = {
   done: 'w-[80px]',
   assignee: 'w-[80px]',
 } as const
-
-function computeClientsResponsivePageSize(containerHeight: number): number {
-  const usable = Math.max(0, containerHeight - CLIENTS_INSIDE_CHROME_PX)
-  const fit = Math.floor(usable / CLIENTS_ROW_HEIGHT_PX)
-  return Math.max(
-    CLIENTS_PAGE_SIZE_MIN,
-    Math.min(CLIENTS_PAGE_SIZE_MAX, fit || CLIENTS_PAGE_SIZE_MIN),
-  )
-}
-
-// Callback-ref shape so observation kicks in when the table-card
-// mounts (even if it mounts AFTER the initial render — e.g. inside
-// a loading/success ternary).
-function useClientsResponsivePageSize(): [number, (element: HTMLElement | null) => void] {
-  const [pageSize, setPageSize] = useState<number>(CLIENTS_PAGE_SIZE_MIN)
-  const [element, setElement] = useState<HTMLElement | null>(null)
-  useEffect(() => {
-    if (typeof window === 'undefined') return () => {}
-    if (!element) return () => {}
-    const measure = (): void => {
-      setPageSize(computeClientsResponsivePageSize(element.clientHeight))
-    }
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [element])
-  return [pageSize, setElement]
-}
 
 /**
  * `TabSection` — canonical section primitive for the client detail
@@ -436,13 +381,11 @@ export function ClientFactsWorkspace({
   isLoading,
   searchQuery,
   onSearchChange,
-  clientFilter,
   stateFilter,
   ownerFilter,
   entityFilter,
   alertMatchesByClient,
   obligationSummariesByClient,
-  onClientFilterChange,
   onEntityFilterChange,
   onStateFilterChange,
   onOwnerFilterChange,
@@ -472,13 +415,6 @@ export function ClientFactsWorkspace({
       void navigate(client ? clientDetailPath(client) : `/clients/${clientId}`)
     },
     [clients, filteredClients, navigate],
-  )
-  const clientOptions = useMemo<FilterOption[]>(
-    () =>
-      clients
-        .map((client) => ({ value: client.id, label: client.name }))
-        .toSorted((a, b) => a.label.localeCompare(b.label)),
-    [clients],
   )
   const stateOptions = useMemo<FilterOption[]>(() => {
     const counts = new Map<string, number>()
@@ -1007,16 +943,16 @@ export function ClientFactsWorkspace({
   // a header opts in. Stored locally because sort feels transient (a
   // "show me by ___" gesture) rather than something to deep-link.
   const [sorting, setSorting] = useState<SortingState>([])
-  // Responsive page-size — the table-card observes its own clientHeight
-  // via ResizeObserver, then `table.setPageSize` consumes the result on
-  // every change so the page-count UI stays accurate as the viewport
-  // changes. Mirrors the /deadlines hook + setter pair.
-  const [responsivePageSize, setTableCardElement] = useClientsResponsivePageSize()
+  // No client-side pagination: /clients renders the full filtered set in
+  // one continuously-scrolling card body (sticky header), matching the
+  // /deadlines queue's scroll model instead of a prev/next page footer.
+  // The directory is already fully loaded client-side (listByFirm caps at
+  // CLIENT_LIST_LIMIT = 500), so the whole list fits in one scroll region
+  // with no fetch-on-scroll needed.
   const table = useReactTable({
     data: filteredClients,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     state: { sorting },
     onSortingChange: setSorting,
@@ -1038,23 +974,8 @@ export function ClientFactsWorkspace({
         // tracks scope-of-work here.
         servicesCount: false,
       },
-      pagination: {
-        // pageSize is seeded from the responsive-page-size hook's floor
-        // (CLIENTS_PAGE_SIZE_MIN). The hook overrides on mount via
-        // useEffect below once the table-card measures its own
-        // clientHeight.
-        pageIndex: 0,
-        pageSize: CLIENTS_PAGE_SIZE_MIN,
-      },
     },
   })
-  // Sync the responsive measurement into the table's pagination
-  // state. table.setPageSize is the official React-Table API for
-  // this; doing it from an effect keeps the table source-of-truth
-  // for state while letting the hook own measurement.
-  useEffect(() => {
-    table.setPageSize(responsivePageSize)
-  }, [responsivePageSize, table])
 
   // L-2: Fix-now banner now opens an inline batch sheet
   // (FixNeedsFactsSheet) instead of narrowing the table to a
@@ -1100,9 +1021,6 @@ export function ClientFactsWorkspace({
       <ClientsFilterToolbar
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
-        clientOptions={clientOptions}
-        clientFilter={clientFilter}
-        onClientFilterChange={onClientFilterChange}
         stateOptions={stateOptions}
         stateFilter={stateFilter}
         onStateFilterChange={onStateFilterChange}
@@ -1137,17 +1055,19 @@ export function ClientFactsWorkspace({
         />
       ) : (
         // Canonical workbench-table card frame. Same recipe as
-        // /deadlines + /rules/library. The inner div is just for the
-        // flex split between the Table block and the Pagination footer;
-        // the rounded card frame lives here on the outer wrapper so it
-        // spans both.
+        // /deadlines + /rules/library. The rounded card frame lives on
+        // the outer wrapper; the inner div is the single scroll region
+        // that holds the whole directory.
         <div
-          ref={setTableCardElement}
           // Outer card border is `divider-regular` (8% alpha) — the
           // visible-but-quiet canonical tone.
           className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-divider-regular"
         >
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {/* Single continuous scroll region (no pagination): the full
+              filtered directory scrolls here, with the table header pinned
+              via `sticky top-0` so column labels stay visible. Matches the
+              /deadlines queue's scroll model. */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
             {isLoading ? (
               <ClientTableSkeleton />
             ) : (
@@ -1175,7 +1095,10 @@ export function ClientFactsWorkspace({
                 // so the two workbench tables read identically.
                 className="table-fixed [&_th]:bg-background-section [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th_button]:!text-column-label [&_th_button]:!font-semibold [&_th_button]:!uppercase"
               >
-                <TableHeader>
+                {/* Sticky header — stays pinned while the rows scroll
+                    under it. The `[&_th]:bg-background-section` above keeps
+                    the row opaque so scrolling content doesn't bleed through. */}
+                <TableHeader className="sticky top-0 z-10">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
@@ -1260,49 +1183,10 @@ export function ClientFactsWorkspace({
               </Table>
             )}
           </div>
-          {/* Pagination footer inside the card frame, separated by a
-              top border. Always rendered when there's >1 page; the
-              flex-shrink-0 keeps it pinned at the bottom of the card
-              while the rows-area scrolls.
-              Padding is canonical (`--space-pagination-y` = py-6,
-              `--space-cell-x` = px-2) so /clients matches /deadlines
-              exactly — a deliberate card footer with breathing room. */}
-          {table.getPageCount() > 1 ? (
-            <div className="flex shrink-0 items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-6 text-xs text-text-tertiary">
-              <span>
-                <Plural
-                  value={table.getFilteredRowModel().rows.length}
-                  one="# client"
-                  other="# clients"
-                />
-              </span>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t`Previous page`}
-                  disabled={!table.getCanPreviousPage()}
-                  onClick={() => table.previousPage()}
-                >
-                  <ChevronLeftIcon className="size-4" aria-hidden />
-                </Button>
-                <span className="px-2 tabular-nums">
-                  <Trans>
-                    Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-                  </Trans>
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t`Next page`}
-                  disabled={!table.getCanNextPage()}
-                  onClick={() => table.nextPage()}
-                >
-                  <ChevronRightIcon className="size-4" aria-hidden />
-                </Button>
-              </div>
-            </div>
-          ) : null}
+          {/* No pagination footer — the directory is one continuous
+              scroll region (the count lives in the page-header title
+              pill + the KPI strip above, so a footer total would just
+              repeat it). */}
         </div>
       )}
     </>
@@ -1330,9 +1214,6 @@ function handleClientRowKeyDown(
 function ClientsFilterToolbar({
   searchQuery,
   onSearchChange,
-  clientOptions,
-  clientFilter,
-  onClientFilterChange,
   stateOptions,
   stateFilter,
   onStateFilterChange,
@@ -1345,9 +1226,6 @@ function ClientsFilterToolbar({
 }: {
   searchQuery: string
   onSearchChange: (next: string) => void
-  clientOptions: TableFilterOption[]
-  clientFilter: readonly string[]
-  onClientFilterChange: (next: string[]) => void
   stateOptions: TableFilterOption[]
   stateFilter: readonly string[]
   onStateFilterChange: (next: string[]) => void
@@ -1361,7 +1239,6 @@ function ClientsFilterToolbar({
   const { t } = useLingui()
   const filtersActive =
     searchQuery.length > 0 ||
-    clientFilter.length > 0 ||
     stateFilter.length > 0 ||
     entityFilter.length > 0 ||
     ownerFilter.length > 0
@@ -1383,16 +1260,13 @@ function ClientsFilterToolbar({
   //     or `/` hotkey.
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <TableHeaderMultiFilter
-        trigger="toolbar"
-        label={t`Client`}
-        options={clientOptions}
-        selected={clientFilter}
-        emptyLabel={t`No clients`}
-        searchable
-        searchPlaceholder={t`Search clients`}
-        onSelectedChange={onClientFilterChange}
-      />
+      {/* No "Client" filter dropdown here — on the clients directory the
+          page IS the client list, so a multi-select of client names is
+          redundant with the search box (which already does name / EIN
+          lookup). The structural facets that DO narrow the directory
+          stay: States / Entity / Assignee. (`?clients=` deep-links still
+          filter via the route's filter pipeline; there's just no UI to
+          set it from here.) */}
       <TableHeaderMultiFilter
         trigger="toolbar"
         label={t`States`}
@@ -1435,7 +1309,6 @@ function ClientsFilterToolbar({
           // /deadlines queue keeps "Reset filters" inside its consolidated
           // View menu — a different control, intentionally left as-is.)
           onSearchChange('')
-          onClientFilterChange([])
           onStateFilterChange([])
           onEntityFilterChange([])
           onOwnerFilterChange([])

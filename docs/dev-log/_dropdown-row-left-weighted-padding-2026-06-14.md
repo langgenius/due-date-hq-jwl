@@ -1,9 +1,31 @@
-# Dropdown rows — left-weighted horizontal padding
+# Dropdown buttons — left-weighted horizontal padding
 
 **Date:** 2026-06-14
-**Surface:** `packages/ui/src/lib/overlay.ts` (`overlayRowClassName`)
+**Surface:** `apps/app/src/components/patterns/filter-trigger.tsx` (`FilterTrigger`)
++ `packages/ui/src/lib/overlay.ts` (`overlayRowClassName`)
 
 Yuqi: "all dropdown buttons should have left padding more than right padding."
+
+## Triggers (the pills that open a dropdown) — the actual target
+
+First pass only touched the menu-item rows (below); Yuqi clarified with a
+screenshot of the **trigger** pills (Type / Modified / Effective / Severity),
+where the left padding hadn't visibly moved. `FilterTrigger` is the canonical
+dropdown/popover trigger chrome (filter rows on /deadlines, /alerts, /clients,
+/rules), so fixing it is the high-leverage central change.
+
+`FilterTrigger`: symmetric `px-3` (12/12) → **`pl-4 pr-3`** (16px / 12px). The
+leading label gets the generous inset; the trailing chevron — which carries its
+own visual mass + the `gap-1.5` before it — tucks tighter on the right, so the
+pill reads balanced rather than chevron-heavy. (Also corrected a stale docstring
+that still claimed `h-10 / px-4 / rounded-xl`; the live chrome is
+`h-9 / rounded-full`.)
+
+The Select trigger (`pl-3 pr-2`) was already left-weighted; ad-hoc
+`DropdownMenuTrigger` buttons (e.g. the settings Language/Date selects at
+`px-3`) are per-call-site and not centralized — flag if those need sweeping too.
+
+## Menu-item rows (inside the open dropdown)
 
 `overlayRowClassName` is the shared highlightable-row class behind every
 dropdown menu item (`DropdownMenuItem`, `DropdownMenuSubTrigger`) and select

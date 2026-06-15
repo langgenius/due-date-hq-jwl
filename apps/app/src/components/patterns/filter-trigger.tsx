@@ -8,8 +8,9 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * narrows the list under it.
  *
  * Visual contract:
- *   - h-10 (40px), padding [10, 16] (`px-4`)
- *   - rounded-xl (12px corner radius)
+ *   - h-9 (36px), left-weighted padding `pl-4 pr-3` (16px / 12px) — the label
+ *     gets the generous left inset; the trailing chevron tucks tighter right
+ *   - rounded-full (pill)
  *   - 1px border `divider-regular` (#10182814 = 8% alpha) — same color on
  *     active + inactive; the state-differential is bg, not border.
  *   - Font 13/500 `text-text-secondary` (#354052)
@@ -113,8 +114,14 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
           // time ⌄"): the trigger is a full PILL (rounded-full = the 999
           // step of the radius scale) so the filter row reads as a strip
           // of pills, distinct from the rectangular buttons around it.
-          // Height stays h-9 / px-3 / 13px-500 from the round-83 sizing.
-          'inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular px-3 text-sm font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
+          // Height stays h-9 / 13px-500 from the round-83 sizing.
+          // 2026-06-14 (Yuqi "dropdown buttons should have left padding more
+          // than right padding"): left-weighted `pl-4 pr-3` (16px / 12px)
+          // instead of symmetric px-3. The leading label gets the generous
+          // inset; the trailing chevron — which carries its own visual mass
+          // plus the gap-1.5 before it — tucks tighter on the right, so the
+          // pill reads balanced rather than chevron-heavy.
+          'inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular pl-4 pr-3 text-sm font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           variantBg,
           'disabled:cursor-not-allowed disabled:opacity-50',

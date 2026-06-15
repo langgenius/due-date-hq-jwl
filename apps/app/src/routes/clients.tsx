@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, HistoryIcon, LightbulbIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
@@ -27,7 +27,6 @@ import {
 import {
   CLIENT_LIST_LIMIT,
   clientsSearchParamsParsers,
-  normalizeClientIdFilters,
   normalizeClientOwnerFilters,
   normalizeClientStateFilters,
   normalizeClientsQueryFilters,
@@ -300,16 +299,6 @@ export function ClientsRoute() {
     [setClientsQuery],
   )
 
-  const handleClientFilterChange = useCallback(
-    (values: string[]) => {
-      const clientIds = normalizeClientIdFilters(values)
-      void setClientsQuery({
-        clients: nullableQueryArray(clientIds),
-      })
-    },
-    [setClientsQuery],
-  )
-
   const handleEntityFilterChange = useCallback(
     (values: string[]) => {
       const typedEntities = values.filter(isClientEntityType)
@@ -376,6 +365,30 @@ export function ClientsRoute() {
       )}
     >
       <PageHeader
+        // Scope eyebrow above the title — the /clients equivalent of
+        // /deadlines' "Synced just now · N deadlines tracked" context line,
+        // so the list pages share one header rhythm. Calm tertiary, normal-
+        // case (overriding the eyebrow slot's default uppercase), and phrased
+        // "N clients · M jurisdictions" to also match /rules/library's
+        // "N rules across M jurisdictions" scope line. Suppressed on the
+        // empty-state surface (no clients yet).
+        eyebrow={
+          clients.length > 0 ? (
+            <span className="inline-flex items-center gap-1.5 normal-case tracking-normal text-text-tertiary">
+              <span className="tabular-nums">
+                <Plural value={clients.length} one="# client" other="# clients" />
+              </span>
+              <span aria-hidden>·</span>
+              <span className="tabular-nums">
+                <Plural
+                  value={factsModel.summary.statesCovered}
+                  one="# jurisdiction"
+                  other="# jurisdictions"
+                />
+              </span>
+            </span>
+          ) : undefined
+        }
         title={
           <span className="inline-flex items-center gap-2">
             <Trans>Clients</Trans>
@@ -496,13 +509,11 @@ export function ClientsRoute() {
         isLoading={clientWorkspaceLoading}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
-        clientFilter={filters.clientFilters}
         entityFilter={filters.entityFilters}
         stateFilter={filters.stateFilters}
         ownerFilter={filters.ownerFilters}
         alertMatchesByClient={alertMatchesByClient}
         obligationSummariesByClient={obligationSummariesByClient}
-        onClientFilterChange={handleClientFilterChange}
         onEntityFilterChange={handleEntityFilterChange}
         onStateFilterChange={handleStateFilterChange}
         onOwnerFilterChange={handleOwnerFilterChange}
