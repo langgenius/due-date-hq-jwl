@@ -30,6 +30,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { FLOATING_ACTION_BAR_SCROLL_PADDING } from '@/components/patterns/floating-action-bar'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { SearchInput } from '@/components/primitives/search-input'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
@@ -405,7 +406,14 @@ export function JurisdictionRuleTable({
   const isEmpty = rules.length === 0 && !(showGaps && gapEntities.length > 0)
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-xl border border-divider-subtle">
+    <div
+      className={cn(
+        'flex min-h-0 flex-1 flex-col overflow-y-auto rounded-xl border border-divider-subtle',
+        // Reserve room for the floating bulk bar while a selection exists, so
+        // the last rows scroll clear of it instead of being hidden behind it.
+        selectedCount > 0 && FLOATING_ACTION_BAR_SCROLL_PADDING,
+      )}
+    >
       {/* table-fixed so long Form / Due-logic text clamps inside its
           column instead of blowing the table wider than the pane (which
           pushed Status + ⋯ off-screen). Only this instance is fixed; the

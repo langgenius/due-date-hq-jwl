@@ -117,3 +117,21 @@ export function FloatingActionBar({
     </div>
   )
 }
+
+/**
+ * Bottom clearance a scrollable list must add to its content WHILE a
+ * `FloatingActionBar` is visible, so the last rows scroll clear of the bar
+ * instead of being occluded by it (the bar is `fixed bottom-12` ≈ 48px and
+ * ~52px tall, so ~112px clears it with margin).
+ *
+ * Apply CONDITIONALLY — only when the bar is shown — so there's no permanent
+ * dead space at the bottom of the list when nothing is selected. This is the
+ * Gmail / Linear behaviour: the list reserves room for the action bar exactly
+ * when one appears.
+ *
+ *   className={cn('… overflow-y-auto', hasSelection && FLOATING_ACTION_BAR_SCROLL_PADDING)}
+ *
+ * Single source of truth so every bulk surface (rules / deadlines / clients /
+ * alerts) reserves the same clearance.
+ */
+export const FLOATING_ACTION_BAR_SCROLL_PADDING = 'pb-28'
