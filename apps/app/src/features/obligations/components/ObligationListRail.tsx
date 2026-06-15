@@ -154,15 +154,23 @@ function RailItem({
       aria-pressed={active}
       aria-label={t`Deadline: ${row.clientName} ${row.taxType}`}
       className={cn(
-        'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-3.5 text-left outline-none transition-colors',
+        // Mirror the alert rail (AlertListRail) so the two detail-page
+        // navigators feel identical: `group/rail` for hover-reveal dimming,
+        // py-4, and selection by a LIGHT base-hover fill — not a left accent bar
+        // (Yuqi: "rail has its edge"; accent isn't the steady-selection colour).
+        'group/rail flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
-        active
-          ? 'border-l-2 border-l-state-accent-solid bg-background-default-subtle'
-          : 'border-l-2 border-l-transparent hover:bg-state-base-hover',
+        active ? 'bg-state-base-hover' : 'hover:bg-state-base-hover-subtle',
       )}
     >
-      {/* Due column (64px). */}
-      <div className="flex w-[64px] shrink-0 flex-col gap-0.5">
+      {/* Due column (64px). Dims on unselected items so the open deadline's
+          date reads as the focal one (alert-rail parity); hover restores. */}
+      <div
+        className={cn(
+          'flex w-[64px] shrink-0 flex-col gap-0.5 transition-opacity',
+          !active && 'opacity-55 group-hover/rail:opacity-100',
+        )}
+      >
         <span className="text-sm font-medium text-text-primary tabular-nums">{dueLabel}</span>
         <span
           className={cn(
@@ -179,7 +187,12 @@ function RailItem({
 
       {/* Content — badge meta row + client + status. */}
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+        <div
+          className={cn(
+            'flex min-w-0 flex-wrap items-center gap-1.5 transition-opacity',
+            !active && 'opacity-55 group-hover/rail:opacity-100',
+          )}
+        >
           {row.clientState ? (
             <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-divider-regular px-1.5 text-xs font-semibold text-text-secondary uppercase">
               <StateBadge code={row.clientState} size="xs" style={{ width: 12, height: 12 }} />
@@ -188,7 +201,17 @@ function RailItem({
           ) : null}
           <TaxCodeBadge code={row.taxType} />
         </div>
-        <span className="truncate text-base font-medium text-text-primary">{row.clientName}</span>
+        {/* Client name — same type + 2-line clamp + active/secondary dimming as
+            the alert rail title, so the two rails' primary line reads identically
+            (active = primary ink, unselected = secondary). */}
+        <span
+          className={cn(
+            'line-clamp-2 text-base font-medium leading-snug',
+            active ? 'text-text-primary' : 'text-text-secondary',
+          )}
+        >
+          {row.clientName}
+        </span>
         <ObligationStatusReadBadge status={row.status} className="h-5 w-fit text-xs" />
       </div>
     </button>

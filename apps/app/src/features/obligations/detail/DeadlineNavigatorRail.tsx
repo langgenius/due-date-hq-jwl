@@ -371,25 +371,31 @@ function DeadlineNavigatorRow({
       state={{ obligationId: row.id }}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'flex gap-2.5 border-b border-divider-subtle px-[18px] py-3.5 outline-none transition-colors',
+        // Mirror the alert rail (AlertListRail) so both detail-page navigators
+        // read identically: group/rail dimming, py-4, light base-hover selection
+        // — not a left accent bar (accent isn't the steady-selection colour).
+        'group/rail flex gap-3 border-b border-divider-subtle px-[18px] py-4 outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
-        active
-          ? 'border-l-2 border-l-state-accent-solid bg-background-default-subtle'
-          : 'border-l-2 border-l-transparent hover:bg-state-base-hover',
+        active ? 'bg-state-base-hover' : 'hover:bg-state-base-hover-subtle',
       )}
     >
-      {/* TimeColumn (rzzww `wdyv4`) */}
-      <div className="flex w-[60px] shrink-0 flex-col gap-0.5">
-        <span className="text-base font-medium text-text-primary tabular-nums">
+      {/* TimeColumn (rzzww `wdyv4`) — w-64 + text-sm date to match the alert
+          rail; dims on unselected rows so the open deadline's date is focal. */}
+      <div
+        className={cn(
+          'flex w-[64px] shrink-0 flex-col gap-0.5 transition-opacity',
+          !active && 'opacity-55 group-hover/rail:opacity-100',
+        )}
+      >
+        <span className="text-sm font-medium text-text-primary tabular-nums">
           {formatRailDate(row.currentDueDate)}
         </span>
         {showRelative ? (
           <span
             className={cn(
-              // 500, not 600 — the rail had eight bold-red "31d late" cells
-              // in one column; when everything screams, nothing does. Color
-              // alone carries the tone (never double-highlight).
-              'text-xs font-medium tabular-nums',
+              // caption-xs to match the alert rail's relative-time line. 500,
+              // not 600 — color alone carries the tone (never double-highlight).
+              'text-caption-xs font-medium tabular-nums',
               relative.tone === 'late'
                 ? 'text-text-destructive'
                 : relative.tone === 'soon'
@@ -404,7 +410,12 @@ function DeadlineNavigatorRow({
 
       {/* Content (rzzww `NIkyc`) */}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex items-center gap-2 pb-0.5">
+        <div
+          className={cn(
+            'flex items-center gap-2 pb-0.5 transition-opacity',
+            !active && 'opacity-55 group-hover/rail:opacity-100',
+          )}
+        >
           <TaxCodeBadge code={row.taxType} size="compact" />
         </div>
         {/* Form title + status on ONE line (Yuqi #2): title takes the row,
@@ -413,9 +424,10 @@ function DeadlineNavigatorRow({
         <div className="flex items-start justify-between gap-2">
           <span
             className={cn(
-              'line-clamp-2 min-w-0 flex-1 text-nav leading-snug',
-              // Selected row reads stronger; unselected rows stay calm.
-              active ? 'font-semibold text-text-primary' : 'font-medium text-text-secondary',
+              // text-base / always font-medium, color by active — identical to
+              // the alert rail title (was text-nav 15px + semibold-when-active).
+              'line-clamp-2 min-w-0 flex-1 text-base font-medium leading-snug',
+              active ? 'text-text-primary' : 'text-text-secondary',
             )}
           >
             {title}
