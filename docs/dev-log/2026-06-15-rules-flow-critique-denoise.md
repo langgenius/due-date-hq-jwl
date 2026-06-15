@@ -49,12 +49,17 @@ canonical doc: `docs/Design/rules-review-modals.md`.
   `FloatingActionBar` primitive's standard behaviour across every bulk surface
   (deadlines, clients, etc.). Special-casing rules would break that consistency,
   so it stays.
-- **Entry-framing for the all-blocked backlog** (every demo rule is
-  source-defined → needs an AI draft, so Accept is always gated): the bulk
-  modal's blocked-banner already explains this in-context. Reframing the overview
-  to split "X ready · Y need a draft first" needs a per-rule readiness signal
-  that isn't available at overview scope without firing the bulk preview —
-  flagged as a product/data decision rather than guessed.
+## Entry framing (U1) — resolved in a follow-up
+
+The overview entry implied pending rules were ready to accept, but the real
+first step for source-defined rules is generating an AI draft. The banner
+subline now names the gate: "N need an AI draft before they can be accepted"
+(e.g. 437 of 456), or "Each needs an AI draft generated before it can be
+accepted" when the whole backlog is gated. The count is computed client-side
+from the SAME structural facts as the server's `source_defined_requires_ai_review`
+gate (source-defined rule + no ready concrete draft in the loaded draft map),
+so it never contradicts the bulk impact preview; non-source-defined and
+already-drafted rules are excluded (they're reviewable directly).
 
 ## Verification
 
