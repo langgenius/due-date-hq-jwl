@@ -4,13 +4,13 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   AlertTriangleIcon,
   Astroid,
+  BanIcon,
   CheckIcon,
   ChevronDownIcon,
   ExternalLinkIcon,
   FileTextIcon,
   Loader2,
   LockIcon,
-  OctagonXIcon,
   RotateCcwIcon,
   ShieldCheckIcon,
   TriangleAlertIcon,
@@ -1750,11 +1750,29 @@ function RejectReasonDialog({
   onSubmit: (reason: string) => void
 }) {
   const { t } = useLingui()
+  // Pencil toYTe reason picker: rich two-line cards. The label is what's
+  // persisted as the reject `reason`; the subline is static guidance only.
   const presets = [
-    { key: 'errors', label: t`Contains errors` },
-    { key: 'wrong_source', label: t`Source or jurisdiction is incorrect` },
-    { key: 'duplicate', label: t`Duplicate of an existing rule` },
-    { key: 'other', label: t`Other (see note)` },
+    {
+      key: 'policy',
+      label: t`Conflicts with firm policy`,
+      hint: t`This rule contradicts a stricter internal policy you've set.`,
+    },
+    {
+      key: 'source',
+      label: t`Source unreliable or superseded`,
+      hint: t`The cited authority is outdated or a newer notice supersedes it.`,
+    },
+    {
+      key: 'duplicate',
+      label: t`Duplicate of an existing rule`,
+      hint: t`Already covered by a rule in your library.`,
+    },
+    {
+      key: 'other',
+      label: t`Other`,
+      hint: t`You'll write a brief reason below.`,
+    },
   ] as const
   const [selected, setSelected] = useState<string | null>(null)
   const [note, setNote] = useState('')
@@ -1768,106 +1786,142 @@ function RejectReasonDialog({
   }, [open])
   const isOther = selected === 'other'
   const trimmedNote = note.trim()
-  const reason = isOther ? trimmedNote : (presets.find((p) => p.key === selected)?.label ?? '')
-  const canSubmit = reason.length > 0 && !pending
+  const presetLabel = presets.find((p) => p.key === selected)?.label ?? ''
+  // For "Other" the note IS the reason (required). For preset reasons the note
+  // is an optional internal note appended to the persisted reason string — so
+  // the always-visible field never silently discards what's typed.
+  const reason = isOther
+    ? trimmedNote
+    : presetLabel
+      ? trimmedNote
+        ? `${presetLabel} — ${trimmedNote}`
+        : presetLabel
+      : ''
+  const canSubmit = (isOther ? trimmedNote.length > 0 : selected !== null) && !pending
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[min(480px,calc(100vw-2rem))] max-w-[480px] gap-0 overflow-hidden p-0"
+        className="w-[min(540px,calc(100vw-2rem))] max-w-[540px] gap-0 overflow-hidden p-0"
       >
-        <div className="flex items-start gap-3 border-b border-divider-subtle px-5 py-4">
+        <div className="flex items-start gap-3 border-b border-divider-subtle px-6 py-5">
           <span
             aria-hidden
-            className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-state-destructive-hover"
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-state-destructive-hover"
           >
-            <OctagonXIcon className="size-[18px] text-text-destructive" />
+            <BanIcon className="size-[18px] text-text-destructive" />
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <DialogTitle className="text-lg font-semibold text-text-primary">
               <Trans>Reject rule</Trans>
             </DialogTitle>
-            <p className="truncate text-base text-text-tertiary" title={rule.title}>
+            <p className="truncate text-sm font-medium text-text-secondary" title={rule.title}>
               {rule.title}
             </p>
+            <p className="text-xs text-text-tertiary">
+              <Trans>Will be marked Rejected and skipped in your library.</Trans>
+            </p>
           </div>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            type="button"
-            aria-label={t`Close`}
-            onClick={() => onOpenChange(false)}
-            disabled={pending}
-            className="-mr-1 -mt-1 shrink-0"
-          >
-            <XIcon className="size-4" aria-hidden />
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-tertiary">
+              Esc
+            </kbd>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              type="button"
+              aria-label={t`Close`}
+              onClick={() => onOpenChange(false)}
+              disabled={pending}
+              className="-mr-1 shrink-0"
+            >
+              <XIcon className="size-4" aria-hidden />
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-col gap-2 px-5 py-4">
-          <span className="text-xs font-medium text-text-secondary">
-            <Trans>Why are you rejecting this rule?</Trans>
-          </span>
-          <div className="flex flex-col gap-1.5" role="radiogroup" aria-label={t`Reject reason`}>
-            {presets.map((preset) => {
-              const active = selected === preset.key
-              return (
-                <button
-                  key={preset.key}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => setSelected(preset.key)}
-                  className={cn(
-                    'flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                    active
-                      ? 'border-state-accent-solid bg-state-accent-hover text-text-primary'
-                      : 'border-divider-regular text-text-secondary hover:bg-state-base-hover',
-                  )}
-                >
-                  <span
-                    aria-hidden
+        <div className="flex flex-col gap-4 px-6 py-5">
+          <div className="flex flex-col gap-2">
+            <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+              <Trans>Why are you rejecting?</Trans>
+            </span>
+            <div className="flex flex-col gap-2" role="radiogroup" aria-label={t`Reject reason`}>
+              {presets.map((preset) => {
+                const active = selected === preset.key
+                return (
+                  <button
+                    key={preset.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setSelected(preset.key)}
                     className={cn(
-                      'flex size-4 shrink-0 items-center justify-center rounded-full border',
-                      active ? 'border-state-accent-solid' : 'border-divider-deep',
+                      'flex cursor-pointer items-start gap-3 rounded-lg border px-3.5 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                      active
+                        ? 'border-state-accent-solid bg-state-accent-hover'
+                        : 'border-divider-subtle hover:bg-state-base-hover',
                     )}
                   >
-                    {active ? <span className="size-2 rounded-full bg-state-accent-solid" /> : null}
-                  </span>
-                  {preset.label}
-                </button>
-              )
-            })}
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border',
+                        active ? 'border-state-accent-solid' : 'border-divider-deep',
+                      )}
+                    >
+                      {active ? (
+                        <span className="size-2 rounded-full bg-state-accent-solid" />
+                      ) : null}
+                    </span>
+                    <span className="flex min-w-0 flex-col gap-0.5">
+                      <span className="text-sm font-medium text-text-primary">{preset.label}</span>
+                      <span className="text-xs text-text-tertiary">{preset.hint}</span>
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          {isOther ? (
-            <Textarea
-              autoFocus
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-              maxLength={1000}
-              placeholder={t`Add a short note explaining the rejection…`}
-              className="mt-1 min-h-20 text-sm"
-            />
-          ) : null}
+          <Textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            maxLength={1000}
+            placeholder={
+              isOther
+                ? t`Add a short note explaining the rejection…`
+                : t`Add an internal note (optional, visible to firm members only)…`
+            }
+            className="min-h-18 text-sm"
+          />
         </div>
-        <div className="flex items-center justify-end gap-2 border-t border-divider-subtle px-5 py-4">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onOpenChange(false)}
-            disabled={pending}
-          >
-            <Trans>Cancel</Trans>
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={() => onSubmit(reason)}
-            disabled={!canSubmit}
-          >
-            <Trans>Reject rule</Trans>
-          </Button>
+        <div className="flex items-center justify-between gap-2 border-t border-divider-subtle px-6 py-4">
+          <p className="text-xs text-text-tertiary">
+            {isOther ? (
+              <Trans>A note is required for “Other”.</Trans>
+            ) : (
+              <Trans>The reason is recorded on the rejection.</Trans>
+            )}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              disabled={pending}
+            >
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button
+              type="button"
+              variant="destructive-primary"
+              size="sm"
+              onClick={() => onSubmit(reason)}
+              disabled={!canSubmit}
+            >
+              <BanIcon data-icon="inline-start" />
+              <Trans>Reject rule</Trans>
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
