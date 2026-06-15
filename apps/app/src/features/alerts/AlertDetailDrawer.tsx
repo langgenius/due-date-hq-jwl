@@ -13,6 +13,7 @@ import {
   MailIcon,
   MessageSquareIcon,
   RotateCcwIcon,
+  SearchXIcon,
   ShieldCheckIcon,
   TriangleAlertIcon,
   UsersIcon,
@@ -59,6 +60,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
+import { EmptyState } from '@/components/patterns/empty-state'
 import { Kbd } from '@/components/patterns/kbd'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { AlertSourceLink } from './components/AlertSourceLink'
@@ -77,7 +79,7 @@ import {
   useAlertDetailQueryOptions,
   useAlertsPriorityQueueQueryOptions,
 } from './api'
-import { isAlertConflict, alertErrorDescriptor } from './lib/error-mapping'
+import { isAlertConflict, isAlertNotFound, alertErrorDescriptor } from './lib/error-mapping'
 import {
   computeSelectionStats,
   confirmAllNeedsReview,
@@ -655,7 +657,6 @@ function DecisionBanners({
 function AlertLifecycleStrip({ detail }: { detail: PulseDetail }) {
   const { t } = useLingui()
   const alert = detail.alert
-  const confPct = Math.round(alert.confidence * 100)
   const matched = alert.matchedCount + alert.needsReviewCount
   const open = alert.status === 'matched'
   const applied = alert.status === 'applied' || alert.status === 'partially_applied'
@@ -674,7 +675,11 @@ function AlertLifecycleStrip({ detail }: { detail: PulseDetail }) {
   type NodeState = 'done' | 'current' | 'future'
   const nodes: { key: string; label: string; value?: string; state: NodeState }[] = [
     { key: 'monitored', label: t`Monitored`, state: 'done' },
-    { key: 'parsed', label: t`AI parsed`, value: `${confPct}%`, state: 'done' },
+    // 2026-06-15 critique #9: no `value` here. The confidence number had three
+    // homes in one viewport (this strip, the Source & confidence card, the
+    // low-confidence banner). The strip carries the pipeline STATE ("AI
+    // parsed"); the exact % + tier lives once, in the Source & confidence card.
+    { key: 'parsed', label: t`AI parsed`, state: 'done' },
     {
       key: 'matched',
       label: t`Matched`,
@@ -714,11 +719,13 @@ function AlertLifecycleStrip({ detail }: { detail: PulseDetail }) {
             <span
               className={cn(
                 'text-xs',
-                node.state === 'current'
-                  ? 'font-semibold text-text-accent'
-                  : node.state === 'future'
-                    ? 'text-text-muted'
-                    : 'font-medium text-text-secondary',
+                // 2026-06-15 critique #11: the CURRENT node ("Your decision")
+                // reads in the same quiet secondary weight as the done steps —
+                // the accent DOT alone marks position. The loud "needs your
+                // decision" call-to-action lives once, in the hero eyebrow; the
+                // strip used to repeat it in bold accent right below, two accent
+                // "your decision" signals stacked in one viewport.
+                node.state === 'future' ? 'text-text-muted' : 'font-medium text-text-secondary',
               )}
             >
               {node.label}
@@ -795,6 +802,17 @@ export function AlertDetailDrawer({
   }, [open, onPrev, onNext])
   const detailQuery = useQuery(useAlertDetailQueryOptions(alertId))
   const detail = detailQuery.data
+  // 2026-06-15 critique: an unknown / stale alert id (a dead deep link, or an
+  // alert resolved out from under a shared URL) makes the server answer
+  // PULSE_NOT_FOUND. Before, the body just showed the generic "Couldn't load …
+  // Retry" error (misleading — a retry can't recover a deleted alert), and a
+  // PENDING/paused query left the header skeleton (keyed on `!detail`) spinning
+  // forever. We now branch a NOT_FOUND error into a friendly "not available"
+  // state, and key the skeleton on `isPending` (which also covers an offline
+  // PAUSED fetch) so a settled query never sits under a perpetual skeleton.
+  const notFound = open && detailQuery.isError && isAlertNotFound(detailQuery.error)
+  const loadFailed = open && detailQuery.isError && !isAlertNotFound(detailQuery.error)
+  const showDetailSkeleton = detailQuery.isPending && !detail
   const permissions = useAlertPermissions()
   const canApply = permissions.canApply
   const priorityQueueQuery = useQuery(
@@ -1290,11 +1308,11 @@ export function AlertDetailDrawer({
       ]
     : []
   const [activeSection, setActiveSection] = useState('alert-section-facts')
-  // Pencil MASYz: each visible section carries its ordinal (1·2·3) as a badge.
-  // Derive it from the scroll-spy order so it stays correct when the optional
-  // Clients section is present (due-date overlays) or absent (review-only).
-  const sectionIndex = (sectionId: string) =>
-    sectionNavItems.findIndex((item) => item.id === sectionId) + 1
+  // 2026-06-15 critique #12: the 1·2·3 section badges are gone. The flat section
+  // cards already RANK by tone (Change = action, big primary header; Source +
+  // Activity = reference, quiet secondary header). Numbering them 1·2·3 gave them
+  // equal "read in order" billing, fighting that ranking — two ordering systems
+  // at once. Tone wins (importance > sequence); the ordinal badge is dropped.
 
   const body = (
     <>
@@ -1440,9 +1458,9 @@ export function AlertDetailDrawer({
       >
         {/* Hero — scrolls with the document (white masthead → content). */}
         <SheetHeader className="bg-background-default px-6 pt-6 pb-5 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
-          {detailQuery.isLoading || !detail ? (
+          {showDetailSkeleton ? (
             <DetailHeaderSkeleton />
-          ) : (
+          ) : detail ? (
             (() => {
               const severity = impactBadgeFromAlert(detail.alert)
               // Gate the impact pill to HIGH only — the same rule
@@ -1588,7 +1606,7 @@ export function AlertDetailDrawer({
                 </div>
               )
             })()
-          )}
+          ) : null}
         </SheetHeader>
 
         {/* Document body — a NON-scrolling content column inside the shared
@@ -1634,11 +1652,10 @@ export function AlertDetailDrawer({
                     </button>
                   )
                 })}
-                {/* Pencil MASYz: a quiet right-aligned hint that the document is
-                    one scroll across N sections (not behaviour-switching tabs). */}
-                <span className="ml-auto hidden text-sm text-text-tertiary sm:inline">
-                  {t`Scroll to read all ${sectionNavItems.length} sections`}
-                </span>
+                {/* 2026-06-15 critique #10: dropped the "Scroll to read all N
+                    sections" caption — a tutorial line that went stale the
+                    instant you scrolled. The scroll-spy underline + the content
+                    cut off below the fold already say "there's more". */}
               </div>
             </nav>
           ) : null}
@@ -1646,9 +1663,11 @@ export function AlertDetailDrawer({
             + affected clients, and keeps the verbatim SOURCE EXTRACT quote
             as a supporting anchor near the bottom (just before
             Provenance). */}
-          {detailQuery.isError ? (
+          {loadFailed ? (
             // No leading icon, so the drawer's alert chrome stays
-            // consistent — title + body only.
+            // consistent — title + body only. NOT_FOUND is split off into the
+            // friendly not-found state below; this is for transient / permission
+            // / network failures where a Retry can actually recover.
             <Alert variant="destructive">
               <AlertTitle>
                 <Trans>Couldn't load this alert</Trans>
@@ -1674,12 +1693,39 @@ export function AlertDetailDrawer({
             land, so the panel never shows a bare gray wash while the
             detail query resolves (state-completeness audit — the header
             had a skeleton, the body had nothing). */}
-          {detailQuery.isLoading && !detail ? (
+          {showDetailSkeleton ? (
             <div className="flex shrink-0 flex-col gap-4" aria-hidden>
               <Skeleton className="h-48 w-full rounded-xl" />
               <Skeleton className="h-32 w-full rounded-xl" />
               <Skeleton className="h-40 w-full rounded-xl" />
             </div>
+          ) : null}
+
+          {/* Not-found — the server answered PULSE_NOT_FOUND for an unknown /
+              stale alert id (dead deep link, or an alert resolved out from under
+              a shared URL). A friendly state instead of the generic "Couldn't
+              load … Retry" (a retry can't recover a deleted alert). Reuses the
+              shared EmptyState (prominent / neutral) with a "Back to alerts"
+              action. */}
+          {notFound ? (
+            <EmptyState
+              variant="prominent"
+              iconTone="neutral"
+              icon={SearchXIcon}
+              title={<Trans>This alert isn't available</Trans>}
+              description={
+                <Trans>
+                  It may have been resolved or dismissed, or the link is out of date — it's no
+                  longer in your alerts.
+                </Trans>
+              }
+              cta={
+                <Button type="button" variant="outline" onClick={onClose}>
+                  <Trans>Back to alerts</Trans>
+                </Button>
+              }
+              fill
+            />
           ) : null}
 
           {detail ? (
@@ -1795,7 +1841,6 @@ export function AlertDetailDrawer({
               <DetailSectionCard
                 id="alert-section-facts"
                 variant="flat"
-                index={sectionIndex('alert-section-facts')}
                 caption={<Trans>what changed and what to verify</Trans>}
                 className="scroll-mt-16"
                 // Bigger gap between the practice-impact read and the parsed
@@ -1833,7 +1878,6 @@ export function AlertDetailDrawer({
                 <DetailSectionCard
                   id="alert-section-clients"
                   variant="flat"
-                  index={sectionIndex('alert-section-clients')}
                   caption={<Trans>who is affected</Trans>}
                   className="scroll-mt-16"
                   title={
@@ -2011,7 +2055,6 @@ export function AlertDetailDrawer({
                 id="alert-section-source"
                 variant="flat"
                 tone="reference"
-                index={sectionIndex('alert-section-source')}
                 caption={<Trans>where this came from</Trans>}
                 className="scroll-mt-16"
                 title={<Trans>Source</Trans>}
@@ -2162,7 +2205,6 @@ export function AlertDetailDrawer({
                 id="alert-section-activity"
                 variant="flat"
                 tone="reference"
-                index={sectionIndex('alert-section-activity')}
                 caption={<Trans>everything that has happened</Trans>}
                 className="scroll-mt-16"
                 title={<Trans>Activity</Trans>}
