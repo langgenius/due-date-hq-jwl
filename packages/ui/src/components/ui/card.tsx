@@ -8,14 +8,12 @@ function Card({
   tone = 'default',
   radius = 'xl',
   interactive = false,
-  emphasis = 'default',
   ...props
 }: React.ComponentProps<'div'> & {
   size?: 'default' | 'sm' | 'xs'
   tone?: 'default' | 'warning' | 'accent' | 'accent-active' | 'muted'
   radius?: 'xl' | 'md'
   interactive?: boolean
-  emphasis?: 'default' | 'unread'
 }) {
   // 2026-05-31 (Yuqi DS-first revision): `size="xs"` added for
   // dashboard-density cards (compact alert tiles, dense list-item
@@ -36,27 +34,28 @@ function Card({
   // marketing rounded-xl down to the dense rounded-lg used across
   // PulseDetailDrawer, AlertsListPage, workload, opportunities, etc.
   //
-  // 2026-06-01: `interactive`, `emphasis="unread"`, and
-  // `tone="accent-active"` added to consolidate three patterns that
-  // recurred 3+ times each:
+  // 2026-06-01: `interactive` and `tone="accent-active"` added to
+  // consolidate patterns that recurred 3+ times each:
   //   • interactive — clickable cards (RuleEvidenceCard link, EvidenceCard,
   //     PulseAlertCard) get pointer cursor + accent-border hover +
   //     surface-hover bg + focus ring.
-  //   • emphasis="unread" — accent left-rail (3px) for notifications,
-  //     pulse bell items, dashboard needs-attention.
   //   • tone="accent-active" — selected/focused state with the deeper
   //     accent border + hover bg; distinct from the existing quiet
   //     tone="accent" (used for static step-frames).
+  //
+  // 2026-06-15: the `emphasis="unread"` prop was removed. It rendered a
+  // 3px accent left-rail — a banned side-stripe that never reads as
+  // intentional. Unread is now signaled by the consumer (a leading
+  // unread dot in the notifications card), not card chrome.
   return (
     <div
       data-slot="card"
       data-size={size}
       data-tone={tone}
       data-radius={radius}
-      data-emphasis={emphasis}
       data-interactive={interactive ? 'true' : undefined}
       className={cn(
-        'group/card flex flex-col gap-5 overflow-hidden rounded-xl border border-components-card-border bg-components-card-bg py-5 text-base text-text-primary shadow-xs has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 data-[size=xs]:gap-2 data-[size=xs]:py-3 data-[size=xs]:text-sm data-[radius=md]:rounded-lg data-[tone=warning]:border-warning/40 data-[tone=warning]:bg-warning/5 data-[tone=accent]:border-state-accent-active data-[tone=accent]:bg-state-accent-hover-alt data-[tone=accent-active]:border-state-accent-border data-[tone=accent-active]:bg-state-accent-hover data-[tone=muted]:border-divider-subtle data-[tone=muted]:bg-background-section data-[emphasis=unread]:border-l-[3px] data-[emphasis=unread]:border-l-accent-default data-[interactive=true]:cursor-pointer data-[interactive=true]:transition-colors data-[interactive=true]:hover:border-state-accent-active-alt data-[interactive=true]:hover:bg-state-base-hover data-[interactive=true]:focus-visible:ring-2 data-[interactive=true]:focus-visible:ring-state-accent-active-alt data-[interactive=true]:focus-visible:outline-none *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl',
+        'group/card flex flex-col gap-5 overflow-hidden rounded-xl border border-components-card-border bg-components-card-bg py-5 text-base text-text-primary shadow-xs has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 data-[size=xs]:gap-2 data-[size=xs]:py-3 data-[size=xs]:text-sm data-[radius=md]:rounded-lg data-[tone=warning]:border-warning/40 data-[tone=warning]:bg-warning/5 data-[tone=accent]:border-state-accent-active data-[tone=accent]:bg-state-accent-hover-alt data-[tone=accent-active]:border-state-accent-border data-[tone=accent-active]:bg-state-accent-hover data-[tone=muted]:border-divider-subtle data-[tone=muted]:bg-background-section data-[interactive=true]:cursor-pointer data-[interactive=true]:transition-colors data-[interactive=true]:hover:border-state-accent-active-alt data-[interactive=true]:hover:bg-state-base-hover data-[interactive=true]:focus-visible:ring-2 data-[interactive=true]:focus-visible:ring-state-accent-active-alt data-[interactive=true]:focus-visible:outline-none *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl',
         className,
       )}
       {...props}

@@ -90,6 +90,28 @@ unread stripe in `packages/ui`. Left-border-as-unread is a more established
 convention (mail clients), and it's a base primitive touching alert cards
 etc. — flag for a deliberate decision rather than a drive-by change.
 
+## Follow-up: Card unread-stripe removed (the other open BAN-1)
+Yuqi: take on the card unread-stripe.
+
+The `Card` primitive's `emphasis="unread"` rendered
+`border-l-[3px] border-l-accent-default` — the second banned side-stripe.
+Its only consumer was the notifications inbox.
+
+- **Removed the `emphasis` prop entirely** from the Card primitive
+  (param, type, `data-emphasis`, the stripe class) — no dead no-op prop
+  left behind.
+- **Notifications inbox** now signals unread with a **leading accent dot**
+  before the title (the canonical, accent-rarity-respecting marker), in a
+  reserved column so read + unread titles stay aligned. Unread is further
+  carried by the "Mark read" affordance already present.
+- First tried a primitive-level accent background wash
+  (`bg-state-accent-hover-alt`) but it made every unread row look
+  *selected* — too heavy, fought the restraint rule. Dropped it; the dot
+  alone is cleaner.
+
+tsgo clean for these files (the lone error is the parallel session's WIP
+`AlertDetailDrawer.tsx`, untouched by me). Verified live on /notifications.
+
 ## Notes
 - tsgo clean; console clean (the only errors are the parallel session's
   WIP `rule-detail-drawer.tsx`, unrelated).

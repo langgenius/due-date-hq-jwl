@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { SearchInput } from '@/components/primitives/search-input'
@@ -266,24 +267,36 @@ export function NotificationsPage() {
           ) : null}
 
           {filteredNotifications.map((item) => (
-            // Card size="sm" radius="md" emphasis ships the unread left-rail
-            // via data-emphasis. role="article" preserves the document
+            // Unread is signaled by the leading dot inside CardContent (not
+            // a card left-rail). role="article" preserves the document
             // landmark for SR users (Card renders a <div> only).
             <Card
               key={item.id}
               role="article"
               size="sm"
               radius="md"
-              emphasis={item.readAt ? 'default' : 'unread'}
               aria-label={item.readAt ? t`Read: ${item.title}` : t`Unread: ${item.title}`}
             >
               <CardContent className="grid gap-2">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="truncate text-sm font-semibold text-text-primary">
-                      {item.title}
-                    </h2>
-                    <p className="text-sm text-text-secondary">{item.body}</p>
+                  <div className="flex min-w-0 items-start gap-2">
+                    {/* Leading unread dot — the at-a-glance "not read yet"
+                        marker that replaced the banned accent left-stripe.
+                        The column is reserved (transparent when read) so
+                        titles align across read + unread rows. */}
+                    <span
+                      className={cn(
+                        'mt-[5px] size-2 shrink-0 rounded-full',
+                        item.readAt ? 'bg-transparent' : 'bg-accent-default',
+                      )}
+                      aria-hidden
+                    />
+                    <div className="min-w-0">
+                      <h2 className="truncate text-sm font-semibold text-text-primary">
+                        {item.title}
+                      </h2>
+                      <p className="text-sm text-text-secondary">{item.body}</p>
+                    </div>
                   </div>
                   {/* Scannable relative time ("2d ago") so the CPA can sweep
                       the list without parsing ISO. The absolute timestamp
