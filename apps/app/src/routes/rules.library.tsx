@@ -798,6 +798,124 @@ const RECENT_CHANGE_PILL_CLASS: Record<RuleChangeKind, string> = {
 const CHANGED_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 
 /**
+ * OverviewReviewBreakdown — "Where to start": the review backlog made
+ * actionable. A by-reason strip (why the queue grew) over a ranked list of the
+ * jurisdictions with the most pending rules; each row drills straight into that
+ * jurisdiction's review queue. The overview's primary lower-zone module — it
+ * fills the space the empty "Recent changes" feed used to leave dead, and
+ * answers the CPA's real question ("456 — where do I start?").
+ */
+function OverviewReviewBreakdown({
+  jurisdictions,
+  reasonCounts,
+  onSelectJurisdiction,
+}: {
+  jurisdictions: ReadonlyArray<{ jurisdiction: string; label: string; pendingReviewCount: number }>
+  reasonCounts: ReadonlyArray<[RuleReviewTask['reason'], number]>
+  onSelectJurisdiction: (jurisdiction: string) => void
+}) {
+  return (
+    <section className="flex shrink-0 flex-col gap-3">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-region-title text-text-primary">
+          <Trans>Where to start</Trans>
+        </span>
+        <span className="text-sm font-medium text-text-tertiary">
+          <Trans>Most pending first</Trans>
+        </span>
+      </div>
+      {/* By-reason strip — why the queue grew (New template · Source changed · …). */}
+      {reasonCounts.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {reasonCounts.map(([reason, count]) => (
+            <span
+              key={reason}
+              className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-2.5 py-1 text-xs font-medium text-text-secondary"
+            >
+              {REVIEW_REASON_LABEL[reason]}
+              <span className="tabular-nums text-text-tertiary">{count}</span>
+            </span>
+          ))}
+        </div>
+      ) : null}
+      {/* Ranked jurisdictions — each row drills into its review queue. */}
+      <div className="flex flex-col overflow-hidden rounded-xl border border-divider-subtle">
+        {jurisdictions.map((g, index) => (
+          <button
+            key={g.jurisdiction}
+            type="button"
+            onClick={() => onSelectJurisdiction(g.jurisdiction)}
+            className={cn(
+              'group/row flex cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-state-base-hover',
+              index > 0 && 'border-t border-divider-subtle',
+            )}
+          >
+            <StateBadge code={g.jurisdiction} size="sm" preview={false} />
+            <span className="min-w-0 flex-1 truncate text-base font-medium text-text-primary">
+              {g.label}
+            </span>
+            <span className="shrink-0 text-sm font-semibold tabular-nums text-text-warning">
+              <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
+            </span>
+            <ChevronRightIcon
+              aria-hidden
+              className="size-4 shrink-0 text-text-muted transition-all group-hover/row:translate-x-0.5 group-hover/row:text-text-tertiary"
+            />
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/**
+ * OverviewCoverageGaps — entity-coverage gaps as a small warning module that
+ * only renders when something is actually uncovered (Yuqi: "shows teeth only
+ * when there are gaps"). Each chip drills into that jurisdiction.
+ */
+function OverviewCoverageGaps({
+  jurisdictions,
+  onSelectJurisdiction,
+}: {
+  jurisdictions: ReadonlyArray<{
+    jurisdiction: string
+    label: string
+    gapEntities: readonly string[]
+  }>
+  onSelectJurisdiction: (jurisdiction: string) => void
+}) {
+  if (jurisdictions.length === 0) return null
+  return (
+    <section className="flex shrink-0 flex-col gap-2.5 rounded-xl border border-divider-regular bg-state-warning-hover px-4 py-3.5">
+      <div className="flex items-center gap-2">
+        <TriangleAlertIcon aria-hidden className="size-4 shrink-0 text-text-warning" />
+        <span className="text-nav font-semibold text-text-primary">
+          <Plural
+            value={jurisdictions.length}
+            one="# jurisdiction has a coverage gap"
+            other="# jurisdictions have coverage gaps"
+          />
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {jurisdictions.map((g) => (
+          <button
+            key={g.jurisdiction}
+            type="button"
+            onClick={() => onSelectJurisdiction(g.jurisdiction)}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-state-base-hover"
+          >
+            <StateBadge code={g.jurisdiction} size="xs" preview={false} />
+            {g.label}
+            <span className="tabular-nums text-text-tertiary">{g.gapEntities.length}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/**
  * OverviewRecentChangesCard — the most-recently-touched rules (Pencil
  * O0pyRO `lDTO0`). A flush, full-width section (header + hairline-
  * separated rows), NOT a bordered card: jurisdiction code pill · title +
@@ -1324,20 +1442,6 @@ export function RulesLibraryRoute() {
     }
     return Math.round((covered / coverageRows.length) * 100)
   }, [coverageRows])
-  const highImpactChanged = useMemo(() => {
-    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
-    return rules.filter((rule) => {
-      const changed = ruleChangedAt(rule)
-      return changed !== null && changed >= cutoff && rule.riskLevel === 'high'
-    }).length
-  }, [rules])
-  const reviewedLast30 = useMemo(() => {
-    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
-    return rules.filter((rule) => {
-      const reviewed = rule.reviewedAt ? Date.parse(rule.reviewedAt) : Number.NaN
-      return !Number.isNaN(reviewed) && reviewed >= cutoff
-    }).length
-  }, [rules])
 
   // The states rail + per-jurisdiction detail pane. `unfilteredGroups`
   // powers stable per-jurisdiction totals (rail counts + review dots + the
@@ -1355,6 +1459,44 @@ export function RulesLibraryRoute() {
       })),
     [unfilteredGroups],
   )
+  // Overview "Where to start" + sharpened-stat data — all from already-wired
+  // sources, no new fiction.
+  //   topReviewJurisdictions — backlog ranked by pending count (the drill-in).
+  //   gappedJurisdictions    — entity-coverage gaps (the coverage module; only
+  //                            shows teeth when something is actually uncovered).
+  //   highSeverityPending    — high-risk rules awaiting review ("review first").
+  const topReviewJurisdictions = useMemo(
+    () =>
+      unfilteredGroups
+        .filter((g) => g.pendingReviewCount > 0)
+        .toSorted((a, b) => b.pendingReviewCount - a.pendingReviewCount)
+        .slice(0, 6),
+    [unfilteredGroups],
+  )
+  const gappedJurisdictions = useMemo(
+    () => unfilteredGroups.filter((g) => g.gapEntities.length > 0),
+    [unfilteredGroups],
+  )
+  const highSeverityPending = useMemo(
+    () =>
+      rules.filter(
+        (r) =>
+          (r.status === 'candidate' || r.status === 'pending_review') && r.riskLevel === 'high',
+      ).length,
+    [rules],
+  )
+  // Open review tasks → counts by reason (the "why the queue grew" strip).
+  const overviewReviewTasksQuery = useQuery(
+    orpc.rules.listReviewTasks.queryOptions({ input: { status: 'open' } }),
+  )
+  const reviewReasonCounts = useMemo(() => {
+    const counts = new Map<RuleReviewTask['reason'], number>()
+    for (const task of overviewReviewTasksQuery.data ?? []) {
+      counts.set(task.reason, (counts.get(task.reason) ?? 0) + 1)
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1])
+  }, [overviewReviewTasksQuery.data])
+
   const [railSearch, setRailSearch] = useState('')
   // Validate the URL param against real jurisdictions — an unknown
   // code falls back to the All overview rather than an empty pane.
@@ -2137,34 +2279,44 @@ export function RulesLibraryRoute() {
   // Overview stats band (Pencil O0pyRO `p0WeNy`) — extracted so it renders
   // identically whether it sits below the Recent changes feed (queue has
   // work) or below the "all caught up" card (queue clear).
+  // Decision-oriented stat band (Yuqi): drop the static vanity figures
+  // (Jurisdictions, Changed-30d — the totals already live in the page
+  // subtitle) for stats that drive the CPA's next move — the backlog, what's
+  // high-risk, coverage health, and one Total anchor.
   const overviewStats = [
-    {
-      key: 'total',
-      label: t`Total rules`,
-      value: totalRules,
-      sub: reviewedLast30 > 0 ? t`${reviewedLast30} reviewed in 30d` : t`${totalActive} active`,
-      subClass: 'text-text-accent',
-    },
-    {
-      key: 'jurisdictions',
-      label: t`Jurisdictions`,
-      value: jurisdictionCount,
-      sub: t`${coveragePct}% coverage`,
-      subClass: 'text-text-success',
-    },
-    {
-      key: 'changed',
-      label: t`Changed (30d)`,
-      value: changedLast30,
-      sub: highImpactChanged > 0 ? t`${highImpactChanged} high-impact` : t`Last 30 days`,
-      subClass: highImpactChanged > 0 ? 'text-text-warning' : 'text-text-tertiary',
-    },
     {
       key: 'pending',
       label: t`Pending review`,
       value: totalPendingReview,
       sub: oldestReviewRelative ? t`oldest ${oldestReviewRelative}` : t`Queue clear`,
-      subClass: totalPendingReview > 0 ? 'text-text-accent' : 'text-text-success',
+      valueClass: totalPendingReview > 0 ? 'text-text-warning' : 'text-text-success',
+      subClass: 'text-text-tertiary',
+    },
+    {
+      key: 'high-severity',
+      label: t`High-severity`,
+      value: highSeverityPending,
+      sub: highSeverityPending > 0 ? t`Review these first` : t`None awaiting`,
+      valueClass: highSeverityPending > 0 ? 'text-text-warning' : 'text-text-primary',
+      subClass: highSeverityPending > 0 ? 'text-text-warning' : 'text-text-tertiary',
+    },
+    {
+      key: 'coverage',
+      label: t`Coverage`,
+      value: t`${coveragePct}%`,
+      sub:
+        gappedJurisdictions.length > 0
+          ? t`${gappedJurisdictions.length} with gaps`
+          : t`Full coverage`,
+      valueClass: coveragePct < 100 ? 'text-text-warning' : 'text-text-success',
+      subClass: coveragePct < 100 ? 'text-text-warning' : 'text-text-tertiary',
+    },
+    {
+      key: 'total',
+      label: t`Total rules`,
+      value: totalRules,
+      sub: t`${totalActive} active`,
+      subClass: 'text-text-accent',
     },
   ]
 
@@ -2467,13 +2619,30 @@ export function RulesLibraryRoute() {
                   </Button>
                 </div>
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />
-                <OverviewRecentChangesCard
-                  rules={recentChanges}
-                  changedTotal={changedLast30}
-                  lastChangeAt={lastChangeAt}
-                  onRuleClick={handleRuleClick}
-                  onViewAll={handleViewAllChanges}
+                {/* "Where to start" — the backlog ranked + actionable. The
+                    overview's primary lower-zone module (Yuqi #1/#4). */}
+                <OverviewReviewBreakdown
+                  jurisdictions={topReviewJurisdictions}
+                  reasonCounts={reviewReasonCounts}
+                  onSelectJurisdiction={selectJurisdiction}
                 />
+                {/* Coverage gaps — renders nothing unless something's uncovered. */}
+                <OverviewCoverageGaps
+                  jurisdictions={gappedJurisdictions}
+                  onSelectJurisdiction={selectJurisdiction}
+                />
+                {/* Recent changes — only when the 30-day feed has entries, so an
+                    empty window pivots to the breakdown above rather than
+                    showing a dead empty card (Yuqi #3). */}
+                {recentChanges.length > 0 ? (
+                  <OverviewRecentChangesCard
+                    rules={recentChanges}
+                    changedTotal={changedLast30}
+                    lastChangeAt={lastChangeAt}
+                    onRuleClick={handleRuleClick}
+                    onViewAll={handleViewAllChanges}
+                  />
+                ) : null}
               </>
             )}
           </div>
