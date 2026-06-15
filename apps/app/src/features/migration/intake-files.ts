@@ -734,13 +734,34 @@ function sheetDataToTsv(sheets: Sheet[]): string {
   const rows: SheetData = sheets.find((sheet) =>
     sheet.data.some((row) => row.some((cell) => formatXlsxCell(cell).trim() !== '')),
   )?.data ?? [[]]
+  // Report-style exports (e.g. a QuickBooks Customer Contact List) prepend
+  // company/title/date banner rows above the column headings. Skip them so the
+  // real header row lands first for parsing and detection.
   return rows
+    .slice(findHeaderRowOffset(rows))
     .map((row) =>
       row
         .map((cell) => formatXlsxCell(cell).replaceAll('\t', ' ').replaceAll('\n', ' '))
         .join('\t'),
     )
     .join('\n')
+}
+
+// Find the first row of the data table, skipping leading banner/title rows that
+// report exports place above the column headings. The header + data form a run
+// of "wide" rows; banner rows are sparse (often a single cell), so we land on
+// the first wide row that begins such a run, falling back to the first wide row
+// (the header is always full) and finally to row 0.
+export function findHeaderRowOffset(rows: readonly (readonly unknown[])[]): number {
+  const widths = rows.map((row) => row.filter((cell) => formatXlsxCell(cell).trim() !== '').length)
+  const bodyWidth = widths.reduce((max, width) => Math.max(max, width), 0)
+  if (bodyWidth <= 1) return 0
+  const threshold = Math.max(2, Math.ceil(bodyWidth / 2))
+  for (let i = 0; i < widths.length - 1; i += 1) {
+    if ((widths[i] ?? 0) >= threshold && (widths[i + 1] ?? 0) >= threshold) return i
+  }
+  const firstWide = widths.findIndex((width) => width >= threshold)
+  return firstWide >= 0 ? firstWide : 0
 }
 
 function formatXlsxCell(cell: unknown): string {

@@ -55,6 +55,8 @@ exports (see Source Research Links). `detectSource()` in
     own columns (no `Custom field -` prefix); account status uses the activation vocabulary.
   - Karbon keys are opaque alphanumerics; the export has no tax-id, tags, or notes columns
     (those require a Karbon Support request).
+  - QuickBooks Online's report export carries the real company/title/date banner rows above the
+    column headings; the app skips them (`findHeaderRowOffset`) before parsing.
   - QuickBooks Desktop IIF opens with an `!HDR` section, uses the full `!CUST` field set, and
     REFNUM is QuickBooks' internal sequential integer.
   - CCH Axcess uses `Client Name` / `SSN/FEIN` / `Client Type` / `Sub-ID` and `Active`/`Inactive`
@@ -76,8 +78,6 @@ A few fixtures trade strict fidelity for app/test coverage; these are intentiona
   (`buildTaxDomeBundleCandidate`) operates within a single ZIP.
 - **Karbon `.xlsx`.** Karbon's self-serve contact export is CSV; we keep `.xlsx` to retain
   xlsx-parser coverage (Karbon also surfaces spreadsheet downloads).
-- **QuickBooks Online title rows.** A raw QBO report export has company/title rows above the
-  column headings (users delete them); we start at the heading row, which the app parses as row 1.
 - **Lacerte single module.** Lacerte exports per module (Individual / Partnership / Corporate);
   this fixture concatenates modules into one `EXPORT.CSV` using a shared `Federal ID Number` label.
 

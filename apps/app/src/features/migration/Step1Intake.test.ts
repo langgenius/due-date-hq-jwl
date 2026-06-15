@@ -10,7 +10,11 @@ import {
   shouldOfferDetectedPresetSwitch,
   SOURCE_PRESET_IDS,
 } from './Step1Intake'
-import { prepareUploadFile, unsupportedUploadForFileName } from './intake-files'
+import {
+  findHeaderRowOffset,
+  prepareUploadFile,
+  unsupportedUploadForFileName,
+} from './intake-files'
 
 const testDir = dirname(fileURLToPath(import.meta.url))
 const realisticFixtureDir = join(
@@ -99,6 +103,30 @@ describe('client rows paste normalization', () => {
     expect(normalizePastedRowsText('```csv\nname,state\nAcme,CA\n```')).toBe(
       'name\tstate\nAcme\tCA',
     )
+  })
+})
+
+describe('xlsx preamble skipping', () => {
+  it('keeps row 0 when the sheet starts with the column headings', () => {
+    expect(
+      findHeaderRowOffset([
+        ['Customer', 'Email', 'State'],
+        ['Acme LLC', 'a@example.com', 'CA'],
+      ]),
+    ).toBe(0)
+  })
+
+  it('skips company/title/date banner rows above the headings', () => {
+    expect(
+      findHeaderRowOffset([
+        ['Ledger Lane CPAs (TEST)'],
+        ['Customer Contact List'],
+        ['As of June 1, 2026'],
+        [''],
+        ['Customer', 'Customer Type', 'Email', 'Open Balance'],
+        ['Acme LLC', 'LLC', 'a@example.com', '120.00'],
+      ]),
+    ).toBe(4)
   })
 })
 

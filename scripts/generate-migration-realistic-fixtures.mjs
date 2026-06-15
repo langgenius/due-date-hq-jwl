@@ -563,8 +563,9 @@ function writeQuickBooksOnline() {
   // QuickBooks Online's US "Customer Contact List" report exports a single
   // "Billing Address" column and labels phones "Phone Numbers"; "Tax
   // Registration No." is a VAT-region (non-US) field and does not appear.
-  // A raw export has company/title rows above the headings that users are told
-  // to delete — we start at the heading row (the app parses row 1 as headers).
+  // A raw report export carries company/title/date banner rows above the
+  // column headings (users are told to delete them) — we include them, and the
+  // app skips them via findHeaderRowOffset().
   const headers = [
     'Customer',
     'Customer Type',
@@ -574,6 +575,12 @@ function writeQuickBooksOnline() {
     'Email',
     'Terms',
     'Open Balance',
+  ]
+  const preamble = [
+    ['Ledger Lane CPAs (TEST)'],
+    ['Customer Contact List'],
+    ['As of June 1, 2026'],
+    [''],
   ]
   writeXlsx(
     'quickbooks-online-customer-contact-list.xlsx',
@@ -589,6 +596,7 @@ function writeQuickBooksOnline() {
       Terms: client.terms,
       'Open Balance': client.balance,
     })),
+    preamble,
   )
 }
 
@@ -980,11 +988,14 @@ function writeZip(fileName, entries) {
   writeBinary(fileName, zipped)
 }
 
-function writeXlsx(fileName, sheetName, headers, rows) {
+function writeXlsx(fileName, sheetName, headers, rows, preamble = []) {
   const rowArrays = rows.map((row) => headers.map((header) => row[header] ?? ''))
+  // Banner/title rows that report-style exports place above the headings.
+  const allRows = [...preamble, headers, ...rowArrays]
+  const width = allRows.reduce((max, row) => Math.max(max, row.length), 0)
   const shared = []
   const sharedIndex = new Map()
-  const count = (rowArrays.length + 1) * headers.length
+  const count = allRows.reduce((sum, row) => sum + row.length, 0)
   const indexFor = (value) => {
     const text = String(value ?? '')
     const existing = sharedIndex.get(text)
@@ -994,7 +1005,7 @@ function writeXlsx(fileName, sheetName, headers, rows) {
     sharedIndex.set(text, index)
     return index
   }
-  const sheetRows = [headers, ...rowArrays].map((row, rowIndex) => {
+  const sheetRows = allRows.map((row, rowIndex) => {
     const cells = row
       .map((cell, cellIndex) => {
         const ref = `${columnName(cellIndex)}${rowIndex + 1}`
@@ -1013,7 +1024,7 @@ function writeXlsx(fileName, sheetName, headers, rows) {
   const sheetXml =
     '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
     '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-    `<dimension ref="A1:${columnName(headers.length - 1)}${rowArrays.length + 1}"/>` +
+    `<dimension ref="A1:${columnName(width - 1)}${allRows.length}"/>` +
     `<sheetData>${sheetRows.join('')}</sheetData>` +
     '</worksheet>'
   const sharedStringsXml =
