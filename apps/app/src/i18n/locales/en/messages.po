@@ -17177,11 +17177,6 @@ msgstr "Version conflict"
 msgid "Version history"
 msgstr "Version history"
 
-#: src/features/alerts/components/AlertListRail.tsx
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "Very low confidence"
-msgstr "Very low confidence"
-
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/routes/obligations.tsx
 #: src/routes/settings.permissions.tsx
@@ -17877,6 +17872,7 @@ msgid "Your deadlines and assignments inside DueDateHQ"
 msgstr "Your deadlines and assignments inside DueDateHQ"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "Your decision"
 msgstr "Your decision"
 

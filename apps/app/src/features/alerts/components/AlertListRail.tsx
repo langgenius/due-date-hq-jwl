@@ -243,9 +243,7 @@ function RailItem({
   //   • unread dot leads the time column while the alert awaits a decision
   //   • a low-only confidence pill (Low / Very low) sits in the badge row
   const unread = alert.status === 'matched' || alert.status === 'partially_applied'
-  const confidenceTier = aiConfidenceTier(alert.confidence)
-  const confidenceFlag: 'low' | 'verylow' | null =
-    confidenceTier === 'high' ? null : confidenceTier === 'medium' ? 'low' : 'verylow'
+  const showLowConfidence = aiConfidenceTier(alert.confidence) !== 'high'
 
   // Bottom-meta parity with the main /alerts row (PulseAlertRow):
   // affected-clients count (matched + needs-review) and the AI
@@ -340,14 +338,10 @@ function RailItem({
           {/* Confidence flag (Pencil aUZTy) — same low-only amber pill the main
               row carries, so a shaky extraction reads the same in both places.
               High confidence shows nothing. */}
-          {confidenceFlag ? (
+          {showLowConfidence ? (
             <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-semibold whitespace-nowrap text-text-warning">
               <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
-              {confidenceFlag === 'verylow' ? (
-                <Trans>Very low confidence</Trans>
-              ) : (
-                <Trans>Low confidence</Trans>
-              )}
+              <Trans>Low confidence</Trans>
             </span>
           ) : null}
         </div>

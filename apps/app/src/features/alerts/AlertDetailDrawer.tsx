@@ -7,7 +7,6 @@ import {
   CircleCheckIcon,
   CopyIcon,
   ExternalLinkIcon,
-  FlagIcon,
   LandmarkIcon,
   LightbulbIcon,
   LinkIcon,
@@ -483,13 +482,17 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
               <div
                 className={cn(
                   'flex min-w-0 flex-1 items-start justify-between gap-3',
-                  isLast ? '' : 'pb-4',
+                  // 2026-06-15 (Yuqi "更加delicate"): tighter step spacing.
+                  isLast ? '' : 'pb-3',
                 )}
               >
                 <div className="flex min-w-0 flex-col gap-0.5">
+                  {/* 2026-06-15 (Yuqi "可以字号更小吗" / more delicate): 13/500
+                      step title — a step lighter than the section body so the
+                      timeline reads as a quiet log, not a heading stack. */}
                   <span
                     className={cn(
-                      'text-sm font-semibold',
+                      'text-[13px] font-medium',
                       step.state === 'current'
                         ? 'text-text-accent'
                         : step.state === 'future'
@@ -500,13 +503,13 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
                     {step.title}
                   </span>
                   {step.meta ? (
-                    <span className="text-xs text-text-tertiary">{step.meta}</span>
+                    <span className="text-caption text-text-tertiary">{step.meta}</span>
                   ) : null}
                 </div>
                 {step.time ? (
                   <span
                     className={cn(
-                      'shrink-0 font-mono text-xs tabular-nums',
+                      'shrink-0 font-mono text-caption tabular-nums',
                       step.state === 'current' ? 'text-text-accent' : 'text-text-tertiary',
                     )}
                   >
@@ -1468,8 +1471,7 @@ export function AlertDetailDrawer({
                   {detail.alert.status === 'matched' ? (
                     // mb-2 sets the eyebrow apart from the meta row + title
                     // below (Yuqi: "can be further from the rest of the header").
-                    <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-state-accent-hover px-2.5 py-1 text-sm font-semibold text-text-accent">
-                      <FlagIcon className="size-3.5 shrink-0" aria-hidden />
+                    <span className="mb-2 inline-flex w-fit items-center rounded-full bg-state-accent-hover px-2.5 py-1 text-sm font-semibold text-text-accent">
                       <Trans>Needs your decision</Trans>
                     </span>
                   ) : null}
@@ -1501,6 +1503,13 @@ export function AlertDetailDrawer({
                       code={detail.alert.jurisdiction}
                       active={isActiveAlert(detail.alert)}
                     />
+                    {/* A middot separates the jurisdiction from the change-kind
+                        so the identity reads as a paused phrase ("Federal ·
+                        Protective claim window") rather than a run-on (Yuqi
+                        2026-06-15 "add a dot in between to pause"). */}
+                    <span className="shrink-0 text-text-quaternary" aria-hidden>
+                      ·
+                    </span>
                     {/* 2026-06-14 (Yuqi "lower case, medium" + "add an icon
                       before it"): icon + sentence-case medium, matching the
                       jurisdiction name's weight on the same line. */}
@@ -1567,10 +1576,11 @@ export function AlertDetailDrawer({
                     <AlertStructuredFields detail={detail} section="key-fact" />
                   </div>
 
-                  {/* Lifecycle strip — the hero's orientation anchor, above a
-                    hairline: what it is → by when → where it is in the
-                    pipeline. */}
-                  <div className="mt-1 border-t border-divider-subtle pt-3">
+                  {/* Lifecycle strip — the hero's orientation anchor: what it
+                    is → by when → where it is in the pipeline. The top hairline
+                    was removed (Yuqi 2026-06-15 "上面的border不需要") — the
+                    parent gap + the strip's own quiet styling carry the break. */}
+                  <div className="pt-1">
                     <AlertLifecycleStrip detail={detail} />
                   </div>
                 </div>
@@ -2070,18 +2080,12 @@ export function AlertDetailDrawer({
                 {/* Verbatim source excerpt (Pencil MASYz) — quote mark + italic
                   in a quiet gray box; hover reveals a copy affordance. */}
                 {detail.sourceExcerpt.trim().length > 0 ? (
-                  <div className="group/excerpt relative flex gap-2.5 rounded-xl bg-background-subtle p-4">
-                    {/* Proper typographic opening quote mark (Yuqi: "change to a
-                        proper icon") — a large serif glyph reads as a pull-quote
-                        mark far better than the lucide icon. */}
-                    <span
-                      className="-mt-1 shrink-0 font-serif text-3xl leading-none text-text-quaternary select-none"
-                      aria-hidden
-                    >
-                      &ldquo;
-                    </span>
+                  <div className="group/excerpt relative rounded-xl bg-background-subtle p-4">
+                    {/* 2026-06-15 (Yuqi "用正常文字的"") — the excerpt is wrapped
+                        in normal-text quotes, not a big off-centre serif
+                        pull-quote glyph that read as decoration. */}
                     <p className="min-w-0 break-words pr-8 text-base leading-relaxed text-text-secondary italic">
-                      {detail.sourceExcerpt}
+                      &ldquo;{detail.sourceExcerpt}&rdquo;
                     </p>
                     <Tooltip>
                       <TooltipTrigger
@@ -2245,6 +2249,12 @@ export function AlertDetailDrawer({
             </div>
           </div>
         ) : null}
+        {/* Bottom breathing room below the docked decision footer (Yuqi:
+            "proper bigger padding at the bottom") — with this spacer the sticky
+            bar lifts off the viewport edge as you reach the end and settles
+            into the document with space beneath it, reading as the closing
+            region rather than a bar jammed to the edge. */}
+        <div className="h-10 shrink-0" aria-hidden />
       </div>
     </>
   )

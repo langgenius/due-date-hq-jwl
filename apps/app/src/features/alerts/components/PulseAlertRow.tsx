@@ -313,13 +313,12 @@ function PulseAlertRow({
   const timeTag = proximityTimeTag(proximity)
 
   const confidenceTier = aiConfidenceTier(alert.confidence)
-  // Confidence pill (Pencil aUZTy) — surfaced ONLY when the extraction warrants
-  // a second look: 'medium' tier reads "Low confidence", 'low' tier reads "Very
-  // low confidence". 'high' shows nothing (the absence is the all-clear) — same
-  // red-restraint logic as the rest of the row. Amber-family (never red — the
-  // row's single red stays on the urgent deadline pill).
-  const confidenceFlag: 'low' | 'verylow' | null =
-    confidenceTier === 'high' ? null : confidenceTier === 'medium' ? 'low' : 'verylow'
+  // Confidence pill (Pencil aUZTy) — surfaced ONLY when the extraction isn't
+  // high-confidence, as a single "Low confidence" flag (Yuqi 2026-06-15: dropped
+  // the "Very low" tier — it read as alarming and split one signal in two).
+  // 'high' shows nothing (the absence is the all-clear). Amber-family, never red
+  // (the row's single red stays on the urgent deadline pill).
+  const showLowConfidence = confidenceTier !== 'high'
 
   // Unread/needs-attention dot (aUZTy) — true while the alert is still awaiting
   // a decision (not yet applied / dismissed / reviewed / reverted). Drives the
@@ -542,14 +541,10 @@ function PulseAlertRow({
               — the absence is the all-clear. Amber-family (never red — the row's
               one red stays on the urgent deadline). Replaces the always-on
               "N% confidence" meter that used to sit in the bottom meta. */}
-          {confidenceFlag ? (
+          {showLowConfidence ? (
             <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-semibold whitespace-nowrap text-text-warning">
               <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
-              {confidenceFlag === 'verylow' ? (
-                <Trans>Very low confidence</Trans>
-              ) : (
-                <Trans>Low confidence</Trans>
-              )}
+              <Trans>Low confidence</Trans>
             </span>
           ) : null}
 

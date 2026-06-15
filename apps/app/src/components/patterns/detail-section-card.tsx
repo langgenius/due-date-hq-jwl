@@ -75,7 +75,10 @@ export function DetailSectionCard({
   if (variant === 'flat') {
     return (
       <section id={id} className={cn('flex flex-col gap-4', className)}>
-        <header className="flex items-baseline gap-2">
+        {/* items-center (Yuqi 2026-06-15 "没有vertically居中") so the numbered
+            badge, title, caption, and any header-right cluster all sit on one
+            centered line instead of drifting off the text baseline. */}
+        <header className="flex items-center gap-2">
           {/* Numbered badge (Pencil MASYz) — a small rounded chip ahead of the
               title so the three sections read as an ordered 1·2·3 outline. */}
           {typeof index === 'number' ? (

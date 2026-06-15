@@ -17252,11 +17252,6 @@ msgstr "版本冲突"
 msgid "Version history"
 msgstr "版本历史"
 
-#: src/features/alerts/components/AlertListRail.tsx
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "Very low confidence"
-msgstr "极低置信度"
-
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/routes/obligations.tsx
 #: src/routes/settings.permissions.tsx
@@ -17955,6 +17950,7 @@ msgid "Your deadlines and assignments inside DueDateHQ"
 msgstr "DueDateHQ 中的截止日期和分配任务"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "Your decision"
 msgstr "你的决定"
 

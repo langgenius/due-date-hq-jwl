@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CalendarClockIcon, ClipboardListIcon, FileTextIcon } from 'lucide-react'
+import { CalendarClockIcon, ClipboardListIcon } from 'lucide-react'
 
 import type { PulseDetail } from '@duedatehq/contracts'
 
@@ -286,25 +286,31 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
   // calendar icon + "Act by {date}" + "· N days left" — a light-red pill, the
   // one urgent cue in the masthead.
   const keyFactLine = protectiveFacts?.actionDeadline ? (
-    <span className="inline-flex w-fit flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-lg bg-state-destructive-hover px-2.5 py-1">
+    // 2026-06-15 (Yuqi "好粗糙" — too crude): refined to one quiet red cue.
+    // The date reads as secondary context; only the countdown carries the red,
+    // at medium weight (the design system bans red+bold double-highlight —
+    // urgency is the colour, not a heavier weight). Roomier padding + a single
+    // line so it reads delicate, not chunky.
+    <span className="inline-flex w-fit items-center gap-2 rounded-lg bg-state-destructive-hover px-3 py-1.5 text-sm">
       <CalendarClockIcon className="size-3.5 shrink-0 text-text-destructive" aria-hidden />
-      <span className="text-sm font-medium text-text-primary tabular-nums">
+      <span className="text-text-secondary tabular-nums">
         {t`Act by ${formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}`}
       </span>
       {actionDeadlineDays !== null ? (
-        actionDeadlineDays > 0 ? (
-          <span className="text-sm font-semibold text-text-destructive tabular-nums">
-            · <Plural value={actionDeadlineDays} one="# day left" other="# days left" />
+        <>
+          <span className="text-text-quaternary" aria-hidden>
+            ·
           </span>
-        ) : actionDeadlineDays === 0 ? (
-          <span className="text-sm font-semibold text-text-destructive">
-            · <Trans>Due today</Trans>
+          <span className="font-medium text-text-destructive tabular-nums">
+            {actionDeadlineDays > 0 ? (
+              <Plural value={actionDeadlineDays} one="# day left" other="# days left" />
+            ) : actionDeadlineDays === 0 ? (
+              <Trans>Due today</Trans>
+            ) : (
+              <Plural value={-actionDeadlineDays} one="# day past" other="# days past" />
+            )}
           </span>
-        ) : (
-          <span className="text-sm font-semibold text-text-destructive tabular-nums">
-            · <Plural value={-actionDeadlineDays} one="# day past" other="# days past" />
-          </span>
-        )
+        </>
       ) : null}
     </span>
   ) : null
@@ -312,9 +318,10 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
   if (section === 'key-fact') return keyFactLine
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {/* Parsed-fields sub-header (Pencil MASYz) — bold label left, the
-          AI-verify reminder right, above the fact grid. */}
+          AI-verify reminder right, sitting close above the fact grid (Yuqi
+          2026-06-15 "离下面的内容更近"). */}
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm font-semibold text-text-primary">
           <Trans>Parsed fields</Trans>
@@ -377,9 +384,14 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
             {protectiveFacts.evidenceNeeded.map((item) => (
               <li
                 key={item}
-                className="flex items-start gap-2 text-sm leading-snug text-text-secondary"
+                className="flex items-start gap-2.5 text-sm leading-snug text-text-secondary"
               >
-                <FileTextIcon className="mt-0.5 size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                {/* A quiet bullet dot, not a file icon (Yuqi 2026-06-15) — the
+                    items are evidence to gather, not documents on file. */}
+                <span
+                  className="mt-[7px] size-1 shrink-0 rounded-full bg-text-quaternary"
+                  aria-hidden
+                />
                 {item}
               </li>
             ))}

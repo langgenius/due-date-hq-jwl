@@ -54,8 +54,12 @@ export function AlertSourceLink({
     window.open(sourceUrl, '_blank', 'noopener,noreferrer')
   }
 
+  // 2026-06-15 (Yuqi "hover to blue (link). apply to all links"): a real link
+  // reveals itself on hover by going accent (blue) + underline, instead of the
+  // quiet gray darken it used before. One shared component → every source link
+  // (row, rail, detail) gets the affordance.
   const interactive =
-    'shrink cursor-pointer truncate rounded-sm outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
+    'shrink cursor-pointer truncate rounded-sm outline-none transition-colors hover:text-text-accent hover:underline focus-visible:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
 
   const link = standalone ? (
     <a
