@@ -2658,11 +2658,15 @@ export function ObligationQueueDetailDrawer({
                       {/* Recent activity — last few audit-feed entries, with a
                         link out to the full Timeline tab. */}
                       {/* 2026-06-10 (Yuqi — replicate Pencil `qSa9z` Recent
-                        activity): the shared <DetailSectionCard> chrome (gray
-                        header band + "View all → Record" link) over flush rows
-                        with top hairlines + mono timestamps. */}
+                        activity): the shared <DetailSectionCard> over flush rows
+                        with top hairlines + mono timestamps.
+                        2026-06-16 (deadlines↔alerts §11): FLAT + tone="reference"
+                        — the detail reads as one calm document (matching the
+                        alert detail), not boxes-in-boxes. */}
                       {detail.auditEvents.length > 0 ? (
                         <DetailSectionCard
+                          variant="flat"
+                          tone="reference"
                           title={<Trans>Recent activity</Trans>}
                           headerRight={
                             <button
@@ -2683,9 +2687,11 @@ export function ObligationQueueDetailDrawer({
                                   key={event.id}
                                   className={cn(
                                     // 2026-06-10 (Yuqi page-polish #16 "更扁"):
-                                    // the Recent-activity rows flatten from py-3.5
-                                    // to py-2.5 so the list reads shorter/denser.
-                                    'flex items-center gap-3 px-5 py-2.5',
+                                    // the Recent-activity rows flatten to py-2.5.
+                                    // 2026-06-16 (§11 flat): no px — the rows sit
+                                    // at the flat section's edge, aligned with its
+                                    // header (the card's px-5 inset is gone).
+                                    'flex items-center gap-3 py-2.5',
                                     index > 0 && 'border-t border-divider-subtle',
                                   )}
                                 >
@@ -2716,6 +2722,8 @@ export function ObligationQueueDetailDrawer({
                       {isPageMode &&
                       (extensionPolicy?.available || Boolean(row.extensionDecidedAt)) ? (
                         <DetailSectionCard
+                          variant="flat"
+                          tone="action"
                           title={<Trans>Extension</Trans>}
                           headerRight={
                             row.extensionDecidedAt ? (
@@ -2869,9 +2877,9 @@ export function ObligationQueueDetailDrawer({
                     {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX):
                       single-column body, so Ownership + Linked-from fold to a
                       full-width 2-up footer row below the cards (the prior right
-                      rail is gone). Each is wrapped in the shared
-                      DetailSectionCard chrome (gray header band) so they match
-                      the alert's zero-hand-rolled-card system — parity #4. */}
+                      rail is gone). Each uses the shared DetailSectionCard
+                      (flat + tone="reference", 2026-06-16 §11) so they match the
+                      alert detail's flat document — parity #4. */}
                     {/* 2026-06-10 (Yuqi page-polish #18/#19 "不要" ×2): the
                       Ownership + Linked-from footer 2-up is dropped in page mode.
                       Ownership duplicates the footer Assign action; Linked-from's
@@ -2879,7 +2887,11 @@ export function ObligationQueueDetailDrawer({
                       already navigates to the client). Panel/sheet keep both. */}
                     {!isPageMode ? (
                       <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                        <DetailSectionCard title={<Trans>Ownership</Trans>}>
+                        <DetailSectionCard
+                          variant="flat"
+                          tone="reference"
+                          title={<Trans>Ownership</Trans>}
+                        >
                           <div className="flex items-center gap-2.5">
                             <AssigneeAvatar
                               name={row.assigneeName ?? t`Unassigned`}
@@ -2948,7 +2960,11 @@ export function ObligationQueueDetailDrawer({
                             </DropdownMenu>
                           </div>
                         </DetailSectionCard>
-                        <DetailSectionCard title={<Trans>Linked from</Trans>}>
+                        <DetailSectionCard
+                          variant="flat"
+                          tone="reference"
+                          title={<Trans>Linked from</Trans>}
+                        >
                           <Link
                             to={clientDetailPath({ id: row.clientId, name: row.clientName })}
                             className="group flex items-center gap-2.5 rounded-lg px-1 py-1.5 outline-none transition-colors hover:bg-state-base-hover active:bg-state-base-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
@@ -3023,6 +3039,8 @@ export function ObligationQueueDetailDrawer({
                         the only title; the reference badge + list actions live
                         in headerRight. */}
                     <DetailSectionCard
+                      variant="flat"
+                      tone="action"
                       title={<Trans>Materials checklist</Trans>}
                       headerRight={
                         <>
@@ -3573,6 +3591,8 @@ export function ObligationQueueDetailDrawer({
                         flattened (no frame-in-frame inside the white card). */}
                     {latestRequest ? (
                       <DetailSectionCard
+                        variant="flat"
+                        tone="action"
                         title={<Trans>Client request</Trans>}
                         headerRight={
                           <Badge
@@ -3646,7 +3666,11 @@ export function ObligationQueueDetailDrawer({
                       read only readinessRequests[0]; the full history was
                       already in the payload, just never surfaced. */}
                     {(detail?.readinessRequests ?? []).length > 1 ? (
-                      <DetailSectionCard title={<Trans>Request history</Trans>}>
+                      <DetailSectionCard
+                        variant="flat"
+                        tone="reference"
+                        title={<Trans>Request history</Trans>}
+                      >
                         <ul className="flex flex-col gap-1.5">
                           {(detail?.readinessRequests ?? []).slice(1).map((request) => (
                             <li
@@ -4319,6 +4343,8 @@ export function ObligationQueueDetailDrawer({
                         // matches the other tabs — band title + the complete/total
                         // fraction in headerRight (one title per card).
                         <DetailSectionCard
+                          variant="flat"
+                          tone="action"
                           title={<Trans>Evidence to close out filing</Trans>}
                           headerRight={
                             <span className="font-mono text-sm font-semibold tabular-nums text-text-secondary">
@@ -4339,6 +4365,8 @@ export function ObligationQueueDetailDrawer({
                       the shared card chrome — count + the (stub) Add-workpaper
                       CTA live in headerRight, the band title is the only title. */}
                     <DetailSectionCard
+                      variant="flat"
+                      tone="reference"
                       title={<Trans>Workpapers</Trans>}
                       headerRight={
                         <>
@@ -4550,6 +4578,8 @@ export function ObligationQueueDetailDrawer({
                         sits in the shared card chrome like every other tab's
                         primary content; event count in headerRight. */}
                     <DetailSectionCard
+                      variant="flat"
+                      tone="reference"
                       title={<Trans>Audit trail</Trans>}
                       headerRight={
                         detail.auditEvents.length > 0 ? (
