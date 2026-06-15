@@ -24,7 +24,7 @@ import { toast } from 'sonner'
 
 import type { PulseFirmAlertStatus, PulseStatus } from '@duedatehq/contracts'
 import type { PulseDetail } from '@duedatehq/contracts'
-import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
@@ -1663,6 +1663,59 @@ export function AlertDetailDrawer({
             // The ranked section headers carry the grouping; no dividers (Yuqi
             // dislikes "just lines").
             <div className="flex shrink-0 flex-col gap-10">
+              {/* SOURCE-HEALTH banner (Pencil c5ArV1) — a `source_status` alert
+                  is a monitoring-reliability notice, not a regulatory change:
+                  there is nothing to "apply", the action is "go check the
+                  source". Surfaced at the TOP (warning tone — a watch state,
+                  distinct from the destructive `source_revoked` banner) with an
+                  Open-source primary action, so the degraded feed reads as the
+                  hero concern. No fabricated rule counts: the re-verify line
+                  reflects the REAL `reverifyRuleIds` (and the ReverifyRulesSection
+                  below renders the list when there is one); when none cite this
+                  source we say so plainly rather than inventing a number. */}
+              {detail.alert.changeKind === 'source_status' &&
+              detail.alert.sourceStatus !== 'source_revoked' ? (
+                <Alert variant="warning">
+                  <TriangleAlertIcon />
+                  <AlertTitle>
+                    <Trans>Monitoring degraded — verify at the source</Trans>
+                  </AlertTitle>
+                  <AlertDescription>
+                    <Trans>
+                      The automated feed for {detail.alert.source} is delayed, so new{' '}
+                      {getJurisdictionName(detail.jurisdiction)} changes may not have been captured
+                      yet. Check the source directly until monitoring recovers.
+                    </Trans>{' '}
+                    {detail.reverifyRuleIds.length > 0 ? (
+                      <Plural
+                        value={detail.reverifyRuleIds.length}
+                        one="# monitored rule cites this source — re-verify it below."
+                        other="# monitored rules cite this source — re-verify them below."
+                      />
+                    ) : (
+                      <Trans>
+                        No monitored rules cite this source, so nothing needs re-verifying.
+                      </Trans>
+                    )}
+                  </AlertDescription>
+                  {detail.alert.sourceUrl ? (
+                    <AlertAction>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          window.open(detail.alert.sourceUrl, '_blank', 'noopener,noreferrer')
+                        }
+                      >
+                        <Trans>Open source</Trans>
+                        <ExternalLinkIcon data-icon="inline-end" />
+                      </Button>
+                    </AlertAction>
+                  ) : null}
+                </Alert>
+              ) : null}
+
               {/* GROUP 1 — Change details (2026-06-12 info-organisation pass:
                 renamed from the system-speak "Extracted facts"; named by
                 MEANING like every other section). The do-by-when KEY FACT

@@ -234,6 +234,11 @@ msgstr "{0, plural, one {# material still outstanding.} other {# materials still
 msgid "{0, plural, one {# missing} other {# missing}}"
 msgstr "{0, plural, one {# missing} other {# missing}}"
 
+#. placeholder {0}: detail.reverifyRuleIds.length
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{0, plural, one {# monitored rule cites this source — re-verify it below.} other {# monitored rules cite this source — re-verify them below.}}"
+msgstr "{0, plural, one {# monitored rule cites this source — re-verify it below.} other {# monitored rules cite this source — re-verify them below.}}"
+
 #. placeholder {0}: (auditQuery.data.events.length ?? 0) - MAX_VISIBLE_EVENTS
 #: src/features/dashboard/changes-since-last-section.tsx
 msgid "{0, plural, one {# more in the audit log} other {# more in the audit log}}"
@@ -9688,6 +9693,10 @@ msgstr "Monitored"
 msgid "Monitoring {sourceCount} sources across {jurisdictions} jurisdictions"
 msgstr "Monitoring {sourceCount} sources across {jurisdictions} jurisdictions"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Monitoring degraded — verify at the source"
+msgstr "Monitoring degraded — verify at the source"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Monitoring has not run in 24h"
 msgstr "Monitoring has not run in 24h"
@@ -10504,6 +10513,10 @@ msgstr "No matching open deadlines in this practice. Review and confirm no actio
 #: src/routes/rules.library.tsx
 msgid "No missing rules"
 msgstr "No missing rules"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "No monitored rules cite this source, so nothing needs re-verifying."
+msgstr "No monitored rules cite this source, so nothing needs re-verifying."
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "No morning digests have run yet."
@@ -11396,6 +11409,7 @@ msgstr "Open rule details for {displayTitle}"
 msgid "Open rule reference →"
 msgstr "Open rule reference →"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertSourceLink.tsx
 #: src/features/dashboard/needs-attention-card.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -15971,6 +15985,12 @@ msgstr "The AI flagged {0} as needing human review. Confirming marks the client 
 #: src/features/migration/Step4Preview.tsx
 msgid "The audit log records every mapping and value change"
 msgstr "The audit log records every mapping and value change"
+
+#. placeholder {0}: detail.alert.source
+#. placeholder {1}: getJurisdictionName(detail.jurisdiction)
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "The automated feed for {0} is delayed, so new {1} changes may not have been captured yet. Check the source directly until monitoring recovers."
+msgstr "The automated feed for {0} is delayed, so new {1} changes may not have been captured yet. Check the source directly until monitoring recovers."
 
 #: src/routes/billing.tsx
 msgid "The billing portal opens with the payment provider for invoices, payment methods, and cancellation."
