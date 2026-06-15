@@ -4,9 +4,16 @@ import { Link } from 'react-router'
 import { LayoutDashboardIcon, TimerIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
-import { Segmented } from '@duedatehq/ui/components/ui/segmented'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import {
   ListRail,
   ListRailHead,
@@ -100,26 +107,39 @@ export function JurisdictionRail({
 
   return (
     <ListRail ariaLabel={t`Jurisdictions`} {...(className ? { className } : {})}>
-      {/* ListHead — title + an All / Needs-review Segmented filter. The
-          two-segment control reads unmistakably as a filter (same chrome as
-          the per-jurisdiction Review/Active Segmented) where the lone chip
-          read as a static label. Mirrors the canonical list-rail head
-          (AlertListRail / ObligationListRail): a single 15px title row with a
-          trailing control, separated by a `border-b`. */}
+      {/* ListHead — title + a needs-review FILTER. Deliberately a
+          `FilterTrigger` dropdown (the app's filter vocabulary, shared with the
+          rule filter bar), NOT a `Segmented`: the Segmented is reserved for
+          SCOPE toggles like the detail pane's Review/Active, so a list filter
+          and a content scope never read as the same control. (Earlier the lone
+          ToggleChip read as a static label; the Segmented read as a duplicate
+          of the detail scope — this resolves both.) */}
       <ListRailHead className="justify-between">
         <ListRailTitle>
           <Trans>Jurisdictions</Trans>
         </ListRailTitle>
-        <Segmented<'all' | 'review'>
-          value={reviewOnly ? 'review' : 'all'}
-          onValueChange={(next) => setReviewOnly(next === 'review')}
-          size="sm"
-          ariaLabel={t`Filter jurisdictions`}
-          options={[
-            { value: 'all', label: <Trans>All</Trans> },
-            { value: 'review', label: <Trans>Needs review</Trans> },
-          ]}
-        />
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <FilterTrigger active={reviewOnly} valueLabel={reviewOnly ? t`Needs review` : t`All`}>
+                <Trans>Show</Trans>
+              </FilterTrigger>
+            }
+          />
+          <DropdownMenuContent align="end" className="min-w-[180px]">
+            <DropdownMenuRadioGroup
+              value={reviewOnly ? 'review' : 'all'}
+              onValueChange={(value) => setReviewOnly(value === 'review')}
+            >
+              <DropdownMenuRadioItem value="all">
+                <Trans>All jurisdictions</Trans>
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="review">
+                <Trans>Needs review</Trans>
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </ListRailHead>
 
       {/* FilterRow — full-width search, separated by a `border-b` (same

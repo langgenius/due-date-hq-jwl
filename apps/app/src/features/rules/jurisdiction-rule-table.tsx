@@ -10,8 +10,11 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
@@ -175,16 +178,24 @@ export function JurisdictionFilterBar({
     else next.add(value)
     onFilterChange({ ...filter, severities: next })
   }
-  const setSort = (field: RuleTableSort['field'], dir: RuleTableSort['dir'] | 'none') => {
-    onFilterChange({ ...filter, sort: dir === 'none' ? null : { field, dir } })
+  // Sort is a single radio across both fields (Modified / Effective) so the
+  // consolidated Filters dropdown carries one "Sort by" group, not two.
+  const sortValue = filter.sort ? `${filter.sort.field}:${filter.sort.dir}` : 'none'
+  const setSortValue = (value: string) => {
+    if (value === 'none') {
+      onFilterChange({ ...filter, sort: null })
+      return
+    }
+    const [field, dir] = value.split(':') as [RuleTableSort['field'], RuleTableSort['dir']]
+    onFilterChange({ ...filter, sort: { field, dir } })
   }
-  const sortValueFor = (field: RuleTableSort['field']) =>
-    filter.sort?.field === field ? filter.sort.dir : 'none'
+  // Count of engaged facets — drives the Filters trigger's value badge.
+  const activeFilterCount = filter.types.size + filter.severities.size + (filter.sort ? 1 : 0)
 
   // Clear-filters affordance — same model as /clients and /alerts: always
   // rendered, disabled when there's nothing to clear (no layout shift on a
   // wrapping row). Clears the facet filters + sort + the search box; the
-  // status Segmented (All / Active / …) is a view scope, not a filter, so
+  // status Segmented (Review / Active) is a view scope, not a filter, so
   // it's left untouched.
   const filtersActive =
     filter.types.size > 0 || filter.severities.size > 0 || filter.sort != null || search.length > 0
@@ -227,114 +238,78 @@ export function JurisdictionFilterBar({
         />
       </div>
 
-      {/* Type — multi-select by tax type. */}
+      {/* All facets collapsed into one Filters dropdown (Yuqi: cleaner bar,
+          easier to read) — Type + Severity multi-select + a single Sort-by
+          radio, grouped with labels. Replaces the four inline chips. */}
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
             <FilterTrigger
-              active={filter.types.size > 0}
-              valueLabel={filter.types.size > 0 ? String(filter.types.size) : undefined}
+              active={activeFilterCount > 0}
+              valueLabel={activeFilterCount > 0 ? String(activeFilterCount) : undefined}
             >
-              <Trans>Type</Trans>
+              <Trans>Filters</Trans>
             </FilterTrigger>
           }
         />
-        <DropdownMenuContent align="end" className="max-h-[320px] min-w-[220px] overflow-y-auto">
-          {typeOptions.length === 0 ? (
-            <div className="px-2 py-1.5 text-xs text-text-tertiary">
-              <Trans>No rule types</Trans>
-            </div>
-          ) : (
-            typeOptions.map((option) => (
+        <DropdownMenuContent align="end" className="max-h-[440px] min-w-[240px] overflow-y-auto">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>
+              <Trans>Type</Trans>
+            </DropdownMenuLabel>
+            {typeOptions.length === 0 ? (
+              <div className="px-2 py-1.5 text-xs text-text-tertiary">
+                <Trans>No rule types</Trans>
+              </div>
+            ) : (
+              typeOptions.map((option) => (
+                <DropdownMenuCheckboxItem
+                  key={option.value}
+                  checked={filter.types.has(option.value)}
+                  onCheckedChange={() => toggleType(option.value)}
+                >
+                  <span className="flex-1 truncate">{option.label}</span>
+                  <span className="ml-3 tabular-nums text-text-tertiary">{option.count}</span>
+                </DropdownMenuCheckboxItem>
+              ))
+            )}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>
+              <Trans>Severity</Trans>
+            </DropdownMenuLabel>
+            {SEVERITY_OPTIONS.map((option) => (
               <DropdownMenuCheckboxItem
                 key={option.value}
-                checked={filter.types.has(option.value)}
-                onCheckedChange={() => toggleType(option.value)}
+                checked={filter.severities.has(option.value)}
+                onCheckedChange={() => toggleSeverity(option.value)}
               >
-                <span className="flex-1 truncate">{option.label}</span>
-                <span className="ml-3 tabular-nums text-text-tertiary">{option.count}</span>
+                {option.label}
               </DropdownMenuCheckboxItem>
-            ))
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Modified — sort by last-modified date. */}
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <FilterTrigger active={filter.sort?.field === 'modified'}>
-              <Trans>Modified</Trans>
-            </FilterTrigger>
-          }
-        />
-        <DropdownMenuContent align="end" className="min-w-[180px]">
-          <DropdownMenuRadioGroup
-            value={sortValueFor('modified')}
-            onValueChange={(value) => setSort('modified', value as RuleTableSort['dir'] | 'none')}
-          >
-            <DropdownMenuRadioItem value="desc">
-              <Trans>Newest first</Trans>
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="asc">
-              <Trans>Oldest first</Trans>
-            </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioGroup value={sortValue} onValueChange={setSortValue}>
+            <DropdownMenuLabel>
+              <Trans>Sort by</Trans>
+            </DropdownMenuLabel>
             <DropdownMenuRadioItem value="none">
               <Trans>Default order</Trans>
             </DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Effective — sort by effective date. */}
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <FilterTrigger active={filter.sort?.field === 'effective'}>
-              <Trans>Effective</Trans>
-            </FilterTrigger>
-          }
-        />
-        <DropdownMenuContent align="end" className="min-w-[180px]">
-          <DropdownMenuRadioGroup
-            value={sortValueFor('effective')}
-            onValueChange={(value) => setSort('effective', value as RuleTableSort['dir'] | 'none')}
-          >
-            <DropdownMenuRadioItem value="desc">
-              <Trans>Newest first</Trans>
+            <DropdownMenuRadioItem value="modified:desc">
+              <Trans>Modified · newest first</Trans>
             </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="asc">
-              <Trans>Oldest first</Trans>
+            <DropdownMenuRadioItem value="modified:asc">
+              <Trans>Modified · oldest first</Trans>
             </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="none">
-              <Trans>Default order</Trans>
+            <DropdownMenuRadioItem value="effective:desc">
+              <Trans>Effective · newest first</Trans>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="effective:asc">
+              <Trans>Effective · oldest first</Trans>
             </DropdownMenuRadioItem>
           </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Severity — multi-select by risk level. */}
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <FilterTrigger
-              active={filter.severities.size > 0}
-              valueLabel={filter.severities.size > 0 ? String(filter.severities.size) : undefined}
-            >
-              <Trans>Severity</Trans>
-            </FilterTrigger>
-          }
-        />
-        <DropdownMenuContent align="end" className="min-w-[160px]">
-          {SEVERITY_OPTIONS.map((option) => (
-            <DropdownMenuCheckboxItem
-              key={option.value}
-              checked={filter.severities.has(option.value)}
-              onCheckedChange={() => toggleSeverity(option.value)}
-            >
-              {option.label}
-            </DropdownMenuCheckboxItem>
-          ))}
         </DropdownMenuContent>
       </DropdownMenu>
 
