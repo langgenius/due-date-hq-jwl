@@ -569,47 +569,26 @@ function JurisdictionRuleRow({
       aria-label={`Open rule details for ${displayTitle}`}
       data-state={selected ? 'selected' : undefined}
     >
-      {/* Leading affordance — a quiet status dot AT REST, swapping to the
-          bulk-select checkbox on row hover (or whenever the row is checked).
-          This keeps "click the row to open & review" the obvious primary
-          action and makes the checkbox a deliberate, secondary bulk gesture
-          rather than competing for the same click. */}
+      {/* Leading affordance — a real checkbox whenever the row can be
+          bulk-reviewed, so the row reads as selectable on sight (Gmail-style).
+          No "needs review" status dot here: that concept is already carried by
+          the rail's red dot + count and the Review tab, and a blue dot in this
+          column both duplicated it in a different colour and hid the checkbox
+          until hover. Non-selectable rows show a quiet inert status dot. */}
       <TableCell className="pl-4 align-middle">
-        <span className="relative inline-flex size-4 items-center justify-center">
+        <span className="inline-flex size-4 items-center justify-center">
           {selectable ? (
-            <>
-              <span
-                // The blue dot is the "needs review" marker — give it a
-                // label/title so it isn't a mystery glyph (re-critique: every
-                // row carried an unexplained blue dot). Gray dots are inert.
-                aria-label={tone === 'review' ? 'Needs review' : undefined}
-                aria-hidden={tone === 'review' ? undefined : true}
-                title={tone === 'review' ? 'Needs review' : undefined}
-                className={cn(
-                  'absolute size-1.5 rounded-full transition-opacity',
-                  tone === 'review' ? 'bg-state-accent-solid' : 'bg-divider-regular',
-                  selected
-                    ? 'opacity-0'
-                    : 'group-hover/row:opacity-0 group-focus-within/row:opacity-0',
-                )}
+            <span
+              className="inline-flex"
+              onClick={(event) => event.stopPropagation()}
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              <Checkbox
+                checked={selected}
+                onCheckedChange={onSelectChange}
+                aria-label={`Select ${displayTitle} for batch review`}
               />
-              <span
-                className={cn(
-                  'inline-flex transition-opacity',
-                  selected
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100',
-                )}
-                onClick={(event) => event.stopPropagation()}
-                onPointerDown={(event) => event.stopPropagation()}
-              >
-                <Checkbox
-                  checked={selected}
-                  onCheckedChange={onSelectChange}
-                  aria-label={`Select ${displayTitle} for batch review`}
-                />
-              </span>
-            </>
+            </span>
           ) : (
             <span
               aria-hidden
