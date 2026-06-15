@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 // Flat `useQuery` with a 50-item page (not a keyset-paginated infinite
 // query); row-level Dismiss via `useMutation` + sonner toast.
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -55,7 +55,10 @@ import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SearchInput } from '@/components/primitives/search-input'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { StatusBanner } from '@/components/patterns/status-banner'
-import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
+import {
+  FloatingActionBar,
+  FLOATING_ACTION_BAR_SCROLL_PADDING,
+} from '@/components/patterns/floating-action-bar'
 
 import { MorningSweepPanel } from './MorningSweepDialog'
 
@@ -198,7 +201,16 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // Review leads the toggle AND is the default queue — reviewing pending
   // changes is the higher-priority action; Active (apply due-date changes)
   // follows.
-  const [workQueue, setWorkQueue] = useState<'active' | 'review'>('review')
+  //
+  // A `?queue=active|review` deep-link seeds the initial tab (lazy init, read
+  // once on mount) so callers can land the user in a specific queue — e.g.
+  // /today's "Alerts" brief pill targets `?queue=review` so it always opens
+  // the review queue rather than relying on the unspoken default. Anything
+  // other than 'active' falls back to review.
+  const [searchParams] = useSearchParams()
+  const [workQueue, setWorkQueue] = useState<'active' | 'review'>(() =>
+    searchParams.get('queue') === 'active' ? 'active' : 'review',
+  )
   // One-shot guard for the open-alert → queue-tab sync below: tracks the alert
   // id we've already synced the queue for, so the sync fires exactly once per
   // OPEN and never fights a manual toggle. A ref (not state) — it must not
@@ -749,6 +761,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         <div
           className={cn(
             'flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto [scrollbar-gutter:stable]',
+            // Reserve clearance for the floating bulk bar while a selection
+            // exists, so the last cards scroll clear of it instead of being
+            // occluded (the bar shows on the same condition below).
+            selectionEnabled && selectedCount > 0 && FLOATING_ACTION_BAR_SCROLL_PADDING,
             // 2026-06-15 (Yuqi "alert page max width vs deadlines — drop it"):
             // the list fills the shell's wide width (max-w-page-expanded) for
             // parity with /deadlines; no inner reading-measure cap. The
@@ -821,9 +837,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       {
                         value: 'review',
                         // 2026-06-15 (Yuqi "number in toggle never in a badge"):
-                        // plain count, not a pill. Review still pulls the eye when
-                        // it carries work — accent + semibold vs Active's quiet
-                        // tertiary count (matches the rail's Review treatment).
+                        // plain count, not a pill. Review pulls the eye when it
+                        // carries work via the WARNING tone — matching the rail's
+                        // needs-review dot + the rule-library Review tab + the
+                        // StatBand pending value. Weight 500, not bold (red+bold
+                        // is a banned double-highlight); Active stays quiet tertiary.
                         label: (
                           <span className="inline-flex items-center gap-1.5">
                             <Trans>Review</Trans>
@@ -831,7 +849,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                               className={cn(
                                 'tabular-nums',
                                 workQueueCounts.review > 0
-                                  ? 'font-semibold text-text-accent'
+                                  ? 'font-medium text-text-warning'
                                   : 'text-text-tertiary',
                               )}
                             >
