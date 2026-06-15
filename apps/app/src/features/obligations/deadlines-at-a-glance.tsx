@@ -26,12 +26,10 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * system (destructive / warning / accent); the Pencil "Verdant" canvas
  * hexes are NOT ported.
  *
- * TODO(data): the design's supporting lines carry figures the queue row
- * contract does NOT expose — `$1,840 penalty exposure` (estimatedExposure
- * is omitted from ObligationQueueRow) and `est. 1h 40m focus`
- * (no focus-time estimate in the contract). Those specific numbers are
+ * TODO(data): the design's supporting lines carry an `est. 1h 40m focus`
+ * figure with no focus-time estimate in the contract. That number is
  * left out of the derived sub-lines; we surface the counts + dates we DO
- * have. Restore the richer copy once exposure + effort land on the row.
+ * have.
  */
 type TileTone = 'destructive' | 'warning' | 'accent'
 
@@ -129,7 +127,7 @@ export function DeadlinesAtAGlance({
               mostOverdue ? (
                 <Trans>
                   {mostOverdue.clientName} is {Math.abs(mostOverdue.daysUntilDue)} days overdue —
-                  highest exposure
+                  act first
                 </Trans>
               ) : (
                 <Trans>Nothing overdue — you&apos;re clear</Trans>

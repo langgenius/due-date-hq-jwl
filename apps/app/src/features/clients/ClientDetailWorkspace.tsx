@@ -977,7 +977,7 @@ export function ClientDetailWorkspace({
                 <TabSection
                   title={t`Risk profile`}
                   titleAccessory={<RiskProfileSmartPriorityHelp />}
-                  summary={t`Penalty exposure and tax-attribute flags`}
+                  summary={t`Importance and late-filing history`}
                 >
                   <div className="rounded-lg border border-divider-regular bg-background-default p-4">
                     <ClientRiskInputsPanel

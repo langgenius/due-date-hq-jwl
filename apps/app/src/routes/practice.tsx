@@ -425,7 +425,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   // the tuner reads without a separate legend. Mirrors the canvas copy.
   const priorityFactorHints: Record<SmartPriorityFactorKey, string> = {
     urgency: t`Distance from the due date`,
-    importance: t`Penalty / regulatory weight of the task`,
+    importance: t`Regulatory weight of the task`,
     history: t`Past missed deadlines for this client`,
     readiness: t`How much client info is already gathered`,
   }

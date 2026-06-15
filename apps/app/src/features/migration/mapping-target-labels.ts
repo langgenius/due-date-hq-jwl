@@ -24,27 +24,11 @@ const SELECTABLE_MAPPING_TARGETS = [
   'client.source_status',
   'client.estimated_tax_liability',
   'client.equity_owner_count',
-  'penalty.tax_due',
-  'penalty.payments_and_credits',
-  'penalty.filing_frequency',
-  'penalty.period_start',
-  'penalty.period_end',
-  'penalty.installments',
-  'penalty.member_count',
-  'penalty.partner_count',
-  'penalty.shareholder_count',
-  'penalty.gross_receipts',
-  'penalty.receipts_band',
-  'penalty.annual_report_no_tax_due',
-  'penalty.wa_subtotal_minus_credits',
-  'penalty.tx_prior_year_franchise_tax',
-  'penalty.tx_current_year_franchise_tax',
-  'penalty.fl_tentative_tax',
-  'penalty.ny_ptet_election_made',
-  'penalty.ny_ptet_payments',
-  'penalty.withholding_report_count',
-  'penalty.ui_wage_report_count',
   'client.notes',
+  // penalty.* mapping targets are intentionally omitted from the selectable
+  // list so the import UI never surfaces penalty inputs. The labels map below
+  // still covers them (the MappingTarget union from contracts is unchanged) so
+  // the type stays total and any server-side value still resolves to a label.
 ] satisfies ReadonlyArray<MappingTarget>
 type SelectableMappingTarget = (typeof SELECTABLE_MAPPING_TARGETS)[number]
 

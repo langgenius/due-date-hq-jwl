@@ -17,7 +17,6 @@ type ConceptId =
   | 'smartPriority'
   | 'urgencyWindow'
   | 'lateFilingCap'
-  | 'exposure'
   | 'readiness'
   | 'obligation'
   | 'evidence'
@@ -79,11 +78,6 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
       return {
         title: t`Late filing cap`,
         description: t`The late-filing count where history reaches its maximum Smart Priority contribution. Higher counts still display, but do not add more score from this factor.`,
-      }
-    case 'exposure':
-      return {
-        title: t`Penalty inputs`,
-        description: t`The tax facts used when the app needs to calculate penalty context for overdue work.`,
       }
     case 'readiness':
       return {
@@ -182,7 +176,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'owner':
       return {
         title: t`Owner`,
-        description: t`A high-permission practice role. In client tax inputs, owner count separately means the number of equity owners used for penalty facts.`,
+        description: t`A high-permission practice role. In client tax inputs, owner count separately means the number of equity owners on the client.`,
       }
     case 'risk':
       return {

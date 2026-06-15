@@ -65,7 +65,6 @@ describe('obligations quick filters', () => {
       'dueDateExact',
       'daysUntilDue',
       'evidenceCount',
-      'estimatedExposureCents',
       'taxCategory',
     ],
   } satisfies Parameters<typeof deadlineDetailSearchFromQueueState>[1]

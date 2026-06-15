@@ -110,8 +110,8 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
   await migrationWizardPage.mapColumn('Type', 'Entity type')
   await migrationWizardPage.mapColumn('Return Type', 'Tax types')
-  await migrationWizardPage.mapColumn('Estimated Tax Due', 'Penalty tax due')
-  await migrationWizardPage.mapColumn('Owner Count', 'Partner count')
+  await migrationWizardPage.mapColumn('Estimated Tax Due', 'Estimated tax liability')
+  await migrationWizardPage.mapColumn('Owner Count', 'Owner count')
 
   await migrationWizardPage.continue()
   await expect(

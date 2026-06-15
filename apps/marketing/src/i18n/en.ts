@@ -2,7 +2,7 @@ import type { LandingCopy } from './types'
 
 const en: LandingCopy = {
   meta: {
-    title: 'DueDateHQ — See deadline risk before it becomes a penalty',
+    title: 'DueDateHQ — See deadline risk before it becomes a missed filing',
     description:
       'Glass-box deadline intelligence for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source.',
     ogImage: '/og/home.en.png',
@@ -24,7 +24,7 @@ const en: LandingCopy = {
   },
   hero: {
     eyebrow: 'GLASS-BOX DEADLINE INTELLIGENCE',
-    title: 'See deadline risk before it becomes a penalty.',
+    title: 'See deadline risk before it becomes a missed filing.',
     description:
       'DueDateHQ is the deadline intelligence workbench for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source — in one keyboard-first console built for the Monday 5-minute triage.',
     primaryCta: 'Open the workbench',
@@ -115,7 +115,7 @@ const en: LandingCopy = {
             severityLabel: 'critical',
             exposure: 'Await client',
             exposureTone: 'warning',
-            evidence: 'IRS §6072(b)',
+            evidence: 'IRS Pub 509',
             evidenceTone: 'info',
             severity: 'critical',
           },
@@ -172,7 +172,7 @@ const en: LandingCopy = {
             severityLabel: 'medium',
             exposure: 'Assign owner',
             exposureTone: 'warning',
-            evidence: 'IRS §6072(b)',
+            evidence: 'IRS Pub 509',
             evidenceTone: 'info',
             severity: 'medium',
           },
@@ -218,10 +218,10 @@ const en: LandingCopy = {
   problem: {
     eyebrow: 'THE PROBLEM WITH TODAY’S STACK',
     index: '01',
-    title: 'Excel + Outlook + 50 state websites — priced in penalties.',
+    title: 'Excel + Outlook + 50 state websites — one missed deadline away from trouble.',
     paragraph:
       '1–10-person CPA practices stitch together legacy desktop trackers, regulatory PDFs, and spreadsheet calendars. The result: deadline work scattered across tools, state changes buried in email, and Monday triage that takes a full morning.',
-    footnote: 'IRS § 6651 · failure-to-file penalty → 5%/mo, capped at 25%',
+    footnote: 'A single missed federal or state filing deadline can sit unnoticed for weeks',
     cards: [
       {
         tag: 'STATE WATCH',
@@ -242,7 +242,7 @@ const en: LandingCopy = {
         tag: 'NOTICE TRIAGE',
         severity: 'high',
         cadence: 'avg / firm / yr',
-        headline: '312 inbox items per week, 4 of which can fine your clients.',
+        headline: '312 inbox items per week, 4 of which put a client deadline at risk.',
         body: 'Email digests + in-app banners replace inbox archeology. Owner is the only signer; no notice slips into a junior’s drafts.',
         listTitle: 'Inbox · unread',
         listSummary: '312 unread · 4 critical',
@@ -463,7 +463,7 @@ const en: LandingCopy = {
             { label: 'DUE DATE', value: '2026-04-28' },
             { label: 'DAYS LEFT', value: '3 days' },
             { label: 'NEXT STEP', value: 'Review source' },
-            { label: 'PENALTY RULE', value: 'IRC § 6651(a)(1)' },
+            { label: 'DEADLINE RULE', value: 'IRS Pub 509 · filing calendar' },
           ],
           source: {
             label: 'SOURCE',
@@ -1208,7 +1208,7 @@ const en: LandingCopy = {
       {
         slug: 'cpa-deadline-risk',
         meta: {
-          title: 'CPA Deadline Risk Guide — How firms see penalties before they happen',
+          title: 'CPA Deadline Risk Guide — How firms catch deadlines before they slip',
           description:
             'How CPA teams decide which client deadline to touch first using migration data, evidence, ownership, readiness, and state alerts.',
           ogImage: '/og/home.en.png',
@@ -1278,7 +1278,7 @@ const en: LandingCopy = {
           {
             question: 'What makes a deadline queue defensible?',
             answer:
-              'The queue should keep source evidence, penalty reasoning, client context, status changes, and audit history close to each action so the firm can explain why work was prioritized.',
+              'The queue should keep source evidence, deadline reasoning, client context, status changes, and audit history close to each action so the firm can explain why work was prioritized.',
           },
         ],
         cta: {

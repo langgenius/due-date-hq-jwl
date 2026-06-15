@@ -594,11 +594,6 @@ const DEFAULT_HIDDEN_COLUMN_IDS = [
   'dueDateExact',
   'daysUntilDue',
   'evidenceCount',
-  // Dollar exposure is "—" for every row that isn't already late with a
-  // computed penalty — a near-empty column spending prime width on most
-  // firms. Hidden by default; the View menu brings it back, and the
-  // detail page's Penalty exposure card stays the real home of the math.
-  'estimatedExposureCents',
   // The broad TAX category ("Income tax" / "Payroll") is secondary to the FORM
   // chip that already anchors each row; hidden by default, still toggleable
   // from the View menu.
@@ -617,7 +612,6 @@ const DEFAULT_COLUMN_ORDER = [
   'currentDueDate',
   'filingDueDate',
   'assigneeName',
-  'estimatedExposureCents',
   'status',
   'smartPriority',
   'dueDateExact',
@@ -641,10 +635,9 @@ const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
   'smartPriority',
   // With the panel open the list shrinks to ~2/5 width, so the fixed-width
   // columns no longer all fit. Keep only the row anchor (Filing + Client +
-  // Internal due + Status); Official due + Exposure auto-hide alongside the
-  // state-cluster columns and come back when the panel closes.
+  // Internal due + Status); Official due auto-hides alongside the
+  // state-cluster columns and comes back when the panel closes.
   'filingDueDate',
-  'estimatedExposureCents',
 ] as const
 const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
@@ -1613,7 +1606,6 @@ export function ObligationQueueRoute() {
       dueDateExact: t`Due date`,
       daysUntilDue: t`Days`,
       evidenceCount: t`Evidence`,
-      estimatedExposureCents: t`Exposure`,
       status: t`Status`,
     }),
     [t],
@@ -2723,11 +2715,9 @@ export function ObligationQueueRoute() {
           cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}`,
         },
       },
-      // No "Projected risk" column — the dollar exposure number lives inside
-      // the obligation drawer and is summarised at the firm level on the
-      // dashboard. A per-row $ in the queue over-quantifies triage decisions
-      // that are really driven by status + due date. Penalty inputs and risk
-      // filtering still ship via the chip row above.
+      // No dollar / "projected risk" column in the queue: a per-row $ figure
+      // over-quantifies triage decisions that are really driven by status +
+      // due date. Triage filtering still ships via the chip row above.
       {
         accessorKey: 'evidenceCount',
         header: () => <ConceptLabel concept="evidence">{t`Evidence`}</ConceptLabel>,
@@ -2776,41 +2766,6 @@ export function ObligationQueueRoute() {
               )}
             </button>
           )
-        },
-      },
-      {
-        // EXPOSURE column — the headline estimated-$ exposure with the accrued-
-        // penalty figure as a subline (see estimatedExposureCents in
-        // packages/contracts/src/obligation-queue.ts). Null exposure → em-dash;
-        // coordinators without dollar visibility receive null from the server
-        // (hideDollars), so the column reads "—" for them too.
-        accessorKey: 'estimatedExposureCents',
-        id: 'estimatedExposureCents',
-        // Left-aligned (not right-aligned) so every header + cell in the table
-        // reads left-aligned and uniform.
-        header: () => <span>{t`Exposure`}</span>,
-        cell: ({ row: tableRow }) => {
-          const exposure = tableRow.original.estimatedExposureCents
-          if (exposure === null) {
-            return <EmptyCellMark />
-          }
-          const penalty = tableRow.original.accruedPenaltyCents
-          return (
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-xs font-medium tabular-nums text-text-primary">
-                {formatCents(exposure)}
-              </span>
-              {penalty !== null && penalty > 0 ? (
-                <span className="text-caption-xs tabular-nums text-text-tertiary">
-                  {t`≈${formatCents(penalty)} penalty`}
-                </span>
-              ) : null}
-            </div>
-          )
-        },
-        meta: {
-          headerClassName: 'w-[88px]',
-          cellClassName: 'w-[88px] tabular-nums',
         },
       },
       {
@@ -3133,14 +3088,12 @@ export function ObligationQueueRoute() {
     () => Array.from(statusFacetCounts.values()).reduce((sum, n) => sum + n, 0),
     [statusFacetCounts],
   )
-  // Aggregates for the narrative banner. Overdue / due-today counts and total
-  // penalty exposure are derived from the loaded glance page; entity count
-  // comes from the client facet (full set). These power one editorial sentence
-  // + a metric line.
+  // Aggregates for the narrative banner. Overdue / due-today counts are derived
+  // from the loaded glance page; entity count comes from the client facet (full
+  // set). These power one editorial sentence + a metric line.
   const deadlinesNarrative = useMemo(() => {
     let overdue = 0
     let dueToday = 0
-    let penaltyCents = 0
     for (const r of glanceRows) {
       // Terminal set mirrors workload's open-statuses complement (a `paid`
       // payment can't be overdue) — the banner and /workload must publish
@@ -3153,11 +3106,10 @@ export function ObligationQueueRoute() {
       const days = daysUntilEffectiveInternalDueDate(r)
       if (!terminal && days < 0) overdue++
       if (!terminal && days === 0) dueToday++
-      penaltyCents += r.accruedPenaltyCents ?? 0
     }
     const entities =
       facetsQuery.data?.clients.length ?? new Set(glanceRows.map((r) => r.clientId)).size
-    return { overdue, dueToday, penaltyCents, entities }
+    return { overdue, dueToday, entities }
   }, [glanceRows, facetsQuery.data?.clients])
   // Eyebrow date for the narrative banner — "TUE JUN 9". Built from the
   // as-of date when one is pinned (demo / time-travel), else today.
@@ -3781,16 +3733,6 @@ export function ObligationQueueRoute() {
                 other="across # entities"
               />
             </span>
-            {deadlinesNarrative.penaltyCents > 0 ? (
-              <>
-                <span aria-hidden>·</span>
-                <span className="tabular-nums">
-                  <Trans>
-                    {formatCents(deadlinesNarrative.penaltyCents)} penalty exposure on the line
-                  </Trans>
-                </span>
-              </>
-            ) : null}
           </p>
         </section>
       ) : null}
@@ -6273,6 +6215,12 @@ export function ObligationQueueDetailDrawer({
     },
   })
   const detail = detailQuery.data
+  // Penalty inputs are hidden across the app (per the penalty-UI removal), so
+  // any audit/workpaper evidence recorded as a penalty override is filtered out
+  // before it is counted or rendered.
+  const evidenceItems = (detail?.evidence ?? []).filter(
+    (item) => item.sourceType !== 'penalty_override',
+  )
   const row = detail?.row ?? null
   const selectedRequestRecipientUserId =
     requestInputDraft.recipientUserId || requestRecipients[0]?.assigneeId || ''
@@ -8532,9 +8480,9 @@ export function ObligationQueueDetailDrawer({
                         <Trans>Workpapers</Trans>
                       </h3>
                       <div className="flex items-center gap-2">
-                        {detail.evidence.length > 0 ? (
+                        {evidenceItems.length > 0 ? (
                           <span className="text-xs tabular-nums text-text-tertiary">
-                            {detail.evidence.length}
+                            {evidenceItems.length}
                           </span>
                         ) : null}
                         {/* Stub CTA so the workpapers section isn't a dead
@@ -8555,9 +8503,9 @@ export function ObligationQueueDetailDrawer({
                         </Button>
                       </div>
                     </header>
-                    {detail.evidence.length > 0 ? (
+                    {evidenceItems.length > 0 ? (
                       <div className="grid gap-2">
-                        {detail.evidence.map((item) => (
+                        {evidenceItems.map((item) => (
                           <EvidenceInlineItem
                             key={item.id}
                             item={item}

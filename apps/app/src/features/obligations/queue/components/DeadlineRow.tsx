@@ -384,7 +384,6 @@ export function DeadlineRow({
           deadline={deadline}
           canEdit={canEdit}
           summaryHref={summaryHref}
-          overdue={overdue}
           onMarkFiled={onMarkFiled}
           onReassign={onReassign}
           onSnooze={onSnooze}
@@ -403,7 +402,6 @@ function DeadlineRowExpansion({
   deadline,
   canEdit,
   summaryHref,
-  overdue,
   onMarkFiled,
   onReassign,
   onSnooze,
@@ -411,7 +409,6 @@ function DeadlineRowExpansion({
   deadline: ObligationQueueRow
   canEdit: boolean
   summaryHref: string
-  overdue: boolean
   onMarkFiled?: ((obligationId: string) => void) | undefined
   onReassign?: ((obligationId: string) => void) | undefined
   onSnooze?: ((obligationId: string) => void) | undefined
@@ -494,16 +491,6 @@ function DeadlineRowExpansion({
             {t`${deadline.evidenceCount} documents attached`}
           </span>
         </div>
-      ) : null}
-
-      {/* §7.1 — penalty exposure surfaces inline only when overdue. */}
-      {overdue && deadline.estimatedExposureCents !== null ? (
-        <p className="text-sm text-text-tertiary">
-          <Trans>Estimated exposure</Trans>{' '}
-          <span className="font-semibold text-text-destructive tabular-nums">
-            ${(deadline.estimatedExposureCents / 100).toLocaleString()}
-          </span>
-        </p>
       ) : null}
 
       {/* Section D — state-aware actions (hidden read-only, §7.2). Terminal

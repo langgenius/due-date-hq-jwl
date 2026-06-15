@@ -41,7 +41,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: 'ABOUT DUEDATEHQ',
-        title: 'Deadline operations should be visible before they become penalties.',
+        title: 'Deadline operations should be visible before they become missed-deadline risk.',
         description:
           'DueDateHQ is built for US CPA practices that need one place to migrate client deadline data, monitor source-backed filing rules, review state changes, and explain why work was prioritized.',
         note: 'Public pages describe software workflows and source handling. DueDateHQ does not provide tax, legal, or accounting advice.',
@@ -73,7 +73,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           items: [
             {
               title: 'Monday triage',
-              body: 'Penalty exposure, days remaining, evidence state, and alerts are meant to fit into a short weekly review.',
+              body: 'Missed-deadline risk, days remaining, evidence state, and alerts are meant to fit into a short weekly review.',
             },
             {
               title: 'Migration-first setup',
@@ -352,7 +352,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: '关于 DueDateHQ',
-        title: '截止日运营应该在罚款发生前就可见。',
+        title: '截止日运营应该在错过截止日之前就可见。',
         description:
           'DueDateHQ 面向美国 CPA 事务所，把客户截止日迁移、带来源规则、州级变化复核和风险排序放在同一个运营工作台。',
         note: '公开页面说明软件工作流和来源处理方式。DueDateHQ 不提供税务、法律或会计建议。',
@@ -384,7 +384,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           items: [
             {
               title: '周一分诊',
-              body: '罚款敞口、剩余天数、证据状态和提醒应能进入短时间周会复核。',
+              body: '错过截止日的风险、剩余天数、证据状态和提醒应能进入短时间周会复核。',
             },
             {
               title: '迁移优先',

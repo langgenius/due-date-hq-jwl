@@ -593,7 +593,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: 'Weekly CPA Deadline Triage — How to rank client filing risk',
         description:
-          'A weekly workflow for ranking CPA deadline work by days remaining, penalty exposure, source evidence, client readiness, ownership, and state changes.',
+          'A weekly workflow for ranking CPA deadline work by days remaining, missed-deadline risk, source evidence, client readiness, ownership, and state changes.',
         ogImage: '/og/home.en.png',
       },
       hero: {
@@ -607,15 +607,15 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         {
           eyebrow: 'WEEKLY TRIAGE',
           title: 'The first question is not what is due next.',
-          body: 'The work that deserves attention first is the work where deadline timing, client readiness, penalty exposure, and evidence quality create operational risk.',
+          body: 'The work that deserves attention first is the work where deadline timing, client readiness, missed-deadline risk, and evidence quality create operational urgency.',
           items: [
             {
               title: 'Days remaining',
-              body: 'Short timelines matter, but they should be read together with readiness and exposure.',
+              body: 'Short timelines matter, but they should be read together with readiness and deadline risk.',
             },
             {
-              title: 'Penalty exposure',
-              body: 'Dollar impact helps a small team avoid spending the morning on low-risk work.',
+              title: 'Missed-deadline risk',
+              body: 'Surfacing which filings carry the most risk helps a small team avoid spending the morning on low-priority work.',
             },
             {
               title: 'Source evidence',
@@ -667,12 +667,12 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         {
           question: 'What should a CPA team review first on Monday?',
           answer:
-            'Review the rows with the highest combined operational risk: days remaining, exposure, readiness gaps, missing evidence, owner gaps, and state-change impact.',
+            'Review the rows with the highest combined operational risk: days remaining, missed-deadline risk, readiness gaps, missing evidence, owner gaps, and state-change impact.',
         },
         {
           question: 'Why is a calendar not enough?',
           answer:
-            'A calendar shows dates. It does not explain client readiness, source confidence, penalty exposure, or who owns the next action.',
+            'A calendar shows dates. It does not explain client readiness, source confidence, missed-deadline risk, or who owns the next action.',
         },
         {
           question: 'How does DueDateHQ keep triage defensible?',
@@ -893,7 +893,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
       meta: {
         title: 'CPA 每周截止日分诊 — DueDateHQ 指南',
         description:
-          '了解 CPA 团队如何按剩余天数、罚款敞口、来源证据、客户资料准备度、负责人、州级变化和审计历史来排序截止日风险，而不是只看日历日期或静态表格。',
+          '了解 CPA 团队如何按剩余天数、错过截止日的风险、来源证据、客户资料准备度、负责人、州级变化和审计历史来排序截止日风险，而不是只看日历日期或静态表格。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
@@ -907,10 +907,13 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         {
           eyebrow: '每周分诊',
           title: '第一个问题不是哪个日期最早。',
-          body: '真正该先处理的是截止日时点、客户资料准备度、罚款敞口和证据质量共同形成风险的工作。',
+          body: '真正该先处理的是截止日时点、客户资料准备度、错过截止日的风险和证据质量共同形成运营紧迫度的工作。',
           items: [
-            { title: '剩余天数', body: '剩余天数重要，但要和资料准备度、风险敞口一起看。' },
-            { title: '罚款敞口', body: '金额影响帮助小团队先处理真正有代价的工作。' },
+            { title: '剩余天数', body: '剩余天数重要，但要和资料准备度、截止日风险一起看。' },
+            {
+              title: '错过截止日的风险',
+              body: '突出哪些申报风险最高，帮助小团队先处理优先级最高的工作。',
+            },
             {
               title: '来源证据',
               body: '缺少已验证来源的行，不能和已复核义务一样处理。',
@@ -961,11 +964,12 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         {
           question: 'CPA 团队周一应该先看什么？',
           answer:
-            '先看综合运营风险最高的行：剩余天数、罚款敞口、资料缺口、缺失证据、负责人缺口和州级变化影响。',
+            '先看综合运营风险最高的行：剩余天数、错过截止日的风险、资料缺口、缺失证据、负责人缺口和州级变化影响。',
         },
         {
           question: '为什么 calendar 不够？',
-          answer: 'Calendar 展示日期，但不解释客户资料准备度、来源可信度、罚款敞口或下一步负责人。',
+          answer:
+            'Calendar 展示日期，但不解释客户资料准备度、来源可信度、错过截止日的风险或下一步负责人。',
         },
         {
           question: 'DueDateHQ 如何让分诊可解释？',

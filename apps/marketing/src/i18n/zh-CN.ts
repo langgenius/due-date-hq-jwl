@@ -2,7 +2,7 @@ import type { LandingCopy } from './types'
 
 const zhCN: LandingCopy = {
   meta: {
-    title: 'DueDateHQ — 在罚款发生前看清截止日风险',
+    title: 'DueDateHQ — 在错过申报前看清截止日风险',
     description:
       '面向美国 CPA 团队的玻璃盒截止日智能工作台，把客户迁移、IRS 规则、州税变化、证据复核、负责人分工和每周分诊放在同一条可审计运营链路里。',
     ogImage: '/og/home.zh-CN.png',
@@ -24,7 +24,7 @@ const zhCN: LandingCopy = {
   },
   hero: {
     eyebrow: '玻璃盒截止日智能',
-    title: '在罚款发生前看清截止日风险。',
+    title: '在错过申报前看清截止日风险。',
     description:
       'DueDateHQ 是为美国 CPA 团队打造的截止日智能工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源 —— 全部归并在一个键盘优先、为周一 5 分钟分诊设计的控制台里。',
     primaryCta: '打开工作台',
@@ -115,7 +115,7 @@ const zhCN: LandingCopy = {
             severityLabel: 'critical',
             exposure: '等待客户',
             exposureTone: 'warning',
-            evidence: 'IRS §6072(b)',
+            evidence: 'IRS Pub 509',
             evidenceTone: 'info',
             severity: 'critical',
           },
@@ -172,7 +172,7 @@ const zhCN: LandingCopy = {
             severityLabel: 'medium',
             exposure: '分配 owner',
             exposureTone: 'warning',
-            evidence: 'IRS §6072(b)',
+            evidence: 'IRS Pub 509',
             evidenceTone: 'info',
             severity: 'medium',
           },
@@ -218,10 +218,10 @@ const zhCN: LandingCopy = {
   problem: {
     eyebrow: 'THE PROBLEM WITH TODAY’S STACK',
     index: '01',
-    title: 'Excel + Outlook + 50 个州网站 —— 用罚款标价。',
+    title: 'Excel + Outlook + 50 个州网站 —— 离漏掉一个截止日只差一步。',
     paragraph:
-      '1–10 人规模的 CPA 实务把传统桌面跟踪器、监管 PDF、电子表格日历拼在一起。结果可预期且昂贵：错过的截止日、滚动累加的罚款，以及一个完整上午都耗在的周一分诊。',
-    footnote: 'IRS § 6651 · 未申报罚款 → 每月 5%，封顶 25%',
+      '1–10 人规模的 CPA 实务把传统桌面跟踪器、监管 PDF、电子表格日历拼在一起。结果可预期：散落在各处的截止日工作、埋在邮件里的州级变更，以及一个完整上午都耗在的周一分诊。',
+    footnote: '一个漏掉的联邦或州级申报截止日，可能数周都无人察觉',
     cards: [
       {
         tag: 'STATE WATCH',
@@ -241,7 +241,7 @@ const zhCN: LandingCopy = {
         tag: 'NOTICE TRIAGE',
         severity: 'high',
         cadence: '平均 / 每家 / 每年',
-        headline: '每周 312 封邮件，其中 4 封会让你的客户被罚。',
+        headline: '每周 312 封邮件，其中 4 封会让某个客户的截止日陷入风险。',
         body: '邮件摘要 + 仪表盘横幅取代收件箱考古。Owner 是唯一签发人；不会再有通知滑进初级同事的草稿夹。',
         listTitle: '收件箱 · 未读',
         listSummary: '312 未读 · 4 紧急',
@@ -447,7 +447,7 @@ const zhCN: LandingCopy = {
             { label: '到期日', value: '2026-04-28' },
             { label: '剩余', value: '3 天' },
             { label: '下一步', value: '复核来源' },
-            { label: '罚则', value: 'IRC § 6651(a)(1)' },
+            { label: '截止日规则', value: 'IRS Pub 509 · 申报日历' },
           ],
           source: {
             label: '来源',
@@ -1176,9 +1176,9 @@ const zhCN: LandingCopy = {
       {
         slug: 'cpa-deadline-risk',
         meta: {
-          title: 'CPA 截止日风险指南 — 如何在罚款前看清风险',
+          title: 'CPA 截止日风险指南 — 如何在截止日溜走前抓住它',
           description:
-            '了解 CPA 团队如何结合迁移数据、来源证据、负责人、资料准备状态、罚款敞口、州级提醒和审计历史判断本周先处理哪个客户截止日。',
+            '了解 CPA 团队如何结合迁移数据、来源证据、负责人、资料准备状态、州级提醒和审计历史判断本周先处理哪个客户截止日。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
@@ -1246,7 +1246,7 @@ const zhCN: LandingCopy = {
           {
             question: '什么样的截止日队列是可解释的？',
             answer:
-              '队列应该把来源证据、罚款原因、客户上下文、状态变化和审计历史放在动作附近，让事务所能解释为什么先处理这件事。',
+              '队列应该把来源证据、截止日依据、客户上下文、状态变化和审计历史放在动作附近，让事务所能解释为什么先处理这件事。',
           },
         ],
         cta: {

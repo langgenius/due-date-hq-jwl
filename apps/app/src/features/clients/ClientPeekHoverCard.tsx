@@ -150,7 +150,7 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
             doesn't bury the most expensive signal. Renders only when
             the count is > 0 so the common case (every filing's payment
             is up to date) stays quiet. Tinted destructive because
-            penalty interest accrues until the wire lands — this IS
+            interest keeps accruing until the wire lands — this IS
             active urgency, not a quality stat. */}
         {paymentOverdueCount > 0 ? (
           <span className="text-xs font-medium text-text-destructive">

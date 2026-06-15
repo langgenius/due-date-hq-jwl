@@ -125,7 +125,7 @@ export function GET(): Response {
   const body = [
     '# DueDateHQ',
     '',
-    'DueDateHQ is a glass-box deadline intelligence workbench for US CPA practices. It helps firms see deadline risk before it becomes a penalty, with source-backed rules, state-level filing alerts, and human-reviewed evidence workflows.',
+    'DueDateHQ is a glass-box deadline intelligence workbench for US CPA practices. It helps firms catch every state and federal filing deadline and surface rule changes before they become a problem, with source-backed rules, state-level filing alerts, and human-reviewed evidence workflows.',
     '',
     '## Core public pages',
     '',

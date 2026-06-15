@@ -58,7 +58,6 @@ import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 import { tabsForObligationType } from '@/features/obligations/obligation-type'
-import { PenaltyExposureCard } from '@/features/obligations/detail/PenaltyExposureCard'
 import { ObligationTimeline } from '@/features/obligations/timeline'
 import { DeadlineCrumbBar } from '@/features/obligations/detail/DeadlineCrumbBar'
 import {
@@ -2449,8 +2448,8 @@ export function ObligationQueueDetailDrawer({
                   {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX
                     `hMaQD`): the Status tab is a SINGLE column of stacked
                     cards — WorkflowMilestoneCard (stepper + active stage +
-                    blocking + what's-left) → Extension → Recent activity →
-                    Penalty exposure — then a full-width 2-up Ownership /
+                    blocking + what's-left) → Extension → Recent activity —
+                    then a full-width 2-up Ownership /
                     Linked-from footer row. The earlier two-column rail is
                     gone. This matches the alert detail's single flat card
                     stack. */}
@@ -2480,11 +2479,9 @@ export function ObligationQueueDetailDrawer({
                       ($4,210 + withholding breakdown) and the "Source docs"
                       card's fake "+ Add file" affordance were removed. Both
                       were hardcoded placeholders with no backing contract
-                      field — banned by the no-fiction-on-canvas rule. The
-                      rzzww Status tab carries the real Penalty exposure card
-                      instead (driven by row.penaltyBreakdown), added
-                      separately. Real source-document attachments return
-                      when the ingest pipeline + contract fields land. */}
+                      field — banned by the no-fiction-on-canvas rule. Real
+                      source-document attachments return when the ingest
+                      pipeline + contract fields land. */}
                         <AuthorityResponsePanel
                           row={row}
                           auditEvents={detail.auditEvents}
@@ -2700,12 +2697,6 @@ export function ObligationQueueDetailDrawer({
                           </ul>
                         </DetailSectionCard>
                       ) : null}
-                      {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
-                        rzzww): Penalty exposure card, driven entirely by the
-                        real penalty-engine output on the row. Self-hides when
-                        no exposure applies. Page-only so the /clients drawer
-                        summary is unchanged. */}
-                      {isPageMode ? <PenaltyExposureCard row={row} /> : null}
                       {/* 2026-06-10 (Yuqi restore rework 2adfcf5e — fold Extension
                         into Status): the decideExtension flow (Form 7004/4868)
                         is unreachable in page mode (no Extension tab in the
@@ -2834,8 +2825,8 @@ export function ObligationQueueDetailDrawer({
                               >
                                 <Trans>
                                   Filing an extension does not extend the time to pay. Schedule an
-                                  EFTPS payment by the original deadline to avoid interest and
-                                  penalties.
+                                  EFTPS payment by the original deadline to avoid additional
+                                  interest.
                                 </Trans>
                               </PaymentStillDueCallout>
                             ) : null}
@@ -4075,7 +4066,7 @@ export function ObligationQueueDetailDrawer({
                         >
                           <Trans>
                             Filing an extension does not extend the time to pay. Schedule an EFTPS
-                            payment by the original deadline to avoid interest and penalties.
+                            payment by the original deadline to avoid additional interest.
                           </Trans>
                         </PaymentStillDueCallout>
                       ) : null}

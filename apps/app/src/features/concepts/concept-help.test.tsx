@@ -65,10 +65,10 @@ describe('ConceptHelp', () => {
   })
 
   it('renders inline concept labels with the visible label text', () => {
-    render(<ConceptLabel concept="exposure">Exposure</ConceptLabel>)
+    render(<ConceptLabel concept="evidence">Evidence</ConceptLabel>)
 
-    expect(document.body.textContent).toContain('Exposure')
-    expect(document.querySelector('button[aria-label="Explain Exposure"]')).toBeInstanceOf(
+    expect(document.body.textContent).toContain('Evidence')
+    expect(document.querySelector('button[aria-label="Explain Evidence"]')).toBeInstanceOf(
       HTMLButtonElement,
     )
   })
