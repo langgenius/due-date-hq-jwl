@@ -142,7 +142,7 @@ export function FixNeedsFactsSheet({
               description={
                 <Trans>
                   Every client you opened is fixed. Close the sheet to refresh the list, or re-open
-                  Fix-now if more clients come in.
+                  Fix now if more clients come in.
                 </Trans>
               }
               cta={

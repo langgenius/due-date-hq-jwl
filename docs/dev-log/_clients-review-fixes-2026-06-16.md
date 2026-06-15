@@ -27,3 +27,30 @@ dropped unverified — investigating those correctness ones separately.)
   skeleton→content doesn't reshape.
 
 tsgo clean; "Filed" verified live on the detail strip.
+
+## Cluster 2 — copy + accessibility
+- **Reclassification mislabel [P1]** (ClassificationImpactDialog): the one
+  dialog serves both reason kinds, but always said "Apply reclassification"
+  / "Reclassified" / "Couldn't apply reclassification" — wrong for a
+  data-entry correction. Branched the action copy on `reason.kind` (already
+  in scope): corrections get "Apply change" / "Entity type updated" /
+  "Couldn't update entity type."
+- **Notes card nested interactive [P1 a11y]** (ClientNotesStrip): the whole
+  card is `role="button"` and contained a focusable Edit `<Button>` — invalid
+  nested-interactive content (two tab stops, ambiguous AT). The edit button
+  opened the same editor as the card, so demoted the pencil to a decorative
+  `aria-hidden` cue; the card stays the single control. Dropped the now-unused
+  Button import.
+- **Tax-attribute chips color-only [P2 a11y]** (ClientCompliancePosturePanel):
+  on/off differed only by color + an aria-hidden check, so AT heard
+  "Payroll", "Sales tax"… identically in both states. Added an `sr-only`
+  ": active" / ": inactive" suffix (WCAG 1.4.1).
+- **"(s)" plural hack [P3]** (ClientDetailWorkspace Setup-tab badge): the
+  title/aria-label `${n} required fact(s) missing` was the only user-facing
+  "(s)" in the app (a screen reader voices "open-paren s"). Replaced with a
+  count ternary — not `plural()`, which crashes in a string prop (lingui
+  footgun).
+- **Phantom "Fix-now" [P3]** (FixNeedsFactsSheet): copy said "re-open
+  Fix-now" but the real control is the "Fix now" button. Dropped the hyphen.
+
+tsgo clean; detail page verified live.

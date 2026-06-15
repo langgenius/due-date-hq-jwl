@@ -2,7 +2,6 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { PencilLineIcon } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
-import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card } from '@duedatehq/ui/components/ui/card'
 
 /**
@@ -89,18 +88,14 @@ export function ClientNotesStrip({
           <Trans>Notes</Trans>
         </span>
         {canWrite ? (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="-mr-1.5 shrink-0"
-            onClick={(event) => {
-              event.stopPropagation()
-              onOpenEditor()
-            }}
-            aria-label={t`Edit notes for ${client.name}`}
-          >
-            <PencilLineIcon className="size-3.5" aria-hidden />
-          </Button>
+          // Decorative "editable" cue, NOT a separate control: the whole card
+          // is the button (role="button" above, opens the same editor). A
+          // nested focusable <Button> here would be invalid nested-interactive
+          // content (two tab stops, ambiguous AT semantics).
+          <PencilLineIcon
+            className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover/card:text-text-secondary"
+            aria-hidden
+          />
         ) : null}
       </div>
       <p className="line-clamp-3 text-sm whitespace-pre-wrap text-text-secondary">{notes}</p>

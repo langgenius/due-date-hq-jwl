@@ -194,6 +194,9 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
               >
                 {attr.on ? <CheckIcon aria-hidden className="size-3" /> : null}
                 {attr.label}
+                {/* On/off is otherwise color-only (+ an aria-hidden check) —
+                    give AT the state in words (WCAG 1.4.1). */}
+                <span className="sr-only">{attr.on ? t`: active` : t`: inactive`}</span>
               </span>
             ))}
           </div>

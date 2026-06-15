@@ -137,10 +137,16 @@ export function ClassificationImpactDialog({
     currentTaxYear,
   })
 
+  // This dialog serves BOTH reason kinds — a data-entry correction and a
+  // genuine reclassification. The header/description are already neutral
+  // ("entity type"); branch the action verbs too so a correction isn't
+  // mislabeled as a reclassification in the toast / apply button.
+  const isCorrection = reason.kind === 'correction'
+
   const applyMutation = useMutation(
     orpc.clients.applyClassificationRecompute.mutationOptions({
       onSuccess: (result) => {
-        toast.success(t`Reclassified`, {
+        toast.success(isCorrection ? t`Entity type updated` : t`Reclassified`, {
           description: t`${result.addedCount} added, ${result.supersededCount} removed`,
         })
         onApplied({
@@ -151,7 +157,7 @@ export function ClassificationImpactDialog({
         onOpenChange(false)
       },
       onError: (error) => {
-        toast.error(t`Couldn't apply reclassification`, {
+        toast.error(isCorrection ? t`Couldn't update entity type` : t`Couldn't apply reclassification`, {
           description:
             rpcErrorMessage(error) ??
             t`Try again in a moment. If it keeps failing, contact support.`,
@@ -386,7 +392,11 @@ export function ClassificationImpactDialog({
             {applyMutation.isPending ? (
               <Loader2Icon className="size-4 animate-spin" aria-hidden />
             ) : null}
-            {applyMutation.isPending ? t`Applying…` : t`Apply reclassification`}
+            {applyMutation.isPending
+              ? t`Applying…`
+              : isCorrection
+                ? t`Apply change`
+                : t`Apply reclassification`}
           </Button>
         </DialogFooter>
       </DialogContent>

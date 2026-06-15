@@ -868,14 +868,24 @@ export function ClientDetailWorkspace({
                       reservation. */}
                   {readiness && readiness.missingRequiredFacts.length > 0 ? (
                     // Badge size='sm' warning carries an accessible name
-                    // (title + aria-label) so AT users hear "# required
-                    // fact(s) missing".
+                    // (title + aria-label) so AT users hear "N required
+                    // facts missing". Count ternary, not the "(s)" hack —
+                    // a screen reader voices "(s)" literally, and `plural()`
+                    // in a string prop crashes at runtime (lingui footgun).
                     <Badge
                       variant="warning"
                       size="sm"
                       className="ml-1.5 tabular-nums"
-                      title={t`${readiness.missingRequiredFacts.length} required fact(s) missing`}
-                      aria-label={t`${readiness.missingRequiredFacts.length} required fact(s) missing`}
+                      title={
+                        readiness.missingRequiredFacts.length === 1
+                          ? t`1 required fact missing`
+                          : t`${readiness.missingRequiredFacts.length} required facts missing`
+                      }
+                      aria-label={
+                        readiness.missingRequiredFacts.length === 1
+                          ? t`1 required fact missing`
+                          : t`${readiness.missingRequiredFacts.length} required facts missing`
+                      }
                     >
                       {readiness.missingRequiredFacts.length}
                     </Badge>
