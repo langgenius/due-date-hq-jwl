@@ -1,6 +1,6 @@
 import { useCallback, useTransition } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
@@ -23,6 +23,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
@@ -39,6 +40,8 @@ import { signOut, type AuthUser } from '@/lib/auth'
 import { resetAnalytics } from '@/lib/analytics'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 import { roleLabel } from './app-shell-nav'
 
 type DemoRole = 'owner' | 'partner' | 'manager' | 'preparer' | 'coordinator'
@@ -179,6 +182,29 @@ function UserMenuTrigger({
     retry: false,
   })
 
+  // Firm switcher. Shares the `firms.listMine` cache the layout already
+  // warms, so this adds no extra request. The switcher only renders when the
+  // user belongs to >1 firm — single-firm users keep the calm static
+  // identity. Switching changes the active firm on the SESSION (server-side),
+  // so we hard-navigate to "/" on success: every query is firm-scoped and a
+  // full reload is the clean, race-free way to re-enter the new firm's
+  // context (the conventional workspace-switch behaviour).
+  const firmsQuery = useQuery(orpc.firms.listMine.queryOptions({ input: undefined }))
+  const firms = firmsQuery.data ?? []
+  const switchFirmMutation = useMutation(
+    orpc.firms.switchActive.mutationOptions({
+      onSuccess: () => {
+        window.location.assign('/')
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't switch firm`, {
+          description:
+            rpcErrorMessage(err) ?? t`Try again in a moment. If it keeps failing, contact support.`,
+        })
+      },
+    }),
+  )
+
   const handleSignOut = useCallback(() => {
     if (isSigningOut) return
     startSignOut(async () => {
@@ -272,6 +298,26 @@ function UserMenuTrigger({
           </div>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        {/* Firm switcher — only when the user belongs to more than one
+            practice (the chevron on the trigger already promised this).
+            Sits above preferences: "which workspace am I in" outranks
+            language/theme. */}
+        {firms.length > 1 ? (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                <Trans>Practices</Trans>
+              </DropdownMenuLabel>
+              <FirmSwitcherItems
+                firms={firms}
+                currentFirmId={firm.id}
+                switching={switchFirmMutation.isPending}
+                onSwitch={(firmId) => switchFirmMutation.mutate({ firmId })}
+              />
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+          </>
+        ) : null}
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <GlobeIcon />
@@ -324,6 +370,64 @@ function UserMenuTrigger({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+function FirmSwitcherItems({
+  firms,
+  currentFirmId,
+  switching,
+  onSwitch,
+}: {
+  firms: FirmPublic[]
+  currentFirmId: string
+  switching: boolean
+  onSwitch: (firmId: string) => void
+}) {
+  const { i18n, t } = useLingui()
+  return (
+    <>
+      {firms.map((f) => {
+        const isCurrent = f.id === currentFirmId
+        return (
+          <DropdownMenuItem
+            key={f.id}
+            aria-checked={isCurrent}
+            // Switching to the firm you're already in is a no-op; switching
+            // is also blocked while another switch is in flight.
+            disabled={isCurrent || switching}
+            onClick={() => {
+              if (isCurrent || switching) return
+              onSwitch(f.id)
+            }}
+            className="flex items-center justify-between gap-2.5"
+            aria-label={isCurrent ? t`${f.name} (current)` : t`Switch to ${f.name}`}
+          >
+            <span className="flex min-w-0 items-center gap-2.5">
+              <AssigneeAvatar
+                name={f.name}
+                title={f.name}
+                type="firm"
+                shape="square"
+                size="sm"
+                className="shrink-0"
+              />
+              <span className="flex min-w-0 flex-col leading-tight">
+                <span className="truncate text-sm font-medium text-text-primary" translate="no">
+                  {f.name}
+                </span>
+                <span className="truncate text-xs text-text-tertiary">
+                  {roleLabel(f.role, i18n)}
+                </span>
+              </span>
+            </span>
+            {isCurrent ? (
+              <CheckIcon className="size-4 shrink-0 text-text-accent" aria-hidden />
+            ) : null}
+          </DropdownMenuItem>
+        )
+      })}
+    </>
   )
 }
 

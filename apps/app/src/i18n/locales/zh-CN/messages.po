@@ -468,6 +468,11 @@ msgstr "{0} · 1 条提醒"
 msgid "{0} · Shift+click to select all of this client's rows"
 msgstr "{0} · 按住 Shift 点击可选中该客户的所有行"
 
+#. placeholder {0}: f.name
+#: src/components/patterns/app-shell-user-menu.tsx
+msgid "{0} (current)"
+msgstr "{0}（当前）"
+
 #. placeholder {0}: safePreviewIndex + 1
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -5385,6 +5390,10 @@ msgstr "无法启动导入流程"
 #: src/routes/readiness.tsx
 msgid "Couldn't submit readiness response"
 msgstr "无法提交准备状态回复"
+
+#: src/components/patterns/app-shell-user-menu.tsx
+msgid "Couldn't switch firm"
+msgstr "无法切换事务所"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't undo alert"
@@ -12353,6 +12362,10 @@ msgstr "事务所工作区"
 msgid "Practice-wide weights for deterministic deadline ranking."
 msgstr "用于确定性截止日排序的事务所级权重。"
 
+#: src/components/patterns/app-shell-user-menu.tsx
+msgid "Practices"
+msgstr "事务所"
+
 #: src/features/alerts/components/PulseAuthorityRoleChip.tsx
 msgid "Precedent"
 msgstr "判例"
@@ -15724,6 +15737,11 @@ msgstr "切换演示账号到 {0}"
 #: src/features/migration/Step1Intake.tsx
 msgid "Switch preset"
 msgstr "切换预设"
+
+#. placeholder {0}: f.name
+#: src/components/patterns/app-shell-user-menu.tsx
+msgid "Switch to {0}"
+msgstr "切换到 {0}"
 
 #: src/features/clients/ClientTitleSwitcher.tsx
 msgid "Switch to another client"

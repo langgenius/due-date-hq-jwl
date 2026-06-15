@@ -467,6 +467,11 @@ msgstr "{0} · 1 alert"
 msgid "{0} · Shift+click to select all of this client's rows"
 msgstr "{0} · Shift+click to select all of this client's rows"
 
+#. placeholder {0}: f.name
+#: src/components/patterns/app-shell-user-menu.tsx
+msgid "{0} (current)"
+msgstr "{0} (current)"
+
 #. placeholder {0}: safePreviewIndex + 1
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -5362,6 +5367,10 @@ msgstr "Couldn't start the import"
 #: src/routes/readiness.tsx
 msgid "Couldn't submit readiness response"
 msgstr "Couldn't submit readiness response"
+
+#: src/components/patterns/app-shell-user-menu.tsx
+msgid "Couldn't switch firm"
+msgstr "Couldn't switch firm"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Couldn't undo alert"
@@ -12293,6 +12302,10 @@ msgstr "Practice workspaces"
 msgid "Practice-wide weights for deterministic deadline ranking."
 msgstr "Practice-wide weights for deterministic deadline ranking."
 
+#: src/components/patterns/app-shell-user-menu.tsx
+msgid "Practices"
+msgstr "Practices"
+
 #: src/features/alerts/components/PulseAuthorityRoleChip.tsx
 msgid "Precedent"
 msgstr "Precedent"
@@ -15654,6 +15667,11 @@ msgstr "Switch demo account to {0}"
 #: src/features/migration/Step1Intake.tsx
 msgid "Switch preset"
 msgstr "Switch preset"
+
+#. placeholder {0}: f.name
+#: src/components/patterns/app-shell-user-menu.tsx
+msgid "Switch to {0}"
+msgstr "Switch to {0}"
 
 #: src/features/clients/ClientTitleSwitcher.tsx
 msgid "Switch to another client"
