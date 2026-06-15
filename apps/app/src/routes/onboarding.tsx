@@ -1,4 +1,4 @@
-import { useMemo, useState, type SyntheticEvent } from 'react'
+import { useEffect, useMemo, useState, type SyntheticEvent } from 'react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -23,6 +23,7 @@ import { FirmTimezoneSelect, resolveUSFirmTimezone } from '@/features/firm/timez
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { type AuthUser } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
+import { ANALYTICS_EVENTS, consumeSignInMarker, track } from '@/lib/analytics'
 import { activateOrCreateOnboardingFirm, postOnboardingTarget } from './onboarding-firm-flow'
 
 const MIN_NAME_LENGTH = 2
@@ -139,6 +140,18 @@ export function OnboardingRoute() {
   const redirectToParam = params.get('redirectTo')
   const redirectTo = isInAppPath(redirectToParam) ? redirectToParam : '/'
 
+  // Reaching /onboarding means a brand-new account with no firm yet, so this is
+  // the new-user funnel start. Consume the sign-in marker here → "Signed Up"
+  // (the app shell consumes it → "Signed In" for returning users; exactly one
+  // wins). Fires once per mount.
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.onboardingViewed, { step: 'practice' })
+    const marker = consumeSignInMarker()
+    if (marker) {
+      track(ANALYTICS_EVENTS.signedUp, { method: marker.method, is_invited: false })
+    }
+  }, [])
+
   const submitting = isSubmitting || activateRulesMutation.isPending
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
@@ -180,10 +193,30 @@ export function OnboardingRoute() {
       .then(async (result) => {
         await queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         await queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+        // Key conversion: firm created (or reused). FED is bundled whenever any
+        // state is selected, so includes_fed tracks "any jurisdiction chosen".
+        track(ANALYTICS_EVENTS.practiceCreated, {
+          path: result.kind === 'created' ? 'created' : 'reused',
+          timezone,
+          internal_deadline_offset_days: internalDeadlineOffsetDays,
+          selected_state_count: selectedRuleStates.length,
+          includes_fed: selectedRuleStates.length > 0,
+        })
         // If activation flagged jurisdictions for source-defined-calendar
         // review, pause on step 2 (the rule-review prompt) before the importer.
         const activation = result.kind === 'created' ? result.ruleActivation : null
+        if (activation) {
+          track(ANALYTICS_EVENTS.rulesActivated, {
+            activated_count: activation.activatedCount,
+            review_required_count: activation.reviewRequiredCount,
+            jurisdiction_count: selectedRuleStates.length,
+          })
+        }
         if (activation && activation.reviewRequiredCount > 0) {
+          track(ANALYTICS_EVENTS.ruleReviewPromptShown, {
+            review_required_count: activation.reviewRequiredCount,
+            jurisdiction_count: activation.reviewRequiredJurisdictions.length,
+          })
           setReview({
             jurisdictions: activation.reviewRequiredJurisdictions,
             totalActivated: activation.activatedCount,

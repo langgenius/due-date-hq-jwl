@@ -35,6 +35,7 @@ import {
   startGoogleOneTap,
 } from '@/lib/auth'
 import { authCapabilities } from '@/lib/auth-capabilities'
+import { ANALYTICS_EVENTS, markSignInPending, track } from '@/lib/analytics'
 
 // /login is a full-bleed two-column split — a product-story column (left)
 // beside the sign-in card (right), with a dedicated footer. The page owns its
@@ -154,8 +155,16 @@ export function LoginRoute() {
     refetchOnWindowFocus: false,
   })
 
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.signInPageViewed)
+  }, [])
+
   async function handleGoogleSignIn() {
     setSubmittingProvider('google')
+    track(ANALYTICS_EVENTS.signInStarted, { method: 'google' })
+    // Drop a redirect-safe marker: OAuth navigates away before we can fire the
+    // post-auth "Signed In/Up" event; the landing page consumes it.
+    markSignInPending('google')
     try {
       // better-auth performs the browser redirect itself; this promise typically does not resolve.
       await signInWithGoogle(redirectTo)
@@ -166,6 +175,7 @@ export function LoginRoute() {
           : t`Try again in a moment. If it keeps failing, contact support.`
       if (!USER_CANCELED.test(message)) {
         toast.error(t`Unable to start Google sign-in`, { description: message })
+        track(ANALYTICS_EVENTS.signInFailed, { method: 'google', reason: 'provider_error' })
       }
       startTransition(() => setSubmittingProvider(null))
     }
@@ -173,6 +183,8 @@ export function LoginRoute() {
 
   async function handleMicrosoftSignIn() {
     setSubmittingProvider('microsoft')
+    track(ANALYTICS_EVENTS.signInStarted, { method: 'microsoft' })
+    markSignInPending('microsoft')
     try {
       await signInWithMicrosoft(redirectTo)
     } catch (err) {
@@ -182,6 +194,7 @@ export function LoginRoute() {
           : t`Try again in a moment. If it keeps failing, contact support.`
       if (!USER_CANCELED.test(message)) {
         toast.error(t`Unable to start Microsoft sign-in`, { description: message })
+        track(ANALYTICS_EVENTS.signInFailed, { method: 'microsoft', reason: 'provider_error' })
       }
       startTransition(() => setSubmittingProvider(null))
     }
@@ -590,13 +603,21 @@ function LoginEmailForm({
       return
     }
     setPending('verify')
+    // Marker for the post-auth landing page (email OTP doesn't redirect, but
+    // a brand-new user is bounced to /onboarding, so this keeps the new-vs-
+    // returning split consistent with the OAuth path).
+    markSignInPending('email_otp')
     void signInWithEmailCode({
       email: targetEmail,
       otp,
       name: displayNameFromEmail(targetEmail),
     })
-      .then(() => onSignedIn())
+      .then(() => {
+        track(ANALYTICS_EVENTS.emailCodeSubmitted, { success: true })
+        return onSignedIn()
+      })
       .catch((err: unknown) => {
+        track(ANALYTICS_EVENTS.emailCodeSubmitted, { success: false })
         setError(readErrorMessage(err, t`Couldn't verify the code`))
       })
       .finally(() => setPending(null))
@@ -625,6 +646,7 @@ function LoginEmailForm({
     setPending(action)
     try {
       await sendEmailSignInCode(target)
+      track(ANALYTICS_EVENTS.emailCodeRequested, { is_resend: action === 'resend' })
       setEmail(target)
       setSentEmail(target)
       setCode('')

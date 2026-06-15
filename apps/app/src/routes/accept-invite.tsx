@@ -13,6 +13,7 @@ import { AuthCard, CenteredAuthScreen } from '@/features/auth/auth-chrome'
 import { EmailOtpSignInForm } from '@/features/auth/email-otp-sign-in-form'
 import { signInWithGoogle, signInWithMicrosoft, signOut, type AuthUser } from '@/lib/auth'
 import { authCapabilities } from '@/lib/auth-capabilities'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 // /accept-invite uses the full-bleed CenteredAuthScreen; the signed-in view
 // leads with a "Firm invitation" pill + inviter→firm headline + context row.
@@ -107,6 +108,7 @@ export function AcceptInviteRoute() {
     setSubmitting('accept')
     try {
       await acceptInvitation(id)
+      track(ANALYTICS_EVENTS.inviteAccepted, { role: inviteQuery.data?.role })
       toast.success(t`Invitation accepted`)
       await navigate('/', { replace: true })
     } catch (err) {

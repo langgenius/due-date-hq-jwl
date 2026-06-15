@@ -78,6 +78,7 @@ import { PermissionGate, useFirmPermission } from '@/features/permissions/permis
 import { RelativeTime } from '@/components/primitives/relative-time'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import {
   formatInvitationDate,
   invitationDescription,
@@ -1098,6 +1099,7 @@ function InviteMemberDialog({
       onSuccess: (next) => {
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
         void queryClient.invalidateQueries({ queryKey: membersKey })
+        track(ANALYTICS_EVENTS.memberInvited, { role })
         // toast.success names the invitee so the action lands — closing the
         // dialog silently leaves the user no confirmation the invite went out.
         const sentTo = email.trim()

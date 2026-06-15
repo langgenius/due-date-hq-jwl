@@ -15,6 +15,7 @@ import { OnboardingSkipModal } from '@/features/migration/OnboardingSkipModal'
 import { Wizard } from '@/features/migration/Wizard'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
 import type { AuthUser } from '@/lib/auth'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 type MigrationNewLoaderData = {
   user: AuthUser
@@ -27,8 +28,15 @@ export function MigrationNewRoute() {
   const [params] = useSearchParams()
   const permission = useFirmPermission(firm)
   const canRunMigration = permission.can('migration.run')
-  const skipToDashboard = () => void navigate('/')
   const isOnboardingSource = params.get('source') === 'onboarding'
+  const skipToDashboard = () => {
+    // Skipping the importer is a meaningful onboarding-funnel drop-off (they
+    // reach the app with zero clients → empty dashboard).
+    if (isOnboardingSource) {
+      track(ANALYTICS_EVENTS.onboardingSkipped, { from_step: 'import' })
+    }
+    void navigate('/')
+  }
   // Back is conditional. When source=onboarding, the
   // logical chain is signup → onboarding (one-shot, now complete)
   // → migration; there's nothing to go back to (history-back would

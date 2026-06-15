@@ -47,6 +47,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { orpc } from '@/lib/rpc'
 import { formatRelativeTime } from '@/lib/utils'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 import { canContinueNormalization } from './continue-rules'
 import { ImportHistoryDrawer } from './ImportHistoryDrawer'
@@ -110,6 +111,15 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
   // The "Import history" header button opens the existing drawer in-place
   // over the wizard.
   const [importHistoryOpen, setImportHistoryOpen] = useState(false)
+
+  // Import funnel entry — fire once when the wizard first opens.
+  const importStartedRef = useRef(false)
+  useEffect(() => {
+    if (open && !importStartedRef.current) {
+      importStartedRef.current = true
+      track(ANALYTICS_EVENTS.importStarted, { variant })
+    }
+  }, [open, variant])
   // Guards one-time HYDRATE per resumed batch so user edits aren't clobbered.
   const hydratedBatchIdRef = useRef<string | null>(null)
 
@@ -488,6 +498,12 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
           })
         },
         onSuccess: (result) => {
+          // Import committed — the activation funnel's biggest conversion step.
+          track(ANALYTICS_EVENTS.importConfirmed, {
+            client_count: result.clientCount,
+            success_count: result.clientCount,
+            obligation_count: result.obligationCount,
+          })
           window.dispatchEvent(
             new CustomEvent('migration.genesis.started', {
               detail: {

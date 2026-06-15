@@ -16,6 +16,7 @@
     "i18n:compile": "lingui compile --strict"
   },
   "dependencies": {
+    "@amplitude/analytics-browser": "catalog:",
     "@better-auth/stripe": "catalog:",
     "@duedatehq/auth": "workspace:*",
     "@duedatehq/contracts": "workspace:*",

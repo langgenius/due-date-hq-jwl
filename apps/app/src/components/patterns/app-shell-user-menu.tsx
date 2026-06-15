@@ -36,6 +36,7 @@ import { LOCALE_LABELS, SUPPORTED_LOCALES, type Locale } from '@duedatehq/i18n'
 import type { FirmPublic } from '@duedatehq/contracts'
 import { useLocaleSwitch } from '@/i18n/provider'
 import { signOut, type AuthUser } from '@/lib/auth'
+import { resetAnalytics } from '@/lib/analytics'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { roleLabel } from './app-shell-nav'
@@ -183,6 +184,8 @@ function UserMenuTrigger({
     startSignOut(async () => {
       try {
         await signOut()
+        // Clear Amplitude identity + device so the next user starts clean.
+        resetAnalytics()
         await navigate('/login', { replace: true })
       } catch (err) {
         toast.error(t`Sign out failed`, {

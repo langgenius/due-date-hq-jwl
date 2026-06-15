@@ -193,3 +193,4 @@ catalog:
   happy-dom: 20.9.0
   '@playwright/test': 1.60.0
   msw: 2.14.6
+  '@amplitude/analytics-browser': 2.44.1

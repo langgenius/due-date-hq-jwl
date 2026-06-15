@@ -1,10 +1,18 @@
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useSyncExternalStore } from 'react'
 import { useLoaderData, useMatches } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useLingui } from '@lingui/react/macro'
 import { SMART_PRIORITY_DEFAULT_PROFILE, type FirmPublic } from '@duedatehq/contracts'
 
 import type { ThemePreference } from '@duedatehq/ui/theme'
+import {
+  ANALYTICS_EVENTS,
+  consumeSignInMarker,
+  identifyUser,
+  setFirmGroup,
+  setSuperProperties,
+  track,
+} from '@/lib/analytics'
 
 import { AppShell } from '@/components/patterns/app-shell'
 import { KeyboardProvider } from '@/components/patterns/keyboard-shell'
@@ -25,6 +33,10 @@ import {
 } from '@/lib/theme-preference-store'
 
 type ProtectedLoaderData = { user: AuthUser }
+
+// Fire "App Opened" at most once per page load (survives StrictMode double-invoke
+// and any layout remount within the same session).
+let appOpenedTracked = false
 
 function useThemeSwitch(): {
   themePreference: ThemePreference
@@ -85,6 +97,51 @@ function RootLayoutShell({
     eyebrow: i18n._(routeMessages.eyebrow),
     title: i18n._(routeMessages.title),
   }
+
+  // Analytics identity sync. Idempotent — re-runs only when the user, firm, or
+  // a tracked firm attribute changes (e.g. open_obligation_count as data loads),
+  // keeping the Amplitude `firm` group fresh. No-op without an analytics key.
+  const isOwner = firm.ownerUserId === user.id
+  useEffect(() => {
+    setSuperProperties({ locale: i18n.locale })
+    identifyUser(user.id, { role: firm.role, is_owner: isOwner })
+    if (firm.id !== 'pending') {
+      setFirmGroup(firm.id, {
+        plan: firm.plan,
+        seat_limit: firm.seatLimit,
+        timezone: firm.timezone,
+        open_obligation_count: firm.openObligationCount,
+        monitoring_start_date: firm.monitoringStartDate,
+        firm_created_date: firm.createdAt,
+      })
+    }
+  }, [
+    user.id,
+    isOwner,
+    firm.id,
+    firm.role,
+    firm.plan,
+    firm.seatLimit,
+    firm.timezone,
+    firm.openObligationCount,
+    firm.monitoringStartDate,
+    firm.createdAt,
+    i18n.locale,
+  ])
+
+  // Once per load: App Opened, and a "Signed In" marker for returning users who
+  // land straight in the app shell (brand-new users land on /onboarding and fire
+  // "Signed Up" there — consuming the marker means exactly one of the two fires).
+  useEffect(() => {
+    if (!appOpenedTracked) {
+      appOpenedTracked = true
+      track(ANALYTICS_EVENTS.appOpened)
+    }
+    const marker = consumeSignInMarker()
+    if (marker) {
+      track(ANALYTICS_EVENTS.signedIn, { method: marker.method })
+    }
+  }, [])
 
   return (
     <PracticeTimezoneProvider timezone={firm.timezone}>
