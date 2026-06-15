@@ -43,7 +43,6 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
@@ -838,6 +837,14 @@ export function AlertDetailDrawer({
   // title (condensed). Declared with the reset state above since the render-time
   // reset block clears it.
   const [heroScrolled, setHeroScrolled] = useState(false)
+  // Stage 6 (decision-card terminus): the action bar lives INSIDE the scroll
+  // flow as a `sticky bottom-0` last child — it floats over the document while
+  // there's more to read, then docks at the end. `decisionDocked` (true once
+  // the reader reaches the bottom, or whenever the content doesn't overflow)
+  // drops the floating elevation so the docked state reads as a calm terminus
+  // rather than a hovering bar. Computed in the existing onScroll — no extra
+  // listener. Defaults true so short alerts never show a phantom float shadow.
+  const [decisionDocked, setDecisionDocked] = useState(true)
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
   const [reviewNote, setReviewNote] = useState('')
   // F-041 — alert deadline-shift verification gate. Apply on a
@@ -877,6 +884,7 @@ export function AlertDetailDrawer({
     setApplyVerificationOpen(false)
     setApplyVerified(false)
     setHeroScrolled(false)
+    setDecisionDocked(true)
     setResetKey(nextResetKey)
   }
   if (!open && resetKey !== null) {
@@ -1407,6 +1415,12 @@ export function AlertDetailDrawer({
           // (~140px ≈ below the eyebrow + meta + title).
           const scrolled = container.scrollTop > 140
           setHeroScrolled((prev) => (prev === scrolled ? prev : scrolled))
+          // Stage 6 — the decision bar docks once the reader reaches the end
+          // (or whenever the content fits without scrolling). Tolerance of 8px
+          // matches the scroll-spy last-section snap below.
+          const atBottom =
+            container.scrollTop + container.clientHeight >= container.scrollHeight - 8
+          setDecisionDocked((prev) => (prev === atBottom ? prev : atBottom))
           if (sectionNavItems.length === 0) return
           const containerTop = container.getBoundingClientRect().top
           let current = sectionNavItems[0]!.id
@@ -2153,77 +2167,83 @@ export function AlertDetailDrawer({
             </div>
           ) : null}
         </div>
-      </div>
 
-      {/* Sticky action footer — a committed decision surface, not
-          continuation chrome: `min-h-16` + white `bg-background-default`
-          so it separates from the gray body. `px-12` shares the
-          header/body margin so the left edge is one continuous line. A
-          single `border-t border-divider-subtle` (not a heavy double
-          rule) matches the deadline detail footer. It's a single row —
-          the audit-ledger note on the left (revealed only on wide panels
-          where there's room) and the DrawerActions cluster filling the
-          rest. The `A`/`D` kbd hints live ONLY in the top bar (Yuqi #13)
-          — they used to render here too, and the duplicate cluster was
-          what squeezed Mark-reviewed into overlapping Dismiss. `py-4`
-          (was py-3) gives the action row the extra bottom breathing room
-          Yuqi asked for. */}
-      {/* 2026-06-14 (Yuqi #2 "background on a coloured background?"): the
-          explicit white fill is dropped — the footer is a non-overlapping
-          sibling of the scroll area (nothing scrolls under it), so the fill
-          was a redundant background-on-background. The top hairline alone
-          separates the action bar from the document. */}
-      <SheetFooter className="min-h-16 flex-row items-center gap-6 border-t border-divider-subtle px-6 py-4 sm:flex-row xl:px-12">
-        {/* The footer chrome spans full width; its actions cap to the
-            760px `mx-auto` document measure so the action row sits
-            centered under the same column the header + body share. */}
-        <div className="mx-auto flex w-full max-w-[880px] flex-row items-center gap-6">
-          {detail ? (
-            // Critique #7 (standing signals aren't events): the reassurance
-            // line reads tertiary with only the shield icon in green — a
-            // permanently green sentence claimed success-event semantics.
-            <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-tertiary xl:inline-flex">
-              <ShieldCheckIcon className="size-3 shrink-0 text-text-success" aria-hidden />
-              <Trans>Every decision captured to audit ledger</Trans>
-            </span>
-          ) : null}
-          <div className="flex min-w-0 flex-1">
-            {detail ? (
-              <DrawerActions
-                alertStatus={detail.alert.status}
-                sourceStatus={detail.alert.sourceStatus}
-                selectionCount={stats?.selectedCount ?? 0}
-                actionMode={detail.alert.actionMode}
-                firmImpact={detail.alert.firmImpact}
-                requiresDeadlineDetails={missingDeadlineDetails}
-                appliedAt={detail.alert.appliedAt}
-                canApply={canApply}
-                // ROH-D15 — Undo button now gates on `pulse.revert` instead
-                // of the `pulse.apply` proxy.
-                canRevert={permissions.canRevert}
-                canRequestReview={canRequestAlertReview({
-                  role: permissions.role,
-                  alertStatus: detail.alert.status,
-                  sourceStatus: detail.alert.sourceStatus,
-                })}
-                canApplyReviewed={permissions.canManagePriorityReview}
-                canDismiss={canDismiss}
-                reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
-                reverifyIncomplete={reverifyIncomplete}
-                isMutating={isMutating}
-                onApply={handleApply}
-                onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
-                onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
-                onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
-                onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
-                onRequestReview={() => setReviewDialogOpen(true)}
-                onCopyDraft={handleCopyDraft}
-                onDismiss={handleDismiss}
-              />
-            ) : null}
+        {/* Stage 6 — decision-card terminus + docking footer. The committed
+            decision surface lives INSIDE the scroll flow as the last child:
+            `mt-auto` pins it to the bottom when the document is short, while
+            `sticky bottom-0` makes it FLOAT over the document and then DOCK at
+            the end on long alerts. `decisionDocked` (set in onScroll) drops the
+            float elevation once the reader reaches the end, so the docked state
+            reads as a calm terminus rather than a hovering bar. The white fill
+            is back (unlike the old non-overlapping footer) because the document
+            now scrolls UNDER it; actions cap to the 880px document measure. */}
+        {detail ? (
+          <div
+            className={cn(
+              'sticky bottom-0 z-20 mt-auto min-h-16 border-t bg-background-default px-6 py-4 transition-shadow duration-200 ease-apple motion-reduce:transition-none xl:px-12',
+              decisionDocked ? 'border-transparent' : 'border-divider-subtle',
+            )}
+            // Float elevation as an inline style — an arbitrary
+            // `shadow-[…rgba(),…]` class gets dropped by tailwind-merge in cn()
+            // (commas/parens), so the lift never rendered. The upward shadow
+            // only shows while floating (not docked).
+            style={
+              decisionDocked
+                ? undefined
+                : { boxShadow: '0 -10px 28px -16px rgba(16, 24, 40, 0.18)' }
+            }
+          >
+            <div className="mx-auto flex w-full max-w-[880px] flex-row items-center gap-6">
+              {detail ? (
+                // Critique #7 (standing signals aren't events): the reassurance
+                // line reads tertiary with only the shield icon in green — a
+                // permanently green sentence claimed success-event semantics.
+                <span className="hidden shrink-0 items-center gap-1.5 text-xs text-text-tertiary xl:inline-flex">
+                  <ShieldCheckIcon className="size-3 shrink-0 text-text-success" aria-hidden />
+                  <Trans>Every decision captured to audit ledger</Trans>
+                </span>
+              ) : null}
+              <div className="flex min-w-0 flex-1">
+                {detail ? (
+                  <DrawerActions
+                    alertStatus={detail.alert.status}
+                    sourceStatus={detail.alert.sourceStatus}
+                    selectionCount={stats?.selectedCount ?? 0}
+                    actionMode={detail.alert.actionMode}
+                    firmImpact={detail.alert.firmImpact}
+                    requiresDeadlineDetails={missingDeadlineDetails}
+                    appliedAt={detail.alert.appliedAt}
+                    canApply={canApply}
+                    // ROH-D15 — Undo button now gates on `pulse.revert` instead
+                    // of the `pulse.apply` proxy.
+                    canRevert={permissions.canRevert}
+                    canRequestReview={canRequestAlertReview({
+                      role: permissions.role,
+                      alertStatus: detail.alert.status,
+                      sourceStatus: detail.alert.sourceStatus,
+                    })}
+                    canApplyReviewed={permissions.canManagePriorityReview}
+                    canDismiss={canDismiss}
+                    reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
+                    reverifyIncomplete={reverifyIncomplete}
+                    isMutating={isMutating}
+                    onApply={handleApply}
+                    onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
+                    onApplyReviewed={() =>
+                      applyReviewedMutation.mutate({ alertId: detail.alert.id })
+                    }
+                    onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
+                    onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
+                    onRequestReview={() => setReviewDialogOpen(true)}
+                    onCopyDraft={handleCopyDraft}
+                    onDismiss={handleDismiss}
+                  />
+                ) : null}
+              </div>
+            </div>
           </div>
-        </div>
-      </SheetFooter>
+        ) : null}
+      </div>
     </>
   )
 
