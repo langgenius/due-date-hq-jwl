@@ -252,6 +252,7 @@ export function ClientDetailWorkspace({
     obligationId: activeObligationId,
     activeTab: obligationTab,
     setActiveTab: setObligationTab,
+    openDrawer: openObligationPanel,
     closeDrawer: closeObligationPanel,
   } = useObligationDrawer()
   // When the right obligation panel is open the left column squeezes
@@ -902,8 +903,17 @@ export function ClientDetailWorkspace({
                   isStatusChangePending={changeStatusMutation.isPending}
                   canChangeStatus={canUpdateObligationStatus}
                   expandedFilingId={expandedFilingId}
-                  onExpandFiling={(id) => void setExpandedFilingId(id)}
+                  // 2026-06-15 (Yuqi): clicking a filing opens the obligation
+                  // detail in the in-page side panel (the right <aside> that
+                  // animates to 60%) instead of expanding inline or navigating
+                  // away to /deadlines/:ref — the user stays anchored in the
+                  // client's context. `openObligationPanel` sets local panel
+                  // state on /clients/:id (no route change); cmd/ctrl-click on
+                  // the title still opens the full /deadlines page (escape hatch).
+                  onExpandFiling={(id) => openObligationPanel(id)}
                   onCollapseFiling={() => void setExpandedFilingId('')}
+                  // Squeezed left column when the panel is open → compact rows.
+                  compact={panelOpen}
                 />
               </TabsContent>
 

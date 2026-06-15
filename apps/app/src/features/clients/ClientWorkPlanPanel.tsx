@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ChevronDownIcon, ClipboardListIcon } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import type { ObligationQueueRow } from '@duedatehq/contracts'
 import {
@@ -180,6 +181,7 @@ export function ClientWorkPlanPanel({
   expandedFilingId,
   onExpandFiling,
   onCollapseFiling,
+  compact = false,
 }: {
   obligations: readonly ObligationQueueRow[]
   isLoading: boolean
@@ -191,6 +193,9 @@ export function ClientWorkPlanPanel({
   expandedFilingId: string
   onExpandFiling: (id: string) => void
   onCollapseFiling: () => void
+  // When the obligation side panel is open the left column squeezes; render
+  // the filing rows compact (drop OFFICIAL DUE + OWNER) so columns don't collide.
+  compact?: boolean
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -333,6 +338,7 @@ export function ClientWorkPlanPanel({
                 expandedFilingId={expandedFilingId}
                 onExpandFiling={onExpandFiling}
                 onCollapseFiling={onCollapseFiling}
+                compact={compact}
               />
             ))}
           </div>
@@ -488,6 +494,7 @@ function FilingPlanYearSection({
   expandedFilingId,
   onExpandFiling,
   onCollapseFiling,
+  compact,
 }: {
   group: FilingPlanYearGroup
   sort: FilingPlanSort
@@ -499,6 +506,7 @@ function FilingPlanYearSection({
   expandedFilingId: string
   onExpandFiling: (id: string) => void
   onCollapseFiling: () => void
+  compact: boolean
 }) {
   const { t } = useLingui()
   // Apply panel-level sort to this year's obligations. When sort is
@@ -592,7 +600,14 @@ function FilingPlanYearSection({
           bulk bar. */}
       {/* Column header (Pencil VtC73) — grid must match DeadlineRow's
           inline-expand layout exactly so the columns line up. */}
-      <div className="grid grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px] items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
+      <div
+        className={cn(
+          'grid items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase',
+          compact
+            ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
+            : 'grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px]',
+        )}
+      >
         <span>
           <Trans>Deadline</Trans>
         </span>
@@ -602,12 +617,16 @@ function FilingPlanYearSection({
         <span>
           <Trans>Internal due</Trans>
         </span>
-        <span>
-          <Trans>Official due</Trans>
-        </span>
-        <span>
-          <Trans>Owner</Trans>
-        </span>
+        {compact ? null : (
+          <span>
+            <Trans>Official due</Trans>
+          </span>
+        )}
+        {compact ? null : (
+          <span>
+            <Trans>Owner</Trans>
+          </span>
+        )}
         <span aria-hidden />
       </div>
       <div className="flex flex-col">
@@ -616,6 +635,7 @@ function FilingPlanYearSection({
             key={obligation.id}
             deadline={obligation}
             mode="inline-expand"
+            compact={compact}
             isExpanded={expandedFilingId === obligation.id}
             isSelected={selectedIds.has(obligation.id)}
             multiSelectMode={selectedIds.size > 0}

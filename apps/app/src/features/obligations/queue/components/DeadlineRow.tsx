@@ -44,6 +44,9 @@ export type DeadlineRowMode = 'navigate' | 'inline-expand' | 'drawer' | 'navigat
 export interface DeadlineRowProps {
   deadline: ObligationQueueRow
   mode: DeadlineRowMode
+  // inline-expand only: drops the OFFICIAL DUE + OWNER columns so the row fits
+  // a squeezed container (e.g. when the client-detail side panel is open).
+  compact?: boolean
   isExpanded?: boolean
   isSelected?: boolean
   isActive?: boolean
@@ -84,6 +87,7 @@ function isOverdue(deadline: ObligationQueueRow): boolean {
 export function DeadlineRow({
   deadline,
   mode,
+  compact = false,
   isExpanded = false,
   isSelected = false,
   isActive = false,
@@ -142,7 +146,10 @@ export function DeadlineRow({
     switch (event.key) {
       case 'Enter':
         event.preventDefault()
-        goToSummary(event.metaKey || event.ctrlKey)
+        // inline-expand surface (client detail) opens the in-page side panel;
+        // other surfaces navigate to the deadline detail page.
+        if (mode === 'inline-expand') onExpand?.(deadline.id)
+        else goToSummary(event.metaKey || event.ctrlKey)
         break
       case ' ':
       case 'Spacebar':
@@ -198,7 +205,11 @@ export function DeadlineRow({
           onKeyDown={handleKeyDown}
           className={cn(
             'group/row grid w-full cursor-pointer items-center gap-3 px-5 py-2.5 text-left outline-none transition-colors',
-            'grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px]',
+            // Compact drops OFFICIAL DUE + OWNER so the row fits a squeezed
+            // container (client-detail side panel open). Full layout otherwise.
+            compact
+              ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
+              : 'grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px]',
             'hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
             // §1b — selected + open share one accent (VtC73 #eff4ff).
             isActive && 'bg-state-accent-hover',
@@ -226,7 +237,19 @@ export function DeadlineRow({
                 id={titleId}
                 to={summaryHref}
                 state={{ from: 'client' }}
-                onClick={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  // 2026-06-15 (Yuqi): on the inline-expand surface (client
+                  // detail) a plain left-click opens the in-page side panel
+                  // (onExpand → openDrawer) instead of navigating away to the
+                  // firm-wide /deadlines page. cmd/ctrl-click falls through to
+                  // the Link so power users can still open the full page in a
+                  // new tab (deep-link / escape hatch).
+                  if (mode === 'inline-expand' && !event.metaKey && !event.ctrlKey) {
+                    event.preventDefault()
+                    onExpand?.(deadline.id)
+                  }
+                }}
                 aria-label={`Open ${deadline.formName} for ${deadline.clientName} detail page`}
                 // max-w-full keeps w-fit (hover underline hugs the text) from
                 // defeating truncate — without the cap, long form names paint
@@ -259,30 +282,34 @@ export function DeadlineRow({
             </span>
           </div>
 
-          {/* OFFICIAL DUE (statutory) */}
-          <div className="min-w-0 truncate font-mono text-xs text-text-secondary tabular-nums">
-            {formatDatePretty(deadline.baseDueDate)}
-          </div>
+          {/* OFFICIAL DUE (statutory) — hidden in compact */}
+          {compact ? null : (
+            <div className="min-w-0 truncate font-mono text-xs text-text-secondary tabular-nums">
+              {formatDatePretty(deadline.baseDueDate)}
+            </div>
+          )}
 
-          {/* OWNER */}
-          <button
-            type="button"
-            onClick={stop(() =>
-              onFilterByAssignee?.(deadline.assigneeId ?? '', deadline.assigneeName ?? ''),
-            )}
-            aria-label={`Filter by ${deadline.assigneeName ?? 'unassigned'}`}
-            className="flex min-w-0 items-center gap-2 justify-self-start rounded-full outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <AssigneeAvatar
-              name={deadline.assigneeName}
-              title={deadline.assigneeName ?? 'Unassigned'}
-              type={deadline.assigneeName ? 'human' : 'unassigned'}
-              size="sm"
-            />
-            <span className="truncate text-xs text-text-secondary">
-              {deadline.assigneeName ?? <Trans>Unassigned</Trans>}
-            </span>
-          </button>
+          {/* OWNER — hidden in compact */}
+          {compact ? null : (
+            <button
+              type="button"
+              onClick={stop(() =>
+                onFilterByAssignee?.(deadline.assigneeId ?? '', deadline.assigneeName ?? ''),
+              )}
+              aria-label={`Filter by ${deadline.assigneeName ?? 'unassigned'}`}
+              className="flex min-w-0 items-center gap-2 justify-self-start rounded-full outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <AssigneeAvatar
+                name={deadline.assigneeName}
+                title={deadline.assigneeName ?? 'Unassigned'}
+                type={deadline.assigneeName ? 'human' : 'unassigned'}
+                size="sm"
+              />
+              <span className="truncate text-xs text-text-secondary">
+                {deadline.assigneeName ?? <Trans>Unassigned</Trans>}
+              </span>
+            </button>
+          )}
 
           {/* expand chevron */}
           <ChevronRightIcon
