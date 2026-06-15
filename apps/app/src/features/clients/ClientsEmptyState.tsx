@@ -1,14 +1,5 @@
-import type { ReactNode } from 'react'
-import { Trans, useLingui } from '@lingui/react/macro'
-import {
-  ArrowRightIcon,
-  CirclePlayIcon,
-  DownloadIcon,
-  LayersIcon,
-  ShieldCheckIcon,
-  TimerIcon,
-  UserPlusIcon,
-} from 'lucide-react'
+import { Trans } from '@lingui/react/macro'
+import { ArrowRightIcon, CirclePlayIcon, DownloadIcon, UserPlusIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -60,32 +51,11 @@ function IntegrationStrip() {
           <img src={logo.src} alt="" aria-hidden className="max-h-6 max-w-7 object-contain" />
         </div>
       ))}
-      {/* DueDateHQ destination tile — the import endpoint. */}
-      <div className="flex size-[52px] shrink-0 items-center justify-center rounded-xl bg-text-primary shadow-md">
+      {/* DueDateHQ destination tile — the import endpoint, a touch larger
+          than the source tiles to read as the "lands here" endpoint. */}
+      <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-text-primary shadow-sm">
         <span className="text-base font-bold text-text-inverted">DD</span>
       </div>
-    </div>
-  )
-}
-
-function OutcomeStat({
-  icon: Icon,
-  value,
-  label,
-}: {
-  icon: typeof TimerIcon
-  value: ReactNode
-  label: ReactNode
-}) {
-  return (
-    <div className="flex items-center gap-2.5 px-3.5 py-2">
-      <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-divider-regular bg-background-default">
-        <Icon className="size-3.5 text-text-secondary" aria-hidden />
-      </span>
-      <span className="flex flex-col leading-tight">
-        <span className="text-base font-bold text-text-primary">{value}</span>
-        <span className="text-xs font-medium text-text-secondary">{label}</span>
-      </span>
     </div>
   )
 }
@@ -103,7 +73,6 @@ export function ClientsEmptyState({
   canImport: boolean
   canCreate?: boolean | undefined
 }) {
-  const { t } = useLingui()
   return (
     <div className="flex min-h-[560px] flex-1 items-center justify-center">
       <div
@@ -137,14 +106,6 @@ export function ClientsEmptyState({
               <Trans>Add one manually</Trans>
             </Button>
           ) : null}
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 rounded-xl bg-background-section px-1 py-1.5">
-          <OutcomeStat icon={TimerIcon} value={t`4 min`} label={<Trans>average import</Trans>} />
-          <span className="hidden h-7 w-px bg-divider-regular sm:block" aria-hidden />
-          <OutcomeStat icon={LayersIcon} value={t`11 tools`} label={<Trans>supported</Trans>} />
-          <span className="hidden h-7 w-px bg-divider-regular sm:block" aria-hidden />
-          <OutcomeStat icon={ShieldCheckIcon} value={t`SOC 2`} label={<Trans>compliant</Trans>} />
         </div>
 
         {onSampleData ? (

@@ -45,7 +45,6 @@ export function RiskProfileSmartPriorityHelp() {
             variant="ghost"
             size="icon-xs"
             aria-label={t`Explain Risk profile`}
-            title={helpText}
             className="size-5 shrink-0 cursor-help text-text-tertiary hover:text-text-primary"
           />
         }
@@ -705,135 +704,150 @@ export function ClientClassificationPanel({
         </Select>
       </Field>
 
-      <Field>
-        <FieldLabel>
-          <Trans>Reason</Trans>
-        </FieldLabel>
-        <Select
-          value={reasonKind}
-          onValueChange={(value) => {
-            if (value === 'correction' || value === 'reclassification') setReasonKind(value)
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue>
-              {reasonKind === 'reclassification' ? (
-                <Trans>Reclassification (the entity changed type, effective a tax year)</Trans>
-              ) : (
-                <Trans>Correction (fix a data-entry error)</Trans>
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="correction">
-                <Trans>Correction (fix a data-entry error)</Trans>
-              </SelectItem>
-              <SelectItem value="reclassification">
-                <Trans>Reclassification (the entity changed type, effective a tax year)</Trans>
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </Field>
-
-      {isReclassification ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+      {/* Audit fields stay hidden until the entity type actually changes —
+          there's nothing to reason about or note until then. Picking a new
+          type reveals the reason/effective-year/note and the Review-impact
+          gate; Cancel collapses them back. */}
+      {hasChanges ? (
+        <>
           <Field>
             <FieldLabel>
-              <Trans>Event</Trans>
+              <Trans>Reason</Trans>
             </FieldLabel>
             <Select
-              value={reasonEvent}
+              value={reasonKind}
               onValueChange={(value) => {
-                const event = CLASSIFICATION_REASON_EVENTS.find((option) => option === value)
-                if (event) setReasonEvent(event)
+                if (value === 'correction' || value === 'reclassification') setReasonKind(value)
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={t`Optional`}>
-                  {reasonEvent ? reasonEventLabels[reasonEvent] : null}
+                <SelectValue>
+                  {reasonKind === 'reclassification' ? (
+                    <Trans>Reclassification (the entity changed type, effective a tax year)</Trans>
+                  ) : (
+                    <Trans>Correction (fix a data-entry error)</Trans>
+                  )}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {CLASSIFICATION_REASON_EVENTS.map((event) => (
-                    <SelectItem key={event} value={event}>
-                      {reasonEventLabels[event]}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="correction">
+                    <Trans>Correction (fix a data-entry error)</Trans>
+                  </SelectItem>
+                  <SelectItem value="reclassification">
+                    <Trans>Reclassification (the entity changed type, effective a tax year)</Trans>
+                  </SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
           </Field>
-          <Field>
-            <FieldLabel htmlFor="classification-effective-year">
-              <Trans>Effective from tax year</Trans>
-            </FieldLabel>
-            <Select
-              value={effectiveYear}
-              onValueChange={(value) => {
-                if (value) setEffectiveYear(value)
-              }}
-            >
-              <SelectTrigger id="classification-effective-year" className="w-full tabular-nums">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent align="start">
-                <SelectGroup>
-                  {effectiveYearOptions.map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </Field>
-        </div>
-      ) : null}
 
-      <Field>
-        <div className="flex items-center justify-between gap-2">
-          <FieldLabel htmlFor="classification-note">
-            <Trans>Note</Trans>
-          </FieldLabel>
-          {note.length > 0 ? (
-            <span
-              className={
-                noteOverLimit
-                  ? 'text-xs tabular-nums text-text-destructive'
-                  : 'text-xs tabular-nums text-text-tertiary'
-              }
-              aria-live="polite"
-            >
-              {note.length} / {NOTE_MAX_LENGTH}
-            </span>
+          {isReclassification ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field>
+                <FieldLabel>
+                  <Trans>Event</Trans>
+                </FieldLabel>
+                <Select
+                  value={reasonEvent}
+                  onValueChange={(value) => {
+                    const event = CLASSIFICATION_REASON_EVENTS.find((option) => option === value)
+                    if (event) setReasonEvent(event)
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t`Optional`}>
+                      {reasonEvent ? reasonEventLabels[reasonEvent] : null}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {CLASSIFICATION_REASON_EVENTS.map((event) => (
+                        <SelectItem key={event} value={event}>
+                          {reasonEventLabels[event]}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="classification-effective-year">
+                  <Trans>Effective from tax year</Trans>
+                </FieldLabel>
+                <Select
+                  value={effectiveYear}
+                  onValueChange={(value) => {
+                    if (value) setEffectiveYear(value)
+                  }}
+                >
+                  <SelectTrigger id="classification-effective-year" className="w-full tabular-nums">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    <SelectGroup>
+                      {effectiveYearOptions.map((year) => (
+                        <SelectItem key={year} value={year}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
           ) : null}
-        </div>
-        <Textarea
-          id="classification-note"
-          value={note}
-          rows={2}
-          placeholder={t`Optional context for the audit log.`}
-          aria-invalid={noteOverLimit}
-          onChange={(event) => setNote(event.target.value)}
-        />
-      </Field>
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          size="sm"
-          disabled={!hasChanges || noteOverLimit}
-          onClick={() => setDialogOpen(true)}
-        >
-          <Trans>Review impact…</Trans>
-        </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={reset} disabled={!hasChanges}>
-          <Trans>Cancel</Trans>
-        </Button>
-      </div>
+          <Field>
+            <div className="flex items-center justify-between gap-2">
+              <FieldLabel htmlFor="classification-note">
+                <Trans>Note</Trans>
+              </FieldLabel>
+              {note.length > 0 ? (
+                <span
+                  className={
+                    noteOverLimit
+                      ? 'text-xs tabular-nums text-text-destructive'
+                      : 'text-xs tabular-nums text-text-tertiary'
+                  }
+                  aria-live="polite"
+                >
+                  {note.length} / {NOTE_MAX_LENGTH}
+                </span>
+              ) : null}
+            </div>
+            <Textarea
+              id="classification-note"
+              value={note}
+              rows={2}
+              placeholder={t`Optional context for the audit log.`}
+              aria-invalid={noteOverLimit}
+              onChange={(event) => setNote(event.target.value)}
+            />
+          </Field>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={!hasChanges || noteOverLimit}
+              onClick={() => setDialogOpen(true)}
+            >
+              <Trans>Review impact…</Trans>
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={reset} disabled={!hasChanges}>
+              <Trans>Cancel</Trans>
+            </Button>
+          </div>
+        </>
+      ) : (
+        <p className="text-xs leading-relaxed text-text-tertiary">
+          <Trans>
+            Pick a different entity type to change it. You'll add an audit reason and preview the
+            form changes before anything applies.
+          </Trans>
+        </p>
+      )}
 
       <ClassificationImpactDialog
         clientId={client.id}

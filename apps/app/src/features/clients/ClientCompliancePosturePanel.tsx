@@ -186,7 +186,7 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
               <span
                 key={attr.label}
                 className={cn(
-                  'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium',
+                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
                   attr.on
                     ? 'bg-state-accent-hover text-text-accent'
                     : 'bg-background-section text-text-muted',

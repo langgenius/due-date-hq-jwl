@@ -220,12 +220,12 @@ function FixNeedsFactsRow({
       <div className="flex flex-wrap items-center gap-2">
         <span className="truncate text-sm font-medium text-text-primary">{client.name}</span>
         {needsState ? (
-          <Badge variant="destructive" className="text-xs">
+          <Badge variant="warning" className="text-xs">
             <Trans>Needs state</Trans>
           </Badge>
         ) : null}
         {needsEntityType ? (
-          <Badge variant="destructive" className="text-xs">
+          <Badge variant="warning" className="text-xs">
             <Trans>Needs entity</Trans>
           </Badge>
         ) : null}
