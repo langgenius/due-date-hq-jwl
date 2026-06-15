@@ -90,7 +90,7 @@ import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
-import { CandidateReviewSection, RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
+import { RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
 import {
   ENTITY_KEYS,
   ENTITY_LABELS,
@@ -4449,12 +4449,6 @@ function RuleDetailPanel({
 }) {
   const { t } = useLingui()
   const isReviewable = rule.status === 'candidate' || rule.status === 'pending_review'
-  // The hero (title · status · AI % · summary) is PINNED as a fixed header so
-  // the panel always shows what rule you're looking at. Previously it was the
-  // first scrolling card, and Base UI's open-focus scrolled it off-screen, so
-  // the panel opened with no visible title. `initialFocus` parks focus on the
-  // scroll body so nothing auto-scrolls.
-  const scrollRef = useRef<HTMLDivElement>(null)
   // The open review task for this rule carries the queue age (`createdAt`) and
   // why it's in review (`reason`) — surfaced in the hero, per the mock.
   const reviewTasksQuery = useQuery(
@@ -4464,62 +4458,37 @@ function RuleDetailPanel({
     ? (reviewTasksQuery.data?.find((task) => task.ruleId === rule.id) ?? null)
     : null
   return (
-    // 2026-06-10 (Yuqi): the rule detail is a big CENTERED MODAL — click a
-    // rule row → popup with the full summary-first card-stack (the `N2X10V`
-    // 8-card design), click anywhere outside (overlay) OR Esc closes it. The
-    // Dialog fires onOpenChange(false) on both. (Reverts the prior Sheet; the
-    // reviewer wants a large reading surface, not a side drawer.)
+    // 2026-06-15 (Yuqi, Pencil TkpJG): the rule review is a CENTERED two-pane
+    // modal — a left column of rule facts under the header, and a right gray
+    // decision rail that owns the whole commit flow (impact · Before-you-accept
+    // gate · required note · Generate-draft / Reject / Accept). Replaces the
+    // prior full-window 3-zone panel + sticky footer.
     <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
       <DialogContent
         showCloseButton
-        initialFocus={scrollRef}
         aria-label={t`Rule detail`}
-        // 2026-06-11 (Yuqi): the review panel is a responsive full-window
-        // surface — 80px inset from every screen edge — laid out in columns
-        // so the whole rule reads at a glance without scrolling.
-        className="flex h-[calc(100dvh-160px)] max-h-[calc(100dvh-160px)] w-[calc(100vw-160px)] max-w-none flex-col gap-0 overflow-hidden bg-background-section p-0"
+        className="flex h-[min(860px,calc(100dvh-96px))] w-[min(1200px,calc(100vw-96px))] max-w-none gap-0 overflow-hidden bg-background-default p-0"
       >
-        {/* a11y label for the Dialog; the visible title lives in the pinned hero. */}
+        {/* a11y label for the Dialog; the visible title lives in the header band. */}
         <DialogTitle className="sr-only">{rule.title}</DialogTitle>
-        {/* Pinned header band — title · status · provenance stay visible
-            while the reference sections scroll beneath, so the panel always
-            shows which rule you're reviewing. Flush (its own border-b),
-            not a card, so it reads as the surface header. */}
-        <RuleDetailHeroCard rule={rule} concreteDraft={concreteDraft} reviewTask={reviewTask} />
-        {/* Scrollable card-stack: Applicability · Due date · Evidence · Impact ·
-            Practice review · Activity. Each card discloses independently; the
-            Decision is pinned as a sticky footer below (irBJ8). */}
-        <div
-          ref={scrollRef}
-          tabIndex={-1}
-          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-3 outline-none"
-        >
-          <RuleEffectiveBanner rule={rule} />
-          <RuleDetailCompact
-            key={rule.id}
-            rule={rule}
-            concreteDraft={concreteDraft}
-            confirmImpact
-            hideDecision
-            columns
-            onActionComplete={onClose}
-          />
-        </div>
-        {/* Sticky Decision footer (irBJ8 card 6) — the commit zone stays
-            visible while the reference cards scroll. Only for reviewable
-            rules; active rules have nothing to decide. */}
-        {isReviewable ? (
-          <div className="shrink-0 border-t border-divider-regular bg-background-default px-5 py-2.5 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
-            <CandidateReviewSection
-              key={rule.id}
-              rule={rule}
-              concreteDraft={concreteDraft}
-              chrome="flat"
-              confirmImpact
-              onActionComplete={onClose}
-            />
-          </div>
-        ) : null}
+        <RuleDetailCompact
+          key={rule.id}
+          rule={rule}
+          concreteDraft={concreteDraft}
+          confirmImpact
+          splitRail
+          header={
+            <>
+              <RuleDetailHeroCard
+                rule={rule}
+                concreteDraft={concreteDraft}
+                reviewTask={reviewTask}
+              />
+              <RuleEffectiveBanner rule={rule} />
+            </>
+          }
+          onActionComplete={onClose}
+        />
       </DialogContent>
     </Dialog>
   )

@@ -343,6 +343,8 @@ export function RuleDetailCompact({
   hideDecision = false,
   hideReviewAids = false,
   columns = false,
+  splitRail = false,
+  header,
   onActionComplete,
   reviewReason,
 }: {
@@ -361,6 +363,17 @@ export function RuleDetailCompact({
    * reads at a glance without scrolling. Only valid with `hideDecision`.
    */
   columns?: boolean
+  /**
+   * Two-pane "accept rule modal" layout (Pencil `TkpJG`): the rule facts stack
+   * in a left column (with the `header` at its top) while the entire decision
+   * flow — impact · the Before-you-accept gate · the required practice note ·
+   * the Generate-draft / Reject / Accept actions — lives in a right decision
+   * rail. Takes over the whole modal body; renders the decision inline (no
+   * separate sticky footer).
+   */
+  splitRail?: boolean
+  /** Rendered at the top of the left column in `splitRail` mode (the header band). */
+  header?: React.ReactNode
   /** Omit the per-rule Practice-review note composer. Bulk surfaces own the note
       workflow at the batch level (their own shared note), so the per-rule note
       textarea is suppressed there. The Before-you-accept AI-draft panel stays —
@@ -560,6 +573,56 @@ export function RuleDetailCompact({
       {...(onActionComplete ? { onActionComplete } : {})}
     />
   )
+
+  // Split-rail mode (Pencil TkpJG "Accept rule modal"): a centered two-pane —
+  // the rule facts stack in a left column under the header, and the entire
+  // decision flow lives in a right gray rail (impact · the Before-you-accept
+  // gate · the required practice note · the Generate-draft / Reject / Accept
+  // actions). No sticky footer; the rail owns the commit.
+  if (splitRail) {
+    return (
+      <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+        {/* LEFT — header + rule facts (white, scrolls independently). */}
+        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+          {header}
+          <div className="flex min-w-0 flex-col gap-3 px-6 pt-5 pb-4">
+            <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+              <Trans>Verify the facts</Trans>
+            </span>
+            {applicabilityCard}
+            {dueDateCard}
+            {evidenceCard}
+            {verificationCard}
+          </div>
+          {/* Informational footer — version + full history, no actions. */}
+          <div className="mt-auto px-6 pb-5">{activityCard}</div>
+        </div>
+
+        {/* RIGHT — the decision rail (gray, scrolls independently). */}
+        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-divider-regular bg-background-section px-5 py-5">
+          <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+            <Trans>Your decision</Trans>
+          </span>
+          {impactCard}
+          {beforeAcceptCard}
+          {practiceCard}
+          {isReview ? (
+            <CandidateReviewSection
+              key={rule.id}
+              rule={rule}
+              concreteDraft={concreteDraft ?? null}
+              concreteDraftLoading={concreteDraftLoading}
+              deferQueryInvalidation={deferQueryInvalidation}
+              confirmImpact={confirmImpact}
+              chrome="flat"
+              {...(reviewReason !== undefined ? { reviewReason } : {})}
+              {...(onActionComplete ? { onActionComplete } : {})}
+            />
+          ) : null}
+        </aside>
+      </div>
+    )
+  }
 
   // Columns mode (full-window modal): three labeled zones in a row so the panel
   // reads as a structured decision surface — Verify the facts · Impact &
