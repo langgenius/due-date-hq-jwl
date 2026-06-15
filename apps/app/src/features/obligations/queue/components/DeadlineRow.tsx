@@ -332,7 +332,11 @@ export function DeadlineRow({
             'hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
             isActive && 'bg-background-subtle',
             dim && 'opacity-80',
-            overdue && 'border-l-[3px] border-l-state-destructive-solid pl-[17px]',
+            // Overdue is signaled by the leading AlertTriangle + the red
+            // countdown pill — no colored left-stripe. A >1px side border as
+            // an accent is the most overused "design touch" in dashboards and
+            // never reads as intentional; the leading icon is the canonical
+            // replacement and is already present (see the tax-code cluster).
           )}
         >
           {/* Form tag — navigates (paired with title, §2 target 3). */}

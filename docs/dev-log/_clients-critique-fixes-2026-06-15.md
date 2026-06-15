@@ -67,6 +67,29 @@ Closer inspection (not eyeballing) showed several "issues" were sound:
   "SOC 2 compliant") are business facts I can't verify — confirm
   substantiated or the "no fiction on canvas" rule applies unevenly.
 
+## Follow-up: DeadlineRow side-stripe removed (cross-surface)
+Yuqi: yes, take the `DeadlineRow` overdue stripe on.
+
+Removed `overdue && border-l-[3px] border-l-state-destructive-solid pl-[17px]`
+from the shared filing-row primitive (BAN 1 — a >1px colored side-stripe
+accent). Overdue stays signaled by the leading `AlertTriangleIcon` + the red
+countdown pill, which is BAN 1's sanctioned replacement and already present.
+
+Investigation correction: the stripe lived in the **standard `<article>`
+variant** (modes `navigate`/`drawer`/`navigate-to-audit`). `DeadlineRow`'s
+only current consumer is the client-detail filing table on the
+**`inline-expand`** variant, which never had the stripe. So no surface
+currently mounted the stripe — this is a *preventive* removal from the
+primitive's API (it can't render the banned pattern if those modes are used
+later), not a fix of a visible bug. tsgo clean; client-detail rows verified
+unchanged.
+
+Still-open BAN-1 instance (NOT touched — needs its own call): the `Card`
+primitive's `data-[emphasis=unread]:border-l-[3px] border-l-accent-default`
+unread stripe in `packages/ui`. Left-border-as-unread is a more established
+convention (mail clients), and it's a base primitive touching alert cards
+etc. — flag for a deliberate decision rather than a drive-by change.
+
 ## Notes
 - tsgo clean; console clean (the only errors are the parallel session's
   WIP `rule-detail-drawer.tsx`, unrelated).
