@@ -837,20 +837,26 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       {
                         value: 'review',
                         // 2026-06-15 (Yuqi "number in toggle never in a badge"):
-                        // plain count, not a pill. Review pulls the eye when it
-                        // carries work via the WARNING tone — matching the rail's
-                        // needs-review dot + the rule-library Review tab + the
-                        // StatBand pending value. Weight 500, not bold (red+bold
-                        // is a banned double-highlight); Active stays quiet tertiary.
+                        // plain count, not a pill. The WHOLE Review tab (label +
+                        // count) reads in the WARNING tone when it carries work —
+                        // matching the rail's needs-review dot + the rule-library
+                        // Review tab + the StatBand pending value, so Review is
+                        // unambiguously the urgent scope. The override beats the
+                        // Segmented's selected-accent on the label; selection
+                        // still reads via the chip. Not bold (red+bold is a banned
+                        // double-highlight); Active stays quiet tertiary.
                         label: (
-                          <span className="inline-flex items-center gap-1.5">
+                          <span
+                            className={cn(
+                              'inline-flex items-center gap-1.5',
+                              workQueueCounts.review > 0 && 'text-text-warning',
+                            )}
+                          >
                             <Trans>Review</Trans>
                             <span
                               className={cn(
                                 'tabular-nums',
-                                workQueueCounts.review > 0
-                                  ? 'font-medium text-text-warning'
-                                  : 'text-text-tertiary',
+                                workQueueCounts.review === 0 && 'text-text-tertiary',
                               )}
                             >
                               {workQueueCounts.review}
