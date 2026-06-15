@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { CircleCheckIcon, GitPullRequestArrowIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { CircleCheckIcon, GitPullRequestArrowIcon, SearchIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationRule, RuleStatus } from '@duedatehq/contracts'
@@ -165,6 +165,10 @@ export function JurisdictionFilterBar({
   activeCount: number
 }) {
   const { t } = useLingui()
+  // Search rests as an icon button and expands into the field on click (same
+  // pattern as /alerts); stays open while it carries a query, collapses on
+  // blur when empty.
+  const [searchOpen, setSearchOpen] = useState(false)
 
   const toggleType = (value: string) => {
     const next = new Set(filter.types)
@@ -228,15 +232,32 @@ export function JurisdictionFilterBar({
           },
         ]}
       />
-      {/* Search flexes to absorb the row's slack so every control keeps an
-          even gap-3 and the bar stays on one line (no dead spacer). */}
-      <div className="w-full min-w-[180px] sm:flex-1 sm:basis-0 sm:w-auto sm:max-w-[280px]">
+      {/* Collapsed → search icon button; expanded → the canonical SearchInput
+          (autofocused). Stays expanded while it carries a query; collapses on
+          blur when empty. Matches /alerts. */}
+      {searchOpen || search ? (
         <SearchInput
           value={search}
           onChange={onSearchChange}
           placeholder={t`Search ${jurisdictionLabel} rules`}
+          autoFocus
+          onBlur={() => {
+            if (search.trim() === '') setSearchOpen(false)
+          }}
+          className="w-[200px] shrink-0 sm:w-[220px]"
         />
-      </div>
+      ) : (
+        <Button
+          variant="outline"
+          size="icon"
+          type="button"
+          aria-label={t`Search ${jurisdictionLabel} rules`}
+          onClick={() => setSearchOpen(true)}
+          className="shrink-0"
+        >
+          <SearchIcon />
+        </Button>
+      )}
 
       {/* All facets collapsed into one Filters dropdown (Yuqi: cleaner bar,
           easier to read) — Type + Severity multi-select + a single Sort-by
