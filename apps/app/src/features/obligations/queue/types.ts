@@ -46,13 +46,6 @@ export type DeadlineInputRequestDraft = {
   message: string
 }
 
-export type DueDaysTone = {
-  variant: 'destructive' | 'warning' | 'success' | 'outline'
-  dot: 'error' | 'warning' | 'success' | 'normal'
-  badgeClassName?: string
-  dotClassName?: string
-}
-
 export type FilterOption = TableFilterOption
 
 export interface ClientFilterOption extends FilterOption {

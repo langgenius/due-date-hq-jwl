@@ -28,7 +28,6 @@ import type {
   AuthorityRejectionAuditDetails,
   AuthorityRejectionDraft,
   DeadlineInputRequestAudit,
-  DueDaysTone,
   ExtensionPlanDraft,
   FilterOption,
   ObligationQueueExportQuery,
@@ -592,21 +591,6 @@ export function selectionHeaderState(
   if (selectedCount === 0) return 'none'
   if (selectedCount === orderedIds.length) return 'all'
   return 'partial'
-}
-
-export function dueDaysTone(days: number): DueDaysTone {
-  // Calmer color ladder. The previous tone used a solid white-on-red
-  // pill for *any* past-due row, which made every late filing scream
-  // and stripped urgency hierarchy from the queue. We now stay in soft
-  // tints and reserve the loudest red for rows that are both late AND
-  // imminent — the warning amber band carries everything else past
-  // due, and the future band stays neutral so the eye lands on
-  // genuinely urgent rows.
-  if (days < -7) return { variant: 'destructive', dot: 'error' }
-  if (days < 0) return { variant: 'warning', dot: 'error' }
-  if (days <= 2) return { variant: 'warning', dot: 'warning' }
-  if (days <= 7) return { variant: 'outline', dot: 'warning' }
-  return { variant: 'outline', dot: 'normal' }
 }
 
 export function isDueDaysSuppressedForStatus(status: ObligationStatus): boolean {

@@ -7,10 +7,14 @@ import { AlertTriangleIcon } from 'lucide-react'
 
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { type ObligationStatus } from '@/features/obligations/status-control'
+import {
+  dueCountdownTone,
+  DUE_COUNTDOWN_TEXT_CLASS,
+} from '@/features/_surface-vocabulary/due-date-tone'
 import { cn } from '@/lib/utils'
 
 import type { AuditSummaryRow } from '../types'
-import { dueDaysTone, isDueDaysSuppressedForStatus } from '../helpers'
+import { isDueDaysSuppressedForStatus } from '../helpers'
 
 export function DropdownTriggerButton({
   size = 'default',
@@ -68,19 +72,13 @@ export function DueDaysPill({ days, status }: { days: number; status: Obligation
       </span>
     )
   }
-  const tone = dueDaysTone(days)
   // The urgency signal is carried by tinted text color alone (red for
-  // very late, amber for soon, neutral for future). No filled badge,
-  // no dot, no icon: a filled chip would look like the Status pill
-  // next to it (two filled badges, same row, different meanings), and
-  // a dot/icon would be a redundant signal on the same urgency axis.
-  // Reads as a value ("3 days late"), not a control.
-  const tintedTextClass =
-    tone.dot === 'error'
-      ? 'text-text-destructive'
-      : tone.dot === 'warning'
-        ? 'text-text-warning'
-        : 'text-text-primary'
+  // overdue, amber for due-soon, neutral for future) via the shared
+  // `dueCountdownTone` map — the single source so /alerts and /deadlines
+  // colour lateness identically. No filled badge/dot/icon: a filled chip
+  // would look like the Status pill next to it, and a dot would be a
+  // redundant signal on the same axis. Reads as a value ("3 days late").
+  const tintedTextClass = DUE_COUNTDOWN_TEXT_CLASS[dueCountdownTone(days)]
   const isLate = days < 0
   return (
     <span

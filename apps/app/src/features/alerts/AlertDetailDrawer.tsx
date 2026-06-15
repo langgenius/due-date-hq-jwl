@@ -80,7 +80,10 @@ import {
   useAlertsPriorityQueueQueryOptions,
 } from './api'
 import { isAlertConflict, isAlertNotFound, alertErrorDescriptor } from './lib/error-mapping'
-import { dueDateDiffTone, DUE_DATE_DIFF_TONE_CLASS } from './lib/due-date-diff'
+import {
+  dueDateDiffTone,
+  DUE_DATE_DIFF_TONE_CLASS,
+} from '@/features/_surface-vocabulary/due-date-tone'
 import {
   computeSelectionStats,
   confirmAllNeedsReview,

@@ -25,7 +25,10 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
-import { dueDateDiffTone, DUE_DATE_DIFF_TONE_CLASS } from '../lib/due-date-diff'
+import {
+  dueDateDiffTone,
+  DUE_DATE_DIFF_TONE_CLASS,
+} from '@/features/_surface-vocabulary/due-date-tone'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatDatePretty, formatRelativeTime } from '@/lib/utils'

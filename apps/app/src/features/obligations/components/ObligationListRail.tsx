@@ -13,6 +13,10 @@ import {
 import { CountPill } from '@/components/primitives/count-pill'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
+import {
+  dueCountdownTone,
+  DUE_COUNTDOWN_TEXT_CLASS_QUIET,
+} from '@/features/_surface-vocabulary/due-date-tone'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 
@@ -163,7 +167,10 @@ function RailItem({
         <span
           className={cn(
             'text-caption-xs font-medium tabular-nums',
-            relative.late ? 'text-text-destructive' : 'text-text-muted',
+            // Shared due-date tone (overdue=red, soon=amber, upcoming=muted) so
+            // the rail's relative-due line colours lateness identically to the
+            // due-days pill + /alerts — one source, not a hand-rolled late flag.
+            DUE_COUNTDOWN_TEXT_CLASS_QUIET[dueCountdownTone(row.daysUntilDue)],
           )}
         >
           {relative.text}
