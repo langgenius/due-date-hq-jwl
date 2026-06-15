@@ -2028,9 +2028,18 @@ export function RulesLibraryRoute() {
     setBatchReviewDirty(false)
   }, [allReviewableRuleIds])
 
-  const selectAllPending = useCallback(() => {
-    setSelectedRuleIds(new Set(allReviewableRuleIds))
-  }, [allReviewableRuleIds])
+  // The floating bulk bar's "Select all" is scoped to what the user is
+  // looking at: on a jurisdiction page it selects that state's pending rules
+  // (not all 456), on the overview it selects the whole backlog.
+  const reviewBarScopeIds = useMemo(() => {
+    if (!selectedGroup) return allReviewableRuleIds
+    return selectedGroup.rules
+      .filter((r) => r.status === 'candidate' || r.status === 'pending_review')
+      .map((r) => r.id)
+  }, [selectedGroup, allReviewableRuleIds])
+  const selectAllInScope = useCallback(() => {
+    setSelectedRuleIds(new Set(reviewBarScopeIds))
+  }, [reviewBarScopeIds])
 
   // Header actions cluster — sits inline with the page title via the
   // shell's `actions` slot. Replaces the prior standalone PageActions
@@ -2743,9 +2752,9 @@ export function RulesLibraryRoute() {
       {selectedReviewRules.length > 0 && !bulkListOpen ? (
         <BulkReviewBar
           count={selectedReviewRules.length}
-          totalPending={allReviewableRuleIds.length}
+          totalPending={reviewBarScopeIds.length}
           onReview={() => setBulkListOpen(true)}
-          onSelectAll={selectAllPending}
+          onSelectAll={selectAllInScope}
           onClear={clearSelection}
         />
       ) : null}
