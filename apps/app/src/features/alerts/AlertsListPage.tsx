@@ -18,6 +18,7 @@ import {
   MapIcon,
   MegaphoneIcon,
   SatelliteDishIcon,
+  SearchIcon,
   SlidersHorizontalIcon,
   Undo2Icon,
   XIcon,
@@ -164,6 +165,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // Inline search field — free-text matches against alert.title +
   // alert.source case-insensitively.
   const [searchQuery, setSearchQuery] = useState('')
+  // 2026-06-15 (Yuqi "collapse search into an icon, expand when clicked"): the
+  // toolbar search rests as an icon button and expands into the field on click;
+  // it stays open while it carries a query and collapses on blur when empty, so
+  // the toolbar stays uncluttered.
+  const [searchOpen, setSearchOpen] = useState(false)
   // "My morning sweep" saved view — preset filter combination (Last 24
   // hours + Needs Action status). The toggle lives in the route shell's
   // actions cluster (`alerts.tsx`); its on/off state lives in
@@ -856,12 +862,32 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     order stays sane on narrow viewports. */}
                 <span className="hidden flex-1 lg:block" aria-hidden />
 
-                <SearchInput
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                  placeholder={t`Search alerts`}
-                  className="w-[180px] shrink-0 sm:w-[200px]"
-                />
+                {/* Collapsed → search icon button; expanded → the canonical
+                    SearchInput (autofocused). Stays expanded while it carries a
+                    query; collapses on blur when empty. */}
+                {searchOpen || searchQuery ? (
+                  <SearchInput
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    placeholder={t`Search alerts`}
+                    autoFocus
+                    onBlur={() => {
+                      if (searchQuery.trim() === '') setSearchOpen(false)
+                    }}
+                    className="w-[200px] shrink-0 sm:w-[220px]"
+                  />
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    aria-label={t`Search alerts`}
+                    onClick={() => setSearchOpen(true)}
+                    className="shrink-0"
+                  >
+                    <SearchIcon />
+                  </Button>
+                )}
 
                 {/* Morning-sweep preset chip — deliberately OUTSIDE the
                     panelOpen gate so the override's exit stays visible when
