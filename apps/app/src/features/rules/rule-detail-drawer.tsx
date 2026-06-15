@@ -238,6 +238,7 @@ function DisclosureCard({
   detail,
   moreLabel,
   lessLabel,
+  flat = false,
 }: {
   title: React.ReactNode
   meta?: React.ReactNode
@@ -245,9 +246,51 @@ function DisclosureCard({
   detail?: React.ReactNode
   moreLabel?: React.ReactNode
   lessLabel?: React.ReactNode
+  /**
+   * `flat` (Pencil TkpJG): drop the bordered-card chrome for a flush section —
+   * an inline heading + right-aligned meta over the content, no border/bg/bar.
+   * Same disclosure behaviour + content; only the chrome changes.
+   */
+  flat?: boolean
 }) {
   const { t } = useLingui()
   const [expanded, setExpanded] = useState(false)
+  const disclosure =
+    detail != null ? (
+      <>
+        {expanded ? (
+          <div className="flex flex-col gap-3 border-t border-divider-subtle pt-3">{detail}</div>
+        ) : null}
+        <TextLink
+          variant="accent"
+          onClick={() => setExpanded((value) => !value)}
+          aria-expanded={expanded}
+          className="w-fit text-base"
+        >
+          {expanded ? (lessLabel ?? t`Show less`) : (moreLabel ?? t`Read more`)}
+          <ChevronDownIcon
+            aria-hidden
+            className={cn('size-3.5 transition-transform', expanded && 'rotate-180')}
+          />
+        </TextLink>
+      </>
+    ) : null
+
+  if (flat) {
+    return (
+      <section className="flex min-w-0 flex-col gap-3">
+        <div className="flex items-baseline gap-2">
+          <h3 className="text-item-title text-text-primary">{title}</h3>
+          {meta != null ? (
+            <span className="ml-auto truncate text-sm font-medium text-text-tertiary">{meta}</span>
+          ) : null}
+        </div>
+        {summary}
+        {disclosure}
+      </section>
+    )
+  }
+
   return (
     <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
       <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
@@ -260,27 +303,7 @@ function DisclosureCard({
       </div>
       <div className="flex flex-col gap-3 px-5 py-4">
         {summary}
-        {detail != null ? (
-          <>
-            {expanded ? (
-              <div className="flex flex-col gap-3 border-t border-divider-subtle pt-3">
-                {detail}
-              </div>
-            ) : null}
-            <TextLink
-              variant="accent"
-              onClick={() => setExpanded((value) => !value)}
-              aria-expanded={expanded}
-              className="w-fit text-base"
-            >
-              {expanded ? (lessLabel ?? t`Show less`) : (moreLabel ?? t`Read more`)}
-              <ChevronDownIcon
-                aria-hidden
-                className={cn('size-3.5 transition-transform', expanded && 'rotate-180')}
-              />
-            </TextLink>
-          </>
-        ) : null}
+        {disclosure}
       </div>
     </section>
   )
@@ -399,6 +422,7 @@ export function RuleDetailCompact({
   const applicabilityCard = (
     // Applicability — 3 labeled chips (irBJ8); detail = full facts grid.
     <DisclosureCard
+      flat={splitRail}
       title={<Trans>Applicability</Trans>}
       meta={<Trans>Verify before Accept</Trans>}
       moreLabel={<Trans>Show all fields</Trans>}
@@ -431,6 +455,7 @@ export function RuleDetailCompact({
     // Due date logic — humanized summary in a highlighted block (irBJ8);
     // detail = extension policy.
     <DisclosureCard
+      flat={splitRail}
       title={<Trans>Due date logic</Trans>}
       meta={formatEnumLabel(rule.dueDateLogic.kind)}
       moreLabel={<Trans>View extension rules</Trans>}
@@ -473,6 +498,7 @@ export function RuleDetailCompact({
   const evidenceCard = (
     // Evidence — summary = primary source; detail = remaining sources.
     <DisclosureCard
+      flat={splitRail}
       title={<Trans>Evidence</Trans>}
       meta={<Plural value={rule.evidence.length} one="# source" other="# sources" />}
       moreLabel={
@@ -518,6 +544,7 @@ export function RuleDetailCompact({
   const activityCard = (
     // Activity — summary = current version; detail = full audit timeline.
     <DisclosureCard
+      flat={splitRail}
       title={<Trans>Activity</Trans>}
       meta={<span className="font-mono tabular-nums">v{rule.version}</span>}
       moreLabel={<Trans>Show all events</Trans>}
