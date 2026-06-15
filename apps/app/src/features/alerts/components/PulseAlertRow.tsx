@@ -6,7 +6,6 @@ import {
   ArchiveIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  ExternalLinkIcon,
   SparklesIcon,
   SunIcon,
   UsersIcon,
@@ -30,6 +29,14 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
 
 import { useAlertDetailFromCacheQueryOptions } from '../api'
+import { AlertSourceLink } from './AlertSourceLink'
+import {
+  deadlineProximity,
+  effectiveTier,
+  proximityTimeTag,
+  proximityToTier,
+  thresholdsForKind,
+} from '../lib/urgency'
 import { ChangeKindIcon, changeKindLabel } from './PulseChangeKindChip'
 
 /**
@@ -273,12 +280,36 @@ function PulseAlertRow({
   const railRelative =
     daysAgo <= 0 ? relativeTime : daysAgo === 1 ? t`yesterday` : t`${daysAgo} days ago`
 
-  // Leading pill = priority tier. Only rendered when the alert actually
-  // carries priority-queue data
-  // (the smart-priority feature is plan- + flag-gated). When the queue
-  // is unavailable the pill is omitted entirely rather than defaulting
-  // to a misleading NORMAL on every row.
-  const levelPill = priority ? LEVEL_PILL[priority.level] : null
+  // Leading pill = urgency tier (see lib/urgency.ts + the 2026-06-14 eng
+  // brief). Two layers:
+  //   • Layer 2 (smart priority): when the firm can view the priority queue
+  //     AND this alert is in it, `priority.level` wins — the richer signal.
+  //   • Layer 1 (deadline proximity): the ungated fallback, derived from the
+  //     alert's own `actionDeadline`, so firms WITHOUT the queue permission
+  //     still see imminent/overdue rows light up.
+  // We still never paint a misleading NORMAL pill on every baseline row: a
+  // baseline tier only renders when it's urgent/high (a real time signal).
+  // A smart-priority NORMAL is kept (it's a deliberate queue placement).
+  const nowMs = Date.now()
+  // Per-kind horizon: protective-claim windows surface from 60 days out (a hard
+  // legal cutoff), everything else from 14 (see lib/urgency thresholdsForKind).
+  const proximity = deadlineProximity(
+    alert.actionDeadline,
+    nowMs,
+    thresholdsForKind(alert.changeKind),
+  )
+  const baselineTier = proximityToTier(proximity.proximity)
+  const tier: PulsePriorityLevel | null = priority
+    ? effectiveTier(alert, nowMs, priority.level)
+    : baselineTier === 'normal'
+      ? null
+      : baselineTier
+  const levelPill = tier ? LEVEL_PILL[tier] : null
+  // Quiet supporting cue (Phase 3): the deadline tag explains WHY the pill is
+  // urgent ("2d left") without a second red — the pill owns the only red on the
+  // row (Yuqi 2026-06-14: neutral tag, red pill only). Null for far-out /
+  // no-deadline alerts, so silence stays the signal.
+  const timeTag = proximityTimeTag(proximity)
   // "confirmed by N sources" / "N sources" — real corroboration count
   // (`duplicateSourceSnapshotCount`), surfaced both in the meta strip
   // and the bottom confidence pill (Pencil `kdiMz` / `WZi5X`).
@@ -445,7 +476,7 @@ function PulseAlertRow({
               when the alert is in the priority queue. */}
           {levelPill ? (
             <span
-              className="inline-flex h-[22px] shrink-0 items-center rounded border px-2 text-xs font-semibold tracking-[0.3px] uppercase"
+              className="inline-flex h-5 shrink-0 items-center rounded border px-2 text-xs font-semibold tracking-[0.3px] uppercase"
               style={{
                 backgroundColor: levelPill.bg,
                 borderColor: levelPill.border,
@@ -488,6 +519,16 @@ function PulseAlertRow({
           {/* Spacer NdGpw (fill_container) */}
           <span className="flex-1" aria-hidden />
 
+          {/* DEADLINE TIME TAG (Phase 3) — quiet mono "Nd left" / "Due today" /
+              "Nd overdue". Neutral by design: the URGENT/HIGH pill carries the
+              row's only red, this tag just says how long is left. Hidden for
+              far-out / no-deadline alerts (proximityTimeTag → null). */}
+          {timeTag ? (
+            <span className="shrink-0 font-mono text-xs font-medium whitespace-nowrap text-text-tertiary tabular-nums">
+              {timeTag}
+            </span>
+          ) : null}
+
           {/* COMPACT-MODE inline time — only rendered when the time rail
               is hidden. Reads as a quiet relative timestamp ("2h ago" /
               "Jun 4") with the exact HH:mm on tooltip hover, so the
@@ -509,54 +550,11 @@ function PulseAlertRow({
             </Tooltip>
           ) : null}
 
-          {/* HeadRight — source treated identically to /today
-              NeedsAttentionCard — 12/medium text-tertiary with leading
-              `<ExternalLinkIcon>`. The change-kind pill lives in the
-              head-left meta strip, so this slot is source-only (no sub-id
-              `· SOURCE STATUS`). */}
-          {alert.sourceUrl ? (
-            <Tooltip>
-              <TooltipTrigger
-                render={(props) => (
-                  <span
-                    role="link"
-                    tabIndex={0}
-                    className="inline-flex min-w-0 shrink cursor-pointer items-center gap-1 truncate rounded-sm text-sm font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault()
-                        event.stopPropagation()
-                        window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
-                      }
-                    }}
-                    {...props}
-                  >
-                    {/* Text first, trailing ↗ — the one external-link
-                        order across the app (batch 4 #5). */}
-                    <span className="truncate">{alert.source}</span>
-                    <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
-                  </span>
-                )}
-              />
-              <TooltipContent>
-                <div className="flex max-w-[320px] flex-col gap-0.5 text-left">
-                  <span className="font-semibold">
-                    <Trans>Open source</Trans>
-                  </span>
-                  <span className="break-all text-text-secondary">{alert.sourceUrl}</span>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-sm font-medium text-text-tertiary">
-              <span className="truncate">{alert.source}</span>
-              <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
-            </span>
-          )}
+          {/* HeadRight — source via the shared `AlertSourceLink` (the one
+              source-link treatment: 12/medium text-tertiary, trailing ↗,
+              row-safe `stopPropagation`). The change-kind pill lives in the
+              head-left meta strip, so this slot is source-only. */}
+          <AlertSourceLink source={alert.source} sourceUrl={alert.sourceUrl} withTooltip />
 
           {/* "Why?" toggle (Pencil g5kKJQ `X6enpJ whyAff`) — expands
               the smart-priority reason inset below. Only renders when
@@ -882,15 +880,16 @@ function formatDayHeader(
   isToday: boolean
 } {
   const isToday = dayKey === today
-  // 2026-06-12 (Yuqi "the date is toooo hard to read"): the date is the
-  // band's PAYLOAD, so it renders strong sentence-case ("May 20, 2026");
-  // the weekday is supporting context and stays quiet. Returned as parts
-  // so the JSX can weight them differently.
+  // 2026-06-15 (Yuqi "you could design better for the date"): the band now
+  // LEADS with the human day name (Today / Yesterday / weekday) and shows the
+  // calendar date as quiet context — the year is dropped for the current year
+  // (redundant in a recent feed) and kept only for older dates.
   const date = new Date(`${dayKey}T12:00:00.000Z`)
+  const sameYear = dayKey.slice(0, 4) === today.slice(0, 4)
   const dateLabel = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
+    ...(sameYear ? {} : { year: 'numeric' }),
     timeZone,
   }).format(date)
   const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone }).format(date)
@@ -1073,9 +1072,10 @@ function PulseAlertList({
                       className="size-[18px] rounded"
                     />
                   ) : null}
-                  {/* Day head register (Yuqi: 600/primary was "too obvious"):
-                      13/500 SECONDARY date — legible without competing with
-                      the 16/600 row titles — weekday quiet beside it. */}
+                  {/* Day head (Yuqi 2026-06-15 "design better for the date"):
+                      LEADS with the human day name — Today / Yesterday /
+                      weekday — at 13/600 secondary, with the calendar date as
+                      quiet tertiary context beside it. Scannable by recency. */}
                   <div className="flex items-baseline gap-2">
                     {isToday ? (
                       <SunIcon
@@ -1083,16 +1083,23 @@ function PulseAlertList({
                         aria-hidden
                       />
                     ) : null}
-                    <span className="text-sm font-medium text-text-secondary">
-                      {dayWord ?? label}
+                    <span className="text-sm font-semibold text-text-secondary">
+                      {dayWord ?? weekday}
                     </span>
-                    <span className="text-xs text-text-tertiary">{dayWord ? label : weekday}</span>
+                    <span className="text-xs text-text-tertiary tabular-nums">{label}</span>
+                    {/* Day size sits INLINE with the date, not right-pinned.
+                        Pinned to the far edge it forced the eye across empty
+                        space — "Wednesday May 20 ———— 1 alert" (Yuqi
+                        2026-06-15: "avoid eyes move horizontally … bad
+                        readability"). Grouped left it reads as one quiet
+                        header phrase. */}
+                    <span className="text-text-quaternary" aria-hidden>
+                      ·
+                    </span>
+                    <span className="text-xs text-text-tertiary tabular-nums">
+                      <Plural value={dayAlerts.length} one="# alert" other="# alerts" />
+                    </span>
                   </div>
-                  {/* Day size — the section's content summary, right-pinned
-                      (Yuqi: "better section organise"). */}
-                  <span className="ml-auto text-xs text-text-tertiary tabular-nums">
-                    <Plural value={dayAlerts.length} one="# alert" other="# alerts" />
-                  </span>
                 </div>
 
                 {/* Alert rows for this day. `compact` propagates from

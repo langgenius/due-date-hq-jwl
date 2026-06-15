@@ -119,11 +119,12 @@
    * these contexts. Centralizing as two tokens means a single
    * change here updates every caption at once.
    *
-   *   text-caption    → 10px (unified 2026-06-10 — Yuqi "unify text caption to
-   *                      10px": the 11px tier was retired so caption is ONE size,
-   *                      10px. `text-caption` and `text-caption-xs` now render
-   *                      identically; both names are kept as aliases.)
-   *   text-caption-xs → 10px (eyebrow labels, dense badges)
+   *   text-caption    → 11px (caption is ONE size: `text-caption` and
+   *                      `text-caption-xs` render identically at 11px/15lh;
+   *                      both names kept as aliases. 2026-06-14: comment
+   *                      corrected to match the actual 11px token value
+   *                      below — it had claimed 10px.)
+   *   text-caption-xs → 11px (eyebrow labels, dense badges)
    *
    * Both default line-height is set per Tailwind v4's
    * `--text-*--line-height` convention so common pairings (uppercase

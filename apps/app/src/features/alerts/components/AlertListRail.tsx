@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon, UsersIcon } from 'lucide-react'
+import { UsersIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
@@ -19,6 +19,7 @@ import { useActiveAlertCount } from '@/features/alerts/api'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { AlertSourceLink } from './AlertSourceLink'
 import { ChangeKindIcon, changeKindLabel } from './PulseChangeKindChip'
 
 /**
@@ -123,10 +124,21 @@ export function AlertListRail({
             options={[
               {
                 value: 'review',
+                // 2026-06-15 (Yuqi "number in toggle never in a badge"): the
+                // count is a plain number, not a pill. Review still pulls the
+                // eye when it carries work — its count reads in accent + semibold
+                // ("N waiting for you") vs Active's quiet tertiary count.
                 label: (
-                  <span className="inline-flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1.5">
                     <Trans>Review</Trans>
-                    <span className="tabular-nums text-text-tertiary">
+                    <span
+                      className={cn(
+                        'tabular-nums',
+                        (workQueueCounts?.review ?? 0) > 0
+                          ? 'font-semibold text-text-accent'
+                          : 'text-text-tertiary',
+                      )}
+                    >
                       {workQueueCounts?.review ?? 0}
                     </span>
                   </span>
@@ -243,7 +255,7 @@ function RailItem({
         // `border-b-divider-subtle` (bottom-only color) so it doesn't
         // override the left accent below. Roomier item padding (py-4) +
         // a touch more column gap so the rail breathes.
-        'flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
+        'group/rail flex w-full cursor-pointer gap-3 border-b border-b-divider-subtle px-[18px] py-4 text-left outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
         // 2026-06-14 (Yuqi: "active bg is too dark"): selection is a LIGHT
         // neutral fill — `state-base-hover` (0.2) instead of the heavier
@@ -254,8 +266,15 @@ function RailItem({
         active ? 'bg-state-base-hover' : 'hover:bg-state-base-hover-subtle',
       )}
     >
-      {/* Time column (60px). */}
-      <div className="flex w-[60px] shrink-0 flex-col gap-0.5">
+      {/* Time column (60px). When another alert is the selected one, the date
+          dims so the open alert's date reads as the focal one (Yuqi 2026-06-15
+          "unselected alerts dimmed — date + badge colours"); hover restores. */}
+      <div
+        className={cn(
+          'flex w-[60px] shrink-0 flex-col gap-0.5 transition-opacity',
+          !active && 'opacity-55 group-hover/rail:opacity-100',
+        )}
+      >
         <span className="text-sm font-medium text-text-primary">{dateLabel}</span>
         {/* Two lines only — date + wall-clock. The relative-time third
             line is gone entirely (batch 4 #9): in a date-sorted rail it
@@ -269,7 +288,14 @@ function RailItem({
           same field set the main /alerts row carries, wrapped to the
           narrower rail width. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+        {/* Badge row dims on unselected items so the selected alert's chips
+            carry the colour (Yuqi 2026-06-15); hover restores. */}
+        <div
+          className={cn(
+            'flex min-w-0 flex-wrap items-center gap-1.5 transition-opacity',
+            !active && 'opacity-55 group-hover/rail:opacity-100',
+          )}
+        >
           {/* No ACTIVE badge (2026-06-12, Yuqi): the rail's own
               Review/Active toggle states the queue, so a per-item pill
               repeating it was noise — same call as the main list rows. */}
@@ -300,36 +326,10 @@ function RailItem({
           {alert.title}
         </span>
 
-        {/* Source — interactive (text + trailing ↗, the one external-link
-            order app-wide) ONLY when a sourceUrl exists; otherwise a plain
-            non-clickable caption. Previously this called
-            window.open(null) on url-less alerts — a dead about:blank tab
-            (state-completeness audit). */}
-        {alert.sourceUrl ? (
-          <span
-            role="link"
-            tabIndex={0}
-            onClick={(event) => {
-              event.stopPropagation()
-              window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault()
-                event.stopPropagation()
-                window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
-              }
-            }}
-            className="inline-flex min-w-0 cursor-pointer items-center gap-1 rounded-sm text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <span className="truncate">{alert.source}</span>
-            <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
-          </span>
-        ) : (
-          <span className="inline-flex min-w-0 items-center text-sm text-text-tertiary">
-            <span className="truncate">{alert.source}</span>
-          </span>
-        )}
+        {/* Source — the shared `AlertSourceLink` (row-safe `stopPropagation`,
+            trailing ↗ only when a sourceUrl exists; never a dead
+            window.open(null) tab). */}
+        <AlertSourceLink source={alert.source} sourceUrl={alert.sourceUrl} />
 
         {/* Bottom meta — client impact, answered on EVERY row (it's
             triage question #1: which alert do I open next?). Impacted

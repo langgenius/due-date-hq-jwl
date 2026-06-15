@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
+import { ArrowRightIcon, ArrowUpRightIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 import type { PulseAffectedClient } from '@duedatehq/contracts'
@@ -25,8 +25,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { formatDate } from '@/lib/utils'
-import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { formatDatePretty } from '@/lib/utils'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 
 import { isSelectable, toggleSelection, setAllSelection } from '../lib/selection'
@@ -59,6 +58,25 @@ interface AffectedClientsTableProps {
 // expander appears ("Show all 9" would be sillier than 9 rows).
 const COLLAPSE_THRESHOLD = 10
 const VISIBLE_COLLAPSED = 8
+
+// Humanized entity-type labels (Pencil KwfpP ENTITY column). The contract
+// carries the snake_case enum; this maps each to its display form.
+const ENTITY_LABEL: Record<PulseAffectedClient['entityType'], string> = {
+  llc: 'LLC',
+  s_corp: 'S-corp',
+  partnership: 'Partnership',
+  c_corp: 'C-corp',
+  sole_prop: 'Sole prop',
+  trust: 'Trust',
+  individual: 'Individual',
+  other: 'Other',
+}
+
+// "FL · Lee" — state code + county; just the state when no county, "—" when
+// neither is known (Pencil KwfpP LOCATION column).
+function formatLocation(row: PulseAffectedClient): string {
+  return [row.state, row.county].filter(Boolean).join(' · ') || '—'
+}
 
 // Affected clients table inside the Drawer body. One row per obligation; only
 // `eligible` rows are interactive. Other matchStatus values are surfaced with
@@ -156,15 +174,16 @@ export function AffectedClientsTable({
                   />
                 </TableHead>
               )}
+              {/* Pencil KwfpP columns: Client · Entity · Location · Current →
+                  New · Match. Entity + Location replace the per-row Form (the
+                  alert already names the form); the before/after dates share one
+                  arrow column. */}
               <TableHead>{t`Client`}</TableHead>
-              <TableHead>{t`Form`}</TableHead>
+              <TableHead>{t`Entity`}</TableHead>
+              <TableHead>{t`Location`}</TableHead>
               {isReview ? null : (
                 <>
-                  {/* OLD DEADLINE (struck-through) + NEW DEADLINE in two
-                      columns so the before/after reads across the row
-                      instead of stacked. */}
-                  <TableHead>{t`Old deadline`}</TableHead>
-                  <TableHead>{t`New deadline`}</TableHead>
+                  <TableHead>{t`Current → New`}</TableHead>
                   <TableHead>{t`Match`}</TableHead>
                 </>
               )}
@@ -215,59 +234,40 @@ export function AffectedClientsTable({
                       />
                     </TableCell>
                   )}
-                  {/* Jurisdiction cell collapsed to the bare 2-letter
-                      code — no SVG state badge, no full state name. The
-                      drawer header already shows the alert's jurisdiction
-                      with the full chip; repeating the same treatment per
-                      row is loud and pushes the client name to a smaller
-                      font. CA / NY / TX / FL read instantly to a CPA
-                      without the flag motif. */}
+                  {/* Client name only — the state code moved to its own
+                      Location column (Pencil KwfpP), so the name reads clean at
+                      the obligations-queue size/weight. */}
                   <TableCell className="min-w-0 whitespace-normal">
-                    <div className="flex flex-col gap-0.5">
-                      {/* Explicit `text-sm font-medium leading-tight
-                          text-text-primary` so it renders identically to
-                          the obligations queue client-name column (see
-                          obligations.tsx ClientNameCell). Same SIZE +
-                          WEIGHT + line-height + color, so the CPA reads
-                          the Affected Clients table as "the deadlines
-                          table, just filtered to this alert's scope". */}
-                      <span className="break-words text-sm font-medium leading-tight text-text-primary">
-                        {row.clientName}
-                      </span>
-                      <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                        {/* State code uses the canonical Badge primitive
-                            (variant=outline, shape=square, size=sm) so it
-                            matches the bordered-pill state chip used across
-                            /clients. */}
-                        {row.state ? (
-                          <Badge variant="outline" shape="square" size="sm">
-                            {row.state}
-                          </Badge>
-                        ) : null}
-                        {row.county ? (
-                          <span className="text-text-tertiary">{row.county}</span>
-                        ) : null}
-                      </div>
-                    </div>
+                    <span className="break-words text-sm font-medium leading-tight text-text-primary">
+                      {row.clientName}
+                    </span>
                   </TableCell>
-                  <TableCell className="text-text-secondary">
-                    <TaxCodeLabel code={row.taxType} />
+                  {/* ENTITY — humanized entity type (Sole prop / LLC / …). */}
+                  <TableCell className="whitespace-nowrap text-text-secondary">
+                    {ENTITY_LABEL[row.entityType]}
                   </TableCell>
-                  {/* Old → new split into two columns. OLD is struck-through
-                      tertiary; NEW is the live medium-weight primary value. */}
+                  {/* LOCATION — state · county. */}
+                  <TableCell className="whitespace-nowrap text-text-secondary">
+                    {formatLocation(row)}
+                  </TableCell>
+                  {/* CURRENT → NEW — one column: struck-through current date, an
+                      arrow, then the live new date. */}
                   {isReview ? null : (
-                    <>
-                      <TableCell>
-                        <span className="text-xs tabular-nums leading-tight text-text-tertiary line-through">
-                          {formatDate(row.currentDueDate)}
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap leading-tight">
+                        <span className="text-xs text-text-tertiary tabular-nums line-through">
+                          {formatDatePretty(row.currentDueDate)}
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs font-medium tabular-nums leading-tight text-text-primary">
-                          {row.newDueDate ? formatDate(row.newDueDate) : <Trans>Not yet set</Trans>}
+                        <ArrowRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+                        <span className="text-xs font-medium text-text-primary tabular-nums">
+                          {row.newDueDate ? (
+                            formatDatePretty(row.newDueDate)
+                          ) : (
+                            <Trans>Not yet set</Trans>
+                          )}
                         </span>
-                      </TableCell>
-                    </>
+                      </span>
+                    </TableCell>
                   )}
                   {isReview ? null : (
                     <TableCell className="relative">
@@ -372,8 +372,8 @@ export function AffectedClientsTable({
                 {/* Plain <Trans> with one variable — the count is always
                     > COLLAPSE_THRESHOLD here so no plural branch needed
                     (and <Plural> string props can't interpolate, per the
-                    lingui footgun). */}
-                <Trans>Show all {orderedRows.length} clients</Trans>
+                    lingui footgun). "View all N affected clients" per KwfpP. */}
+                <Trans>View all {orderedRows.length} affected clients</Trans>
               </>
             )}
           </button>

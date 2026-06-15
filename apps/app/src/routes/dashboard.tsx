@@ -1,9 +1,8 @@
-import { AlertCircleIcon, PlusIcon, RotateCwIcon } from 'lucide-react'
+import { AlertCircleIcon, RotateCwIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
-import { toast } from 'sonner'
 
 import { formatRelativeTime } from '@/lib/utils'
 
@@ -21,9 +20,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
-import { useMigrationWizard } from '@/features/migration/WizardProvider'
-import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
+import { DashboardAddMenu } from '@/features/dashboard/add-menu'
 import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
 // Import retained but commented out alongside the section mount.
 // Restore both when ChangesSinceLastSection is brought back.
@@ -33,7 +31,6 @@ import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProv
 import type { ObligationStatus } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
 
 const TRIAGE_TAB_KEYS = ['this_week', 'this_month', 'long_term'] as const
@@ -129,9 +126,8 @@ function cleanEntityIdFilters(values: readonly string[]): string[] {
 
 export function DashboardRoute() {
   const { t } = useLingui()
-  const { openWizard } = useMigrationWizard()
-  const permission = useFirmPermission()
-  const canRunMigration = permission.can('migration.run')
+  // The header "+" (add client / import data) and its permission gating now
+  // live in DashboardAddMenu — the route no longer owns the wizard handle.
   // Dashboard is a picker, not a workspace. Clicking an action
   // calls openDrawer(id) which — because dashboard is NOT in the
   // provider's routeOwnsPanel set — navigates to
@@ -340,46 +336,12 @@ export function DashboardRoute() {
                 </div>
               </TooltipContent>
             </Tooltip>
-            {/* "Import clients" — icon-only PRIMARY button (Yuqi feedback #1:
-                "default collapsed state, in primary colours"; supersedes the
-                earlier always-labeled neutral pill). Import is the header's
-                one real action, so it carries the primary fill; the label
-                lives in the tooltip + aria-label. Canonical <Button>, not a
-                hand-rolled element. Permission guard preserved. */}
-            <Tooltip>
-              <TooltipTrigger
-                render={(props) => (
-                  <Button
-                    {...props}
-                    type="button"
-                    variant="primary"
-                    size="icon-sm"
-                    className="shrink-0 rounded-full"
-                    onClick={(event) => {
-                      props.onClick?.(event)
-                      if (event.defaultPrevented) return
-                      if (!canRunMigration) {
-                        toast.error(
-                          t`Importing clients requires ${requiredRolesLabel('migration.run')} access.`,
-                        )
-                        return
-                      }
-                      openWizard()
-                    }}
-                    aria-label={
-                      canRunMigration
-                        ? t`Import clients`
-                        : t`Import clients (requires ${requiredRolesLabel('migration.run')} access)`
-                    }
-                  >
-                    <PlusIcon className="size-4 shrink-0" aria-hidden />
-                  </Button>
-                )}
-              />
-              <TooltipContent>
-                <Trans>Import clients</Trans>
-              </TooltipContent>
-            </Tooltip>
+            {/* The "+" — a menu, not a single action (Yuqi 2026-06-14: "the add
+                icon should show add client or import data"). Opens a dropdown
+                with both ways to grow the workspace; each item is
+                permission-gated. Encapsulated in DashboardAddMenu (owns the
+                create-client mutation + dialog + the import wizard handoff). */}
+            <DashboardAddMenu />
           </>
         }
       />

@@ -11,6 +11,7 @@ import {
 
 import type { DryRunSummary, DuplicateHandling } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatMigrationErrorMessage, useMappingTargetLabels } from './mapping-target-labels'
@@ -420,9 +421,10 @@ function HeroMetric({
 }
 
 /**
- * Segmented dedup control (design xV6gf): a pill group on a subtle track,
- * with the active option as a raised white pill. Replaces the prior Button
- * pair; the option strings ("Skip duplicates" / "Import as new") are
+ * Dedup control — the canonical `Segmented` primitive (flat track, white
+ * active pill via fill + hairline border, no shadow, rounded-lg). Replaces a
+ * prior hand-rolled `role="radio"` pill group that drifted to `rounded-full` +
+ * `shadow-xs`. The option strings ("Skip duplicates" / "Import as new") are
  * unchanged so Step4Preview.test.tsx still matches.
  */
 function DuplicateSegmentedControl({
@@ -434,37 +436,19 @@ function DuplicateSegmentedControl({
   disabled: boolean
   onChange: (next: DuplicateHandling) => void
 }) {
-  const options: { key: DuplicateHandling; label: ReactNode }[] = [
-    { key: 'skip', label: <Trans>Skip duplicates</Trans> },
-    { key: 'import_as_new', label: <Trans>Import as new</Trans> },
-  ]
+  const { t } = useLingui()
   return (
-    <div
-      role="radiogroup"
-      className="inline-flex items-center gap-0.5 rounded-full border border-divider-subtle bg-background-subtle p-0.5"
-    >
-      {options.map((option) => {
-        const active = value === option.key
-        return (
-          <button
-            key={option.key}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            disabled={disabled}
-            onClick={() => onChange(option.key)}
-            className={cn(
-              'cursor-pointer rounded-full px-2.5 py-1 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-60',
-              active
-                ? 'bg-background-default font-semibold text-text-primary shadow-xs'
-                : 'font-medium text-text-secondary hover:text-text-primary',
-            )}
-          >
-            {option.label}
-          </button>
-        )
-      })}
-    </div>
+    <Segmented<DuplicateHandling>
+      value={value}
+      onValueChange={onChange}
+      disabled={disabled}
+      size="sm"
+      ariaLabel={t`How to handle duplicate clients`}
+      options={[
+        { value: 'skip', label: <Trans>Skip duplicates</Trans> },
+        { value: 'import_as_new', label: <Trans>Import as new</Trans> },
+      ]}
+    />
   )
 }
 

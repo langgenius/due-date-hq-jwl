@@ -28,6 +28,8 @@ export function DetailSectionCard({
   id,
   variant = 'card',
   tone = 'action',
+  index,
+  caption,
 }: {
   title: ReactNode
   /** Right-aligned header meta or actions (e.g. "Verify before apply", a count,
@@ -40,6 +42,18 @@ export function DetailSectionCard({
   className?: string
   /** Anchor id — lets a section nav (scroll-spy) target the card. */
   id?: string
+  /**
+   * 2026-06-15 (Pencil MASYz): a numbered section badge (1/2/3) rendered as a
+   * small rounded chip left of the title — turns the flat document into a
+   * legible, ordered "read this in sequence" outline. Flat variant only.
+   */
+  index?: number
+  /**
+   * 2026-06-15 (Pencil MASYz): a quiet caption after the title ("what changed
+   * and what to verify") that tells the reader what the section is for. Flat
+   * variant only.
+   */
+  caption?: ReactNode
   /**
    * 2026-06-12 (Yuqi "hate frames in frames in just lines — hard to
    * distinguish sections"): `flat` drops the outline entirely — the section
@@ -62,6 +76,16 @@ export function DetailSectionCard({
     return (
       <section id={id} className={cn('flex flex-col gap-4', className)}>
         <header className="flex items-baseline gap-2">
+          {/* Numbered badge (Pencil MASYz) — a small rounded chip ahead of the
+              title so the three sections read as an ordered 1·2·3 outline. */}
+          {typeof index === 'number' ? (
+            <span
+              className="inline-flex size-6 shrink-0 items-center justify-center self-center rounded-lg bg-background-subtle text-sm font-semibold text-text-tertiary tabular-nums"
+              aria-hidden
+            >
+              {index}
+            </span>
+          ) : null}
           {/* Section header = the hierarchy carrier in the flat document. The
               `tone` ranks action sections (18/600 primary) above reference
               sections (14/600 secondary) — no band, no rule. */}
@@ -73,6 +97,8 @@ export function DetailSectionCard({
           >
             {title}
           </h3>
+          {/* Caption (Pencil MASYz) — quiet purpose line after the title. */}
+          {caption ? <span className="text-sm text-text-tertiary">{caption}</span> : null}
           {headerRight ? (
             <>
               <span className="flex-1" />

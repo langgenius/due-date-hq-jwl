@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CalendarClockIcon } from 'lucide-react'
+import { CalendarClockIcon, ClipboardListIcon, FileTextIcon } from 'lucide-react'
 
 import type { PulseDetail } from '@duedatehq/contracts'
 
@@ -272,9 +272,9 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
     deadlineTypesCell,
     optInCell,
   ]
-  // Pad the hairline matrix to a full 2-column row — the grid wrapper's
-  // divider-colored bg shows through any unfilled slot as a gray block.
-  const fillerCount = (2 - (cells.length % 2)) % 2
+  // Pad the hairline matrix to a full 3-column row (Pencil MASYz) — the grid
+  // wrapper's divider-colored bg shows through any unfilled slot as a gray block.
+  const fillerCount = (3 - (cells.length % 3)) % 3
 
   // HERO key fact — ONE refined line (2026-06-12, Yuqi "太粗糙了…好难看"):
   // the first cut hoisted the whole callout (warning rule + caps eyebrow +
@@ -282,26 +282,22 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
   // error marker and the date OUTSIZED the 22px title. Now: quiet sentence
   // lead-in, 20px mono date (one step under the title), countdown as the
   // single hot word. The evidence checklist lives in the details section.
+  // Pencil MASYz: the hero do-by-when reads as a single red urgency chip —
+  // calendar icon + "Act by {date}" + "· N days left" — a light-red pill, the
+  // one urgent cue in the masthead.
   const keyFactLine = protectiveFacts?.actionDeadline ? (
-    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-      <span className="inline-flex items-center gap-1.5 self-center text-sm font-medium text-text-tertiary">
-        {/* 2026-06-14 (Yuqi "hard to know Act by relates to Protective claim
-            window"): this key-fact only renders for protective-claim alerts,
-            so it NAMES the thing — "Claim window closes" ties the date to the
-            "Protective claim window" change-kind in the meta above. */}
-        <CalendarClockIcon className="size-3.5 shrink-0" aria-hidden />
-        <Trans>Claim window closes</Trans>
-      </span>
-      <span className="font-mono text-xl font-bold tracking-title text-text-primary tabular-nums">
-        {formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}
+    <span className="inline-flex w-fit flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-lg bg-state-destructive-hover px-2.5 py-1">
+      <CalendarClockIcon className="size-3.5 shrink-0 text-text-destructive" aria-hidden />
+      <span className="text-sm font-medium text-text-primary tabular-nums">
+        {t`Act by ${formatDatePretty(protectiveFacts.actionDeadline, { alwaysShowYear: true })}`}
       </span>
       {actionDeadlineDays !== null ? (
         actionDeadlineDays > 0 ? (
-          <span className="text-sm font-semibold text-text-warning tabular-nums">
+          <span className="text-sm font-semibold text-text-destructive tabular-nums">
             · <Plural value={actionDeadlineDays} one="# day left" other="# days left" />
           </span>
         ) : actionDeadlineDays === 0 ? (
-          <span className="text-sm font-semibold text-text-warning">
+          <span className="text-sm font-semibold text-text-destructive">
             · <Trans>Due today</Trans>
           </span>
         ) : (
@@ -310,40 +306,23 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
           </span>
         )
       ) : null}
-    </div>
+    </span>
   ) : null
 
   if (section === 'key-fact') return keyFactLine
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Evidence checklist — the actionable lead of a protective-claim
-          alert (what you need to file). 2026-06-14 (Yuqi "still flat — the
-          evidence + bullets read loose"): it gets the SAME accent value-
-          anchor as "What this means" (left rule + accent header), so it's the
-          clear top layer of the section; the bullets tighten to leading-snug
-          with accent dots tying them to the block. */}
-      {protectiveFacts && protectiveFacts.evidenceNeeded.length > 0 ? (
-        <div className="flex flex-col gap-2 border-l-2 border-state-accent-border pl-4">
-          <span className="text-sm font-semibold text-text-accent">
-            <Trans>Evidence to gather</Trans>
-          </span>
-          <ul className="flex flex-col gap-1.5">
-            {protectiveFacts.evidenceNeeded.map((item) => (
-              <li
-                key={item}
-                className="flex items-start gap-2.5 text-sm leading-snug text-text-primary"
-              >
-                <span
-                  className="mt-1.5 size-1.5 shrink-0 rounded-full bg-state-accent-solid"
-                  aria-hidden
-                />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      {/* Parsed-fields sub-header (Pencil MASYz) — bold label left, the
+          AI-verify reminder right, above the fact grid. */}
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm font-semibold text-text-primary">
+          <Trans>Parsed fields</Trans>
+        </span>
+        <span className="text-xs text-text-tertiary">
+          <Trans>AI parsed — verify before Apply</Trans>
+        </span>
+      </div>
 
       {detail.alert.duplicateSourceSnapshotCount > 0 ? (
         <div className="rounded-lg bg-background-soft px-3 py-2 text-xs text-text-secondary">
@@ -355,23 +334,10 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
         </div>
       ) : null}
 
-      {/* Yuqi #9 (avoid frame-in-frame): the grid no longer carries its own
-          outer 1px border + radius — it sits inside DetailSectionCard's body,
-          so a second framed box read as a nested frame. The cell hairlines
-          (gap-px over the divider bg) remain to delineate the matrix; the
-          card chrome above is the only outer frame. */}
-      {/* 2026-06-14 (Yuqi "the table is ugly + hard to read"): TWO columns,
-          not four. At the pane width 4 cols squeezed values to ~190px so
-          "COVID disaster relief postponements" wrapped to ragged 2-line
-          cells; 2 cols give each value room to read on one line, as clean
-          key→value pairs. */}
-      {/* 2026-06-14 (Yuqi #1 "light light gray background"): the fact grid is
-          a contained light-gray REFERENCE panel — cells sit on
-          `bg-background-subtle`, hairline-divided, rounded, no outer border.
-          On the all-white document this zones the structured reference data
-          apart from the prose. This is ONE intentional data block, not the
-          alternating white/gray washes that were rejected earlier. */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-divider-subtle">
+      {/* Fact grid — Pencil MASYz: 3 columns of uppercase-label → value cells.
+          WHITE cells (no gray fill) inside a rounded hairline border; the
+          internal dividers come from the gap-px over the divider-bg. */}
+      <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-divider-subtle bg-divider-subtle">
         {cells.map((cell) => (
           // Fact cell: padding [10,20] (px-5 py-3), 11/600 uppercase
           // tertiary label over a 13/medium primary value. The grid's
@@ -381,8 +347,8 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
           // pair — label = small 11px caption, value = 14/600 primary answer,
           // gap-0.5 so they bind as one unit, py-2.5 so the grid reads dense.
           // The size + weight gap (11/tertiary → 14/600 primary) is the layer.
-          <div key={cell.key} className="flex flex-col gap-0.5 bg-background-subtle px-5 py-2.5">
-            <span className="text-[11px] font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
+          <div key={cell.key} className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
+            <span className="text-caption-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
               {cell.label}
             </span>
             {/* Wrap to two lines instead of ellipsizing — Relief type /
@@ -394,9 +360,32 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
           </div>
         ))}
         {Array.from({ length: fillerCount }, (_, i) => (
-          <div key={`filler-${i}`} className="bg-background-subtle" aria-hidden />
+          <div key={`filler-${i}`} className="bg-background-default" aria-hidden />
         ))}
       </div>
+
+      {/* Evidence to gather (Pencil MASYz) — a quiet gray panel: clipboard
+          header + one document row per item. Sits after the fact grid as the
+          "to file this, collect…" checklist. */}
+      {protectiveFacts && protectiveFacts.evidenceNeeded.length > 0 ? (
+        <div className="flex flex-col gap-2 rounded-lg bg-background-subtle px-4 py-3">
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-text-secondary">
+            <ClipboardListIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+            <Trans>Evidence to gather</Trans>
+          </span>
+          <ul className="flex flex-col gap-1.5">
+            {protectiveFacts.evidenceNeeded.map((item) => (
+              <li
+                key={item}
+                className="flex items-start gap-2 text-sm leading-snug text-text-secondary"
+              >
+                <FileTextIcon className="mt-0.5 size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {detail.alert.changeKind === 'threshold_advisory' ? (
         // De-fill pass: neutral left-rule callout, same anatomy as the other
@@ -411,20 +400,17 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
         </div>
       ) : null}
 
-      {/* Legal uncertainty — prose caveat, deliberately quiet: it informs
-          the review but isn't a do-this fact like the hero above. */}
+      {/* Legal uncertainty (Pencil MASYz) — a left-rule caveat: bold label
+          on its own line over the secondary-prose explanation. */}
       {protectiveFacts?.legalUncertainty ? (
-        // 2026-06-14 (Yuqi "shattered"): the left rule is dropped — three
-        // different callout treatments (accent rule / gray grid / neutral
-        // rule) read as unrelated fragments. This is just a quiet caption:
-        // a tertiary inline label + secondary prose, so Change details reads
-        // as ONE section (accent action → gray data → quiet caveat).
-        <p className="text-sm leading-relaxed text-text-secondary">
-          <span className="font-semibold text-text-tertiary">
-            <Trans>Legal uncertainty:</Trans>
-          </span>{' '}
-          {protectiveFacts.legalUncertainty}
-        </p>
+        <div className="flex flex-col gap-1 border-l-2 border-divider-deep pl-4">
+          <span className="text-sm font-semibold text-text-primary">
+            <Trans>Legal uncertainty</Trans>
+          </span>
+          <p className="text-sm leading-relaxed text-text-secondary">
+            {protectiveFacts.legalUncertainty}
+          </p>
+        </div>
       ) : null}
     </div>
   )

@@ -544,7 +544,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
             // the parent route shell's height and handle its own internal
             // scroll. Without this the embedded shell collapsed to
             // content-height and the panel only occupied the height of
-            // the tallest alert card.
+            // the tallest alert card. (List-only width centering is handled at
+            // the route's RulesPageShell `contentClassName`, which caps the
+            // title + content together — see routes/alerts.tsx.)
             'flex h-full min-h-0 flex-col gap-6'
           : panelOpen
             ? // Panel-open branch keeps `h-full min-h-0` so the
@@ -557,10 +559,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
               // scroll inside its own bounds, no double-scroll).
               'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
             : // List-only branch holds `max-w-[1440px]` (not 1100px) to
-              // eliminate the 80px page-shift on every alert click.
-              // List-only at 1440 has extra horizontal whitespace versus
-              // 1100 — breathing room around the alert cards, a smaller
-              // cost than the constant left-shift jolt.
+              // eliminate the 80px page-shift on every alert click. (Note: the
+              // /alerts route mounts this `embedded`, so this branch is the
+              // off-route fallback; the centered reading measure for /alerts is
+              // handled on the list column itself below.)
               'mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
       }
     >
@@ -728,19 +730,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         <div
           className={cn(
             'flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto [scrollbar-gutter:stable]',
-            // 2026-06-12 (Yuqi round 2 "is it because it is too wide — the
-            // alerts are so hard to read?" → attack, structurally this time):
-            // the alerts list is a reading FEED, not a data table — at the
-            // page's full 1366px the row stretched into a sparse L (title
-            // left, source pinned ~600px away at the far edge, dead middle).
-            // The column caps at 1040px, LEFT-PINNED so the page title /
-            // toolbar / rows share one left rail; everything in a row sits in
-            // one comfortable eye-span. 2026-06-14 (Yuqi "anything left"): the
-            // cap now applies in BOTH list AND map mode, so toggling
-            // List↔Map no longer shifts the toolbar width (the heatmap fits
-            // comfortably inside 1040). The rail+detail layout is untouched
-            // (panelOpen strips caps entirely).
-            !panelOpen && 'max-w-[1040px]',
+            // 2026-06-15 (Yuqi "alert page max width vs deadlines — drop it"):
+            // the list fills the shell's wide width (max-w-page-expanded) for
+            // parity with /deadlines; no inner reading-measure cap. The
+            // rail+detail layout is untouched (panelOpen hides this column).
             panelOpen && 'hidden',
           )}
         >
@@ -774,7 +767,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   (the page wash) + padding keep the cards reading cleanly
                   as they scroll underneath and `z-20` sits above the
                   rows. */}
-              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset pb-3">
+              {/* `px-5` aligns the toolbar's leading control to the card
+                  content edge below it (rows + day bands carry the same
+                  px-5). Without it the filter row sat ~20px left of the
+                  list, so "Review", the row checkboxes, and the day bands
+                  read as three staggered left edges (Yuqi 2026-06-15:
+                  "the left side is not aligned"). */}
+              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 bg-background-inset px-5 pb-3">
                 {/* The search field is responsive — 180px on small
                     screens, stepping up to 200 at sm — so the filter
                     cluster keeps more room to stay on one line on narrower
@@ -802,10 +801,21 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     options={[
                       {
                         value: 'review',
+                        // 2026-06-15 (Yuqi "number in toggle never in a badge"):
+                        // plain count, not a pill. Review still pulls the eye when
+                        // it carries work — accent + semibold vs Active's quiet
+                        // tertiary count (matches the rail's Review treatment).
                         label: (
                           <span className="inline-flex items-center gap-1.5">
                             <Trans>Review</Trans>
-                            <span className="tabular-nums text-text-tertiary">
+                            <span
+                              className={cn(
+                                'tabular-nums',
+                                workQueueCounts.review > 0
+                                  ? 'font-semibold text-text-accent'
+                                  : 'text-text-tertiary',
+                              )}
+                            >
                               {workQueueCounts.review}
                             </span>
                           </span>
@@ -1748,7 +1758,10 @@ function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {
     <div
       role="status"
       aria-live="polite"
-      className="flex flex-col rounded-xl border border-divider-regular bg-background-default"
+      // Borderless to match the loaded PulseAlertList (which has no frame
+      // border) — the skeleton previously flashed a border the real list
+      // doesn't have (2026-06-14 cohesion sweep).
+      className="flex flex-col rounded-xl bg-background-default"
     >
       <span className="sr-only">
         <Trans>Loading alerts…</Trans>

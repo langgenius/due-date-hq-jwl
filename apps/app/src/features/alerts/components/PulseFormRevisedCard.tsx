@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowRightIcon, UsersIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -122,9 +123,10 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           ) : null}
           {/* Mclbt source caption: 12/500 muted. */}
           <span className="truncate text-xs font-medium text-text-muted">{alert.source}</span>
-          {/* QJ04z change-kind text-badge: 12/500 purple #6B21A8 ls 0.8
-              uppercase. */}
-          <span className="shrink-0 text-xs font-medium tracking-eyebrow text-[#6B21A8] uppercase">
+          {/* Change-kind eyebrow — token tertiary ink (was a hardcoded
+              #6B21A8 purple, the only off-palette literal on this card and a
+              third rendering of a label the row/detail show in `secondary`). */}
+          <span className="shrink-0 text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>
@@ -188,15 +190,16 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
                 {facts?.whatChanged?.to ?? '—'}
               </span>
               {facts?.whatChanged?.newBadge ? (
-                // U3D0D NEW badge: rounded-full, bg #92400E (amber-800),
-                // white Geist Mono 10/700 ls 0.7, padding [4,9],
-                // slight rotation.
-                <span
-                  className="inline-flex shrink-0 -rotate-[11deg] items-center rounded-full bg-[#92400E] px-2 py-[3px] font-mono text-caption-xs font-bold tracking-eyebrow text-white"
+                // Canonical warning Badge — was a hardcoded #92400E amber-800
+                // pill, white bold mono, rotated -11deg (the only rotation in
+                // the product). On-system soft-amber tag, no rotation, no 700.
+                <Badge
+                  variant="warning"
+                  className="shrink-0 font-mono"
                   aria-label={t`New form version`}
                 >
                   <Trans>NEW</Trans>
-                </span>
+                </Badge>
               ) : null}
             </div>
           </div>

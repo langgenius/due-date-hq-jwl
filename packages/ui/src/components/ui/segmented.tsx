@@ -23,6 +23,15 @@ export type SegmentedOption<T extends string> = {
   label: React.ReactNode
   /** Optional leading icon (rendered at size-3.5). */
   icon?: LucideIcon
+  /**
+   * Optional leading status dot — pass a `bg-*` (or `text-*` + bg-current)
+   * colour class. Renders a `size-1.5` dot before the label so scope/bucket
+   * selectors (status colour + label + count) use this primitive instead of
+   * a hand-rolled `rounded-full` pill track.
+   */
+  dot?: string
+  /** Optional trailing count, rendered muted + tabular after the label. */
+  count?: number
   /** Accessible label when `label` is icon-only or needs elaboration. */
   ariaLabel?: string
 }
@@ -88,7 +97,13 @@ export function Segmented<T extends string>({
             )}
           >
             {Icon ? <Icon className="size-3.5" aria-hidden /> : null}
+            {option.dot ? (
+              <span className={cn('size-1.5 shrink-0 rounded-full', option.dot)} aria-hidden />
+            ) : null}
             {option.label}
+            {option.count !== undefined ? (
+              <span className="tabular-nums text-text-tertiary">{option.count}</span>
+            ) : null}
           </button>
         )
       })}

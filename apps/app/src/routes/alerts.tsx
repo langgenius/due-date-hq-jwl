@@ -140,9 +140,12 @@ export function AlertsRoute() {
         // pages share a uniform vertical cadence.
         contentClassName={cn(
           'gap-8 md:px-8 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
+          // 2026-06-15 (Yuqi "alert page has a max width but deadlines doesn't —
+          // maybe drop it"): the list now uses the shell's `wide`
+          // (max-w-page-expanded) like /deadlines, for cross-page parity.
           // Full-page detail is flush — the three panes butt against each
-          // other and the viewport, so strip the shell padding / gap /
-          // width cap when open.
+          // other and the viewport, so strip the shell padding / gap / width
+          // cap when open.
           panelOpen && '!max-w-none !gap-0 !p-0 md:!p-0',
         )}
         actions={

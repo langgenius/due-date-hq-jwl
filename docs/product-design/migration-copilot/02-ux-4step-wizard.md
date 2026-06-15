@@ -77,11 +77,18 @@ stateDiagram-v2
 
 ### 2.2 Stepper（步骤条）
 
+> **用户可见标签（2026-06-12 改）**：步骤标签从 ETL 阶段名（Intake /
+> Mapping / Normalize / Dry-Run）改为用户结果语（**Upload / Match columns /
+> Check values / Confirm**）—— "Normalize" 对 CPA 无心智模型、"Dry run"
+> 读作有风险。**内部 stage key 不变**（`intake` / `mapping` / `normalize` /
+> `dry_run`，见 `state.ts` 的 `StepIndex`），本文档其余章节仍用内部名指代各步。
+> 标签源在 `Stepper.tsx` 的 `STEP_LABELS`。
+
 ```
-  [ ① Intake ]──[ ② Mapping ]──[ ③ Normalize ]──[ ④ Dry-Run ]
-     active       upcoming        upcoming          upcoming        ← 当前步 {colors.accent-default} + {colors.accent-tint} 背景
-     done         active          upcoming          upcoming        ← 已完成 {colors.status-done} + 勾
-     done         error           upcoming          upcoming        ← 错误 {colors.severity-critical} + ! 图标
+  [ ① Upload ]──[ ② Match columns ]──[ ③ Check values ]──[ ④ Confirm ]
+     active        upcoming             upcoming             upcoming     ← 当前步 {colors.accent-default} + {colors.accent-tint} 背景
+     done          active               upcoming             upcoming     ← 已完成 {colors.status-done} + 勾
+     done          error                upcoming             upcoming     ← 错误 {colors.severity-critical} + ! 图标
 ```
 
 - 4 步水平；每格高 32px；间距 `{spacing.3}`；字号 `{typography.label}`（11px uppercase tracking 0.08em）
