@@ -466,7 +466,7 @@ export function RuleDetailCompact({
       summary={
         rule.dueDateLogic.kind === 'fixed_date' ? (
           // irBJ8 "Due {date}" block — concrete date + holiday-rollover hint.
-          <div className="flex flex-col gap-1 rounded-lg border border-divider-subtle bg-background-section px-3.5 py-3">
+          <div className="flex flex-col gap-1 rounded-lg bg-background-section px-3.5 py-3">
             <span className="font-mono text-lg font-bold text-text-primary">
               <Trans>
                 Due {formatDatePretty(rule.dueDateLogic.date, { alwaysShowYear: true })}
@@ -481,7 +481,7 @@ export function RuleDetailCompact({
             </span>
           </div>
         ) : (
-          <div className="rounded-lg border border-divider-subtle bg-background-section px-3.5 py-3 text-sm text-text-primary">
+          <div className="rounded-lg bg-background-section px-3.5 py-3 text-sm text-text-primary">
             {dueDateSummary}
           </div>
         )
@@ -615,32 +615,33 @@ export function RuleDetailCompact({
   if (splitRail) {
     return (
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-        {/* LEFT — header + rule facts (white, scrolls independently). The fact
-            sections are delineated by full-width hairlines + per-section
-            padding (`divide-y` + `[&>*]:py-5`), not boxes — so each reads as a
-            distinct band and the section heading stays closer to its own
-            content than to the neighbour (Law of Proximity). */}
+        {/* LEFT — header + rule facts (white, scrolls independently). Sections
+            are delineated by their headings + generous spacing alone (Law of
+            Proximity), not hairlines between every band — the modal leans on
+            whitespace over rules to stay calm. */}
         <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
           {header}
           <div className="flex min-w-0 flex-col px-6 pt-5">
-            <span className="pb-3 text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+            <span className="pb-1 text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Verify the facts</Trans>
             </span>
-            <div className="flex min-w-0 flex-col divide-y divide-divider-regular border-t border-divider-regular [&>*]:py-5">
+            <div className="flex min-w-0 flex-col gap-7 py-5">
               {applicabilityCard}
               {dueDateCard}
               {evidenceCard}
               {verificationCard}
             </div>
           </div>
-          {/* Informational footer — version + full history, no actions. */}
-          <div className="mt-auto border-t border-divider-regular px-6 [&>*]:py-5">
+          {/* Informational footer — version + full history, no actions. One
+              hairline marks it off from the facts above (the only divider
+              left in this column). */}
+          <div className="mt-auto border-t border-divider-subtle px-6 py-5">
             {activityCard}
           </div>
         </div>
 
         {/* RIGHT — the decision rail (gray, scrolls independently). */}
-        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-divider-regular bg-background-section px-5 py-5">
+        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto bg-background-section px-5 py-5">
           <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
             <Trans>Your decision</Trans>
           </span>
@@ -2003,14 +2004,26 @@ function AiDraftReviewPanel({
         <Trans>AI concrete draft</Trans>
       </p>
       {generating && !draft ? <AiDraftReviewSkeleton /> : null}
-      {!generating && errorMessage && !draft ? (
-        // The pre-generation message uses `text-text-tertiary`, not
-        // `text-severity-medium` — the pre-generation state isn't an error,
-        // it's a pending state, so it reads as informational. The disabled
-        // Accept button already communicates "you can't proceed yet"; the
-        // message just explains why.
+      {!generating && !draft && (onGenerateDraft || errorMessage) ? (
+        // Pre-generation state (informational `text-text-tertiary`, not an
+        // error tone). When a draft CAN be generated we explain what it is and
+        // why it's needed; when it can't (no official source), we surface that
+        // blocker (`errorMessage`) instead.
         <div className="flex flex-col gap-2.5">
-          <p className="text-xs text-text-tertiary">{errorMessage}</p>
+          {onGenerateDraft ? (
+            // What the AI concrete draft is + how it's used — so a reviewer
+            // seeing "Generate draft" for the first time knows what they get.
+            <p className="text-xs text-text-tertiary">
+              <Trans>
+                This rule&apos;s due date is set by its official source, so it has no concrete logic
+                yet. Generating a draft reads that source and proposes the exact due date —
+                review the proposal and its confidence, then accept to start creating client
+                deadlines from it.
+              </Trans>
+            </p>
+          ) : (
+            <p className="text-xs text-text-tertiary">{errorMessage}</p>
+          )}
           {/* "Generate draft" is the primary, full-width CTA (TkpJG): while
               Accept is gated on a ready draft, generating it is the real next
               action, so it leads. Without it the user could only Skip →

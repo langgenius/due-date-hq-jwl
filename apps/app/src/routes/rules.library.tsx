@@ -808,8 +808,6 @@ const CHANGED_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
  */
 function OverviewReviewBreakdown({
   jurisdictions,
-  reasonCounts,
-  backlogSeverity,
   onSelectJurisdiction,
 }: {
   jurisdictions: ReadonlyArray<{
@@ -819,17 +817,10 @@ function OverviewReviewBreakdown({
     highCount: number
     oldest: number | null
   }>
-  reasonCounts: ReadonlyArray<[RuleReviewTask['reason'], number]>
-  backlogSeverity: { high: number; med: number; low: number }
   onSelectJurisdiction: (jurisdiction: string) => void
 }) {
   const { t } = useLingui()
   const now = Date.now()
-  const severityRows = [
-    { key: 'high', label: t`High`, count: backlogSeverity.high, warn: true },
-    { key: 'med', label: t`Medium`, count: backlogSeverity.med, warn: false },
-    { key: 'low', label: t`Low`, count: backlogSeverity.low, warn: false },
-  ] as const
 
   return (
     <section className="flex shrink-0 flex-col gap-3">
@@ -841,12 +832,11 @@ function OverviewReviewBreakdown({
           <Trans>Most urgent first</Trans>
         </span>
       </div>
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
-        {/* Ranked jurisdictions (longest-waiting first). Per the Pencil
-            reference nCNln the row carries the triage signal as text —
-            high-severity · oldest · days waiting — not a magnitude bar, with an
-            explicit Review button into that jurisdiction's queue. */}
-        <div className="min-w-0 flex-1 overflow-hidden rounded-xl border border-divider-subtle xl:flex-[3]">
+      {/* Ranked jurisdictions (longest-waiting first). Per the Pencil
+          reference nCNln the row carries the triage signal as text —
+          high-severity · days waiting — not a magnitude bar, with an
+          explicit Review button into that jurisdiction's queue. */}
+      <div className="min-w-0 overflow-hidden rounded-xl border border-divider-subtle">
           {jurisdictions.map((g, index) => {
             const days =
               g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
@@ -894,55 +884,6 @@ function OverviewReviewBreakdown({
               </div>
             )
           })}
-        </div>
-
-        {/* Composition panel — backlog make-up as plain key/value lists (no
-            bars, per nCNln): by severity + by reason. */}
-        <div className="flex shrink-0 flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default p-4 xl:flex-[2]">
-          <span className="text-item-title text-text-primary">
-            <Trans>Backlog composition</Trans>
-          </span>
-          <div className="flex flex-col gap-2">
-            <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
-              <Trans>By severity</Trans>
-            </span>
-            {severityRows
-              .filter((row) => row.count > 0)
-              .map((row) => (
-              <div key={row.key} className="flex items-center justify-between gap-3">
-                <span className="text-sm font-medium text-text-secondary">{row.label}</span>
-                <span
-                  className={cn(
-                    'text-sm font-semibold tabular-nums',
-                    row.warn && row.count > 0 ? 'text-text-warning' : 'text-text-primary',
-                  )}
-                >
-                  {row.count}
-                </span>
-              </div>
-            ))}
-          </div>
-          {/* "By reason" only earns its space when there's a mix — a single
-              reason just restates the pending total (already in the StatBand
-              + banner), so it's hidden rather than duplicated. */}
-          {reasonCounts.length > 1 ? (
-            <div className="flex flex-col gap-2 border-t border-divider-subtle pt-4">
-              <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
-                <Trans>By reason</Trans>
-              </span>
-              {reasonCounts.map(([reason, count]) => (
-                <div key={reason} className="flex items-center justify-between gap-3">
-                  <span className="min-w-0 truncate text-sm font-medium text-text-secondary">
-                    {REVIEW_REASON_LABEL[reason]}
-                  </span>
-                  <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">
-                    {count}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
       </div>
     </section>
   )
@@ -1586,28 +1527,15 @@ export function RulesLibraryRoute() {
     () => unfilteredGroups.filter((g) => g.gapEntities.length > 0),
     [unfilteredGroups],
   )
-  // Severity mix of the review backlog (drives the stat + the composition
-  // panel's by-severity bars).
-  const backlogSeverity = useMemo(() => {
-    const mix = { high: 0, med: 0, low: 0 }
+  // High-severity count in the review backlog — drives the StatBand stat.
+  const highSeverityPending = useMemo(() => {
+    let n = 0
     for (const r of rules) {
       if (r.status !== 'candidate' && r.status !== 'pending_review') continue
-      mix[r.riskLevel] += 1
+      if (r.riskLevel === 'high') n += 1
     }
-    return mix
+    return n
   }, [rules])
-  const highSeverityPending = backlogSeverity.high
-  // Open review tasks → counts by reason (the "why the queue grew" strip).
-  const overviewReviewTasksQuery = useQuery(
-    orpc.rules.listReviewTasks.queryOptions({ input: { status: 'open' } }),
-  )
-  const reviewReasonCounts = useMemo(() => {
-    const counts = new Map<RuleReviewTask['reason'], number>()
-    for (const task of overviewReviewTasksQuery.data ?? []) {
-      counts.set(task.reason, (counts.get(task.reason) ?? 0) + 1)
-    }
-    return [...counts.entries()].sort((a, b) => b[1] - a[1])
-  }, [overviewReviewTasksQuery.data])
 
   const [railSearch, setRailSearch] = useState('')
   // Validate the URL param against real jurisdictions — an unknown
@@ -2773,8 +2701,6 @@ export function RulesLibraryRoute() {
                     overview's primary lower-zone module (Yuqi #1/#4). */}
                 <OverviewReviewBreakdown
                   jurisdictions={topReviewJurisdictions}
-                  reasonCounts={reviewReasonCounts}
-                  backlogSeverity={backlogSeverity}
                   onSelectJurisdiction={selectJurisdiction}
                 />
                 {/* Coverage gaps — renders nothing unless something's uncovered. */}
