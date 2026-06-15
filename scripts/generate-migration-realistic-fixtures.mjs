@@ -13,6 +13,11 @@ const outputDir = join(
 )
 const encoder = new TextEncoder()
 
+// Fixed modification time so zipped fixtures (.zip / .xlsx) are byte-for-byte
+// reproducible — fflate otherwise stamps each entry with the current time,
+// which made every regeneration show up as a spurious git diff.
+const FIXED_MTIME = new Date('2026-01-01T00:00:00Z')
+
 mkdirSync(outputDir, { recursive: true })
 
 const sourceRows = [
@@ -982,10 +987,19 @@ function writeBinary(fileName, bytes) {
 
 function writeZip(fileName, entries) {
   const zipped = zipSync(
-    Object.fromEntries(Object.entries(entries).map(([name, content]) => [name, u8(content)])),
+    withMtime(
+      Object.fromEntries(Object.entries(entries).map(([name, content]) => [name, u8(content)])),
+    ),
     { level: 6 },
   )
   writeBinary(fileName, zipped)
+}
+
+// Wrap each zip entry with the fixed mtime so the archive is byte-reproducible.
+function withMtime(entries) {
+  return Object.fromEntries(
+    Object.entries(entries).map(([name, content]) => [name, [content, { mtime: FIXED_MTIME }]]),
+  )
 }
 
 function writeXlsx(fileName, sheetName, headers, rows, preamble = []) {
@@ -1036,7 +1050,7 @@ function writeXlsx(fileName, sheetName, headers, rows, preamble = []) {
   writeBinary(
     fileName,
     zipSync(
-      {
+      withMtime({
         '[Content_Types].xml': u8(
           '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
             '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
@@ -1063,7 +1077,7 @@ function writeXlsx(fileName, sheetName, headers, rows, preamble = []) {
         ),
         'xl/worksheets/sheet1.xml': u8(sheetXml),
         'xl/sharedStrings.xml': u8(sharedStringsXml),
-      },
+      }),
       { level: 6 },
     ),
   )
