@@ -3910,6 +3910,66 @@ export function ObligationQueueRoute() {
                   column-visibility menu, icon-only per the design. */}
               {panelOpenIntent ? null : (
                 <div className="ml-auto flex items-center gap-1">
+                  {/* 2026-06-15 (Yuqi "deadlines — sort by clients, main page is
+                      missing sortby"): a visible Sort-by control. The list
+                      already supports clustering by client/filing/urgency (the
+                      `group` param renders group headers), but it was buried in
+                      the View → Group-by submenu. This surfaces it as a toolbar
+                      pill that names the active ordering — mirroring the detail
+                      rail's "Sorted by …" control. "Client" clusters rows under
+                      client headers. */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <FilterTrigger
+                          leadingIcon={LayersIcon}
+                          active={group !== DEFAULT_GROUP}
+                          valueLabel={
+                            group === 'client'
+                              ? t`Client`
+                              : group === 'filing'
+                                ? t`Filing`
+                                : group === 'urgency'
+                                  ? t`Urgency`
+                                  : t`Due date`
+                          }
+                          aria-label={t`Sort deadlines`}
+                        >
+                          <span>
+                            <Trans>Sort by</Trans>
+                          </span>
+                        </FilterTrigger>
+                      }
+                    />
+                    <DropdownMenuContent align="end" className="min-w-[180px]">
+                      <DropdownMenuRadioGroup
+                        value={group}
+                        onValueChange={(next) => {
+                          if (
+                            next === 'due' ||
+                            next === 'urgency' ||
+                            next === 'client' ||
+                            next === 'filing'
+                          ) {
+                            void setObligationQueueQuery({ group: next })
+                          }
+                        }}
+                      >
+                        <DropdownMenuRadioItem value="due">
+                          <Trans>Due date</Trans>
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="urgency">
+                          <Trans>Urgency</Trans>
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="client">
+                          <Trans>Client</Trans>
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="filing">
+                          <Trans>Filing</Trans>
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   {/* Consolidated VIEW + ACTIONS menu. VIEW = Columns / Group
                       by / Density submenus (each trigger shows its current
                       value); ACTIONS = Export visible rows · Save current view
