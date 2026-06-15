@@ -1,21 +1,21 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ChevronLeftIcon, XIcon } from 'lucide-react'
+import { XIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 
 /**
- * In-surface top bar atop the deadline detail PAGE — rebuilt 2026-06-10
- * (Yuqi alert↔deadline parity #1) to mirror AlertDetailDrawer's top bar
- * exactly: a 52px full-bleed band with a `border-b`, content capped to
- * the same 760px document measure, carrying a "‹ Deadlines" crumb on the
- * left and a "N of M" position read-out + a close ✕ on the right.
+ * In-surface top bar atop the deadline detail PAGE — mirrors
+ * AlertDetailDrawer's top bar: a 52px full-bleed `border-b` CHROME band
+ * (px-5, breadcrumb hugs the left edge, "N of M" + close ✕ hug the right) with
+ * a chevron-less slash-path "Deadlines" crumb at 13/tertiary. The left RAIL is
+ * the primary navigator (▲▼ paging lives in the drawer), so no Prev/Next
+ * buttons here — same as the alert top bar.
  *
- * The left RAIL is the primary navigator (▲▼ keyboard paging lives in the
- * drawer), so this bar carries no Prev/Next buttons — just like the alert
- * top bar. Rendered INSIDE the drawer body (page mode) so it shares the
- * same scroll column + `mx-auto max-w-[760px]` measure as the header/body
- * /footer below it.
+ * 2026-06-16 (deadlines↔alerts parity): dropped the back-chevron, the 760px
+ * content cap, and the 14px crumb. The alert top bar is full-width chrome with a
+ * 13px slash-path crumb (the path IS the back affordance; a back-arrow on top of
+ * it was a mixed signal), so this now reads identically.
  */
 export function DeadlineCrumbBar({
   position,
@@ -28,35 +28,30 @@ export function DeadlineCrumbBar({
   const { t } = useLingui()
 
   return (
-    // Full-width border-b (so the bar never looks cut off); content capped
-    // to the same 760px `mx-auto` measure as the document below so it sits
-    // centered over the same column the hero/body/footer share — matching
-    // AlertDetailDrawer's top bar.
-    <div className="flex h-[52px] shrink-0 items-center border-b border-divider-subtle px-12">
-      <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-3">
-        <Link
-          to="/deadlines"
-          className="inline-flex items-center gap-1 rounded-sm text-base font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+    // Full-bleed CHROME band (px-5, no document cap): the crumb hugs the left
+    // edge and the close ✕ the right — exactly like AlertDetailDrawer's top bar.
+    <div className="flex h-[52px] shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-5">
+      <Link
+        to="/deadlines"
+        className="shrink-0 rounded-sm text-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <Trans>Deadlines</Trans>
+      </Link>
+      <div className="flex shrink-0 items-center gap-2">
+        {position && position.total > 0 ? (
+          <span className="text-sm text-text-muted tabular-nums">
+            {t`${position.index + 1} of ${position.total}`}
+          </span>
+        ) : null}
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onClose}
+          aria-label={t`Close deadline detail`}
+          className="text-text-tertiary"
         >
-          <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
-          <Trans>Deadlines</Trans>
-        </Link>
-        <div className="flex items-center gap-2">
-          {position && position.total > 0 ? (
-            <span className="text-sm font-medium text-text-muted tabular-nums">
-              {t`${position.index + 1} of ${position.total}`}
-            </span>
-          ) : null}
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onClose}
-            aria-label={t`Close deadline detail`}
-            className="text-text-tertiary"
-          >
-            <XIcon className="size-4" aria-hidden />
-          </Button>
-        </div>
+          <XIcon className="size-4" aria-hidden />
+        </Button>
       </div>
     </div>
   )

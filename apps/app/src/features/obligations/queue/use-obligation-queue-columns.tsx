@@ -255,8 +255,12 @@ export function useObligationQueueColumns(
                   if (event.shiftKey) event.preventDefault()
                 }}
                 className={cn(
+                  // The client name is the row's SUBJECT — raise the floor to
+                  // font-medium (was font-normal until active) so the table's
+                  // primary column reads as the subject the way the alert list's
+                  // bold title does; the active row reads semibold.
                   'line-clamp-2 min-w-0 flex-1 text-sm leading-tight text-text-primary',
-                  tableRow.original.id === explicitActiveRowId ? 'font-medium' : 'font-normal',
+                  tableRow.original.id === explicitActiveRowId ? 'font-semibold' : 'font-medium',
                 )}
                 title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
               >
