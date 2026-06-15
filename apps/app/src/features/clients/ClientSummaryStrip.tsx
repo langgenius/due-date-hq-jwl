@@ -9,15 +9,17 @@ import { formatDatePretty } from '@/lib/utils'
 
 import { useClientNextDue } from './use-client-next-due'
 
-// "Filed YTD" counts filings that are done/closed. `done` is the status that
+// "Filed" counts filings that are done/closed. `done` is the status that
 // displays as "Filed" (Filed ≠ Done per the workflow), `completed` is the v2
 // terminal, `paid` is filed + paid. `not_applicable` is deliberately excluded —
-// it's not a filing.
+// it's not a filing. Labeled "Filed" (not "Filed YTD") because this is a
+// status-based count with no year-to-date date window — matching the /clients
+// table column (ClientFactsWorkspace), which was renamed for the same reason.
 const FILED_STATUSES: ReadonlySet<string> = new Set(['done', 'completed', 'paid'])
 
 /**
  * ClientSummaryStrip — the /clients/[id] hero meta strip. Matches Pencil
- * `ibWOx`: Jurisdictions · Blocked · Open · Filed YTD. Reuses the shared
+ * `ibWOx`: Jurisdictions · Blocked · Open · Filed. Reuses the shared
  * `StatBand` (the canonical card-summary band) + the `Badge` outline chip the
  * /clients list uses for state codes — no bespoke strip. Jurisdiction chips are
  * the client's distinct filing states; the three counts come straight from the
@@ -28,9 +30,13 @@ const FILED_STATUSES: ReadonlySet<string> = new Set(['done', 'completed', 'paid'
 export function ClientSummaryStrip({
   client,
   obligations,
+  isLoading,
 }: {
   client: ClientPublic
   obligations: readonly ObligationInstancePublic[]
+  /** In-flight obligations fetch — shows the band skeleton instead of
+   *  computing falsely-calm zeros from an empty obligation set. */
+  isLoading?: boolean
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -42,7 +48,7 @@ export function ClientSummaryStrip({
     [obligations],
   )
 
-  // Filed YTD — obligations that have been filed/closed (see FILED_STATUSES).
+  // Filed — obligations that have been filed/closed (see FILED_STATUSES).
   const filedCount = useMemo(
     () => obligations.filter((o) => FILED_STATUSES.has(o.status)).length,
     [obligations],
@@ -108,7 +114,7 @@ export function ClientSummaryStrip({
     },
     {
       key: 'filed',
-      label: t`Filed YTD`,
+      label: t`Filed`,
       value: filedCount,
       valueClass: filedCount > 0 ? 'text-text-success' : 'text-text-tertiary',
       sub: filedCount > 0 ? t`Closed out` : t`None filed`,
@@ -131,5 +137,5 @@ export function ClientSummaryStrip({
     },
   ]
 
-  return <StatBand stats={stats} ariaLabel={t`Client summary`} />
+  return <StatBand stats={stats} loading={isLoading ?? false} ariaLabel={t`Client summary`} />
 }

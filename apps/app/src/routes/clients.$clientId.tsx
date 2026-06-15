@@ -104,11 +104,11 @@ export function ClientDetailRoute() {
               <Skeleton className="h-5 w-24 rounded-full" />
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Skeleton className="h-20 flex-1 min-w-44 rounded-lg" />
-            <Skeleton className="h-20 flex-1 min-w-44 rounded-lg" />
-            <Skeleton className="h-20 flex-1 min-w-44 rounded-lg" />
-          </div>
+          {/* Summary band placeholder — a single full-width hairline band,
+              matching StatBand's own `loading` skeleton (h-[100px]) and the
+              real 5-column band, so the skeleton→content paint doesn't reflow
+              from 3 tiles into 5 columns. */}
+          <Skeleton className="h-[100px] w-full rounded-none" />
           <Skeleton className="h-72 w-full rounded-lg" />
         </div>
       ) : isError ? (

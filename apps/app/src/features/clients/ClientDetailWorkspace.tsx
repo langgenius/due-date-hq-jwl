@@ -753,7 +753,11 @@ export function ClientDetailWorkspace({
                 signals that belong beside Notes + Contacts, not in the scan
                 column. The summary strip stays above the tabs: it's the
                 client's at-a-glance state. */}
-            <ClientSummaryStrip client={client} obligations={obligations} />
+            <ClientSummaryStrip
+              client={client}
+              obligations={obligations}
+              isLoading={obligationsQuery.isLoading}
+            />
 
             {/* Tabbed body. Reasoning in
                 docs/Design/client-page-information-architecture.md.
