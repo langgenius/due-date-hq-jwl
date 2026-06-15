@@ -318,58 +318,64 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
   if (section === 'key-fact') return keyFactLine
 
   return (
-    <div className="flex flex-col gap-1.5">
-      {/* Parsed-fields sub-header (Pencil MASYz) — bold label left, the
+    // Outer gap-4 separates the fact BLOCK (sub-header + grid) from the
+    // supporting notes below it — evidence / caveats — so the table no longer
+    // sits 6px under a caveat (Yuqi 2026-06-15 "too close to each other"). The
+    // sub-header→grid pair stays tight inside its own gap-1.5 group.
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        {/* Parsed-fields sub-header (Pencil MASYz) — bold label left, the
           AI-verify reminder right, sitting tight above the fact grid (Yuqi
           2026-06-15 "the gap between parse fields and the table should be
           smaller"). */}
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-sm font-semibold text-text-primary">
-          <Trans>Parsed fields</Trans>
-        </span>
-        <span className="text-xs text-text-tertiary">
-          <Trans>AI parsed — verify before Apply</Trans>
-        </span>
-      </div>
-
-      {detail.alert.duplicateSourceSnapshotCount > 0 ? (
-        <div className="rounded-lg bg-background-soft px-3 py-2 text-xs text-text-secondary">
-          <Plural
-            value={detail.alert.duplicateSourceSnapshotCount}
-            one="# similar source update was merged into this alert."
-            other="# similar source updates were merged into this alert."
-          />
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-sm font-semibold text-text-primary">
+            <Trans>Parsed fields</Trans>
+          </span>
+          <span className="text-xs text-text-tertiary">
+            <Trans>AI parsed — verify before Apply</Trans>
+          </span>
         </div>
-      ) : null}
 
-      {/* Fact grid — Pencil MASYz: 3 columns of uppercase-label → value cells.
+        {detail.alert.duplicateSourceSnapshotCount > 0 ? (
+          <div className="rounded-lg bg-background-soft px-3 py-2 text-xs text-text-secondary">
+            <Plural
+              value={detail.alert.duplicateSourceSnapshotCount}
+              one="# similar source update was merged into this alert."
+              other="# similar source updates were merged into this alert."
+            />
+          </div>
+        ) : null}
+
+        {/* Fact grid — Pencil MASYz: 3 columns of uppercase-label → value cells.
           WHITE cells (no gray fill) inside a rounded hairline border; the
           internal dividers come from the gap-px over the divider-bg. */}
-      <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-divider-subtle bg-divider-subtle">
-        {cells.map((cell) => (
-          // Fact cell: padding [10,20] (px-5 py-3), 11/600 uppercase
-          // tertiary label over a 13/medium primary value. The grid's
-          // gap-px + divider bg draw the right-/row-hairlines between
-          // cells.
-          // 2026-06-14 (Yuqi "table hierarchy is loose"): a tight key→value
-          // pair — label = small 11px caption, value = 14/600 primary answer,
-          // gap-0.5 so they bind as one unit, py-2.5 so the grid reads dense.
-          // The size + weight gap (11/tertiary → 14/600 primary) is the layer.
-          <div key={cell.key} className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
-            <span className="text-caption-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
-              {cell.label}
-            </span>
-            {/* Wrap to two lines instead of ellipsizing — Relief type /
+        <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-divider-subtle bg-divider-subtle">
+          {cells.map((cell) => (
+            // Fact cell: padding [10,20] (px-5 py-3), 11/600 uppercase
+            // tertiary label over a 13/medium primary value. The grid's
+            // gap-px + divider bg draw the right-/row-hairlines between
+            // cells.
+            // 2026-06-14 (Yuqi "table hierarchy is loose"): a tight key→value
+            // pair — label = small 11px caption, value = 14/600 primary answer,
+            // gap-0.5 so they bind as one unit, py-2.5 so the grid reads dense.
+            // The size + weight gap (11/tertiary → 14/600 primary) is the layer.
+            <div key={cell.key} className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
+              <span className="text-caption-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
+                {cell.label}
+              </span>
+              {/* Wrap to two lines instead of ellipsizing — Relief type /
                 Affected tax acts are identity values; hiding them behind
                 "…" defeated the grid. */}
-            <span className="line-clamp-2 min-w-0 break-words text-sm font-semibold leading-snug text-text-primary">
-              {cell.value}
-            </span>
-          </div>
-        ))}
-        {Array.from({ length: fillerCount }, (_, i) => (
-          <div key={`filler-${i}`} className="bg-background-default" aria-hidden />
-        ))}
+              <span className="line-clamp-2 min-w-0 break-words text-sm font-semibold leading-snug text-text-primary">
+                {cell.value}
+              </span>
+            </div>
+          ))}
+          {Array.from({ length: fillerCount }, (_, i) => (
+            <div key={`filler-${i}`} className="bg-background-default" aria-hidden />
+          ))}
+        </div>
       </div>
 
       {/* Evidence to gather (Pencil MASYz) — a quiet gray panel: clipboard
