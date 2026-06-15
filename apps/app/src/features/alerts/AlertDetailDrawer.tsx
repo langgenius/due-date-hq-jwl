@@ -1570,8 +1570,10 @@ export function AlertDetailDrawer({
 
                   {/* KEY FACT — the do-by-when strip lives in the HERO: identity
                     → headline → BY WHEN in one glance; the details section
-                    below carries only reference depth. */}
-                  <div className="pt-1 empty:hidden">
+                    below carries only reference depth. pt-3 (Yuqi 2026-06-15
+                    "more top padding") gives the do-by-when room below the
+                    title before the lifecycle strip. */}
+                  <div className="pt-3 empty:hidden">
                     <DeadlineChangeCard detail={detail} />
                     <AlertStructuredFields detail={detail} section="key-fact" />
                   </div>
@@ -1796,6 +1798,10 @@ export function AlertDetailDrawer({
                 index={sectionIndex('alert-section-facts')}
                 caption={<Trans>what changed and what to verify</Trans>}
                 className="scroll-mt-16"
+                // Bigger gap between the practice-impact read and the parsed
+                // fields below it (Yuqi 2026-06-15 "bigger gap"); the tighter
+                // parsed-header→grid gap lives inside AlertStructuredFields.
+                bodyClassName="flex flex-col gap-6"
                 title={<Trans>Change</Trans>}
               >
                 {/* 2026-06-14 (Yuqi critique — "eyes don't know where to go"):

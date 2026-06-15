@@ -318,10 +318,11 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
   if (section === 'key-fact') return keyFactLine
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1.5">
       {/* Parsed-fields sub-header (Pencil MASYz) — bold label left, the
-          AI-verify reminder right, sitting close above the fact grid (Yuqi
-          2026-06-15 "离下面的内容更近"). */}
+          AI-verify reminder right, sitting tight above the fact grid (Yuqi
+          2026-06-15 "the gap between parse fields and the table should be
+          smaller"). */}
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm font-semibold text-text-primary">
           <Trans>Parsed fields</Trans>
