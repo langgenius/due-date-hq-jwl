@@ -15,7 +15,6 @@
 | [`./taxdome-30clients.csv`](./taxdome-30clients.csv)                 | 30           | 10   | TaxDome account import · 真实 account 字段 + custom tax fields · 含 mixed deadline        | ≥ 95%                   | 100%                     | 0          |
 | [`./drake-30clients.csv`](./drake-30clients.csv)                     | 30           | 7    | Drake 导出 · 全字段 · 含 2 坏行触发 needs_review / normalize                              | ≥ 95%                   | 100%                     | 2          |
 | [`./karbon-20clients.csv`](./karbon-20clients.csv)                   | 20           | 5    | Karbon 导出 · 缺 tax_types 列 → 走 Default Matrix                                         | ≥ 85%                   | 100%                     | 1          |
-| [`./karbon-full-flow-demo.csv`](./karbon-full-flow-demo.csv)         | 26           | 12   | Karbon 现场演示 · Karbon 字段 + practice custom fields · 覆盖 mapping / normalize / rules | ≥ 85% fallback/manual   | 24/25 valid EIN rows     | 3          |
 | [`./quickbooks-20clients.csv`](./quickbooks-20clients.csv)           | 20           | 4    | QuickBooks 仅元数据 · state 全称需归一                                                    | ≥ 80%                   | 95%                      | 2          |
 | [`./file-in-time-30clients.csv`](./file-in-time-30clients.csv)       | 30           | 9    | File In Time 独有列（service / due date / status / staff / county）· 期望 preset 自动识别 | ≥ 90%                   | N/A（无 EIN 列）         | 0          |
 | [`./cch-axcess-2clients.csv`](./cch-axcess-2clients.csv)             | 2            | 17   | CCH Axcess Client Manager / Return Manager grid CSV · 客户编号、地址、负责人              | ≥ 85% fallback          | 100%                     | 0          |
@@ -29,23 +28,27 @@
 
 **总 Preset fixture 行数 = 145** · **Agent demo 行数 = 52** · **Preset 列数合计 = 128**
 
-`karbon-full-flow-demo.csv` 是额外 live-demo fixture，不计入原始 Preset fixture 总数；它用于从空
-practice 现场演示 Karbon 导入后的规则激活、Default Matrix、normalization、skipped row、客户事实、
-obligations、dashboard exposure 和 evidence review。
+### 1.1 两套 fixture 的分工（互不替代）
 
-### 1.1 真实导出模拟 fixture
+本目录有两套**用途不同、不能互相替代**的 fixture。删任意一套都会丢掉对应的测试覆盖：
 
-[`./realistic-exports/`](./realistic-exports/) 新增 11 个当前 Step 1 source chip 的真实导出形态
-fixture，以及 3 个重要 variant / negative fixture。它们由
-`scripts/generate-migration-realistic-fixtures.mjs` deterministic 生成，不替换上方 demo CSV。
+- **§1 上方的 flat `*.csv`** —— 给 **server 端** `apps/server/src/procedures/migration/_service.test.ts`
+  的 golden / pipeline 测试，以及 demo seed / E2E 用。它们**故意做脏**（坏行、EIN 含空格、SSN 列、
+  exposure 列、entity/state 多种写法），用来验证 mapping fallback、normalize、needs-review、PII guard、
+  penalty preview 等**错误与边界路径**。golden 测试断言精确的客户数 / 坏行数 / EIN 率，与这些文件强绑定。
+- **[`./realistic-exports/`](./realistic-exports/)** —— 给 **app 端**
+  `apps/app/src/features/migration/Step1Intake.test.ts` 的**格式识别 + 解析**测试。它们由
+  `scripts/generate-migration-realistic-fixtures.mjs` **deterministic** 生成（固定 mtime，可逐字节复现）。
+  - Primary（11 个 Step 1 source chip 的真实导出形态）：TaxDome ZIP、Drake CSV、Karbon XLSX、
+    QuickBooks Online XLSX、File In Time Task View TXT、CCH Axcess CSV、CCH ProSystem fx
+    `PortalSaaSClient_*.csv`、Lacerte `EXPORT.CSV`、ProSeries `Contacts.csv`、UltraTax CSV、
+    ProConnect reporting CSV。
+  - Variants：QuickBooks Desktop `.iif`（accepted）、UltraTax `.dif`、File In Time `.fbk`（rejected）。
+  - 24 个合成客户，保留各源真实 headers / 文件名 / 格式；**所有行均干净有效**（无缺 state、无 typo、
+    无虚构 return type）。逐源 schema 见 [`./realistic-exports/README.md`](./realistic-exports/README.md)。
 
-- Primary upload fixtures 覆盖 TaxDome ZIP、Drake CSV、Karbon XLSX、QuickBooks Online XLSX、
-  File In Time TXT/TSV、CCH Axcess CSV、CCH ProSystem fx Portal CSV、Lacerte `EXPORT.CSV`、
-  ProSeries `Contacts.csv`、UltraTax CSV、ProConnect reporting CSV。
-- Variants 覆盖 QuickBooks Desktop `.iif` accepted path、UltraTax `.dif` unsupported guidance、
-  File In Time `.fbk` backup rejection guidance。
-- 所有文件共用 24 个合成 CPA 客户组合，保留 source-specific headers / file names / formats，
-  同时包含 mixed entities、mixed states、缺 state、`C.A.` 等 review 行。
+简言之：flat CSV 测「脏数据进 pipeline 后会怎样」，realistic-exports 测「真实导出文件能否被正确识别和
+解析」——两者不是同一份数据的新旧版本。
 
 ### 1.2 每个 CSV 的细节
 
@@ -83,22 +86,6 @@ fixture，以及 3 个重要 variant / negative fixture。它们由
 - 无 `State / Entity Type / Tax Types` 列 → 缺 `tax_types` 全量走 Default Matrix fallback（federal-only + needs_review）
 - **坏行 #1**：row 13（Meridian Bay Advisors）Country = `US / CA / Los Angeles County` → Country 列归一告警（不阻塞）
 - 验证：S2-AC4 在缺 tax_types 场景的**兜底路径**（全部客户进 `needs_review`，但导入不阻塞，Obligations 展示 federal 兜底 obligations + 黄色徽章）
-
-#### `karbon-full-flow-demo.csv`
-
-- 列：`Organization Name, Tax ID, Country, State, States, Entity Type, Client Owner & Manager, Email, Tax Types, Estimated Tax Liability, Equity Owner Count, Notes`
-- 26 行：LLC / S-Corp / Partnership / C-Corp / Sole Proprietor / Individual / Trust / Other 均覆盖；
-  辖区覆盖 CA / NY / TX / FL / WA，含 2 个 CA+NY multi-state rows。
-- Karbon 口径：前 8 列使用 Karbon preset/bulk client fields；`Tax Types`、`Estimated Tax Liability`、
-  `Equity Owner Count`、`Notes` 是 practice custom fields，Demo 时可让 AI Mapper 或手动 override
-  映射到 DueDateHQ 目标字段。
-- 故意坏行：
-  - row 8：`Tax ID=99 0004208` + `State=C.A.`，触发 EIN / state review，但 `States=CA` 仍允许继续。
-  - row 11：缺 `State / States`，导入客户但不生成 state-backed obligations。
-  - row 25：缺 `Organization Name`，Step 4 作为 skipped row 展示。
-- 现场演示顺序建议：先在 Rules 中 accept 需要的 FED 和示例州规则，再用本 CSV 跑
-  Migration Wizard；保留部分 `Tax Types` 为空以展示 Default Matrix，非 CA/NY 行用显式 tax types
-  展示 review-heavy state coverage。
 
 #### `quickbooks-20clients.csv`
 
