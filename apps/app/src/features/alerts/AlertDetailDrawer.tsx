@@ -1582,7 +1582,7 @@ export function AlertDetailDrawer({
         {/* Document body — a NON-scrolling content column inside the shared
           scroll wrapper above. `pb-24` buffers the sticky footer so the last
           row never hides behind it. */}
-        <div className="flex flex-col gap-6 bg-background-default px-6 pb-10 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
+        <div className="flex flex-col gap-6 bg-background-default px-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
           {/* Scroll-spy section nav (deadline-tab orientation on one long
             document). Sticky at the scroll viewport top; lighter than the
             deadline pill tabs (text + underline) so it reads as a table of
@@ -1671,12 +1671,14 @@ export function AlertDetailDrawer({
           ) : null}
 
           {detail ? (
-            // 2026-06-15 (Yuqi "bigger and more proper gap between sections"):
-            // inter-section rhythm is gap-10 (40px) to match Pencil MASYz's ~30
-            // Content gap with clear separation between the numbered sections.
-            // The ranked section headers carry the grouping; no dividers (Yuqi
-            // dislikes "just lines").
-            <div className="flex shrink-0 flex-col gap-10">
+            // 2026-06-15 (design-critique pass): inter-section rhythm is gap-8
+            // (32px) — the canonical major-section gap, and the closest step to
+            // Pencil MASYz's ~30px Content gap (the earlier gap-10/40px
+            // overshot it). 32:16 against the section-internal gap-4 keeps a
+            // clean 2:1 between-vs-within ratio. The ranked headers carry the
+            // grouping; no dividers (Yuqi dislikes "just lines"). No trailing
+            // bottom padding — the docking decision footer closes the document.
+            <div className="flex shrink-0 flex-col gap-8">
               {/* SOURCE-HEALTH banner (Pencil c5ArV1) — a `source_status` alert
                   is a monitoring-reliability notice, not a regulatory change:
                   there is nothing to "apply", the action is "go check the
