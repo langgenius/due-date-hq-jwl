@@ -85,11 +85,6 @@ msgstr "{0, plural, one {(# unverified)} other {(# unverified)}}"
 msgid "{0, plural, one {# alert selected} other {# alerts selected}}"
 msgstr "{0, plural, one {# alert selected} other {# alerts selected}}"
 
-#. placeholder {0}: dayAlerts.length
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "{0, plural, one {# alert} other {# alerts}}"
-msgstr "{0, plural, one {# alert} other {# alerts}}"
-
 #. placeholder {0}: detail.evidence.length
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{0, plural, one {# attached} other {# attached}}"
@@ -196,6 +191,11 @@ msgstr "{0, plural, one {# event} other {# events}}"
 #: src/features/alerts/AlertHistoryView.tsx
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# handled} other {# handled}}"
+
+#. placeholder {0}: g.highCount
+#: src/routes/rules.library.tsx
+msgid "{0, plural, one {# high-severity} other {# high-severity}}"
+msgstr "{0, plural, one {# high-severity} other {# high-severity}}"
 
 #. placeholder {0}: notes.length
 #: src/features/alerts/components/AlertTeamNotes.tsx
@@ -1101,6 +1101,10 @@ msgstr "{days, plural, one {in # day} other {in # days}}"
 #: src/components/primitives/due-date-label.tsx
 msgid "{days, plural, one {in #d} other {in #d}}"
 msgstr "{days, plural, one {in #d} other {in #d}}"
+
+#: src/routes/rules.library.tsx
+msgid "{days}d waiting"
+msgstr "{days}d waiting"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -9772,8 +9776,8 @@ msgid "Most overdue open deadline · due {0}"
 msgstr "Most overdue open deadline · due {0}"
 
 #: src/routes/rules.library.tsx
-msgid "Most pending first"
-msgstr "Most pending first"
+msgid "Most urgent first"
+msgstr "Most urgent first"
 
 #. placeholder {0}: pendingBulkStatus.ids.length
 #. placeholder {1}: v2StatusLabels[pendingBulkStatus.status]
@@ -10459,6 +10463,10 @@ msgstr "No forms or vouchers match."
 msgid "No handled alerts match this view."
 msgstr "No handled alerts match this view."
 
+#: src/routes/rules.library.tsx
+msgid "No high-severity"
+msgstr "No high-severity"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No history yet"
 msgstr "No history yet"
@@ -11106,6 +11114,11 @@ msgstr "Official sources — pending rules"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Oldest"
 msgstr "Oldest"
+
+#. placeholder {0}: formatDatePretty(new Date(g.oldest).toISOString())
+#: src/routes/rules.library.tsx
+msgid "oldest {0}"
+msgstr "oldest {0}"
 
 #: src/routes/rules.library.tsx
 msgid "oldest {oldestReviewRelative}"
@@ -13507,6 +13520,7 @@ msgstr "review"
 #: src/features/rules/jurisdiction-rule-table.tsx
 #: src/features/rules/matched-pulse-block.tsx
 #: src/features/workload/workload-page.tsx
+#: src/routes/rules.library.tsx
 msgid "Review"
 msgstr "Review"
 
@@ -16506,7 +16520,6 @@ msgstr "today"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/audit/audit-log-table.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/deadlines-at-a-glance.tsx
@@ -17729,7 +17742,6 @@ msgstr "Yes / no"
 msgid "yesterday"
 msgstr "yesterday"
 
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/audit/audit-log-table.tsx
 msgid "Yesterday"
 msgstr "Yesterday"

@@ -84,11 +84,6 @@ msgstr "{0, plural, one {（# 项未核验）} other {（# 项未核验）}}"
 msgid "{0, plural, one {# alert selected} other {# alerts selected}}"
 msgstr "{0, plural, one {已选择 # 条提醒} other {已选择 # 条提醒}}"
 
-#. placeholder {0}: dayAlerts.length
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "{0, plural, one {# alert} other {# alerts}}"
-msgstr "{0, plural, other {# 条提醒}}"
-
 #. placeholder {0}: detail.evidence.length
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{0, plural, one {# attached} other {# attached}}"
@@ -195,6 +190,11 @@ msgstr "{0, plural, one {# 个事件} other {# 个事件}}"
 #: src/features/alerts/AlertHistoryView.tsx
 msgid "{0, plural, one {# handled} other {# handled}}"
 msgstr "{0, plural, one {# 条已处理} other {# 条已处理}}"
+
+#. placeholder {0}: g.highCount
+#: src/routes/rules.library.tsx
+msgid "{0, plural, one {# high-severity} other {# high-severity}}"
+msgstr "{0, plural, one {# 项高严重度} other {# 项高严重度}}"
 
 #. placeholder {0}: notes.length
 #: src/features/alerts/components/AlertTeamNotes.tsx
@@ -1106,6 +1106,10 @@ msgstr "{days, plural, other {还有 # 天}}"
 #: src/components/primitives/due-date-label.tsx
 msgid "{days, plural, one {in #d} other {in #d}}"
 msgstr "{days, plural, one {# 天后} other {# 天后}}"
+
+#: src/routes/rules.library.tsx
+msgid "{days}d waiting"
+msgstr "已等待 {days} 天"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -9811,8 +9815,8 @@ msgid "Most overdue open deadline · due {0}"
 msgstr "逾期最久的未完成截止日期 · {0} 到期"
 
 #: src/routes/rules.library.tsx
-msgid "Most pending first"
-msgstr "待处理最多优先"
+msgid "Most urgent first"
+msgstr "最紧急优先"
 
 #. placeholder {0}: pendingBulkStatus.ids.length
 #. placeholder {1}: v2StatusLabels[pendingBulkStatus.status]
@@ -10499,6 +10503,10 @@ msgstr "没有匹配的表单或凭单。"
 msgid "No handled alerts match this view."
 msgstr "没有匹配此视图的已处理提醒。"
 
+#: src/routes/rules.library.tsx
+msgid "No high-severity"
+msgstr "无高严重度"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No history yet"
 msgstr "暂无历史记录"
@@ -11153,6 +11161,11 @@ msgstr "官方来源 — 待处理规则"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Oldest"
 msgstr "最早"
+
+#. placeholder {0}: formatDatePretty(new Date(g.oldest).toISOString())
+#: src/routes/rules.library.tsx
+msgid "oldest {0}"
+msgstr "最早 {0}"
 
 #: src/routes/rules.library.tsx
 msgid "oldest {oldestReviewRelative}"
@@ -13571,6 +13584,7 @@ msgstr "预览"
 #: src/features/rules/jurisdiction-rule-table.tsx
 #: src/features/rules/matched-pulse-block.tsx
 #: src/features/workload/workload-page.tsx
+#: src/routes/rules.library.tsx
 msgid "Review"
 msgstr "查看"
 
@@ -16577,7 +16591,6 @@ msgstr "今天"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/audit/audit-log-table.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/deadlines-at-a-glance.tsx
@@ -17806,7 +17819,6 @@ msgstr "Yes / no"
 msgid "yesterday"
 msgstr "昨天"
 
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/audit/audit-log-table.tsx
 msgid "Yesterday"
 msgstr "昨天"

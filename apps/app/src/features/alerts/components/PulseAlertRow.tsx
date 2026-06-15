@@ -7,7 +7,6 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   SparklesIcon,
-  SunIcon,
   UsersIcon,
 } from 'lucide-react'
 
@@ -873,27 +872,21 @@ function startOfFirmDay(iso: string, timeZone: string): string {
 function formatDayHeader(
   dayKey: string,
   timeZone: string,
-  today: string,
 ): {
   label: string
-  weekday: string
-  isToday: boolean
 } {
-  const isToday = dayKey === today
-  // 2026-06-15 (Yuqi "you could design better for the date"): the band now
-  // LEADS with the human day name (Today / Yesterday / weekday) and shows the
-  // calendar date as quiet context — the year is dropped for the current year
-  // (redundant in a recent feed) and kept only for older dates.
+  // 2026-06-15 (Yuqi — Pencil aUZTy "clean up the date header"): the band is a
+  // single quiet date eyebrow — "May 20, 2026", uppercased via CSS — with no
+  // weekday, count, or icon. The date itself is the section marker; the busier
+  // "Wednesday May 20 · 1 alert" treatment is retired.
   const date = new Date(`${dayKey}T12:00:00.000Z`)
-  const sameYear = dayKey.slice(0, 4) === today.slice(0, 4)
-  const dateLabel = new Intl.DateTimeFormat('en-US', {
+  const label = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
-    ...(sameYear ? {} : { year: 'numeric' }),
+    year: 'numeric',
     timeZone,
   }).format(date)
-  const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone }).format(date)
-  return { label: dateLabel, weekday, isToday }
+  return { label }
 }
 
 function PulseAlertList({
@@ -953,7 +946,6 @@ function PulseAlertList({
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
   const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
-  const todayKey = startOfFirmDay(new Date().toISOString(), firmTimezone)
 
   // Panel-open state derives from whether any alert is currently the
   // active one. When panelOpen, every row renders in `compact` mode —
@@ -1026,38 +1018,21 @@ function PulseAlertList({
       {!grouped
         ? alerts.map(renderRow)
         : Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
-            const { label, weekday, isToday } = formatDayHeader(dayKey, firmTimezone, todayKey)
-            const yesterdayKey = (() => {
-              const d = new Date(`${todayKey}T12:00:00.000Z`)
-              d.setUTCDate(d.getUTCDate() - 1)
-              return d.toISOString().slice(0, 10)
-            })()
-            const dayWord = isToday ? t`Today` : dayKey === yesterdayKey ? t`Yesterday` : null
+            const { label } = formatDayHeader(dayKey, firmTimezone)
 
             return (
               <div key={dayKey} className="flex flex-col">
-                {/* Day header — the day-group band carries the same
-                `bg-background-subtle` fill + uppercase label as the
-                /today Actions table's status-group header. The label is
-                text-tertiary: it's a quiet date separator, not a lede, so
-                the lighter tone keeps it from competing with the alert
-                rows beneath it. */}
-                {/* 2026-06-12 (Yuqi #7 "will it be sticky if there are a lot
-                    of alerts in a day?"): yes — the band sticks below the
-                    sticky toolbar (top-12 ≈ its h-9 controls + pb-3) while its
-                    day's rows scroll under, so "when" stays answered on long
-                    days. Requires the frame's overflow-clip (not hidden).
-                    2026-06-12 ("too much gray"): the band fill goes WHITE —
-                    the small-caps label + hairline carry the day break on
-                    their own; the gray slab stacked with the per-row gray
-                    chips into a gray-on-gray wall. Opaque white keeps the
-                    sticky pin masking rows that scroll under. */}
-                <div className="sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-default px-5 py-1.5">
+                {/* Day header (Pencil aUZTy) — a quiet uppercase date eyebrow on
+                    a faint band: "MAY 20, 2026". No weekday, count, or icon —
+                    the date is the section marker. Sticky below the toolbar
+                    (top-12) so "when" stays answered while a day's rows scroll
+                    under it; requires the frame's overflow-clip. The faint
+                    `bg-background-subtle` fill (matching aUZTy) gives a clean
+                    section break without the busier label competing with rows. */}
+                <div className="sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-2">
                   {/* Day select-all (Yuqi: "should a day have a select all
-                      option") — tri-state: checked when every alert in the
-                      day is selected, indeterminate on a partial pick. Sits
-                      in the SAME slot as the row checkboxes below it, which
-                      also keeps the date on the content grid for free. */}
+                      option") — tri-state, in the SAME slot as the row
+                      checkboxes below so the date stays on the content grid. */}
                   {selectable ? (
                     <Checkbox
                       checked={dayAlerts.every((a) => selectedIds?.has(a.id) ?? false)}
@@ -1072,34 +1047,9 @@ function PulseAlertList({
                       className="size-[18px] rounded"
                     />
                   ) : null}
-                  {/* Day head (Yuqi 2026-06-15 "design better for the date"):
-                      LEADS with the human day name — Today / Yesterday /
-                      weekday — at 13/600 secondary, with the calendar date as
-                      quiet tertiary context beside it. Scannable by recency. */}
-                  <div className="flex items-baseline gap-2">
-                    {isToday ? (
-                      <SunIcon
-                        className="size-3 shrink-0 self-center text-text-accent"
-                        aria-hidden
-                      />
-                    ) : null}
-                    <span className="text-sm font-semibold text-text-secondary">
-                      {dayWord ?? weekday}
-                    </span>
-                    <span className="text-xs text-text-tertiary tabular-nums">{label}</span>
-                    {/* Day size sits INLINE with the date, not right-pinned.
-                        Pinned to the far edge it forced the eye across empty
-                        space — "Wednesday May 20 ———— 1 alert" (Yuqi
-                        2026-06-15: "avoid eyes move horizontally … bad
-                        readability"). Grouped left it reads as one quiet
-                        header phrase. */}
-                    <span className="text-text-quaternary" aria-hidden>
-                      ·
-                    </span>
-                    <span className="text-xs text-text-tertiary tabular-nums">
-                      <Plural value={dayAlerts.length} one="# alert" other="# alerts" />
-                    </span>
-                  </div>
+                  <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums">
+                    {label}
+                  </span>
                 </div>
 
                 {/* Alert rows for this day. `compact` propagates from
