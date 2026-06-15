@@ -9,6 +9,7 @@ import {
   ExternalLinkIcon,
   FileTextIcon,
   Loader2,
+  LockIcon,
   OctagonXIcon,
   RotateCcwIcon,
   ShieldCheckIcon,
@@ -1405,10 +1406,20 @@ function CandidateReviewForm({
             disabled={acceptDisabled}
             data-rule-action="accept"
           >
+            {/* Lock when the gate isn't satisfied (TkpJG) — the disabled Accept
+                reads as "locked until ready", not merely greyed. */}
+            {acceptDisabled && !reviewDisabled ? <LockIcon data-icon="inline-start" /> : null}
             <Trans>Accept rule</Trans>
           </Button>
         </div>
       </div>
+      {/* Footer hint (TkpJG) — names what unlocks Accept, so the disabled state
+          reads as a temporary gate rather than a dead end. */}
+      {acceptDisabled && !reviewDisabled ? (
+        <p className="text-xs font-medium text-text-tertiary">
+          <Trans>Accept unlocks once the draft is ready.</Trans>
+        </p>
+      ) : null}
       {confirmImpact ? (
         <ConfirmImpactDialog
           open={confirmOpen}
@@ -1877,20 +1888,19 @@ function AiDraftReviewPanel({
         // it's a pending state, so it reads as informational. The disabled
         // Accept button already communicates "you can't proceed yet"; the
         // message just explains why.
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-col gap-2.5">
           <p className="text-xs text-text-tertiary">{errorMessage}</p>
-          {/* Inline "Generate draft" CTA. Without it, the user could only
-              Skip → revisit → still no draft → Skip again — an infinite
-              loop across the rule queue. Outline button keeps the primary
-              "Accept rule" CTA as the dominant action below; this is the
-              "make Accept possible" pre-action. */}
+          {/* "Generate draft" is the primary, full-width CTA (TkpJG): while
+              Accept is gated on a ready draft, generating it is the real next
+              action, so it leads. Without it the user could only Skip →
+              revisit → still no draft → Skip again. */}
           {onGenerateDraft ? (
             <Button
               type="button"
-              size="xs"
-              variant="outline"
+              size="sm"
               onClick={onGenerateDraft}
               disabled={generating}
+              className="w-full"
             >
               <Astroid data-icon="inline-start" />
               {generating ? <Trans>Generating…</Trans> : <Trans>Generate draft</Trans>}
