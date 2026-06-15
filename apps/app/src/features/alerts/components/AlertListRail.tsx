@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { UsersIcon } from 'lucide-react'
+import { CircleAlertIcon, UsersIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
+
+import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import {
   ListRail,
@@ -236,6 +238,15 @@ function RailItem({
   }).format(published)
   const form = alert.forms[0] ?? null
 
+  // Parity with the main /alerts row (Pencil aUZTy) so the rail speaks the same
+  // visual language — a smooth hand-off from the list into the detail layout:
+  //   • unread dot leads the time column while the alert awaits a decision
+  //   • a low-only confidence pill (Low / Very low) sits in the badge row
+  const unread = alert.status === 'matched' || alert.status === 'partially_applied'
+  const confidenceTier = aiConfidenceTier(alert.confidence)
+  const confidenceFlag: 'low' | 'verylow' | null =
+    confidenceTier === 'high' ? null : confidenceTier === 'medium' ? 'low' : 'verylow'
+
   // Bottom-meta parity with the main /alerts row (PulseAlertRow):
   // affected-clients count (matched + needs-review) and the AI
   // confidence meter. Both read straight off PulseAlertPublic — no
@@ -271,15 +282,29 @@ function RailItem({
           "unselected alerts dimmed — date + badge colours"); hover restores. */}
       <div
         className={cn(
-          'flex w-[60px] shrink-0 flex-col gap-0.5 transition-opacity',
+          'flex w-[64px] shrink-0 flex-col gap-0.5 transition-opacity',
           !active && 'opacity-55 group-hover/rail:opacity-100',
         )}
       >
-        <span className="text-sm font-medium text-text-primary">{dateLabel}</span>
+        {/* Unread dot (Pencil aUZTy) leads the date — accent while the alert
+            awaits a decision; reserves its slot when read so dates stay
+            aligned. Matches the main list's time-rail dot for a smooth
+            hand-off into the detail layout. */}
+        <div className="flex items-center gap-1.5">
+          <span
+            className={cn(
+              'size-1.5 shrink-0 rounded-full',
+              unread ? 'bg-state-accent-solid' : 'bg-transparent',
+            )}
+            aria-hidden
+          />
+          <span className="text-sm font-medium text-text-primary">{dateLabel}</span>
+        </div>
         {/* Two lines only — date + wall-clock. The relative-time third
             line is gone entirely (batch 4 #9): in a date-sorted rail it
-            restated the date column's information as noise. */}
-        <span className="text-caption-xs font-medium tracking-title text-text-tertiary tabular-nums">
+            restated the date column's information as noise. The time aligns
+            under the date (past the dot's reserved slot). */}
+        <span className="pl-3 text-caption-xs font-medium tracking-title text-text-tertiary tabular-nums">
           {timeLabel}
         </span>
       </div>
@@ -312,6 +337,19 @@ function RailItem({
             <ChangeKindIcon changeKind={alert.changeKind} />
             {changeKindLabel(alert.changeKind)}
           </span>
+          {/* Confidence flag (Pencil aUZTy) — same low-only amber pill the main
+              row carries, so a shaky extraction reads the same in both places.
+              High confidence shows nothing. */}
+          {confidenceFlag ? (
+            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-semibold whitespace-nowrap text-text-warning">
+              <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
+              {confidenceFlag === 'verylow' ? (
+                <Trans>Very low confidence</Trans>
+              ) : (
+                <Trans>Low confidence</Trans>
+              )}
+            </span>
+          ) : null}
         </div>
         {/* Title is AA-readable on both states — text-primary when active,
             text-secondary otherwise (never the faint tertiary that read as

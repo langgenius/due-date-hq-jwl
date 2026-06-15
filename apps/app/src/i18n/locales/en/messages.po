@@ -9111,6 +9111,7 @@ msgid "Low AI confidence ({0}%) — verify before you act"
 msgstr "Low AI confidence ({0}%) — verify before you act"
 
 #: src/components/primitives/low-confidence-badge.tsx
+#: src/features/alerts/components/AlertListRail.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Low confidence"
 msgstr "Low confidence"
@@ -17176,6 +17177,7 @@ msgstr "Version conflict"
 msgid "Version history"
 msgstr "Version history"
 
+#: src/features/alerts/components/AlertListRail.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Very low confidence"
 msgstr "Very low confidence"

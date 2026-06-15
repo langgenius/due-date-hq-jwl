@@ -9145,6 +9145,7 @@ msgid "Low AI confidence ({0}%) — verify before you act"
 msgstr "AI 置信度低（{0}%）— 操作前请先核实"
 
 #: src/components/primitives/low-confidence-badge.tsx
+#: src/features/alerts/components/AlertListRail.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Low confidence"
 msgstr "低置信度"
@@ -17251,6 +17252,7 @@ msgstr "版本冲突"
 msgid "Version history"
 msgstr "版本历史"
 
+#: src/features/alerts/components/AlertListRail.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Very low confidence"
 msgstr "极低置信度"
