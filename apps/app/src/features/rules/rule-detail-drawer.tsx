@@ -1457,6 +1457,12 @@ function CandidateReviewForm({
           attempt={acceptAttemptsRef.current}
           retrying={acceptCompleting || isPending}
           onRetry={submitAccept}
+          onReload={() => {
+            // Refetch the rule so the panel re-renders with the latest version,
+            // then dismiss — a subsequent accept sends the fresh expectedVersion.
+            invalidateRules()
+            setAcceptError(null)
+          }}
           onClose={() => setAcceptError(null)}
         />
       ) : null}
@@ -1513,6 +1519,7 @@ export function RuleAcceptErrorDialog({
   attempt,
   retrying,
   onRetry,
+  onReload,
   onClose,
 }: {
   ruleId: string
@@ -1520,10 +1527,21 @@ export function RuleAcceptErrorDialog({
   attempt: number
   retrying: boolean
   onRetry: () => void
+  /** Reload the rule from the server (refetch + close). The recovery for a
+      stale-version conflict, where retrying with the same expected version
+      would just fail again. */
+  onReload?: () => void
   onClose: () => void
 }) {
   const { t } = useLingui()
-  const showCode = error.code !== null && error.code !== error.message
+  // A version conflict (Pencil zVX0E) is a stale-view problem, not a server
+  // failure: someone saved a newer version after this one opened. It reads as
+  // a warning (amber), not an error (red), and the fix is Reload — not Retry,
+  // which would re-send the same stale expected version and fail again.
+  // (No field-level merge UI: the accept RPC doesn't return the conflicting
+  // values, so a side-by-side diff would be fiction.)
+  const isConflict = error.code === 'CONFLICT'
+  const showCode = !isConflict && error.code !== null && error.code !== error.message
   return (
     <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
       <DialogContent
@@ -1533,27 +1551,47 @@ export function RuleAcceptErrorDialog({
         <div className="flex items-center gap-3 border-b border-divider-subtle px-[18px] py-4">
           <span
             aria-hidden
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-state-destructive-hover"
+            className={cn(
+              'flex size-8 shrink-0 items-center justify-center rounded-lg',
+              isConflict ? 'bg-state-warning-hover' : 'bg-state-destructive-hover',
+            )}
           >
-            <TriangleAlertIcon className="size-4 text-text-destructive" />
+            <TriangleAlertIcon
+              className={cn('size-4', isConflict ? 'text-text-warning' : 'text-text-destructive')}
+            />
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <DialogTitle className="text-base font-semibold text-text-primary">
-              <Trans>Couldn't apply rule</Trans>
+              {isConflict ? (
+                <Trans>This rule changed since you opened it</Trans>
+              ) : (
+                <Trans>Couldn't apply rule</Trans>
+              )}
             </DialogTitle>
             <span className="truncate font-mono text-xs font-medium text-text-tertiary">
               {ruleId}
-              {attempt > 1 ? ` · ${t`attempt ${attempt}`}` : ''}
+              {!isConflict && attempt > 1 ? ` · ${t`attempt ${attempt}`}` : ''}
             </span>
           </div>
         </div>
         <div className="flex flex-col gap-3.5 px-[22px] py-5">
           <div className="flex flex-col gap-1.5">
             <p className="text-base font-medium leading-relaxed text-text-secondary">
-              {error.message}
+              {isConflict ? (
+                <Trans>A newer version was saved after you opened this one.</Trans>
+              ) : (
+                error.message
+              )}
             </p>
             <p className="text-xs text-text-tertiary">
-              <Trans>Your draft is preserved — retry, or come back to it later.</Trans>
+              {isConflict ? (
+                <Trans>
+                  Reload to review the latest before accepting — retrying now would apply against an
+                  outdated version.
+                </Trans>
+              ) : (
+                <Trans>Your draft is preserved — retry, or come back to it later.</Trans>
+              )}
             </p>
           </div>
           {showCode ? (
@@ -1568,14 +1606,21 @@ export function RuleAcceptErrorDialog({
           <Button variant="outline" size="sm" onClick={onClose} disabled={retrying}>
             <Trans>Cancel</Trans>
           </Button>
-          <Button size="sm" onClick={onRetry} disabled={retrying}>
-            {retrying ? (
-              <Loader2 data-icon="inline-start" className="animate-spin" />
-            ) : (
+          {isConflict && onReload ? (
+            <Button size="sm" onClick={onReload} disabled={retrying}>
               <RotateCcwIcon data-icon="inline-start" />
-            )}
-            <Trans>Retry</Trans>
-          </Button>
+              <Trans>Reload rule</Trans>
+            </Button>
+          ) : (
+            <Button size="sm" onClick={onRetry} disabled={retrying}>
+              {retrying ? (
+                <Loader2 data-icon="inline-start" className="animate-spin" />
+              ) : (
+                <RotateCcwIcon data-icon="inline-start" />
+              )}
+              <Trans>Retry</Trans>
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
