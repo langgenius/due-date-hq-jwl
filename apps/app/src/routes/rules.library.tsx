@@ -811,7 +811,12 @@ function OverviewReviewBreakdown({
   backlogSeverity,
   onSelectJurisdiction,
 }: {
-  jurisdictions: ReadonlyArray<{ jurisdiction: string; label: string; pendingReviewCount: number }>
+  jurisdictions: ReadonlyArray<{
+    jurisdiction: string
+    label: string
+    pendingReviewCount: number
+    highCount: number
+  }>
   reasonCounts: ReadonlyArray<[RuleReviewTask['reason'], number]>
   backlogSeverity: { high: number; med: number; low: number }
   onSelectJurisdiction: (jurisdiction: string) => void
@@ -852,8 +857,14 @@ function OverviewReviewBreakdown({
               )}
             >
               <StateBadge code={g.jurisdiction} size="sm" preview={false} />
-              <span className="w-36 shrink-0 truncate text-base font-medium text-text-primary">
-                {g.label}
+              <span className="flex w-36 shrink-0 flex-col">
+                <span className="truncate text-base font-medium text-text-primary">{g.label}</span>
+                {/* WHERE the risky ones are — ties the row to "review first". */}
+                {g.highCount > 0 ? (
+                  <span className="truncate text-xs font-medium text-text-warning">
+                    <Plural value={g.highCount} one="# high-risk" other="# high-risk" />
+                  </span>
+                ) : null}
               </span>
               {/* Magnitude bar — fills the row's mid-span (the dead gap before). */}
               <span className="relative hidden h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-background-section sm:block">
@@ -1524,14 +1535,26 @@ export function RulesLibraryRoute() {
   //   gappedJurisdictions    — entity-coverage gaps (the coverage module; only
   //                            shows teeth when something is actually uncovered).
   //   highSeverityPending    — high-risk rules awaiting review ("review first").
-  const topReviewJurisdictions = useMemo(
-    () =>
-      unfilteredGroups
-        .filter((g) => g.pendingReviewCount > 0)
-        .toSorted((a, b) => b.pendingReviewCount - a.pendingReviewCount)
-        .slice(0, 6),
-    [unfilteredGroups],
-  )
+  const topReviewJurisdictions = useMemo(() => {
+    // High-severity pending per jurisdiction — surfaces WHERE the risky ones
+    // sit, so a row tells the CPA not just how many but which to open first.
+    const highByJurisdiction = new Map<string, number>()
+    for (const r of rules) {
+      if ((r.status === 'candidate' || r.status === 'pending_review') && r.riskLevel === 'high') {
+        highByJurisdiction.set(r.jurisdiction, (highByJurisdiction.get(r.jurisdiction) ?? 0) + 1)
+      }
+    }
+    return unfilteredGroups
+      .filter((g) => g.pendingReviewCount > 0)
+      .toSorted((a, b) => b.pendingReviewCount - a.pendingReviewCount)
+      .slice(0, 6)
+      .map((g) => ({
+        jurisdiction: g.jurisdiction,
+        label: g.label,
+        pendingReviewCount: g.pendingReviewCount,
+        highCount: highByJurisdiction.get(g.jurisdiction) ?? 0,
+      }))
+  }, [unfilteredGroups, rules])
   const gappedJurisdictions = useMemo(
     () => unfilteredGroups.filter((g) => g.gapEntities.length > 0),
     [unfilteredGroups],
