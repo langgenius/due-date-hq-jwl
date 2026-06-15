@@ -1903,6 +1903,25 @@ export function RulesLibraryRoute() {
     [rules],
   )
 
+  // How many pending rules are blocked behind an AI concrete draft — a
+  // source-defined rule with no ready draft *cannot* be accepted yet (this is
+  // the server's `source_defined_requires_ai_review` gate, computed here from
+  // the same structural facts so the overview never contradicts the bulk
+  // preview). Lets the entry say "generate drafts first" instead of implying
+  // these are ready to accept. Non-source-defined rules and already-drafted
+  // ones are not counted.
+  const draftGatedPendingCount = useMemo(() => {
+    let n = 0
+    for (const rule of rules) {
+      if (rule.status !== 'candidate' && rule.status !== 'pending_review') continue
+      const target = concreteDraftTargetForRule(rule)
+      if (!target) continue
+      const entry = concreteDraftByTarget.get(concreteDraftTargetKey(target))
+      if (!entry?.draft) n += 1
+    }
+    return n
+  }, [rules, concreteDraftByTarget])
+
   // Ordered list of selected rules that are still in needs-review
   // status. Order matches the order rules appear in `rules` (which is
   // the catalog order — jurisdiction-grouped, then by title) so the
@@ -2712,11 +2731,22 @@ export function RulesLibraryRoute() {
                         other="# rules need your review"
                       />
                     </p>
-                    {/* Action framing, not the date — the oldest-waiting date
-                        is owned by the StatBand's PENDING REVIEW sub, so the
-                        banner doesn't restate it. */}
+                    {/* Sets the real first step. When pending rules are gated
+                        behind an AI draft, "review" starts with generating one
+                        — say so rather than implying they're ready to accept.
+                        (The oldest-waiting date is owned by the StatBand.) */}
                     <p className="truncate text-sm font-medium text-text-tertiary">
-                      <Trans>Review them before they affect client filings</Trans>
+                      {draftGatedPendingCount === 0 ? (
+                        <Trans>Review them before they affect client filings</Trans>
+                      ) : draftGatedPendingCount >= totalPendingReview ? (
+                        <Trans>Each needs an AI draft generated before it can be accepted</Trans>
+                      ) : (
+                        <Plural
+                          value={draftGatedPendingCount}
+                          one="# needs an AI draft before it can be accepted"
+                          other="# need an AI draft before they can be accepted"
+                        />
+                      )}
                     </p>
                   </div>
                   <Button
