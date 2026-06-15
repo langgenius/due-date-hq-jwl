@@ -2402,7 +2402,10 @@ export function RulesLibraryRoute() {
           search={railSearch}
           onSearchChange={setRailSearch}
           temporary={railTemporary}
-          className="hidden lg:flex"
+          // Narrower than the shared 380px ListRail default — jurisdiction
+          // names ("District of Columbia" being the longest) + count fit
+          // comfortably at 300px, giving the rule table more room.
+          className="hidden w-[300px] lg:flex"
         />
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">

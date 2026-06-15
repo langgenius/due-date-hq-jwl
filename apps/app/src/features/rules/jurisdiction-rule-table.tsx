@@ -218,7 +218,18 @@ export function JurisdictionFilterBar({
             label: (
               <span className="inline-flex items-center gap-1.5">
                 <Trans>Review</Trans>
-                <span className="tabular-nums opacity-60">{reviewCount}</span>
+                {/* Pending count reads in the warning tone (matches the rail's
+                    needs-review dot + the StatBand's pending value) so the
+                    Review tab pulls the eye when it carries work. Weight 500,
+                    not bold — red+bold is a banned double-highlight. */}
+                <span
+                  className={cn(
+                    'tabular-nums',
+                    reviewCount > 0 ? 'font-medium text-text-warning' : 'text-text-tertiary',
+                  )}
+                >
+                  {reviewCount}
+                </span>
               </span>
             ),
           },
@@ -227,7 +238,7 @@ export function JurisdictionFilterBar({
             label: (
               <span className="inline-flex items-center gap-1.5">
                 <Trans>Active</Trans>
-                <span className="tabular-nums opacity-60">{activeCount}</span>
+                <span className="tabular-nums text-text-tertiary">{activeCount}</span>
               </span>
             ),
           },
