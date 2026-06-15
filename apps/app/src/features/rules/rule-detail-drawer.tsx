@@ -831,6 +831,7 @@ function RuleBeforeAcceptCard({
       <RuleYearDiff
         ruleId={rule.id}
         expectedVersion={rule.version}
+        bare={flat}
         {...(reviewReason !== undefined ? { reason: reviewReason } : {})}
       />
       {sourceDefined ? (
@@ -838,6 +839,7 @@ function RuleBeforeAcceptCard({
           draft={draft}
           errorMessage={draftPanelMessage}
           generating={(concreteDraftLoading || draftMutation.isPending) && !draft}
+          bare={flat}
           {...(reviewSourceId.length > 0 ? { onGenerateDraft: requestDraft } : {})}
         />
       ) : null}
@@ -845,12 +847,17 @@ function RuleBeforeAcceptCard({
   )
 
   if (flat) {
+    // TkpJG gate: a single bordered box on the rail; the checks read as flat
+    // hairline-separated rows inside it (no nested cards), so there's one
+    // consistent padding level instead of box-in-box.
     return (
-      <section className="flex flex-col gap-2.5 rounded-lg border border-divider-regular px-4 py-3.5">
+      <section className="flex flex-col rounded-lg border border-divider-regular px-4 pt-3.5 pb-3.5">
         <h3 className="text-item-title text-text-primary">
           <Trans>Before you accept</Trans>
         </h3>
-        {checks}
+        <div className="flex flex-col divide-y divide-divider-regular [&>*]:py-3 [&>*:last-child]:pb-0">
+          {checks}
+        </div>
       </section>
     )
   }
@@ -1872,6 +1879,7 @@ function AiDraftReviewPanel({
   errorMessage,
   generating,
   onGenerateDraft,
+  bare = false,
 }: {
   draft: RuleConcreteDraft | null
   errorMessage: string | null
@@ -1883,9 +1891,13 @@ function AiDraftReviewPanel({
    * disabled / pending state.
    */
   onGenerateDraft?: () => void
+  /** Drop the Card box so the check reads as a flat row inside a parent gate
+      (TkpJG), not a nested card. */
+  bare?: boolean
 }) {
+  const Wrapper = bare ? AiDraftBareWrapper : AiDraftCardWrapper
   return (
-    <Card size="sm" tone="muted" radius="md" aria-busy={generating && !draft ? true : undefined}>
+    <Wrapper busy={generating && !draft}>
       <p className="text-xs font-medium text-text-secondary">
         <Trans>AI concrete draft</Trans>
       </p>
@@ -1945,7 +1957,26 @@ function AiDraftReviewPanel({
           <p className="text-xs text-text-tertiary">{draft.reasoning}</p>
         </div>
       ) : null}
+    </Wrapper>
+  )
+}
+
+/** Boxed (default) wrapper for the AI-draft check — a muted Card. */
+function AiDraftCardWrapper({ busy, children }: { busy: boolean; children: React.ReactNode }) {
+  return (
+    <Card size="sm" tone="muted" radius="md" aria-busy={busy ? true : undefined}>
+      {children}
     </Card>
+  )
+}
+
+/** Flat wrapper for the AI-draft check — a bare column inside a parent gate
+    (TkpJG), so it reads as a row, not a nested card. */
+function AiDraftBareWrapper({ busy, children }: { busy: boolean; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2" aria-busy={busy ? true : undefined}>
+      {children}
+    </div>
   )
 }
 

@@ -32,10 +32,14 @@ export function RuleYearDiff({
   ruleId,
   expectedVersion,
   reason,
+  bare = false,
 }: {
   ruleId: string
   expectedVersion: number
   reason?: RuleReviewTaskReason
+  /** Drop the box chrome (border/fill/padding) so the check reads as a flat
+      row inside a parent gate (TkpJG) rather than a nested card. */
+  bare?: boolean
 }) {
   const diffQuery = useQuery({
     ...orpc.rules.diffAgainstPredecessor.queryOptions({
@@ -48,7 +52,12 @@ export function RuleYearDiff({
   if (!diff) return null
 
   return (
-    <section className="flex flex-col gap-2 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2.5">
+    <section
+      className={cn(
+        'flex flex-col gap-2',
+        !bare && 'rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2.5',
+      )}
+    >
       <div className="flex items-center justify-between gap-2">
         <h5 className="text-xs font-semibold text-text-secondary">
           <Trans>Year-over-year</Trans>
