@@ -21,6 +21,7 @@ import {
   LibraryIcon,
   LinkIcon,
   Loader2,
+  LockIcon,
   PlusIcon,
   TriangleAlertIcon,
   RssIcon,
@@ -4913,6 +4914,32 @@ function BulkReviewListModal({
   const substantive = preview?.classificationCounts.substantive ?? 0
   const skippedTotal = preview?.skipped.length ?? 0
 
+  // When every selected rule shares one jurisdiction, name it in the
+  // subtitle (Pencil Fzzoq: "Reviewing N rules in Arkansas").
+  const singleJurisdiction = useMemo(() => {
+    const first = rules[0]
+    const set = new Set(rules.map((r) => r.jurisdiction))
+    return set.size === 1 && first ? jurisdictionLabel(first.jurisdiction) : null
+  }, [rules])
+  // Blocked-batch banner: the impact preview reports nothing acceptable.
+  // Elevated from the footer caption to a top banner (Pencil) because it's
+  // the dominant fact about this batch. When the only thing standing between
+  // these rules and acceptance is a missing AI draft, say exactly that.
+  const noneReady = Boolean(preview) && readyCount === 0 && included.length > 0
+  const allNeedAiDraft =
+    noneReady &&
+    included.every((r) => skippedReasonById.get(r.id) === 'source_defined_requires_ai_review')
+
+  // Select-all re-includes every row; Clear excludes every row.
+  const selectAll = () => {
+    setRejectArmed(false)
+    setExcluded(new Set())
+  }
+  const clearAll = () => {
+    setRejectArmed(false)
+    setExcluded(new Set(rules.map((r) => r.id)))
+  }
+
   return (
     <Dialog open onOpenChange={(next) => (next || busy ? undefined : onClose())}>
       <DialogContent
@@ -4923,7 +4950,7 @@ function BulkReviewListModal({
         <div className="flex items-center gap-3 border-b border-divider-subtle px-5 py-4">
           <span
             aria-hidden
-            className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-state-accent-hover"
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover"
           >
             <LayersIcon className="size-[18px] text-text-accent" />
           </span>
@@ -4935,7 +4962,17 @@ function BulkReviewListModal({
               {/* One source of truth for "how many": the ticked rows below.
                   Header, Reject N, and the impact preview all read
                   `included` — unticking a row moves every number together. */}
-              <Plural value={included.length} one="# rule selected" other="# rules selected" />
+              {singleJurisdiction ? (
+                // Trans-ternary (not <Plural> with an interpolated prop, which
+                // renders blank) — plural + variable per the lingui footgun.
+                included.length === 1 ? (
+                  <Trans>Reviewing 1 rule in {singleJurisdiction}</Trans>
+                ) : (
+                  <Trans>Reviewing {included.length} rules in {singleJurisdiction}</Trans>
+                )
+              ) : (
+                <Plural value={included.length} one="# rule selected" other="# rules selected" />
+              )}
             </p>
           </div>
           <button
@@ -4947,6 +4984,66 @@ function BulkReviewListModal({
           >
             <XIcon className="size-4" aria-hidden />
           </button>
+        </div>
+
+        {/* Blocked-batch banner (Pencil Fzzoq) — when the impact preview
+            reports nothing acceptable, surface why at the top instead of
+            burying it in the footer caption. */}
+        {noneReady ? (
+          <div className="flex items-start gap-2.5 border-b border-divider-subtle bg-state-warning-hover px-5 py-3">
+            <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
+            <div className="flex min-w-0 flex-col gap-0.5">
+              {allNeedAiDraft ? (
+                <>
+                  <p className="text-sm font-medium text-text-warning">
+                    <Trans>None of these can be accepted yet — each needs an AI concrete draft.</Trans>
+                  </p>
+                  <p className="text-xs text-text-secondary">
+                    <Trans>Reject them here, or close and generate drafts first.</Trans>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-text-warning">
+                    <Trans>None of these rules can be bulk-accepted.</Trans>
+                  </p>
+                  <p className="text-xs text-text-secondary">
+                    <Trans>Reject them here, or open each rule to review it individually.</Trans>
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Bulk-select controls — count + select-all / clear (Pencil Fzzoq). */}
+        <div className="flex items-center justify-between gap-3 border-b border-divider-subtle px-5 py-2.5">
+          <span className="text-xs font-medium text-text-secondary tabular-nums">
+            <Trans>
+              {included.length} of {rules.length} selected
+            </Trans>
+          </span>
+          <div className="flex items-center gap-2 text-xs">
+            <button
+              type="button"
+              onClick={selectAll}
+              disabled={busy || included.length === rules.length}
+              className="cursor-pointer font-medium text-text-accent outline-none hover:underline focus-visible:underline disabled:cursor-not-allowed disabled:text-text-muted disabled:no-underline"
+            >
+              <Trans>Select all</Trans>
+            </button>
+            <span aria-hidden className="text-text-muted">
+              ·
+            </span>
+            <button
+              type="button"
+              onClick={clearAll}
+              disabled={busy || included.length === 0}
+              className="cursor-pointer font-medium text-text-accent outline-none hover:underline focus-visible:underline disabled:cursor-not-allowed disabled:text-text-muted disabled:no-underline"
+            >
+              <Trans>Clear</Trans>
+            </button>
+          </div>
         </div>
 
         {/* Selected-rules list — per-row readiness/risk flag + open-detail. */}
@@ -5123,6 +5220,9 @@ function BulkReviewListModal({
           <Button type="button" size="sm" onClick={handleAccept} disabled={!canAccept}>
             {acceptMutation.isPending ? (
               <Loader2 data-icon="inline-start" className="animate-spin" />
+            ) : !canAccept && !busy ? (
+              // Locked Accept reads as gated (TkpJG/Fzzoq), not merely greyed.
+              <LockIcon data-icon="inline-start" />
             ) : (
               <ShieldCheck data-icon="inline-start" />
             )}
