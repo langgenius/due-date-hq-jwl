@@ -834,16 +834,20 @@ function OverviewRecentChangesCard({
             a lone grey line stranded in the dashboard's lower half. The feed
             stays windowed to 30 days — surfacing older changes here would
             contradict the "Changed (30d)" stat, the data-consistency breach
-            this page guards against — so the empty state stays honest. */}
+            this page guards against — so the empty state stays honest.
+            Copy is scoped strictly to *changes* (source/content updates), NOT
+            overall status: claiming the library is "current"/"caught up" would
+            contradict the pending-review backlog in the banner above — review
+            status and change activity are different things. */}
         <EmptyState
           density="compact"
           icon={CircleCheck}
           iconTone="neutral"
-          title={<Trans>No changes in the last 30 days</Trans>}
+          title={<Trans>No rule changes in the last 30 days</Trans>}
           description={
             lastChangeAt !== null ? (
               <Trans>
-                Your rule library is current. Last change{' '}
+                The most recent rule or source change was{' '}
                 {formatDatePretty(new Date(lastChangeAt).toISOString())}.
               </Trans>
             ) : (

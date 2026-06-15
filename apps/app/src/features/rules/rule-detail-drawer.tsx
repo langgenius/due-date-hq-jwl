@@ -293,7 +293,9 @@ function FactChip({ label, value }: { label: string; value: React.ReactNode }) {
       <span className="text-caption-xs font-bold tracking-wide text-text-muted uppercase">
         {label}
       </span>
-      <span className="min-w-0 truncate text-base font-medium text-text-primary">{value}</span>
+      {/* Value is text-sm (not text-base): a data value must read quieter than
+          the text-base/600 card title above it, not compete with it. */}
+      <span className="min-w-0 truncate text-sm font-medium text-text-primary">{value}</span>
     </span>
   )
 }
@@ -305,6 +307,30 @@ function FactRow({ label, children }: { label: React.ReactNode; children: React.
       <dt className="shrink-0 text-text-tertiary">{label}</dt>
       <dd className="min-w-0 text-right text-text-primary">{children}</dd>
     </div>
+  )
+}
+
+/**
+ * `ReviewZone` — a labeled group of cards in the full-window review modal's
+ * columns layout. The quiet eyebrow label gives the card stack a name and a
+ * clear reading order — the masonry it replaced had neither.
+ */
+function ReviewZone({
+  label,
+  className,
+  children,
+}: {
+  label: React.ReactNode
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className={cn('flex min-w-0 flex-col gap-3', className)}>
+      <p className="px-0.5 text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+        {label}
+      </p>
+      {children}
+    </section>
   )
 }
 
@@ -352,204 +378,231 @@ export function RuleDetailCompact({
   // section is its own bar-header DisclosureCard, collapsed to a scannable
   // summary; the reviewer opts into depth per section. The Decision surface
   // (CandidateReviewSection) is the always-expanded commit footer.
-  return (
-    <div
-      className={cn(
-        'min-w-0',
-        columns
-          ? // Balanced CSS columns so the whole rule reads without scrolling.
-            // Capped at 4 columns: balance is floored by the tallest single
-            // card (break-inside-avoid), so 5–6 columns barely shorten the
-            // stack while cramping each card (clipped chips, overlapping
-            // badges). The scroll-free fit comes from the trimmed hero/footer
-            // + tighter body padding instead.
-            'gap-3 [column-fill:balance] sm:columns-2 [&>*]:mb-3 [&>*]:break-inside-avoid lg:columns-3 xl:columns-4'
-          : 'flex flex-col gap-[18px]',
-      )}
-    >
-      {/* Applicability — 3 labeled chips (irBJ8); detail = full facts grid. */}
-      <DisclosureCard
-        title={<Trans>Applicability</Trans>}
-        meta={<Trans>Verify before Accept</Trans>}
-        moreLabel={<Trans>Show all fields</Trans>}
-        summary={
-          <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-            <FactChip label={t`Entity`} value={entitySummary} />
-            <FactChip label={t`Files`} value={rule.formName} />
-            <FactChip
-              label={t`Effective`}
-              value={formatDatePretty(rule.verifiedAt, { alwaysShowYear: true })}
-            />
-          </div>
-        }
-        detail={
-          <dl className="flex flex-col gap-2 text-sm">
-            <FactRow label={t`Entities`}>{entitySummary}</FactRow>
-            <FactRow label={t`Form`}>{rule.formName}</FactRow>
-            <FactRow label={t`Event`}>{formatEnumLabel(rule.eventType)}</FactRow>
-            <FactRow label={t`Tax year`}>
-              <span className="font-mono tabular-nums">
-                {rule.taxYear}–{rule.applicableYear}
-              </span>
-            </FactRow>
-          </dl>
-        }
-      />
+  const isReview = rule.status === 'candidate' || rule.status === 'pending_review'
 
-      {/* Due date logic — humanized summary in a highlighted block (irBJ8);
-          detail = extension policy. */}
-      <DisclosureCard
-        title={<Trans>Due date logic</Trans>}
-        meta={formatEnumLabel(rule.dueDateLogic.kind)}
-        moreLabel={<Trans>View extension rules</Trans>}
-        summary={
-          rule.dueDateLogic.kind === 'fixed_date' ? (
-            // irBJ8 "Due {date}" block — concrete date + holiday-rollover hint.
-            <div className="flex flex-col gap-1 rounded-lg bg-background-section px-3.5 py-3">
-              <span className="font-mono text-lg font-bold text-text-primary">
-                <Trans>
-                  Due {formatDatePretty(rule.dueDateLogic.date, { alwaysShowYear: true })}
-                </Trans>
-              </span>
-              <span className="text-xs font-medium text-text-secondary">
-                {rule.dueDateLogic.holidayRollover === 'next_business_day' ? (
-                  <Trans>Weekend → next business day</Trans>
-                ) : (
-                  <Trans>Holidays: uses the source&apos;s published calendar</Trans>
-                )}
-              </span>
-            </div>
-          ) : (
-            <div className="rounded-lg bg-background-section px-3.5 py-3 text-sm text-text-primary">
-              {dueDateSummary}
-            </div>
-          )
-        }
-        detail={
-          <div className="flex flex-col gap-1.5">
-            <span className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
-              <Trans>Extension</Trans>
+  // Each section is built once as a const so the modal (columns) and the batch
+  // drawer (stack) can arrange the SAME cards differently without duplicating
+  // their JSX.
+  const applicabilityCard = (
+    // Applicability — 3 labeled chips (irBJ8); detail = full facts grid.
+    <DisclosureCard
+      title={<Trans>Applicability</Trans>}
+      meta={<Trans>Verify before Accept</Trans>}
+      moreLabel={<Trans>Show all fields</Trans>}
+      summary={
+        <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+          <FactChip label={t`Entity`} value={entitySummary} />
+          <FactChip label={t`Files`} value={rule.formName} />
+          <FactChip
+            label={t`Effective`}
+            value={formatDatePretty(rule.verifiedAt, { alwaysShowYear: true })}
+          />
+        </div>
+      }
+      detail={
+        <dl className="flex flex-col gap-2 text-sm">
+          <FactRow label={t`Entities`}>{entitySummary}</FactRow>
+          <FactRow label={t`Form`}>{rule.formName}</FactRow>
+          <FactRow label={t`Event`}>{formatEnumLabel(rule.eventType)}</FactRow>
+          <FactRow label={t`Tax year`}>
+            <span className="font-mono tabular-nums">
+              {rule.taxYear}–{rule.applicableYear}
             </span>
-            <div className="text-sm">
-              <ExtensionCompact policy={rule.extensionPolicy} />
-            </div>
-          </div>
-        }
-      />
+          </FactRow>
+        </dl>
+      }
+    />
+  )
 
-      {/* Evidence — summary = primary source; detail = remaining sources. */}
-      <DisclosureCard
-        title={<Trans>Evidence</Trans>}
-        meta={<Plural value={rule.evidence.length} one="# source" other="# sources" />}
-        moreLabel={
-          <Plural
-            value={restEvidence.length}
-            one="View # more source"
-            other="View # more sources"
-          />
-        }
-        summary={
-          primaryEvidence ? (
-            <RuleEvidenceCard
-              evidence={primaryEvidence}
-              source={sourceLookup.get(primaryEvidence.sourceId)}
-              isPrimary
-            />
-          ) : (
-            <p className="text-sm text-text-tertiary">
-              <Trans>No evidence recorded.</Trans>
-            </p>
-          )
-        }
-        detail={
-          restEvidence.length > 0 ? (
-            <div className="flex min-w-0 flex-col gap-1.5">
-              {restEvidence.map((evidence) => (
-                <RuleEvidenceCard
-                  key={evidenceKey(evidence)}
-                  evidence={evidence}
-                  source={sourceLookup.get(evidence.sourceId)}
-                />
-              ))}
-            </div>
-          ) : undefined
-        }
-      />
-
-      {/* Impact — estimated client obligations accepting would generate (the
-          real previewRuleImpact count only; the canvas's "N clients / +X%
-          coverage" aren't backed by the API, so they're dropped). Review
-          context only — for an already-active rule the accept-impact is moot. */}
-      {rule.status === 'candidate' || rule.status === 'pending_review' ? (
-        <RuleImpactCard rule={rule} />
-      ) : null}
-
-      {/* Practice review — team-note composer + thread (irBJ8). Review only;
-          hidden on bulk surfaces (they own the note workflow). */}
-      {!hideReviewAids && (rule.status === 'candidate' || rule.status === 'pending_review') ? (
-        <RulePracticeReviewCard rule={rule} />
-      ) : null}
-
-      {/* Activity — summary = current version; detail = full audit timeline. */}
-      <DisclosureCard
-        title={<Trans>Activity</Trans>}
-        meta={<span className="font-mono tabular-nums">v{rule.version}</span>}
-        moreLabel={<Trans>Show all events</Trans>}
-        summary={
-          <p className="text-sm text-text-secondary">
-            <Trans>
-              Currently on version {rule.version}. Expand for the full edit + review history.
-            </Trans>
-          </p>
-        }
-        detail={
-          <EntityAuditActivityPanel
-            entityType="rule"
-            entityId={rule.id}
-            // Same contract as RuleVersionHistorySection: history is
-            // complete or it contradicts the Practice-review card below.
-            range="all"
-            emptyTitle={<Trans>No audited rule changes yet</Trans>}
-            emptyDescription={
+  const dueDateCard = (
+    // Due date logic — humanized summary in a highlighted block (irBJ8);
+    // detail = extension policy.
+    <DisclosureCard
+      title={<Trans>Due date logic</Trans>}
+      meta={formatEnumLabel(rule.dueDateLogic.kind)}
+      moreLabel={<Trans>View extension rules</Trans>}
+      summary={
+        rule.dueDateLogic.kind === 'fixed_date' ? (
+          // irBJ8 "Due {date}" block — concrete date + holiday-rollover hint.
+          <div className="flex flex-col gap-1 rounded-lg bg-background-section px-3.5 py-3">
+            <span className="font-mono text-lg font-bold text-text-primary">
               <Trans>
-                Edits, version bumps, and review decisions for this rule will appear here.
+                Due {formatDatePretty(rule.dueDateLogic.date, { alwaysShowYear: true })}
               </Trans>
-            }
+            </span>
+            <span className="text-xs font-medium text-text-secondary">
+              {rule.dueDateLogic.holidayRollover === 'next_business_day' ? (
+                <Trans>Weekend → next business day</Trans>
+              ) : (
+                <Trans>Holidays: uses the source&apos;s published calendar</Trans>
+              )}
+            </span>
+          </div>
+        ) : (
+          <div className="rounded-lg bg-background-section px-3.5 py-3 text-sm text-text-primary">
+            {dueDateSummary}
+          </div>
+        )
+      }
+      detail={
+        <div className="flex flex-col gap-1.5">
+          <span className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
+            <Trans>Extension</Trans>
+          </span>
+          <div className="text-sm">
+            <ExtensionCompact policy={rule.extensionPolicy} />
+          </div>
+        </div>
+      }
+    />
+  )
+
+  const evidenceCard = (
+    // Evidence — summary = primary source; detail = remaining sources.
+    <DisclosureCard
+      title={<Trans>Evidence</Trans>}
+      meta={<Plural value={rule.evidence.length} one="# source" other="# sources" />}
+      moreLabel={
+        <Plural value={restEvidence.length} one="View # more source" other="View # more sources" />
+      }
+      summary={
+        primaryEvidence ? (
+          <RuleEvidenceCard
+            evidence={primaryEvidence}
+            source={sourceLookup.get(primaryEvidence.sourceId)}
+            isPrimary
           />
-        }
-      />
+        ) : (
+          <p className="text-sm text-text-tertiary">
+            <Trans>No evidence recorded.</Trans>
+          </p>
+        )
+      }
+      detail={
+        restEvidence.length > 0 ? (
+          <div className="flex min-w-0 flex-col gap-1.5">
+            {restEvidence.map((evidence) => (
+              <RuleEvidenceCard
+                key={evidenceKey(evidence)}
+                evidence={evidence}
+                source={sourceLookup.get(evidence.sourceId)}
+              />
+            ))}
+          </div>
+        ) : undefined
+      }
+    />
+  )
 
-      {/* Reviewed-rule metadata (Reviewed by / at) — self-gates on
-          reviewedAt, so candidates (not yet reviewed) skip it. Restores the
-          old Sheet body's VerificationSection in the new card modal. */}
-      <VerificationSection rule={rule} />
+  // Impact — estimated client obligations accepting would generate (real
+  // previewRuleImpact count only). Review context only.
+  const impactCard = isReview ? <RuleImpactCard rule={rule} /> : null
 
-      {/* Before you accept — pre-accept checks (year-over-year + AI draft),
-          lifted out of the slim Decision footer (irBJ8). Review context only.
-          (Kept on bulk surfaces too — the AI-draft panel is the accept gate.) */}
-      {rule.status === 'candidate' || rule.status === 'pending_review' ? (
-        <RuleBeforeAcceptCard
-          rule={rule}
-          concreteDraft={concreteDraft ?? null}
-          concreteDraftLoading={concreteDraftLoading}
-          {...(reviewReason !== undefined ? { reviewReason } : {})}
+  // Practice review — team-note composer + thread (irBJ8). Review only;
+  // hidden on bulk surfaces (they own the note workflow).
+  const practiceCard = !hideReviewAids && isReview ? <RulePracticeReviewCard rule={rule} /> : null
+
+  const activityCard = (
+    // Activity — summary = current version; detail = full audit timeline.
+    <DisclosureCard
+      title={<Trans>Activity</Trans>}
+      meta={<span className="font-mono tabular-nums">v{rule.version}</span>}
+      moreLabel={<Trans>Show all events</Trans>}
+      summary={
+        <p className="text-sm text-text-secondary">
+          <Trans>
+            Currently on version {rule.version}. Expand for the full edit + review history.
+          </Trans>
+        </p>
+      }
+      detail={
+        <EntityAuditActivityPanel
+          entityType="rule"
+          entityId={rule.id}
+          range="all"
+          emptyTitle={<Trans>No audited rule changes yet</Trans>}
+          emptyDescription={
+            <Trans>
+              Edits, version bumps, and review decisions for this rule will appear here.
+            </Trans>
+          }
         />
-      ) : null}
+      }
+    />
+  )
 
-      {/* Decision — the always-expanded commit footer. Omitted when the
-          modal renders it as a sticky footer (hideDecision). */}
-      {hideDecision ? null : (
-        <CandidateReviewSection
-          key={rule.id}
-          rule={rule}
-          concreteDraft={concreteDraft ?? null}
-          concreteDraftLoading={concreteDraftLoading}
-          deferQueryInvalidation={deferQueryInvalidation}
-          confirmImpact={confirmImpact}
-          {...(reviewReason !== undefined ? { reviewReason } : {})}
-          {...(onActionComplete ? { onActionComplete } : {})}
-        />
-      )}
+  // Reviewed-rule metadata (Reviewed by / at) — self-gates on reviewedAt, so
+  // candidates render nothing here.
+  const verificationCard = <VerificationSection rule={rule} />
+
+  // Before you accept — the accept gate (year-over-year + AI draft). Review
+  // context only.
+  const beforeAcceptCard = isReview ? (
+    <RuleBeforeAcceptCard
+      rule={rule}
+      concreteDraft={concreteDraft ?? null}
+      concreteDraftLoading={concreteDraftLoading}
+      {...(reviewReason !== undefined ? { reviewReason } : {})}
+    />
+  ) : null
+
+  // Decision — always-expanded commit footer. Omitted when the modal renders
+  // it as a sticky footer (hideDecision).
+  const decisionCard = hideDecision ? null : (
+    <CandidateReviewSection
+      key={rule.id}
+      rule={rule}
+      concreteDraft={concreteDraft ?? null}
+      concreteDraftLoading={concreteDraftLoading}
+      deferQueryInvalidation={deferQueryInvalidation}
+      confirmImpact={confirmImpact}
+      {...(reviewReason !== undefined ? { reviewReason } : {})}
+      {...(onActionComplete ? { onActionComplete } : {})}
+    />
+  )
+
+  // Columns mode (full-window modal): three labeled zones in a row so the panel
+  // reads as a structured decision surface — Verify the facts · Impact &
+  // readiness (the accept gate sits here, nearest the footer action) · Your
+  // review. Each zone is a vertical stack in a fixed left→right reading order,
+  // replacing the masonry whose height-balancing scrambled the order and buried
+  // the accept gate in a corner. Stacks to one column below `lg`.
+  if (columns) {
+    return (
+      <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-start lg:gap-4">
+        <ReviewZone label={t`Verify the facts`} className="lg:flex-[1.2]">
+          {applicabilityCard}
+          {dueDateCard}
+          {evidenceCard}
+        </ReviewZone>
+        {impactCard || beforeAcceptCard ? (
+          <ReviewZone label={t`Impact & readiness`} className="lg:flex-1">
+            {impactCard}
+            {beforeAcceptCard}
+          </ReviewZone>
+        ) : null}
+        <ReviewZone label={t`Your review`} className="lg:flex-1">
+          {practiceCard}
+          {activityCard}
+          {verificationCard}
+        </ReviewZone>
+      </div>
+    )
+  }
+
+  // Stacked mode (batch-review drawer): one vertical column in source order,
+  // including the inline Decision footer.
+  return (
+    <div className="flex min-w-0 flex-col gap-[18px]">
+      {applicabilityCard}
+      {dueDateCard}
+      {evidenceCard}
+      {impactCard}
+      {practiceCard}
+      {activityCard}
+      {verificationCard}
+      {beforeAcceptCard}
+      {decisionCard}
     </div>
   )
 }
