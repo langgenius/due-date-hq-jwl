@@ -117,11 +117,19 @@ export const SearchInput = forwardRef(function SearchInput(
           }}
         />
       ) : null}
-      <div className={cn('relative', className)}>
+      <div className={cn('group relative', className)}>
         <SearchIcon
           aria-hidden
           className={cn(
-            'pointer-events-none absolute top-1/2 -translate-y-1/2 text-text-tertiary',
+            // 2026-06-14 (Yuqi "microinteraction for search"): the icon is the
+            // anchor that says "search", so it acknowledges interaction. Rest =
+            // tertiary; focus-within OR a typed value promotes it to secondary
+            // via transition-colors. For the flat `compact` rail (no border/ring
+            // focus chrome) this is the ONLY focus affordance — a quiet darkening
+            // rather than a fill, so the bar stays clean. Collapses to instant
+            // under prefers-reduced-motion (global transition-duration override).
+            'pointer-events-none absolute top-1/2 -translate-y-1/2 transition-colors duration-150 group-focus-within:text-text-secondary',
+            value ? 'text-text-secondary' : 'text-text-tertiary',
             // 2026-06-11 (Yuqi rail feedback): compact icon sits flush at the
             // left so the search reads as a clean inline bar, not an inset field.
             variant === 'compact' ? 'left-0 size-3.5' : 'left-2.5 size-4',
@@ -161,7 +169,12 @@ export const SearchInput = forwardRef(function SearchInput(
             aria-label={t`Clear search`}
             onClick={() => onChange('')}
             className={cn(
-              'absolute top-1/2 inline-flex -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+              'absolute top-1/2 inline-flex -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm text-text-tertiary transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+              // 2026-06-14 (Yuqi "microinteraction for search"): the clear button
+              // used to pop in the instant a character landed. Fade + 95% zoom-in
+              // on mount so it arrives, rather than blinks. ~150ms (Doherty/sidebar
+              // cadence). No exit animation — clearing should feel instant.
+              'animate-in fade-in zoom-in-95 duration-150 ease-out',
               variant === 'compact' ? 'right-0 size-5' : 'right-2 size-6',
             )}
           >
@@ -176,7 +189,7 @@ export const SearchInput = forwardRef(function SearchInput(
           // single character ('/') is the convention.
           <span
             aria-hidden
-            className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
+            className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 animate-in fade-in duration-150"
           >
             {/* 2026-06-11 (keyboard-focus audit): hand-rolled <kbd> recipe
                 converged on the canonical Kbd pattern — one keycap look
