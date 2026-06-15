@@ -38,7 +38,6 @@ import {
   type ObligationStatus,
 } from '@/features/obligations/status-control'
 
-import { TabSection } from './ClientFactsWorkspace'
 import type { ClientWorkPlanSummary } from './client-detail-model'
 
 type FilingPlanYearGroup = {
@@ -281,11 +280,9 @@ export function ClientWorkPlanPanel({
     },
     [selectedIds],
   )
-  // The Filing plan heading goes through TabSection so it sits on the
-  // same h2 / subtitle baseline as every other section header on this
-  // client detail page.
-  //
-  // The subtitle carries only the structural fact — *how* the rows are
+  // The subtitle is the only header text the filing plan renders (the
+  // tab names the surface, so no h2). It carries only the structural
+  // fact — *how* the rows are
   // grouped, not how many — so the SummaryStrip "Open filing" tile
   // ~100px above stays the single source of truth for the count. Two
   // counts that close together with slightly-different denominators
@@ -300,7 +297,14 @@ export function ClientWorkPlanPanel({
       <Trans>Grouped by tax year, newest first</Trans>
     )
   return (
-    <TabSection title={t`Filing plan`} summary={subtitle}>
+    // No restated "Filing plan" h2 here: the tab bar already names this
+    // surface "Filing plan" and each year card carries its year + open
+    // count, so a section heading would just echo the active tab (the
+    // redundant-header anti-pattern). Only the quiet grouping hint (sort
+    // order) survives — `pl-3`/`gap-3` keep the workbench gutter + rhythm
+    // that TabSection used to supply.
+    <section className="flex flex-col gap-3">
+      <span className="pl-3 text-xs text-text-tertiary">{subtitle}</span>
       {/* Each year section is wrapped in its own framed block using
           the canonical `rounded-lg border-divider-regular
           bg-background-default` shape. The column header bar lives
@@ -413,7 +417,7 @@ export function ClientWorkPlanPanel({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </TabSection>
+    </section>
   )
 }
 

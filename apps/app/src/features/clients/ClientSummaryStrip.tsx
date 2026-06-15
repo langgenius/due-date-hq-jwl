@@ -70,7 +70,7 @@ export function ClientSummaryStrip({
             {jurisdictions.map((code) => (
               <span key={code} className="inline-flex items-center gap-1">
                 <StateBadge code={code} size="xs" preview={false} />
-                <span className="text-base font-semibold text-text-secondary">{code}</span>
+                <span className="text-sm font-medium text-text-secondary">{code}</span>
               </span>
             ))}
           </span>

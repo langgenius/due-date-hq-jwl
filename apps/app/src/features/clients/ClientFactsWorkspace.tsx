@@ -242,34 +242,35 @@ function NextDueRelativeLabel({ iso }: { iso: string }) {
     return <span className="text-text-tertiary">{iso}</span>
   }
   const days = Math.ceil((dueTs - Date.now()) / 86_400_000)
-  // The relative-due label is `text-sm font-semibold`. The next-due
-  // date is the PRIMARY scannable data on the directory — the single
-  // most important thing a CPA reads per row — so it's the row's
-  // loudest cell value. Copy matches the /deadlines DUE column —
+  // The relative-due label is `text-sm font-medium` (500 — "key data"
+  // weight). The next-due date is the PRIMARY scannable data on the
+  // directory, but COLOR (red/amber) carries the urgency, not weight:
+  // red + 600 would double-highlight, which the type-weight rule bans.
+  // Copy matches the /deadlines DUE column —
   // verbose "# days late" / "# days" form.
   if (days < 0) {
     return (
-      <span className="whitespace-nowrap text-sm font-semibold text-text-destructive tabular-nums">
+      <span className="whitespace-nowrap text-sm font-medium text-text-destructive tabular-nums">
         <Plural value={Math.abs(days)} one="# day late" other="# days late" />
       </span>
     )
   }
   if (days === 0) {
     return (
-      <span className="whitespace-nowrap text-sm font-semibold text-text-warning">
+      <span className="whitespace-nowrap text-sm font-medium text-text-warning">
         <Trans>Today</Trans>
       </span>
     )
   }
   if (days <= 7) {
     return (
-      <span className="whitespace-nowrap text-sm font-semibold text-text-warning tabular-nums">
+      <span className="whitespace-nowrap text-sm font-medium text-text-warning tabular-nums">
         <Plural value={days} one="in # day" other="in # days" />
       </span>
     )
   }
   return (
-    <span className="whitespace-nowrap text-sm font-semibold text-text-primary">
+    <span className="whitespace-nowrap text-sm font-medium text-text-primary">
       {formatDatePretty(iso)}
     </span>
   )

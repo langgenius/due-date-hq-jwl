@@ -835,8 +835,11 @@ export function ClientDetailWorkspace({
                 <ClientDetailTabTrigger value="work" activeTab={activeTab} compact={panelOpen}>
                   <ClipboardListIcon className="size-3.5" aria-hidden />
                   <span data-tab-label className="inline-flex items-center gap-1.5">
-                    {/* Pencil VtC73: "Filings" + a count pill of the plan's rows. */}
-                    <Trans>Filings</Trans>
+                    {/* "Filing plan" (not "Filings") so the tab matches the
+                        section heading, the hotkey registry ("Filing plan
+                        tab"), and the URL-intent comment above — one noun for
+                        one surface. A count pill of the plan's rows trails. */}
+                    <Trans>Filing plan</Trans>
                     {!panelOpen && obligations.length > 0 ? (
                       <Badge
                         variant="secondary"
@@ -1297,7 +1300,7 @@ function ClientDetailRail({
       : []
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-[18px] overflow-y-auto">
+    <div className="flex w-full min-w-0 flex-col gap-5 overflow-y-auto">
       {/* Active alerts — per-client signals; most urgent, so they lead the
           rail. Reuses <ClientActiveAlertsSection>; self-suppresses at zero. */}
       <ClientActiveAlertsSection
@@ -1316,7 +1319,7 @@ function ClientDetailRail({
           (Filed-YTD / outstanding-tasks / last-filed + the Engagement card
           were already removed earlier as unbacked-by-contract.) */}
       {/* Contacts card */}
-      <section className="flex flex-col gap-[14px] rounded-xl border border-divider-regular bg-background-default p-[18px]">
+      <section className="flex flex-col gap-3.5 rounded-xl border border-divider-regular bg-background-default p-5">
         <RailSectionLabel>{t`CONTACTS`}</RailSectionLabel>
         {contacts.length > 0 ? (
           <div className="flex flex-col gap-3">
@@ -1325,7 +1328,7 @@ function ClientDetailRail({
               // inline). `items-start` so the avatar tops with the name line.
               <div key={contact.name} className="flex items-start gap-2.5">
                 <AssigneeAvatar name={contact.name} isMine={false} title={contact.name} />
-                <div className="flex min-w-0 flex-col gap-[3px]">
+                <div className="flex min-w-0 flex-col gap-0.5">
                   {/* Name 14/500 (V1kJX), not 600. */}
                   <span className="truncate text-sm font-medium text-text-primary">
                     {contact.name}
