@@ -39,3 +39,16 @@ PageHeader + CountPill, StatBand, canonical table primitives, filter row).
   RPC; adding them would be fiction.
 
 tsgo clean; console clean; both deltas verified live on Meridian Multistate.
+
+## Round 2 — rail fidelity (Contacts + labels)
+- Contacts card row rebuilt to V1kJX: avatar + STACKED name / role / email
+  (was name·role inline + email below). Name 14/500 (was 600); role on its
+  own muted line, suppressed when it would duplicate the name (demo
+  placeholder sets both to "Primary contact"); email in JetBrains Mono
+  (V1kJX h1oYYg).
+- Rail section labels (NOTES, CONTACTS) → canonical `text-column-label`
+  (11/600/+0.5) in tertiary, matching V1kJX (was bolder muted / caption-xs).
+  Dropped the ScrollText leading icon on NOTES so the two rail cards share
+  one bare-label treatment (V1kJX shows neither with a leading icon).
+- Avatar stays md (32px); V1kJX's 36px isn't an AvatarSize step and a 4px
+  one-off isn't worth a new size token.

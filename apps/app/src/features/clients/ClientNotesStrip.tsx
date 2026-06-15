@@ -1,5 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { PencilLineIcon, ScrollTextIcon } from 'lucide-react'
+import { PencilLineIcon } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -82,8 +82,10 @@ export function ClientNotesStrip({
       aria-label={t`Open notes for ${client.name}`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-eyebrow text-text-muted uppercase">
-          <ScrollTextIcon aria-hidden className="size-3.5" />
+        {/* Bare column-label (11/600 tertiary), no leading icon — matches the
+            CONTACTS rail label + Pencil V1kJX so the two rail cards share one
+            label treatment. */}
+        <span className="text-column-label text-text-tertiary uppercase">
           <Trans>Notes</Trans>
         </span>
         {canWrite ? (

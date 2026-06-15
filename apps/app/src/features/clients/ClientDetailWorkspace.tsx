@@ -1321,18 +1321,26 @@ function ClientDetailRail({
         {contacts.length > 0 ? (
           <div className="flex flex-col gap-3">
             {contacts.map((contact) => (
-              <div key={contact.name} className="flex items-center gap-2.5">
+              // Stacked name / role / email per Pencil V1kJX (was name·role
+              // inline). `items-start` so the avatar tops with the name line.
+              <div key={contact.name} className="flex items-start gap-2.5">
                 <AssigneeAvatar name={contact.name} isMine={false} title={contact.name} />
-                <div className="flex min-w-0 flex-col gap-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="truncate text-sm font-semibold text-text-primary">
-                      {contact.name}
-                    </span>
-                    <span aria-hidden className="size-[3px] shrink-0 rounded-full bg-text-muted" />
-                    <span className="shrink-0 text-xs text-text-secondary">{contact.role}</span>
-                  </div>
+                <div className="flex min-w-0 flex-col gap-[3px]">
+                  {/* Name 14/500 (V1kJX), not 600. */}
+                  <span className="truncate text-sm font-medium text-text-primary">
+                    {contact.name}
+                  </span>
+                  {/* Role on its OWN line, muted (V1kJX). Skipped when it would
+                      just echo the name — the demo placeholder sets both to
+                      "Primary contact", and two identical lines read broken. */}
+                  {contact.role && contact.role !== contact.name ? (
+                    <span className="truncate text-xs text-text-muted">{contact.role}</span>
+                  ) : null}
+                  {/* Email in mono (V1kJX h1oYYg JetBrains Mono). */}
                   {contact.email ? (
-                    <span className="truncate text-xs text-text-tertiary">{contact.email}</span>
+                    <span className="truncate font-mono text-xs text-text-tertiary">
+                      {contact.email}
+                    </span>
                   ) : null}
                 </div>
                 {/* Compose intentionally not rendered: EmailComposeDialog
@@ -1353,7 +1361,9 @@ function ClientDetailRail({
 }
 
 function RailSectionLabel({ children }: { children: ReactNode }) {
-  return <span className="text-caption-xs font-bold tracking-wide text-text-muted">{children}</span>
+  // Canonical column-label token (11/600/+0.5px) in tertiary — matches the
+  // NOTES / CONTACTS rail labels in Pencil V1kJX (was bolder muted).
+  return <span className="text-column-label text-text-tertiary uppercase">{children}</span>
 }
 
 type ClientDetailTabKey = 'work' | 'info' | 'activity'
