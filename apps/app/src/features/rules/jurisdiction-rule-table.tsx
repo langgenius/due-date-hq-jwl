@@ -146,6 +146,8 @@ export function JurisdictionFilterBar({
   typeOptions,
   filter,
   onFilterChange,
+  reviewCount,
+  activeCount,
 }: {
   jurisdictionLabel: string
   scope: RuleScope
@@ -155,6 +157,9 @@ export function JurisdictionFilterBar({
   typeOptions: ReadonlyArray<{ value: string; label: string; count: number }>
   filter: RuleTableFilter
   onFilterChange: (next: RuleTableFilter) => void
+  /** Counts shown inside the Review / Active scope toggle. */
+  reviewCount: number
+  activeCount: number
 }) {
   const { t } = useLingui()
 
@@ -192,8 +197,24 @@ export function JurisdictionFilterBar({
         size="lg"
         ariaLabel={t`Filter by status`}
         options={[
-          { value: 'review', label: <Trans>Review</Trans> },
-          { value: 'active', label: <Trans>Active</Trans> },
+          {
+            value: 'review',
+            label: (
+              <span className="inline-flex items-center gap-1.5">
+                <Trans>Review</Trans>
+                <span className="tabular-nums opacity-60">{reviewCount}</span>
+              </span>
+            ),
+          },
+          {
+            value: 'active',
+            label: (
+              <span className="inline-flex items-center gap-1.5">
+                <Trans>Active</Trans>
+                <span className="tabular-nums opacity-60">{activeCount}</span>
+              </span>
+            ),
+          },
         ]}
       />
       {/* Search flexes to absorb the row's slack so every control keeps an

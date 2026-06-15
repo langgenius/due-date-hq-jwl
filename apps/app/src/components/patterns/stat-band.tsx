@@ -25,14 +25,15 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * `text-tertiary`/`font-semibold` eyebrows, separate StatTile tiles vs a
  * single band).
  *
- * Visual contract (Pencil O0pyRO `p0WeNy`; label restyled 2026-06-12):
+ * Visual contract (Pencil O0pyRO `p0WeNy`; label re-CAPSed 2026-06-14):
  *  - Frame: `border-y border-divider-subtle py-7`, no card border
- *  - Label: sentence-case `text-sm font-medium text-text-secondary` — the
- *    Stripe stat grammar Yuqi asked for ("Gross volume / £216.20 / 12:08"),
- *    replacing the tracked-caps eyebrow. Calm label, big value, quiet sub.
- *  - Value: `text-section-title leading-none font-medium tracking-tight tabular-nums`,
+ *  - Label: tracked-CAPS eyebrow `text-caption-xs font-semibold tracking-eyebrow
+ *    text-text-tertiary uppercase` — the "CAPS title · big number · small
+ *    caption" grammar Yuqi confirmed (over the sentence-case label tried
+ *    2026-06-12). One treatment across all summary surfaces.
+ *  - Value: `text-stat-value font-semibold tracking-tight tabular-nums`,
  *    tone-coded via `valueClass` (default `text-text-primary`)
- *  - Sub: `text-sm font-medium`, tone-coded via `subClass`
+ *  - Sub: small caption `text-xs font-medium`, tone-coded via `subClass`
  *    (default `text-text-tertiary`); omitted entirely when absent
  *  - Narrow viewports fall to a 2-up grid so values never crush together
  *
@@ -87,14 +88,17 @@ export function StatBand({
       {stats.map((stat) => {
         const body = (
           <>
-            {/* 2026-06-12 (Yuqi Stripe stat reference — component-level):
-                sentence-case medium label, not a tracked-caps eyebrow. All 5
-                summary surfaces (clients ×2, sources, library, alert history)
-                pick this up together. */}
-            <span className="truncate text-sm font-medium text-text-secondary">{stat.label}</span>
+            {/* 2026-06-14 (Yuqi): tracked-CAPS eyebrow label — the "CAPS title ·
+                big number · small caption" stat grammar, restored over the
+                sentence-case label tried 2026-06-12. All summary surfaces
+                (clients ×2, sources, library overview + jurisdiction detail,
+                alert history, audit) pick this up together — one design. */}
+            <span className="truncate text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+              {stat.label}
+            </span>
             <span
               className={cn(
-                'text-stat-value font-medium tracking-tight tabular-nums',
+                'text-stat-value font-semibold tracking-tight tabular-nums',
                 stat.valueClass ?? 'text-text-primary',
               )}
             >
@@ -103,7 +107,7 @@ export function StatBand({
             {stat.sub != null ? (
               <span
                 className={cn(
-                  'truncate text-sm font-medium',
+                  'truncate text-xs font-medium',
                   stat.subClass ?? 'text-text-tertiary',
                 )}
               >

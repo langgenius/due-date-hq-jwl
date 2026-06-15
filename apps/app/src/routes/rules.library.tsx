@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
 import {
-  ArrowDownToLineIcon,
+  ArrowUpFromLineIcon,
   ArrowRightIcon,
   ArrowUpRightIcon,
   CalendarClock,
@@ -1892,7 +1892,7 @@ export function RulesLibraryRoute() {
         disabled={rules.length === 0}
         aria-label={t`Export rules as CSV`}
       >
-        <ArrowDownToLineIcon data-icon="inline-start" />
+        <ArrowUpFromLineIcon data-icon="inline-start" />
         <Trans>Export</Trans>
       </Button>
       {/* Secondary, not primary: a global "Add rule" can't actually create
@@ -2253,7 +2253,7 @@ export function RulesLibraryRoute() {
                       disabled={rules.length === 0}
                       aria-label={t`Export rules as CSV`}
                     >
-                      <ArrowDownToLineIcon data-icon="inline-start" />
+                      <ArrowUpFromLineIcon data-icon="inline-start" />
                       <Trans>Export</Trans>
                     </Button>
                     <Button
@@ -2322,6 +2322,11 @@ export function RulesLibraryRoute() {
                     typeOptions={jurisdictionTypeOptions}
                     filter={tableFilter}
                     onFilterChange={setTableFilter}
+                    reviewCount={selectedGroup.pendingReviewCount}
+                    activeCount={
+                      (jurisdictionStatusCounts?.active ?? 0) +
+                      (jurisdictionStatusCounts?.verified ?? 0)
+                    }
                   />
                 ) : (
                   // Global rule search → scope tabs + entity chips + the
