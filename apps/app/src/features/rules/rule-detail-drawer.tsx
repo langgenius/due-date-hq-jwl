@@ -281,7 +281,7 @@ function DisclosureCard({
     return (
       <section className="flex min-w-0 flex-col gap-3">
         <div className="flex items-baseline gap-2">
-          <h3 className="text-item-title text-text-primary">{title}</h3>
+          <h3 className="text-base font-semibold text-text-primary">{title}</h3>
           {meta != null ? (
             <span className="ml-auto truncate text-sm font-medium text-text-tertiary">{meta}</span>
           ) : null}
@@ -856,7 +856,7 @@ function RuleBeforeAcceptCard({
     // consistent padding level instead of box-in-box.
     return (
       <section className="flex flex-col rounded-lg border border-divider-regular px-4 pt-3.5 pb-3.5">
-        <h3 className="text-item-title text-text-primary">
+        <h3 className="text-base font-semibold text-text-primary">
           <Trans>Before you accept</Trans>
         </h3>
         <div className="flex flex-col divide-y divide-divider-regular [&>*]:py-3 [&>*:last-child]:pb-0">
@@ -995,7 +995,7 @@ function RulePracticeReviewCard({
     return (
       <section className="flex min-w-0 flex-col gap-2.5">
         <div className="flex items-baseline gap-2">
-          <h3 className="text-item-title text-text-primary">
+          <h3 className="text-base font-semibold text-text-primary">
             <Trans>Practice review</Trans>
           </h3>
           {requiredTag}
