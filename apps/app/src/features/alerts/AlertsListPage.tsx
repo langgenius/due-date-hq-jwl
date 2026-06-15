@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 // Flat `useQuery` with a 50-item page (not a keyset-paginated infinite
 // query); row-level Dismiss via `useMutation` + sonner toast.
@@ -199,9 +199,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // changes is the higher-priority action; Active (apply due-date changes)
   // follows.
   const [workQueue, setWorkQueue] = useState<'active' | 'review'>('review')
-  // Sync-key for the open-alert → queue-tab sync below (declared here with
-  // its sibling state; the sync itself runs after `alerts` is derived).
-  const [queueSyncedAlertId, setQueueSyncedAlertId] = useState<string | null>(null)
+  // One-shot guard for the open-alert → queue-tab sync below: tracks the alert
+  // id we've already synced the queue for, so the sync fires exactly once per
+  // OPEN and never fights a manual toggle. A ref (not state) — it must not
+  // itself trigger renders.
+  const queueSyncedAlertId = useRef<string | null>(null)
 
   // Local selection set of alert ids. Drives the per-row checkboxes, the
   // BulkSelectStrip's tri-state "Select all", and the floating
@@ -303,16 +305,27 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // 2026-06-12 (Yuqi "if it is active already, you should land in the right
   // tab"): opening an alert (deep link from /today, URL share, prev/next
   // paging) syncs the queue toggle to THAT alert's queue, so the rail/list
-  // never shows a selection that isn't in the visible tab. Render-time
-  // setState with a sync-key bail-out (project convention, no useEffect);
-  // the user can still flip the toggle freely afterwards — we only re-sync
-  // when a DIFFERENT alert opens.
-  const openAlert = openAlertId ? alerts.find((alert) => alert.id === openAlertId) : undefined
-  if (!historyMode && openAlert && queueSyncedAlertId !== openAlert.id) {
+  // never shows a selection that isn't in the visible tab.
+  //
+  // 2026-06-15: moved off the render-phase `setState` into a transition-keyed
+  // effect. The effect runs ONLY when the open alert id (or the loaded set, for
+  // a cold deep-link before data arrives) changes — never on an unrelated
+  // re-render (scroll, window-focus refetch, hover), which is the whole class of
+  // "the tab flipped and I didn't open anything" bugs. The `queueSyncedAlertId`
+  // ref fires it once per OPEN and is reset on close, so a manual toggle
+  // afterwards is never overridden (a manual switch changes neither dep).
+  useEffect(() => {
+    if (openAlertId === null) {
+      queueSyncedAlertId.current = null
+      return
+    }
+    if (historyMode || queueSyncedAlertId.current === openAlertId) return
+    const openAlert = alerts.find((alert) => alert.id === openAlertId)
+    if (!openAlert) return // set not loaded yet; re-runs when `alerts` arrives
+    queueSyncedAlertId.current = openAlertId
     const alertQueue = isActiveAlert(openAlert) ? 'active' : 'review'
-    if (workQueue !== alertQueue) setWorkQueue(alertQueue)
-    setQueueSyncedAlertId(openAlert.id)
-  }
+    setWorkQueue((prev) => (prev === alertQueue ? prev : alertQueue))
+  }, [openAlertId, alerts, historyMode])
   // Batch the affected-client rows for every alert in ONE request and hand each
   // card its slice, instead of every AlertCard firing its own `getDetail`.
   // Keyed off the full (stable) `alerts` set — not `filteredAlerts` — so
