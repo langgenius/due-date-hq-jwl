@@ -816,21 +816,19 @@ function OverviewReviewBreakdown({
     label: string
     pendingReviewCount: number
     highCount: number
+    oldest: number | null
   }>
   reasonCounts: ReadonlyArray<[RuleReviewTask['reason'], number]>
   backlogSeverity: { high: number; med: number; low: number }
   onSelectJurisdiction: (jurisdiction: string) => void
 }) {
   const { t } = useLingui()
-  // Bars are scaled to the busiest jurisdiction so the ranking reads as a
-  // weighted chart, not a flat list (the magnitude is the point).
-  const maxPending = jurisdictions[0]?.pendingReviewCount ?? 1
+  const now = Date.now()
   const severityRows = [
-    { key: 'high', label: t`High`, count: backlogSeverity.high, bar: 'bg-state-warning-solid' },
-    { key: 'med', label: t`Medium`, count: backlogSeverity.med, bar: 'bg-text-muted' },
-    { key: 'low', label: t`Low`, count: backlogSeverity.low, bar: 'bg-divider-deep' },
+    { key: 'high', label: t`High`, count: backlogSeverity.high, warn: true },
+    { key: 'med', label: t`Medium`, count: backlogSeverity.med, warn: false },
+    { key: 'low', label: t`Low`, count: backlogSeverity.low, warn: false },
   ] as const
-  const maxSeverity = Math.max(backlogSeverity.high, backlogSeverity.med, backlogSeverity.low, 1)
 
   return (
     <section className="flex shrink-0 flex-col gap-3">
@@ -839,77 +837,90 @@ function OverviewReviewBreakdown({
           <Trans>Where to start</Trans>
         </span>
         <span className="text-sm font-medium text-text-tertiary">
-          <Trans>Most pending first</Trans>
+          <Trans>Most urgent first</Trans>
         </span>
       </div>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
-        {/* Ranked jurisdictions — a horizontal bar chart of the backlog; each
-            row drills into its review queue. */}
+        {/* Ranked jurisdictions (longest-waiting first). Per the Pencil
+            reference nCNln the row carries the triage signal as text —
+            high-severity · oldest · days waiting — not a magnitude bar, with an
+            explicit Review button into that jurisdiction's queue. */}
         <div className="min-w-0 flex-1 overflow-hidden rounded-xl border border-divider-subtle xl:flex-[3]">
-          {jurisdictions.map((g, index) => (
-            <button
-              key={g.jurisdiction}
-              type="button"
-              onClick={() => onSelectJurisdiction(g.jurisdiction)}
-              className={cn(
-                'group/row flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-state-base-hover',
-                index > 0 && 'border-t border-divider-subtle',
-              )}
-            >
-              <StateBadge code={g.jurisdiction} size="sm" preview={false} />
-              <span className="flex w-36 shrink-0 flex-col">
-                <span className="truncate text-base font-medium text-text-primary">{g.label}</span>
-                {/* WHERE the risky ones are — ties the row to "review first". */}
-                {g.highCount > 0 ? (
-                  <span className="truncate text-xs font-medium text-text-warning">
-                    <Plural value={g.highCount} one="# high-risk" other="# high-risk" />
+          {jurisdictions.map((g, index) => {
+            const days =
+              g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
+            return (
+              <div
+                key={g.jurisdiction}
+                className={cn(
+                  'flex items-center gap-3 px-4 py-3',
+                  index > 0 && 'border-t border-divider-subtle',
+                )}
+              >
+                <StateBadge code={g.jurisdiction} size="sm" preview={false} />
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="truncate text-base font-medium text-text-primary">
+                    {g.label}
                   </span>
-                ) : null}
-              </span>
-              {/* Magnitude bar — fills the row's mid-span (the dead gap before). */}
-              <span className="relative hidden h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-background-section sm:block">
-                <span
-                  className="absolute inset-y-0 left-0 rounded-full bg-state-warning-solid"
-                  style={{
-                    width: `${Math.max(6, Math.round((g.pendingReviewCount / maxPending) * 100))}%`,
-                  }}
-                  aria-hidden
-                />
-              </span>
-              <span className="w-20 shrink-0 text-right text-sm font-semibold tabular-nums text-text-warning">
-                <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
-              </span>
-              <ChevronRightIcon
-                aria-hidden
-                className="size-4 shrink-0 text-text-muted transition-all group-hover/row:translate-x-0.5 group-hover/row:text-text-tertiary"
-              />
-            </button>
-          ))}
+                  <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
+                    <span className={g.highCount > 0 ? 'text-text-warning' : undefined}>
+                      {g.highCount > 0 ? (
+                        <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
+                      ) : (
+                        <Trans>No high-severity</Trans>
+                      )}
+                    </span>
+                    {g.oldest != null ? (
+                      <>
+                        <span aria-hidden>·</span>
+                        <span>
+                          <Trans>oldest {formatDatePretty(new Date(g.oldest).toISOString())}</Trans>
+                        </span>
+                        {days != null ? (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span>{t`${days}d waiting`}</span>
+                          </>
+                        ) : null}
+                      </>
+                    ) : null}
+                  </span>
+                </div>
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-text-warning">
+                  <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onSelectJurisdiction(g.jurisdiction)}
+                >
+                  <Trans>Review</Trans>
+                  <ChevronRightIcon data-icon="inline-end" />
+                </Button>
+              </div>
+            )
+          })}
         </div>
 
-        {/* Composition panel — fills the right-hand space with the backlog's
-            make-up: by severity (review the high ones first) + by reason. */}
+        {/* Composition panel — backlog make-up as plain key/value lists (no
+            bars, per nCNln): by severity + by reason. */}
         <div className="flex shrink-0 flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default p-4 xl:flex-[2]">
           <span className="text-item-title text-text-primary">
             <Trans>Backlog composition</Trans>
           </span>
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2">
             <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>By severity</Trans>
             </span>
             {severityRows.map((row) => (
-              <div key={row.key} className="flex items-center gap-3">
-                <span className="w-16 shrink-0 text-sm font-medium text-text-secondary">
-                  {row.label}
-                </span>
-                <span className="relative h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-background-section">
-                  <span
-                    className={cn('absolute inset-y-0 left-0 rounded-full', row.bar)}
-                    style={{ width: `${Math.round((row.count / maxSeverity) * 100)}%` }}
-                    aria-hidden
-                  />
-                </span>
-                <span className="w-8 shrink-0 text-right text-sm font-semibold tabular-nums text-text-primary">
+              <div key={row.key} className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-text-secondary">{row.label}</span>
+                <span
+                  className={cn(
+                    'text-sm font-semibold tabular-nums',
+                    row.warn && row.count > 0 ? 'text-text-warning' : 'text-text-primary',
+                  )}
+                >
                   {row.count}
                 </span>
               </div>
@@ -1536,24 +1547,41 @@ export function RulesLibraryRoute() {
   //                            shows teeth when something is actually uncovered).
   //   highSeverityPending    — high-risk rules awaiting review ("review first").
   const topReviewJurisdictions = useMemo(() => {
-    // High-severity pending per jurisdiction — surfaces WHERE the risky ones
-    // sit, so a row tells the CPA not just how many but which to open first.
-    const highByJurisdiction = new Map<string, number>()
+    // Per-jurisdiction triage meta from the pending rules: how many are
+    // high-severity, and the oldest one's timestamp (drives "Nd waiting" +
+    // the urgency sort).
+    const meta = new Map<string, { high: number; oldest: number | null }>()
     for (const r of rules) {
-      if ((r.status === 'candidate' || r.status === 'pending_review') && r.riskLevel === 'high') {
-        highByJurisdiction.set(r.jurisdiction, (highByJurisdiction.get(r.jurisdiction) ?? 0) + 1)
-      }
+      if (r.status !== 'candidate' && r.status !== 'pending_review') continue
+      const cur = meta.get(r.jurisdiction) ?? { high: 0, oldest: null }
+      if (r.riskLevel === 'high') cur.high += 1
+      const changed = ruleChangedAt(r)
+      if (changed !== null && (cur.oldest === null || changed < cur.oldest)) cur.oldest = changed
+      meta.set(r.jurisdiction, cur)
     }
-    return unfilteredGroups
-      .filter((g) => g.pendingReviewCount > 0)
-      .toSorted((a, b) => b.pendingReviewCount - a.pendingReviewCount)
-      .slice(0, 6)
-      .map((g) => ({
-        jurisdiction: g.jurisdiction,
-        label: g.label,
-        pendingReviewCount: g.pendingReviewCount,
-        highCount: highByJurisdiction.get(g.jurisdiction) ?? 0,
-      }))
+    return (
+      unfilteredGroups
+        .filter((g) => g.pendingReviewCount > 0)
+        .map((g) => {
+          const m = meta.get(g.jurisdiction)
+          return {
+            jurisdiction: g.jurisdiction,
+            label: g.label,
+            pendingReviewCount: g.pendingReviewCount,
+            highCount: m?.high ?? 0,
+            oldest: m?.oldest ?? null,
+          }
+        })
+        // Most urgent first = longest-waiting (oldest pending); ties broken by
+        // the bigger backlog, so when everything was seeded the same day the
+        // ranking still reads most-pending-first, not alphabetical.
+        .toSorted(
+          (a, b) =>
+            (a.oldest ?? Infinity) - (b.oldest ?? Infinity) ||
+            b.pendingReviewCount - a.pendingReviewCount,
+        )
+        .slice(0, 6)
+    )
   }, [unfilteredGroups, rules])
   const gappedJurisdictions = useMemo(
     () => unfilteredGroups.filter((g) => g.gapEntities.length > 0),
