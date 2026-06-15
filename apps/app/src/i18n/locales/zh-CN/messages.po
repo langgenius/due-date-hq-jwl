@@ -1004,7 +1004,6 @@ msgstr "{code}：{count} 条提醒"
 msgid "{code}: 1 alert"
 msgstr "{code}：1 条提醒"
 
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "{confidencePct}% confidence"
 msgstr "{confidencePct}% 置信度"
@@ -1977,7 +1976,6 @@ msgstr "最迟于 {0} 处理"
 msgid "Act today or risk missing the deadline"
 msgstr "今天就处理，否则可能错过截止日期"
 
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Action"
@@ -2373,14 +2371,6 @@ msgstr "AI 具体草案"
 #: src/features/concepts/concept-help.tsx
 msgid "AI confidence"
 msgstr "AI 置信度"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "AI confidence {confidencePct}%"
-msgstr "AI 置信度 {confidencePct}%"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "AI confidence {confidencePct}% · confirmed by {confirmingSources} sources"
-msgstr "AI 置信度 {confidencePct}% · 由 {confirmingSources} 个来源确认"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -9155,6 +9145,7 @@ msgid "Low AI confidence ({0}%) — verify before you act"
 msgstr "AI 置信度低（{0}%）— 操作前请先核实"
 
 #: src/components/primitives/low-confidence-badge.tsx
+#: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Low confidence"
 msgstr "低置信度"
 
@@ -17259,6 +17250,10 @@ msgstr "版本冲突"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Version history"
 msgstr "版本历史"
+
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "Very low confidence"
+msgstr "极低置信度"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/routes/obligations.tsx

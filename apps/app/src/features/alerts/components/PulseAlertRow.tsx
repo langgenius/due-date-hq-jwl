@@ -6,8 +6,10 @@ import {
   ArchiveIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  CircleAlertIcon,
   SparklesIcon,
   UsersIcon,
+  WandSparklesIcon,
 } from 'lucide-react'
 
 import type {
@@ -309,13 +311,20 @@ function PulseAlertRow({
   // row (Yuqi 2026-06-14: neutral tag, red pill only). Null for far-out /
   // no-deadline alerts, so silence stays the signal.
   const timeTag = proximityTimeTag(proximity)
-  // "confirmed by N sources" / "N sources" — real corroboration count
-  // (`duplicateSourceSnapshotCount`), surfaced both in the meta strip
-  // and the bottom confidence pill (Pencil `kdiMz` / `WZi5X`).
-  const confirmingSources = alert.duplicateSourceSnapshotCount
 
-  const confidencePct = Math.round(alert.confidence * 100)
   const confidenceTier = aiConfidenceTier(alert.confidence)
+  // Confidence pill (Pencil aUZTy) — surfaced ONLY when the extraction warrants
+  // a second look: 'medium' tier reads "Low confidence", 'low' tier reads "Very
+  // low confidence". 'high' shows nothing (the absence is the all-clear) — same
+  // red-restraint logic as the rest of the row. Amber-family (never red — the
+  // row's single red stays on the urgent deadline pill).
+  const confidenceFlag: 'low' | 'verylow' | null =
+    confidenceTier === 'high' ? null : confidenceTier === 'medium' ? 'low' : 'verylow'
+
+  // Unread/needs-attention dot (aUZTy) — true while the alert is still awaiting
+  // a decision (not yet applied / dismissed / reviewed / reverted). Drives the
+  // small accent dot leading the time rail; handled alerts (history) lose it.
+  const unread = alert.status === 'matched' || alert.status === 'partially_applied'
 
   const impacted = alert.matchedCount + alert.needsReviewCount
 
@@ -436,21 +445,33 @@ function PulseAlertRow({
           // the rail is wall-clock only — narrower (64px), with the full
           // date + relative age one hover away.
           <div className="flex w-[64px] shrink-0 flex-col">
-            <Tooltip>
-              <TooltipTrigger
-                render={(props) => (
-                  <span
-                    className="w-fit cursor-help text-sm font-medium text-text-tertiary tabular-nums outline-none"
-                    {...props}
-                  >
-                    {absoluteTime}
-                  </span>
+            {/* Unread dot (Pencil aUZTy) leads the time — accent while the alert
+                awaits a decision; it reserves its slot when read so the times
+                stay aligned across rows. */}
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  'size-1.5 shrink-0 rounded-full',
+                  unread ? 'bg-state-accent-solid' : 'bg-transparent',
                 )}
+                aria-hidden
               />
-              <TooltipContent>
-                {railDate} · {railRelative}
-              </TooltipContent>
-            </Tooltip>
+              <Tooltip>
+                <TooltipTrigger
+                  render={(props) => (
+                    <span
+                      className="w-fit cursor-help text-sm font-medium text-text-tertiary tabular-nums outline-none"
+                      {...props}
+                    >
+                      {absoluteTime}
+                    </span>
+                  )}
+                />
+                <TooltipContent>
+                  {railDate} · {railRelative}
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
         )
       ) : null}
@@ -514,6 +535,23 @@ function PulseAlertRow({
             <ChangeKindIcon changeKind={alert.changeKind} />
             {changeKindLabel(alert.changeKind)}
           </span>
+
+          {/* CONFIDENCE FLAG (Pencil aUZTy) — a categorical warning pill shown
+              ONLY when the extraction is shaky: "Low confidence" (medium tier)
+              / "Very low confidence" (low tier). High confidence shows nothing
+              — the absence is the all-clear. Amber-family (never red — the row's
+              one red stays on the urgent deadline). Replaces the always-on
+              "N% confidence" meter that used to sit in the bottom meta. */}
+          {confidenceFlag ? (
+            <span className="inline-flex h-5 shrink-0 items-center gap-1 rounded-lg bg-state-warning-hover px-1.5 text-xs font-semibold whitespace-nowrap text-text-warning">
+              <CircleAlertIcon className="size-3 shrink-0" aria-hidden />
+              {confidenceFlag === 'verylow' ? (
+                <Trans>Very low confidence</Trans>
+              ) : (
+                <Trans>Low confidence</Trans>
+              )}
+            </span>
+          ) : null}
 
           {/* Spacer NdGpw (fill_container) */}
           <span className="flex-1" aria-hidden />
@@ -643,39 +681,15 @@ function PulseAlertRow({
                 drawer (PulseStructuredFields), not here. */}
 
             {actionText ? (
-              <div className="flex items-center gap-1.5">
-                {/* The leading sub-clause glyph is a plain elbow
-                    (down-then-right) with no arrowhead, not lucide's
-                    CornerDownRight. */}
-                <svg
-                  viewBox="0 0 12 12"
-                  className="size-3 shrink-0 text-text-muted"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                >
-                  <path d="M4 2.5v3a1.5 1.5 0 0 0 1.5 1.5H9" />
-                </svg>
-                {/* 2026-06-12 (Yuqi #5 "does this need to be red?" + "too much
-                    gray"): the suggestion is a BOXLESS text line. First pass
-                    de-redded it into a gray slab — but every row carries one,
-                    so the boxes stacked into gray soup (band + form chip +
-                    action slab per row). The elbow glyph + small-caps ACTION
-                    label already structure the line; no container needed.
-                    Heat stays with URGENT/HIGH + the date-diff. */}
-                <span className="inline-flex items-baseline gap-2 self-start">
-                  <span className="text-xs font-semibold tracking-[0.3px] text-text-tertiary uppercase">
-                    <Trans>Action</Trans>
-                  </span>
-                  {/* The verb is the row's ONE chromatic anchor (Yuqi "no
-                      focus, no highlights"): accent = do-this, the same
-                      semantic the accent carries app-wide. Title leads in
-                      ink; the verb leads in color; everything else is gray
-                      TEXT (not gray boxes). */}
-                  <span className="text-sm font-medium text-text-accent">{actionText}</span>
+              <div className="flex">
+                {/* Suggested action (Pencil aUZTy) — a subtle accent wand pill.
+                    The do-this affordance reads in accent so it's scannable as
+                    "the next step", but on a LIGHT tint, not a saturated fill
+                    (Yuqi: "subtle blue wand pill … not too accent heavy"). The
+                    elbow + small-caps ACTION label it replaces was busier. */}
+                <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-state-accent-hover px-2.5 py-1 text-sm font-medium text-text-accent">
+                  <WandSparklesIcon className="size-3 shrink-0" aria-hidden />
+                  {actionText}
                 </span>
               </div>
             ) : null}
@@ -754,46 +768,9 @@ function PulseAlertRow({
               <Trans>No client impact</Trans>
             </span>
           )}
-          {/* AI confidence — a neutral signal-strength METER (three
-              rising bars filled by tier) + the %, so it reads as a
-              MEASUREMENT, not a status chip (a green pill would collide
-              with the green ACTIVE badge). Only LOW keeps a warning-amber
-              tint (the tier worth flagging); high/medium stay neutral.
-              Source corroboration lives in the tooltip so the row stays
-              quiet. */}
-          <span
-            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium tabular-nums text-text-tertiary"
-            title={
-              confirmingSources > 1
-                ? t`AI confidence ${confidencePct}% · confirmed by ${confirmingSources} sources`
-                : t`AI confidence ${confidencePct}%`
-            }
-          >
-            <span className="inline-flex items-end gap-[2px]" aria-hidden>
-              {[0, 1, 2].map((i) => {
-                const filled =
-                  i < (confidenceTier === 'high' ? 3 : confidenceTier === 'medium' ? 2 : 1)
-                return (
-                  <span
-                    key={i}
-                    className={cn(
-                      'w-[3px] rounded-full',
-                      i === 0 ? 'h-1.5' : i === 1 ? 'h-2' : 'h-2.5',
-                      filled
-                        ? confidenceTier === 'low'
-                          ? 'bg-text-warning'
-                          : 'bg-text-tertiary'
-                        : 'bg-divider-regular',
-                    )}
-                  />
-                )
-              })}
-            </span>
-            {/* Spell out "confidence" — "conf" read as cryptic jargon
-                (re-critique). The row meta is flex-wrap, so the longer
-                word wraps as a whole unit in the compact panel. */}
-            {t`${confidencePct}% confidence`}
-          </span>
+          {/* AI confidence moved OUT of the bottom meta — it's now a categorical
+              warning pill in the head row (Pencil aUZTy), shown only when shaky.
+              The bottom meta stays just client-impact + the hover actions. */}
 
           {/* Hover-only action cluster — Dismiss / Review.
               Fades in via group-hover so the row reads as a quiet

@@ -999,7 +999,6 @@ msgstr "{code}: {count} alerts"
 msgid "{code}: 1 alert"
 msgstr "{code}: 1 alert"
 
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "{confidencePct}% confidence"
 msgstr "{confidencePct}% confidence"
@@ -1969,7 +1968,6 @@ msgstr "Act by {0}"
 msgid "Act today or risk missing the deadline"
 msgstr "Act today or risk missing the deadline"
 
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Action"
@@ -2361,14 +2359,6 @@ msgstr "AI CONCRETE DRAFTS"
 #: src/features/concepts/concept-help.tsx
 msgid "AI confidence"
 msgstr "AI confidence"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "AI confidence {confidencePct}%"
-msgstr "AI confidence {confidencePct}%"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "AI confidence {confidencePct}% · confirmed by {confirmingSources} sources"
-msgstr "AI confidence {confidencePct}% · confirmed by {confirmingSources} sources"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -9121,6 +9111,7 @@ msgid "Low AI confidence ({0}%) — verify before you act"
 msgstr "Low AI confidence ({0}%) — verify before you act"
 
 #: src/components/primitives/low-confidence-badge.tsx
+#: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Low confidence"
 msgstr "Low confidence"
 
@@ -17184,6 +17175,10 @@ msgstr "Version conflict"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Version history"
 msgstr "Version history"
+
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "Very low confidence"
+msgstr "Very low confidence"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/routes/obligations.tsx
