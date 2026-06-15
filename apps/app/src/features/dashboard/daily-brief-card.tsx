@@ -17,7 +17,6 @@ import { Link } from 'react-router'
 import type {
   DashboardBriefPublic,
   DashboardBriefScope,
-  DashboardRecap,
   DashboardSummary,
 } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -46,52 +45,49 @@ export interface DailyBriefTodayCounts {
 }
 
 /**
- * DailyBriefCard — rebuilt 2026-06-10 (Yuqi: "打开 Today 一目了然看到昨天
- * 的总结和今天的安排") into a two-row "Yesterday / Today" digest:
+ * DailyBriefCard — the morning edition. One forward-looking payload:
  *
- *   YESTERDAY  3 completed (2 filed · 1 paid) · 2 new alerts · 1 due date moved
- *   TODAY      <one AI sentence: focus + start-here, with citation chip>
- *              2 overdue · 1 waiting on client · 2 due this week
+ *   📰  Daily Brief                                    [freshness]
+ *       <one AI sentence: today's focus + where to start, with citation chips>
+ *       <catch-up line, only if pre-join changes still await handling>
+ *       [Alerts N →] [Waiting N →] [Overdue N →]
  *
- * Yesterday is DETERMINISTIC (audit-derived counts since the viewer's
- * previous earlier-day visit — see dashboard repo recap) so it renders
- * instantly and truthfully even while the AI sentence is generating or
- * failed. The AI's role shrank to ONE sentence; the detailed plan is the
- * Priority Actions table right below, so the card never repeats it.
- * Citation `[n]` tokens resolve to accent chips deep-linking back to the
- * obligation (evidence traceability, not decoration).
+ * The AI's role is ONE sentence; the detailed plan is the Priorities table
+ * right below, so the card never repeats it. Citation `[n]` tokens resolve to
+ * accent chips deep-linking back to the obligation (evidence traceability, not
+ * decoration).
+ *
+ * 2026-06-15 (Yuqi — de-densify + remove recap): the "since your last visit"
+ * recap and the workload-counts line were both cut. The recap was
+ * backward-looking reassurance that answered no triage question; the counts
+ * line duplicated the Priorities buckets ~100px below. What survives is the
+ * one sentence only this card can say, plus the catch-up line and the action
+ * row. The masthead newspaper glyph now rides into the expanded state too, so
+ * collapse↔expand reads as the same edition folding and unfolding.
  *
  * 2026-06-10 (Yuqi — firm scope goes deterministic): at scope='firm' the
- * Today line is NOT an AI sentence. The Everyone reader is supervising,
- * not executing — their line is "where does the overdue work cluster",
- * expressed by FORM TYPE only (never by member name) from
- * summary.overdueConcentration, plus the count chips. No AI call, no
- * freshness chip, no refresh affordance at firm scope; firm-scope brief
- * generation is retired server-side (cron fan-out removed, consumer
- * drops firm messages). The personal scope keeps the AI sentence.
+ * lead is NOT an AI sentence. The Everyone reader is supervising, not
+ * executing — their line is "where does the overdue work cluster", expressed
+ * by FORM TYPE only (never by member name) from summary.overdueConcentration.
+ * No AI call, no freshness chip at firm scope; firm-scope brief generation is
+ * retired server-side (cron fan-out removed, consumer drops firm messages).
  *
- * Card chrome stays Pencil `qYrr3` (accent-tinted, hairline-free, calm
- * title row with one freshness dot). Renders nothing only when there is
- * neither a brief nor a recap (initial load / feature-off firms).
+ * Card chrome stays Pencil `qYrr3` (accent-tinted, hairline-free). Renders
+ * nothing when there is neither a brief nor (at firm scope) a concentration
+ * line to show.
  */
 export function DailyBriefCard({
   scope,
   brief,
-  recap,
   todayCounts,
   concentration,
   onOpenObligation,
-  showCounts = true,
 }: {
   scope: DashboardBriefScope
   brief: DashboardBriefPublic | null
-  recap: DashboardRecap | null
   todayCounts: DailyBriefTodayCounts
   concentration: DashboardSummary['overdueConcentration']
   onOpenObligation: (obligationId: string) => void
-  // Suppress the count chips when another surface (the Priorities card) already
-  // carries them, so the digest reads as narrative only (Yuqi).
-  showCounts?: boolean
 }) {
   const { t } = useLingui()
   const aiEnabled = scope === 'me'
@@ -116,7 +112,7 @@ export function DailyBriefCard({
       }
     },
   )
-  if (!brief && !recap && !(scope === 'firm' && concentration)) return null
+  if (!brief && !(scope === 'firm' && concentration)) return null
 
   // 2026-06-10 (manual refresh retired): the brief is a self-tending
   // daily edition — it regenerates on the firm-tz day rollover and
@@ -124,25 +120,13 @@ export function DailyBriefCard({
   // refresh affordance anywhere. The freshness chip is display-only.
   const isPending = aiEnabled && brief?.status === 'pending'
 
-  const recapHasActivity = Boolean(
-    recap &&
-    (recap.completedCount > 0 ||
-      recap.newAlertCount > 0 ||
-      recap.dueDateMovedCount > 0 ||
-      recap.remindersSentCount > 0),
-  )
-
-  // Nothing to say = the AI sentence failed AND the recap is all-quiet AND
-  // no catch-up rows exist. The card defaults COLLAPSED in that state
-  // (critique 2026-06-12: an apologetic band between monitor and work was
-  // an empty blue billboard) — the tab + a deterministic all-quiet hint
-  // carry the same facts at one line. The user can still expand it.
+  // Nothing to say = the AI sentence failed AND no catch-up rows exist. The
+  // card defaults COLLAPSED in that state (critique 2026-06-12: an apologetic
+  // band between monitor and work was an empty blue billboard) — the tab + a
+  // deterministic all-quiet hint carry the same facts at one line. The user
+  // can still expand it.
   const nothingToSay =
-    aiEnabled &&
-    brief?.status === 'failed' &&
-    !brief.text &&
-    !recapHasActivity &&
-    catchupCount === 0
+    aiEnabled && brief?.status === 'failed' && !brief.text && catchupCount === 0
 
   const briefKey = brief?.generatedAt ?? brief?.status ?? 'none'
   const collapsed = collapsePref?.key === briefKey ? collapsePref.collapsed : nothingToSay
@@ -196,7 +180,7 @@ export function DailyBriefCard({
               className={cn(
                 'size-1.5 rounded-full',
                 // Failed = amber, not red: a missing optional AI sentence is
-                // not a destructive error (the recap is still accurate).
+                // not a destructive error (the rest of /today is unaffected).
                 brief?.status === 'failed' || brief?.status === 'stale'
                   ? 'bg-text-warning'
                   : 'bg-text-success',
@@ -223,13 +207,10 @@ export function DailyBriefCard({
           </button>
         ) : nothingToSay ? (
           <p className="text-sm text-text-tertiary">
-            {/* The recap is deterministic truth — it doesn't need the AI brief.
-                Pairing it with "Brief unavailable" read as a contradiction
-                ("am I caught up or is it broken?"). The brief self-heals
-                server-side, so the failure earns no apology here. */}
-            <Trans>
-              All quiet — no deadline changes, new alerts, or reminders since your last visit.
-            </Trans>
+            {/* A calm all-quiet line, not an apology: the brief self-heals
+                server-side, so a missing AI sentence earns no "unavailable"
+                framing here. */}
+            <Trans>All quiet — nothing new needs your attention right now.</Trans>
           </p>
         ) : null}
       </section>
@@ -265,42 +246,44 @@ export function DailyBriefCard({
         <XIcon className="size-3.5" aria-hidden />
       </Button>
 
-      {/* Title — a proper title (Yuqi: not a tracked-caps eyebrow, no dot),
-          sharing the /today section-title voice (text-xl, one step above the
-          16px card headlines). Freshness chip rides beside. */}
+      {/* Masthead — the newspaper glyph rides ahead of the title so the
+          expanded card is recognizably the SAME morning edition as the
+          collapsed tab (which leads with the same glyph). Accent-tinted: it's
+          the card's one chromatic mark. The glyph tilts a few degrees when the
+          whole card is hovered (the section owns `group`), echoing the tab's
+          "pick the paper up off the mat" motion without adding any chrome. */}
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-region-title text-text-primary">
-          <Trans>Daily Brief</Trans>
-        </h2>
+        <span className="inline-flex items-center gap-2">
+          <NewspaperIcon
+            className="size-4 text-text-accent transition-transform group-hover:-rotate-6 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
+            aria-hidden
+          />
+          <h2 className="text-region-title text-text-primary">
+            <Trans>Daily Brief</Trans>
+          </h2>
+        </span>
         {aiEnabled && brief ? <BriefFreshness brief={brief} pending={isPending} /> : null}
       </div>
 
-      {/* Lead — the card NEVER leads with an apology (Yuqi: "is this the best
-          you can do?"). Priority: the AI focus sentence (or its pending
-          skeleton) → the deterministic since-last-visit recap → the firm
-          concentration line. A failed AI brief demotes to the caption footnote
-          at the bottom; the freshness chip beside the title already carries
-          the status. */}
+      {/* Lead — the card's one payload: the AI focus sentence (or its pending
+          skeleton) at personal scope, the deterministic concentration line at
+          firm scope. NEVER an apology (Yuqi: "is this the best you can do?") —
+          a failed brief demotes to the caption footnote at the bottom, and the
+          freshness chip beside the title already carries the status.
+          De-densified 2026-06-15 (Yuqi): the workload-counts line and the
+          since-last-visit recap were both cut — the counts duplicated the
+          Priorities buckets ~100px below, and the recap was backward-looking
+          reassurance that answered no triage question. What's left is one
+          forward-looking sentence, the catch-up line, and the action row. */}
       {(aiEnabled && Boolean(brief?.text)) || (aiEnabled && isPending) ? (
         <TodayLine brief={brief} pending={isPending} onOpenObligation={onOpenObligation} />
-      ) : recap ? (
-        <YesterdayLine recap={recap} lead />
       ) : (
         <FirmTodayLine concentration={concentration} counts={todayCounts} />
       )}
 
-      {/* Secondary lines — only under a real AI sentence: the workload counts
-          (otherwise they'd duplicate the Priorities chips ~100px below) and
-          the recap demoted to a quiet second line. */}
-      {aiEnabled && Boolean(brief?.text) && (showCounts || recap) ? (
-        <div className="flex flex-col gap-0.5">
-          {showCounts ? <TodayCountsLine counts={todayCounts} /> : null}
-          {recap ? <YesterdayLine recap={recap} /> : null}
-        </div>
-      ) : null}
-      {/* Self-hiding (renders null at zero count), so it lives outside the
-          showCounts/recap gate — a brand-new firm with no counts or recap
-          still sees its already-in-effect obligations. */}
+      {/* Self-hiding (renders null at zero count) — a brand-new firm with no
+          generated work still sees the changes already in effect for its
+          clients. */}
       <CatchupLine />
 
       {/* Action pills (Pencil t9nO3) — quick jumps to the surfaces the brief
@@ -354,7 +337,10 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
       iconClass: 'text-text-destructive',
       label: <Trans>Alerts</Trans>,
       count: alertCount,
-      to: '/alerts',
+      // Land in the Review queue (pending changes to look at), not the
+      // Active apply-queue — the brief is a "what should I look at" jump, and
+      // the explicit param pins the tab instead of riding the page default.
+      to: '/alerts?queue=review',
       ariaLabel: t`${alertCount} client-affecting alerts`,
     })
   }
@@ -363,7 +349,9 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
       key: 'waiting',
       icon: ClockIcon,
       iconClass: 'text-text-tertiary',
-      label: <Trans>Waiting</Trans>,
+      // Name what it's waiting ON — "Waiting" alone reads as a bare adjective.
+      // Matches the canonical status label used on /deadlines.
+      label: <Trans>Waiting on client</Trans>,
       count: counts.waitingOnClientCount,
       to: '/deadlines',
       ariaLabel: t`${counts.waitingOnClientCount} deadlines waiting on the client`,
@@ -374,7 +362,8 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
       key: 'overdue',
       icon: CalendarClockIcon,
       iconClass: 'text-text-tertiary',
-      label: <Trans>Overdue</Trans>,
+      // Name the noun — "Overdue deadlines", not a bare "Overdue".
+      label: <Trans>Overdue deadlines</Trans>,
       count: counts.overdueCount,
       to: '/deadlines',
       ariaLabel: t`${counts.overdueCount} overdue deadlines`,
@@ -410,11 +399,11 @@ function BriefActionPills({ counts }: { counts: DailyBriefTodayCounts }) {
 
 /**
  * Persistent "already in effect" line — relief windows published before the
- * firm joined (origin='catchup') that still await handling. NOT part of the
- * recap: catch-up rows are excluded from newAlertCount by design (state, not
- * news), so without this line the brief would stay silent about deadlines a
- * brand-new firm must still act on. Renders for as long as unhandled rows
- * exist and disappears once the band is cleared — not a one-shot toast.
+ * firm joined (origin='catchup') that still await handling. These are state,
+ * not news (excluded from the server's newAlertCount by design), so without
+ * this line the brief would stay silent about deadlines a brand-new firm must
+ * still act on. Renders for as long as unhandled rows exist and disappears
+ * once the band is cleared — not a one-shot toast.
  */
 function CatchupLine() {
   const catchupQuery = useQuery(useAlertsListQueryOptions(50, 'catchup'))
@@ -429,87 +418,6 @@ function CatchupLine() {
           other="# changes already in effect affect your clients"
         />
       </Link>
-    </p>
-  )
-}
-
-/**
- * Deterministic "what happened while you were away" line — only the
- * activity that actually happened renders; an all-quiet window collapses
- * to one muted sentence. The alerts segment links to /alerts (the only
- * segment with a dedicated review surface).
- */
-function YesterdayLine({ recap, lead = false }: { recap: DashboardRecap; lead?: boolean }) {
-  const segments: React.ReactNode[] = []
-
-  if (recap.completedCount > 0) {
-    segments.push(
-      <span key="completed">
-        <Plural value={recap.completedCount} one="# completed" other="# completed" />
-        {recap.filedCount > 0 && recap.paidCount > 0 ? (
-          <span className="text-text-tertiary">
-            {' '}
-            ({recap.filedCount} <Trans>filed</Trans> · {recap.paidCount} <Trans>paid</Trans>)
-          </span>
-        ) : null}
-      </span>,
-    )
-  }
-  if (recap.newAlertCount > 0) {
-    segments.push(
-      <Link
-        key="alerts"
-        to="/alerts"
-        className="text-text-accent underline-offset-2 hover:underline"
-      >
-        <Plural value={recap.newAlertCount} one="# new alert" other="# new alerts" />
-      </Link>,
-    )
-  }
-  if (recap.dueDateMovedCount > 0) {
-    segments.push(
-      <span key="moved">
-        <Plural value={recap.dueDateMovedCount} one="# due date moved" other="# due dates moved" />
-      </span>,
-    )
-  }
-  if (recap.remindersSentCount > 0) {
-    segments.push(
-      <span key="reminders">
-        <Plural value={recap.remindersSentCount} one="# reminder sent" other="# reminders sent" />
-      </span>,
-    )
-  }
-
-  if (segments.length === 0) {
-    return (
-      <p className="text-sm text-text-tertiary">
-        <Trans>No changes since your last visit.</Trans>
-      </p>
-    )
-  }
-  return (
-    // As the LEAD (AI sentence absent) the recap reads as the card's content
-    // line — 14px regular primary with a natural-language intro. As the
-    // secondary line under an AI sentence it recedes to 13px secondary.
-    <p
-      className={
-        lead
-          ? 'min-w-0 max-w-[72ch] text-base text-text-primary'
-          : 'min-w-0 text-sm text-text-secondary'
-      }
-    >
-      {lead ? (
-        <>
-          <Trans>Since your last visit:</Trans>{' '}
-        </>
-      ) : null}
-      {segments.map((segment, index) => (
-        <Fragment key={index}>
-          {index > 0 ? <span className="text-text-muted"> · </span> : null}
-          {segment}
-        </Fragment>
-      ))}
     </p>
   )
 }
@@ -590,7 +498,7 @@ function TodayLine({
  * where the overdue work CLUSTERS by form type ("Overdue concentrated in
  * Form 1120 (3 of 5)") and deliberately never names a member. Renders
  * only when there is a real cluster (≥2 of one form); scattered overdue
- * is already carried by the count chips below. All-quiet collapses to
+ * is already carried by the action pills below. All-quiet collapses to
  * one muted line so the row never sits empty.
  */
 function FirmTodayLine({
@@ -623,49 +531,8 @@ function FirmTodayLine({
       </p>
     )
   }
-  // Scattered or light overdue — the count chips below carry the signal.
+  // Scattered or light overdue — the action pills below carry the signal.
   return null
-}
-
-/** Scoped workload counts under the AI sentence — only non-zero render. */
-function TodayCountsLine({ counts }: { counts: DailyBriefTodayCounts }) {
-  const segments: React.ReactNode[] = []
-  if (counts.overdueCount > 0) {
-    segments.push(
-      <span key="overdue" className="text-text-destructive">
-        <Plural value={counts.overdueCount} one="# overdue" other="# overdue" />
-      </span>,
-    )
-  }
-  if (counts.waitingOnClientCount > 0) {
-    segments.push(
-      <span key="waiting">
-        <Plural
-          value={counts.waitingOnClientCount}
-          one="# waiting on client"
-          other="# waiting on client"
-        />
-      </span>,
-    )
-  }
-  if (counts.dueThisWeekCount > 0) {
-    segments.push(
-      <span key="week">
-        <Plural value={counts.dueThisWeekCount} one="# due this week" other="# due this week" />
-      </span>,
-    )
-  }
-  if (segments.length === 0) return null
-  return (
-    <p className="text-xs text-text-tertiary">
-      {segments.map((segment, index) => (
-        <Fragment key={index}>
-          {index > 0 ? <span className="text-text-muted"> · </span> : null}
-          {segment}
-        </Fragment>
-      ))}
-    </p>
-  )
 }
 
 /**
@@ -688,9 +555,9 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
   if (brief.status === 'failed') {
     // Display-only — recovery is the server's self-heal, not a user action.
     // Wording is "Couldn't update", NOT "FAILED": only the optional AI
-    // sentence is missing; the deterministic recap below is still accurate,
-    // so the primary dashboard must not read as a broken product (re-critique
-    // 2026-06-14). Error code stays one hover away for support.
+    // sentence is missing; the rest of /today (Alerts, Priorities) is
+    // unaffected, so the primary dashboard must not read as a broken product
+    // (re-critique 2026-06-14). Error code stays one hover away for support.
     const failedText = (
       <span className="text-chip-label text-text-tertiary uppercase">
         <Trans>Couldn't update</Trans>

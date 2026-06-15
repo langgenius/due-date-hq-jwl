@@ -31,8 +31,10 @@ text-text-primary max-w-[64ch]`. Deadlines: the narrative ("6 overdue —
    pending-failed note).
 3. **Metric line(s)** — `text-sm text-text-secondary`, segments separated by
    `·`, counts `tabular-nums`. Deadlines: "28 active filings · across 10
-   entities · penalty exposure". Daily Brief: today's workload counts, then the
-   "since last visit" recap line.
+   entities · penalty exposure". **Daily Brief: removed** as of 2026-06-15 —
+   the workload-counts line and the "since last visit" recap were both cut (see
+   the de-densify section below). The Daily Brief's only metric-bearing row is
+   now the action-pills row.
 
 Chrome: `rounded-xl px-5 py-4 pr-9`, with a ghost `icon-xs` ✕ absolute at
 `top-2.5 right-2.5` when dismissible. Surface differs BY PURPOSE (revised
@@ -85,12 +87,13 @@ doorstep, played entirely through glyph motion (never surfaces/shadows):
 slide-in-from-top-1 duration-200`; the collapsed tab fades in at 150ms.
   All motion `motion-reduce`-guarded.
 
-**Failure rule:** when the AI sentence failed AND the recap is all-quiet AND
-no catch-up rows exist, the card defaults COLLAPSED, with the deterministic
-all-quiet line riding inline beside the tab ("All quiet — no deadline
-changes, new alerts, or reminders since your last visit." — no failure
-apology; the recap is deterministic truth and the brief self-heals
+**Failure rule:** when the AI sentence failed AND no catch-up rows exist, the
+card defaults COLLAPSED, with a deterministic all-quiet line riding inline
+beside the tab ("All quiet — nothing new needs your attention right now." — no
+failure apology; the rest of /today is unaffected and the brief self-heals
 server-side). The accent band must always be carried by real content.
+(Pre-2026-06-15 this rule also gated on the recap being all-quiet; the recap is
+gone, so the gate is now just failed-sentence + no-catch-up.)
 
 **Why a page tab and not a right insight panel:** the brief is 1–3 lines of
 editorial; a persistent right panel is layout machinery it hasn't earned,
@@ -98,6 +101,37 @@ competes with the obligation/alert drawer pattern, and dies at <xl widths.
 The tab keeps the page's Monitor → Work structure with the brief one click
 away. If the brief grows real content (citation stacks, activity stream),
 revisit the panel then.
+
+## De-densify + remove recap (2026-06-15, Daily Brief only)
+
+Yuqi feedback after a design crit: the populated Daily Brief did ~5 jobs in one
+band (AI sentence · workload counts · "since last visit" recap · catch-up ·
+action pills), and two rows duplicated the cards immediately above and below.
+Decisions: **remove the recap entirely**, **de-densify**, lean **more playful**.
+
+What changed (Daily Brief — the /deadlines banner is untouched):
+
+- **Recap cut entirely.** The `YesterdayLine` component, the `recap` prop, and
+  all recap render branches are gone. Backward-looking "2 completed" answers no
+  triage question; completed work is the least decision-relevant fact on the
+  surface.
+- **Workload-counts line cut.** It restated the Priorities buckets ~100px below;
+  the action pills already carry overdue/waiting with live counts + deep links,
+  and "due this week" lives in those buckets.
+- **New anatomy:** masthead → one lead sentence (AI focus, or firm-concentration
+  line) → catch-up line (if pre-join changes await) → action pills. The accent
+  band, tint, and ✕-collapse-to-tab are unchanged.
+
+**Masthead identity now carries into the expanded state.** Previously the
+morning-paper personality lived only on the collapsed tab; the expanded card was
+a plain title in a blue box. The `NewspaperIcon` glyph now leads the expanded
+title too, in accent (the card's one chromatic mark), with the same hover-tilt
+(`group-hover:-rotate-6`, `motion-reduce`-guarded) — tied to the section
+`group`, so collapse↔expand reads as the same edition folding and unfolding.
+
+This is where the two banners' anatomy intentionally diverges further: the
+/deadlines banner keeps its date-eyebrow + narrative; the Daily Brief leads with
+a glyph-masthead title and carries no metric line of its own.
 
 ## Why not a shared component (yet)
 

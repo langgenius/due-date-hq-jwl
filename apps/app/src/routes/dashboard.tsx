@@ -411,7 +411,6 @@ export function DashboardRoute() {
           <DailyBriefCard
             scope={scope}
             brief={brief}
-            recap={data?.recap ?? null}
             concentration={data?.summary?.overdueConcentration ?? null}
             todayCounts={{
               overdueCount: facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0,
