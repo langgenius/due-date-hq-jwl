@@ -80,6 +80,7 @@ import {
   useAlertsPriorityQueueQueryOptions,
 } from './api'
 import { isAlertConflict, isAlertNotFound, alertErrorDescriptor } from './lib/error-mapping'
+import { dueDateDiffTone, DUE_DATE_DIFF_TONE_CLASS } from './lib/due-date-diff'
 import {
   computeSelectionStats,
   confirmAllNeedsReview,
@@ -230,10 +231,16 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
         <span
           className={cn(
             'text-sm font-semibold tabular-nums',
-            days >= 0 ? 'text-text-success' : 'text-text-destructive',
+            DUE_DATE_DIFF_TONE_CLASS[dueDateDiffTone(days)],
           )}
         >
-          {days >= 0 ? `+${days}` : `${days}`} <Trans>days</Trans>
+          {days === 0 ? (
+            <Trans>No change</Trans>
+          ) : (
+            <>
+              {days > 0 ? `+${days}` : `${days}`} <Trans>days</Trans>
+            </>
+          )}
         </span>
       </div>
     </section>
@@ -1237,6 +1244,12 @@ export function AlertDetailDrawer({
         event.preventDefault()
         handleDismiss()
       } else if (key === 'a' && !alertResolved) {
+        // Mirror the footer primary-CTA disabled logic EXACTLY (DrawerActions),
+        // so `A` can never fire an action the button itself blocks — otherwise a
+        // user without apply permission could keyboard-trigger Mark-reviewed
+        // (server-rejected → confusing error toast), or pop the apply dialog with
+        // nothing selected / details missing (a dialog they can't act on).
+        if (!canApply) return
         const reviewMode =
           detail.alert.actionMode === 'review_only' ||
           detail.alert.firmImpact === 'no_current_match'
@@ -1245,6 +1258,11 @@ export function AlertDetailDrawer({
           event.preventDefault()
           markReviewedMutation.mutate({ alertId: detail.alert.id })
         } else {
+          const needsDeadlineDetails =
+            detail.alert.actionMode === 'due_date_overlay' &&
+            detail.alert.firmImpact !== 'no_current_match' &&
+            missingDeadlineDetails
+          if (needsDeadlineDetails || (stats?.selectedCount ?? 0) === 0) return
           event.preventDefault()
           handleApply()
         }
@@ -1254,7 +1272,17 @@ export function AlertDetailDrawer({
     return () => window.removeEventListener('keydown', handler)
     // handleApply / handleDismiss close over the same state these deps track.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, detail, isMutating, canDismiss, alertResolved, reverifyIncomplete])
+  }, [
+    open,
+    detail,
+    isMutating,
+    canDismiss,
+    canApply,
+    alertResolved,
+    reverifyIncomplete,
+    missingDeadlineDetails,
+    stats,
+  ])
 
   const handleCopyDraft = () => {
     if (!detail) return

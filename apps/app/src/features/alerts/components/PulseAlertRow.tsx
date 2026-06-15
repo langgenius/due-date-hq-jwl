@@ -25,6 +25,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
+import { dueDateDiffTone, DUE_DATE_DIFF_TONE_CLASS } from '../lib/due-date-diff'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
@@ -682,13 +683,20 @@ function PulseAlertRow({
                   {newDateLabel}
                 </span>
                 {daysDiff !== null ? (
+                  // Tone shared with the detail's DeadlineChangeCard via the one
+                  // `due-date-diff` helper (critique #8/#9): sooner = red, later =
+                  // green (relief), no change = neutral — so one alert never reads
+                  // amber here and green in its detail, and a 0-day shift isn't a
+                  // coloured "0 days later".
                   <span
                     className={cn(
                       'text-sm font-medium',
-                      daysDiff < 0 ? 'text-text-destructive' : 'text-text-warning',
+                      DUE_DATE_DIFF_TONE_CLASS[dueDateDiffTone(daysDiff)],
                     )}
                   >
-                    {Math.abs(daysDiff)} {daysDiff < 0 ? t`days sooner` : t`days later`}
+                    {daysDiff === 0
+                      ? t`No change`
+                      : `${Math.abs(daysDiff)} ${daysDiff < 0 ? t`days sooner` : t`days later`}`}
                   </span>
                 ) : null}
               </div>

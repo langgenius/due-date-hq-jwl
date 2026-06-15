@@ -85,7 +85,7 @@ function bodyRows(): HTMLElement[] {
 function expander(): HTMLButtonElement | null {
   return (
     ([...(container?.querySelectorAll('button') ?? [])] as HTMLButtonElement[]).find((b) =>
-      /Show all|Show fewer/.test(b.textContent ?? ''),
+      /View all|Show fewer/.test(b.textContent ?? ''),
     ) ?? null
   )
 }
@@ -101,7 +101,7 @@ describe('AffectedClientsTable collapse', () => {
     renderTable(Array.from({ length: 12 }, (_, i) => makeRow(i)))
     expect(bodyRows()).toHaveLength(8)
     const toggle = expander()
-    expect(toggle?.textContent).toContain('Show all 12 clients')
+    expect(toggle?.textContent).toContain('View all 12 affected clients')
     act(() => toggle?.click())
     expect(bodyRows()).toHaveLength(12)
     expect(expander()?.textContent).toContain('Show fewer')

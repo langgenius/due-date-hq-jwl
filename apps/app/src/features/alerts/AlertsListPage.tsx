@@ -1311,7 +1311,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
           apply needs per-alert verification). Assign + Export were
           removed — they had no backend and no explanation, so they
           read as dead UI. */}
-      {selectionEnabled && selectedCount > 0 ? (
+      {/* Hidden while a detail panel is open (`openAlertId`): the floating bar
+          sits bottom-center and would collide with the detail's own docking
+          decision footer. Bulk actions are a list-level operation; the selection
+          is preserved and the bar reappears when the detail closes. */}
+      {selectionEnabled && selectedCount > 0 && openAlertId === null ? (
         <BulkActionBar
           selectedCount={selectedCount}
           totalCount={sortedAlerts.length}
@@ -1622,8 +1626,12 @@ function AlertFiltersPopover({
             getLabel={timeRangeFilterLabel}
             onSelect={onTimeRangeChange}
           />
+          {/* Labelled "Impact" (was "Severity") to match its options — "All
+              impact / Needs action / Needs review / No matches / Closed" — and
+              the underlying `impactFilter`; "Severity" named a different axis
+              than its contents (critique #10). */}
           <FilterPillSection
-            label={t`Severity`}
+            label={t`Impact`}
             value={impactFilter}
             options={ALERT_IMPACT_FILTER_OPTIONS}
             getLabel={impactFilterLabel}
