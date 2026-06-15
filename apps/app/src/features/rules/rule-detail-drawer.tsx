@@ -462,7 +462,7 @@ export function RuleDetailCompact({
       summary={
         rule.dueDateLogic.kind === 'fixed_date' ? (
           // irBJ8 "Due {date}" block — concrete date + holiday-rollover hint.
-          <div className="flex flex-col gap-1 rounded-lg bg-background-section px-3.5 py-3">
+          <div className="flex flex-col gap-1 rounded-lg border border-divider-subtle bg-background-section px-3.5 py-3">
             <span className="font-mono text-lg font-bold text-text-primary">
               <Trans>
                 Due {formatDatePretty(rule.dueDateLogic.date, { alwaysShowYear: true })}
@@ -477,7 +477,7 @@ export function RuleDetailCompact({
             </span>
           </div>
         ) : (
-          <div className="rounded-lg bg-background-section px-3.5 py-3 text-sm text-text-primary">
+          <div className="rounded-lg border border-divider-subtle bg-background-section px-3.5 py-3 text-sm text-text-primary">
             {dueDateSummary}
           </div>
         )
@@ -535,11 +535,12 @@ export function RuleDetailCompact({
 
   // Impact — estimated client obligations accepting would generate (real
   // previewRuleImpact count only). Review context only.
-  const impactCard = isReview ? <RuleImpactCard rule={rule} /> : null
+  const impactCard = isReview ? <RuleImpactCard rule={rule} flat={splitRail} /> : null
 
   // Practice review — team-note composer + thread (irBJ8). Review only;
   // hidden on bulk surfaces (they own the note workflow).
-  const practiceCard = !hideReviewAids && isReview ? <RulePracticeReviewCard rule={rule} /> : null
+  const practiceCard =
+    !hideReviewAids && isReview ? <RulePracticeReviewCard rule={rule} flat={splitRail} /> : null
 
   const activityCard = (
     // Activity — summary = current version; detail = full audit timeline.
@@ -582,6 +583,7 @@ export function RuleDetailCompact({
       rule={rule}
       concreteDraft={concreteDraft ?? null}
       concreteDraftLoading={concreteDraftLoading}
+      flat={splitRail}
       {...(reviewReason !== undefined ? { reviewReason } : {})}
     />
   ) : null
@@ -704,7 +706,7 @@ export function RuleDetailCompact({
  * and coverage-lift % aren't returned by the API, so they're intentionally
  * omitted (no fiction).
  */
-function RuleImpactCard({ rule }: { rule: ObligationRule }) {
+function RuleImpactCard({ rule, flat = false }: { rule: ObligationRule; flat?: boolean }) {
   const impactQuery = useQuery({
     ...orpc.rules.previewRuleImpact.queryOptions({
       input: { ruleId: rule.id, expectedVersion: rule.version },
@@ -717,6 +719,7 @@ function RuleImpactCard({ rule }: { rule: ObligationRule }) {
   const entityRows = impact?.entityCounts ?? []
   return (
     <DisclosureCard
+      flat={flat}
       title={<Trans>Impact</Trans>}
       meta={<Trans>Estimated</Trans>}
       moreLabel={<Trans>View breakdown</Trans>}
@@ -776,11 +779,15 @@ function RuleBeforeAcceptCard({
   concreteDraft,
   concreteDraftLoading = false,
   reviewReason,
+  flat = false,
 }: {
   rule: ObligationRule
   concreteDraft: RuleConcreteDraftCacheEntry | null
   concreteDraftLoading?: boolean
   reviewReason?: RuleReviewTaskReason
+  /** `flat` (TkpJG rail): a border-only box on the gray rail (no white fill /
+      bar header) — heading inline above the checks. */
+  flat?: boolean
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -810,6 +817,35 @@ function RuleBeforeAcceptCard({
       : sourceDefined && !draft && !concreteDraftLoading
         ? t`AI concrete draft is not ready.`
         : null
+  const checks = (
+    <>
+      <RuleYearDiff
+        ruleId={rule.id}
+        expectedVersion={rule.version}
+        {...(reviewReason !== undefined ? { reason: reviewReason } : {})}
+      />
+      {sourceDefined ? (
+        <AiDraftReviewPanel
+          draft={draft}
+          errorMessage={draftPanelMessage}
+          generating={(concreteDraftLoading || draftMutation.isPending) && !draft}
+          {...(reviewSourceId.length > 0 ? { onGenerateDraft: requestDraft } : {})}
+        />
+      ) : null}
+    </>
+  )
+
+  if (flat) {
+    return (
+      <section className="flex flex-col gap-2.5 rounded-lg border border-divider-regular px-4 py-3.5">
+        <h3 className="text-item-title text-text-primary">
+          <Trans>Before you accept</Trans>
+        </h3>
+        {checks}
+      </section>
+    )
+  }
+
   return (
     <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
       <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
@@ -817,21 +853,7 @@ function RuleBeforeAcceptCard({
           <Trans>Before you accept</Trans>
         </h3>
       </div>
-      <div className="flex flex-col gap-2 px-5 py-4">
-        <RuleYearDiff
-          ruleId={rule.id}
-          expectedVersion={rule.version}
-          {...(reviewReason !== undefined ? { reason: reviewReason } : {})}
-        />
-        {sourceDefined ? (
-          <AiDraftReviewPanel
-            draft={draft}
-            errorMessage={draftPanelMessage}
-            generating={(concreteDraftLoading || draftMutation.isPending) && !draft}
-            {...(reviewSourceId.length > 0 ? { onGenerateDraft: requestDraft } : {})}
-          />
-        ) : null}
-      </div>
+      <div className="flex flex-col gap-2 px-5 py-4">{checks}</div>
     </section>
   )
 }
@@ -842,7 +864,15 @@ function RuleBeforeAcceptCard({
  * the threaded notes. Backed by the real `rules.listRuleNotes` / `addRuleNote`
  * endpoints (rule_note table). Review-context rules only.
  */
-function RulePracticeReviewCard({ rule }: { rule: ObligationRule }) {
+function RulePracticeReviewCard({
+  rule,
+  flat = false,
+}: {
+  rule: ObligationRule
+  /** `flat` (TkpJG rail): flush label + red "Required" tag over the textarea,
+      no bordered-card chrome. */
+  flat?: boolean
+}) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const [body, setBody] = useState('')
@@ -865,79 +895,105 @@ function RulePracticeReviewCard({ rule }: { rule: ObligationRule }) {
   )
   const trimmed = body.trim()
   const canSubmit = trimmed.length > 0 && !addMutation.isPending
+  const requiredTag = (
+    <span
+      className={cn(
+        'ml-auto shrink-0',
+        flat
+          ? 'text-caption-xs font-bold uppercase tracking-wide text-text-destructive'
+          : 'text-caption font-medium text-text-tertiary',
+      )}
+    >
+      {flat ? <Trans>Required</Trans> : <Trans>Required before Accept</Trans>}
+    </span>
+  )
+  const inner = (
+    <>
+      <Textarea
+        value={body}
+        onChange={(event) => setBody(event.target.value)}
+        maxLength={2000}
+        disabled={addMutation.isPending}
+        placeholder={t`Add a note for your team — explain assumptions, scope decisions, or follow-ups.`}
+        className="min-h-16 text-sm"
+      />
+      <div className="flex items-center gap-3">
+        {notes.length > 0 ? (
+          <TextLink
+            variant="accent"
+            onClick={() => setShowNotes((value) => !value)}
+            aria-expanded={showNotes}
+            className="text-base"
+          >
+            <Plural value={notes.length} one="View # team note" other="View # team notes" />
+            <ChevronDownIcon
+              aria-hidden
+              className={cn('size-3.5 transition-transform', showNotes && 'rotate-180')}
+            />
+          </TextLink>
+        ) : (
+          <span className="text-base text-text-muted">
+            <Trans>No team notes yet</Trans>
+          </span>
+        )}
+        <span className="ml-auto text-caption font-medium text-text-muted tabular-nums">
+          {body.length} / 2000
+        </span>
+        {trimmed.length > 0 ? (
+          <Button
+            type="button"
+            size="xs"
+            onClick={() => canSubmit && addMutation.mutate({ ruleId: rule.id, body: trimmed })}
+            disabled={!canSubmit}
+          >
+            {addMutation.isPending ? (
+              <Loader2 data-icon="inline-start" className="animate-spin" />
+            ) : null}
+            <Trans>Add note</Trans>
+          </Button>
+        ) : null}
+      </div>
+      {showNotes && notes.length > 0 ? (
+        <ul className="flex flex-col gap-2 border-t border-divider-subtle pt-2">
+          {notes.map((note) => (
+            <li key={note.id} className="flex flex-col gap-0.5">
+              <div className="flex items-baseline gap-2">
+                <span className="text-base font-semibold text-text-primary">{note.authorName}</span>
+                <span className="text-caption text-text-muted">
+                  {formatRelativeTime(note.createdAt)}
+                </span>
+              </div>
+              <p className="text-sm whitespace-pre-wrap text-text-secondary">{note.body}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </>
+  )
+
+  if (flat) {
+    return (
+      <section className="flex min-w-0 flex-col gap-2.5">
+        <div className="flex items-baseline gap-2">
+          <h3 className="text-item-title text-text-primary">
+            <Trans>Practice review</Trans>
+          </h3>
+          {requiredTag}
+        </div>
+        {inner}
+      </section>
+    )
+  }
+
   return (
     <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
       <div className="flex h-9 items-center gap-2 border-b border-divider-regular bg-background-section px-5">
         <h3 className="text-base font-semibold text-text-primary">
           <Trans>Practice review</Trans>
         </h3>
-        <span className="ml-auto text-caption font-medium text-text-tertiary">
-          <Trans>Required before Accept</Trans>
-        </span>
+        {requiredTag}
       </div>
-      <div className="flex flex-col gap-2 px-5 py-4">
-        <Textarea
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-          maxLength={2000}
-          disabled={addMutation.isPending}
-          placeholder={t`Add a note for your team — explain assumptions, scope decisions, or follow-ups.`}
-          className="min-h-16 text-sm"
-        />
-        <div className="flex items-center gap-3">
-          {notes.length > 0 ? (
-            <TextLink
-              variant="accent"
-              onClick={() => setShowNotes((value) => !value)}
-              aria-expanded={showNotes}
-              className="text-base"
-            >
-              <Plural value={notes.length} one="View # team note" other="View # team notes" />
-              <ChevronDownIcon
-                aria-hidden
-                className={cn('size-3.5 transition-transform', showNotes && 'rotate-180')}
-              />
-            </TextLink>
-          ) : (
-            <span className="text-base text-text-muted">
-              <Trans>No team notes yet</Trans>
-            </span>
-          )}
-          <span className="ml-auto text-caption font-medium text-text-muted tabular-nums">
-            {body.length} / 2000
-          </span>
-          {trimmed.length > 0 ? (
-            <Button
-              type="button"
-              size="xs"
-              onClick={() => canSubmit && addMutation.mutate({ ruleId: rule.id, body: trimmed })}
-              disabled={!canSubmit}
-            >
-              {addMutation.isPending ? (
-                <Loader2 data-icon="inline-start" className="animate-spin" />
-              ) : null}
-              <Trans>Add note</Trans>
-            </Button>
-          ) : null}
-        </div>
-        {showNotes && notes.length > 0 ? (
-          <ul className="flex flex-col gap-2 border-t border-divider-subtle pt-2">
-            {notes.map((note) => (
-              <li key={note.id} className="flex flex-col gap-0.5">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-base font-semibold text-text-primary">
-                    {note.authorName}
-                  </span>
-                  <span className="text-caption text-text-muted">
-                    {formatRelativeTime(note.createdAt)}
-                  </span>
-                </div>
-                <p className="text-sm whitespace-pre-wrap text-text-secondary">{note.body}</p>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
+      <div className="flex flex-col gap-2 px-5 py-4">{inner}</div>
     </section>
   )
 }
