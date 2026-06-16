@@ -482,3 +482,28 @@ Yuqi "change to 16px": the strip KPI values dropped from text-stat-value (24) to
 text-lg (16) — a compact, low-key band (closer to VtC73's inline stats). Still
 uniform: all 16px, counts neutral (0 dims to tertiary), overdue Next Due red.
 Verified live (Meridian): 0/3/0 + May 12 all 16px.
+
+## Cluster 20 — Remaining review items (key-date icons, owner pill, panel breadcrumb, footer)
+Yuqi "do all" — the 4 carried-over items (planned via a parallel fan-out, then
+applied + curated):
+- #7 key-date cards simplified: dropped the decorative leading icons
+  (CalendarX/Target/Wallet) from DeadlineDateCard — label / date / clock / meta,
+  keeping the subtle border frame. Affects the panel + the /deadlines page.
+- Unify (#3/#4): ClientCycleArrows already used the canonical Button (no change);
+  the C-corp Badge + AssigneeAvatar are already canonical. The ONE hand-rolled
+  control — ClientOwnerHeaderPill's <button> trigger — converted to the canonical
+  Button (variant=ghost, h-7 rounded-full, +text-xs to hold the 12px meta scale).
+- #5 panel breadcrumb: panel mode now renders a slim breadcrumb header
+  ("Deadlines › {client} › {form}") ABOVE the status banner (page mode keeps its
+  DeadlineCrumbBar; panel keeps its own close-X).
+- #8 faint footer: the docked footer went border-transparent (invisible on the
+  gray NrQaI body, blending with the white cards above). Flipped the float→dock
+  border logic — DOCKED now shows a divider-regular top border (floating keeps the
+  drop-shadow), so the action bar is clearly separated. Kept the footer white.
+
+Verified live (Meridian panel): breadcrumb above banner; key-date cards icon-less;
+owner pill is a Button (h-7); footer border. tsgo clean (my files).
+
+FOLLOW-UP flagged: at panel-open (squeezed left column) the summary strip wraps
+"NEXT DUE" onto a 2nd line under JURISDICTIONS (orphaned). Needs a no-wrap /
+scroll or responsive-grid pass on the strip for the squeezed state.

@@ -1014,7 +1014,7 @@ export function ClientDetailWorkspace({
                         className={cn(
                           'scroll-mt-20 rounded-lg border bg-background-default px-5 py-4',
                           missingFilingState
-                            ? 'border-state-warning-active-alt'
+                            ? 'border-state-warning-active'
                             : 'border-divider-regular',
                         )}
                       >
@@ -1878,8 +1878,9 @@ function ClientOwnerHeaderPill({
           // inset top + 4px bottom). The right side keeps 10px so the
           // chevron doesn't feel cramped against the pill border. The
           // 6px gap between avatar + label + chevron is unchanged.
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             aria-label={triggerLabel}
             title={triggerLabel}
             disabled={disabled}
@@ -1887,7 +1888,7 @@ function ClientOwnerHeaderPill({
               // Borderless ghost pill (Yuqi: owner pill "丑") — at rest it sits
               // quietly among the meta-row identity facts (no border/fill box);
               // the chevron + hover wash carry the "editable" affordance.
-              'inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full pl-1 pr-1.5 text-xs outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
+              'h-7 rounded-full pl-1 pr-1.5 text-xs',
               name === null ? 'text-text-secondary' : 'text-text-primary',
             )}
           >
@@ -1906,7 +1907,7 @@ function ClientOwnerHeaderPill({
               </>
             )}
             <ChevronDownIcon className="size-3.5 text-text-tertiary" aria-hidden />
-          </button>
+          </Button>
         }
       />
       <DropdownMenuContent align="start" className="w-56">

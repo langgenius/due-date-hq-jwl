@@ -51,7 +51,6 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   AlertTriangleIcon,
   ArrowUpRightIcon,
-  CalendarXIcon,
   CheckCircle2Icon,
   ChevronRightIcon,
   CircleCheck,
@@ -63,8 +62,6 @@ import {
   Loader,
   Loader2,
   MessageSquareText,
-  TargetIcon,
-  WalletIcon,
   type LucideIcon,
 } from 'lucide-react'
 import { Fragment, useMemo, useState } from 'react'
@@ -297,13 +294,11 @@ export function ReadinessOverview({
 // the page.
 
 function DeadlineDateCard({
-  icon: Icon,
   label,
   date,
   clock,
   meta,
 }: {
-  icon: LucideIcon
   label: string
   date: string | null
   // The relative-time clock (e.g. "12 days overdue", "in 4 days").
@@ -327,12 +322,9 @@ function DeadlineDateCard({
       // stays a text-colour cue on the icon + date.
       className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle px-3 py-2.5"
     >
-      <div className="flex items-center gap-1.5">
-        <Icon className="size-3 shrink-0 text-text-tertiary" aria-hidden />
-        <span className="text-caption-xs font-semibold uppercase tracking-[0.4px] text-text-tertiary">
-          {label}
-        </span>
-      </div>
+      <span className="text-caption-xs font-semibold uppercase tracking-[0.4px] text-text-tertiary">
+        {label}
+      </span>
       <span
         // 2026-06-10 (Yuqi page-polish #1 "bigger text"): the date value
         // is the primary datum in each key-date card, so it steps up to
@@ -573,21 +565,18 @@ export function PrimaryDeadlineStrip({
     return (
       <div aria-label={t`Key deadlines`} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <DeadlineDateCard
-          icon={CalendarXIcon}
           label={t`Filing deadline`}
           date={filingIso}
           clock={filingClock.text}
           meta={null}
         />
         <DeadlineDateCard
-          icon={TargetIcon}
           label={t`Internal target`}
           date={internalIso}
           clock={internalClock.text}
           meta={internalBuffer}
         />
         <DeadlineDateCard
-          icon={WalletIcon}
           label={t`Payment due`}
           date={paymentIso}
           clock={paymentClock.text}
@@ -1021,7 +1010,7 @@ export function PathToFilingSummary({
                         nextIdx === currentIndex ||
                         (nextIdx < currentIndex && stamps[nextIdx] !== null)
                       return thisEntered && nextEntered
-                        ? 'border-divider-strong'
+                        ? 'border-divider-deep'
                         : 'border-divider-regular'
                     })(),
                   )}
@@ -1160,7 +1149,7 @@ export function AuthorityResponsePanel({
           : null
 
     return (
-      <section className="grid gap-3 rounded-lg border border-state-danger-border bg-state-danger-hover px-4 py-3">
+      <section className="grid gap-3 rounded-lg border border-state-destructive-border bg-state-destructive-hover px-4 py-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-1">
             <p className="text-sm font-semibold text-text-primary">

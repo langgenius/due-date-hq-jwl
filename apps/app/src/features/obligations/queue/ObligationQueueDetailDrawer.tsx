@@ -1820,6 +1820,48 @@ export function ObligationQueueDetailDrawer({
           heroScrolled={heroCollapsed}
         />
       ) : null}
+      {/* 2026-06-16 (Yuqi #5: panel-mode breadcrumb): in panel mode (right-rail
+          client detail view), render a slim breadcrumb header row above the
+          DetailStatusBanner. Mirrors the in-page DeadlineCrumbBar but adapted
+          for panel layout — no position read-out (panel lacks paging), slim
+          h-[44px] instead of h-[52px], and the panel's own close-X stays in
+          the header (not duplicated here). Path: Deadlines › {clientName} ›
+          {formName}. */}
+      {mode === 'panel' ? (
+        <div className="flex h-[44px] shrink-0 items-center border-b border-divider-subtle px-5">
+          <nav className="flex min-w-0 items-center gap-1.5 text-sm">
+            <Link
+              to="/deadlines"
+              className="shrink-0 rounded-sm text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <Trans>Deadlines</Trans>
+            </Link>
+            {row && row.clientName ? (
+              <>
+                <span className="shrink-0 text-text-muted" aria-hidden>
+                  ›
+                </span>
+                <span className="max-w-[200px] truncate text-text-secondary">
+                  {row.clientName}
+                </span>
+              </>
+            ) : null}
+            {row ? (
+              <>
+                <span className="shrink-0 text-text-muted" aria-hidden>
+                  ›
+                </span>
+                <span className="max-w-[200px] truncate text-text-secondary">
+                  {(() => {
+                    const meta = describeTaxCode(row.taxType)
+                    return meta.label
+                  })()}
+                </span>
+              </>
+            ) : null}
+          </nav>
+        </div>
+      ) : null}
       {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): thin h-7 top
           status banner mirroring AlertDetailDrawer's DecisionBanners
           (L424). One band, colored by deadline state — red when overdue,
@@ -3189,7 +3231,7 @@ export function ObligationQueueDetailDrawer({
                           <div className="flex flex-wrap items-center gap-2 text-xs">
                             <Badge
                               variant="outline"
-                              className="border-state-warning-border bg-state-warning-hover text-text-warning"
+                              className="border-state-warning-hover-alt bg-state-warning-hover text-text-warning"
                             >
                               <Trans>
                                 Client response due{' '}
@@ -3364,7 +3406,7 @@ export function ObligationQueueDetailDrawer({
                         not sure" signal needs to be persistent,
                         not transient. */}
                               {checklistDegraded ? (
-                                <div className="flex items-start gap-2 rounded-lg border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
+                                <div className="flex items-start gap-2 rounded-lg border border-state-warning-active bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
                                   <AlertTriangleIcon
                                     className="mt-0.5 size-3.5 shrink-0"
                                     aria-hidden
@@ -4442,19 +4484,18 @@ export function ObligationQueueDetailDrawer({
                             data-chip — the SAME node the Record section nav
                             renders. */}
                             {evidenceChip}
-                            {/* Stub CTA so the workpapers section isn't a dead
-                            end (audit L11). Upload pipeline isn't wired yet,
-                            so the click acknowledges + sets expectation
-                            without losing the user. */}
+                            {/* 2026-06-16 (audit C4): upload pipeline isn't wired
+                            yet. Was a toast-only "coming soon" button — the lone
+                            enabled control that did nothing on click. Converted to
+                            the project's canonical disabled-with-reason pattern
+                            (settings.profile.tsx:511) so unbuilt affordances read
+                            consistently across the app. */}
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() =>
-                                toast.info(t`Workpaper upload is coming soon`, {
-                                  description: t`We'll let you attach PDFs and exports here as soon as ingest lands.`,
-                                })
-                              }
+                              disabled
+                              title={t`Coming soon — attach PDFs and exports here once ingest lands.`}
                             >
                               <Trans>Add workpaper</Trans>
                             </Button>
@@ -4567,7 +4608,7 @@ export function ObligationQueueDetailDrawer({
                           ) : (
                             <Badge
                               variant="outline"
-                              className="border-state-warning-border text-caption-xs normal-case tracking-normal text-text-warning"
+                              className="border-state-warning-hover-alt text-caption-xs normal-case tracking-normal text-text-warning"
                             >
                               <Trans>No rule bound</Trans>
                             </Badge>
@@ -4783,12 +4824,15 @@ export function ObligationQueueDetailDrawer({
             // mode. Switched from the prior `flex-wrap justify-between` to a
             // single centered row. Panel/sheet keep the warm canvas + their
             // existing wrap behavior.
-            // 2026-06-16 (alert↔deadline parity): float→dock — a drop-shadow
-            // lifts the footer off scrolling content; it drops and the divider
-            // appears only once docked at the bottom (matches the alert decision
-            // bar's `decisionDocked`).
+            // 2026-06-16 (alert↔deadline parity): float→dock — while content
+            // scrolls below, a drop-shadow lifts the footer (no border needed);
+            // once DOCKED at the bottom the shadow drops and a clear
+            // divider-regular top border appears so the action bar stays visibly
+            // separated from the content above (Yuqi #8 "footer hard to see" — the
+            // old code went border-transparent when docked, so the white footer
+            // blended into the white cards above it on the gray body).
             'sticky bottom-0 mt-auto flex min-h-16 border-t px-12 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
-            footerDocked ? 'border-transparent' : 'border-divider-subtle',
+            footerDocked ? 'border-divider-regular' : 'border-transparent',
             panelLayout
               ? 'items-center bg-background-default py-3'
               : 'flex-wrap items-center justify-between gap-2 pt-4 pb-6',
