@@ -236,6 +236,10 @@ export const RuleSourceSchema = z.object({
   alertPurpose: AlertSourcePurposeSchema.optional(),
   notificationChannels: z.array(RuleNotificationChannelSchema),
   lastReviewedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  publishedOn: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   adapterKind: SourceAdapterKindSchema.optional(),
   feedUrl: z.url().optional(),
 })
@@ -418,6 +422,17 @@ export const ObligationRuleSchema = z.object({
   quality: RuleQualityChecklistSchema,
   verifiedBy: z.string().min(1),
   verifiedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  /**
+   * Server-derived display date for the rule library "Effective" column: the
+   * real publication / revision date (`RuleSource.publishedOn`) of the rule's
+   * basis source, looked up from the live catalog. Optional — absent when the
+   * basis source has no authored `publishedOn`, in which case the UI falls back
+   * to `verifiedAt`.
+   */
+  effectiveOn: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   reviewedByName: z.string().min(1).optional(),
   reviewedAt: z.iso.datetime().optional(),
   nextReviewOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

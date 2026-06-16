@@ -436,7 +436,7 @@ export function RuleDetailCompact({
           <FactChip label={t`Files`} value={rule.formName} />
           <FactChip
             label={t`Effective`}
-            value={formatDatePretty(rule.verifiedAt, { alwaysShowYear: true })}
+            value={formatDatePretty(rule.effectiveOn ?? rule.verifiedAt, { alwaysShowYear: true })}
           />
         </div>
       }

@@ -125,6 +125,47 @@ function toIsoOrNull(date: Date | null): string | null {
   return date ? date.toISOString() : null
 }
 
+// Source id -> authored real publication/revision date (RuleSource.publishedOn).
+// Built once from the static catalog; only sources with an authored date appear.
+let publishedOnBySourceId: ReadonlyMap<string, string> | null = null
+function sourcePublishedOnMap(): ReadonlyMap<string, string> {
+  if (!publishedOnBySourceId) {
+    publishedOnBySourceId = new Map(
+      listRuleSources().flatMap((source) =>
+        source.publishedOn ? ([[source.id, source.publishedOn]] as const) : [],
+      ),
+    )
+  }
+  return publishedOnBySourceId
+}
+
+// The rule library "Effective" column shows when the rule's authoritative
+// source was published — not when we processed the rule. Resolve it from the
+// live catalog (not persisted ruleJson) so authored dates always win: prefer the
+// basis-role source, then fall back to any sourceId/evidence that has a date.
+function sourceEffectiveOn(
+  rule: Pick<ObligationRule, 'evidence' | 'sourceIds'>,
+): string | undefined {
+  const map = sourcePublishedOnMap()
+  if (map.size === 0) return undefined
+  const basis = rule.evidence.find((item) => item.authorityRole === 'basis')
+  const candidateIds = [
+    ...(basis ? [basis.sourceId] : []),
+    ...rule.sourceIds,
+    ...rule.evidence.map((item) => item.sourceId),
+  ]
+  for (const id of candidateIds) {
+    const published = map.get(id)
+    if (published) return published
+  }
+  return undefined
+}
+
+function withSourceEffectiveOn(rule: ObligationRule): ObligationRule {
+  const effectiveOn = sourceEffectiveOn(rule)
+  return effectiveOn ? { ...rule, effectiveOn } : rule
+}
+
 function practiceReviewMetadata(
   row: PracticeRuleRow,
   reviewerNames: ReadonlyMap<string, string>,
@@ -598,11 +639,13 @@ async function listPracticeRules(input: {
 
   const mappedStatus = mapStatusFilter(input.status)
   const includeCandidates = input.includeCandidates ?? false
-  return rows.filter((rule) => {
-    if (mappedStatus && rule.status !== mappedStatus) return false
-    if (!includeCandidates && rule.status !== 'active') return false
-    return true
-  })
+  return rows
+    .filter((rule) => {
+      if (mappedStatus && rule.status !== mappedStatus) return false
+      if (!includeCandidates && rule.status !== 'active') return false
+      return true
+    })
+    .map(withSourceEffectiveOn)
 }
 
 export async function listActiveCoreRules(scoped: ReturnType<typeof requireTenant>['scoped']) {

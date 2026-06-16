@@ -1033,8 +1033,11 @@ function OverviewRecentChangesCard({
           const relative = changedAt ? formatRelativeTime(new Date(changedAt).toISOString()) : null
           // Meta line mirrors the mock: source/form code · effective date ·
           // reviewer. `reviewedByName` is a real display name; the seed
-          // placeholder `verifiedBy` slug is deliberately never shown.
-          const effective = rule.verifiedAt ? formatDatePretty(rule.verifiedAt) : null
+          // placeholder `verifiedBy` slug is deliberately never shown. The
+          // effective date is the source's publication date (`effectiveOn`),
+          // falling back to the rule's verified date.
+          const effectiveDate = rule.effectiveOn ?? rule.verifiedAt
+          const effective = effectiveDate ? formatDatePretty(effectiveDate) : null
           const metaParts = [
             rule.formName,
             effective ? t`effective ${effective}` : null,

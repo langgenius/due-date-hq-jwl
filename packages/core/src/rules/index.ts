@@ -219,6 +219,16 @@ export interface RuleSource {
   alertCoverageRoles?: readonly AlertSourceCoverageRole[]
   notificationChannels: readonly RuleNotificationChannel[]
   lastReviewedOn: string
+  /**
+   * Real publication / revision date of the source document as published by the
+   * issuing authority — e.g. an IRS instruction's "Rev. MM/YYYY" date, or a
+   * living IRS page's "Page Last Reviewed or Updated" stamp. Distinct from
+   * `lastReviewedOn` (the date WE last reviewed the source). Drives the rule
+   * library "Effective" column via the server-derived `effectiveOn`. Optional:
+   * authored only where a genuine source date is known (federal sources today);
+   * rules whose basis source has none fall back to the rule's `verifiedAt`.
+   */
+  publishedOn?: string
   adapterKind?: SourceAdapterKind
   // Initial pulse-source baseline override. 'backfill' makes the first scan
   // enqueue items already on the page (instead of baselining them out) so an
@@ -4935,6 +4945,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_pub_509_2026',
     jurisdiction: 'FED',
+    publishedOn: '2026-03-30', // irs.gov about-publication-509 page last updated
     title: 'IRS Publication 509 (2026), Tax Calendars',
     url: 'https://www.irs.gov/publications/p509',
     sourceType: 'publication',
@@ -4949,6 +4960,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_pub_15_2026',
     jurisdiction: 'FED',
+    publishedOn: '2026-03-30', // irs.gov about-publication-15 page last updated
     title: "IRS Publication 15 (2026), Employer's Tax Guide",
     url: 'https://www.irs.gov/publications/p15',
     sourceType: 'publication',
@@ -4993,6 +5005,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_i7004_2025',
     jurisdiction: 'FED',
+    publishedOn: '2025-12-01', // IRS instructions Rev. 12/2025
     title: 'IRS Instructions for Form 7004 (12/2025)',
     url: 'https://www.irs.gov/instructions/i7004',
     sourceType: 'instructions',
@@ -5007,6 +5020,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_i1065_2025',
     jurisdiction: 'FED',
+    publishedOn: '2026-03-30', // irs.gov about-form-1065 page last updated
     title: 'IRS Instructions for Form 1065 (2025)',
     url: 'https://www.irs.gov/instructions/i1065',
     sourceType: 'instructions',
@@ -5021,6 +5035,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_i1120s_2025',
     jurisdiction: 'FED',
+    publishedOn: '2026-06-05', // irs.gov about-form-1120-s page last updated
     title: 'IRS Instructions for Form 1120-S (2025)',
     url: 'https://www.irs.gov/instructions/i1120s',
     sourceType: 'instructions',
@@ -5035,6 +5050,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_i1120_2025',
     jurisdiction: 'FED',
+    publishedOn: '2026-03-30', // irs.gov about-form-1120 page last updated
     title: 'IRS Instructions for Form 1120 (2025)',
     url: 'https://www.irs.gov/instructions/i1120',
     sourceType: 'instructions',
@@ -5049,6 +5065,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_when_to_file_individuals_2026',
     jurisdiction: 'FED',
+    publishedOn: '2026-05-22', // irs.gov when-to-file page last updated
     title: 'IRS When to file for individuals (2026 filing season)',
     url: 'https://www.irs.gov/filing/individuals/when-to-file',
     sourceType: 'due_dates',
@@ -5063,6 +5080,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_i1041_2025',
     jurisdiction: 'FED',
+    publishedOn: '2026-03-30', // irs.gov about-form-1041 page last updated
     title: 'IRS Instructions for Form 1041 (2025)',
     url: 'https://www.irs.gov/instructions/i1041',
     sourceType: 'instructions',
@@ -5077,6 +5095,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_i941_2026',
     jurisdiction: 'FED',
+    publishedOn: '2026-03-01', // IRS instructions Rev. 03/2026
     title: 'IRS Instructions for Form 941 (03/2026)',
     url: 'https://www.irs.gov/instructions/i941',
     sourceType: 'instructions',
@@ -5091,6 +5110,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_information_return_reporting',
     jurisdiction: 'FED',
+    publishedOn: '2025-09-08', // irs.gov information-return-reporting page last updated
     title: 'IRS Information return reporting',
     url: 'https://www.irs.gov/businesses/small-businesses-self-employed/information-return-reporting',
     sourceType: 'instructions',
@@ -5105,6 +5125,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_p1099_2026',
     jurisdiction: 'FED',
+    publishedOn: '2026-03-30', // irs.gov about-form-1099 page last updated
     title: 'IRS Publication 1099 (2026), General Instructions for Certain Information Returns',
     url: 'https://www.irs.gov/publications/p1099',
     sourceType: 'publication',
@@ -5119,6 +5140,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.fincen_fbar_due_date',
     jurisdiction: 'FED',
+    publishedOn: '2020-03-01', // FinCEN "Due Date for FBARs" guidance (03/2020)
     title: 'FinCEN Due Date for FBARs',
     url: 'https://www.fincen.gov/sites/default/files/2020-03/Due_Date_for_FBARs.pdf',
     sourceType: 'instructions',
@@ -5133,6 +5155,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_990_due_date',
     jurisdiction: 'FED',
+    publishedOn: '2026-05-31', // irs.gov annual-exempt-organization-return-due-date page last updated
     title: 'IRS Annual exempt organization return due date',
     url: 'https://www.irs.gov/charities-non-profits/annual-exempt-organization-return-due-date',
     sourceType: 'due_dates',
@@ -5147,6 +5170,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_i8868_2026',
     jurisdiction: 'FED',
+    publishedOn: '2026-01-01', // IRS instructions Rev. 01/2026
     title: 'IRS Instructions for Form 8868 (01/2026)',
     url: 'https://www.irs.gov/instructions/i8868',
     sourceType: 'instructions',
@@ -5161,6 +5185,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_i940_2026',
     jurisdiction: 'FED',
+    publishedOn: '2026-03-30', // irs.gov about-form-940 page last updated
     title: 'IRS Instructions for Form 940 (2025)',
     url: 'https://www.irs.gov/instructions/i940',
     sourceType: 'instructions',
@@ -5175,6 +5200,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_iw2w3_2026',
     jurisdiction: 'FED',
+    publishedOn: '2026-03-30', // irs.gov about-form-w-2 page last updated
     title: 'IRS General Instructions for Forms W-2 and W-3 (2026)',
     url: 'https://www.irs.gov/instructions/iw2w3',
     sourceType: 'instructions',
@@ -5189,6 +5215,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_i709_2025',
     jurisdiction: 'FED',
+    publishedOn: '2026-03-31', // irs.gov about-form-709 page last updated
     title: 'IRS Instructions for Form 709 (2025)',
     url: 'https://www.irs.gov/instructions/i709',
     sourceType: 'instructions',
@@ -5203,6 +5230,7 @@ export const RULE_SOURCES = hydrateRuleSources([
   {
     id: 'fed.irs_5500_corner',
     jurisdiction: 'FED',
+    publishedOn: '2026-04-24', // irs.gov form-5500-corner page last updated
     title: 'IRS Form 5500 Corner',
     url: 'https://www.irs.gov/retirement-plans/form-5500-corner',
     sourceType: 'due_dates',

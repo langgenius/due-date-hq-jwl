@@ -554,10 +554,12 @@ function JurisdictionRuleRow({
   const displayTitle = stripJurisdictionPrefix(rule.title, jurisLabel)
   const typeLabel = formatRuleTypeLabel(rule.taxType, rule.jurisdiction)
   const tone = STATUS_TONE[rule.status]
-  // oJL8o columns: Effective = the rule's verified/effective date;
+  // oJL8o columns: Effective = the publication/revision date of the rule's
+  // authoritative source (server-derived `effectiveOn`), falling back to the
+  // rule's verified date when the source has no authored publish date;
   // Last modified = the most recent review timestamp (omitted when the
   // rule has never been re-reviewed).
-  const effective = formatDatePretty(rule.verifiedAt, { alwaysShowYear: true })
+  const effective = formatDatePretty(rule.effectiveOn ?? rule.verifiedAt, { alwaysShowYear: true })
   const lastModified = rule.reviewedAt
     ? formatDatePretty(rule.reviewedAt, { alwaysShowYear: true })
     : null
