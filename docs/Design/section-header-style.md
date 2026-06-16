@@ -77,11 +77,19 @@ text-xs    font-medium   tracking-eyebrow  text-text-tertiary uppercase   (B2 �
   medium weight, `tracking-eyebrow` / `tracking-eyebrow-tight`.
 - **Use when:** the label is metadata for the block below it, not a region anchor.
 
-> **Known drift (B):** tier-2 tracking + size vary across surfaces
-> (`tracking-eyebrow`, `tracking-eyebrow-tight`, `tracking-wider`,
-> `tracking-[0.5px]`; `text-[11px]` vs `text-xs` vs `text-caption-xs`; medium vs
-> semibold). The COLOR (tertiary) and uppercase are consistent. A size/tracking
-> unification is a mechanical follow-up — tracked, not yet swept.
+> **Register-B home (2026-06-16):** both B tiers now have ONE primitive —
+> `FieldLabel` (`components/primitives/field-label.tsx`) with a `variant` prop:
+> `field` (B2, 12px `tracking-wide`, medium) and `group` (B1, 11px
+> `tracking-eyebrow-tight`, semibold). Color (`text-text-tertiary`) + uppercase
+> are baked in. New B-tier labels MUST use it — never hand-roll. The ~200 legacy
+> hand-rolled labels (4 sizes × 2 weights × 5 trackings of the same
+> tertiary-uppercase look) migrate ONTO it mechanically; that sweep is in
+> progress — the just-redesigned alert/deadline detail drawers (~51 labels) are
+> sequenced with that surface's owner to avoid racing the redesign.
+>
+> (`field` keeps `tracking-wide` rather than the §3.3 `tracking-eyebrow` canon to
+> avoid shifting its 14 current consumers mid-sweep; reconciling that is a
+> one-line follow-up once everything is on the primitive.)
 
 ## Register C — Card / panel title
 

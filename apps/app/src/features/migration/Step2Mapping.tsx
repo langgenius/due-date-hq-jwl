@@ -47,6 +47,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
+import { FieldLabel } from '@/components/primitives/field-label'
 
 import {
   formatMigrationErrorMessage,
@@ -466,9 +467,9 @@ function MappingBannerRow({
           >
             <div className="grid gap-3 px-3 py-3 sm:grid-cols-[1fr_auto]">
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
+                <FieldLabel as="span">
                   <Trans>Sample values</Trans>
-                </span>
+                </FieldLabel>
                 {samples.length > 0 ? (
                   <ul className="flex flex-col gap-0.5 font-mono text-xs tabular-nums text-text-secondary">
                     {dedupeSamples(samples).map((value) => (
@@ -484,9 +485,9 @@ function MappingBannerRow({
                 )}
               </div>
               <div className="flex flex-col gap-1.5 sm:items-end">
-                <span className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
+                <FieldLabel as="span">
                   <Trans>Data type</Trans>
-                </span>
+                </FieldLabel>
                 <span className="text-xs text-text-secondary">
                   {destinationDataTypeLabel(row.targetField, t)}
                 </span>

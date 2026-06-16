@@ -1726,7 +1726,8 @@ export function ObligationQueueDetailDrawer({
   // in place without animating from the top during paint. Gated on
   // !detailQuery.isLoading && row so the sections exist (the body shows a
   // skeleton until then); keyed on row?.id so it re-runs when real content lands.
-  // TODO(scroll-spy): tune sticky offset live
+  // scrollIntoView honors each section's `scroll-margin-top` (sectionScrollClass),
+  // so it lands clear of any sticky chrome — no manual offset needed here.
   useEffect(() => {
     if (detailQuery.isLoading || !row) return
     scrollContainerRef.current
@@ -1739,8 +1740,13 @@ export function ObligationQueueDetailDrawer({
   // body) exactly like the old `tabBar`. Each item carries the section's
   // label + icon + data-chip; the active item gets the accent underline span,
   // adapted from AlertDetailDrawer's section nav.
-  // TODO(scroll-spy): tune sticky offset live (combined sticky height in panel
-  // mode = this nav + the sticky PrimaryDeadlineStrip above it).
+  // Per-mode scroll-margin for the section anchors so deep-links + nav clicks
+  // land clear of any sticky chrome (2026-06-16, resolves the scroll-spy offset
+  // TODOs). panel/page render the section nav + key-date strip ABOVE the scroll
+  // container (non-sticky), so sections need only a little breathing — a flat
+  // scroll-mt-16 was over-scrolling them ~64px. The legacy sheet hosts the nav
+  // `sticky top-0` INSIDE the scroll body, so its sections must clear the nav.
+  const sectionScrollClass = panelLayout ? 'scroll-mt-4' : 'scroll-mt-16'
   const sectionNav =
     sectionNavItems.length > 0 ? (
       <nav
@@ -2356,7 +2362,9 @@ export function ObligationQueueDetailDrawer({
             // when this div owns the scroll (panelLayout); in the legacy sheet
             // mode the SheetContent scrolls, not this div. Reuses the `atBottom`
             // computed above for the last-section snap (don't recompute).
-            // TODO(scroll-spy): tune sticky offset live
+            // Active section = the last whose top has crossed the active line
+            // (~72px below the container top — a "this section now dominates the
+            // viewport" feel offset; only panel/page own this scroll).
             if (!panelLayout || sectionNavItems.length === 0) return
             const containerTop = el.getBoundingClientRect().top
             let current = sectionNavItems[0]!.id
@@ -2510,7 +2518,7 @@ export function ObligationQueueDetailDrawer({
                 is shared so the nav markup lives in one place. */}
               {mode === 'sheet' ? sectionNav : null}
               {visibleTabs.has('summary') ? (
-                <section id="deadline-section-summary" className="scroll-mt-16">
+                <section id="deadline-section-summary" className={sectionScrollClass}>
                   <motion.div
                     // 2026-06-10 (Yuqi page-polish #7 "remove top padding"): the
                     // per-section content drops its 24px top padding in the
@@ -3135,7 +3143,7 @@ export function ObligationQueueDetailDrawer({
                 </section>
               ) : null}
               {visibleTabs.has('readiness') ? (
-                <section id="deadline-section-readiness" className="scroll-mt-16">
+                <section id="deadline-section-readiness" className={sectionScrollClass}>
                   <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...contentEnterMotion}>
                     {/* 2026-05-26 (Yuqi sixty-sixth pass — Materials
                     structural tighten, #13 "scattered"): outer gap
@@ -3999,7 +4007,7 @@ export function ObligationQueueDetailDrawer({
                 (it folds into the Status workflow), so it no longer mounts
                 hidden. Intentional divergence — logged in the dev-log. */}
               {visibleTabs.has('extension') ? (
-                <section id="deadline-section-extension" className="scroll-mt-16">
+                <section id="deadline-section-extension" className={sectionScrollClass}>
                   <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...contentEnterMotion}>
                     <div className="grid gap-4">
                       {/* 2026-06-08 (Pencil HuYeb /deadlines detail — Extension
@@ -4397,7 +4405,7 @@ export function ObligationQueueDetailDrawer({
                 </section>
               ) : null}
               {visibleTabs.has('evidence') ? (
-                <section id="deadline-section-evidence" className="scroll-mt-16">
+                <section id="deadline-section-evidence" className={sectionScrollClass}>
                   <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...contentEnterMotion}>
                     {/* Evidence tab split into two visually-distinct sections
                   (2026-05-21):
@@ -4691,7 +4699,7 @@ export function ObligationQueueDetailDrawer({
                 mounts when the tab is visible (page mode / types that expose
                 it) so the panel/sheet surfaces are unchanged. */}
               {visibleTabs.has('audit') ? (
-                <section id="deadline-section-audit" className="scroll-mt-16">
+                <section id="deadline-section-audit" className={sectionScrollClass}>
                   <motion.div className={cn(panelLayout ? '' : 'pt-6')} {...contentEnterMotion}>
                     {/* 2026-06-11 (Yuqi tab-content unification): the timeline
                         sits in the shared card chrome like every other tab's

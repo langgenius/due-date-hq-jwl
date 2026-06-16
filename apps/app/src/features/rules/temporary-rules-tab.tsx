@@ -112,7 +112,7 @@ export function TemporaryRulesTab() {
                 <Trans>Override</Trans>
               </TableHead>
               <TableHead className="w-[106px] text-center">
-                <Trans>Obligations</Trans>
+                <Trans>Deadlines</Trans>
               </TableHead>
               <TableHead className="w-[96px] text-center">
                 <Trans>Status</Trans>

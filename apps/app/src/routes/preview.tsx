@@ -982,7 +982,7 @@ export function PreviewRoute() {
             <Row label="Textarea">
               <div className="grid w-full max-w-md gap-1.5">
                 <Label htmlFor="notes">Milestone note</Label>
-                <Textarea id="notes" rows={3} placeholder="What happened on this obligation?" />
+                <Textarea id="notes" rows={3} placeholder="What happened on this deadline?" />
               </div>
             </Row>
             <Row label="Search input" mono="<SearchInput />">

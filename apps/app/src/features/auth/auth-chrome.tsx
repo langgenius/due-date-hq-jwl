@@ -36,7 +36,7 @@ export function AuthBrandAnchor({
 }) {
   return (
     <div className={cn('flex items-center gap-2.5', className)}>
-      <BrandMark frame={frame} className={markClassName} />
+      <BrandMark frame={frame} {...(markClassName ? { className: markClassName } : {})} />
       <span className="flex items-baseline gap-1 leading-none">
         <span className="font-serif text-[17px] font-medium tracking-[-0.1px] text-text-primary">
           DueDate
