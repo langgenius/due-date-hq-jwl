@@ -68,7 +68,7 @@ export function ClientNotesStrip({
       tone="default"
       radius="xl"
       interactive
-      className="flex-col items-stretch gap-2 p-5"
+      className="flex-col items-stretch gap-4 border-divider-regular bg-background-default p-5 shadow-none"
       role="button"
       tabIndex={0}
       onClick={onOpenEditor}

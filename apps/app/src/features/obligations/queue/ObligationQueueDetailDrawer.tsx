@@ -2554,13 +2554,23 @@ export function ObligationQueueDetailDrawer({
                           }
                         >
                           {panelLayout ? (
-                            <header className="flex items-center gap-2">
+                            // 2026-06-16 (Yuqi "have the header, not floating titles"):
+                            // the section title is a defined HEADER ROW — full-width
+                            // bottom border (-mx-5 breaks out of the card's p-5) so it
+                            // reads as a header, not a title floating over the stepper.
+                            <header className="-mx-5 flex items-center gap-2 border-b border-divider-subtle px-5 pb-4">
                               <h3 className="text-lg font-semibold text-text-primary">
                                 <Trans>Workflow</Trans>
                               </h3>
                             </header>
                           ) : null}
                           <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
+                          {/* 2026-06-16 (Yuqi "at least a divider between the progress
+                              bar and the Stage N of 6 content"): full-width hairline
+                              separating the stepper from the active-stage block. */}
+                          {panelLayout ? (
+                            <div className="-mx-5 border-t border-divider-subtle" aria-hidden />
+                          ) : null}
                           {/* The "What's left to do" checklist lives BELOW this
                           card as its own flat DetailSectionCard (2026-06-16 NrQaI)
                           so it matches the rest of the panel's card system. */}

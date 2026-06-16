@@ -824,13 +824,19 @@ export function ClientDetailWorkspace({
                   symmetry. */}
                   {/* TabsList carries the `border-b` seam (matching the /deadlines
                   + /alerts detail tab bars) so the tabs read as part of the
-                  header rather than floating. h-11 / gap-4 / text-sm / px-0
-                  all match those references. The active motion.span sits at
-                  `-bottom-px` so it covers the gray border at its position —
-                  no double line. */}
+                  header rather than floating. 2026-06-16 (Yuqi "still squashed
+                  underline"): the segmented-tabs PRIMITIVE forces `h-8` on the
+                  list and `p-[3px]` inset padding (for the pill variant) — that
+                  capped the trigger height so `py-3` got clipped (underline 1px
+                  under the label) AND left the border-b 3px below the triggers
+                  (underline floating off the seam). `!h-auto` + `p-0` here strip
+                  both: the triggers' own `py-3` now defines the height, and the
+                  active motion.span at `-bottom-px` lands exactly on the seam
+                  (verified: 11px label→underline gap, underline mid on the
+                  border). */}
                   <TabsList
                     variant="line"
-                    className="flex shrink-0 items-stretch gap-6 overflow-x-auto border-b border-divider-subtle bg-transparent px-0 text-sm"
+                    className="flex !h-auto shrink-0 items-stretch gap-6 overflow-x-auto border-b border-divider-subtle bg-transparent p-0 text-sm"
                   >
                     {/* Leading lucide glyph per tab. Matches the deadline
                     drawer's tab bar (paperclip / calendar / file) and
@@ -1461,12 +1467,15 @@ function ClientDetailTabTrigger({
       // background. The active state stays chrome-free (bold text + the
       // motion underline carry it).
       className={cn(
-        // The trigger's `py-3` defines the tab-bar height (the TabsList dropped
-        // its fixed h-11), and `-mb-px` pulls its bottom onto the list's
-        // border-b — so the active underline at `-bottom-px` lands exactly on the
-        // section divider instead of floating above it (Yuqi "underline doesn't
-        // match the divider").
-        'relative -mb-px !flex-none shrink-0 items-center gap-2 !rounded-none !border-0 !bg-transparent px-0 py-3 text-sm whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
+        // `!h-auto` overrides the segmented primitive's `h-[calc(100%-1px)]` so
+        // the trigger's own `py-3` defines the tab-bar height (otherwise the
+        // padding is clipped and the underline squashes against the label).
+        // `-mb-px` pulls its bottom onto the list's border-b — so the active
+        // underline at `-bottom-px` lands exactly on the section divider instead
+        // of floating above it (Yuqi "underline doesn't match the divider" +
+        // "still squashed"). The list's `p-0` (above) removes the primitive's
+        // inset padding that would otherwise leave the seam below the triggers.
+        'relative -mb-px !h-auto !flex-none shrink-0 items-center gap-2 !rounded-none !border-0 !bg-transparent px-0 py-3 text-sm whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
         active
           ? 'font-semibold text-text-primary'
           : 'cursor-pointer text-text-secondary hover:text-text-primary',

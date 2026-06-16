@@ -514,3 +514,37 @@ NEXT DUE cell wrapped onto a 2nd line under JURISDICTIONS (orphaned). Switched
 the strip to `flex overflow-x-auto` (no wrap): the cells stay on one row and the
 band scrolls horizontally if the squeezed column can't fit all five — never
 orphaning a cell. At rest (wide) it fills one row, no scrollbar. tsgo clean.
+
+## Cluster 22 — Tab underline squash, rail-card parity, Workflow header+divider
+Four follow-up items from Yuqi ("[tab] still squashed underline / random alignment
+for the note section and contacts section / at least a divider between the progress
+bar and the Stage 1 of 6 content / better have the header, not floating titles").
+
+- **Tab underline "still squashed" (#1).** Root cause found by measuring live DOM,
+  not by eye: the segmented-tabs PRIMITIVE (`packages/ui/.../tabs.tsx`) hard-codes
+  `h-8` on the list and `h-[calc(100%-1px)]` on the trigger, plus `p-[3px]` inset
+  padding for the pill variant. So the consumer's `py-3` was clipped — the trigger
+  capped at ~24px, leaving the active underline 1px under the label (squashed), AND
+  the list's 3px bottom padding left the border-b seam 3px below the triggers (the
+  underline floated off the divider). Fix in the CONSUMER only (no primitive
+  change): `!h-auto` on the list + trigger (so `py-3` defines the height) and `p-0`
+  on the list (kills the inset padding). Verified live: trigger 44px, label→underline
+  gap 11px (was 1), underline mid exactly on the seam (was floating 6px above).
+- **Rail cards "random alignment" (#2).** The NOTES card (`ClientNotesStrip`, a
+  `<Card>`) and the CONTACTS card (a hand-rolled `<section>`) had diverged: gap-2 vs
+  gap-4, `shadow-xs` vs none, card-border token vs `border-divider-regular`. Brought
+  the Notes card onto the Contacts recipe (`gap-4 border-divider-regular
+  bg-background-default shadow-none`) so the two rail cards share one container —
+  same border, padding, gap, no shadow. (Labels already matched: both
+  `text-column-label` via `RailSectionLabel` / the raw span.)
+- **Workflow card divider (#3).** Added a full-width hairline (`-mx-5 border-t
+  border-divider-subtle`) between the stepper (`PathToFilingSummary`) and the
+  active-stage block, panelLayout-only. Verified: a 1px border-t div sits between
+  the stepper child and the AuthorityResponse/ActiveStage children.
+- **Workflow header not floating (#4).** The "Workflow" `<h3>` was a bare floating
+  title; gave it a defined header ROW — full-width bottom border (`-mx-5 border-b
+  border-divider-subtle pb-4`) so it reads as a header over the card, not text
+  hovering above the stepper.
+
+tsgo clean (my files; the lone remaining error is the foreign auth-chrome.tsx WIP).
+Verified live on the Meridian Form 1120 panel.
