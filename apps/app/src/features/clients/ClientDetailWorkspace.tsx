@@ -560,7 +560,7 @@ export function ClientDetailWorkspace({
           clicked. No page-level scroll on the document body — only the
           tab body scrolls. Mirrors /deadlines exactly. */}
       <div className="flex min-h-0 flex-1 flex-col gap-4 xl:flex-row xl:items-stretch xl:gap-6">
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-6">
           <PageHeader
             // The canonical `breadcrumbs` prop, styled as a friendly
             // link with chevron separator + ⌘[ hint. Lines up with
@@ -727,7 +727,7 @@ export function ClientDetailWorkspace({
             the column-of-content inline. ClientContactMetaRow lives in
             the PageHeader `metaRow` slot above (not here) so the
             identity row sits tight against the H1. */}
-          <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
+          <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
             {/* Inline tip pairs the needs-facts signal with a
                 dismissable CTA. The H1 chip
                 still surfaces "Add filing state" but the banner gives
@@ -780,11 +780,7 @@ export function ClientDetailWorkspace({
               // TabsContent fills the remaining height with its own
               // overflow-y-auto. Without this, the whole detail page
               // scrolls as one.
-              // `-mt-4` cancels the Body section's gap above so the tab bar
-              // sits flush under the summary strip — reading as part of the
-              // header chrome (Yuqi: "the tabs should be part of the header"),
-              // not a floating control below it.
-              className="-mt-4 flex min-h-0 flex-1 flex-col"
+              className="flex min-h-0 flex-1 flex-col"
             >
               {/* Tab bar matches the /deadlines scope-tabs visual —
                   left-aligned, hug-content triggers (no flex-1),
@@ -806,16 +802,15 @@ export function ClientDetailWorkspace({
                   2px bottom border that turns `divider-deep` on hover so
                   the row reads warm at rest, matching /deadlines hover
                   symmetry. */}
-              {/* No `border-b border-divider-regular` baseline on
-                  TabsList: the active tab's motion.span at `-bottom-0.5`
-                  plus the list's 1px gray border-b would paint two
-                  visible lines stacked. Without the list border, the
-                  active accent line is the only visible underline;
-                  inactive tab hover still gets its own `border-b-2`
-                  via `ClientDetailTabTrigger`. */}
+              {/* TabsList carries the `border-b` seam (matching the /deadlines
+                  + /alerts detail tab bars) so the tabs read as part of the
+                  header rather than floating. h-11 / gap-4 / text-sm / px-0
+                  all match those references. The active motion.span sits at
+                  `-bottom-px` so it covers the gray border at its position —
+                  no double line. */}
               <TabsList
                 variant="line"
-                className="flex shrink-0 gap-1 overflow-x-auto bg-transparent px-0 text-base"
+                className="flex h-11 shrink-0 items-stretch gap-4 overflow-x-auto border-b border-divider-subtle bg-transparent px-0 text-sm"
               >
                 {/* Leading lucide glyph per tab. Matches the deadline
                     drawer's tab bar (paperclip / calendar / file) and
@@ -995,7 +990,7 @@ export function ClientDetailWorkspace({
                     className={cn(
                       'scroll-mt-20 rounded-lg border bg-background-default p-4',
                       missingFilingState
-                        ? 'border-components-badge-bg-warning-soft'
+                        ? 'border-state-warning-active-alt'
                         : 'border-divider-regular',
                     )}
                   >
@@ -1437,10 +1432,10 @@ function ClientDetailTabTrigger({
       // background. The active state stays chrome-free (bold text + the
       // motion underline carry it).
       className={cn(
-        'relative -mb-px !flex-none shrink-0 items-center gap-1.5 !rounded-lg !border-0 !bg-transparent px-3 py-2.5 text-base whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
+        'relative -mb-px !flex-none shrink-0 items-center gap-1.5 !rounded-none !border-0 !bg-transparent px-0 py-2.5 text-sm whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
         active
-          ? 'font-medium text-text-primary'
-          : 'cursor-pointer border-b-2 border-transparent text-text-secondary hover:bg-state-base-hover-alt hover:text-text-primary',
+          ? 'font-semibold text-text-primary'
+          : 'cursor-pointer text-text-secondary hover:text-text-primary',
         // When compact, the label inside the trigger is wrapped in a
         // span with `[data-tab-label]` and we hide it via this attribute
         // selector — keeps the icon visible, lets the label remain in
@@ -1453,7 +1448,7 @@ function ClientDetailTabTrigger({
         <motion.span
           layoutId="client-detail-tab-underline"
           aria-hidden
-          className="absolute inset-x-0 -bottom-0.5 h-0.5 bg-accent-default"
+          className="absolute inset-x-0 -bottom-px h-0.5 bg-accent-default"
           transition={{ type: 'spring', stiffness: 500, damping: 38 }}
         />
       ) : null}

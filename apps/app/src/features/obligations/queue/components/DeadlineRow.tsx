@@ -229,11 +229,15 @@ export function DeadlineRow({
             <button
               type="button"
               onClick={stop(() => goToSummary())}
-              className="flex w-[104px] shrink-0 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              // overflow-hidden so a long tax code (e.g. "TX Franchise Report")
+              // truncates inside the fixed 104px slot instead of bleeding over
+              // the form name to its right; the full code stays on the badge
+              // tooltip.
+              className="flex w-[104px] shrink-0 overflow-hidden rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               tabIndex={-1}
               aria-hidden
             >
-              <TaxCodeBadge code={deadline.taxType} />
+              <TaxCodeBadge code={deadline.taxType} className="min-w-0 max-w-full truncate" />
             </button>
             <div className="flex min-w-0 flex-col gap-0.5">
               <Link

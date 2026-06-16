@@ -32,7 +32,7 @@ type SummaryCell = {
  * ClientSummaryStrip — the /clients/[id] hero fact strip: Jurisdictions ·
  * Blocked · Open · Filed · Next due.
  *
- * Replicates Pencil `VtC73`: a single `bg-subtle` rounded-2xl panel with the
+ * Replicates Pencil `VtC73`: a single `bg-subtle` rounded-xl panel with the
  * facts as hairline-divider cells inside (10/700 muted label + a big
  * JetBrains-Mono number, color-coded). One grouped panel — not a stretched
  * borderless band, not five separate bordered cards — so the facts read as a
@@ -77,7 +77,7 @@ export function ClientSummaryStrip({
   }, [client.state, client.filingProfiles])
 
   if (isLoading) {
-    return <Skeleton className="h-[84px] w-full rounded-2xl" />
+    return <Skeleton className="h-[84px] w-full rounded-xl" />
   }
 
   // Big mono number (VtC73: JetBrains Mono 24/700, color-coded). Dim to tertiary
@@ -162,16 +162,14 @@ export function ClientSummaryStrip({
   return (
     <section
       aria-label={t`Client summary`}
-      // One grouped panel (VtC73 MetaStrip): bg-subtle rounded-2xl, cells split
+      // One grouped panel (VtC73 MetaStrip): bg-subtle rounded-xl, cells split
       // by hairline dividers. flex-wrap so it stacks gracefully when squeezed.
-      className="flex flex-wrap rounded-2xl bg-background-subtle px-2 py-3"
+      className="flex flex-wrap rounded-xl bg-background-subtle px-2 py-3"
     >
       {cells.map((cell, i) => {
         const body = (
           <>
-            <span className="text-caption-xs font-bold uppercase tracking-[0.8px] text-text-muted">
-              {cell.label}
-            </span>
+            <span className="text-column-label uppercase text-text-muted">{cell.label}</span>
             <span className="flex min-h-[28px] items-center">{cell.value}</span>
           </>
         )

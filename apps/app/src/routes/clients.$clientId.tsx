@@ -84,7 +84,7 @@ export function ClientDetailRoute() {
     // horizontal padding only.
     <div
       className={cn(
-        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-6 pb-0 md:px-8 md:pt-8 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >
@@ -104,11 +104,9 @@ export function ClientDetailRoute() {
               <Skeleton className="h-5 w-24 rounded-full" />
             </div>
           </div>
-          {/* Summary band placeholder — a single full-width hairline band,
-              matching StatBand's own `loading` skeleton (h-[100px]) and the
-              real 5-column band, so the skeleton→content paint doesn't reflow
-              from 3 tiles into 5 columns. */}
-          <Skeleton className="h-[100px] w-full rounded-none" />
+          {/* Summary placeholder — matches the real fact-strip panel
+              (rounded-xl, ~84px) so the skeleton→content paint doesn't reflow. */}
+          <Skeleton className="h-[84px] w-full rounded-xl" />
           <Skeleton className="h-72 w-full rounded-lg" />
         </div>
       ) : isError ? (

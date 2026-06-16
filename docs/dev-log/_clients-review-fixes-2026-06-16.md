@@ -183,3 +183,36 @@ Verified live side-by-side.
 
 Still to do (noted): VtC73 title is 36/600 (page ~28); hero/tabs full-width
 rules + 40px gutter; filing-table DEADLINE-column slack.
+
+## Cluster 8 — design-system cohesion audit + cleanup
+Yuqi (frustrated, with a Lone Star Ventures screenshot): the client detail is
+messy, the tabs are cramped, a chip overlaps a form name; demanded a real
+cross-referenced audit ("padding, rounded corners, borders, gaps, margins,
+text sizes/styles, colours all following the design system"). Ran a token-
+level audit of the client detail vs the /deadlines + /alerts detail + the
+token files, then fixed:
+
+- **Tabs seam (the cramped culprit):** the client TabsList had NO `border-b`
+  and a `-mt-4` hack jamming it under the strip. Added `border-b
+  border-divider-subtle h-11 gap-4 text-sm` (matching both reference tab
+  bars), dropped the `-mt-4`, triggers → `px-0` + active `font-semibold`, and
+  moved the active motion underline to `-bottom-px` so it covers the seam (no
+  double line). Section gaps gap-4 → gap-6.
+- **Chip/form-name collision:** the inline-expand DEADLINE cell's fixed
+  104px badge slot had no `overflow-hidden`, so a long code ("TX Franchise
+  Report") bled over the form name. Added `overflow-hidden` + made
+  `TaxCodeBadge` truncate its label via an inner block span (full code stays
+  on the tooltip). Fixes the overlap app-wide.
+- **Off-scale radius:** summary strip `rounded-2xl` (16) → `rounded-xl` (12);
+  freelance label `text-caption-xs font-bold tracking-[0.8px]` → the
+  canonical `text-column-label` token.
+- **Cross-page parity:** page gutter `md:px-6` → `md:px-8` (matches
+  /deadlines); year-header bar `px-3` → `px-5` (aligns with the column
+  legend + rows); load skeleton synced to the real strip shape (h-[84px]
+  rounded-xl).
+- **Token fix:** the jurisdictions warning border used a badge-bg token
+  (`components-badge-bg-warning-soft`) → real `border-state-warning-active-alt`.
+
+Kept the 12/8 card-radius split (rail standalone cards = 12, inset frames =
+8) — that's the documented two-tier system, not drift. tsgo clean; collision
++ tab seam verified live on Lone Star Ventures.

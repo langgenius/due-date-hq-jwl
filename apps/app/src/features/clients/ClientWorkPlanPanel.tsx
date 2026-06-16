@@ -571,7 +571,7 @@ function FilingPlanYearSection({
           rather than the first row of the table. Matches the
           section-heading scale used by the TabSection primitive
           (page-family-canonical §9). */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-divider-subtle bg-background-subtle px-3 py-2.5">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-divider-subtle bg-background-subtle px-5 py-2.5">
         <Checkbox
           checked={yearAllSelected}
           indeterminate={yearSomeSelected}

@@ -106,13 +106,16 @@ function TaxCodeBadge({
             // identity; bold made it shout next to the row's
             // body text.
             className={cn(
-              'cursor-help border-divider-subtle bg-background-subtle font-mono font-medium tracking-tight rounded-sm',
+              'min-w-0 cursor-help border-divider-subtle bg-background-subtle font-mono font-medium tracking-tight rounded-sm',
               size === 'compact' ? 'px-1.5 py-0.5 text-caption-xs' : 'px-3 py-1',
               className,
             )}
             {...props}
           >
-            {meta.label}
+            {/* Inner truncate span: the Badge is inline-flex, so text-overflow
+                only ellipsizes via a block child. Caps long codes when a parent
+                constrains the width (e.g. the 104px filing-row slot). */}
+            <span className="truncate">{meta.label}</span>
           </Badge>
         )}
       />
