@@ -2679,20 +2679,16 @@ export function RulesLibraryRoute() {
                   <Button
                     size="sm"
                     onClick={() => {
-                      // Scope to one previewable batch (the impact preview +
-                      // bulk accept cap at BULK_ACCEPT_BATCH_MAX). Selecting all
-                      // 456 opened the modal over the cap — Accept disabled and
-                      // "untick to see impact" instead of a real readiness read.
-                      // A capped batch opens previewable; the rest stay queued.
-                      setSelectedRuleIds(new Set(allReviewableRuleIds.slice(0, BULK_ACCEPT_BATCH_MAX)))
+                      // Select EVERY rule awaiting review and open the bulk
+                      // modal. The modal handles >BULK_ACCEPT_BATCH_MAX: Reject
+                      // has no cap (acts on all), and the impact preview/Accept
+                      // explain the per-batch ceiling there — so the entry never
+                      // silently withholds rules from the batch.
+                      setSelectedRuleIds(new Set(allReviewableRuleIds))
                       setBulkListOpen(true)
                     }}
                   >
-                    {allReviewableRuleIds.length > BULK_ACCEPT_BATCH_MAX ? (
-                      <Trans>Start review ({BULK_ACCEPT_BATCH_MAX})</Trans>
-                    ) : (
-                      <Trans>Start review</Trans>
-                    )}
+                    <Trans>Start review</Trans>
                   </Button>
                 </div>
                 <StatBand stats={overviewStats} ariaLabel={t`Rule library summary`} />

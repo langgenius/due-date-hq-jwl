@@ -642,7 +642,7 @@ export function RuleDetailCompact({
         </div>
 
         {/* RIGHT — the decision rail (gray, scrolls independently). */}
-        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto bg-background-section px-5 py-5">
+        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-divider-regular bg-background-section px-5 py-5">
           <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
             <Trans>Your decision</Trans>
           </span>
