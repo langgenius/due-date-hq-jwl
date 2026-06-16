@@ -206,13 +206,18 @@ function DeadlineTopActions({
   // `done` / `paid` / `completed` already read as "Filed"/terminal, so the
   // primary action is a no-op there — disable rather than re-file.
   const isFiled = row.status === 'done' || row.status === 'completed' || row.status === 'paid'
-  // 2026-06-11 (Yuqi "避免太多蓝色" — one blue per view): the active-stage
-  // card ALWAYS carries the stage's real next-move as the page's single blue
-  // primary (Request documents / Send reminder / Approve return / …), so the
-  // footer "Mark as filed" is ALWAYS a quiet outline — it's the manual
-  // override, one click away but never competing. (The earlier rule demoted
-  // it only during In&nbsp;Review, which still left two blue primaries on
-  // every other stage.)
+  // 2026-06-16 (Yuqi "the bottom mark as filed should be accent" + alert↔deadline
+  // footer parity): "Mark as filed" is the footer's PRIMARY CTA — the deadline's
+  // "complete this" action, the analogue of the alert footer's accent Apply /
+  // Mark-reviewed — so it takes `variant="accent"`, while Assign + Snooze stay
+  // outline secondaries. That's the same dominant-primary + outline-secondaries
+  // hierarchy the alert footer uses (AlertDetailDrawer ~L2603).
+  // NOTE on the older "避免太多蓝色 / one blue per view" rule: the active-stage
+  // card still carries its own accent action (the contextual next-move), so two
+  // accents can be on screen — but in DIFFERENT zones (body workspace vs footer
+  // commit bar), which reads as a clear hierarchy, not noise. If a stricter
+  // one-blue is ever wanted, the lever is to demote the stage action, not this
+  // footer CTA.
   // Relative snooze presets. App code, so wall-clock `Date.now()` is fine
   // (unlike workflow scripts); the server stores the resolved instant.
   const snoozePresets: Array<{ label: string; days: number }> = [
@@ -291,7 +296,7 @@ function DeadlineTopActions({
       </DropdownMenu>
       <Button
         size="sm"
-        variant="outline"
+        variant="accent"
         className="h-8 gap-1.5"
         disabled={isFiled || markFiledPending}
         onClick={onMarkFiled}
