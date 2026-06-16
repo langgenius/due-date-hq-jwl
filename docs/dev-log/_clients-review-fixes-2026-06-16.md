@@ -239,3 +239,59 @@ Restructured `ClientDetailWorkspace`:
 Verified live both states on Meridian + Lone Star: rest = full-width header +
 rail beside the tab content; panel-open = everything pushed left, rail
 collapsed, framed obligation cards on the right. tsgo clean.
+
+## Cluster 10 — Kill the filing-table redundancy + strip typography (6-dimension re-audit)
+Yuqi (frustrated, with a stale-bundle screenshot): "can't see your work here. it
+still looks ugly and you are ignoring my comments. do not skip or miss any my
+feedbacks." Root cause split two ways: (a) the screenshot was a stale browser
+bundle — the full-width-header restructure WAS live; (b) real, live defects
+remained in the filing table + strip.
+
+Ran an exhaustive 6-dimension audit (table / rail / header / cross-surface
+cohesion / token compliance / feedback-completeness), each finding adversarially
+verified, then synthesized into one ordered plan. Implemented:
+
+TIER 1 — the visible "混乱" (one home per fact):
+- The tax-code badge duplicated the deadline NAME on the client surface
+  ("Form 1065" badge beside "Form 1065" name; clipped "TX Franchi…" beside
+  "TX Franchise Report"). Added an opt-in `display='label'|'jurisdiction'` prop
+  to the SHARED TaxCodeBadge (not mutating its ~15 call sites); DeadlineRow's
+  inline-expand branch now passes `display="jurisdiction"` so the chip shows
+  "Federal" / "Texas" — the form name is the single home for "what form," the
+  chip the single home for "which jurisdiction." Dropped the now-redundant
+  `clientState` sub-label. The 104px clip is gone as a side effect (jurisdiction
+  names are short); slot trimmed to 92px. /deadlines (navigate mode, where the
+  sub-line is the CLIENT name) is untouched.
+- Removed the triple-TX: dropped <ClientFilingStateChips> from the identity meta
+  row — jurisdiction now lives once, in ClientSummaryStrip's Jurisdictions cell.
+- De-duplicated the email: removed it from the header meta row (filtered the
+  'email' contact item); it now lives once in the rail Contacts card, upgraded to
+  a mailto link (the actionable affordance the header used to carry).
+
+TIER 2 — summary strip = one calm instrument panel:
+- Unified all numeric weights to font-semibold (counts were font-bold, next-due
+  was already semibold); gave Next Due the mono face + tabular-nums; demoted the
+  cell labels from text-column-label (11/600) to text-caption-xs/font-medium/
+  tracking-eyebrow (10/500) so labels recede and the mono numbers read.
+
+TIER 3 — 4-based spacing-scale compliance (half-step sweep): year-header
+py-2.5→py-3 + gap-y-1→gap-y-2; column-header py-2→py-2.5 (now matches the row);
+Contacts card gap-3.5→gap-4 + row gap-2.5→gap-3; alerts header py-2.5→py-3; tab
+trigger py-2.5→py-3 + gap-1.5→gap-2; HistoryCard footer gap-1.5→gap-2 +
+py-1.5→py-2; notes card gap-1.5→gap-2; strip chip gap-1.5→gap-2 + py-0.5→py-1 +
+cell-button -my-1/py-1 → -my-2/py-2.
+
+TIER 4 — cohesion with /deadlines + /alerts: tab-body section rhythm gap-6→gap-8
+(all three TabsContent); Setup-tab cards p-4 → px-5 py-4; TabSection outer
+gap-3 → gap-4.
+
+Deferred (noted, not skipped): Activity-tab HistoryCard → DetailSectionCard
+tone='reference' (#17) — the riskiest, lowest-visibility item (secondary tab,
+needs a footer-slot relocation); held for its own pass to avoid a regression.
+
+Verified live (Lone Star, demo-login): no clipping anywhere in the rows
+(measured scrollWidth==clientWidth); rows read [Texas] PIR/OIR / [Texas] TX
+Franchise Report / [Federal] Form 1065; header meta = "LLC · Priya Pro" only;
+strip label computed weight 500 + next-due font-mono; no console errors;
+panel-open still pushes the column left and renders the obligation detail
+matching /deadlines, compact rows keep their jurisdiction chips. tsgo clean.

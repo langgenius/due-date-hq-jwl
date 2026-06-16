@@ -85,7 +85,7 @@ export function ClientSummaryStrip({
   const num = (value: number, tone: string) => (
     <span
       className={cn(
-        'font-mono text-2xl leading-none font-bold tracking-tight tabular-nums',
+        'font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums',
         value > 0 ? tone : 'text-text-tertiary',
       )}
     >
@@ -99,11 +99,11 @@ export function ClientSummaryStrip({
       label: t`Jurisdictions`,
       value:
         jurisdictions.length > 0 ? (
-          <span className="flex flex-wrap items-center gap-1.5">
+          <span className="flex flex-wrap items-center gap-2">
             {jurisdictions.map((code) => (
               <span
                 key={code}
-                className="inline-flex items-center gap-1 rounded-lg bg-background-section px-2 py-0.5"
+                className="inline-flex items-center gap-1 rounded-lg bg-background-section px-2 py-1"
               >
                 <StateBadge code={code} size="xs" preview={false} />
                 <span className="text-sm font-semibold text-text-primary">{code}</span>
@@ -111,7 +111,7 @@ export function ClientSummaryStrip({
             ))}
           </span>
         ) : (
-          <span className="font-mono text-2xl leading-none font-bold text-text-tertiary">—</span>
+          <span className="font-mono text-2xl leading-none font-semibold text-text-tertiary">—</span>
         ),
     },
     {
@@ -147,7 +147,7 @@ export function ClientSummaryStrip({
       value: nextDue ? (
         <span
           className={cn(
-            'text-2xl leading-none font-semibold tracking-tight',
+            'font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums',
             nextDueOverdue ? 'text-text-warning' : 'text-text-primary',
           )}
         >
@@ -169,7 +169,9 @@ export function ClientSummaryStrip({
       {cells.map((cell, i) => {
         const body = (
           <>
-            <span className="text-column-label uppercase text-text-muted">{cell.label}</span>
+            <span className="text-caption-xs font-medium tracking-eyebrow uppercase text-text-muted">
+              {cell.label}
+            </span>
             <span className="flex min-h-[28px] items-center">{cell.value}</span>
           </>
         )
@@ -186,7 +188,7 @@ export function ClientSummaryStrip({
               aria-label={cell.ariaLabel}
               className={cn(
                 cellClass,
-                '-my-1 cursor-pointer rounded-lg py-1 text-left transition-colors hover:bg-background-default-hover',
+                '-my-2 cursor-pointer rounded-lg py-2 text-left transition-colors hover:bg-background-default-hover',
                 'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
               )}
             >

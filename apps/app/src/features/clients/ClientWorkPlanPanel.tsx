@@ -571,7 +571,7 @@ function FilingPlanYearSection({
           rather than the first row of the table. Matches the
           section-heading scale used by the TabSection primitive
           (page-family-canonical §9). */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-divider-subtle bg-background-subtle px-5 py-2.5">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b border-divider-subtle bg-background-subtle px-5 py-3">
         <Checkbox
           checked={yearAllSelected}
           indeterminate={yearSomeSelected}
@@ -629,7 +629,7 @@ function FilingPlanYearSection({
           inline-expand layout exactly so the columns line up. */}
       <div
         className={cn(
-          'grid items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase',
+          'grid items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2.5 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase',
           compact
             ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
             : 'grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px]',

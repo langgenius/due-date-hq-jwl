@@ -88,13 +88,25 @@ function TaxCodeBadge({
   code,
   className,
   size = 'default',
+  display = 'label',
 }: {
   code: string | null | undefined
   className?: string
   size?: 'default' | 'compact'
+  /**
+   * What the chip shows. `'label'` (default) = the human form label
+   * ("Form 1065", "TX Franchise Report"). `'jurisdiction'` = the
+   * jurisdiction only ("Federal", "Texas"). Use `'jurisdiction'` on
+   * surfaces already scoped to one client where the form name sits
+   * right beside the chip (client-detail filing rows) — otherwise the
+   * label just echoes the adjacent form name. The tooltip always carries
+   * the full label + jurisdiction + description for traceability.
+   */
+  display?: 'label' | 'jurisdiction'
 }) {
   const meta = describeTaxCode(code)
   if (!meta.code) return null
+  const chipText = display === 'jurisdiction' ? meta.jurisdiction || meta.label : meta.label
   return (
     <Tooltip>
       <TooltipTrigger
@@ -115,7 +127,7 @@ function TaxCodeBadge({
             {/* Inner truncate span: the Badge is inline-flex, so text-overflow
                 only ellipsizes via a block child. Caps long codes when a parent
                 constrains the width (e.g. the 104px filing-row slot). */}
-            <span className="truncate">{meta.label}</span>
+            <span className="truncate">{chipText}</span>
           </Badge>
         )}
       />

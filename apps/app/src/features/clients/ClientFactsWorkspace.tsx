@@ -162,9 +162,9 @@ export function TabSection({
     // the canonical 12px content gutter used elsewhere in the workbench
     // (sidebar menu items, rule rows, etc). The actions cluster pushes
     // in by the same 12px so the header stays visually balanced. Outer
-    // `gap-3` is the standard section vertical rhythm shared with other
-    // sections on the page.
-    <section className="flex flex-col gap-3">
+    // `gap-4` (16px) is the section heading→body rhythm, matching
+    // DetailSectionCard on /deadlines + /alerts for cross-surface parity.
+    <section className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pl-3">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <div className="flex min-w-0 items-center gap-1">

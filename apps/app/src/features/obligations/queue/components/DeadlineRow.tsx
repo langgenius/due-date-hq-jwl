@@ -222,24 +222,27 @@ export function DeadlineRow({
             // VtC73 which uses neither.
           )}
         >
-          {/* DEADLINE (fill) — the form-code badge sits in a fixed-width slot
-              (Yuqi #3) so the form names align into a column regardless of code
-              length. */}
+          {/* DEADLINE (fill) — a quiet jurisdiction chip ("Federal" / "Texas")
+              sits in a fixed-width slot so the form names align into a column.
+              On this surface the form name IS the primary read, so the chip
+              shows the JURISDICTION (not the form label, which would just echo
+              the name beside it) — that also doubles as the per-row state, so
+              the old `clientState` sub-line is dropped (one home per fact). */}
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={stop(() => goToSummary())}
-              // overflow-hidden so a long tax code (e.g. "TX Franchise Report")
-              // truncates inside the fixed 104px slot instead of bleeding over
-              // the form name to its right; the full code stays on the badge
-              // tooltip.
-              className="flex w-[104px] shrink-0 overflow-hidden rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="flex w-[92px] shrink-0 overflow-hidden rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               tabIndex={-1}
               aria-hidden
             >
-              <TaxCodeBadge code={deadline.taxType} className="min-w-0 max-w-full truncate" />
+              <TaxCodeBadge
+                code={deadline.taxType}
+                display="jurisdiction"
+                className="min-w-0 max-w-full truncate"
+              />
             </button>
-            <div className="flex min-w-0 flex-col gap-0.5">
+            <div className="flex min-w-0 flex-col">
               <Link
                 id={titleId}
                 to={summaryHref}
@@ -265,9 +268,6 @@ export function DeadlineRow({
               >
                 {deadline.formName}
               </Link>
-              {deadline.clientState ? (
-                <span className="truncate text-xs text-text-tertiary">{deadline.clientState}</span>
-              ) : null}
             </div>
           </div>
 

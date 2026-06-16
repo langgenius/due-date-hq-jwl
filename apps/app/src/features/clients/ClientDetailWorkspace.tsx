@@ -101,7 +101,7 @@ import {
   InsightStatusBadge,
   RiskProfileSmartPriorityHelp,
 } from './ClientFactPanels'
-import { ClientFilingStateChips, TabSection } from './ClientFactsWorkspace'
+import { TabSection } from './ClientFactsWorkspace'
 
 import {
   getClientFilingStates,
@@ -923,7 +923,7 @@ export function ClientDetailWorkspace({
                   the viewport edge. */}
                   <TabsContent
                     value="work"
-                    className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
+                    className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto pt-4 pb-6"
                   >
                     <ClientWorkPlanPanel
                       obligations={queueRows}
@@ -957,7 +957,7 @@ export function ClientDetailWorkspace({
                   the section block itself). */}
                   <TabsContent
                     value="info"
-                    className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
+                    className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto pt-4 pb-6"
                   >
                     {/* Compliance posture — EIN + tax year + owners +
                     activity-scope flags. Client identity facts, not
@@ -987,7 +987,7 @@ export function ClientDetailWorkspace({
                       title={t`Tax classification`}
                       summary={t`Changing this recomputes which forms this client owes`}
                     >
-                      <div className="rounded-lg border border-divider-regular bg-background-default p-4">
+                      <div className="rounded-lg border border-divider-regular bg-background-default px-5 py-4">
                         <ClientClassificationPanel
                           key={`${client.id}:classification`}
                           client={client}
@@ -1003,7 +1003,7 @@ export function ClientDetailWorkspace({
                       <div
                         id="client-filing-jurisdictions"
                         className={cn(
-                          'scroll-mt-20 rounded-lg border bg-background-default p-4',
+                          'scroll-mt-20 rounded-lg border bg-background-default px-5 py-4',
                           missingFilingState
                             ? 'border-state-warning-active-alt'
                             : 'border-divider-regular',
@@ -1023,7 +1023,7 @@ export function ClientDetailWorkspace({
                       titleAccessory={<RiskProfileSmartPriorityHelp />}
                       summary={t`Importance and late-filing history`}
                     >
-                      <div className="rounded-lg border border-divider-regular bg-background-default p-4">
+                      <div className="rounded-lg border border-divider-regular bg-background-default px-5 py-4">
                         <ClientRiskInputsPanel
                           key={`${client.id}:risk`}
                           client={client}
@@ -1037,7 +1037,7 @@ export function ClientDetailWorkspace({
                       title={showSourceFields ? t`Import source` : t`Contact details`}
                       summary={formatImportSourceSummary(client)}
                     >
-                      <div className="rounded-lg border border-divider-regular bg-background-default p-4">
+                      <div className="rounded-lg border border-divider-regular bg-background-default px-5 py-4">
                         <ClientSourceDetailsPanel
                           key={`${client.id}:source-details`}
                           client={client}
@@ -1051,7 +1051,7 @@ export function ClientDetailWorkspace({
 
                   <TabsContent
                     value="activity"
-                    className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
+                    className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto pt-4 pb-6"
                   >
                     {/* Activity content only renders when the tab is the
                     active one — the surrounding TabsContent gates the
@@ -1346,14 +1346,14 @@ function ClientDetailRail({
           (Filed-YTD / outstanding-tasks / last-filed + the Engagement card
           were already removed earlier as unbacked-by-contract.) */}
       {/* Contacts card */}
-      <section className="flex flex-col gap-3.5 rounded-xl border border-divider-regular bg-background-default p-5">
+      <section className="flex flex-col gap-4 rounded-xl border border-divider-regular bg-background-default p-5">
         <RailSectionLabel>{t`CONTACTS`}</RailSectionLabel>
         {contacts.length > 0 ? (
           <div className="flex flex-col gap-3">
             {contacts.map((contact) => (
               // Stacked name / role / email per Pencil V1kJX (was name·role
               // inline). `items-start` so the avatar tops with the name line.
-              <div key={contact.name} className="flex items-start gap-2.5">
+              <div key={contact.name} className="flex items-start gap-3">
                 <AssigneeAvatar name={contact.name} isMine={false} title={contact.name} />
                 <div className="flex min-w-0 flex-col gap-0.5">
                   {/* Name 14/500 (V1kJX), not 600. */}
@@ -1366,11 +1366,16 @@ function ClientDetailRail({
                   {contact.role && contact.role !== contact.name ? (
                     <span className="truncate text-xs text-text-muted">{contact.role}</span>
                   ) : null}
-                  {/* Email in mono (V1kJX h1oYYg JetBrains Mono). */}
+                  {/* Email in mono (V1kJX h1oYYg JetBrains Mono), as a mailto —
+                      this is the single home for the client email (removed from
+                      the header meta row), so it carries the actionable link. */}
                   {contact.email ? (
-                    <span className="truncate font-mono text-xs text-text-tertiary">
+                    <a
+                      href={`mailto:${contact.email}`}
+                      className="truncate font-mono text-xs text-text-tertiary underline-offset-2 outline-none hover:text-text-primary hover:underline focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    >
                       {contact.email}
-                    </span>
+                    </a>
                   ) : null}
                 </div>
                 {/* Compose intentionally not rendered: EmailComposeDialog
@@ -1447,7 +1452,7 @@ function ClientDetailTabTrigger({
       // background. The active state stays chrome-free (bold text + the
       // motion underline carry it).
       className={cn(
-        'relative -mb-px !flex-none shrink-0 items-center gap-1.5 !rounded-none !border-0 !bg-transparent px-0 py-2.5 text-sm whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
+        'relative -mb-px !flex-none shrink-0 items-center gap-2 !rounded-none !border-0 !bg-transparent px-0 py-3 text-sm whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
         active
           ? 'font-semibold text-text-primary'
           : 'cursor-pointer text-text-secondary hover:text-text-primary',
@@ -1502,7 +1507,7 @@ function ClientActiveAlertsSection({
       aria-label="Active alerts for this client"
       className="overflow-hidden rounded-xl border border-divider-regular bg-background-default"
     >
-      <header className="flex items-baseline justify-between gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft/40 px-4 py-2.5">
+      <header className="flex items-baseline justify-between gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft/40 px-4 py-3">
         {/* Canonical section heading is sm-semibold sentence-case (no
             uppercase kicker) per page-family-canonical §9. */}
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-text-warning">
@@ -1759,7 +1764,7 @@ function HistoryCard({
       </div>
       <div className={bodyClassName ?? 'px-4 py-4'}>{children}</div>
       {footer ? (
-        <div className="flex items-center gap-1.5 border-t border-divider-subtle bg-background-section/40 px-3 py-1.5">
+        <div className="flex items-center gap-2 border-t border-divider-subtle bg-background-section/40 px-3 py-2">
           {footer}
         </div>
       ) : null}
@@ -1998,18 +2003,23 @@ function ClientContactMetaRow({
   entityLabel: string
   ownerSlot: ReactNode
 }) {
-  // The row carries the identity chips — entity badge, owner pill,
-  // filing-state chips — that would otherwise clutter the title
-  // cluster; per canonical the title gets 1 chip max, the rest of the
-  // identity lives here.
+  // The row carries the identity chips — entity badge + owner pill —
+  // that would otherwise clutter the title cluster; per canonical the
+  // title gets 1 chip max, the rest of the identity lives here.
   //
-  // `buildClientHeaderContactItems` pre-resolves contact / email /
-  // phone / address items (filtering out malformed migration data like
-  // the literal `primary_phone` column name). We render the identity
-  // chips FIRST (badge → owner → states), then the builder-produced
-  // contact items. The row is rendered unconditionally because the
-  // entity badge always has content.
-  const items = buildClientHeaderContactItems(client)
+  // Filing-state chips are NOT rendered here: jurisdiction now has a
+  // single home in ClientSummaryStrip's "Jurisdictions" cell directly
+  // below (one home per fact — it was previously shown in the strip,
+  // here, AND as a per-row sub-label in the filing table = triple-TX).
+  //
+  // `buildClientHeaderContactItems` pre-resolves contact / phone /
+  // address items (filtering out malformed migration data like the
+  // literal `primary_phone` column name). The EMAIL item is filtered
+  // out here too — it lives in the rail Contacts card (its semantic
+  // home, where it's the card's primary content), so showing it here as
+  // well was a straight duplicate. The row renders unconditionally
+  // because the entity badge always has content.
+  const items = buildClientHeaderContactItems(client).filter((item) => item.kind !== 'email')
   return (
     <div className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-text-tertiary">
       {/* Entity-kind chip routed through Badge outline lg, with an h-7
@@ -2028,7 +2038,6 @@ function ClientContactMetaRow({
         {entityLabel}
       </Badge>
       {ownerSlot}
-      <ClientFilingStateChips client={client} />
       {items.map((item) => (
         <ClientContactMetaItem key={`${item.kind}:${item.value}`} item={item} />
       ))}
