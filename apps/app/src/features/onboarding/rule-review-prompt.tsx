@@ -95,12 +95,12 @@ export function RuleReviewPrompt({
 }: RuleReviewPromptProps): ReactNode {
   const reviewCount = jurisdictions.length
   const codeList = jurisdictions.map((item) => item.code).join(' + ')
-  const reviewButtonLabel =
-    reviewCount > 3 ? (
-      <Plural value={reviewCount} one="Review # state" other="Review # states" />
-    ) : (
-      <Trans>Review {codeList} now</Trans>
-    )
+  const summarizeJurisdictions = reviewCount > 3
+  const reviewButtonLabel = summarizeJurisdictions ? (
+    <Plural value={reviewCount} one="Review # state" other="Review # states" />
+  ) : (
+    <Trans>Review {codeList} now</Trans>
+  )
 
   return (
     <div className="flex min-h-0 w-full max-w-[720px] flex-1 flex-col gap-4">
@@ -114,11 +114,26 @@ export function RuleReviewPrompt({
           />
         </h1>
         <p className="text-sm font-medium leading-relaxed text-text-tertiary">
-          <Trans>
-            You activated {totalRulesActivated} rules. {codeList} publish their own filing
-            calendars, so they need your eyes before they generate deadlines for your clients. A few
-            minutes here saves filing-day surprises later.
-          </Trans>
+          <Trans>You activated {totalRulesActivated} rules.</Trans>{' '}
+          {summarizeJurisdictions ? (
+            <Plural
+              value={reviewCount}
+              one="# jurisdiction publishes its own filing calendar, so it needs your eyes before it generates deadlines for your clients. A few minutes here saves filing-day surprises later."
+              other="# jurisdictions publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
+            />
+          ) : reviewCount === 1 ? (
+            <Trans>
+              {codeList} publishes its own filing calendar, so it needs your eyes before it
+              generates deadlines for your clients. A few minutes here saves filing-day surprises
+              later.
+            </Trans>
+          ) : (
+            <Trans>
+              {codeList} publish their own filing calendars, so they need your eyes before they
+              generate deadlines for your clients. A few minutes here saves filing-day surprises
+              later.
+            </Trans>
+          )}
         </p>
       </div>
 

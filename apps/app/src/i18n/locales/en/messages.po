@@ -978,6 +978,14 @@ msgstr "{code}: {count} alerts"
 msgid "{code}: 1 alert"
 msgstr "{code}: 1 alert"
 
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{codeList} publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
+msgstr "{codeList} publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
+
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{codeList} publishes its own filing calendar, so it needs your eyes before it generates deadlines for your clients. A few minutes here saves filing-day surprises later."
+msgstr "{codeList} publishes its own filing calendar, so it needs your eyes before it generates deadlines for your clients. A few minutes here saves filing-day surprises later."
+
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "{confidencePct}% confidence"
 msgstr "{confidencePct}% confidence"
@@ -1366,6 +1374,10 @@ msgstr "{reservedCount} reserved"
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
 msgstr "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
+
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{reviewCount, plural, one {# jurisdiction publishes its own filing calendar, so it needs your eyes before it generates deadlines for your clients. A few minutes here saves filing-day surprises later.} other {# jurisdictions publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later.}}"
+msgstr "{reviewCount, plural, one {# jurisdiction publishes its own filing calendar, so it needs your eyes before it generates deadlines for your clients. A few minutes here saves filing-day surprises later.} other {# jurisdictions publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later.}}"
 
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount, plural, one {Review # state} other {Review # states}}"
@@ -17685,8 +17697,8 @@ msgid "You"
 msgstr "You"
 
 #: src/features/onboarding/rule-review-prompt.tsx
-msgid "You activated {totalRulesActivated} rules. {codeList} publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
-msgstr "You activated {totalRulesActivated} rules. {codeList} publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
+msgid "You activated {totalRulesActivated} rules."
+msgstr "You activated {totalRulesActivated} rules."
 
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "You can also skip this and review rules later from the Rule Library."

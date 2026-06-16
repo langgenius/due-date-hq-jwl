@@ -983,6 +983,14 @@ msgstr "{code}：{count} 条提醒"
 msgid "{code}: 1 alert"
 msgstr "{code}：1 条提醒"
 
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{codeList} publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
+msgstr "{codeList} 自行发布申报日历，因此需要你先确认，之后才会为客户生成截止事项。提前花几分钟确认，可以避免申报日当天出意外。"
+
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{codeList} publishes its own filing calendar, so it needs your eyes before it generates deadlines for your clients. A few minutes here saves filing-day surprises later."
+msgstr "{codeList} 自行发布申报日历，因此需要你先确认，之后才会为客户生成截止事项。提前花几分钟确认，可以避免申报日当天出意外。"
+
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "{confidencePct}% confidence"
 msgstr "{confidencePct}% 置信度"
@@ -1371,6 +1379,10 @@ msgstr "{reservedCount} 个保留"
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
 msgstr "{reviewCount, plural, other {# 个辖区需要快速审核}}"
+
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{reviewCount, plural, one {# jurisdiction publishes its own filing calendar, so it needs your eyes before it generates deadlines for your clients. A few minutes here saves filing-day surprises later.} other {# jurisdictions publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later.}}"
+msgstr "{reviewCount, plural, one {# 个辖区自行发布申报日历，因此需要你先确认，之后才会为客户生成截止事项。提前花几分钟确认，可以避免申报日当天出意外。} other {# 个辖区自行发布申报日历，因此需要你先确认，之后才会为客户生成截止事项。提前花几分钟确认，可以避免申报日当天出意外。}}"
 
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount, plural, one {Review # state} other {Review # states}}"
@@ -17762,8 +17774,8 @@ msgid "You"
 msgstr "你"
 
 #: src/features/onboarding/rule-review-prompt.tsx
-msgid "You activated {totalRulesActivated} rules. {codeList} publish their own filing calendars, so they need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
-msgstr "你已启用 {totalRulesActivated} 条规则。{codeList} 自行发布申报日历，因此在为客户生成截止事项前需要你过目确认。现在花几分钟，可避免申报当天的意外。"
+msgid "You activated {totalRulesActivated} rules."
+msgstr "你已启用 {totalRulesActivated} 条规则。"
 
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "You can also skip this and review rules later from the Rule Library."

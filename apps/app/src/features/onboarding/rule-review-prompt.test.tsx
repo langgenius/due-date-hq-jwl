@@ -61,6 +61,9 @@ describe('RuleReviewPrompt', () => {
     renderPrompt([{ code: 'FED' }, { code: 'AL' }, { code: 'AK' }])
 
     expect(visibleButtonText()).toContain('Review FED + AL + AK now')
+    expect(document.body.textContent).toContain(
+      'You activated 3 rules. FED + AL + AK publish their own filing calendars',
+    )
   })
 
   it('summarizes long jurisdiction lists in the review CTA', () => {
@@ -68,5 +71,9 @@ describe('RuleReviewPrompt', () => {
 
     expect(visibleButtonText()).toContain('Review 4 states')
     expect(visibleButtonText()).not.toContain('Review FED + AL + AK + AZ now')
+    expect(document.body.textContent).toContain(
+      'You activated 4 rules. 4 jurisdictions publish their own filing calendars',
+    )
+    expect(document.body.textContent).not.toContain('FED + AL + AK + AZ publish')
   })
 })
