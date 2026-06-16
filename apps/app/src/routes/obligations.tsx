@@ -2673,9 +2673,9 @@ export function ObligationQueueRoute() {
       currentUserName,
       explicitActiveRowId,
       openEvidence,
+      openQueueDetail,
       panelOpenIntent,
       rowsById,
-      setObligationQueueQuery,
       singleStatusScopeActive,
       sort,
       statusDropdownOptions,
@@ -6687,6 +6687,12 @@ function ObligationFilterPill({
   )
 }
 
+// Resolve a facet value to its display label via the option list, falling
+// back to the raw value if the facet hasn't loaded yet.
+function facetLabelOf(options: readonly FilterOption[], value: string): string {
+  return options.find((option) => option.value === value)?.label ?? value
+}
+
 // Active-filter chips — one removable chip per applied facet value, rendered
 // inline under the toolbar (Pencil `AzLvC`). Each chip carries a dimension
 // eyebrow ("Form ·") + the human label, and a ✕ that emits the canonical clear
@@ -6742,11 +6748,6 @@ function ObligationActiveFilterChips({
   onClearAll: () => void
 }) {
   const { t } = useLingui()
-
-  // Resolve a facet value to its display label via the option list, falling
-  // back to the raw value if the facet hasn't loaded yet.
-  const labelOf = (options: readonly FilterOption[], value: string) =>
-    options.find((option) => option.value === value)?.label ?? value
 
   // Remove one value from an array facet, emitting the `[] → null` reset when
   // it was the last selection.
@@ -6838,7 +6839,7 @@ function ObligationActiveFilterChips({
     chips.push({
       key: `taxType-${value}`,
       dimension: t`Form`,
-      label: labelOf(taxTypeOptions, value),
+      label: facetLabelOf(taxTypeOptions, value),
       onRemove: () => removeFacet('taxType', taxTypeSelected, value),
     })
   }
@@ -6846,7 +6847,7 @@ function ObligationActiveFilterChips({
     chips.push({
       key: `client-${value}`,
       dimension: t`Client`,
-      label: labelOf(clientOptions, value),
+      label: facetLabelOf(clientOptions, value),
       onRemove: () => removeFacet('client', clientSelected, value),
     })
   }
@@ -6854,7 +6855,7 @@ function ObligationActiveFilterChips({
     chips.push({
       key: `state-${value}`,
       dimension: t`State`,
-      label: labelOf(stateOptions, value),
+      label: facetLabelOf(stateOptions, value),
       onRemove: () => removeFacet('state', stateSelected, value),
     })
   }
@@ -6862,7 +6863,7 @@ function ObligationActiveFilterChips({
     chips.push({
       key: `assignee-${value}`,
       dimension: t`Assignee`,
-      label: labelOf(assigneeOptions, value),
+      label: facetLabelOf(assigneeOptions, value),
       onRemove: () => removeFacet('assignees', assigneeSelected, value),
     })
   }
@@ -6870,7 +6871,7 @@ function ObligationActiveFilterChips({
     chips.push({
       key: `county-${value}`,
       dimension: t`County`,
-      label: labelOf(countyOptions, value),
+      label: facetLabelOf(countyOptions, value),
       onRemove: () => removeFacet('county', countySelected, value),
     })
   }
