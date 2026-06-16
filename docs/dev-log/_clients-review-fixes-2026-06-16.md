@@ -670,3 +670,14 @@ filing-plan DEADLINE column are `TaxCodeBadge display="jurisdiction"`
 
 tsgo clean (my files). All three drawer/panel files staged selectively around the
 parallel session's concurrent edits.
+
+## Cluster 28 — Jurisdiction badge style (filing-plan DEADLINE column)
+Yuqi: "the badges are in wrong styles." The filing-plan jurisdiction chips rendered
+the jurisdiction NAME ("Federal", "New York", "California") via
+`TaxCodeBadge display="jurisdiction"` — which reuses the MONO code-chip chrome
+(font-mono, bg-subtle pill, rounded-sm). Mono is for codes/identifiers; a proper
+jurisdiction name in monospace is the wrong register. Swapped to the canonical
+jurisdiction display used in the panel header + summary strip: the state SEAL
+(`StateBadge`, preview off for dense rows) + the name in SANS
+(`getJurisdictionName`). Falls back to the old code-derived chip when a row has no
+jurisdiction code. Verified live: seal present, font is sans (not mono).

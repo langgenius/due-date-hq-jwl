@@ -21,6 +21,7 @@ import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
+import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
 
 import { DueDaysPill } from './primitives'
 
@@ -239,11 +240,26 @@ export function DeadlineRow({
               tabIndex={-1}
               aria-hidden
             >
-              <TaxCodeBadge
-                code={deadline.taxType}
-                display="jurisdiction"
-                className="min-w-0 max-w-full truncate"
-              />
+              {/* 2026-06-16 (Yuqi "badges are in wrong styles"): a jurisdiction
+                  is a PROPER NAME, not a code — render the canonical seal +
+                  sans-serif name (matching the panel header + summary strip),
+                  NOT the mono code-chip. Preview off (a seal-per-row hover card
+                  is too busy in a dense table). Falls back to the code-derived
+                  chip if a row has no jurisdiction code. */}
+              {deadline.jurisdiction ? (
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <StateBadge code={deadline.jurisdiction} size="xs" preview={false} />
+                  <span className="min-w-0 truncate text-sm font-medium text-text-secondary">
+                    {getJurisdictionName(deadline.jurisdiction)}
+                  </span>
+                </span>
+              ) : (
+                <TaxCodeBadge
+                  code={deadline.taxType}
+                  display="jurisdiction"
+                  className="min-w-0 max-w-full truncate"
+                />
+              )}
             </button>
             <div className="flex min-w-0 flex-col">
               <Link
