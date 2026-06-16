@@ -665,10 +665,14 @@ function PulseAlertRow({
           // line on every return sweep. Capped at 72ch — long titles now
           // wrap to two lines (distinct row silhouettes), and the freed
           // right side stays meta-only.
-          // 2026-06-12 (Yuqi "flat hierarchies, nothing strong"): title takes
-          // the 600 title tier (was 500) — the one BIG ink jump per row, so
-          // the headline unmistakably leads and everything else recedes.
-          className="line-clamp-2 min-w-0 max-w-[72ch] text-lg font-semibold tracking-title text-text-primary"
+          // 2026-06-12 (Yuqi "flat hierarchies, nothing strong"): title led with
+          // the 16/600 tier — the one big ink jump per row.
+          // 2026-06-16 (Yuqi "why the titles so big and bold"): dialed back to
+          // 14/500. The headline still leads (it's the largest text block on the
+          // row + heavier than the 12px meta) but no longer shouts, and it now
+          // matches the deadline row weight for list-to-list cohesion. If this
+          // reads flat, the lever is weight (→ semibold), not size.
+          className="line-clamp-2 min-w-0 max-w-[72ch] text-base font-medium text-text-primary"
           title={alert.title}
         >
           {alert.title}
