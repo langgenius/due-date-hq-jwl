@@ -6217,9 +6217,9 @@ const SOURCE_EXCERPTS: Record<string, string> = {
   'pa.local_eit_lit_psd':
     'Pennsylvania DCED states that PSD codes identify municipalities for local Earned Income Tax and help employers and tax collectors remit to the correct taxing jurisdictions. The taxpayer Annual Local Earned Income Tax Return is an annual local earned income tax filing. For the 2025 calendar tax year, the concrete annual local earned income tax return due date is April 15, 2026, pending local collector confirmation.',
   'pa.local_eit_act32_employer_withholding':
-    'Pennsylvania DCED Act 32 guidance says employers with worksites in Pennsylvania must withhold local earned income tax using employee residence and workplace facts. Act 32 employer withholding guidance requires quarterly local earned income tax returns within 30 days after the end of each calendar quarter.',
+    'Pennsylvania DCED Act 32 guidance says employers with worksites in Pennsylvania must withhold local earned income tax using employee residence and workplace facts. Act 32 employer withholding guidance requires quarterly local earned income tax returns within 30 days after the end of each calendar quarter. For calendar-year 2026 the quarterly returns are due April 30, 2026, July 30, 2026, October 30, 2026, and January 30, 2027 (the 30th day after each quarter end, not the last day of the month).',
   'pa.local_services_tax':
-    'Pennsylvania DCED Local Services Tax guidance states that employers with worksites in taxing jurisdictions must withhold and remit LST when the tax is listed in the Official Tax Register. DCED local services tax guidance requires employer remittance on the same quarterly cadence used for local withholding, within 30 days after the end of each calendar quarter.',
+    'Pennsylvania DCED Local Services Tax guidance states that employers with worksites in taxing jurisdictions must withhold and remit LST when the tax is listed in the Official Tax Register. DCED local services tax guidance requires employer remittance on the same quarterly cadence used for local withholding, within 30 days after the end of each calendar quarter. For calendar-year 2026 the quarterly returns are due April 30, 2026, July 30, 2026, October 30, 2026, and January 30, 2027 (within 30 days after each quarter end).',
   'oh.municipal_income_tax_finder':
     'Ohio The Finder provides municipal income tax lookup by address and notes JEDD/JEDZ income tax may require a separate lookup.',
   'oh.municipal_income_tax_annual_return':
@@ -6806,6 +6806,7 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
   ].join('\n'),
   'OH:ui_wage_report': [
     'Ohio quarterly contribution and wage reports are due no later than the last day of the month following the close of the calendar quarter for which the reports are filed.',
+    'For calendar-year 2026 the quarterly contribution and wage report due dates are April 30, 2026, July 31, 2026, October 31, 2026, and January 31, 2027.',
     'Ohio quarterly contribution and wage reports are delinquent and subject to forfeitures if not filed on or before the due date.',
   ].join('\n'),
   'PA:individual_income_return': [
@@ -6877,6 +6878,7 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
   ].join('\n'),
   'NE:ui_wage_report': [
     'Nebraska Employer Tax Services User Guide states that any employer with active liable quarters must submit a quarterly Combined Tax Report.',
+    'The Combined Tax Report and Wage Report are due the last day of the month following the end of each calendar quarter; for calendar-year 2026 the due dates are April 30, 2026, July 31, 2026, October 31, 2026, and January 31, 2027.',
     'Nebraska tax and wage reports must both be submitted before the deadline to be considered timely.',
     'Nebraska reports and payment are due by the end of the month following each quarter end date.',
   ].join('\n'),
@@ -7200,8 +7202,14 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Vermont quarterly unemployment insurance wage and contribution reports are due April 30, July 31, October 31, and January 31.',
     'If the Vermont unemployment report due date falls on a weekend, the due date is the next business day.',
   ].join('\n'),
+  'AL:business_estimated_tax': [
+    'Alabama corporate and business income estimated tax is paid in quarterly installments due the 15th day of the 4th, 6th, 9th, and 12th months of the tax year (Ala. Code 40-18-80.1).',
+    'For a calendar-year 2026 filer the quarterly estimated tax installments are due April 15, 2026, June 15, 2026, September 15, 2026, and December 15, 2026.',
+    'These quarterly estimated installments are the 15th-of-the-month estimate dates, separate from the annual Form 20C corporate income tax return (due May 15) and from any last-day-of-month employment or withholding deadlines.',
+  ].join('\n'),
   'AL:franchise_or_entity_tax': [
     "Business Privilege Tax C-Corporation Due no later than 15th day of the 4th month after the beginning of a taxpayer's taxable year.",
+    'For a calendar-year 2026 filer the Business Privilege Tax return is due April 15, 2026 for C-corporations (Form CPT) and March 15, 2026 for S-corporations and pass-through entities (Form PPT). This is the entity privilege tax and is separate from the May 15 corporate income tax (Form 20C) return.',
     "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
     "Limited Liability Entities Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
   ].join('\n'),
