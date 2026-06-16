@@ -616,16 +616,17 @@ export function RuleDetailCompact({
     return (
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         {/* LEFT — header + rule facts (white, scrolls independently). Sections
-            are delineated by their headings + generous spacing alone (Law of
-            Proximity), not hairlines between every band — the modal leans on
-            whitespace over rules to stay calm. */}
+            are delineated by a full-width hairline + per-section padding — the
+            "clear sections, not boxes" device: enough structure to read each
+            fact as a distinct band, without wrapping every one in its own
+            bordered card (whitespace alone blended them together). */}
         <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
           {header}
           <div className="flex min-w-0 flex-col px-6 pt-5">
             <span className="pb-1 text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Verify the facts</Trans>
             </span>
-            <div className="flex min-w-0 flex-col gap-7 py-5">
+            <div className="flex min-w-0 flex-col divide-y divide-divider-subtle [&>*]:py-5 [&>*:first-child]:pt-3">
               {applicabilityCard}
               {dueDateCard}
               {evidenceCard}
