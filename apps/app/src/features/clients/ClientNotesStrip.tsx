@@ -2,7 +2,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { PencilLineIcon } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
-import { Card } from '@duedatehq/ui/components/ui/card'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
  * `<ClientNotesStrip>` — inline preview of `client.notes` shown
@@ -61,14 +61,15 @@ export function ClientNotesStrip({
   if (notes.length === 0) return null
 
   return (
-    // White labeled card matching the rail's Contacts/Alerts cards — a
-    // "Notes" eyebrow + the note body + a quiet pencil edit, not a washed-out
-    // muted strip (Yuqi: notes card "丑"). Whole card opens the slide-in.
-    <Card
-      tone="default"
-      radius="xl"
-      interactive
-      className="flex-col items-stretch gap-4 border-divider-regular bg-background-default p-5 shadow-none"
+    // Banded rail card (Yuqi "band EVERY section"): a thin light header band
+    // ("Notes") + the note body, matching the detail-section band. Whole card is
+    // the button that opens the slide-in editor.
+    <div
+      className={cn(
+        'group/card flex flex-col overflow-hidden rounded-xl border border-divider-subtle bg-background-default',
+        'cursor-pointer transition-colors hover:border-state-accent-active-alt hover:bg-state-base-hover',
+        'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
+      )}
       role="button"
       tabIndex={0}
       onClick={onOpenEditor}
@@ -80,25 +81,22 @@ export function ClientNotesStrip({
       }}
       aria-label={t`Open notes for ${client.name}`}
     >
-      <div className="flex items-center justify-between gap-2">
-        {/* Bare column-label (11/600 tertiary), no leading icon — matches the
-            CONTACTS rail label + Pencil V1kJX so the two rail cards share one
-            label treatment. */}
-        <span className="text-column-label text-text-tertiary uppercase">
+      <header className="flex min-h-8 items-center justify-between gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
+        <h3 className="text-base font-semibold text-text-primary">
           <Trans>Notes</Trans>
-        </span>
+        </h3>
         {canWrite ? (
           // Decorative "editable" cue, NOT a separate control: the whole card
-          // is the button (role="button" above, opens the same editor). A
-          // nested focusable <Button> here would be invalid nested-interactive
-          // content (two tab stops, ambiguous AT semantics).
+          // is the button (role="button" above, opens the same editor).
           <PencilLineIcon
             className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover/card:text-text-secondary"
             aria-hidden
           />
         ) : null}
-      </div>
-      <p className="line-clamp-3 text-sm whitespace-pre-wrap text-text-secondary">{notes}</p>
-    </Card>
+      </header>
+      <p className="line-clamp-3 px-5 py-4 text-sm whitespace-pre-wrap text-text-secondary">
+        {notes}
+      </p>
+    </div>
   )
 }

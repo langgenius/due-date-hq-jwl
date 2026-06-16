@@ -608,3 +608,20 @@ AUDIT (6-agent read-only workflow) — deferred / flagged, NOT done here:
   minor consistency follow-ups, flagged.
 
 tsgo clean (my files). Verified live.
+
+## Cluster 25 — Extend the section band to rule-detail + the client rail
+Yuqi confirmed "band EVERY section" (all four flagged surfaces). Done so far:
+- **rule-detail-drawer.tsx**: its 6 sections rendered the dead `variant="card"`
+  (no band) + a hand-rolled `DetailSection` helper. Added `variant="flat"` to all
+  6 (Version history, Applicability, When it's due, Extension, Evidence, Practice
+  review) and routed `DetailSection` through `DetailSectionCard variant="flat"`.
+  (The parallel session owns this file for a font-weight pass; applied via
+  selective hunk staging, none of my hunks overlap theirs.)
+- **Client rail**: Notes (ClientNotesStrip) + Contacts (ClientDetailRail) lifted
+  their eyebrow labels into the canonical light header band (32px). Notes stays a
+  whole-card button (band is header-only); removed the now-unused RailSectionLabel.
+  The warning-tinted "Active alerts" rail card was left as-is (out of scope +
+  intentionally distinct).
+
+Verified live: rail Notes/Contacts headers banded (32px). Still pending in this
+batch: Materials/Workpapers headerRight button toolbars, Setup-tab TabSection.

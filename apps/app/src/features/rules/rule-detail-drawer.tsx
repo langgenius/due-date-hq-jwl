@@ -181,7 +181,7 @@ function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
   // archived events, keyed by entityType 'rule' + the rule id. Closes the
   // "Rule library row → version history" surface gap.
   return (
-    <DetailSectionCard title={<Trans>Version history</Trans>}>
+    <DetailSectionCard variant="flat" title={<Trans>Version history</Trans>}>
       <EntityAuditActivityPanel
         entityType="rule"
         entityId={rule.id}
@@ -1036,11 +1036,12 @@ function DetailSection({ label, children }: { label: React.ReactNode; children: 
   // `text-base` (16px) so the labels read as title-rank between the
   // `text-xl` dialog title and the `text-sm` body; at 14px they read as
   // emphasized body text, not as section titles.
+  // 2026-06-16 (Yuqi "band EVERY section"): render through the shared
+  // DetailSectionCard so this group gets the same light header band.
   return (
-    <section className="flex flex-col gap-3">
-      <h4 className="text-base font-semibold text-text-primary">{label}</h4>
+    <DetailSectionCard variant="flat" title={label}>
       {children}
-    </section>
+    </DetailSectionCard>
   )
 }
 
@@ -2138,6 +2139,7 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
   //     instead of "· also payment") so the suffix reads as a sentence.
   return (
     <DetailSectionCard
+      variant="flat"
       title={<Trans>Applicability</Trans>}
       headerRight={
         <Plural value={rule.entityApplicability.length} one="# entity" other="# entities" />
@@ -2203,7 +2205,7 @@ function DueDateLogicSection({ rule }: { rule: ObligationRule }) {
   // label is "When it's due" — plain English asks "when?" before the
   // reader hits the answer.
   return (
-    <DetailSectionCard title={<Trans>When it's due</Trans>}>
+    <DetailSectionCard variant="flat" title={<Trans>When it's due</Trans>}>
       <p className="text-sm text-text-primary">{summary}</p>
     </DetailSectionCard>
   )
@@ -2217,7 +2219,7 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
   const { extensionPolicy } = rule
   const durationMonths = extensionPolicy.durationMonths
   return (
-    <DetailSectionCard title={<Trans>Extension</Trans>}>
+    <DetailSectionCard variant="flat" title={<Trans>Extension</Trans>}>
       {extensionPolicy.available ? (
         <div className="flex flex-col gap-2">
           <p className="text-sm text-text-primary">
@@ -2326,6 +2328,7 @@ function EvidenceSection({
 }) {
   return (
     <DetailSectionCard
+      variant="flat"
       title={<Trans>Evidence</Trans>}
       headerRight={<span className="font-mono tabular-nums">{rule.evidence.length}</span>}
     >
@@ -2457,7 +2460,7 @@ function VerificationSection({ rule }: { rule: ObligationRule }) {
   if (!rule.reviewedAt) return null
 
   return (
-    <DetailSectionCard title={<Trans>Practice review</Trans>}>
+    <DetailSectionCard variant="flat" title={<Trans>Practice review</Trans>}>
       <div className="grid grid-cols-[88px_1fr] gap-y-1 text-sm">
         <span className="text-text-tertiary">
           <Trans>Reviewed by</Trans>

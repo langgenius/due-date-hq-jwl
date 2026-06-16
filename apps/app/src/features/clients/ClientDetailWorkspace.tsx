@@ -1365,59 +1365,60 @@ function ClientDetailRail({
           (Filed-YTD / outstanding-tasks / last-filed + the Engagement card
           were already removed earlier as unbacked-by-contract.) */}
       {/* Contacts card */}
-      <section className="flex flex-col gap-4 rounded-xl border border-divider-regular bg-background-default p-5">
-        <RailSectionLabel>{t`CONTACTS`}</RailSectionLabel>
-        {contacts.length > 0 ? (
-          <div className="flex flex-col gap-3">
-            {contacts.map((contact) => (
-              // Stacked name / role / email per Pencil V1kJX (was name·role
-              // inline). `items-start` so the avatar tops with the name line.
-              <div key={contact.name} className="flex items-start gap-3">
-                <AssigneeAvatar name={contact.name} isMine={false} title={contact.name} />
-                <div className="flex min-w-0 flex-col gap-0.5">
-                  {/* Name 14/500 (V1kJX), not 600. */}
-                  <span className="truncate text-sm font-medium text-text-primary">
-                    {contact.name}
-                  </span>
-                  {/* Role on its OWN line, muted (V1kJX). Skipped when it would
+      <section className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
+        {/* 2026-06-16 (Yuqi "band EVERY section"): banded rail header. */}
+        <header className="flex min-h-8 items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
+          <h3 className="text-base font-semibold text-text-primary">
+            <Trans>Contacts</Trans>
+          </h3>
+        </header>
+        <div className="flex flex-col gap-4 px-5 py-4">
+          {contacts.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {contacts.map((contact) => (
+                // Stacked name / role / email per Pencil V1kJX (was name·role
+                // inline). `items-start` so the avatar tops with the name line.
+                <div key={contact.name} className="flex items-start gap-3">
+                  <AssigneeAvatar name={contact.name} isMine={false} title={contact.name} />
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    {/* Name 14/500 (V1kJX), not 600. */}
+                    <span className="truncate text-sm font-medium text-text-primary">
+                      {contact.name}
+                    </span>
+                    {/* Role on its OWN line, muted (V1kJX). Skipped when it would
                       just echo the name — the demo placeholder sets both to
                       "Primary contact", and two identical lines read broken. */}
-                  {contact.role && contact.role !== contact.name ? (
-                    <span className="truncate text-xs text-text-muted">{contact.role}</span>
-                  ) : null}
-                  {/* Email in mono (V1kJX h1oYYg JetBrains Mono), as a mailto —
+                    {contact.role && contact.role !== contact.name ? (
+                      <span className="truncate text-xs text-text-muted">{contact.role}</span>
+                    ) : null}
+                    {/* Email in mono (V1kJX h1oYYg JetBrains Mono), as a mailto —
                       this is the single home for the client email (removed from
                       the header meta row), so it carries the actionable link. */}
-                  {contact.email ? (
-                    <a
-                      href={`mailto:${contact.email}`}
-                      className="truncate font-mono text-xs text-text-tertiary underline-offset-2 outline-none hover:text-text-primary hover:underline focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                    >
-                      {contact.email}
-                    </a>
-                  ) : null}
-                </div>
-                {/* Compose intentionally not rendered: EmailComposeDialog
+                    {contact.email ? (
+                      <a
+                        href={`mailto:${contact.email}`}
+                        className="truncate font-mono text-xs text-text-tertiary underline-offset-2 outline-none hover:text-text-primary hover:underline focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                      >
+                        {contact.email}
+                      </a>
+                    ) : null}
+                  </div>
+                  {/* Compose intentionally not rendered: EmailComposeDialog
                     has no messages.send RPC, so the dialog can never
                     actually send. Restore the per-contact compose
                     affordance once email sending is real. */}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <span className="text-sm text-text-tertiary">
-            <Trans>No contacts yet</Trans>
-          </span>
-        )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <span className="text-sm text-text-tertiary">
+              <Trans>No contacts yet</Trans>
+            </span>
+          )}
+        </div>
       </section>
     </div>
   )
-}
-
-function RailSectionLabel({ children }: { children: ReactNode }) {
-  // Canonical column-label token (11/600/+0.5px) in tertiary — matches the
-  // NOTES / CONTACTS rail labels in Pencil V1kJX (was bolder muted).
-  return <span className="text-column-label text-text-tertiary uppercase">{children}</span>
 }
 
 type ClientDetailTabKey = 'work' | 'info' | 'activity'
