@@ -121,3 +121,33 @@ common case) that stretched the 5-stat band thin (each value stranded in a
 
 Verified live both states (rest = capped/tight band + 3-col table; open =
 expanded master/detail with the active row highlighted). tsgo clean.
+
+## Cluster 5 — cohesion with /deadlines + /alerts detail (supersedes Cluster 4)
+Yuqi reviewed Cluster 4 and steered: bring back OFFICIAL DUE + OWNER, the
+centering is off, fix the in-row gap, fix section gaps + text hierarchy, and
+"look at the deadlines detail panel and alerts detail panel … ensure the
+three are cohesive and in the same design system."
+
+Studied both reference surfaces live. Their shared language: eyebrow → large
+title → chips → **bordered fact-cards** (rounded-lg + divider-subtle border,
+CAPS-label / bold value / caption sub) → underline tabs, full-width, generous
+gaps. The /clients detail diverged by using the borderless StatBand — which
+is exactly *why* its facts looked stranded.
+
+- **Reverted Cluster 4** — dropped the 1100px centered cap (back to full-width
+  like the references) and the always-compact table (OFFICIAL DUE + OWNER are
+  back at rest; compact only when the panel squeezes the column).
+- **Summary → bordered fact-cards** (`ClientSummaryStrip`): the 5 facts
+  (Jurisdictions/Blocked/Open/Filed/Next due) now render as the same fact-card
+  the /deadlines + /alerts detail use, in a responsive grid (2 / 3 / 5 cols).
+  The borders make the spacing read as intentional card padding, not random
+  gaps, and the three detail surfaces now share one fact-card grammar.
+  Skeleton = 5 card-shaped placeholders (keeps the no-fake-zeros fix).
+
+Trade-off: the detail summary no longer uses the shared StatBand (the list +
+sources + library still do) — accepted because the explicit goal was
+cohesion with the /deadlines + /alerts DETAIL surfaces, which use fact-cards.
+
+tsgo clean; verified live. Residual: the filing table still has some DEADLINE
+slack at full width (single-client tables have few columns) — minor, can
+tighten if needed.

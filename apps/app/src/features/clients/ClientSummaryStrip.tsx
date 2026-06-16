@@ -1,9 +1,11 @@
+import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { useLingui } from '@lingui/react/macro'
 
 import type { ClientPublic, ObligationInstancePublic } from '@duedatehq/contracts'
-import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { formatDatePretty } from '@/lib/utils'
 
@@ -17,15 +19,26 @@ import { useClientNextDue } from './use-client-next-due'
 // table column (ClientFactsWorkspace), which was renamed for the same reason.
 const FILED_STATUSES: ReadonlySet<string> = new Set(['done', 'completed', 'paid'])
 
+type SummaryCard = {
+  key: string
+  label: string
+  value: ReactNode
+  valueClass?: string
+  sub?: ReactNode
+  subClass?: string
+  onClick?: () => void
+  ariaLabel?: string
+}
+
 /**
- * ClientSummaryStrip — the /clients/[id] hero meta strip. Matches Pencil
- * `ibWOx`: Jurisdictions · Blocked · Open · Filed. Reuses the shared
- * `StatBand` (the canonical card-summary band) + the `Badge` outline chip the
- * /clients list uses for state codes — no bespoke strip. Jurisdiction chips are
- * the client's distinct filing states; the three counts come straight from the
- * obligation set, color-coded per the canvas (blocked warm, filed green).
+ * ClientSummaryStrip — the /clients/[id] hero fact row: Jurisdictions ·
+ * Blocked · Open · Filed · Next due.
  *
- * Each numeric stat drills into the matching filtered deadlines queue.
+ * Rendered as the same bordered fact-cards the /deadlines and /alerts detail
+ * surfaces use (rounded-lg + divider-subtle border, CAPS label / bold value /
+ * caption sub) so the three detail pages read as one design system — and so
+ * the facts cluster into defined cards instead of stranding in a stretched
+ * borderless band. Count cards drill into the matching filtered queue.
  */
 export function ClientSummaryStrip({
   client,
@@ -34,8 +47,8 @@ export function ClientSummaryStrip({
 }: {
   client: ClientPublic
   obligations: readonly ObligationInstancePublic[]
-  /** In-flight obligations fetch — shows the band skeleton instead of
-   *  computing falsely-calm zeros from an empty obligation set. */
+  /** In-flight obligations fetch — shows skeleton cards instead of computing
+   *  falsely-calm zeros from an empty obligation set. */
   isLoading?: boolean
 }) {
   const { t } = useLingui()
@@ -66,17 +79,27 @@ export function ClientSummaryStrip({
     return [...set].toSorted()
   }, [client.state, client.filingProfiles])
 
-  const stats: StatBandItem[] = [
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-[68px] w-full rounded-lg" />
+        ))}
+      </div>
+    )
+  }
+
+  const cards: SummaryCard[] = [
     {
       key: 'jurisdictions',
       label: t`Jurisdictions`,
       value:
         jurisdictions.length > 0 ? (
-          <span className="flex flex-wrap items-center gap-2">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {jurisdictions.map((code) => (
               <span key={code} className="inline-flex items-center gap-1">
                 <StateBadge code={code} size="xs" preview={false} />
-                <span className="text-sm font-medium text-text-secondary">{code}</span>
+                <span className="text-sm font-semibold text-text-primary">{code}</span>
               </span>
             ))}
           </span>
@@ -121,9 +144,9 @@ export function ClientSummaryStrip({
       subClass: filedCount > 0 ? 'text-text-success' : 'text-text-tertiary',
     },
     {
-      // Next due — moved off the header subtitle into the strip (Yuqi). The
-      // soonest open deadline + an on-track/overdue read; the Healthy/At-risk
-      // pill in the title carries the overall health, so this stays factual.
+      // Next due — the soonest open deadline + an on-track/overdue read; the
+      // Healthy/At-risk pill in the title carries overall health, so this
+      // stays factual.
       key: 'next-due',
       label: t`Next due`,
       value: nextDue ? formatDatePretty(nextDue.currentDueDate) : '—',
@@ -137,5 +160,62 @@ export function ClientSummaryStrip({
     },
   ]
 
-  return <StatBand stats={stats} loading={isLoading ?? false} ariaLabel={t`Client summary`} />
+  return (
+    <section
+      aria-label={t`Client summary`}
+      className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5"
+    >
+      {cards.map((card) => {
+        const body = (
+          <>
+            <span className="truncate text-caption-xs font-semibold uppercase tracking-[0.4px] text-text-tertiary">
+              {card.label}
+            </span>
+            <span
+              className={cn(
+                'text-base font-semibold leading-tight tabular-nums',
+                card.valueClass ?? 'text-text-primary',
+              )}
+            >
+              {card.value}
+            </span>
+            {card.sub != null ? (
+              <span
+                className={cn('truncate text-caption-xs font-medium', card.subClass ?? 'text-text-tertiary')}
+              >
+                {card.sub}
+              </span>
+            ) : null}
+          </>
+        )
+
+        // Shared fact-card chrome (rounded-lg + divider-subtle border), matching
+        // the /deadlines + /alerts detail fact cards.
+        const cardClass = 'flex min-w-0 flex-col gap-1 rounded-lg border border-divider-subtle bg-background-default px-3 py-2.5'
+
+        if (card.onClick) {
+          return (
+            <button
+              key={card.key}
+              type="button"
+              onClick={card.onClick}
+              aria-label={card.ariaLabel}
+              className={cn(
+                cardClass,
+                'cursor-pointer text-left transition-colors hover:border-state-accent-active-alt hover:bg-state-base-hover',
+                'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
+              )}
+            >
+              {body}
+            </button>
+          )
+        }
+        return (
+          <div key={card.key} className={cardClass}>
+            {body}
+          </div>
+        )
+      })}
+    </section>
+  )
 }
