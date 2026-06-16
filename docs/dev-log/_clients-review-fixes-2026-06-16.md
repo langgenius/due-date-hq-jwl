@@ -167,7 +167,19 @@ count doesn't shout.
 Width: already reverted off the 1100 cap last cluster → full-width = the
 route's `max-w-page-expanded` (1440), matching VtC73.
 
-Still to do (noted): VtC73 title is 36/600 (page is ~28); hero/tabs full-width
-rules + 40px gutter; the in-client obligation panel should match the
-/deadlines detail (it renders the fact row borderless + ISO dates instead of
-the bordered fact-cards + pretty dates — a panel-vs-page mode divergence).
+## Cluster 7 — in-client obligation panel matches /deadlines detail
+Yuqi: "the opened deadline details inside client detail is wrong and ugly —
+why is this different to the deadline detail panel?"
+
+Root cause: `ObligationQueueDetailDrawer` renders `PrimaryDeadlineStrip` with
+`variant="cards"` in PAGE mode (/deadlines — framed cards, pretty dates,
+icons, rich subs) but `variant="flat"` in the BODY for panel/sheet mode
+(borderless, ISO dates). The /clients obligation panel got the flat one.
+
+Fix: panel mode now uses `variant="cards"` too (sheet/mobile keeps flat). The
+in-client panel's key-date strip is now identical to the /deadlines detail —
+framed cards, "May 12, 2026", "No buffer — same as filing", "$135,000 owed".
+Verified live side-by-side.
+
+Still to do (noted): VtC73 title is 36/600 (page ~28); hero/tabs full-width
+rules + 40px gutter; filing-table DEADLINE-column slack.

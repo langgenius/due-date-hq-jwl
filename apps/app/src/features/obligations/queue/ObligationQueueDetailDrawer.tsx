@@ -2425,7 +2425,14 @@ export function ObligationQueueDetailDrawer({
                   The remaining secondary dates (Statutory, Tax period,
                   Created, Last touched, e-file timestamps) still live
                   in the bottom FlatDateList under "Reference dates". */}
-                  <PrimaryDeadlineStrip row={row} variant="flat" />
+                  {/* Panel mode (the in-client obligation detail) uses the same
+                      framed `cards` variant + pretty dates as the /deadlines
+                      page so the two detail surfaces match; the mobile sheet
+                      keeps the compact `flat` rows. */}
+                  <PrimaryDeadlineStrip
+                    row={row}
+                    variant={mode === 'panel' ? 'cards' : 'flat'}
+                  />
                   {/* 2026-05-23: StatutoryDatesPanel moved OUT of this
                   sticky snapshot block — relocated to AFTER the
                   TabsContent so the tabs sit immediately under the
