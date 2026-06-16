@@ -436,7 +436,17 @@ export function RuleDetailCompact({
           <FactChip label={t`Files`} value={rule.formName} />
           <FactChip
             label={t`Effective`}
-            value={formatDatePretty(rule.effectiveOn ?? rule.verifiedAt, { alwaysShowYear: true })}
+            value={
+              rule.effectiveOn ? (
+                formatDatePretty(rule.effectiveOn, { alwaysShowYear: true })
+              ) : (
+                // No source publish date — show our verification date muted +
+                // "≈"-marked so it doesn't read as the source's date.
+                <span className="text-text-tertiary">
+                  ≈ {formatDatePretty(rule.verifiedAt, { alwaysShowYear: true })}
+                </span>
+              )
+            }
           />
         </div>
       }

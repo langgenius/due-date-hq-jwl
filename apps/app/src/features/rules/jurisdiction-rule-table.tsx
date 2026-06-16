@@ -554,11 +554,13 @@ function JurisdictionRuleRow({
   const displayTitle = stripJurisdictionPrefix(rule.title, jurisLabel)
   const typeLabel = formatRuleTypeLabel(rule.taxType, rule.jurisdiction)
   const tone = STATUS_TONE[rule.status]
-  // oJL8o columns: Effective = the publication/revision date of the rule's
-  // authoritative source (server-derived `effectiveOn`), falling back to the
-  // rule's verified date when the source has no authored publish date;
+  // oJL8o columns: Effective = the publication date of the rule's authoritative
+  // source (server-derived `effectiveOn`). When the source publishes no date we
+  // fall back to our own verification date, rendered muted + "≈"-marked (tooltip
+  // explains) so it never reads as the source's date;
   // Last modified = the most recent review timestamp (omitted when the
   // rule has never been re-reviewed).
+  const hasSourceDate = Boolean(rule.effectiveOn)
   const effective = formatDatePretty(rule.effectiveOn ?? rule.verifiedAt, { alwaysShowYear: true })
   const lastModified = rule.reviewedAt
     ? formatDatePretty(rule.reviewedAt, { alwaysShowYear: true })
@@ -639,9 +641,19 @@ function JurisdictionRuleRow({
         </Badge>
       </TableCell>
 
-      {/* Effective — the rule's verified/effective date, mono. */}
+      {/* Effective — source publication date when known; otherwise a muted,
+          "≈"-marked fallback to our verification date. */}
       <TableCell className="px-2 py-3 align-middle">
-        <span className="font-mono text-sm text-text-secondary tabular-nums">{effective}</span>
+        {hasSourceDate ? (
+          <span className="font-mono text-sm text-text-secondary tabular-nums">{effective}</span>
+        ) : (
+          <span
+            className="font-mono text-sm text-text-tertiary tabular-nums"
+            title={`Source publication date unavailable — showing our last verification date (${effective}).`}
+          >
+            ≈ {effective}
+          </span>
+        )}
       </TableCell>
 
       {/* Last modified — most recent review date. Hidden in the Review
