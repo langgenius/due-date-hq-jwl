@@ -640,7 +640,7 @@ export function RuleDetailCompact({
         </div>
 
         {/* RIGHT — the decision rail (gray, scrolls independently). */}
-        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-divider-regular bg-background-section px-5 py-5">
+        <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-divider-regular bg-background-section px-6 py-5">
           <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
             <Trans>Your decision</Trans>
           </span>
@@ -934,7 +934,9 @@ function RulePracticeReviewCard({
         maxLength={2000}
         disabled={addMutation.isPending}
         placeholder={t`Add a note for your team — explain assumptions, scope decisions, or follow-ups.`}
-        className="min-h-16 text-sm"
+        // White fill so the field reads as editable against the gray decision
+        // rail (gray-on-gray otherwise) — matches the bulk modal's note field.
+        className="min-h-16 bg-background-default text-sm"
       />
       <div className="flex items-center gap-3">
         {notes.length > 0 ? (
