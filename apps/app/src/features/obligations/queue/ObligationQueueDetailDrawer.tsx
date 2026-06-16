@@ -2560,8 +2560,8 @@ export function ObligationQueueDetailDrawer({
                             // strip across the card top. -mx-5 -mt-5 break it out of the
                             // p-5 to span edge-to-edge; the card's overflow-hidden clips
                             // the band to the rounded-xl top corners.
-                            <header className="-mx-5 -mt-5 flex items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-2.5">
-                              <h3 className="text-sm font-semibold text-text-primary">
+                            <header className="-mx-5 -mt-5 flex min-h-8 items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
+                              <h3 className="text-base font-semibold text-text-primary">
                                 <Trans>Workflow</Trans>
                               </h3>
                             </header>

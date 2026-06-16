@@ -571,3 +571,40 @@ light background, and a thin/low-height header — not floating titles").
   the other section cards would also touch the shared (alerts) primitive.
 
 tsgo clean (my files). Verified live on the Meridian Form 1120 panel.
+
+## Cluster 24 — Header band for EVERY section + narrower band
+Yuqi: "the header — why is it only for Workflow? should be for EVERY section" then
+"the header should be narrower (in height)".
+
+- **Band every section (keystone).** All 16 DetailSectionCard usages are
+  `variant="flat"` (the `card` variant is dead code), and `flat` rendered a
+  floating title. Restructured the `flat` variant to a header-BAND + padded-body
+  layout: `bg-background-subtle` tint + `border-b` + the card `overflow-hidden`
+  so the band (and flush tables) clip to the rounded corners; header + body carry
+  their own padding (no single card `p-5`) so the band is edge-to-edge and flush
+  bodies are truly edge-to-edge. One keystone → every section on the deadline
+  detail, alert detail, and (via the same primitive) rule detail + client facts
+  gets the band. Verified live: deadline detail (Workflow/What's left/Recent
+  activity/Extension/Materials/Evidence/Workpapers/Audit) + alert detail
+  (Change/Source/Activity) all banded identically.
+- **Narrower band.** `min-h-9 + py-2.5` → `min-h-8 + py-1.5` (~44px → 32px). Title
+  unified to 14/600 across all tones (dropped the action-16 / reference-11px-eyebrow
+  split — the eyebrow washed out inside the filled band and under-filled the thin
+  strip). Index badge shrunk size-6→size-5 to suit the low band. The hand-rolled
+  Workflow card matched to the same spec.
+
+AUDIT (6-agent read-only workflow) — deferred / flagged, NOT done here:
+- rule-detail-drawer.tsx renders its 6 sections via the default `variant="card"`
+  (no band) — needs `variant="flat"`, but that file is currently owned by the
+  parallel session, so deferred to avoid a race.
+- Setup-tab sections (TabSection) are frameless BY DESIGN and their content already
+  carries its own card chrome — banding would create card-in-card ("frames in
+  frames"), which Yuqi has banned. Left frameless; flag for a decision.
+- Materials checklist + Workpapers headers stay ~45px (not 32) because their
+  headerRight packs action buttons (Select-all / Add item / Add workpaper); the
+  band is sized for 12/400 meta, not a button toolbar. Audit recommends moving
+  those controls into a body sub-toolbar — deferred.
+- Rail cards (Notes/Contacts) + HistoryCard token + alert ReverifyRules section —
+  minor consistency follow-ups, flagged.
+
+tsgo clean (my files). Verified live.

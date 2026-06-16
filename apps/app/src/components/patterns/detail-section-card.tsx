@@ -74,51 +74,44 @@ export function DetailSectionCard({
 }) {
   if (variant === 'flat') {
     return (
-      // 2026-06-16 (Yuqi NrQaI "avoid being too WHITE; use borders, coloured
-      // backgrounds"): each flat section is now a WHITE bordered CARD
-      // (`rounded-xl` 12, `divider-subtle` hairline) sitting on the body's
-      // very-light-gray wash. The card border separates sections — no more
-      // top-rule/whitespace-only delineation that read as flat white. Both the
-      // alert detail and the deadline detail share this one keystone, so both
-      // panels become "gray body + white bordered cards" (the NrQaI model).
+      // 2026-06-16 (Yuqi "the header — why is it only for Workflow? should be for
+      // EVERY section"): every flat section now leads with a thin LIGHT-BACKGROUND
+      // HEADER BAND — `bg-background-subtle` tint + a hairline bottom border +
+      // tight `py-2.5` (min-h-9 → a low ~36px strip), then a white padded body.
+      // The card is `overflow-hidden` so the band (and any flush table) clips to
+      // the rounded-xl corners; header + body carry their OWN padding (no single
+      // card `p-5`) so the band spans edge-to-edge and flush bodies are truly
+      // edge-to-edge. This one keystone bands every section across the alert
+      // detail, deadline detail, rule detail, and client facts — a deliberate,
+      // Yuqi-requested move away from the earlier NrQaI "no header bands" rule.
       <section
         id={id}
         className={cn(
-          'flex flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default p-5',
+          'overflow-hidden rounded-xl border border-divider-subtle bg-background-default',
           className,
         )}
       >
-        {/* items-center (Yuqi 2026-06-15 "没有vertically居中") so the badge,
-            title, caption, and any header-right cluster sit on one centered
-            line. */}
-        <header className="flex items-center gap-2">
+        {/* The header BAND — narrow (Yuqi "the header should be narrower in
+            height"): min-h-8 + py-1.5 → a low ~32px strip. items-center keeps the
+            badge, title, caption, and header-right cluster on one line. */}
+        <header className="flex min-h-8 items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
           {/* Numbered badge (Pencil MASYz) — a small rounded chip ahead of the
-              title so the three sections read as an ordered 1·2·3 outline. */}
+              title so the sections read as an ordered 1·2·3 outline. White fill
+              (bg-background-default) so it lifts off the gray band. */}
           {typeof index === 'number' ? (
             <span
-              className="inline-flex size-6 shrink-0 items-center justify-center self-center rounded-lg bg-background-subtle text-sm font-semibold text-text-tertiary tabular-nums"
+              className="inline-flex size-5 shrink-0 items-center justify-center self-center rounded-md bg-background-default text-xs font-semibold text-text-tertiary tabular-nums"
               aria-hidden
             >
               {index}
             </span>
           ) : null}
-          {/* Section header = the hierarchy carrier in the flat document.
-              2026-06-16 (Yuqi "Change/Source 这种标题都应该大一点 … 要么不一样的
-              style; 现在和下面的内容糊在一起"): the action header was text-base=14,
-              the SAME size as body text — that collision is why it blurred. Now:
-              • action  → 16/600 primary — a clear size step over 14 body.
-              • reference → an 11px uppercase eyebrow (tracking + tertiary), a
-                deliberately DIFFERENT style so a supporting section reads as a
-                label, never confused with body or with an action header. */}
-          <h3
-            className={cn(
-              tone === 'reference'
-                ? 'text-caption-xs font-medium uppercase tracking-wide text-text-tertiary'
-                : 'text-lg font-semibold text-text-primary',
-            )}
-          >
-            {title}
-          </h3>
+          {/* Section title — ONE uniform register across every section + tone
+              (Yuqi "should be for EVERY section" + "narrower"): 14/600 primary.
+              The band (tint + border) carries the grouping now, so the old
+              action-16 / reference-11px-eyebrow split is dropped — the eyebrow
+              washed out inside the filled band and under-filled the thin strip. */}
+          <h3 className="text-base font-semibold text-text-primary">{title}</h3>
           {/* Caption (Pencil MASYz) — quiet purpose line after the title. */}
           {caption ? <span className="text-sm text-text-tertiary">{caption}</span> : null}
           {headerRight ? (
@@ -130,7 +123,9 @@ export function DetailSectionCard({
             </>
           ) : null}
         </header>
-        <div className={cn(flush ? '' : 'flex flex-col gap-4', bodyClassName)}>{children}</div>
+        <div className={cn(flush ? '' : 'flex flex-col gap-4 px-5 py-4', bodyClassName)}>
+          {children}
+        </div>
       </section>
     )
   }
