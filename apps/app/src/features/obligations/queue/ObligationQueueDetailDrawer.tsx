@@ -2273,15 +2273,18 @@ export function ObligationQueueDetailDrawer({
             // is active.
             panelLayout && 'flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]',
             // 2026-06-16 (Yuqi NrQaI "avoid being too WHITE"): the scrolling
-            // body is now very-light-gray (bg-background-subtle) so the white
-            // bordered section cards read AS cards on it — the NrQaI surface
-            // model (white hero/footer, gray body, white cards). The hero and
-            // sticky footer stay white; only this section-scroll area goes gray.
-            // Matches the alert detail's sections column for identical feel.
+            // body is a very-light gray so the white bordered section cards read
+            // AS cards on it — the NrQaI surface model (white hero/footer, gray
+            // body, white cards). The hero and sticky footer stay white; only
+            // this section-scroll area goes gray.
+            // 2026-06-16 (Yuqi "i don't think this is very light background
+            // colour"): bg-background-subtle (gray-100) read as too heavy. Dropped
+            // to bg-background-section (gray-50) — the "very very light" wash the
+            // NrQaI body uses, where the white cards still lift cleanly off it.
             // Centered on the 760px document measure; `pt-6` gives the first
             // card the same 24px breathing room below the tab seam.
             panelLayout &&
-              'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+              'bg-background-section pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
           )}
           ref={scrollContainerRef}
           onScroll={(event) => {
@@ -2491,9 +2494,16 @@ export function ObligationQueueDetailDrawer({
                         2026-06-16 (Yuqi "avoid being too white, use borders"): the
                         body is now a very-light gray, so this Status workspace is
                         back to a WHITE bordered CARD (stepper + active stage +
-                        what's-left in one card, the tinted active-stage block
-                        sitting inside) — consistent with the other section cards
-                        on the gray body (NrQaI). Panel/sheet keep `contents`. */}
+                        what's-left in one card, the active-stage block sitting
+                        inside FLAT) — consistent with the other section cards on
+                        the gray body (NrQaI). Panel/sheet keep `contents`.
+                        2026-06-16 (Yuqi "put the progress bar and the Stage 1 of 6
+                        card into a section, with background white" + "lets still
+                        have the header for each section"): the card now leads with
+                        a "Workflow" header matching the other flat sections'
+                        action header (text-lg/600, same as DetailSectionCard
+                        tone="action"), so the stepper + Stage read as ONE titled
+                        white section like Recent activity / Extension. */}
                         <div
                           className={
                             panelLayout
@@ -2501,12 +2511,17 @@ export function ObligationQueueDetailDrawer({
                               : 'contents'
                           }
                         >
+                          {panelLayout ? (
+                            <header className="flex items-center gap-2">
+                              <h3 className="text-lg font-semibold text-text-primary">
+                                <Trans>Workflow</Trans>
+                              </h3>
+                            </header>
+                          ) : null}
                           <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
-                          {/* 2026-06-10 (Yuqi "the style is different"): the
-                          "What's left to do" checklist moved OUT of this white
-                          workflow box into its own gray-header DetailSectionCard
-                          (below, Pencil `bmwHb`) so it matches the rest of the
-                          panel's card system instead of a bare uppercase eyebrow. */}
+                          {/* The "What's left to do" checklist lives BELOW this
+                          card as its own flat DetailSectionCard (2026-06-16 NrQaI)
+                          so it matches the rest of the panel's card system. */}
                           {/* 2026-06-09 (Yuqi /deadlines detail rebuild — Pencil
                       rzzww + no-fiction rule): the "Expected refund" card
                       ($4,210 + withholding breakdown) and the "Source docs"
@@ -2530,6 +2545,10 @@ export function ObligationQueueDetailDrawer({
                             row={row}
                             auditEvents={detail.auditEvents}
                             readinessChecklist={detail.readinessChecklist}
+                            // 2026-06-16 (Yuqi NrQaI): inside the shared white
+                            // Workflow section card, so render flat — no nested
+                            // tinted block. Sheet mode keeps the tinted block.
+                            flat={panelLayout}
                             onChangeTab={jumpToSection}
                             onChangeStatus={(nextStatus) =>
                               changeStatus(row.id, nextStatus, row.status)
@@ -2606,24 +2625,32 @@ export function ObligationQueueDetailDrawer({
                               )
                             }}
                           />
-                          {/* 2026-06-10 (Yuqi restore rework 61edf90a — Qn4nX CorQi
-                          `WdFB4` NextMovePanel): "What's left to do" lives
-                          INSIDE the WorkflowMilestoneCard as a divider-separated
-                          section (top hairline), not a nested card — matching
-                          the canonical and the alert's flat in-card sections.
-                          Small uppercase eyebrow, no card chrome. */}
-                          {checklist.length > 0 &&
-                          row.status !== 'done' &&
-                          row.status !== 'completed' ? (
-                            <div className="flex flex-col gap-2.5 border-t border-divider-subtle pt-4">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-caption-xs font-bold tracking-eyebrow-tight text-text-tertiary uppercase">
-                                  <Trans>What's left to do</Trans>
-                                </span>
-                                <span className="text-caption-xs text-text-tertiary">
-                                  {t`${checklist.filter((item) => item.status === 'received').length} of ${checklist.length} complete`}
-                                </span>
-                              </div>
+                        </div>
+                        {/* 2026-06-16 (Yuqi NrQaI "ensure WHAT'S LEFT TO DO is a
+                        carded section with its header — it floats on gray under
+                        the workflow card; match the other sections"): the
+                        checklist was a divider sub-section INSIDE the Workflow
+                        card; it now stands alone as its own white bordered
+                        DetailSectionCard (flat, tone="action") with a real
+                        "What's left to do" header + a right-aligned N-of-M count,
+                        identical treatment to Recent activity / Extension. It
+                        renders in every mode (like Recent activity) — the flat
+                        card reads correctly on the gray body and the sheet's
+                        warm canvas alike. */}
+                        {checklist.length > 0 &&
+                        row.status !== 'done' &&
+                        row.status !== 'completed' ? (
+                          <DetailSectionCard
+                            variant="flat"
+                            tone="action"
+                            title={<Trans>What's left to do</Trans>}
+                            headerRight={
+                              <span className="text-caption-xs text-text-tertiary">
+                                {t`${checklist.filter((item) => item.status === 'received').length} of ${checklist.length} complete`}
+                              </span>
+                            }
+                          >
+                            <div className="flex flex-col gap-2.5">
                               <ul className="grid gap-2.5">
                                 {checklist.slice(0, 6).map((item) => {
                                   const isDone = item.status === 'received'
@@ -2682,8 +2709,8 @@ export function ObligationQueueDetailDrawer({
                                 <Trans>Manage in Materials →</Trans>
                               </TextLink>
                             </div>
-                          ) : null}
-                        </div>
+                          </DetailSectionCard>
+                        ) : null}
                         {/* Recent activity — last few audit-feed entries, with a
                         link out to the full Timeline tab. */}
                         {/* 2026-06-10 (Yuqi — replicate Pencil `qSa9z` Recent
@@ -4896,7 +4923,7 @@ export function ObligationQueueDetailDrawer({
           // mode now mirrors AlertDetailDrawer's panel root EXACTLY — a WHITE
           // (bg-background-default) aside with `shadow-subtle` and no left
           // border. The gray wash + white cards are painted by the inner
-          // header/body regions (bg-background-subtle), so the surface model
+          // body region (bg-background-section), so the surface model
           // is identical to the alert: white root → gray-wash document →
           // white cards. The /clients panel keeps its lifted warm paper +
           // left border.

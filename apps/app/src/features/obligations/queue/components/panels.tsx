@@ -1289,6 +1289,7 @@ export function ActiveStageDetailCard({
   onMarkSigned,
   onRemindSignature,
   onSubmitEfile,
+  flat = false,
 }: {
   row: ObligationQueueRow
   auditEvents: readonly AuditEventPublic[]
@@ -1305,6 +1306,12 @@ export function ActiveStageDetailCard({
   onRemindSignature: () => void
   // P0: e-file the signed return (efileState → submitted).
   onSubmitEfile: () => void
+  // 2026-06-16 (Yuqi NrQaI "this is in section, why are the others not"): in
+  // the page/panel Status workspace this card sits INSIDE one shared white
+  // bordered section card alongside the stepper, so it must render FLAT — no
+  // tint, rounding, or padding of its own, or it reads as a nested card. The
+  // legacy sheet mode (no parent card) keeps the tinted self-contained block.
+  flat?: boolean
 }) {
   const { t } = useLingui()
   // For the `blocked` stage's "Open blocking obligation" action.
@@ -1478,13 +1485,14 @@ export function ActiveStageDetailCard({
         // honest about which situation applies: "Request documents from
         // client" is the common case for brand-new rows, "Start drafting
         // the return" is the rarer case where docs are already in hand.
+        // 2026-06-16 (Yuqi NrQaI "delete the bottom description"): the two
+        // manual reminder bullets ("Confirm engagement letter is on file" +
+        // "Assign a preparer to this return") are gone — they rendered as a
+        // gray bullet list under the action buttons that read as clutter, and
+        // neither is a backed in-app step (no schema, can't be checked off).
+        // The two real actions below (Request documents / Skip to drafting)
+        // are the only ones that stay.
         return [
-          {
-            id: 'engagement',
-            label: t`Confirm engagement letter is on file for this client`,
-            flavor: 'manual',
-          },
-          { id: 'assign', label: t`Assign a preparer to this return`, flavor: 'manual' },
           {
             id: 'request-docs',
             label: t`Request documents from client`,
@@ -2048,13 +2056,19 @@ export function ActiveStageDetailCard({
       // (status-strip bottom border + tab-bar baseline + this card's
       // outline + inner Key dates outline).
       //
+      // 2026-06-16 (Yuqi NrQaI): `flat` mode (page/panel) drops the tint +
+      // rounding + padding — the card lives inside the shared white Workflow
+      // section card next to the stepper, so its own block chrome would read
+      // as a nested card ("this is in section, why are the others not"). The
+      // legacy sheet mode keeps the self-contained tinted block.
+      //
       // One gap rhythm for the whole card: `flex flex-col gap-3` owns the
       // vertical spacing so every direct child (header, banners, stage
       // context, steps, history) sits on the same 12px rhythm. Individual
       // children no longer carry their own `mt-3` — that mixed pattern left
       // the header butting against the banner while later sections had a
       // gap, which read as inconsistent.
-      className="flex flex-col gap-3 rounded-lg bg-background-section p-4"
+      className={cn('flex flex-col gap-3', flat ? '' : 'rounded-lg bg-background-section p-4')}
     >
       {/* 2026-06-10 (Yuqi page-polish #4) IA: standard hierarchy block.
           ROW 1 = eyebrow only — the canonical status pill + "Stage N of 6"

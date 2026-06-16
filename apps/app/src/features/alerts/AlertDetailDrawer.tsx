@@ -1491,7 +1491,7 @@ export function AlertDetailDrawer({
           }
           setActiveSection((prev) => (prev === current ? prev : current))
         }}
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-background-subtle"
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-background-section"
       >
         {/* Hero — scrolls with the document (white masthead → content). */}
         <SheetHeader className="bg-background-default px-6 pt-6 pb-5 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
@@ -1653,7 +1653,7 @@ export function AlertDetailDrawer({
           is very-light-gray (bg-background-subtle) so the white bordered
           DetailSectionCards read AS cards. The sticky section-nav below keeps
           its own white backing so cards scroll cleanly underneath it. */}
-        <div className="flex flex-1 flex-col gap-6 bg-background-subtle px-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
+        <div className="flex flex-1 flex-col gap-6 bg-background-section px-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
           {/* Scroll-spy section nav (deadline-tab orientation on one long
             document). Sticky at the scroll viewport top; lighter than the
             deadline pill tabs (text + underline) so it reads as a table of
