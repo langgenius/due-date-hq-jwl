@@ -4918,10 +4918,85 @@ function defaultSourceAlertPurpose(source: RuleSourceSeedRecord): AlertSourcePur
   return 'rule_source_watch'
 }
 
+// State source publication / last-updated dates, web-verified from each source
+// page (an Updated/Revised/Posted footer, a form "Rev. MM/YY" stamp, or a
+// statute effective date). Backfilled 2026-06-16; only sources whose page
+// explicitly showed a genuine date are listed (63 of 258 state basis sources);
+// the rest fall back to the rule verifiedAt. Keyed by RuleSource.id and applied
+// in hydrateRuleSources (inline federal publishedOn still take precedence).
+const SOURCE_PUBLISHED_ON: Readonly<Record<string, string>> = {
+  'ak.ui_wage_report': '2026-02-01', // TQ01B (Rev. 2/26)
+  'ar.fiduciary_income_tax': '2025-06-19', // Fiduciary Inst. (R 6/19/2025)
+  'ar.income_tax_deadlines': '2024-07-05', // AR1000ES Instr. (R 7/5/2024)
+  'ar.withholding_tax': '2025-12-05', // Revised: 12/05/2025
+  'az.pass_through_entities': '2025-11-01', // Pub 713 Revised: Nov 2025
+  'ca.ftb_568_booklet_2025': '2026-03-01', // 2025 Instructions for Form 568 LLC Tax Booklet
+  'ca.ftb_business_due_dates': '2026-03-18', // Last updated: 03/18/2026
+  'ca.income_tax': '2026-02-25', // Last updated: 02/25/2026
+  'ct.tax_filing_due_dates_2026': '2025-12-01', // DRS-166 (New 12/25)
+  'ct.ui_wage_report': '2024-09-04', // Date: September 04, 2024 (article metadata)
+  'fl.cit_due_dates_2026': '2026-01-01', // R. 01/26
+  'hi.general_excise_use_tax': '2026-01-14', // Page Last Updated: January 14, 2026
+  'hi.income_tax': '2026-01-22', // Page Last Updated: January 22, 2026
+  'hi.individual_estimated_tax': '2026-02-01', // Dept. of Taxation Revised February 2026
+  'hi.tax_forms': '2026-01-20', // Page Last Updated: January 20, 2026
+  'id.business_income_tax': '2025-08-21', // last updated: August 21, 2025 (page footer)
+  'id.income_tax': '2025-08-21', // last updated: August 21, 2025 (page footer)
+  'id.sales_withholding_due_dates': '2025-12-17', // last updated: December 17, 2025 (page footer)
+  'il.business_income_tax_forms': '2025-05-01', // PIO-21 (updated May 2025)
+  'il.sales_use_tax_due_dates': '2024-11-01', // ST-1 Instructions (R-11/24)
+  'il.withholding_tax_due_dates': '2025-12-01', // IL-941 Instructions (R-12/25)
+  'mi.income_tax': '2026-01-26', // "January 26, 2026" (news article date)
+  'mn.income_tax': '2025-07-14', // Last Updated: July 14, 2025 (footer)
+  'mn.tax_due_dates': '2026-06-01', // Last Updated: June 01, 2026 (footer)
+  'ms.fiduciary_income_tax': '2025-06-01', // Form 81-100-25-1-1-000 (Rev. 06/25)
+  'nj.income_tax': '2025-12-03', // Last Updated: Wednesday, 12/03/25
+  'ny.income_tax': '2025-10-30', // Updated: October 30, 2025
+  'ny.nyc_yonkers_income_tax': '2025-12-15', // Updated: December 15, 2025
+  'ny.personal_fiduciary_filing_due_dates': '2025-10-23', // Updated: October 23, 2025
+  'ny.ptet': '2026-04-03', // Updated: April 3, 2026
+  'ny.sales_tax_vendor_due_dates': '2026-04-17', // Updated: April 17, 2026
+  'ny.tax_calendar.2026': '2025-10-30', // Updated: October 30, 2025
+  'ny.withholding_tax_due_dates': '2025-03-23', // Updated: March 23, 2025
+  'oh.commercial_activity_tax': '2023-08-21', // 08/21/2023 (page header/footer)
+  'oh.employer_withholding': '2025-11-01', // Rev. 11/25 (instructions cover)
+  'oh.fiduciary_income_tax': '2025-12-01', // Rev. 12/25 (IT 1041 instructions)
+  'oh.municipal_income_tax_annual_return': '2025-07-16', // Last updated July 16, 2025 (footer)
+  'oh.municipal_net_profit_filing': '2025-02-13', // Last updated February 13, 2025 (footer)
+  'oh.pass_through_entities': '2025-12-01', // Rev. 12/25 (IT 4738 instructions)
+  'oh.sales_use_tax': '2022-07-01', // Rev. 7/22 (UST instructions)
+  'oh.ui_wage_report': '2025-02-10', // Last updated February 10, 2025 (footer)
+  'ok.ui_wage_report': '2025-12-16', // Last Modified on Dec 16, 2025 (footer)
+  'or.fiduciary_income_tax': '2025-10-15', // 150-101-041-1 (Rev. 10-15-25)
+  'ri.corporate_tax_forms': '2026-01-12', // This page last updated on January 12th, 2026
+  'ri.fiduciary_income_tax': '2021-11-04', // This page last updated on November 4th, 2021
+  'ri.income_tax': '2021-11-05', // This page last updated on November 5th, 2021
+  'ri.sales_tax': '2025-12-08', // This page last updated on December 8th, 2025
+  'ri.ui_wage_report': '2026-06-15', // This page last updated on June 15th, 2026
+  'ri.withholding_tax': '2026-04-15', // This page last updated on April 15th, 2026
+  'sc.income_tax': '2026-03-26', // Thursday, Mar 26, 2026
+  'tx.franchise_overview': '2023-12-01', // (12/2023)
+  'va.fiduciary_income_tax': '2026-05-01', // Va. Dept. of Taxation Rev. 05/26 Form 770
+  'va.sales_use_tax_return': '2024-10-01', // Va. Dept. of Taxation ST-1 Rev. 10/24
+  'vt.fiduciary_income_tax': '2025-01-01', // 2025, No. 27, eff. January 1, 2025 (statute)
+  'vt.income_tax': '2025-01-01', // 2025, No. 27, eff. January 1, 2025 (statute)
+  'wi.corporation_franchise_income_tax': '2026-01-05', // enacted as of January 5, 2026
+  'wi.fiduciary_estates_trusts': '2025-12-11', // enacted as of December 11, 2025
+  'wi.income_tax': '2026-01-14', // enacted as of January 14, 2026
+  'wi.individual_estimated_tax': '2026-01-29', // enacted as of January 29, 2026
+  'wi.pass_through_entity_withholding': '2025-10-10', // enacted as of October 10, 2025
+  'wi.sales_use_tax': '2026-03-11', // enacted as of March 11, 2026
+  'wi.ui_wage_report': '2018-05-18', // Updated: May 18, 2018 (footer)
+  'wi.withholding_tax': '2026-04-20', // enacted as of April 20, 2026
+}
+
 function hydrateRuleSources(sources: readonly RuleSourceSeedRecord[]): readonly RuleSource[] {
   return sources.map((source) => {
     const authorityRole = source.authorityRole ?? defaultSourceAuthorityRole(source)
     const alertPurpose = defaultSourceAlertPurpose({ ...source, authorityRole })
+    // Inline-authored federal publishedOn wins; otherwise apply the
+    // web-verified state backfill. Omitted entirely for sources with neither.
+    const publishedOn = source.publishedOn ?? SOURCE_PUBLISHED_ON[source.id]
     const notificationChannels: readonly RuleNotificationChannel[] =
       alertPurpose === 'rule_source_watch' &&
       source.notificationChannels.includes('source_change') &&
@@ -4935,6 +5010,7 @@ function hydrateRuleSources(sources: readonly RuleSourceSeedRecord[]): readonly 
       authorityRole,
       alertPurpose,
       notificationChannels,
+      ...(publishedOn ? { publishedOn } : {}),
     }
   })
 }
