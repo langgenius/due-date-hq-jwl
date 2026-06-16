@@ -172,8 +172,10 @@ export function ClientSummaryStrip({
     <section
       aria-label={t`Client summary`}
       // One grouped panel (VtC73 MetaStrip): bg-subtle rounded-xl, cells split
-      // by hairline dividers. flex-wrap so it stacks gracefully when squeezed.
-      className="flex flex-wrap rounded-xl bg-background-subtle px-2 py-3"
+      // by hairline dividers. NO wrap — scrolls horizontally when the column is
+      // squeezed (obligation panel open) so a cell never orphans onto a 2nd line
+      // (Yuqi: NEXT DUE was wrapping under JURISDICTIONS at panel-open).
+      className="flex overflow-x-auto rounded-xl bg-background-subtle px-2 py-3"
     >
       {cells.map((cell, i) => {
         const body = (

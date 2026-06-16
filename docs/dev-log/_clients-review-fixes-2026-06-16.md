@@ -507,3 +507,10 @@ owner pill is a Button (h-7); footer border. tsgo clean (my files).
 FOLLOW-UP flagged: at panel-open (squeezed left column) the summary strip wraps
 "NEXT DUE" onto a 2nd line under JURISDICTIONS (orphaned). Needs a no-wrap /
 scroll or responsive-grid pass on the strip for the squeezed state.
+
+## Cluster 21 — Strip no-wrap at panel-open (fixes orphaned NEXT DUE)
+The summary strip used flex-wrap, so at panel-open (squeezed left column) the
+NEXT DUE cell wrapped onto a 2nd line under JURISDICTIONS (orphaned). Switched
+the strip to `flex overflow-x-auto` (no wrap): the cells stay on one row and the
+band scrolls horizontally if the squeezed column can't fit all five — never
+orphaning a cell. At rest (wide) it fills one row, no scrollbar. tsgo clean.
