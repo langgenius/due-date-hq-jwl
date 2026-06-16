@@ -40,6 +40,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
+import { FieldLabel } from '@/components/primitives/field-label'
 import { useSession } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -385,18 +386,18 @@ function TypesMatrixCard({
         <div className="min-w-[640px] overflow-hidden rounded-xl border border-divider-regular">
           {/* Header */}
           <div className="flex items-center gap-3.5 border-b border-divider-regular bg-background-section px-5 py-3">
-            <span className="flex-1 text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
+            <FieldLabel as="span" variant="group" className="flex-1 text-text-secondary">
               <Trans>Type</Trans>
-            </span>
+            </FieldLabel>
             <MatrixColHead>
               <Trans>Email</Trans>
             </MatrixColHead>
             <MatrixColHead>
               <Trans>In-app</Trans>
             </MatrixColHead>
-            <span className="w-[150px] text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
+            <FieldLabel as="span" variant="group" className="w-[150px] text-text-secondary">
               <Trans>Cadence</Trans>
-            </span>
+            </FieldLabel>
           </div>
 
           {rows.map((row, index) => {
@@ -450,9 +451,9 @@ function TypesMatrixCard({
 
 function MatrixColHead({ children }: { children: ReactNode }) {
   return (
-    <span className="w-[60px] text-center text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
+    <FieldLabel as="span" variant="group" className="w-[60px] text-center text-text-secondary">
       {children}
-    </span>
+    </FieldLabel>
   )
 }
 
@@ -574,9 +575,9 @@ function MorningDigestCard({
       {preferences.morningDigestEnabled ? (
         <div className="flex flex-wrap gap-6">
           <div className="flex flex-col gap-2.5">
-            <span className="text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
+            <FieldLabel as="span" variant="group" className="text-text-secondary">
               <Trans>Send hour</Trans>
-            </span>
+            </FieldLabel>
             <Select
               value={String(preferences.morningDigestHour)}
               onValueChange={(value) => {
@@ -598,9 +599,9 @@ function MorningDigestCard({
           </div>
 
           <div className="flex flex-col gap-2.5">
-            <span className="text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
+            <FieldLabel as="span" variant="group" className="text-text-secondary">
               <Trans>Days</Trans>
-            </span>
+            </FieldLabel>
             <div className="flex flex-wrap gap-2">
               {DIGEST_DAYS.map((day) => (
                 <ToggleChip
@@ -626,10 +627,14 @@ function MorningDigestCard({
       </Button>
 
       <div className="flex flex-col gap-2 border-t border-divider-regular pt-4">
-        <span className="flex items-center gap-2 text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
+        <FieldLabel
+          as="span"
+          variant="group"
+          className="flex items-center gap-2 text-text-secondary"
+        >
           <ClipboardListIcon className="size-3 text-text-tertiary" aria-hidden />
           <Trans>Recent digest runs</Trans>
-        </span>
+        </FieldLabel>
         {loadingRuns ? (
           <div className="grid gap-2" aria-busy="true">
             <Skeleton className="h-14 w-full" />

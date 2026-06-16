@@ -12,6 +12,7 @@ import {
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { FieldLabel } from '@/components/primitives/field-label'
 import {
   useLifecycleV2StatusLabels,
   useReadinessLabels,
@@ -35,7 +36,7 @@ import {
 function AuditEventField({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid gap-1">
-      <dt className="text-xs font-medium tracking-wider text-text-tertiary uppercase">{label}</dt>
+      <FieldLabel as="dt">{label}</FieldLabel>
       <dd className="break-all text-sm text-text-primary">{value}</dd>
     </div>
   )
@@ -259,7 +260,10 @@ function AuditChangeDetails({ changeView }: { changeView: AuditChangeView }) {
       </h3>
       {changeView.changes.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-divider-subtle">
-          <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 border-b border-divider-subtle bg-background-subtle px-3 py-2 text-xs font-medium tracking-wider text-text-tertiary uppercase">
+          <FieldLabel
+            as="div"
+            className="grid grid-cols-[minmax(88px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 border-b border-divider-subtle bg-background-subtle px-3 py-2"
+          >
             <span>
               <Trans>Field</Trans>
             </span>
@@ -269,7 +273,7 @@ function AuditChangeDetails({ changeView }: { changeView: AuditChangeView }) {
             <span>
               <Trans>New</Trans>
             </span>
-          </div>
+          </FieldLabel>
           {changeView.changes.map((row) => (
             <div
               key={`${row.field}-${row.previous}-${row.next}`}

@@ -44,6 +44,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDatePretty, formatDateTimeWithTimezone, formatRelativeTime } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { FieldLabel } from '@/components/primitives/field-label'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
@@ -314,9 +315,9 @@ function DisclosureCard({
 function FactChip({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-md bg-background-section px-2.5 py-1">
-      <span className="text-caption-xs font-semibold tracking-wide text-text-muted uppercase">
+      <FieldLabel as="span" variant="group" className="text-text-muted">
         {label}
-      </span>
+      </FieldLabel>
       {/* Value is text-sm (not text-base): a data value must read quieter than
           the text-base/600 card title above it, not compete with it. */}
       <span className="min-w-0 truncate text-sm font-medium text-text-primary">{value}</span>
@@ -350,9 +351,9 @@ function ReviewZone({
 }) {
   return (
     <section className={cn('flex min-w-0 flex-col gap-3', className)}>
-      <p className="px-0.5 text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+      <FieldLabel as="div" variant="group" className="px-0.5">
         {label}
-      </p>
+      </FieldLabel>
       {children}
     </section>
   )
@@ -498,9 +499,9 @@ export function RuleDetailCompact({
       }
       detail={
         <div className="flex flex-col gap-1.5">
-          <span className="text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
+          <FieldLabel as="span" variant="group">
             <Trans>Extension</Trans>
-          </span>
+          </FieldLabel>
           <div className="text-sm">
             <ExtensionCompact policy={rule.extensionPolicy} />
           </div>
@@ -633,9 +634,9 @@ export function RuleDetailCompact({
         <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
           {header}
           <div className="flex min-w-0 flex-col px-6 pt-5">
-            <span className="pb-1 text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+            <FieldLabel as="span" variant="group" className="pb-1">
               <Trans>Verify the facts</Trans>
-            </span>
+            </FieldLabel>
             <div className="flex min-w-0 flex-col divide-y divide-divider-subtle [&>*]:py-5 [&>*:first-child]:pt-3">
               {applicabilityCard}
               {dueDateCard}
@@ -651,9 +652,9 @@ export function RuleDetailCompact({
 
         {/* RIGHT — the decision rail (gray, scrolls independently). */}
         <aside className="flex w-[400px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-divider-regular bg-background-section px-6 py-5">
-          <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+          <FieldLabel as="span" variant="group">
             <Trans>Your decision</Trans>
-          </span>
+          </FieldLabel>
           {impactCard}
           {beforeAcceptCard}
           {practiceCard}
@@ -1901,9 +1902,9 @@ function RejectReasonDialog({
         </div>
         <div className="flex flex-col gap-4 px-6 py-5">
           <div className="flex flex-col gap-2">
-            <span className="text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+            <FieldLabel as="span" variant="group">
               <Trans>Why are you rejecting?</Trans>
-            </span>
+            </FieldLabel>
             <div className="flex flex-col gap-2" role="radiogroup" aria-label={t`Reject reason`}>
               {presets.map((preset) => {
                 const active = selected === preset.key
