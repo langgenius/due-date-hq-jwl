@@ -41,6 +41,7 @@ export function DetailStatusBanner({
   action,
   note,
   compact = false,
+  subtle = false,
 }: {
   tone: DetailBannerTone
   icon: LucideIcon
@@ -52,8 +53,18 @@ export function DetailStatusBanner({
   /** Right-side meta in the compact layout, e.g. "conf 94% · due in 8 days". */
   note?: ReactNode
   compact?: boolean
+  /**
+   * Drop the colored band, keeping only the tone's icon + text color on a
+   * plain white surface (the border-b carries the edge). Urgency reads from
+   * the colored text/icon, not a loud full-bleed bar — the same calm
+   * treatment the `pending` tone already uses. Use on surfaces that want one
+   * continuous surface with color as a text cue, not a stripe (Yuqi: quieter
+   * overdue banner + white panel).
+   */
+  subtle?: boolean
 }) {
   const c = TONE[tone]
+  const band = subtle ? 'bg-background-default' : c.band
 
   if (compact) {
     return (
@@ -64,7 +75,7 @@ export function DetailStatusBanner({
       <div
         className={cn(
           'flex h-[52px] w-full items-center gap-2.5 border-b border-divider-subtle px-6 xl:px-12',
-          c.band,
+          band,
         )}
       >
         <Icon className={cn('size-4 shrink-0', c.text)} aria-hidden />
@@ -89,7 +100,7 @@ export function DetailStatusBanner({
     <div
       className={cn(
         'flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle px-6 py-3 xl:px-12',
-        c.band,
+        band,
       )}
     >
       <Icon className={cn('mt-0.5 size-4 shrink-0', c.text)} aria-hidden />

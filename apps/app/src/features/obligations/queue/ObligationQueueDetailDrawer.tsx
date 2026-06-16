@@ -1893,6 +1893,11 @@ export function ObligationQueueDetailDrawer({
                 <DetailStatusBanner
                   compact
                   tone="danger"
+                  // Quiet band (Yuqi 2026-06-16): white surface + red icon/text,
+                  // not a loud full-bleed red bar. The overdue countdown reads
+                  // from the red text + triangle (and the key-date card below);
+                  // the panel stays one continuous white surface.
+                  subtle
                   icon={AlertTriangleIcon}
                   title={
                     <Trans>
@@ -2431,7 +2436,9 @@ export function ObligationQueueDetailDrawer({
                         // px-12 padding. Inside px-12 re-applies the
                         // canonical inset, so the sticky strip's content
                         // edge still aligns with the rest of the body.
-                        'sticky top-0 z-20 -mx-12 bg-background-canvas-warm px-12 py-3'
+                        // 2026-06-16: bg warm → white so the sticky key-date
+                        // strip matches the panel's new white surface.
+                        'sticky top-0 z-20 -mx-12 bg-background-default px-12 py-3'
                       : 'mb-4',
                   )}
                 >
@@ -4770,7 +4777,10 @@ export function ObligationQueueDetailDrawer({
             footerDocked ? 'border-transparent' : 'border-divider-subtle',
             isPageMode
               ? 'items-center bg-background-default py-3'
-              : 'flex-wrap items-center justify-between gap-2 bg-background-canvas-warm pt-4 pb-6',
+              : 'flex-wrap items-center justify-between gap-2 pt-4 pb-6',
+            // 2026-06-16 (Yuqi): the in-client panel footer matches the page's
+            // white surface; the mobile Sheet keeps the warm canvas.
+            !isPageMode && (mode === 'panel' ? 'bg-background-default' : 'bg-background-canvas-warm'),
           )}
           style={
             footerDocked ? undefined : { boxShadow: '0 -10px 28px -16px rgba(16, 24, 40, 0.18)' }
@@ -4905,7 +4915,11 @@ export function ObligationQueueDetailDrawer({
           // left border.
           isPageMode
             ? 'bg-background-default shadow-subtle'
-            : 'border-l border-divider-subtle bg-background-canvas-warm shadow-subtle',
+            : // 2026-06-16 (Yuqi): the in-client panel now matches the page's
+              // WHITE surface (was warm canvas). Keeps the left border as the
+              // column divider against the filing table; the mobile Sheet keeps
+              // the warm canvas below.
+              'border-l border-divider-subtle bg-background-default shadow-subtle',
         )}
       >
         {drawerBody}

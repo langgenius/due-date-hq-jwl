@@ -295,3 +295,40 @@ Franchise Report / [Federal] Form 1065; header meta = "LLC · Priya Pro" only;
 strip label computed weight 500 + next-due font-mono; no console errors;
 panel-open still pushes the column left and renders the obligation detail
 matching /deadlines, compact rows keep their jurisdiction chips. tsgo clean.
+
+## Cluster 11 — In-client obligation panel parity (white surface + quieter overdue banner)
+Yuqi (screenshot of the in-client Form 1120 panel): "looking ugly. far from the
+Deadline detail page penl." Investigation: the in-client panel and the
+/deadlines detail PAGE share one component (ObligationQueueDetailDrawer) and
+render nearly identically — the real divergences were (a) the panel sat on a
+warm-gray surface while the page is white, and (b) the loud full-bleed red
+"Past deadline" banner. Asked which to bring over; Yuqi picked **white surface**
++ **quieter overdue banner** (not centering, not the status chip).
+
+Changes:
+- White surface (panel mode only; the mobile Sheet keeps warm canvas): flipped
+  the panel container (the `panelLayout` aside else-branch),
+  the sticky key-date strip, and the footer from `bg-background-canvas-warm` →
+  `bg-background-default`. Kept the panel's left border as the column divider
+  against the filing table. Page mode was already white; the divergence is gone.
+- Quieter overdue banner: added a `subtle` prop to DetailStatusBanner that drops
+  the colored band (keeps the tone's icon + text color on white, border-b carries
+  the edge) — the same calm treatment the `pending` tone already uses. The
+  overdue (danger) banner now passes `subtle`, so it reads as a white line with
+  red icon + "Past deadline · N days overdue" text instead of a loud red bar.
+  Applies in both page + panel modes (shared component); the alert detail's
+  danger banners are untouched (the global `danger` tone is unchanged).
+
+Verified live: page-mode overdue banner bg = rgb(255,255,255), text =
+rgb(217,45,32) (red) — calm white line; in-client panel aside bg =
+rgb(255,255,255), no `canvas-warm` remaining; panel reads clean on white (cards
+hold via borders). tsgo clean.
+
+Scope note (flagged, not done): only the OVERDUE (danger) banner was quieted per
+Yuqi's explicit pick; the warning/success status bands still show their tint.
+Can quiet those too for full consistency if wanted.
+
+Out-of-scope observation: routes/obligations.tsx (another session's uncommitted
+WIP) throws `MapPinIcon`/`ClockIcon is not defined` in ObligationFiltersPopover —
+a missing-import crash in the /deadlines Filter popover. Left untouched (foreign
+WIP); flagged for that session.
