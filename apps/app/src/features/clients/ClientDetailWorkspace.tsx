@@ -833,10 +833,14 @@ export function ClientDetailWorkspace({
                   both: the triggers' own `py-3` now defines the height, and the
                   active motion.span at `-bottom-px` lands exactly on the seam
                   (verified: 11px label→underline gap, underline mid on the
-                  border). */}
+                  border). NO `overflow-x-auto`: it forces `overflow-y` to clip,
+                  which cut off the underline sitting at the bottom edge (Yuqi
+                  "the tab is missing the underline"); the 3 short tabs always
+                  fit (measured 239/287px even at panel-open), so no scroll is
+                  needed. */}
                   <TabsList
                     variant="line"
-                    className="flex !h-auto shrink-0 items-stretch gap-6 overflow-x-auto border-b border-divider-subtle bg-transparent p-0 text-sm"
+                    className="flex !h-auto shrink-0 items-stretch gap-6 border-b border-divider-subtle bg-transparent p-0 text-sm"
                   >
                     {/* Leading lucide glyph per tab. Matches the deadline
                     drawer's tab bar (paperclip / calendar / file) and

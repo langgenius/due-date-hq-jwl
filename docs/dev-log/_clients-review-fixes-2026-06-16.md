@@ -548,3 +548,26 @@ bar and the Stage 1 of 6 content / better have the header, not floating titles")
 
 tsgo clean (my files; the lone remaining error is the foreign auth-chrome.tsx WIP).
 Verified live on the Meridian Form 1120 panel.
+
+## Cluster 23 — Tab underline visible (overflow clip) + Workflow thin light header band
+Two follow-ups from Yuqi ("the tab is missing the underline" / "header should have a
+light background, and a thin/low-height header — not floating titles").
+
+- **Underline missing.** Cluster 22's `p-0` put the trigger bottom exactly at the
+  list's content-box edge, but the list's `overflow-x-auto` forces `overflow-y` to
+  compute as `auto` (clip) — so the 2px underline at `-bottom-px` (1px past the edge)
+  was clipped to a 1px sliver and read as missing. The tabs always fit (measured
+  239/287px even at panel-open squeeze), so `overflow-x-auto` was never scrolling
+  anyway — removed it. Now `overflow-y: visible`, the full 2px underline renders, mid
+  exactly on the seam (verified), 11px below the label.
+- **Workflow header → thin light band.** The Cluster 22 header was a white border-b
+  row (still read as a floating title). Replaced with a real HEADER BAND: light tint
+  (`bg-background-subtle`, ~#f2f4f7), hairline bottom border, tight `py-2.5` → a 39px
+  low strip; `-mx-5 -mt-5` break it edge-to-edge and the card's new `overflow-hidden`
+  clips the band to the rounded-xl top corners. Title dropped 18→14px to suit the
+  thin band. NOTE: this is a deliberate, scoped deviation from the NrQaI "no header
+  bands" rule (which the other DetailSectionCard headers still follow) — applied only
+  to the hand-rolled Workflow card per Yuqi's explicit ask; rolling the band out to
+  the other section cards would also touch the shared (alerts) primitive.
+
+tsgo clean (my files). Verified live on the Meridian Form 1120 panel.

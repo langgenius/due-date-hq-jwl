@@ -2542,24 +2542,26 @@ export function ObligationQueueDetailDrawer({
                         2026-06-16 (Yuqi "put the progress bar and the Stage 1 of 6
                         card into a section, with background white" + "lets still
                         have the header for each section"): the card now leads with
-                        a "Workflow" header matching the other flat sections'
-                        action header (text-lg/600, same as DetailSectionCard
-                        tone="action"), so the stepper + Stage read as ONE titled
-                        white section like Recent activity / Extension. */}
+                        a thin light-tinted "Workflow" HEADER BAND (Yuqi
+                        "header should have a light background + be thin"), so the
+                        stepper + Stage read as ONE titled white section. */}
                         <div
                           className={
                             panelLayout
-                              ? 'flex flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default p-5'
+                              ? 'flex flex-col gap-4 overflow-hidden rounded-xl border border-divider-subtle bg-background-default p-5'
                               : 'contents'
                           }
                         >
                           {panelLayout ? (
-                            // 2026-06-16 (Yuqi "have the header, not floating titles"):
-                            // the section title is a defined HEADER ROW — full-width
-                            // bottom border (-mx-5 breaks out of the card's p-5) so it
-                            // reads as a header, not a title floating over the stepper.
-                            <header className="-mx-5 flex items-center gap-2 border-b border-divider-subtle px-5 pb-4">
-                              <h3 className="text-lg font-semibold text-text-primary">
+                            // 2026-06-16 (Yuqi "header should have a light background,
+                            // and a thin/low-height header — not floating titles"): a real
+                            // HEADER BAND — light tint (bg-background-subtle) + hairline
+                            // bottom border + tight py-2.5, so it reads as a low defined
+                            // strip across the card top. -mx-5 -mt-5 break it out of the
+                            // p-5 to span edge-to-edge; the card's overflow-hidden clips
+                            // the band to the rounded-xl top corners.
+                            <header className="-mx-5 -mt-5 flex items-center gap-2 border-b border-divider-subtle bg-background-subtle px-5 py-2.5">
+                              <h3 className="text-sm font-semibold text-text-primary">
                                 <Trans>Workflow</Trans>
                               </h3>
                             </header>
