@@ -559,7 +559,16 @@ export function ClientDetailWorkspace({
           panel slides in motion-animated 0→600 when a filing row is
           clicked. No page-level scroll on the document body — only the
           tab body scrolls. Mirrors /deadlines exactly. */}
-      <div className="flex min-h-0 flex-1 flex-col gap-4 xl:flex-row xl:items-stretch xl:gap-6">
+      <div
+        className={cn(
+          'flex min-h-0 flex-1 flex-col gap-4 xl:flex-row xl:items-stretch xl:gap-6',
+          // At rest (panel closed) cap the content at the comfortable 1100px
+          // reading width and center it. The 1440px expanded width exists only
+          // to fit the 600px obligation panel; at rest it stretched the stat
+          // band + filing table thin and stranded the rail. Expand on open.
+          !panelOpen && 'mx-auto w-full xl:max-w-page-wide',
+        )}
+      >
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <PageHeader
             // The canonical `breadcrumbs` prop, styled as a friendly
@@ -934,8 +943,14 @@ export function ClientDetailWorkspace({
                   // the title still opens the full /deadlines page (escape hatch).
                   onExpandFiling={(id) => openObligationPanel(id)}
                   onCollapseFiling={() => void setExpandedFilingId('')}
-                  // Squeezed left column when the panel is open → compact rows.
-                  compact={panelOpen}
+                  // Always compact on the client filing plan: it drops OFFICIAL
+                  // DUE (redundant with INTERNAL DUE unless an extension shifts
+                  // it — and the row detail carries the full dates) and OWNER
+                  // (uniform per client — already in the page header). That keeps
+                  // the DEADLINE column readable at the rest width and removes
+                  // two redundant columns; the squeezed panel-open layout needs
+                  // it too. Full dual-date + owner live in the obligation panel.
+                  compact
                 />
               </TabsContent>
 

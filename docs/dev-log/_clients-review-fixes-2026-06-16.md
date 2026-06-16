@@ -99,3 +99,25 @@ TabSection refactor) — included here since it's clients work in a file this
 pass owns.
 
 tsgo clean; master/detail highlight verified live on Meridian.
+
+## Cluster 4 — "the design looks ugly": density + redundancy
+Yuqi (with screenshot): "a lot of random spacing, inconsistent gaps, random
+things… hard to read." Root cause: the page always used the 1440px expanded
+width "so the 600px obligation panel fits" — but at rest (panel closed, the
+common case) that stretched the 5-stat band thin (each value stranded in a
+~210px flex-1 cell), spread the filing table, and dwarfed the 320px rail.
+
+- **Cap the content to 1100px (centered) at rest; expand to 1440 only when
+  the panel is open.** `ClientDetailWorkspace` root: `!panelOpen && mx-auto
+  w-full xl:max-w-page-wide`. Clusters the stat band, balances the rail,
+  keeps the wide master/detail layout when actually working an obligation.
+- **Filing table compact at rest (was: only when the panel squeezed it).**
+  Drops the OFFICIAL DUE column (duplicates INTERNAL DUE unless an extension
+  shifts it — full dates live in the row's obligation panel) and the OWNER
+  column (uniform per client — already in the page header). That gives the
+  DEADLINE column room (form names no longer clip at the capped width) and
+  removes two redundant columns. Reads as a clean form-left / status-due-
+  right list.
+
+Verified live both states (rest = capped/tight band + 3-col table; open =
+expanded master/detail with the active row highlighted). tsgo clean.
