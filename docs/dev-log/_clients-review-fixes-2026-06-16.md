@@ -459,3 +459,20 @@ Yuqi /clients review:
   the Button primitive one radius tier — sm/xs/icon-sm/icon-xs 8→12 (rounded-xl),
   default/lg/icon/icon-lg 12→16 (rounded-2xl). Verified ("Add deadline" sm now
   12px). Affects every button in the app.
+
+## Cluster 18 — Summary-strip numbers made consistent
+Yuqi: "why are the numbers inconsistent? are these sizes used anywhere else?"
+The band mixed sizes (counts 24px, Next-Due date 18px) AND four colours (0 gray,
+2 dark, 3 green, May 12 red). Unified:
+- All values now the canonical `text-stat-value` 24px (the date was a one-off
+  18px, off the StatBand scale — now matches the counts + every other StatBand).
+- Counts share ONE neutral colour (dropped the per-count amber/green tone); a
+  zero still dims to tertiary. The band's single chromatic accent is the overdue
+  Next Due date (red). Verified live: 0 gray-24, 2 dark-24, 3 dark-24, May-12
+  red-24 — uniform size + weight, one accent.
+
+Investigated but no change — header buttons: the kebab (outline) and the accent
+"+" are measured IDENTICAL (32×32, radius 12, 1px border, 16px icon). The "+"
+reads slightly smaller because a dark-navy FILL optically recedes vs a
+white OUTLINE of equal size — not an actual size difference. Left as-is (a nudge
+would break the icon-button size system); flagged for Yuqi.

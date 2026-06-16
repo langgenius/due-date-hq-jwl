@@ -80,17 +80,17 @@ export function ClientSummaryStrip({
     return <Skeleton className="h-[84px] w-full rounded-xl" />
   }
 
-  // KPI numeral — the canonical StatBand value treatment (`text-stat-value`
-  // 24px, sans, semibold, tabular-nums), color-coded. NOT font-mono: Geist/
-  // JetBrains Mono render a slashed zero that read as "Ø" on the dimmed 0s
-  // (Yuqi "so ugly"); sans tabular matches the StatBand on /clients, sources,
-  // rules, and alerts. Dim to tertiary when zero so an empty count reads as
-  // "nothing here", not a loud signal.
-  const num = (value: number, tone: string) => (
+  // KPI numeral — the canonical StatBand value (`text-stat-value` 24px, sans,
+  // semibold, tabular-nums). All counts share ONE neutral colour (Yuqi "why are
+  // the numbers inconsistent?" — the old per-count amber/green made the band read
+  // as four mismatched numbers). The band's single chromatic accent is the
+  // overdue Next Due date. A zero count dims to tertiary so it reads as "nothing
+  // here", not a loud signal.
+  const num = (value: number) => (
     <span
       className={cn(
         'text-stat-value leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
-        value > 0 ? tone : 'text-text-tertiary',
+        value > 0 ? 'text-text-primary' : 'text-text-tertiary',
       )}
     >
       {value}
@@ -121,7 +121,7 @@ export function ClientSummaryStrip({
     {
       key: 'blocked',
       label: t`Blocked`,
-      value: num(blockedCount, 'text-text-warning'),
+      value: num(blockedCount),
       ...(blockedCount > 0
         ? {
             onClick: () => void navigate(`/deadlines?client=${client.id}&status=blocked`),
@@ -132,7 +132,7 @@ export function ClientSummaryStrip({
     {
       key: 'open',
       label: t`Open`,
-      value: num(openCount, 'text-text-primary'),
+      value: num(openCount),
       ...(openCount > 0
         ? {
             onClick: () => void navigate(`/deadlines?client=${client.id}`),
@@ -143,7 +143,7 @@ export function ClientSummaryStrip({
     {
       key: 'filed',
       label: t`Filed`,
-      value: num(filedCount, 'text-text-success'),
+      value: num(filedCount),
     },
     {
       key: 'next-due',
@@ -151,10 +151,12 @@ export function ClientSummaryStrip({
       value: nextDue ? (
         <span
           className={cn(
-            // Next due is a DATE, not a KPI count — one step down from the
-            // stat-value numerals (Yuqi "May 12 smaller") so it reads as the
-            // date it is, with the red carrying the overdue urgency.
-            'text-xl leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
+            // Same canonical stat-value size as the counts so the whole band
+            // reads as one consistent set of numbers (Yuqi "why are the numbers
+            // inconsistent? are these sizes used elsewhere?" — the prior 18px
+            // date was a one-off, off the StatBand scale). Red carries the
+            // overdue urgency — the band's single accent.
+            'text-stat-value leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
             nextDueOverdue ? 'text-text-warning' : 'text-text-primary',
           )}
         >
