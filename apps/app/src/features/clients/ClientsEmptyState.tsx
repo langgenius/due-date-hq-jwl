@@ -72,7 +72,7 @@ export function ClientsEmptyState({
   canCreate?: boolean | undefined
 }) {
   return (
-    <div className="flex min-h-[560px] flex-1 items-center justify-center">
+    <div className="flex min-h-[560px] flex-1 items-center justify-center pb-[clamp(5rem,14vh,10rem)]">
       <div className="relative w-full max-w-[920px] overflow-hidden rounded-xl border border-divider-regular bg-background-default">
         {/* Subtle brand wash across the top of the card (Pencil jQFBx) — a
             quiet lift that fades into the card surface by the midline, not
@@ -96,8 +96,8 @@ export function ClientsEmptyState({
             </h2>
             <p className="text-sm leading-relaxed text-text-secondary md:text-base">
               <Trans>
-                Import a client list from TaxDome, Karbon, Drake, QuickBooks, UltraTax, Lacerte and 6
-                more. Every deadline shows up on its own — no manual mapping, no setup wizard.
+                Import a client list from TaxDome, Karbon, Drake, QuickBooks, UltraTax, Lacerte and
+                6 more. Every deadline shows up on its own — no manual mapping, no setup wizard.
               </Trans>
             </p>
           </div>

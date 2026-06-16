@@ -22,7 +22,7 @@ FL-46% keeps it. Single source of truth = `ai-confidence.ts` (unchanged).
 
 Two pill systems overlapped: the **priority tier** pill (URGENT red / HIGH
 amber / NORMAL neutral — the urgency axis) and the **High impact** badge
-(client-reach axis), which was *also* destructive-red. A row could carry two
+(client-reach axis), which was _also_ destructive-red. A row could carry two
 reds reading as one alarm. The "High impact" badge is now a **neutral gray**
 chip (weight, not colour). Red is reserved for the single URGENT priority pill;
 the two axes now look as different as they are. (The critique's "different per
@@ -51,7 +51,7 @@ Now impacted rows answer triage-question-#1 in the loud form (icon + primary
 ink); no-impact rows stay **silent** (the line's presence is the signal,
 matching the Active tab's positive-only form). The detail still states impact
 explicitly, so the decision info isn't lost — this is the "quiet form / one
-home" reading of *demote-don't-delete*, not clean-by-deletion. Same change in
+home" reading of _demote-don't-delete_, not clean-by-deletion. Same change in
 the rail.
 
 Side effect handled: removing the line exposed that the bottom shelf was sized

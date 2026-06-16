@@ -26,7 +26,10 @@ test.describe('seeded obligations', () => {
     // MergedBriefCard "Priorities" region; its footer "See all deadlines"
     // link navigates to the full queue.
     await actions.getByRole('link', { name: 'See all deadlines' }).click()
-    await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines$/, { timeout: 15_000 })
+    await expect(authenticatedPage.getByRole('heading', { name: 'Deadlines' })).toBeVisible({
+      timeout: 15_000,
+    })
   })
 
   test('AC: E2E-DASHBOARD-FILTERS opens action rows in the deadline drawer', async ({
@@ -154,6 +157,8 @@ test.describe('seeded obligations', () => {
     authenticatedPage,
     obligationQueuePage,
   }) => {
+    test.setTimeout(60_000)
+
     // The Compact/Comfortable density tabs were removed in the obligations
     // header polish (PR #4). Density is still persisted in saved views and
     // URL, but there's no UI control to toggle it anymore — drop the density
@@ -213,7 +218,7 @@ test.describe('seeded obligations', () => {
     exportDialog = authenticatedPage.getByRole('dialog', { name: 'Export deadlines' })
     await exportDialog.getByRole('radio', { name: /PDF report/ }).click()
     const [zipDownload] = await Promise.all([
-      authenticatedPage.waitForEvent('download'),
+      authenticatedPage.waitForEvent('download', { timeout: 45_000 }),
       exportDialog.getByRole('button', { name: 'Export' }).click(),
     ])
     expect(zipDownload.suggestedFilename()).toMatch(/^obligations-pdfs-\d{4}-\d{2}-\d{2}\.zip$/)

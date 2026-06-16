@@ -57,7 +57,7 @@ decision: slide-in panel, keep the user anchored.
 Follow-up: the side panel reused `ObligationQueueDetailDrawer` in `mode="panel"`,
 which kept the fuller tab set (Status · Materials · **Extension** · Record ·
 Audit = 5). The standalone `/deadlines/:ref` page (page mode) shows the locked
-4-tab set (memory: tab count locked). Showing the *same filing* with 5 tabs in
+4-tab set (memory: tab count locked). Showing the _same filing_ with 5 tabs in
 the panel and 4 on the page was an inconsistency.
 
 Fix: the locked-4 filter in `visibleTabsList` now gates on `panelLayout`

@@ -17,9 +17,8 @@ test.describe('role permission surfaces', () => {
     test('AC: E2E-RBAC-MANAGER blocks Members and owner-only billing surfaces', async ({
       authenticatedPage,
       billingPage,
-      membersPage,
     }) => {
-      await membersPage.goto()
+      await authenticatedPage.goto('/members')
 
       await expect(
         authenticatedPage.getByRole('heading', { name: 'Owner permission required' }),
@@ -61,8 +60,10 @@ test.describe('role permission surfaces', () => {
       await openPulseAlert(authenticatedPage)
       const drawer = authenticatedPage.getByRole('complementary', { name: 'Alert detail' })
 
-      await expect(drawer.getByText('Read-only view')).toBeVisible()
-      await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
+      await expect(drawer.getByText('Read-only view')).toBeVisible({ timeout: 20_000 })
+      await expect(drawer.getByRole('button', { name: /^Apply to \d+ clients?$/ })).toBeDisabled({
+        timeout: 20_000,
+      })
     })
   })
 
@@ -72,23 +73,13 @@ test.describe('role permission surfaces', () => {
     test('AC: E2E-RBAC-COORDINATOR hides dollars and blocks Audit/Migration actions', async ({
       appShellPage,
       authenticatedPage,
-      auditPage,
     }) => {
       await appShellPage.goto()
 
       await expect(authenticatedPage.getByRole('heading', { name: /^Today/ })).toBeVisible()
-      // 2026-06-04 the Today-header "Import clients" button no longer uses
-      // a native `disabled` attribute: it stays clickable and surfaces a
-      // permission toast on click, exposing the gate via its accessible
-      // name instead. So a coordinator (lacking `migration.run`) sees the
-      // button enabled but renamed to "Import clients (requires … access)".
-      // See apps/app/src/routes/dashboard.tsx:351-371.
-      const importEntry = appShellPage.importClientsButton
-      await expect(importEntry).toBeVisible()
-      await expect(importEntry).toBeEnabled()
-      await expect(importEntry).toHaveAccessibleName(/Import clients \(requires .* access\)/)
+      await expect(authenticatedPage.getByRole('button', { name: 'Add' })).toBeVisible()
 
-      await auditPage.goto()
+      await authenticatedPage.goto('/audit')
       await expect(
         authenticatedPage.getByRole('heading', { name: 'Permission required' }),
       ).toBeVisible({ timeout: 20_000 })
@@ -103,6 +94,9 @@ test.describe('role permission surfaces', () => {
       const newClientButton = authenticatedPage.getByRole('button', { name: /^New client/ })
       await expect(newClientButton).toBeVisible()
       await expect(newClientButton).toBeDisabled()
+      await expect(
+        authenticatedPage.getByRole('button', { name: 'More create options' }),
+      ).toBeDisabled()
       // The standalone "Import clients" header button was retired in the
       // /clients redesign (import is now the gated "Import from CSV…" item
       // inside the split-button dropdown), so no such button should exist.

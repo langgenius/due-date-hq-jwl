@@ -6,7 +6,6 @@ export class AppShellPage {
   readonly obligationQueueLink: Locator
   readonly clientsLink: Locator
   readonly rulesLink: Locator
-  readonly importClientsButton: Locator
   readonly commandDialog: Locator
   readonly commandPaletteHeading: Locator
   readonly shortcutDialog: Locator
@@ -17,11 +16,6 @@ export class AppShellPage {
     this.obligationQueueLink = page.getByRole('link', { name: /Deadlines/ })
     this.clientsLink = page.getByRole('link', { name: 'Clients' })
     this.rulesLink = page.getByRole('link', { name: /^Rule library(?:\s+\d+)?$/ })
-    this.importClientsButton = page
-      .getByRole('button', {
-        name: /^(Import clients|Run migration)(?: \(.*access(?: required)?\))?$/,
-      })
-      .first()
     this.commandDialog = page.getByRole('dialog', { name: 'Command palette' })
     this.commandPaletteHeading = this.commandDialog.getByRole('heading', {
       name: 'Command palette',
@@ -41,14 +35,10 @@ export class AppShellPage {
       await this.primaryNavigation.waitFor({ state: 'visible' })
 
       try {
-        // `canRunMigration` is gated on `firms.listMine`; while that query is
-        // loading or has transiently failed, the button stays enabled but its
-        // accessible name advertises the missing permission and clicking it only
-        // fires a toast. Wait for the actionable name before driving the click.
-        await expect(this.importClientsButton).toHaveAccessibleName(/^Import clients$/, {
-          timeout: 10_000,
-        })
-        await this.importClientsButton.click()
+        // The dashboard no longer owns a permanent import CTA; import is now a
+        // command/action that can be opened from any protected route.
+        await this.openCommandPalette()
+        await this.commandItem('Import clients').click()
         await expect(wizardDialog).toBeVisible()
         return
       } catch (error) {

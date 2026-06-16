@@ -9,7 +9,7 @@ canonical doc: `docs/Design/rules-review-modals.md`.
 ## Overview (`routes/rules.library.tsx`)
 
 - **"Start review" scoped to a previewable batch.** It selected all 456 pending
-  and opened the bulk modal *over* the impact/accept cap
+  and opened the bulk modal _over_ the impact/accept cap
   (`BULK_ACCEPT_BATCH_MAX`), so the modal showed "untick to see impact" with
   Accept disabled. Now it selects the first `BULK_ACCEPT_BATCH_MAX` so the modal
   opens with a real readiness read (and the blocked-banner explains the
@@ -49,6 +49,7 @@ canonical doc: `docs/Design/rules-review-modals.md`.
   `FloatingActionBar` primitive's standard behaviour across every bulk surface
   (deadlines, clients, etc.). Special-casing rules would break that consistency,
   so it stays.
+
 ## Entry framing (U1) — resolved in a follow-up
 
 The overview entry implied pending rules were ready to accept, but the real

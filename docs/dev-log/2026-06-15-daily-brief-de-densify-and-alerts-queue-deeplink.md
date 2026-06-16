@@ -56,7 +56,7 @@ Changes in `daily-brief-card.tsx`:
   carry overdue/waiting with live counts + deep links, and "due this week" lives
   in the Priorities buckets.
 - `nothingToSay` no longer considers the recap: it's now `aiEnabled && failed &&
-  !text && catchupCount === 0`. The collapsed-tab all-quiet line was reworded
+!text && catchupCount === 0`. The collapsed-tab all-quiet line was reworded
   off the recap framing → "All quiet — nothing new needs your attention right
   now."
 

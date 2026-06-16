@@ -34,4 +34,4 @@ group. Any custom size token now survives a merge with a color.
 - Also protects every other custom size token from the same silent drop.
 - `tsgo --noEmit -p apps/app` clean.
 - Live (/deadlines, after HMR): `<th>` now `fontSize 12px / fontWeight 600 /
-  letterSpacing 0.5px`, `text-column-label` present.
+letterSpacing 0.5px`, `text-column-label` present.

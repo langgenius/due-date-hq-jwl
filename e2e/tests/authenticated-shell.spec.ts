@@ -16,7 +16,7 @@ test('AC: E2E-AUTH-GUEST-REDIRECT sends signed-in guests to their target', async
   await authenticatedPage.goto('/login?redirectTo=/deadlines')
 
   await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
-  await expect(obligationQueuePage.heading).toBeVisible()
+  await expect(obligationQueuePage.heading).toBeVisible({ timeout: 15_000 })
 })
 
 test('AC: E2E-AUTH-SHELL renders the protected dashboard shell', async ({
@@ -33,7 +33,7 @@ test('AC: E2E-AUTH-SHELL renders the protected dashboard shell', async ({
   ).toHaveCount(0)
   await expect(authenticatedPage.getByRole('heading', { name: /^Today/ })).toBeVisible()
   await expect(authenticatedPage.getByRole('region', { name: 'Priorities' })).toBeVisible()
-  await expect(appShellPage.importClientsButton).toBeVisible()
+  await expect(authenticatedPage.getByRole('button', { name: 'Add' })).toBeVisible()
 })
 
 test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({

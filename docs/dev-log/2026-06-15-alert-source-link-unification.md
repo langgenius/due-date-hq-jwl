@@ -36,7 +36,7 @@ New `features/alerts/components/AlertSourceLink.tsx` — the single home.
   navigation. Used by `PulseAlertRow` (with `withTooltip`) and
   `AlertListRail`.
 - **`standalone` variant:** renders a real `<a target="_blank"
-  rel="noopener noreferrer">` for contexts that are NOT inside a
+rel="noopener noreferrer">` for contexts that are NOT inside a
   clickable row (the detail masthead) — native middle-click and
   open-in-new-tab are preserved. Used by `AlertDetailDrawer`.
 - **No-URL:** a plain caption with **no** `↗` icon — the honest choice

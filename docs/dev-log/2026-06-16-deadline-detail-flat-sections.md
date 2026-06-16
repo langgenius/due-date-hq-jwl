@@ -12,18 +12,18 @@ documents").
 
 ## Sections → tone
 
-| Tab | Section | tone |
-|---|---|---|
-| Status | Recent activity | reference |
-| Status | Extension | action |
-| Status (panel) | Ownership | reference |
-| Status (panel) | Linked from | reference |
-| Materials | Materials checklist | action |
-| Materials | Client request | action |
-| Materials | Request history | reference |
-| Evidence | Evidence to close out filing | action |
-| Evidence | Workpapers | reference |
-| Audit | Audit trail | reference |
+| Tab            | Section                      | tone      |
+| -------------- | ---------------------------- | --------- |
+| Status         | Recent activity              | reference |
+| Status         | Extension                    | action    |
+| Status (panel) | Ownership                    | reference |
+| Status (panel) | Linked from                  | reference |
+| Materials      | Materials checklist          | action    |
+| Materials      | Client request               | action    |
+| Materials      | Request history              | reference |
+| Evidence       | Evidence to close out filing | action    |
+| Evidence       | Workpapers                   | reference |
+| Audit          | Audit trail                  | reference |
 
 `action` = the decision/work sections (18/600 primary header); `reference` =
 look-up/history (14/600 secondary). Same ranking grammar as the alert detail.

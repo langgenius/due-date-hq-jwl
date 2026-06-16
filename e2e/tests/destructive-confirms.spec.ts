@@ -229,7 +229,7 @@ test.describe('with MFA enabled and verified', () => {
 
 async function gotoAccountSecurity(page: Page) {
   await page.goto('/settings/profile')
-  await expect(page.getByRole('heading', { name: 'Your account', level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Security', level: 2 })).toBeVisible()
 }
 

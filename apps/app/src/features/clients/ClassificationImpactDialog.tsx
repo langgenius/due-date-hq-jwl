@@ -157,11 +157,14 @@ export function ClassificationImpactDialog({
         onOpenChange(false)
       },
       onError: (error) => {
-        toast.error(isCorrection ? t`Couldn't update entity type` : t`Couldn't apply reclassification`, {
-          description:
-            rpcErrorMessage(error) ??
-            t`Try again in a moment. If it keeps failing, contact support.`,
-        })
+        toast.error(
+          isCorrection ? t`Couldn't update entity type` : t`Couldn't apply reclassification`,
+          {
+            description:
+              rpcErrorMessage(error) ??
+              t`Try again in a moment. If it keeps failing, contact support.`,
+          },
+        )
       },
     }),
   )

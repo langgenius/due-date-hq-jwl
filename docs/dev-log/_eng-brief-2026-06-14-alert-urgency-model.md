@@ -31,14 +31,14 @@ So **the deadline contract is done.** Don't add a parallel field.
 
 ## What already exists (do not rebuild)
 
-| Piece | Where | State |
-|---|---|---|
-| `actionDeadline` on the row | contracts/pulse.ts:185 · derived shared.ts:783 | ✅ shipping, every row |
-| Smart scorer `scorePulsePriority()` → `{score, level, reasons}` | packages/db/src/repo/pulse/shared.ts:877 | ✅ urgent ≥70 / high ≥45 / normal |
-| Score persisted at write-time | `pulsePriorityReview.priorityScore` / `priorityReasonsJson` | ✅ |
-| Tier + reasons exposed | `PulsePriorityQueueItem` (contracts/pulse.ts) via `useAlertsPriorityQueueQueryOptions` | ⚠️ **gated** on `permissions.canViewPriorityQueue && !historyMode` |
-| Row renders URGENT/HIGH pill + "Why?" inset | `PulseAlertRow.tsx` (`LEVEL_PILL`, `priority` prop) | ✅ but only when `priorityById.get(id)` is populated |
-| Row already reads `actionDeadline` | AlertsListPage.tsx:1327 (a horizon filter) | ✅ proves the field is reachable client-side |
+| Piece                                                           | Where                                                                                  | State                                                              |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `actionDeadline` on the row                                     | contracts/pulse.ts:185 · derived shared.ts:783                                         | ✅ shipping, every row                                             |
+| Smart scorer `scorePulsePriority()` → `{score, level, reasons}` | packages/db/src/repo/pulse/shared.ts:877                                               | ✅ urgent ≥70 / high ≥45 / normal                                  |
+| Score persisted at write-time                                   | `pulsePriorityReview.priorityScore` / `priorityReasonsJson`                            | ✅                                                                 |
+| Tier + reasons exposed                                          | `PulsePriorityQueueItem` (contracts/pulse.ts) via `useAlertsPriorityQueueQueryOptions` | ⚠️ **gated** on `permissions.canViewPriorityQueue && !historyMode` |
+| Row renders URGENT/HIGH pill + "Why?" inset                     | `PulseAlertRow.tsx` (`LEVEL_PILL`, `priority` prop)                                    | ✅ but only when `priorityById.get(id)` is populated               |
+| Row already reads `actionDeadline`                              | AlertsListPage.tsx:1327 (a horizon filter)                                             | ✅ proves the field is reachable client-side                       |
 
 ## The actual gap
 
@@ -67,10 +67,10 @@ export function deadlineProximity(
 ): { proximity: DeadlineProximity; days: number | null } {
   if (!actionDeadlineIso) return { proximity: 'none', days: null }
   const days = Math.ceil((new Date(actionDeadlineIso).getTime() - nowMs) / 86_400_000)
-  if (days < 0)  return { proximity: 'overdue',   days }
-  if (days <= 3) return { proximity: 'imminent',  days }   // ≤ 3 days
-  if (days <= 14) return { proximity: 'soon',     days }   // ≤ 2 weeks
-  return { proximity: 'scheduled', days }                  // further out
+  if (days < 0) return { proximity: 'overdue', days }
+  if (days <= 3) return { proximity: 'imminent', days } // ≤ 3 days
+  if (days <= 14) return { proximity: 'soon', days } // ≤ 2 weeks
+  return { proximity: 'scheduled', days } // further out
 }
 ```
 

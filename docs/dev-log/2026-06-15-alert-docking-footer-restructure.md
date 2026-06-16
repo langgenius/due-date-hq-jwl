@@ -11,6 +11,7 @@ full-bleed and flush against the last section when docked.
 
 Moved the decision bar from a sibling of the content column to the **last child
 of the content column itself**, so it inherits:
+
 - the **880px document measure** (centered on the same column as the sections —
   was full-bleed chrome), and
 - the **section rhythm** — a ~24px gap now sits above it when docked, so it

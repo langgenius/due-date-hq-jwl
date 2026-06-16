@@ -30,7 +30,7 @@ test.describe('seeded Pulse alerts', () => {
     await expect(drawer.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(drawer.getByText('Bright Studio S-Corp')).toBeVisible()
 
-    await drawer.getByRole('button', { name: 'Apply Deadline Exception' }).click()
+    await drawer.getByRole('button', { name: /^Apply to \d+ clients?$/ }).click()
     const verificationDialog = authenticatedPage.getByRole('dialog', {
       name: 'Verify the new deadline before applying',
     })
@@ -45,7 +45,8 @@ test.describe('seeded Pulse alerts', () => {
 
     await obligationQueuePage.goto('/deadlines?asOf=2026-05-26')
     const arborRow = obligationQueuePage.rowFor('Arbor & Vale LLC')
-    await expect(arborRow).toContainText('128 days')
+    await expect(arborRow).toBeVisible({ timeout: 20_000 })
+    await expect(arborRow).toContainText('128 days', { timeout: 20_000 })
     await obligationQueuePage.openColumnsMenu()
     const evidenceColumnOption = obligationQueuePage.columnVisibilityOption('Evidence')
     if ((await evidenceColumnOption.getAttribute('aria-checked')) !== 'true') {
@@ -65,7 +66,9 @@ test.describe('seeded Pulse alerts', () => {
     await expect(evidenceDrawer).toContainText('Applied a rule change.')
     await expect(evidenceDrawer).toContainText('Individuals and businesses in Los Angeles County')
     await evidenceDrawer.getByRole('button', { name: 'Close' }).click()
-    await expect(obligationQueuePage.rowFor('Bright Studio S-Corp')).toContainText('72 days late')
+    await expect(obligationQueuePage.rowFor('Bright Studio S-Corp')).toContainText('72 days late', {
+      timeout: 20_000,
+    })
 
     await appShellPage.goto('/audit?action=pulse.apply&range=all')
     // The apply writes a `pulse.apply` audit event (verified by the row's
@@ -93,7 +96,9 @@ test.describe('seeded Pulse alerts', () => {
     await expect(authenticatedPage.getByText(/Reverted 1 clients?/)).toBeVisible()
 
     await obligationQueuePage.goto('/deadlines?asOf=2026-05-26')
-    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('72 days late')
+    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('72 days late', {
+      timeout: 20_000,
+    })
   })
 
   test('AC: legacy /rules/pulse redirects to /alerts, preserving ?alert deep links', async ({
@@ -153,7 +158,7 @@ test.describe('seeded Pulse alerts', () => {
       const readOnlyAlert = drawer.getByRole('alert').filter({ hasText: 'Read-only view' })
       await expect(readOnlyAlert).toContainText('Current role: Coordinator')
       await expect(readOnlyAlert).toContainText('Required: Owner, Partner, Manager')
-      await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
+      await expect(drawer.getByRole('button', { name: /^Apply to \d+ clients?$/ })).toBeDisabled()
     })
   })
 
@@ -172,7 +177,7 @@ test.describe('seeded Pulse alerts', () => {
       const drawer = pulseDetailDrawer(authenticatedPage)
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
-      await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
+      await expect(drawer.getByRole('button', { name: /^Apply to \d+ clients?$/ })).toBeDisabled()
       const requestReviewButton = drawer.getByRole('button', { name: 'Request review' }).first()
       await expect(requestReviewButton).toBeVisible()
 

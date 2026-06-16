@@ -37,6 +37,7 @@ fully loaded client-side (`listByFirm` caps at `CLIENT_LIST_LIMIT = 500`), there
 no need for fetch-on-scroll — the whole filtered set renders in one scroll region.
 
 Changes:
+
 - Dropped `getPaginationRowModel`, the `computeClientsResponsivePageSize` /
   `useClientsResponsivePageSize` helpers + their constants, the
   `initialState.pagination`, and the `table.setPageSize` effect.

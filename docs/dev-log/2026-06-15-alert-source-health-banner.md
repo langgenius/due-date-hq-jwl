@@ -13,8 +13,8 @@ A warning-tone source-health banner at the TOP of the detail body (first
 child, above the numbered Change section), for
 `changeKind === 'source_status'` and `sourceStatus !== 'source_revoked'`:
 
-- **Title** "Monitoring degraded — verify at the source" — a source_status
-  alert has nothing to *apply*; the action is to go check the source.
+- **Title** "Monitoring degraded — verify at the source" — a source*status
+  alert has nothing to \_apply*; the action is to go check the source.
 - **Body** names the real source + jurisdiction and says the automated feed
   is delayed, so recent changes may be uncaptured — check the source until
   monitoring recovers.

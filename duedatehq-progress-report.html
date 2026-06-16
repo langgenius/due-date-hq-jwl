@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DueDateHQ · 进展汇报</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --blue: #0033ff;
+        --blue-dark: #002cd6;
+        --blue-light: #e5eaff;
+        --black: #000000;
+        --g700: #333333;
+        --g350: #666666;
+        --g250: #999999;
+        --page: #f8f9fb;
+        --card: #ffffff;
+        --dark: #1d2939;
+        --f-zh: 'MiSans', 'PingFang SC', 'Noto Sans SC', sans-serif;
+        --f-en: 'Inter', 'DM Sans', sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--page);
+        font-family: var(--f-zh);
+        color: var(--black);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .toolbar {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 18px 8px 4px;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+      }
+      .toolbar .t-name {
+        font-family: var(--f-en);
+        font-weight: 800;
+        font-size: 15px;
+        letter-spacing: -0.01em;
+      }
+      .toolbar .t-name b {
+        color: var(--blue);
+      }
+      .toolbar .t-hint {
+        font-family: var(--f-en);
+        font-size: 12px;
+        color: var(--g250);
+      }
+
+      .stage {
+        padding: 8px 0 56px;
+      }
+      .slide-wrap {
+        margin: 0 auto 28px;
+        width: 1280px;
+        max-width: 100%;
+      }
+      .slide {
+        width: 1280px;
+        height: 720px;
+        background: var(--card);
+        position: relative;
+        overflow: hidden;
+        transform-origin: top left;
+        box-shadow: 0 0 0 1px var(--blue-light);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ---- shared bits ---- */
+      .wordmark {
+        font-family: var(--f-en);
+        font-weight: 800;
+        font-size: 20px;
+        letter-spacing: -0.02em;
+        color: var(--black);
+        text-decoration: none;
+      }
+      .wordmark b {
+        color: var(--blue);
+      }
+      .chip {
+        font-family: var(--f-en);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #fff;
+        background: var(--blue);
+        padding: 5px 10px;
+        border-radius: 0;
+      }
+      .chip--ghost {
+        background: transparent;
+        color: var(--g250);
+        box-shadow: 0 0 0 1px var(--blue-light);
+      }
+      .eyebrow {
+        font-family: var(--f-en);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--blue);
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .pagenum {
+        position: absolute;
+        right: 64px;
+        bottom: 40px;
+        font-family: var(--f-en);
+        font-size: 12px;
+        color: var(--g250);
+      }
+      .footmeta {
+        position: absolute;
+        left: 64px;
+        bottom: 40px;
+        font-family: var(--f-en);
+        font-size: 12px;
+        color: var(--g250);
+      }
+
+      /* ---- slide 1 : cover ---- */
+      .s1 {
+        padding: 64px;
+      }
+      .s1 .hero {
+        font-size: 74px;
+        line-height: 1.12;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin-top: auto;
+      }
+      .s1 .hero em {
+        font-style: normal;
+        color: var(--blue);
+      }
+      .s1 .sub {
+        font-family: var(--f-zh);
+        font-size: 21px;
+        color: var(--g350);
+        margin-top: 26px;
+        font-weight: 500;
+      }
+      .s1 .coverfoot {
+        margin-top: 48px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .s1 .cov-line {
+        font-family: var(--f-en);
+        font-size: 13px;
+        color: var(--g350);
+        letter-spacing: 0.02em;
+      }
+
+      /* ---- generic content slide ---- */
+      .body {
+        padding: 60px 64px 0;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+      .h2 {
+        font-size: 38px;
+        line-height: 1.22;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin-top: 14px;
+        max-width: 1000px;
+      }
+      .h2 em {
+        font-style: normal;
+        color: var(--blue);
+      }
+
+      /* step flow (slide 2) */
+      .flow {
+        display: flex;
+        align-items: stretch;
+        margin-top: 46px;
+        gap: 0;
+      }
+      .step {
+        flex: 1;
+        padding: 0 22px;
+        position: relative;
+      }
+      .step:first-child {
+        padding-left: 0;
+      }
+      .step:not(:first-child) {
+        border-left: 1px solid var(--blue-light);
+      }
+      .step .n {
+        font-family: var(--f-en);
+        font-weight: 800;
+        font-size: 15px;
+        color: var(--g250);
+      }
+      .step .l {
+        font-size: 21px;
+        font-weight: 700;
+        margin-top: 12px;
+        letter-spacing: -0.01em;
+      }
+      .step .e {
+        font-family: var(--f-en);
+        font-size: 12px;
+        color: var(--g250);
+        margin-top: 6px;
+        letter-spacing: 0.03em;
+      }
+      .keyline {
+        margin-top: auto;
+        margin-bottom: 64px;
+        font-size: 22px;
+        font-weight: 500;
+        color: var(--g700);
+        max-width: 1040px;
+        line-height: 1.5;
+      }
+      .keyline em {
+        font-style: normal;
+        color: var(--blue);
+        font-weight: 700;
+      }
+
+      /* stats (slide 3) */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--blue-light);
+        margin-top: 40px;
+      }
+      .stat {
+        background: var(--card);
+        padding: 22px 24px 22px 0;
+      }
+      .stat:not(:first-child) {
+        padding-left: 24px;
+      }
+      .stat .v {
+        font-family: var(--f-en);
+        font-weight: 800;
+        font-size: 42px;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .stat .k {
+        font-family: var(--f-zh);
+        font-size: 14px;
+        color: var(--g350);
+        margin-top: 10px;
+        font-weight: 500;
+      }
+      .feats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--blue-light);
+        margin-top: 1px;
+      }
+      .feat {
+        background: var(--card);
+        padding: 26px 24px 30px 0;
+      }
+      .feat:not(:first-child) {
+        padding-left: 24px;
+      }
+      .feat .ft {
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .feat .ft em {
+        font-style: normal;
+        color: var(--blue);
+      }
+      .feat .fd {
+        font-size: 15px;
+        color: var(--g350);
+        margin-top: 10px;
+        line-height: 1.55;
+        font-weight: 400;
+      }
+
+      /* slide 4 : dark close */
+      .s4 {
+        background: var(--dark);
+        border-left: 3px solid var(--blue);
+        color: #fff;
+      }
+      .s4 .wordmark {
+        color: #fff;
+      }
+      .s4 .wordmark b {
+        color: #5c7bff;
+      }
+      .s4 .eyebrow {
+        color: #7c93ff;
+      }
+      .s4 .pagenum,
+      .s4 .footmeta {
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .s4 .takes {
+        margin-top: 38px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .s4 .take {
+        display: flex;
+        align-items: baseline;
+        gap: 18px;
+        padding: 18px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .s4 .take:first-child {
+        border-top: none;
+      }
+      .s4 .take .tk-n {
+        font-family: var(--f-en);
+        font-weight: 800;
+        font-size: 18px;
+        color: #5c7bff;
+        flex: 0 0 26px;
+      }
+      .s4 .take .tk-t {
+        font-size: 21px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        flex: 0 0 200px;
+      }
+      .s4 .take .tk-d {
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.5;
+      }
+      .s4 .next {
+        margin-top: 34px;
+      }
+      .s4 .next .nl {
+        font-family: var(--f-en);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+      }
+      .s4 .next .nv {
+        font-size: 18px;
+        font-weight: 500;
+        color: #fff;
+        margin-top: 10px;
+      }
+      .s4 .next .nv span {
+        color: rgba(255, 255, 255, 0.35);
+        margin: 0 10px;
+      }
+      .s4 .close {
+        margin-top: auto;
+        margin-bottom: 64px;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        max-width: 980px;
+        line-height: 1.4;
+      }
+      .s4 .close em {
+        font-style: normal;
+        color: #5c7bff;
+      }
+
+      @media print {
+        @page {
+          size: 1280px 720px;
+          margin: 0;
+        }
+        body {
+          background: #fff;
+        }
+        .toolbar {
+          display: none;
+        }
+        .stage {
+          padding: 0;
+        }
+        .slide-wrap {
+          height: auto !important;
+          width: 1280px;
+          margin: 0;
+        }
+        .slide {
+          transform: none !important;
+          box-shadow: none;
+          page-break-after: always;
+          break-after: page;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <span class="t-name">DueDate<b>HQ</b> · 进展汇报</span>
+      <span class="t-hint">按 ⌘/Ctrl+P → 选「横向」即可导出 PDF</span>
+    </div>
+
+    <div class="stage">
+      <!-- ============ Slide 1 · Cover ============ -->
+      <div class="slide-wrap">
+        <section class="slide s1">
+          <div class="topbar">
+            <a class="wordmark" href="#">DueDate<b>HQ</b></a>
+            <span class="chip">内部进展汇报 · 2026-06</span>
+          </div>
+
+          <h1 class="hero">把多州报税截止日，<br />管成<em>不会漏报的流程</em>。</h1>
+          <p class="sub">给美国 CPA 事务所的「报税截止日 + 法规变动监控」工作台</p>
+        </section>
+      </div>
+
+      <!-- ============ Slide 2 · Why + Loop ============ -->
+      <div class="slide-wrap">
+        <section class="slide">
+          <div class="body">
+            <div class="topbar">
+              <span class="eyebrow">为什么做</span>
+              <a class="wordmark" href="#" style="font-size: 15px">DueDate<b>HQ</b></a>
+            </div>
+
+            <h2 class="h2">
+              几百个客户、跨多个州，截止日还散在 Excel 和邮件里 ——<br />漏一个就是<em>罚款加客户信任</em>。
+            </h2>
+
+            <div class="flow">
+              <div class="step">
+                <div class="n">01</div>
+                <div class="l">导入客户</div>
+                <div class="e">IMPORT</div>
+              </div>
+              <div class="step">
+                <div class="n">02</div>
+                <div class="l">生成义务</div>
+                <div class="e">OBLIGATIONS</div>
+              </div>
+              <div class="step">
+                <div class="n">03</div>
+                <div class="l">风险分诊</div>
+                <div class="e">TRIAGE</div>
+              </div>
+              <div class="step">
+                <div class="n">04</div>
+                <div class="l">监控法规</div>
+                <div class="e">PULSE</div>
+              </div>
+              <div class="step">
+                <div class="n">05</div>
+                <div class="l">提醒团队</div>
+                <div class="e">REMIND</div>
+              </div>
+            </div>
+
+            <p class="keyline">
+              把这条链路全收进<em>一个控制台</em>，而且每一条截止日都能点回它的<em>官方出处</em>。
+            </p>
+          </div>
+          <div class="footmeta">DueDateHQ · 进展汇报</div>
+          <div class="pagenum">02</div>
+        </section>
+      </div>
+
+      <!-- ============ Slide 3 · Progress ============ -->
+      <div class="slide-wrap">
+        <section class="slide">
+          <div class="body">
+            <div class="topbar">
+              <span class="eyebrow">现在做到哪了</span>
+              <a class="wordmark" href="#" style="font-size: 15px">DueDate<b>HQ</b></a>
+            </div>
+
+            <h2 class="h2" style="font-size: 32px; margin-bottom: 4px">
+              不是原型 —— 核心闭环已跑通，<em>staging 已部署 + 公开 Demo</em>。
+            </h2>
+
+            <div class="stats">
+              <div class="stat">
+                <div class="v">80<span style="font-size: 24px">+</span></div>
+                <div class="k">数据库迁移 Migrations</div>
+              </div>
+              <div class="stat">
+                <div class="v">FED+5</div>
+                <div class="k">州已验证深度覆盖</div>
+              </div>
+              <div class="stat">
+                <div class="v" style="color: var(--blue)">90%</div>
+                <div class="k">预警召回率 · CI 硬门槛</div>
+              </div>
+              <div class="stat">
+                <div class="v">中/英</div>
+                <div class="k">全站双语 i18n</div>
+              </div>
+            </div>
+
+            <div class="feats">
+              <div class="feat">
+                <div class="ft">截止日风险分诊</div>
+                <div class="fd">
+                  所有客户的报税义务按风险排序，可批量推进状态，每条都带可追溯的证据。
+                </div>
+              </div>
+              <div class="feat">
+                <div class="ft">法规变动监控 <em>Pulse</em></div>
+                <div class="fd">
+                  持续盯 IRS 与各州税局官网，规则一变就预警，并指出影响你哪些客户。
+                </div>
+              </div>
+              <div class="feat">
+                <div class="ft">AI 辅助 · 人来签字</div>
+                <div class="fd">
+                  AI 抽取规则、映射导入；任何规则要 CPA 审核激活才生效 —— 不是黑箱。
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="footmeta">提醒不设州级限制；FED+5 指「开箱即用 + 来源监控」的深度覆盖</div>
+          <div class="pagenum">03</div>
+        </section>
+      </div>
+
+      <!-- ============ Slide 4 · Takeaways + Next ============ -->
+      <div class="slide-wrap">
+        <section class="slide s4">
+          <div class="body">
+            <div class="topbar">
+              <span class="eyebrow">一句话记住 · 下一步</span>
+              <a class="wordmark" href="#" style="font-size: 15px">DueDate<b>HQ</b></a>
+            </div>
+
+            <div class="takes">
+              <div class="take">
+                <div class="tk-n">01</div>
+                <div class="tk-t">可追溯</div>
+                <div class="tk-d">每条规则、每条预警都能点回官方出处 —— 合规行业最在乎的事。</div>
+              </div>
+              <div class="take">
+                <div class="tk-n">02</div>
+                <div class="tk-t">不黑箱</div>
+                <div class="tk-d">AI 干苦力、出草稿，专业判断和签字权留给 CPA。</div>
+              </div>
+              <div class="take">
+                <div class="tk-n">03</div>
+                <div class="tk-t">有工程纪律</div>
+                <div class="tk-d">
+                  预警召回率 90% 是 CI 里的硬门槛，达不到不让合并，不是 Demo 玩具。
+                </div>
+              </div>
+            </div>
+
+            <div class="next">
+              <div class="nl">Next</div>
+              <div class="nv">
+                深度覆盖从 5 州往外扩 <span>·</span> RBAC 角色细分 <span>·</span> 验证华人 CPA
+                首批客户
+              </div>
+            </div>
+
+            <p class="close">核心闭环已经跑通 —— <em>想听你对扩展节奏的判断。</em></p>
+          </div>
+          <div class="footmeta">DueDateHQ · 进展汇报 · 2026-06</div>
+          <div class="pagenum">04</div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      ;(function () {
+        function fit() {
+          var pad = 32
+          var avail = Math.min(document.documentElement.clientWidth - pad, 1280)
+          var scale = avail / 1280
+          document.querySelectorAll('.slide-wrap').forEach(function (w) {
+            var s = w.querySelector('.slide')
+            s.style.transform = 'scale(' + scale + ')'
+            w.style.height = 720 * scale + 'px'
+          })
+        }
+        window.addEventListener('resize', fit)
+        fit()
+      })()
+    </script>
+  </body>
+</html>

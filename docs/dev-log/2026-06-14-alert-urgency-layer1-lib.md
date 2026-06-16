@@ -3,7 +3,7 @@
 _2026-06-14_
 
 Phase 1 of the urgency model specced in
-[_eng-brief-2026-06-14-alert-urgency-model.md](./_eng-brief-2026-06-14-alert-urgency-model.md).
+[\_eng-brief-2026-06-14-alert-urgency-model.md](./_eng-brief-2026-06-14-alert-urgency-model.md).
 Pure logic only — no UI wired yet, so this is safe to land alone.
 
 ## What

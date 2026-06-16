@@ -18,15 +18,15 @@
 
 ## 1. The family
 
-| Role | Pencil node | React component | File |
-|---|---|---|---|
-| Single accept (decision tool) | `TkpJG` / `oei7Q` / `I0zUhk` | `RuleDetailCompact` (`splitRail`) | `features/rules/rule-detail-drawer.tsx` |
-| Reject | `toYTe` (reject half) | `RejectReasonDialog` | `features/rules/rule-detail-drawer.tsx` |
-| Confirm impact | `jpoZx` | `ConfirmImpactDialog` | `features/rules/rule-detail-drawer.tsx` |
-| Accept error | `w8tiT` (error half) | `RuleAcceptErrorDialog` | `features/rules/rule-detail-drawer.tsx` |
-| 409 version conflict | `zVX0E` | `RuleAcceptErrorDialog` (`code==='CONFLICT'` branch) | `features/rules/rule-detail-drawer.tsx` |
-| Bulk review | `Fzzoq` / `s3LbR` | `BulkReviewListModal` | `routes/rules.library.tsx` |
-| Affected-clients module | `i7sVcU` | *(pattern, used inside detail panel)* | — |
+| Role                          | Pencil node                  | React component                                      | File                                    |
+| ----------------------------- | ---------------------------- | ---------------------------------------------------- | --------------------------------------- |
+| Single accept (decision tool) | `TkpJG` / `oei7Q` / `I0zUhk` | `RuleDetailCompact` (`splitRail`)                    | `features/rules/rule-detail-drawer.tsx` |
+| Reject                        | `toYTe` (reject half)        | `RejectReasonDialog`                                 | `features/rules/rule-detail-drawer.tsx` |
+| Confirm impact                | `jpoZx`                      | `ConfirmImpactDialog`                                | `features/rules/rule-detail-drawer.tsx` |
+| Accept error                  | `w8tiT` (error half)         | `RuleAcceptErrorDialog`                              | `features/rules/rule-detail-drawer.tsx` |
+| 409 version conflict          | `zVX0E`                      | `RuleAcceptErrorDialog` (`code==='CONFLICT'` branch) | `features/rules/rule-detail-drawer.tsx` |
+| Bulk review                   | `Fzzoq` / `s3LbR`            | `BulkReviewListModal`                                | `routes/rules.library.tsx`              |
+| Affected-clients module       | `i7sVcU`                     | _(pattern, used inside detail panel)_                | —                                       |
 
 ## 2. Shared shell contract
 
@@ -53,22 +53,25 @@ Match the canonical reject card (`sKtWP`) exactly:
 ## 3. Per-modal notes
 
 ### Reject (`RejectReasonDialog`, toYTe)
+
 540px · `Ban` icon in the destructive square. Subtitle = rule identity
 (`rule.title`, truncated) + consequence ("Will be marked Rejected and skipped
 in your library"). Reason picker = **two-line radio cards** (firm policy /
 source unreliable / duplicate / other) with accent selection. Internal note
 **always visible**; for preset reasons the typed note is appended to the
 persisted reason (`"{label} — {note}"`) so nothing is silently discarded; for
-"Other" the note *is* the reason (required). Footer hint + `destructive-primary`
+"Other" the note _is_ the reason (required). Footer hint + `destructive-primary`
 (solid red) action. Mass reject lives in the bulk modal (two-click armed).
 
 ### Confirm impact (`ConfirmImpactDialog`, jpoZx)
+
 Shown before committing a single accept. Populated **only** with real aggregate
 `previewRuleImpact` data: estimated deadlines + entity distribution. No
 fabricated per-client rows, no notify/backfill checkboxes, no "reversible 24h"
 band (none of those have a backend).
 
 ### Bulk review (`BulkReviewListModal`, Fzzoq)
+
 720px. Header (`Layers` icon) → **blocked-batch banner** (when
 `acceptReadyCount===0`; AI-draft case gets exact copy) → **Select-all / Clear**
 row with "N of M selected" → checkbox list (jurisdiction chip + title + type +
@@ -79,7 +82,9 @@ locked w/ lock icon). Single-jurisdiction subtitle "Reviewing N rules in
 renders blank). Metrics are exactly the API's; no invented pills.
 
 ### Accept error / 409 conflict (`RuleAcceptErrorDialog`, w8tiT / zVX0E)
+
 480px. Branches on `error.code`:
+
 - **`'CONFLICT'`** (server throws `ORPCError('CONFLICT')` on
   `rule.version !== expectedVersion`) → **amber/warning** chrome: "This rule
   changed since you opened it" · "A newer version was saved after you opened
@@ -91,7 +96,7 @@ renders blank). Metrics are exactly the API's; no invented pills.
 ## 4. Gating model
 
 - **Accept** unlocks only when the AI concrete draft is ready (`readyCount>0`).
-  A gated Accept reads as *locked* (lock icon + "unlocks once the draft is
+  A gated Accept reads as _locked_ (lock icon + "unlocks once the draft is
   ready"), not merely greyed.
 - **Reject** requires the review note (the note serves both the accept
   `reviewNote` and the reject `reason`; `maxLength 1000`; logged to audit).
@@ -102,27 +107,28 @@ renders blank). Metrics are exactly the API's; no invented pills.
   source_changed / drifted, substantive, invalid_template). Batch cap = 100
   (`BULK_ACCEPT_BATCH_MAX`) — over that the preview isn't fired (say so, don't
   spin). Mass reject is a two-click armed destructive action.
-- **Status is observed, never picked** — these modals act on review *events*
+- **Status is observed, never picked** — these modals act on review _events_
   (accept/reject); there is no generic "set status" dropdown.
 
 ## 5. Refused (fiction) — do not build without a backend
 
 - **Defer / snooze a rule review** (toYTe's second dialog): no backend.
-  `snoozedUntil` exists only on obligation *instances* (deadlines). A
+  `snoozedUntil` exists only on obligation _instances_ (deadlines). A
   date-picker defer modal would be a net-new feature.
 - **Streaming in-flight apply** (w8tiT's step checklist / % bar / "5 of 8
   clients" / server-events footer): accept is a single RPC, not a streamed
   multi-step apply. The existing spinner / disabled "Applying…" button is the
   truthful in-flight state.
 - **Field-level merge UI** (zVX0E's side-by-side "their version / your draft"
-  + per-field Keep-theirs/mine segmented controls): the accept RPC returns no
-  conflicting values, so a diff would be fabricated. The honest recovery is
-  Reload.
+  - per-field Keep-theirs/mine segmented controls): the accept RPC returns no
+    conflicting values, so a diff would be fabricated. The honest recovery is
+    Reload.
 - **Confirm-impact extras** (jpoZx's per-client table, notify-owners /
   backfill-quarters checkboxes, "reversible within 24h" band): no backend
   signal. Show only the real aggregate counts.
 
 ## 6. Open / not-yet-designed
+
 - Draft-**ready** accept variant (the gate cleared) — interaction TBD.
 - Long-title clamp in the single accept hero.
 - Affected-clients (>0) block inside the single accept modal (`i7sVcU` pattern

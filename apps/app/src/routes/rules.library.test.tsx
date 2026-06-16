@@ -678,7 +678,10 @@ describe('RulesLibraryRoute', () => {
     await waitForText('Federal')
     await waitForText('Arizona')
     await waitForText('Total rules')
-    await waitForText('1 reviewed in 30d')
+    await waitForText('2 rules need your review')
+    await waitForText('Coverage')
+    await waitForText('Recent changes')
+    await waitForText('Last 30 days')
 
     // No rule table on the overview — drilling into a rail jurisdiction
     // is what swaps in the working console with the per-state table.

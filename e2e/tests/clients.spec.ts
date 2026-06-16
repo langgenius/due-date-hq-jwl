@@ -43,11 +43,9 @@ test('AC: E2E-CLIENTS-CREATE creates a manual client through oRPC', async ({
 
   await expect(authenticatedPage.getByText('Client created')).toBeVisible()
   await expect(clientsPage.clientDetailHeading(clientName)).toBeVisible()
-  // A freshly created client lands on the default `work` tab, relabelled
-  // "Filing plan" in the IA redesign — `ClientWorkPlanPanel` renders the
-  // `TabSection` heading <h2>Filing plan</h2>
-  // (apps/app/src/features/clients/ClientWorkPlanPanel.tsx:383).
-  await expect(clientsPage.detailSection('Filing plan')).toBeVisible()
+  // A freshly created client lands on the default Filing plan tab; the tabpanel
+  // owns the accessible section name on empty work plans.
+  await expect(clientsPage.detailTabPanel('Filing plan')).toBeVisible()
   // The `info` tab key was relabelled "Client info" → "Setup"
   // (apps/app/src/features/clients/ClientDetailWorkspace.tsx:1048,
   // `<Trans>Setup</Trans>`). Substring match tolerates the trailing
@@ -87,7 +85,7 @@ test.describe('seeded client facts', () => {
     await expect(clientsPage.rowFor('Northstar Dental Group')).toBeVisible()
 
     await clientsPage.selectClientFilter('Arbor & Vale LLC')
-    await expect(authenticatedPage).toHaveURL(/clients=/)
+    await expect(authenticatedPage).toHaveURL(/q=Arbor/)
     await expect(clientsPage.filteredEmptyState).toBeVisible()
     await expect(
       authenticatedPage.getByText(
@@ -115,16 +113,14 @@ test.describe('seeded client facts', () => {
     await expect(
       authenticatedPage.getByRole('button', { name: 'View open filings for this client' }),
     ).toContainText(/Open\s*1/i)
-    // IA redesign renamed the three detail tabs (URL keys unchanged):
-    //   work → "Filings" tab (its section header is still "Filing plan"),
-    //   info → "Setup", activity → "History"
-    // (apps/app/src/features/clients/ClientDetailWorkspace.tsx).
-    await authenticatedPage.getByRole('tab', { name: 'Filings' }).click()
-    await expect(clientsPage.detailSection('Filing plan')).toBeVisible()
+    // The detail tabs are Filing plan / Setup / History; the Filing plan
+    // tabpanel carries the filing count in its accessible name.
+    await authenticatedPage.getByRole('tab', { name: /^Filing plan/ }).click()
+    await expect(clientsPage.detailTabPanel('Filing plan')).toBeVisible()
     await authenticatedPage.getByRole('tab', { name: 'Setup' }).click()
     await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
-    await expect(authenticatedPage.getByText('Entity type')).toBeVisible()
-    await expect(authenticatedPage.getByText('Federal EIN')).toBeVisible()
+    await expect(authenticatedPage.getByText('Entity type', { exact: true })).toBeVisible()
+    await expect(authenticatedPage.getByText('Federal EIN', { exact: true })).toBeVisible()
     await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
   })
 

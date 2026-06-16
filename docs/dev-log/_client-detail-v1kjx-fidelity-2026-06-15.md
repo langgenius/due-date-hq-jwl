@@ -4,19 +4,22 @@ Yuqi: replicate Pencil V1kJX for the client detail page; first ensure the
 client LIST is cohesive with /alerts, /deadlines, /rules/library.
 
 ## Finding: already substantially built to V1kJX
+
 The detail page (ClientDetailWorkspace + ClientWorkPlanPanel + ClientDetailRail
-+ ClientSummaryStrip) already matches V1kJX's structure end to end — breadcrumb
-+ pager, identity header (name + health pill + meta row), the 5-cell StatBand
-(JURISDICTIONS / BLOCKED / OPEN / FILED YTD / NEXT DUE), Filings/Setup/History
-tabs, the filing table (DEADLINE/STATUS/INTERNAL DUE/OFFICIAL DUE/OWNER/⌄), and
-a 360px right rail (Active Alerts [self-suppresses at 0] / Notes / Contacts).
-The LIST page is already cohesive (same max-w-page-expanded container,
-PageHeader + CountPill, StatBand, canonical table primitives, filter row).
+
+- ClientSummaryStrip) already matches V1kJX's structure end to end — breadcrumb
+- pager, identity header (name + health pill + meta row), the 5-cell StatBand
+  (JURISDICTIONS / BLOCKED / OPEN / FILED YTD / NEXT DUE), Filings/Setup/History
+  tabs, the filing table (DEADLINE/STATUS/INTERNAL DUE/OFFICIAL DUE/OWNER/⌄), and
+  a 360px right rail (Active Alerts [self-suppresses at 0] / Notes / Contacts).
+  The LIST page is already cohesive (same max-w-page-expanded container,
+  PageHeader + CountPill, StatBand, canonical table primitives, filter row).
 
 ## Pixel-match deltas closed (client-detail-specific chrome)
+
 1. **Year header tag** (ClientWorkPlanPanel): "· current tax year" →
-   "· *Current tax year*" (italic, leading capital) per V1kJX; "· projected"
-   → "· *Projected*" to match.
+   "· _Current tax year_" (italic, leading capital) per V1kJX; "· projected"
+   → "· _Projected_" to match.
 2. **At-risk pill tone** (ClientDetailWorkspace): the health pill for
    statutory-late unextended filings went `warning` (amber) → `destructive`
    (red) to match V1kJX's destructive-hover At-Risk pill. At-risk is a
@@ -24,6 +27,7 @@ PageHeader + CountPill, StatBand, canonical table primitives, filter row).
    amber, so the two read distinctly).
 
 ## Deliberately NOT changed — cohesion / canonical / no-fiction protected
+
 - **Filing rows** use the shared `DeadlineRow` (also /deadlines). V1kJX's
   bespoke row (bare mono code + inline juris chip) would FORK that component
   and break the /deadlines cohesion that was the first explicit requirement.
@@ -41,6 +45,7 @@ PageHeader + CountPill, StatBand, canonical table primitives, filter row).
 tsgo clean; console clean; both deltas verified live on Meridian Multistate.
 
 ## Round 2 — rail fidelity (Contacts + labels)
+
 - Contacts card row rebuilt to V1kJX: avatar + STACKED name / role / email
   (was name·role inline + email below). Name 14/500 (was 600); role on its
   own muted line, suppressed when it would duplicate the name (demo

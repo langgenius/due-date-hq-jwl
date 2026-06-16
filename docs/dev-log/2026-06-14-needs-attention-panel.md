@@ -32,6 +32,7 @@ hairlines read as part of the flagged card.
 
 First cut flooded the whole card red with a bare "Needs attention 1" header.
 Refined to a LAYERED card:
+
 - soft destructive **header band** (red-50) carrying an icon **medallion**
   (white seal + destructive ring), the title, a delicate **count chip**, and
   a new one-line **`summary`** prop that states what + why in plain language
@@ -49,6 +50,7 @@ body `rgb(255,255,255)`, count chip + summary present.
 convert when desired (NOT done here — these aren't currently framed as
 "needs attention" cards, and blanket-reddening warning surfaces would fight the
 red-economy rule, so they want a deliberate call):
+
 - /members expired-invite block (currently inline rows).
 - Any future degraded/blocked/at-risk card.
 

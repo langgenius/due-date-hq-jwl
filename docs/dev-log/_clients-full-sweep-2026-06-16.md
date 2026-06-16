@@ -5,19 +5,20 @@ after the /critique pass, this sweep covers the dialogs/panels/secondary
 surfaces I hadn't deep-polished, driven by a focused inventory.
 
 ## Shipped
+
 1. **Empty-state fiction removed** (`ClientsEmptyState`). Dropped the
    OutcomeStat band — "4 min average import" (no telemetry backs it) and
    "SOC 2 compliant" (a compliance/legal claim) were fiction on an app
    surface; "11 tools supported" duplicated the body copy (which already
    enumerates the tools + "6 more") and the logo strip. The logos + headline
-   + copy carry the reassurance honestly. Removed the now-unused
-   `OutcomeStat` component + Timer/Layers/ShieldCheck/ReactNode/useLingui
-   imports.
+   - copy carry the reassurance honestly. Removed the now-unused
+     `OutcomeStat` component + Timer/Layers/ShieldCheck/ReactNode/useLingui
+     imports.
 2. **Empty-state DD tile back on scale** — `size-[52px]` → `size-12` (48,
    still a touch larger than the 44px source tiles), `shadow-md` →
    `shadow-sm` (restrained-shadows; the dark tile already pops on contrast).
 3. **Compliance-posture chips off freelance radius** (`ClientCompliance
-   PosturePanel`) — tax-attribute chips `rounded-md` (6, off-scale) →
+PosturePanel`) — tax-attribute chips `rounded-md` (6, off-scale) →
    `rounded-full` (pill).
 4. **Fix-needs-facts badge tone** (`FixNeedsFactsSheet`) — "Needs state" /
    "Needs entity" `variant="destructive"` (red = error/alarm) →
@@ -36,6 +37,7 @@ surfaces I hadn't deep-polished, driven by a focused inventory.
    about or note until there's a change to audit.
 
 ## Verified-then-left-alone
+
 - **EmailComposeDialog** is fully dead code — not mounted, not imported (only
   a comment in `ClientDetailWorkspace` documents it as an intentional stub
   for when `messages.send` lands). Not on canvas, so left as the documented
@@ -44,6 +46,7 @@ surfaces I hadn't deep-polished, driven by a focused inventory.
   clean (real RPCs, correct primitives, honest counters). No changes.
 
 ## Empty-state fidelity to Pencil jQFBx / T4eNmw
+
 Yuqi: /design-critique + /critique the clients flow against Node IDs
 T4eNmw, jQFBx.
 
@@ -52,6 +55,7 @@ canonical/primary) and `T4eNmw` ("empty (skipped import)", a variant).
 Pulled both from Pencil and compared to the live `ClientsEmptyState`.
 
 Findings that mattered:
+
 - The live state already matches `jQFBx`'s headline/body/CTA/sample-chip
   copy verbatim, and `jQFBx` has **no stat band** — so removing the
   "4 min / SOC 2 / 11 tools" stats (earlier this sweep) was correct, not a
@@ -76,6 +80,7 @@ Findings that mattered:
   zero-client firm to render normally); specimen reverted. tsgo clean.
 
 ## Notes
+
 - tsgo clean; Setup tab verified live (classification at-rest now just the
   selector + hint; posture chips are pills). Empty state not visually
   verifiable in the seeded demo (needs a zero-client firm) — change is a

@@ -14,6 +14,7 @@ sending those variant designs separately.
 `caption` (quiet purpose line after the title) for the flat variant.
 
 **Hero (`AlertDetailDrawer`)**
+
 - Added the **"Needs your decision"** eyebrow pill (flag icon, accent
   container) — shown only while the alert is awaiting a decision (`matched`).
 - Sections renamed + numbered with captions: **1 Change** (what changed and
@@ -23,6 +24,7 @@ sending those variant designs separately.
 - Scroll-spy gains the **"Scroll to read all N sections"** hint.
 
 **Key fact (`AlertStructuredFields`)**
+
 - Hero do-by-when is now a single red **"Act by {date} · N days left"** chip
   (was the "Claim window closes" line).
 - **Change** section: a **"Parsed fields"** sub-header (bold left + "AI parsed —

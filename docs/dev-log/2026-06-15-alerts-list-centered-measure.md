@@ -12,7 +12,7 @@ cap). Yuqi's call: **center the 1040 column** so the whitespace is balanced.
 `/alerts` mounts `AlertsListPage` **embedded** inside `RulesPageShell`. The page
 title ("Alerts · N open · LIVE") is rendered by the shell (the `PageHeader`
 inside AlertsListPage is gated `!embedded`), and the shell's content wrapper
-(`mx-auto max-w-page-expanded`, ~1430) holds *both* the title and the embedded
+(`mx-auto max-w-page-expanded`, ~1430) holds _both_ the title and the embedded
 list. The 1040 cap lived on AlertsListPage's inner list column as `flex-1`
 (left-pinned). So:
 

@@ -49,6 +49,7 @@ export class ObligationQueuePage {
 
   async goto(path = '/deadlines') {
     await this.page.goto(path)
+    await this.heading.waitFor({ state: 'visible', timeout: 15_000 })
   }
 
   async search(query: string) {

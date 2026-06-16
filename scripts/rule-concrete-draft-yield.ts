@@ -1,4 +1,14 @@
-/* TEMP — concrete-draft yield report against local D1 (run AFTER generation). */
+#!/usr/bin/env node
+// Concrete-draft yield report against the LOCAL D1. For every source_defined
+// candidate rule, classifies its latest cached draft into a bulk-trust bucket:
+//   - high_trust      — confidence >= 0.5 AND excerpt is a verbatim match in source
+//                       (eligible for one-click bulk verify)
+//   - fuzzy_excerpt   — has a draft, but cited excerpt is not an exact source match
+//   - low_confidence  — model self-confidence below the bulk threshold
+//   - no_draft        — generation never produced an `ok` non-deterministic draft
+// Run after `scripts/generate-local-concrete-drafts.ts` to measure how many
+// rules are bulk-acceptable vs. need single human review vs. need source work.
+// Wired as `pnpm rules:concrete-draft-yield`.
 import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'

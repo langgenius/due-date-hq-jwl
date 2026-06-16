@@ -44,8 +44,9 @@ be generated (source present → explanation + Generate) vs the no-source blocke
 Dropped the overview's "Backlog composition" (By severity / By reason) panel.
 "Where to start" is now full-width. No information lost — the high-severity
 count still lives in the StatBand. Removed the now-orphaned `reviewReasonCounts`
-+ `listReviewTasks` query + the severity-mix object (replaced by a direct
-high-severity count for the StatBand stat).
+
+- `listReviewTasks` query + the severity-mix object (replaced by a direct
+  high-severity count for the StatBand stat).
 
 ## Verification
 

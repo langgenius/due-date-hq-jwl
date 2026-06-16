@@ -38,7 +38,7 @@ pill is a pixel-for-pixel swap.
 
 ## Deferred (parallel-session coordination)
 
-`routes/obligations.tsx` has an *inline duplicate* of `DueDaysPill` + a local
+`routes/obligations.tsx` has an _inline duplicate_ of `DueDaysPill` + a local
 `dueDaysTone`/`DueDaysTone` (identical output). The other session has
 uncommitted work in `obligations.tsx`, so I left those local copies in place
 (they still render identically) and will fold them onto the shared module in the

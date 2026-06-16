@@ -3,7 +3,7 @@
 _2026-06-15_
 
 The committed action bar (audit note + Apply / Mark reviewed / Dismiss / Copy
-draft) was a `SheetFooter` pinned *outside* the scroll area — always flush at
+draft) was a `SheetFooter` pinned _outside_ the scroll area — always flush at
 the bottom, no relationship to where the reader is in the document. Stage 6
 (Yuqi's chosen IA: "single card at bottom; footer floats then docks") turns it
 into a decision-card terminus.
@@ -22,7 +22,7 @@ into a decision-card terminus.
   state reads as a calm terminus rather than a hovering bar. Defaults docked, so
   short alerts never show a phantom shadow; reset per alert.
 - The white fill is back (the old footer dropped it as "non-overlapping") since
-  the document now scrolls *under* the bar.
+  the document now scrolls _under_ the bar.
 
 ## Notes
 

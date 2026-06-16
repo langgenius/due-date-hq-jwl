@@ -12,16 +12,18 @@ float→dock behavior for parity (`ObligationQueueDetailDrawer.tsx`):
   both modes to compute `atBottom = scrollTop + clientHeight >= scrollHeight - 8`
   → `footerDocked`.
 - Footer: `transition-shadow`; when floating, a `0 -10px 28px -16px` drop-shadow
-  + the `border-divider-subtle` divider; when docked, no shadow + transparent
-  border (the footer merges with the document end) — the exact tokens the alert
-  decision bar uses.
+  - the `border-divider-subtle` divider; when docked, no shadow + transparent
+    border (the footer merges with the document end) — the exact tokens the alert
+    decision bar uses.
 
 ## Verify
+
 tsgo + vp clean. Live verification still blocked (the shared preview tab is being
 driven elsewhere by the parallel session); this is a faithful copy of the
 already-shipped alert `decisionDocked` mechanism, so risk is low.
 
 ## Hero fact-cards — deferred, needs a steer
+
 The deadline hero's three date cards (`PrimaryDeadlineStrip variant="cards"`)
 render as **three separate rounded-12 bordered boxes**, while the alert detail's
 fact grid is **one framed container with hairline-divided cells**. Per the

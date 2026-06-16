@@ -7,6 +7,7 @@ adversarially-confirmed (≥2/3). Acting on the confirmed set in clusters.
 dropped unverified — investigating those correctness ones separately.)
 
 ## Cluster 1 — Summary strip truthfulness under load
+
 - **Fake zeros while loading [P1]**: the route skeleton gated only on
   `clientQuery.isLoading`, so once the client resolved the hero rendered
   Blocked 0 / Open 0 / Filed 0 with calm "None blocked / Nothing open"
@@ -29,6 +30,7 @@ dropped unverified — investigating those correctness ones separately.)
 tsgo clean; "Filed" verified live on the detail strip.
 
 ## Cluster 2 — copy + accessibility
+
 - **Reclassification mislabel [P1]** (ClassificationImpactDialog): the one
   dialog serves both reason kinds, but always said "Apply reclassification"
   / "Reclassified" / "Couldn't apply reclassification" — wrong for a
@@ -56,6 +58,7 @@ tsgo clean; "Filed" verified live on the detail strip.
 tsgo clean; detail page verified live.
 
 ## Cluster 3 — master/detail row feedback + empty state
+
 - **Opened row had no selected state [P1]**: clicking a filing row opens the
   obligation in the side panel (`activeObligationId`), but that id was never
   threaded into `DeadlineRow`, so `isActive` stayed false and nothing showed
@@ -71,16 +74,18 @@ tsgo clean; detail page verified live.
 
 Deferred (scoped follow-ups, need DeadlineRow keyboard/aria rework or
 panel-level handling, riskier than warranted here):
+
 - The inline-expand disclosure chevron never rotates on this surface (the
   row opens a panel, not inline content) — now cosmetically a static "open"
   affordance; a proper open-in-panel glyph / mode is a follow-up. `isActive`
-  + `aria-current` resolve the core "no feedback" problem.
+  - `aria-current` resolve the core "no feedback" problem.
 - Keyboard Escape on a focused row doesn't close the panel it opened (best
   fixed at the panel level — Escape-to-close on the obligation aside).
 - Filing-plan tab count (unbounded) vs rows (capped 100) — only diverges at
-  >100 deadlines/client (documented rare edge); add "showing N of M" later.
+  > 100 deadlines/client (documented rare edge); add "showing N of M" later.
 
 Cohort decisions flagged, NOT changed (would fork app-wide conventions):
+
 - Filing-plan column legend `font-bold` (700) uppercase micro-label — the
   identical class is the convention on /alerts + ~15 surfaces; changing one
   line forks the cohort. Type-weight cap vs convention is an app-wide call.

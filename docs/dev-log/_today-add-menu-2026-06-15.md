@@ -10,6 +10,7 @@ workspace:
 - **Import data** — the bulk migration wizard (onboarding / batch path)
 
 ## Build
+
 - New `features/dashboard/add-menu.tsx` (`DashboardAddMenu`) encapsulates
   the whole thing: the `clients.create` mutation (invalidates clients +
   dashboard, toasts, navigates to the new client), the import-wizard
@@ -29,6 +30,7 @@ workspace:
   overlap.
 
 ## Verify
+
 tsgo clean; menu verified live (2 items, correct copy, no overlap, opens on
 the "+"); catalogs re-extracted + 56 zh-CN filled (6 mine, rest the parallel
 session's pending strings) → strict compile green, no drift.

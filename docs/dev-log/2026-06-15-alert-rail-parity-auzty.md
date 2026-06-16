@@ -11,6 +11,7 @@ smooth.
 ## What
 
 `RailItem` now carries the same two signals as `PulseAlertRow`:
+
 - **Unread dot** leads the date column (accent while the alert is
   matched / partially_applied; reserves its slot when read so dates stay
   aligned). The time aligns under the date, past the dot's slot.

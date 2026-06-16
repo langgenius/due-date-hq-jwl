@@ -125,8 +125,7 @@ export function DailyBriefCard({
   // band between monitor and work was an empty blue billboard) — the tab + a
   // deterministic all-quiet hint carry the same facts at one line. The user
   // can still expand it.
-  const nothingToSay =
-    aiEnabled && brief?.status === 'failed' && !brief.text && catchupCount === 0
+  const nothingToSay = aiEnabled && brief?.status === 'failed' && !brief.text && catchupCount === 0
 
   const briefKey = brief?.generatedAt ?? brief?.status ?? 'none'
   const collapsed = collapsePref?.key === briefKey ? collapsePref.collapsed : nothingToSay

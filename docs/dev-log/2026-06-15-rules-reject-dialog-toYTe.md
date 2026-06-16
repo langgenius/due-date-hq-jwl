@@ -23,7 +23,7 @@ Rebuilt to match toYTe:
 - Internal note textarea is **always visible** (was "Other"-only). For preset
   reasons the typed note is appended to the persisted `reason` string
   (`"{label} — {note}"`) so an always-visible field never silently discards
-  input; for "Other" the note still *is* the reason (required).
+  input; for "Other" the note still _is_ the reason (required).
 - Footer: left helper hint + Cancel + **`destructive-primary`** (solid red)
   "Reject rule" with leading ban icon. (The legacy `destructive` variant maps
   to `destructive-secondary` — a soft white/red treatment; toYTe's primary is
@@ -34,7 +34,7 @@ Rebuilt to match toYTe:
 
 toYTe's second dialog is a snooze/date-picker "Defer review". There is **no
 rule defer/snooze backend**: `snoozedUntil` exists only on obligation
-*instances* (deadlines), not on rule review tasks (which only
+_instances_ (deadlines), not on rule review tasks (which only
 accept/reject/supersede). A date-picker defer modal would be a net-new feature
 (mutation + schema column + queue-resurface logic), not polish — so it's
 omitted per the "no fiction on canvas" rule.

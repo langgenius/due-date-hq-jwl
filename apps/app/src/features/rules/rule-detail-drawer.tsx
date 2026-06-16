@@ -636,9 +636,7 @@ export function RuleDetailCompact({
           {/* Informational footer — version + full history, no actions. One
               hairline marks it off from the facts above (the only divider
               left in this column). */}
-          <div className="mt-auto border-t border-divider-subtle px-6 py-5">
-            {activityCard}
-          </div>
+          <div className="mt-auto border-t border-divider-subtle px-6 py-5">{activityCard}</div>
         </div>
 
         {/* RIGHT — the decision rail (gray, scrolls independently). */}
@@ -2017,9 +2015,9 @@ function AiDraftReviewPanel({
             <p className="text-xs text-text-tertiary">
               <Trans>
                 This rule&apos;s due date is set by its official source, so it has no concrete logic
-                yet. Generating a draft reads that source and proposes the exact due date —
-                review the proposal and its confidence, then accept to start creating client
-                deadlines from it.
+                yet. Generating a draft reads that source and proposes the exact due date — review
+                the proposal and its confidence, then accept to start creating client deadlines from
+                it.
               </Trans>
             </p>
           ) : (

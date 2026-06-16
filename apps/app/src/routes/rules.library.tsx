@@ -837,53 +837,51 @@ function OverviewReviewBreakdown({
           high-severity · days waiting — not a magnitude bar, with an
           explicit Review button into that jurisdiction's queue. */}
       <div className="min-w-0 overflow-hidden rounded-xl border border-divider-subtle">
-          {jurisdictions.map((g, index) => {
-            const days =
-              g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
-            return (
-              <div
-                key={g.jurisdiction}
-                className={cn(
-                  'flex items-center gap-3 px-4 py-3',
-                  index > 0 && 'border-t border-divider-subtle',
-                )}
-              >
-                <StateBadge code={g.jurisdiction} size="sm" preview={false} />
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="truncate text-base font-medium text-text-primary">
-                    {g.label}
-                  </span>
-                  {/* Subline carries only the row's *differentiators*: high
+        {jurisdictions.map((g, index) => {
+          const days =
+            g.oldest != null ? Math.max(1, Math.ceil((now - g.oldest) / 86_400_000)) : null
+          return (
+            <div
+              key={g.jurisdiction}
+              className={cn(
+                'flex items-center gap-3 px-4 py-3',
+                index > 0 && 'border-t border-divider-subtle',
+              )}
+            >
+              <StateBadge code={g.jurisdiction} size="sm" preview={false} />
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="truncate text-base font-medium text-text-primary">{g.label}</span>
+                {/* Subline carries only the row's *differentiators*: high
                       severity (when present) + how long it's waited. The
                       absolute "oldest {date}" lived here too, but it restates
                       the same timestamp as "Nd waiting" and is identical on
                       every row in single-cohort data — the StatBand owns the
                       absolute date. "No high-severity" is dropped: absence
                       reads as none without a label on 4-of-6 rows. */}
-                  <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
-                    {g.highCount > 0 ? (
-                      <span className="text-text-warning">
-                        <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
-                      </span>
-                    ) : null}
-                    {g.highCount > 0 && days != null ? <span aria-hidden>·</span> : null}
-                    {days != null ? <span>{t`${days}d waiting`}</span> : null}
-                  </span>
-                </div>
-                <span className="shrink-0 text-sm font-semibold tabular-nums text-text-warning">
-                  <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
+                <span className="flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-text-tertiary">
+                  {g.highCount > 0 ? (
+                    <span className="text-text-warning">
+                      <Plural value={g.highCount} one="# high-severity" other="# high-severity" />
+                    </span>
+                  ) : null}
+                  {g.highCount > 0 && days != null ? <span aria-hidden>·</span> : null}
+                  {days != null ? <span>{t`${days}d waiting`}</span> : null}
                 </span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onSelectJurisdiction(g.jurisdiction)}
-                >
-                  <Trans>Review</Trans>
-                  <ChevronRightIcon data-icon="inline-end" />
-                </Button>
               </div>
-            )
-          })}
+              <span className="shrink-0 text-sm font-semibold tabular-nums text-text-warning">
+                <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onSelectJurisdiction(g.jurisdiction)}
+              >
+                <Trans>Review</Trans>
+                <ChevronRightIcon data-icon="inline-end" />
+              </Button>
+            </div>
+          )
+        })}
       </div>
     </section>
   )
@@ -4894,7 +4892,9 @@ function BulkReviewListModal({
                 included.length === 1 ? (
                   <Trans>Reviewing 1 rule in {singleJurisdiction}</Trans>
                 ) : (
-                  <Trans>Reviewing {included.length} rules in {singleJurisdiction}</Trans>
+                  <Trans>
+                    Reviewing {included.length} rules in {singleJurisdiction}
+                  </Trans>
                 )
               ) : (
                 <Plural value={included.length} one="# rule selected" other="# rules selected" />
@@ -4922,7 +4922,9 @@ function BulkReviewListModal({
               {allNeedAiDraft ? (
                 <>
                   <p className="text-sm font-medium text-text-warning">
-                    <Trans>None of these can be accepted yet — each needs an AI concrete draft.</Trans>
+                    <Trans>
+                      None of these can be accepted yet — each needs an AI concrete draft.
+                    </Trans>
                   </p>
                   <p className="text-xs text-text-secondary">
                     <Trans>Reject them here, or close and generate drafts first.</Trans>

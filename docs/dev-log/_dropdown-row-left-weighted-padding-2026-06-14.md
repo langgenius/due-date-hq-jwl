@@ -2,7 +2,8 @@
 
 **Date:** 2026-06-14
 **Surface:** `apps/app/src/components/patterns/filter-trigger.tsx` (`FilterTrigger`)
-+ `packages/ui/src/lib/overlay.ts` (`overlayRowClassName`)
+
+- `packages/ui/src/lib/overlay.ts` (`overlayRowClassName`)
 
 Yuqi: "all dropdown buttons should have left padding more than right padding."
 

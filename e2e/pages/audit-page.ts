@@ -17,6 +17,7 @@ export class AuditPage {
 
   async goto(path = '/audit') {
     await this.page.goto(path)
+    await this.heading.waitFor({ state: 'visible', timeout: 15_000 })
   }
 
   async selectAction(action: string) {

@@ -15,6 +15,7 @@ shouting — Yuqi: "subtle blue wand pill … not too accent heavy."
 
 The always-on "N% confidence" bar meter in the bottom meta is gone. Confidence
 now surfaces as a head-row warning pill ONLY when shaky:
+
 - `medium` tier → "Low confidence"
 - `low` tier → "Very low confidence"
 - `high` tier → nothing (the absence is the all-clear)

@@ -8,7 +8,7 @@ Two cross-surface cohesion fixes from the alert↔deadline critique.
 
 `use-obligation-queue-columns.tsx` — the client name (the row's SUBJECT) was
 `font-normal` until the row was active, so the deadline table's primary column
-read *light* by default, unlike the alert list's bold-anchor titles. Raised the
+read _light_ by default, unlike the alert list's bold-anchor titles. Raised the
 floor to `font-medium` always; the active row reads `font-semibold`. The row's
 subject now reads as the subject the way the alert headline does — without
 turning the table into a card-list (it stays a dense workbench).
@@ -32,5 +32,6 @@ hero-collapse (the alert reveals it in the crumb) — different mechanism, same
 result; the crumb-title-reveal swap (#25) is a separate, lower-value follow-up.
 
 ## Verify
+
 tsgo + vp clean. Live screenshot still blocked by the parallel session driving
 the shared preview tab; both are low-risk token/structure changes.

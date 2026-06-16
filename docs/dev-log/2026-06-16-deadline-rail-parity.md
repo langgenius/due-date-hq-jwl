@@ -15,14 +15,14 @@ detail uses **two** navigator rails, and one of them was a real size mismatch:
 
 Aligned both to `AlertListRail` (the canonical):
 
-| Element | Alert rail | Was (DeadlineNavigatorRail) | Now |
-|---|---|---|---|
-| Title | `text-base` / medium | `text-nav` / semibold-when-active | `text-base` / medium |
-| Date | `text-sm` | `text-base` | `text-sm` |
-| Relative-due | `text-caption-xs` | `text-xs` | `text-caption-xs` |
-| Selection | light `bg-state-base-hover`, no bar | left accent bar + `bg-default-subtle` | light fill, no bar |
-| Unselected | dimmed `opacity-55` (date + badges), title→secondary | not dimmed | dimmed + title→secondary |
-| Row padding | `py-4`, `gap-3`, time col `w-64` | `py-3.5`, `gap-2.5`, `w-60` | `py-4`, `gap-3`, `w-64` |
+| Element      | Alert rail                                           | Was (DeadlineNavigatorRail)           | Now                      |
+| ------------ | ---------------------------------------------------- | ------------------------------------- | ------------------------ |
+| Title        | `text-base` / medium                                 | `text-nav` / semibold-when-active     | `text-base` / medium     |
+| Date         | `text-sm`                                            | `text-base`                           | `text-sm`                |
+| Relative-due | `text-caption-xs`                                    | `text-xs`                             | `text-caption-xs`        |
+| Selection    | light `bg-state-base-hover`, no bar                  | left accent bar + `bg-default-subtle` | light fill, no bar       |
+| Unselected   | dimmed `opacity-55` (date + badges), title→secondary | not dimmed                            | dimmed + title→secondary |
+| Row padding  | `py-4`, `gap-3`, time col `w-64`                     | `py-3.5`, `gap-2.5`, `w-60`           | `py-4`, `gap-3`, `w-64`  |
 
 So both deadline rails now read with the same type scale + selection language as
 the alert rail — switching between the two detail pages feels familiar.
@@ -37,6 +37,7 @@ the alert rail — switching between the two detail pages feels familiar.
   frees up.
 
 ## Follow-ups noted
+
 - The two deadline rails (`ObligationListRail` + `DeadlineNavigatorRail`) are
   near-duplicate navigators — a consolidation candidate.
 - `DeadlineNavigatorRail`'s relative-due tone is still hand-rolled

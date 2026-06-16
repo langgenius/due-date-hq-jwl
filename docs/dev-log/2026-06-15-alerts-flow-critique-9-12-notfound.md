@@ -17,7 +17,8 @@ Source & confidence card. (`confPct` dropped from `AlertLifecycleStrip`.)
 
 Removed the "Scroll to read all N sections" hint beside the scroll-spy nav — a
 tutorial line that went stale the instant you scrolled. The scroll-spy underline
-+ the content cut off below the fold already imply "there's more".
+
+- the content cut off below the fold already imply "there's more".
 
 ## #11 — one loud "your decision", not two
 
@@ -67,8 +68,8 @@ forever.
   `navigator.onLine` true but fetches paused), so a real fetch never completes
   here. Verified the render path by injecting the server's actual
   `PULSE_NOT_FOUND` error into the cached query → the EmptyState renders (SearchX
-  + "This alert isn't available" + "Back to alerts"). Also confirmed the paused
-  state now shows the skeleton instead of a blank pane.
+  - "This alert isn't available" + "Back to alerts"). Also confirmed the paused
+    state now shows the skeleton instead of a blank pane.
 
 ## i18n
 

@@ -73,7 +73,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  ...(process.env.CI ? { workers: 1 } : {}),
+  // Wrangler's local worker/D1 stack intermittently returns 503 under
+  // Playwright's fully-parallel default. CI already ran single-worker; keep
+  // local `pnpm test:e2e` on the same reliability profile.
+  workers: 1,
   reporter: process.env.CI
     ? [
         ['github'],

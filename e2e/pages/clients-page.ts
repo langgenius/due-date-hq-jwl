@@ -16,7 +16,7 @@ export class ClientsPage {
   constructor(readonly page: Page) {
     this.directoryTitle = page.getByRole('heading', { name: 'Clients' })
     this.toolbar = page.locator('body')
-    this.clientFilter = page.getByRole('button', { name: /^Client(?:\s+\d+)?$/ }).first()
+    this.clientFilter = page.getByRole('button', { name: 'Filter clients' })
     this.entityFilter = page.getByRole('button', { name: /^Entity(?:\s+\d+)?$/ }).first()
     this.stateFilter = page.getByRole('button', { name: /^States(?:\s+\d+)?$/ }).first()
     this.newClientButton = page.getByRole('button', { name: 'New client' })
@@ -128,10 +128,7 @@ export class ClientsPage {
 
   async selectClientFilter(clientName: string) {
     await this.clientFilter.click()
-    await this.page
-      .getByRole('menuitemcheckbox', { name: new RegExp(`^${escapeRegExp(clientName)}`) })
-      .click()
-    await this.page.keyboard.press('Escape')
+    await this.page.getByRole('textbox', { name: 'Filter clients' }).fill(clientName)
   }
 
   metricCard(label: string) {
@@ -164,6 +161,12 @@ export class ClientsPage {
     // can never resolve to the `role="tab"` element regardless of label
     // overlap.
     return this.page.getByRole('heading', { level: 2, name: sectionName })
+  }
+
+  detailTabPanel(tabName: string) {
+    return this.page.getByRole('tabpanel', {
+      name: new RegExp(`^${escapeRegExp(tabName)}(?:\\s+\\d+)?$`),
+    })
   }
 }
 

@@ -16,7 +16,10 @@ Moved the sync from a render-phase conditional `setState` into a
 
 ```js
 useEffect(() => {
-  if (openAlertId === null) { queueSyncedAlertId.current = null; return }
+  if (openAlertId === null) {
+    queueSyncedAlertId.current = null
+    return
+  }
   if (historyMode || queueSyncedAlertId.current === openAlertId) return
   const openAlert = alerts.find((a) => a.id === openAlertId)
   if (!openAlert) return // cold deep-link: re-runs when `alerts` arrives

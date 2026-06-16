@@ -1,12 +1,14 @@
 # cn() was silently stripping custom font-size tokens (2026-06-15)
 
 ## Symptom
+
 Yuqi asked (twice) for the table-header CAPS to be 1px smaller. I'd lowered
 the `--text-column-label` token 12 → 11px, but the header kept rendering at
 the inherited **13px** — the `<th>` didn't even carry the `text-column-label`
 class in the DOM.
 
 ## Root cause
+
 `cn()` (packages/ui/src/lib/utils.ts) is `extendTailwindMerge` that only
 registered TWO custom font-size tokens — `caption` / `caption-xs`. Every
 other custom size token (`column-label`, `item-title`, `row-anchor`,
@@ -23,11 +25,13 @@ with a text color via `cn()` lost its size. The earlier `caption` fix
 (2026-06-10) was the same bug, patched for one token only.
 
 ## Fix
+
 Registered the FULL custom-size set in the `font-size` class group, so size
 and color survive as distinct properties. One config change, fixes it
 app-wide for every component using these tokens via `cn()`.
 
 ## Verify (fresh dev server)
+
 The long-running Vite process was also serving a stale `table.tsx` (its
 `<th>` lacked `data-slot="table-head"`); restarted it to get an honest read.
 After the fix: Priorities `<th>` = **11px / 600** with `text-column-label`

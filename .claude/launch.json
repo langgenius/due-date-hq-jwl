@@ -48,6 +48,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--dir", "/Users/yuqi/dev/ddhq-deadlines-parity/apps/app", "dev", "--", "--port", "5183", "--strictPort"],
       "port": 5183
+    },
+    {
+      "name": "report-static-8099",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["-e", "const http=require('http'),fs=require('fs');const f='/Users/hanxujiang/Documents/due-date-hq-jwl/duedatehq-progress-report.html';http.createServer((q,s)=>{s.setHeader('Content-Type','text/html; charset=utf-8');fs.createReadStream(f).pipe(s)}).listen(8099,()=>console.log('report on 8099'))"],
+      "port": 8099
     }
   ]
 }
