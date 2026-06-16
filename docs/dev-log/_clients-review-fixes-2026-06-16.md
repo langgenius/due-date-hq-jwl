@@ -642,3 +642,31 @@ batch: Materials/Workpapers headerRight button toolbars, Setup-tab TabSection.
 
 All four flagged surfaces now banded: rule-detail, client rail, Materials/Workpapers,
 Setup tab. tsgo clean (my files).
+
+## Cluster 27 — Panel close-X placement, click-away-to-close, redundant card line
+Three issues Yuqi flagged on the in-client obligation panel:
+- **"random close" — the × floated in the panel CENTER.** Root cause (found by
+  measuring the live DOM): the panel header's 760px content measure
+  (`[&>*]:w-full [&>*]:max-w-[760px] [&>*]:mx-auto`) was applying to the absolute
+  close button too, stretching it to 760px so the X rendered centered. Added
+  `!size-8 !max-w-none` to opt the button out → X sits in the real top-right
+  corner (verified: 32×32, 12px from the edge).
+- **Click the left side to close the panel.** Added a click-away on the left
+  column: when the panel is open, clicking the STATIC left context (not a
+  deadline row `[role=article]` or a control) calls `closeObligationPanel()`.
+  Rows still open/switch; the corner × + Tab/Esc remain the keyboard path.
+  Verified live: clicking "Current tax year" closed the panel; clicking a row
+  still opened it.
+- **"description still here" — redundant key-date line.** The INTERNAL TARGET
+  card showed "No buffer — same as filing" whenever the internal date equals the
+  filing date — pure redundancy (both cards already show the same date). Now
+  returns null in that case; a real lead time ("N days before filing") still
+  shows. Kept "$X owed" on PAYMENT (you can't derive an amount from a date —
+  demote-don't-delete). Verified live (INTERNAL card now date-only).
+
+ANSWERED (no code change): the Federal / New York / California chips in the
+filing-plan DEADLINE column are `TaxCodeBadge display="jurisdiction"`
+(DeadlineRow.tsx:242), derived from each obligation's tax code / jurisdiction.
+
+tsgo clean (my files). All three drawer/panel files staged selectively around the
+parallel session's concurrent edits.

@@ -553,7 +553,11 @@ export function PrimaryDeadlineStrip({
     const internalBuffer: string | null = (() => {
       if (internalIso === null || filingIso === null) return null
       const buffer = daysBetween(internalIso, filingIso)
-      if (buffer <= 0) return t`No buffer — same as filing`
+      // 2026-06-16 (Yuqi "description still here"): when the internal target IS
+      // the filing date there's nothing to say — the two cards already show the
+      // same date. Drop the redundant "No buffer — same as filing" line; only a
+      // REAL lead time ("N days before filing") earns a meta line.
+      if (buffer <= 0) return null
       if (buffer === 1) return t`1 day before filing`
       return t`${buffer} days before filing`
     })()

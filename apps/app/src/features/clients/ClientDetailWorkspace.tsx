@@ -563,7 +563,28 @@ export function ClientDetailWorkspace({
         {/* Left page column carries the gutter + top padding (the route section
             has none) so the obligation panel — a sibling below — reaches the
             right edge edge-to-edge (Yuqi #3/#9). */}
-        <div className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-5 md:px-8 md:pt-6">
+        {/* 2026-06-16 (Yuqi "click on the left side to close the right panel"):
+            when the obligation panel is open, clicking the STATIC left context
+            (not a deadline row [role=article] or a control) dismisses it — a
+            click-away. The corner × and Tab/Esc remain the keyboard path, so
+            this static-element handler is a mouse-only convenience. */}
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+        <div
+          className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-5 md:px-8 md:pt-6"
+          onClick={
+            panelOpen
+              ? (event) => {
+                  if (
+                    (event.target as HTMLElement).closest(
+                      'button, a, [role="button"], [role="article"], input, select, textarea, label, [data-no-panel-close]',
+                    )
+                  )
+                    return
+                  closeObligationPanel()
+                }
+              : undefined
+          }
+        >
           <PageHeader
             // The canonical `breadcrumbs` prop, styled as a friendly
             // link with chevron separator + ⌘[ hint. Lines up with

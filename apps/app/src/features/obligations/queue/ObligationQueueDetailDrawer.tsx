@@ -2043,7 +2043,12 @@ export function ObligationQueueDetailDrawer({
               size="icon-sm"
               aria-label={t`Close deadline detail`}
               onClick={onClose}
-              className="absolute right-3 top-3 text-text-tertiary hover:text-text-primary"
+              // 2026-06-16 (Yuqi "random close"): the header's 760px content
+              // measure (`[&>*]:w-full [&>*]:max-w-[760px] [&>*]:mx-auto`) was
+              // catching this absolute child too, stretching the close button to
+              // 760px so the X rendered CENTERED. `!size-8 !max-w-none` opt it out
+              // so the X sits in the real top-right corner.
+              className="absolute top-3 right-3 !size-8 !max-w-none text-text-tertiary hover:text-text-primary"
             >
               <XIcon className="size-4" aria-hidden />
             </Button>
