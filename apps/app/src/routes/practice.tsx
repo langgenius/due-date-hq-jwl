@@ -77,6 +77,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
 import { formatDate } from '@/lib/utils'
+import { FieldLabel as CapsLabel } from '@/components/primitives/field-label'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 const PRIORITY_FACTOR_KEYS = [
@@ -1050,9 +1051,9 @@ function PriorityKpiTile({
         <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-state-accent-hover text-text-accent">
           {icon}
         </span>
-        <span className="text-caption-xs font-semibold tracking-wide text-text-muted uppercase">
+        <CapsLabel as="span" variant="group" className="text-text-muted">
           {label}
-        </span>
+        </CapsLabel>
       </div>
       <span className="text-3xl font-semibold tabular-nums text-text-primary">{value}</span>
       <span className="text-xs leading-4 text-text-tertiary">{hint}</span>

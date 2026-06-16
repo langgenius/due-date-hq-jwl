@@ -7,6 +7,7 @@ import { AlertTriangleIcon } from 'lucide-react'
 
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { DueCountdownText } from '@/components/primitives/due-date-label'
+import { FieldLabel } from '@/components/primitives/field-label'
 import { type ObligationStatus } from '@/features/obligations/status-control'
 import {
   dueCountdownTone,
@@ -137,7 +138,9 @@ export function AuditSummaryRows({ rows }: { rows: AuditSummaryRow[] }) {
 export function DetailRow({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div className="grid grid-cols-[96px_1fr] gap-3 text-sm">
-      <dt className="text-xs font-medium uppercase tracking-wider text-text-tertiary">{label}</dt>
+      <FieldLabel as="dt" variant="field">
+        {label}
+      </FieldLabel>
       <dd className="break-words text-text-primary">{value}</dd>
     </div>
   )
@@ -287,9 +290,9 @@ export function EvidenceArtifactStatusGrid({ cells }: { cells: ArtifactStatusCel
               )}
               aria-hidden
             />
-            <span className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
+            <FieldLabel as="span" variant="group">
               {cell.label}
-            </span>
+            </FieldLabel>
           </div>
           <span className="text-sm font-semibold text-text-primary">{cell.value}</span>
         </div>
@@ -328,9 +331,9 @@ export function AuthorityFactStrip({
               {fact.icon}
             </span>
           ) : null}
-          <span className="font-mono text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
+          <FieldLabel as="span" variant="group" className="font-mono">
             {fact.label}
-          </span>
+          </FieldLabel>
           <span className="text-xs font-medium text-text-secondary">{fact.value}</span>
         </span>
       ))}

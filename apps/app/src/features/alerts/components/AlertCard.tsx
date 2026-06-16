@@ -7,6 +7,7 @@ import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { formatTaxCode } from '@/lib/tax-codes'
@@ -315,17 +316,17 @@ export function AlertCard({
                     the meta row above carries the relative "Nmo ago"). */}
               <div className="grid grid-cols-[5fr_5fr_3fr] overflow-hidden rounded-lg bg-background-section">
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
+                  <FieldLabel as="span" variant="group" className="text-text-muted">
                     <Trans>What changed</Trans>
-                  </span>
+                  </FieldLabel>
                   <span className="truncate text-xs font-medium text-text-secondary">
                     {changeKindLabel(alert.changeKind)}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
+                  <FieldLabel as="span" variant="group" className="text-text-muted">
                     <Trans>Affecting</Trans>
-                  </span>
+                  </FieldLabel>
                   <span className="truncate text-xs font-medium text-text-secondary">
                     {firstForm ? (
                       <>
@@ -338,9 +339,9 @@ export function AlertCard({
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
-                  <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
+                  <FieldLabel as="span" variant="group" className="text-text-muted">
                     <Trans>Published</Trans>
-                  </span>
+                  </FieldLabel>
                   <span className="truncate text-xs font-medium text-text-secondary tabular-nums">
                     {formatDate(alert.publishedAt)}
                   </span>

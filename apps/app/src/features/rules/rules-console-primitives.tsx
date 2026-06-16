@@ -11,6 +11,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import type { BreadcrumbItem } from '@/components/patterns/breadcrumb'
 import { PageHeader } from '@/components/patterns/page-header'
+import { FieldLabel } from '@/components/primitives/field-label'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 
 import { normalizeSourceHealth } from './rules-console-model'
@@ -148,9 +149,9 @@ export function SectionFrame({ className, children }: { className?: string; chil
 
 export function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="text-xs font-medium tracking-eyebrow whitespace-pre text-text-tertiary uppercase">
+    <FieldLabel as="div" variant="group" className="whitespace-pre">
       {children}
-    </p>
+    </FieldLabel>
   )
 }
 

@@ -13,6 +13,8 @@ import {
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { FieldLabel } from '@/components/primitives/field-label'
+
 /**
  * Settings IA — single source of truth.
  *
@@ -153,9 +155,9 @@ export function SettingsSubNav({ className }: { className?: string }) {
 
   return (
     <nav aria-label={t`Settings sections`} className={cn('flex flex-col gap-0.5', className)}>
-      <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-eyebrow text-text-tertiary">
+      <FieldLabel as="div" variant="group" className="px-3 pb-2">
         {t`Settings`}
-      </p>
+      </FieldLabel>
       {items.map(({ to, label, Icon, end }) => (
         <NavLink
           key={to}

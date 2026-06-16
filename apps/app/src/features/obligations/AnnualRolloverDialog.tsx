@@ -23,6 +23,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate } from '@/lib/utils'
@@ -278,20 +279,30 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-background-section">
-                      <TableHead className="text-caption-xs font-semibold tracking-wider text-text-muted uppercase">
-                        <Trans>Client · Form</Trans>
+                      <TableHead>
+                        <FieldLabel as="span" variant="group" className="text-text-muted">
+                          <Trans>Client · Form</Trans>
+                        </FieldLabel>
                       </TableHead>
-                      <TableHead className="text-caption-xs font-semibold tracking-wider text-text-muted uppercase">
-                        <Trans>TY {headerFrom} due</Trans>
+                      <TableHead>
+                        <FieldLabel as="span" variant="group" className="text-text-muted">
+                          <Trans>TY {headerFrom} due</Trans>
+                        </FieldLabel>
                       </TableHead>
-                      <TableHead className="text-caption-xs font-semibold tracking-wider text-text-muted uppercase">
-                        <Trans>TY {headerTo} due</Trans>
+                      <TableHead>
+                        <FieldLabel as="span" variant="group" className="text-text-muted">
+                          <Trans>TY {headerTo} due</Trans>
+                        </FieldLabel>
                       </TableHead>
-                      <TableHead className="text-caption-xs font-semibold tracking-wider text-text-muted uppercase">
-                        <Trans>Rule change</Trans>
+                      <TableHead>
+                        <FieldLabel as="span" variant="group" className="text-text-muted">
+                          <Trans>Rule change</Trans>
+                        </FieldLabel>
                       </TableHead>
-                      <TableHead className="text-caption-xs font-semibold tracking-wider text-text-muted uppercase">
-                        <Trans>Disposition</Trans>
+                      <TableHead>
+                        <FieldLabel as="span" variant="group" className="text-text-muted">
+                          <Trans>Disposition</Trans>
+                        </FieldLabel>
                       </TableHead>
                     </TableRow>
                   </TableHeader>

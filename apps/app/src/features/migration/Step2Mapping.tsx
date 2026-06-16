@@ -239,19 +239,23 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
             aria-hidden
             className="hidden items-center gap-3 border-b border-divider-regular bg-background-subtle px-4 py-2.5 sm:flex"
           >
-            <span className="w-[170px] shrink-0 text-caption-xs font-semibold uppercase tracking-eyebrow text-text-muted">
+            <FieldLabel as="span" variant="group" className="w-[170px] shrink-0 text-text-muted">
               <Trans>Source column</Trans>
-            </span>
+            </FieldLabel>
             <span className="w-7 shrink-0" />
-            <span className="w-[200px] shrink-0 text-caption-xs font-semibold uppercase tracking-eyebrow text-text-muted">
+            <FieldLabel as="span" variant="group" className="w-[200px] shrink-0 text-text-muted">
               <Trans>DueDateHQ field</Trans>
-            </span>
-            <span className="min-w-0 flex-1 text-caption-xs font-semibold uppercase tracking-eyebrow text-text-muted">
+            </FieldLabel>
+            <FieldLabel as="span" variant="group" className="min-w-0 flex-1 text-text-muted">
               <Trans>Sample (first row)</Trans>
-            </span>
-            <span className="w-[140px] shrink-0 text-right text-caption-xs font-semibold uppercase tracking-eyebrow text-text-muted">
+            </FieldLabel>
+            <FieldLabel
+              as="span"
+              variant="group"
+              className="w-[140px] shrink-0 text-right text-text-muted"
+            >
               <Trans>Confidence</Trans>
-            </span>
+            </FieldLabel>
           </div>
           <ul
             aria-label={t`Column mappings`}

@@ -31,6 +31,7 @@ import {
 } from '@duedatehq/ui/components/ui/select'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { PageHeader } from '@/components/patterns/page-header'
 import { roleLabel, useFirmPermission } from '@/features/permissions/permission-gate'
 import { SettingsShell } from '@/features/settings/settings-sub-nav'
@@ -300,15 +301,15 @@ export function SettingsPermissionsRoute() {
               {/* Header */}
               <div className="flex items-center bg-background-section px-5 py-4">
                 <div className="w-[260px] shrink-0 pr-3">
-                  <span className="text-xs font-semibold uppercase tracking-eyebrow text-text-tertiary">
+                  <FieldLabel as="span" variant="group">
                     <Trans>Scope</Trans>
-                  </span>
+                  </FieldLabel>
                 </div>
                 {ACTIONS.map((action) => (
                   <div key={action} className="flex flex-1 justify-center">
-                    <span className="text-xs font-semibold uppercase tracking-eyebrow text-text-tertiary">
+                    <FieldLabel as="span" variant="group">
                       {i18n._(ACTION_LABELS[action])}
-                    </span>
+                    </FieldLabel>
                   </div>
                 ))}
               </div>

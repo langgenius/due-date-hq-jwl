@@ -87,6 +87,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { StatBand } from '@/components/patterns/stat-band'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
+import { FieldLabel } from '@/components/primitives/field-label'
 import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
@@ -4053,9 +4054,10 @@ function StatusSectionHeaderRow({
               />
             ) : null}
           </span>
-          <span
+          <FieldLabel
+            as="span"
+            variant="group"
             className={cn(
-              'text-xs font-semibold uppercase tracking-wider',
               statusKey === 'needs_review' && REVIEW_TEXT_CLS,
               statusKey === 'active' && 'text-state-success-solid',
               statusKey === 'gaps' && 'text-text-destructive',
@@ -4066,7 +4068,7 @@ function StatusSectionHeaderRow({
             )}
           >
             {label}
-          </span>
+          </FieldLabel>
           <span
             className={cn(
               'text-xs font-semibold tabular-nums',
@@ -4144,9 +4146,11 @@ function SearchResultsTable({
               <TableHead
                 key={entity}
                 title={ENTITY_FULL_LABELS[entity]}
-                className="w-12 px-2 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
+                className="w-12 px-2 text-center"
               >
-                {ENTITY_COLUMN_LABELS[entity]}
+                <FieldLabel as="span" variant="group">
+                  {ENTITY_COLUMN_LABELS[entity]}
+                </FieldLabel>
               </TableHead>
             ))}
             {/* 2026-05-27 (Yuqi rule library rework — needs-review

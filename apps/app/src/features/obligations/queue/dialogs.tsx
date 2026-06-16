@@ -3,6 +3,7 @@
 import { DropdownTriggerButton } from './components/primitives'
 import { parseMoneyCents, parseOwnerCount } from './helpers'
 import type { AuthorityRejectionDraft, SignatureReminderTarget } from './types'
+import { FieldLabel as CapsFieldLabel } from '@/components/primitives/field-label'
 import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { orpc } from '@/lib/rpc'
@@ -59,9 +60,9 @@ import { toast } from 'sonner'
 export function ExportAxis({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid gap-2 md:grid-cols-[96px_minmax(0,1fr)] md:items-start">
-      <div className="pt-2 text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
+      <CapsFieldLabel as="div" variant="field" className="pt-2">
         {label}
-      </div>
+      </CapsFieldLabel>
       <div role="radiogroup" aria-label={label} className="grid gap-2">
         {children}
       </div>
@@ -303,9 +304,9 @@ export function SignatureReminderDialog({
             {sample ? (
               <div className="grid gap-1 rounded-lg bg-background-subtle p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
+                  <CapsFieldLabel as="div" variant="field">
                     <Trans>Preview for {sample.clientName}</Trans>
-                  </p>
+                  </CapsFieldLabel>
                   {isBulk && previewTotal > 1 ? (
                     <div
                       className="inline-flex items-center gap-0.5 text-xs text-text-secondary"
@@ -911,9 +912,9 @@ export function MaterialsRequestPreviewDialog({
             <>
               <section className="grid gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                  <CapsFieldLabel as="span" variant="group">
                     <Trans>Recipient</Trans>
-                  </span>
+                  </CapsFieldLabel>
                   {emailStatus}
                 </div>
                 <p className="rounded-lg border border-divider-subtle bg-background-subtle p-3 font-mono text-sm text-text-primary">
@@ -935,17 +936,17 @@ export function MaterialsRequestPreviewDialog({
                 ) : null}
               </section>
               <section className="grid gap-2">
-                <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                <CapsFieldLabel as="span" variant="group">
                   <Trans>Subject</Trans>
-                </span>
+                </CapsFieldLabel>
                 <p className="rounded-lg border border-divider-subtle p-3 text-sm font-medium text-text-primary">
                   {preview.subject}
                 </p>
               </section>
               <section className="grid gap-2">
-                <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                <CapsFieldLabel as="span" variant="group">
                   <Trans>Email body</Trans>
-                </span>
+                </CapsFieldLabel>
                 <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-lg border border-divider-subtle bg-background-subtle p-3 font-mono text-xs leading-relaxed text-text-primary">
                   {preview.bodyText}
                 </pre>
@@ -1003,9 +1004,9 @@ export function MaterialsRequestPreviewChecklist({
   return (
     <section className="grid content-start gap-2 rounded-lg border border-divider-subtle p-3">
       <header className="flex items-center gap-2">
-        <h3 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <CapsFieldLabel as="div" variant="group">
           {title}
-        </h3>
+        </CapsFieldLabel>
         <span className="inline-flex h-4 min-w-4 items-center justify-center rounded bg-background-subtle px-1 text-caption-xs font-medium tabular-nums text-text-secondary">
           {items.length}
         </span>

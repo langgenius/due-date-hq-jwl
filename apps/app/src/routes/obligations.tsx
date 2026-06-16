@@ -167,6 +167,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { Kbd } from '@/components/patterns/kbd'
 import { CountPill } from '@/components/primitives/count-pill'
+import { FieldLabel as CapsFieldLabel } from '@/components/primitives/field-label'
 import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
@@ -3392,13 +3393,13 @@ export function ObligationQueueRoute() {
           >
             <XIcon className="size-3.5" aria-hidden />
           </Button>
-          <p className="inline-flex items-center gap-2 text-caption font-medium tracking-eyebrow text-text-tertiary uppercase">
+          <CapsFieldLabel as="div" variant="group" className="inline-flex items-center gap-2">
             <span
               className="size-1.5 shrink-0 rounded-full bg-state-accent-active-alt"
               aria-hidden
             />
             {bannerDateLabel}
-          </p>
+          </CapsFieldLabel>
           <h2 className="max-w-[64ch] text-lg leading-6 font-semibold text-text-primary">
             {deadlinesNarrative.overdue > 0 && deadlinesNarrative.dueToday > 0 ? (
               <Trans>
@@ -5021,9 +5022,9 @@ export function ObligationQueueRoute() {
 function ExportAxis({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid gap-2 md:grid-cols-[96px_minmax(0,1fr)] md:items-start">
-      <div className="pt-2 text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
+      <CapsFieldLabel as="div" className="pt-2">
         {label}
-      </div>
+      </CapsFieldLabel>
       <div role="radiogroup" aria-label={label} className="grid gap-2">
         {children}
       </div>
@@ -5579,9 +5580,9 @@ function SignatureReminderDialog({
             {sample ? (
               <div className="grid gap-1 rounded-lg bg-background-subtle p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
+                  <CapsFieldLabel as="div">
                     <Trans>Preview for {sample.clientName}</Trans>
-                  </p>
+                  </CapsFieldLabel>
                   {isBulk && previewTotal > 1 ? (
                     <div
                       className="inline-flex items-center gap-0.5 text-xs text-text-secondary"
@@ -6361,9 +6362,9 @@ function ObligationFiltersPopover({
               {/* Due window — single-select. Past due / Due this week share the
                   date axis, so picking one clears the other. */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
+                <CapsFieldLabel as="span" variant="group" className="text-text-muted">
                   <Trans>Due window</Trans>
-                </span>
+                </CapsFieldLabel>
                 <div className="flex flex-wrap gap-1">
                   <ObligationFilterPill
                     active={!stageDueActive}
@@ -6400,9 +6401,9 @@ function ObligationFiltersPopover({
 
               {/* Needs evidence + Awaiting signature — orthogonal toggles. */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
+                <CapsFieldLabel as="span" variant="group" className="text-text-muted">
                   <Trans>Triage</Trans>
-                </span>
+                </CapsFieldLabel>
                 <div className="flex flex-wrap gap-1">
                   <ObligationFilterPill
                     active={stage.evidence === 'needs'}
@@ -6435,9 +6436,9 @@ function ObligationFiltersPopover({
             // rhythm; the preset rows use `-mx-2 px-2` so their hover wash can
             // breathe while the row text still lines up with the eyebrow.
             <div className="flex flex-col gap-1 p-4">
-              <span className="pb-1 text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
+              <CapsFieldLabel as="span" variant="group" className="pb-1 text-text-muted">
                 <Trans>Presets</Trans>
-              </span>
+              </CapsFieldLabel>
               {presets.map((preset) => (
                 <button
                   key={preset.id}

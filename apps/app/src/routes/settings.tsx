@@ -5,6 +5,7 @@ import { ChevronRightIcon, type LucideIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { PageHeader } from '@/components/patterns/page-header'
 import { SettingsShell, useSettingsNavSections } from '@/features/settings/settings-sub-nav'
 
@@ -39,9 +40,7 @@ export function SettingsRoute() {
             // 2026-06-16 (audit): dropped "compliance" — the hub renders no
             // compliance/audit card (audit log is intentionally outside this
             // registry), so the description listed a section that isn't here.
-            <Trans>
-              Practice settings — account, identity, team, billing, and automation.
-            </Trans>
+            <Trans>Practice settings — account, identity, team, billing, and automation.</Trans>
           }
         />
 
@@ -79,9 +78,9 @@ function SettingsSection({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-0.5">
-        <h2 className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+        <FieldLabel as="div" variant="group">
           {label}
-        </h2>
+        </FieldLabel>
         <p className="text-xs text-text-tertiary">{description}</p>
       </div>
       <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-default">

@@ -5,6 +5,7 @@ import { Astroid } from 'lucide-react'
 import type { AuditEventPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { FieldLabel } from '@/components/primitives/field-label'
 import { formatDateTimeWithTimezone, formatRelativeTime } from '@/lib/utils'
 import {
   useLifecycleV2StatusLabels,
@@ -114,9 +115,9 @@ export function AuditLogTable({
         return (
           <div key={day.key}>
             <div className="flex items-center justify-between gap-3 border-y border-divider-subtle bg-background-section px-5 py-2.5 first:border-t-0">
-              <span className="text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
+              <FieldLabel as="span" variant="group" className="text-text-secondary">
                 {relativePrefix ? `${relativePrefix} · ${bandLabel}` : bandLabel}
-              </span>
+              </FieldLabel>
               <span className="font-mono text-caption-xs font-semibold tracking-wide text-text-tertiary tabular-nums">
                 <Plural value={day.events.length} one="# event" other="# events" />
               </span>
@@ -265,9 +266,9 @@ function AuditTimelineRow({
       <div className="grid min-w-0 flex-1 gap-1">
         <div className="flex flex-wrap items-center gap-2">
           {showTypeEyebrow ? (
-            <span className="font-mono text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
+            <FieldLabel as="span" variant="group" className="font-mono">
               {typeLabel}
-            </span>
+            </FieldLabel>
           ) : null}
           {showTypeEyebrow && showActor ? (
             <span className="size-1 rounded-full bg-text-tertiary/50" aria-hidden />

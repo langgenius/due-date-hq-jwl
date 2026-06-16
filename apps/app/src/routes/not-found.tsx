@@ -4,6 +4,8 @@ import { ArrowLeftIcon, HomeIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 
+import { FieldLabel } from '@/components/primitives/field-label'
+
 /**
  * In-shell 404. Mounted as the wildcard child of the protected
  * layout so an authenticated user hitting an unknown URL still
@@ -22,9 +24,9 @@ export function NotFoundRoute() {
     <>
       <div className="flex w-full flex-col gap-6 px-6 py-8">
         <header className="flex flex-col gap-2">
-          <p className="text-caption-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
+          <FieldLabel as="div" variant="group">
             <Trans>404</Trans>
-          </p>
+          </FieldLabel>
           <h1 className="text-2xl leading-7 font-semibold text-text-primary">
             <Trans>Page not found</Trans>
           </h1>
