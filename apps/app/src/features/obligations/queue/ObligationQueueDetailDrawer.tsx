@@ -366,6 +366,14 @@ export function ObligationQueueDetailDrawer({
   // reclaimed height.
   const [pageHeaderCollapsed, setPageHeaderCollapsed] = useState(false)
   const heroCollapsed = isPageMode && pageHeaderCollapsed
+  // The footer floats (drop-shadow) while there's more body to scroll, then
+  // docks (no shadow, no divider) once at the bottom — mirroring the alert
+  // detail's decision footer (`decisionDocked`). Reset to docked when a
+  // different deadline opens (computed by the body's onScroll below).
+  const [footerDocked, setFooterDocked] = useState(true)
+  useEffect(() => {
+    setFooterDocked(true)
+  }, [obligationId])
   const { t } = useLingui()
   const navigate = useNavigate()
   const practiceTimezone = usePracticeTimezone()
@@ -2282,14 +2290,18 @@ export function ObligationQueueDetailDrawer({
             isPageMode &&
               'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
           )}
-          onScroll={
-            isPageMode
-              ? (event) => {
-                  const next = event.currentTarget.scrollTop > 16
-                  setPageHeaderCollapsed((prev) => (prev === next ? prev : next))
-                }
-              : undefined
-          }
+          onScroll={(event) => {
+            const el = event.currentTarget
+            // Footer float→dock (both modes): docked once the body is scrolled
+            // to the end, floating (drop-shadow) while more remains below.
+            const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 8
+            setFooterDocked((prev) => (prev === atBottom ? prev : atBottom))
+            // Hero collapse-on-scroll is page-mode only.
+            if (isPageMode) {
+              const next = el.scrollTop > 16
+              setPageHeaderCollapsed((prev) => (prev === next ? prev : next))
+            }
+          }}
         >
           {detailQuery.isLoading ? (
             // Shape-matched skeleton (hero strip + a couple of body sections)
@@ -4723,11 +4735,19 @@ export function ObligationQueueDetailDrawer({
             // mode. Switched from the prior `flex-wrap justify-between` to a
             // single centered row. Panel/sheet keep the warm canvas + their
             // existing wrap behavior.
-            'sticky bottom-0 mt-auto flex min-h-16 border-t border-divider-subtle px-12',
+            // 2026-06-16 (alert↔deadline parity): float→dock — a drop-shadow
+            // lifts the footer off scrolling content; it drops and the divider
+            // appears only once docked at the bottom (matches the alert decision
+            // bar's `decisionDocked`).
+            'sticky bottom-0 mt-auto flex min-h-16 border-t px-12 transition-shadow duration-200 ease-apple motion-reduce:transition-none',
+            footerDocked ? 'border-transparent' : 'border-divider-subtle',
             isPageMode
               ? 'items-center bg-background-default py-3'
               : 'flex-wrap items-center justify-between gap-2 bg-background-canvas-warm pt-4 pb-6',
           )}
+          style={
+            footerDocked ? undefined : { boxShadow: '0 -10px 28px -16px rgba(16, 24, 40, 0.18)' }
+          }
         >
           {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #4): footer mirrors
               the alerts footer — quiet secondaries on the left (Last updated ·
