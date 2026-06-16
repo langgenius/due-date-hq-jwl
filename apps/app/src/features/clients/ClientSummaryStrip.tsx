@@ -80,8 +80,8 @@ export function ClientSummaryStrip({
     return <Skeleton className="h-[84px] w-full rounded-xl" />
   }
 
-  // KPI numeral — the canonical StatBand value (`text-stat-value` 24px, sans,
-  // semibold, tabular-nums). All counts share ONE neutral colour (Yuqi "why are
+  // KPI numeral — `text-lg` 16px (Yuqi "change to 16px"), sans, semibold,
+  // tabular-nums. All counts share ONE neutral colour (Yuqi "why are
   // the numbers inconsistent?" — the old per-count amber/green made the band read
   // as four mismatched numbers). The band's single chromatic accent is the
   // overdue Next Due date. A zero count dims to tertiary so it reads as "nothing
@@ -89,7 +89,7 @@ export function ClientSummaryStrip({
   const num = (value: number) => (
     <span
       className={cn(
-        'text-stat-value leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
+        'text-lg leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
         value > 0 ? 'text-text-primary' : 'text-text-tertiary',
       )}
     >
@@ -115,7 +115,7 @@ export function ClientSummaryStrip({
             ))}
           </span>
         ) : (
-          <span className="text-stat-value leading-none font-semibold text-text-tertiary">—</span>
+          <span className="text-lg leading-none font-semibold text-text-tertiary">—</span>
         ),
     },
     {
@@ -156,14 +156,14 @@ export function ClientSummaryStrip({
             // inconsistent? are these sizes used elsewhere?" — the prior 18px
             // date was a one-off, off the StatBand scale). Red carries the
             // overdue urgency — the band's single accent.
-            'text-stat-value leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
+            'text-lg leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
             nextDueOverdue ? 'text-text-warning' : 'text-text-primary',
           )}
         >
           {formatDatePretty(nextDue.currentDueDate)}
         </span>
       ) : (
-        <span className="text-stat-value leading-none font-semibold text-text-tertiary">—</span>
+        <span className="text-lg leading-none font-semibold text-text-tertiary">—</span>
       ),
     },
   ]

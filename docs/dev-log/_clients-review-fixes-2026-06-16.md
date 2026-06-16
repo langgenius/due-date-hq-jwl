@@ -476,3 +476,9 @@ Investigated but no change — header buttons: the kebab (outline) and the accen
 reads slightly smaller because a dark-navy FILL optically recedes vs a
 white OUTLINE of equal size — not an actual size difference. Left as-is (a nudge
 would break the icon-button size system); flagged for Yuqi.
+
+## Cluster 19 — Summary-strip numbers → 16px
+Yuqi "change to 16px": the strip KPI values dropped from text-stat-value (24) to
+text-lg (16) — a compact, low-key band (closer to VtC73's inline stats). Still
+uniform: all 16px, counts neutral (0 dims to tertiary), overdue Next Due red.
+Verified live (Meridian): 0/3/0 + May 12 all 16px.
