@@ -74,16 +74,17 @@ export function DetailSectionCard({
 }) {
   if (variant === 'flat') {
     return (
-      // 2026-06-16 (Yuqi "header还是和下面scroll内容混在一起 … 一眼看出到了下个
-      // section, 千万不要糊在一起"): the separating rule moved from UNDER the
-      // header to the TOP of each section (`border-t` + `pt-5`), so it reads as
-      // a "new section starts here" divider rather than a header underline. The
-      // `first:` reset keeps a stray rule off section 1. Combined with the
-      // bigger header (below), each section now reads as a distinct block.
+      // 2026-06-16 (Yuqi NrQaI "avoid being too WHITE; use borders, coloured
+      // backgrounds"): each flat section is now a WHITE bordered CARD
+      // (`rounded-xl` 12, `divider-subtle` hairline) sitting on the body's
+      // very-light-gray wash. The card border separates sections — no more
+      // top-rule/whitespace-only delineation that read as flat white. Both the
+      // alert detail and the deadline detail share this one keystone, so both
+      // panels become "gray body + white bordered cards" (the NrQaI model).
       <section
         id={id}
         className={cn(
-          'flex flex-col gap-4 border-t border-divider-regular pt-5 first:border-t-0 first:pt-0',
+          'flex flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default p-5',
           className,
         )}
       >

@@ -348,9 +348,11 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
         ) : null}
 
         {/* Fact grid — Pencil MASYz: 3 columns of uppercase-label → value cells.
-          WHITE cells (no gray fill) inside a rounded hairline border; the
-          internal dividers come from the gap-px over the divider-bg. */}
-        <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-divider-subtle bg-divider-subtle">
+          2026-06-16 (Yuqi "avoid frames-in-frames" — the Change section is now a
+          bordered white card): dropped the grid's OWN outer box (was rounded
+          border) so it isn't a frame inside a frame. The internal cell hairlines
+          stay (gap-px over the divider-bg); the section card is the only frame. */}
+        <div className="grid grid-cols-3 gap-px bg-divider-subtle">
           {cells.map((cell) => (
             // Fact cell: padding [10,20] (px-5 py-3), 11/600 uppercase
             // tertiary label over a 13/medium primary value. The grid's

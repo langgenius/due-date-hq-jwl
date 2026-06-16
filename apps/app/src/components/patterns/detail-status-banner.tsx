@@ -65,6 +65,12 @@ export function DetailStatusBanner({
 }) {
   const c = TONE[tone]
   const band = subtle ? 'bg-background-default' : c.band
+  // 2026-06-16 (Yuqi NrQaI "destructive coloured background, NO border"): a
+  // coloured band (danger/warning/success) is its own edge — the fill ends the
+  // surface — so it carries NO bottom hairline. Only the plain white surfaces
+  // (the `pending` tone, or any `subtle` override) keep the `border-b` to mark
+  // the seam against the body below.
+  const edge = subtle || tone === 'pending' ? 'border-b border-divider-subtle' : ''
 
   if (compact) {
     return (
@@ -72,12 +78,7 @@ export function DetailStatusBanner({
       // the list rail's head/toggle rows, so the horizontal bands align
       // across the rail ⟷ detail columns (Yuqi: banner should sit at the
       // toggle's height, not a shorter stripe).
-      <div
-        className={cn(
-          'flex h-[52px] w-full items-center gap-2.5 border-b border-divider-subtle px-6 xl:px-12',
-          band,
-        )}
-      >
+      <div className={cn('flex h-[52px] w-full items-center gap-2.5 px-6 xl:px-12', edge, band)}>
         <Icon className={cn('size-4 shrink-0', c.text)} aria-hidden />
         {/* #20: title sized down (was text-base).
             2026-06-16 (Yuqi "太粗了"): font-semibold → font-medium. On the
@@ -97,12 +98,7 @@ export function DetailStatusBanner({
   }
 
   return (
-    <div
-      className={cn(
-        'flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle px-6 py-3 xl:px-12',
-        band,
-      )}
-    >
+    <div className={cn('flex w-full flex-wrap items-start gap-3 px-6 py-3 xl:px-12', edge, band)}>
       <Icon className={cn('mt-0.5 size-4 shrink-0', c.text)} aria-hidden />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className={cn('text-base font-semibold', c.text)}>{title}</span>

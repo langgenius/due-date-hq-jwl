@@ -17,6 +17,7 @@ import {
   ListRailHead,
   ListRailSection,
 } from '@/components/patterns/list-rail'
+import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { describeTaxCode } from '@/lib/tax-codes'
@@ -137,13 +138,17 @@ export function DeadlineNavigatorRail({
   // internal due date first. The active ranking is surfaced in the rail so the
   // user always knows how the list is ordered (Yuqi rail feedback).
   const [sortKey, setSortKey] = useState<RailSort>('due')
-  const sortOptions: readonly { key: RailSort; label: string }[] = [
-    { key: 'due', label: t`Due date` },
-    { key: 'priority', label: t`Priority` },
-    { key: 'client', label: t`Client` },
-    { key: 'status', label: t`Status` },
+  const sortOptions: readonly { key: RailSort; label: string; note: string }[] = [
+    { key: 'due', label: t`Due date`, note: t`Soonest internal due date first` },
+    { key: 'priority', label: t`Priority`, note: t`Highest smart-priority score first` },
+    { key: 'client', label: t`Client`, note: t`Grouped A–Z by client name` },
+    { key: 'status', label: t`Status`, note: t`Action-needed states first` },
   ]
-  const sortLabel = sortOptions.find((option) => option.key === sortKey)?.label ?? t`Due date`
+  const activeSort = sortOptions.find((option) => option.key === sortKey) ?? sortOptions[0]!
+  const sortLabel = activeSort.label
+  // One-line plain-English note of how the active ranking orders the rail, so
+  // the user knows what "Sort by Due date" actually does (Yuqi rail feedback).
+  const sortNote = activeSort.note
 
   // Statuses present in the loaded set, with counts, in canonical urgency order
   // — the menu only offers statuses that actually exist in the rail.
@@ -269,40 +274,46 @@ export function DeadlineNavigatorRail({
         </DropdownMenu>
       </ListRailSection>
 
-      {/* RankRow — surfaces how the rail is ordered and lets the user
-          re-rank the loaded set. The label always states the active sort
-          ("Sorted by Due date") so the ranking is never a mystery. */}
-      <ListRailSection className="justify-between py-1.5">
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <button
-                type="button"
-                aria-label={t`Change sort order`}
-                className="inline-flex cursor-pointer items-center gap-1 rounded-md py-0.5 text-caption-xs font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-              >
-                <ArrowDownUpIcon className="size-3 shrink-0" aria-hidden />
-                <span>
-                  <Trans>Sorted by</Trans> {sortLabel}
-                </span>
-                <ChevronDownIcon className="size-3 shrink-0" aria-hidden />
-              </button>
-            }
-          />
-          <DropdownMenuContent align="start" className="min-w-[180px]">
-            {sortOptions.map((option) => (
-              <DropdownMenuItem key={option.key} onClick={() => setSortKey(option.key)}>
-                <span className="flex-1">{option.label}</span>
-                {sortKey === option.key ? (
-                  <CheckIcon className="size-3.5 text-text-accent" aria-hidden />
-                ) : null}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <span className="text-caption-xs tabular-nums text-text-tertiary">
-          {t`${sortedRows.length} shown`}
-        </span>
+      {/* RankRow — surfaces how the rail is ordered and lets the user re-rank
+          the loaded set. 2026-06-16 (Yuqi "SEE how it's sorted AND re-rank"):
+          the quiet text trigger is now the canonical FilterTrigger pill
+          ("Sort by │ Due date ⌄") — the SAME control the /deadlines table uses,
+          so re-ranking the rail reads as an obvious, familiar affordance. A
+          one-line note under it states the active ranking in plain English. */}
+      <ListRailSection className="flex-col items-stretch gap-1 py-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <FilterTrigger
+                  aria-label={t`Change sort order`}
+                  leadingIcon={ArrowDownUpIcon}
+                  valueLabel={sortLabel}
+                  active
+                  className="h-7 pl-2.5 pr-2 text-caption-xs"
+                >
+                  <Trans>Sort by</Trans>
+                </FilterTrigger>
+              }
+            />
+            <DropdownMenuContent align="start" className="min-w-[180px]">
+              {sortOptions.map((option) => (
+                <DropdownMenuItem key={option.key} onClick={() => setSortKey(option.key)}>
+                  <span className="flex-1">{option.label}</span>
+                  {sortKey === option.key ? (
+                    <CheckIcon className="size-3.5 text-text-accent" aria-hidden />
+                  ) : null}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <span className="shrink-0 text-caption-xs tabular-nums text-text-tertiary">
+            {t`${sortedRows.length} shown`}
+          </span>
+        </div>
+        {/* Plain-English ranking note — tells the user how the active sort
+            actually orders the list (never a mystery). */}
+        <span className="px-0.5 text-caption-xs text-text-tertiary">{sortNote}</span>
       </ListRailSection>
 
       {/* ListBody */}

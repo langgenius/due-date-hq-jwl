@@ -467,7 +467,10 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-divider-subtle p-4">
+    // 2026-06-16 (NrQaI de-frame): the Activity section is now a white bordered
+    // card, so this timeline drops its own border/radius/padding — the section
+    // card is the only frame.
+    <div className="flex flex-col gap-3">
       <ol className="flex flex-col">
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1
@@ -1459,7 +1462,10 @@ export function AlertDetailDrawer({
 
       {/* 2026-06-14 (Yuqi "scrolling on the header does nothing"): ONE scroll
           container wraps the hero + the document body, so a wheel anywhere
-          below the top bar scrolls. The spy-spy onScroll lives here now. */}
+          below the top bar scrolls. The spy-spy onScroll lives here now.
+          2026-06-16 (Yuqi NrQaI "avoid being too WHITE"): the container reads
+          gray (bg-background-subtle) so the sections column sits on a
+          very-light-gray body; the SheetHeader hero re-paints itself white. */}
       <div
         onScroll={(event) => {
           const container = event.currentTarget
@@ -1485,7 +1491,7 @@ export function AlertDetailDrawer({
           }
           setActiveSection((prev) => (prev === current ? prev : current))
         }}
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-background-default"
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-background-subtle"
       >
         {/* Hero — scrolls with the document (white masthead → content). */}
         <SheetHeader className="bg-background-default px-6 pt-6 pb-5 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
@@ -1642,8 +1648,12 @@ export function AlertDetailDrawer({
 
         {/* Document body — a NON-scrolling content column inside the shared
           scroll wrapper above. `pb-24` buffers the sticky footer so the last
-          row never hides behind it. */}
-        <div className="flex flex-1 flex-col gap-6 bg-background-default px-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
+          row never hides behind it.
+          2026-06-16 (Yuqi NrQaI "avoid being too WHITE"): the sections column
+          is very-light-gray (bg-background-subtle) so the white bordered
+          DetailSectionCards read AS cards. The sticky section-nav below keeps
+          its own white backing so cards scroll cleanly underneath it. */}
+        <div className="flex flex-1 flex-col gap-6 bg-background-subtle px-6 xl:px-12 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[880px]">
           {/* Scroll-spy section nav (deadline-tab orientation on one long
             document). Sticky at the scroll viewport top; lighter than the
             deadline pill tabs (text + underline) so it reads as a table of
@@ -2106,8 +2116,11 @@ export function AlertDetailDrawer({
 
                 {/* Source card (Pencil MASYz) — institution mark + feed name +
                   jurisdiction, Open original on the right; a hairline meta row
-                  carries the published date + the compact URL. */}
-                <div className="flex flex-col gap-3 rounded-xl border border-divider-subtle p-4">
+                  carries the published date + the compact URL.
+                  2026-06-16 (NrQaI de-frame): the Source section is now itself a
+                  white bordered card, so this inner block drops its own
+                  border/radius/padding — the section card is the only frame. */}
+                <div className="flex flex-col gap-3">
                   <div className="flex items-start gap-3">
                     <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-background-subtle text-text-tertiary">
                       <LandmarkIcon className="size-4" aria-hidden />
@@ -2207,7 +2220,11 @@ export function AlertDetailDrawer({
                   const confTierLabel =
                     confTier === 'high' ? t`High` : confTier === 'medium' ? t`Medium` : t`Low`
                   return (
-                    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-divider-subtle bg-divider-subtle">
+                    // 2026-06-16 (NrQaI de-frame): the provenance facts drop
+                    // their own outer border/radius (the Source section card is
+                    // the frame). A top hairline separates them from the excerpt
+                    // above; the gap-px wash keeps the two cells distinct.
+                    <div className="grid grid-cols-2 gap-px overflow-hidden border-t border-divider-subtle bg-divider-subtle pt-px">
                       <div className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
                         <span className="text-caption-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
                           <Trans>Captured</Trans>

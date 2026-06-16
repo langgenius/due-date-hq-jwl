@@ -158,8 +158,13 @@ export const SearchInput = forwardRef(function SearchInput(
             // hover/focus (no fill), no border, no ring, and flush horizontal
             // padding (icon at the left edge). Reads as a quiet inline filter
             // line rather than a chip.
+            // 2026-06-16 (Yuqi NrQaI "clean borderless search bar — icon + text
+            // only"): also zero the base Input's `py-1` so the compact rail
+            // search is truly icon-+-text on a transparent line, no residual
+            // vertical padding box. The base field's `px-3 py-1`, `bg-*`,
+            // hover/focus fill, border + ring are ALL neutralised below.
             variant === 'compact'
-              ? 'h-7 border-transparent bg-transparent px-0 pl-6 pr-6 hover:bg-transparent focus-visible:border-transparent focus-visible:bg-transparent focus-visible:ring-0'
+              ? 'h-7 border-transparent bg-transparent px-0 py-0 pl-6 pr-6 hover:bg-transparent focus-visible:border-transparent focus-visible:bg-transparent focus-visible:ring-0'
               : 'h-9 bg-background-default pl-9 pr-9',
           )}
         />

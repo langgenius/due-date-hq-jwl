@@ -1755,7 +1755,7 @@ export function ObligationQueueDetailDrawer({
         <div
           className={cn(
             'flex items-center border-b border-divider-subtle pb-2 text-sm',
-            panelLayout ? 'gap-4' : 'gap-6',
+            panelLayout ? 'gap-6' : 'gap-8',
           )}
         >
           {sectionNavItems.map((item) => {
@@ -1858,11 +1858,10 @@ export function ObligationQueueDetailDrawer({
                 <DetailStatusBanner
                   compact
                   tone="danger"
-                  // Quiet band (Yuqi 2026-06-16): white surface + red icon/text,
-                  // not a loud full-bleed red bar. The overdue countdown reads
-                  // from the red text + triangle (and the key-date card below);
-                  // the panel stays one continuous white surface.
-                  subtle
+                  // 2026-06-16 (Yuqi NrQaI "destructive coloured background"):
+                  // the overdue banner now carries the full destructive band
+                  // (not the white `subtle` surface) — a real red bar under the
+                  // white hero. The band IS the edge, so it has no border-b.
                   icon={AlertTriangleIcon}
                   title={
                     <Trans>
@@ -2273,18 +2272,16 @@ export function ObligationQueueDetailDrawer({
             // space holds the content steady regardless of which tab
             // is active.
             panelLayout && 'flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]',
-            // 2026-06-16 (Yuqi "should it be white?"): the page body is now
-            // WHITE (bg-background-default), unifying with the alert detail pane.
-            // The warm-gray wash existed to pop white boxed cards; #11 flattened
-            // the sections into the document, so the wash lost its purpose — flat
-            // sections read cleaner on white, and the remaining real boxes (the
-            // workflow card, checklist items) carry hairline borders that still
-            // delineate them on white (the alert's "flat sections + bordered
-            // tables on white" pattern). Centered on the 760px document measure.
-            // `pt-6` gives the first card the same 24px breathing room below the
-            // tab seam that panel/sheet carry via their own pt-6.
+            // 2026-06-16 (Yuqi NrQaI "avoid being too WHITE"): the scrolling
+            // body is now very-light-gray (bg-background-subtle) so the white
+            // bordered section cards read AS cards on it — the NrQaI surface
+            // model (white hero/footer, gray body, white cards). The hero and
+            // sticky footer stay white; only this section-scroll area goes gray.
+            // Matches the alert detail's sections column for identical feel.
+            // Centered on the 760px document measure; `pt-6` gives the first
+            // card the same 24px breathing room below the tab seam.
             panelLayout &&
-              'bg-background-default pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+              'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
           )}
           ref={scrollContainerRef}
           onScroll={(event) => {
@@ -2491,13 +2488,19 @@ export function ObligationQueueDetailDrawer({
                         {/* WorkflowMilestoneCard (Pencil Qn4nX `CorQi`): the stepper,
                         active stage, blocking, and "What's left" — the deadline
                         analogue of the alert's "The change" section.
-                        2026-06-16 (Yuqi white-body polish): now FLAT, not a boxed
-                        white card. On the white body a white card receded into
-                        white; the alert's "The change" is a flat section, so this
-                        matches — the stepper + what's-left flow as flat content
-                        and the (tinted) active-stage block below is the one focal
-                        workspace. Panel/sheet keep `contents`. */}
-                        <div className={panelLayout ? 'flex flex-col gap-4' : 'contents'}>
+                        2026-06-16 (Yuqi "avoid being too white, use borders"): the
+                        body is now a very-light gray, so this Status workspace is
+                        back to a WHITE bordered CARD (stepper + active stage +
+                        what's-left in one card, the tinted active-stage block
+                        sitting inside) — consistent with the other section cards
+                        on the gray body (NrQaI). Panel/sheet keep `contents`. */}
+                        <div
+                          className={
+                            panelLayout
+                              ? 'flex flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default p-5'
+                              : 'contents'
+                          }
+                        >
                           <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
                           {/* 2026-06-10 (Yuqi "the style is different"): the
                           "What's left to do" checklist moved OUT of this white
