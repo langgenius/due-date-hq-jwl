@@ -28,6 +28,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { NewBadge } from '@/components/primitives/new-badge'
 import { SearchInput } from '@/components/primitives/search-input'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
@@ -315,22 +316,16 @@ export function NotificationsPage() {
               <CardContent className="grid gap-2">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-2">
-                    {/* Leading unread dot — the at-a-glance "not read yet"
-                        marker that replaced the banned accent left-stripe.
-                        The column is reserved (transparent when read) so
-                        titles align across read + unread rows. */}
-                    <span
-                      className={cn(
-                        'mt-[5px] size-2 shrink-0 rounded-full',
-                        // Unseen marker → bright highlight tier (--color-brand-highlight).
-                        item.readAt ? 'bg-transparent' : 'bg-brand-highlight',
-                      )}
-                      aria-hidden
-                    />
+                    {/* Unread → a cyan "New" badge by the title (the highlight
+                        tier's visible anchor); read rows drop it. Titles still
+                        align since neither row carries a leading marker. */}
                     <div className="min-w-0">
-                      <h2 className="truncate text-sm font-semibold text-text-primary">
-                        {item.title}
-                      </h2>
+                      <div className="flex items-center gap-1.5">
+                        <h2 className="min-w-0 truncate text-sm font-semibold text-text-primary">
+                          {item.title}
+                        </h2>
+                        {item.readAt ? null : <NewBadge />}
+                      </div>
                       <p className="text-sm text-text-secondary">{item.body}</p>
                     </div>
                   </div>

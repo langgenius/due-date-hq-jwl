@@ -388,28 +388,27 @@
 
   /* ===== Brand identity (theme-invariant) ================================
    * 2026-06-16 (Yuqi — logo + design-system pass): the DueDateHQ brand/chrome
-   * layer, DISTINCT from the Dify-derived product UI palette above. These are
-   * FIXED identity colours for the logo, auth chrome, and marketing — they do
-   * NOT theme-shift. The in-product accent stays --color-util-colors-primary-
-   * 600 (blue); brand navy is identity-only and must never be used as a UI
-   * accent. Generates bg-/text-/border-/fill-brand-* utilities. The Radar-D
-   * mark (brand-mark.tsx) and the shipped favicon hardcode these same hex as
+   * layer, DISTINCT from the Dify-derived product UI palette above. FIXED
+   * identity colours for the logo, auth chrome, and marketing — they do NOT
+   * theme-shift. The in-product accent stays --color-util-colors-primary-600;
+   * brand navy is identity-only and must never be a UI accent. Generates
+   * bg-/text-/border-/fill-brand-* utilities. The stacked-bars mark
+   * (brand-mark.tsx) and the shipped favicon hardcode these same hex as
    * self-contained assets, so the SVGs render even where CSS hasn't loaded.
    * --------------------------------------------------------------------- */
   --color-brand-ink: #0a2540; /* navy — logo square, wordmark, <meta theme-color> */
   --color-brand-ink-deep: #071a2e; /* deeper navy — pressed / high-contrast app-icon */
-  --color-brand-ivory: #f3eee6; /* warm ivory — mark strokes reversed on navy */
-  --color-brand-signal: #35d5ff; /* live-monitoring signal dot — the ONE brand accent */
+  --color-brand-ivory: #f3eee6; /* warm ivory — mark on navy; the auth/splash ground (light) */
   --color-brand-gold: #b99b62; /* heritage gold (prior favicon) — secondary accent, sparing */
 
-  /* Highlight — the LOUD tier of the product accent (2026-06-16, Yuqi). Navy
-   * (primary-600) is the calm default; this bright cyan-azure is by EXCEPTION,
-   * for new/unseen markers, hints/nudges, and the one focused element. It ties
-   * to the brand signal cyan (#35d5ff). Contrast: #14c5f6 is light — it CANNOT
-   * carry white text and is too light for body text on white. Use `highlight`
-   * for fills/dots/rings (with dark/navy text on the fill), `highlight-ink` for
-   * legible text/links on light, and `highlight-soft` for wash backgrounds. */
-  --color-brand-highlight: #14c5f6; /* fills · dots · rings · borders */
+  /* Highlight — the LOUD cyan, by EXCEPTION (2026-06-16, Yuqi). Navy
+   * (primary-600) is the calm default; this bright cyan-azure marks new/unseen
+   * items and is kept SCARCE — a marker, not a co-equal accent tier. Visible
+   * anchor: the `New` badge (primitives/new-badge.tsx) + the unread dots.
+   * Contrast: #14c5f6 is light — it CANNOT carry white text and is too light for
+   * body text on white. Use `highlight` for fills/dots/rings (dark/navy text on
+   * the fill), `highlight-ink` for legible text/links, `highlight-soft` for washes. */
+  --color-brand-highlight: #14c5f6; /* fills · dots · rings · the New badge */
   --color-brand-highlight-ink: #066c98; /* darkened — AA text/links on light */
   --color-brand-highlight-soft: #e3f6fd; /* light wash background */
 }

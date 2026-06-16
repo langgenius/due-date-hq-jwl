@@ -95,7 +95,7 @@ export function SplashRoute() {
   )
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background-section">
+    <div className="flex min-h-screen w-full flex-col bg-brand-ivory dark:bg-background-section">
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-16 md:px-20 md:py-32">
         <div className="flex w-full max-w-[720px] flex-col items-center gap-8">
           {/* Brand lockup — frameless bars mark + serif wordmark (no navy square here). */}

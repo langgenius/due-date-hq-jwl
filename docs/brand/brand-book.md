@@ -31,18 +31,18 @@ The system deliberately runs **two palettes**. Conflating them is the most commo
 
 | Layer | Where it lives | Anchor colors | Job |
 |---|---|---|---|
-| **Brand identity** | Logo, favicon, auth chrome, marketing | Navy `#0A2540` · ivory `#F3EEE6` · signal cyan `#35D5FF` · serif | Who we are. Fixed, never theme-shifts. |
+| **Brand identity** | Logo, favicon, auth chrome, marketing | Navy `#0A2540` · ivory `#F3EEE6` (auth ground) · serif | Who we are. Fixed, never theme-shifts. |
 | **Product UI** | The working app (every route) | Navy `#2E368C` accent (+ a brighter blue **highlight**) · gray neutrals · semantic severity/status | How the tool works. Themes light/dark. |
 
 The brand ink navy `#0A2540` is **identity-only**. Inside the app the accent is two-tier:
 - **Accent — calm default** (`--color-util-colors-primary-600` `#2E368C`, warm navy-indigo):
   buttons, links, selection. The everyday "you are here."
-- **Highlight — louder** (`--color-brand-highlight` `#14C5F6`, a bright cyan-azure that ties
-  back to the brand signal dot): for new/unseen markers, hints/nudges, and the one focused
-  element. Out-shouts the navy; used sparingly, by exception. Live homes: every unread/unseen
-  dot (notifications bell, alert rail, pulse rows, notifications page) and the `InfoBanner`
-  hint strip (soft wash + cyan-ink lightbulb). Focus emphasis is applied deliberately
-  per-screen — not a blanket focus-ring recolor (rings stay navy).
+- **Highlight — louder** (`--color-brand-highlight` `#14C5F6`, a bright cyan-azure): marks
+  new/unseen items. Kept **scarce by design** — a marker, not a co-equal accent tier (an
+  attention color used everywhere stops being one). Visible anchor: the `New` badge
+  (`primitives/new-badge.tsx`); plus the small unread dots (notifications bell, alert rail,
+  pulse rows, notifications page) and the `InfoBanner` hint strip. Focus stays navy — no
+  blanket focus-ring recolor.
 
 ---
 
@@ -114,17 +114,19 @@ Windows) + `HQ` as a small, de-emphasized uppercase sans tag, + the divider + th
 - **Navy `#0A2540` as the identity** — trust, precision, gravity; right for a CPA /
   compliance audience. Warmer than pure black, less generic than a bright SaaS blue. The
   fixed "who we are."
-- **Ivory `#F3EEE6`, not white** — reversing the mark in warm ivory (not cold white) gives
-  the navy a little warmth and approachability, and shares a family with the product's
-  warm-gray surfaces.
+- **Ivory `#F3EEE6`, not white** — the mark reversed on navy in warm ivory (not cold white).
+  Its one real home beyond the mark is the **auth / splash background** — a cream brand ground
+  under the navy mark (light mode only). It is *not* a product-UI color; in the app it would
+  just duplicate the warm-gray canvas.
 - **Product accent = navy-indigo `#2E368C`, not Dify blue `#155AEF`** — pulls the in-app
   accent toward the brand ink so product and brand feel related (deeper, less off-the-shelf),
   while staying a notch brighter than the identity navy so it still works as an accent.
   (Sage green `#566E4C` was tried, then rejected — green-on-green collision with the
   success state.)
-- **Highlight = cyan `#14C5F6`** — carries over the brand signal cyan `#35D5FF`; bright and
-  electric = "new / look here." Far enough from the navy accent in hue and brightness that
-  it can hold "exception / attention" without competing with the everyday navy.
+- **Highlight = cyan `#14C5F6`** — bright and electric = "new / look here." Kept **scarce on
+  purpose** (an attention color everywhere stops being one): its visible anchor is the `New`
+  badge, plus the small unread dots. A marker, not a co-equal tier. Far enough from the navy
+  accent in hue and brightness to hold "exception" without competing.
 - **Why two accent tiers** — navy is the calm default, cyan is the loud exception. One
   accent can't be both the calm "you are here" and the attention-grabbing "look here," so
   we split them.
@@ -139,8 +141,7 @@ Windows) + `HQ` as a small, de-emphasized uppercase sans tag, + the divider + th
 |---|---|---|
 | `brand-ink` | `#0A2540` | Logo square, wordmark, `<meta theme-color>` |
 | `brand-ink-deep` | `#071A2E` | Pressed / high-contrast app icon |
-| `brand-ivory` | `#F3EEE6` | Mark strokes reversed on navy |
-| `brand-signal` | `#35D5FF` | The one live/monitoring accent (the dot) |
+| `brand-ivory` | `#F3EEE6` | Mark on navy; the warm cream ground for auth/splash (light mode) |
 | `brand-gold` | `#B99B62` | Heritage secondary accent, sparing |
 
 ### 2.2 Product UI — text & accent (semantic, light mode)
@@ -152,12 +153,15 @@ Windows) + `HQ` as a small, de-emphasized uppercase sans tag, + the divider + th
 | Text muted | `text-muted` → gray-400 `#98A2B2` |
 | **Accent / primary CTA** | `util-colors-primary-600` `#2E368C` (warm navy-indigo; hover 700 `#222A6C`, solid 500 `#4350A3`) |
 | Accent tint | `state-accent-hover` `#EEF0FB` (50) · `-hover-alt` `#DADEF6` (100) |
-| **Highlight** | `--color-brand-highlight` `#14C5F6` (fills · dots · rings) · `-ink` `#066C98` (legible text/links on light) · `-soft` `#E3F6FD` (wash bg) — new/unseen · hints · focus emphasis, by exception |
+| **Highlight** | `--color-brand-highlight` `#14C5F6` (fills · dots · the `New` badge) · `-ink` `#066C98` (text/links) · `-soft` `#E3F6FD` (wash) — new/unseen markers, **scarce by design (a marker, not a co-equal accent tier)** |
 
-**Highlight contrast rule:** `#14C5F6` is light — it **cannot** carry white text and is too
-light for body text on white. On a `highlight` fill use **dark/navy text**; for highlight
-*text or links* use `highlight-ink`; for soft backgrounds use `highlight-soft`. Example: a
-"New" pill = `bg-brand-highlight` + navy text, or `bg-brand-highlight-soft` + `text-brand-highlight-ink`.
+**Highlight contrast rule** (`#14C5F6` is light — luminance ≈ 0.47):
+- **Text on a cyan fill → navy `#0A2540`** (~7.6 : 1, AAA, and on-brand). **Never white** (~2 : 1 — fails).
+- **Cyan as text/link on white → `highlight-ink` `#066C98`** (`#14C5F6` itself is too light for text).
+- **Soft cyan background → `highlight-soft`** with normal dark text.
+- Don't use `highlight-ink` *on* a cyan fill — both read cyan (~2.9 : 1, mushy).
+
+Example: the `New` badge = `bg-brand-highlight` + `text-brand-ink` (navy on cyan).
 
 ### 2.3 Neutral ramp — `--color-util-colors-gray-*`
 `25 #FCFCFD · 50 #F9FAFB · 100 #F2F4F7 · 200 #E9EBF0 · 300 #D0D5DC · 400 #98A2B2 ·
