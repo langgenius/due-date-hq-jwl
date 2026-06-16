@@ -1332,7 +1332,7 @@ export function PreviewRoute() {
                     <Badge variant="secondary">Active</Badge>
                   </div>
                   <p className="text-xs text-text-secondary">
-                    Partnership · CA · EIN 12-3456789 · 14 active obligations
+                    Partnership · CA · EIN 12-3456789 · 14 active deadlines
                   </p>
                   <div className="grid grid-cols-3 gap-2 pt-2">
                     <StatTile label="Open" value="14" />

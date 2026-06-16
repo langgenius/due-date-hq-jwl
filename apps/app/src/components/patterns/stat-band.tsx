@@ -13,7 +13,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * pattern layer so every "card summary" surface renders the *same*
  * component with different content:
  *
- *  - `/clients`             → Total clients · Active obligations · At risk
+ *  - `/clients`             → Total clients · Active deadlines · At risk
  *  - `/clients/[id]`        → Next filing · Blocked · Open filing
  *  - `/rules/sources`       → Feeds · Rules derived · Fetched 24h
  *  - `/rules/library`       → Total · Jurisdictions · Changed · Pending

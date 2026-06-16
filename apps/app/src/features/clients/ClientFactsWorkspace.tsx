@@ -1000,7 +1000,7 @@ export function ClientFactsWorkspace({
       />
 
       {/* Directory summary above the filter toolbar — the shared
-          StatBand (Total clients · Active obligations · At risk). Live
+          StatBand (Total clients · Active deadlines · At risk). Live
           counts come from the loaded clients + obligation summaries.
           Hidden on the empty-state surface (clients.length === 0). */}
       {clients.length > 0 ? (
@@ -1418,7 +1418,7 @@ function ClientsSearchControl({
 }
 
 /**
- * The /clients directory summary — Total clients · Active obligations ·
+ * The /clients directory summary — Total clients · Active deadlines ·
  * At risk. Renders the shared `StatBand` (the same "card summary" the
  * rule-library overview, /rules/sources, /alerts/history, and
  * /clients/[id] use) so all five surfaces share one borderless,
@@ -1426,7 +1426,7 @@ function ClientsSearchControl({
  *
  * Data sourcing:
  *   - Total clients   → live (`clients.length`)
- *   - Active obligations + jurisdiction count → live (summed from the
+ *   - Active deadlines + jurisdiction count → live (summed from the
  *     obligation summaries + states-covered)
  *   - At risk         → live (clients with ≥1 overdue open deadline)
  *   - YTD revenue     → TODO(data): retainer/revenue is not in the
@@ -1477,7 +1477,7 @@ function ClientsKpiStrip({
     },
     {
       key: 'obligations',
-      label: t`Active obligations`,
+      label: t`Active deadlines`,
       value: activeObligations,
       sub: t`across ${statesCovered} jurisdictions`,
     },
