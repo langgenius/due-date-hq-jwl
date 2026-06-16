@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import {
   canSaveInternalExtensionPlan,
   compareObligationQueueRowsForSort,
-  countOutstandingReadinessDocuments,
   deadlineDetailSearchFromQueueState,
   daysUntilEffectiveInternalDueDate,
   effectiveInternalDueDate,
@@ -13,17 +12,23 @@ import {
   isObligationQueueRowControlClick,
   isThisWeekFilterActive,
   isInternalExtensionTargetDateValid,
-  materialsChecklistReference,
   latestDeadlineInputRequest,
   nextHeaderSort,
   nextThisWeekFilterPatch,
   rangeSelectionUpdate,
-  reviewPipelineCurrent,
   selectionHeaderState,
   urgencyBandOf,
   URGENCY_BAND_ORDER,
-  willReadinessChecklistBeFullyReceived,
 } from './obligations'
+// These four readiness/pipeline helpers are the canonical copies in the queue
+// helpers module (the obligations.tsx duplicates were removed 2026-06-16 with
+// the dead detail-drawer cleanup).
+import {
+  countOutstandingReadinessDocuments,
+  materialsChecklistReference,
+  reviewPipelineCurrent,
+  willReadinessChecklistBeFullyReceived,
+} from '@/features/obligations/queue/helpers'
 
 const smartPriorityBreakdown = (score: number) => ({
   version: 'smart-priority-v1' as const,
