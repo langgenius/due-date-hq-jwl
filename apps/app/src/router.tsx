@@ -724,8 +724,8 @@ export function createAppRouter() {
             },
             {
               // Closed-alerts archive: a dedicated route so it's
-              // deep-linkable + bookmarkable + sidebar-reachable. Mounts
-              // the same AlertsListPage with `historyMode={true}`.
+              // deep-linkable + bookmarkable + sidebar-reachable. Renders
+              // `AlertHistoryView` (a dedicated component — NOT AlertsListPage).
               path: 'alerts/history',
               handle: routeHandle(routeSummaries.alertsHistory),
               HydrateFallback: RouteHydrateFallback,

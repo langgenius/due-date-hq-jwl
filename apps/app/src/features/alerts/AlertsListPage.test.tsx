@@ -349,17 +349,11 @@ describe('AlertsListPage source health display', () => {
     expect(rpcMocks.listHistoryQueryFn).not.toHaveBeenCalled()
   })
 
-  it('uses the handled history query on the history surface', async () => {
-    await render(<AlertsListPage embedded historyMode />)
-
-    await waitForText('No history yet')
-    expect(rpcMocks.listHistoryQueryFn).toHaveBeenCalled()
-    expect(rpcMocks.listAlertsQueryFn).not.toHaveBeenCalled()
-    // Pencil rR9X1: history empty offers a "Go to alerts" return path and the
-    // "what gets recorded" legend.
-    expect(document.body.textContent).toContain('Go to alerts')
-    expect(document.body.textContent).toContain('What gets recorded')
-  })
+  // The old "history surface" tests (rendered <AlertsListPage historyMode />)
+  // were removed 2026-06-16 with the dead historyMode branch — that path never
+  // ran in the app (/alerts/history → AlertHistoryView). The live history surface
+  // (AlertHistoryView) has no tests yet; that gap is pre-existing (these tests
+  // exercised the dead twin) and tracked as a follow-up.
 
   it('keeps legacy degraded and failing source health out of the CPA Pulse surface', async () => {
     rpcMocks.listSourceHealthQueryFn.mockResolvedValue({
@@ -646,19 +640,6 @@ describe('AlertsListPage bulk selection (Pencil g5kKJQ)', () => {
     expect(bar?.textContent).toContain('1 selected')
     expect(bar?.textContent).toContain('Dismiss')
   })
-
-  it('does not make history rows selectable', async () => {
-    rpcMocks.listHistoryQueryFn.mockResolvedValue({
-      alerts: [listAlert({ status: 'applied' })],
-      nextCursor: null,
-    })
-
-    await render(<AlertsListPage embedded historyMode />, '/alerts/history')
-
-    await waitForText('Seeded CA relief')
-    expect(document.querySelector('[aria-label="Select all alerts"]')).toBeNull()
-    expect(document.querySelector('[aria-label="Select alert: Seeded CA relief"]')).toBeNull()
-  })
 })
 
 describe('AlertsListPage status filter scope', () => {
@@ -670,18 +651,6 @@ describe('AlertsListPage status filter scope', () => {
 
     await waitForText('Seeded CA relief')
     expect(document.querySelector('[aria-label="Filter by alert status"]')).toBeNull()
-  })
-
-  it('keeps Status on the history surface (its handled-state slicer)', async () => {
-    rpcMocks.listHistoryQueryFn.mockResolvedValue({
-      alerts: [listAlert({ status: 'applied' })],
-      nextCursor: null,
-    })
-
-    await render(<AlertsListPage embedded historyMode />, '/alerts/history')
-
-    await waitForText('Seeded CA relief')
-    expect(document.querySelector('[aria-label="Filter by alert status"]')).not.toBeNull()
   })
 })
 

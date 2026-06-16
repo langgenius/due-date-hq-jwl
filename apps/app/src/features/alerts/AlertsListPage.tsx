@@ -10,18 +10,14 @@ import {
   AlertCircleIcon,
   ArchiveIcon,
   CheckIcon,
-  CircleCheckIcon,
   CoffeeIcon,
-  FileCheckIcon,
   HistoryIcon,
   ListIcon,
   MapIcon,
   MegaphoneIcon,
   SatelliteDishIcon,
   SlidersHorizontalIcon,
-  Undo2Icon,
   XIcon,
-  type LucideIcon,
 } from 'lucide-react'
 
 import type { PulseAlertPublic, PulseSourceHealth } from '@duedatehq/contracts'
@@ -74,7 +70,6 @@ import {
   // Dismiss mutation (re-fetches the list on success).
   useAlertsInvalidation,
   useAlertsListQueryOptions,
-  useAlertsHistoryQueryOptions,
   useAlertSourceHealthQueryOptions,
   useAlertsAffectedClients,
   useAlertsPriorityQueueQueryOptions,
@@ -83,7 +78,6 @@ import { useAlertPermissions } from './lib/alert-permissions'
 import type { AlertPriorityInfo } from './components/PulseAlertRow'
 import { PulseAlertList } from './components/PulseAlertRow'
 import { PulseAlertsMap } from './components/PulseAlertsMap'
-import { ALERT_STATUS_ICON } from './components/AlertStatusBadge'
 import { PulsingDot } from './components/PulsingDot'
 import {
   matchesAlertImpactFilter,
@@ -93,10 +87,7 @@ import {
 import { alertImpactCount } from './lib/impact-level'
 import { isActiveAlert } from './components/pulse-alert-chrome'
 import {
-  ACTIVE_STATUS_FILTER_OPTIONS,
   CHANGE_KIND_FILTER_OPTIONS,
-  HISTORY_STATUS_FILTER_OPTIONS,
-  isStatusFilter,
   matchesChangeKindFilter,
   matchesStatusFilter,
   matchesTaxAreaFilter,
@@ -114,23 +105,16 @@ const EMPTY_SOURCES: readonly PulseSourceHealth[] = []
 
 interface AlertsListPageProps {
   embedded?: boolean
-  /**
-   * @deprecated DEAD CODE as of the AlertHistoryView split. The
-   * `/alerts/history` route renders `AlertHistoryView`, NOT this component
-   * with `historyMode` — so this prop is never passed `true` anywhere in the
-   * app (verified 2026-06-16 audit). The historyMode branch below (Status
-   * dropdown, HISTORY_STATUS_FILTER_OPTIONS, the history query path) is
-   * therefore unreachable. Left in place to avoid a risky removal; flagged
-   * for a dedicated cleanup task. Do NOT build new history behavior here —
-   * edit `AlertHistoryView.tsx`.
-   */
-  historyMode?: boolean
 }
 
 // Alerts — source-backed rule-change timeline.
 // Uses the same hairline / mono language as the dashboard strip; no oversized
 // cards, no chrome shadows.
-export function AlertsListPage({ embedded = false, historyMode = false }: AlertsListPageProps) {
+//
+// This renders the ACTIVE alert board only. Closed-alert history lives in a
+// dedicated component — `/alerts/history` → `AlertHistoryView` — so don't add
+// history behavior here (the old `historyMode` branch was excised 2026-06-16).
+export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   const { t } = useLingui()
   const { openDrawer, alertId: openAlertId, closeDrawer } = useAlertDrawer()
   // Opening an alert auto-collapses the sidebar to icons-only, freeing
@@ -222,7 +206,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // only — history rows are already-handled and the map view has its own
   // compact rows.
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(() => new Set())
-  const selectionEnabled = !historyMode && viewMode === 'list'
+  const selectionEnabled = viewMode === 'list'
   // The floating bar's Dismiss routes through the standardized
   // confirmation dialog (BulkConfirmDialog) instead of firing the batch
   // mutation straight away. Dismiss archives N alerts off the active
@@ -306,9 +290,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // stream and split into Review/Active with everyone else — they just never
   // count as "new" (splash/brief) and never email, which the backend's origin
   // semantics already guarantee.
-  const activeAlertsQueryOptions = useAlertsListQueryOptions(50)
-  const historyAlertsQueryOptions = useAlertsHistoryQueryOptions(50)
-  const alertsQuery = useQuery(historyMode ? historyAlertsQueryOptions : activeAlertsQueryOptions)
+  const alertsQuery = useQuery(useAlertsListQueryOptions(50))
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
@@ -330,13 +312,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       queueSyncedAlertId.current = null
       return
     }
-    if (historyMode || queueSyncedAlertId.current === openAlertId) return
+    if (queueSyncedAlertId.current === openAlertId) return
     const openAlert = alerts.find((alert) => alert.id === openAlertId)
     if (!openAlert) return // set not loaded yet; re-runs when `alerts` arrives
     queueSyncedAlertId.current = openAlertId
     const alertQueue = isActiveAlert(openAlert) ? 'active' : 'review'
     setWorkQueue((prev) => (prev === alertQueue ? prev : alertQueue))
-  }, [openAlertId, alerts, historyMode])
+  }, [openAlertId, alerts])
   // Batch the affected-client rows for every alert in ONE request and hand each
   // card its slice, instead of every AlertCard firing its own `getDetail`.
   // Keyed off the full (stable) `alerts` set — not `filteredAlerts` — so
@@ -356,7 +338,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // hide the inset + the "Why?" pill.
   const permissions = useAlertPermissions()
   const priorityQueueQuery = useQuery(
-    useAlertsPriorityQueueQueryOptions(100, permissions.canViewPriorityQueue && !historyMode),
+    useAlertsPriorityQueueQueryOptions(100, permissions.canViewPriorityQueue),
   )
   const priorityById = useMemo(() => {
     const map = new Map<string, AlertPriorityInfo>()
@@ -370,9 +352,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     return map
   }, [priorityQueueQuery.data])
 
-  const statusFilterOptions = historyMode
-    ? HISTORY_STATUS_FILTER_OPTIONS
-    : ACTIVE_STATUS_FILTER_OPTIONS
   // Counts per jurisdiction (state) across the unfiltered alerts —
   // backs the chip strip below. Sorted by count desc then state code
   // asc so the highest-impact states float to the front; zero-count
@@ -403,9 +382,8 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     const trimmedQuery = searchQuery.trim().toLowerCase()
     return alerts.filter(
       (alert) =>
-        // Active list splits by work queue. History shows handled alerts of
-        // both modes, so the queue split is suppressed there.
-        (historyMode || (workQueue === 'active' ? isActiveAlert(alert) : !isActiveAlert(alert))) &&
+        // The active board splits by work queue (Review vs Active).
+        (workQueue === 'active' ? isActiveAlert(alert) : !isActiveAlert(alert)) &&
         matchesAlertImpactFilter(alert, impactFilter) &&
         matchesStatusFilter(alert.status, effectiveStatusFilter) &&
         matchesChangeKindFilter(alert.changeKind, changeKindFilter) &&
@@ -421,7 +399,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     changeKindFilter,
     effectiveStatusFilter,
     effectiveTimeRangeFilter,
-    historyMode,
     impactFilter,
     jurisdictionFilter,
     searchQuery,
@@ -673,18 +650,16 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 <SatelliteDishIcon data-icon="inline-start" />
                 <Trans>Sources</Trans>
               </Button>
-              {!historyMode ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  nativeButton={false}
-                  render={<Link to="/alerts/history" />}
-                  aria-label={t`View history`}
-                >
-                  <HistoryIcon data-icon="inline-start" />
-                  <Trans>View history</Trans>
-                </Button>
-              ) : null}
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                render={<Link to="/alerts/history" />}
+                aria-label={t`View history`}
+              >
+                <HistoryIcon data-icon="inline-start" />
+                <Trans>View history</Trans>
+              </Button>
             </>
           }
         />
@@ -743,13 +718,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
               activeId={openAlertId}
               onSelect={openDrawer}
               onCloseDetail={closeDrawer}
-              {...(!historyMode
-                ? {
-                    workQueue,
-                    onWorkQueueChange: setWorkQueue,
-                    workQueueCounts,
-                  }
-                : {})}
+              workQueue={workQueue}
+              onWorkQueueChange={setWorkQueue}
+              workQueueCounts={workQueueCounts}
             />
           </div>
         ) : null}
@@ -822,61 +793,59 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     Review = review-only. Counts ride in the labels.
                     Suppressed in history (which slices by handled status
                     instead). */}
-                {!historyMode ? (
-                  <Segmented
-                    // `lg` = 14px across the toolbar controls — the
-                    // primitive's 11–12px default read undersized next to
-                    // the 14px checkbox label sharing the row (Yuqi #4).
-                    size="lg"
-                    className="shrink-0"
-                    ariaLabel={t`Alert work queue`}
-                    value={workQueue}
-                    onValueChange={setWorkQueue}
-                    options={[
-                      {
-                        value: 'review',
-                        // 2026-06-15 (Yuqi "number in toggle never in a badge"):
-                        // plain count, not a pill. The WHOLE Review tab (label +
-                        // count) reads in the WARNING tone when it carries work —
-                        // matching the rail's needs-review dot + the rule-library
-                        // Review tab + the StatBand pending value, so Review is
-                        // unambiguously the urgent scope. The override beats the
-                        // Segmented's selected-accent on the label; selection
-                        // still reads via the chip. Not bold (red+bold is a banned
-                        // double-highlight); Active stays quiet tertiary.
-                        label: (
+                <Segmented
+                  // `lg` = 14px across the toolbar controls — the
+                  // primitive's 11–12px default read undersized next to
+                  // the 14px checkbox label sharing the row (Yuqi #4).
+                  size="lg"
+                  className="shrink-0"
+                  ariaLabel={t`Alert work queue`}
+                  value={workQueue}
+                  onValueChange={setWorkQueue}
+                  options={[
+                    {
+                      value: 'review',
+                      // 2026-06-15 (Yuqi "number in toggle never in a badge"):
+                      // plain count, not a pill. The WHOLE Review tab (label +
+                      // count) reads in the WARNING tone when it carries work —
+                      // matching the rail's needs-review dot + the rule-library
+                      // Review tab + the StatBand pending value, so Review is
+                      // unambiguously the urgent scope. The override beats the
+                      // Segmented's selected-accent on the label; selection
+                      // still reads via the chip. Not bold (red+bold is a banned
+                      // double-highlight); Active stays quiet tertiary.
+                      label: (
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1.5',
+                            workQueueCounts.review > 0 && 'text-text-warning',
+                          )}
+                        >
+                          <Trans>Review</Trans>
                           <span
                             className={cn(
-                              'inline-flex items-center gap-1.5',
-                              workQueueCounts.review > 0 && 'text-text-warning',
+                              'tabular-nums',
+                              workQueueCounts.review === 0 && 'text-text-tertiary',
                             )}
                           >
-                            <Trans>Review</Trans>
-                            <span
-                              className={cn(
-                                'tabular-nums',
-                                workQueueCounts.review === 0 && 'text-text-tertiary',
-                              )}
-                            >
-                              {workQueueCounts.review}
-                            </span>
+                            {workQueueCounts.review}
                           </span>
-                        ),
-                      },
-                      {
-                        value: 'active',
-                        label: (
-                          <span className="inline-flex items-center gap-1.5">
-                            <Trans>Active</Trans>
-                            <span className="tabular-nums text-text-tertiary">
-                              {workQueueCounts.active}
-                            </span>
+                        </span>
+                      ),
+                    },
+                    {
+                      value: 'active',
+                      label: (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Trans>Active</Trans>
+                          <span className="tabular-nums text-text-tertiary">
+                            {workQueueCounts.active}
                           </span>
-                        ),
-                      },
-                    ]}
-                  />
-                ) : null}
+                        </span>
+                      ),
+                    },
+                  ]}
+                />
 
                 {/* Suggested-action toggle rides NEXT TO the queue switch
                     (Yuqi /alerts #3) — both decide what the rows ARE
@@ -976,51 +945,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       taxAreaFilter={taxAreaFilter}
                       onTaxAreaChange={setTaxAreaFilter}
                     />
-
-                    {/* Status dropdown — HISTORY MODE ONLY. In the active
-                    queue it was redundant: it overlapped the Severity
-                    filter, and "My morning sweep" already forces the
-                    "active" status under the hood. History keeps it — its
-                    handled-state options (applied / dismissed / reverted /
-                    reviewed) are the only way to slice the archive. The
-                    `statusFilter` + `effectiveStatusFilter` mechanism
-                    stays intact so morning sweep is unaffected. */}
-                    {historyMode ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={
-                            <FilterTrigger
-                              active={statusFilter !== 'all'}
-                              valueLabel={statusFilter === 'all' ? t`all` : statusFilter}
-                              aria-label={t`Filter by alert status`}
-                              className="text-base"
-                            >
-                              <span>
-                                <Trans>Status</Trans>
-                              </span>
-                            </FilterTrigger>
-                          }
-                        />
-                        <DropdownMenuContent align="start" className="min-w-[180px]">
-                          <DropdownMenuRadioGroup
-                            value={statusFilter}
-                            onValueChange={(value) => {
-                              if (
-                                typeof value === 'string' &&
-                                isStatusFilter(value, statusFilterOptions)
-                              )
-                                setStatusFilter(value)
-                            }}
-                          >
-                            {statusFilterOptions.map((option) => (
-                              <DropdownMenuRadioItem key={option} value={option}>
-                                {statusFilterLabel(option, historyMode)}
-                              </DropdownMenuRadioItem>
-                            ))}
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : null}
 
                     {/* State-filter map lives behind a Popover trigger
                     instead of being always visible. Its label reflects
@@ -1184,12 +1108,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         highImpactIds={highImpactIds}
                         selectable={false}
                         priorityById={priorityById}
-                        {...(!historyMode
-                          ? {
-                              onDismiss: (alertId: string) =>
-                                dismissAlertMutation.mutate({ alertId }),
-                            }
-                          : {})}
+                        onDismiss={(alertId: string) => dismissAlertMutation.mutate({ alertId })}
                       />
                     )}
                   </div>
@@ -1203,7 +1122,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 // "no alerts match these filters" line — that terse
                 // filtered state is reserved for when actual filters are
                 // narrowing.
-                <AlertsEmptyState historyMode={historyMode} sources={sourceHealth} />
+                <AlertsEmptyState sources={sourceHealth} />
               ) : isFilteredEmpty ? (
                 <FilteredEmptyState
                   onClearFilters={resetFilters}
@@ -1229,19 +1148,8 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   onSelectAll={toggleSelectAll}
                   priorityById={priorityById}
                   // The hover-only Dismiss button in each PulseAlertRow
-                  // routes through the dismiss mutation → toast. This
-                  // handler is SUPPRESSED in `historyMode`: history rows
-                  // are already-handled alerts (applied/dismissed/
-                  // reverted) and should not re-dismiss. With the handler
-                  // undefined the row only renders the Review button (the
-                  // conditional `{onDismiss ? … : null}` does the hiding).
-                  // Restoring/un-applying an alert is a drawer-only action
-                  // because it requires the reason + audit ledger entry.
-                  {...(!historyMode
-                    ? {
-                        onDismiss: (alertId: string) => dismissAlertMutation.mutate({ alertId }),
-                      }
-                    : {})}
+                  // routes through the dismiss mutation → toast.
+                  onDismiss={(alertId: string) => dismissAlertMutation.mutate({ alertId })}
                 />
               )}
             </>
@@ -1743,42 +1651,6 @@ function impactFilterLabel(filter: AlertImpactFilter): React.ReactNode {
   return <Trans>Closed</Trans>
 }
 
-// Each non-`all` filter renders a leading lucide icon — the canonical
-// alert-status vocabulary (CircleCheckBig / Undo2 / FileCheck) is
-// duplicated here so the dropdown rows read as "[icon] Label" and the
-// active trigger label gets the icon too. Filter values map to the real
-// PulseFirmAlertStatus 1:1 except for `active` → `matched`.
-const STATUS_FILTER_ICON: Record<AlertStatusFilter, LucideIcon | null> = {
-  all: null,
-  active: ALERT_STATUS_ICON.matched,
-  applied: ALERT_STATUS_ICON.applied,
-  partially_applied: ALERT_STATUS_ICON.partially_applied,
-  reviewed: ALERT_STATUS_ICON.reviewed,
-  reverted: ALERT_STATUS_ICON.reverted,
-  dismissed: ALERT_STATUS_ICON.dismissed,
-}
-
-function statusFilterText(filter: AlertStatusFilter, historyMode: boolean): React.ReactNode {
-  if (filter === 'all')
-    return historyMode ? <Trans>All handled</Trans> : <Trans>All statuses</Trans>
-  if (filter === 'active') return <Trans>Active</Trans>
-  if (filter === 'partially_applied') return <Trans>Partially applied</Trans>
-  if (filter === 'applied') return <Trans>Applied</Trans>
-  if (filter === 'dismissed') return <Trans>Dismissed</Trans>
-  if (filter === 'reverted') return <Trans>Reverted</Trans>
-  return <Trans>Reviewed</Trans>
-}
-
-function statusFilterLabel(filter: AlertStatusFilter, historyMode: boolean): React.ReactNode {
-  const Icon = STATUS_FILTER_ICON[filter]
-  return (
-    <span className="inline-flex items-center gap-2">
-      {Icon ? <Icon className="size-3.5 text-text-tertiary" aria-hidden /> : null}
-      {statusFilterText(filter, historyMode)}
-    </span>
-  )
-}
-
 // Filter dropdown labels. These name the four collapsed buckets defined by
 // `CHANGE_KIND_FILTER_GROUP_MEMBERS`, not the nine underlying kinds — the
 // per-card chip (`PulseChangeKindChip`) still names the precise kind.
@@ -1882,41 +1754,7 @@ function SkeletonAlertRow() {
 // Prominent empty state for the genuinely-empty alerts + history
 // surfaces. Active mode derives the freshest source check for the sub
 // copy; history mode adds the "what gets recorded" legend.
-function AlertsEmptyState({
-  historyMode,
-  sources,
-}: {
-  historyMode: boolean
-  sources: readonly PulseSourceHealth[]
-}) {
-  if (historyMode) {
-    return (
-      <EmptyState
-        variant="prominent"
-        // Pencil rR9X1: history empty uses the quieter gray icon-circle
-        // (72px #f9fafb + #98a2b2 icon) and a 22px title, distinct from the
-        // active surface's blue circle. `fill` makes the card own the area.
-        iconTone="neutral"
-        fill
-        icon={HistoryIcon}
-        title={<Trans>No history yet</Trans>}
-        description={
-          <Trans>
-            Once you decide on alerts (apply / review / dismiss) they'll show up here as an
-            immutable record. Last 60 days of activity will appear automatically.
-          </Trans>
-        }
-        cta={
-          // Pencil rR9X1: dark filled "Go to alerts" primary (not outline).
-          <Button nativeButton={false} render={<Link to="/alerts" />}>
-            <MegaphoneIcon data-icon="inline-start" />
-            <Trans>Go to alerts</Trans>
-          </Button>
-        }
-        footer={<AlertsHistoryRecordLegend />}
-      />
-    )
-  }
+function AlertsEmptyState({ sources }: { sources: readonly PulseSourceHealth[] }) {
   const lastChecked = sources.reduce<string | null>((latest, source) => {
     if (!source.lastCheckedAt) return latest
     return !latest || source.lastCheckedAt > latest ? source.lastCheckedAt : latest
@@ -1942,32 +1780,5 @@ function AlertsEmptyState({
         )
       }
     />
-  )
-}
-
-function AlertsHistoryRecordLegend() {
-  const items = [
-    { key: 'apply', icon: CircleCheckIcon, label: <Trans>Apply</Trans> },
-    { key: 'review', icon: FileCheckIcon, label: <Trans>Review</Trans> },
-    { key: 'dismiss', icon: XIcon, label: <Trans>Dismiss</Trans> },
-    { key: 'revert', icon: Undo2Icon, label: <Trans>Revert</Trans> },
-  ]
-  return (
-    // Pencil rR9X1 `Steps`: heading + gray pill row. The EmptyState footer
-    // wrapper (gap-6 column + mt-2) already supplies the separation from the
-    // CTA above, so no extra padding-top here.
-    <div className="flex flex-col items-center gap-2">
-      <p className="text-column-label text-text-muted uppercase">
-        <Trans>What gets recorded</Trans>
-      </p>
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {items.map(({ key, icon: ChipIcon, label }) => (
-          <Badge key={key} variant="secondary" className="gap-1.5 px-3 py-1.5 text-xs font-medium">
-            <ChipIcon className="size-3 text-text-secondary" aria-hidden />
-            {label}
-          </Badge>
-        ))}
-      </div>
-    </div>
   )
 }
