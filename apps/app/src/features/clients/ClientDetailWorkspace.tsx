@@ -1424,10 +1424,13 @@ function ClientDetailRail({
                       </a>
                     ) : null}
                   </div>
-                  {/* Compose intentionally not rendered: EmailComposeDialog
-                    has no messages.send RPC, so the dialog can never
-                    actually send. Restore the per-contact compose
-                    affordance once email sending is real. */}
+                  {/* No per-contact compose affordance: there is no
+                    messages.send RPC yet, so a compose dialog couldn't
+                    actually send. (2026-06-16 audit: the dead
+                    EmailComposeDialog component — a modal of permanently
+                    disabled Send/Schedule buttons — was deleted per the
+                    no-fiction rule. Rebuild compose when email sending is
+                    real.) */}
                 </div>
               ))}
             </div>
@@ -1559,7 +1562,7 @@ function ClientActiveAlertsSection({
       <header className="flex items-baseline justify-between gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft/40 px-4 py-3">
         {/* Canonical section heading is sm-semibold sentence-case (no
             uppercase kicker) per page-family-canonical §9. */}
-        <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-text-warning">
+        <h3 className="inline-flex items-center gap-2 text-sm font-medium text-text-warning">
           <MegaphoneIcon className="size-3.5" aria-hidden />
           <Trans>Active alerts for this client</Trans>
         </h3>

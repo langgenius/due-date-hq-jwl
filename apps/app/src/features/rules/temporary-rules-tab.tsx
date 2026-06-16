@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon, RotateCcwIcon } from 'lucide-react'
+import { CalendarClockIcon, ExternalLinkIcon } from 'lucide-react'
 
 import type { TemporaryRule } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
@@ -65,19 +66,24 @@ export function TemporaryRulesTab() {
 
   if (rules.length === 0) {
     return (
-      <SectionFrame className="flex min-h-[180px] flex-col items-center justify-center gap-2 p-8 text-center">
-        <p className="text-sm font-medium text-text-primary">
-          <Trans>No temporary rules yet</Trans>
-        </p>
-        <p className="max-w-[520px] text-sm text-text-secondary">
-          {/* ROH-D11 — was "owner or manager"; pulse.apply is
-              owner/partner/manager. Helper-driven plural noun keeps the
-              gate label honest as roles change. */}
-          <Trans>
-            Temporary rules appear here after {requiredRolesLabel('pulse.apply')} apply an alert to
-            matched deadlines.
-          </Trans>
-        </p>
+      // 2026-06-16 (audit A1): was a hand-rolled SectionFrame empty state with
+      // no icon — converged onto the shared EmptyState primitive so it matches
+      // the empty states across the rest of the app (icon + title + description).
+      <SectionFrame>
+        <EmptyState
+          density="compact"
+          icon={CalendarClockIcon}
+          title={<Trans>No temporary rules yet</Trans>}
+          description={
+            // ROH-D11 — was "owner or manager"; pulse.apply is
+            // owner/partner/manager. Helper-driven plural noun keeps the
+            // gate label honest as roles change.
+            <Trans>
+              Temporary rules appear here after {requiredRolesLabel('pulse.apply')} apply an alert to
+              matched deadlines.
+            </Trans>
+          }
+        />
       </SectionFrame>
     )
   }
@@ -96,24 +102,47 @@ export function TemporaryRulesTab() {
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>TEMPORARY RULE</TableHead>
-              <TableHead className="w-[74px] text-center">JUR</TableHead>
-              <TableHead className="w-[118px] text-center">OVERRIDE</TableHead>
-              <TableHead className="w-[106px] text-center">OBLIGATIONS</TableHead>
-              <TableHead className="w-[96px] text-center">STATUS</TableHead>
-              <TableHead className="w-[112px] text-center">UPDATED</TableHead>
+              <TableHead>
+                <Trans>Temporary rule</Trans>
+              </TableHead>
+              <TableHead className="w-[74px] text-center">
+                <Trans>Jur</Trans>
+              </TableHead>
+              <TableHead className="w-[118px] text-center">
+                <Trans>Override</Trans>
+              </TableHead>
+              <TableHead className="w-[106px] text-center">
+                <Trans>Obligations</Trans>
+              </TableHead>
+              <TableHead className="w-[96px] text-center">
+                <Trans>Status</Trans>
+              </TableHead>
+              <TableHead className="w-[112px] text-center">
+                <Trans>Updated</Trans>
+              </TableHead>
               <TableHead className="w-[96px]" />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredRules.map((rule) => (
-              <TemporaryRuleRow
-                key={rule.id}
-                rule={rule}
-                practiceTimezone={practiceTimezone}
-                onOpenAlert={openDrawer}
-              />
-            ))}
+            {filteredRules.length === 0 ? (
+              // 2026-06-16 (audit): the all-rules-empty case is handled by the
+              // EmptyState above; this covers filter-excludes-everything, which
+              // previously rendered a blank table body with no explanation.
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={7} className="py-8 text-center text-sm text-text-tertiary">
+                  <Trans>No temporary rules match this filter.</Trans>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredRules.map((rule) => (
+                <TemporaryRuleRow
+                  key={rule.id}
+                  rule={rule}
+                  practiceTimezone={practiceTimezone}
+                  onOpenAlert={openDrawer}
+                />
+              ))
+            )}
           </TableBody>
         </Table>
       </SectionFrame>
@@ -190,7 +219,11 @@ function TemporaryRuleRow({
               aria-label={t`Open alert detail`}
               onClick={() => onOpenAlert(rule.alertId!)}
             >
-              <RotateCcwIcon className="size-4" aria-hidden />
+              {/* 2026-06-16 (audit): was RotateCcwIcon (the universal revert/undo
+                  glyph) — misleading on a page of reverted/retracted overrides
+                  where it read as "undo this override." This opens the source
+                  alert, so use the external/open-detail glyph. */}
+              <ExternalLinkIcon className="size-4" aria-hidden />
             </Button>
           ) : null}
         </div>

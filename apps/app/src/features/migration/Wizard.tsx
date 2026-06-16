@@ -835,6 +835,10 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
             resetAndClose()
             void navigate('/audit')
           }}
+          onNavigate={(path) => {
+            resetAndClose()
+            void navigate(path)
+          }}
         />
       ) : null}
 

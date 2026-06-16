@@ -1290,6 +1290,30 @@ export function AlertDetailDrawer({
     stats,
   ])
 
+  // 2026-06-16 (audit — alert↔deadline parity): Esc closes the alert detail in
+  // PANEL mode. Sheet mode already gets Esc from the Base UI Sheet; panel mode
+  // is a plain <aside> with no built-in dismissal, so without this Esc closed
+  // the deadline detail but NOT the alert detail. Mirrors the deadline page's
+  // handler exactly: quiet while typing and while any modal layer is stacked.
+  useEffect(() => {
+    if (mode !== 'panel' || !open) return undefined
+    const handler = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      const target = event.target instanceof HTMLElement ? event.target : null
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return
+      }
+      if (isModalLayerOpen()) return
+      event.preventDefault()
+      onClose()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [mode, open, onClose])
+
   const handleCopyDraft = () => {
     if (!detail) return
     void navigator.clipboard.writeText(buildClientEmailDraft(detail, selection)).then(

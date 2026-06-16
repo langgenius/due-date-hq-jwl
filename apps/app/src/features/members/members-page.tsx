@@ -43,7 +43,6 @@ import {
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Field, FieldDescription, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
-import { Progress } from '@duedatehq/ui/components/ui/progress'
 import {
   Select,
   SelectContent,
@@ -66,7 +65,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { PageHeader } from '@/components/patterns/page-header'
-import { StatTile } from '@/components/patterns/stat-tile'
+import { StatBand } from '@/components/patterns/stat-band'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { formatShortcutForDisplay } from '@/components/patterns/keyboard-shell/display'
 import {
@@ -243,6 +242,9 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     orpc.members.resendInvitation.mutationOptions({
       onSuccess: (next) => {
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
+        // 2026-06-16 (audit): Resend succeeded silently — nothing on the row
+        // changes, so the user got zero confirmation. Close the loop.
+        toast.success(t`Invitation re-sent`)
       },
     }),
   )
@@ -250,6 +252,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     orpc.members.cancelInvitation.mutationOptions({
       onSuccess: (next) => {
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
+        toast.success(t`Invitation cancelled`)
       },
     }),
   )
@@ -303,51 +306,63 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         }
       />
 
-      {/* Stat strip is four StatTiles (SeatStat + KpiStat ×3); SeatStat
-          composes a hairline Progress underneath for the used-seats bar. No
-          outer divider-grid chrome because each StatTile owns its own bordered
-          card. Each tile's detail string stacks under the canonical label so
-          the data stays in view. */}
-      <section className="grid gap-3 md:grid-cols-4" aria-label={t`Members summary`}>
-        <SeatStat data={data} />
-        <StatTile
-          value={activeMembers.length}
-          label={
-            <span className="flex flex-col gap-0.5">
-              <Trans>Active members</Trans>
-              <span className="text-xs text-text-muted">
+      {/* 2026-06-16 (audit): converged off bespoke bordered StatTiles onto the
+          shared borderless StatBand so the members summary reads the same as
+          /clients, /rules, /workload. The seat ratio (used / limit) + the
+          "N available" caption carry the capacity signal that the old hairline
+          Progress bar did. */}
+      <StatBand
+        ariaLabel={t`Members summary`}
+        stats={[
+          {
+            key: 'seats',
+            label: t`Seats used`,
+            value: (
+              <span className="flex items-baseline gap-1.5">
+                <span>{data.usedSeats}</span>
+                <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
+              </span>
+            ),
+            sub: (
+              <>
+                <Plural value={activeMembers.length} one="# member" other="# members" />
+                {' + '}
+                <Plural value={data.invitations.length} one="# invite" other="# invites" />
+                {' · '}
+                <Trans>{data.availableSeats} available</Trans>
+              </>
+            ),
+          },
+          {
+            key: 'active',
+            label: t`Active members`,
+            value: activeMembers.length,
+            sub: (
+              <>
                 <Plural value={ownerCount} one="# owner" other="# owners" />
                 {' · '}
                 <Plural value={managedCount} one="# managed" other="# managed" />
-              </span>
-            </span>
-          }
-        />
-        <StatTile
-          value={data.invitations.length}
-          label={
-            <span className="flex flex-col gap-0.5">
-              <Trans>Pending invites</Trans>
-              <span className="text-xs text-text-muted">
-                <Trans>
-                  {pendingCount} active · {expiredCount} expired
-                </Trans>
-              </span>
-            </span>
-          }
-        />
-        <StatTile
-          value={suspendedMembers.length}
-          label={
-            <span className="flex flex-col gap-0.5">
-              <Trans>Suspended</Trans>
-              <span className="text-xs text-text-muted">
-                <Trans>access revoked, history kept</Trans>
-              </span>
-            </span>
-          }
-        />
-      </section>
+              </>
+            ),
+          },
+          {
+            key: 'pending',
+            label: t`Pending invites`,
+            value: data.invitations.length,
+            sub: (
+              <Trans>
+                {pendingCount} active · {expiredCount} expired
+              </Trans>
+            ),
+          },
+          {
+            key: 'suspended',
+            label: t`Suspended`,
+            value: suspendedMembers.length,
+            sub: t`access revoked, history kept`,
+          },
+        ]}
+      />
 
       {mutationError ? (
         <Alert variant="destructive">
@@ -660,47 +675,9 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   )
 }
 
-// SeatStat composes StatTile + Progress. The "used / limit" magnitude lives in
-// StatTile's value slot (canonical text-xl tone); the available-seats hint
-// stacks under the label, and a hairline Progress sits beneath the tile for
-// the used-seats fill.
-function SeatStat({ data }: { data: MembersListOutput }) {
-  const usedPct = data.seatLimit > 0 ? Math.min((data.usedSeats / data.seatLimit) * 100, 100) : 0
-  // usedSeats = active members + open invitations (an invite holds a seat).
-  // Spelling the sum out in the caption is what keeps this tile and the
-  // "Active members" tile next to it from reading as a contradiction.
-  const activeCount = data.members.filter((member) => member.status === 'active').length
-  const inviteCount = data.invitations.length
-  return (
-    <div className="flex flex-col gap-2">
-      <StatTile
-        value={
-          <span className="flex items-baseline gap-1.5">
-            <span>{data.usedSeats}</span>
-            <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
-          </span>
-        }
-        label={
-          <span className="flex flex-col gap-0.5">
-            <Trans>Seats used</Trans>
-            <span className="text-xs text-text-muted">
-              <Plural value={activeCount} one="# member" other="# members" />
-              {' + '}
-              <Plural value={inviteCount} one="# invite" other="# invites" />
-              {' · '}
-              <Trans>{data.availableSeats} available</Trans>
-            </span>
-          </span>
-        }
-      />
-      <Progress value={usedPct} size="hairline" aria-label="Seats used" className="px-1" />
-    </div>
-  )
-}
-
 function SeatLimitBanner() {
   return (
-    <section className="flex min-h-14 items-center gap-3 rounded-lg border border-state-warning-border bg-state-warning-hover px-4 py-3">
+    <section className="flex min-h-14 items-center gap-3 rounded-lg border border-state-warning-hover-alt bg-state-warning-hover px-4 py-3">
       <span className="grid size-8 shrink-0 place-items-center text-text-warning">
         <AlertTriangleIcon className="size-4" aria-hidden />
       </span>
@@ -772,11 +749,21 @@ function ActiveMembersTable({
       <Table>
         <TableHeader>
           <TableRow className="h-9 hover:bg-transparent">
-            <TableHead className="w-[304px] px-4">Name</TableHead>
-            <TableHead className="w-[280px]">Email</TableHead>
-            <TableHead className="w-44">Role</TableHead>
-            <TableHead className="w-32">Status</TableHead>
-            <TableHead className="w-44">Joined</TableHead>
+            <TableHead className="w-[304px] px-4">
+              <Trans>Name</Trans>
+            </TableHead>
+            <TableHead className="w-[280px]">
+              <Trans>Email</Trans>
+            </TableHead>
+            <TableHead className="w-44">
+              <Trans>Role</Trans>
+            </TableHead>
+            <TableHead className="w-32">
+              <Trans>Status</Trans>
+            </TableHead>
+            <TableHead className="w-44">
+              <Trans>Joined</Trans>
+            </TableHead>
             {/* "Last active" column is hidden until real data lands — the
                 server isn't tracking last-active yet, and a column of "Not
                 recorded" eats horizontal real estate to tell the user nothing.
@@ -786,7 +773,7 @@ function ActiveMembersTable({
             <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
-        <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+        <TableBody className="[&_td]:py-3">
           {members.map((member) => {
             const mutable = member.role !== 'owner' && !member.isCurrentUser
             return (
@@ -852,15 +839,27 @@ function PendingInvitationsTable({
       <Table>
         <TableHeader>
           <TableRow className="h-9 hover:bg-transparent">
-            <TableHead className="w-[444px] px-4">Email</TableHead>
-            <TableHead className="w-[140px]">Status</TableHead>
-            <TableHead className="w-44">Role</TableHead>
-            <TableHead className="w-32">Invited by</TableHead>
-            <TableHead className="w-44">Sent · Expires</TableHead>
-            <TableHead className="w-24">Actions</TableHead>
+            <TableHead className="w-[444px] px-4">
+              <Trans>Email</Trans>
+            </TableHead>
+            <TableHead className="w-[140px]">
+              <Trans>Status</Trans>
+            </TableHead>
+            <TableHead className="w-44">
+              <Trans>Role</Trans>
+            </TableHead>
+            <TableHead className="w-32">
+              <Trans>Invited by</Trans>
+            </TableHead>
+            <TableHead className="w-44">
+              <Trans>Sent · Expires</Trans>
+            </TableHead>
+            <TableHead className="w-24">
+              <Trans>Actions</Trans>
+            </TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+        <TableBody className="[&_td]:py-3">
           {invitations.map((invitation) => (
             <TableRow key={invitation.id} className="h-14">
               <TableCell className="px-4 py-2">
@@ -1117,7 +1116,7 @@ function InviteMemberDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog protectInput open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[420px] rounded-lg p-5" showCloseButton={false}>
         <DialogHeader className="gap-1">
           <DialogTitle className="text-base">

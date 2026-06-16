@@ -18,7 +18,6 @@ import {
   MapIcon,
   MegaphoneIcon,
   SatelliteDishIcon,
-  SearchIcon,
   SlidersHorizontalIcon,
   Undo2Icon,
   XIcon,
@@ -52,7 +51,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
-import { SearchInput } from '@/components/primitives/search-input'
+import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { StatusBanner } from '@/components/patterns/status-banner'
 import {
@@ -116,13 +115,14 @@ const EMPTY_SOURCES: readonly PulseSourceHealth[] = []
 interface AlertsListPageProps {
   embedded?: boolean
   /**
-   * When true, the page renders CPA-handled alert history — initial
-   * status filter shows all handled statuses, the "View history"
-   * cross-link in the header is hidden (we're already on it), and the
-   * impact/source filters still work as normal. The dedicated
-   * `/alerts/history` route mounts this with `historyMode={true}` so the
-   * archive has its own URL + sidebar entry instead of being a
-   * soft-filter on the live page.
+   * @deprecated DEAD CODE as of the AlertHistoryView split. The
+   * `/alerts/history` route renders `AlertHistoryView`, NOT this component
+   * with `historyMode` — so this prop is never passed `true` anywhere in the
+   * app (verified 2026-06-16 audit). The historyMode branch below (Status
+   * dropdown, HISTORY_STATUS_FILTER_OPTIONS, the history query path) is
+   * therefore unreachable. Left in place to avoid a risky removal; flagged
+   * for a dedicated cleanup task. Do NOT build new history behavior here —
+   * edit `AlertHistoryView.tsx`.
    */
   historyMode?: boolean
 }
@@ -172,7 +172,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // toolbar search rests as an icon button and expands into the field on click;
   // it stays open while it carries a query and collapses on blur when empty, so
   // the toolbar stays uncluttered.
-  const [searchOpen, setSearchOpen] = useState(false)
   // "My morning sweep" saved view — preset filter combination (Last 24
   // hours + Needs Action status). The toggle lives in the route shell's
   // actions cluster (`alerts.tsx`); its on/off state lives in
@@ -899,32 +898,19 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     order stays sane on narrow viewports. */}
                 <span className="hidden flex-1 lg:block" aria-hidden />
 
-                {/* Collapsed → search icon button; expanded → the canonical
-                    SearchInput (autofocused). Stays expanded while it carries a
-                    query; collapses on blur when empty. */}
-                {searchOpen || searchQuery ? (
-                  <SearchInput
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    placeholder={t`Search alerts`}
-                    autoFocus
-                    onBlur={() => {
-                      if (searchQuery.trim() === '') setSearchOpen(false)
-                    }}
-                    className="w-[200px] shrink-0 sm:w-[220px]"
-                  />
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    type="button"
-                    aria-label={t`Search alerts`}
-                    onClick={() => setSearchOpen(true)}
-                    className="shrink-0"
-                  >
-                    <SearchIcon />
-                  </Button>
-                )}
+                {/* Canonical collapsing toolbar search — ghost magnifier that
+                    expands on hover/click and retains focus + query. Same
+                    control as /clients · /rules/library. (No `/` hotkey here:
+                    /alerts never registered one and there's no alerts shortcut
+                    category to file it under.) */}
+                <CollapsibleSearch
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder={t`Search alerts`}
+                  ariaLabel={t`Search alerts`}
+                  size="icon"
+                  expandedWidthClassName="w-[200px] shrink-0 sm:w-[220px]"
+                />
 
                 {/* Morning-sweep preset chip — deliberately OUTSIDE the
                     panelOpen gate so the override's exit stays visible when
@@ -1170,7 +1156,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   {/* BOTTOM/RIGHT: active alerts panel (compact rows) */}
                   <div className="flex w-full shrink-0 flex-col gap-2 overflow-y-auto xl:w-[460px]">
                     <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
-                      <span className="text-xs font-bold tracking-eyebrow text-text-muted uppercase">
+                      <span className="text-xs font-semibold tracking-eyebrow text-text-muted uppercase">
                         <Trans>Active alerts</Trans>
                         <span className="ml-2 tabular-nums">{sortedAlerts.length}</span>
                       </span>
@@ -1729,7 +1715,7 @@ function FilterPillSection<T extends string>({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
+      <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
         {label}
       </span>
       <div className="flex flex-wrap gap-1">

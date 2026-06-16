@@ -32,6 +32,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { StatBand } from '@/components/patterns/stat-band'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { orpc } from '@/lib/rpc'
@@ -141,24 +142,37 @@ export function WorkloadPage() {
         </Alert>
       ) : null}
 
-      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <MetricCard label={t`Open`} value={data?.summary.open} />
-        <MetricCard label={t`Due soon`} value={data?.summary.dueSoon} />
-        {/* Chromatic intent only when the number is non-zero — a red or
-            amber 0 signals a problem that doesn't exist (red economy). */}
-        <MetricCard
-          label={t`Overdue`}
-          value={data?.summary.overdue}
-          intent={data?.summary.overdue ? 'critical' : 'neutral'}
-        />
-        <MetricCard label={t`Waiting`} value={data?.summary.waiting} />
-        <MetricCard label={t`Review`} value={data?.summary.review} />
-        <MetricCard
-          label={t`Unassigned`}
-          value={data?.summary.unassigned}
-          intent={data?.summary.unassigned ? 'warning' : 'neutral'}
-        />
-      </div>
+      {/* 2026-06-16 (audit): converged off bespoke bordered MetricCard tiles
+          onto the shared borderless StatBand so the team-workload summary reads
+          the same as /clients, /rules, /sources, /audit. Values stay neutral;
+          chromatic intent (only when non-zero — red economy) moves to the sub
+          caption, matching the /clients "AT RISK · need attention" grammar. */}
+      <StatBand
+        ariaLabel={t`Team workload summary`}
+        loading={workloadQuery.isLoading}
+        stats={[
+          { key: 'open', label: t`Open`, value: data?.summary.open ?? 0 },
+          { key: 'due-soon', label: t`Due soon`, value: data?.summary.dueSoon ?? 0 },
+          {
+            key: 'overdue',
+            label: t`Overdue`,
+            value: data?.summary.overdue ?? 0,
+            ...(data?.summary.overdue
+              ? { sub: t`Needs attention`, subClass: 'text-text-destructive' }
+              : {}),
+          },
+          { key: 'waiting', label: t`Waiting`, value: data?.summary.waiting ?? 0 },
+          { key: 'review', label: t`Review`, value: data?.summary.review ?? 0 },
+          {
+            key: 'unassigned',
+            label: t`Unassigned`,
+            value: data?.summary.unassigned ?? 0,
+            ...(data?.summary.unassigned
+              ? { sub: t`Needs an owner`, subClass: 'text-text-warning' }
+              : {}),
+          },
+        ]}
+      />
 
       {data?.managerInsights ? <ManagerInsights insights={data.managerInsights} /> : null}
 
@@ -311,39 +325,6 @@ function ManagerInsightMetric({ label, value }: { label: ReactNode; value: React
   )
 }
 
-function MetricCard({
-  label,
-  value,
-  intent = 'neutral',
-}: {
-  label: string
-  value: number | undefined
-  intent?: 'neutral' | 'critical' | 'warning'
-}) {
-  return (
-    <Card size="sm" className="min-h-[104px]">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-text-secondary">{label}</CardTitle>
-        {/* Skeleton placeholder during loading; real number once resolved. A
-            "—" during loading would read as data, not as loading. */}
-        {value === undefined ? (
-          <Skeleton className="mt-1 h-7 w-12" />
-        ) : (
-          <CardDescription
-            className={cn(
-              'text-2xl font-semibold tabular-nums text-text-primary',
-              intent === 'critical' && 'text-text-destructive',
-              intent === 'warning' && 'text-text-warning',
-            )}
-          >
-            {value}
-          </CardDescription>
-        )}
-      </CardHeader>
-    </Card>
-  )
-}
-
 function WorkloadTable({
   rows,
   asOfDate,
@@ -389,7 +370,7 @@ function WorkloadTable({
           </TableHead>
         </TableRow>
       </TableHeader>
-      <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+      <TableBody className="[&_td]:py-3">
         {rows.map((row) => (
           <TableRow key={row.id}>
             <TableCell>

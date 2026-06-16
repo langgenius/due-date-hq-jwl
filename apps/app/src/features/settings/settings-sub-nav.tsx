@@ -127,7 +127,10 @@ export function useSettingsNavSections(): SettingsNavSection[] {
       items: [
         {
           to: '/reminders',
-          label: t`Email Template`,
+          // 2026-06-16 (audit): label matches the destination page title +
+          // breadcrumb ("Reminder emails") — was "Email Template", a nav↔page
+          // mismatch.
+          label: t`Reminder emails`,
           description: t`Reminder email templates and recent delivery.`,
           Icon: MailIcon,
         },
@@ -150,7 +153,7 @@ export function SettingsSubNav({ className }: { className?: string }) {
 
   return (
     <nav aria-label={t`Settings sections`} className={cn('flex flex-col gap-0.5', className)}>
-      <p className="px-3 pb-2 text-xs font-bold uppercase tracking-eyebrow text-text-tertiary">
+      <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-eyebrow text-text-tertiary">
         {t`Settings`}
       </p>
       {items.map(({ to, label, Icon, end }) => (

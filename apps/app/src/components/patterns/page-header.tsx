@@ -16,7 +16,7 @@ import { Breadcrumb, type BreadcrumbItem } from './breadcrumb'
  *
  * Spec (DESIGN.md §3.2 + §3.3 + §4.4):
  *  - eyebrow: 11px / 500 / 0.08em uppercase, text-tertiary
- *  - title:   text-2xl (24px) / 600 / leading-7, text-primary
+ *  - title:   text-2xl (28px) / 600 / leading-8, text-primary
  *  - subtitle: 13px / 400 / leading-5, text-secondary, max-w-[1080px]
  *  - actions cluster: right-aligned on lg+, wraps below title on small viewports
  *
@@ -121,10 +121,11 @@ export function PageHeader({
           {/* `min-w-0` so the title block can shrink when the actions
               cluster sits beside it at lg+ and the page narrows
               (e.g. right drawer opens). */}
-          {/* `leading-7` (28px) is too tight for `text-2xl` (24px) at Inter's
-              actual ascender height — capital letters like "B" / "A" get their
-              very top 1-2px clipped by the parent's intrinsic flex-row
-              baseline. `leading-8` (32px) gives glyph ascenders room. */}
+          {/* `leading-7` (28px) is too tight for `text-2xl` (28px in this
+              project's rescaled token) at Inter's actual ascender height —
+              capital letters like "B" / "A" get their very top 1-2px clipped by
+              the parent's intrinsic flex-row baseline. `leading-8` (32px) gives
+              glyph ascenders room. */}
           <h1
             className={cn(
               'min-w-0 text-2xl leading-8 font-semibold text-text-primary',

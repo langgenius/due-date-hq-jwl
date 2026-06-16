@@ -48,11 +48,15 @@ export function MigrationNewRoute() {
   const ruleReviewCount = parseRuleReviewCount(params.get('ruleReview'))
   const ruleReviewJurisdictions = parseRuleReviewJurisdictions(params.get('ruleReviewJur'))
   const reviewRules = () => {
+    // 2026-06-16 (audit): was `?view=rules&library=pending_review&jur=XX` — V3's
+    // normalizer DROPS `view`/`library` and only turns `jur` into a search, so
+    // the "review the pending rules" intent was lost (it landed on the full
+    // library). Use V3's real params: `scope=review` (the needs-review scope)
+    // + `jurisdiction=XX` (rail selection). These bypass the legacy normalizer.
     const target = new URL('/rules/library', 'http://duedatehq.local')
-    target.searchParams.set('view', 'rules')
-    target.searchParams.set('library', 'pending_review')
+    target.searchParams.set('scope', 'review')
     if (ruleReviewJurisdictions.length === 1) {
-      target.searchParams.set('jur', ruleReviewJurisdictions[0]!)
+      target.searchParams.set('jurisdiction', ruleReviewJurisdictions[0]!)
     }
     void navigate(`${target.pathname}${target.search}`)
   }

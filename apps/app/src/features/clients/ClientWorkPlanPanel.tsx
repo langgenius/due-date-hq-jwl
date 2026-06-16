@@ -623,65 +623,65 @@ function FilingPlanYearSection({
           picker / kebab / dual-date columns are redistributed into the
           row expansion. Panel sort orders rows; multi-select drives the
           bulk bar. */}
-      {/* The column header + rows share a horizontal-scroll frame with a min
-          width, so the full fixed-width column set (incl. OFFICIAL DUE + OWNER)
-          is never clipped when the obligation panel squeezes this column — they
-          scroll together below the min width instead of dropping columns
-          (Yuqi: fixed-width columns + keep OFFICIAL DUE + OWNER with the panel
-          open). At rest the column is wide, so no scrollbar appears. */}
-      <div className="overflow-x-auto">
-        <div className="min-w-[720px]">
-          {/* Column header (Pencil VtC73) — grid must match DeadlineRow's
+      {/* 2026-06-16 (audit): dropped the `min-w-[720px] + overflow-x-auto`
+          horizontal-scroll frame (DESIGN bans h-scroll on data tables). The
+          fixed date/owner columns are now `minmax(0,Npx)` so they SHRINK +
+          truncate when the obligation panel squeezes this column, instead of
+          forcing a sideways scrollbar. Header + DeadlineRow grids stay in
+          lockstep. */}
+      <div>
+      <div>
+      {/* Column header (Pencil VtC73) — grid must match DeadlineRow's
           inline-expand layout exactly so the columns line up. */}
-          <div
-            className={cn(
-              'grid items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2.5 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase',
-              compact
-                ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
-                : 'grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px]',
-            )}
-          >
-            <span>
-              <Trans>Deadline</Trans>
-            </span>
-            <span>
-              <Trans>Status</Trans>
-            </span>
-            <span>
-              <Trans>Internal due</Trans>
-            </span>
-            {compact ? null : (
-              <span>
-                <Trans>Official due</Trans>
-              </span>
-            )}
-            {compact ? null : (
-              <span>
-                <Trans>Owner</Trans>
-              </span>
-            )}
-            <span aria-hidden />
-          </div>
-          <div className="flex flex-col">
-            {sortedObligations.map((obligation) => (
-              <DeadlineRow
-                key={obligation.id}
-                deadline={obligation}
-                mode="inline-expand"
-                compact={compact}
-                isActive={activeObligationId === obligation.id}
-                isExpanded={expandedFilingId === obligation.id}
-                isSelected={selectedIds.has(obligation.id)}
-                multiSelectMode={selectedIds.size > 0}
-                canEdit={canChangeStatus}
-                onExpand={onExpandFiling}
-                onCollapse={onCollapseFiling}
-                onSelect={(id) => onToggleRow(id)}
-                onMarkFiled={(id) => onChangeStatus(id, 'done')}
-              />
-            ))}
-          </div>
-        </div>
+      <div
+        className={cn(
+          'grid items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2.5 text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase',
+          compact
+            ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
+            : 'grid-cols-[minmax(0,1fr)_minmax(0,148px)_minmax(0,124px)_minmax(0,104px)_minmax(0,132px)_24px]',
+        )}
+      >
+        <span>
+          <Trans>Deadline</Trans>
+        </span>
+        <span>
+          <Trans>Status</Trans>
+        </span>
+        <span>
+          <Trans>Internal due</Trans>
+        </span>
+        {compact ? null : (
+          <span>
+            <Trans>Official due</Trans>
+          </span>
+        )}
+        {compact ? null : (
+          <span>
+            <Trans>Owner</Trans>
+          </span>
+        )}
+        <span aria-hidden />
+      </div>
+      <div className="flex flex-col">
+        {sortedObligations.map((obligation) => (
+          <DeadlineRow
+            key={obligation.id}
+            deadline={obligation}
+            mode="inline-expand"
+            compact={compact}
+            isActive={activeObligationId === obligation.id}
+            isExpanded={expandedFilingId === obligation.id}
+            isSelected={selectedIds.has(obligation.id)}
+            multiSelectMode={selectedIds.size > 0}
+            canEdit={canChangeStatus}
+            onExpand={onExpandFiling}
+            onCollapse={onCollapseFiling}
+            onSelect={(id) => onToggleRow(id)}
+            onMarkFiled={(id) => onChangeStatus(id, 'done')}
+          />
+        ))}
+      </div>
+      </div>
       </div>
     </div>
   )

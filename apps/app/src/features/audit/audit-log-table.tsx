@@ -265,7 +265,7 @@ function AuditTimelineRow({
       <div className="grid min-w-0 flex-1 gap-1">
         <div className="flex flex-wrap items-center gap-2">
           {showTypeEyebrow ? (
-            <span className="font-mono text-caption-xs font-bold tracking-wide text-text-tertiary uppercase">
+            <span className="font-mono text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
               {typeLabel}
             </span>
           ) : null}

@@ -2,7 +2,14 @@ import { useMemo } from 'react'
 import { Link } from 'react-router'
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CheckCheckIcon, CheckIcon, InboxIcon, Loader2 } from 'lucide-react'
+import {
+  ArrowRightIcon,
+  CheckCheckIcon,
+  CheckIcon,
+  InboxIcon,
+  Loader2,
+  SlidersHorizontalIcon,
+} from 'lucide-react'
 import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { toast } from 'sonner'
 
@@ -128,9 +135,19 @@ export function NotificationsPage() {
     })
   }, [notifications, searchQuery])
   const isFiltering = searchQuery.trim().length > 0
+  // 2026-06-16 (audit): the type filter is server-side, so a type that returns
+  // zero used to hit the "No notifications yet" (truly-empty) branch — telling
+  // the CPA their inbox is empty when it's just filtered. Track BOTH controls
+  // and offer one Clear that resets them together.
+  const hasActiveFilter = isFiltering || typeFilter !== 'all'
+  const clearFilters = () => {
+    void setSearchQuery('')
+    void setTypeFilter('all')
+  }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    // 2026-06-16 (audit): mx-auto + max-w-page-wide cap (was full-bleed).
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
       {/* "Notifications" matches the route title, breadcrumb, nav, and the
           sibling "Notification preferences" — the H1 was the lone "Inbox". */}
       <PageHeader
@@ -142,15 +159,29 @@ export function NotificationsPage() {
           </Trans>
         }
         actions={
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => markAllRead.mutate(undefined)}
-            disabled={markAllRead.isPending || !hasUnread}
-          >
-            <CheckCheckIcon data-icon="inline-start" />
-            <Trans>Mark all read</Trans>
-          </Button>
+          // 2026-06-16 (audit): added the Preferences link — /notifications/
+          // preferences was an orphan (reachable only by typing the URL; no nav,
+          // command-palette, or settings entry). The inbox is its natural parent.
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              nativeButton={false}
+              render={<Link to="/notifications/preferences" />}
+            >
+              <SlidersHorizontalIcon data-icon="inline-start" />
+              <Trans>Preferences</Trans>
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => markAllRead.mutate(undefined)}
+              disabled={markAllRead.isPending || !hasUnread}
+            >
+              <CheckCheckIcon data-icon="inline-start" />
+              <Trans>Mark all read</Trans>
+            </Button>
+          </div>
         }
       />
 
@@ -235,7 +266,7 @@ export function NotificationsPage() {
             </div>
           ) : null}
 
-          {!notificationsQuery.isLoading && notifications.length === 0 ? (
+          {!notificationsQuery.isLoading && filteredNotifications.length === 0 && !hasActiveFilter ? (
             /* A one-liner description so the empty state teaches the surface —
                matching every other shared EmptyState in the app. */
             <EmptyState
@@ -249,19 +280,23 @@ export function NotificationsPage() {
             />
           ) : null}
 
-          {/* Filtered-but-empty branch — distinct copy so the CPA knows the
-              inbox isn't empty, just narrowed to zero by the active query.
-              Matches the `isEmpty / isFilteredEmpty` shape used on /alerts +
-              /deadlines. */}
+          {/* Filtered-but-empty branch — distinct copy + a Clear so the CPA
+              knows the inbox isn't empty, just narrowed to zero. Acknowledges
+              BOTH the search and the type filter (either or both can cause it)
+              and offers one button to reset them. */}
           {!notificationsQuery.isLoading &&
-          notifications.length > 0 &&
           filteredNotifications.length === 0 &&
-          isFiltering ? (
+          hasActiveFilter ? (
             <EmptyState
               icon={InboxIcon}
-              title={<Trans>No notifications match your search.</Trans>}
+              title={<Trans>No notifications match these filters.</Trans>}
               description={
-                <Trans>Clear the search or try a different term to see the full inbox.</Trans>
+                <Trans>Clear the filters to see your full inbox.</Trans>
+              }
+              cta={
+                <Button variant="outline" size="sm" onClick={clearFilters}>
+                  <Trans>Clear filters</Trans>
+                </Button>
               }
             />
           ) : null}

@@ -178,8 +178,10 @@ export function CalendarPage() {
     title: string
   } | null>(null)
 
+  // 2026-06-16 (audit): added mx-auto + max-w-page-wide cap — this page ran
+  // full-bleed edge-to-edge while every other route is centered + capped.
   return (
-    <section className="grid gap-6 p-4 md:p-6">
+    <section className="mx-auto grid w-full max-w-page-wide gap-6 p-4 md:p-6">
       <PageHeader
         title={<Trans>Calendar sync</Trans>}
         description={

@@ -40,6 +40,14 @@ interface SuccessModalProps {
   onImportAnother: () => void
   onOpenDashboard: () => void
   onViewAuditLog: () => void
+  /**
+   * Cleanup-then-navigate to a specific route. 2026-06-16 (audit): the three
+   * "What to do next" rows previously all called onOpenDashboard → `/`, so
+   * three distinct promises ("Review jurisdictions" / "Customise reminders" /
+   * "Browse deadlines") dumped the user on Today. Each now navigates to its
+   * real destination via this.
+   */
+  onNavigate: (path: string) => void
   reverting?: boolean
 }
 
@@ -67,6 +75,7 @@ export function SuccessModal({
   onImportAnother,
   onOpenDashboard,
   onViewAuditLog,
+  onNavigate,
   reverting = false,
 }: SuccessModalProps) {
   const { t } = useLingui()
@@ -182,7 +191,7 @@ export function SuccessModal({
 
           {/* What to do next */}
           <div className="flex flex-col gap-2 px-6 py-4">
-            <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
+            <span className="text-caption-xs font-semibold tracking-eyebrow text-text-muted uppercase">
               <Trans>What to do next</Trans>
             </span>
             <NextStep
@@ -190,19 +199,19 @@ export function SuccessModal({
               icon={<TriangleAlertIcon className="size-3.5" aria-hidden />}
               title={t`Review your jurisdictions`}
               sub={t`Confirm state calendars before their deadlines generate`}
-              onClick={onOpenDashboard}
+              onClick={() => onNavigate('/rules/library')}
             />
             <NextStep
               icon={<MailIcon className="size-3.5" aria-hidden />}
               title={t`Customise reminder templates`}
               sub={t`Email copy + reply-to before turning rules on`}
-              onClick={onOpenDashboard}
+              onClick={() => onNavigate('/reminders')}
             />
             <NextStep
               icon={<CalendarDaysIcon className="size-3.5" aria-hidden />}
               title={t`Browse your first deadlines`}
               sub={t`See what's due next on Today`}
-              onClick={onOpenDashboard}
+              onClick={() => onNavigate('/deadlines')}
             />
           </div>
 

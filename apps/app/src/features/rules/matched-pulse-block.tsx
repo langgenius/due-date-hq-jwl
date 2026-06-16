@@ -75,13 +75,13 @@ function MatchedPulseRow({ match }: { match: PulseRuleMatch }) {
             {match.originalDueDate ? formatDate(match.originalDueDate) : t`Unknown`}
           </span>
           <ArrowRightIcon className="size-3.5 text-text-warning" aria-hidden />
-          <span className="text-xs font-semibold text-text-warning">
+          <span className="text-xs font-medium text-text-warning">
             {match.newDueDate ? formatDate(match.newDueDate) : t`Unknown`}
           </span>
         </span>
       ) : null}
       {match.sourceExcerpt ? (
-        <blockquote className="line-clamp-2 border-l border-divider-strong pl-2 text-xs text-text-secondary italic">
+        <blockquote className="line-clamp-2 border-l border-divider-deep pl-2 text-xs text-text-secondary italic">
           “{match.sourceExcerpt}”
         </blockquote>
       ) : null}

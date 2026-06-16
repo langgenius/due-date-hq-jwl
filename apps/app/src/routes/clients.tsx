@@ -329,6 +329,28 @@ export function ClientsRoute() {
     [setClientsQuery],
   )
 
+  // 2026-06-16 (audit): the readiness/source/pulse filters are deep-link-only
+  // (nothing in the UI writes them anymore — the triage tiles that set
+  // `pulse=affected` were removed). They still narrow the list + drive the
+  // "N of M" count chip, but the toolbar's "Clear filters" never reset them and
+  // there's no chip — a stale bookmark could pin the directory to a subset with
+  // NO way out but editing the URL. This flags them as active and gives the
+  // Clear a complete reset across all filter params.
+  const extraClientFiltersActive =
+    readinessFilter.length > 0 || sourceFilter.length > 0 || alertFilter.length > 0
+  const handleClearAllFilters = useCallback(() => {
+    void setClientsQuery({
+      q: null,
+      clients: null,
+      entity: null,
+      state: null,
+      readiness: null,
+      source: null,
+      pulse: null,
+      owner: null,
+    })
+  }, [setClientsQuery])
+
   const handleImportHistoryOpenChange = useCallback(
     (next: boolean) => {
       void setClientsQuery({ importHistory: next ? 'open' : null })
@@ -517,6 +539,8 @@ export function ClientsRoute() {
         onEntityFilterChange={handleEntityFilterChange}
         onStateFilterChange={handleStateFilterChange}
         onOwnerFilterChange={handleOwnerFilterChange}
+        extraFiltersActive={extraClientFiltersActive}
+        onClearAllFilters={handleClearAllFilters}
         onImport={openWizard}
         canImport={canRunMigration}
         onCreateClient={canCreateClient ? () => setCreateDialogOpen(true) : undefined}

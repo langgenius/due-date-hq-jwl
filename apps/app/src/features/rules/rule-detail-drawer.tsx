@@ -314,7 +314,7 @@ function DisclosureCard({
 function FactChip({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-md bg-background-section px-2.5 py-1">
-      <span className="text-caption-xs font-bold tracking-wide text-text-muted uppercase">
+      <span className="text-caption-xs font-semibold tracking-wide text-text-muted uppercase">
         {label}
       </span>
       {/* Value is text-sm (not text-base): a data value must read quieter than
@@ -477,7 +477,7 @@ export function RuleDetailCompact({
         rule.dueDateLogic.kind === 'fixed_date' ? (
           // irBJ8 "Due {date}" block — concrete date + holiday-rollover hint.
           <div className="flex flex-col gap-1 rounded-lg bg-background-section px-3.5 py-3">
-            <span className="font-mono text-lg font-bold text-text-primary">
+            <span className="font-mono text-lg font-semibold text-text-primary">
               <Trans>
                 Due {formatDatePretty(rule.dueDateLogic.date, { alwaysShowYear: true })}
               </Trans>
@@ -929,7 +929,7 @@ function RulePracticeReviewCard({
       className={cn(
         'ml-auto shrink-0',
         flat
-          ? 'text-caption-xs font-bold uppercase tracking-wide text-text-destructive'
+          ? 'text-caption-xs font-semibold uppercase tracking-wide text-text-destructive'
           : 'text-caption font-medium text-text-tertiary',
       )}
     >
@@ -1710,7 +1710,7 @@ function ConfirmImpactDialog({
         {/* Honest aggregate stats — only the numbers the API provides. */}
         <div className="flex items-center gap-5 border-b border-divider-subtle bg-background-subtle px-5 py-4">
           <div className="flex flex-col gap-0.5">
-            <span className="text-lg font-bold text-text-primary tabular-nums">
+            <span className="text-lg font-semibold text-text-primary tabular-nums">
               {loading ? '—' : errored ? '—' : deadlines}
             </span>
             <span className="text-xs font-medium text-text-muted">
@@ -1719,7 +1719,7 @@ function ConfirmImpactDialog({
           </div>
           <span className="h-8 w-px shrink-0 bg-divider-subtle" aria-hidden />
           <div className="flex flex-col gap-0.5">
-            <span className="text-lg font-bold text-text-primary tabular-nums">
+            <span className="text-lg font-semibold text-text-primary tabular-nums">
               {rule.entityApplicability.length}
             </span>
             <span className="text-xs font-medium text-text-muted">

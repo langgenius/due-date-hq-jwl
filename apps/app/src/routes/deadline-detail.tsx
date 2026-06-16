@@ -1,7 +1,12 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
+import { Trans } from '@lingui/react/macro'
+import { SearchX } from 'lucide-react'
 import { useCallback, useEffect, useMemo } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
+
+import { EmptyState } from '@/components/patterns/empty-state'
 
 import {
   cleanDeadlineDetailSearch,
@@ -83,6 +88,19 @@ export function DeadlineDetailRoute() {
     deadlineDetailStateObligationId(location.state, routeRef) ??
     findObligationIdByDeadlineRef(rows, routeRef)
 
+  // 2026-06-16 (audit D1): when a deep-linked ref can't be resolved after the
+  // list has fully loaded, the panel used to render a blank pane with no escape.
+  // Mirror the /clients/:id "not found" gold standard: once the query has
+  // settled and every page is loaded, show a recoverable empty state instead of
+  // nothing. Guarded on `!hasNextPage` so we never false-positive while a ref
+  // that lives on a not-yet-fetched page is still pending.
+  const detailNotFound =
+    routeRef !== null &&
+    !obligationId &&
+    listQuery.isSuccess &&
+    !listQuery.isFetching &&
+    !listQuery.hasNextPage
+
   const handleTabChange = useCallback(
     // NonNullable — the tab is always a concrete value here; the optional
     // field type (X | undefined) tripped exactOptionalPropertyTypes when
@@ -144,23 +162,43 @@ export function DeadlineDetailRoute() {
             BackStrip inside the body). Prev/Next paging is the rail + the
             drawer's ▲▼ keyboard handler now, so the route no longer
             renders a separate crumb bar above the panel. */}
-        <ObligationQueueDetailDrawer
-          mode="page"
-          obligationId={obligationId}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          onClose={handleClose}
-          onNeedsInput={() => {}}
-          practiceAiEnabled={false}
-          blockerCandidates={rows}
-          onPrev={prevRow ? () => goToRow(prevRow.id) : undefined}
-          onNext={nextRow ? () => goToRow(nextRow.id) : undefined}
-          position={
-            currentIndex >= 0 && rows.length > 0
-              ? { index: currentIndex, total: rows.length }
-              : null
-          }
-        />
+        {detailNotFound ? (
+          <EmptyState
+            variant="prominent"
+            iconTone="neutral"
+            fill
+            icon={SearchX}
+            title={<Trans>Deadline not found</Trans>}
+            description={
+              <Trans>
+                This deadline may have been deleted, filed, or you may not have access to it.
+              </Trans>
+            }
+            cta={
+              <Button variant="outline" size="sm" nativeButton={false} render={<Link to="/deadlines" />}>
+                <Trans>Back to deadlines</Trans>
+              </Button>
+            }
+          />
+        ) : (
+          <ObligationQueueDetailDrawer
+            mode="page"
+            obligationId={obligationId}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onClose={handleClose}
+            onNeedsInput={() => {}}
+            practiceAiEnabled={false}
+            blockerCandidates={rows}
+            onPrev={prevRow ? () => goToRow(prevRow.id) : undefined}
+            onNext={nextRow ? () => goToRow(nextRow.id) : undefined}
+            position={
+              currentIndex >= 0 && rows.length > 0
+                ? { index: currentIndex, total: rows.length }
+                : null
+            }
+          />
+        )}
       </div>
     </div>
   )

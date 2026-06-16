@@ -9,8 +9,6 @@ import { useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
-  CheckIcon,
-  ChevronDownIcon,
   DownloadIcon,
   LaptopIcon,
   Loader2Icon,
@@ -35,11 +33,12 @@ import {
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@duedatehq/ui/components/ui/dropdown-menu'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@duedatehq/ui/components/ui/select'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { LOCALE_LABELS, SUPPORTED_LOCALES, type Locale } from '@duedatehq/i18n'
@@ -791,35 +790,22 @@ function LanguageSelect({
   value: Locale
   onValueChange: (next: Locale) => void
 }) {
+  // 2026-06-16 (audit): was a hand-rolled DropdownMenu styled to imitate a
+  // select field — replaced with the canonical Select primitive (keyboard nav,
+  // checkmark, focus ring for free).
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <button
-            type="button"
-            className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-divider-regular bg-background-default px-3 py-2.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
-          />
-        }
-      >
-        <span className="truncate text-base font-medium text-text-primary">
-          {LOCALE_LABELS[value]}
-        </span>
-        <ChevronDownIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[var(--anchor-width)]">
+    <Select value={value} onValueChange={(next) => onValueChange(next as Locale)}>
+      <SelectTrigger className="w-full">
+        <SelectValue>{LOCALE_LABELS[value]}</SelectValue>
+      </SelectTrigger>
+      <SelectContent align="start">
         {SUPPORTED_LOCALES.map((code) => (
-          <DropdownMenuItem
-            key={code}
-            onClick={() => onValueChange(code)}
-            aria-checked={value === code}
-            className="flex items-center justify-between"
-          >
-            <span>{LOCALE_LABELS[code]}</span>
-            {value === code ? <CheckIcon className="size-4" aria-hidden /> : null}
-          </DropdownMenuItem>
+          <SelectItem key={code} value={code}>
+            {LOCALE_LABELS[code]}
+          </SelectItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </SelectContent>
+    </Select>
   )
 }
 
@@ -830,35 +816,23 @@ function DateFormatSelect({
   value: DateFormatPreference
   onValueChange: (next: DateFormatPreference) => void
 }) {
+  // 2026-06-16 (audit): hand-rolled DropdownMenu → canonical Select primitive.
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <button
-            type="button"
-            className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-divider-regular bg-background-default px-3 py-2.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
-          />
-        }
-      >
-        <span className="truncate text-base font-medium text-text-primary">
-          {DATE_FORMAT_LABELS[value]}
-        </span>
-        <ChevronDownIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[var(--anchor-width)]">
+    <Select
+      value={value}
+      onValueChange={(next) => onValueChange(next as DateFormatPreference)}
+    >
+      <SelectTrigger className="w-full">
+        <SelectValue>{DATE_FORMAT_LABELS[value]}</SelectValue>
+      </SelectTrigger>
+      <SelectContent align="start">
         {DATE_FORMAT_OPTIONS.map((format) => (
-          <DropdownMenuItem
-            key={format}
-            onClick={() => onValueChange(format)}
-            aria-checked={value === format}
-            className="flex items-center justify-between"
-          >
-            <span>{DATE_FORMAT_LABELS[format]}</span>
-            {value === format ? <CheckIcon className="size-4" aria-hidden /> : null}
-          </DropdownMenuItem>
+          <SelectItem key={format} value={format}>
+            {DATE_FORMAT_LABELS[format]}
+          </SelectItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </SelectContent>
+    </Select>
   )
 }
 

@@ -82,6 +82,10 @@ const JURISDICTION_TILES: Record<string, [number, number]> = {
   TN: [6, 4],
   NC: [7, 4],
   SC: [8, 4],
+  // 2026-06-16 (audit): DC was missing here while the Map view (PulseAlertsMap)
+  // has it — so a DC-jurisdiction alert was filterable from the map but NOT from
+  // this State-filter popover. Placed in the Mid-Atlantic cluster (below DE/MD).
+  DC: [10, 4],
   // Row 5 — Deep South
   OK: [4, 5],
   LA: [5, 5],
@@ -139,7 +143,7 @@ export function StateTilegram({ counts, activeState, onSelect, className }: Stat
             aria-label={count === 1 ? t`${code}: 1 alert` : t`${code}: ${count} alerts`}
             disabled={!hasCount && !active}
             className={cn(
-              'group/tile absolute inline-flex cursor-pointer flex-col items-center justify-center gap-0 rounded-lg border transition-all',
+              'group/tile absolute inline-flex cursor-pointer flex-col items-center justify-center gap-0 rounded-lg border transition-[background-color,border-color,opacity]',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1',
               active
                 ? 'border-state-accent-solid bg-state-accent-hover'

@@ -62,7 +62,7 @@ type RowActionItem = {
    * called; surfaces don't need to re-stop.
    */
   onSelect: () => void
-  /** When true, item renders with destructive (text-state-danger) tone. */
+  /** When true, item renders with destructive (text-text-destructive) tone. */
   destructive?: boolean | undefined
   /** When true, item is rendered but not selectable. */
   disabled?: boolean | undefined

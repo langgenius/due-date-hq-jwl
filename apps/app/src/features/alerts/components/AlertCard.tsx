@@ -231,10 +231,10 @@ export function AlertCard({
                   {/* Severity gated to HIGH only (LOW / MEDIUM render
                       nothing; absence IS the signal), pill chrome aligned
                       to canonical h-[22px] rounded px-2 text-caption
-                      font-bold tracking-eyebrow uppercase. */}
+                      font-semibold tracking-eyebrow uppercase. */}
                   {severity.id === 'high' ? (
                     <span
-                      className="inline-flex h-[22px] shrink-0 items-center rounded px-2 text-xs font-bold tracking-eyebrow uppercase"
+                      className="inline-flex h-[22px] shrink-0 items-center rounded px-2 text-xs font-semibold tracking-eyebrow uppercase"
                       style={{ backgroundColor: severity.bg, color: severity.text }}
                     >
                       {severityLabel}
@@ -277,7 +277,7 @@ export function AlertCard({
                     size="xs"
                     style={{ width: 16, height: 16 }}
                   />
-                  <span className="font-mono text-sm font-bold tracking-eyebrow text-text-secondary uppercase">
+                  <span className="font-mono text-sm font-semibold tracking-eyebrow text-text-secondary uppercase">
                     {alert.jurisdiction}
                   </span>
                 </span>

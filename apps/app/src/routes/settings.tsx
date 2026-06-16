@@ -36,8 +36,11 @@ export function SettingsRoute() {
         <PageHeader
           title={<Trans>Settings</Trans>}
           description={
+            // 2026-06-16 (audit): dropped "compliance" — the hub renders no
+            // compliance/audit card (audit log is intentionally outside this
+            // registry), so the description listed a section that isn't here.
             <Trans>
-              Practice settings — account, identity, team, billing, compliance, and automation.
+              Practice settings — account, identity, team, billing, and automation.
             </Trans>
           }
         />

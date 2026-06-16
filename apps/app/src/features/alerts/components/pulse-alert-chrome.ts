@@ -31,7 +31,7 @@ import { alertImpactLevel } from '../lib/impact-level'
  *   - State: circular 16px `<StateBadge>` motif + 12/700 mono code
  *     (no bg, no padding)
  *   - Severity: HIGH-only, `h-[22px] rounded px-2 text-xs
- *     font-bold tracking-[0.7px] uppercase` + colors from
+ *     font-semibold tracking-[0.7px] uppercase` + colors from
  *     `impactBadgeFromAlert`
  *   - Action pill (change-action amber, separate from status):
  *     `bg #FFFBEB`, `color #92400E`, `rounded-lg px-[10px] py-[4px]`,
@@ -77,20 +77,26 @@ import { alertImpactLevel } from '../lib/impact-level'
  * low-confidence banner, AlertConfidencePill) and must not masquerade
  * as impact.
  *
- * Colors: HIGH keeps the amber (`#ffe3d6` / `#92400E`) — "watch out"
- * without crossing into the destructive register reserved for errors /
- * overdue. MEDIUM / LOW stay neutral gray; in practice every surface
- * gates the pill to HIGH only, so the gray tiers render nothing —
- * absence IS the signal.
+ * Colors: HIGH uses the peach `state-warning` token family (#fff4f1 /
+ * #c83d2f) — "watch out" without crossing into the destructive register
+ * reserved for errors / overdue. 2026-06-16 (audit): repainted off the
+ * old hardcoded golden amber (`#ffe3d6` / `#92400E`) — the caution-tape
+ * tone the Q1 palette walked away from — and onto tokens so it tracks the
+ * theme. MEDIUM / LOW stay neutral; in practice every surface gates the
+ * pill to HIGH only, so the gray tiers render nothing — absence IS the
+ * signal. Values are CSS `var()` refs because callers apply them via
+ * inline `style`.
  */
 export type SeverityId = 'low' | 'medium' | 'high'
 export function impactBadgeFromAlert(
   alert: Pick<PulseAlertPublic, 'matchedCount' | 'needsReviewCount'>,
 ): { id: SeverityId; bg: string; text: string } {
   const level = alertImpactLevel(alert)
-  if (level === 'high') return { id: 'high', bg: '#ffe3d6', text: '#92400E' }
-  if (level === 'medium') return { id: 'medium', bg: '#f2f4f7', text: '#475467' }
-  return { id: 'low', bg: '#f2f4f7', text: '#475467' }
+  if (level === 'high')
+    return { id: 'high', bg: 'var(--state-warning-hover)', text: 'var(--text-warning)' }
+  if (level === 'medium')
+    return { id: 'medium', bg: 'var(--state-base-hover)', text: 'var(--text-secondary)' }
+  return { id: 'low', bg: 'var(--state-base-hover)', text: 'var(--text-secondary)' }
 }
 
 /**
@@ -127,13 +133,13 @@ export function actionPillFromAlert(
   alert: PulseAlertPublic,
 ): { id: ActionPillId; bg: string; text: string } | null {
   if (alert.status === 'dismissed' || alert.status === 'applied' || alert.status === 'reverted') {
-    return { id: 'closed', bg: '#f2f4f7', text: '#354052' }
+    return { id: 'closed', bg: 'var(--state-base-hover)', text: 'var(--text-secondary)' }
   }
   if (alert.needsReviewCount > 0) {
-    return { id: 'needs-review', bg: '#f2f4f7', text: '#354052' }
+    return { id: 'needs-review', bg: 'var(--state-base-hover)', text: 'var(--text-secondary)' }
   }
   if (alert.status === 'matched' || alert.status === 'partially_applied') {
-    return { id: 'needs-action', bg: '#fef3f2', text: '#d92d20' }
+    return { id: 'needs-action', bg: 'var(--state-destructive-hover)', text: 'var(--text-destructive)' }
   }
   return null
 }

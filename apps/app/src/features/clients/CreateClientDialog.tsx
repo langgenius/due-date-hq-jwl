@@ -238,7 +238,7 @@ export function CreateClientDialog({
   const assigneeSelectLabel = selectedAssignee?.name ?? t`Unassigned`
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog protectInput open={open} onOpenChange={setOpen}>
       {hideTrigger ? null : (
         <DialogTrigger render={<Button type="button" />}>
           <PlusIcon data-icon="inline-start" />

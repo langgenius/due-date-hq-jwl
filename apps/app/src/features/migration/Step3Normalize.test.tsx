@@ -1,5 +1,6 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
+import { MemoryRouter } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import { I18nProvider } from '@lingui/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -60,9 +61,12 @@ function renderStep(
 
   act(() => {
     root?.render(
-      <HotkeysProvider>
-        <I18nProvider i18n={i18n}>
-          <Step3Normalize
+      // MemoryRouter supplies the react-router context the "Edit in Settings"
+      // <Link to="/settings"> needs (2026-06-16: raw <a> → client-side <Link>).
+      <MemoryRouter>
+        <HotkeysProvider>
+          <I18nProvider i18n={i18n}>
+            <Step3Normalize
             normalize={normalize}
             rawText={options.rawText}
             mappings={options.mappings}
@@ -81,8 +85,9 @@ function renderStep(
             ]}
             onToggleApplyToAll={onToggleApplyToAll}
           />
-        </I18nProvider>
-      </HotkeysProvider>,
+          </I18nProvider>
+        </HotkeysProvider>
+      </MemoryRouter>,
     )
   })
 

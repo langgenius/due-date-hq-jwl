@@ -206,6 +206,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { Kbd } from '@/components/patterns/kbd'
 import { CountPill } from '@/components/primitives/count-pill'
+import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -254,6 +255,14 @@ import { CompletedKeyDates } from '@/features/obligations/CompletedKeyDates'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
 import { ObligationListRail } from '@/features/obligations/components/ObligationListRail'
 import { StageActions, type StageTask } from '@/features/obligations/StageActions'
+import {
+  DETAIL_PANEL_OPEN_ANIM,
+  DETAIL_PANEL_CLOSE_ANIM,
+  DETAIL_PANEL_INNER_RISE_ANIM,
+  DETAIL_PANEL_INNER_FADE_ANIM,
+  DETAIL_PANEL_CONTENT_ENTER_ANIM,
+  DETAIL_PANEL_CONTENT_EXIT_ANIM,
+} from '@/features/obligations/queue/constants'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { SearchInput } from '@/components/primitives/search-input'
@@ -692,50 +701,12 @@ function shortFilingAuthority(
 
 // The obligation detail panel shares the alerts panel's width contract and
 // motion choreography (match AlertDetailDrawer) so the two right-rail panels
-// read as siblings — same ease-apple curve, same durations as the alert
-// drawer. The inner surface rises from y:'100%' → 0 on enter, dissolves
-// opacity → 0 on exit.
-// Same curve as the app-wide grammar token — aliased so the detail-pane
-// choreography ladder below reads in one place (durations are a deliberate
-// staggered sequence, documented motion-grammar outlier).
-const DETAIL_SWIFT_EASE = EASE_APPLE
-// Sizing is CSS-class driven (responsive: full width on narrow, 3/5 at xl+,
-// max-capped so ultra-wide doesn't bloat the drawer past usefulness).
-// Animation uses x-transform (not width-interpolation) so the slide-in works
-// regardless of the final width value.
-const DETAIL_PANEL_OPEN_ANIM = {
-  x: 0,
-  opacity: 1,
-  transition: { duration: 0.3, ease: DETAIL_SWIFT_EASE },
-} as const
-const DETAIL_PANEL_CLOSE_ANIM = {
-  x: '100%',
-  opacity: 0,
-  transition: { duration: 0.28, ease: DETAIL_SWIFT_EASE },
-} as const
-// Paper-rise enter matches AlertDetailDrawer's inner choreography
-// (y:100%→0, 0.64s duration, 0.14s delay) — the surface visibly extrudes
-// from below the slot. Exit collapses to opacity-only dissolve (0.22s) so
-// the slot closes underneath without a slide-down mirror motion.
-const DETAIL_PANEL_INNER_RISE_ANIM = {
-  y: 0,
-  transition: { duration: 0.64, ease: DETAIL_SWIFT_EASE, delay: 0.14 },
-} as const
-const DETAIL_PANEL_INNER_FADE_ANIM = {
-  opacity: 0,
-  transition: { duration: 0.22, ease: DETAIL_SWIFT_EASE },
-} as const
-// The row-to-row content swap is a quick crossfade (no x-translation, short
-// duration) — a SMALL animation. Open/close still uses the bigger width +
-// paper-rise animations above.
-const DETAIL_PANEL_CONTENT_ENTER_ANIM = {
-  opacity: 1,
-  transition: { duration: 0.12, ease: DETAIL_SWIFT_EASE },
-} as const
-const DETAIL_PANEL_CONTENT_EXIT_ANIM = {
-  opacity: 0,
-  transition: { duration: 0.08, ease: DETAIL_SWIFT_EASE },
-} as const
+// read as siblings. The page-mode panel here and the queue drawer are the
+// SAME surface in two modes, so they share ONE set of motion constants —
+// imported from queue/constants.ts (the canonical source) rather than
+// re-declared locally. A prior local copy had silently drifted (close 0.28
+// vs 0.30, inner-fade 0.22 vs 0.12, content-exit 0.08 vs 0.12); keeping a
+// single definition is exactly what the motion-grammar token system is for.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const STATE_CODE_RE = /^[A-Z]{2}$/
 const ReadinessChecklistItemsSchema = ReadinessChecklistItemSchema.array().min(1).max(30)
@@ -2923,12 +2894,7 @@ export function ObligationQueueRoute() {
                       if (!parent) return null
                       return `${parent.clientName} · ${formatTaxCode(parent.taxType)}`
                     })()}
-                    onOpen={(parentId) =>
-                      void setObligationQueueQuery({
-                        obligation: parentId,
-                        row: null,
-                      })
-                    }
+                    onOpen={(parentId) => openQueueDetail(parentId)}
                     compact={panelOpenIntent}
                   />
                 ) : null}
@@ -4086,12 +4052,15 @@ export function ObligationQueueRoute() {
                             </DropdownMenuGroup>
                           </DropdownMenuSubContent>
                         </DropdownMenuSub>
-                        {/* Group by submenu. */}
+                        {/* Sort-by submenu — drives the same `group` param as
+                            the toolbar "Sort by" pill. 2026-06-16 (audit): label
+                            unified to "Sort by" (was "Group by") so one control
+                            reads one way everywhere. */}
                         <DropdownMenuSub>
                           <DropdownMenuSubTrigger>
                             <LayersIcon className="size-4" aria-hidden />
                             <span>
-                              <Trans>Group by</Trans>
+                              <Trans>Sort by</Trans>
                             </span>
                             <span className="ml-auto text-text-tertiary">
                               {group === 'client' ? (
@@ -4182,17 +4151,18 @@ export function ObligationQueueRoute() {
                             CSV
                           </Badge>
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            toast.success(t`View saved`, {
-                              description: t`Your current columns, grouping, and filters are saved to this view.`,
-                            })
-                          }
-                        >
+                        {/* 2026-06-16 (audit): saved views aren't persisted yet.
+                            Was a toast that FALSELY claimed the view was saved —
+                            converted to disabled-with-reason (+ "Soon" badge) per
+                            the no-fiction rule so the control doesn't lie. */}
+                        <DropdownMenuItem disabled title={t`Saved views are coming soon`}>
                           <BookmarkIcon className="size-4" aria-hidden />
                           <span className="flex-1">
                             <Trans>Save current view</Trans>
                           </span>
+                          <Badge variant="secondary" className="h-5 px-1.5 text-caption-xs">
+                            <Trans>Soon</Trans>
+                          </Badge>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           disabled={!queueFiltersActive}
@@ -4201,7 +4171,10 @@ export function ObligationQueueRoute() {
                         >
                           <RotateCcwIcon className="size-4" aria-hidden />
                           <span className="flex-1">
-                            <Trans>Reset filters</Trans>
+                            {/* 2026-06-16 (audit): "Clear filters" — unified with
+                                /clients, /audit, /rules/sources (was "Reset
+                                filters"). */}
+                            <Trans>Clear filters</Trans>
                           </span>
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
@@ -4642,22 +4615,13 @@ export function ObligationQueueRoute() {
                           <ObligationQueueEmptyState
                             onOpenWizard={openWizard}
                             canRunMigration={canRunMigration}
-                            hasActiveFilters={Boolean(
-                              searchInput ||
-                              statusFilter?.length ||
-                              clientFilter?.length ||
-                              stateFilter?.length ||
-                              countyFilter?.length ||
-                              taxTypeFilter?.length ||
-                              assignee ||
-                              assigneeFilter?.length ||
-                              owner ||
-                              due ||
-                              dueWithin ||
-                              evidence?.length ||
-                              daysMin !== null ||
-                              daysMax !== null,
-                            )}
+                            // 2026-06-16 (audit): reuse the canonical
+                            // `queueFiltersActive` predicate instead of a partial
+                            // inline copy that omitted projected / rule / obligation
+                            // — those filters could yield zero rows yet wrongly show
+                            // the "import deadlines" empty state instead of "no
+                            // matches · clear filters".
+                            hasActiveFilters={queueFiltersActive}
                             onClearFilters={resetObligationQueue}
                           />
                         </TableCell>
@@ -5498,7 +5462,7 @@ function AssigneeQuickPicker({
             // also firing (which would open the obligation
             // drawer behind the picker — confusing UX).
             onClick={(event) => event.stopPropagation()}
-            className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-divider-regular text-sm text-text-tertiary outline-none transition-colors hover:border-divider-strong hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-divider-regular text-sm text-text-tertiary outline-none transition-colors hover:border-divider-deep hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
           >
             ?
           </button>
@@ -5648,15 +5612,12 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
       return <EmptyCellMark />
     }
     return (
-      // This column compares only against the internal due date. Do not
-      // prefix terminal rows with "Filed"; that mixes the status/action
-      // vocabulary into a due-date metric.
+      // Terminal quality stat — compact "filed Nd late/early" in tertiary tone.
+      // 2026-06-16 (audit — "compact everywhere"): this column previously
+      // dropped the "filed" prefix on purpose, but that divergence was
+      // overridden so every surface reads one vocabulary (DueCountdownText).
       <span className="text-sm text-text-tertiary tabular-nums">
-        {days < 0 ? (
-          <Plural value={Math.abs(days)} one="# day late" other="# days late" />
-        ) : (
-          <Plural value={days} one="# day early" other="# days early" />
-        )}
+        <DueCountdownText days={days} terminal />
       </span>
     )
   }
@@ -5673,12 +5634,11 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
       : tone.dot === 'warning'
         ? 'text-text-warning'
         : 'text-text-primary'
-  const isLate = days < 0
   // No badge pill, dot, Info icon, or flame glyph here — the row already
   // carries the filled Status pill in the next column, and the tinted text
   // color already carries the late-urgency signal. Extra markers were
   // redundant signals on the same axis and added to the row's red overload.
-  // Reads as a value ("3 days late"), not a control.
+  // Wording from the shared DueCountdownText ("5d late" / "in 5d" / "today").
   return (
     <span
       className={cn(
@@ -5686,13 +5646,7 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
         tintedTextClass,
       )}
     >
-      {days === 0 ? (
-        <Trans>Today</Trans>
-      ) : isLate ? (
-        <Plural value={Math.abs(days)} one="# day late" other="# days late" />
-      ) : (
-        <Plural value={days} one="# day" other="# days" />
-      )}
+      <DueCountdownText days={days} />
     </span>
   )
 }
@@ -7359,7 +7313,7 @@ export function ObligationQueueDetailDrawer({
                   {showBlockedChip ? (
                     <Badge
                       variant="warning"
-                      className="h-6 border-state-warning-border bg-state-warning-solid/15 text-caption-xs uppercase tracking-wide text-text-warning"
+                      className="h-6 border-state-warning-hover-alt bg-state-warning-solid/15 text-caption-xs uppercase tracking-wide text-text-warning"
                       title={t`Blocked by an upstream obligation`}
                     >
                       <Trans>Blocked</Trans>
@@ -7799,7 +7753,7 @@ export function ObligationQueueDetailDrawer({
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <Badge
                         variant="outline"
-                        className="border-state-warning-border bg-state-warning-hover text-text-warning"
+                        className="border-state-warning-hover-alt bg-state-warning-hover text-text-warning"
                       >
                         <Trans>
                           Client response due{' '}
@@ -8015,7 +7969,7 @@ export function ObligationQueueDetailDrawer({
                         a transient toast the user blows past while using the
                         fallback list. */}
                         {checklistDegraded ? (
-                          <div className="flex items-start gap-2 rounded-lg border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
+                          <div className="flex items-start gap-2 rounded-lg border border-state-warning-active bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
                             <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
                             <span>
                               <Trans>
@@ -8591,19 +8545,16 @@ export function ObligationQueueDetailDrawer({
                             {evidenceItems.length}
                           </span>
                         ) : null}
-                        {/* Stub CTA so the workpapers section isn't a dead
-                            end (audit L11). Upload pipeline isn't wired yet,
-                            so the click acknowledges + sets expectation
-                            without losing the user. */}
+                        {/* 2026-06-16 (audit C4): upload pipeline isn't wired yet.
+                            Was a toast-only "coming soon" button; converted to the
+                            canonical disabled-with-reason pattern
+                            (settings.profile.tsx:511) for consistency. */}
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() =>
-                            toast.info(t`Workpaper upload is coming soon`, {
-                              description: t`We'll let you attach PDFs and exports here as soon as ingest lands.`,
-                            })
-                          }
+                          disabled
+                          title={t`Coming soon — attach PDFs and exports here once ingest lands.`}
                         >
                           <Trans>Add workpaper</Trans>
                         </Button>
@@ -8657,7 +8608,7 @@ export function ObligationQueueDetailDrawer({
                       ) : (
                         <Badge
                           variant="outline"
-                          className="border-state-warning-border text-caption-xs normal-case tracking-normal text-text-warning"
+                          className="border-state-warning-hover-alt text-caption-xs normal-case tracking-normal text-text-warning"
                         >
                           <Trans>No rule bound</Trans>
                         </Badge>
@@ -9282,7 +9233,7 @@ function MaterialsRequestPreviewDialog({
           ) : errorMessage ? (
             <p
               role="alert"
-              className="rounded-lg border border-state-danger-border bg-state-danger-hover p-3 text-sm text-text-danger"
+              className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-3 text-sm text-text-destructive"
             >
               {errorMessage}
             </p>
@@ -9302,7 +9253,7 @@ function MaterialsRequestPreviewDialog({
                   <p className="text-xs text-text-tertiary">
                     {preview.recipientEmail && !preview.templateActive ? (
                       <Trans>
-                        The template is paused in Email Template settings, so no email will be
+                        The template is paused in Reminder emails settings, so no email will be
                         queued.
                       </Trans>
                     ) : (
@@ -9349,7 +9300,7 @@ function MaterialsRequestPreviewDialog({
         <DialogFooter className="border-t border-divider-subtle px-6 py-4">
           <Button variant="outline" nativeButton={false} render={<Link to="/reminders" />}>
             <ExternalLinkIcon data-icon="inline-start" />
-            <Trans>Edit template in Email Template settings</Trans>
+            <Trans>Edit template in Reminder emails settings</Trans>
           </Button>
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
             <Trans>Cancel</Trans>
@@ -10547,7 +10498,7 @@ function PathToFilingSummary({
                         prevIdx === currentIndex ||
                         (prevIdx < currentIndex && (prevIdx === 0 || stamps[prevIdx] !== null))
                       return thisEntered && prevEntered
-                        ? 'border-divider-strong'
+                        ? 'border-divider-deep'
                         : 'border-divider-regular'
                     })(),
                   )}
@@ -10620,7 +10571,7 @@ function PathToFilingSummary({
                         nextIdx === currentIndex ||
                         (nextIdx < currentIndex && stamps[nextIdx] !== null)
                       return thisEntered && nextEntered
-                        ? 'border-divider-strong'
+                        ? 'border-divider-deep'
                         : 'border-divider-regular'
                     })(),
                   )}
@@ -10761,7 +10712,7 @@ function AuthorityResponsePanel({
           : null
 
     return (
-      <section className="grid gap-3 rounded-lg border border-state-danger-border bg-state-danger-hover px-4 py-3">
+      <section className="grid gap-3 rounded-lg border border-state-destructive-border bg-state-destructive-hover px-4 py-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-1">
             <p className="text-sm font-semibold text-text-primary">
@@ -12968,7 +12919,7 @@ function ObligationFiltersPopover({
               {/* Due window — single-select. Past due / Due this week share the
                   date axis, so picking one clears the other. */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
+                <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
                   <Trans>Due window</Trans>
                 </span>
                 <div className="flex flex-wrap gap-1">
@@ -13007,7 +12958,7 @@ function ObligationFiltersPopover({
 
               {/* Needs evidence + Awaiting signature — orthogonal toggles. */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
+                <span className="text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
                   <Trans>Triage</Trans>
                 </span>
                 <div className="flex flex-wrap gap-1">
@@ -13042,7 +12993,7 @@ function ObligationFiltersPopover({
             // rhythm; the preset rows use `-mx-2 px-2` so their hover wash can
             // breathe while the row text still lines up with the eyebrow.
             <div className="flex flex-col gap-1 p-4">
-              <span className="pb-1 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
+              <span className="pb-1 text-caption-xs font-semibold tracking-eyebrow-tight text-text-muted uppercase">
                 <Trans>Presets</Trans>
               </span>
               {presets.map((preset) => (

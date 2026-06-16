@@ -1050,7 +1050,7 @@ function PriorityKpiTile({
         <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-state-accent-hover text-text-accent">
           {icon}
         </span>
-        <span className="text-caption-xs font-bold tracking-wide text-text-muted uppercase">
+        <span className="text-caption-xs font-semibold tracking-wide text-text-muted uppercase">
           {label}
         </span>
       </div>

@@ -206,7 +206,7 @@ export function SignatureReminderDialog({
   const needsResendConfirm = recentlyReminded && !confirmResend
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog protectInput open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>
@@ -439,7 +439,7 @@ export function BulkExtensionDialog({
     !sending
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog protectInput open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
@@ -582,7 +582,7 @@ export function DeadlineInputRequestDialog({
     submitting || loadingRecipients || !selectedRecipientUserId || message.trim().length === 0
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog protectInput open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[min(520px,calc(100vw-2rem))] max-w-none p-0">
         <DialogHeader className="border-b border-divider-subtle px-6 py-5 pr-12">
           <DialogTitle>
@@ -720,7 +720,7 @@ export function AuthorityRejectionDialog({
   ]
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog protectInput open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[min(760px,calc(100vh-2rem))] w-[min(640px,calc(100vw-2rem))] max-w-none flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="border-b border-divider-subtle px-6 py-5 pr-12">
           <DialogTitle>
@@ -880,7 +880,7 @@ export function MaterialsRequestPreviewDialog({
   )
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog protectInput open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[min(760px,calc(100vh-2rem))] w-[min(720px,calc(100vw-2rem))] max-w-none flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="border-b border-divider-subtle px-6 py-5 pr-12">
           <DialogTitle>
@@ -903,7 +903,7 @@ export function MaterialsRequestPreviewDialog({
           ) : errorMessage ? (
             <p
               role="alert"
-              className="rounded-lg border border-state-danger-border bg-state-danger-hover p-3 text-sm text-text-danger"
+              className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-3 text-sm text-text-destructive"
             >
               {errorMessage}
             </p>
@@ -923,7 +923,7 @@ export function MaterialsRequestPreviewDialog({
                   <p className="text-xs text-text-tertiary">
                     {preview.recipientEmail && !preview.templateActive ? (
                       <Trans>
-                        The template is paused in Email Template settings, so no email will be
+                        The template is paused in Reminder emails settings, so no email will be
                         queued.
                       </Trans>
                     ) : (
@@ -970,7 +970,7 @@ export function MaterialsRequestPreviewDialog({
         <DialogFooter className="border-t border-divider-subtle px-6 py-4">
           <Button variant="outline" nativeButton={false} render={<Link to="/reminders" />}>
             <ExternalLinkIcon data-icon="inline-start" />
-            <Trans>Edit template in Email Template settings</Trans>
+            <Trans>Edit template in Reminder emails settings</Trans>
           </Button>
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
             <Trans>Cancel</Trans>

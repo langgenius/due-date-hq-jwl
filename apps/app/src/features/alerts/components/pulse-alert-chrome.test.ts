@@ -17,24 +17,24 @@ describe('impactBadgeFromAlert', () => {
     expect(impactBadgeFromAlert({ matchedCount: 0, needsReviewCount: 5 }).id).toBe('high')
   })
 
-  it('paints HIGH with the unified round-58 X3j4nt amber (not AlertCard’s old red)', () => {
+  it('paints HIGH with the peach state-warning token family (2026-06-16: tokenized off the old hardcoded amber)', () => {
     expect(impactBadgeFromAlert({ matchedCount: 6, needsReviewCount: 0 })).toEqual({
       id: 'high',
-      bg: '#ffe3d6',
-      text: '#92400E',
+      bg: 'var(--state-warning-hover)',
+      text: 'var(--text-warning)',
     })
   })
 
-  it('keeps MEDIUM / LOW neutral gray (every surface gates the pill to HIGH only)', () => {
+  it('keeps MEDIUM / LOW neutral gray via tokens (every surface gates the pill to HIGH only)', () => {
     expect(impactBadgeFromAlert({ matchedCount: 3, needsReviewCount: 0 })).toEqual({
       id: 'medium',
-      bg: '#f2f4f7',
-      text: '#475467',
+      bg: 'var(--state-base-hover)',
+      text: 'var(--text-secondary)',
     })
     expect(impactBadgeFromAlert({ matchedCount: 0, needsReviewCount: 0 })).toEqual({
       id: 'low',
-      bg: '#f2f4f7',
-      text: '#475467',
+      bg: 'var(--state-base-hover)',
+      text: 'var(--text-secondary)',
     })
   })
 })

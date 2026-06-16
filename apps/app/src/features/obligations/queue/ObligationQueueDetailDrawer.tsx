@@ -47,6 +47,7 @@ import {
   willReadinessChecklistBeFullyReceived,
 } from './helpers'
 import type { AuthorityRejectionDraft, DeadlineInputRequestDraft } from './types'
+import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
@@ -1891,7 +1892,9 @@ export function ObligationQueueDetailDrawer({
                   t`Due ${formatDatePretty(officialIso.slice(0, 10), { alwaysShowYear: true })}`
                 ) : null
               ) : row.daysUntilDue >= 0 ? (
-                <Plural value={row.daysUntilDue} one="due in # day" other="due in # days" />
+                // Compact shared vocabulary ("in 5d" / "today") — one reading
+                // across the column, dashboard, and this banner note.
+                <DueCountdownText days={row.daysUntilDue} />
               ) : null
             if (isOverdue) {
               return (
@@ -1904,16 +1907,20 @@ export function ObligationQueueDetailDrawer({
                   // white hero. The band IS the edge, so it has no border-b.
                   icon={AlertTriangleIcon}
                   title={
-                    <Trans>
-                      Past deadline ·{' '}
-                      <Plural
-                        value={Math.abs(
+                    // Compact shared vocabulary ("5d late") so the banner reads
+                    // the same word as the column + dashboard (was "N days
+                    // overdue"). Negated to a signed-late value for
+                    // DueCountdownText. Split out of <Trans> to avoid nesting a
+                    // <Plural>-bearing component inside the macro.
+                    <span className="inline-flex items-baseline gap-1">
+                      <Trans>Past deadline</Trans>
+                      <span aria-hidden>·</span>
+                      <DueCountdownText
+                        days={-Math.abs(
                           daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()),
                         )}
-                        one="# day overdue"
-                        other="# days overdue"
                       />
-                    </Trans>
+                    </span>
                   }
                   note={timingNote}
                 />
@@ -2851,7 +2858,7 @@ export function ObligationQueueDetailDrawer({
                                   className="font-semibold"
                                   render={
                                     <Link
-                                      to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`}
+                                      to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
                                     />
                                   }
                                 >
@@ -4078,7 +4085,7 @@ export function ObligationQueueDetailDrawer({
                                   className="shrink-0 font-semibold"
                                   render={
                                     <Link
-                                      to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`}
+                                      to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
                                     />
                                   }
                                 >
@@ -4297,7 +4304,7 @@ export function ObligationQueueDetailDrawer({
                             ].map((heading) => (
                               <span
                                 key={heading}
-                                className="font-mono text-caption-xs font-bold uppercase tracking-wider text-text-tertiary"
+                                className="font-mono text-caption-xs font-semibold uppercase tracking-wider text-text-tertiary"
                               >
                                 {heading}
                               </span>
@@ -4998,7 +5005,10 @@ export function ObligationQueueDetailDrawer({
   // requirement; the visible heading is the <h2> inside `drawerBody`.
   return (
     <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
-      <SheetContent className="flex flex-col bg-background-canvas-warm data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
+      {/* 2026-06-16 (audit — alert↔deadline parity): xl cap aligned to 880px to
+          match AlertDetailDrawer's sheet (was 920px) so the two flagship detail
+          sheets share one width. */}
+      <SheetContent className="flex flex-col bg-background-canvas-warm data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
         <SheetTitle className="sr-only">{titleText ?? t`Deadline detail`}</SheetTitle>
         <SheetDescription className="sr-only">
           <Trans>Deadline workflow detail panel.</Trans>

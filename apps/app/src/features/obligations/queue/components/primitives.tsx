@@ -2,10 +2,11 @@
 // Extracted from routes/obligations.tsx.
 import { type ComponentProps, type ReactNode } from 'react'
 
-import { Plural, Trans } from '@lingui/react/macro'
+import { Trans } from '@lingui/react/macro'
 import { AlertTriangleIcon } from 'lucide-react'
 
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
+import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { type ObligationStatus } from '@/features/obligations/status-control'
 import {
   dueCountdownTone,
@@ -60,37 +61,27 @@ export function DueDaysPill({ days, status }: { days: number; status: Obligation
       return <EmptyCellMark />
     }
     return (
-      // This column compares only against the internal due date. Do
-      // not prefix terminal rows with "Filed"; that mixes the
-      // status/action vocabulary into a due-date metric.
+      // Terminal quality stat — compact "filed Nd late/early" in tertiary tone.
+      // 2026-06-16 (audit — "compact everywhere"): this column previously
+      // dropped the "filed" prefix on purpose, but that divergence was
+      // overridden so every surface reads one vocabulary (DueCountdownText).
       <span className="text-sm text-text-tertiary tabular-nums">
-        {days < 0 ? (
-          <Plural value={Math.abs(days)} one="# day late" other="# days late" />
-        ) : (
-          <Plural value={days} one="# day early" other="# days early" />
-        )}
+        <DueCountdownText days={days} terminal />
       </span>
     )
   }
-  // The urgency signal is carried by tinted text color alone (red for
-  // overdue, amber for due-soon, neutral for future) via the shared
-  // `dueCountdownTone` map — the single source so /alerts and /deadlines
-  // colour lateness identically. No filled badge/dot/icon: a filled chip
-  // would look like the Status pill next to it, and a dot would be a
-  // redundant signal on the same axis. Reads as a value ("3 days late").
+  // Live countdown — wording from the shared DueCountdownText ("5d late" /
+  // "in 5d" / "today"); urgency tone from the canonical `dueCountdownTone`
+  // ramp (overdue → red, ≤7d → peach, else neutral) so /alerts and /deadlines
+  // colour lateness identically. No filled badge/dot/icon: a filled chip would
+  // look like the Status pill next to it, and a dot would be a redundant signal
+  // on the same axis.
   const tintedTextClass = DUE_COUNTDOWN_TEXT_CLASS[dueCountdownTone(days)]
-  const isLate = days < 0
   return (
     <span
       className={cn('inline-flex items-center text-sm tabular-nums leading-tight', tintedTextClass)}
     >
-      {days === 0 ? (
-        <Trans>Today</Trans>
-      ) : isLate ? (
-        <Plural value={Math.abs(days)} one="# day late" other="# days late" />
-      ) : (
-        <Plural value={days} one="# day" other="# days" />
-      )}
+      <DueCountdownText days={days} />
     </span>
   )
 }
@@ -296,7 +287,7 @@ export function EvidenceArtifactStatusGrid({ cells }: { cells: ArtifactStatusCel
               )}
               aria-hidden
             />
-            <span className="text-caption-xs font-bold uppercase tracking-wide text-text-tertiary">
+            <span className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
               {cell.label}
             </span>
           </div>
@@ -337,7 +328,7 @@ export function AuthorityFactStrip({
               {fact.icon}
             </span>
           ) : null}
-          <span className="font-mono text-caption-xs font-bold uppercase tracking-wide text-text-tertiary">
+          <span className="font-mono text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
             {fact.label}
           </span>
           <span className="text-xs font-medium text-text-secondary">{fact.value}</span>

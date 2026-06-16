@@ -213,7 +213,10 @@ export function DeadlineRow({
             // container (client-detail side panel open). Full layout otherwise.
             compact
               ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
-              : 'grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px]',
+              : // 2026-06-16 (audit): fixed columns → minmax(0,Npx) so the row
+                // reflows/shrinks instead of forcing the filing-plan's old
+                // horizontal scrollbar. Must match ClientWorkPlanPanel's header.
+                'grid-cols-[minmax(0,1fr)_minmax(0,148px)_minmax(0,124px)_minmax(0,104px)_minmax(0,132px)_24px]',
             'hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
             // §1b — selected + open share one accent (VtC73 #eff4ff).
             isActive && 'bg-state-accent-hover',
@@ -500,7 +503,7 @@ function DeadlineRowExpansion({
               <div className="flex shrink-0 items-center gap-1.5">
                 <span
                   className={cn(
-                    'shrink-0 rounded-full transition-all',
+                    'shrink-0 rounded-full transition-[width,height,background-color,box-shadow]',
                     // Current stage reads as accent (positional), not warning —
                     // "In review" isn't a warning. `blocked` never renders as a
                     // green "passed" dot (it's a side-state, not a milestone).

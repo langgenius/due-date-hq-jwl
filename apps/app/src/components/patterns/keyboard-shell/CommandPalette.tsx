@@ -153,7 +153,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       },
       {
         id: 'reminders',
-        label: t`Email Template`,
+        label: t`Reminder emails`,
         description: t`Manage reminder email templates and recent delivery.`,
         scope: 'deadlines',
         group: 'navigate',

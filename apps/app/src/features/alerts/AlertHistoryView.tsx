@@ -50,18 +50,20 @@ type HistoryTab = 'all' | 'applied' | 'dismissed' | 'reverted' | 'expired'
 
 // Single source of truth for the tab ladder — the label travels with
 // the id so the rendered control can never desync from the tab it
-// selects (the prior hand-rolled if/else ladder had no `expired`
-// branch, so both 'reverted' and 'expired' fell through to "Reverted").
+// selects.
 //
-// The segmented control carries FOUR tabs — All / Applied / Dismissed
-// / Reverted. There is no "Expired" tab; expired (aged-out `matched`)
-// rows still surface under "All" with their Expired status badge, and
-// the Expired STAT card above keeps the standalone count.
+// 2026-06-16 (audit): added the "Expired" tab. The StatBand above and the
+// per-row status badge both surface an Expired bucket (aged-out `matched`),
+// and `matchesTab` already supported 'expired' — but the tab ladder omitted
+// it, so a user could SEE an Expired stat + badges yet had no way to filter
+// to them (only "All" showed them). Counts now ride on each tab (Segmented
+// `count`) to match every other scope selector in the app.
 const TABS: { id: HistoryTab; label: React.ReactNode }[] = [
   { id: 'all', label: <Trans>All</Trans> },
   { id: 'applied', label: <Trans>Applied</Trans> },
   { id: 'dismissed', label: <Trans>Dismissed</Trans> },
   { id: 'reverted', label: <Trans>Reverted</Trans> },
+  { id: 'expired', label: <Trans>Expired</Trans> },
 ]
 
 const STATUS_META: Record<
@@ -230,7 +232,20 @@ export function AlertHistoryView() {
             ariaLabel={t`Filter handled alerts`}
             value={tab}
             onValueChange={setTab}
-            options={TABS.map((entry) => ({ value: entry.id, label: entry.label }))}
+            options={TABS.map((entry) => ({
+              value: entry.id,
+              label: entry.label,
+              count:
+                entry.id === 'all'
+                  ? stats.handled
+                  : entry.id === 'applied'
+                    ? stats.applied
+                    : entry.id === 'dismissed'
+                      ? stats.dismissed
+                      : entry.id === 'reverted'
+                        ? stats.reverted
+                        : stats.expired,
+            }))}
           />
           {/* Canonical SearchInput so rest/hover/focus/placeholder + the
               clear-(×)/Esc affordance match every other page search. */}

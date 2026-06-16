@@ -1052,7 +1052,10 @@ export function CreateObligationDialog({
 
   return (
     <>
+      {/* protectInput: a half-filled new-deadline form shouldn't vanish on a
+          stray backdrop click — Esc / ✕ / Cancel still close. */}
       <Dialog
+        protectInput
         open={open}
         onOpenChange={(nextOpen) => {
           setOpen(nextOpen)
@@ -1345,7 +1348,7 @@ export function CreateObligationDialog({
                         match.kind === 'matched'
                           ? 'border-state-success-solid/60 bg-state-success-hover text-text-success'
                           : match.kind === 'review_required'
-                            ? 'border-state-warning-border bg-state-warning-hover text-text-warning'
+                            ? 'border-state-warning-hover-alt bg-state-warning-hover text-text-warning'
                             : 'border-divider-regular bg-background-subtle text-text-tertiary',
                       )}
                     >

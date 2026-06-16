@@ -575,18 +575,22 @@ const TILEGRAM_COUNTS = new Map<string, number>([
 // Typography scale — pulled from packages/ui/src/styles/preset.css. These
 // are the size/weight pairings the design system uses. Update the strings
 // here if the Tailwind config changes.
+// 2026-06-16 (audit): specs corrected to the REAL token px from
+// styles/tokens/primitives.css (the 2026-05-20 rescale: 2xl 24→28, xl 20→18,
+// base 13→14). The gallery is the spec designers copy from, so stale numbers
+// (H1 "24/32", H2 "20/28", base "16/24", eyebrow "11/14") propagated drift.
 const TYPE_SCALE: Array<{ name: string; className: string; spec: string }> = [
   { name: 'Display', className: 'text-3xl font-semibold tracking-tight', spec: '30 / 36 · 600' },
-  { name: 'H1', className: 'text-2xl font-semibold', spec: '24 / 32 · 600' },
-  { name: 'H2', className: 'text-xl font-semibold', spec: '20 / 28 · 600' },
-  { name: 'H3', className: 'text-lg font-semibold', spec: '18 / 26 · 600' },
-  { name: 'Body large', className: 'text-base', spec: '16 / 24 · 400' },
-  { name: 'Body', className: 'text-sm', spec: '14 / 20 · 400' },
+  { name: 'H1', className: 'text-2xl font-semibold', spec: '28 / 32 · 600' },
+  { name: 'H2', className: 'text-xl font-semibold', spec: '18 / 24 · 600' },
+  { name: 'H3', className: 'text-lg font-semibold', spec: '16 / 22 · 600' },
+  { name: 'Body large', className: 'text-base', spec: '14 / 19 · 400' },
+  { name: 'Body', className: 'text-sm', spec: '13 / 18 · 400' },
   { name: 'Caption', className: 'text-xs', spec: '12 / 16 · 400' },
   {
     name: 'Eyebrow',
     className: 'text-xs font-semibold uppercase tracking-wider',
-    spec: '11 / 14 · 600 uppercase',
+    spec: '12 / 16 · 600 uppercase',
   },
 ]
 

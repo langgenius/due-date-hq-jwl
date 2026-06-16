@@ -133,7 +133,7 @@ export function SplashRoute() {
           >
             <div className="flex items-center gap-2">
               <span aria-hidden className="block size-1.5 rounded-full bg-state-success-solid" />
-              <span className="text-[11px] font-bold tracking-eyebrow text-text-muted uppercase">
+              <span className="text-[11px] font-semibold tracking-eyebrow text-text-muted uppercase">
                 {data?.sinceLastVisit ? (
                   <Trans>
                     While you were away · since {formatRelativeTime(data.sinceLastVisit)}
@@ -173,7 +173,11 @@ export function SplashRoute() {
           {data && data.dueThisWeekCount > 0 ? (
             <div className="flex w-full items-center gap-2.5 rounded-xl bg-state-warning-hover px-3.5 py-2.5">
               <span aria-hidden className="block size-2 rounded-full bg-state-warning-solid" />
-              <span className="text-sm font-semibold text-text-warning">
+              {/* 2026-06-16 (audit): was font-semibold + warning color = the
+                  banned red+bold double-highlight. The peach chip bg + dot
+                  already carry the signal; text drops to 500 per canon
+                  ("urgency gets color/size, never red+bold"). */}
+              <span className="text-sm font-medium text-text-warning">
                 <Plural
                   value={data.dueThisWeekCount}
                   one="You have # deadline due this week"

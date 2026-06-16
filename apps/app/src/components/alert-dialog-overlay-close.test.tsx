@@ -76,6 +76,43 @@ function render(children: React.ReactNode) {
   })
 }
 
+describe('Dialog protectInput (close-interaction policy)', () => {
+  it('a normal Dialog still closes on overlay click', () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog open onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogTitle>Plain dialog</DialogTitle>
+        </DialogContent>
+      </Dialog>,
+    )
+    const overlay = document.querySelector('[data-slot="dialog-overlay"]')
+    expect(overlay).toBeInstanceOf(HTMLElement)
+    act(() => {
+      overlay?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+    })
+    expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything())
+  })
+
+  it('a protectInput Dialog does NOT close on overlay click (unsaved input is safe)', () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog protectInput open onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogTitle>Form dialog</DialogTitle>
+        </DialogContent>
+      </Dialog>,
+    )
+    const overlay = document.querySelector('[data-slot="dialog-overlay"]')
+    expect(overlay).toBeInstanceOf(HTMLElement)
+    act(() => {
+      overlay?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+    })
+    // The outside-press is cancelled, so the consumer is never asked to close.
+    expect(onOpenChange).not.toHaveBeenCalledWith(false, expect.anything())
+  })
+})
+
 describe('AlertDialog overlay dismissal', () => {
   it('closes the alert dialog when the overlay is clicked', () => {
     const onOpenChange = vi.fn()

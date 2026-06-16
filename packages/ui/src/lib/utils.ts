@@ -23,6 +23,7 @@ const twMerge = extendTailwindMerge({
       'font-size': [
         {
           text: [
+            '2xs',
             'caption',
             'caption-xs',
             'micro',

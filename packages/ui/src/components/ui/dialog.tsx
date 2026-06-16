@@ -8,8 +8,34 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { overlayBackdropClassName, overlayPopupAnimationClassName } from '@duedatehq/ui/lib/overlay'
 import { Button } from '@duedatehq/ui/components/ui/button'
 
-function Dialog({ ...props }: DialogPrimitive.Root.Props) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+function Dialog({
+  protectInput = false,
+  onOpenChange,
+  ...props
+}: DialogPrimitive.Root.Props & {
+  /**
+   * "Protect input" modals — ones carrying unsaved text the user is composing
+   * (a note, an email draft, a create-form) — must not vanish on a STRAY click
+   * in the backdrop. With this set, an outside-press is cancelled; Esc, the ✕,
+   * and an explicit Cancel still close (those are deliberate). Default off, so
+   * simple/read-only modals keep the standard click-outside-to-dismiss.
+   * (2026-06-16 close-interaction policy: "Smart — protect input".)
+   */
+  protectInput?: boolean
+}) {
+  return (
+    <DialogPrimitive.Root
+      data-slot="dialog"
+      onOpenChange={(open, eventDetails) => {
+        if (protectInput && !open && eventDetails.reason === 'outside-press') {
+          eventDetails.cancel()
+          return
+        }
+        onOpenChange?.(open, eventDetails)
+      }}
+      {...props}
+    />
+  )
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {

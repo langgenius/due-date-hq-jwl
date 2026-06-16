@@ -83,10 +83,11 @@ export function OnboardingSkipModal({
             />
           </div>
 
+          {/* 2026-06-16 (audit): removed "we'll send you a reminder" — no
+              import-reminder pipeline exists (no-fiction rule). Kept the factual
+              "import any time" reassurance. */}
           <p className="text-xs leading-relaxed text-text-tertiary">
-            <Trans>
-              Most firms come back to import within 3 days — we&apos;ll send you a reminder.
-            </Trans>
+            <Trans>You can import your clients any time from Clients → Import.</Trans>
           </p>
         </div>
 

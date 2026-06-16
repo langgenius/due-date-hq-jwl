@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -31,6 +32,7 @@ import {
 } from '@/features/_surface-vocabulary/due-date-tone'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { fadeMotion } from '@/lib/motion'
 import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
 
 import { useAlertDetailFromCacheQueryOptions } from '../api'
@@ -102,13 +104,34 @@ import { ChangeKindIcon, changeKindLabel } from './PulseChangeKindChip'
  * straight from the Pencil pills (Rrafe / P3itk / lZ9h8) so the chips
  * match the design 1:1 rather than approximating via tokens.
  */
+// 2026-06-16 (audit): repainted off hardcoded hex onto the token families so
+// the priority pills track the theme and obey the color economy — urgent =
+// destructive red, high = peach `state-warning` (was golden amber #FFF4E5/
+// #B9501A, the caution-tape tone Q1 retired), normal = neutral. Values are
+// CSS `var()` refs because the row applies them via inline `style`. Also drops
+// the one-off `#FCA5A5` urgent border that wasn't on the red ramp.
 const LEVEL_PILL: Record<
   PulsePriorityLevel,
   { label: string; bg: string; border: string; text: string }
 > = {
-  urgent: { label: 'URGENT', bg: '#FEE4E2', border: '#FCA5A5', text: '#D92D20' },
-  high: { label: 'HIGH', bg: '#FFF4E5', border: '#FDBA74', text: '#B9501A' },
-  normal: { label: 'NORMAL', bg: '#F9FAFB', border: '#1018281F', text: '#354052' },
+  urgent: {
+    label: 'URGENT',
+    bg: 'var(--state-destructive-hover)',
+    border: 'var(--state-destructive-border)',
+    text: 'var(--text-destructive)',
+  },
+  high: {
+    label: 'HIGH',
+    bg: 'var(--state-warning-hover)',
+    border: 'var(--state-warning-active)',
+    text: 'var(--text-warning)',
+  },
+  normal: {
+    label: 'NORMAL',
+    bg: 'var(--state-base-hover-subtle)',
+    border: 'var(--border-default)',
+    text: 'var(--text-secondary)',
+  },
 }
 
 // ZkXFr's HeadRow carries no per-kind lucide icon; the change kind
@@ -370,6 +393,16 @@ function PulseAlertRow({
   const actionText = showAction ? deriveActionText(alert.changeKind) : null
   const showKeyChange = !!(showDateRow || effectiveLabel || formLabel || actionText)
 
+  // 2026-06-16 (Yuqi "dim anything besides the alert title when not selected"):
+  // on rows that AREN'T the open one, everything but the headline recedes — the
+  // metadata cluster (jurisdiction/form/change-kind/source/time), the time rail,
+  // and the KeyChange/action all drop to a quiet tier so the list scans as a
+  // clean column of titles. Hovering a row, or opening it (`active`), lifts its
+  // detail back to full. The title <h3> never recedes.
+  const recede = active
+    ? undefined
+    : 'opacity-60 transition-opacity duration-150 group-hover/row:opacity-100'
+
   return (
     <article
       role="button"
@@ -442,7 +475,7 @@ function PulseAlertRow({
           relocates to the head-row right cluster. */}
       {!compact ? (
         showRailDate ? (
-          <div className="flex w-[90px] shrink-0 flex-col gap-1">
+          <div className={cn('flex w-[90px] shrink-0 flex-col gap-1', recede)}>
             {/* The third rail line (railRelative) is dropped — hovering
                 the date surfaces "N days ago" instead, so the rail is just
                 date + wall-clock at rest. */}
@@ -477,7 +510,7 @@ function PulseAlertRow({
         {/* HeadRow (Pencil g5kKJQ `iMPxe`) — gap 8. Pill order:
             level → state → form → change-kind (text) · sources →
             spacer → source link → why. */}
-        <div className="flex min-w-0 items-center gap-2">
+        <div className={cn('flex min-w-0 items-center gap-2', recede)}>
           {/* 2026-06-12 (Yuqi "using a pill to show Active in the Active
               tab is not reasonable or logical"): the ACTIVE badge is GONE
               from queue rows — the Review/Active tab already states which
@@ -684,7 +717,7 @@ function PulseAlertRow({
         {showKeyChange ? (
           // No `mt-1` push — the parent main col uses `gap-2`, so each
           // block already has 8px breathing.
-          <div className="flex flex-col gap-2">
+          <div className={cn('flex flex-col gap-2', recede)}>
             {showDateRow ? (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-mono text-sm font-medium text-text-muted line-through tabular-nums">
@@ -963,27 +996,37 @@ function PulseAlertList({
     }
   }
 
+  // Each row is wrapped in a motion.div so dismissing an alert (which
+  // drops it from `alerts` on the next query settle) dissolves the row at
+  // the grammar exit tempo (fadeMotion, 120ms) instead of popping out —
+  // the optimistic action visibly *resolves*. Only `exit` is wired (no
+  // initial/animate), so rows render at full opacity and the list load /
+  // re-sort stays still; nothing fades IN. The wrapper is an unstyled
+  // block — each row owns its own border-b, so layout is unchanged.
+  // Reduced-motion collapses the fade to ~0 globally (preset.css + root
+  // MotionConfig).
   const renderRow = (alert: PulseAlertPublic) => (
-    <PulseAlertRow
-      key={alert.id}
-      alert={alert}
-      active={alert.id === openAlertId}
-      onReview={() => onReview(alert.id)}
-      {...(onDismiss ? { onDismiss: () => onDismiss(alert.id) } : {})}
-      compact={panelOpen}
-      selectable={selectable}
-      selected={selectedIds?.has(alert.id) ?? false}
-      selectionActive={selectionActive}
-      {...(onToggleSelected
-        ? { onToggleSelected: (next: boolean) => onToggleSelected(alert.id, next) }
-        : {})}
-      priority={priorityById?.get(alert.id)}
-      highImpact={highImpactIds?.has(alert.id) ?? false}
-      showAction={showAction}
-      // Day-grouped lists: the band owns the date, rows show time only
-      // (Yuqi #6). Flat lists (impact sort / map rail) keep date + time.
-      showRailDate={!grouped}
-    />
+    <motion.div key={alert.id} exit={fadeMotion.exit} transition={fadeMotion.transition}>
+      <PulseAlertRow
+        alert={alert}
+        active={alert.id === openAlertId}
+        onReview={() => onReview(alert.id)}
+        {...(onDismiss ? { onDismiss: () => onDismiss(alert.id) } : {})}
+        compact={panelOpen}
+        selectable={selectable}
+        selected={selectedIds?.has(alert.id) ?? false}
+        selectionActive={selectionActive}
+        {...(onToggleSelected
+          ? { onToggleSelected: (next: boolean) => onToggleSelected(alert.id, next) }
+          : {})}
+        priority={priorityById?.get(alert.id)}
+        highImpact={highImpactIds?.has(alert.id) ?? false}
+        showAction={showAction}
+        // Day-grouped lists: the band owns the date, rows show time only
+        // (Yuqi #6). Flat lists (impact sort / map rail) keep date + time.
+        showRailDate={!grouped}
+      />
+    </motion.div>
   )
 
   return (
@@ -1012,7 +1055,7 @@ function PulseAlertList({
           navigator rail — no per-day header bands, just the rows in their
           incoming order. */}
       {!grouped
-        ? alerts.map(renderRow)
+        ? <AnimatePresence initial={false}>{alerts.map(renderRow)}</AnimatePresence>
         : Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
             const { label } = formatDayHeader(dayKey, firmTimezone)
 
@@ -1060,8 +1103,9 @@ function PulseAlertList({
                 whether the detail panel is up (see the `panelOpen`
                 computation above); the dismiss handler passes through
                 from AlertsListPage so the hover-revealed action fires the
-                orpc mutation. */}
-                {dayAlerts.map(renderRow)}
+                orpc mutation. AnimatePresence lets a dismissed row fade
+                out (fadeMotion exit) before the list collapses. */}
+                <AnimatePresence initial={false}>{dayAlerts.map(renderRow)}</AnimatePresence>
               </div>
             )
           })}

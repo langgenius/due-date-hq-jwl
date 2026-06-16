@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { CircleCheckIcon, GitPullRequestArrowIcon, SearchIcon } from 'lucide-react'
+import { useMemo } from 'react'
+import { CircleCheckIcon, GitPullRequestArrowIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationRule, RuleStatus } from '@duedatehq/contracts'
@@ -32,7 +32,7 @@ import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { FLOATING_ACTION_BAR_SCROLL_PADDING } from '@/components/patterns/floating-action-bar'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
-import { SearchInput } from '@/components/primitives/search-input'
+import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import {
   ENTITY_LABELS,
@@ -132,11 +132,11 @@ const SEVERITY_OPTIONS: ReadonlyArray<{ value: ObligationRule['riskLevel']; labe
 /**
  * `JurisdictionFilterBar` — the selected-jurisdiction toolbar (Pencil
  * oJL8o `uxrVs`): a status `Segmented` (All / Active / Pending /
- * Deprecated), an inline `SearchInput`, and four `FilterTrigger` +
+ * Deprecated), a `CollapsibleSearch`, and four `FilterTrigger` +
  * `DropdownMenu` facet chips (Type · Modified · Effective · Severity).
  *
  * Built entirely from existing design-system primitives — the same
- * `Segmented`, `SearchInput`, and `FilterTrigger`/`DropdownMenu` chrome
+ * `Segmented`, `CollapsibleSearch`, and `FilterTrigger`/`DropdownMenu` chrome
  * /deadlines + /alerts use — so the Pencil's bespoke pills are replaced,
  * not re-skinned. Type + Severity multi-select filter the rows; Modified +
  * Effective set a single active sort.
@@ -166,10 +166,6 @@ export function JurisdictionFilterBar({
   activeCount: number
 }) {
   const { t } = useLingui()
-  // Search rests as an icon button and expands into the field on click (same
-  // pattern as /alerts); stays open while it carries a query, collapses on
-  // blur when empty.
-  const [searchOpen, setSearchOpen] = useState(false)
 
   const toggleType = (value: string) => {
     const next = new Set(filter.types)
@@ -246,32 +242,17 @@ export function JurisdictionFilterBar({
           },
         ]}
       />
-      {/* Collapsed → search icon button; expanded → the canonical SearchInput
-          (autofocused). Stays expanded while it carries a query; collapses on
-          blur when empty. Matches /alerts. */}
-      {searchOpen || search ? (
-        <SearchInput
-          value={search}
-          onChange={onSearchChange}
-          placeholder={t`Search ${jurisdictionLabel} rules`}
-          autoFocus
-          onBlur={() => {
-            if (search.trim() === '') setSearchOpen(false)
-          }}
-          className="w-[200px] shrink-0 sm:w-[220px]"
-        />
-      ) : (
-        <Button
-          variant="outline"
-          size="icon"
-          type="button"
-          aria-label={t`Search ${jurisdictionLabel} rules`}
-          onClick={() => setSearchOpen(true)}
-          className="shrink-0"
-        >
-          <SearchIcon />
-        </Button>
-      )}
+      {/* Canonical collapsing toolbar search — ghost magnifier, expands on
+          hover/click, retains focus + query. Same control as the global rule
+          search · /clients · /alerts. */}
+      <CollapsibleSearch
+        value={search}
+        onChange={onSearchChange}
+        placeholder={t`Search ${jurisdictionLabel} rules`}
+        ariaLabel={t`Search ${jurisdictionLabel} rules`}
+        size="icon"
+        expandedWidthClassName="w-[200px] shrink-0 sm:w-[220px]"
+      />
 
       {/* All facets collapsed into one Filters dropdown (Yuqi: cleaner bar,
           easier to read) — Type + Severity multi-select + a single Sort-by
@@ -704,8 +685,8 @@ function GapRow({
       className={cn(
         // No left-stripe (banned per design system) — the destructive
         // ring-dot + tint fill carry the gap signal.
-        'bg-state-destructive-subtle/40 hover:bg-state-destructive-subtle/70',
-        focused && 'bg-state-destructive-subtle/70',
+        'bg-state-destructive-hover/40 hover:bg-state-destructive-hover/70',
+        focused && 'bg-state-destructive-hover/70',
       )}
     >
       <TableCell className="pl-4" />
@@ -774,14 +755,15 @@ export function JurisdictionKpiStrip({
       label: t`Effective`,
       value: effective,
       sub: t`In force today`,
-      valueClass: 'text-text-success',
+      // 2026-06-16 (audit): neutral value; tone in the sub (matches /clients).
+      subClass: 'text-text-success',
     },
     {
       key: 'pending',
       label: t`Pending`,
       value: pending,
       sub: t`Awaiting review`,
-      valueClass: 'text-text-warning',
+      subClass: pending > 0 ? 'text-text-warning' : 'text-text-tertiary',
     },
     {
       key: 'deprecated',

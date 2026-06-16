@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   CalendarDaysIcon,
+  CalendarSearchIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -66,6 +67,7 @@ import {
   RULE_GENERATION_STATES,
   type PreviewFormValues,
 } from './rules-console-model'
+import { EmptyState } from '@/components/patterns/empty-state'
 import { QueryPanelState, SectionFrame, ToneDot } from './rules-console-primitives'
 import { SourceExternalLink } from './source-external-link'
 import { useSourceLookup } from './use-source-lookup'
@@ -610,9 +612,16 @@ function GenerationPreviewForm({
 }
 
 function RulesPreviewEmptyState({ message }: { message: string }) {
+  // 2026-06-16 (audit A1): was a bare <p> in a SectionFrame (no icon) —
+  // converged onto the shared EmptyState primitive to match the rest of the app.
   return (
-    <SectionFrame className="px-4 py-6">
-      <p className="text-sm text-text-secondary">{message}</p>
+    <SectionFrame>
+      <EmptyState
+        density="compact"
+        icon={CalendarSearchIcon}
+        title={<Trans>Nothing to preview yet</Trans>}
+        description={message}
+      />
     </SectionFrame>
   )
 }
@@ -1189,7 +1198,7 @@ function PreviewResultRow({
       <div className="flex flex-col gap-1">
         <span
           className={cn(
-            'font-mono text-base leading-none font-bold tabular-nums',
+            'font-mono text-base leading-none font-semibold tabular-nums',
             row.reminderReady ? 'text-text-primary' : 'text-text-disabled',
           )}
         >

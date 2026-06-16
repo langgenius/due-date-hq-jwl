@@ -31,7 +31,7 @@ export interface AuditTimelineToneTokens {
 
 const TONE_TOKENS: Record<AuditTimelineType, AuditTimelineToneTokens> = {
   filing: { tile: 'bg-state-success-hover', icon: 'text-text-success' },
-  amendment: { tile: 'bg-state-warning-subtle', icon: 'text-text-warning' },
+  amendment: { tile: 'bg-state-warning-hover', icon: 'text-text-warning' },
   decision: { tile: 'bg-state-accent-hover', icon: 'text-text-accent' },
   access: { tile: 'bg-background-subtle', icon: 'text-text-secondary' },
   system: { tile: 'bg-background-subtle', icon: 'text-text-tertiary' },

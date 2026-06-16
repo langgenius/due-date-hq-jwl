@@ -52,7 +52,7 @@ function DispositionBadge({ disposition }: { disposition: AnnualRolloverDisposit
   const variant =
     bucket === 'will_update' ? 'info' : bucket === 'requires_review' ? 'warning' : 'secondary'
   return (
-    <Badge variant={variant} className="font-mono text-caption-xs font-bold">
+    <Badge variant={variant} className="font-mono text-caption-xs font-semibold">
       {disposition}
     </Badge>
   )
@@ -80,7 +80,7 @@ function SummaryCard({
     >
       <span
         className={cn(
-          'text-2xl leading-none font-bold tracking-tight tabular-nums',
+          'text-2xl leading-none font-semibold tracking-tight tabular-nums',
           tone === 'accent' && 'text-text-accent',
           tone === 'warning' && 'text-text-warning',
           tone === 'neutral' && 'text-text-secondary',
@@ -90,7 +90,7 @@ function SummaryCard({
       </span>
       <span
         className={cn(
-          'text-caption-xs font-bold tracking-wider uppercase',
+          'text-caption-xs font-semibold tracking-wider uppercase',
           tone === 'accent' && 'text-text-accent',
           tone === 'warning' && 'text-text-warning',
           tone === 'neutral' && 'text-text-secondary',
@@ -199,7 +199,7 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
 
         {/* Step pills */}
         <div className="flex items-center gap-2 border-b border-divider-regular px-6 py-3.5">
-          <Badge variant="accent-solid" className="gap-1.5 px-3 py-1.5 font-bold">
+          <Badge variant="accent-solid" className="gap-1.5 px-3 py-1.5 font-semibold">
             <span aria-hidden>1</span>
             <Trans>Preview</Trans>
           </Badge>
@@ -278,19 +278,19 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-background-section">
-                      <TableHead className="text-caption-xs font-bold tracking-wider text-text-muted uppercase">
+                      <TableHead className="text-caption-xs font-semibold tracking-wider text-text-muted uppercase">
                         <Trans>Client · Form</Trans>
                       </TableHead>
-                      <TableHead className="text-caption-xs font-bold tracking-wider text-text-muted uppercase">
+                      <TableHead className="text-caption-xs font-semibold tracking-wider text-text-muted uppercase">
                         <Trans>TY {headerFrom} due</Trans>
                       </TableHead>
-                      <TableHead className="text-caption-xs font-bold tracking-wider text-text-muted uppercase">
+                      <TableHead className="text-caption-xs font-semibold tracking-wider text-text-muted uppercase">
                         <Trans>TY {headerTo} due</Trans>
                       </TableHead>
-                      <TableHead className="text-caption-xs font-bold tracking-wider text-text-muted uppercase">
+                      <TableHead className="text-caption-xs font-semibold tracking-wider text-text-muted uppercase">
                         <Trans>Rule change</Trans>
                       </TableHead>
-                      <TableHead className="text-caption-xs font-bold tracking-wider text-text-muted uppercase">
+                      <TableHead className="text-caption-xs font-semibold tracking-wider text-text-muted uppercase">
                         <Trans>Disposition</Trans>
                       </TableHead>
                     </TableRow>
@@ -310,7 +310,7 @@ export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: 
                           <TableCell
                             className={cn(
                               'text-caption tabular-nums',
-                              ruleChange ? 'font-bold text-text-warning' : 'text-text-primary',
+                              ruleChange ? 'font-semibold text-text-warning' : 'text-text-primary',
                             )}
                           >
                             {formatDueDate(row.preview?.dueDate)}

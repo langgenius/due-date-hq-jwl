@@ -95,7 +95,7 @@ function toneForCount(count: number): string {
   if (count === 0) return 'bg-background-section text-text-tertiary border-divider-subtle'
   if (count === 1) return 'bg-state-accent-hover-alt text-text-accent border-state-accent-border'
   if (count <= 3) return 'bg-state-accent-hover text-text-accent border-state-accent-active-alt'
-  if (count <= 6) return 'bg-state-warning-hover text-text-warning border-state-warning-border'
+  if (count <= 6) return 'bg-state-warning-hover text-text-warning border-state-warning-hover-alt'
   return 'bg-state-destructive-hover text-text-destructive border-state-destructive-border'
 }
 
@@ -208,7 +208,7 @@ function MapLegend() {
         <Trans>2-3</Trans>
       </li>
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-sm border border-state-warning-border bg-state-warning-hover" />
+        <span className="inline-block size-3 rounded-sm border border-state-warning-hover-alt bg-state-warning-hover" />
         <Trans>4-6</Trans>
       </li>
       <li className="inline-flex items-center gap-1">

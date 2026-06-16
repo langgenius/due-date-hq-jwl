@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils'
 //   size='lg' → size-10 (40px), text-base, icon size-5
 //
 //   type='human' (default) → initials + isMine/tint background
-//   type='ai'              → bg-state-accent-subtle + Astroid glyph
+//   type='ai'              → bg-state-accent-hover + Astroid glyph
 //   type='unassigned'      → bg-background-subtle + UserRoundIcon
 //                            (also triggered automatically when
 //                            `name === null` so callers don't have
@@ -108,7 +108,7 @@ export function AssigneeAvatar({
       <span
         aria-label={title}
         title={title}
-        className={cn(baseClasses, 'bg-state-accent-subtle text-text-accent')}
+        className={cn(baseClasses, 'bg-state-accent-hover text-text-accent')}
       >
         <Astroid className={styles.icon} aria-hidden />
       </span>

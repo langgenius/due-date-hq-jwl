@@ -49,7 +49,7 @@ const EMPTY_SOURCE_ROWS: RuleSource[] = []
 
 export function SourcesTab() {
   const { t } = useLingui()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const domainFilter = searchParams.get('domain')
   const [healthFilter, setHealthFilter] = useState<SourceHealthFilter>('all')
   const [jurisdictionFilters, setJurisdictionFilters] = useState<string[]>(() => {
@@ -163,6 +163,37 @@ export function SourcesTab() {
     [counts, t],
   )
 
+  // 2026-06-16 (audit): the filtered-empty state told users to "Clear filters
+  // above" but no Clear control existed — and the deep-link-only ?jur / ?domain
+  // params narrowed the list with no visible way to remove them. This adds the
+  // canonical "Clear filters" affordance (matching /clients, /alerts, rules
+  // library) that resets the health chip + all three column filters AND drops
+  // the URL filter params. NOTE: declared BEFORE the early returns below so the
+  // useCallback hook order stays stable (Rules of Hooks).
+  const filtersActive =
+    healthFilter !== 'all' ||
+    jurisdictionFilters.length > 0 ||
+    sourceTypeFilters.length > 0 ||
+    cadenceFilters.length > 0 ||
+    Boolean(domainFilter)
+
+  const clearFilters = useCallback(() => {
+    setHealthFilter('all')
+    setJurisdictionFilters([])
+    setSourceTypeFilters([])
+    setCadenceFilters([])
+    setPageIndex(0)
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('jur')
+        next.delete('domain')
+        return next
+      },
+      { replace: true },
+    )
+  }, [setSearchParams])
+
   if (sourcesQuery.isLoading) {
     return <QueryPanelState state="loading" message={t`Loading rule sources…`} />
   }
@@ -202,6 +233,15 @@ export function SourcesTab() {
             setPageIndex(0)
           }}
         />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="ml-auto"
+          disabled={!filtersActive}
+          onClick={clearFilters}
+        >
+          <Trans>Clear filters</Trans>
+        </Button>
       </div>
       <SectionFrame>
         {/*
@@ -214,7 +254,9 @@ export function SourcesTab() {
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead className="px-4">SOURCE</TableHead>
+              <TableHead className="px-4">
+                <Trans>Source</Trans>
+              </TableHead>
               <TableHead className="w-[76px] px-2">
                 <TableHeaderMultiFilter
                   trigger="header"
@@ -253,8 +295,12 @@ export function SourcesTab() {
                   onSelectedChange={(next) => updateHeaderFilter(setCadenceFilters, next)}
                 />
               </TableHead>
-              <TableHead className="w-[112px] px-2">WATCH</TableHead>
-              <TableHead className="w-[92px] px-2">LAST CHECKED</TableHead>
+              <TableHead className="w-[112px] px-2">
+                <Trans>Watch</Trans>
+              </TableHead>
+              <TableHead className="w-[92px] px-2">
+                <Trans>Last checked</Trans>
+              </TableHead>
               <TableHead className="w-[72px] px-0" />
             </TableRow>
           </TableHeader>
@@ -357,7 +403,7 @@ function SourcesKpiStrip({
       key: 'fetched',
       label: t`Fetched last 24h`,
       value: fetched24h,
-      valueClass: monitoringStale ? 'text-text-warning' : 'text-text-primary',
+      // 2026-06-16 (audit): neutral value; the stale signal lives in the sub.
       sub: monitoringStale ? t`Monitoring has not run in 24h` : t`of ${feedsMonitored} feeds`,
       subClass: monitoringStale ? 'text-text-warning' : 'text-text-tertiary',
     },

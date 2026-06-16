@@ -57,7 +57,7 @@ function DueDateLabel({
           className,
         )}
       >
-        <Plural value={paymentLateDays} one="Payment # day late" other="Payment # days late" />
+        <Plural value={paymentLateDays} one="Payment #d late" other="Payment #d late" />
       </span>
     )
   }
@@ -74,11 +74,7 @@ function DueDateLabel({
           className,
         )}
       >
-        {days < 0 ? (
-          <Plural value={-days} one="filed #d late" other="filed #d late" />
-        ) : (
-          <Plural value={days} one="filed #d early" other="filed #d early" />
-        )}
+        <DueCountdownText days={days} terminal />
       </span>
     )
   }
@@ -86,8 +82,6 @@ function DueDateLabel({
   // today, secondary for future (2026-06-12: implementation caught up
   // with the header contract above, which always specified accent for
   // today — "today" was silently rendering in the future-gray).
-  // `today` renders as a single Trans-string so locales can translate
-  // it as a word.
   const past = days < 0
   return (
     <span
@@ -97,14 +91,38 @@ function DueDateLabel({
         className,
       )}
     >
-      {past ? (
-        <Plural value={-days} one="#d late" other="#d late" />
-      ) : days === 0 ? (
-        <Trans>today</Trans>
-      ) : (
-        <Plural value={days} one="in #d" other="in #d" />
-      )}
+      <DueCountdownText days={days} />
     </span>
+  )
+}
+
+// The compact relative-date WORDING, with no span / tone of its own.
+//
+// 2026-06-16 (audit — "compact everywhere"): extracted so the surfaces that
+// own their OWN urgency tone (the deadlines column's `dueCountdownTone` ramp,
+// the obligation detail panels) can share DueDateLabel's exact vocabulary
+// without inheriting its dashboard tones. Previously each of those forked the
+// phrasing into verbose strings ("3 days late", "due in 5 days") — this is the
+// single source so every countdown reads "5d late" / "in 5d" / "today" /
+// "filed 5d late·early" identically, while each caller keeps its tone wrapper.
+//
+// `today` renders as a single Trans-string so locales can translate it as a
+// word. Terminal callers must guarantee `days !== 0` (a row that landed on its
+// due date has nothing to say — guard with `hasMeaningfulLabel`).
+function DueCountdownText({ days, terminal = false }: { days: number; terminal?: boolean }) {
+  if (terminal) {
+    return days < 0 ? (
+      <Plural value={-days} one="filed #d late" other="filed #d late" />
+    ) : (
+      <Plural value={days} one="filed #d early" other="filed #d early" />
+    )
+  }
+  return days < 0 ? (
+    <Plural value={-days} one="#d late" other="#d late" />
+  ) : days === 0 ? (
+    <Trans>today</Trans>
+  ) : (
+    <Plural value={days} one="in #d" other="in #d" />
   )
 }
 
@@ -133,4 +151,4 @@ function hasMeaningfulLabel(days: number, status: ObligationStatus): boolean {
   return true
 }
 
-export { DueDateLabel, daysUntilDue, hasMeaningfulLabel }
+export { DueDateLabel, DueCountdownText, daysUntilDue, hasMeaningfulLabel }

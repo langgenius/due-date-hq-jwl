@@ -37,6 +37,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { deadlineDetailPath } from '@/features/obligations/deadline-detail-url'
 import { orpc } from '@/lib/rpc'
 import { formatRelativeTime } from '@/lib/utils'
 import { useAuditActionLabels, useAuditEntityTypeLabels } from '@/features/audit/audit-log-labels'
@@ -145,7 +146,10 @@ function entityHref(event: AuditEventPublic): string {
     case 'obligation':
     case 'obligation_instance':
     case 'obligation_batch':
-      return `/deadlines/${event.entityId}`
+      // 2026-06-16 (audit): was `/deadlines/${rawId}` — the detail route needs
+      // the 12-char hex ref, not the full UUID, so a raw id rendered a blank
+      // pane. deadlineDetailPath() converts it to the correct ref.
+      return deadlineDetailPath(event.entityId)
     case 'client':
     case 'client_batch':
       return `/clients/${event.entityId}`
@@ -155,7 +159,9 @@ function entityHref(event: AuditEventPublic): string {
       return '/alerts'
     case 'member':
     case 'member_invitation':
-      return '/settings/team'
+      // 2026-06-16 (audit): `/settings/team` is not a route (404). Members
+      // live at `/members`.
+      return '/members'
     case 'obligation_rule':
     case 'rule_source':
       return '/rules/library'

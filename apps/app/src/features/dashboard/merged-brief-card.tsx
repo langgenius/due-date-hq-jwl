@@ -13,10 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
-import { cn } from '@duedatehq/ui/lib/utils'
 
 import { DueDateLabel } from '@/components/primitives/due-date-label'
 import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
@@ -295,36 +295,22 @@ export function MergedBriefCard({
             with no decision in it (the all-clear block below carries the
             state). */}
         {totalActive > 0 ? (
-          <div className="flex items-center gap-0.5 rounded-full bg-background-subtle p-1">
-            {tabs.map((tab) => {
-              const active = tab.key === selected
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  data-active={active}
-                  onClick={() => setOverride(tab.key)}
-                  aria-pressed={active}
-                  // `active:scale-[0.98]` = a 1-frame press acknowledgement; the
-                  // transition covers colors + transform together. An empty
-                  // inactive bucket dims to 60% — a "This week 0" chip at full
-                  // strength invites a dead-end click (still clickable, the
-                  // empty state explains where the work sits).
-                  className={cn(
-                    'inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-[color,background-color,transform,opacity] hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt active:scale-[0.98] data-[active=true]:bg-background-default data-[active=true]:text-text-primary motion-reduce:transition-none',
-                    tab.count === 0 && !active && 'opacity-60',
-                  )}
-                >
-                  <span
-                    className={cn('size-1.5 shrink-0 rounded-full bg-current', tab.dot)}
-                    aria-hidden
-                  />
-                  <span className="whitespace-nowrap">{tab.label}</span>
-                  <span className="tabular-nums text-text-tertiary">{tab.count}</span>
-                </button>
-              )
-            })}
-          </div>
+          // 2026-06-16 (audit): converged the hand-rolled rounded-full pill
+          // track onto the shared Segmented primitive (dot + count). The new
+          // `dimmed` flag preserves the "empty bucket fades to 60%" touch — a
+          // "This week 0" chip shouldn't invite a dead-end click.
+          <Segmented
+            ariaLabel={t`Filter priorities by window`}
+            value={selected}
+            onValueChange={(next) => setOverride(next)}
+            options={tabs.map((tab) => ({
+              value: tab.key,
+              label: tab.label,
+              dot: `bg-current ${tab.dot}`,
+              count: tab.count,
+              dimmed: tab.count === 0,
+            }))}
+          />
         ) : null}
       </div>
 
@@ -636,21 +622,14 @@ function BriefTableRow({
       {/* DUE — relative FILING countdown (paymentDueDate nulled so payment-late
           doesn't hijack it) stacked over the absolute date, right-aligned on
           the frame's right rail so the red countdowns stack into one scan
-          column. Late/due-today countdowns step UP to 16px — Yuqi 2026-06-12:
-          the REAL important thing gets size. Weight stays the primitive's
-          500: red + 600 was "tooooo strong" (Yuqi same day — never
-          double-highlight; color and size already carry it, bold would be a
-          third channel). Future countdowns ("in 10d") stay at the quiet
-          13/500 default so the This week/This month buckets don't shout. */}
+          column. 2026-06-16 (Yuqi): the overdue date now stays at the primitive's
+          14px default — the same size the /deadlines table shows it — so the
+          dashboard doesn't render the same signal bigger than the table, and the
+          14px date balances against the xs owner avatar + 11px sub-date. Red
+          colour (not size or weight) carries the urgency. */}
       <TableCell className="text-right">
         <div className="flex flex-col items-end gap-0.5">
-          <DueDateLabel
-            days={d}
-            status={row.status}
-            paymentDueDate={null}
-            asOfDate={asOfDate}
-            className={cn(d <= 0 && 'text-[16px] leading-[22px]')}
-          />
+          <DueDateLabel days={d} status={row.status} paymentDueDate={null} asOfDate={asOfDate} />
           {/* text-caption (11px), down from 12px (Yuqi 2026-06-15): the
               absolute date is the quiet second line under the countdown — it
               recedes further so the relative countdown owns the cell. */}

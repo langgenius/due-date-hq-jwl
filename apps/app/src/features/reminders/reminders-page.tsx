@@ -142,7 +142,8 @@ export function RemindersPage() {
   const timezone = usePracticeTimezone()
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    // 2026-06-16 (audit): mx-auto + max-w-page-wide cap (was full-bleed).
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
       <PageHeader
         breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Reminder emails` }]}
         title={<Trans>Reminder emails</Trans>}
@@ -225,7 +226,7 @@ function TemplatesPanel({
                 <TableHead className="w-[96px]" />
               </TableRow>
             </TableHeader>
-            <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+            <TableBody className="[&_td]:py-3">
               {templates.map((template) => (
                 <TableRow key={template.templateKey}>
                   <TableCell>
@@ -311,7 +312,7 @@ function RecentSendsPanel({
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+            <TableBody className="[&_td]:py-3">
               {reminders.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
@@ -383,7 +384,7 @@ function TemplateDialog({
   )
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog protectInput open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[680px]">
         <DialogHeader>
           <DialogTitle>{template.name}</DialogTitle>

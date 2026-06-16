@@ -30,6 +30,7 @@ import { CompletedKeyDates } from '@/features/obligations/CompletedKeyDates'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { StageActions, type StageTask } from '@/features/obligations/StageActions'
 import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
+import { DueCountdownText } from '@/components/primitives/due-date-label'
 import {
   type ObligationStatus,
   ObligationStatusReadBadge,
@@ -63,7 +64,7 @@ import {
   Loader2,
   MessageSquareText,
 } from 'lucide-react'
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, type ReactNode, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 export function ReadinessOverview({
@@ -305,8 +306,9 @@ function DeadlineDateCard({
   // for past dates — and each card counts against its OWN date.
   // 2026-06-11 (Yuqi "避免太多红色"): the clock is ALWAYS quiet gray —
   // the status banner is the page's single red overdue statement; these
-  // cards are reference, not alarms.
-  clock: string | null
+  // cards are reference, not alarms. ReactNode so it can carry the shared
+  // <DueCountdownText> ("5d late" / "in 5d" / "today").
+  clock: ReactNode
   // Card-specific distinguishing line drawn from a REAL row field
   // (INTERNAL → buffer to filing; PAYMENT → $ owed). null = omit.
   meta: string | null
@@ -356,7 +358,7 @@ export function PrimaryDeadlineStrip({
   // sheet panels.
   variant?: 'flat' | 'cards'
 }) {
-  const { i18n, t } = useLingui()
+  const { t } = useLingui()
   const todayIso = todayIsoDate()
   // HERO (filing) + 2-column secondary (internal + payment) layout.
   //
@@ -432,11 +434,10 @@ export function PrimaryDeadlineStrip({
                 ·
               </span>
               <span className="text-text-tertiary">
-                {filingDays < 0 ? (
-                  <Plural value={Math.abs(filingDays)} one="# day ago" other="# days ago" />
-                ) : (
-                  <Plural value={filingDays} one="in # day" other="in # days" />
-                )}
+                {/* Shared compact vocabulary ("5d late" / "in 5d") — `filingDays`
+                    is signed (negative = past), the input DueCountdownText
+                    expects. Stays quiet gray via the wrapper. */}
+                <DueCountdownText days={filingDays} />
               </span>
             </>
           ) : null}
@@ -490,8 +491,6 @@ export function PrimaryDeadlineStrip({
   // came from the panel using `dayDiff` midnight math while the row
   // used `paymentOverdueDays` real-now math).
   const paymentLateDays = paymentOverdueDays(row, Date.now())
-  const formatDaysOverdue = (d: number) =>
-    i18n._(plural(d, { one: '# day overdue', other: '# days overdue' }))
 
   // The standalone page renders three quiet REFERENCE cards. Each card
   // is differentiated by a REAL row field so they stop reading as three
@@ -513,15 +512,14 @@ export function PrimaryDeadlineStrip({
     const clockFor = (
       iso: string | null,
       opts: { satisfied?: boolean } = {},
-    ): { text: string | null; destructive: boolean } => {
+    ): { node: ReactNode; destructive: boolean } => {
       const diff = dayDiff(iso)
-      if (iso === null || diff === null || opts.satisfied) return { text: null, destructive: false }
-      if (diff < 0) return { text: formatDaysOverdue(-diff), destructive: true }
-      if (diff === 0) return { text: t`due today`, destructive: false }
-      return {
-        text: i18n._(plural(diff, { one: 'in # day', other: 'in # days' })),
-        destructive: false,
-      }
+      if (iso === null || diff === null || opts.satisfied) return { node: null, destructive: false }
+      // Shared compact vocabulary ("5d late" / "today" / "in 5d") via
+      // DueCountdownText — `diff` is signed (negative = overdue), the exact
+      // input the primitive expects. Also retires the `i18n._(plural())` form
+      // (the footgun pattern) in favour of the component's <Plural>/<Trans>.
+      return { node: <DueCountdownText days={diff} />, destructive: diff < 0 }
     }
     const filingClock = clockFor(filingIso, { satisfied: filingSatisfied })
     // 2026-06-11 (Yuqi de-dup pass): when INTERNAL/PAYMENT share the filing
@@ -532,7 +530,7 @@ export function PrimaryDeadlineStrip({
     const internalClock =
       internalIso !== filingIso
         ? clockFor(internalIso, { satisfied: filingSatisfied })
-        : { text: null, destructive: false }
+        : { node: null, destructive: false }
     const paymentClock =
       paymentIso !== filingIso
         ? clockFor(paymentIso, {
@@ -541,7 +539,7 @@ export function PrimaryDeadlineStrip({
               row.status === 'not_applicable' ||
               row.status === 'paid',
           })
-        : { text: null, destructive: false }
+        : { node: null, destructive: false }
     // INTERNAL buffer — days between the internal target and the filing
     // deadline. 2026-06-10 (Yuqi page-polish #5 "what is this"): the old
     // "On the filing deadline" read as cryptic. Spell out that a zero
@@ -570,19 +568,19 @@ export function PrimaryDeadlineStrip({
         <DeadlineDateCard
           label={t`Filing deadline`}
           date={filingIso}
-          clock={filingClock.text}
+          clock={filingClock.node}
           meta={null}
         />
         <DeadlineDateCard
           label={t`Internal target`}
           date={internalIso}
-          clock={internalClock.text}
+          clock={internalClock.node}
           meta={internalBuffer}
         />
         <DeadlineDateCard
           label={t`Payment due`}
           date={paymentIso}
-          clock={paymentClock.text}
+          clock={paymentClock.node}
           meta={paymentAmount}
         />
       </div>
@@ -607,7 +605,7 @@ export function PrimaryDeadlineStrip({
         primary
         valueTone={filingPast ? 'destructive' : 'primary'}
         {...(filingLateDays !== null && filingLateDays > 0
-          ? { lateLabel: formatDaysOverdue(filingLateDays) }
+          ? { lateLabel: <DueCountdownText days={-filingLateDays} /> }
           : {})}
       />
       <DeadlineTile
@@ -616,7 +614,7 @@ export function PrimaryDeadlineStrip({
         tone="neutral"
         valueTone={internalPast ? 'destructive' : 'primary'}
         {...(internalLateDays !== null && internalLateDays > 0
-          ? { lateLabel: formatDaysOverdue(internalLateDays) }
+          ? { lateLabel: <DueCountdownText days={-internalLateDays} /> }
           : {})}
       />
       <DeadlineTile
@@ -625,7 +623,7 @@ export function PrimaryDeadlineStrip({
         tone={paymentPast ? 'destructive' : 'neutral'}
         valueTone={paymentPast ? 'destructive' : paymentIso ? 'primary' : 'tertiary'}
         {...(paymentLateDays !== null && paymentLateDays > 0
-          ? { lateLabel: formatDaysOverdue(paymentLateDays) }
+          ? { lateLabel: <DueCountdownText days={-paymentLateDays} /> }
           : {})}
       />
     </div>
@@ -651,7 +649,7 @@ export function DeadlineTile({
   tone: 'neutral' | 'success' | 'destructive' | 'primary'
   valueTone: 'primary' | 'destructive' | 'tertiary'
   primary?: boolean
-  lateLabel?: string
+  lateLabel?: ReactNode
 }) {
   // Tiles are frameless cells (uppercase eyebrow + value) on the bare
   // surface, modeled on the alerts EXTRACTED FACTS grid — no
@@ -2210,7 +2208,7 @@ export function ActiveStageDetailCard({
               // sentence — the bare "Resumed from blocked…" line gave no cue
               // about WHAT the box was, only the date.
               <div className="flex flex-col gap-0.5 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2 leading-snug">
-                <p className="text-caption-xs font-bold uppercase tracking-eyebrow text-text-tertiary">
+                <p className="text-caption-xs font-semibold uppercase tracking-eyebrow text-text-tertiary">
                   <Trans>Auto-unblocked</Trans>
                 </p>
                 <p className="text-xs text-text-secondary">
@@ -2255,7 +2253,7 @@ export function ActiveStageDetailCard({
             )}
           </p>
           <div className="flex items-end gap-2.5">
-            <span className="font-mono text-2xl leading-none font-bold tracking-display text-text-primary tabular-nums">
+            <span className="font-mono text-2xl leading-none font-semibold tracking-display text-text-primary tabular-nums">
               {readinessCounts.received}
             </span>
             <span className="text-xs leading-tight font-medium text-text-tertiary">
@@ -2300,7 +2298,7 @@ export function ActiveStageDetailCard({
           </div>
           <div className="h-1 w-full overflow-hidden rounded-full bg-divider-subtle">
             <div
-              className="h-full rounded-full bg-state-success-solid transition-all"
+              className="h-full rounded-full bg-state-success-solid transition-[width]"
               style={{
                 width: `${Math.round((readinessCounts.received / readinessCounts.total) * 100)}%`,
               }}
@@ -2324,7 +2322,7 @@ export function ActiveStageDetailCard({
         // (additive over the counts above); the single action stays the
         // "Check materials" link — separate visualization from action.
         <div className="flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
-          <p className="text-caption-xs font-bold uppercase tracking-eyebrow text-text-tertiary">
+          <p className="text-caption-xs font-semibold uppercase tracking-eyebrow text-text-tertiary">
             <Trans>Blocking</Trans>
           </p>
           {/* Items left-align flush under the eyebrow: a fixed-width dot

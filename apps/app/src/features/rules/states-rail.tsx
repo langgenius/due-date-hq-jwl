@@ -184,7 +184,7 @@ export function JurisdictionRail({
                   href="/rules/temporary"
                   inlineMeta={
                     temporary.activeCount > 0 ? (
-                      <span className="shrink-0 text-xs font-semibold whitespace-nowrap text-text-warning">
+                      <span className="shrink-0 text-xs font-medium whitespace-nowrap text-text-warning">
                         {t`${temporary.activeCount} active`}
                       </span>
                     ) : (

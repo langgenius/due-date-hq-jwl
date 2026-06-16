@@ -459,11 +459,11 @@ export function createAppRouter() {
         // full viewport with its own centered layout, no dashboard shell
         // chrome (no sidebar). It is NOT a child of RootLayout for that
         // reason.
-        // TODO(wire): nothing redirects here yet. Making /splash the real
-        // first-of-the-day landing surface needs a "since last visit"
-        // server signal (lastDashboardVisitAt + recap aggregate) that
-        // doesn't exist; the post-login redirect still targets `/`. See
-        // the SplashRoute docblock + TODO(data) markers.
+        // 2026-06-16 (audit): the once-a-day gate IS live — `welcomeGateLoader`
+        // on the dashboard index throws `redirect('/splash')` when the server's
+        // `welcomeRecap.shouldShow` is true (lastDashboardVisitAt + recap
+        // aggregate now exist). This comment previously claimed "nothing
+        // redirects here yet," which was stale and misleading.
         {
           path: '/splash',
           loader: protectedLoader,

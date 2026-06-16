@@ -1,4 +1,5 @@
-import { useMemo, type ComponentType, type SVGProps } from 'react'
+import { useEffect, useMemo, useRef, type ComponentType, type SVGProps } from 'react'
+import { motion, useAnimationControls } from 'motion/react'
 import { useLingui } from '@lingui/react/macro'
 import {
   CircleCheck,
@@ -20,6 +21,8 @@ import {
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
+
+import { EASE_APPLE } from '@/lib/motion'
 
 type ObligationStatus = ObligationInstancePublic['status']
 type ObligationReadiness = ObligationInstancePublic['readiness']
@@ -390,6 +393,27 @@ function ObligationStatusReadBadge({
   const legacyLabels = useStatusLabels()
   const labels = useV2Labels ? v2Labels : legacyLabels
   const Icon = STATUS_ICON[status]
+
+  // Status is *observed, not chosen* — it auto-advances from monitored
+  // events, often while the user is looking elsewhere. A one-shot scale
+  // pop on the chip whose value just changed answers "what moved?" Size
+  // is the house change/urgency signal (never a second colour), so the
+  // cue stays tone-agnostic across all 6 states and never double-
+  // highlights. Fires ONLY on a real transition (ref compare) — never on
+  // mount or an unrelated re-render. Reduced-motion is a global no-op via
+  // the root <MotionConfig reducedMotion="user"> (main.tsx); no per-call
+  // guard, per the motion grammar.
+  const controls = useAnimationControls()
+  const prevStatus = useRef(status)
+  useEffect(() => {
+    if (prevStatus.current === status) return
+    prevStatus.current = status
+    controls.start({
+      scale: [1, 1.12, 1],
+      transition: { duration: 0.5, ease: EASE_APPLE, times: [0, 0.35, 1] },
+    })
+  }, [status, controls])
+
   // Size enforced by Badge primitive's `[&>svg]:size-3!` rule
   // (see docs/Design/icon-sizing.md). Only the color class is
   // passed here — a size class would be silently overridden.
@@ -397,10 +421,12 @@ function ObligationStatusReadBadge({
   // green chip) render a white icon instead of disappearing into
   // the fill.
   return (
-    <Badge variant={STATUS_VARIANT[status]} className={className}>
-      <Icon className={STATUS_ICON_COLOR_ON_PILL[status]} aria-hidden />
-      {labels[status]}
-    </Badge>
+    <motion.span animate={controls} className="inline-flex origin-center">
+      <Badge variant={STATUS_VARIANT[status]} className={className}>
+        <Icon className={STATUS_ICON_COLOR_ON_PILL[status]} aria-hidden />
+        {labels[status]}
+      </Badge>
+    </motion.span>
   )
 }
 

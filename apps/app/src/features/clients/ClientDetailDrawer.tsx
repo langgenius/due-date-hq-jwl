@@ -21,6 +21,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import type { ObligationInstancePublic } from '@duedatehq/contracts'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
 import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
 import { orpc } from '@/lib/rpc'
@@ -256,7 +257,6 @@ function NextDueLine({
   // the component never breaks if the timezone provider isn't in scope.
   asOfDate: string | null
 }) {
-  const { t } = useLingui()
   if (!nextDue) {
     return (
       <p className="text-sm text-text-tertiary">
@@ -270,8 +270,6 @@ function NextDueLine({
       86_400_000,
   )
   const isLate = days < 0
-  const daysAbs = Math.abs(days)
-  const daysLabel = isLate ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
       <span className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-muted">
@@ -284,8 +282,10 @@ function NextDueLine({
         <span className="min-w-0 truncate font-medium text-text-primary">
           <TaxCodeLabel code={nextDue.taxType} />
         </span>
+        {/* Shared compact vocabulary ("22d late" / "today" / "in 5d") — the
+            "Next due" eyebrow carries the "due" context. */}
         <span className={isLate ? 'text-text-destructive' : 'text-text-secondary'}>
-          {daysLabel}
+          <DueCountdownText days={days} />
         </span>
       </span>
     </div>

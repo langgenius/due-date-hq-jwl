@@ -151,7 +151,7 @@ describe('DashboardActionsList', () => {
     expect(openWizard).toHaveBeenCalledTimes(1)
   })
 
-  it('renders the "Payment N days late" chip on filed-but-payment-overdue rows', () => {
+  it('renders the "Payment Nd late" chip on filed-but-payment-overdue rows', () => {
     // 2026-05-27 (D12 — Agent ω): row whose filing is `done` but
     // whose `paymentDueDate` is in the past should surface the
     // payment-late chip, not be dropped from "Needs attention".
@@ -182,7 +182,7 @@ describe('DashboardActionsList', () => {
       />,
     )
 
-    expect(document.body.textContent).toContain('Payment 10 days late')
+    expect(document.body.textContent).toContain('Payment 10d late')
     // 2026-06-10 (owner column): the status pill is replaced by the
     // owner avatar — initials render with the assignee name as title.
     const avatar = document.querySelector('[title="Kai Park"]')

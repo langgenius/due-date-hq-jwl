@@ -296,7 +296,7 @@ export function AcceptInviteRoute() {
               <div className="flex items-center gap-3 rounded-xl border border-divider-subtle bg-bg-subtle px-4 py-3.5">
                 <span
                   aria-hidden
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-state-accent-solid text-xs font-bold text-text-primary-on-surface"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-state-accent-solid text-xs font-semibold text-text-primary-on-surface"
                 >
                   {inviteQuery.data.inviterEmail.slice(0, 2).toUpperCase()}
                 </span>

@@ -25,7 +25,6 @@ import {
   PlusIcon,
   TriangleAlertIcon,
   RssIcon,
-  SearchIcon,
   XIcon,
 } from 'lucide-react'
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
@@ -88,7 +87,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { StatBand } from '@/components/patterns/stat-band'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
-import { SearchInput } from '@/components/primitives/search-input'
+import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 import { RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
@@ -195,20 +194,17 @@ const ENTITY_COLUMN_LABELS: Record<EntityKey, string> = {
 // the gap chip + progress bar) rather than getting its own column.
 const RULES_TABLE_COLUMN_COUNT = 3 + ENTITY_KEYS.length
 
-// The "needs review" signal uses one brown tone across every surface in
-// the catalog — sienna text, mustard solid for filled dots/bars. Browns
-// sit between blue (informational, "FYI") and red (alarm, "broken") — they
-// read as "attention needed, not urgent." Uses `yellow-700` from the
-// util-colors palette since that hue (#a15c07 — olive sienna) reads as warm
-// brown rather than alert orange or neutral khaki. Held in local consts
-// rather than a new semantic token so the rollout is contained to this
-// surface; if/when other pages adopt the same tone we can promote to
-// `--state-review-*`. The tint bg comes from the orange palette (warm
-// peach-tan); text + dot stay yellow-700/600 because those hues are already
-// brown enough at saturated strength.
-const REVIEW_TEXT_CLS = 'text-[var(--color-util-colors-yellow-700)]'
-const REVIEW_BG_TINT_CLS = 'bg-[var(--color-util-colors-orange-100)]'
-const REVIEW_DOT_CLS = 'bg-[var(--color-util-colors-yellow-600)]'
+// The "needs review" signal uses the violet/lavender family — the same hue
+// the Badge `info` variant uses for the obligation "In review" lifecycle —
+// so "pending review" reads identically wherever it appears. 2026-06-16
+// (audit): repainted off the old golden `yellow-700`/`orange-100` (the
+// caution-tape mustard the Q1 palette retired and which double-coded against
+// the peach `state-warning`). Violet sits between blue (FYI) and red (alarm):
+// "attention needed, not urgent," and is visually distinct from the navy
+// brand accent. Held in local consts pending promotion to `--state-review-*`.
+const REVIEW_TEXT_CLS = 'text-[var(--color-util-colors-violet-700)]'
+const REVIEW_BG_TINT_CLS = 'bg-[var(--color-util-colors-violet-100)]'
+const REVIEW_DOT_CLS = 'bg-[var(--color-util-colors-violet-600)]'
 
 // Status sub-grouping inside an expanded jurisdiction. Rules are
 // bucketed into these groups and rendered under a section header
@@ -868,7 +864,7 @@ function OverviewReviewBreakdown({
                   {days != null ? <span>{t`${days}d waiting`}</span> : null}
                 </span>
               </div>
-              <span className="shrink-0 text-sm font-semibold tabular-nums text-text-warning">
+              <span className="shrink-0 text-sm font-medium tabular-nums text-text-warning">
                 <Plural value={g.pendingReviewCount} one="# to review" other="# to review" />
               </span>
               <Button
@@ -1055,7 +1051,7 @@ function OverviewRecentChangesCard({
               >
                 <span
                   className={cn(
-                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-[3px] text-xs font-bold',
+                    'inline-flex w-[38px] shrink-0 items-center justify-center rounded px-2 py-[3px] text-xs font-semibold',
                     jurisdictionPillClass(rule.jurisdiction),
                   )}
                 >
@@ -1073,7 +1069,7 @@ function OverviewRecentChangesCard({
                 </span>
                 <span
                   className={cn(
-                    'inline-flex shrink-0 items-center rounded-full px-2 py-[3px] text-caption-xs font-bold tracking-wider uppercase',
+                    'inline-flex shrink-0 items-center rounded-full px-2 py-[3px] text-caption-xs font-semibold tracking-wider uppercase',
                     RECENT_CHANGE_PILL_CLASS[kind],
                   )}
                 >
@@ -1086,7 +1082,7 @@ function OverviewRecentChangesCard({
                 ) : null}
                 <ChevronRightIcon
                   aria-hidden
-                  className="size-3.5 shrink-0 text-text-muted transition-all group-hover/row:translate-x-0.5 group-hover/row:text-text-tertiary"
+                  className="size-3.5 shrink-0 text-text-muted transition-[transform,color] group-hover/row:translate-x-0.5 group-hover/row:text-text-tertiary"
                 />
               </button>
             </li>
@@ -2127,13 +2123,6 @@ export function RulesLibraryRoute() {
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null)
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
 
-  // Search starts as a ghost icon and expands into the SearchInput on
-  // click or `/` hotkey, matching /deadlines' ObligationQueueSearchControl
-  // pattern. Open state is lifted so the `/` hotkey can expand the
-  // collapsed control before focusing.
-  const searchInputRef = useRef<HTMLInputElement | null>(null)
-  const [searchOpen, setSearchOpen] = useState(false)
-
   // Flat list of focusable row ids in document order. Recomputed when
   // the visible rows change (search results / scope filter / expanded
   // set). Kept as a memoized array so J/K's findIndex stays O(N) with
@@ -2348,15 +2337,15 @@ export function RulesLibraryRoute() {
       label: t`Pending review`,
       value: totalPendingReview,
       sub: oldestReviewRelative ? t`oldest ${oldestReviewRelative}` : t`Queue clear`,
-      valueClass: totalPendingReview > 0 ? 'text-text-warning' : 'text-text-success',
-      subClass: 'text-text-tertiary',
+      // 2026-06-16 (audit): StatBand values stay neutral; tone lives in the
+      // sub, matching the /clients grammar (neutral value · colored caption).
+      subClass: totalPendingReview > 0 ? 'text-text-warning' : 'text-text-success',
     },
     {
       key: 'high-severity',
       label: t`High-severity`,
       value: highSeverityPending,
       sub: highSeverityPending > 0 ? t`Review these first` : t`None awaiting`,
-      valueClass: highSeverityPending > 0 ? 'text-text-warning' : 'text-text-primary',
       subClass: highSeverityPending > 0 ? 'text-text-warning' : 'text-text-tertiary',
     },
     {
@@ -2367,8 +2356,7 @@ export function RulesLibraryRoute() {
         gappedJurisdictions.length > 0
           ? t`${gappedJurisdictions.length} with gaps`
           : t`Full coverage`,
-      valueClass: coveragePct < 100 ? 'text-text-warning' : 'text-text-success',
-      subClass: coveragePct < 100 ? 'text-text-warning' : 'text-text-tertiary',
+      subClass: coveragePct < 100 ? 'text-text-warning' : 'text-text-success',
     },
     {
       key: 'total',
@@ -2574,12 +2562,20 @@ export function RulesLibraryRoute() {
                           onClear={() => void setEntityFilter(null)}
                         />
                       )}
-                      <RuleSearchControl
-                        inputRef={searchInputRef}
+                      <CollapsibleSearch
                         value={search ?? ''}
-                        open={searchOpen}
-                        onOpenChange={setSearchOpen}
                         onChange={(next) => void setSearch(next || null)}
+                        placeholder={t`Filter rules…`}
+                        ariaLabel={t`Filter rules`}
+                        collapsedLabel={t`Filter rules`}
+                        hotkey="/"
+                        hotkeyMeta={{
+                          id: 'rules.library.focus-search',
+                          name: 'Filter rules',
+                          description: 'Focus the Rule library filter input.',
+                          category: 'rules',
+                          scope: 'route',
+                        }}
                       />
                     </div>
                   </>
@@ -2791,10 +2787,17 @@ export function RulesLibraryRoute() {
 // ---------------------------------------------------------------------------
 
 // ScopeTabBand is the primary navigation axis — All / Active / Needs
-// review / Missing. Same visual contract as /deadlines'
-// ObligationQueueScopeTab so CPAs switching between surfaces read the same
-// tabbar treatment: hug-content triggers, accent underline on active, count
-// badge per tab, transparent background.
+// review / Missing. Rendered with the shared <Segmented> primitive (gray
+// track + white active fill + count per option) — the SAME control /alerts,
+// /alerts/history, /rules/sources and /rules/temporary use, so scope
+// selection reads consistently across those surfaces.
+//
+// 2026-06-16 (audit): this comment previously claimed parity with /deadlines'
+// ObligationQueueScopeTab (accent underline on a transparent bg) — that was
+// FALSE; the two never matched. The real divergence is /deadlines (underline
+// tabs) vs everything else (Segmented). Converging those is tracked as a
+// dedicated follow-up; the comment is corrected here so it stops asserting a
+// contract the code doesn't honor.
 type ScopeKey = 'all' | 'active' | 'review' | 'archived' | 'missing'
 
 function ScopeTabBand({
@@ -3078,98 +3081,6 @@ function EntityChipRowSkeleton() {
           <Skeleton key={entity} className="h-7 w-24 rounded-full" />
         ))}
       </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Search bar
-// ---------------------------------------------------------------------------
-
-// Uses the canonical SearchInput primitive
-// (apps/app/src/components/primitives/search-input.tsx) so call sites here
-// share the exact same control (height / icon / clear-button /
-// Escape-to-clear) as the /deadlines queue. Placeholder reads "Filter
-// rules…" because the input narrows the rule list visible on THIS page —
-// it doesn't search globally — which removes the conceptual overlap with
-// cmd+k. `hotkey="/"` opts into the primitive's page-search hotkey + kbd
-// hint convention.
-//
-// Collapsible search control: renders as a ghost icon button at rest;
-// expands inline into the `SearchInput` on click or `/` hotkey. Open state
-// is lifted so the `/` hotkey can expand → focus in one gesture. Mirrors
-// /deadlines `ObligationQueueSearchControl`.
-function RuleSearchControl({
-  inputRef,
-  value,
-  open,
-  onOpenChange,
-  onChange,
-}: {
-  inputRef: React.RefObject<HTMLInputElement | null>
-  value: string
-  open: boolean
-  onOpenChange: (next: boolean) => void
-  onChange: (next: string) => void
-}) {
-  const { t } = useLingui()
-  // Open when explicitly opened OR when a query is already active —
-  // collapsing while text remains would hide active state.
-  const isOpen = open || value.length > 0
-  // `/` hotkey expands the collapsed control AND focuses the input
-  // in one gesture. SearchInput's own `hotkey` prop can't drive this
-  // path because when collapsed the input isn't mounted yet.
-  const shortcutsBlocked = useKeyboardShortcutsBlocked()
-  useAppHotkey(
-    '/',
-    () => {
-      onOpenChange(true)
-      requestAnimationFrame(() => {
-        inputRef.current?.focus()
-        inputRef.current?.select()
-      })
-    },
-    {
-      enabled: !shortcutsBlocked,
-      meta: {
-        id: 'rules.library.focus-search',
-        name: 'Filter rules',
-        description: 'Focus the Rule library filter input.',
-        category: 'rules',
-        scope: 'route',
-      },
-    },
-  )
-  if (!isOpen) {
-    return (
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={t`Filter rules`}
-        title={t`Filter rules  ·  press / to focus`}
-        onClick={() => {
-          onOpenChange(true)
-          requestAnimationFrame(() => inputRef.current?.focus())
-        }}
-        className="shrink-0"
-      >
-        <SearchIcon className="size-4" aria-hidden />
-      </Button>
-    )
-  }
-  return (
-    <div className="relative w-full md:w-56 md:flex-none">
-      <SearchInput
-        ref={inputRef}
-        value={value}
-        onChange={onChange}
-        placeholder={t`Filter rules…`}
-        ariaLabel={t`Filter rules`}
-        onFocus={() => onOpenChange(true)}
-        onBlur={() => {
-          if (value.length === 0) onOpenChange(false)
-        }}
-      />
     </div>
   )
 }
@@ -4038,11 +3949,11 @@ function GapTableRow({
       // shouting. The [Add rule] button is the only colored CTA in the
       // table body — promoted from ghost to outlined accent.
       className={cn(
-        'border-l-2 border-l-state-destructive-solid bg-state-destructive-subtle/40 hover:bg-state-destructive-subtle/70',
+        'border-l-2 border-l-state-destructive-solid bg-state-destructive-hover/40 hover:bg-state-destructive-hover/70',
         // When focused via J/K, paint an accent left rail + lift the
         // bg so the row reads "you are here" louder than "this is
         // missing" — the user is acting on it now.
-        focused && 'border-l-state-accent-solid bg-state-destructive-subtle/70',
+        focused && 'border-l-state-accent-solid bg-state-destructive-hover/70',
       )}
     >
       {/* Aligned with rule rows above (badge-left edge in the state
@@ -4657,7 +4568,7 @@ function BulkMetric({
     <div className="flex flex-col gap-0.5">
       <span
         className={cn(
-          'text-xl font-bold tabular-nums',
+          'text-xl font-semibold tabular-nums',
           tone === 'warning'
             ? 'text-text-warning'
             : tone === 'muted'
@@ -4871,7 +4782,7 @@ function BulkReviewListModal({
   }
 
   return (
-    <Dialog open onOpenChange={(next) => (next || busy ? undefined : onClose())}>
+    <Dialog protectInput open onOpenChange={(next) => (next || busy ? undefined : onClose())}>
       <DialogContent
         showCloseButton={false}
         className="flex max-h-[85vh] w-[min(720px,calc(100vw-2rem))] max-w-[720px] flex-col gap-0 overflow-hidden p-0"
@@ -5621,7 +5532,7 @@ function NewRuleModal({
       : t`New custom rule`
 
   return (
-    <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
+    <Dialog protectInput open onOpenChange={(next) => (next ? null : onClose())}>
       <DialogContent showCloseButton className="flex max-h-[85vh] max-w-[560px] flex-col gap-0 p-0">
         <DialogHeader className="border-b border-divider-subtle px-5 py-3">
           <DialogTitle className="text-sm font-semibold text-text-primary">
@@ -5652,7 +5563,7 @@ function NewRuleModal({
               <div className="flex flex-col gap-4">
                 {/* Disclosure: this rule will ACTIVATE immediately.
                     Server forces `status: 'active'` on createCustomRule. */}
-                <div className="rounded-lg border border-state-warning-border bg-state-warning-subtle px-3 py-2 text-xs text-text-secondary">
+                <div className="rounded-lg border border-state-warning-hover-alt bg-state-warning-hover px-3 py-2 text-xs text-text-secondary">
                   <Trans>
                     This rule will be active immediately for every client filing in{' '}
                     {seed.jurisdiction} as {ENTITY_LABELS[seed.entity ?? 'llc']}. You can refine the

@@ -2,7 +2,7 @@
 // Extracted from routes/obligations.tsx.
 import { nextHeaderSort } from '../helpers'
 import { EmptyState } from '@/components/patterns/empty-state'
-import { SearchInput } from '@/components/primitives/search-input'
+import { SortableHeader } from '@/components/patterns/sortable-header'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { cn } from '@/lib/utils'
 import { type MemberAssigneeOption, type ObligationQueueSort } from '@duedatehq/contracts'
@@ -18,14 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Trans, useLingui } from '@lingui/react/macro'
-import {
-  CalendarDaysIcon,
-  ChevronDown,
-  ChevronsUpDown,
-  ChevronUp,
-  SearchIcon,
-  UserRoundIcon,
-} from 'lucide-react'
+import { CalendarDaysIcon, UserRoundIcon } from 'lucide-react'
 import { motion } from 'motion/react'
 import { type ReactNode } from 'react'
 
@@ -67,42 +60,20 @@ export function ObligationQueueSortableHeader({
   //     inline in the accent color — quieter than the bold arrows
   //     and matches the chevron vocabulary used elsewhere
   //     (dropdowns, breadcrumbs, drawer triggers).
-  const SortIcon = direction === 'asc' ? ChevronUp : direction === 'desc' ? ChevronDown : null
-
+  // 2026-06-16 (audit): delegates to the shared SortableHeader primitive (this
+  // chevron + faint-idle treatment WAS the canon the primitive adopted; /clients
+  // now matches it too).
   return (
-    <span className="-mx-1 inline-flex min-w-0 items-center gap-0.5">
-      <button
-        type="button"
-        aria-label={sortLabel}
-        aria-pressed={direction !== false}
-        data-active={direction !== false ? true : undefined}
-        onClick={() =>
-          onSortChange(nextHeaderSort({ currentSort: sort, ascSort, descSort, firstSort }))
-        }
-        className={cn(
-          'inline-flex min-w-0 cursor-pointer items-center gap-0.5 rounded px-1 py-0.5 text-left',
-          // Sortable button matches the TableHead canonical (text-sm
-          // sentence-case font-medium text-secondary) so the column
-          // header isn't fainter than the data it labels, and sortable
-          // and non-sortable headers are indistinguishable in weight.
-          'text-sm font-medium normal-case tracking-normal',
-          'text-text-secondary hover:text-text-primary',
-          'data-[active=true]:text-text-primary',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        )}
-      >
-        <span className="truncate">{label}</span>
-        {SortIcon ? (
-          <SortIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
-        ) : (
-          <ChevronsUpDown
-            className="size-3 shrink-0 text-text-tertiary/40 transition-colors group-hover:text-text-tertiary"
-            aria-hidden
-          />
-        )}
-      </button>
+    <SortableHeader
+      label={label}
+      direction={direction}
+      sortLabel={sortLabel}
+      onToggle={() =>
+        onSortChange(nextHeaderSort({ currentSort: sort, ascSort, descSort, firstSort }))
+      }
+    >
       {children}
-    </span>
+    </SortableHeader>
   )
 }
 
@@ -149,7 +120,7 @@ export function AssigneeQuickPicker({
             // also firing (which would open the obligation
             // drawer behind the picker — confusing UX).
             onClick={(event) => event.stopPropagation()}
-            className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-divider-regular text-sm text-text-tertiary outline-none transition-colors hover:border-divider-strong hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-divider-regular text-sm text-text-tertiary outline-none transition-colors hover:border-divider-deep hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
           >
             ?
           </button>
@@ -218,83 +189,6 @@ export function AssigneeQuickPicker({
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
-
-// Terminal-state rows shouldn't surface lateness as live debt. Once
-// a row is `done` ("Filed"), `paid` ("Filed" on payment-track rows),
-// or `completed`, the row is closed — "18 days late" alongside a
-// "Filed" / "Completed" pill reads as if there's still work to do. We
-// render a muted "Filed N days late" / "Filed N days early" stat
-// instead — quality signal, not active red. Mirrors the same three
-// statuses that `features/obligations/status-control.tsx` displays as
-// "Filed" / "Completed".
-//
-// `extended` stays out of this terminal set. The Extension tab saves
-// an internal target and the detail strip still shows that target as
-// active date context, so the queue cell must not collapse to an em
-// dash just because the row has an extension plan.
-
-export function ObligationQueueSearchControl({
-  inputRef,
-  value,
-  open,
-  onOpenChange,
-  onChange,
-}: {
-  inputRef: React.RefObject<HTMLInputElement | null>
-  value: string
-  // Controlled prop (not local state) so the route's `/` hotkey can
-  // expand the collapsed control before deferring focus. The
-  // button-click expand path and the hotkey path share the same setter.
-  open: boolean
-  onOpenChange: (next: boolean) => void
-  onChange: (next: string) => void
-}) {
-  const { t } = useLingui()
-  const isOpen = open || value.length > 0
-  const setOpen = onOpenChange
-  // The open-on-focus signal rides the Input's `onFocus` prop rather
-  // than a useEffect-attached focus listener on the ref.
-  if (!isOpen) {
-    return (
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={t`Filter deadlines`}
-        title={t`Filter deadlines  ·  press / to focus`}
-        onClick={() => {
-          setOpen(true)
-          requestAnimationFrame(() => inputRef.current?.focus())
-        }}
-        className="mb-1.5 size-8 shrink-0"
-      >
-        <SearchIcon className="size-4" aria-hidden />
-      </Button>
-    )
-  }
-  // The expanded state delegates to the canonical SearchInput
-  // primitive so deadlines and /rules/library share the exact same
-  // chrome when expanded. Deadlines keeps the toolbar-density collapse
-  // pattern because this is the densest table surface and needs the room.
-  return (
-    <div className="relative mb-1.5 w-full md:w-56 md:flex-none">
-      {/* Placeholder reads "Filter deadlines" to align with the
-          expanded and collapsed aria-labels. The input matches client
-          name + obligation title + rule name, so naming just one axis
-          would understate the input's reach. */}
-      <SearchInput
-        ref={inputRef}
-        value={value}
-        onChange={onChange}
-        placeholder={t`Filter deadlines`}
-        ariaLabel={t`Filter deadlines`}
-        onFocus={() => setOpen(true)}
-        onBlur={() => {
-          if (value.length === 0) setOpen(false)
-        }}
-      />
-    </div>
   )
 }
 

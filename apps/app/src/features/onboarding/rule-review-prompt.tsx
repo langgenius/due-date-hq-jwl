@@ -44,7 +44,7 @@ function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean
         !last && 'border-b border-divider-subtle',
       )}
     >
-      <span className="grid size-[42px] shrink-0 place-items-center rounded-lg border border-state-warning-active bg-state-warning-hover text-base font-bold text-text-warning">
+      <span className="grid size-[42px] shrink-0 place-items-center rounded-lg border border-state-warning-active bg-state-warning-hover text-base font-semibold text-text-warning">
         {item.code}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -63,7 +63,7 @@ function ReviewRow({ item, last }: { item: JurisdictionReviewItem; last: boolean
             </>
           ) : null}
           {item.blockedCount != null ? (
-            <Badge variant="destructive" className="text-[10px] font-bold">
+            <Badge variant="destructive" className="text-[10px] font-semibold">
               <Trans>{item.blockedCount} blocked</Trans>
             </Badge>
           ) : null}

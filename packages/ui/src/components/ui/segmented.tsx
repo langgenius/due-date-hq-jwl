@@ -32,6 +32,14 @@ export type SegmentedOption<T extends string> = {
   dot?: string
   /** Optional trailing count, rendered muted + tabular after the label. */
   count?: number
+  /**
+   * Fade an INACTIVE option to 60% opacity — for bucket/scope selectors where
+   * an empty bucket (e.g. "This week 0") should read as a low-priority,
+   * near-dead-end choice without being disabled. No effect on the active
+   * option. (2026-06-16: added so /today's Priorities selector can adopt this
+   * primitive without losing its empty-bucket dim.)
+   */
+  dimmed?: boolean
   /** Accessible label when `label` is icon-only or needs elaboration. */
   ariaLabel?: string
 }
@@ -94,6 +102,7 @@ export function Segmented<T extends string>({
               active
                 ? 'border border-divider-subtle bg-components-segmented-item-bg-active text-components-segmented-text-active'
                 : 'border border-transparent text-components-segmented-text hover:text-components-segmented-text-active',
+              option.dimmed && !active && 'opacity-60',
             )}
           >
             {Icon ? <Icon className="size-3.5" aria-hidden /> : null}

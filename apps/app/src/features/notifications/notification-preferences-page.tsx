@@ -132,20 +132,10 @@ export function NotificationPreferencesPage() {
         description={
           <Trans>Choose how you hear from us. You can override per-deadline from any drawer.</Trans>
         }
-        actions={
-          // Preferences persist optimistically on each toggle, so an explicit
-          // Save is informational. It re-fires nothing destructive; disabled
-          // while a write is in flight.
-          <Button
-            variant="primary"
-            size="sm"
-            disabled={updatePreferences.isPending}
-            onClick={() => preferences && onUpdate(preferences)}
-          >
-            <CheckIcon data-icon="inline-start" />
-            <Trans>Save preferences</Trans>
-          </Button>
-        }
+        // 2026-06-16 (audit): removed the "Save preferences" button — every
+        // toggle persists optimistically, so an explicit Save re-fired
+        // already-saved state and falsely implied unsaved changes. Changes
+        // save automatically; the per-control optimistic write is the feedback.
       />
 
       {preferencesQuery.isLoading || !preferences ? (
@@ -395,7 +385,7 @@ function TypesMatrixCard({
         <div className="min-w-[640px] overflow-hidden rounded-xl border border-divider-regular">
           {/* Header */}
           <div className="flex items-center gap-3.5 border-b border-divider-regular bg-background-section px-5 py-3">
-            <span className="flex-1 text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
+            <span className="flex-1 text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
               <Trans>Type</Trans>
             </span>
             <MatrixColHead>
@@ -404,7 +394,7 @@ function TypesMatrixCard({
             <MatrixColHead>
               <Trans>In-app</Trans>
             </MatrixColHead>
-            <span className="w-[150px] text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
+            <span className="w-[150px] text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
               <Trans>Cadence</Trans>
             </span>
           </div>
@@ -460,7 +450,7 @@ function TypesMatrixCard({
 
 function MatrixColHead({ children }: { children: ReactNode }) {
   return (
-    <span className="w-[60px] text-center text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
+    <span className="w-[60px] text-center text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
       {children}
     </span>
   )
@@ -584,7 +574,7 @@ function MorningDigestCard({
       {preferences.morningDigestEnabled ? (
         <div className="flex flex-wrap gap-6">
           <div className="flex flex-col gap-2.5">
-            <span className="text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
+            <span className="text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
               <Trans>Send hour</Trans>
             </span>
             <Select
@@ -608,7 +598,7 @@ function MorningDigestCard({
           </div>
 
           <div className="flex flex-col gap-2.5">
-            <span className="text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
+            <span className="text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
               <Trans>Days</Trans>
             </span>
             <div className="flex flex-wrap gap-2">
@@ -636,7 +626,7 @@ function MorningDigestCard({
       </Button>
 
       <div className="flex flex-col gap-2 border-t border-divider-regular pt-4">
-        <span className="flex items-center gap-2 text-caption-xs font-bold tracking-wide text-text-secondary uppercase">
+        <span className="flex items-center gap-2 text-caption-xs font-semibold tracking-wide text-text-secondary uppercase">
           <ClipboardListIcon className="size-3 text-text-tertiary" aria-hidden />
           <Trans>Recent digest runs</Trans>
         </span>

@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import {
   flexRender,
@@ -13,12 +13,9 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
   AlertTriangleIcon,
-  ArrowDownIcon,
-  ArrowUpIcon,
   ExternalLinkIcon,
   EyeIcon,
   LinkIcon,
-  SearchIcon,
 } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
@@ -40,10 +37,11 @@ import {
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
-import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
+import { SortableHeader } from '@/components/patterns/sortable-header'
 import { StatBand, type StatBandItem } from '@/components/patterns/stat-band'
 import { RowActionsMenu, type RowActionsMenuItem } from '@/components/patterns/row-actions-menu'
-import { SearchInput } from '@/components/primitives/search-input'
+import { CollapsibleSearch } from '@/components/primitives/collapsible-search'
+import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 import { formatDate, formatDatePretty } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
@@ -52,7 +50,6 @@ import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 
 import { ClientsEmptyState } from './ClientsEmptyState'
-import { useClientDrawer } from './ClientDrawerProvider'
 import { ClientPeekHoverCard } from './ClientPeekHoverCard'
 import { FixNeedsFactsSheet } from './FixNeedsFactsSheet'
 import { clientDetailPath } from './client-url'
@@ -252,26 +249,27 @@ function NextDueRelativeLabel({ iso }: { iso: string }) {
   // weight). The next-due date is the PRIMARY scannable data on the
   // directory, but COLOR (red/amber) carries the urgency, not weight:
   // red + 600 would double-highlight, which the type-weight rule bans.
-  // Copy matches the /deadlines DUE column —
-  // verbose "# days late" / "# days" form.
+  // Wording comes from the shared `DueCountdownText` — the same compact
+  // "5d late" / "in 5d" / "today" vocabulary the /deadlines DUE column and
+  // the dashboard rows use, so a CPA reads one signal across surfaces.
   if (days < 0) {
     return (
       <span className="whitespace-nowrap text-sm font-medium text-text-destructive tabular-nums">
-        <Plural value={Math.abs(days)} one="# day late" other="# days late" />
+        <DueCountdownText days={days} />
       </span>
     )
   }
   if (days === 0) {
     return (
       <span className="whitespace-nowrap text-sm font-medium text-text-warning">
-        <Trans>Today</Trans>
+        <DueCountdownText days={days} />
       </span>
     )
   }
   if (days <= 7) {
     return (
       <span className="whitespace-nowrap text-sm font-medium text-text-warning tabular-nums">
-        <Plural value={days} one="in # day" other="in # days" />
+        <DueCountdownText days={days} />
       </span>
     )
   }
@@ -349,34 +347,18 @@ function ColumnSortHeader({
 }) {
   const sortLabel = description ? `Sort by ${label}. ${description}` : `Sort by ${label}`
 
+  // 2026-06-16 (audit): delegates to the shared SortableHeader primitive so
+  // /clients and /deadlines sort headers read identically (chevron icon set +
+  // faint idle dual-chevron — the directory used to render NO idle affordance,
+  // looking inert until clicked).
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-label={sortLabel}
-      title={sortLabel}
-      data-active={sortState !== false ? true : undefined}
-      className={cn(
-        // Sortable headers use sm + normal-case + text-secondary so
-        // they read as labels, not eyebrows. Matches /deadlines +
-        // /alerts table headers.
-        '-mx-1 inline-flex h-7 cursor-pointer items-center gap-1 rounded-lg px-1 text-sm font-medium whitespace-nowrap text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:text-text-primary',
-        align === 'right' && 'justify-end',
-      )}
-    >
-      <span className="truncate">{label}</span>
-      {/* Idle (sortState=false) renders no icon — the header still
-          functions as a click-to-sort button (cursor-pointer + hover
-          bg), but the dual-chevron icon was visual noise on a directory
-          where the user rarely re-sorts. Active states render the
-          up/down arrow so the user always sees WHICH column is sorted +
-          in which direction. */}
-      {sortState === 'asc' ? (
-        <ArrowUpIcon className="size-3 shrink-0" aria-hidden />
-      ) : sortState === 'desc' ? (
-        <ArrowDownIcon className="size-3 shrink-0" aria-hidden />
-      ) : null}
-    </button>
+    <SortableHeader
+      label={label}
+      direction={sortState}
+      onToggle={onToggle}
+      align={align}
+      sortLabel={sortLabel}
+    />
   )
 }
 
@@ -407,7 +389,6 @@ export function ClientFactsWorkspace({
   const { t } = useLingui()
   const navigate = useNavigate()
   const currentUserName = useCurrentUserName()
-  const { openDrawer: openClientDrawer } = useClientDrawer()
   // Declared above the columns useMemo because the rowActions column
   // references this in its deps array; the deps eval order forces it
   // earlier in the closure.
@@ -901,11 +882,12 @@ export function ClientFactsWorkspace({
               icon: ExternalLinkIcon,
               onSelect: () => handleOpenClientDetail(client.id),
             },
-            {
-              label: t`Quick peek`,
-              icon: EyeIcon,
-              onSelect: () => openClientDrawer(client.id),
-            },
+            // 2026-06-16 (audit): removed the "Quick peek" item — on the
+            // /clients route the drawer is suppressed (the list defers to the
+            // full page), so it just raw-navigated to /clients/<uuid> (an extra
+            // redirect that skipped the prev/next cycle list). The hover peek
+            // card on the client name covers true "glance" use; "Open detail"
+            // covers navigation.
             {
               label: t`Copy link`,
               icon: LinkIcon,
@@ -936,7 +918,6 @@ export function ClientFactsWorkspace({
       factsModel.readinessById,
       handleOpenClientDetail,
       obligationSummariesByClient,
-      openClientDrawer,
       alertMatchesByClient,
       t,
     ],
@@ -1116,6 +1097,19 @@ export function ClientFactsWorkspace({
                         <TableHead
                           key={header.id}
                           className={cn(header.column.columnDef.meta?.headerClassName)}
+                          // 2026-06-16 (audit): expose sort state to assistive
+                          // tech on the header cell (the button only carries
+                          // aria-pressed). /deadlines already did this; /clients
+                          // didn't — now both do.
+                          aria-sort={
+                            header.column.getCanSort()
+                              ? header.column.getIsSorted() === 'asc'
+                                ? 'ascending'
+                                : header.column.getIsSorted() === 'desc'
+                                  ? 'descending'
+                                  : 'none'
+                              : undefined
+                          }
                         >
                           {header.isPlaceholder
                             ? null
@@ -1161,16 +1155,13 @@ export function ClientFactsWorkspace({
                         // would).
                         className="group/row h-14 cursor-pointer outline-none hover:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:bg-state-base-hover focus-visible:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                         onClick={(event) => {
-                          // ⌘-click (macOS) / Ctrl-click (Win/Linux) opens
-                          // the read-only drawer for a quick glance without
-                          // leaving the list — power-user shortcut that
-                          // mirrors browsers' "open in new tab" muscle
-                          // memory. Plain click commits to the full page.
-                          if (event.metaKey || event.ctrlKey) {
-                            event.preventDefault()
-                            openClientDrawer(row.original.id)
-                            return
-                          }
+                          // 2026-06-16 (audit): on the /clients route the peek
+                          // drawer is suppressed (the list defers to the full
+                          // page), so ⌘/Ctrl-click previously raw-navigated to
+                          // /clients/<uuid> — an extra redirect that skipped the
+                          // prev/next cycle list. Route it through the canonical
+                          // handler like a plain click (canonical URL + cycle
+                          // list, so the detail's prev/next arrows work).
                           handleOpenClientDetail(row.original.id)
                         }}
                         onKeyDown={(event) =>
@@ -1261,13 +1252,6 @@ function ClientsFilterToolbar({
     // stale ?pulse= bookmark can still be cleared from here.
     extraFiltersActive
 
-  // /clients uses the canonical collapsible-search pattern shared with
-  // /deadlines and /rules/library. Ghost-icon at rest, expands inline
-  // into the canonical `SearchInput` primitive on click OR on `/`
-  // hotkey.
-  const searchInputRef = useRef<HTMLInputElement | null>(null)
-  const [searchOpen, setSearchOpen] = useState(false)
-
   // Toolbar layout splits into two clusters separated by a `flex-1`
   // spacer:
   //   • LEFT: filter dropdowns (Client / States / Entity / Owner) +
@@ -1340,100 +1324,23 @@ function ClientsFilterToolbar({
       >
         <Trans>Clear filters</Trans>
       </Button>
-      {/* Spacer pushes the search affordance to the right edge. */}
-      <div className="ml-auto">
-        <ClientsSearchControl
-          inputRef={searchInputRef}
-          value={searchQuery}
-          open={searchOpen}
-          onOpenChange={setSearchOpen}
-          onChange={onSearchChange}
-        />
-      </div>
-    </div>
-  )
-}
-
-// Collapsible search control for `/clients`. Renders as a ghost icon
-// button at rest; expands inline into the canonical `SearchInput` on
-// click or `/` hotkey. Open state is lifted to the parent so the `/`
-// hotkey can expand → focus in one gesture. Mirrors /deadlines
-// `ObligationQueueSearchControl` and /rules/library `RuleSearchControl`
-// — three surfaces, one pattern.
-function ClientsSearchControl({
-  inputRef,
-  value,
-  open,
-  onOpenChange,
-  onChange,
-}: {
-  inputRef: React.RefObject<HTMLInputElement | null>
-  value: string
-  open: boolean
-  onOpenChange: (next: boolean) => void
-  onChange: (next: string) => void
-}) {
-  const { t } = useLingui()
-  // Stay open while a query is present — collapsing would hide
-  // active filter state from the user.
-  const isOpen = open || value.length > 0
-  // `/` hotkey expands the collapsed control AND focuses the input
-  // in one gesture. SearchInput's own `hotkey` prop can't drive this
-  // path because when collapsed the input isn't mounted yet.
-  const shortcutsBlocked = useKeyboardShortcutsBlocked()
-  useAppHotkey(
-    '/',
-    () => {
-      onOpenChange(true)
-      requestAnimationFrame(() => {
-        inputRef.current?.focus()
-        inputRef.current?.select()
-      })
-    },
-    {
-      enabled: !shortcutsBlocked,
-      meta: {
-        id: 'clients.focus-search',
-        name: 'Filter clients',
-        description: 'Focus the /clients filter input.',
-        category: 'practice',
-        scope: 'route',
-      },
-    },
-  )
-  if (!isOpen) {
-    return (
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={t`Filter clients`}
-        title={t`Filter clients  ·  press / to focus`}
-        onClick={() => {
-          onOpenChange(true)
-          requestAnimationFrame(() => inputRef.current?.focus())
-        }}
-        className="shrink-0"
-      >
-        <SearchIcon className="size-4" aria-hidden />
-      </Button>
-    )
-  }
-  return (
-    <div className="relative w-full md:w-56 md:flex-none">
-      {/* Both the collapsed magnifier and the expanded input use the
-          "Filter clients" aria-label so screen-reader users hear one
-          control name regardless of collapsed/expanded state. The
-          placeholder carries the field hint ("name or EIN") for sighted
-          users. */}
-      <SearchInput
-        ref={inputRef}
-        value={value}
-        onChange={onChange}
+      {/* Canonical collapsing toolbar search — ghost magnifier at the
+          right edge, expands on hover/click/`/`, retains focus + query.
+          One control across /clients · /rules/library · /alerts. */}
+      <CollapsibleSearch
+        className="ml-auto"
+        value={searchQuery}
+        onChange={onSearchChange}
         placeholder={t`Filter by name or EIN`}
         ariaLabel={t`Filter clients`}
-        onFocus={() => onOpenChange(true)}
-        onBlur={() => {
-          if (value.length === 0) onOpenChange(false)
+        collapsedLabel={t`Filter clients`}
+        hotkey="/"
+        hotkeyMeta={{
+          id: 'clients.focus-search',
+          name: 'Filter clients',
+          description: 'Focus the /clients filter input.',
+          category: 'practice',
+          scope: 'route',
         }}
       />
     </div>

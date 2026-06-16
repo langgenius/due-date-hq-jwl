@@ -67,7 +67,7 @@ export function Step4Preview({
           (clients to create / already in list / deadlines to generate). */}
       <div className="flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-5">
         <div className="flex flex-col gap-2">
-          <span className="inline-flex items-center gap-1.5 text-caption-xs font-bold tracking-eyebrow text-text-success uppercase">
+          <span className="inline-flex items-center gap-1.5 text-caption-xs font-semibold tracking-eyebrow text-text-success uppercase">
             <span aria-hidden className="size-1.5 rounded-full bg-state-success-solid" />
             <Trans>Ready to import</Trans>
           </span>
@@ -406,13 +406,13 @@ function HeroMetric({
     <div className="flex flex-col gap-0.5 px-4 first:pl-0 last:pr-0">
       <span
         className={cn(
-          'text-2xl font-bold leading-none tracking-tight tabular-nums',
+          'text-2xl font-semibold leading-none tracking-tight tabular-nums',
           muted ? 'text-text-secondary' : 'text-text-primary',
         )}
       >
         {value}
       </span>
-      <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
+      <span className="text-caption-xs font-semibold tracking-eyebrow text-text-muted uppercase">
         {unit}
       </span>
       <span className="text-caption font-medium text-text-secondary">{sub}</span>

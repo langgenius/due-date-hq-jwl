@@ -33,6 +33,10 @@ export function UpgradeCtaButton({
       variant="accent"
       className={cn(
         'relative isolate overflow-hidden border-state-warning-solid bg-state-warning-solid text-text-primary shadow-status-indicator-warning ring-1 ring-state-warning-hover-alt',
+        // `before:duration-500` is a DELIBERATE motion-grammar outlier (like
+        // the 0.64s detail paper-rise): the slow hover shimmer-sweep is a
+        // luxury "this is the upgrade" flourish, longer than the 150ms micro
+        // tempo on purpose. Killed under reduced-motion via `before:hidden`.
         'before:absolute before:inset-y-0 before:-left-1/2 before:w-1/2 before:skew-x-[-18deg] before:bg-white/35 before:content-[""] before:transition-transform before:duration-500 motion-reduce:before:hidden',
         'hover:bg-text-warning-secondary hover:text-text-primary hover:shadow-upgrade-cta-hover hover:before:translate-x-[320%]',
         'focus-visible:ring-state-warning-active',

@@ -52,7 +52,7 @@ function IntegrationStrip() {
       {/* DueDateHQ destination tile — the import endpoint, a touch larger
           than the source tiles to read as the "lands here" endpoint. */}
       <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-text-primary shadow-md">
-        <span className="text-base font-bold text-text-inverted">DD</span>
+        <span className="text-base font-semibold text-text-inverted">DD</span>
       </div>
     </div>
   )

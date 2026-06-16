@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
+import { Link } from 'react-router'
 import {
   AlertTriangleIcon,
   ArrowUpRightIcon,
@@ -523,12 +524,13 @@ function MatrixDefaultsCard({
         <div className="flex shrink-0 items-center gap-2">
           {/* "Edit defaults" link to the firm's default-matrix settings.
               stopPropagation so the click doesn't toggle the card's expanded
-              state. */}
+              state. 2026-06-16 (audit): was a raw <a href> (full page reload
+              mid-wizard); client-side <Link> preserves wizard state. */}
           <TextLink
             variant="accent"
             className="gap-0.5"
             onClick={(event) => event.stopPropagation()}
-            render={<a href="/settings" />}
+            render={<Link to="/settings" />}
           >
             <Trans>Edit defaults</Trans>
             <ArrowUpRightIcon className="size-3" aria-hidden />

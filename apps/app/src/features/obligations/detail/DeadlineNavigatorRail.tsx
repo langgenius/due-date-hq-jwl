@@ -16,6 +16,7 @@ import {
   ListRailBody,
   ListRailHead,
   ListRailSection,
+  ListRailTitle,
 } from '@/components/patterns/list-rail'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { SearchInput } from '@/components/primitives/search-input'
@@ -25,11 +26,19 @@ import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 import { todayIsoDate } from '@/features/obligations/queue/helpers'
 import { daysBetween } from '@/lib/utils'
 import {
+  LIFECYCLE_V2_STATUS_SETS,
+  LIFECYCLE_V2_STATUSES,
   STATUS_ICON,
   STATUS_ICON_COLOR,
-  useStatusLabels,
+  useLifecycleV2StatusLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
+
+// The 6 canonical lifecycle stages the filter offers (a subset of the raw
+// ObligationStatus enum). The rail filter groups the 10 raw statuses into
+// these stages via LIFECYCLE_V2_STATUS_SETS so the menu reads as the same
+// 6-state taxonomy the rest of the product uses — not a flat enum dump.
+type LifecycleV2Stage = (typeof LIFECYCLE_V2_STATUSES)[number]
 
 const MONTHS = [
   'Jan',
@@ -61,9 +70,12 @@ function formatRailDate(iso: string): string {
 // quality stat there, not a call to action (mirrors DueDaysPill).
 const RELATIVE_SUPPRESSED_STATUSES = new Set<ObligationStatus>(['completed', 'not_applicable'])
 
-// Canonical urgency order for the status filter menu (action-needed first),
-// mirroring the queue's "Sort by Status" ordering.
-const STATUS_FILTER_ORDER: readonly ObligationStatus[] = [
+// Canonical urgency order for the rail's "Sort by Status" ranking
+// (action-needed first), mirroring the queue's ordering. NOTE: this is the
+// raw-status SORT order only — the filter MENU collapses to the 6 v2 stages
+// (LIFECYCLE_V2_STATUSES) so a CPA picks from the same 6-state taxonomy used
+// everywhere else, not all 10 raw statuses.
+const STATUS_SORT_ORDER: readonly ObligationStatus[] = [
   'pending',
   'blocked',
   'waiting_on_client',
@@ -129,35 +141,43 @@ export function DeadlineNavigatorRail({
   onLoadMore: () => void
 }) {
   const { t } = useLingui()
-  const statusLabels = useStatusLabels()
+  // v2 merged labels: in_progress/review/extended → "In review", done/paid →
+  // "Filed", pending/not_applicable → "Not started". Drives BOTH the row chips
+  // and the filter menu so a filter pick ("In review") matches every row label.
+  const statusLabels = useLifecycleV2StatusLabels()
   const [search, setSearch] = useState('')
   // Optional client-side status filter over the loaded rail rows. `all` shows
-  // everything; otherwise only rows in the chosen status. Composes with search.
-  const [statusFilter, setStatusFilter] = useState<ObligationStatus | 'all'>('all')
+  // everything; otherwise only rows whose status maps to the chosen v2 stage
+  // (via LIFECYCLE_V2_STATUS_SETS). Composes with search.
+  const [statusFilter, setStatusFilter] = useState<LifecycleV2Stage | 'all'>('all')
   // Client-side re-rank of the loaded rail rows. Default `due` = soonest
   // internal due date first. The active ranking is surfaced in the rail so the
   // user always knows how the list is ordered (Yuqi rail feedback).
   const [sortKey, setSortKey] = useState<RailSort>('due')
-  const sortOptions: readonly { key: RailSort; label: string; note: string }[] = [
-    { key: 'due', label: t`Due date`, note: t`Soonest internal due date first` },
-    { key: 'priority', label: t`Priority`, note: t`Highest smart-priority score first` },
-    { key: 'client', label: t`Client`, note: t`Grouped A–Z by client name` },
-    { key: 'status', label: t`Status`, note: t`Action-needed states first` },
+  const sortOptions: readonly { key: RailSort; label: string }[] = [
+    { key: 'due', label: t`Due date` },
+    { key: 'priority', label: t`Priority` },
+    { key: 'client', label: t`Client` },
+    { key: 'status', label: t`Status` },
   ]
-  const activeSort = sortOptions.find((option) => option.key === sortKey) ?? sortOptions[0]!
-  const sortLabel = activeSort.label
-  // One-line plain-English note of how the active ranking orders the rail, so
-  // the user knows what "Sort by Due date" actually does (Yuqi rail feedback).
-  const sortNote = activeSort.note
+  const sortLabel = (sortOptions.find((option) => option.key === sortKey) ?? sortOptions[0]!).label
 
-  // Statuses present in the loaded set, with counts, in canonical urgency order
-  // — the menu only offers statuses that actually exist in the rail.
+  // v2 STAGES present in the loaded set, with rolled-up counts, in canonical
+  // order — the menu only offers stages that actually exist in the rail. Each
+  // raw status maps to exactly one stage via LIFECYCLE_V2_STATUS_SETS, so the
+  // counts sum to the total and "In review 10" matches 10 rows labelled "In
+  // review" (was a flat 10-status dump that read as "too complicated").
   const statusOptions = useMemo(() => {
-    const counts = new Map<ObligationStatus, number>()
-    for (const row of rows) counts.set(row.status, (counts.get(row.status) ?? 0) + 1)
-    return STATUS_FILTER_ORDER.filter((status) => counts.has(status)).map((status) => ({
-      status,
-      count: counts.get(status) ?? 0,
+    const counts = new Map<LifecycleV2Stage, number>()
+    for (const row of rows) {
+      const stage = LIFECYCLE_V2_STATUSES.find((s) =>
+        (LIFECYCLE_V2_STATUS_SETS[s] as readonly ObligationStatus[]).includes(row.status),
+      )
+      if (stage) counts.set(stage, (counts.get(stage) ?? 0) + 1)
+    }
+    return LIFECYCLE_V2_STATUSES.filter((stage) => counts.has(stage)).map((stage) => ({
+      status: stage,
+      count: counts.get(stage) ?? 0,
     }))
   }, [rows])
 
@@ -171,7 +191,13 @@ export function DeadlineNavigatorRail({
   const filteredRows = useMemo(() => {
     const needle = search.trim().toLowerCase()
     return rows.filter((row) => {
-      if (effectiveStatusFilter !== 'all' && row.status !== effectiveStatusFilter) return false
+      if (
+        effectiveStatusFilter !== 'all' &&
+        !(LIFECYCLE_V2_STATUS_SETS[effectiveStatusFilter] as readonly ObligationStatus[]).includes(
+          row.status,
+        )
+      )
+        return false
       if (!needle) return true
       const haystack = [row.clientName, row.formName ?? '', row.taxType, statusLabels[row.status]]
         .join(' ')
@@ -190,7 +216,7 @@ export function DeadlineNavigatorRail({
         case 'client':
           return a.clientName.localeCompare(b.clientName)
         case 'status':
-          return STATUS_FILTER_ORDER.indexOf(a.status) - STATUS_FILTER_ORDER.indexOf(b.status)
+          return STATUS_SORT_ORDER.indexOf(a.status) - STATUS_SORT_ORDER.indexOf(b.status)
         default:
           // Due date — soonest internal due first (ISO strings sort lexically).
           return a.currentDueDate.localeCompare(b.currentDueDate)
@@ -198,22 +224,64 @@ export function DeadlineNavigatorRail({
     })
   }, [filteredRows, sortKey])
 
+  // The rail count reads "28 active" at rest and flips to "5 shown" only while
+  // a search/status filter is narrowing the list — so the count is always
+  // informative and we drop the standalone "N shown" line that just restated
+  // the title chip when nothing was filtered (Yuqi 2026-06-16).
+  const isRailFiltered = search.trim().length > 0 || effectiveStatusFilter !== 'all'
+  const countChipLabel = isRailFiltered
+    ? t`${sortedRows.length} shown`
+    : totalCount !== null
+      ? t`${totalCount} active`
+      : null
+
   return (
     // Rail is the xl/lg companion
     // column; below lg the master-detail collapses to detail-only (rail hidden,
     // so the detail gets full width — the crumb's "Deadlines" link returns to
     // the table). Width 340 (lg) → 380 (xl).
     <ListRail className="hidden w-[340px] lg:flex xl:w-[380px]">
-      {/* ListHead — title + count chip (rzzww `mCfAZ`). */}
-      <ListRailHead className="justify-between">
-        <span className="text-item-title text-text-primary">
-          <Trans>Deadlines</Trans>
-        </span>
-        {totalCount !== null ? (
-          <span className="rounded-full bg-background-subtle px-2 py-0.5 text-caption-xs font-medium tabular-nums text-text-tertiary">
-            {t`${totalCount} active`}
-          </span>
-        ) : null}
+      {/* ListHead — title + count chip + Sort control on ONE line (rzzww
+          `mCfAZ`). 2026-06-16 (Yuqi): Sort moved up here to mirror the
+          Jurisdictions rail's "Show" control, which let us drop the separate
+          rank row (its "N shown" count folded into the chip; its
+          "Soonest internal due date first" note was just restating the sort). */}
+      <ListRailHead className="justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <ListRailTitle>
+            <Trans>Deadlines</Trans>
+          </ListRailTitle>
+          {countChipLabel !== null ? (
+            <span className="shrink-0 rounded-full bg-background-subtle px-2 py-0.5 text-caption-xs font-medium tabular-nums text-text-tertiary">
+              {countChipLabel}
+            </span>
+          ) : null}
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <FilterTrigger
+                aria-label={t`Change sort order`}
+                leadingIcon={ArrowDownUpIcon}
+                valueLabel={sortLabel}
+                active
+                className="h-7 shrink-0 pl-2.5 pr-2 text-caption-xs"
+              >
+                <Trans>Sort by</Trans>
+              </FilterTrigger>
+            }
+          />
+          <DropdownMenuContent align="end" className="min-w-[180px]">
+            {sortOptions.map((option) => (
+              <DropdownMenuItem key={option.key} onClick={() => setSortKey(option.key)}>
+                <span className="flex-1">{option.label}</span>
+                {sortKey === option.key ? (
+                  <CheckIcon className="size-3.5 text-text-accent" aria-hidden />
+                ) : null}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </ListRailHead>
 
       {/* FilterRow — client-side search + optional status filter over the
@@ -274,47 +342,6 @@ export function DeadlineNavigatorRail({
         </DropdownMenu>
       </ListRailSection>
 
-      {/* RankRow — surfaces how the rail is ordered and lets the user re-rank
-          the loaded set. 2026-06-16 (Yuqi "SEE how it's sorted AND re-rank"):
-          the quiet text trigger is now the canonical FilterTrigger pill
-          ("Sort by │ Due date ⌄") — the SAME control the /deadlines table uses,
-          so re-ranking the rail reads as an obvious, familiar affordance. A
-          one-line note under it states the active ranking in plain English. */}
-      <ListRailSection className="flex-col items-stretch gap-1 py-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <FilterTrigger
-                  aria-label={t`Change sort order`}
-                  leadingIcon={ArrowDownUpIcon}
-                  valueLabel={sortLabel}
-                  active
-                  className="h-7 pl-2.5 pr-2 text-caption-xs"
-                >
-                  <Trans>Sort by</Trans>
-                </FilterTrigger>
-              }
-            />
-            <DropdownMenuContent align="start" className="min-w-[180px]">
-              {sortOptions.map((option) => (
-                <DropdownMenuItem key={option.key} onClick={() => setSortKey(option.key)}>
-                  <span className="flex-1">{option.label}</span>
-                  {sortKey === option.key ? (
-                    <CheckIcon className="size-3.5 text-text-accent" aria-hidden />
-                  ) : null}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <span className="shrink-0 text-caption-xs tabular-nums text-text-tertiary">
-            {t`${sortedRows.length} shown`}
-          </span>
-        </div>
-        {/* Plain-English ranking note — tells the user how the active sort
-            actually orders the list (never a mystery). */}
-        <span className="px-0.5 text-caption-xs text-text-tertiary">{sortNote}</span>
-      </ListRailSection>
 
       {/* ListBody */}
       <ListRailBody>
