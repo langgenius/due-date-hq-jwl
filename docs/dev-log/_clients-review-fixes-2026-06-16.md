@@ -332,3 +332,31 @@ Out-of-scope observation: routes/obligations.tsx (another session's uncommitted
 WIP) throws `MapPinIcon`/`ClockIcon is not defined` in ObligationFiltersPopover —
 a missing-import crash in the /deadlines Filter popover. Left untouched (foreign
 WIP); flagged for that session.
+
+## Cluster 12 — Summary strip: align to canonical StatBand (kills collision + wrap + slashed zeros)
+Yuqi (screenshot of the fact strip): "so ugly." Three concrete bugs: (1) the
+"JURISDICTIONS" label overflowed into "BLOCKED" (read as one run); (2) "May 12"
+wrapped to two lines in NEXT DUE; (3) the 0s rendered as slashed zeros (Ø-like).
+
+Root cause: the bespoke ClientSummaryStrip had drifted off the canonical
+`StatBand` primitive (which its own docstring lists as the /clients/[id] summary).
+StatBand uses sans `text-stat-value` (24px) tabular-nums values + truncating
+columns; my strip used `font-mono text-2xl` (28px) with `min-w-0` cells — the
+mono → slashed zeros, the 28px → "May 12" too wide to fit (wrap), and `min-w-0`
+→ the long label shrank below its width and overflowed.
+
+Fixes (brought the strip in line with StatBand while keeping the VtC73 grouped
+bg-subtle panel container Yuqi chose):
+- Values: `font-mono text-2xl` → `text-stat-value` (24px) sans semibold
+  tabular-nums + `whitespace-nowrap`. Sans = no slashed zero; 24px matches the
+  StatBand on /clients, sources, rules, alerts; nowrap = no date wrap.
+- Cells: dropped `min-w-0` so each cell sizes to ≥ its content (label + value);
+  flex-1 distributes the rest. Labels get `whitespace-nowrap`. No more overflow.
+
+Also fixed a related clip in the filing table: the jurisdiction badge slot
+(w-[92px], set in Cluster 10) clipped "California"/"Washington" (~95px chips) →
+bumped to w-[104px]. Verified "California" no longer truncates.
+
+Verified live (Lone Star + the exact Meridian NY/May-12 case): value font =
+-apple-system (sans, not mono), size 24px; strip = one 75px row with zero
+overflow; "May 12" single line; "California" badge clipped=false. tsgo clean.

@@ -232,7 +232,10 @@ export function DeadlineRow({
             <button
               type="button"
               onClick={stop(() => goToSummary())}
-              className="flex w-[92px] shrink-0 overflow-hidden rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              // w-[104px] fits the longest jurisdiction names ("California" /
+              // "Washington" ≈ 95px chip) without clipping, while still aligning
+              // the form names into a column.
+              className="flex w-[104px] shrink-0 overflow-hidden rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               tabIndex={-1}
               aria-hidden
             >

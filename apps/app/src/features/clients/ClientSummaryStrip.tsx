@@ -80,12 +80,16 @@ export function ClientSummaryStrip({
     return <Skeleton className="h-[84px] w-full rounded-xl" />
   }
 
-  // Big mono number (VtC73: JetBrains Mono 24/700, color-coded). Dim to tertiary
-  // when zero so an empty count reads as "nothing here", not a loud signal.
+  // KPI numeral — the canonical StatBand value treatment (`text-stat-value`
+  // 24px, sans, semibold, tabular-nums), color-coded. NOT font-mono: Geist/
+  // JetBrains Mono render a slashed zero that read as "Ø" on the dimmed 0s
+  // (Yuqi "so ugly"); sans tabular matches the StatBand on /clients, sources,
+  // rules, and alerts. Dim to tertiary when zero so an empty count reads as
+  // "nothing here", not a loud signal.
   const num = (value: number, tone: string) => (
     <span
       className={cn(
-        'font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums',
+        'text-stat-value leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
         value > 0 ? tone : 'text-text-tertiary',
       )}
     >
@@ -111,7 +115,7 @@ export function ClientSummaryStrip({
             ))}
           </span>
         ) : (
-          <span className="font-mono text-2xl leading-none font-semibold text-text-tertiary">—</span>
+          <span className="text-stat-value leading-none font-semibold text-text-tertiary">—</span>
         ),
     },
     {
@@ -147,14 +151,14 @@ export function ClientSummaryStrip({
       value: nextDue ? (
         <span
           className={cn(
-            'font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums',
+            'text-stat-value leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
             nextDueOverdue ? 'text-text-warning' : 'text-text-primary',
           )}
         >
           {formatDatePretty(nextDue.currentDueDate)}
         </span>
       ) : (
-        <span className="font-mono text-2xl leading-none font-bold text-text-tertiary">—</span>
+        <span className="text-stat-value leading-none font-semibold text-text-tertiary">—</span>
       ),
     },
   ]
@@ -169,14 +173,18 @@ export function ClientSummaryStrip({
       {cells.map((cell, i) => {
         const body = (
           <>
-            <span className="text-caption-xs font-medium tracking-eyebrow uppercase text-text-muted">
+            <span className="whitespace-nowrap text-caption-xs font-medium tracking-eyebrow uppercase text-text-muted">
               {cell.label}
             </span>
             <span className="flex min-h-[28px] items-center">{cell.value}</span>
           </>
         )
         const cellClass = cn(
-          'flex min-w-0 flex-1 flex-col justify-center gap-2 px-4',
+          // No `min-w-0`: cells size to at least their content (label + value),
+          // so the long "JURISDICTIONS" label and the "May 12" date never
+          // shrink below their width and overflow into the neighbouring cell /
+          // wrap to a second line. flex-1 distributes the remaining width.
+          'flex flex-1 flex-col justify-center gap-2 px-4',
           i > 0 && 'border-l border-divider-subtle',
         )
         if (cell.onClick) {
