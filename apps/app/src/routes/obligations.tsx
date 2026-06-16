@@ -6,10 +6,8 @@ import {
   useRef,
   useState,
   type ComponentProps,
-  type ComponentType,
   type MouseEvent,
   type ReactNode,
-  type SVGProps,
 } from 'react'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
@@ -71,8 +69,6 @@ import {
   SearchIcon,
   SlidersHorizontalIcon,
   UserRoundIcon,
-  MapPinIcon,
-  ClockIcon,
   ArrowRightIcon,
   XIcon,
 } from 'lucide-react'
@@ -3830,45 +3826,73 @@ export function ObligationQueueRoute() {
               !panelOpenIntent && 'bg-background-default pt-3 pb-3',
             )}
           >
-            {/* Horizontal status scope pill-strip — a leading "Status" label +
-                a segmented control of All + each present status (colored dot +
-                count). Writes the `status` URL param. Scrolls horizontally on
-                narrow viewports; hidden in the panel-open split. */}
+            {/* Status filter — collapsed FilterTrigger (`Status │ All ⌄`)
+                instead of an always-expanded 7-pill strip (2026-06-16, Yuqi
+                "too long / usually collapsed"). The trigger's accent value
+                names the active scope; the dropdown carries the same per-status
+                counts the strip used to. Still writes the `status` URL param
+                (clear → null, pick → the scope's raw status set), so deep-links
+                and the /deadlines/:ref rail filter are untouched. Hidden in the
+                panel-open split, matching the old strip. */}
             {!panelOpenIntent ? (
-              <div className="flex min-w-0 shrink items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-background-subtle p-1">
-                  <button
-                    type="button"
-                    data-active={activeScope === 'all'}
-                    onClick={() => void setObligationQueueQuery({ status: null })}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-accent"
-                  >
-                    <Trans>All</Trans>
-                    <span className="tabular-nums text-text-tertiary">{scopeTotal}</span>
-                  </button>
-                  {visibleScopeStatuses.map((status) => (
-                    <button
-                      key={status}
-                      type="button"
-                      data-active={activeScope === status}
-                      onClick={() =>
-                        void setObligationQueueQuery({ status: [...scopeStatusSet(status)] })
-                      }
-                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:bg-background-default data-[active=true]:text-text-primary"
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <FilterTrigger
+                      leadingIcon={CircleIcon}
+                      active={activeScope !== 'all'}
+                      valueLabel={activeScope === 'all' ? t`All` : statusLabels[activeScope]}
+                      aria-label={t`Filter by status`}
                     >
-                      <span
-                        className={cn(
-                          'size-1.5 shrink-0 rounded-full bg-current',
-                          STATUS_ICON_COLOR[status],
-                        )}
-                        aria-hidden
-                      />
-                      <span className="whitespace-nowrap">{statusLabels[status]}</span>
-                      <span className="tabular-nums text-text-tertiary">{scopeCount(status)}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                      <span>
+                        <Trans>Status</Trans>
+                      </span>
+                    </FilterTrigger>
+                  }
+                />
+                <DropdownMenuContent align="start" className="min-w-[220px]">
+                  <DropdownMenuRadioGroup
+                    value={activeScope}
+                    onValueChange={(next) => {
+                      if (next === 'all') {
+                        void setObligationQueueQuery({ status: null })
+                      } else if (isObligationStatus(next)) {
+                        void setObligationQueueQuery({ status: [...scopeStatusSet(next)] })
+                      }
+                    }}
+                  >
+                    <DropdownMenuRadioItem value="all">
+                      <span className="flex w-full items-center gap-2">
+                        <span
+                          className="size-1.5 shrink-0 rounded-full bg-text-tertiary"
+                          aria-hidden
+                        />
+                        <Trans>All</Trans>
+                        <span className="ml-auto tabular-nums text-text-tertiary">
+                          {scopeTotal}
+                        </span>
+                      </span>
+                    </DropdownMenuRadioItem>
+                    {visibleScopeStatuses.map((status) => (
+                      <DropdownMenuRadioItem key={status} value={status}>
+                        <span className="flex w-full items-center gap-2">
+                          <span
+                            className={cn(
+                              'size-1.5 shrink-0 rounded-full bg-current',
+                              STATUS_ICON_COLOR[status],
+                            )}
+                            aria-hidden
+                          />
+                          <span className="whitespace-nowrap">{statusLabels[status]}</span>
+                          <span className="ml-auto tabular-nums text-text-tertiary">
+                            {scopeCount(status)}
+                          </span>
+                        </span>
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : null}
             <div className="flex min-w-0 flex-1 items-center gap-2">
               {/* Search — primary lookup across client / form / assignee. */}
@@ -4511,7 +4535,15 @@ export function ObligationQueueRoute() {
                 // the full-page card sizes to content and never leaves a tall
                 // empty bordered rectangle on short result sets.
                 'flex flex-col rounded-xl border border-divider-regular bg-background-default',
-                panelOpenIntent && 'min-h-0 flex-1 overflow-hidden',
+                // Corner clipping. Full-page mode uses `overflow-clip`: it clips
+                // the gray header's rounded top corners to the card's border
+                // WITHOUT establishing a scroll container, so the page-level
+                // sticky column header still pins to the page scroll (plain
+                // `overflow-hidden` would scope the sticky to this card). Panel-
+                // open keeps `overflow-hidden` because the inner div is the real
+                // scroll container there and the card just needs to clip + cap
+                // its flex child's height.
+                panelOpenIntent ? 'min-h-0 flex-1 overflow-hidden' : 'overflow-clip',
               )}
             >
               {/* Flex-1 rows-area so the Table elastically fills the card:
@@ -4544,10 +4576,14 @@ export function ObligationQueueRoute() {
                     onto them with `!important` so the whole row matches the
                     Today / Alerts tables; hover/active color still wins via its
                     own selector. The header band's bg lives on the <th> cells
-                    (not the <thead>) so its top corners can round
-                    (`rounded-t[lr]`) — the gray header reads as the rounded top
-                    of a sheet, while the rows below stay frameless. */}
-                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_tr_th:first-child]:rounded-tl-xl [&_thead_tr_th:last-child]:rounded-tr-xl [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-column-label [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-base">
+                    (not the <thead>); the card's `overflow-clip` (full-page) /
+                    `overflow-hidden` (panel) clips the gray header to the
+                    wrapper's rounded top corners, so the <th>s carry NO corner
+                    radius of their own — a manually-rounded th nested inside the
+                    card's 1px border produced a doubled/misaligned corner (the
+                    th's 12px arc vs the border's 11px inner arc left a hairline
+                    sliver at the top-left checkbox cell). */}
+                <Table className="table-fixed rounded-none border-0 [&_thead]:bg-transparent [&_th]:bg-background-section [&_thead_th]:h-9 [&_thead_th]:py-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-column-label [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-base">
                   {/* Header (select-all + sort/filter controls) pins so column
                       labels stay visible as the buffer scrolls. In the
                       panel-open split it sticks to top-0 of its own scroll
@@ -12741,42 +12777,36 @@ function ObligationFiltersPopover({
   const facetTabs: {
     key: ObligationFacetKey
     label: string
-    icon: ComponentType<SVGProps<SVGSVGElement>>
     options: readonly FilterOption[]
     searchPlaceholder: string
   }[] = [
     {
       key: 'taxType',
       label: t`Form`,
-      icon: FileTextIcon,
       options: taxTypeOptions,
       searchPlaceholder: t`Search forms…`,
     },
     {
       key: 'client',
       label: t`Client`,
-      icon: UserRoundIcon,
       options: clientOptions,
       searchPlaceholder: t`Search clients…`,
     },
     {
       key: 'state',
       label: t`State`,
-      icon: MapPinIcon,
       options: stateOptions,
       searchPlaceholder: t`Search states…`,
     },
     {
       key: 'assignees',
       label: t`Assignee`,
-      icon: UserRoundIcon,
       options: assigneeOptions,
       searchPlaceholder: t`Search assignees…`,
     },
     {
       key: 'county',
       label: t`County`,
-      icon: MapPinIcon,
       options: countyOptions,
       searchPlaceholder: t`Search counties…`,
     },
@@ -12887,12 +12917,16 @@ function ObligationFiltersPopover({
         <div
           role="tablist"
           aria-label={t`Filter dimensions`}
-          className="flex items-center gap-0.5 overflow-x-auto border-b border-divider-subtle px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          // Text-only tabs (icons dropped): seven dimensions + the icon glyphs
+          // overflowed the 560px sheet and silently clipped "Saved views". The
+          // labels are self-explanatory, so dropping the icons fits the whole
+          // row with slack and reads cleaner. `px-1` lands the first tab's label
+          // on the header title's 16px inset.
+          className="flex items-center gap-0.5 overflow-x-auto border-b border-divider-subtle px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {facetTabs.map((tab) => (
             <ObligationFilterTab
               key={tab.key}
-              icon={tab.icon}
               label={tab.label}
               count={facetCounts[tab.key]}
               active={activeTab === tab.key}
@@ -12900,14 +12934,12 @@ function ObligationFiltersPopover({
             />
           ))}
           <ObligationFilterTab
-            icon={ClockIcon}
             label={t`Condition`}
             count={conditionCount}
             active={activeTab === 'condition'}
             onClick={() => setActiveTab('condition')}
           />
           <ObligationFilterTab
-            icon={LayersIcon}
             label={t`Saved views`}
             count={0}
             active={activeTab === 'saved'}
@@ -13006,8 +13038,11 @@ function ObligationFiltersPopover({
             </div>
           ) : (
             // Saved views — preset shortcuts that stage the same facet params.
-            <div className="flex flex-col gap-1 p-3">
-              <span className="px-1 pb-1 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
+            // `p-4` + an eyebrow at the section inset matches the Condition tab's
+            // rhythm; the preset rows use `-mx-2 px-2` so their hover wash can
+            // breathe while the row text still lines up with the eyebrow.
+            <div className="flex flex-col gap-1 p-4">
+              <span className="pb-1 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase">
                 <Trans>Presets</Trans>
               </span>
               {presets.map((preset) => (
@@ -13015,7 +13050,7 @@ function ObligationFiltersPopover({
                   key={preset.id}
                   type="button"
                   onClick={() => setStage((p) => ({ ...p, ...preset.patch }))}
-                  className="flex cursor-pointer items-start gap-2.5 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="-mx-2 flex cursor-pointer items-start gap-2.5 rounded-lg px-2 py-2 text-left outline-none transition-colors hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 >
                   <LayersIcon className="mt-0.5 size-3.5 shrink-0 text-text-tertiary" aria-hidden />
                   <span className="flex flex-col gap-0.5">
@@ -13068,16 +13103,14 @@ function ObligationFiltersPopover({
   )
 }
 
-// One tab in the Filter sheet's dimension strip — icon + label + optional
-// count badge, with the active tab carrying a 2px bottom rule (per `xrMoD`).
+// One tab in the Filter sheet's dimension strip — label + optional count badge,
+// with the active tab carrying a 2px bottom rule (per `xrMoD`).
 function ObligationFilterTab({
-  icon: Icon,
   label,
   count,
   active,
   onClick,
 }: {
-  icon: ComponentType<SVGProps<SVGSVGElement>>
   label: string
   count: number
   active: boolean
@@ -13089,9 +13122,9 @@ function ObligationFilterTab({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      // Per `xrMoD`/`vjMXx`: icon (13px) + 12px label + count pill, with the
-      // active tab carrying a 2px bottom rule, bold dark label, and an inset
-      // negative margin so its rule sits flush on the strip's hairline.
+      // Per `xrMoD`/`vjMXx`: 13px label + count pill, with the active tab
+      // carrying a 2px bottom rule, bold dark label, and an inset negative
+      // margin so its rule sits flush on the strip's hairline.
       className={cn(
         '-mb-px inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm outline-none transition-colors focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
         active
@@ -13099,10 +13132,6 @@ function ObligationFilterTab({
           : 'border-transparent font-medium text-text-secondary hover:text-text-primary',
       )}
     >
-      <Icon
-        className={cn('size-3.5 shrink-0', active ? 'text-text-primary' : 'text-text-tertiary')}
-        aria-hidden
-      />
       <span>{label}</span>
       {count > 0 ? (
         <span
@@ -13456,7 +13485,12 @@ function ObligationActiveFilterChips({
   if (chips.length === 0) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 pb-3">
+    // `w-full` forces the chip row onto its OWN line below the toolbar (the
+    // toolbar is `flex flex-wrap`, and the search/filter cluster's `flex-1`
+    // basis-0 used to let these chips ride up onto line 1 and get shoved to the
+    // far right). Now they read as a clean secondary filter line, left-aligned
+    // under the controls. Bottom spacing comes from the toolbar's own `pb-3`.
+    <div className="flex w-full flex-wrap items-center gap-1.5">
       {chips.map((chip) => (
         <span
           key={chip.key}

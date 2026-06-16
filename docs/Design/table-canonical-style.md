@@ -50,6 +50,14 @@ Variants:
   </Table>
   ```
 
+- **Page-sticky header** (when the column header uses page-level `position: sticky`, e.g. /deadlines full-page queue): use `overflow-clip` instead of `overflow-hidden` on the wrapper.
+
+  ```tsx
+  <div className="overflow-clip rounded-[12px] border border-divider-regular bg-background-default">
+  ```
+
+  Why: a plain `overflow-hidden` ancestor establishes a scroll container and re-scopes the sticky header to the card (so it stops pinning to the page). `overflow: clip` clips the rounded corners identically but is **not** a scroll container, so the page-sticky header is preserved. Do NOT round the `<th>`s manually to fake the corners — a 12px th arc nested 1px inside the card's border (11px inner arc) leaves a hairline doubled corner; let the wrapper's clip do it.
+
 ## Cell content conventions
 
 Per-cell content tone scales used in the row:
