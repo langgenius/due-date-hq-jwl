@@ -87,7 +87,7 @@ export function ChecklistItemRow({
     : null
   // The card reads as a clean checkbox + title + description
   // block; status is a small chip on the right when non-default;
-  // selection state shows a strong accent border + filled checkbox.
+  // selection shows a quiet accent TINT (not a heavy box) + filled checkbox.
   // The checklist action row owns the
   // mark-received affordance (single-item case: select one, click
   // action row). Edit/delete live behind an overflow menu (… on hover).
@@ -97,10 +97,15 @@ export function ChecklistItemRow({
         // Every row is a legible white card on the gray content wash; the green
         // "Received" badge (not a washed-out gray fill) marks done items —
         // received rows previously used bg-subtle and read as disabled (Yuqi).
-        'group/checklist-item rounded-lg border bg-background-default p-3 transition-colors',
+        'group/checklist-item rounded-lg border p-3 transition-colors',
+        // 2026-06-16 (Yuqi "selected state looks ugly"): selection was a strong
+        // accent border + 2px ring — with Select-all on, every row became a
+        // heavy blue box. Now selection is a faint accent wash (bg ~#eff4ff)
+        // behind the same hairline border; the filled checkbox carries the
+        // "selected" signal, the tint just groups them. Calm, not loud.
         selected
-          ? 'border-accent-default ring-2 ring-accent-default/20'
-          : 'border-divider-subtle hover:border-divider-regular',
+          ? 'border-divider-subtle bg-state-accent-hover'
+          : 'border-divider-subtle bg-background-default hover:border-divider-regular',
         // Only a genuinely non-selectable (already-received during a batch
         // selection) row dims — that's a real disabled state, not "done".
         selectionDisabled && 'border-divider-regular bg-background-subtle opacity-60',

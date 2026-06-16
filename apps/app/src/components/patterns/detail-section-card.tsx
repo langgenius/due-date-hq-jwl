@@ -66,25 +66,31 @@ export function DetailSectionCard({
   /**
    * 2026-06-14 (Yuqi critique — "eyes don't know where to go"): flat sections
    * are ranked. `action` = the decision-critical sections (Change, Clients):
-   * 18/600 primary header. `reference` = supporting depth (Source, Activity):
-   * a quieter 14/600 secondary header, so the eye reads the action zones
-   * first and treats the rest as look-up. Flat variant only.
+   * a 16/600 primary header. `reference` = supporting depth (Source, Activity):
+   * an 11px uppercase eyebrow (quiet, clearly a label), so the eye reads the
+   * action zones first and treats the rest as look-up. Flat variant only.
    */
   tone?: 'action' | 'reference'
 }) {
   if (variant === 'flat') {
     return (
-      <section id={id} className={cn('flex flex-col gap-4', className)}>
-        {/* items-center (Yuqi 2026-06-15 "没有vertically居中") so the numbered
-            badge, title, caption, and any header-right cluster sit on one
-            centered line.
-            2026-06-16 (Yuqi "good separation of header — the sections are all on
-            white now"): a full-width bottom hairline gives every flat section
-            header a clear separator from its body on the white surface. This is
-            the clear-sections-not-boxes delineator (section header + full-width
-            rule + whitespace, never a per-section box) — shared by the alert AND
-            deadline detail panes, so both read the same. */}
-        <header className="flex items-center gap-2 border-b border-divider-regular pb-2">
+      // 2026-06-16 (Yuqi "header还是和下面scroll内容混在一起 … 一眼看出到了下个
+      // section, 千万不要糊在一起"): the separating rule moved from UNDER the
+      // header to the TOP of each section (`border-t` + `pt-5`), so it reads as
+      // a "new section starts here" divider rather than a header underline. The
+      // `first:` reset keeps a stray rule off section 1. Combined with the
+      // bigger header (below), each section now reads as a distinct block.
+      <section
+        id={id}
+        className={cn(
+          'flex flex-col gap-4 border-t border-divider-regular pt-5 first:border-t-0 first:pt-0',
+          className,
+        )}
+      >
+        {/* items-center (Yuqi 2026-06-15 "没有vertically居中") so the badge,
+            title, caption, and any header-right cluster sit on one centered
+            line. */}
+        <header className="flex items-center gap-2">
           {/* Numbered badge (Pencil MASYz) — a small rounded chip ahead of the
               title so the three sections read as an ordered 1·2·3 outline. */}
           {typeof index === 'number' ? (
@@ -95,13 +101,19 @@ export function DetailSectionCard({
               {index}
             </span>
           ) : null}
-          {/* Section header = the hierarchy carrier in the flat document. The
-              `tone` ranks action sections (18/600 primary) above reference
-              sections (14/600 secondary) — no band, no rule. */}
+          {/* Section header = the hierarchy carrier in the flat document.
+              2026-06-16 (Yuqi "Change/Source 这种标题都应该大一点 … 要么不一样的
+              style; 现在和下面的内容糊在一起"): the action header was text-base=14,
+              the SAME size as body text — that collision is why it blurred. Now:
+              • action  → 16/600 primary — a clear size step over 14 body.
+              • reference → an 11px uppercase eyebrow (tracking + tertiary), a
+                deliberately DIFFERENT style so a supporting section reads as a
+                label, never confused with body or with an action header. */}
           <h3
             className={cn(
-              'font-semibold',
-              tone === 'reference' ? 'text-sm text-text-secondary' : 'text-base text-text-primary',
+              tone === 'reference'
+                ? 'text-caption-xs font-medium uppercase tracking-wide text-text-tertiary'
+                : 'text-lg font-semibold text-text-primary',
             )}
           >
             {title}

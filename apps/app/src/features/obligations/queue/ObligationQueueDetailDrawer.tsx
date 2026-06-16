@@ -2429,10 +2429,7 @@ export function ObligationQueueDetailDrawer({
                       framed `cards` variant + pretty dates as the /deadlines
                       page so the two detail surfaces match; the mobile sheet
                       keeps the compact `flat` rows. */}
-                  <PrimaryDeadlineStrip
-                    row={row}
-                    variant={mode === 'panel' ? 'cards' : 'flat'}
-                  />
+                  <PrimaryDeadlineStrip row={row} variant={mode === 'panel' ? 'cards' : 'flat'} />
                   {/* 2026-05-23: StatutoryDatesPanel moved OUT of this
                   sticky snapshot block — relocated to AFTER the
                   TabsContent so the tabs sit immediately under the
@@ -3412,7 +3409,7 @@ export function ObligationQueueDetailDrawer({
                               const isTerminalRow =
                                 row.status === 'done' || row.status === 'completed'
                               return (
-                                <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-6">
                                   {/* 2026-05-26 (Yuqi feedback #5): dropped the
                               "This deadline has been filed" banner. The
                               header status pill + the section title
@@ -3431,9 +3428,9 @@ export function ObligationQueueDetailDrawer({
                                 are sub-section labels under it.
                                 Inner gap tightened from `gap-2 →
                                 gap-1.5` per #9. */}
-                                  <section className="flex flex-col gap-1.5">
-                                    <header className="flex items-baseline gap-1.5">
-                                      <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                                  <section className="flex flex-col gap-2.5">
+                                    <header className="flex items-center gap-2 border-b border-divider-regular pb-1.5">
+                                      <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-secondary">
                                         {isTerminalRow ? (
                                           <Trans>Not in audit trail</Trans>
                                         ) : (
@@ -3442,7 +3439,7 @@ export function ObligationQueueDetailDrawer({
                                       </h4>
                                       <span
                                         aria-label={t`${outstandingItems.length} items`}
-                                        className="text-caption-xs font-medium tabular-nums text-text-tertiary"
+                                        className="rounded-full bg-background-section px-1.5 text-caption-xs font-medium tabular-nums text-text-tertiary"
                                       >
                                         {outstandingItems.length}
                                       </span>
@@ -3458,9 +3455,9 @@ export function ObligationQueueDetailDrawer({
                                     )}
                                   </section>
                                   {receivedItems.length > 0 ? (
-                                    <section className="flex flex-col gap-1.5">
-                                      <header className="flex items-baseline gap-1.5">
-                                        <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                                    <section className="flex flex-col gap-2.5">
+                                      <header className="flex items-center gap-2 border-b border-divider-regular pb-1.5">
+                                        <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-secondary">
                                           {isTerminalRow ? (
                                             <Trans>Archived</Trans>
                                           ) : (
@@ -3469,7 +3466,7 @@ export function ObligationQueueDetailDrawer({
                                         </h4>
                                         <span
                                           aria-label={t`${receivedItems.length} items`}
-                                          className="text-caption-xs font-medium tabular-nums text-text-tertiary"
+                                          className="rounded-full bg-background-section px-1.5 text-caption-xs font-medium tabular-nums text-text-tertiary"
                                         >
                                           {receivedItems.length}
                                         </span>
@@ -3485,14 +3482,14 @@ export function ObligationQueueDetailDrawer({
                                   real waived rows; falls back to the quiet
                                   empty state when none are waived. */}
                                   {!isTerminalRow ? (
-                                    <section className="flex flex-col gap-1.5">
-                                      <header className="flex items-baseline gap-1.5">
-                                        <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                                    <section className="flex flex-col gap-2.5">
+                                      <header className="flex items-center gap-2 border-b border-divider-regular pb-1.5">
+                                        <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-secondary">
                                           <Trans>Waived</Trans>
                                         </h4>
                                         <span
                                           aria-label={t`${waivedItems.length} items`}
-                                          className="text-caption-xs font-medium tabular-nums text-text-tertiary"
+                                          className="rounded-full bg-background-section px-1.5 text-caption-xs font-medium tabular-nums text-text-tertiary"
                                         >
                                           {waivedItems.length}
                                         </span>

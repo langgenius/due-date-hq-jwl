@@ -463,40 +463,11 @@ function PulseAlertRow({
               {absoluteTime}
             </span>
           </div>
-        ) : (
-          // Day-grouped lists (Yuqi #6): the band above owns the date, so
-          // the rail is wall-clock only — narrower (64px), with the full
-          // date + relative age one hover away.
-          <div className="flex w-[64px] shrink-0 flex-col">
-            {/* Unread dot (Pencil aUZTy) leads the time — accent while the alert
-                awaits a decision; it reserves its slot when read so the times
-                stay aligned across rows. */}
-            <div className="flex items-center gap-2">
-              <span
-                className={cn(
-                  'size-1.5 shrink-0 rounded-full',
-                  unread ? 'bg-state-accent-solid' : 'bg-transparent',
-                )}
-                aria-hidden
-              />
-              <Tooltip>
-                <TooltipTrigger
-                  render={(props) => (
-                    <span
-                      className="w-fit cursor-help text-sm font-medium text-text-tertiary tabular-nums outline-none"
-                      {...props}
-                    >
-                      {absoluteTime}
-                    </span>
-                  )}
-                />
-                <TooltipContent>
-                  {railDate} · {railRelative}
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </div>
-        )
+        ) : // 2026-06-16 (Yuqi "为什么不是左对齐"): day-grouped lists drop the 64px
+        // left wall-clock rail entirely, so the row content's left edge lines up
+        // with the date band above it (the band already owns the day). The
+        // wall-clock + unread dot relocate to the head-row right cluster below.
+        null
       ) : null}
 
       {/* Main column — gap-2 (8px) gives slight breathing room between
@@ -583,6 +554,39 @@ function PulseAlertRow({
 
           {/* Spacer NdGpw (fill_container) */}
           <span className="flex-1" aria-hidden />
+
+          {/* Wall-clock + unread dot — relocated here from the removed left
+              wall-clock rail on day-grouped lists (Yuqi "左对齐"), so the row
+              content stays flush-left with the date band while the "when it
+              arrived" + unread cue keep a home. Only when there's no date rail
+              (day-grouped) and not compact; the dot reserves its slot when read
+              so the times stay aligned across rows. */}
+          {!compact && !showRailDate ? (
+            <span className="flex shrink-0 items-center gap-1.5">
+              <span
+                className={cn(
+                  'size-1.5 shrink-0 rounded-full',
+                  unread ? 'bg-state-accent-solid' : 'bg-transparent',
+                )}
+                aria-hidden
+              />
+              <Tooltip>
+                <TooltipTrigger
+                  render={(props) => (
+                    <span
+                      className="cursor-help text-xs font-medium text-text-tertiary tabular-nums outline-none"
+                      {...props}
+                    >
+                      {absoluteTime}
+                    </span>
+                  )}
+                />
+                <TooltipContent>
+                  {railDate} · {railRelative}
+                </TooltipContent>
+              </Tooltip>
+            </span>
+          ) : null}
 
           {/* DEADLINE TIME TAG (Phase 3) — quiet mono "Nd left" / "Due today" /
               "Nd overdue". Neutral by design: the URGENT/HIGH pill carries the

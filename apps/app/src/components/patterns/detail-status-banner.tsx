@@ -68,8 +68,12 @@ export function DetailStatusBanner({
         )}
       >
         <Icon className={cn('size-4 shrink-0', c.text)} aria-hidden />
-        {/* #20: title sized down (was text-base). */}
-        <span className={cn('text-sm font-semibold', c.text)}>{title}</span>
+        {/* #20: title sized down (was text-base).
+            2026-06-16 (Yuqi "太粗了"): font-semibold → font-medium. On the
+            colored danger/warning bands, red + bold was a double-highlight
+            (banned: urgency = colour OR weight, not both). The tone colour +
+            the icon carry the urgency; the label stays a calm 500. */}
+        <span className={cn('text-sm font-medium', c.text)}>{title}</span>
         {note ? (
           // #21: note flows right after the status text (was `ml-auto`, which
           // shoved it to the far edge).
