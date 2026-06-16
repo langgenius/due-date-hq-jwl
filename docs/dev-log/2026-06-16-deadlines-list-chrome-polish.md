@@ -7,9 +7,10 @@ Yuqi: three rough edges on `/deadlines`, all about cohesion with `/alerts` —
 chips), and tidy the Filters popover. All in `routes/obligations.tsx`.
 
 ## 1. Table top-left corner glitch
+
 The table card is `rounded-xl border` but in **full-page** mode it carried no
 overflow clip (clip is gated to panel-open, because the column header is a
-*page-level* `position: sticky` and a plain `overflow-hidden` ancestor would
+_page-level_ `position: sticky` and a plain `overflow-hidden` ancestor would
 re-scope the sticky to the card). To still round the gray header's top corners,
 the `<th>`s rounded themselves (`rounded-tl-xl` / `rounded-tr-xl`). A 12px arc on
 the th, nested 1px inside the card's border (whose inner arc is 11px), left a
@@ -24,9 +25,10 @@ border-radius is now 0; card is `overflow: clip` @ 12px. Panel-open keeps
 "sticky-header variant" note added to `docs/Design/table-canonical-style.md`.
 
 ## 2. "Displaced" active-filter chips
+
 `ObligationActiveFilterChips` renders inside the `flex flex-wrap` toolbar. The
 search/filter cluster is `flex-1` with a `min-w-0` basis-0, so during flex line-
-breaking the chips fit on line 1 and the cluster then *grew* and shoved them to
+breaking the chips fit on line 1 and the cluster then _grew_ and shoved them to
 the far right, after Sort / View — reading as orphaned.
 
 **Fix:** the chip row is now `w-full`, forcing it onto its own line below the
@@ -36,6 +38,7 @@ It's still inside the sticky filter bar, so `filterBarHeight` already accounts
 for it and the table header's sticky offset grows correctly when chips show.
 
 ## 3. Tidy the Filters popover
+
 - **Tab row was clipping "Saved views."** Seven dimensions + per-tab icon glyphs
   measured 674px in a 558px sheet, so the 7th tab scrolled off behind a hidden
   scrollbar. Dropped the tab icons (labels are self-explanatory) → 558px, no
@@ -54,6 +57,7 @@ for it and the table header's sticky offset grows correctly when chips show.
   glass panel token, not a bug.
 
 ## Also in this commit (not mine)
+
 This commit also carries a pre-existing, uncommitted change that was already in
 the working tree: the toolbar **Status** control collapsed from an always-open
 pill-strip into a `Status │ All ⌄` FilterTrigger dropdown (comment: 2026-06-16,
@@ -61,6 +65,7 @@ Yuqi "too long / usually collapsed"). It's unrelated to the three fixes above;
 bundled here per Yuqi's call rather than split into its own commit.
 
 ## Verify
+
 All three confirmed live on localhost:5173 @ 1512×861 (screenshots): clean
 corner + working sticky header, chips on their own secondary line, popover tabs
 fitting/aligned with the Saved-views tab visible. `tsgo --noEmit -p

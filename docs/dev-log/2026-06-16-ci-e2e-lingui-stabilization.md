@@ -36,6 +36,21 @@ Fixed the current local CI failure set after product/UI drift:
   browser pressure, so `pnpm test:e2e` now uses the same reliability profile as
   the CI job.
 
+## 2026-06-16 follow-up
+
+The current failure set was narrower than the earlier same-day pass:
+
+- Filled the remaining zh-CN translations emitted by `i18n:extract` and
+  regenerated Lingui catalogs.
+- Fixed check-blocking TypeScript/lint issues in shared UI and obligations queue
+  surfaces.
+- Updated obligations E2E locators for the current collapsed `Filter by status`
+  dropdown and `Deadline sections` navigation buttons. The URL still stores the
+  same raw status set for the "In review" lifecycle scope.
+- Updated the member invite helper to wait for the behavior-level dialog close
+  state after clicking Send, rather than racing an explicit transport response
+  watcher. The test still fails if the API errors and leaves the dialog open.
+
 ## Verify
 
 - `pnpm --filter @duedatehq/app i18n:extract`

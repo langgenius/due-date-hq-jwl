@@ -1841,9 +1841,7 @@ export function ObligationQueueDetailDrawer({
                 <span className="shrink-0 text-text-muted" aria-hidden>
                   ›
                 </span>
-                <span className="max-w-[200px] truncate text-text-secondary">
-                  {row.clientName}
-                </span>
+                <span className="max-w-[200px] truncate text-text-secondary">{row.clientName}</span>
               </>
             ) : null}
             {row ? (

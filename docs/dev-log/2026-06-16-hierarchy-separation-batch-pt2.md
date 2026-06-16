@@ -5,6 +5,7 @@ _2026-06-16_
 Continues [part 1](2026-06-16-hierarchy-separation-batch.md).
 
 ## #5 — Deadline crumb wasn't consistent with the alert crumb (Yuqi "这里不统一")
+
 `DeadlineCrumbBar.tsx` + the page-mode call site in `ObligationQueueDetailDrawer`.
 The alert top bar reveals `Alerts / {title}` once the hero scrolls out of view;
 the deadline crumb just showed "Deadlines" forever, used `gap-2` (vs the alert's
@@ -16,6 +17,7 @@ parity: the crumb is now a `<nav>` that reveals `Deadlines / {title}` on scroll
 "Deadlines / Form 1040 — Individual income tax return".
 
 ## #4 — Status filter lost on the detail page (Yuqi "无法切换回去 — 有bug")
+
 Entering a deadline from a status-filtered `/deadlines` worked
 (`openQueueDetail` already threads `search`), but ON the detail page the rail
 hops and prev/next paging built their hrefs **without** `search`
@@ -31,6 +33,7 @@ Also cleared a pre-existing `no-unnecessary-type-conversion` warning
 (`Boolean(hasNextPage)` → `hasNextPage`) in the file.
 
 ## Still open (deliberately): collapse the status-pill strip
+
 Yuqi also said the `/deadlines` status pills are "too long / usually collapsed."
 That's a toolbar redesign in `routes/obligations.tsx` (the parallel session's
 file) — folding the 7-pill strip into the existing Filter control — not part of

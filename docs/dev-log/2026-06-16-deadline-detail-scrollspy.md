@@ -7,9 +7,11 @@ deadline detail like Pencil node NrQaI ("clear titles, section headers"). Two
 things landed together in `ObligationQueueDetailDrawer.tsx`:
 
 ## 1. Tabs → scroll-spy (alert parity)
+
 The deadline detail's 4 real Tabs (Status · Materials · Record · Audit) became a
 **scroll-spy section nav** — one scrolling document with a sticky table-of-
 contents nav, exactly like the alert detail. Lossless per the pre-built plan:
+
 - Every tab-era capability preserved: deep-link (`/deadlines/:ref/:tab` →
   scroll-to-section on load, instant), rail activeTab, visible-tab gating
   (drives which sections mount), count badges, cross-tab jumps (a single
@@ -26,6 +28,7 @@ contents nav, exactly like the alert detail. Lossless per the pre-built plan:
   not tabs (the count stays 4; see the tab-count memory).
 
 ## 2. NrQaI section grammar (clarity)
+
 Each section announces itself with a mono DATA-CHIP (count/state) in BOTH the nav
 item AND the section header (via DetailSectionCard `headerRight`): Materials
 `14 LEFT`, Record `1`, Audit `1`, Extension `Filed ✓`. Plus the provenance lines
@@ -34,8 +37,10 @@ NrQaI uses (`AUTHORITY CITATION fed.1040.return.2025`, `AUDIT TRAIL`). Chip styl
 `rounded bg-background-subtle px-1.5` pill (accent variant for Extension).
 
 ## Execution + review
+
 The structural conversion was done by a focused sub-agent against the plan; I
 reviewed the diff and caught + fixed THREE defects it introduced before commit:
+
 1. **tsgo error** (`mode === 'panel'` dead inside a `mode === 'sheet'` branch).
 2. **Panel regression** — the body strip + body nav were gated `mode === 'sheet'`,
    so PANEL mode rendered neither. Fixed both to `!isPageMode` (page renders them
@@ -47,6 +52,7 @@ reviewed the diff and caught + fixed THREE defects it introduced before commit:
    owns top-0.
 
 ## Verify
+
 tsgo + vp clean. Live (localhost:5173, page mode): nav renders
 `Status · Materials 14 LEFT · Record 1 · Audit 1`; all 4 sections present;
 scrolling to the bottom flips the active nav to Audit (spy tracks); deep-link to

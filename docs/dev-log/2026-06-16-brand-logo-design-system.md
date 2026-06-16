@@ -6,6 +6,7 @@ logo directions with Yuqi; she ultimately supplied her own artwork, which is
 the shipped mark.
 
 ## Logo — the "stacked bars" mark
+
 - Final mark is Yuqi's supplied SVG: four rounded horizontal bars, the third
   indented — an abstract timeline/schedule motif. (Earlier explorations —
   "ahead-of-the-line", a serif "d." monogram, and a "Radar D" — were rejected.)
@@ -18,9 +19,10 @@ the shipped mark.
   `CenteredAuthScreen`. `_entry-layout` wordmark → serif.
 - Regenerated the favicon (`apps/app`, `apps/marketing`) and the shared
   assets (`packages/ui/.../assets/brand/{brand-mark,brand-favicon,
-  brand-favicon-dark}.svg`) — were the old ledger-D — plus that dir's README.
+brand-favicon-dark}.svg`) — were the old ledger-D — plus that dir's README.
 
 ## Tokens
+
 - `--font-serif` (system serif: New York / Georgia) for the wordmark only;
   no hosted webfont, consistent with the system-first `--font-sans` posture.
 - Brand identity tokens `--color-brand-{ink,ink-deep,ivory,signal,gold}`
@@ -28,6 +30,7 @@ the shipped mark.
   Note Tailwind v4 tree-shakes unused `@theme` tokens — keep a consumer.
 
 ## Color — two-tier accent
+
 - Retuned the product accent off Dify blue (`#155aef`): the whole `primary`
   ramp recomputed to a warm navy-indigo (`600 #2E368C`, hover `700 #222A6C`),
   and the hardcoded `rgb(21 90 239 / N)` accent washes repointed in
@@ -40,11 +43,13 @@ the shipped mark.
   navy; highlight is applied deliberately per-screen, not blanket.
 
 ## Docs
+
 - `docs/brand/` — brand book + standalone mark/lockup/favicon SVGs, grounded
   in the real tokens (two-layer color model, type scale, radius, elevation,
   voice, primitive vocabulary).
 
 ## Scope note
+
 A parallel session was concurrently editing the clients/alerts detail surfaces
 (`DeadlineNavigatorRail`, `AlertDetailDrawer`, `ObligationQueueDetailDrawer`,
 client detail files, i18n catalogs). Those changes are deliberately NOT in this

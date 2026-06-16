@@ -62,7 +62,6 @@ import {
   Loader,
   Loader2,
   MessageSquareText,
-  type LucideIcon,
 } from 'lucide-react'
 import { Fragment, useMemo, useState } from 'react'
 import { toast } from 'sonner'

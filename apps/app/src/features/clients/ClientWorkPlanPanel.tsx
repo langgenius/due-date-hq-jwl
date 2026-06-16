@@ -630,58 +630,58 @@ function FilingPlanYearSection({
           (Yuqi: fixed-width columns + keep OFFICIAL DUE + OWNER with the panel
           open). At rest the column is wide, so no scrollbar appears. */}
       <div className="overflow-x-auto">
-      <div className="min-w-[720px]">
-      {/* Column header (Pencil VtC73) — grid must match DeadlineRow's
+        <div className="min-w-[720px]">
+          {/* Column header (Pencil VtC73) — grid must match DeadlineRow's
           inline-expand layout exactly so the columns line up. */}
-      <div
-        className={cn(
-          'grid items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2.5 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase',
-          compact
-            ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
-            : 'grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px]',
-        )}
-      >
-        <span>
-          <Trans>Deadline</Trans>
-        </span>
-        <span>
-          <Trans>Status</Trans>
-        </span>
-        <span>
-          <Trans>Internal due</Trans>
-        </span>
-        {compact ? null : (
-          <span>
-            <Trans>Official due</Trans>
-          </span>
-        )}
-        {compact ? null : (
-          <span>
-            <Trans>Owner</Trans>
-          </span>
-        )}
-        <span aria-hidden />
-      </div>
-      <div className="flex flex-col">
-        {sortedObligations.map((obligation) => (
-          <DeadlineRow
-            key={obligation.id}
-            deadline={obligation}
-            mode="inline-expand"
-            compact={compact}
-            isActive={activeObligationId === obligation.id}
-            isExpanded={expandedFilingId === obligation.id}
-            isSelected={selectedIds.has(obligation.id)}
-            multiSelectMode={selectedIds.size > 0}
-            canEdit={canChangeStatus}
-            onExpand={onExpandFiling}
-            onCollapse={onCollapseFiling}
-            onSelect={(id) => onToggleRow(id)}
-            onMarkFiled={(id) => onChangeStatus(id, 'done')}
-          />
-        ))}
-      </div>
-      </div>
+          <div
+            className={cn(
+              'grid items-center gap-3 border-b border-divider-subtle bg-background-section px-5 py-2.5 text-caption-xs font-bold tracking-eyebrow-tight text-text-muted uppercase',
+              compact
+                ? 'grid-cols-[minmax(0,1fr)_auto_auto_24px]'
+                : 'grid-cols-[minmax(0,1fr)_148px_124px_104px_132px_24px]',
+            )}
+          >
+            <span>
+              <Trans>Deadline</Trans>
+            </span>
+            <span>
+              <Trans>Status</Trans>
+            </span>
+            <span>
+              <Trans>Internal due</Trans>
+            </span>
+            {compact ? null : (
+              <span>
+                <Trans>Official due</Trans>
+              </span>
+            )}
+            {compact ? null : (
+              <span>
+                <Trans>Owner</Trans>
+              </span>
+            )}
+            <span aria-hidden />
+          </div>
+          <div className="flex flex-col">
+            {sortedObligations.map((obligation) => (
+              <DeadlineRow
+                key={obligation.id}
+                deadline={obligation}
+                mode="inline-expand"
+                compact={compact}
+                isActive={activeObligationId === obligation.id}
+                isExpanded={expandedFilingId === obligation.id}
+                isSelected={selectedIds.has(obligation.id)}
+                multiSelectMode={selectedIds.size > 0}
+                canEdit={canChangeStatus}
+                onExpand={onExpandFiling}
+                onCollapse={onCollapseFiling}
+                onSelect={(id) => onToggleRow(id)}
+                onMarkFiled={(id) => onChangeStatus(id, 'done')}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

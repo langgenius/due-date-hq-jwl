@@ -8,6 +8,7 @@ separation of header — the whole sections are on white background now." Plus:
 alert's."
 
 ## Header separation (shared primitive → both panes)
+
 With the deadline detail now white (like the alert), the flat sections lost the
 gray-wash contrast that used to delineate them; the section header was carrying
 the separation with type + whitespace alone, which read weak on all-white.
@@ -22,12 +23,14 @@ Only the alert detail + the deadline detail use `variant="flat"`, so this lands
 on **exactly both panes**, identically — the cohesion the request asked for.
 
 ## Inter-section gap → gap-8
+
 The deadline detail body (`ObligationQueueDetailDrawer`) spaced its flat sections
 `gap-6`; the alert detail spaces its major sections `gap-8`
 (`AlertDetailDrawer` L1770). The flat sections are the body's direct children, so
-that gap *is* the inter-section rhythm — bumped `gap-6 → gap-8` to match.
+that gap _is_ the inter-section rhythm — bumped `gap-6 → gap-8` to match.
 
 ## Verify
+
 Live on the deadline detail page (`/deadlines/000000000001`, page mode, white
 body): the rule renders as a clear full-width hairline under "Recent activity"
 and "Extension," each cleanly separated from its content; sections sit gap-8

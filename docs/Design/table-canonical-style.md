@@ -43,6 +43,7 @@ Variants:
   ```
 
 - **Header-dropped** (when the table reads as an "actions list", e.g. /today's ActionsTable):
+
   ```tsx
   <Table>
     {/* No <TableHeader> — rows speak for themselves */}

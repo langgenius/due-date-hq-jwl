@@ -4,6 +4,7 @@ export class ObligationQueuePage {
   readonly heading: Locator
   readonly searchInput: Locator
   readonly dueSortButton: Locator
+  readonly statusFilterButton: Locator
   // Calendar sync is now an in-place popover button on the Deadlines page
   // (it used to be a link to /deadlines/calendar). The dedicated route
   // still exists and is reachable via ⌘K → "Calendar sync".
@@ -30,6 +31,7 @@ export class ObligationQueuePage {
     // can't loosely substring-match a longer "…due date" label from the other
     // (lifecycle-v2) column code path.
     this.dueSortButton = page.getByRole('button', { name: 'Sort Internal due', exact: true })
+    this.statusFilterButton = page.getByRole('button', { name: 'Filter by status' })
     this.calendarSyncButton = page.getByRole('button', { name: 'Calendar sync' })
     // 2026-06-10 (queue toolbar redesign): the standalone "Columns" button
     // folded into a single "View" dropdown (aria-label "View, columns, and
@@ -37,14 +39,13 @@ export class ObligationQueuePage {
     this.viewMenuButton = page.getByRole('button', { name: 'View, columns, and actions' })
   }
 
-  // 2026-06-11 (queue toolbar): the status filter is a segmented control — one
-  // pill button per present status ("All N", "In review N", …), each writing the
-  // `status` URL param and carrying `data-active` when selected. The label is
-  // followed by a facet count, so anchor on "<label> <digit>" to avoid matching
-  // a row's status-badge dropdown ("In review · Change status for …"), which
-  // also starts with the label.
+  // 2026-06-16 (queue toolbar): the status scope is now a collapsed dropdown
+  // trigger ("Status | All"). The menu still carries the same facet labels and
+  // writes the same `status` URL param as the old segmented-control pills.
   statusScopeButton(name: string) {
-    return this.page.getByRole('button', { name: new RegExp(`^${escapeRegex(name)} \\d`) })
+    return this.page.getByRole('menuitemradio', {
+      name: new RegExp(`^${escapeRegex(name)}\\b`),
+    })
   }
 
   async goto(path = '/deadlines') {
@@ -63,9 +64,9 @@ export class ObligationQueuePage {
     await this.searchInput.fill('')
   }
 
-  // 2026-06-11 (queue toolbar): pick a status by clicking its segmented-control
-  // pill directly (no dropdown). The clicked pill becomes `data-active`.
+  // 2026-06-16 (queue toolbar): pick a status from the collapsed status filter.
   async selectStatusScope(name: string) {
+    await this.statusFilterButton.click()
     await this.statusScopeButton(name).click()
   }
 

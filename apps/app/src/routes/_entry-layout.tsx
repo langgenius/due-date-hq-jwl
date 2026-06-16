@@ -82,7 +82,9 @@ function EntryShellHeader() {
           className="hidden size-4 shrink-0 dark:block"
         />
         <span className="flex items-baseline gap-1">
-          <span className="font-serif font-medium tracking-[-0.1px] text-text-primary">DueDate</span>
+          <span className="font-serif font-medium tracking-[-0.1px] text-text-primary">
+            DueDate
+          </span>
           <span className="text-[0.7em] font-medium uppercase tracking-[0.08em] text-text-tertiary">
             HQ
           </span>

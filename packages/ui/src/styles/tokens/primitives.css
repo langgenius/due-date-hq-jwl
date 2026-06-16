@@ -25,8 +25,7 @@
   /* 2026-06-16: brand serif for the wordmark only (DueDateHQ). System-first,
    * same posture as --font-sans — New York on Apple, Georgia on Windows, no
    * hosted font. Not for body/UI copy; reserved for the logo lockup. */
-  --font-serif:
-    ui-serif, 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Times New Roman', serif;
+  --font-serif: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Times New Roman', serif;
 
   /* ===== Font sizes ======================================================
    * 2026-06-11 (Yuqi — type-scale lift, corrected): the small end reads one

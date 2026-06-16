@@ -86,6 +86,7 @@ export function DetailSectionCard({
       // Yuqi-requested move away from the earlier NrQaI "no header bands" rule.
       <section
         id={id}
+        data-section-tone={tone}
         className={cn(
           'overflow-hidden rounded-xl border border-divider-subtle bg-background-default',
           className,
@@ -132,6 +133,7 @@ export function DetailSectionCard({
   return (
     <section
       id={id}
+      data-section-tone={tone}
       className={cn(
         'overflow-hidden rounded-xl border border-divider-subtle bg-background-default',
         className,

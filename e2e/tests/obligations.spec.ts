@@ -72,19 +72,15 @@ test.describe('seeded obligations', () => {
 
     await obligationQueuePage.clearSearch()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
-    // 2026-06-11 (queue toolbar): the status scope is a segmented control —
-    // click the "In review" pill; it becomes the active (data-active) scope
-    // and maps to the full review-ish status set.
+    // 2026-06-16 (queue toolbar): the status scope is a collapsed dropdown.
+    // Choosing "In review" still maps to the full review-ish status set.
     await obligationQueuePage.selectStatusScope('In review')
     await expect
       .poll(() => new URL(authenticatedPage.url()).searchParams.get('status'))
       .toBe('in_progress,review,extended')
     await expect(obligationQueuePage.rowFor('Northstar Dental Group')).toBeVisible()
     await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeHidden()
-    await expect(obligationQueuePage.statusScopeButton('In review')).toHaveAttribute(
-      'data-active',
-      'true',
-    )
+    await expect(obligationQueuePage.statusFilterButton).toContainText('In review')
 
     await obligationQueuePage.goto()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
@@ -109,15 +105,15 @@ test.describe('seeded obligations', () => {
       name: /Arbor & Vale LLC/,
     })
     await expect(deadlineDrawer).toBeVisible()
-    // 2026-06-10 (detail drawer IA): tabs are Status (workflow home) ·
-    // Materials · Record (workpapers, absorbed Evidence) · Audit; the
-    // Extension flow lives inside the Status tab now.
-    await expect(deadlineDrawer.getByRole('tab', { name: 'Status' })).toBeVisible()
-    await expect(deadlineDrawer.getByRole('tab', { name: /^Materials\b/ })).toBeVisible()
-    await expect(deadlineDrawer.getByRole('tab', { name: /^Record\b/ })).toBeVisible()
-    await expect(deadlineDrawer.getByRole('tab', { name: 'Audit' })).toBeVisible()
+    // 2026-06-16 (detail drawer IA): sections are scroll-spy navigation
+    // buttons, not ARIA tabs. The Extension flow lives inside Status.
+    const sectionNav = deadlineDrawer.getByRole('navigation', { name: 'Deadline sections' })
+    await expect(sectionNav.getByRole('button', { name: 'Status' })).toBeVisible()
+    await expect(sectionNav.getByRole('button', { name: /^Materials\b/ })).toBeVisible()
+    await expect(sectionNav.getByRole('button', { name: /^Record\b/ })).toBeVisible()
+    await expect(sectionNav.getByRole('button', { name: /^Audit\b/ })).toBeVisible()
 
-    await deadlineDrawer.getByRole('tab', { name: /^Materials\b/ }).click()
+    await sectionNav.getByRole('button', { name: /^Materials\b/ }).click()
     const checklistItems = deadlineDrawer.getByRole('checkbox', {
       name: /^Select document .* for batch action$/,
     })

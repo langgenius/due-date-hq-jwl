@@ -27,6 +27,7 @@ Follow-up to the NrQaI surface unification. Yuqi feedback on /deadlines/:ref:
   Materials · Audit) is now a white bordered card with a header on the gray body.
 
 ## Execution + review
+
 Sub-agent applied items 1-5 to ObligationQueueDetailDrawer.tsx + panels.tsx
 against the spec; I reviewed (changed files are mine, not parallel WIP),
 verified live (deadline page mode: lighter gray, white hero, Workflow + What's-

@@ -945,6 +945,10 @@ msgid "{attached} of {total} expected source documents attached for this filing"
 msgstr "{attached} of {total} expected source documents attached for this filing"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "{auditCount}"
+msgstr "{auditCount}"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "{auditCount} events"
 msgstr "{auditCount} events"
 
@@ -1126,6 +1130,10 @@ msgid "{estimatedObligations, plural, one {Generates ~# deadline across your cur
 msgstr "{estimatedObligations, plural, one {Generates ~# deadline across your current clients.} other {Generates ~# deadlines across your current clients.}}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "{evidenceCount}"
+msgstr "{evidenceCount}"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "{evidenceCount} workpapers"
 msgstr "{evidenceCount} workpapers"
@@ -1296,6 +1304,10 @@ msgstr "{outstandingDocsCount, plural, one {# item outstanding} other {# items o
 #: src/routes/obligations.tsx
 msgid "{outstandingDocsCount, plural, one {# item still needs to be received before moving to In review.} other {# items still need to be received before moving to In review.}}"
 msgstr "{outstandingDocsCount, plural, one {# item still needs to be received before moving to In review.} other {# items still need to be received before moving to In review.}}"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "{outstandingMaterials} left"
+msgstr "{outstandingMaterials} left"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -1965,6 +1977,10 @@ msgstr "Action"
 #: src/features/audit/audit-log-page.tsx
 msgid "Action category"
 msgstr "Action category"
+
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Action-needed states first"
+msgstr "Action-needed states first"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/obligations.tsx
@@ -3090,7 +3106,6 @@ msgstr "Ask an owner or manager to review and apply this alert. This does not ch
 msgid "Ask whoever invited you to send a new link."
 msgstr "Ask whoever invited you to send a new link."
 
-#: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Assign a preparer to this return"
 msgstr "Assign a preparer to this return"
@@ -4481,10 +4496,6 @@ msgstr "Close wizard"
 msgid "Closed"
 msgstr "Closed"
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "Closed out"
-msgstr "Closed out"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Closed source-year deadlines eligible for rollover. Only done, paid, and extended rows count as source deadlines."
 msgstr "Closed source-year deadlines eligible for rollover. Only done, paid, and extended rows count as source deadlines."
@@ -4530,6 +4541,10 @@ msgstr "Coming from File In Time? We'll map available calendar fields and flag g
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Coming soon"
 msgstr "Coming soon"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Coming soon — attach PDFs and exports here once ingest lands."
+msgstr "Coming soon — attach PDFs and exports here once ingest lands."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Command palette"
@@ -4652,7 +4667,6 @@ msgstr "Confirm date and deadlines"
 msgid "Confirm deadline details before applying"
 msgstr "Confirm deadline details before applying"
 
-#: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Confirm engagement letter is on file for this client"
 msgstr "Confirm engagement letter is on file for this client"
@@ -4736,8 +4750,8 @@ msgid "Contact your practice owner"
 msgstr "Contact your practice owner"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
-msgid "CONTACTS"
-msgstr "CONTACTS"
+msgid "Contacts"
+msgstr "Contacts"
 
 #: src/features/clients/EmailComposeDialog.tsx
 msgid "Context"
@@ -5806,6 +5820,10 @@ msgstr "Deadline Preview"
 msgid "Deadline reminder"
 msgstr "Deadline reminder"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Deadline sections"
+msgstr "Deadline sections"
+
 #: src/features/alerts/components/AlertReadinessStatus.tsx
 msgid "Deadline selection confirmed"
 msgstr "Deadline selection confirmed"
@@ -5884,6 +5902,7 @@ msgstr "deadlines"
 #: src/features/obligations/components/ObligationListRail.tsx
 #: src/features/obligations/detail/DeadlineCrumbBar.tsx
 #: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
@@ -7487,6 +7506,7 @@ msgstr "Filter by state"
 
 #: src/features/obligations/detail/DeadlineNavigatorRail.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
+#: src/routes/obligations.tsx
 msgid "Filter by status"
 msgstr "Filter by status"
 
@@ -7657,7 +7677,6 @@ msgid "Follow up with the client for documents"
 msgstr "Follow up with the client for documents"
 
 #: src/features/auth/auth-chrome.tsx
-#: src/routes/login.tsx
 msgid "for CPA firms"
 msgstr "for CPA firms"
 
@@ -7947,9 +7966,9 @@ msgstr "Gross receipts"
 msgid "Group by"
 msgstr "Group by"
 
-#: src/features/clients/ClientWorkPlanPanel.tsx
-msgid "Grouped by tax year, newest first"
-msgstr "Grouped by tax year, newest first"
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Grouped A–Z by client name"
+msgstr "Grouped A–Z by client name"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Guard status"
@@ -8013,6 +8032,10 @@ msgstr "High-severity"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Highest impact"
 msgstr "Highest impact"
+
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Highest smart-priority score first"
+msgstr "Highest smart-priority score first"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "History"
@@ -8307,7 +8330,6 @@ msgstr "In effect · act by {0}"
 msgid "In force today"
 msgstr "In force today"
 
-#: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/obligations/status-control.tsx
 msgid "In progress"
 msgstr "In progress"
@@ -8761,6 +8783,7 @@ msgstr "Last checked {lastCheckedLabel}."
 msgid "Last checked: {0}"
 msgstr "Last checked: {0}"
 
+#. placeholder {0}: formatDateTimeWithTimezone( row.extensionDecidedAt, practiceTimezone, )
 #. placeholder {0}: formatDateTimeWithTimezone( row.extensionDecidedAt, practiceTimezone, )
 #. placeholder {0}: formatDateTimeWithTimezone(row.extensionDecidedAt, practiceTimezone)
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -9877,7 +9900,6 @@ msgid "Needs AI draft review"
 msgstr "Needs AI draft review"
 
 #: src/components/patterns/needs-attention-panel.tsx
-#: src/features/clients/ClientSummaryStrip.tsx
 msgid "Needs attention"
 msgstr "Needs attention"
 
@@ -10241,10 +10263,6 @@ msgstr "No batch-ready rules"
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "No brief for this view yet."
 msgstr "No brief for this view yet."
-
-#: src/features/obligations/queue/components/panels.tsx
-msgid "No buffer — same as filing"
-msgstr "No buffer — same as filing"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
@@ -10763,14 +10781,6 @@ msgstr "None"
 msgid "None awaiting"
 msgstr "None awaiting"
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "None blocked"
-msgstr "None blocked"
-
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "None filed"
-msgstr "None filed"
-
 #: src/features/alerts/AlertHistoryView.tsx
 msgid "none in 90 days"
 msgstr "none in 90 days"
@@ -10953,10 +10963,6 @@ msgstr "Nothing in this window — {totalActive} coming up in the other tabs."
 msgid "Nothing is waiting on your review"
 msgstr "Nothing is waiting on your review"
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "Nothing open"
-msgstr "Nothing open"
-
 #: src/routes/obligations.tsx
 msgid "Nothing overdue — the week is on track."
 msgstr "Nothing overdue — the week is on track."
@@ -10964,10 +10970,6 @@ msgstr "Nothing overdue — the week is on track."
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "Nothing overdue — you're clear"
 msgstr "Nothing overdue — you're clear"
-
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "Nothing scheduled"
-msgstr "Nothing scheduled"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Nothing to fix"
@@ -11080,10 +11082,6 @@ msgstr "Oldest first"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "on track"
 msgstr "on track"
-
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "On track"
-msgstr "On track"
 
 #: src/features/dashboard/severity-section.tsx
 msgid "On your radar — not urgent yet"
@@ -11556,7 +11554,6 @@ msgstr "Outstanding"
 msgid "Over your client limit"
 msgstr "Over your client limit"
 
-#: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/dashboard/merged-brief-card.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -13743,6 +13740,7 @@ msgid "Rights window"
 msgstr "Rights window"
 
 #: src/features/concepts/concept-help.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Risk"
 msgstr "Risk"
@@ -15142,6 +15140,10 @@ msgstr "Something went wrong on our side. Please try again shortly."
 msgid "Something went wrong. Please try again."
 msgstr "Something went wrong. Please try again."
 
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Soonest internal due date first"
+msgstr "Soonest internal due date first"
+
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Sort"
@@ -15152,6 +15154,7 @@ msgid "Sort alerts"
 msgstr "Sort alerts"
 
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/obligations.tsx
 msgid "Sort by"
@@ -15160,10 +15163,6 @@ msgstr "Sort by"
 #: src/routes/obligations.tsx
 msgid "Sort deadlines"
 msgstr "Sort deadlines"
-
-#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
-msgid "Sorted by"
-msgstr "Sorted by"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"
@@ -17387,7 +17386,6 @@ msgstr "we look up your firm automatically"
 msgid "We store the plan and seat limit needed for app permissions."
 msgstr "We store the plan and seat limit needed for app permissions."
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "We'll let you attach PDFs and exports here as soon as ingest lands."
 msgstr "We'll let you attach PDFs and exports here as soon as ingest lands."
@@ -17601,6 +17599,10 @@ msgstr "Work assigned to or unassigned from you"
 msgid "Work email"
 msgstr "Work email"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Workflow"
+msgstr "Workflow"
+
 #: src/routes/billing.tsx
 msgid "Workflow: manager workload insights"
 msgstr "Workflow: manager workload insights"
@@ -17629,7 +17631,6 @@ msgstr "Workload updates as deadlines approach. Add clients, or widen the window
 msgid "Workload window"
 msgstr "Workload window"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Workpaper upload is coming soon"
 msgstr "Workpaper upload is coming soon"

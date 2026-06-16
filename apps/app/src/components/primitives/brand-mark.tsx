@@ -32,7 +32,7 @@ export function BrandMark({
   className,
   frame = true,
 }: {
-  className?: string
+  className?: string | undefined
   /**
    * `false` drops the navy square — just the navy bars on whatever surface
    * (used on /splash). The viewBox is the bars' own 214×168 box, so height-
@@ -64,11 +64,7 @@ export function BrandMark({
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect width="64" height="64" rx="13.5" fill="#0A2540" className="fill-brand-ink" />
-      <g
-        transform="translate(8.05 13.2) scale(0.224)"
-        fill="#F3EEE6"
-        className="fill-brand-ivory"
-      >
+      <g transform="translate(8.05 13.2) scale(0.224)" fill="#F3EEE6" className="fill-brand-ivory">
         <Bars />
       </g>
     </svg>

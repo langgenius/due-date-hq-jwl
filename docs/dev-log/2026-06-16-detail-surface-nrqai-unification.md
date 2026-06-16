@@ -11,10 +11,11 @@ This **reverses** the earlier all-white/flat direction — a conscious change pe
 Yuqi's new direction + the NrQaI reference they chose.
 
 ## The unified surface (both panels now identical)
+
 - **Body → `bg-background-subtle`** (very-light warm gray). Hero, top bar, and
   footer stay white (NrQaI keeps the hero white).
 - **`DetailSectionCard` flat variant → a white bordered card** (`rounded-xl
-  border-divider-subtle bg-background-default p-5`; dropped the border-t divider).
+border-divider-subtle bg-background-default p-5`; dropped the border-t divider).
   Shared primitive → every flat section on BOTH panels is now a white card on the
   gray body. Header styling (action 16/600, reference eyebrow, data-chip) kept.
 - **Frames-in-frames removed** so the section card is the only frame: alert Source
@@ -26,6 +27,7 @@ Yuqi's new direction + the NrQaI reference they chose.
   earlier for the white body) is a white card again, matching the section cards.
 
 ## The 5 specific fixes
+
 - **#3 status banner** (`detail-status-banner`): colored tones (danger/warning/
   success) drop the `border-b` — the colored fill is its own edge; deadline
   overdue banner now passes `danger` without `subtle` → red band, no border.
@@ -38,6 +40,7 @@ Yuqi's new direction + the NrQaI reference they chose.
   section cards (the card borders separate sections).
 
 ## Execution + review
+
 Mechanical multi-file application by a focused sub-agent against this exact spec;
 I reviewed + finished two things it left: de-framed `AlertStructuredFields` (it
 was outside the agent's allowed file list) and re-carded the deadline Status

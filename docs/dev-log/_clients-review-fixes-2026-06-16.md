@@ -101,6 +101,7 @@ pass owns.
 tsgo clean; master/detail highlight verified live on Meridian.
 
 ## Cluster 4 — "the design looks ugly": density + redundancy
+
 Yuqi (with screenshot): "a lot of random spacing, inconsistent gaps, random
 things… hard to read." Root cause: the page always used the 1440px expanded
 width "so the 600px obligation panel fits" — but at rest (panel closed, the
@@ -109,7 +110,7 @@ common case) that stretched the 5-stat band thin (each value stranded in a
 
 - **Cap the content to 1100px (centered) at rest; expand to 1440 only when
   the panel is open.** `ClientDetailWorkspace` root: `!panelOpen && mx-auto
-  w-full xl:max-w-page-wide`. Clusters the stat band, balances the rail,
+w-full xl:max-w-page-wide`. Clusters the stat band, balances the rail,
   keeps the wide master/detail layout when actually working an obligation.
 - **Filing table compact at rest (was: only when the panel squeezed it).**
   Drops the OFFICIAL DUE column (duplicates INTERNAL DUE unless an extension
@@ -123,6 +124,7 @@ Verified live both states (rest = capped/tight band + 3-col table; open =
 expanded master/detail with the active row highlighted). tsgo clean.
 
 ## Cluster 5 — cohesion with /deadlines + /alerts detail (supersedes Cluster 4)
+
 Yuqi reviewed Cluster 4 and steered: bring back OFFICIAL DUE + OWNER, the
 centering is off, fix the in-row gap, fix section gaps + text hierarchy, and
 "look at the deadlines detail panel and alerts detail panel … ensure the
@@ -132,7 +134,7 @@ Studied both reference surfaces live. Their shared language: eyebrow → large
 title → chips → **bordered fact-cards** (rounded-lg + divider-subtle border,
 CAPS-label / bold value / caption sub) → underline tabs, full-width, generous
 gaps. The /clients detail diverged by using the borderless StatBand — which
-is exactly *why* its facts looked stranded.
+is exactly _why_ its facts looked stranded.
 
 - **Reverted Cluster 4** — dropped the 1100px centered cap (back to full-width
   like the references) and the always-compact table (OFFICIAL DUE + OWNER are
@@ -153,6 +155,7 @@ slack at full width (single-client tables have few columns) — minor, can
 tighten if needed.
 
 ## Cluster 6 — match Pencil VtC73 (supersedes the Cluster 5 card shape)
+
 Yuqi pointed at Pencil `VtC73` ("/clients/hudson-wells — detail · master-detail
 REBUILD", 1440px) as the canonical client-detail design, and said the page is
 ugly + "why is max-w 1100 not 1440." Pulled VtC73 and read its tokens.
@@ -168,6 +171,7 @@ Width: already reverted off the 1100 cap last cluster → full-width = the
 route's `max-w-page-expanded` (1440), matching VtC73.
 
 ## Cluster 7 — in-client obligation panel matches /deadlines detail
+
 Yuqi: "the opened deadline details inside client detail is wrong and ugly —
 why is this different to the deadline detail panel?"
 
@@ -185,6 +189,7 @@ Still to do (noted): VtC73 title is 36/600 (page ~28); hero/tabs full-width
 rules + 40px gutter; filing-table DEADLINE-column slack.
 
 ## Cluster 8 — design-system cohesion audit + cleanup
+
 Yuqi (frustrated, with a Lone Star Ventures screenshot): the client detail is
 messy, the tabs are cramped, a chip overlaps a form name; demanded a real
 cross-referenced audit ("padding, rounded corners, borders, gaps, margins,
@@ -194,7 +199,7 @@ token files, then fixed:
 
 - **Tabs seam (the cramped culprit):** the client TabsList had NO `border-b`
   and a `-mt-4` hack jamming it under the strip. Added `border-b
-  border-divider-subtle h-11 gap-4 text-sm` (matching both reference tab
+border-divider-subtle h-11 gap-4 text-sm` (matching both reference tab
   bars), dropped the `-mt-4`, triggers → `px-0` + active `font-semibold`, and
   moved the active motion underline to `-bottom-px` so it covers the seam (no
   double line). Section gaps gap-4 → gap-6.
@@ -213,16 +218,18 @@ token files, then fixed:
 - **Token fix:** the jurisdictions warning border used a badge-bg token
   (`components-badge-bg-warning-soft`) → real `border-state-warning-active-alt`.
 
-Kept the 12/8 card-radius split (rail standalone cards = 12, inset frames =
-8) — that's the documented two-tier system, not drift. tsgo clean; collision
-+ tab seam verified live on Lone Star Ventures.
+Kept the 12/8 card-radius split (rail standalone cards = 12, inset frames = 8) — that's the documented two-tier system, not drift. tsgo clean; collision
+
+- tab seam verified live on Lone Star Ventures.
 
 ## Cluster 9 — VtC73 layout: full-width header + rail beside content + 36px title
+
 Yuqi (with VtC73 + the cramped-tabs/collision screenshot): match VtC73 — the
 header should be full-width with the rail top-aligned to the tab content
 (keeping the panel's push-everything-left behavior); title per VtC73.
 
 Restructured `ClientDetailWorkspace`:
+
 - The PageHeader + summary strip + tabs are now FULL-WIDTH (a single page
   column), with a body split below: `[filing-plan tabs | per-client rail]`.
   The rail (Notes/Contacts/Alerts) now aligns with the tab content, below the
@@ -241,6 +248,7 @@ rail beside the tab content; panel-open = everything pushed left, rail
 collapsed, framed obligation cards on the right. tsgo clean.
 
 ## Cluster 10 — Kill the filing-table redundancy + strip typography (6-dimension re-audit)
+
 Yuqi (frustrated, with a stale-bundle screenshot): "can't see your work here. it
 still looks ugly and you are ignoring my comments. do not skip or miss any my
 feedbacks." Root cause split two ways: (a) the screenshot was a stale browser
@@ -252,6 +260,7 @@ cohesion / token compliance / feedback-completeness), each finding adversarially
 verified, then synthesized into one ordered plan. Implemented:
 
 TIER 1 — the visible "混乱" (one home per fact):
+
 - The tax-code badge duplicated the deadline NAME on the client surface
   ("Form 1065" badge beside "Form 1065" name; clipped "TX Franchi…" beside
   "TX Franchise Report"). Added an opt-in `display='label'|'jurisdiction'` prop
@@ -269,6 +278,7 @@ TIER 1 — the visible "混乱" (one home per fact):
   a mailto link (the actionable affordance the header used to carry).
 
 TIER 2 — summary strip = one calm instrument panel:
+
 - Unified all numeric weights to font-semibold (counts were font-bold, next-due
   was already semibold); gave Next Due the mono face + tabular-nums; demoted the
   cell labels from text-column-label (11/600) to text-caption-xs/font-medium/
@@ -297,15 +307,18 @@ panel-open still pushes the column left and renders the obligation detail
 matching /deadlines, compact rows keep their jurisdiction chips. tsgo clean.
 
 ## Cluster 11 — In-client obligation panel parity (white surface + quieter overdue banner)
+
 Yuqi (screenshot of the in-client Form 1120 panel): "looking ugly. far from the
 Deadline detail page penl." Investigation: the in-client panel and the
 /deadlines detail PAGE share one component (ObligationQueueDetailDrawer) and
 render nearly identically — the real divergences were (a) the panel sat on a
 warm-gray surface while the page is white, and (b) the loud full-bleed red
 "Past deadline" banner. Asked which to bring over; Yuqi picked **white surface**
-+ **quieter overdue banner** (not centering, not the status chip).
+
+- **quieter overdue banner** (not centering, not the status chip).
 
 Changes:
+
 - White surface (panel mode only; the mobile Sheet keeps warm canvas): flipped
   the panel container (the `panelLayout` aside else-branch),
   the sticky key-date strip, and the footer from `bg-background-canvas-warm` →
@@ -334,6 +347,7 @@ a missing-import crash in the /deadlines Filter popover. Left untouched (foreign
 WIP); flagged for that session.
 
 ## Cluster 12 — Summary strip: align to canonical StatBand (kills collision + wrap + slashed zeros)
+
 Yuqi (screenshot of the fact strip): "so ugly." Three concrete bugs: (1) the
 "JURISDICTIONS" label overflowed into "BLOCKED" (read as one run); (2) "May 12"
 wrapped to two lines in NEXT DUE; (3) the 0s rendered as slashed zeros (Ø-like).
@@ -347,6 +361,7 @@ mono → slashed zeros, the 28px → "May 12" too wide to fit (wrap), and `min-w
 
 Fixes (brought the strip in line with StatBand while keeping the VtC73 grouped
 bg-subtle panel container Yuqi chose):
+
 - Values: `font-mono text-2xl` → `text-stat-value` (24px) sans semibold
   tabular-nums + `whitespace-nowrap`. Sans = no slashed zero; 24px matches the
   StatBand on /clients, sources, rules, alerts; nowrap = no date wrap.
@@ -362,6 +377,7 @@ Verified live (Lone Star + the exact Meridian NY/May-12 case): value font =
 overflow; "May 12" single line; "California" badge clipped=false. tsgo clean.
 
 ## Cluster 13 — In-client obligation panel renders EXACTLY like the /deadlines detail
+
 Yuqi (VtC73): "the client detail page at least need to look like this … VtC73 has
 the deadline detail panel EXACTLY the same as the deadline detail right panel."
 VtC73 (REBUILD · master-detail) = lean client master (left) + the standalone
@@ -394,6 +410,7 @@ section nav in the panel (duplicate gone); white surface; quiet overdue banner;
 tsgo clean.
 
 ## Cluster 14 — Client tabs keep full labels when the obligation panel is open
+
 Yuqi: "tabs 不要 abbreviate 缩起来，当右边 panel 打开的时候" — don't collapse the
 client tabs to icon-only when the right obligation panel opens. Dropped
 `compact={panelOpen}` from the three ClientDetailTabTrigger calls (Filing plan /
@@ -403,7 +420,9 @@ client column left. Verified live (Meridian, panel open): all three labels
 visible (none sr-only), count "4" shows. tsgo clean.
 
 ## Cluster 15 — Client-detail review batch 1 (strip + tabs + sort hint + title)
+
 Yuqi (big /clients review). Batch 1 (client files):
+
 - Summary strip: Next Due date dropped from stat-value (24) to text-xl (18) — it's
   a date, not a KPI count (Yuqi "May 12 smaller"); strip labels aligned to the
   canonical StatBand grammar (caption-xs/600/tertiary) so the band matches the
@@ -435,7 +454,9 @@ unification (#3/#4); fixed-width table columns; keep OFFICIAL DUE + OWNER with t
 panel open.
 
 ## Cluster 16 — Client-detail review batch 2 (route padding restructure + table columns)
+
 Yuqi /clients review #3/#9 + "keep OFFICIAL DUE + OWNER" + "fixed-width columns":
+
 - Route section padding restructured: the `clients.$clientId` container now carries
   NO padding; the workspace's left column (px-4/8 + a tighter pt-5/6, was pt-6/8)
   and each loading/error state carry their own gutter + top space. Result: the
@@ -450,7 +471,9 @@ Yuqi /clients review #3/#9 + "keep OFFICIAL DUE + OWNER" + "fixed-width columns"
   edge-to-edge; title 28; top padding tightened.
 
 ## Cluster 17 — Tab underline alignment + bigger button radius (app-wide)
+
 Yuqi /clients review:
+
 - Tab underline ↔ divider: the active-tab underline floated a few px above the
   TabsList border-b. Dropped the list's fixed `h-11` (tab-bar height is now
   driven by the trigger's `py-3`) so the triggers reach the border; the underline
@@ -461,9 +484,11 @@ Yuqi /clients review:
   12px). Affects every button in the app.
 
 ## Cluster 18 — Summary-strip numbers made consistent
+
 Yuqi: "why are the numbers inconsistent? are these sizes used anywhere else?"
 The band mixed sizes (counts 24px, Next-Due date 18px) AND four colours (0 gray,
 2 dark, 3 green, May 12 red). Unified:
+
 - All values now the canonical `text-stat-value` 24px (the date was a one-off
   18px, off the StatBand scale — now matches the counts + every other StatBand).
 - Counts share ONE neutral colour (dropped the per-count amber/green tone); a
@@ -478,14 +503,17 @@ white OUTLINE of equal size — not an actual size difference. Left as-is (a nud
 would break the icon-button size system); flagged for Yuqi.
 
 ## Cluster 19 — Summary-strip numbers → 16px
+
 Yuqi "change to 16px": the strip KPI values dropped from text-stat-value (24) to
 text-lg (16) — a compact, low-key band (closer to VtC73's inline stats). Still
 uniform: all 16px, counts neutral (0 dims to tertiary), overdue Next Due red.
 Verified live (Meridian): 0/3/0 + May 12 all 16px.
 
 ## Cluster 20 — Remaining review items (key-date icons, owner pill, panel breadcrumb, footer)
+
 Yuqi "do all" — the 4 carried-over items (planned via a parallel fan-out, then
 applied + curated):
+
 - #7 key-date cards simplified: dropped the decorative leading icons
   (CalendarX/Target/Wallet) from DeadlineDateCard — label / date / clock / meta,
   keeping the subtle border frame. Affects the panel + the /deadlines page.
@@ -509,6 +537,7 @@ FOLLOW-UP flagged: at panel-open (squeezed left column) the summary strip wraps
 scroll or responsive-grid pass on the strip for the squeezed state.
 
 ## Cluster 21 — Strip no-wrap at panel-open (fixes orphaned NEXT DUE)
+
 The summary strip used flex-wrap, so at panel-open (squeezed left column) the
 NEXT DUE cell wrapped onto a 2nd line under JURISDICTIONS (orphaned). Switched
 the strip to `flex overflow-x-auto` (no wrap): the cells stay on one row and the
@@ -516,6 +545,7 @@ band scrolls horizontally if the squeezed column can't fit all five — never
 orphaning a cell. At rest (wide) it fills one row, no scrollbar. tsgo clean.
 
 ## Cluster 22 — Tab underline squash, rail-card parity, Workflow header+divider
+
 Four follow-up items from Yuqi ("[tab] still squashed underline / random alignment
 for the note section and contacts section / at least a divider between the progress
 bar and the Stage 1 of 6 content / better have the header, not floating titles").
@@ -534,22 +564,23 @@ bar and the Stage 1 of 6 content / better have the header, not floating titles")
   `<Card>`) and the CONTACTS card (a hand-rolled `<section>`) had diverged: gap-2 vs
   gap-4, `shadow-xs` vs none, card-border token vs `border-divider-regular`. Brought
   the Notes card onto the Contacts recipe (`gap-4 border-divider-regular
-  bg-background-default shadow-none`) so the two rail cards share one container —
+bg-background-default shadow-none`) so the two rail cards share one container —
   same border, padding, gap, no shadow. (Labels already matched: both
   `text-column-label` via `RailSectionLabel` / the raw span.)
 - **Workflow card divider (#3).** Added a full-width hairline (`-mx-5 border-t
-  border-divider-subtle`) between the stepper (`PathToFilingSummary`) and the
+border-divider-subtle`) between the stepper (`PathToFilingSummary`) and the
   active-stage block, panelLayout-only. Verified: a 1px border-t div sits between
   the stepper child and the AuthorityResponse/ActiveStage children.
 - **Workflow header not floating (#4).** The "Workflow" `<h3>` was a bare floating
   title; gave it a defined header ROW — full-width bottom border (`-mx-5 border-b
-  border-divider-subtle pb-4`) so it reads as a header over the card, not text
+border-divider-subtle pb-4`) so it reads as a header over the card, not text
   hovering above the stepper.
 
 tsgo clean (my files; the lone remaining error is the foreign auth-chrome.tsx WIP).
 Verified live on the Meridian Form 1120 panel.
 
 ## Cluster 23 — Tab underline visible (overflow clip) + Workflow thin light header band
+
 Two follow-ups from Yuqi ("the tab is missing the underline" / "header should have a
 light background, and a thin/low-height header — not floating titles").
 
@@ -573,6 +604,7 @@ light background, and a thin/low-height header — not floating titles").
 tsgo clean (my files). Verified live on the Meridian Form 1120 panel.
 
 ## Cluster 24 — Header band for EVERY section + narrower band
+
 Yuqi: "the header — why is it only for Workflow? should be for EVERY section" then
 "the header should be narrower (in height)".
 
@@ -594,6 +626,7 @@ Yuqi: "the header — why is it only for Workflow? should be for EVERY section" 
   Workflow card matched to the same spec.
 
 AUDIT (6-agent read-only workflow) — deferred / flagged, NOT done here:
+
 - rule-detail-drawer.tsx renders its 6 sections via the default `variant="card"`
   (no band) — needs `variant="flat"`, but that file is currently owned by the
   parallel session, so deferred to avoid a race.
@@ -610,7 +643,9 @@ AUDIT (6-agent read-only workflow) — deferred / flagged, NOT done here:
 tsgo clean (my files). Verified live.
 
 ## Cluster 25 — Extend the section band to rule-detail + the client rail
+
 Yuqi confirmed "band EVERY section" (all four flagged surfaces). Done so far:
+
 - **rule-detail-drawer.tsx**: its 6 sections rendered the dead `variant="card"`
   (no band) + a hand-rolled `DetailSection` helper. Added `variant="flat"` to all
   6 (Version history, Applicability, When it's due, Extension, Evidence, Practice
@@ -627,6 +662,7 @@ Verified live: rail Notes/Contacts headers banded (32px). Still pending in this
 batch: Materials/Workpapers headerRight button toolbars, Setup-tab TabSection.
 
 ## Cluster 26 — Finish "band EVERY section": Materials/Workpapers + Setup tab
+
 - **Materials checklist + Workpapers (drawer):** their headerRight packed action
   buttons (Select all / Add item; Add workpaper), forcing those bands to ~45px.
   Moved the controls into a body sub-toolbar (right-aligned, top of the body),
@@ -644,7 +680,9 @@ All four flagged surfaces now banded: rule-detail, client rail, Materials/Workpa
 Setup tab. tsgo clean (my files).
 
 ## Cluster 27 — Panel close-X placement, click-away-to-close, redundant card line
+
 Three issues Yuqi flagged on the in-client obligation panel:
+
 - **"random close" — the × floated in the panel CENTER.** Root cause (found by
   measuring the live DOM): the panel header's 760px content measure
   (`[&>*]:w-full [&>*]:max-w-[760px] [&>*]:mx-auto`) was applying to the absolute
@@ -672,6 +710,7 @@ tsgo clean (my files). All three drawer/panel files staged selectively around th
 parallel session's concurrent edits.
 
 ## Cluster 28 — Jurisdiction badge style (filing-plan DEADLINE column)
+
 Yuqi: "the badges are in wrong styles." The filing-plan jurisdiction chips rendered
 the jurisdiction NAME ("Federal", "New York", "California") via
 `TaxCodeBadge display="jurisdiction"` — which reuses the MONO code-chip chrome
