@@ -76,9 +76,15 @@ export function DetailSectionCard({
     return (
       <section id={id} className={cn('flex flex-col gap-4', className)}>
         {/* items-center (Yuqi 2026-06-15 "没有vertically居中") so the numbered
-            badge, title, caption, and any header-right cluster all sit on one
-            centered line instead of drifting off the text baseline. */}
-        <header className="flex items-center gap-2">
+            badge, title, caption, and any header-right cluster sit on one
+            centered line.
+            2026-06-16 (Yuqi "good separation of header — the sections are all on
+            white now"): a full-width bottom hairline gives every flat section
+            header a clear separator from its body on the white surface. This is
+            the clear-sections-not-boxes delineator (section header + full-width
+            rule + whitespace, never a per-section box) — shared by the alert AND
+            deadline detail panes, so both read the same. */}
+        <header className="flex items-center gap-2 border-b border-divider-regular pb-2">
           {/* Numbered badge (Pencil MASYz) — a small rounded chip ahead of the
               title so the three sections read as an ordered 1·2·3 outline. */}
           {typeof index === 'number' ? (

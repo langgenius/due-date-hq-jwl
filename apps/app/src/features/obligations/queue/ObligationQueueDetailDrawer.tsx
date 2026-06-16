@@ -2267,7 +2267,11 @@ export function ObligationQueueDetailDrawer({
             // 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #3): body gap-4 →
             // gap-6 and pb-12 → pb-24 to match the alerts body rhythm
             // (`px-12 pb-24`) and clear the sticky footer.
-            'flex flex-col gap-6 px-12 pb-24',
+            // 2026-06-16 (Yuqi "match the inter-section gap — use the alert's"):
+            // gap-6 → gap-8. The flat sections are this body's direct children, so
+            // this gap IS the inter-section rhythm; the alert detail spaces its
+            // major sections gap-8 (AlertDetailDrawer L1770), so both now match.
+            'flex flex-col gap-8 px-12 pb-24',
             // 2026-05-26 (Yuqi feedback #1): added scrollbar-gutter:stable
             // on the panel-mode body. Different tabs render different
             // content heights (Summary is short, Materials is long).
