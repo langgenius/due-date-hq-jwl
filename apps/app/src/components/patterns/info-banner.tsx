@@ -114,11 +114,13 @@ export function InfoBanner({
     <div
       role="status"
       className={cn(
-        'flex h-12 items-center gap-3 rounded-lg border border-divider-subtle bg-background-subtle px-3',
+        // Hint/tip surface → soft highlight wash (the louder accent tier),
+        // so tips read as a gentle "look here" rather than neutral chrome.
+        'flex h-12 items-center gap-3 rounded-lg border border-divider-subtle bg-brand-highlight-soft px-3',
         className,
       )}
     >
-      <Icon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+      <Icon className="size-4 shrink-0 text-brand-highlight-ink" aria-hidden />
       <p className="min-w-0 flex-1 truncate text-sm text-text-secondary">{message}</p>
       {cta ? (
         // The CTA uses the canonical `<TextLink variant="accent" size="sm">`

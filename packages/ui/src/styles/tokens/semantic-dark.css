@@ -76,10 +76,10 @@
   --state-base-handle: rgb(200 206 218 / 0.3);
   --state-base-handle-hover: rgb(200 206 218 / 0.5);
 
-  --state-accent-hover: rgb(21 90 239 / 0.14);
-  --state-accent-hover-alt: rgb(21 90 239 / 0.25);
-  --state-accent-active: rgb(21 90 239 / 0.14);
-  --state-accent-active-alt: rgb(21 90 239 / 0.2);
+  --state-accent-hover: rgb(46 54 140 / 0.14);
+  --state-accent-hover-alt: rgb(46 54 140 / 0.25);
+  --state-accent-active: rgb(46 54 140 / 0.14);
+  --state-accent-active-alt: rgb(46 54 140 / 0.2);
   --state-accent-solid: var(--color-util-colors-primary-400);
 
   --state-destructive-hover: rgba(240, 68, 56, 0.14);
@@ -121,7 +121,7 @@
   --components-button-primary-text-disabled: rgb(255 255 255 / 0.5);
   --components-button-primary-bg: var(--color-util-colors-primary-600);
   --components-button-primary-bg-hover: var(--color-util-colors-primary-700);
-  --components-button-primary-bg-disabled: rgb(21 90 239 / 0.14);
+  --components-button-primary-bg-disabled: rgb(46 54 140 / 0.14);
   --components-button-primary-border: rgba(255, 255, 255, 0.04);
   --components-button-primary-border-hover: rgba(255, 255, 255, 0.08);
   --components-button-primary-border-disabled: rgba(255, 255, 255, 0);
@@ -173,14 +173,14 @@
   --components-button-destructive-ghost-bg-hover: rgb(240 68 56 / 0.14);
 
   --components-button-accent-text: var(--color-util-colors-primary-300);
-  --components-button-accent-text-disabled: rgb(21 90 239 / 0.3);
+  --components-button-accent-text-disabled: rgb(46 54 140 / 0.3);
   /* 2026-06-09 (Yuqi button-differentiation pass): blue-tinted fill +
      border so accent reads distinct from the neutral secondary on dark
      too. See semantic-light.css. */
-  --components-button-accent-bg: rgb(21 90 239 / 0.15);
-  --components-button-accent-bg-hover: rgb(21 90 239 / 0.24);
+  --components-button-accent-bg: rgb(46 54 140 / 0.15);
+  --components-button-accent-bg-hover: rgb(46 54 140 / 0.24);
   --components-button-accent-bg-disabled: rgb(255 255 255 / 0.03);
-  --components-button-accent-border: rgb(21 90 239 / 0.32);
+  --components-button-accent-border: rgb(46 54 140 / 0.32);
   /* 2026-06-09: see semantic-light.css — neutral disabled hairline. */
   --components-button-accent-border-disabled: rgb(255 255 255 / 0.04);
 
@@ -204,7 +204,7 @@
   --components-checkbox-bg: var(--color-util-colors-primary-500);
   --components-checkbox-bg-hover: var(--color-util-colors-primary-400);
   --components-checkbox-bg-disabled: rgb(255 255 255 / 0.03);
-  --components-checkbox-bg-disabled-checked: rgb(21 90 239 / 0.2);
+  --components-checkbox-bg-disabled-checked: rgb(46 54 140 / 0.2);
   --components-checkbox-bg-unchecked: rgb(255 255 255 / 0.03);
   --components-checkbox-bg-unchecked-hover: rgb(255 255 255 / 0.05);
   --components-checkbox-border: rgb(255 255 255 / 0.4);
@@ -217,7 +217,7 @@
   --components-radio-border-hover: rgb(255 255 255 / 0.6);
   --components-radio-border-checked: var(--color-util-colors-primary-500);
   --components-radio-border-checked-hover: var(--color-util-colors-primary-400);
-  --components-radio-border-checked-disabled: rgb(21 90 239 / 0.2);
+  --components-radio-border-checked-disabled: rgb(46 54 140 / 0.2);
 
   /* ===== Components: toggle ============================================= */
   --components-toggle-bg: rgb(255 255 255 / 0.2);
@@ -225,7 +225,7 @@
   --components-toggle-bg-disabled: rgb(255 255 255 / 0.08);
   --components-toggle-bg-checked: var(--color-util-colors-primary-500);
   --components-toggle-bg-checked-hover: var(--color-util-colors-primary-400);
-  --components-toggle-bg-checked-disabled: rgb(21 90 239 / 0.2);
+  --components-toggle-bg-checked-disabled: rgb(46 54 140 / 0.2);
   --components-toggle-knob: #f4f4f5;
   --components-toggle-knob-disabled: rgb(255 255 255 / 0.2);
 
@@ -323,7 +323,7 @@
   --secondary-foreground: var(--text-primary);
   --muted: var(--state-base-hover);
   --muted-foreground: var(--text-muted);
-  --accent: rgb(21 90 239 / 0.14);
+  --accent: rgb(46 54 140 / 0.14);
   --accent-foreground: var(--color-util-colors-primary-300);
   --destructive: var(--color-util-colors-red-500);
   --border: rgb(200 206 218 / 0.14);
@@ -333,7 +333,7 @@
   --sidebar-foreground: var(--text-secondary);
   --sidebar-primary: var(--color-util-colors-primary-400);
   --sidebar-primary-foreground: #0d0e11;
-  --sidebar-accent: rgb(21 90 239 / 0.14);
+  --sidebar-accent: rgb(46 54 140 / 0.14);
   --sidebar-accent-foreground: var(--text-primary);
   --sidebar-border: rgb(200 206 218 / 0.14);
   --sidebar-ring: var(--color-util-colors-primary-400);

@@ -36,6 +36,7 @@ import {
 } from '@/lib/auth'
 import { authCapabilities } from '@/lib/auth-capabilities'
 import { ANALYTICS_EVENTS, markSignInPending, track } from '@/lib/analytics'
+import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
 
 // /login is a full-bleed two-column split — a product-story column (left)
 // beside the sign-in card (right), with a dedicated footer. The page owns its
@@ -220,13 +221,8 @@ export function LoginRoute() {
             {/* Frame 21 — brand, heading, form, reassurance, and foot share the
                 24px rhythm (canvas dGFth gap 24); residency sits 28px below. */}
             <div className="flex flex-col gap-6">
-              {/* Brand lockup */}
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-text-primary text-sm font-bold text-text-primary-on-surface">
-                  D
-                </span>
-                <span className="text-sm font-semibold text-text-primary">DueDateHQ</span>
-              </div>
+              {/* Brand lockup — compact (no tagline) */}
+              <AuthBrandAnchor tagline={false} />
 
               {/* Heading */}
               <div className="flex flex-col gap-2">
@@ -407,18 +403,7 @@ function ProductStory() {
   return (
     <section className="hidden min-w-0 flex-1 flex-col gap-5 pr-[72px] pt-2 lg:flex">
       {/* Brand anchor */}
-      <div className="flex items-center gap-2.5">
-        <span className="flex size-[30px] items-center justify-center rounded-lg bg-text-primary text-sm font-bold tracking-[-0.2px] text-text-primary-on-surface">
-          D
-        </span>
-        <span className="text-[16px] font-semibold tracking-[-0.2px] text-text-primary">
-          DueDateHQ
-        </span>
-        <span aria-hidden className="h-3.5 w-px bg-divider-regular" />
-        <span className="text-base font-medium italic tracking-[-0.1px] text-text-tertiary">
-          <Trans>for CPA firms</Trans>
-        </span>
-      </div>
+      <AuthBrandAnchor />
 
       <h2 className="text-[44px] font-semibold leading-[1.1] tracking-[-1px] text-text-primary">
         <Trans>

@@ -294,7 +294,8 @@ function RailItem({
           <span
             className={cn(
               'size-1.5 shrink-0 rounded-full',
-              unread ? 'bg-state-accent-solid' : 'bg-transparent',
+              // Unseen marker → bright highlight tier (--color-brand-highlight).
+              unread ? 'bg-brand-highlight' : 'bg-transparent',
             )}
             aria-hidden
           />

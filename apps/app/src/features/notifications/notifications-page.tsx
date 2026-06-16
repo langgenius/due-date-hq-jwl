@@ -287,7 +287,8 @@ export function NotificationsPage() {
                     <span
                       className={cn(
                         'mt-[5px] size-2 shrink-0 rounded-full',
-                        item.readAt ? 'bg-transparent' : 'bg-accent-default',
+                        // Unseen marker → bright highlight tier (--color-brand-highlight).
+                        item.readAt ? 'bg-transparent' : 'bg-brand-highlight',
                       )}
                       aria-hidden
                     />

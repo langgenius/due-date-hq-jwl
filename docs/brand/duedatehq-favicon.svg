@@ -1,5 +1,6 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DueDateHQ">
-  <title>DueDateHQ</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-label="DueDateHQ app icon">
+  <title>DueDateHQ — app icon / favicon (stacked bars)</title>
+  <desc>The stacked-bars mark, tuned for 16–32px.</desc>
   <rect width="32" height="32" rx="6.75" fill="#0A2540"/>
   <g transform="translate(4.02 6.6) scale(0.112)" fill="#F3EEE6">
     <rect width="187" height="36" rx="10"/>

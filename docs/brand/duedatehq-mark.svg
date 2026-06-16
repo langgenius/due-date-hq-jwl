@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="DueDateHQ mark">
+  <title>DueDateHQ — mark (stacked bars)</title>
+  <desc>Four rounded horizontal bars, the third indented — an abstract timeline/schedule motif; ivory bars on a navy square.</desc>
+  <rect width="64" height="64" rx="13.5" fill="#0A2540"/>
+  <g transform="translate(8.05 13.2) scale(0.224)" fill="#F3EEE6">
+    <rect width="187" height="36" rx="10"/>
+    <rect y="44" width="187" height="36" rx="10"/>
+    <rect x="27" y="88" width="187" height="36" rx="10"/>
+    <rect y="132" width="187" height="36" rx="10"/>
+  </g>
+</svg>

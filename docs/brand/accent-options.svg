@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="196" viewBox="0 0 680 196" role="img" aria-label="DueDateHQ accent colour options">
+  <title>Product accent — navy options</title>
+  <desc>Four candidate accent colours from the current Dify blue to a deep ink blue.</desc>
+  <rect width="680" height="196" fill="#FFFFFF"/>
+
+  <rect x="40" y="28" width="132" height="92" rx="10" fill="#155AEF"/>
+  <text x="40" y="142" font-family="-apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" font-weight="500" fill="#101828">Current</text>
+  <text x="40" y="162" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#676F83">#155AEF</text>
+
+  <rect x="196" y="28" width="132" height="92" rx="10" fill="#1D4ED8"/>
+  <text x="196" y="142" font-family="-apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" font-weight="500" fill="#101828">Cobalt</text>
+  <text x="196" y="162" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#676F83">#1D4ED8</text>
+
+  <rect x="352" y="28" width="132" height="92" rx="10" fill="#1E3A8A"/>
+  <text x="352" y="142" font-family="-apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" font-weight="500" fill="#101828">Navy blue</text>
+  <text x="352" y="162" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#676F83">#1E3A8A</text>
+  <text x="352" y="180" font-family="-apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="11" font-weight="500" fill="#1E3A8A">recommended</text>
+
+  <rect x="508" y="28" width="132" height="92" rx="10" fill="#17306A"/>
+  <text x="508" y="142" font-family="-apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" font-weight="500" fill="#101828">Ink blue</text>
+  <text x="508" y="162" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#676F83">#17306A</text>
+</svg>

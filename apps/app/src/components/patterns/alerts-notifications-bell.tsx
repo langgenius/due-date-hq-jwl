@@ -296,7 +296,9 @@ function NotificationItem({
           aria-hidden={!unread}
           className={cn(
             'mt-1.5 size-2 shrink-0 rounded-full transition-colors',
-            unread ? 'bg-state-accent-solid' : 'bg-transparent',
+            // Unseen marker → the bright highlight tier (not the calm navy
+            // accent), so new/unread items pop. See --color-brand-highlight.
+            unread ? 'bg-brand-highlight' : 'bg-transparent',
           )}
         />
         <span

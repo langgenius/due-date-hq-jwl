@@ -5,6 +5,8 @@ import { GlobeIcon, LockIcon, MailCheckIcon, ShieldIcon } from 'lucide-react'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { BrandMark } from '@/components/primitives/brand-mark'
+
 // Shared chrome for the full-bleed auth surfaces (login, 2FA, accept-invite),
 // matching the Pencil auth cluster (pW6pK / uu9SI / e3FyUB): a brand anchor,
 // an "all systems normal" status pill, the divider-separated trust line, and
@@ -14,20 +16,43 @@ import { cn } from '@duedatehq/ui/lib/utils'
 // same chrome instead of re-inlining it. /login keeps its own copy for now
 // (its structure is locked); the others share this.
 
-// Brand anchor — 28px dark mark + wordmark + hairline + "for CPA firms".
-export function AuthBrandAnchor({ className }: { className?: string }) {
+// Brand anchor — 28px bars mark + serif wordmark + (optional) hairline +
+// "for CPA firms". The wordmark is the brand serif (DueDate) with HQ as a quiet
+// sans tag, so it reads "DueDate, the HQ" rather than one undifferentiated word.
+// `tagline={false}` drops the divider + tagline for compact lockups (e.g. the
+// /login sign-in card). `frame={false}` drops the navy square so only the bars
+// show (used on /splash).
+export function AuthBrandAnchor({
+  className,
+  tagline = true,
+  frame = true,
+  markClassName,
+}: {
+  className?: string
+  tagline?: boolean
+  frame?: boolean
+  /** Override the mark size, e.g. `h-5` for a smaller splash lockup. */
+  markClassName?: string
+}) {
   return (
     <div className={cn('flex items-center gap-2.5', className)}>
-      <span className="flex size-7 items-center justify-center rounded-lg bg-text-primary text-sm font-bold tracking-[-0.2px] text-text-primary-on-surface">
-        D
+      <BrandMark frame={frame} className={markClassName} />
+      <span className="flex items-baseline gap-1 leading-none">
+        <span className="font-serif text-[17px] font-medium tracking-[-0.1px] text-text-primary">
+          DueDate
+        </span>
+        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+          HQ
+        </span>
       </span>
-      <span className="text-[16px] font-semibold tracking-[-0.2px] text-text-primary">
-        DueDateHQ
-      </span>
-      <span aria-hidden className="h-3.5 w-px bg-divider-regular" />
-      <span className="text-base font-medium italic tracking-[-0.1px] text-text-tertiary">
-        <Trans>for CPA firms</Trans>
-      </span>
+      {tagline ? (
+        <>
+          <span aria-hidden className="h-3.5 w-px bg-divider-regular" />
+          <span className="text-base font-medium italic tracking-[-0.1px] text-text-tertiary">
+            <Trans>for CPA firms</Trans>
+          </span>
+        </>
+      ) : null}
     </div>
   )
 }

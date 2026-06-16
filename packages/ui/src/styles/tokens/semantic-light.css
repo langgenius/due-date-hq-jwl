@@ -84,7 +84,7 @@
   --divider-intense: rgb(16 24 40 / 0.3);
   --divider-solid: var(--color-util-colors-gray-300);
   --divider-solid-alt: var(--color-util-colors-gray-400);
-  --divider-accent: #e5eaff;
+  --divider-accent: #e1e4f6;
 
   /* ===== State (interaction layers) =====================================
    * Dify neutral hovers — selectable surfaces stay gray; explicit accent
@@ -97,10 +97,10 @@
   --state-base-handle: rgb(16 24 40 / 0.2);
   --state-base-handle-hover: rgb(16 24 40 / 0.3);
 
-  --state-accent-hover: #eff4ff;
-  --state-accent-hover-alt: #d1e0ff;
-  --state-accent-active: rgb(21 90 239 / 0.08);
-  --state-accent-active-alt: rgb(21 90 239 / 0.14);
+  --state-accent-hover: #eef0fb;
+  --state-accent-hover-alt: #dadef6;
+  --state-accent-active: rgb(46 54 140 / 0.08);
+  --state-accent-active-alt: rgb(46 54 140 / 0.14);
   --state-accent-solid: var(--color-util-colors-primary-500);
 
   --state-destructive-hover: var(--color-util-colors-red-50);
@@ -142,7 +142,7 @@
   --components-button-primary-text-disabled: rgb(255 255 255 / 0.6);
   --components-button-primary-bg: var(--color-util-colors-primary-600);
   --components-button-primary-bg-hover: var(--color-util-colors-primary-700);
-  --components-button-primary-bg-disabled: rgb(21 90 239 / 0.14);
+  --components-button-primary-bg-disabled: rgb(46 54 140 / 0.14);
   --components-button-primary-border: rgb(16 24 40 / 0.04);
   --components-button-primary-border-hover: rgb(16 24 40 / 0.08);
   --components-button-primary-border-disabled: rgb(255 255 255 / 0);
@@ -207,7 +207,7 @@
   --components-button-accent-bg: var(--color-util-colors-primary-50);
   --components-button-accent-bg-hover: var(--color-util-colors-primary-100);
   --components-button-accent-bg-disabled: var(--color-util-colors-gray-50);
-  --components-button-accent-border: rgb(21 90 239 / 0.22);
+  --components-button-accent-border: rgb(46 54 140 / 0.22);
   /* 2026-06-09: disabled accent drops the blue border back to a neutral
      hairline — a blue edge on a gray disabled fill read as "still active." */
   --components-button-accent-border-disabled: rgb(16 24 40 / 0.04);
@@ -369,7 +369,7 @@
   --secondary-foreground: var(--text-primary);
   --muted: var(--state-base-hover);
   --muted-foreground: var(--text-muted);
-  --accent: #eff4ff;
+  --accent: #eef0fb;
   --accent-foreground: var(--color-util-colors-primary-700);
   --destructive: var(--color-util-colors-red-600);
   --border: var(--color-util-colors-gray-200);
@@ -379,7 +379,7 @@
   --sidebar-foreground: var(--text-secondary);
   --sidebar-primary: var(--color-util-colors-primary-600);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eff4ff;
+  --sidebar-accent: #eef0fb;
   --sidebar-accent-foreground: var(--text-primary);
   --sidebar-border: var(--color-util-colors-gray-200);
   --sidebar-ring: var(--color-util-colors-primary-600);

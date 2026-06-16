@@ -81,7 +81,12 @@ function EntryShellHeader() {
           height={16}
           className="hidden size-4 shrink-0 dark:block"
         />
-        <span className="font-semibold tracking-tight text-text-primary">DueDateHQ</span>
+        <span className="flex items-baseline gap-1">
+          <span className="font-serif font-medium tracking-[-0.1px] text-text-primary">DueDate</span>
+          <span className="text-[0.7em] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+            HQ
+          </span>
+        </span>
         <span aria-hidden className="text-text-muted">
           /
         </span>

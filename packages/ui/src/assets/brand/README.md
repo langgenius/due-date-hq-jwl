@@ -6,21 +6,23 @@ Figma: file `ssejugriUJkW9vbcBzmRgd`, frame "DueDateHQ — Brand Icon (Design Sp
 
 ## Files
 
-| File                     | viewBox | Tile fill | Accent fill | Use it for                                                |
-| ------------------------ | ------- | --------- | ----------- | --------------------------------------------------------- |
-| `brand-mark.svg`         | 256×256 | `#071421` | `#35D5FF`   | OG images, email hero, ≥ 64 px hero tiles                 |
-| `brand-favicon.svg`      | 32×32   | `#071421` | `#35D5FF`   | Browser favicon, ≤ 32 px inline brand chips (light theme) |
-| `brand-favicon-dark.svg` | 32×32   | `#08111F` | `#55DEFF`   | ≤ 32 px inline brand chips (dark theme)                   |
+| File                     | viewBox | Tile fill | Bars      | Use it for                                                |
+| ------------------------ | ------- | --------- | --------- | --------------------------------------------------------- |
+| `brand-mark.svg`         | 256×256 | `#0A2540` | `#F3EEE6` | OG images, email hero, ≥ 64 px hero tiles                 |
+| `brand-favicon.svg`      | 32×32   | `#0A2540` | `#F3EEE6` | Browser favicon, ≤ 32 px inline brand chips (light theme) |
+| `brand-favicon-dark.svg` | 32×32   | `#071A2E` | `#F4F8FC` | ≤ 32 px inline brand chips (dark theme)                   |
 
-The mark is the **Clearing D** direction: a strong fintech app-icon silhouette
-with a DueDateHQ `D`, ledger ticks, and a deadline pulse dot. The full 256 px
-mark keeps a subtle pulse halo; favicon variants remove the halo and keep only
-the shapes that survive 16-32 px:
+The mark is the **stacked-bars** direction (2026-06-16, supplied by Yuqi —
+replaced the Radar D): four rounded horizontal bars, the third indented — an
+abstract timeline / schedule motif. App-icon form: ivory bars on a navy rounded
+square. The shapes that survive 16-32 px:
 
-- rounded-square fintech tile
-- silver `D` monogram
-- brass ledger tick
-- cyan deadline pulse
+- rounded-square navy tile (`--color-brand-ink` `#0A2540`)
+- four ivory bars (`--color-brand-ivory` `#F3EEE6`), the third indented
+
+The in-app source of truth is `apps/app/src/components/primitives/brand-mark.tsx`
+(`BrandMark`) and `docs/brand/` (full lockup + brand book). Keep these standalone
+SVGs in sync with it.
 
 All files use hardcoded hex (no CSS variables, no `currentColor`) so they
 work as standalone files in `<link rel="icon">` tags and in email templates

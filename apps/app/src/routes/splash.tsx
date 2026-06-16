@@ -9,6 +9,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { orpc } from '@/lib/rpc'
 import { formatRelativeTime } from '@/lib/utils'
+import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
 
 /**
  * SplashRoute — the post-login "welcome back" surface (Pencil node `QGZta`),
@@ -97,15 +98,8 @@ export function SplashRoute() {
     <div className="flex min-h-screen w-full flex-col bg-background-section">
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-16 md:px-20 md:py-32">
         <div className="flex w-full max-w-[720px] flex-col items-center gap-8">
-          {/* Brand lockup — dark "D" mark, consistent with the auth cluster. */}
-          <div className="flex items-center gap-2.5">
-            <span className="flex size-6 items-center justify-center rounded-md bg-text-primary text-base font-bold tracking-[-0.3px] text-text-primary-on-surface">
-              D
-            </span>
-            <span className="text-sm font-semibold tracking-[-0.2px] text-text-primary">
-              DueDateHQ
-            </span>
-          </div>
+          {/* Brand lockup — frameless bars mark + serif wordmark (no navy square here). */}
+          <AuthBrandAnchor tagline={false} frame={false} markClassName="h-5" />
 
           {/* Greeting */}
           <div className="flex w-full flex-col items-center gap-2.5">
