@@ -1832,7 +1832,24 @@ export function ObligationQueueDetailDrawer({
           drawer body (page mode) so it shares the 760px document measure
           and scroll column with the hero/body/footer below, exactly like
           AlertDetailDrawer's BackStrip. */}
-      {isPageMode ? <DeadlineCrumbBar position={position} onClose={onClose} /> : null}
+      {isPageMode ? (
+        <DeadlineCrumbBar
+          position={position}
+          onClose={onClose}
+          // Same `{label} — {description}` expression as the hero <h2> (≈L2054),
+          // so the crumb leaf matches the title exactly once the hero scrolls
+          // away (Yuqi alert↔deadline crumb parity).
+          title={
+            row
+              ? (() => {
+                  const meta = describeTaxCode(row.taxType)
+                  return meta.description ? `${meta.label} — ${meta.description}` : meta.label
+                })()
+              : undefined
+          }
+          heroScrolled={heroCollapsed}
+        />
+      ) : null}
       {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): thin h-7 top
           status banner mirroring AlertDetailDrawer's DecisionBanners
           (L424). One band, colored by deadline state — red when overdue,

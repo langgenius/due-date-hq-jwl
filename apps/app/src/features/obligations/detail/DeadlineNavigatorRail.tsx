@@ -106,6 +106,7 @@ function relativeDueLabel(row: ObligationQueueRow): {
  */
 export function DeadlineNavigatorRail({
   rows,
+  routeSearch = '',
   activeObligationId,
   activeTab,
   totalCount,
@@ -114,6 +115,11 @@ export function DeadlineNavigatorRail({
   onLoadMore,
 }: {
   rows: readonly ObligationQueueRow[]
+  /** The page URL's search string (`location.search`) — threaded into each row's
+   * deep-link href so a rail hop preserves the active status filter (Yuqi bug:
+   * switching rows used to drop ?status and Close returned to the unfiltered
+   * list). Distinct from the rail's own `search` box state below. */
+  routeSearch?: string
   activeObligationId: string | null
   activeTab: ObligationQueueDetailTab
   totalCount: number | null
@@ -324,6 +330,7 @@ export function DeadlineNavigatorRail({
                   row={row}
                   active={row.id === activeObligationId}
                   activeTab={activeTab}
+                  routeSearch={routeSearch}
                   statusLabel={statusLabels[row.status]}
                 />
               </Fragment>
@@ -349,11 +356,13 @@ function DeadlineNavigatorRow({
   row,
   active,
   activeTab,
+  routeSearch,
   statusLabel,
 }: {
   row: ObligationQueueRow
   active: boolean
   activeTab: ObligationQueueDetailTab
+  routeSearch: string
   statusLabel: string
 }) {
   const relative = relativeDueLabel(row)
@@ -367,7 +376,7 @@ function DeadlineNavigatorRow({
 
   return (
     <Link
-      to={deadlineDetailHref({ obligationId: row.id, tab: activeTab })}
+      to={deadlineDetailHref({ obligationId: row.id, tab: activeTab, search: routeSearch })}
       state={{ obligationId: row.id }}
       aria-current={active ? 'page' : undefined}
       className={cn(

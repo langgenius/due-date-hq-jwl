@@ -111,21 +111,29 @@ export function DeadlineDetailRoute() {
   const goToRow = useCallback(
     (targetId: string | null) => {
       if (!targetId) return
-      void navigate(deadlineDetailHref({ obligationId: targetId, tab: activeTab }), {
-        state: { obligationId: targetId },
-      })
+      // 2026-06-16 (Yuqi "点了一个status进到detail就无法切换回去 — 有bug"): thread
+      // `search` so prev/next paging keeps the active status filter; without it
+      // a hop dropped ?status, so the rail expanded to all rows and Close
+      // returned to the unfiltered list.
+      void navigate(
+        deadlineDetailHref({ obligationId: targetId, tab: activeTab, search: location.search }),
+        {
+          state: { obligationId: targetId },
+        },
+      )
     },
-    [navigate, activeTab],
+    [navigate, activeTab, location.search],
   )
 
   return (
     <div className="flex h-full min-h-0 w-full">
       <DeadlineNavigatorRail
         rows={rows}
+        routeSearch={location.search}
         activeObligationId={obligationId}
         activeTab={activeTab}
         totalCount={rows.length > 0 ? rows.length : null}
-        hasMore={Boolean(listQuery.hasNextPage)}
+        hasMore={listQuery.hasNextPage}
         isLoadingMore={listQuery.isFetchingNextPage}
         onLoadMore={() => void listQuery.fetchNextPage()}
       />
