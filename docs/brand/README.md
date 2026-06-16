@@ -3,9 +3,9 @@
 Brand identity for DueDateHQ, a deadline/obligation command center for CPA firms.
 Open the `.svg` files in a browser (or drop into Figma/Pencil) to view.
 
-**Full design system → [brand-book.md](brand-book.md)** — logo, the two-layer color
-model (brand identity vs Dify-derived product UI), typography, space/radius/elevation,
-voice, and the primitive vocabulary, all grounded in the real tokens.
+**完整设计系统 → [中文 · brand-book.zh.md](brand-book.zh.md)** · [English](brand-book.md)
+— logo、两层颜色模型(品牌识别 vs Dify 产品 UI)、排版、间距/圆角/层级、语气,以及 primitive
+词汇表,全部对齐真实 token。Logo 单独的中文说明见 [logo-rationale.zh.md](logo-rationale.zh.md)。
 
 **Brand tokens (code):** `--color-brand-{ink,ink-deep,ivory,signal,gold}` in
 `packages/ui/src/styles/tokens/primitives.css` · serif `--font-serif`.
