@@ -577,6 +577,9 @@ export function ClientDetailWorkspace({
             // (⋯ + Add deadline) stays in the title row — those
             // ARE page-level controls scoped to this client.
             eyebrowAside={<ClientCycleArrows currentClientId={client.id} />}
+            // VtC73 client-detail title scale: 36/600 display-large (vs the
+            // standard 28px page title), with tightened display tracking.
+            titleClassName="text-display-large leading-tight tracking-display"
             title={
               // Title cluster is title + 1 readiness chip per canonical
               // (page-family-canonical §3 — title + ≤1 chip). Entity
@@ -759,7 +762,15 @@ export function ClientDetailWorkspace({
               isLoading={obligationsQuery.isLoading}
             />
 
-            {/* Tabbed body. Reasoning in
+            {/* Body split: the filing-plan tabs on the left, the per-client
+                rail (Notes / Contacts / Alerts) on the right — aligned with
+                the tab content, BELOW the now-full-width header + summary
+                strip (VtC73). The rail collapses when the obligation panel
+                opens; the panel (a sibling of this whole column) then pushes
+                the full-width header + body left. */}
+            <div className="flex min-h-0 flex-1 flex-col gap-6 xl:flex-row xl:items-stretch xl:gap-6">
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                {/* Tabbed body. Reasoning in
                 docs/Design/client-page-information-architecture.md.
                 Content grew past the point where a flat list of
                 collapsibles reads cleanly, and "compliance posture" is
@@ -768,21 +779,21 @@ export function ClientDetailWorkspace({
                   • Work       — what do they owe right now?
                   • Client info — who is this client?
                   • Activity   — what happened recently? (lazy) */}
-            <Tabs
-              value={activeTab}
-              onValueChange={(value) => {
-                if (value === 'work' || value === 'info' || value === 'activity') {
-                  void setActiveTab(value)
-                }
-              }}
-              // Tabs root is its own flex column inside the workspace.
-              // TabsList sits shrink-0 at the top; the active
-              // TabsContent fills the remaining height with its own
-              // overflow-y-auto. Without this, the whole detail page
-              // scrolls as one.
-              className="flex min-h-0 flex-1 flex-col"
-            >
-              {/* Tab bar matches the /deadlines scope-tabs visual —
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(value) => {
+                    if (value === 'work' || value === 'info' || value === 'activity') {
+                      void setActiveTab(value)
+                    }
+                  }}
+                  // Tabs root is its own flex column inside the workspace.
+                  // TabsList sits shrink-0 at the top; the active
+                  // TabsContent fills the remaining height with its own
+                  // overflow-y-auto. Without this, the whole detail page
+                  // scrolls as one.
+                  className="flex min-h-0 flex-1 flex-col"
+                >
+                  {/* Tab bar matches the /deadlines scope-tabs visual —
                   left-aligned, hug-content triggers (no flex-1),
                   transparent background, single hairline border. The
                   primitive's `variant="line"` provides the
@@ -790,7 +801,7 @@ export function ClientDetailWorkspace({
                   below to drop the primitive's `flex-1` so each tab hugs
                   its label (matches /deadlines instead of spreading
                   full-width). */}
-              {/* Active-tab underline is a single `<motion.span
+                  {/* Active-tab underline is a single `<motion.span
                   layoutId>` rendered inside whichever trigger is active,
                   not the primitive's CSS-only `data-active:after:`.
                   Framer Motion smoothly slides the underline between
@@ -802,17 +813,17 @@ export function ClientDetailWorkspace({
                   2px bottom border that turns `divider-deep` on hover so
                   the row reads warm at rest, matching /deadlines hover
                   symmetry. */}
-              {/* TabsList carries the `border-b` seam (matching the /deadlines
+                  {/* TabsList carries the `border-b` seam (matching the /deadlines
                   + /alerts detail tab bars) so the tabs read as part of the
                   header rather than floating. h-11 / gap-4 / text-sm / px-0
                   all match those references. The active motion.span sits at
                   `-bottom-px` so it covers the gray border at its position —
                   no double line. */}
-              <TabsList
-                variant="line"
-                className="flex h-11 shrink-0 items-stretch gap-4 overflow-x-auto border-b border-divider-subtle bg-transparent px-0 text-sm"
-              >
-                {/* Leading lucide glyph per tab. Matches the deadline
+                  <TabsList
+                    variant="line"
+                    className="flex h-11 shrink-0 items-stretch gap-4 overflow-x-auto border-b border-divider-subtle bg-transparent px-0 text-sm"
+                  >
+                    {/* Leading lucide glyph per tab. Matches the deadline
                     drawer's tab bar (paperclip / calendar / file) and
                     gives the row a stronger "scan me" affordance — the
                     icons help the CPA recognize the destination before
@@ -831,301 +842,322 @@ export function ClientDetailWorkspace({
                           (read-mode history; Notes lives in a slide-in
                           panel)
                 */}
-                <ClientDetailTabTrigger value="work" activeTab={activeTab} compact={panelOpen}>
-                  <ClipboardListIcon className="size-3.5" aria-hidden />
-                  <span data-tab-label className="inline-flex items-center gap-1.5">
-                    {/* "Filing plan" (not "Filings") so the tab matches the
+                    <ClientDetailTabTrigger value="work" activeTab={activeTab} compact={panelOpen}>
+                      <ClipboardListIcon className="size-3.5" aria-hidden />
+                      <span data-tab-label className="inline-flex items-center gap-1.5">
+                        {/* "Filing plan" (not "Filings") so the tab matches the
                         section heading, the hotkey registry ("Filing plan
                         tab"), and the URL-intent comment above — one noun for
                         one surface. A count pill of the plan's rows trails. */}
-                    <Trans>Filing plan</Trans>
-                    {!panelOpen && obligations.length > 0 ? (
-                      <Badge
-                        variant="secondary"
-                        className="px-1.5 text-caption-xs font-semibold tabular-nums"
-                      >
-                        {obligations.length}
-                      </Badge>
-                    ) : null}
-                  </span>
-                </ClientDetailTabTrigger>
-                <ClientDetailTabTrigger value="info" activeTab={activeTab} compact={panelOpen}>
-                  <UserRoundIcon className="size-3.5" aria-hidden />
-                  <span data-tab-label>
-                    <Trans>Setup</Trans>
-                  </span>
-                  {/* Count chip, not a dot: a dot signals "something is
+                        <Trans>Filing plan</Trans>
+                        {!panelOpen && obligations.length > 0 ? (
+                          <Badge
+                            variant="secondary"
+                            className="px-1.5 text-caption-xs font-semibold tabular-nums"
+                          >
+                            {obligations.length}
+                          </Badge>
+                        ) : null}
+                      </span>
+                    </ClientDetailTabTrigger>
+                    <ClientDetailTabTrigger value="info" activeTab={activeTab} compact={panelOpen}>
+                      <UserRoundIcon className="size-3.5" aria-hidden />
+                      <span data-tab-label>
+                        <Trans>Setup</Trans>
+                      </span>
+                      {/* Count chip, not a dot: a dot signals "something is
                       missing" but not HOW MUCH. A count bubble surfaces
                       the magnitude at the tab bar so the CPA can decide
                       whether to switch tabs before clicking through.
                       Tone matches the readiness chip (warning, not
                       destructive) per §3.7 canonical color
                       reservation. */}
-                  {readiness && readiness.missingRequiredFacts.length > 0 ? (
-                    // Badge size='sm' warning carries an accessible name
-                    // (title + aria-label) so AT users hear "N required
-                    // facts missing". Count ternary, not the "(s)" hack —
-                    // a screen reader voices "(s)" literally, and `plural()`
-                    // in a string prop crashes at runtime (lingui footgun).
-                    <Badge
-                      variant="warning"
-                      size="sm"
-                      className="ml-1.5 tabular-nums"
-                      title={
-                        readiness.missingRequiredFacts.length === 1
-                          ? t`1 required fact missing`
-                          : t`${readiness.missingRequiredFacts.length} required facts missing`
-                      }
-                      aria-label={
-                        readiness.missingRequiredFacts.length === 1
-                          ? t`1 required fact missing`
-                          : t`${readiness.missingRequiredFacts.length} required facts missing`
-                      }
+                      {readiness && readiness.missingRequiredFacts.length > 0 ? (
+                        // Badge size='sm' warning carries an accessible name
+                        // (title + aria-label) so AT users hear "N required
+                        // facts missing". Count ternary, not the "(s)" hack —
+                        // a screen reader voices "(s)" literally, and `plural()`
+                        // in a string prop crashes at runtime (lingui footgun).
+                        <Badge
+                          variant="warning"
+                          size="sm"
+                          className="ml-1.5 tabular-nums"
+                          title={
+                            readiness.missingRequiredFacts.length === 1
+                              ? t`1 required fact missing`
+                              : t`${readiness.missingRequiredFacts.length} required facts missing`
+                          }
+                          aria-label={
+                            readiness.missingRequiredFacts.length === 1
+                              ? t`1 required fact missing`
+                              : t`${readiness.missingRequiredFacts.length} required facts missing`
+                          }
+                        >
+                          {readiness.missingRequiredFacts.length}
+                        </Badge>
+                      ) : null}
+                    </ClientDetailTabTrigger>
+                    <ClientDetailTabTrigger
+                      value="activity"
+                      activeTab={activeTab}
+                      compact={panelOpen}
                     >
-                      {readiness.missingRequiredFacts.length}
-                    </Badge>
-                  ) : null}
-                </ClientDetailTabTrigger>
-                <ClientDetailTabTrigger value="activity" activeTab={activeTab} compact={panelOpen}>
-                  <ActivityIcon className="size-3.5" aria-hidden />
-                  <span data-tab-label>
-                    {/* "History", not "Activity": Notes lives in its
+                      <ActivityIcon className="size-3.5" aria-hidden />
+                      <span data-tab-label>
+                        {/* "History", not "Activity": Notes lives in its
                         own slide-in panel, so this tab is coherently
                         read-mode (AI summary + Activity log = the story
                         of what's happened), not mixing a write-mode
                         Notes block. */}
-                    <Trans>History</Trans>
-                  </span>
-                </ClientDetailTabTrigger>
-              </TabsList>
+                        <Trans>History</Trans>
+                      </span>
+                    </ClientDetailTabTrigger>
+                  </TabsList>
 
-              {/* Each TabsContent owns its own overflow-y-auto so the
+                  {/* Each TabsContent owns its own overflow-y-auto so the
                   tab body scrolls INDEPENDENTLY of the rest of the page
                   (PageHeader, ContactMetaRow, alerts, summary, tab bar
                   stay pinned). Matches /deadlines's "queue column
                   scrolls, surrounding chrome stays put" mechanism. The
                   bottom padding gives the last row breathing room from
                   the viewport edge. */}
-              <TabsContent
-                value="work"
-                className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
-              >
-                <ClientWorkPlanPanel
-                  obligations={queueRows}
-                  isLoading={clientQueueQuery.isLoading}
-                  summary={workPlan}
-                  clientName={client.name}
-                  onChangeStatus={handleChangeObligationStatus}
-                  isStatusChangePending={changeStatusMutation.isPending}
-                  canChangeStatus={canUpdateObligationStatus}
-                  activeObligationId={activeObligationId}
-                  expandedFilingId={expandedFilingId}
-                  // 2026-06-15 (Yuqi): clicking a filing opens the obligation
-                  // detail in the in-page side panel (the right <aside> that
-                  // animates to 60%) instead of expanding inline or navigating
-                  // away to /deadlines/:ref — the user stays anchored in the
-                  // client's context. `openObligationPanel` sets local panel
-                  // state on /clients/:id (no route change); cmd/ctrl-click on
-                  // the title still opens the full /deadlines page (escape hatch).
-                  onExpandFiling={(id) => openObligationPanel(id)}
-                  onCollapseFiling={() => void setExpandedFilingId('')}
-                  // Compact only when the obligation panel squeezes the left
-                  // column; at rest the full table (incl. OFFICIAL DUE + OWNER)
-                  // shows, matching the /deadlines table.
-                  compact={panelOpen}
-                />
-              </TabsContent>
+                  <TabsContent
+                    value="work"
+                    className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
+                  >
+                    <ClientWorkPlanPanel
+                      obligations={queueRows}
+                      isLoading={clientQueueQuery.isLoading}
+                      summary={workPlan}
+                      clientName={client.name}
+                      onChangeStatus={handleChangeObligationStatus}
+                      isStatusChangePending={changeStatusMutation.isPending}
+                      canChangeStatus={canUpdateObligationStatus}
+                      activeObligationId={activeObligationId}
+                      expandedFilingId={expandedFilingId}
+                      // 2026-06-15 (Yuqi): clicking a filing opens the obligation
+                      // detail in the in-page side panel (the right <aside> that
+                      // animates to 60%) instead of expanding inline or navigating
+                      // away to /deadlines/:ref — the user stays anchored in the
+                      // client's context. `openObligationPanel` sets local panel
+                      // state on /clients/:id (no route change); cmd/ctrl-click on
+                      // the title still opens the full /deadlines page (escape hatch).
+                      onExpandFiling={(id) => openObligationPanel(id)}
+                      onCollapseFiling={() => void setExpandedFilingId('')}
+                      // Compact only when the obligation panel squeezes the left
+                      // column; at rest the full table (incl. OFFICIAL DUE + OWNER)
+                      // shows, matching the /deadlines table.
+                      compact={panelOpen}
+                    />
+                  </TabsContent>
 
-              {/* Every tab below uses <TabSection> for its section
+                  {/* Every tab below uses <TabSection> for its section
                   heading so all tabs share one visual language (h2 +
                   subtitle, no disclosure, no nested card frame around
                   the section block itself). */}
-              <TabsContent
-                value="info"
-                className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
-              >
-                {/* Compliance posture — EIN + tax year + owners +
+                  <TabsContent
+                    value="info"
+                    className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
+                  >
+                    {/* Compliance posture — EIN + tax year + owners +
                     activity-scope flags. Client identity facts, not
                     "work" in progress; the CPA edits / verifies these
                     quarterly, not daily. Panel renders its own grid
                     inside; TabSection owns the section heading. */}
-                {/* Compliance posture — EIN + tax year + owners +
+                    {/* Compliance posture — EIN + tax year + owners +
                     activity-scope flags. Client identity facts, not
                     "work" in progress; the CPA edits / verifies these
                     quarterly, not daily. Panel renders its own grid
                     inside; TabSection owns the section heading. */}
-                <TabSection
-                  title={t`Compliance posture`}
-                  summary={t`Identity facts that drive the deadline generator`}
-                >
-                  <ClientCompliancePosturePanel client={client} />
-                </TabSection>
+                    <TabSection
+                      title={t`Compliance posture`}
+                      summary={t`Identity facts that drive the deadline generator`}
+                    >
+                      <ClientCompliancePosturePanel client={client} />
+                    </TabSection>
 
-                {/* Tax classification — the entity-type + federal
+                    {/* Tax classification — the entity-type + federal
                     tax-classification pair that decides which forms the
                     deadline generator emits. Editing it doesn't save
                     inline; "Review impact…" opens an impact dialog that
                     previews the add/remove fan-out and applies the
                     reclassification atomically (recomputing obligations
                     + writing an audit reason). */}
-                <TabSection
-                  title={t`Tax classification`}
-                  summary={t`Changing this recomputes which forms this client owes`}
-                >
-                  <div className="rounded-lg border border-divider-regular bg-background-default p-4">
-                    <ClientClassificationPanel
-                      key={`${client.id}:classification`}
-                      client={client}
-                      onApplied={handleClassificationApplied}
-                    />
-                  </div>
-                </TabSection>
+                    <TabSection
+                      title={t`Tax classification`}
+                      summary={t`Changing this recomputes which forms this client owes`}
+                    >
+                      <div className="rounded-lg border border-divider-regular bg-background-default p-4">
+                        <ClientClassificationPanel
+                          key={`${client.id}:classification`}
+                          client={client}
+                          onApplied={handleClassificationApplied}
+                        />
+                      </div>
+                    </TabSection>
 
-                <TabSection
-                  title={t`Filing jurisdictions`}
-                  summary={formatJurisdictionSummary(client)}
-                >
-                  <div
-                    id="client-filing-jurisdictions"
-                    className={cn(
-                      'scroll-mt-20 rounded-lg border bg-background-default p-4',
-                      missingFilingState
-                        ? 'border-state-warning-active-alt'
-                        : 'border-divider-regular',
-                    )}
+                    <TabSection
+                      title={t`Filing jurisdictions`}
+                      summary={formatJurisdictionSummary(client)}
+                    >
+                      <div
+                        id="client-filing-jurisdictions"
+                        className={cn(
+                          'scroll-mt-20 rounded-lg border bg-background-default p-4',
+                          missingFilingState
+                            ? 'border-state-warning-active-alt'
+                            : 'border-divider-regular',
+                        )}
+                      >
+                        <ClientJurisdictionPanel
+                          key={`${client.id}:jurisdiction`}
+                          client={client}
+                          isSaving={replaceFilingProfilesMutation.isPending}
+                          onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
+                        />
+                      </div>
+                    </TabSection>
+
+                    <TabSection
+                      title={t`Risk profile`}
+                      titleAccessory={<RiskProfileSmartPriorityHelp />}
+                      summary={t`Importance and late-filing history`}
+                    >
+                      <div className="rounded-lg border border-divider-regular bg-background-default p-4">
+                        <ClientRiskInputsPanel
+                          key={`${client.id}:risk`}
+                          client={client}
+                          isSaving={updateRiskProfileMutation.isPending}
+                          onSave={(input) => updateRiskProfileMutation.mutate(input)}
+                        />
+                      </div>
+                    </TabSection>
+
+                    <TabSection
+                      title={showSourceFields ? t`Import source` : t`Contact details`}
+                      summary={formatImportSourceSummary(client)}
+                    >
+                      <div className="rounded-lg border border-divider-regular bg-background-default p-4">
+                        <ClientSourceDetailsPanel
+                          key={`${client.id}:source-details`}
+                          client={client}
+                          showSourceFields={showSourceFields}
+                          isSaving={updateSourceDetailsMutation.isPending}
+                          onSave={(input) => updateSourceDetailsMutation.mutate(input)}
+                        />
+                      </div>
+                    </TabSection>
+                  </TabsContent>
+
+                  <TabsContent
+                    value="activity"
+                    className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
                   >
-                    <ClientJurisdictionPanel
-                      key={`${client.id}:jurisdiction`}
-                      client={client}
-                      isSaving={replaceFilingProfilesMutation.isPending}
-                      onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
-                    />
-                  </div>
-                </TabSection>
-
-                <TabSection
-                  title={t`Risk profile`}
-                  titleAccessory={<RiskProfileSmartPriorityHelp />}
-                  summary={t`Importance and late-filing history`}
-                >
-                  <div className="rounded-lg border border-divider-regular bg-background-default p-4">
-                    <ClientRiskInputsPanel
-                      key={`${client.id}:risk`}
-                      client={client}
-                      isSaving={updateRiskProfileMutation.isPending}
-                      onSave={(input) => updateRiskProfileMutation.mutate(input)}
-                    />
-                  </div>
-                </TabSection>
-
-                <TabSection
-                  title={showSourceFields ? t`Import source` : t`Contact details`}
-                  summary={formatImportSourceSummary(client)}
-                >
-                  <div className="rounded-lg border border-divider-regular bg-background-default p-4">
-                    <ClientSourceDetailsPanel
-                      key={`${client.id}:source-details`}
-                      client={client}
-                      showSourceFields={showSourceFields}
-                      isSaving={updateSourceDetailsMutation.isPending}
-                      onSave={(input) => updateSourceDetailsMutation.mutate(input)}
-                    />
-                  </div>
-                </TabSection>
-              </TabsContent>
-
-              <TabsContent
-                value="activity"
-                className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
-              >
-                {/* Activity content only renders when the tab is the
+                    {/* Activity content only renders when the tab is the
                     active one — the surrounding TabsContent gates the
                     AI summary + audit log queries that fire inside. */}
-                <HistoryCard
-                  title={t`Activity summary`}
-                  sub={
-                    riskSummaryQuery.data?.generatedAt
-                      ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
-                      : t`Auto-drafted recap`
-                  }
-                  footer={
-                    riskSummaryQuery.data && riskSummaryQuery.data.sections.length > 0 ? (
-                      <CopyRecapButton insight={riskSummaryQuery.data} />
-                    ) : undefined
-                  }
-                  // The AI status badge + Refresh button cluster lives
-                  // in the TabSection's `actions` slot so the badge +
-                  // Refresh sit on the same row as the section title
-                  // (not as a separate bar inside the panel body — see
-                  // `ClientRiskSummaryPanel` below, which doesn't render
-                  // that header strip).
-                  actions={
-                    <>
-                      {/* Only badge a real generated insight (or a failure).
+                    <HistoryCard
+                      title={t`Activity summary`}
+                      sub={
+                        riskSummaryQuery.data?.generatedAt
+                          ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
+                          : t`Auto-drafted recap`
+                      }
+                      footer={
+                        riskSummaryQuery.data && riskSummaryQuery.data.sections.length > 0 ? (
+                          <CopyRecapButton insight={riskSummaryQuery.data} />
+                        ) : undefined
+                      }
+                      // The AI status badge + Refresh button cluster lives
+                      // in the TabSection's `actions` slot so the badge +
+                      // Refresh sit on the same row as the section title
+                      // (not as a separate bar inside the panel body — see
+                      // `ClientRiskSummaryPanel` below, which doesn't render
+                      // that header strip).
+                      actions={
+                        <>
+                          {/* Only badge a real generated insight (or a failure).
                           The data-driven auto-draft shown before generation
                           has no generatedAt — a "Pending" chip next to a
                           populated recap would read as broken. */}
-                      {riskSummaryQuery.data &&
-                      (riskSummaryQuery.data.generatedAt ||
-                        riskSummaryQuery.data.status === 'failed') ? (
-                        <InsightStatusBadge status={riskSummaryQuery.data.status} />
-                      ) : null}
-                      {practiceAiEnabled ? (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={requestRiskSummaryMutation.isPending}
-                          onClick={() => requestRiskSummaryMutation.mutate({ clientId: client.id })}
-                        >
-                          <RefreshCwIcon data-icon="inline-start" />
-                          {requestRiskSummaryMutation.isPending ? (
-                            <Trans>Queued</Trans>
-                          ) : (
-                            <Trans>Refresh</Trans>
-                          )}
-                        </Button>
-                      ) : null}
-                      {/* No `<UpgradeCtaButton />` upsell in this
+                          {riskSummaryQuery.data &&
+                          (riskSummaryQuery.data.generatedAt ||
+                            riskSummaryQuery.data.status === 'failed') ? (
+                            <InsightStatusBadge status={riskSummaryQuery.data.status} />
+                          ) : null}
+                          {practiceAiEnabled ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={requestRiskSummaryMutation.isPending}
+                              onClick={() =>
+                                requestRiskSummaryMutation.mutate({ clientId: client.id })
+                              }
+                            >
+                              <RefreshCwIcon data-icon="inline-start" />
+                              {requestRiskSummaryMutation.isPending ? (
+                                <Trans>Queued</Trans>
+                              ) : (
+                                <Trans>Refresh</Trans>
+                              )}
+                            </Button>
+                          ) : null}
+                          {/* No `<UpgradeCtaButton />` upsell in this
                           section header — the orange Pro upsell pulled
                           the eye away from the section's actual content.
                           Practices without AI just see no Refresh button
                           next to the InsightStatusBadge in this slot;
                           billing surface up-sells elsewhere. */}
-                    </>
-                  }
-                >
-                  <ClientRiskSummaryPanel
-                    insight={riskSummaryQuery.data ?? null}
-                    isLoading={riskSummaryQuery.isLoading}
-                    canRefresh={practiceAiEnabled}
-                  />
-                </HistoryCard>
+                        </>
+                      }
+                    >
+                      <ClientRiskSummaryPanel
+                        insight={riskSummaryQuery.data ?? null}
+                        isLoading={riskSummaryQuery.isLoading}
+                        canRefresh={practiceAiEnabled}
+                      />
+                    </HistoryCard>
 
-                <HistoryCard
-                  title={t`Activity log`}
-                  sub={t`Audit trail of every change`}
-                  actions={
-                    auditQuery.data && auditQuery.data.events.length > 0 ? (
-                      <span className="rounded-full bg-background-default px-1.5 py-0.5 text-caption-xs font-semibold text-text-tertiary tabular-nums">
-                        {auditQuery.data.events.length}
-                      </span>
-                    ) : null
-                  }
-                  // Flush body: ClientActivityPanel is frameless and its rows /
-                  // empty-state own their padding, so the card border + gray
-                  // heading row (rNqhy) is the only frame.
-                  bodyClassName="p-0"
-                >
-                  <ClientActivityPanel
-                    events={auditQuery.data?.events ?? []}
-                    canReadAudit={canReadAudit}
-                    isLoading={auditQuery.isLoading}
-                    firmTimezone={firmTimezone}
+                    <HistoryCard
+                      title={t`Activity log`}
+                      sub={t`Audit trail of every change`}
+                      actions={
+                        auditQuery.data && auditQuery.data.events.length > 0 ? (
+                          <span className="rounded-full bg-background-default px-1.5 py-0.5 text-caption-xs font-semibold text-text-tertiary tabular-nums">
+                            {auditQuery.data.events.length}
+                          </span>
+                        ) : null
+                      }
+                      // Flush body: ClientActivityPanel is frameless and its rows /
+                      // empty-state own their padding, so the card border + gray
+                      // heading row (rNqhy) is the only frame.
+                      bodyClassName="p-0"
+                    >
+                      <ClientActivityPanel
+                        events={auditQuery.data?.events ?? []}
+                        canReadAudit={canReadAudit}
+                        isLoading={auditQuery.isLoading}
+                        firmTimezone={firmTimezone}
+                      />
+                    </HistoryCard>
+                  </TabsContent>
+                </Tabs>
+              </div>
+              {/* Per-client rail — beside the tab content, hidden while the
+                  obligation panel is open (the panel takes the right side). */}
+              {activeObligationId ? null : (
+                <aside className="flex w-full min-w-0 shrink-0 self-stretch overflow-hidden xl:w-80">
+                  <ClientDetailRail
+                    client={client}
+                    canWrite={canUpdateClient}
+                    onEditNotes={() => setNotesOpen(true)}
+                    alertMatches={alertMatches}
+                    extensionPaymentMismatches={extensionPaymentMismatches}
                   />
-                </HistoryCard>
-              </TabsContent>
-            </Tabs>
+                </aside>
+              )}
+            </div>
           </section>
         </div>
         {/* Obligation page panel — replaces the modal Sheet on this
@@ -1155,33 +1187,24 @@ export function ClientDetailWorkspace({
                 because it isn't the dominant axis here).
             CSS sidesteps React 19's reconciliation entirely and is
             stable across renders. */}
-        {/* The right rail reconciles both detail nodes into one
-            responsive surface. At rest (no obligation selected) the
-            aside hosts the persistent Snapshot / Engagement / Contacts
-            rail at a fixed 320px on xl+, stacked full-width below xl.
-            When an obligation row is clicked the same aside swaps to
-            the existing obligation panel at 60% width — the prior
-            slide-in behavior is preserved exactly; the rail simply
-            occupies the otherwise-empty slot when no row is open. */}
+        {/* Obligation panel — a sibling of the full-width page column, so
+            opening an obligation pushes the WHOLE column (header + summary +
+            body) left (Yuqi: keep the push-left behavior). The persistent
+            per-client rail now lives in the body split above; this aside is
+            ONLY the obligation panel. At rest it collapses to 0 width (with a
+            negative margin to cancel the parent gap) so the page column is
+            truly full-width; it animates to 60% when an obligation opens. */}
         <aside
           data-slot="obligation-detail-panel"
           data-open={activeObligationId ? 'true' : 'false'}
           className={cn(
             'min-w-0 shrink-0 self-stretch overflow-hidden',
-            // Below xl: the rail stacks full-width under the primary
-            // column; the obligation panel also goes full-width when
-            // open. Always shown below xl so the rail is reachable.
-            'flex w-full',
-            // xl+: always present as a flex slot, width-animated.
+            // Below xl: full-width stacked block when open; absent at rest.
+            activeObligationId ? 'flex w-full' : 'hidden',
+            // xl+: width-animated panel that pushes the page column left.
             'xl:flex xl:h-full xl:min-h-0',
             'xl:transition-[width,margin-right] xl:duration-300 xl:ease-apple motion-reduce:transition-none',
-            // At rest on xl+: fixed 320px rail (Pencil RightRail width).
-            // The parent's xl:gap-6 provides the 24px gutter.
-            'xl:mr-0 xl:w-80',
-            // Obligation open: widen to 60% to match AlertDetailDrawer's
-            // wrapper (one width contract across the product's
-            // right-rail panels).
-            activeObligationId && 'xl:w-[60%]',
+            activeObligationId ? 'xl:mr-0 xl:w-[60%]' : 'xl:-mr-6 xl:w-0',
           )}
         >
           {activeObligationId ? (
@@ -1198,15 +1221,7 @@ export function ClientDetailWorkspace({
               practiceAiEnabled={practiceAiEnabled}
               blockerCandidates={[]}
             />
-          ) : (
-            <ClientDetailRail
-              client={client}
-              canWrite={canUpdateClient}
-              onEditNotes={() => setNotesOpen(true)}
-              alertMatches={alertMatches}
-              extensionPaymentMismatches={extensionPaymentMismatches}
-            />
-          )}
+          ) : null}
         </aside>
       </div>
 

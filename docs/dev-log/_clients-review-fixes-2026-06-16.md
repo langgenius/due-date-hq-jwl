@@ -216,3 +216,26 @@ token files, then fixed:
 Kept the 12/8 card-radius split (rail standalone cards = 12, inset frames =
 8) — that's the documented two-tier system, not drift. tsgo clean; collision
 + tab seam verified live on Lone Star Ventures.
+
+## Cluster 9 — VtC73 layout: full-width header + rail beside content + 36px title
+Yuqi (with VtC73 + the cramped-tabs/collision screenshot): match VtC73 — the
+header should be full-width with the rail top-aligned to the tab content
+(keeping the panel's push-everything-left behavior); title per VtC73.
+
+Restructured `ClientDetailWorkspace`:
+- The PageHeader + summary strip + tabs are now FULL-WIDTH (a single page
+  column), with a body split below: `[filing-plan tabs | per-client rail]`.
+  The rail (Notes/Contacts/Alerts) now aligns with the tab content, below the
+  header — was running from the top beside the header.
+- The obligation panel is now its own `<aside>` sibling of the page column —
+  0-width at rest (so the header is truly full-width), animating to 60% when
+  an obligation opens, pushing the whole column (header + strip + body) left.
+  The per-client rail collapses while the panel is open (the panel owns the
+  right side). Push-left behavior preserved exactly, verified live.
+- Title → 36/600 `text-display-large` + `tracking-display` (VtC73) via a new
+  `titleClassName` override on the shared PageHeader (default page title
+  stays 28px). `display-large` is registered in `cn()` so it isn't stripped.
+
+Verified live both states on Meridian + Lone Star: rest = full-width header +
+rail beside the tab content; panel-open = everything pushed left, rail
+collapsed, framed obligation cards on the right. tsgo clean.

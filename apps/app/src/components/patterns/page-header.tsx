@@ -36,6 +36,7 @@ export function PageHeader({
   eyebrowAside,
   breadcrumbs,
   title,
+  titleClassName,
   metaRow,
   description,
   actions,
@@ -53,6 +54,9 @@ export function PageHeader({
   eyebrowAside?: ReactNode
   breadcrumbs?: BreadcrumbItem[]
   title: ReactNode
+  /** Override the h1 size/leading/tracking (e.g. a 36px display title on a
+   *  detail page). Merged after the default `text-2xl` scale. */
+  titleClassName?: string
   /**
    * Optional secondary row between the h1 and the description.
    *
@@ -121,7 +125,14 @@ export function PageHeader({
               actual ascender height — capital letters like "B" / "A" get their
               very top 1-2px clipped by the parent's intrinsic flex-row
               baseline. `leading-8` (32px) gives glyph ascenders room. */}
-          <h1 className="min-w-0 text-2xl leading-8 font-semibold text-text-primary">{title}</h1>
+          <h1
+            className={cn(
+              'min-w-0 text-2xl leading-8 font-semibold text-text-primary',
+              titleClassName,
+            )}
+          >
+            {title}
+          </h1>
           {metaRow ? (
             <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-xs leading-5 text-text-secondary">
               {metaRow}
