@@ -83,13 +83,27 @@ text-xs    font-medium   tracking-eyebrow  text-text-tertiary uppercase   (B2 �
 > `tracking-eyebrow-tight`, semibold). Color (`text-text-tertiary`) + uppercase
 > are baked in. New B-tier labels MUST use it — never hand-roll. The ~200 legacy
 > hand-rolled labels (4 sizes × 2 weights × 5 trackings of the same
-> tertiary-uppercase look) migrate ONTO it mechanically; that sweep is in
-> progress — the just-redesigned alert/deadline detail drawers (~51 labels) are
-> sequenced with that surface's owner to avoid racing the redesign.
+> tertiary-uppercase look) migrate ONTO it mechanically.
+>
+> **Sweep status (2026-06-17):** the safe surfaces are DONE — **65 sites across
+> 23 files** now on `FieldLabel` (dev-logs `fieldlabel-migration-batch1/2`).
+> Decisions made during the sweep (Yuqi):
+> - **Table column headers** keep `<TableHead>` (+ its width/align classes) and
+>   wrap the content in `<FieldLabel variant="group">` — they do NOT become a
+>   bare FieldLabel.
+> - **`<h3>`/`<h2>` heading-labels** that were really small-caps labels (not prose
+>   titles) demote to `as="div"` FieldLabels.
+> - **13px `text-caption` headers** normalize down to `group` (11px).
+> - **Not converted:** badges/pills (own primitive), `<label htmlFor>` form labels
+>   (FieldLabel doesn't forward `htmlFor`), `<DropdownMenuLabel>`, `text-sm` bands,
+>   `tabular-nums` counts, and `text-column-label`-token labels (already canonical).
+> Still pending: the alert/deadline detail drawers (~43 labels) once those files
+> settle.
 >
 > (`field` keeps `tracking-wide` rather than the §3.3 `tracking-eyebrow` canon to
-> avoid shifting its 14 current consumers mid-sweep; reconciling that is a
-> one-line follow-up once everything is on the primitive.)
+> avoid shifting its current consumers mid-sweep; reconciling that — and giving
+> `FieldLabel` an `htmlFor` passthrough so form labels can join — are the two
+> open one-line follow-ups.)
 
 ## Register C — Card / panel title
 
