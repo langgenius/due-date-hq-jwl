@@ -401,3 +401,35 @@ Setup / History) and removed the `!panelOpen` gate on the Filing-plan count
 badge, so the tabs keep their labels + count even while the panel pushes the
 client column left. Verified live (Meridian, panel open): all three labels
 visible (none sr-only), count "4" shows. tsgo clean.
+
+## Cluster 15 — Client-detail review batch 1 (strip + tabs + sort hint + title)
+Yuqi (big /clients review). Batch 1 (client files):
+- Summary strip: Next Due date dropped from stat-value (24) to text-xl (18) — it's
+  a date, not a KPI count (Yuqi "May 12 smaller"); strip labels aligned to the
+  canonical StatBand grammar (caption-xs/600/tertiary) so the band matches the
+  card summary on /clients, sources, rules, alerts (Yuqi "follow the card summary
+  on other pages"). The bg-subtle panel is kept (Yuqi "good, has the background").
+- Tabs: bigger spacing between tab names — client TabsList gap-4 → gap-6 (Yuqi
+  "bigger spacing between the tab names"). (Panel section-nav gap-6/8 is in the
+  drawer working tree, uncommitted — see note.)
+- Title: drops from 36 (display-large) to 28 (text-2xl) when the obligation panel
+  is open — 36 is too big for the squeezed master (Yuqi "on right panel open, the
+  client name drops size"). Verified live: 36 at rest, 28 with the panel open.
+- Sort hint: "Latest first" moved out of the standalone line above the table INTO
+  the year-group header bar, right-aligned (ml-auto) (Yuqi "Latest first can be
+  put in the header, right most").
+
+PARALLEL-SESSION NOTE: the drawer (ObligationQueueDetailDrawer) carries another
+session's uncommitted change (panel body bg-default → bg-background-subtle, the
+NrQaI "avoid being too white" gray-body model) — which conflicts with Yuqi's
+earlier "white surface" pick for the in-client panel. Left the drawer uncommitted
+(my panel-tab-gap edit rides with their next commit) to avoid sweeping their WIP.
+Flag the white-vs-gray panel-body direction to reconcile.
+
+Deferred (next batches): route padding restructure (#3/#9 — remove weird top pad +
+right pad so the panel goes edge-to-edge, padding on inner content); panel
+breadcrumb header above the banner (#5); PrimaryDeadlineStrip simplify (#7);
+sticky footer visibility (#8); tab underline ↔ divider alignment; buttons bigger
+rounded corners (app-wide); ClientCycleArrows + C-corp/owner-pill primitive
+unification (#3/#4); fixed-width table columns; keep OFFICIAL DUE + OWNER with the
+panel open.

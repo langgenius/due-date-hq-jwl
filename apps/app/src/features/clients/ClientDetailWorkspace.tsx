@@ -578,8 +578,14 @@ export function ClientDetailWorkspace({
             // ARE page-level controls scoped to this client.
             eyebrowAside={<ClientCycleArrows currentClientId={client.id} />}
             // VtC73 client-detail title scale: 36/600 display-large (vs the
-            // standard 28px page title), with tightened display tracking.
-            titleClassName="text-display-large leading-tight tracking-display"
+            // standard 28px page title), with tightened display tracking. When
+            // the obligation panel is open the client column is squeezed, so the
+            // name drops to 28px (text-2xl) — 36px is too large for the narrowed
+            // master (Yuqi "on right panel open, the client name drops size").
+            titleClassName={cn(
+              'leading-tight tracking-display',
+              panelOpen ? 'text-2xl' : 'text-display-large',
+            )}
             title={
               // Title cluster is title + 1 readiness chip per canonical
               // (page-family-canonical §3 — title + ≤1 chip). Entity
@@ -821,7 +827,7 @@ export function ClientDetailWorkspace({
                   no double line. */}
                   <TabsList
                     variant="line"
-                    className="flex h-11 shrink-0 items-stretch gap-4 overflow-x-auto border-b border-divider-subtle bg-transparent px-0 text-sm"
+                    className="flex h-11 shrink-0 items-stretch gap-6 overflow-x-auto border-b border-divider-subtle bg-transparent px-0 text-sm"
                   >
                     {/* Leading lucide glyph per tab. Matches the deadline
                     drawer's tab bar (paperclip / calendar / file) and

@@ -296,12 +296,6 @@ export function ClientWorkPlanPanel({
   // count ALL obligations including terminal years) would force the CPA
   // to compute the relationship instead of just reading. See
   // `docs/Design/ui-audit-2026-05-25.md` §3.2 D4.
-  const subtitle =
-    yearGroups.length <= 1 ? (
-      <Trans>Latest first</Trans>
-    ) : (
-      <Trans>Grouped by tax year, newest first</Trans>
-    )
   return (
     // No restated "Filing plan" h2 here: the tab bar already names this
     // surface "Filing plan" and each year card carries its year + open
@@ -318,7 +312,6 @@ export function ClientWorkPlanPanel({
         selectedIds.size > 0 && FLOATING_ACTION_BAR_SCROLL_PADDING,
       )}
     >
-      <span className="pl-3 text-xs text-text-tertiary">{subtitle}</span>
       {/* Each year section is wrapped in its own framed block using
           the canonical `rounded-lg border-divider-regular
           bg-background-default` shape. The column header bar lives
@@ -618,6 +611,11 @@ function FilingPlanYearSection({
             <Trans>{group.extendedCount} extended</Trans>
           </Badge>
         ) : null}
+        {/* Sort hint lives RIGHTMOST in the year header bar (Yuqi "Latest first
+            can be put in the header, right most"), not as a standalone line. */}
+        <span className="ml-auto text-xs text-text-tertiary">
+          <Trans>Latest first</Trans>
+        </span>
       </div>
       {/* Each filing renders as a <DeadlineRow mode="inline-expand">
           (per deadline-row-interaction.md). Body click expands inline;

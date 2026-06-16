@@ -151,7 +151,10 @@ export function ClientSummaryStrip({
       value: nextDue ? (
         <span
           className={cn(
-            'text-stat-value leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
+            // Next due is a DATE, not a KPI count — one step down from the
+            // stat-value numerals (Yuqi "May 12 smaller") so it reads as the
+            // date it is, with the red carrying the overdue urgency.
+            'text-xl leading-none font-semibold tracking-tight tabular-nums whitespace-nowrap',
             nextDueOverdue ? 'text-text-warning' : 'text-text-primary',
           )}
         >
@@ -173,7 +176,7 @@ export function ClientSummaryStrip({
       {cells.map((cell, i) => {
         const body = (
           <>
-            <span className="whitespace-nowrap text-caption-xs font-medium tracking-eyebrow uppercase text-text-muted">
+            <span className="whitespace-nowrap text-caption-xs font-semibold tracking-eyebrow uppercase text-text-tertiary">
               {cell.label}
             </span>
             <span className="flex min-h-[28px] items-center">{cell.value}</span>
