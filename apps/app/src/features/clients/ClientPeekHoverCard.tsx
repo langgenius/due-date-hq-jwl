@@ -22,7 +22,7 @@ import { orpc } from '@/lib/rpc'
 
 import { useEntityLabels } from '@/routes/clients'
 import { clientDetailPath } from './client-url'
-import { useClientNextDue } from './use-client-next-due'
+import { daysUntilDueFromAsOf, useClientNextDue } from './use-client-next-due'
 
 /**
  * `ClientPeekHoverCard` — the *hover* form of a client peek.
@@ -242,11 +242,7 @@ function PeekNextDue({
       </p>
     )
   }
-  const asOfMs = asOfDate ? Date.parse(asOfDate) : Date.now()
-  const days = Math.ceil(
-    (Date.parse(nextDue.currentDueDate) - (Number.isNaN(asOfMs) ? Date.now() : asOfMs)) /
-      86_400_000,
-  )
+  const days = daysUntilDueFromAsOf(nextDue.currentDueDate, asOfDate)
   const isLate = days < 0
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">

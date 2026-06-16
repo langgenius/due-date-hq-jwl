@@ -27,6 +27,19 @@ export const CLIENT_TERMINAL_STATUSES: ReadonlySet<string> = new Set([
   'not_applicable',
 ])
 
+/**
+ * Whole days from the firm "as of" anchor until a due date — rounded UP (a due
+ * date later today still reads as "1d out", not "today"), with the same
+ * `Date.now()` fallback the hook uses when the firm clock is unavailable. The
+ * `ClientDetailDrawer` + `ClientPeekHoverCard` next-due lines share this so their
+ * day math can't drift (audit: it was hand-copied in both).
+ */
+export function daysUntilDueFromAsOf(dueDate: string, asOfDate: string | null): number {
+  const asOfMs = asOfDate ? Date.parse(asOfDate) : Date.now()
+  const anchor = Number.isNaN(asOfMs) ? Date.now() : asOfMs
+  return Math.ceil((Date.parse(dueDate) - anchor) / 86_400_000)
+}
+
 export interface ClientNextDueResult {
   /** Earliest non-terminal obligation by `currentDueDate`, or null. */
   nextDue: ObligationInstancePublic | null
