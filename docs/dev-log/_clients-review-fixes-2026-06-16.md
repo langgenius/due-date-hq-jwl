@@ -151,3 +151,23 @@ cohesion with the /deadlines + /alerts DETAIL surfaces, which use fact-cards.
 tsgo clean; verified live. Residual: the filing table still has some DEADLINE
 slack at full width (single-client tables have few columns) — minor, can
 tighten if needed.
+
+## Cluster 6 — match Pencil VtC73 (supersedes the Cluster 5 card shape)
+Yuqi pointed at Pencil `VtC73` ("/clients/hudson-wells — detail · master-detail
+REBUILD", 1440px) as the canonical client-detail design, and said the page is
+ugly + "why is max-w 1100 not 1440." Pulled VtC73 and read its tokens.
+
+VtC73's fact strip is NOT separate cards (Cluster 5) and NOT a borderless band
+(original) — it's **one `bg-subtle` rounded-2xl panel** with the facts as
+hairline-divider cells: label 10/700/+0.8 `text-muted`, value a **JetBrains
+Mono 24/700 color-coded number** (jurisdiction = `bg-section` chips). Rebuilt
+`ClientSummaryStrip` to that exactly. Zero counts dim to tertiary so an empty
+count doesn't shout.
+
+Width: already reverted off the 1100 cap last cluster → full-width = the
+route's `max-w-page-expanded` (1440), matching VtC73.
+
+Still to do (noted): VtC73 title is 36/600 (page is ~28); hero/tabs full-width
+rules + 40px gutter; the in-client obligation panel should match the
+/deadlines detail (it renders the fact row borderless + ISO dates instead of
+the bordered fact-cards + pretty dates — a panel-vs-page mode divergence).

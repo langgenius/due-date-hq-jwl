@@ -19,26 +19,24 @@ import { useClientNextDue } from './use-client-next-due'
 // table column (ClientFactsWorkspace), which was renamed for the same reason.
 const FILED_STATUSES: ReadonlySet<string> = new Set(['done', 'completed', 'paid'])
 
-type SummaryCard = {
+type SummaryCell = {
   key: string
   label: string
+  /** Pre-rendered value node (a mono number, a date, or jurisdiction chips). */
   value: ReactNode
-  valueClass?: string
-  sub?: ReactNode
-  subClass?: string
   onClick?: () => void
   ariaLabel?: string
 }
 
 /**
- * ClientSummaryStrip — the /clients/[id] hero fact row: Jurisdictions ·
+ * ClientSummaryStrip — the /clients/[id] hero fact strip: Jurisdictions ·
  * Blocked · Open · Filed · Next due.
  *
- * Rendered as the same bordered fact-cards the /deadlines and /alerts detail
- * surfaces use (rounded-lg + divider-subtle border, CAPS label / bold value /
- * caption sub) so the three detail pages read as one design system — and so
- * the facts cluster into defined cards instead of stranding in a stretched
- * borderless band. Count cards drill into the matching filtered queue.
+ * Replicates Pencil `VtC73`: a single `bg-subtle` rounded-2xl panel with the
+ * facts as hairline-divider cells inside (10/700 muted label + a big
+ * JetBrains-Mono number, color-coded). One grouped panel — not a stretched
+ * borderless band, not five separate bordered cards — so the facts read as a
+ * defined block. Count cells drill into the matching filtered queue.
  */
 export function ClientSummaryStrip({
   client,
@@ -47,7 +45,7 @@ export function ClientSummaryStrip({
 }: {
   client: ClientPublic
   obligations: readonly ObligationInstancePublic[]
-  /** In-flight obligations fetch — shows skeleton cards instead of computing
+  /** In-flight obligations fetch — shows a skeleton panel instead of computing
    *  falsely-calm zeros from an empty obligation set. */
   isLoading?: boolean
 }) {
@@ -68,8 +66,7 @@ export function ClientSummaryStrip({
   )
 
   // Distinct filing jurisdictions: the primary state + each non-archived filing
-  // profile's state. Sorted, deduped — rendered as the same outline state chip
-  // the /clients list uses.
+  // profile's state. Sorted, deduped.
   const jurisdictions = useMemo(() => {
     const set = new Set<string>()
     if (client.state) set.add(client.state)
@@ -80,41 +77,47 @@ export function ClientSummaryStrip({
   }, [client.state, client.filingProfiles])
 
   if (isLoading) {
-    return (
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-[68px] w-full rounded-lg" />
-        ))}
-      </div>
-    )
+    return <Skeleton className="h-[84px] w-full rounded-2xl" />
   }
 
-  const cards: SummaryCard[] = [
+  // Big mono number (VtC73: JetBrains Mono 24/700, color-coded). Dim to tertiary
+  // when zero so an empty count reads as "nothing here", not a loud signal.
+  const num = (value: number, tone: string) => (
+    <span
+      className={cn(
+        'font-mono text-2xl leading-none font-bold tracking-tight tabular-nums',
+        value > 0 ? tone : 'text-text-tertiary',
+      )}
+    >
+      {value}
+    </span>
+  )
+
+  const cells: SummaryCell[] = [
     {
       key: 'jurisdictions',
       label: t`Jurisdictions`,
       value:
         jurisdictions.length > 0 ? (
-          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="flex flex-wrap items-center gap-1.5">
             {jurisdictions.map((code) => (
-              <span key={code} className="inline-flex items-center gap-1">
+              <span
+                key={code}
+                className="inline-flex items-center gap-1 rounded-lg bg-background-section px-2 py-0.5"
+              >
                 <StateBadge code={code} size="xs" preview={false} />
                 <span className="text-sm font-semibold text-text-primary">{code}</span>
               </span>
             ))}
           </span>
         ) : (
-          '—'
+          <span className="font-mono text-2xl leading-none font-bold text-text-tertiary">—</span>
         ),
-      valueClass: jurisdictions.length > 0 ? 'text-text-primary' : 'text-text-tertiary',
     },
     {
       key: 'blocked',
       label: t`Blocked`,
-      value: blockedCount,
-      valueClass: blockedCount > 0 ? 'text-text-warning' : 'text-text-tertiary',
-      sub: blockedCount > 0 ? t`Needs attention` : t`None blocked`,
-      subClass: blockedCount > 0 ? 'text-text-warning' : 'text-text-tertiary',
+      value: num(blockedCount, 'text-text-warning'),
       ...(blockedCount > 0
         ? {
             onClick: () => void navigate(`/deadlines?client=${client.id}&status=blocked`),
@@ -125,9 +128,7 @@ export function ClientSummaryStrip({
     {
       key: 'open',
       label: t`Open`,
-      value: openCount,
-      valueClass: openCount > 0 ? 'text-text-primary' : 'text-text-tertiary',
-      sub: openCount > 0 ? t`In progress` : t`Nothing open`,
+      value: num(openCount, 'text-text-primary'),
       ...(openCount > 0
         ? {
             onClick: () => void navigate(`/deadlines?client=${client.id}`),
@@ -138,71 +139,56 @@ export function ClientSummaryStrip({
     {
       key: 'filed',
       label: t`Filed`,
-      value: filedCount,
-      valueClass: filedCount > 0 ? 'text-text-success' : 'text-text-tertiary',
-      sub: filedCount > 0 ? t`Closed out` : t`None filed`,
-      subClass: filedCount > 0 ? 'text-text-success' : 'text-text-tertiary',
+      value: num(filedCount, 'text-text-success'),
     },
     {
-      // Next due — the soonest open deadline + an on-track/overdue read; the
-      // Healthy/At-risk pill in the title carries overall health, so this
-      // stays factual.
       key: 'next-due',
       label: t`Next due`,
-      value: nextDue ? formatDatePretty(nextDue.currentDueDate) : '—',
-      valueClass: nextDue
-        ? nextDueOverdue
-          ? 'text-text-warning'
-          : 'text-text-primary'
-        : 'text-text-tertiary',
-      sub: nextDue ? (nextDueOverdue ? t`Overdue` : t`On track`) : t`Nothing scheduled`,
-      subClass: nextDueOverdue ? 'text-text-warning' : 'text-text-tertiary',
+      value: nextDue ? (
+        <span
+          className={cn(
+            'text-2xl leading-none font-semibold tracking-tight',
+            nextDueOverdue ? 'text-text-warning' : 'text-text-primary',
+          )}
+        >
+          {formatDatePretty(nextDue.currentDueDate)}
+        </span>
+      ) : (
+        <span className="font-mono text-2xl leading-none font-bold text-text-tertiary">—</span>
+      ),
     },
   ]
 
   return (
     <section
       aria-label={t`Client summary`}
-      className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5"
+      // One grouped panel (VtC73 MetaStrip): bg-subtle rounded-2xl, cells split
+      // by hairline dividers. flex-wrap so it stacks gracefully when squeezed.
+      className="flex flex-wrap rounded-2xl bg-background-subtle px-2 py-3"
     >
-      {cards.map((card) => {
+      {cells.map((cell, i) => {
         const body = (
           <>
-            <span className="truncate text-caption-xs font-semibold uppercase tracking-[0.4px] text-text-tertiary">
-              {card.label}
+            <span className="text-caption-xs font-bold uppercase tracking-[0.8px] text-text-muted">
+              {cell.label}
             </span>
-            <span
-              className={cn(
-                'text-base font-semibold leading-tight tabular-nums',
-                card.valueClass ?? 'text-text-primary',
-              )}
-            >
-              {card.value}
-            </span>
-            {card.sub != null ? (
-              <span
-                className={cn('truncate text-caption-xs font-medium', card.subClass ?? 'text-text-tertiary')}
-              >
-                {card.sub}
-              </span>
-            ) : null}
+            <span className="flex min-h-[28px] items-center">{cell.value}</span>
           </>
         )
-
-        // Shared fact-card chrome (rounded-lg + divider-subtle border), matching
-        // the /deadlines + /alerts detail fact cards.
-        const cardClass = 'flex min-w-0 flex-col gap-1 rounded-lg border border-divider-subtle bg-background-default px-3 py-2.5'
-
-        if (card.onClick) {
+        const cellClass = cn(
+          'flex min-w-0 flex-1 flex-col justify-center gap-2 px-4',
+          i > 0 && 'border-l border-divider-subtle',
+        )
+        if (cell.onClick) {
           return (
             <button
-              key={card.key}
+              key={cell.key}
               type="button"
-              onClick={card.onClick}
-              aria-label={card.ariaLabel}
+              onClick={cell.onClick}
+              aria-label={cell.ariaLabel}
               className={cn(
-                cardClass,
-                'cursor-pointer text-left transition-colors hover:border-state-accent-active-alt hover:bg-state-base-hover',
+                cellClass,
+                '-my-1 cursor-pointer rounded-lg py-1 text-left transition-colors hover:bg-background-default-hover',
                 'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
               )}
             >
@@ -211,7 +197,7 @@ export function ClientSummaryStrip({
           )
         }
         return (
-          <div key={card.key} className={cardClass}>
+          <div key={cell.key} className={cellClass}>
             {body}
           </div>
         )
