@@ -2277,18 +2277,18 @@ export function ObligationQueueDetailDrawer({
             // space holds the content steady regardless of which tab
             // is active.
             panelLayout && 'flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]',
-            // 2026-06-10 (Yuqi alert↔deadline parity #6/#7): the page body is a
-            // gray-wash (bg-background-subtle) scroll surface hosting white
-            // cards, centered on the same 760px document measure as the alert
-            // body — single-column now, so the prior 1100px two-column measure
-            // 2026-06-11 (Yuqi "no padding above the first card — it's sticking
-            // to the top"): restore the page-mode body's top padding. The
-            // earlier "移除top padding" pass left the first content card butted
-            // flush against the tab bar's bottom seam; `pt-6` gives the same
-            // 24px breathing room the panel/sheet tab content carries via its
-            // own pt-6, just hoisted to the body so it covers every tab.
+            // 2026-06-16 (Yuqi "should it be white?"): the page body is now
+            // WHITE (bg-background-default), unifying with the alert detail pane.
+            // The warm-gray wash existed to pop white boxed cards; #11 flattened
+            // the sections into the document, so the wash lost its purpose — flat
+            // sections read cleaner on white, and the remaining real boxes (the
+            // workflow card, checklist items) carry hairline borders that still
+            // delineate them on white (the alert's "flat sections + bordered
+            // tables on white" pattern). Centered on the 760px document measure.
+            // `pt-6` gives the first card the same 24px breathing room below the
+            // tab seam that panel/sheet carry via their own pt-6.
             isPageMode &&
-              'bg-background-subtle pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
+              'bg-background-default pt-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[760px]',
           )}
           onScroll={(event) => {
             const el = event.currentTarget
@@ -2474,19 +2474,16 @@ export function ObligationQueueDetailDrawer({
                     stack. */}
                   <div className="flex flex-col gap-4">
                     <div className={cn('grid min-w-0 flex-1', isPageMode ? 'gap-4' : 'gap-3')}>
-                      {/* 2026-06-10 (Yuqi restore rework 69879cb8 — Pencil Qn4nX
-                        `CorQi` WorkflowMilestoneCard): the stepper, active
-                        stage, blocking, and "What's left" all live in ONE
-                        white card on the gray-wash body — the deadline analogue
-                        of the alert's "The change" group card. Panel/sheet keep
-                        them as flat siblings via `contents`. */}
-                      <div
-                        className={
-                          isPageMode
-                            ? 'flex flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default px-5 py-4'
-                            : 'contents'
-                        }
-                      >
+                      {/* WorkflowMilestoneCard (Pencil Qn4nX `CorQi`): the stepper,
+                        active stage, blocking, and "What's left" — the deadline
+                        analogue of the alert's "The change" section.
+                        2026-06-16 (Yuqi white-body polish): now FLAT, not a boxed
+                        white card. On the white body a white card receded into
+                        white; the alert's "The change" is a flat section, so this
+                        matches — the stepper + what's-left flow as flat content
+                        and the (tinted) active-stage block below is the one focal
+                        workspace. Panel/sheet keep `contents`. */}
+                      <div className={isPageMode ? 'flex flex-col gap-4' : 'contents'}>
                         <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
                         {/* 2026-06-10 (Yuqi "the style is different"): the
                           "What's left to do" checklist moved OUT of this white
