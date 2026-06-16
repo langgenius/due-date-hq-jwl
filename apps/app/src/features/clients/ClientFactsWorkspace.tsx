@@ -100,6 +100,10 @@ type ClientFactsWorkspaceProps = {
   onEntityFilterChange: (value: string[]) => void
   onStateFilterChange: (value: string[]) => void
   onOwnerFilterChange: (value: string[]) => void
+  // Deep-link-only filters (readiness/source/pulse) the toolbar can't otherwise
+  // see — so "Clear filters" can enable + reset them. (audit 2026-06-16)
+  extraFiltersActive?: boolean
+  onClearAllFilters?: () => void
   onImport: () => void
   canImport: boolean
   // The prominent empty-state hero offers an "Add one manually" CTA
@@ -158,15 +162,17 @@ export function TabSection({
   children: ReactNode
 }) {
   return (
-    // `pl-3` (12px) on the header row aligns the section heading with
-    // the canonical 12px content gutter used elsewhere in the workbench
-    // (sidebar menu items, rule rows, etc). The actions cluster pushes
-    // in by the same 12px so the header stays visually balanced. Outer
-    // `gap-4` (16px) is the section heading→body rhythm, matching
-    // DetailSectionCard on /deadlines + /alerts for cross-surface parity.
+    // 2026-06-16 (Yuqi "band EVERY section"): the section heading is a thin
+    // LIGHT HEADER BAND (bg-background-subtle + hairline border + min-h-8 +
+    // py-1.5) matching the DetailSectionCard band on /deadlines + /alerts. The
+    // section stays FRAMELESS (no enclosing card) on purpose — its content
+    // already carries its own card chrome (compliance panel, jurisdiction
+    // form), so a wrapping card would double-frame ("frames in frames"). The
+    // band is the header bar; the content sits below it. Outer `gap-4` is the
+    // heading→body rhythm.
     <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pl-3">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg border border-divider-subtle bg-background-subtle px-4 py-1.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
           <div className="flex min-w-0 items-center gap-1">
             <h2 className="text-base font-semibold text-text-primary">{title}</h2>
             {titleAccessory}
@@ -390,6 +396,8 @@ export function ClientFactsWorkspace({
   onEntityFilterChange,
   onStateFilterChange,
   onOwnerFilterChange,
+  extraFiltersActive,
+  onClearAllFilters,
   onImport,
   canImport,
   onCreateClient,
@@ -1031,6 +1039,8 @@ export function ClientFactsWorkspace({
         ownerOptions={ownerOptions}
         ownerFilter={ownerFilter}
         onOwnerFilterChange={onOwnerFilterChange}
+        extraFiltersActive={extraFiltersActive}
+        onClearAllFilters={onClearAllFilters}
       />
 
       {/* Table is framed in the canonical bordered card with `flex-1
@@ -1224,6 +1234,8 @@ function ClientsFilterToolbar({
   ownerOptions,
   ownerFilter,
   onOwnerFilterChange,
+  extraFiltersActive = false,
+  onClearAllFilters,
 }: {
   searchQuery: string
   onSearchChange: (next: string) => void
@@ -1236,13 +1248,18 @@ function ClientsFilterToolbar({
   ownerOptions: TableFilterOption[]
   ownerFilter: readonly string[]
   onOwnerFilterChange: (next: string[]) => void
+  extraFiltersActive?: boolean | undefined
+  onClearAllFilters?: (() => void) | undefined
 }) {
   const { t } = useLingui()
   const filtersActive =
     searchQuery.length > 0 ||
     stateFilter.length > 0 ||
     entityFilter.length > 0 ||
-    ownerFilter.length > 0
+    ownerFilter.length > 0 ||
+    // Deep-link-only readiness/source/pulse filters (audit 2026-06-16) — so a
+    // stale ?pulse= bookmark can still be cleared from here.
+    extraFiltersActive
 
   // /clients uses the canonical collapsible-search pattern shared with
   // /deadlines and /rules/library. Ghost-icon at rest, expands inline
@@ -1309,10 +1326,16 @@ function ClientsFilterToolbar({
           // affordance actually has, since only filters get cleared. (The
           // /deadlines queue keeps "Reset filters" inside its consolidated
           // View menu — a different control, intentionally left as-is.)
-          onSearchChange('')
-          onStateFilterChange([])
-          onEntityFilterChange([])
-          onOwnerFilterChange([])
+          // Prefer the route's complete reset (covers the deep-link-only
+          // readiness/source/pulse params too); fall back to the visible four.
+          if (onClearAllFilters) {
+            onClearAllFilters()
+          } else {
+            onSearchChange('')
+            onStateFilterChange([])
+            onEntityFilterChange([])
+            onOwnerFilterChange([])
+          }
         }}
       >
         <Trans>Clear filters</Trans>
@@ -1500,24 +1523,17 @@ function ClientsKpiStrip({
  * action.
  *
  * See docs/Design/clients-list-summary-strip-redesign.md for the
- * design rationale. The strip renders nothing when every signal is
- * zero — quiet is the reward.
+ * design rationale. The strip renders nothing when there's no setup
+ * gap — quiet is the reward.
  *
- * Tiles render only when their count is > 0:
- *   - **At risk** — clients with ≥1 overdue obligation (destructive
- *     tone). Click -> `/deadlines?status=blocked` so the CPA lands
- *     on the actionable queue, not a filtered client list.
- *   - **Waiting on client** — clients with ≥1 `waiting_on_client`
- *     obligation (warning tone). Click -> `/deadlines?status=waiting_on_client`.
- *   - **Alert hits** — clients matched by a recent Alert
- *     (review tone). Click → applies the `pulse=affected` filter on
- *     the current list so the CPA can triage which of *their*
- *     clients are touched by the new source change.
- *
- * The **Needs facts** banner sits above the tiles and renders only
- * when `needsFactsCount > 0` — it's a pre-deadline-pressure setup
- * gap, not an in-flight workload signal, so it earns a distinct
- * treatment.
+ * 2026-06-16 (audit): this previously documented three triage tiles
+ * (At risk / Waiting on client / Alert hits) and an "Alert hits" click
+ * that applied a `pulse=affected` filter. Those tiles were removed —
+ * triage signals live on /today and /deadlines where dollar-exposure
+ * context is present (see the body comment) — so the doc is corrected to
+ * match: the strip now renders ONLY the **Needs facts** banner, shown
+ * when `needsFactsCount > 0` (a pre-deadline-pressure setup gap: clients
+ * missing state/entity type that the rule library is skipping).
  */
 function ClientsActionStrip({
   isLoading,

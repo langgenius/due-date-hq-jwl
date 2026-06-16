@@ -3163,50 +3163,53 @@ export function ObligationQueueDetailDrawer({
                                 {checklistReference}
                               </Badge>
                             ) : null}
-                            {checklist.length > 0 ? (
-                              <>
-                                <span className="flex items-center gap-1.5 text-sm font-medium text-text-secondary">
-                                  <Checkbox
-                                    aria-label={
-                                      correctionMaterialsMode
-                                        ? t`Select all received items`
-                                        : t`Select all`
-                                    }
-                                    checked={allMaterialsSelected}
-                                    disabled={
-                                      checklistItemIdsForSelection.length === 0 ||
-                                      checklistGenerating ||
-                                      updateChecklistItemMutation.isPending
-                                    }
-                                    onCheckedChange={() => {
-                                      if (allMaterialsSelected) clearMaterialsSelection()
-                                      else selectAllMaterials()
-                                    }}
-                                  />
-                                  {correctionMaterialsMode ? (
-                                    <Trans>Select received</Trans>
-                                  ) : (
-                                    <Trans>Select all</Trans>
-                                  )}
-                                </span>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={addChecklistItem}
-                                  disabled={
-                                    checklistGenerating ||
-                                    addChecklistItemMutation.isPending ||
-                                    checklist.length >= 30
-                                  }
-                                >
-                                  <PlusIcon data-icon="inline-start" />
-                                  <Trans>Add item</Trans>
-                                </Button>
-                              </>
-                            ) : null}
                           </>
                         }
                       >
+                        {/* 2026-06-16 (Yuqi "narrower header"): list controls
+                        (Select all + Add item) live in a body toolbar so the band
+                        stays thin — only the count + reference chip sit in it. */}
+                        {checklist.length > 0 ? (
+                          <div className="flex items-center justify-end gap-3">
+                            <span className="flex items-center gap-1.5 text-sm font-medium text-text-secondary">
+                              <Checkbox
+                                aria-label={
+                                  correctionMaterialsMode
+                                    ? t`Select all received items`
+                                    : t`Select all`
+                                }
+                                checked={allMaterialsSelected}
+                                disabled={
+                                  checklistItemIdsForSelection.length === 0 ||
+                                  checklistGenerating ||
+                                  updateChecklistItemMutation.isPending
+                                }
+                                onCheckedChange={() => {
+                                  if (allMaterialsSelected) clearMaterialsSelection()
+                                  else selectAllMaterials()
+                                }}
+                              />
+                              {correctionMaterialsMode ? (
+                                <Trans>Select received</Trans>
+                              ) : (
+                                <Trans>Select all</Trans>
+                              )}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={addChecklistItem}
+                              disabled={
+                                checklistGenerating ||
+                                addChecklistItemMutation.isPending ||
+                                checklist.length >= 30
+                              }
+                            >
+                              <PlusIcon data-icon="inline-start" />
+                              <Trans>Add item</Trans>
+                            </Button>
+                          </div>
+                        ) : null}
                         {/* Readiness summary — explains what readiness IS + shows
                         the at-a-glance state (PRD §3.2 says the biggest
                         deadline risk isn't "CPA doesn't know the date," it's
@@ -4490,30 +4493,21 @@ export function ObligationQueueDetailDrawer({
                         variant="flat"
                         tone="reference"
                         title={<Trans>Workpapers</Trans>}
-                        headerRight={
-                          <>
-                            {/* 2026-06-16 (scroll-spy NrQaI): the workpaper-count
-                            data-chip — the SAME node the Record section nav
-                            renders. */}
-                            {evidenceChip}
-                            {/* 2026-06-16 (audit C4): upload pipeline isn't wired
-                            yet. Was a toast-only "coming soon" button — the lone
-                            enabled control that did nothing on click. Converted to
-                            the project's canonical disabled-with-reason pattern
-                            (settings.profile.tsx:511) so unbuilt affordances read
-                            consistently across the app. */}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              disabled
-                              title={t`Coming soon — attach PDFs and exports here once ingest lands.`}
-                            >
-                              <Trans>Add workpaper</Trans>
-                            </Button>
-                          </>
-                        }
+                        headerRight={evidenceChip}
                       >
+                        {/* 2026-06-16 (Yuqi "narrower header"): the Add-workpaper
+                        control lives in a body toolbar so the band stays thin. */}
+                        <div className="flex items-center justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled
+                            title={t`Coming soon — attach PDFs and exports here once ingest lands.`}
+                          >
+                            <Trans>Add workpaper</Trans>
+                          </Button>
+                        </div>
                         {detail.evidence.length > 0 ? (
                           <div className="grid gap-2">
                             {detail.evidence.map((item) => (

@@ -625,3 +625,20 @@ Yuqi confirmed "band EVERY section" (all four flagged surfaces). Done so far:
 
 Verified live: rail Notes/Contacts headers banded (32px). Still pending in this
 batch: Materials/Workpapers headerRight button toolbars, Setup-tab TabSection.
+
+## Cluster 26 — Finish "band EVERY section": Materials/Workpapers + Setup tab
+- **Materials checklist + Workpapers (drawer):** their headerRight packed action
+  buttons (Select all / Add item; Add workpaper), forcing those bands to ~45px.
+  Moved the controls into a body sub-toolbar (right-aligned, top of the body),
+  leaving only the count/reference chip in the band — bands now 32–33px like the
+  rest. Verified live (Materials 45→33, Workpapers 45→32; controls render in the
+  body toolbar). Drawer staged selectively (parallel session font pass).
+- **Setup tab (TabSection):** its 5 sections were a frameless `<h2>`. Gave the
+  header the canonical light band (bg-background-subtle + hairline + min-h-8 +
+  py-1.5), but kept the section FRAMELESS (rounded banded header BAR, no enclosing
+  card) because the content already carries its own card chrome — a wrapping card
+  would double-frame ("frames in frames", banned). Verified live (5 banded headers
+  at 33px above their content).
+
+All four flagged surfaces now banded: rule-detail, client rail, Materials/Workpapers,
+Setup tab. tsgo clean (my files).
