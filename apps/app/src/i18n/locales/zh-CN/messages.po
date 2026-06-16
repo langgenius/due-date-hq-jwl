@@ -1372,6 +1372,10 @@ msgstr "{reservedCount} 个保留"
 msgid "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
 msgstr "{reviewCount, plural, other {# 个辖区需要快速审核}}"
 
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{reviewCount, plural, one {Review # state} other {Review # states}}"
+msgstr "{reviewCount, plural, one {审核 # 个州} other {审核 # 个州}}"
+
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "{reviewCount} Requires review"
 msgstr "{reviewCount} 需要审查"

@@ -1367,6 +1367,10 @@ msgstr "{reservedCount} reserved"
 msgid "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
 msgstr "{reviewCount, plural, one {# jurisdiction needs a quick review} other {# jurisdictions need a quick review}}"
 
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{reviewCount, plural, one {Review # state} other {Review # states}}"
+msgstr "{reviewCount, plural, one {Review # state} other {Review # states}}"
+
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "{reviewCount} Requires review"
 msgstr "{reviewCount} Requires review"

@@ -95,11 +95,17 @@ export function RuleReviewPrompt({
 }: RuleReviewPromptProps): ReactNode {
   const reviewCount = jurisdictions.length
   const codeList = jurisdictions.map((item) => item.code).join(' + ')
+  const reviewButtonLabel =
+    reviewCount > 3 ? (
+      <Plural value={reviewCount} one="Review # state" other="Review # states" />
+    ) : (
+      <Trans>Review {codeList} now</Trans>
+    )
 
   return (
-    <div className="flex w-full max-w-[720px] flex-col gap-6">
+    <div className="flex min-h-0 w-full max-w-[720px] flex-1 flex-col gap-4">
       {/* Heading */}
-      <div className="flex flex-col items-center gap-2 text-center">
+      <div className="flex shrink-0 flex-col items-center gap-2 text-center">
         <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-text-primary">
           <Plural
             value={reviewCount}
@@ -117,8 +123,8 @@ export function RuleReviewPrompt({
       </div>
 
       {/* Card */}
-      <div className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
-        <div className="flex items-center gap-2.5 border-b border-divider-subtle px-[22px] py-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-divider-subtle bg-background-default">
+        <div className="flex shrink-0 items-center gap-2.5 border-b border-divider-subtle px-[22px] py-4">
           <span className="text-sm font-semibold text-text-primary">
             <Trans>Jurisdictions awaiting calendar review</Trans>
           </span>
@@ -130,11 +136,13 @@ export function RuleReviewPrompt({
           </CountPill>
         </div>
 
-        {jurisdictions.map((item, index) => (
-          <ReviewRow key={item.code} item={item} last={index === jurisdictions.length - 1} />
-        ))}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {jurisdictions.map((item, index) => (
+            <ReviewRow key={item.code} item={item} last={index === jurisdictions.length - 1} />
+          ))}
+        </div>
 
-        <div className="flex items-center gap-2 bg-bg-subtle px-[22px] py-3">
+        <div className="flex shrink-0 items-center gap-2 bg-bg-subtle px-[22px] py-3">
           <InfoIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
           <p className="text-xs font-medium leading-relaxed text-text-tertiary">
             <Trans>You can also skip this and review rules later from the Rule Library.</Trans>
@@ -143,7 +151,7 @@ export function RuleReviewPrompt({
       </div>
 
       {/* Actions */}
-      <div className="flex flex-wrap items-center gap-2.5">
+      <div className="flex shrink-0 flex-wrap items-center gap-2.5">
         <Button
           variant="ghost"
           onClick={onSkip}
@@ -158,7 +166,7 @@ export function RuleReviewPrompt({
           </Button>
         ) : null}
         <Button variant="primary" onClick={onReview}>
-          <Trans>Review {codeList} now</Trans>
+          {reviewButtonLabel}
           <ArrowRightIcon className="size-3.5" aria-hidden />
         </Button>
       </div>

@@ -67,13 +67,13 @@ function StepDots({ step, total }: { step: number; total: number }) {
         </Trans>
       </span>
       <div className="flex items-center gap-1.5">
-        {Array.from({ length: total }).map((_, index) => (
+        {Array.from({ length: total }, (_, index) => index + 1).map((stepNumber) => (
           <span
-            key={index}
+            key={stepNumber}
             aria-hidden
             className={cn(
               'size-1.5 rounded-full',
-              index + 1 === step ? 'bg-state-accent-solid' : 'bg-divider-regular',
+              stepNumber === step ? 'bg-state-accent-solid' : 'bg-divider-regular',
             )}
           />
         ))}
@@ -242,7 +242,7 @@ export function OnboardingRoute() {
   if (review) {
     return (
       <CenteredAuthScreen>
-        <div className="flex w-full max-w-[720px] flex-col items-center gap-7">
+        <div className="flex h-full min-h-0 w-full max-w-[720px] flex-col items-center gap-4">
           <StepDots step={2} total={ONBOARDING_STEP_COUNT} />
           <RuleReviewPrompt
             totalRulesActivated={review.totalActivated}
