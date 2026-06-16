@@ -560,7 +560,10 @@ export function ClientDetailWorkspace({
           clicked. No page-level scroll on the document body — only the
           tab body scrolls. Mirrors /deadlines exactly. */}
       <div className="flex min-h-0 flex-1 flex-col gap-4 xl:flex-row xl:items-stretch xl:gap-6">
-        <div className="flex min-w-0 flex-1 flex-col gap-6">
+        {/* Left page column carries the gutter + top padding (the route section
+            has none) so the obligation panel — a sibling below — reaches the
+            right edge edge-to-edge (Yuqi #3/#9). */}
+        <div className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-5 md:px-8 md:pt-6">
           <PageHeader
             // The canonical `breadcrumbs` prop, styled as a friendly
             // link with chevron separator + ⌘[ hint. Lines up with
@@ -949,10 +952,11 @@ export function ClientDetailWorkspace({
                       // the title still opens the full /deadlines page (escape hatch).
                       onExpandFiling={(id) => openObligationPanel(id)}
                       onCollapseFiling={() => void setExpandedFilingId('')}
-                      // Compact only when the obligation panel squeezes the left
-                      // column; at rest the full table (incl. OFFICIAL DUE + OWNER)
-                      // shows, matching the /deadlines table.
-                      compact={panelOpen}
+                      // 2026-06-16 (Yuqi): keep the full table — incl. OFFICIAL
+                      // DUE + OWNER — even when the obligation panel is open. The
+                      // DEADLINE column (minmax(0,1fr)) absorbs the squeeze by
+                      // truncating the form name; the fixed columns stay put.
+                      compact={false}
                     />
                   </TabsContent>
 

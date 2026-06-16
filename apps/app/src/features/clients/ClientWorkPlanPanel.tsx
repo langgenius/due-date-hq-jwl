@@ -623,6 +623,14 @@ function FilingPlanYearSection({
           picker / kebab / dual-date columns are redistributed into the
           row expansion. Panel sort orders rows; multi-select drives the
           bulk bar. */}
+      {/* The column header + rows share a horizontal-scroll frame with a min
+          width, so the full fixed-width column set (incl. OFFICIAL DUE + OWNER)
+          is never clipped when the obligation panel squeezes this column — they
+          scroll together below the min width instead of dropping columns
+          (Yuqi: fixed-width columns + keep OFFICIAL DUE + OWNER with the panel
+          open). At rest the column is wide, so no scrollbar appears. */}
+      <div className="overflow-x-auto">
+      <div className="min-w-[720px]">
       {/* Column header (Pencil VtC73) — grid must match DeadlineRow's
           inline-expand layout exactly so the columns line up. */}
       <div
@@ -672,6 +680,8 @@ function FilingPlanYearSection({
             onMarkFiled={(id) => onChangeStatus(id, 'done')}
           />
         ))}
+      </div>
+      </div>
       </div>
     </div>
   )

@@ -84,7 +84,12 @@ export function ClientDetailRoute() {
     // horizontal padding only.
     <div
       className={cn(
-        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-6 pb-0 md:px-8 md:pt-8 md:pb-0',
+        // 2026-06-16 (Yuqi #3/#9): the section carries NO padding so the
+        // obligation panel reaches the right edge (edge-to-edge master-detail).
+        // Padding lives on the CONTENT — the workspace's left column + each
+        // loading/error state below apply their own gutter + top space — not on
+        // the whole section.
+        'mx-auto flex w-full max-w-page-expanded flex-col pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >
@@ -94,7 +99,7 @@ export function ClientDetailRoute() {
         // the body workspace — rather than a generic stack of three blocks
         // (8/40/64) that reads the same as the dashboard loader. Reduces the
         // visual jolt when the real layout paints.
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 px-4 pt-5 md:px-8 md:pt-6">
           <div className="flex flex-col gap-2">
             <Skeleton className="h-7 w-64 rounded-lg" />
             <Skeleton className="h-4 w-40 rounded-lg" />
@@ -110,7 +115,7 @@ export function ClientDetailRoute() {
           <Skeleton className="h-72 w-full rounded-lg" />
         </div>
       ) : isError ? (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mx-4 mt-5 md:mx-8 md:mt-6">
           <AlertCircleIcon />
           <AlertTitle>
             <Trans>Couldn't load this client</Trans>
@@ -121,7 +126,7 @@ export function ClientDetailRoute() {
           </AlertDescription>
         </Alert>
       ) : !client ? (
-        <Alert>
+        <Alert className="mx-4 mt-5 md:mx-8 md:mt-6">
           <AlertCircleIcon />
           <AlertTitle>
             <Trans>Client not found</Trans>

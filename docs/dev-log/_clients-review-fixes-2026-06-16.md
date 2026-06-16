@@ -433,3 +433,18 @@ sticky footer visibility (#8); tab underline ↔ divider alignment; buttons bigg
 rounded corners (app-wide); ClientCycleArrows + C-corp/owner-pill primitive
 unification (#3/#4); fixed-width table columns; keep OFFICIAL DUE + OWNER with the
 panel open.
+
+## Cluster 16 — Client-detail review batch 2 (route padding restructure + table columns)
+Yuqi /clients review #3/#9 + "keep OFFICIAL DUE + OWNER" + "fixed-width columns":
+- Route section padding restructured: the `clients.$clientId` container now carries
+  NO padding; the workspace's left column (px-4/8 + a tighter pt-5/6, was pt-6/8)
+  and each loading/error state carry their own gutter + top space. Result: the
+  weird top padding is gone (#3) and the obligation panel reaches the right edge
+  edge-to-edge — padding lives on the content, not the whole section (#9).
+- Filing table keeps OFFICIAL DUE + OWNER even when the panel is open (dropped the
+  compact gating). The column-header + rows now share a horizontal-scroll frame
+  (overflow-x-auto + min-w-[720px]) so the full fixed-width column set scrolls
+  together below the min width instead of dropping columns — at rest the column is
+  wide so no scrollbar shows. Verified live (Meridian, panel open): scroller
+  clientW 486 / scrollW 720 / scrolls true; OFFICIAL DUE + OWNER present; panel
+  edge-to-edge; title 28; top padding tightened.
