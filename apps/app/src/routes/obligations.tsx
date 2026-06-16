@@ -202,7 +202,10 @@ import { type TableFilterOption } from '@/components/patterns/table-header-filte
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
-import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
+import {
+  FloatingActionBar,
+  FLOATING_ACTION_BAR_SCROLL_PADDING,
+} from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { Kbd } from '@/components/patterns/kbd'
@@ -3777,6 +3780,13 @@ export function ObligationQueueRoute() {
             // toolbar is a FloatingActionBar (fixed at viewport bottom), so
             // this gap only affects filter→table spacing.
             'flex min-w-0 flex-1 flex-col gap-4',
+            // Reserve clearance for the floating bulk bar while a selection
+            // exists, so the last rows scroll clear of the fixed bar instead of
+            // being occluded. The bar only shows in full-page mode (this column
+            // is `hidden` when the panel is open, hiding its fixed descendant
+            // too), where the page scrolls as one — so the column's own bottom
+            // padding extends the page scroll height.
+            selectedIds.length > 0 && FLOATING_ACTION_BAR_SCROLL_PADDING,
             // In the panel-open split the queue column is `overflow-hidden` at
             // xl+ so it scrolls independently of the page. Closed, that clip is
             // OFF so `position: sticky` on the filter bar can pin to the page
