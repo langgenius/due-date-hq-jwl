@@ -392,3 +392,12 @@ Verified live (Meridian Form 1120, overdue): exactly ONE key-date strip + ONE
 section nav in the panel (duplicate gone); white surface; quiet overdue banner;
 3 fact cards + tabs in the header; Materials body; footer — matching the page.
 tsgo clean.
+
+## Cluster 14 — Client tabs keep full labels when the obligation panel is open
+Yuqi: "tabs 不要 abbreviate 缩起来，当右边 panel 打开的时候" — don't collapse the
+client tabs to icon-only when the right obligation panel opens. Dropped
+`compact={panelOpen}` from the three ClientDetailTabTrigger calls (Filing plan /
+Setup / History) and removed the `!panelOpen` gate on the Filing-plan count
+badge, so the tabs keep their labels + count even while the panel pushes the
+client column left. Verified live (Meridian, panel open): all three labels
+visible (none sr-only), count "4" shows. tsgo clean.

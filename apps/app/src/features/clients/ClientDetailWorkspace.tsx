@@ -842,15 +842,18 @@ export function ClientDetailWorkspace({
                           (read-mode history; Notes lives in a slide-in
                           panel)
                 */}
-                    <ClientDetailTabTrigger value="work" activeTab={activeTab} compact={panelOpen}>
+                    <ClientDetailTabTrigger value="work" activeTab={activeTab}>
                       <ClipboardListIcon className="size-3.5" aria-hidden />
                       <span data-tab-label className="inline-flex items-center gap-1.5">
                         {/* "Filing plan" (not "Filings") so the tab matches the
                         section heading, the hotkey registry ("Filing plan
                         tab"), and the URL-intent comment above — one noun for
-                        one surface. A count pill of the plan's rows trails. */}
+                        one surface. A count pill of the plan's rows trails.
+                        2026-06-16 (Yuqi "tabs 不要 abbreviate when the panel is
+                        open"): tabs keep their full labels + count even while the
+                        obligation panel is open — no icon-only compaction. */}
                         <Trans>Filing plan</Trans>
-                        {!panelOpen && obligations.length > 0 ? (
+                        {obligations.length > 0 ? (
                           <Badge
                             variant="secondary"
                             className="px-1.5 text-caption-xs font-semibold tabular-nums"
@@ -860,7 +863,7 @@ export function ClientDetailWorkspace({
                         ) : null}
                       </span>
                     </ClientDetailTabTrigger>
-                    <ClientDetailTabTrigger value="info" activeTab={activeTab} compact={panelOpen}>
+                    <ClientDetailTabTrigger value="info" activeTab={activeTab}>
                       <UserRoundIcon className="size-3.5" aria-hidden />
                       <span data-tab-label>
                         <Trans>Setup</Trans>
@@ -897,11 +900,7 @@ export function ClientDetailWorkspace({
                         </Badge>
                       ) : null}
                     </ClientDetailTabTrigger>
-                    <ClientDetailTabTrigger
-                      value="activity"
-                      activeTab={activeTab}
-                      compact={panelOpen}
-                    >
+                    <ClientDetailTabTrigger value="activity" activeTab={activeTab}>
                       <ActivityIcon className="size-3.5" aria-hidden />
                       <span data-tab-label>
                         {/* "History", not "Activity": Notes lives in its
