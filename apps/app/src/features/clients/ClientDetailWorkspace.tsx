@@ -830,7 +830,7 @@ export function ClientDetailWorkspace({
                   no double line. */}
                   <TabsList
                     variant="line"
-                    className="flex h-11 shrink-0 items-stretch gap-6 overflow-x-auto border-b border-divider-subtle bg-transparent px-0 text-sm"
+                    className="flex shrink-0 items-stretch gap-6 overflow-x-auto border-b border-divider-subtle bg-transparent px-0 text-sm"
                   >
                     {/* Leading lucide glyph per tab. Matches the deadline
                     drawer's tab bar (paperclip / calendar / file) and
@@ -1461,6 +1461,11 @@ function ClientDetailTabTrigger({
       // background. The active state stays chrome-free (bold text + the
       // motion underline carry it).
       className={cn(
+        // The trigger's `py-3` defines the tab-bar height (the TabsList dropped
+        // its fixed h-11), and `-mb-px` pulls its bottom onto the list's
+        // border-b — so the active underline at `-bottom-px` lands exactly on the
+        // section divider instead of floating above it (Yuqi "underline doesn't
+        // match the divider").
         'relative -mb-px !flex-none shrink-0 items-center gap-2 !rounded-none !border-0 !bg-transparent px-0 py-3 text-sm whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
         active
           ? 'font-semibold text-text-primary'

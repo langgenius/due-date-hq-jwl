@@ -134,16 +134,19 @@ const buttonVariants = cva(
         // continuous-corner shape (`[corner-shape:squircle]` on the base
         // class) is kept — it does the smoothing; the radius just stops
         // shouting. Shadows are dropped per-variant below for a flat look.
+        // 2026-06-16 (Yuqi "buttons should have bigger rounded corners,
+        // app-wide"): bumped one radius tier — sm/xs/icon-sm/icon-xs 8→12
+        // (rounded-xl); default/lg/icon/icon-lg 12→16 (rounded-2xl).
         default:
-          'h-9 gap-1.5 rounded-xl px-2.5 text-sm in-data-[slot=button-group]:rounded-xl has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-        xs: "h-7 gap-1 rounded-lg px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: 'h-8 gap-1.5 rounded-lg px-2.5 text-sm in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-        lg: 'h-10 gap-1.5 rounded-xl px-3 text-base font-semibold has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
-        icon: 'size-9 rounded-xl in-data-[slot=button-group]:rounded-xl',
+          'h-9 gap-1.5 rounded-2xl px-2.5 text-sm in-data-[slot=button-group]:rounded-2xl has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        xs: "h-7 gap-1 rounded-xl px-2 text-xs in-data-[slot=button-group]:rounded-xl has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: 'h-8 gap-1.5 rounded-xl px-2.5 text-sm in-data-[slot=button-group]:rounded-xl has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        lg: 'h-10 gap-1.5 rounded-2xl px-3 text-base font-semibold has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
+        icon: 'size-9 rounded-2xl in-data-[slot=button-group]:rounded-2xl',
         'icon-xs':
-          "size-7 rounded-lg in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        'icon-sm': 'size-8 rounded-lg in-data-[slot=button-group]:rounded-lg',
-        'icon-lg': 'size-10 rounded-xl in-data-[slot=button-group]:rounded-xl',
+          "size-7 rounded-xl in-data-[slot=button-group]:rounded-xl [&_svg:not([class*='size-'])]:size-3",
+        'icon-sm': 'size-8 rounded-xl in-data-[slot=button-group]:rounded-xl',
+        'icon-lg': 'size-10 rounded-2xl in-data-[slot=button-group]:rounded-2xl',
       },
     },
     defaultVariants: {

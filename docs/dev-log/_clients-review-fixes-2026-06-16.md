@@ -448,3 +448,14 @@ Yuqi /clients review #3/#9 + "keep OFFICIAL DUE + OWNER" + "fixed-width columns"
   wide so no scrollbar shows. Verified live (Meridian, panel open): scroller
   clientW 486 / scrollW 720 / scrolls true; OFFICIAL DUE + OWNER present; panel
   edge-to-edge; title 28; top padding tightened.
+
+## Cluster 17 — Tab underline alignment + bigger button radius (app-wide)
+Yuqi /clients review:
+- Tab underline ↔ divider: the active-tab underline floated a few px above the
+  TabsList border-b. Dropped the list's fixed `h-11` (tab-bar height is now
+  driven by the trigger's `py-3`) so the triggers reach the border; the underline
+  at `-bottom-px` now lands on the section divider. Verified visually.
+- Buttons rounder app-wide (Yuqi "should have bigger rounded corners"): bumped
+  the Button primitive one radius tier — sm/xs/icon-sm/icon-xs 8→12 (rounded-xl),
+  default/lg/icon/icon-lg 12→16 (rounded-2xl). Verified ("Add deadline" sm now
+  12px). Affects every button in the app.
