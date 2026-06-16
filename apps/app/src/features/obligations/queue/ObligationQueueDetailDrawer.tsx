@@ -1749,7 +1749,7 @@ export function ObligationQueueDetailDrawer({
           // (no sticky needed). Panel + sheet render it in the scroll body, so
           // it must `sticky top-0` to stay put as the sections scroll under it
           // (the scroll-spy table of contents).
-          isPageMode ? 'bg-background-default' : 'sticky top-0 z-10 bg-background-default pt-3',
+          panelLayout ? 'bg-background-default' : 'sticky top-0 z-10 bg-background-default pt-3',
         )}
       >
         <div
@@ -2408,7 +2408,7 @@ export function ObligationQueueDetailDrawer({
                 (rendered inside <header> above), so it's omitted here. Panel
                 and sheet modes keep it as the leading body block — sticky in
                 the panel rail, a plain spacer in the sheet. */}
-              {!isPageMode ? (
+              {mode === 'sheet' ? (
                 <div
                   className={cn(
                     // 2026-06-16 (scroll-spy conversion): the key-date strip is
@@ -2456,7 +2456,7 @@ export function ObligationQueueDetailDrawer({
                 lives in the white <header> (above); panel/sheet host it here as
                 a sticky table-of-contents at the body top. The `sectionNav` node
                 is shared so the nav markup lives in one place. */}
-              {!isPageMode ? sectionNav : null}
+              {mode === 'sheet' ? sectionNav : null}
               {visibleTabs.has('summary') ? (
                 <section id="deadline-section-summary" className="scroll-mt-16">
                   <motion.div

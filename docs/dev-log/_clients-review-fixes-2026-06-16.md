@@ -360,3 +360,35 @@ bumped to w-[104px]. Verified "California" no longer truncates.
 Verified live (Lone Star + the exact Meridian NY/May-12 case): value font =
 -apple-system (sans, not mono), size 24px; strip = one 75px row with zero
 overflow; "May 12" single line; "California" badge clipped=false. tsgo clean.
+
+## Cluster 13 — In-client obligation panel renders EXACTLY like the /deadlines detail
+Yuqi (VtC73): "the client detail page at least need to look like this … VtC73 has
+the deadline detail panel EXACTLY the same as the deadline detail right panel."
+VtC73 (REBUILD · master-detail) = lean client master (left) + the standalone
+deadline detail (right). So the in-client `panel` mode must render identically to
+the `page` mode.
+
+Mapped every divergent branch in the shared ObligationQueueDetailDrawer
+(~4900 lines, three modes: sheet/panel/page) and converged panel→page on the
+DOCUMENT-LAYOUT branches (`isPageMode` → `panelLayout`), while keeping the
+page-EXCLUSIVE chrome page-only (prev/next pager, back-strip, hero
+collapse-on-scroll, Esc-to-close, the F hotkey). Specifically: panel now uses the
+page's flex-column header+body shell (OuterWrapper), white centered 760px measure
+(header + body + footer), the framed `cards` key-date strip + the section-nav tab
+bar hosted in the header (not the body), gap-8/gap-4 rhythm, flush per-section
+padding, the flat Status-tab workspace, and the single centered footer. Dropped
+the panel's duplicate status chip + the Ownership/Linked-from 2-up (page already
+de-dupes them), and surfaced the Extension card in panel (it was unreachable —
+the locked-4 tab set drops the Extension tab in panel too).
+
+PARALLEL-SESSION NOTE: midway, another session committed its own drawer refactor
+(2c1e2a67 "detail tabs -> scroll-spy") which shared the working tree and swept in
+most of these convergence edits; three (nav surface, body key-date strip gate,
+body nav gate) got clobbered and were re-applied as a clean 3-line delta on top.
+The push-everything-left panel behavior + the filing table's OFFICIAL DUE + OWNER
+columns are kept (Yuqi's explicit choice).
+
+Verified live (Meridian Form 1120, overdue): exactly ONE key-date strip + ONE
+section nav in the panel (duplicate gone); white surface; quiet overdue banner;
+3 fact cards + tabs in the header; Materials body; footer — matching the page.
+tsgo clean.
