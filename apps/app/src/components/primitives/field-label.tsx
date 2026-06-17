@@ -30,7 +30,10 @@ export function FieldLabel({
   className,
   ...rest
 }: {
-  as?: 'div' | 'dt' | 'span' | 'label'
+  // `h2`/`h3`/`h4` for a caps label that is ALSO a real section heading (keeps the
+  // heading role for a11y / heading-level assertions); plain `div` when it's a
+  // label, not a structural heading.
+  as?: 'div' | 'dt' | 'span' | 'label' | 'h2' | 'h3' | 'h4'
   /** `field` (B2, 12px value/field label) · `group` (B1, 11px group/column band). */
   variant?: 'field' | 'group'
   children: ReactNode

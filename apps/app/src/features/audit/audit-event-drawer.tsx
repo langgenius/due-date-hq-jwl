@@ -199,7 +199,7 @@ function AiTraceSection({
 
   return (
     <section className="grid gap-3">
-      <FieldLabel as="div" variant="field" className="flex items-center gap-2">
+      <FieldLabel as="h3" variant="field" className="flex items-center gap-2">
         <Astroid className="size-3" aria-hidden />
         <Trans>AI trace</Trans>
       </FieldLabel>
@@ -255,7 +255,7 @@ function AiTraceSection({
 function AuditChangeDetails({ changeView }: { changeView: AuditChangeView }) {
   return (
     <section className="grid gap-3">
-      <FieldLabel as="div" variant="field">
+      <FieldLabel as="h3" variant="field">
         <Trans>What changed</Trans>
       </FieldLabel>
       {changeView.changes.length > 0 ? (

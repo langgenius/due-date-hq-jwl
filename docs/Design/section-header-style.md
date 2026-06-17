@@ -113,7 +113,12 @@ text-xs    font-medium   tracking-eyebrow  text-text-tertiary uppercase   (B2 �
 >   wrap the content in `<FieldLabel variant="group">` — they do NOT become a
 >   bare FieldLabel.
 > - **`<h3>`/`<h2>` heading-labels** that were really small-caps labels (not prose
->   titles) demote to `as="div"` FieldLabels.
+>   titles) demote to `as="div"` FieldLabels. **Exception:** a caps label that is
+>   also a genuine **section heading** (needs the heading role for a11y / is
+>   asserted by tests at a `level`, e.g. the audit detail drawer's "What changed" /
+>   "AI trace") uses `as="h2|h3|h4"` — FieldLabel renders the heading tag with the
+>   caps styling, keeping the role. (Added 2026-06-17 after an e2e test required
+>   `level: 3`; see dev-log `fieldlabel-audit-heading-role-fix`.)
 > - **13px `text-caption` headers** normalize down to `group` (11px).
 > - **Container-typography** (a `<nav>`/`<div>` whose caps classes style arbitrary
 >   children, e.g. `Breadcrumb`, `PageHeader` eyebrow, a grid column-header _row_,
