@@ -46,7 +46,7 @@ test.describe('seeded Pulse alerts', () => {
     await obligationQueuePage.goto('/deadlines?asOf=2026-05-26')
     const arborRow = obligationQueuePage.rowFor('Arbor & Vale LLC')
     await expect(arborRow).toBeVisible({ timeout: 20_000 })
-    await expect(arborRow).toContainText('128 days', { timeout: 20_000 })
+    await expect(arborRow).toContainText('in 128d', { timeout: 20_000 })
     await obligationQueuePage.openColumnsMenu()
     const evidenceColumnOption = obligationQueuePage.columnVisibilityOption('Evidence')
     if ((await evidenceColumnOption.getAttribute('aria-checked')) !== 'true') {
@@ -66,7 +66,7 @@ test.describe('seeded Pulse alerts', () => {
     await expect(evidenceDrawer).toContainText('Applied a rule change.')
     await expect(evidenceDrawer).toContainText('Individuals and businesses in Los Angeles County')
     await evidenceDrawer.getByRole('button', { name: 'Close' }).click()
-    await expect(obligationQueuePage.rowFor('Bright Studio S-Corp')).toContainText('72 days late', {
+    await expect(obligationQueuePage.rowFor('Bright Studio S-Corp')).toContainText('72d late', {
       timeout: 20_000,
     })
 
@@ -96,7 +96,7 @@ test.describe('seeded Pulse alerts', () => {
     await expect(authenticatedPage.getByText(/Reverted 1 clients?/)).toBeVisible()
 
     await obligationQueuePage.goto('/deadlines?asOf=2026-05-26')
-    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('72 days late', {
+    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('72d late', {
       timeout: 20_000,
     })
   })
