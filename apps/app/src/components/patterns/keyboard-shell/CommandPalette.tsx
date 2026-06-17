@@ -37,6 +37,7 @@ import {
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { ToggleChip } from '@/components/primitives/toggle-chip'
 
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { clientDetailPath } from '@/features/clients/client-url'
@@ -322,13 +323,27 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     onOpenChange(false)
   }
 
+  // Fire once when the user actually searches — i.e. activates a result with a
+  // non-empty query. Never on keystroke, never on a bare navigate. result_count
+  // is the count of currently visible matches (clients + nav rows). Only the
+  // count + surface enum leave the client; the query text is never sent.
+  function trackQuickSearch() {
+    if (!hasQuery) return
+    track(ANALYTICS_EVENTS.quickSearchUsed, {
+      surface: 'command_palette',
+      result_count: clientResults.length + visibleNav.length,
+    })
+  }
+
   function selectNav(entry: NavEntry) {
     if (entry.disabled || (entry.permission && !permission.can(entry.permission))) return
+    trackQuickSearch()
     entry.onSelect()
     close()
   }
 
   function selectClient(client: Pick<ClientPublic, 'id' | 'name'>) {
+    trackQuickSearch()
     void navigate(clientDetailPath(client))
     close()
   }

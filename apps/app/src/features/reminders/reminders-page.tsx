@@ -41,6 +41,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
@@ -369,6 +370,7 @@ function TemplateDialog({
   const updateTemplate = useMutation(
     orpc.reminders.updateTemplate.mutationOptions({
       onSuccess: () => {
+        track(ANALYTICS_EVENTS.reminderTemplateEdited)
         void queryClient.invalidateQueries({ queryKey: orpc.reminders.key() })
         toast.success(t`Reminder template updated`)
         onOpenChange(false)

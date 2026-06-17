@@ -61,6 +61,7 @@ import {
   PermissionObscuredContent,
   useFirmPermission,
 } from '@/features/permissions/permission-gate'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimePretty } from '@/lib/utils'
@@ -559,9 +560,12 @@ function CalendarSubscriptionCard({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() =>
-                      copyUrl(feedUrl, t`Calendar URL copied`, t`Couldn't copy calendar URL`)
-                    }
+                    onClick={() => {
+                      // Copy-feed-URL is the Google / Outlook subscribe path
+                      // (both subscribe "From URL"); stamp the primary provider.
+                      track(ANALYTICS_EVENTS.calendarFeedSubscribed, { provider: 'google' })
+                      void copyUrl(feedUrl, t`Calendar URL copied`, t`Couldn't copy calendar URL`)
+                    }}
                   >
                     <CopyIcon data-icon="inline-start" />
                     <Trans>Copy URL</Trans>
@@ -572,6 +576,10 @@ function CalendarSubscriptionCard({
                       size="sm"
                       nativeButton={false}
                       render={<a href={appleCalendarUrl} />}
+                      onClick={() =>
+                        // Apple Calendar opens the webcal/ical feed directly.
+                        track(ANALYTICS_EVENTS.calendarFeedSubscribed, { provider: 'ical' })
+                      }
                     >
                       <ExternalLinkIcon data-icon="inline-start" />
                       <Trans>Apple Calendar</Trans>
