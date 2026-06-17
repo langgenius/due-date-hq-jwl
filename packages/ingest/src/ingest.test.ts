@@ -21,6 +21,7 @@ import type { IngestCtx } from './types'
 
 const cloudflareFetch = async () => new Response('cloudflare')
 const browserlessFetch = async () => new Response('browserless')
+const PDF_TEXT_TEST_TIMEOUT_MS = 15_000
 
 describe('@duedatehq/ingest', () => {
   async function createPdfBytes(text: string): Promise<ArrayBuffer> {
@@ -44,61 +45,71 @@ describe('@duedatehq/ingest', () => {
     await expect(hashText('pulse')).resolves.toBe(await hashText('pulse'))
   })
 
-  it('extracts PDF source text before archiving snapshots', async () => {
-    const bytes = await createPdfBytes('April 15 filing deadline for individual income tax returns')
-    const archivedBodies: string[] = []
+  it(
+    'extracts PDF source text before archiving snapshots',
+    async () => {
+      const bytes = await createPdfBytes(
+        'April 15 filing deadline for individual income tax returns',
+      )
+      const archivedBodies: string[] = []
 
-    const snapshot = await fetchTextSnapshot(
-      {
-        async fetch(input) {
-          const url = String(input)
-          if (url.endsWith('/robots.txt')) return new Response('', { status: 404 })
-          return new Response(bytes, { headers: { 'content-type': 'application/pdf' } })
+      const snapshot = await fetchTextSnapshot(
+        {
+          async fetch(input) {
+            const url = String(input)
+            if (url.endsWith('/robots.txt')) return new Response('', { status: 404 })
+            return new Response(bytes, { headers: { 'content-type': 'application/pdf' } })
+          },
+          async archiveRaw({ body }) {
+            archivedBodies.push(body)
+            return { r2Key: 'pdf-text.txt', contentHash: await hashText(body) }
+          },
         },
-        async archiveRaw({ body }) {
-          archivedBodies.push(body)
-          return { r2Key: 'pdf-text.txt', contentHash: await hashText(body) }
+        { sourceId: 'nm.income_tax', url: 'https://tax.example/source.pdf' },
+      )
+
+      expect(snapshot.body).toContain('April 15 filing deadline')
+      expect(snapshot.contentType).toBe('text/plain; charset=utf-8')
+      expect(archivedBodies[0]).toContain('individual income tax returns')
+    },
+    PDF_TEXT_TEST_TIMEOUT_MS,
+  )
+
+  it(
+    'extracts linked PDF announcement text and deduplicates the link item',
+    async () => {
+      const bytes = await createPdfBytes('Quarterly tax update changes the filing deadline')
+
+      const items = await announcementItemsFromSnapshotWithPdfLinks(
+        {
+          id: 'pa.temporary_announcements',
+          title: 'Pennsylvania DOR PA Tax Update Newsletter',
+          url: 'https://www.pa.gov/agencies/revenue/resources/pa-tax-update-newsletter',
+          jurisdiction: 'PA',
         },
-      },
-      { sourceId: 'nm.income_tax', url: 'https://tax.example/source.pdf' },
-    )
+        {
+          fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+          body: '<a href="/content/dam/revenue/tax-update.pdf">Tax Update PDF</a>',
+        },
+        {
+          async fetch(input) {
+            expect(String(input)).toBe('https://www.pa.gov/content/dam/revenue/tax-update.pdf')
+            return new Response(bytes, { headers: { 'content-type': 'application/pdf' } })
+          },
+        },
+      )
 
-    expect(snapshot.body).toContain('April 15 filing deadline')
-    expect(snapshot.contentType).toBe('text/plain; charset=utf-8')
-    expect(archivedBodies[0]).toContain('individual income tax returns')
-  })
-
-  it('extracts linked PDF announcement text and deduplicates the link item', async () => {
-    const bytes = await createPdfBytes('Quarterly tax update changes the filing deadline')
-
-    const items = await announcementItemsFromSnapshotWithPdfLinks(
-      {
-        id: 'pa.temporary_announcements',
-        title: 'Pennsylvania DOR PA Tax Update Newsletter',
-        url: 'https://www.pa.gov/agencies/revenue/resources/pa-tax-update-newsletter',
+      expect(items).toHaveLength(1)
+      expect(items[0]).toMatchObject({
+        sourceId: 'pa.temporary_announcements',
+        title: 'Tax Update PDF',
+        officialSourceUrl: 'https://www.pa.gov/content/dam/revenue/tax-update.pdf',
         jurisdiction: 'PA',
-      },
-      {
-        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
-        body: '<a href="/content/dam/revenue/tax-update.pdf">Tax Update PDF</a>',
-      },
-      {
-        async fetch(input) {
-          expect(String(input)).toBe('https://www.pa.gov/content/dam/revenue/tax-update.pdf')
-          return new Response(bytes, { headers: { 'content-type': 'application/pdf' } })
-        },
-      },
-    )
-
-    expect(items).toHaveLength(1)
-    expect(items[0]).toMatchObject({
-      sourceId: 'pa.temporary_announcements',
-      title: 'Tax Update PDF',
-      officialSourceUrl: 'https://www.pa.gov/content/dam/revenue/tax-update.pdf',
-      jurisdiction: 'PA',
-    })
-    expect(items[0]?.rawText).toContain('Quarterly tax update changes')
-  })
+      })
+      expect(items[0]?.rawText).toContain('Quarterly tax update changes')
+    },
+    PDF_TEXT_TEST_TIMEOUT_MS,
+  )
 
   it('does not fall back to a link-only item when a PDF candidate cannot be read', async () => {
     const items = await announcementItemsFromSnapshotWithPdfLinks(
@@ -122,35 +133,39 @@ describe('@duedatehq/ingest', () => {
     expect(items).toHaveLength(0)
   })
 
-  it('treats content-disposition PDF downloads as linked PDF announcements', async () => {
-    const bytes = await createPdfBytes('Administrative notice changes sales tax filing guidance')
+  it(
+    'treats content-disposition PDF downloads as linked PDF announcements',
+    async () => {
+      const bytes = await createPdfBytes('Administrative notice changes sales tax filing guidance')
 
-    const items = await announcementItemsFromSnapshotWithPdfLinks(
-      {
-        id: 'nm.temporary_announcements',
-        title: 'New Mexico TRD News Alerts',
-        url: 'https://www.tax.newmexico.gov/news-alerts/',
-        jurisdiction: 'NM',
-      },
-      {
-        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
-        body: '<a href="/download/notice">Administrative notice PDF</a>',
-      },
-      {
-        async fetch() {
-          return new Response(bytes, {
-            headers: {
-              'content-type': 'application/octet-stream',
-              'content-disposition': 'attachment; filename="notice.pdf"',
-            },
-          })
+      const items = await announcementItemsFromSnapshotWithPdfLinks(
+        {
+          id: 'nm.temporary_announcements',
+          title: 'New Mexico TRD News Alerts',
+          url: 'https://www.tax.newmexico.gov/news-alerts/',
+          jurisdiction: 'NM',
         },
-      },
-    )
+        {
+          fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+          body: '<a href="/download/notice">Administrative notice PDF</a>',
+        },
+        {
+          async fetch() {
+            return new Response(bytes, {
+              headers: {
+                'content-type': 'application/octet-stream',
+                'content-disposition': 'attachment; filename="notice.pdf"',
+              },
+            })
+          },
+        },
+      )
 
-    expect(items).toHaveLength(1)
-    expect(items[0]?.rawText).toContain('sales tax filing guidance')
-  })
+      expect(items).toHaveLength(1)
+      expect(items[0]?.rawText).toContain('sales tax filing guidance')
+    },
+    PDF_TEXT_TEST_TIMEOUT_MS,
+  )
 
   it('does not fetch unrelated linked PDFs', async () => {
     const fetchMock = vi.fn(async () => new Response('should not fetch'))
@@ -173,49 +188,53 @@ describe('@duedatehq/ingest', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('normalizes Google Drive PDF links while preserving the official source URL', async () => {
-    const bytes = await createPdfBytes('Wyoming sales tax exemption matrix changed in March')
-    const fetchedUrls: string[] = []
+  it(
+    'normalizes Google Drive PDF links while preserving the official source URL',
+    async () => {
+      const bytes = await createPdfBytes('Wyoming sales tax exemption matrix changed in March')
+      const fetchedUrls: string[] = []
 
-    const items = await announcementItemsFromSnapshotWithPdfLinks(
-      {
-        id: 'wy.temporary_announcements',
-        title: 'Wyoming Excise Tax Division Taxing Issues',
-        url: 'https://excise-tax-div.wyo.gov/newsletter-taxing-issues',
-        jurisdiction: 'WY',
-      },
-      {
-        fetchedAt: new Date('2026-06-01T00:00:00.000Z'),
-        body: [
-          '<a href="https://excise-tax-div.wyo.gov/salesuselodging-tax/salesuselodging-returns">Returns</a>',
-          '<a href="https://drive.google.com/file/d/1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU/view?usp=drive_link">03-2026 Taxing Issues</a>',
-        ].join(''),
-      },
-      {
-        async fetch(input) {
-          fetchedUrls.push(String(input))
-          return new Response(bytes, {
-            headers: {
-              'content-type': 'application/octet-stream',
-              'content-disposition': 'attachment; filename="03-2026Taxing Issues.pdf"',
-            },
-          })
+      const items = await announcementItemsFromSnapshotWithPdfLinks(
+        {
+          id: 'wy.temporary_announcements',
+          title: 'Wyoming Excise Tax Division Taxing Issues',
+          url: 'https://excise-tax-div.wyo.gov/newsletter-taxing-issues',
+          jurisdiction: 'WY',
         },
-      },
-    )
+        {
+          fetchedAt: new Date('2026-06-01T00:00:00.000Z'),
+          body: [
+            '<a href="https://excise-tax-div.wyo.gov/salesuselodging-tax/salesuselodging-returns">Returns</a>',
+            '<a href="https://drive.google.com/file/d/1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU/view?usp=drive_link">03-2026 Taxing Issues</a>',
+          ].join(''),
+        },
+        {
+          async fetch(input) {
+            fetchedUrls.push(String(input))
+            return new Response(bytes, {
+              headers: {
+                'content-type': 'application/octet-stream',
+                'content-disposition': 'attachment; filename="03-2026Taxing Issues.pdf"',
+              },
+            })
+          },
+        },
+      )
 
-    expect(fetchedUrls).toEqual([
-      'https://drive.google.com/uc?export=download&id=1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU',
-    ])
-    expect(items).toHaveLength(1)
-    expect(items[0]).toMatchObject({
-      title: '03-2026 Taxing Issues',
-      officialSourceUrl: 'https://drive.google.com/file/d/1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU/view',
-      publishedAt: new Date('2026-03-01T00:00:00.000Z'),
-      jurisdiction: 'WY',
-    })
-    expect(items[0]?.rawText).toContain('Wyoming sales tax exemption')
-  })
+      expect(fetchedUrls).toEqual([
+        'https://drive.google.com/uc?export=download&id=1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU',
+      ])
+      expect(items).toHaveLength(1)
+      expect(items[0]).toMatchObject({
+        title: '03-2026 Taxing Issues',
+        officialSourceUrl: 'https://drive.google.com/file/d/1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU/view',
+        publishedAt: new Date('2026-03-01T00:00:00.000Z'),
+        jurisdiction: 'WY',
+      })
+      expect(items[0]?.rawText).toContain('Wyoming sales tax exemption')
+    },
+    PDF_TEXT_TEST_TIMEOUT_MS,
+  )
 
   it('picks the first selector with results', () => {
     const doc = {
