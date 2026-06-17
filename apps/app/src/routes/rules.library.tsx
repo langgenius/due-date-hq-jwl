@@ -4630,20 +4630,30 @@ function BulkReviewListModal({
         .map((r) => ({ ruleId: r.id, expectedVersion: r.version })),
     [included],
   )
-  // Source-defined rules in this batch that already have a ready AI concrete draft —
-  // accepted via `bulkVerifyCandidates` (the server still applies the trust gate and
-  // routes low-confidence / fuzzy-excerpt drafts back to single review).
-  const draftSelections = useMemo(() => {
-    const out: { ruleId: string; sourceId: string; aiOutputId: string }[] = []
+  // Split source-defined rules that have a cached draft into:
+  //  - draftSelections: one-click bulk-acceptable (no trust issue) → bulkVerifyCandidates
+  //  - draftNeedsReviewIds: has a draft but it's low-confidence / fuzzy-excerpt, so it
+  //    must be reviewed individually (the server trust gate would skip it in bulk).
+  const { draftSelections, draftNeedsReviewIds } = useMemo(() => {
+    const selections: { ruleId: string; sourceId: string; aiOutputId: string }[] = []
+    const needsReview = new Set<string>()
     for (const rule of included) {
       if (!isSourceDefinedRule(rule)) continue
       const target = concreteDraftTargetForRule(rule)
       if (!target) continue
       const entry = concreteDraftByTarget.get(concreteDraftTargetKey(target))
       if (!entry?.draft) continue
-      out.push({ ruleId: rule.id, sourceId: entry.sourceId, aiOutputId: entry.draft.aiOutputId })
+      if (entry.bulkTrustIssue) {
+        needsReview.add(rule.id)
+      } else {
+        selections.push({
+          ruleId: rule.id,
+          sourceId: entry.sourceId,
+          aiOutputId: entry.draft.aiOutputId,
+        })
+      }
     }
-    return out
+    return { draftSelections: selections, draftNeedsReviewIds: needsReview }
   }, [included, concreteDraftByTarget])
   const draftReadyIds = useMemo(
     () => new Set(draftSelections.map((s) => s.ruleId)),
@@ -4818,9 +4828,16 @@ function BulkReviewListModal({
   // the dominant fact about this batch. When the only thing standing between
   // these rules and acceptance is a missing AI draft, say exactly that.
   const noneReady = Boolean(preview) && readyCount === 0 && included.length > 0
+  // True only when EVERY selected rule genuinely lacks a draft. A source-defined
+  // rule whose draft is merely low-trust (draftNeedsReviewIds) has a draft — it just
+  // needs individual review — so it falls under the "open each rule" banner instead.
   const allNeedAiDraft =
     noneReady &&
-    included.every((r) => skippedReasonById.get(r.id) === 'source_defined_requires_ai_review')
+    included.every(
+      (r) =>
+        skippedReasonById.get(r.id) === 'source_defined_requires_ai_review' &&
+        !draftNeedsReviewIds.has(r.id),
+    )
 
   // Select-all re-includes every row; Clear excludes every row.
   const selectAll = () => {
@@ -4994,6 +5011,10 @@ function BulkReviewListModal({
                       >
                         <Check className="size-2.5" aria-hidden />
                         <Trans>AI draft ready</Trans>
+                      </Badge>
+                    ) : draftNeedsReviewIds.has(rule.id) ? (
+                      <Badge variant="warning" className="shrink-0 text-caption-xs font-semibold">
+                        <Trans>Review individually</Trans>
                       </Badge>
                     ) : reason ? (
                       <Badge variant="warning" className="shrink-0 text-caption-xs font-semibold">

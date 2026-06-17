@@ -1858,6 +1858,14 @@ const listConcreteDrafts = os.rules.listConcreteDrafts.handler(async ({ input, c
           aiOutputId: run.id,
           ...draft,
         }),
+        // Whether this draft is one-click bulk-acceptable or must be reviewed
+        // individually (low confidence / non-verbatim excerpt) — the bulk-review
+        // UI cannot recompute the excerpt match without the source text.
+        bulkTrustIssue: concreteDraftBulkTrustIssue({
+          confidence: draft.confidence,
+          sourceExcerpt: draft.sourceExcerpt,
+          citations: run.citations,
+        }),
       },
     ]
   })

@@ -814,6 +814,10 @@ export const RuleConcreteDraftCacheEntrySchema = z.object({
   ruleId: z.string().min(1),
   sourceId: z.string().min(1),
   draft: RuleConcreteDraftSchema,
+  // Why this draft cannot be one-click bulk-accepted, or null when it is
+  // bulk-acceptable. Lets the bulk-review UI label low-confidence / fuzzy-excerpt
+  // drafts as "review individually" instead of implying they're ready to stamp.
+  bulkTrustIssue: z.enum(['low_confidence', 'fuzzy_excerpt']).nullable().optional(),
 })
 export type RuleConcreteDraftCacheEntry = z.infer<typeof RuleConcreteDraftCacheEntrySchema>
 
