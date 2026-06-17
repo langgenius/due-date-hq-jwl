@@ -36,6 +36,7 @@ const rpcMocks = vi.hoisted(() => ({
   previewRuleImpactQueryFn: vi.fn(),
   previewBulkRuleImpactQueryFn: vi.fn(),
   bulkAcceptTemplatesMutationFn: vi.fn(),
+  bulkVerifyCandidatesMutationFn: vi.fn(),
   createCustomRuleMutationFn: vi.fn(),
   diffAgainstPredecessorQueryFn: vi.fn(),
   listCatalogReleaseQueryFn: vi.fn(),
@@ -203,6 +204,12 @@ vi.mock('@/lib/rpc', () => ({
       bulkAcceptTemplates: {
         mutationOptions: (options: Record<string, unknown>) => ({
           mutationFn: rpcMocks.bulkAcceptTemplatesMutationFn,
+          ...options,
+        }),
+      },
+      bulkVerifyCandidates: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.bulkVerifyCandidatesMutationFn,
           ...options,
         }),
       },
@@ -583,6 +590,8 @@ beforeEach(() => {
   })
   rpcMocks.bulkAcceptTemplatesMutationFn.mockReset()
   rpcMocks.bulkAcceptTemplatesMutationFn.mockResolvedValue({ accepted: [], skipped: [] })
+  rpcMocks.bulkVerifyCandidatesMutationFn.mockReset()
+  rpcMocks.bulkVerifyCandidatesMutationFn.mockResolvedValue({ verified: [], skipped: [] })
   rpcMocks.createCustomRuleMutationFn.mockReset()
   rpcMocks.createCustomRuleMutationFn.mockResolvedValue({})
   toastMocks.loading.mockReset()

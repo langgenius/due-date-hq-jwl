@@ -2749,6 +2749,7 @@ export function RulesLibraryRoute() {
       {bulkListOpen && selectedReviewRules.length > 0 ? (
         <BulkReviewListModal
           rules={selectedReviewRules}
+          concreteDraftByTarget={concreteDraftByTarget}
           onClose={() => setBulkListOpen(false)}
           onOpenRule={(rule) => {
             setBulkListOpen(false)
@@ -4589,12 +4590,17 @@ function BulkMetric({
 
 function BulkReviewListModal({
   rules,
+  concreteDraftByTarget,
   onClose,
   onOpenRule,
   onComplete,
 }: {
   /** The selected reviewable rules (candidate / pending_review). */
   rules: ObligationRule[]
+  /** Cached AI concrete drafts (by target key) — lets source-defined rules with a
+   *  ready draft be bulk-accepted here via `bulkVerifyCandidates`, instead of being
+   *  blanket-gated as "needs AI draft review". */
+  concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>
   onClose: () => void
   /** Open one rule's full detail (takeover) — closes this modal. */
   onOpenRule: (rule: ObligationRule) => void
@@ -4613,6 +4619,35 @@ function BulkReviewListModal({
   const selections = useMemo(
     () => included.map((r) => ({ ruleId: r.id, expectedVersion: r.version })),
     [included],
+  )
+  // Template (non-source-defined) selections go through the carry-forward
+  // `bulkAcceptTemplates` path + impact preview; source-defined rules are handled
+  // by the concrete-draft path below.
+  const templateSelections = useMemo(
+    () =>
+      included
+        .filter((r) => !isSourceDefinedRule(r))
+        .map((r) => ({ ruleId: r.id, expectedVersion: r.version })),
+    [included],
+  )
+  // Source-defined rules in this batch that already have a ready AI concrete draft —
+  // accepted via `bulkVerifyCandidates` (the server still applies the trust gate and
+  // routes low-confidence / fuzzy-excerpt drafts back to single review).
+  const draftSelections = useMemo(() => {
+    const out: { ruleId: string; sourceId: string; aiOutputId: string }[] = []
+    for (const rule of included) {
+      if (!isSourceDefinedRule(rule)) continue
+      const target = concreteDraftTargetForRule(rule)
+      if (!target) continue
+      const entry = concreteDraftByTarget.get(concreteDraftTargetKey(target))
+      if (!entry?.draft) continue
+      out.push({ ruleId: rule.id, sourceId: entry.sourceId, aiOutputId: entry.draft.aiOutputId })
+    }
+    return out
+  }, [included, concreteDraftByTarget])
+  const draftReadyIds = useMemo(
+    () => new Set(draftSelections.map((s) => s.ruleId)),
+    [draftSelections],
   )
 
   // The preview + bulk-accept contracts cap a batch at 100 rules
@@ -4652,32 +4687,19 @@ function BulkReviewListModal({
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
   }
 
-  const acceptMutation = useMutation(
-    orpc.rules.bulkAcceptTemplates.mutationOptions({
-      onSuccess: (result) => {
-        const accepted = result.accepted.length
-        const skipped = result.skipped.length
-        toast.success(
-          skipped > 0
-            ? t`${accepted} rules accepted · ${skipped} skipped for individual review`
-            : t`${accepted} rules accepted`,
-        )
-        invalidate()
-        onComplete()
-      },
-      onError: (error) => {
-        toast.error(t`Couldn't accept rules`, {
-          description: rpcErrorMessage(error) ?? t`Check the selection and try again.`,
-        })
-      },
-    }),
-  )
+  // Bare mutations — the combined outcome (template + concrete-draft) is handled in
+  // `handleAccept` so a single toast/invalidate fires after both settle.
+  const acceptMutation = useMutation(orpc.rules.bulkAcceptTemplates.mutationOptions({}))
+  const verifyMutation = useMutation(orpc.rules.bulkVerifyCandidates.mutationOptions({}))
   const rejectTemplateMutation = useMutation(orpc.rules.rejectTemplate.mutationOptions({}))
   const rejectCandidateMutation = useMutation(orpc.rules.rejectCandidate.mutationOptions({}))
 
   const noteTrimmed = note.trim()
-  const readyCount = preview?.acceptReadyCount ?? 0
-  const busy = acceptMutation.isPending || rejecting
+  const templateReadyCount = preview?.acceptReadyCount ?? 0
+  // Source-defined rules with a draft are acceptable too — even when the impact
+  // preview (template-only) reports zero.
+  const readyCount = templateReadyCount + draftSelections.length
+  const busy = acceptMutation.isPending || verifyMutation.isPending || rejecting
   const canAccept = !overAcceptLimit && readyCount > 0 && noteTrimmed.length > 0 && !busy
   const canReject = included.length > 0 && noteTrimmed.length > 0 && !busy
 
@@ -4723,9 +4745,32 @@ function BulkReviewListModal({
     void handleReject()
   }
 
-  function handleAccept() {
+  async function handleAccept() {
     if (!canAccept) return
-    acceptMutation.mutate({ rules: selections, reviewNote: noteTrimmed })
+    const note = noteTrimmed
+    try {
+      const [templateResult, draftResult] = await Promise.all([
+        templateSelections.length > 0
+          ? acceptMutation.mutateAsync({ rules: templateSelections, reviewNote: note })
+          : Promise.resolve({ accepted: [], skipped: [] }),
+        draftSelections.length > 0
+          ? verifyMutation.mutateAsync({ rules: draftSelections, reviewNote: note })
+          : Promise.resolve({ verified: [], skipped: [] }),
+      ])
+      const accepted = templateResult.accepted.length + draftResult.verified.length
+      const skipped = templateResult.skipped.length + draftResult.skipped.length
+      toast.success(
+        skipped > 0
+          ? t`${accepted} rules accepted · ${skipped} skipped for individual review`
+          : t`${accepted} rules accepted`,
+      )
+      invalidate()
+      onComplete()
+    } catch (error) {
+      toast.error(t`Couldn't accept rules`, {
+        description: rpcErrorMessage(error) ?? t`Check the selection and try again.`,
+      })
+    }
   }
 
   async function handleReject() {
@@ -4757,7 +4802,9 @@ function BulkReviewListModal({
   }
 
   const substantive = preview?.classificationCounts.substantive ?? 0
-  const skippedTotal = preview?.skipped.length ?? 0
+  // Source-defined rules with a ready draft are reported as skipped by the
+  // (template-only) preview — don't count them here, they're acceptable.
+  const skippedTotal = (preview?.skipped ?? []).filter((s) => !draftReadyIds.has(s.ruleId)).length
 
   // When every selected rule shares one jurisdiction, name it in the
   // subtitle (Pencil Fzzoq: "Reviewing N rules in Arkansas").
@@ -4936,9 +4983,19 @@ function BulkReviewListModal({
                       {formatRuleTypeLabel(rule.taxType, rule.jurisdiction)}
                     </span>
                   </div>
-                  {/* Readiness/risk flag (real, from previewBulkRuleImpact). */}
+                  {/* Readiness/risk flag (real, from previewBulkRuleImpact + cached
+                      AI drafts). A source-defined rule with a ready draft is
+                      acceptable here even though the template-only preview skips it. */}
                   {!isExcluded ? (
-                    reason ? (
+                    draftReadyIds.has(rule.id) ? (
+                      <Badge
+                        variant="success"
+                        className="shrink-0 gap-1 text-caption-xs font-semibold"
+                      >
+                        <Check className="size-2.5" aria-hidden />
+                        <Trans>AI draft ready</Trans>
+                      </Badge>
+                    ) : reason ? (
                       <Badge variant="warning" className="shrink-0 text-caption-xs font-semibold">
                         {skipReasonLabel[reason]}
                       </Badge>
