@@ -254,12 +254,18 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
     !resumeDismissed && state.batchId === null ? (resumableImportQuery.data ?? null) : null
 
   const resetAndClose = useCallback(() => {
+    // Abandonment = the wizard is closed before the import is confirmed.
+    // `successData` is set only after apply succeeds, so its absence (plus
+    // some discardable work) marks a genuine drop-off. last_step is an enum.
+    if (importStartedRef.current && !successData && hasDiscardableWizardWork(state)) {
+      track(ANALYTICS_EVENTS.importAbandoned, { last_step: state.step })
+    }
     dispatch({ type: 'RESET' })
     setDuplicateHandling('skip')
     setSuccessData(null)
     hydratedBatchIdRef.current = null
     onClose()
-  }, [onClose])
+  }, [onClose, state, successData])
 
   // "Import another file" from the success modal: reset the wizard back to a
   // clean Step 1 in place (route variant) without leaving the surface.
@@ -379,6 +385,14 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
       {
         onError: handleError,
         onSuccess: () => {
+          // Column mapping confirmed — counts only, no headers or values.
+          const mappedFieldCount = state.mapping.rows.filter(
+            (r) => r.targetField !== 'IGNORE',
+          ).length
+          track(ANALYTICS_EVENTS.importColumnsMapped, {
+            mapped_field_count: mappedFieldCount,
+            unmapped_count: state.mapping.rows.length - mappedFieldCount,
+          })
           dispatch({ type: 'NORMALIZE_LOADING' })
           runNormalizerMutation.mutate(
             { batchId },
@@ -402,6 +416,8 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
     const batchId = state.batchId
     if (!batchId) return
 
+    // Re-running the AI mapper is the retry path for a stalled/failed batch.
+    track(ANALYTICS_EVENTS.importRetried, { error_count: state.errors.length })
     dispatch({ type: 'MAPPER_LOADING' })
     runMapperMutation.mutate(
       { batchId },
@@ -422,7 +438,14 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
         },
       },
     )
-  }, [listErrorsMutation, runMapperMutation, state.batchId, state.intake.rawText, t])
+  }, [
+    listErrorsMutation,
+    runMapperMutation,
+    state.batchId,
+    state.errors.length,
+    state.intake.rawText,
+    t,
+  ])
 
   const matrixPreview = useMemo<MatrixApplicationView[]>(
     () =>
@@ -465,6 +488,11 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
                 setDuplicateHandling('skip')
                 dispatch({ type: 'DRY_RUN_RESULT', summary })
                 dispatch({ type: 'GO_TO_STEP', step: 4 })
+                // Step 4 preview is now shown — counts only.
+                track(ANALYTICS_EVENTS.importPreviewed, {
+                  client_count: summary.clientsToCreate,
+                  warning_count: summary.errors.length + summary.ruleReviewWarnings.length,
+                })
                 listErrorsMutation.mutate({ batchId, stage: 'all' })
               },
             },

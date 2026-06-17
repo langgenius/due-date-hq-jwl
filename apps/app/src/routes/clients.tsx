@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, HistoryIcon, LightbulbIcon } from 'lucide-react'
@@ -42,6 +42,7 @@ import {
 import { ImportHistoryDrawer } from '@/features/migration/ImportHistoryDrawer'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -221,6 +222,29 @@ export function ClientsRoute() {
     alertHistoryQuery.isLoading ||
     alertDetailsLoading
 
+  // Page-view analytics. Fires once after the clients query first settles so
+  // `client_count` reflects real data (not the loading-state zero). The ref
+  // guards against re-firing on later refetches/filter changes.
+  const clientsViewedTrackedRef = useRef(false)
+  useEffect(() => {
+    if (clientsViewedTrackedRef.current || clientsQuery.isLoading) return
+    clientsViewedTrackedRef.current = true
+    const filterCount =
+      (searchQuery ? 1 : 0) +
+      (clientFilter.length > 0 ? 1 : 0) +
+      (entityFilter.length > 0 ? 1 : 0) +
+      (stateFilter.length > 0 ? 1 : 0) +
+      (ownerFilter.length > 0 ? 1 : 0) +
+      (readinessFilter.length > 0 ? 1 : 0) +
+      (sourceFilter.length > 0 ? 1 : 0) +
+      (alertFilter.length > 0 ? 1 : 0)
+    track(ANALYTICS_EVENTS.clientsViewed, {
+      client_count: clients.length,
+      filter_count: filterCount,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientsQuery.isLoading])
+
   // The cycle-list write lives in the row-click handler inside
   // ClientFactsWorkspace, so it writes sessionStorage only on actual
   // navigation intent rather than on every filteredClients change (and
@@ -228,6 +252,23 @@ export function ClientsRoute() {
   const createMutation = useMutation(
     orpc.clients.create.mutationOptions({
       onSuccess: (client) => {
+        // Best-effort "first client" detection: the loaded directory list was
+        // empty before this create. `clients` is the live query data captured
+        // at render; the manual dialog is the only path through here, so
+        // method is always 'manual'.
+        const wasFirstClient = clients.length === 0
+        track(ANALYTICS_EVENTS.clientCreated, {
+          entity_type: client.entityType,
+          tax_classification: client.taxClassification,
+          surface: 'directory',
+        })
+        if (wasFirstClient) {
+          track(ANALYTICS_EVENTS.firstClientCreated, {
+            entity_type: client.entityType,
+            tax_classification: client.taxClassification,
+            method: 'manual',
+          })
+        }
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
         toast.success(t`Client created`, { description: client.name })
         void navigate(clientDetailPath(client))

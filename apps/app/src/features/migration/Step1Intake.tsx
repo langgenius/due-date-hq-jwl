@@ -31,6 +31,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import cchAxcessLogoUrl from './assets/source-logos/cch-axcess.png?url'
 import cchProSystemFxLogoUrl from './assets/source-logos/cch-prosystem-fx.png?url'
 import drakeLogoUrl from './assets/source-logos/drake.png?url'
@@ -130,6 +131,23 @@ const SOURCE_PRODUCT_LABELS: Record<MigrationSourceManifest['product'], string> 
 
 function hasDraggedFiles(event: DragEvent<HTMLElement>) {
   return Array.from(event.dataTransfer.types).includes('Files')
+}
+
+/**
+ * Generic source label for the import-file-uploaded event (csv | xlsx |
+ * lacerte | proconnect | manual). A tax-software preset wins; otherwise the
+ * file kind decides, and paste/unknown falls back to manual. Returns an
+ * enum-shaped string only — no file names, headers, or cell values.
+ */
+function intakeAnalyticsSource(
+  preset: PresetId | null,
+  fileKind: IntakeState['fileKind'] | undefined,
+): string {
+  if (preset === 'lacerte') return 'lacerte'
+  if (preset === 'proconnect_tax') return 'proconnect'
+  if (fileKind === 'xlsx') return 'xlsx'
+  if (fileKind === 'csv' || fileKind === 'tsv') return 'csv'
+  return 'manual'
 }
 
 type PresetSelectionState = Pick<IntakeState, 'preset' | 'presetSource'>
@@ -268,6 +286,16 @@ export function Step1Intake({
         ssnBlockedColumnIndexes: ssn.blockedColumnIndexes,
       })
       onParseError(null)
+      // File/paste parsed successfully — the import funnel's intake step.
+      track(ANALYTICS_EVENTS.importFileUploaded, {
+        source: intakeAnalyticsSource(intake.preset, options.fileKind),
+        row_count: parsed.rowCount,
+      })
+      // Tripwire: SSN-shaped columns were detected and blocked. Only a generic
+      // hint is sent — never the column header text or any cell value.
+      if (ssn.blockedColumnIndexes.length > 0) {
+        track(ANALYTICS_EVENTS.ssnDetectedInUpload, { column_hint: 'ssn_shaped' })
+      }
     } catch (err) {
       const message =
         err instanceof TabularParseError
@@ -275,6 +303,11 @@ export function Step1Intake({
           : t`We couldn't read that file. Try exporting as CSV.`
       resetParsedRows()
       onParseError(message)
+      // Tripwire: an import file failed to parse. error_type is the parser's
+      // own error code (enum), never file contents.
+      track(ANALYTICS_EVENTS.importParseError, {
+        error_type: err instanceof TabularParseError ? err.code : 'unreadable',
+      })
     }
   }
 

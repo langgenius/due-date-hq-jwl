@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useForm, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -49,6 +49,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { FieldLabel } from '@/components/primitives/field-label'
 import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
@@ -107,6 +108,14 @@ export function GenerationPreviewTab() {
   const clientsQuery = useQuery(
     orpc.clients.listByFirm.queryOptions({ input: { limit: CLIENT_LIST_LIMIT } }),
   )
+
+  // Fire once on mount — this is the Annual rollover surface. `year` is the
+  // target filing year the rollover defaults to (matches
+  // defaultAnnualRolloverYears: next calendar year). A stable scalar, no PII.
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.annualRolloverPreviewed, { year: new Date().getFullYear() + 1 })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (clientsQuery.isLoading) {
     return <QueryPanelState state="loading" message={t`Loading clients for preview…`} />

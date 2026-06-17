@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { CoffeeIcon, HistoryIcon } from 'lucide-react'
@@ -8,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { CountPill } from '@/components/primitives/count-pill'
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
 import { useActiveAlertCount, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
@@ -41,6 +43,15 @@ export function AlertsRoute() {
   // while the CPA-facing promise remains national coverage.
   const hasNationalMonitoringCoverage =
     MVP_RULE_JURISDICTIONS.length === NATIONAL_MONITORING_JURISDICTION_COUNT
+
+  // Page-view: fire once on mount. `open_count` reads the same authoritative
+  // active count the header chip shows. No `scope` facet exists at this route
+  // level (the Review/Active work-queue scope lives inside AlertsListPage), so
+  // it is omitted.
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.alertsViewed, { open_count: alertCount })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // No breadcrumb here: Alerts is a top-level sidebar destination, so a
   // parent crumb back to /rules/library would be vestigial IA from when
@@ -92,21 +103,31 @@ export function AlertsRoute() {
           page-specific. The trailing chevron is dropped to match /today
           (nav cue is the hover-deepen). */}
       {hasNationalMonitoringCoverage ? (
-        <MonitoringChip
-          to="/rules/sources"
-          ariaLabel={t`Monitoring: Federal · 50 States · DC`}
-          tooltip={
-            !sourceHealthLoaded ? (
-              <Trans>Checking source health…</Trans>
-            ) : allSourcesHealthy ? (
-              <Trans>All {monitoredSources.length} monitored sources operational</Trans>
-            ) : (
-              <Trans>
-                {unhealthySourceCount} of {monitoredSources.length} sources need attention
-              </Trans>
-            )
+        <span
+          onClick={() =>
+            track(ANALYTICS_EVENTS.sourcesHealthChipClicked, {
+              // Non-PII rollup of the monitoring chip's status (the live
+              // green/amber signal), not a raw source list.
+              health: !sourceHealthLoaded ? 'checking' : allSourcesHealthy ? 'healthy' : 'degraded',
+            })
           }
-        />
+        >
+          <MonitoringChip
+            to="/rules/sources"
+            ariaLabel={t`Monitoring: Federal · 50 States · DC`}
+            tooltip={
+              !sourceHealthLoaded ? (
+                <Trans>Checking source health…</Trans>
+              ) : allSourcesHealthy ? (
+                <Trans>All {monitoredSources.length} monitored sources operational</Trans>
+              ) : (
+                <Trans>
+                  {unhealthySourceCount} of {monitoredSources.length} sources need attention
+                </Trans>
+              )
+            }
+          />
+        </span>
       ) : null}
     </span>
   )

@@ -49,6 +49,7 @@ import {
   useBillingSubscriptions,
   useCurrentFirm,
 } from '@/features/billing/use-billing-data'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { PermissionGate } from '@/features/permissions/permission-gate'
 
 type PlanView = {
@@ -190,6 +191,9 @@ export function BillingCheckoutRoute() {
       })
     },
     onSuccess: (url) => {
+      // The Stripe checkout session is created and we're about to redirect —
+      // this is the point the hosted checkout actually starts.
+      track(ANALYTICS_EVENTS.checkoutStarted, { plan, billing_interval: interval })
       window.location.assign(url)
     },
   })

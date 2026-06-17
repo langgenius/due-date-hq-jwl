@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Loader2Icon, SendIcon } from 'lucide-react'
@@ -34,6 +34,7 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { FieldLabel } from '@/components/primitives/field-label'
 import { formatDate } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 interface ResponseDraft {
   itemId: string
@@ -95,6 +96,12 @@ export function ReadinessPortalRoute() {
   const [submitted, setSubmitted] = useState(false)
   const portal = portalQuery.data
 
+  // Client-facing portal mount. This surface is unauthenticated/anonymous —
+  // no client identity is sent, only the page-view fact.
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.readinessPortalViewed, {})
+  }, [])
+
   if (portal && draft.token !== token) {
     setDraft({ token, responses: initialDraft(portal) })
   }
@@ -104,6 +111,7 @@ export function ReadinessPortalRoute() {
     onSuccess: () => {
       toast.success(t`Readiness response submitted`)
       setSubmitted(true)
+      track(ANALYTICS_EVENTS.readinessPortalSubmitted, {})
       void portalQuery.refetch()
     },
     onError: () => {

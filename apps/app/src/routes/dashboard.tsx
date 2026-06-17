@@ -1,5 +1,5 @@
 import { AlertCircleIcon, RotateCwIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
@@ -29,6 +29,7 @@ import { MergedBriefCard } from '@/features/dashboard/merged-brief-card'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import type { ObligationStatus } from '@/features/obligations/status-control'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
@@ -142,6 +143,7 @@ export function DashboardRoute() {
   // One switch for the whole page: brief + actions + every count.
   const setScope = (next: DashboardBriefScope) => {
     rememberDashboardScope(next)
+    track(ANALYTICS_EVENTS.dashboardScopeToggled, { scope: next })
     void setDashboardParams({ scope: next })
   }
   // Masthead greeting inputs — the member's first name + the local clock.
@@ -193,6 +195,12 @@ export function DashboardRoute() {
   // Parked: the probe query is kept for its shared cache-warming side effect
   // (dropdowns/pickers reuse the key); the derived flag is currently unused.
   const _hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
+  // Firm identity for analytics — reuses the layout's `firms.listMine` cache
+  // key (no extra fetch). Used only to scope the once-per-firm activation
+  // milestone; null until the cache warms.
+  const firmsQuery = useQuery(orpc.firms.listMine.queryOptions({ input: undefined }))
+  const firmId =
+    (firmsQuery.data?.find((item) => item.isCurrent) ?? firmsQuery.data?.[0])?.id ?? null
   const data = dashboardQuery.data
 
   const syncedAtIso =
@@ -200,6 +208,38 @@ export function DashboardRoute() {
   const syncedLabel = syncedAtIso ? formatRelativeTime(syncedAtIso) : null
 
   const facets = data?.facets
+
+  // Page-view analytics — fire `dashboardViewed` exactly once per mount, the
+  // first time the dashboard load resolves (data ready), with the scope +
+  // headline counts. The ref guard keeps it to one event even though `data`
+  // changes on every poll/refetch. Activation is a best-effort once-per-firm
+  // milestone fired in the same data-ready moment.
+  const viewTrackedRef = useRef(false)
+  useEffect(() => {
+    if (viewTrackedRef.current || !data) return
+    viewTrackedRef.current = true
+    const openObligationCount = data.summary?.openObligationCount ?? 0
+    const overdueCount = facets?.dueBuckets.find((b) => b.value === 'overdue')?.count ?? 0
+    track(ANALYTICS_EVENTS.dashboardViewed, {
+      scope,
+      open_obligation_count: openObligationCount,
+      overdue_count: overdueCount,
+      is_empty: openObligationCount === 0,
+    })
+    // Activation milestone — first dashboard load with open work, once per
+    // firm (localStorage-guarded). Skipped without a firm id.
+    if (firmId && openObligationCount > 0) {
+      const activationKey = `ddhq.activated.${firmId}`
+      try {
+        if (window.localStorage.getItem(activationKey) === null) {
+          window.localStorage.setItem(activationKey, '1')
+          track(ANALYTICS_EVENTS.activationReached, { obligation_count: openObligationCount })
+        }
+      } catch {
+        // Private mode / disabled storage — skip the milestone silently.
+      }
+    }
+  }, [data, facets, scope, firmId])
 
   return (
     // Page chrome aligned to Pencil VmcdD: inter-section gap-8 (32px)

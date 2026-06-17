@@ -44,6 +44,35 @@ import { FieldLabel } from '@/components/primitives/field-label'
 import { useSession } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
+
+// Map each boolean preference flag to the analytics dimension it represents:
+// delivery `channel` toggles vs. per-topic toggles. Non-boolean preferences
+// (digest hour/days) aren't simple on/off switches, so they're omitted here.
+const PREFERENCE_CHANNEL_KEYS: Record<string, string> = {
+  emailEnabled: 'email',
+  inAppEnabled: 'in_app',
+}
+const PREFERENCE_TOPIC_KEYS: Record<string, string> = {
+  remindersEnabled: 'reminders',
+  pulseEnabled: 'alerts',
+  unassignedRemindersEnabled: 'assignments',
+  morningDigestEnabled: 'morning_digest',
+}
+
+// Emit one `Notification Preferences Changed` per boolean toggle in a patch,
+// tagged with the channel/topic and the new on/off value. Only enums/booleans
+// leave the call — no free text.
+function trackPreferencePatch(patch: Partial<NotificationPreferencePublic>) {
+  for (const [key, value] of Object.entries(patch)) {
+    if (typeof value !== 'boolean') continue
+    track(ANALYTICS_EVENTS.notificationPreferencesChanged, {
+      channel: PREFERENCE_CHANNEL_KEYS[key],
+      topic: PREFERENCE_TOPIC_KEYS[key],
+      value,
+    })
+  }
+}
 
 const DIGEST_DAYS: Array<{ key: MorningDigestDay; label: string }> = [
   { key: 'mon', label: 'Mon' },
@@ -120,7 +149,10 @@ export function NotificationPreferencesPage() {
   )
 
   const preferences = preferencesQuery.data
-  const onUpdate = (patch: Partial<NotificationPreferencePublic>) => updatePreferences.mutate(patch)
+  const onUpdate = (patch: Partial<NotificationPreferencePublic>) => {
+    trackPreferencePatch(patch)
+    updatePreferences.mutate(patch)
+  }
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">

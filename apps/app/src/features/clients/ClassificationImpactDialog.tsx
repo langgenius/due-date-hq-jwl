@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, CheckCircle2Icon, Loader2Icon, MinusCircleIcon } from 'lucide-react'
@@ -29,6 +29,7 @@ import {
 } from '@duedatehq/ui/components/ui/dialog'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatTaxCode } from '@/lib/tax-codes'
@@ -116,6 +117,11 @@ export function ClassificationImpactDialog({
     enabled: open,
   })
 
+  // The impact preview dialog is shown — fire once on each open transition.
+  useEffect(() => {
+    if (open) track(ANALYTICS_EVENTS.clientClassificationImpactPreviewed, {})
+  }, [open])
+
   const rows = useMemo<ClassificationRecomputeRow[]>(
     () => previewQuery.data?.rows ?? [],
     [previewQuery.data],
@@ -146,6 +152,15 @@ export function ClassificationImpactDialog({
   const applyMutation = useMutation(
     orpc.clients.applyClassificationRecompute.mutationOptions({
       onSuccess: (result) => {
+        // Category enums only (entity type / tax classification) + counts —
+        // no PII. The panel edits the entityType axis; fall back to the tax
+        // classification axis when the candidate carries it instead.
+        track(ANALYTICS_EVENTS.clientClassificationChanged, {
+          from_class: candidate.taxClassification ? client.taxClassification : client.entityType,
+          to_class: candidate.taxClassification ?? candidate.entityType,
+          added_deadline_count: result.addedCount,
+          removed_deadline_count: result.supersededCount,
+        })
         toast.success(isCorrection ? t`Entity type updated` : t`Reclassified`, {
           description: t`${result.addedCount} added, ${result.supersededCount} removed`,
         })

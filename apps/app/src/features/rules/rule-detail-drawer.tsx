@@ -42,6 +42,7 @@ import { EntityAuditActivityPanel } from '@/features/audit/entity-audit-activity
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { formatDatePretty, formatDateTimeWithTimezone, formatRelativeTime } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { FieldLabel } from '@/components/primitives/field-label'
@@ -1196,6 +1197,11 @@ function CandidateReviewForm({
 
   function handleAcceptSuccess() {
     toast.success(t`Rule accepted`, acceptToastOptions({ style: ACCEPT_RULE_SUCCESS_TOAST_STYLE }))
+    track(ANALYTICS_EVENTS.ruleAccepted, {
+      jurisdiction: rule.jurisdiction,
+      filing_type: rule.taxType,
+      affected_client_count: impactQuery.data?.affectedClientCount,
+    })
     finishAcceptAction()
   }
 
@@ -1225,6 +1231,10 @@ function CandidateReviewForm({
     setRejecting(false)
     setRejectOpen(false)
     toast.success(t`Rule rejected`)
+    track(ANALYTICS_EVENTS.ruleRejected, {
+      jurisdiction: rule.jurisdiction,
+      filing_type: rule.taxType,
+    })
     void (async () => {
       try {
         await onActionComplete?.()

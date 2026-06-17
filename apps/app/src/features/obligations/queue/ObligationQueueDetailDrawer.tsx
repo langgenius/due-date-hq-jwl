@@ -53,6 +53,7 @@ import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-
 import { JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
 import { DetailSectionCard } from '@/components/patterns/detail-section-card'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { contentEnterMotion } from '@/lib/motion'
 import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
@@ -548,6 +549,19 @@ export function ObligationQueueDetailDrawer({
   })
   const detail = detailQuery.data
   const row = detail?.row ?? null
+  // Open event — fire once per obligation once its detail has loaded. `mode`
+  // distinguishes the surface (queue side panel vs provider sheet vs route).
+  const openTrackedForRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!row || obligationId === null) return
+    if (openTrackedForRef.current === obligationId) return
+    openTrackedForRef.current = obligationId
+    track(ANALYTICS_EVENTS.deadlineOpened, {
+      surface:
+        mode === 'page' ? 'deadline_detail' : mode === 'panel' ? 'deadlines_table' : 'drawer',
+      deadline_status: row.status,
+    })
+  }, [row, obligationId, mode])
   const selectedRequestRecipientUserId =
     requestInputDraft.recipientUserId || requestRecipients[0]?.assigneeId || ''
   const latestInputRequest = useMemo(
@@ -833,6 +847,11 @@ export function ObligationQueueDetailDrawer({
     orpc.readiness.sendRequest.mutationOptions({
       onSuccess: (result) => {
         invalidateDetail()
+        // channel = how the request reached the client: emailed vs share-link.
+        track(ANALYTICS_EVENTS.materialsRequested, {
+          surface: mode === 'page' ? 'deadline_detail' : 'drawer',
+          channel: result.emailQueued ? 'email' : 'link',
+        })
         toast.success(result.emailQueued ? t`Materials request sent` : t`Materials link created`)
       },
       onError: (err) => {
@@ -931,6 +950,10 @@ export function ObligationQueueDetailDrawer({
       onSuccess: (result, variables) => {
         invalidateDetail()
         setExtensionDraft(emptyExtensionPlanDraft(variables.id))
+        track(ANALYTICS_EVENTS.deadlineExtended, {
+          jurisdiction: row?.jurisdiction ?? null,
+          filing_type: row?.taxType ?? null,
+        })
         toast.success(t`Extension plan saved`, {
           description: t`Audit ${result.auditId.slice(0, 8)}`,
         })
@@ -959,8 +982,22 @@ export function ObligationQueueDetailDrawer({
   // drawer header. Closes the "Filed ≠ Done" loop (PDF anti-pattern #3).
   const markAcceptedMutation = useMutation(
     orpc.obligations.updateStatus.mutationOptions({
-      onSuccess: (result) => {
+      onSuccess: (result, variables) => {
         invalidateDetail()
+        // "Mark accepted" is a completion (status → completed). Record both the
+        // status change and the completion. Non-PII enums/counts only.
+        track(ANALYTICS_EVENTS.deadlineStatusChanged, {
+          from_status: row?.status ?? null,
+          to_status: variables.status,
+          bulk: false,
+          count: 1,
+          surface: mode === 'page' ? 'deadline_detail' : 'drawer',
+        })
+        track(ANALYTICS_EVENTS.deadlineCompleted, {
+          jurisdiction: row?.jurisdiction ?? null,
+          filing_type: row?.taxType ?? null,
+          days_to_due: row?.daysUntilDue,
+        })
         toast.success(t`Marked accepted`, {
           description: t`Audit ${result.auditId.slice(0, 8)}`,
         })
@@ -1002,6 +1039,13 @@ export function ObligationQueueDetailDrawer({
       onSuccess: (result) => {
         invalidateDetail()
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        // self_assigned omitted — the drawer has no current-user signal to
+        // compare against and the assignable roster carries no isCurrentUser flag.
+        track(ANALYTICS_EVENTS.deadlineAssigned, {
+          bulk: false,
+          count: 1,
+          surface: mode === 'page' ? 'deadline_detail' : 'drawer',
+        })
         const name = result.obligation.assigneeId
           ? (assignableMembers.find((m) => m.assigneeId === result.obligation.assigneeId)?.name ??
             t`teammate`)
@@ -1062,6 +1106,9 @@ export function ObligationQueueDetailDrawer({
       onSuccess: (result) => {
         invalidateDetail()
         if (result.emailQueued) {
+          track(ANALYTICS_EVENTS.signatureRequested, {
+            surface: mode === 'page' ? 'deadline_detail' : 'drawer',
+          })
           toast.success(t`Signature reminder emailed`)
         } else {
           toast.warning(t`No client email on file`, {
@@ -1118,6 +1165,21 @@ export function ObligationQueueDetailDrawer({
         {
           onSuccess: (result) => {
             const canUndo = previousStatus !== nextStatus
+            // Status-change analytics fire here (the drawer surface). Non-PII.
+            track(ANALYTICS_EVENTS.deadlineStatusChanged, {
+              from_status: previousStatus,
+              to_status: nextStatus,
+              bulk: false,
+              count: 1,
+              surface: mode === 'page' ? 'deadline_detail' : 'drawer',
+            })
+            if (nextStatus === 'done' || nextStatus === 'paid' || nextStatus === 'completed') {
+              track(ANALYTICS_EVENTS.deadlineCompleted, {
+                jurisdiction: row?.jurisdiction ?? null,
+                filing_type: row?.taxType ?? null,
+                days_to_due: row?.daysUntilDue,
+              })
+            }
             toast.success(t`Status changed to ${statusLabels[nextStatus]}`, {
               description: t`Audit ${result.auditId.slice(0, 8)}`,
               ...(canUndo
@@ -1135,7 +1197,7 @@ export function ObligationQueueDetailDrawer({
         },
       )
     },
-    [changeStatusMutation, statusLabels, t],
+    [changeStatusMutation, statusLabels, t, mode, row],
   )
   function advanceWaitingRowToReview() {
     if (!row || row.status !== 'waiting_on_client') return
@@ -1717,6 +1779,17 @@ export function ObligationQueueDetailDrawer({
   const jumpToSection = useCallback(
     (tab: ObligationQueueDetailTab) => {
       onTabChange(tab)
+      // Map the drawer's internal tab keys onto the analytics taxonomy
+      // ('audit' → 'activity'); emit only for tabs in the taxonomy.
+      const analyticsTab =
+        tab === 'audit'
+          ? 'activity'
+          : tab === 'summary' || tab === 'readiness' || tab === 'evidence'
+            ? tab
+            : null
+      if (analyticsTab) {
+        track(ANALYTICS_EVENTS.deadlineDetailTabViewed, { tab: analyticsTab })
+      }
       scrollContainerRef.current
         ?.querySelector(`#deadline-section-${tab}`)
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' })

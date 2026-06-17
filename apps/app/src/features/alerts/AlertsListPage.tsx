@@ -38,6 +38,7 @@ import {
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { EASE_APPLE, MOTION_DURATION } from '@/lib/motion'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -85,7 +86,7 @@ import {
   ALERT_IMPACT_FILTER_OPTIONS,
   type AlertImpactFilter,
 } from './lib/impact-filter'
-import { alertImpactCount } from './lib/impact-level'
+import { alertImpactCount, alertImpactLevel } from './lib/impact-level'
 import { isActiveAlert } from './components/pulse-alert-chrome'
 import {
   CHANGE_KIND_FILTER_OPTIONS,
@@ -244,6 +245,15 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
   const dismissAlertMutation = useMutation(
     orpc.pulse.dismiss.mutationOptions({
       onSuccess: (_data, variables) => {
+        // Dismiss event — resolve the dismissed alert from the loaded set for
+        // its non-PII jurisdiction + impact level. Omit if it isn't found.
+        const dismissed = alerts.find((alert) => alert.id === variables.alertId)
+        if (dismissed) {
+          track(ANALYTICS_EVENTS.alertDismissed, {
+            jurisdiction: dismissed.jurisdiction,
+            impact_level: alertImpactLevel(dismissed),
+          })
+        }
         toast.success(t`Alert dismissed`, {
           action: {
             label: t`Undo`,
@@ -940,7 +950,17 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                         setTimeRangeFilter(value)
                       }}
                       impactFilter={impactFilter}
-                      onImpactChange={setImpactFilter}
+                      onImpactChange={(value) => {
+                        setImpactFilter(value)
+                        // Filter-change event — `impact` is the new impact
+                        // facet, `status` the active status scope in effect
+                        // (the active board's status is driven by the work
+                        // queue / sweep preset; both are non-PII enums).
+                        track(ANALYTICS_EVENTS.alertsFiltered, {
+                          impact: value,
+                          status: effectiveStatusFilter,
+                        })
+                      }}
                       changeKindFilter={changeKindFilter}
                       onChangeKindChange={setChangeKindFilter}
                       taxAreaFilter={taxAreaFilter}

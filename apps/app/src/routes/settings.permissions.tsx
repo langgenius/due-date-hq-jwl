@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
@@ -36,6 +36,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { roleLabel, useFirmPermission } from '@/features/permissions/permission-gate'
 import { SettingsShell } from '@/features/settings/settings-sub-nav'
 import { orpc } from '@/lib/rpc'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 // The role whose column is shown in the matrix. Owner is fixed (it has
 // every permission) and is shown for reference; the other roles are the
@@ -189,6 +190,10 @@ export function SettingsPermissionsRoute() {
   const [selectedRole, setSelectedRole] = useState<FirmRole>('preparer')
 
   const membersQuery = useQuery(orpc.members.listCurrent.queryOptions({ input: undefined }))
+
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.permissionsViewed, {})
+  }, [])
 
   const memberCounts = useMemo(() => {
     const counts: Partial<Record<FirmRole, number>> = {}

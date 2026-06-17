@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router'
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -32,6 +32,7 @@ import { SearchInput } from '@/components/primitives/search-input'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { RelativeTime } from '@/components/primitives/relative-time'
 
 function notificationTypeLabel(type: NotificationType): React.ReactNode {
@@ -122,6 +123,17 @@ export function NotificationsPage() {
   // item.readAt)`, which returns true for [] (silently disabling the button on
   // an empty list with no explanation).
   const hasUnread = notifications.some((item) => !item.readAt)
+  // Page-view event. The unread count is only meaningful once the inbox has
+  // loaded, so fire exactly once on the first successful load (guarded by a
+  // ref) rather than on the bare mount with a placeholder zero.
+  const viewedTracked = useRef(false)
+  useEffect(() => {
+    if (viewedTracked.current || !notificationsQuery.isSuccess) return
+    viewedTracked.current = true
+    track(ANALYTICS_EVENTS.notificationsViewed, {
+      unread_count: notifications.filter((item) => !item.readAt).length,
+    })
+  }, [notificationsQuery.isSuccess, notifications])
   // Client-side filter over title + body. Trimmed lower-case haystack lets a
   // CPA narrow to a specific deadline / client / topic without the server
   // roundtrip. Empty query is the identity (full list).
@@ -352,6 +364,7 @@ export function NotificationsPage() {
                           <Link
                             to={item.href}
                             onClick={() => {
+                              track(ANALYTICS_EVENTS.notificationOpened, { type: item.type })
                               if (!item.readAt) markRead.mutate({ id: item.id })
                             }}
                           />

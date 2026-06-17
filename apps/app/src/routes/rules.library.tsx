@@ -116,6 +116,7 @@ import { formatTaxCode } from '@/lib/tax-codes'
 import { formatDatePretty, formatRelativeTime } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 /**
  * Rule library v3 — one surface, no toggle.
@@ -1588,6 +1589,17 @@ export function RulesLibraryRoute() {
   useEffect(() => {
     setTableFilter(EMPTY_RULE_TABLE_FILTER)
   }, [activeJurisdiction])
+  // Fire once on mount. `view` is URL-derived so it's stable immediately; a
+  // selected jurisdiction = the flat library table, no selection = the
+  // All-jurisdictions coverage overview. `pending_count` is the live
+  // needs-review backlog (a count, never PII).
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.rulesLibraryViewed, {
+      view: activeJurisdiction ? 'library' : 'coverage',
+      pending_count: totalPendingReview,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   // Rules for the selected jurisdiction's flat table — filtered by the
   // active scope (active/review/archived) + entity + rule search.
   // 'missing' scope shows gap rows only (handled in the render).
@@ -1771,6 +1783,12 @@ export function RulesLibraryRoute() {
 
   const handleRuleClick = useCallback(
     (rule: ObligationRule) => {
+      track(ANALYTICS_EVENTS.ruleOpened, {
+        rule_status: rule.status,
+        jurisdiction: rule.jurisdiction,
+        filing_type: rule.taxType,
+        tier: rule.ruleTier,
+      })
       void setRuleId(rule.id)
     },
     [setRuleId],
@@ -4774,6 +4792,7 @@ function BulkReviewListModal({
           ? t`${accepted} rules accepted · ${skipped} skipped for individual review`
           : t`${accepted} rules accepted`,
       )
+      track(ANALYTICS_EVENTS.rulesBulkReviewed, { action: 'accept', count: accepted })
       invalidate()
       onComplete()
     } catch (error) {
@@ -4807,6 +4826,7 @@ function BulkReviewListModal({
     setRejecting(false)
     if (failed === 0) toast.success(t`${ok} rules rejected`)
     else toast.error(t`${ok} rejected · ${failed} failed`)
+    if (ok > 0) track(ANALYTICS_EVENTS.rulesBulkReviewed, { action: 'reject', count: ok })
     invalidate()
     onComplete()
   }
@@ -5522,6 +5542,10 @@ function NewRuleModal({
         // Re-fetch rules + coverage so the new rule appears in the
         // library and the gap row disappears.
         void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+        track(ANALYTICS_EVENTS.customRuleCreated, {
+          jurisdiction: seed.jurisdiction,
+          filing_type: taxType.trim(),
+        })
         toast.success(t`Rule created`)
         onClose()
       },

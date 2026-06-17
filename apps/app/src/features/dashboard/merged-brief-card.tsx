@@ -18,6 +18,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { DueDateLabel } from '@/components/primitives/due-date-label'
 import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
@@ -302,7 +303,15 @@ export function MergedBriefCard({
           <Segmented
             ariaLabel={t`Filter priorities by window`}
             value={selected}
-            onValueChange={(next) => setOverride(next)}
+            onValueChange={(next) => {
+              // Map the CPA windows onto the shared analytics bucket enum:
+              // overdue (past-due, most urgent) → 'today'; week/month pass
+              // through.
+              track(ANALYTICS_EVENTS.dashboardBucketSelected, {
+                bucket: next === 'overdue' ? 'today' : next,
+              })
+              setOverride(next)
+            }}
             options={tabs.map((tab) => ({
               value: tab.key,
               label: tab.label,

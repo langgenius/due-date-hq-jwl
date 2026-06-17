@@ -19,6 +19,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { formatDateWithTimezone } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 
@@ -206,6 +207,7 @@ function TemporaryRuleRow({
               size="icon-sm"
               aria-label={t`Open official source`}
               nativeButton={false}
+              onClick={() => track(ANALYTICS_EVENTS.sourceLinkOpened, {})}
               render={<a href={rule.sourceUrl} target="_blank" rel="noopener noreferrer" />}
             >
               <ExternalLinkIcon className="size-4" aria-hidden />

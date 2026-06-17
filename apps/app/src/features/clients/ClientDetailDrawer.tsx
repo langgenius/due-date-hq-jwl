@@ -25,6 +25,7 @@ import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
 import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -80,6 +81,11 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
       setAutoCollapsed(false)
     }
   }, [isOpen, setAutoCollapsed])
+
+  // Fire once on each open transition of the peek drawer.
+  useEffect(() => {
+    if (isOpen) track(ANALYTICS_EVENTS.clientOpened, { surface: 'drawer' })
+  }, [isOpen])
 
   const clientQuery = useQuery({
     ...orpc.clients.get.queryOptions({ input: { id: clientId ?? '' } }),

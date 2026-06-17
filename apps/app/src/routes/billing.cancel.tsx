@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router'
 import { Trans } from '@lingui/react/macro'
 import { ArrowLeftIcon, CreditCardIcon } from 'lucide-react'
@@ -14,9 +15,14 @@ import {
 } from '@duedatehq/ui/components/ui/card'
 
 import { billingSearchParamsParsers, serializeBillingQuery } from '@/features/billing/model'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 export function BillingCancelRoute() {
   const [{ plan, interval }] = useQueryStates(billingSearchParamsParsers)
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.checkoutCanceled)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   // If the user lands here with no plan/interval in the query (e.g. opened a
   // bookmarked cancel URL, or the upstream link dropped its params), routing
   // "Restart checkout" to `/billing/checkout` with no plan selection is a dead

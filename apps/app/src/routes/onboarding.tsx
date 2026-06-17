@@ -247,7 +247,10 @@ export function OnboardingRoute() {
           <RuleReviewPrompt
             totalRulesActivated={review.totalActivated}
             jurisdictions={review.jurisdictions.map((code) => ({ code }))}
-            onReview={() => void navigate('/rules/library')}
+            onReview={() => {
+              track(ANALYTICS_EVENTS.ruleReviewPromptClicked, {})
+              void navigate('/rules/library')
+            }}
             onSkip={() => void navigate('/migration/new?source=onboarding', { replace: true })}
           />
         </div>

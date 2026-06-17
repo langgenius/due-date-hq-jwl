@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
@@ -46,6 +46,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
@@ -409,6 +410,10 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
   const requestPackage = useMutation(
     orpc.audit.requestEvidencePackage.mutationOptions({
       onSuccess: () => {
+        // The export is a firm-scoped, server-side evidence bundle, so no row
+        // count is available client-side here — omitted (the PII guard drops
+        // undefined props).
+        track(ANALYTICS_EVENTS.auditLogExported)
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
       },
       onError: (error) => {
@@ -571,6 +576,20 @@ export function AuditLogPage() {
     permission: 'audit.read',
     coordinatorCanSeeDollars: currentFirm?.coordinatorCanSeeDollars,
   })
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.auditLogViewed)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  // Fire when the active filter set changes (skip the initial render). The
+  // filter values live in the URL query params; we only signal that a filter
+  // moved, not which value, so no PII can leak.
+  const filterSignature = `${query.q}|${query.category}|${query.range}|${actionFilter}|${actorFilter}|${entityTypeFilter}`
+  const lastFilterSignature = useRef(filterSignature)
+  useEffect(() => {
+    if (lastFilterSignature.current === filterSignature) return
+    lastFilterSignature.current = filterSignature
+    track(ANALYTICS_EVENTS.auditLogFiltered)
+  }, [filterSignature])
 
   // B17: forward the search term to the server so it matches across ALL
   // rows, not just the page already loaded (it was client-side only).

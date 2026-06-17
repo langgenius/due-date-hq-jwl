@@ -74,6 +74,7 @@ import {
   PermissionObscuredContent,
 } from '@/features/permissions/permission-gate'
 import { orpc } from '@/lib/rpc'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
 import { formatDate } from '@/lib/utils'
@@ -240,6 +241,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         setPriorityPreview(null)
         setError(null)
         void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
+        track(ANALYTICS_EVENTS.smartPriorityAdjusted, {})
         toast.success(t`Smart Priority saved`, {
           description: updatedFirm.name,
         })
@@ -259,6 +261,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     orpc.firms.previewSmartPriorityProfile.mutationOptions({
       onSuccess: (result) => {
         setPriorityPreview(result)
+        track(ANALYTICS_EVENTS.smartPriorityPreviewed, {})
       },
       onError: (err) => {
         const message =
@@ -328,7 +331,20 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
       })
       return
     }
-    updateMutation.mutate({ name: trimmed, timezone, internalDeadlineOffsetDays })
+    const fieldsChanged: string[] = []
+    if (trimmed !== firm.name) fieldsChanged.push('name')
+    if (timezone !== originalTimezone) fieldsChanged.push('timezone')
+    if (internalDeadlineOffsetDays !== firm.internalDeadlineOffsetDays) {
+      fieldsChanged.push('internalDeadlineOffsetDays')
+    }
+    updateMutation.mutate(
+      { name: trimmed, timezone, internalDeadlineOffsetDays },
+      {
+        onSuccess: () => {
+          track(ANALYTICS_EVENTS.practiceSettingsUpdated, { fields_changed: fieldsChanged })
+        },
+      },
+    )
   }
 
   function setPriorityWeight(key: SmartPriorityFactorKey, weight: number) {
@@ -354,6 +370,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   function resetPriorityProfile() {
     setPriorityPreview(null)
     setPriorityProfile(clonePriorityProfile(SMART_PRIORITY_DEFAULT_PROFILE))
+    track(ANALYTICS_EVENTS.smartPriorityReset, {})
   }
 
   function calculatePriorityPreview() {

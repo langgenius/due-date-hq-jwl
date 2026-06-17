@@ -65,6 +65,7 @@ import {
   type TimeFormatPreference,
 } from '@/lib/display-preference-store'
 import { orpc } from '@/lib/rpc'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
   TwoFactorSetupPanel,
@@ -143,6 +144,7 @@ export function SettingsProfileRoute() {
         setPendingSetup(null)
         setCode('')
         void queryClient.invalidateQueries({ queryKey: securityKey })
+        track(ANALYTICS_EVENTS.twoFactorEnabled, {})
         toast.success(t`Two-factor authentication enabled`)
       },
       onError: (err) => {
@@ -157,6 +159,7 @@ export function SettingsProfileRoute() {
     orpc.security.disableTwoFactor.mutationOptions({
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: securityKey })
+        track(ANALYTICS_EVENTS.twoFactorDisabled, {})
         toast.success(t`Two-factor authentication disabled`)
         setConfirmDisableMfa(false)
       },
@@ -175,6 +178,7 @@ export function SettingsProfileRoute() {
           (s) => s.id === variables.sessionId && s.isCurrent,
         )
         void queryClient.invalidateQueries({ queryKey: securityKey })
+        track(ANALYTICS_EVENTS.sessionRevoked, { all: false })
         toast.success(t`Session revoked`)
         setPendingSessionRevoke(null)
         if (revokedCurrent) void navigate('/login', { replace: true })
@@ -191,6 +195,7 @@ export function SettingsProfileRoute() {
     orpc.security.revokeOtherSessions.mutationOptions({
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: securityKey })
+        track(ANALYTICS_EVENTS.sessionRevoked, { all: true })
         toast.success(t`Other sessions revoked`)
         setConfirmSignOutOthers(false)
       },

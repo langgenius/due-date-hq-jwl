@@ -1,4 +1,4 @@
-import { useState, type SyntheticEvent } from 'react'
+import { useEffect, useState, type SyntheticEvent } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { msg } from '@lingui/core/macro'
@@ -208,6 +208,11 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   const seatsFull = data.availableSeats <= 0
   const membersKey = orpc.members.key()
 
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.membersViewed, { member_count: data.members.length })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const updateRoleMutation = useMutation(
     orpc.members.updateRole.mutationOptions({
       onSuccess: (next) => {
@@ -235,6 +240,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
       onSuccess: (next) => {
         setPendingRemoval(null)
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
+        track(ANALYTICS_EVENTS.memberRevoked, {})
       },
     }),
   )
@@ -242,6 +248,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     orpc.members.resendInvitation.mutationOptions({
       onSuccess: (next) => {
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
+        track(ANALYTICS_EVENTS.memberInviteResent, {})
         // 2026-06-16 (audit): Resend succeeded silently — nothing on the row
         // changes, so the user got zero confirmation. Close the loop.
         toast.success(t`Invitation re-sent`)
@@ -399,7 +406,18 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
               })
               return
             }
-            updateRoleMutation.mutate({ memberId, role })
+            const fromRole = member.role
+            updateRoleMutation.mutate(
+              { memberId, role },
+              {
+                onSuccess: () => {
+                  track(ANALYTICS_EVENTS.memberRoleChanged, {
+                    from_role: fromRole,
+                    to_role: role,
+                  })
+                },
+              },
+            )
           }}
           onSuspend={(member) => setPendingSuspend(member)}
           onReactivate={(member) => reactivateMutation.mutate({ memberId: member.id })}
@@ -556,10 +574,21 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
               disabled={updateRoleMutation.isPending || !pendingRoleChange}
               onClick={() => {
                 if (pendingRoleChange) {
-                  updateRoleMutation.mutate({
-                    memberId: pendingRoleChange.member.id,
-                    role: pendingRoleChange.toRole,
-                  })
+                  const { fromRole, toRole } = pendingRoleChange
+                  updateRoleMutation.mutate(
+                    {
+                      memberId: pendingRoleChange.member.id,
+                      role: toRole,
+                    },
+                    {
+                      onSuccess: () => {
+                        track(ANALYTICS_EVENTS.memberRoleChanged, {
+                          from_role: fromRole,
+                          to_role: toRole,
+                        })
+                      },
+                    },
+                  )
                 }
               }}
             >

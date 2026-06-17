@@ -52,6 +52,7 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDatePretty, formatRelativeTime } from '@/lib/utils'
@@ -81,6 +82,7 @@ import {
   useAlertsPriorityQueueQueryOptions,
 } from './api'
 import { isAlertConflict, isAlertNotFound, alertErrorDescriptor } from './lib/error-mapping'
+import { alertImpactLevel } from './lib/impact-level'
 import {
   dueDateDiffTone,
   DUE_DATE_DIFF_TONE_CLASS,
@@ -816,6 +818,21 @@ export function AlertDetailDrawer({
   }, [open, onPrev, onNext])
   const detailQuery = useQuery(useAlertDetailQueryOptions(alertId))
   const detail = detailQuery.data
+  // Result/open event: fire once per opened alert, when its detail resolves
+  // (so `alert_status` / `jurisdiction` / `impact_level` are populated). Keyed
+  // on the loaded alert id so paging prev/next re-fires for each alert and a
+  // plain re-render does not. `tier` is omitted — it lives on source health,
+  // not on the alert/detail, so it is not in scope here.
+  const openedAlertId = detail?.alert.id ?? null
+  useEffect(() => {
+    if (!openedAlertId || !detail) return
+    track(ANALYTICS_EVENTS.alertOpened, {
+      alert_status: detail.alert.status,
+      jurisdiction: detail.alert.jurisdiction,
+      impact_level: alertImpactLevel(detail.alert),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openedAlertId])
   // 2026-06-15 critique: an unknown / stale alert id (a dead deep link, or an
   // alert resolved out from under a shared URL) makes the server answer
   // PULSE_NOT_FOUND. Before, the body just showed the generic "Couldn't load …
@@ -1035,6 +1052,10 @@ export function AlertDetailDrawer({
     orpc.pulse.apply.mutationOptions({
       onSuccess: (result) => {
         invalidate()
+        track(ANALYTICS_EVENTS.alertApplied, {
+          jurisdiction: result.alert.jurisdiction,
+          affected_client_count: result.appliedCount,
+        })
         toast.success(t`Applied to ${result.appliedCount} clients`, {
           description: t`Recorded in the audit log. Undo within 24 hours.`,
           action: {
@@ -1093,6 +1114,12 @@ export function AlertDetailDrawer({
     orpc.pulse.dismiss.mutationOptions({
       onSuccess: () => {
         invalidate()
+        if (detail) {
+          track(ANALYTICS_EVENTS.alertDismissed, {
+            jurisdiction: detail.alert.jurisdiction,
+            impact_level: alertImpactLevel(detail.alert),
+          })
+        }
         toast.success(t`Alert dismissed`)
         onClose()
       },
@@ -1150,6 +1177,10 @@ export function AlertDetailDrawer({
     orpc.pulse.applyReviewed.mutationOptions({
       onSuccess: (result) => {
         invalidate()
+        track(ANALYTICS_EVENTS.alertApplied, {
+          jurisdiction: result.alert.jurisdiction,
+          affected_client_count: result.appliedCount,
+        })
         toast.success(t`Applied reviewed set to ${result.appliedCount} clients`, {
           description: t`Recorded in the audit log. Undo within 24 hours.`,
           action: {

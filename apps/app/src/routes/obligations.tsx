@@ -216,6 +216,7 @@ import { formatTaxCode } from '@/lib/tax-codes'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -1519,6 +1520,18 @@ export function ObligationQueueRoute() {
         // batch), so surface the skipped count so preparers know the batch
         // wasn't entirely applied.
         const skipped = result.skippedCount
+        // Bulk status change — from_status is heterogeneous across the batch so
+        // it's omitted; count reflects rows actually updated. Non-PII enums only.
+        track(ANALYTICS_EVENTS.deadlineStatusChanged, {
+          to_status: variables.status,
+          bulk: true,
+          count: result.updatedCount,
+          surface: 'deadlines_table',
+        })
+        track(ANALYTICS_EVENTS.deadlinesBulkAction, {
+          action: 'set_status',
+          count: result.updatedCount,
+        })
         toast.success(t`Status changed to ${statusLabels[variables.status]}`, {
           description:
             skipped > 0
@@ -1543,6 +1556,10 @@ export function ObligationQueueRoute() {
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         setRowSelection({})
+        track(ANALYTICS_EVENTS.deadlinesBulkAction, {
+          action: 'confirm_projected',
+          count: result.confirmedCount,
+        })
         toast.success(t`${result.confirmedCount} deadlines confirmed`, {
           description: t`Confirmed deadlines now send client reminders on schedule.`,
         })
@@ -1565,6 +1582,13 @@ export function ObligationQueueRoute() {
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         setRowSelection({})
+        // Bulk Form 8879 signature reminders — fire the signature event once for
+        // the action and record it as a bulk action with the emailed count.
+        track(ANALYTICS_EVENTS.signatureRequested, { surface: 'deadlines_table' })
+        track(ANALYTICS_EVENTS.deadlinesBulkAction, {
+          action: 'remind_signature',
+          count: result.remindedCount,
+        })
         const description =
           result.skippedCount > 0 || result.noEmailCount > 0
             ? t`${result.remindedCount} emailed · ${result.skippedCount} not awaiting signature · ${result.noEmailCount} without an email on file`
@@ -1592,6 +1616,13 @@ export function ObligationQueueRoute() {
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         setRowSelection({})
+        // Bulk extension — jurisdiction/filing_type are heterogeneous across the
+        // batch so they're omitted; surfaced as a bulk action with the count.
+        track(ANALYTICS_EVENTS.deadlineExtended, {})
+        track(ANALYTICS_EVENTS.deadlinesBulkAction, {
+          action: 'decide_extension',
+          count: result.decidedCount,
+        })
         toast.success(t`Extension plans saved`, {
           description:
             result.skippedCount > 0
@@ -1622,6 +1653,27 @@ export function ObligationQueueRoute() {
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         const isQuickAssign = vars.clientIds.length === 1
         if (!isQuickAssign) setRowSelection({})
+        // Assign analytics: self_assigned compares the assigned member's name to
+        // the current user's name LOCALLY and emits only a boolean — no name leaves.
+        const assignedMemberName =
+          vars.assigneeId === null
+            ? null
+            : (assignableMembers.find((m) => m.assigneeId === vars.assigneeId)?.name ?? null)
+        track(ANALYTICS_EVENTS.deadlineAssigned, {
+          bulk: !isQuickAssign,
+          count: vars.clientIds.length,
+          self_assigned:
+            assignedMemberName !== null &&
+            currentUserName !== null &&
+            assignedMemberName.trim().toLowerCase() === currentUserName.trim().toLowerCase(),
+          surface: 'deadlines_table',
+        })
+        if (!isQuickAssign) {
+          track(ANALYTICS_EVENTS.deadlinesBulkAction, {
+            action: 'assign',
+            count: vars.clientIds.length,
+          })
+        }
         toast.success(
           isQuickAssign
             ? vars.assigneeId === null
@@ -1701,6 +1753,39 @@ export function ObligationQueueRoute() {
   const glanceRows = glanceQuery.data?.rows ?? EMPTY_OBLIGATION_QUEUE_ROWS
   const isInitialLoading = listQuery.isLoading
   const isError = listQuery.isError
+  // Page-view event — fire ONCE per route mount, after the first page has
+  // settled so `result_count` is meaningful. `filter_count` counts the active
+  // filter categories; all props are non-PII enums/counts.
+  const deadlinesViewedTracked = useRef(false)
+  useEffect(() => {
+    if (deadlinesViewedTracked.current) return
+    if (listQuery.isLoading) return
+    deadlinesViewedTracked.current = true
+    const filterCount =
+      (searchInput !== '' ? 1 : 0) +
+      (statusQuery.length > 0 ? 1 : 0) +
+      (stateQuery.length > 0 ? 1 : 0) +
+      (countyQuery.length > 0 ? 1 : 0) +
+      (taxTypeQuery.length > 0 ? 1 : 0) +
+      (assigneeQuery.length > 0 ? 1 : 0) +
+      (clientQuery.length > 0 ? 1 : 0) +
+      (obligationQuery.length > 0 ? 1 : 0) +
+      (ruleQuery.length > 0 ? 1 : 0) +
+      (due !== null ? 1 : 0) +
+      (evidence !== null ? 1 : 0) +
+      (awaitingSignature ? 1 : 0) +
+      (projected ? 1 : 0) +
+      (owner !== null ? 1 : 0) +
+      (asOf !== null ? 1 : 0) +
+      (minDaysUntilDue !== undefined || maxDaysUntilDue !== undefined ? 1 : 0)
+    track(ANALYTICS_EVENTS.deadlinesViewed, {
+      result_count: rows.length,
+      filter_count: filterCount,
+      sort,
+      density,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-once page view
+  }, [listQuery.isLoading])
   const keyboardEnabled = rows.length > 0 && !shortcutsBlocked
   // TanStack is in manualSorting mode, and React Query keeps the previous
   // result as placeholder data while a new sort is fetching. Re-sort the
@@ -1936,6 +2021,23 @@ export function ObligationQueueRoute() {
       updateStatusMutation.mutate(input, {
         onSuccess: (result) => {
           const canUndo = previousStatus !== input.status
+          // Status-change analytics fire once here for single-row queue moves
+          // (the drawer/detail own their own). Non-PII enums/counts only.
+          const changedRow = rows.find((r) => r.id === input.id)
+          track(ANALYTICS_EVENTS.deadlineStatusChanged, {
+            from_status: previousStatus,
+            to_status: input.status,
+            bulk: false,
+            count: 1,
+            surface: 'deadlines_table',
+          })
+          if (isDueDaysSuppressedForStatus(input.status) && input.status !== 'not_applicable') {
+            track(ANALYTICS_EVENTS.deadlineCompleted, {
+              jurisdiction: changedRow?.jurisdiction ?? null,
+              filing_type: changedRow?.taxType ?? null,
+              days_to_due: changedRow?.daysUntilDue,
+            })
+          }
           // Toast names the chosen status so a CPA marking 10 rows filed in
           // succession can spot at-a-glance when a wrong status was picked
           // (otherwise the 10 toasts would be visually identical). Mirrors the
@@ -1956,7 +2058,7 @@ export function ObligationQueueRoute() {
         },
       })
     },
-    [updateStatusMutation, statusLabels, t],
+    [updateStatusMutation, statusLabels, t, rows],
   )
   const statusUpdatePending = updateStatusMutation.isPending || bulkStatusMutation.isPending
   const changeSort = useCallback(
@@ -3214,7 +3316,15 @@ export function ObligationQueueRoute() {
     const input = buildExportInput()
     if (!input) return
     exportMutation.mutate(input, {
-      onSuccess: () => setExportModalOpen(false),
+      onSuccess: () => {
+        // row_count is only known client-side for the `selected` scope; omit it
+        // for filtered/all_active where the server decides the row set.
+        track(ANALYTICS_EVENTS.deadlinesExported, {
+          format: input.format,
+          row_count: input.scope === 'selected' ? (input.ids?.length ?? 0) : undefined,
+        })
+        setExportModalOpen(false)
+      },
     })
   }
 
@@ -3561,6 +3671,8 @@ export function ObligationQueueRoute() {
                         void setObligationQueueQuery({ status: null })
                       } else if (isObligationStatus(next)) {
                         void setObligationQueueQuery({ status: [...scopeStatusSet(next)] })
+                        // Status-scope tab is a status filter — record the category.
+                        track(ANALYTICS_EVENTS.deadlinesFiltered, { filter_types: ['status'] })
                       }
                     }}
                   >
@@ -6146,6 +6258,18 @@ function ObligationFiltersPopover({
   // the parser default (`null`), exactly the `[] → null` reset the old
   // column-header filters relied on.
   const apply = () => {
+    // Filter-applied analytics: emit the active filter CATEGORY names (non-PII
+    // enums), not the selected values.
+    const filterTypes: string[] = []
+    if (stage.due !== null || stage.daysMax !== null) filterTypes.push('due')
+    if (stage.evidence !== null) filterTypes.push('evidence')
+    if (stage.awaitingSignature) filterTypes.push('awaiting_signature')
+    if (stage.taxType.length > 0) filterTypes.push('filing_type')
+    if (stage.client.length > 0) filterTypes.push('client')
+    if (stage.state.length > 0) filterTypes.push('jurisdiction')
+    if (stage.assignees.length > 0) filterTypes.push('assignee')
+    if (stage.county.length > 0) filterTypes.push('county')
+    track(ANALYTICS_EVENTS.deadlinesFiltered, { filter_types: filterTypes })
     onPatch({
       due: stage.due,
       // Due-this-week writes daysMax; clear daysMin either way (the only other

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon } from 'lucide-react'
@@ -18,6 +19,7 @@ import {
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -59,6 +61,11 @@ export function ClientDetailRoute() {
     ? clientQuery.isError
     : clientsQuery.isError || clientQuery.isError
   const error = routeKeyHasClientId ? clientQuery.error : (clientsQuery.error ?? clientQuery.error)
+
+  // Page-view analytics — fires once when the client detail route mounts.
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.clientOpened, { surface: 'route' })
+  }, [])
 
   if (client) {
     const canonicalPath = clientDetailPath(client)

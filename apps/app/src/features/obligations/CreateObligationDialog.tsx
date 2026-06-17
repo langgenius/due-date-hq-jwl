@@ -55,6 +55,7 @@ import {
   type ResolvedDeadlineRuleCandidate,
 } from '@/features/obligations/deadline-category-suggestions'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -957,6 +958,12 @@ export function CreateObligationDialog({
     orpc.obligations.createFromRules.mutationOptions({
       onSuccess: (result) => {
         const obligation = result.obligations[0]
+        // Non-PII only: jurisdiction (state/FED code) + filing-type code.
+        track(ANALYTICS_EVENTS.deadlineCreated, {
+          jurisdiction: jurisdictionValue || (includeFederalValue ? 'FED' : null),
+          filing_type: taxTypeValue,
+          surface: 'create_dialog',
+        })
         // Invalidate every consumer that surfaces obligation data
         // so the new row appears immediately: sidebar count, dashboard
         // counts, queue facets, queue list, client filing plan list.

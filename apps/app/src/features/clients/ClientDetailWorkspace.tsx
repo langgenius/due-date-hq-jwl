@@ -65,6 +65,7 @@ import { InfoBanner } from '@/components/patterns/info-banner'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
 import { PageHeader } from '@/components/patterns/page-header'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
@@ -530,6 +531,8 @@ export function ClientDetailWorkspace({
   const deleteMutation = useMutation(
     orpc.clients.delete.mutationOptions({
       onSuccess: () => {
+        // Soft-delete is the compliance-safe `deletedAt` archive write.
+        track(ANALYTICS_EVENTS.clientArchived, {})
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })

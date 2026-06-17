@@ -25,6 +25,7 @@ import {
 } from '@/components/patterns/table-header-filter'
 import { useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { orpc } from '@/lib/rpc'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 import {
   countSourcesByHealth,
@@ -605,6 +606,7 @@ function SourceRow({
   // anchors; the row-level handler is only a larger mouse target.
   const openSource = useCallback(() => {
     if (typeof window === 'undefined') return
+    track(ANALYTICS_EVENTS.sourceLinkOpened, {})
     window.open(source.url, '_blank', 'noopener,noreferrer')
   }, [source.url])
 
@@ -639,7 +641,10 @@ function SourceRow({
           target="_blank"
           rel="noopener noreferrer"
           aria-label={t`Open official source: ${source.title}`}
-          onClick={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation()
+            track(ANALYTICS_EVENTS.sourceLinkOpened, {})
+          }}
           className="block min-w-0 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           {/* Title + id mirror the rules-library "Rule name" column — the
@@ -697,7 +702,10 @@ function SourceRow({
             target="_blank"
             rel="noopener noreferrer"
             aria-label={t`Open official source: ${source.title}`}
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation()
+              track(ANALYTICS_EVENTS.sourceLinkOpened, {})
+            }}
             className="inline-flex size-7 items-center justify-center rounded-lg text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <ExternalLinkIcon className="size-3.5" aria-hidden />

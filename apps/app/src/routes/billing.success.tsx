@@ -26,6 +26,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { PageHeader } from '@/components/patterns/page-header'
 import { billingSearchParamsParsers } from '@/features/billing/model'
 import { useBillingSubscriptions, useCurrentFirm } from '@/features/billing/use-billing-data'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 
 // Time-to-give-up-polling threshold. After this many milliseconds with no
 // webhook activation we surface a "still confirming" state with a manual
@@ -35,7 +36,20 @@ const ACTIVATION_TIMEOUT_MS = 60_000
 
 export function BillingSuccessRoute() {
   const { t } = useLingui()
-  const [{ plan: expectedPlan }] = useQueryStates(billingSearchParamsParsers)
+  const [{ plan: expectedPlan, interval: expectedInterval }] = useQueryStates(
+    billingSearchParamsParsers,
+  )
+  useEffect(() => {
+    // Fire once when the post-checkout confirmation page mounts. `plan` and
+    // `interval` round-trip through the Stripe success URL's query params, so
+    // they're available immediately; seat count isn't surfaced here, so it's
+    // omitted.
+    track(ANALYTICS_EVENTS.checkoutCompleted, {
+      plan: expectedPlan,
+      billing_interval: expectedInterval,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const { firmsQuery, currentFirm } = useCurrentFirm({ poll: true })
   const subscriptionsQuery = useBillingSubscriptions(currentFirm, true)
   const activeSubscription = subscriptionsQuery.data?.find((subscription) =>

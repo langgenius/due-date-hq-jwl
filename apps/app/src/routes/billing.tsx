@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { useState, type ComponentProps, type ReactNode } from 'react'
+import { useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -42,6 +42,7 @@ import {
   type BillingPlan,
 } from '@/features/billing/model'
 import { useBillingSubscriptions, useCurrentFirm } from '@/features/billing/use-billing-data'
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FieldLabel } from '@/components/primitives/field-label'
@@ -196,6 +197,15 @@ export function BillingRoute() {
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly')
   const planCards = usePlanCards(billingInterval).filter((plan) => plan.id !== 'firm')
   const { firmsQuery, currentFirm } = useCurrentFirm()
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.billingViewed, { current_plan: currentFirm?.plan })
+    // The plan-comparison grid ("Choose a workspace tier") is always rendered
+    // on the billing page, so the page mount IS the grid being viewed.
+    track(ANALYTICS_EVENTS.plansCompared)
+    // Fire once on mount. `current_plan` is omitted by the PII guard if the
+    // firm hasn't loaded yet; the plan is a stable enum, not a moving target.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const firms = firmsQuery.data ?? (currentFirm ? [currentFirm] : [])
   const canReadBilling = hasFirmPermission({
     role: currentFirm?.role,
@@ -276,6 +286,7 @@ export function BillingRoute() {
       })
     },
     onSuccess: (url) => {
+      track(ANALYTICS_EVENTS.billingPortalOpened)
       window.location.assign(url)
     },
   })
@@ -806,6 +817,12 @@ function PlanOption({
         {plan.href && !disabled ? (
           <Link
             to={plan.href}
+            onClick={() =>
+              track(ANALYTICS_EVENTS.planUpgradeClicked, {
+                from_plan: currentPlan,
+                to_plan: plan.id,
+              })
+            }
             className={cn(
               buttonVariants({ variant: highlighted ? 'accent' : 'default' }),
               'w-full',

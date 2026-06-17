@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useQuery } from '@tanstack/react-query'
 import { DownloadIcon } from 'lucide-react'
@@ -6,6 +7,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { AlertHistoryView } from '@/features/alerts/AlertHistoryView'
 import { useAlertsHistoryQueryOptions } from '@/features/alerts/api'
@@ -35,6 +37,11 @@ const csvEscape = (value: string) => `"${value.replace(/"/g, '""')}"`
 export function AlertsHistoryRoute() {
   const { t } = useLingui()
   const { open: panelOpen } = useAlertDrawer()
+
+  // Page-view: fire once on mount (no props).
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.alertHistoryViewed)
+  }, [])
 
   const historyQuery = useQuery(useAlertsHistoryQueryOptions(HISTORY_LIMIT))
   const alerts = historyQuery.data?.alerts ?? []
