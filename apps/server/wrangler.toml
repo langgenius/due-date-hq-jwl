@@ -150,7 +150,7 @@ EMAIL_FROM = "noreply@duedatehq.com"
 # name. Empty disables the sink; alerts then only reach Workers Logs, which
 # nobody watches (the 2026-06-08 fetch stall ran 38h unnoticed that way).
 OPS_ALERT_EMAIL = "hanxujiang@dify.ai"
-GOOGLE_CLIENT_ID = "921927048644-ub9la8vt77v4p1fftn1tc3b1naeemh9h.apps.googleusercontent.com"
+GOOGLE_CLIENT_ID = "480976975475-0vfvthp6eu461ji38nn8krp178ld9388.apps.googleusercontent.com"
 AI_GATEWAY_ACCOUNT_ID = "305dbc7da819eb47bb3f3f3bc8927046"
 AI_GATEWAY_SLUG = "duedatehq"
 AI_GATEWAY_PROVIDER = "openrouter"
