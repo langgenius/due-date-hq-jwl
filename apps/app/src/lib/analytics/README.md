@@ -1,8 +1,10 @@
 # Analytics (Amplitude)
 
-Product analytics for the pre-launch activation funnel. **Disabled by default** —
-with no `VITE_AMPLITUDE_API_KEY` the SDK is never downloaded and every export is a
-silent no-op.
+Product analytics for the pre-launch activation funnel. **Production builds only,
+and disabled by default** — it reports only when `import.meta.env.PROD` is true
+AND `VITE_AMPLITUDE_API_KEY` is set. The dev server (`vp dev`), tests, and local
+previews are always a silent no-op (the SDK is never even downloaded), so
+non-prod never pollutes the analytics project.
 
 ## Files
 
@@ -24,7 +26,9 @@ Set the build env var (see `apps/app/.env.example`):
 VITE_AMPLITUDE_API_KEY=<browser-sdk-key>   # project 827681, US server zone
 ```
 
-Then redeploy. No code change needed to turn it on or off.
+Then redeploy. No code change needed to turn it on or off. Note: this only
+matters for production builds — a key in a local `.env.local` still does nothing
+under `vp dev` because of the `import.meta.env.PROD` gate.
 
 ## Model
 

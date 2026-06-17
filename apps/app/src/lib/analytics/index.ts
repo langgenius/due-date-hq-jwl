@@ -2,8 +2,11 @@
  * Amplitude product analytics — public surface for the app.
  *
  * Contract:
- *  - **Gated**: with no `VITE_AMPLITUDE_API_KEY`, every export here is a silent
- *    no-op and the SDK is never even downloaded. Safe to call anywhere.
+ *  - **Gated**: only initializes in a PRODUCTION build that also has
+ *    `VITE_AMPLITUDE_API_KEY` set. The dev server, tests, and local previews
+ *    are always a silent no-op (and the SDK is never even downloaded), so
+ *    non-prod environments never pollute the analytics project. Safe to call
+ *    anywhere.
  *  - **Lazy**: the Browser SDK is `import()`-ed only after a key is present, so
  *    it stays out of the main bundle. Calls made before it finishes loading are
  *    queued and flushed in order.
@@ -51,6 +54,10 @@ function readAppVersion(): string | undefined {
  */
 export function initAnalytics(): void {
   if (enabled) return
+  // Production builds only — never the dev server, tests, or local previews.
+  // Vite sets PROD=false under `vp dev` (and in test), so analytics stays a
+  // silent no-op locally even if a key is present in .env.local.
+  if (!import.meta.env.PROD) return
   const apiKey = readApiKey()
   if (!apiKey) return
 
