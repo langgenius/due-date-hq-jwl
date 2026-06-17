@@ -7209,8 +7209,13 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'For a calendar-year 2026 filer the quarterly estimated tax installments are due April 15, 2026, June 15, 2026, September 15, 2026, and December 15, 2026.',
     'These quarterly estimated installments are the 15th-of-the-month estimate dates, separate from the annual Form 20C corporate income tax return (due May 15) and from any last-day-of-month employment or withholding deadlines.',
   ].join('\n'),
-  'AL:franchise_or_entity_tax':
-    'Form CPT (C-corporations) is due no later than three and a half months after the beginning of the taxable year (April 15 for calendar year). Form PPT (limited liability / pass-through entities) is due no later than two and a half months after the beginning of the taxable year (March 15 for calendar year); the Business Privilege Tax return due date corresponds to the due date of the corresponding federal return. If the due date falls on a weekend or Alabama state holiday, it moves to the next business day.',
+  'AL:franchise_or_entity_tax': [
+    "Business Privilege Tax C-Corporation Due no later than 15th day of the 4th month after the beginning of a taxpayer's taxable year.",
+    'For a calendar-year 2026 filer the Business Privilege Tax return is due April 15, 2026 for C-corporations (Form CPT) and March 15, 2026 for S-corporations and pass-through entities (Form PPT). This is the entity privilege tax and is separate from the May 15 corporate income tax (Form 20C) return.',
+    "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+    "Limited Liability Entities Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+    'If the due date falls on a weekend or Alabama state holiday, it moves to the next business day.',
+  ].join('\n'),
   'AL:individual_estimated_tax':
     'Your estimated tax may be paid in full or in equal installments on or before April 15, 2026, June 15, 2026, September 15, 2026 and January 15, 2027. If the 15th falls on a Saturday, Sunday, or State holiday, the due date will then be considered the following business day.',
   'AL:sales_use_tax':
