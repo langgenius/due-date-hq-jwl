@@ -6651,27 +6651,18 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Arizona estimated tax payments for C corporations, exempt organizations with UBTI, and S corporations subject to federal tax are due on the 15th day of the 4th, 6th, 9th, and 12th months of the taxable year.',
     'Corporations and exempt organizations with UBTI must make Arizona estimated payments when anticipated Arizona tax liability is at least $1,000 for the taxable year.',
   ].join('\n'),
-  'AZ:pass_through_entity_return': [
-    'Arizona Form 165 partnership returns and Arizona Form 120S S corporation returns are due on the 15th day of the 3rd month following the close of the taxable year.',
-    'A valid federal or Arizona extension moves the Arizona partnership or S corporation return due date 6 months from the original due date.',
-    'Arizona pass-through entity estimated tax payments for electing partnerships and S corporations are due on the 15th day of the 4th, 6th, and 9th months of the taxable year and the 15th day of the 1st month after year end.',
-  ].join('\n'),
+  'AZ:pass_through_entity_return':
+    'All partnership returns (Form 165) and S Corporation returns (Form 120S) are due on or before the 15th day of the 3rd month following the close of the taxable year. For a calendar-year filer this is March 15; if the due date falls on a Saturday, Sunday, or legal holiday, the return is timely if filed the next business day. The Arizona Pass-Through Entity (PTE) election is made on this same income tax return. A six-month extension is available (Form 120/165EXT).',
   'AZ:sales_use_tax': [
     'Arizona transaction privilege tax returns must be filed even when no sales or tax are due for the filing period.',
     'For monthly Arizona TPT electronic returns and payments in AZTaxes, December 2025 activity is due January 30, 2026; January 2026 activity is due February 27, 2026; February 2026 activity is due March 31, 2026; March 2026 activity is due April 30, 2026.',
     'For monthly Arizona TPT electronic returns and payments in AZTaxes, April 2026 activity is due May 29, 2026; May 2026 activity is due June 30, 2026; June 2026 activity is due July 31, 2026; July 2026 activity is due August 31, 2026.',
     'For monthly Arizona TPT electronic returns and payments in AZTaxes, August 2026 activity is due September 30, 2026; September 2026 activity is due October 30, 2026; October 2026 activity is due November 30, 2026; November 2026 activity is due December 31, 2026.',
   ].join('\n'),
-  'AZ:withholding': [
-    'Arizona Form A1-QRT is due April 30 for the 1st quarter, July 31 for the 2nd quarter, October 31 for the 3rd quarter, and January 31 for the 4th quarter.',
-    'Employers that made every Arizona withholding payment on time for the prior quarter receive 10 additional days to file Form A1-QRT: May 10, August 10, November 10, and February 10.',
-    'Arizona Form A1-R and Arizona Form A1-APR are due January 31 of the year following the calendar year for which Arizona income tax was withheld.',
-  ].join('\n'),
-  'AZ:ui_wage_report': [
-    'Arizona unemployment tax and wage reports are due quarterly; if a due date falls on a weekend or state holiday, the due date moves to the next business day.',
-    'Reports for wages paid January through March are due April 30, April through June are due July 31, July through September are due October 31, and October through December are due January 31.',
-    'Arizona employers must file a quarterly unemployment tax and wage report for each quarter whether or not wages were paid.',
-  ].join('\n'),
+  'AZ:withholding':
+    'Form A1-QRT (Arizona Quarterly Withholding Tax Return) due dates: First calendar quarter – April 30; Second calendar quarter – July 31; Third calendar quarter – October 31; Fourth calendar quarter – January 31. If a due date is a non-banking day (Saturday, Sunday, or a legal holiday), the return/payment is timely if filed the next banking day. Employers that made every payment on time during the preceding quarter have ten additional days to file Form A1-QRT.',
+  'AZ:ui_wage_report':
+    'Arizona Unemployment Tax and Wage Reports (Form UC-018), filed with the Department of Economic Security (DES), are due quarterly the last day of the month following the end of the calendar quarter: April 30, July 31, October 31, and January 31. Tax payment is due the same date. If the due date falls on a weekend or state holiday, it is extended to the next business day.',
   'AR:individual_income_return': [
     'Arkansas individual income tax returns are due April 15; if April 15 is a weekend or holiday, the return is due the next business day.',
     'Arkansas honors accepted federal extensions and sets the typical extension due date one month after the federal extended due date, usually November 15 for annual individual filers.',
@@ -6704,10 +6695,8 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Arkansas Secretary of State franchise tax and annual reports apply to corporations, LLCs, banks, and insurance companies registered in Arkansas.',
     'Arkansas franchise tax filing is generally due on or before May 1.',
   ].join('\n'),
-  'AR:sales_use_tax': [
-    '2026 Sales and Use Tax due dates list filing frequencies and reporting periods for monthly, quarterly, and annual filing.',
-    'Monthly and quarterly sales and use tax reports are typically filed around the 20th day of the month after the reporting period.',
-  ].join('\n'),
+  'AR:sales_use_tax':
+    "Monthly filers: each return is due on or before the twentieth (20th) day of each month showing the tax due for the preceding calendar month (roll-forward to next business day when the 20th is a weekend/holiday). Per Ark. Code R. 005-GR-77: 'It is the duty of all taxpayers (sellers) to deliver to the Director, on or before the twentieth (20th) day of each month, a return showing the tax due, during the preceding calendar month.'",
   'AR:withholding': [
     'Arkansas employer withholding instructions govern when income tax withheld is returned and reconciled.',
     'Form AR3MAR, Employer Annual Reconciliation of Income Tax Withheld, is used for annual employer filing and payment.',
@@ -6814,29 +6803,17 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Louisiana DOR 2026 May filing dates list Annual Corporation and Franchise Return under 05 / 15.',
     'The Louisiana DOR Annual Corporation and Franchise Return event states Friday, May 15, 2026, and says corporations are required to file their annual income and franchise tax returns by this date.',
   ].join('\n'),
-  'LA:sales_use_tax': [
-    'The Louisiana DOR Sales and Use Tax event states Tuesday, January 20, 2026, and says businesses must file their monthly sales and use tax returns by this date.',
-    'The Louisiana DOR 2026 April filing dates page lists Sales and Use Tax under 04 / 20, and the Sales and Use Tax event states Monday, April 20, 2026.',
-    'The Louisiana DOR Sales and Use Tax event states Monday, June 22, 2026, and says businesses must file their monthly sales and use tax returns by this date.',
-    'The Louisiana DOR 2026 November filing dates page lists Sales and Use Tax under 11 / 20.',
-  ].join('\n'),
-  'LA:withholding': [
-    'The Louisiana DOR Louisiana Withholding Tax Form (L-1 Return) - 4th Quarter - Semi-Monthly Payment Frequencies event states Thursday, January 15, 2026.',
-    'The Louisiana DOR Louisiana Withholding Tax Form (L-1 Return) - 4th Quarter - Quarterly and Monthly Payment Frequencies event states Monday, February 2, 2026.',
-    'The Louisiana DOR Louisiana Withholding Tax Form (L-1 Return) - 1st Quarter - Semi-Monthly Payment Frequencies event states Wednesday, April 15, 2026, and says employers with semi-monthly payment frequencies must file their first quarter withholding tax returns by this date.',
-    'The Louisiana DOR 2026 April filing dates page lists Louisiana Withholding Tax Form (L-1 Return) - 1st Quarter - Quarterly and Monthly Payment Frequencies under 04 / 30.',
-  ].join('\n'),
+  'LA:sales_use_tax':
+    'The tax return is due on or before the 20th day of the month following the close of the calendar month or quarter reporting period. If the due date falls on a weekend or holiday, the return is due the next business day and becomes delinquent the first day thereafter.',
+  'LA:withholding':
+    'Each Form L-1 covers one quarterly period and must be filed by the last day of the month following the close of the calendar quarter except for semi-monthly payers. Semi-monthly payers must file Form L-1 by the fifteenth of the month following the close of the quarter. A quarterly return must be filed even if no taxes are withheld during the quarter.',
   'MD:pass_through_entity_return': [
     'Maryland 2025 Form 510 Pass-Through Entity Income Tax Return Instructions state that every Maryland PTE must file a return, even if it has no income or the entity is inactive.',
     'Maryland Form 510 instructions state to file Form 510 by the 15th day of the 4th month following the close of the tax year or period.',
     'Maryland Form 510/511E extension application must be properly filed and submitted by the 15th day of the 4th month following close of the tax year or period.',
   ].join('\n'),
-  'MD:sales_use_tax': [
-    'Comptroller of Maryland Sales & Use Tax Due Dates state that if a due date falls on a Saturday or Sunday or holiday, the report is due on the next business day.',
-    'Maryland sales and use tax due-date table lists January due February 20, February due March 20, March due April 20, and 1st Quarter due April 20.',
-    'Maryland sales and use tax due-date table lists April due May 20, May due June 20, June due July 20, and 2nd Quarter due July 20.',
-    'Maryland sales and use tax due-date table lists September due October 20, 3rd Quarter due October 20, December due January 20, and 4th Quarter due January 20.',
-  ].join('\n'),
+  'MD:sales_use_tax':
+    'Your sales and use tax return is due on the 20th day of the month following the month in which the period ends and is indicated on each return. If a due date falls on a Saturday, Sunday, or legal holiday, the return is due on the next business day.',
   'MD:withholding': [
     'Comptroller of Maryland Withholding Tax Due Dates state that income tax withholding report due dates vary for monthly, quarterly, accelerated, and annual filers.',
     'Maryland monthly income tax withholding reports are due on the 15th day of the month following the month in which the income tax was withheld.',
@@ -6847,18 +6824,14 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Maine Revenue Services lists Form 1040ME and Form 1040EXT-ME as due April 15 for calendar-year filers.',
     'Maine Revenue Services states that if the due date falls on a holiday or weekend, the due date is the next business day.',
   ].join('\n'),
-  'ME:individual_estimated_tax': [
-    'Maine Revenue Services lists Form 1040ES-ME estimated payment vouchers as due April 15, June 15, September 15, and January 15 for calendar-year filers.',
-    'Maine Revenue Services states that if the due date falls on a holiday or weekend, the due date is the next business day.',
-  ].join('\n'),
+  'ME:individual_estimated_tax':
+    '3) WHEN AND WHERE TO MAKE PAYMENTS. The first installment payment is due on April 15, 2026. You may either pay all of your estimated tax at that time or pay in four equal installments on April 15, 2026, June 15, 2026, September 15, 2026, and January 15, 2027.',
   'ME:ui_wage_report': [
     'For the 2026 reporting year, the quarterly ME UC-1 due dates are April 30, 2026; July 31, 2026; October 31, 2026; and January 31, 2027.',
     'The same due-date page lists ME UC-1 under Income Tax Withholding for Employers and states that weekend or holiday due dates move to the next business day.',
   ].join('\n'),
-  'MI:individual_income_return': [
-    'The Michigan Department of Treasury announced that the official 2026 filing season is processing individual income tax returns.',
+  'MI:individual_income_return':
     'All state of Michigan individual income tax returns and payment of any taxes owed must be received by April 15, 2026.',
-  ].join('\n'),
   'MI:individual_estimated_tax': [
     'Michigan quarterly individual estimated tax payments are due April 15, June 15, and September 15 of the tax year, and January 15 of the next year.',
     'Michigan estimated tax payments may be made using Michigan Treasury eServices or mailed with a Michigan Estimated Tax voucher (MI-1040ES).',
@@ -6875,30 +6848,17 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Michigan Corporate Income Tax Due Dates for Tax Year 2025 lists the December year-end calendar-year Q1 estimated payment due date as April 15, 2025.',
     'Michigan Corporate Income Tax Due Dates for Tax Year 2025 lists Q2 estimated payment due July 15, 2025, Q3 estimated payment due October 15, 2025, and Q4 estimated payment due January 15, 2026.',
   ].join('\n'),
-  'MI:pass_through_entity_return': [
-    'Michigan Flow-Through Entity Tax estimated payments are due quarterly and payments must be made online using Michigan Treasury Online.',
-    'For calendar-year filers, Michigan FTE estimated payments are due April 15, June 15, September 15, and January 15 of the following calendar year.',
-    'The Michigan FTE annual return and any remaining tax due must be submitted by March 31 for calendar-year filers.',
-    'For fiscal-year filers, the Michigan FTE annual return and final payment are due on the last day of the third month after the tax year ends.',
-  ].join('\n'),
-  'MI:sales_use_tax': [
-    'Michigan sales and use tax returns and payments are due monthly, quarterly, or annually, and Treasury determines the filing frequency each year.',
-    'Michigan sales and use tax monthly filing deadline is the 20th of the following month.',
-    'Michigan sales and use tax quarterly filing deadlines are April 20 for the first quarter, July 20 for the second quarter, October 20 for the third quarter, and January 20 of the following calendar year for the fourth quarter.',
-    'Michigan sales and use tax annual filing deadline is February 28 of the following calendar year.',
-  ].join('\n'),
+  'MI:pass_through_entity_return':
+    "The annual flow-through entity tax return is required to be filed by the last day of the third month after the end of the taxpayer's tax year (March 31 for calendar year filers).",
+  'MI:sales_use_tax': 'This return is due on the 20th of the month following the return period.',
   'MI:withholding': [
     'Businesses liable for Michigan sales, use, and/or withholding tax are required to send returns according to the filing frequency determined by Treasury.',
     'Michigan withholding monthly returns are due on or before the 20th day of the following month.',
     'Michigan withholding quarterly returns are due on or before the 20th day of the month following the quarter.',
     'Michigan withholding annual returns are due February 28.',
   ].join('\n'),
-  'MI:ui_wage_report': [
-    'Michigan unemployment tax and wage reports and tax payments are due quarterly.',
-    'Michigan unemployment quarterly due dates are April 25, July 25, October 25, and January 25.',
-    'If the 25th is a weekend day or holiday, the Michigan unemployment quarterly report must be received on the next business day at the latest.',
-    "Michigan employers must file an Employer's Quarterly Wage/Tax Report every quarter, even if unable to pay or if there is no payroll for the quarter.",
-  ].join('\n'),
+  'MI:ui_wage_report':
+    'Quarterly reports and payments are due: First Quarter - April 25, Second Quarter - July 25, Third Quarter - October 25 and Fourth Quarter - January 25. If the 25th is a weekend day or holiday, the report must be received on the next business day at the latest.',
   'OH:individual_income_return': [
     'Most taxpayers must file their Ohio IT 1040 and SD 100, if applicable, by April 15, 2026.',
     'Ohio honors an IRS extension; if an IRS extension is filed, the due date for filing the Ohio IT 1040 and SD 100 is October 15, 2026.',
@@ -6908,11 +6868,8 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Ohio taxpayers should make estimated payments for tax year 2026 if estimated Ohio tax liability less Ohio withholding is more than $500.',
     'Ohio estimated payments for tax year 2026 are due April 15, 2026; June 15, 2026; September 15, 2026; and January 15, 2027.',
   ].join('\n'),
-  'OH:ui_wage_report': [
-    'Ohio quarterly contribution and wage reports are due no later than the last day of the month following the close of the calendar quarter for which the reports are filed.',
-    'For calendar-year 2026 the quarterly contribution and wage report due dates are April 30, 2026, July 31, 2026, October 31, 2026, and January 31, 2027.',
-    'Ohio quarterly contribution and wage reports are delinquent and subject to forfeitures if not filed on or before the due date.',
-  ].join('\n'),
+  'OH:ui_wage_report':
+    'Both reports must be filed no later than the last day of the first month following the close of the calendar quarter for which the report is being filed. If the due date falls on a weekend, then the reports are due the next business day. The following is the filing schedule for the quarterly reports: Jan., Feb., March - April 30; April, May, June - July 31; July, Aug., Sept. - Oct 31; Oct., Nov., Dec. - Jan 31.',
   'PA:individual_income_return': [
     'A Pennsylvania taxpayer must report taxable income received or accrued during the calendar year from January 1 through December 31.',
     'The Pennsylvania Department of Revenue follows the IRS due date for filing returns.',
@@ -6946,21 +6903,14 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Rhode Island Forms RI-1065 and RI-1120S are due on or before the fifteenth day of the third month following the close of the taxable year for all filers except single-member LLC filers.',
     'Rhode Island corporate tax forms list RI-1065 Partnership Income Return and RI-1120S Subchapter S Business Corporation Tax Return for tax year 2025.',
   ].join('\n'),
-  'RI:franchise_or_entity_tax': [
-    'Every Rhode Island business corporation doing business in the state is required to file an annual tax return using Form RI-1120C and is subject to the business corporation tax minimum.',
-    'Rhode Island Form RI-1120C for a calendar-year business corporation is due April 15, 2026.',
-    'For fiscal-year filers, Rhode Island Form RI-1120C is due on or before the fifteenth day of the fourth month following the close of the taxable year.',
-  ].join('\n'),
+  'RI:franchise_or_entity_tax':
+    'Form RI-1120C shall be filed on or before the fifteenth (15th) day of the fourth (4th) month following the close of the fiscal year.',
   'RI:sales_use_tax': [
     'Rhode Island retailers generally must file a Sales and Use Tax return on or before the 20th day of each month for the previous calendar month and pay the tax due.',
     'Rhode Island sales tax permits expire every June 30 and renewal applications are due annually by February 1.',
   ].join('\n'),
-  'RI:withholding': [
-    'Rhode Island withholding weekly payment frequency is due the Monday following the close of the withholding week, with the week running Sunday through Saturday.',
-    'Rhode Island withholding monthly payment frequency is due 20 days following the close of the month, shifting to the next business day if the 20th falls on a holiday or weekend.',
-    'Rhode Island withholding quarterly payment frequency is due with the RI-941 filing on the last day of the month following the close of the quarter.',
-    'For example, Rhode Island states that the quarter ending March 31 has an April 30 due date for the quarterly payment frequency.',
-  ].join('\n'),
+  'RI:withholding':
+    'A reconciliation form, Form RI-941, is due on or before the last day of the month following the close of the quarter.',
   'RI:ui_wage_report': [
     'The Rhode Island Employer Tax Unit processes quarterly tax and wage reports, Form TX-17, and accompanying tax payments submitted by Rhode Island employers.',
     'Rhode Island fourth quarter employer taxes are due on or before January 31.',
@@ -6970,11 +6920,8 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Minnesota lists quarterly due dates as April 30 for 1st quarter, July 31 for 2nd quarter, October 31 for 3rd quarter, and January 31 for 4th quarter.',
     'If the Minnesota due date falls on a weekend or legal holiday, the due date is the following business day.',
   ].join('\n'),
-  'MO:ui_wage_report': [
-    'Missouri quarterly contribution and wage reports should be filed and contributions paid by the last day of the month following the end of each calendar quarter to be considered timely.',
-    'Missouri lists the 1st quarter submission period as April 1-April 30, 2nd quarter as July 1-July 31, 3rd quarter as October 1-October 31, and 4th quarter as January 1-January 31.',
-    'When the Missouri due date falls on a Saturday, Sunday, or holiday, the first working date following is considered timely.',
-  ].join('\n'),
+  'MO:ui_wage_report':
+    'The report should be filed and contributions paid by the last day of the month following the end of each calendar quarter to be considered timely. When the date falls on a Saturday, Sunday, or holiday, the first working date following is considered timely.',
   'TN:ui_wage_report': [
     "Tennessee states that at the end of each quarter, the employer's quarterly unemployment report becomes due at the end of the next month.",
     'Tennessee gives the example that the 1st quarter ends March 31 and employers have until April 30 to file their quarterly report.',
@@ -7067,26 +7014,16 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'When the due date of the partnership income tax return falls on a Saturday, Sunday, or a legal holiday in North Carolina or in the District of Columbia, a return filed by the next business day after the Saturday, Sunday, or legal holiday will be considered timely filed.',
     'An extension of time to file does not extend the time to pay.',
   ].join('\n'),
-  'SC:individual_income_return': [
-    'We understand that taxpayers may need additional time to file, so we are automatically extending the tax filing due date for all 2025 South Carolina Individual Income Tax returns to October 15, 2026.',
-    'This extension applies only to the deadline to file your return, not to pay what you owe.',
-    'You will owe penalties if you do not pay at least 90% of your 2025 tax liability by April 15, 2026.',
-  ].join('\n'),
-  'SC:individual_estimated_tax': [
-    '1st quarter: due April 15, 2026',
-    '2nd quarter: due June 15, 2026',
-    '3rd quarter: due September 15, 2026',
-    '4th quarter: due January 15, 2027',
-    'If you file on a fiscal tax year, your Estimated Tax payments are due on the 15th day of the fourth, sixth, and ninth months of the fiscal year and the first month of the following fiscal year.',
-  ].join('\n'),
+  'SC:individual_income_return':
+    'A return for calendar year 2025 is due by April 15, 2026 (15th day of the 4th month). For TY2025 SCDOR is automatically extending the FILING deadline for all 2025 SC Individual Income Tax returns to October 15, 2026 (no action required), but taxpayers must still pay at least 90% of 2025 tax liability by April 15, 2026 to avoid penalties.',
+  'SC:individual_estimated_tax':
+    'If you file using a calendar year end of December 31, your Estimated Tax payments are due in four equal installments: 1st quarter: due April 15, 2026; 2nd quarter: due June 15, 2026; 3rd quarter: due September 15, 2026; 4th quarter: due January 15, 2027.',
   'WI:individual_income_return': [
     'Your 2025 return must be filed by April 15, 2026, unless you have an extension of time to file.',
     'If your 2025 individual income tax return is not filed by April 15, 2026, you may be subject to the following charges:',
   ].join('\n'),
-  'WI:individual_estimated_tax': [
-    'Generally, you must make your first estimated tax payment by April 15, 2026.',
+  'WI:individual_estimated_tax':
     'You may pay all your estimated tax at that time or in four equal installments on or before April 15, 2026, June 15, 2026, September 15, 2026, and January 15, 2027.',
-  ].join('\n'),
   'WY:sales_use_tax': [
     "Each vendor shall on or before the last day of each month file a true return showing the preceding month's gross sales and remit all taxes to the department.",
     'If the total tax to be remitted by a vendor during any month is less than one hundred fifty dollars ($150.00), a quarterly or annual return as authorized by the department, and remittance in lieu of the monthly return may be made on or before the last day of the month following the end of the quarter or year for which the tax is collected.',
@@ -7101,14 +7038,8 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'The quarterly report is due on the last day of the month following the close of the calendar quarter.',
     'For 2026 Kentucky unemployment wage reports, Q1 is due April 30, 2026; Q2 is due July 31, 2026; Q3 is due October 31, 2026; Q4 is due January 31, 2027.',
   ].join('\n'),
-  'LA:ui_wage_report': [
-    'Taxes are due no later than the last day of the month immediately following the end of each quarter.',
-    'Quarter end date of 03/31/__ Due date 04/30/__',
-    'Quarter end date of 06/30/__ Due date 07/31/__',
-    'Quarter end date of 09/30/__ Due date 10/31/__',
-    'Quarter end date of 12/31/__ Due date 01/31/__',
-    'You can file your wage and tax report as early as the first day of the month that the report is due.',
-  ].join('\n'),
+  'LA:ui_wage_report':
+    'Unemployment insurance quarterly wage and tax reports (Form LWC ES-4) are due by the last day of the month following the close of each calendar quarter: April 30 (Q1), July 31 (Q2), October 31 (Q3), and January 31 (Q4), rolling to the next business day if that date falls on a weekend or holiday.',
   'ND:ui_wage_report': [
     "Liable employers must electronically file Employer's Contribution and Wage Reports quarterly.",
     'Reports must be electronically completed with the tax due at the end of each calendar quarter.',
@@ -7125,10 +7056,8 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'For businesses with a January 1 - December 31 calendar year, this tax is due on April 15 of the following year.',
     'Extension  | Seven months extension',
   ].join('\n'),
-  'TN:business_estimated_tax': [
-    'The Tennessee franchise and excise tax guide states estimated installments are due on the 15th day of the fourth, sixth, and ninth months of the current tax year.',
-    'For calendar-year taxpayers, the annual payment is due on the 15th day of the first month of the next tax year.',
-  ].join('\n'),
+  'TN:business_estimated_tax':
+    'Taxpayers with a combined Franchise and Excise tax liability of $5,000 or greater must make quarterly estimated payments by the 15th day of the fourth, sixth, and ninth months of the current tax year and the 15th day of the first month of the next succeeding tax year.',
   'TN:franchise_or_entity_tax': [
     'Annual  | 15th day of the fourth month following the close of your books and records.',
     'For businesses with a January 1 - December 31 calendar year, this tax is due on April 15 of the following year.',
@@ -7161,11 +7090,8 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Montana grants C corporations an automatic six-month filing extension; calendar-year extension returns are due November 15, but tax liability must be paid by the original due date.',
     'Montana S corporations use the Montana Pass-Through Entity Tax Return, Form PTE, to report activity.',
   ].join('\n'),
-  'MT:business_estimated_tax': [
-    'Montana corporate estimated tax payments are due on the 15th day of the fourth, sixth, ninth, and twelfth months of the tax year.',
-    'For calendar-year Montana corporate filers, estimated payment due dates are April 15, June 15, September 15, and December 15.',
-    'Montana corporations make quarterly estimated tax payments when the business estimates owing $5,000 or more.',
-  ].join('\n'),
+  'MT:business_estimated_tax':
+    'A corporation must make estimated tax payments if its annual estimated tax is $5,000 or more. The four required installments are due on the 15th day of the 4th, 6th, 9th, and 12th months of the tax year = April 15, June 15, September 15, and December 15 for a calendar-year corporation.',
   'MT:pass_through_entity_return': [
     'Montana pass-through entities include partnerships, S corporations, LLCs taxed as partnerships or S corporations, and disregarded entities.',
     'Montana pass-through entity returns are due March 15 for calendar-year filers.',
@@ -7194,11 +7120,8 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'New Hampshire treats S corporations as corporations for business tax return purposes and requires Form DP-120 with the business tax return.',
     'New Hampshire grants an automatic 7-month extension to file when 100% of the BET and BPT due by the original due date has been paid; the extension does not extend time to pay.',
   ].join('\n'),
-  'NH:franchise_or_entity_tax': [
-    'New Hampshire BT-SUMMARY instructions require Form BT-SUMMARY for all business organizations that are required to file a Business Profits Tax return or Business Enterprise Tax return.',
-    'Calendar-year New Hampshire BET and BPT returns are due March 15 for partnerships and April 15 for proprietorships, corporations, combined groups, and fiduciaries.',
-    'New Hampshire grants an automatic 7-month extension to file when 100% of the BET and BPT due by the original due date has been paid; the extension does not extend time to pay.',
-  ].join('\n'),
+  'NH:franchise_or_entity_tax':
+    'RSA 77-A:6, I: every business organization having gross business income shall file a return on or before the fifteenth day of the third month in the case of organizations required to file a United States partnership tax return, and the fifteenth day of the fourth month in the case of all other business organizations, following expiration of its taxable period. For a calendar-year 2026 filer: corporate/proprietorship/combined/fiduciary BPT/BET returns are due 2027-04-15 (15th day of 4th month); partnership returns are due 2027-03-15 (15th day of 3rd month).',
   'NH:ui_wage_report': [
     'New Hampshire Employment Security states that the 1st quarter employer quarterly tax and wage report, for the quarter ending March 31, is due April 30.',
     'The 2nd quarter New Hampshire employer quarterly tax and wage report, for the quarter ending June 30, is due July 31.',
@@ -7218,28 +7141,18 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'North Dakota fiduciary tax guidance states that the North Dakota fiduciary income tax return is due on April 15.',
     'If an extension of time to file federal Form 1041 is received, the same extension of time to file North Dakota Form 38 is automatically applied.',
   ].join('\n'),
-  'ND:business_income_return': [
-    'North Dakota corporate income tax deadlines list April 15 as the due date for 2025 calendar year-end Form 40 corporation income tax return and tax.',
-    'North Dakota states that fiscal-year corporation returns are due on or before the 15th day of the 4th month following the end of the tax year.',
-    'North Dakota lists November 16, 2026 as the due date for 2025 calendar year-end Form 40 corporation income tax return with a federal extension because November 15 falls on a Sunday.',
-  ].join('\n'),
-  'ND:business_estimated_tax': [
-    'North Dakota corporate income tax deadlines list estimated corporate income tax installments for calendar-year taxpayers as due January 15, April 15, June 15, September 15, and December 15.',
-    'North Dakota corporate guidance states estimated payments are required if current-year corporate income tax liability is expected to exceed $5,000 and the previous-year state income tax liability exceeded $5,000.',
-  ].join('\n'),
+  'ND:business_income_return':
+    'Form 40, Corporation Income Tax Return, is due on or before the 15th day of the 4th month following the close of the tax year. For a calendar-year filer that is April 15.',
+  'ND:business_estimated_tax':
+    'Corporate estimated income tax (Form 40-ES) is paid in four installments due the 15th day of the 4th, 6th, and 9th months of the tax year and the 15th day of the 1st month following the close of the tax year.',
   'ND:pass_through_entity_return': [
     'North Dakota S Corp and Partnership Tax Deadlines list April 15 for 2025 calendar year-end S corporation Form 60 and partnership Form 58 returns and tax.',
     'North Dakota lists September 15 for extended 2025 calendar year-end S corporation Form 60 and partnership Form 58 returns.',
   ].join('\n'),
-  'ND:sales_use_tax': [
-    'North Dakota sales and use tax deadlines list February 2, 2026 for 4th quarter 2025 quarterly sales, use, and gross receipts tax return and payment because January 31 falls on a Saturday.',
-    'North Dakota lists April 30, 2026 for 1st quarter 2026 quarterly sales, use, and gross receipts tax return and payment.',
-    'North Dakota lists July 31, 2026 for 2nd quarter 2026 and November 2, 2026 for 3rd quarter 2026 because October 31 falls on a Saturday.',
-  ].join('\n'),
-  'ND:withholding': [
-    'North Dakota income tax withholding deadlines list February 2, 2026 for 4th quarter 2025 quarterly Form 306, annual Form 306, and annual Form 307 because January 31 falls on a Saturday.',
-    'North Dakota lists April 30, 2026 for 1st quarter 2026 quarterly Form 306, July 31, 2026 for 2nd quarter 2026, and November 2, 2026 for 3rd quarter 2026 because October 31 falls on a Saturday.',
-  ].join('\n'),
+  'ND:sales_use_tax':
+    'The Sales, Use and Gross Receipts Tax Return is due the last day of the month following the period end date. If that day falls on a weekend or holiday, the return is not due until the next business day.',
+  'ND:withholding':
+    'Form 306 (Income Tax Withholding Return) must be filed for each calendar quarter on or before: Jan.-March by April 30; April-June by July 31; July-Sept. by October 31; and Oct.-Dec. by January 31.',
   'CA:withholding': [
     'California EDD 2026 Payroll Tax Due Dates list DE 88 (Monthly) payroll tax deposits for January due February 17, 2026; February due March 16, 2026; March due April 15, 2026; April due May 15, 2026; and May due June 15, 2026.',
     'California EDD 2026 Payroll Tax Due Dates list DE 88 (Quarterly) deposits for the 1st Quarter of 2026 due April 30, 2026; 2nd Quarter due July 31, 2026; 3rd Quarter due November 2, 2026; and 4th Quarter due February 1, 2027.',
@@ -7250,41 +7163,26 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'California EDD lists the 1st Quarter of 2026 (January, February, March) DE 9 and DE 9C due April 30, 2026; 2nd Quarter due July 31, 2026; 3rd Quarter due November 2, 2026; and 4th Quarter due February 1, 2027.',
     'California EDD states that if a due date is on a Saturday, Sunday, or legal holiday, the next business day is the last day you can submit the report.',
   ].join('\n'),
-  'UT:sales_use_tax': [
-    'Utah State Tax Commission Quarterly Due Date: Jan-Mar 2026 page lists April 30 as the due date.',
-    'The Utah event states: For your tax accounts with quarterly filing and payment requirements for the tax types listed below.',
-    'The Utah Tax Types list includes Sales and Use (STC).',
-    'The event Details section lists Date: April 30 and Event Category: Due Dates.',
-  ].join('\n'),
-  'UT:withholding': [
-    'Utah State Tax Commission Quarterly Due Date: Jan-Mar 2026 page lists April 30 as the due date.',
-    'The Utah event states: For your tax accounts with quarterly filing and payment requirements for the tax types listed below.',
-    'The Utah Tax Types list includes Withholding Taxes and Employer Withholding (WTH).',
-    'The event Details section lists Date: April 30 and Event Category: Due Dates.',
-  ].join('\n'),
+  'UT:sales_use_tax':
+    'Sales and related tax returns are due the last day of the month after the filing period. For example, fourth quarter return filings are due January 31. If the due date is a Saturday, Sunday, or legal holiday, the due date is the next business day. Quarterly filers: Apr 30, Jul 31, Oct 31, Jan 31.',
+  'UT:withholding':
+    "Quarterly returns (TC-941E) are due: 1st Qtr Apr 30, 2nd Qtr Jul 31, 3rd Qtr Oct 31, 4th Qtr Jan 31. The annual return is combined with the 4th quarter return. Employers must also file all required W-2's and 1099R's electronically by January 31.",
   'VT:individual_income_return': [
     'Vermont statute requires a Vermont personal income tax return for individuals, trusts, and estates that meet the listed filing thresholds.',
     'The Vermont return required by 32 V.S.A. section 5861 must be filed on or before the date a United States income tax return is originally required to be filed for the taxable year.',
     'For calendar-year 2025 individual income tax returns due in 2026, the Vermont individual income tax return is due April 15, 2026.',
   ].join('\n'),
-  'VT:individual_estimated_tax': [
-    'Vermont Form IN-114 instructions state that estimated income tax payments are made in four equal amounts by the listed due dates.',
-    'For tax year 2025, Vermont individual estimated income tax payment due dates are April 15, 2025; June 16, 2025; September 15, 2025; and January 15, 2026.',
-  ].join('\n'),
+  'VT:individual_estimated_tax':
+    'Payment Due Dates (Form IN-114): 1st Quarter APR 15, 2026; 2nd Quarter JUN 15, 2026; 3rd Quarter SEP 15, 2026; 4th Quarter JAN 15, 2027.',
   'VT:fiduciary_income_return': [
     'Vermont statute applies the return filing rule to individuals, trusts, and estates that meet the Vermont filing thresholds.',
     'The Vermont return required by 32 V.S.A. section 5861 must be filed on or before the date a United States income tax return is originally required to be filed for the taxable year.',
     'For calendar-year 2025 fiduciary income tax returns due in 2026, the Vermont fiduciary income tax return is due April 15, 2026.',
   ].join('\n'),
-  'VT:business_income_return': [
-    'Vermont corporate income tax returns are due on the date prescribed for filing under the Internal Revenue Code, or the extended due date.',
-    'The Vermont extended due date is 30 days beyond the federal extended due date.',
-    'An extension of time to file does not extend the time to pay Vermont corporate tax due.',
-  ].join('\n'),
-  'VT:business_estimated_tax': [
-    'A Vermont corporation anticipating Vermont tax liability more than $500 must make estimated payments by the 15th day of the 4th, 6th, 9th, and 12th months of the taxable year.',
-    'Vermont Form CO-414 is used for corporate estimated tax payments.',
-  ].join('\n'),
+  'VT:business_income_return':
+    'Form CO-411, Corporate Income Tax Return, is due on the date prescribed for filing the federal corporate return under the IRC — the 15th day of the 4th month after the close of the taxable year (April 15 for calendar-year C corporations). For a TY2025 calendar-year filer, the return is due April 15, 2026.',
+  'VT:business_estimated_tax':
+    "Corporate estimated tax payments (Form CO-414) are due on the 15th day of the 4th, 6th, 9th, and 12th months of the corporation's taxable year — April 15, June 15, September 15, and December 15 for calendar-year filers. If the 15th falls on a weekend or holiday, the due date is the next business day. Required when expected annual VT tax liability exceeds $500.",
   'VT:pass_through_entity_return': [
     'Vermont partnerships, S corporations, and LLC returns are due on the date prescribed for filing under the Internal Revenue Code.',
     'For calendar-year 2025 partnerships and S corporations due in 2026, Vermont Form BI-471 is due March 16, 2026 because March 15, 2026 falls on a Sunday.',
@@ -7311,12 +7209,210 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'For a calendar-year 2026 filer the quarterly estimated tax installments are due April 15, 2026, June 15, 2026, September 15, 2026, and December 15, 2026.',
     'These quarterly estimated installments are the 15th-of-the-month estimate dates, separate from the annual Form 20C corporate income tax return (due May 15) and from any last-day-of-month employment or withholding deadlines.',
   ].join('\n'),
-  'AL:franchise_or_entity_tax': [
-    "Business Privilege Tax C-Corporation Due no later than 15th day of the 4th month after the beginning of a taxpayer's taxable year.",
-    'For a calendar-year 2026 filer the Business Privilege Tax return is due April 15, 2026 for C-corporations (Form CPT) and March 15, 2026 for S-corporations and pass-through entities (Form PPT). This is the entity privilege tax and is separate from the May 15 corporate income tax (Form 20C) return.',
-    "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
-    "Limited Liability Entities Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
-  ].join('\n'),
+  'AL:franchise_or_entity_tax':
+    'Form CPT (C-corporations) is due no later than three and a half months after the beginning of the taxable year (April 15 for calendar year). Form PPT (limited liability / pass-through entities) is due no later than two and a half months after the beginning of the taxable year (March 15 for calendar year); the Business Privilege Tax return due date corresponds to the due date of the corresponding federal return. If the due date falls on a weekend or Alabama state holiday, it moves to the next business day.',
+  'AL:individual_estimated_tax':
+    'Your estimated tax may be paid in full or in equal installments on or before April 15, 2026, June 15, 2026, September 15, 2026 and January 15, 2027. If the 15th falls on a Saturday, Sunday, or State holiday, the due date will then be considered the following business day.',
+  'AL:sales_use_tax':
+    'The returns and remittances are due on or before the 20th day of the month following the month during which the tax is accrued. If the due date falls on a weekend or holiday, the return must be electronically submitted or postmarked on or before the next working day to be timely filed.',
+  'AL:withholding':
+    "FORM A-6 ... DUE DATE: The 15th of the month following the month being filed. FORM A-1 ... DUE DATE: The last day of the month following the end of the quarter. FORM A-3 AND W-2's ... The last day of January following. ... If any due date falls on a Saturday, Sunday, or legal holiday, the payment and return are due by the next business day.",
+  'AK:business_income_return':
+    'The due dates for filing Alaska corporate income tax returns (months after the end of the tax year) are as follows: • C Corporations, generally — Filing due date: 15th of the fifth month; Extended due date: 15th of the eleventh month.',
+  'AK:business_estimated_tax':
+    'Enter in columns A through D the installment due dates (the 15th day of the 4th, 6th, 9th and 12th months of the tax year).',
+  'AK:ui_wage_report':
+    'The report must be filed on or before the last day of the month following each calendar quarter (8 AAC 85.020). Per 8 AAC 85.030, where the due date falls on a Saturday, Sunday, or state holiday, timely receipt is satisfied on the next state working day.',
+  'CO:individual_income_return':
+    'Due Date: Your Colorado income tax return and payment for any tax owed are due April 15. Revenue Online will accept returns as timely filed until midnight. Mailed returns and payments must be postmarked by April 15. An automatic extension to file is granted until October 15, but there is no extension to pay. ... If a due date falls on a weekend or legal holiday, the return or payment will be due the next business day.',
+  'CT:individual_income_return':
+    'April 15 — Individual: CT-1040, Connecticut Resident Income Tax Return. (DRS-166, 2026 Tax Filing Due Dates Calendar, April page lists CT-1040 under April 15.)',
+  'CT:individual_estimated_tax':
+    'When to File: Estimated payments for the 2026 taxable year are due on or before April 15, June 15, September 15, 2026, and January 15, 2027.',
+  'CT:business_income_return':
+    "May 15 — Business: CT-1120, Corporation Business Tax Return. Due 'on or before the fifteenth day of the month following the due date of the corporation's corresponding federal income tax return for the income year (May 15 for calendar year filers).'",
+  'CT:business_estimated_tax':
+    'Due date: 15th day of the 3rd/6th/9th/12th month of the income year. If the due date falls on a Saturday, Sunday, or legal holiday, this return will be considered timely if filed by the next business day. (Calendar-year 2026: statutory 3/15, 6/15, 9/15, 12/15; the 3/15/2026 first installment falls on a Sunday and is therefore timely if filed by Monday, March 16, 2026.)',
+  'DE:individual_income_return':
+    'Individual income tax returns are due on or before April 30, 2026 for all taxpayers filing on a calendar year basis.',
+  'DE:individual_estimated_tax':
+    'For the Period: 1/1/2026 through 3/31/2026 — April 30, 2026; 4/1/2026 through 5/31/2026 — June 15, 2026; 6/1/2026 through 8/31/2026 — September 15, 2026; 9/1/2026 through 12/31/2026 — January 15, 2027.',
+  'DE:fiduciary_income_return':
+    'Fiduciary Income Tax Returns are due on or before April 30th following the close of the taxable year for all taxpayers filing on a calendar year basis.',
+  'DE:business_income_return':
+    'File Form CIT-TAX on or before the fifteenth day of the fourth month following the close of the taxable year.',
+  'DE:business_estimated_tax':
+    'Corporate tentative returns (CIT-EST), period ending 12/31/2026: Q01 04/15/2026, Q02 06/15/2026, Q03 09/15/2026, Q04 12/15/2026 — 15th day of the 4th, 6th, 9th, and 12th month of the taxable year (50%/20%/20%/10%).',
+  'DE:pass_through_entity_return':
+    'Partnerships must file by the 15th day of the third month following the expiration of the taxable period (March 15 for calendar year taxpayers).',
+  'DE:withholding':
+    'Quarterly filers: quarter end 03/31/2026 due 04/30/2026; 06/30/2026 due 07/31/2026; 09/30/2026 due 11/02/2026; 12/31/2026 due 02/01/2027.',
+  'FL:business_income_return':
+    'For all other tax year endings, the due date is on or before the first day of the fifth month following the close of the tax year. For example, for a taxpayer with a tax year that ends December 31, 2025, the Florida Form F-1120 is due on or before May 1, 2026.',
+  'FL:business_estimated_tax':
+    'Make your estimated tax payments in four equal installments. For calendar year filers payments are due on May 31, June 30, September 30, and December 31.',
+  'FL:ui_wage_report':
+    "An Employer's Quarterly Report (Form RT-6) is due the 1st day of the month following the end of each calendar quarter and is late if not postmarked by the last day of the month. However, if the last day of the month is a Saturday, Sunday, or legal holiday, the timely filing period is extended until the end of the next working day.",
+  'GA:individual_estimated_tax':
+    'Payment in full of your estimated tax may be made with the first required installment or in equal installments during this year on or before April 15, June 15, September 15, and the following January 15. ... If the due date falls on a weekend or holiday, the tax shall be due on the next day that is not a weekend or holiday.',
+  'GA:fiduciary_income_return':
+    'Georgia Form 501 (Fiduciary Income Tax Return) is due on or before the 15th day of the 4th month following the close of the taxable year (April 15 for a calendar-year estate or trust). If the due date falls on a weekend or holiday, the tax shall be due on the next day that is not a weekend or holiday.',
+  'GA:business_income_return':
+    'When and Where to File. The return is due on or before the 15th day of the 4th month following the close of the taxable year. This would be April 15, 2026 if filing on a calendar-year basis. If the due date falls on a weekend or holiday, the return shall be due on the next day that is not a weekend or holiday.',
+  'GA:business_estimated_tax':
+    'The following percentages of estimated tax shall be paid on or before the fifteenth day of the 4th, 6th, 9th, and 12th month of the taxable year ... so as to effect payment in full of the estimated tax by the 15th day of the twelfth month of the taxable year. Corporations are required to file if net income for the taxable year can reasonably be expected to exceed $25,000.',
+  'GA:franchise_or_entity_tax':
+    "Thereafter, an annual [net worth tax] return must be filed on or before the fifteenth day of the fourth month following the beginning of the corporation's taxable period.",
+  'GA:sales_use_tax':
+    'Returns and payments are considered timely if postmarked by the due date of the return (the 20th day following the close of the reporting period). Due dates falling on a weekend or holiday are adjusted to the following business day.',
+  'GA:withholding':
+    'Submit Form G-7 on or before the last day of the month following the quarter. If the due date falls on a weekend or holiday, the tax shall be due on the next day that is not a weekend or holiday.',
+  'GA:ui_wage_report':
+    'Reports and any payment due must be filed on or before April 30th, July 31st, October 31st, and January 31st (if the due date falls on a weekend or a legal holiday, reports are due by the next business day).',
+  'HI:individual_estimated_tax':
+    'Due Dates for Estimated Tax Payments. You can pay all of your estimated tax by April 20, 2026, or in four equal amounts by April 20, 2026, June 20, 2026, September 20, 2026, and January 20, 2027.',
+  'HI:fiduciary_income_return':
+    'Returns must be filed on or before the 20th day of the fourth month following the close of the taxable year of the estate or trust. If the due date falls on a Saturday, Sunday, or holiday, the due date for the return is extended to the next business day.',
+  'HI:business_income_return':
+    'Returns must be filed on or before the 20th day of the fourth month following the close of the taxable year (if the due date falls on a Saturday, Sunday, or legal holiday, file by the next regular workday).',
+  'HI:business_estimated_tax':
+    'A corporation on a calendar year basis must pay the first installment, 1/4 of the estimated tax due, on or before April 20, the second installment on or before June 20, the third installment on or before September 20 of the tax year, and the fourth installment on or before January 20 of the year following the close of the calendar year.',
+  'HI:pass_through_entity_return':
+    "Returns must be filed on or before the 20th day of the fourth month following the close of the taxable year. [Form N-20 Partnership: 'When and Where to File'. Form N-35 S Corporation: 'When to File and Where to File' — both state the same rule; N-35 adds 'If this date falls on a Saturday, Sunday, or holiday, the due date for the return is extended to the next business day.']",
+  'HI:withholding':
+    'This return must be filed on or before the 15th day of the month following the close of the calendar quarter. [Quarter Ending Mar / Jun / Sep / Dec]',
+  'IN:individual_income_return':
+    "Indiana DOR Filing Deadlines page lists 'Individual Tax Returns' (IT-40, IT-40PNR, IT-40RNR) due April 15. The 2025 IT-40 booklet confirms the return for tax year 2025 is due April 15, 2026.",
+  'IN:individual_estimated_tax':
+    "The four quarterly estimated tax payment due dates for Indiana (Form IT-40ES / ES-40) are April 15, June 15, September 15, and January 15 of the following year. 'If the due date falls on a national or state holiday, Saturday, or Sunday, then payment should be made online or postmarked by the next business day.'",
+  'IN:business_income_return':
+    'April 15: IT-20S (S-corps) and IT-65 (partnerships) for calendar-year filers; May 15: IT-20 (Corporate), FIT-20, IT-20NP. The IT-20 corporate return is due the 15th day of the 5th month following the close of the taxable year (the later of the 15th day of the 4th month or one month after the federal due date).',
+  'IN:sales_use_tax':
+    'Monthly Trust Tax Returns (ST-103) for Early Filers ($1,000+ average monthly liability) are due the 20th of the month following the tax period; for standard Monthly Filers (< $1,000) they are due the 30th of the month following. If the due date falls on a weekend or holiday, it moves to the next legal business day.',
+  'IN:withholding':
+    'Withholding (WH-1) Monthly Trust Tax Returns for Early Filers are due the 20th of the month following the tax period; standard Monthly Filers are due the 30th. The WH-3 annual withholding reconciliation is due January 31. If the due date falls on a weekend or holiday, it moves to the next business day.',
+  'IN:ui_wage_report':
+    'Q1 (Jan-Mar) due April 30; Q2 (Apr-Jun) due July 31; Q3 (Jul-Sep) due October 31; Q4 (Oct-Dec) due January 31. All covered employers must file a quarterly report no later than the report due date as shown in the chart above.',
+  'LA:individual_income_return':
+    'Individual income tax returns are due by May 15th for calendar year filers. Fiscal year returns are due on the 15th day of the 5th month after the close of the fiscal year. State law provides an automatic six-month filing extension; the extended due date for tax year 2025 is Nov. 16, 2026 (payment still due May 15).',
+  'LA:individual_estimated_tax':
+    'Calendar year taxpayers can pay the estimated tax in full with the declaration, or in equal installments, on or before April 15th, June 15th, September 15th, and January 15th. If a due date falls on a weekend or legal holiday, the payment is due on the next business day.',
+  'MD:individual_income_return':
+    'Your return is due by April 15, 2026. If you are a fiscal year taxpayer, see Instruction 25. If any due date falls on a Saturday, Sunday, or legal holiday, the return must be filed by the next business day.',
+  'MD:individual_estimated_tax':
+    'You must pay at least one-fourth of the total estimated tax on Line 15 of this form on or before April 15, 2026. The remaining quarterly payments are due June 15, 2026, September 15, 2026 and January 15, 2027. ... If you are filing on a fiscal year basis, each payment is due by the 15th day of the 4th, 6th, 9th and 13th months following the beginning of the fiscal year.',
+  'MD:fiduciary_income_return':
+    'Due Date. Your return is due by April 15, 2026. If you are a fiscal year taxpayer, see Instruction 24. If the due date falls on a Saturday, Sunday or legal holiday, the return must be filed by the next business day.',
+  'MD:business_income_return':
+    'File the original Form 500 by the 15th day of the 4th month following the close of the tax year or period, or by the original due date required for filing the federal return.',
+  'MD:business_estimated_tax':
+    'Declaration of estimated income tax payments are due by the 15th day of the 4th, 6th, 9th and 12th months following the beginning of the tax year or period. ... At least 25% of the total estimated tax must be remitted by each of the four installment due dates.',
+  'MA:individual_income_return':
+    '2025 Form 1: Massachusetts Resident Income Tax Return — due on or before April 15, 2026. If you qualify for an extension, your return is due on or before October 15, 2026.',
+  'MA:individual_estimated_tax':
+    'First installment is due on or before April 15, 2026. Second installment is due on or before June 16, 2026. Third installment is due on or before September 15, 2026. Fourth installment is due on or before January 15, 2027.',
+  'MA:fiduciary_income_return':
+    '2025 Form 2: Fiduciary Income Tax Return — due on or before April 15, 2026; with a valid extension, on or before October 15, 2026.',
+  'MA:business_estimated_tax':
+    'First installment is due on or before March 16, 2026. Second installment is due on or before June 15, 2026. Third installment is due on or before September 15, 2026. Fourth installment is due on or before December 15, 2026.',
+  'MA:pass_through_entity_return':
+    '2025 Form 3 (Partnership) — due on or before March 16, 2026 for calendar-year filers; automatic 6-month extension to September 15, 2026. S corporation Form 355S likewise due on or before March 16, 2026 (automatic extension to September 15, 2026).',
+  'MA:withholding':
+    'Quarterly filers: Form M-941 returns due on or before the last day of the month following the close of the calendar quarter — i.e., on or before April 30, July 31, October 31 and January 31. Annual filers ($100 or less): due by January 31 of the following year.',
+  'MA:ui_wage_report':
+    'Quarter 1 is due by 3 p.m. on April 30. Quarter 2 is due by 3 p.m. on July 31. Quarter 3 is due by 3 p.m. on October 31. Quarter 4 is due by 3 p.m. on January 31.',
+  'MO:individual_income_return':
+    'The due date for the 2025 Missouri Individual Income Tax Return is April 15, 2026. Fiscal year filers must file no later than the 15th day of the fourth month following the close of the taxable year.',
+  'MO:fiduciary_income_return':
+    'A fiduciary return is due on the 15th day of the fourth month following the close of the calendar or fiscal year.',
+  'MO:business_income_return':
+    'Your Missouri corporation return is due the 15th day of the 4th month following the year end. When the due date falls on a Saturday, Sunday, or a legal holiday, the return and payment will be considered timely if made on the next business day.',
+  'MO:business_estimated_tax':
+    'You must file the estimated tax payments along with Form MO-1120ES, on or before the 15th day of the 4th, 6th, 9th, and 12th months of the tax year. A corporation must make estimated tax payments if its Missouri estimated tax can reasonably be expected to be at least $250.',
+  'MO:pass_through_entity_return':
+    "The S-corporation (MO-1120S) and partnership (MO-1065) returns are due on the 15th day of the fourth month following the close of the taxable year. The MO-PTE (pass-through entity tax) return is due by the fifteenth day of the fourth month following the end of the S corporation's or partnership's tax year. Pass-through entities are not required to make estimated tax payments.",
+  'MO:sales_use_tax':
+    'Monthly returns are due on or before the last day of the following month. Quarterly returns are due on or before the last day of the month following the end of the quarter (e.g., January through March is due on or before April 30). Annual returns are due on or before January 31 of the following year. When the due date falls on a Saturday, Sunday or a holiday, your return will be considered timely filed if it is postmarked by the next business day.',
+  'MO:withholding':
+    'The withholding tax return (Form MO-941) is due by the 15th day of the following month, except for the third month of a quarter, which is due the last day of the following month. If the due date falls on a weekend or holiday, the due date becomes the next business day.',
+  'MT:ui_wage_report':
+    'Quarterly wage report and payment due dates: 1st Qtr (Jan-Mar) April 30, 2nd Qtr (Apr-Jun) July 31, 3rd Qtr (Jul-Sep) October 31, 4th Qtr (Oct-Dec) January 31. If the due date is on a weekend or holiday, the next business day becomes the date the quarterly reports and payment must be submitted.',
+  'NE:individual_income_return':
+    "Nebraska Tax Calendar — Individual Income Tax (1040N): 04/15/2026 is the 'last date for filing and paying remaining tax in full (calendar-year basis).'",
+  'NE:individual_estimated_tax':
+    "NE Tax Calendar — Individual Estimated Tax (1040N-ES), calendar-year basis: 04/15/2026 first installment; 06/15/2026 second; 09/15/2026 third; 01/15/2026 listed as the 'final installment for 2025' (i.e., the 4th installment for the 2026 tax year falls 01/15/2027).",
+  'NE:fiduciary_income_return':
+    "NE Tax Calendar shows 04/15/2026 as the 'last date for filing for a decedent's estate or for a trust' (Form 1041N). Form 1041N is due the 15th day of the 4th month following the close of the taxable year.",
+  'NE:business_income_return':
+    "Business Income Tax FAQs: Form 1120N is due 'the 15th day of the fourth month following the close of the taxable year'; NE Tax Calendar shows 04/15/2026 for calendar-year corporations.",
+  'NE:business_estimated_tax':
+    "NE Tax Calendar — Corporate Estimated Tax (1120N-ES), calendar-year filers: 04/15/2026 first installment; 06/15/2026 second; 09/15/2026 third; 12/15/2026 'last date for paying fourth installment.'",
+  'NE:pass_through_entity_return':
+    'NE Tax Calendar lists 03/16/2026 (calendar-year basis) for Partnership (1065N) and S Corporation (1120-SN) returns. Returns are due the 15th day of the 3rd month after close of the taxable year; March 15, 2026 is a Sunday so the deadline rolls to Monday March 16, 2026.',
+  'NE:sales_use_tax':
+    "Form 10 is due 'on or before the 20th day of the month following the tax period.' NE 2026 monthly schedule: returns due the 20th of each following month, with weekend rollovers — the May-2026 period rolls to 06/22, the Aug-2026 period to 09/21, and the Nov-2026 period to 12/21.",
+  'NE:withholding':
+    'Form 941N is filed quarterly, due the last day of the month following quarter close. NE Tax Calendar shows Q1 due 04/30/2026, Q3 due 11/02/2026 (Oct 31 is a Saturday), and Q4-2025 due 02/02/2026 — confirming the same Saturday/Sunday rollover pattern for the 2026 quarters.',
+  'NM:fiduciary_income_return':
+    'DUE DATE OF FIDUCIARY INCOME TAX: The FID-1 and accompanying schedules are due on the same day as the required federal return. ... If the due date falls on a Saturday, Sunday, state or national legal holiday, the return is timely if the postmark bears the date of the next business day.',
+  'NM:sales_use_tax':
+    'Each Form TRD-41413 is due on or before the 25th of the month following the end of the tax period being reported. [If the due date falls on a weekend or a legal, state or national holiday, the due date is extended to the next business day.]',
+  'NM:withholding':
+    'Each Form TRD-41414 is due on or before the 25th of the month following the end of the tax period being reported. ... If the date falls on a weekend, a legal, state or national holiday, your Form TRD-41414 and payment due date will be extended to the next business day.',
+  'NM:ui_wage_report':
+    "An employer's wage and contribution report must be filed electronically on the department's web page on or before the last day of the month immediately following the end of the calendar quarter. If the due date falls on a Saturday, Sunday or legal holiday, the report is due on the next department business day.",
+  'OH:fiduciary_income_return':
+    "For all trusts and estates, the IT 1041 ... is due April 15 after the year in which the trust or estate's taxable year ends. If any filing due date set forth falls on a weekend or on a holiday, then the due date becomes the first business day thereafter. ... If the trust or estate has a 12/31/2025 calendar year end, the entity can extend the due date for filing the IT 1041 to September 30, 2026, provided it qualifies for an IRS extension of time to file. ... An extension of time to file does not extend the time for payment of the tax due.",
+  'OH:franchise_or_entity_tax':
+    'Annual filing is eliminated after the 2023 annual return, which is due May 10, 2024. Only quarterly returns may be filed for tax periods beginning on and after January 1, 2024. For calendar year 2025 and thereafter, the exclusion amount is increased to $6 million. [Quarterly CAT returns are due the 10th day of the second month following the end of the calendar quarter: Q1 May 10, Q2 Aug 10, Q3 Nov 10, Q4 Feb 10, rolling forward when the date falls on a weekend or legal holiday.]',
+  'OR:business_income_return':
+    'Due date of your return. Returns are due by the 15th day of the month following the due date of your federal corporation return. When the 15th day falls on a Saturday, Sunday, or legal holiday, the due date is the next business day.',
+  'OR:business_estimated_tax':
+    'You must make quarterly estimated tax payments if you expect to owe $500 or more in tax for the year. Calendar year filers: April 15, June 15, September 15, and December 15. If the due date falls on a Saturday, Sunday, or legal holiday, use the next regular business day.',
+  'OR:franchise_or_entity_tax':
+    'Returns are due by the 15th day of the month following the due date of your federal corporation return. When the 15th day falls on a Saturday, Sunday, or legal holiday, the due date is the next business day.',
+  'OR:ui_wage_report':
+    'Filing Due Dates for Quarterly Reports — 1st Jan-Feb-Mar (ending March 31, 2026): April 30, 2026; 2nd Apr-May-Jun (ending June 30, 2026): July 31, 2026; 3rd Jul-Aug-Sep (ending September 30, 2026): November 2, 2026; 4th Oct-Nov-Dec (ending December 31, 2026): February 1, 2027. If the due date is on a weekend or holiday, the report is due the next business day.',
+  'SC:pass_through_entity_return':
+    "SC1065 (partnership) and SC1120S (S corporation): 'Annual returns and your ... Tax payments are due each year by the 15th day of the third month after the end of your business year.' For a calendar-year filer that is March 15, 2026; because March 15, 2026 is a Sunday it is extended to Monday, March 16, 2026 (SC Code Sec. 12-60-50).",
+  'SC:sales_use_tax':
+    'ST-3 State Sales & Use Tax Return is due by the 20th day of the month following the reporting period (monthly is the default; quarterly/annual require SCDOR approval). When the 20th falls on a Saturday, Sunday, or legal holiday the due date is extended to the next business day (SC Code Sec. 12-60-50).',
+  'SC:withholding':
+    "Quarterly SC withholding returns (WH-1605 for Q1-Q3, WH-1606 for Q4+annual reconciliation). Due dates: First Quarter (Jan-Mar) April 30; Second Quarter (Apr-Jun) July 31; Third Quarter (Jul-Sep) October 31; Fourth Quarter / annual reconciliation (Oct-Dec) 'Due by January 31'. Because Oct 31, 2026 is a Saturday, Q3 is extended to Monday, Nov 2, 2026; because Jan 31, 2027 is a Sunday, Q4 is extended to Monday, Feb 1, 2027 (SC Code Sec. 12-60-50).",
+  'TX:franchise_or_entity_tax':
+    'The annual franchise tax report is due May 15. If May 15 falls on a weekend or holiday, the due date will be the next business day.',
+  'TX:ui_wage_report':
+    'Quarterly wage reports and tax payments are due by the last day of the month following the end of the quarter. If the due date falls on a Saturday, Sunday or legal holiday on which Texas Workforce Commission offices are closed, reports and payments are considered timely if they are received on or before the following business day.',
+  'UT:individual_income_return':
+    'You must file your return and pay any tax due: 1. by April 15, 2026, if you file on a calendar year basis (tax year ends Dec. 31, 2025); or 2. by the 15th day of the fourth month after the fiscal year ends.',
+  'UT:fiduciary_income_return':
+    'You must file your return and pay any tax due by April 15, 2026, if you file on a calendar year basis (tax year ends Dec. 31, 2025); or by the 15th day of the fourth month after the fiscal year ends.',
+  'UT:business_income_return':
+    'You must file your return and pay any tax due by April 15, 2026, if you file on a calendar year basis (tax year ends Dec. 31, 2025); or by the 15th day of the fourth month after the fiscal year ends. (Applies to Corporate TC-20/TC-20S/TC-20MC.)',
+  'UT:business_estimated_tax':
+    'Quarterly estimated tax payments are due on the 15th day of the 4th, 6th, 9th and 12th months. Calendar-year filing: Apr 15, Jun 15, Sep 15, Dec 15.',
+  'UT:pass_through_entity_return':
+    'You must file your return and pay any tax due by April 15, 2026, if you file on a calendar year basis; or by the 15th day of the fourth month after the fiscal year ends. (Applies to Partnership TC-65 and S corp TC-20S.)',
+  'UT:franchise_or_entity_tax':
+    'Every corporation that files form TC-20 must pay a minimum tax (privilege tax) of $100, regardless of whether or not the corporation exercises its right to do business. Return due April 15, 2026 (15th day of the 4th month) for calendar-year filers.',
+  'VA:individual_income_return':
+    'Typically, most people must file their tax return by May 1. If the due date falls on a Saturday, Sunday, or holiday, you have until the next business day to file with no penalty.',
+  'VA:individual_estimated_tax':
+    'Make estimated payments online or file Form 760ES Payment Voucher 1 by May 1, 2026. Estimated income tax payments must be made in full on or before May 1, 2026, or in equal installments on or before May 1, 2026, June 15, 2026, September 15, 2026, and January 15, 2027.',
+  'VA:business_estimated_tax':
+    'For CALENDAR YEAR taxpayers - if first filing is on or before: April 15, 2026 ... June 15, 2026 ... Sept. 15, 2026 ... Dec. 15, 2026. The following percentages of the estimated tax must be paid on or before the 15th day of the 4th, 6th, 9th, 12th month.',
+  'WA:franchise_or_entity_tax':
+    "Washington, unlike many other states, does not have an income tax. The state's primary business tax is the Business & Occupation (B&O) tax (a gross-receipts tax); there is no corporate income, franchise, or entity-level privilege tax return.",
+  'WA:ui_wage_report':
+    'Your unemployment tax and wage report is due the last day of the month after the last day of the quarter (Apr 30, Jul 31, Oct 31, Jan 31). When a due date is on a weekend or state holiday, you may send your report the next business day online or by mail.',
+  'WI:sales_use_tax':
+    'Returns must be filed by the last day of the month following the end of the reporting period... When the regular due date falls on a weekend or legal holiday, the due date is extended to the business day immediately following.',
+  'WI:withholding':
+    'Monthly or quarterly filers - Due on or before the last day of the month following the monthly or quarterly withholding period. ... If the due date falls on a weekend or legal holiday, the due date is extended to the business day immediately following the weekend or legal holiday. [WT-7 annual reconciliation: January 31 (last day of the month following the calendar year).]',
+  'WI:ui_wage_report':
+    'The 1st quarter (Jan., Feb., Mar.) is due April 30; 2nd quarter (Apr., May, June) is due July 31; 3rd quarter (July, Aug., Sept.) is due October 31; and the 4th quarter (Oct., Nov., Dec.) is due January 31. Per DWD 110.07(4), if the due date falls on a weekend or holiday, the due date will be the next day that is not a Saturday, Sunday or legal holiday.',
+  'WY:ui_wage_report':
+    'Q1 due April 30, delinquent May 1; Q2 due July 31, delinquent August 1; Q3 due October 31, delinquent November 1; Q4 due January 31, delinquent February 1. Due Dates may change because the actual due date falls on a weekend or holiday. For example, if the last day of the month following the end of the quarter is a holiday or weekend, the due date will be the next business day.',
 }
 
 interface SourceCoverageNotApplicableCell {
