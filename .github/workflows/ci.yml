@@ -20,6 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       WRANGLER_SEND_METRICS: 'false'
+      # Browser-public Amplitude SDK key (project 827681). MUST live on the
+      # build job: Vite inlines VITE_* at build time into apps/app/dist, which
+      # is uploaded as the staging-build artifact. Unset → analytics no-ops.
+      VITE_AMPLITUDE_API_KEY: ${{ secrets.VITE_AMPLITUDE_API_KEY }}
     steps:
       - uses: actions/checkout@v6
 
