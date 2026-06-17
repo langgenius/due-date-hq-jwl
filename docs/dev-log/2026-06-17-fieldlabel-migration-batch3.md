@@ -68,9 +68,9 @@ Per §4 of the handoff, confirmed as skips (most stay as-is):
   `state-badge`, `tax-code-label`, the mono data-chip pill), `<Badge variant="outline">`.
 - **Controls**: `<Button>` / `<summary>` classNames (the drawer accordion toggles).
 - **Container-typography** — a `<nav>`/`<div>` whose caps classes style arbitrary
-  *children* rather than one label: `patterns/breadcrumb` (nav landmark w/ aria-label),
+  _children_ rather than one label: `patterns/breadcrumb` (nav landmark w/ aria-label),
   `patterns/page-header` (eyebrow flex container hosting breadcrumb/aside),
-  `ClientWorkPlanPanel` grid column-header *row*. These are not discrete labels.
+  `ClientWorkPlanPanel` grid column-header _row_. These are not discrete labels.
 - **Sentence-case `<label htmlFor>`** form labels (`login`, `rules.library` bulk
   note) — not Register B; left untouched.
 - `<DropdownMenuLabel>`, `text-sm` bands, `tabular-nums` counts, `text-column-label`
