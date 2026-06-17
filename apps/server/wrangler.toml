@@ -1,5 +1,5 @@
 name = "due-date-hq-app-staging"
-account_id = "8f7d374db5cb1f025b7f71e28b84c9bb"
+account_id = "305dbc7da819eb47bb3f3f3bc8927046"
 main = "src/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
@@ -28,7 +28,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "due-date-hq-staging"
-database_id = "5d58a4e6-a5f0-483b-970d-9f0fcdee08e9"
+database_id = "41f2cef8-1209-42ce-a697-e4269bb75676"
 migrations_dir = "../../packages/db/migrations"
 
 # -------------------------------------------------------------
@@ -36,7 +36,7 @@ migrations_dir = "../../packages/db/migrations"
 # -------------------------------------------------------------
 [[kv_namespaces]]
 binding = "CACHE"
-id = "cfa19528b52b4e8dad0723f3051dd4c8"
+id = "6da8c64be40f4610b08794324815bb24"
 
 # -------------------------------------------------------------
 # R2 · migration raw / generated PDFs / audit zips / pulse raw snapshots
@@ -56,13 +56,6 @@ bucket_name = "due-date-hq-audit-staging"
 [[r2_buckets]]
 binding = "R2_PULSE"
 bucket_name = "due-date-hq-pulse-staging"
-
-# -------------------------------------------------------------
-# Vectorize · RAG top-k retrieval
-# -------------------------------------------------------------
-[[vectorize]]
-binding = "VECTORS"
-index_name = "due-date-hq-rules-staging"
 
 # -------------------------------------------------------------
 # Rate Limiting binding
@@ -149,16 +142,16 @@ crons = ["*/30 * * * *"]
 
 [vars]
 ENV = "staging"
-AUTH_URL = "https://app.due.langgenius.app"
-APP_URL = "https://app.due.langgenius.app"
-EMAIL_FROM = "noreply@langgenius.app"
+AUTH_URL = "https://app.duedatehq.com"
+APP_URL = "https://app.duedatehq.com"
+EMAIL_FROM = "noreply@duedatehq.com"
 # Operator-grade alert sink (cron branch failures, stale-source watchdog, queue
 # dead-letters, extraction canary) — emailed via Resend, deduped 6h per alert
 # name. Empty disables the sink; alerts then only reach Workers Logs, which
 # nobody watches (the 2026-06-08 fetch stall ran 38h unnoticed that way).
 OPS_ALERT_EMAIL = "hanxujiang@dify.ai"
 GOOGLE_CLIENT_ID = "921927048644-ub9la8vt77v4p1fftn1tc3b1naeemh9h.apps.googleusercontent.com"
-AI_GATEWAY_ACCOUNT_ID = "8f7d374db5cb1f025b7f71e28b84c9bb"
+AI_GATEWAY_ACCOUNT_ID = "305dbc7da819eb47bb3f3f3bc8927046"
 AI_GATEWAY_SLUG = "duedatehq"
 AI_GATEWAY_PROVIDER = "openrouter"
 # Single model across all tiers (plan-based routing retired). Effort is tiered:

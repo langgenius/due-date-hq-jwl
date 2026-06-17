@@ -1436,7 +1436,7 @@ const en: LandingCopy = {
         ],
       },
     ],
-    copyright: '© 2026 DueDateHQ Inc. · due.langgenius.app',
+    copyright: '© 2026 DueDateHQ Inc. · duedatehq.com',
     theme: {
       label: 'Theme',
       system: 'Match system',

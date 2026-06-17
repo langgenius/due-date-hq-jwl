@@ -7,7 +7,7 @@ const viteConfig = {
   plugins: tailwindcss(),
 }
 
-// Marketing static site (due.langgenius.app). Per docs/dev-file/12-Marketing-Architecture.md §4.
+// Marketing static site (duedatehq.com). Per docs/dev-file/12-Marketing-Architecture.md §4.
 // - `site` is required by @astrojs/sitemap and for canonical URLs.
 // - `trailingSlash: 'never'` + `build.format: 'file'` collapses /zh-CN/ vs /zh-CN duplicates.
 // - Tailwind 4 must be wired through `vite.plugins[tailwindcss()]`; the CSS-only
@@ -20,7 +20,7 @@ const viteConfig = {
 //   React island is needed later (e.g. interactive LocaleSwitcher), add `react()`
 //   back here and ensure §5.1 JS-budget rules apply.
 export default defineConfig({
-  site: 'https://due.langgenius.app',
+  site: 'https://duedatehq.com',
   trailingSlash: 'never',
   build: { format: 'file' },
   integrations: [

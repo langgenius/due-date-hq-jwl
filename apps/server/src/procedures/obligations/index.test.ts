@@ -434,7 +434,6 @@ function makeContext(input: {
     R2_MIGRATION: null!,
     R2_AUDIT: null!,
     R2_PULSE: null!,
-    VECTORS: null!,
     EMAIL_QUEUE: null!,
     PULSE_QUEUE: null!,
     DASHBOARD_QUEUE: null!,

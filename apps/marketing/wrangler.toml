@@ -1,9 +1,10 @@
 name = "due-date-hq-marketing-staging"
+account_id = "305dbc7da819eb47bb3f3f3bc8927046"
 compatibility_date = "2025-04-01"
 
 # -------------------------------------------------------------
 # Static Assets · Astro static output (no SSR adapter).
-# Serves the marketing site at https://due.langgenius.app.
+# Serves the marketing site at https://duedatehq.com.
 # `not_found_handling = "404-page"` looks for /404.html on misses
 # (vs SPA fallback used by apps/server). Astro emits 404.html when
 # present; otherwise Workers returns its default 404.
@@ -17,7 +18,7 @@ not_found_handling = "404-page"
 # Marketing never holds backend secrets; only PUBLIC_* are allowed.
 # -------------------------------------------------------------
 [vars]
-PUBLIC_APP_URL = "https://app.due.langgenius.app"
+PUBLIC_APP_URL = "https://app.duedatehq.com"
 
 [observability]
 enabled = true

@@ -34,7 +34,7 @@ jobs:
       contents: read
       issues: write
     env:
-      CLOUDFLARE_ACCOUNT_ID: 8f7d374db5cb1f025b7f71e28b84c9bb
+      CLOUDFLARE_ACCOUNT_ID: 305dbc7da819eb47bb3f3f3bc8927046
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       WRANGLER_SEND_METRICS: 'false'
       GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
