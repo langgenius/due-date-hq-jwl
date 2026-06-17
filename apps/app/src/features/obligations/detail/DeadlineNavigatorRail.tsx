@@ -19,6 +19,7 @@ import {
   ListRailTitle,
 } from '@/components/patterns/list-rail'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { FieldLabel } from '@/components/primitives/field-label'
 import { SearchInput } from '@/components/primitives/search-input'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { describeTaxCode } from '@/lib/tax-codes'
@@ -359,9 +360,13 @@ export function DeadlineNavigatorRail({
             return (
               <Fragment key={row.id}>
                 {showClientHeader ? (
-                  <div className="sticky top-0 z-[1] border-b border-divider-subtle bg-background-subtle px-[18px] py-1.5 text-caption-xs font-semibold tracking-wide text-text-tertiary uppercase">
+                  <FieldLabel
+                    as="div"
+                    variant="group"
+                    className="sticky top-0 z-[1] border-b border-divider-subtle bg-background-subtle px-[18px] py-1.5"
+                  >
                     {row.clientName}
-                  </div>
+                  </FieldLabel>
                 ) : null}
                 <DeadlineNavigatorRow
                   row={row}

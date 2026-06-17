@@ -4,6 +4,7 @@ import { CalendarClockIcon, ClipboardListIcon } from 'lucide-react'
 
 import type { PulseDetail } from '@duedatehq/contracts'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { formatDatePretty } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 
@@ -363,9 +364,9 @@ export function AlertStructuredFields({ detail, section = 'details' }: AlertStru
             // gap-0.5 so they bind as one unit, py-2.5 so the grid reads dense.
             // The size + weight gap (11/tertiary → 14/600 primary) is the layer.
             <div key={cell.key} className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
-              <span className="text-caption-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
+              <FieldLabel as="span" variant="group">
                 {cell.label}
-              </span>
+              </FieldLabel>
               {/* Wrap to two lines instead of ellipsizing — Relief type /
                 Affected tax acts are identity values; hiding them behind
                 "…" defeated the grid. */}

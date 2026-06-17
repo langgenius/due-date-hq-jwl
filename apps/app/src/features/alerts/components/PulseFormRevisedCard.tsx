@@ -7,6 +7,7 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { JurisdictionChip } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
@@ -126,9 +127,9 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           {/* Change-kind eyebrow — token tertiary ink (was a hardcoded
               #6B21A8 purple, the only off-palette literal on this card and a
               third rendering of a label the row/detail show in `secondary`). */}
-          <span className="shrink-0 text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
+          <FieldLabel as="span" variant="field" className="shrink-0">
             {changeKindLabel(alert.changeKind)}
-          </span>
+          </FieldLabel>
         </div>
         {/* lAREX right cluster, gap-2. */}
         <div className="flex shrink-0 items-center gap-2">

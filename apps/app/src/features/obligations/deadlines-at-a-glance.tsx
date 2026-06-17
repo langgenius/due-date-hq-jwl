@@ -7,6 +7,8 @@ import type { ObligationQueueRow } from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { FieldLabel } from '@/components/primitives/field-label'
+
 /**
  * DeadlinesAtAGlance — the "AT A GLANCE" narrative tile row from the
  * /deadlines design (Pencil node `u3nNA`; tiles `Mi5CE` / `H0GSr` /
@@ -257,9 +259,9 @@ function NarrativeTile({
         <Icon className="size-3.5" aria-hidden />
       </span>
       <span className="flex min-w-0 flex-col gap-1">
-        <span className="text-xs font-semibold tracking-[0.4px] text-text-tertiary uppercase">
+        <FieldLabel as="span" variant="field">
           {label}
-        </span>
+        </FieldLabel>
         {loading ? (
           <>
             <Skeleton className="h-4 w-48" aria-hidden />

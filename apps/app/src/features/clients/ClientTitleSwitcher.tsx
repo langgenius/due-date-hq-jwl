@@ -16,6 +16,7 @@ import {
 } from '@duedatehq/ui/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { orpc } from '@/lib/rpc'
 
 import { useEntityLabels } from '@/routes/clients'
@@ -128,9 +129,9 @@ export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id
                           </span>
                         </div>
                         {entry.id === client.id ? (
-                          <span className="shrink-0 text-caption-xs font-medium uppercase text-text-tertiary">
+                          <FieldLabel as="span" variant="group" className="shrink-0">
                             <Trans>Current</Trans>
-                          </span>
+                          </FieldLabel>
                         ) : null}
                       </div>
                     </CommandItem>
