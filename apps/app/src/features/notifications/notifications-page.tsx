@@ -25,7 +25,6 @@ import {
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { NewBadge } from '@/components/primitives/new-badge'
@@ -267,7 +266,9 @@ export function NotificationsPage() {
             </div>
           ) : null}
 
-          {!notificationsQuery.isLoading && filteredNotifications.length === 0 && !hasActiveFilter ? (
+          {!notificationsQuery.isLoading &&
+          filteredNotifications.length === 0 &&
+          !hasActiveFilter ? (
             /* A one-liner description so the empty state teaches the surface —
                matching every other shared EmptyState in the app. */
             <EmptyState
@@ -291,9 +292,7 @@ export function NotificationsPage() {
             <EmptyState
               icon={InboxIcon}
               title={<Trans>No notifications match these filters.</Trans>}
-              description={
-                <Trans>Clear the filters to see your full inbox.</Trans>
-              }
+              description={<Trans>Clear the filters to see your full inbox.</Trans>}
               cta={
                 <Button variant="outline" size="sm" onClick={clearFilters}>
                   <Trans>Clear filters</Trans>

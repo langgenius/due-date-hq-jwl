@@ -88,6 +88,7 @@ text-xs    font-medium   tracking-eyebrow  text-text-tertiary uppercase   (B2 �
 > **Sweep status (2026-06-17):** the safe surfaces are DONE — **65 sites across
 > 23 files** now on `FieldLabel` (dev-logs `fieldlabel-migration-batch1/2`).
 > Decisions made during the sweep (Yuqi):
+>
 > - **Table column headers** keep `<TableHead>` (+ its width/align classes) and
 >   wrap the content in `<FieldLabel variant="group">` — they do NOT become a
 >   bare FieldLabel.
@@ -97,8 +98,8 @@ text-xs    font-medium   tracking-eyebrow  text-text-tertiary uppercase   (B2 �
 > - **Not converted:** badges/pills (own primitive), `<label htmlFor>` form labels
 >   (FieldLabel doesn't forward `htmlFor`), `<DropdownMenuLabel>`, `text-sm` bands,
 >   `tabular-nums` counts, and `text-column-label`-token labels (already canonical).
-> Still pending: the alert/deadline detail drawers (~43 labels) once those files
-> settle.
+>   Still pending: the alert/deadline detail drawers (~43 labels) once those files
+>   settle.
 >
 > (`field` keeps `tracking-wide` rather than the §3.3 `tracking-eyebrow` canon to
 > avoid shifting its current consumers mid-sweep; reconciling that — and giving

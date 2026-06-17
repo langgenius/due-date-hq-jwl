@@ -4,22 +4,26 @@ Follow-up to the brand/logo commit. An audit found two documented brand colors
 barely (or not) used in the product; closed the gap between doc and reality.
 
 ## ivory → a real home
+
 `--color-brand-ivory #F3EEE6` was logo-only. Deployed it as the auth / splash /
 login background (light mode; `dark:` keeps the dark canvas). The navy bars mark
 now sits on a warm cream brand ground — ivory is finally visible, product UI
 untouched. Verified `rgb(243,238,230)` on `/accept-invite`.
 
 ## cyan New badge — the highlight's visible anchor
+
 `--color-brand-highlight #14C5F6` lived only on 6–8px unread dots. Added a
 `NewBadge` primitive (cyan fill + navy text) and wired it onto unread
 notifications. Cyan stays scarce (a marker, not a tier) but now has a legible
 home; the notifications-page leading dot was dropped in favor of the badge.
 
 ## Dropped the dead second cyan
+
 `--color-brand-signal #35D5FF` had zero consumers after the logo lost its dot.
 Removed it — one cyan only (`#14C5F6`). grep confirms no dangling refs.
 
 ## Docs made honest (EN + ZH brand book)
+
 - cyan reframed as a "scarce marker, not a co-equal accent tier"
 - ivory's role written as the auth ground (not a product-UI color)
 - removed `signal` from the §0 / §2.1 tables; fixed §2.4 status "review"

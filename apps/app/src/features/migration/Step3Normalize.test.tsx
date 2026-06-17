@@ -67,24 +67,24 @@ function renderStep(
         <HotkeysProvider>
           <I18nProvider i18n={i18n}>
             <Step3Normalize
-            normalize={normalize}
-            rawText={options.rawText}
-            mappings={options.mappings}
-            matrix={[
-              {
-                entityType: 'c_corp',
-                state: 'TX',
-                taxTypes: ['federal_1120', 'tx_state_franchise_or_entity_tax'],
-                needsReview: true,
-                confidence: 0.7,
-                matrixVersion: 'v1.0',
-                enabled: true,
-                appliedClientCount: 1,
-                applicationMode: 'federal_return_type_plus_state',
-              },
-            ]}
-            onToggleApplyToAll={onToggleApplyToAll}
-          />
+              normalize={normalize}
+              rawText={options.rawText}
+              mappings={options.mappings}
+              matrix={[
+                {
+                  entityType: 'c_corp',
+                  state: 'TX',
+                  taxTypes: ['federal_1120', 'tx_state_franchise_or_entity_tax'],
+                  needsReview: true,
+                  confidence: 0.7,
+                  matrixVersion: 'v1.0',
+                  enabled: true,
+                  appliedClientCount: 1,
+                  applicationMode: 'federal_return_type_plus_state',
+                },
+              ]}
+              onToggleApplyToAll={onToggleApplyToAll}
+            />
           </I18nProvider>
         </HotkeysProvider>
       </MemoryRouter>,

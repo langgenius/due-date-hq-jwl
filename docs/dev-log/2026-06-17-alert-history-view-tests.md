@@ -5,7 +5,7 @@ _2026-06-17_
 When the dead `AlertsListPage historyMode` branch was excised
 ([2026-06-16-alerts-historymode-excision](2026-06-16-alerts-historymode-excision.md)),
 its three tests went with it — and the note in `AlertsListPage.test.tsx` flagged
-that the *live* history surface (`AlertHistoryView`, behind `/alerts/history`) had
+that the _live_ history surface (`AlertHistoryView`, behind `/alerts/history`) had
 no coverage of its own. Closed that gap.
 
 `AlertHistoryView.test.tsx` — 9 tests, modeled on the sibling `AlertsListPage`
@@ -16,6 +16,7 @@ harness (createRoot + act + `waitForText`/`waitFor`, `AppI18nProvider`,
 `AlertDetailDrawer.test.tsx`), and hoists the `DrawerProvider` open/close spies.
 
 Covers the view's real logic:
+
 - **Derived stats + tab counts** — a 6-alert fixture (one per outcome bucket)
   asserts All=6, Applied=2 (applied + partially_applied), Dismissed=1, Reverted=1,
   Expired=1, with `reviewed` counting only toward Handled.

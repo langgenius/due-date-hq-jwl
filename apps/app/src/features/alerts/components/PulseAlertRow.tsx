@@ -1054,61 +1054,63 @@ function PulseAlertList({
       {/* Flat (ungrouped) rendering for the impact sort + the map
           navigator rail — no per-day header bands, just the rows in their
           incoming order. */}
-      {!grouped
-        ? <AnimatePresence initial={false}>{alerts.map(renderRow)}</AnimatePresence>
-        : Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
-            const { label } = formatDayHeader(dayKey, firmTimezone)
+      {!grouped ? (
+        <AnimatePresence initial={false}>{alerts.map(renderRow)}</AnimatePresence>
+      ) : (
+        Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
+          const { label } = formatDayHeader(dayKey, firmTimezone)
 
-            return (
-              <div key={dayKey} className="flex flex-col">
-                {/* Day header (Pencil aUZTy) — a quiet uppercase date eyebrow on
+          return (
+            <div key={dayKey} className="flex flex-col">
+              {/* Day header (Pencil aUZTy) — a quiet uppercase date eyebrow on
                     a faint band: "MAY 20, 2026". No weekday, count, or icon —
                     the date is the section marker. Sticky below the toolbar
                     (top-12) so "when" stays answered while a day's rows scroll
                     under it; requires the frame's overflow-clip. The faint
                     `bg-background-subtle` fill (matching aUZTy) gives a clean
                     section break without the busier label competing with rows. */}
-                <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-2">
-                  {/* Day select-all (Yuqi: "should a day have a select all
+              <div className="group/band sticky top-12 z-10 flex items-center gap-[10px] border-b border-divider-subtle bg-background-subtle px-5 py-2">
+                {/* Day select-all (Yuqi: "should a day have a select all
                       option") — tri-state, in the SAME slot as the row
                       checkboxes below so the date stays on the content grid.
                       Hover-revealed like the row checkboxes (critique #8) unless a
                       selection is underway; the slot keeps its width so the date
                       label never shifts. */}
-                  {selectable ? (
-                    <Checkbox
-                      checked={dayAlerts.every((a) => selectedIds?.has(a.id) ?? false)}
-                      indeterminate={
-                        dayAlerts.some((a) => selectedIds?.has(a.id) ?? false) &&
-                        !dayAlerts.every((a) => selectedIds?.has(a.id) ?? false)
-                      }
-                      onCheckedChange={(next) => {
-                        for (const dayAlert of dayAlerts) onToggleSelected?.(dayAlert.id, next)
-                      }}
-                      aria-label={t`Select all alerts on ${label}`}
-                      className={cn(
-                        'size-[18px] rounded transition-opacity',
-                        selectionActive
-                          ? 'opacity-100'
-                          : 'opacity-0 group-hover/band:opacity-100 focus-visible:opacity-100',
-                      )}
-                    />
-                  ) : null}
-                  <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums">
-                    {label}
-                  </span>
-                </div>
+                {selectable ? (
+                  <Checkbox
+                    checked={dayAlerts.every((a) => selectedIds?.has(a.id) ?? false)}
+                    indeterminate={
+                      dayAlerts.some((a) => selectedIds?.has(a.id) ?? false) &&
+                      !dayAlerts.every((a) => selectedIds?.has(a.id) ?? false)
+                    }
+                    onCheckedChange={(next) => {
+                      for (const dayAlert of dayAlerts) onToggleSelected?.(dayAlert.id, next)
+                    }}
+                    aria-label={t`Select all alerts on ${label}`}
+                    className={cn(
+                      'size-[18px] rounded transition-opacity',
+                      selectionActive
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover/band:opacity-100 focus-visible:opacity-100',
+                    )}
+                  />
+                ) : null}
+                <span className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase tabular-nums">
+                  {label}
+                </span>
+              </div>
 
-                {/* Alert rows for this day. `compact` propagates from
+              {/* Alert rows for this day. `compact` propagates from
                 whether the detail panel is up (see the `panelOpen`
                 computation above); the dismiss handler passes through
                 from AlertsListPage so the hover-revealed action fires the
                 orpc mutation. AnimatePresence lets a dismissed row fade
                 out (fadeMotion exit) before the list collapses. */}
-                <AnimatePresence initial={false}>{dayAlerts.map(renderRow)}</AnimatePresence>
-              </div>
-            )
-          })}
+              <AnimatePresence initial={false}>{dayAlerts.map(renderRow)}</AnimatePresence>
+            </div>
+          )
+        })
+      )}
     </div>
   )
 }

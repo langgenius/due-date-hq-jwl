@@ -10,13 +10,7 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import {
-  ActivityIcon,
-  AlertTriangleIcon,
-  ExternalLinkIcon,
-  EyeIcon,
-  LinkIcon,
-} from 'lucide-react'
+import { ActivityIcon, AlertTriangleIcon, ExternalLinkIcon, EyeIcon, LinkIcon } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -1154,7 +1148,7 @@ export function ClientFactsWorkspace({
                         // accent bar without shifting layout (border
                         // would).
                         className="group/row h-14 cursor-pointer outline-none hover:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:bg-state-base-hover focus-visible:shadow-[inset_2px_0_0_var(--color-state-accent-solid)] focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
-                        onClick={(event) => {
+                        onClick={() => {
                           // 2026-06-16 (audit): on the /clients route the peek
                           // drawer is suppressed (the list defers to the full
                           // page), so ⌘/Ctrl-click previously raw-navigated to

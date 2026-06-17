@@ -818,10 +818,7 @@ function DateFormatSelect({
 }) {
   // 2026-06-16 (audit): hand-rolled DropdownMenu → canonical Select primitive.
   return (
-    <Select
-      value={value}
-      onValueChange={(next) => onValueChange(next as DateFormatPreference)}
-    >
+    <Select value={value} onValueChange={(next) => onValueChange(next as DateFormatPreference)}>
       <SelectTrigger className="w-full">
         <SelectValue>{DATE_FORMAT_LABELS[value]}</SelectValue>
       </SelectTrigger>

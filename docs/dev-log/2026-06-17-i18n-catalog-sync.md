@@ -4,7 +4,8 @@ _2026-06-17_
 
 After pushing the 13-commit batch, an audit found the **`Lingui Catalog Drift`**
 CI job (`.github/workflows/i18n-catalog-drift.yml`: `i18n:extract` + `i18n:compile`
-+ `git diff --exit-code`) would fail. Two causes, both products of the batch:
+
+- `git diff --exit-code`) would fail. Two causes, both products of the batch:
 
 1. **Stale catalog** — the dead-code cascade removed ~3,800 lines whose ~168
    strings were now orphaned, and the refactors (cascade + FieldLabel migration)
@@ -16,6 +17,7 @@ CI job (`.github/workflows/i18n-catalog-drift.yml`: `i18n:extract` + `i18n:compi
    `compile --strict` hard-failed.
 
 ## Fix
+
 Ran `i18n:extract` (cleans orphans + refreshes locations) and added zh-CN
 translations for all 29 missing strings, matching the catalog's established terms
 (截止日期 deadline · 成员 member · 负责人 owner · 申报 filing · 通知 notification ·

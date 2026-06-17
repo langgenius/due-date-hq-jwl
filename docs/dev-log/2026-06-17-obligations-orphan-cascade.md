@@ -11,6 +11,7 @@ commit completes the **reference-count cascade** that excises the rest.
 commits, from the 13,756 the route carried before Task B).
 
 ## What came out
+
 - The contiguous dead cluster (`EmptyPanel`, `formatTaxPeriod`,
   `PrimaryDeadlineStrip`, `DeadlineTile`, `FlatDateList`, `StatutoryDatesPanel`,
   `PathToFilingSummary`, the `TIMELINE_*` consts, `humanizeAuditAction`,
@@ -33,6 +34,7 @@ commits, from the 13,756 the route carried before Task B).
   `EASE_APPLE`/`MOTION_DURATION`, `plural`, etc.).
 
 ## What stayed (live islands inside the same region)
+
 `PenaltyInputDialog`, `parseMoneyCents`, `parseOwnerCount`, and the queue's filter
 machinery (`ObligationFiltersPopover` / `ObligationFilterTab` /
 `ObligationFacetSearchList` / `ObligationFilterPill` / `ObligationActiveFilterChips`
@@ -40,9 +42,10 @@ machinery (`ObligationFiltersPopover` / `ObligationFilterTab` /
 queue route. The cascade preserved this subtree.
 
 ## How it was kept honest
+
 The count-cascade removes only symbols with **zero in-file references** that are
 not exported-and-imported-elsewhere. `obligations.test.ts` imported four helpers
-that are *also* the canonical live copies in `features/obligations/queue/helpers.ts`
+that are _also_ the canonical live copies in `features/obligations/queue/helpers.ts`
 (`countOutstandingReadinessDocuments`, `materialsChecklistReference`,
 `reviewPipelineCurrent`, `willReadinessChecklistBeFullyReceived`) — those four test
 imports were redirected to `@/features/obligations/queue/helpers` so the route copy

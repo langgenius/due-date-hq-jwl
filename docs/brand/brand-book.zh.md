@@ -17,20 +17,20 @@
 ## 0 · 品牌一览
 
 DueDateHQ 是面向 **CPA 事务所的截止日 / 义务指挥中心**——监测监管来源,在规则和日期变化时发出
-提醒,并把每一项客户义务从 *未开始 → 已申报 → 已完成* 一路带过去。
+提醒,并把每一项客户义务从 _未开始 → 已申报 → 已完成_ 一路带过去。
 
 **调性:** 精确 · 冷静 · 以金额为先(dollar-aware) · 玻璃盒(可追溯) · 键盘优先。
-**血统:** Ramp × Linear 的浅色工作台——*不是* Notion 的温软,*不是* Stripe 的渐变,*不是*
+**血统:** Ramp × Linear 的浅色工作台——_不是_ Notion 的温软,_不是_ Stripe 的渐变,_不是_
 Bloomberg 的霓虹。
 
 ### 两层颜色模型(先读这一段)
 
 系统刻意跑**两套色板**。把它们混为一谈,是最常见的错误。
 
-| 层 | 用在哪 | 锚定色 | 职责 |
-|---|---|---|---|
-| **品牌识别** | logo、favicon、登录外壳、营销 | navy `#0A2540` · ivory `#F3EEE6` · serif | 我们是谁。固定,不随主题变。 |
-| **产品 UI** | 工作应用(每个路由) | navy `#2E368C` accent(+ 更亮的 **highlight**) · gray 中性色 · 语义 severity/status | 工具怎么用。随浅/深色主题变。 |
+| 层           | 用在哪                        | 锚定色                                                                             | 职责                          |
+| ------------ | ----------------------------- | ---------------------------------------------------------------------------------- | ----------------------------- |
+| **品牌识别** | logo、favicon、登录外壳、营销 | navy `#0A2540` · ivory `#F3EEE6` · serif                                           | 我们是谁。固定,不随主题变。   |
+| **产品 UI**  | 工作应用(每个路由)            | navy `#2E368C` accent(+ 更亮的 **highlight**) · gray 中性色 · 语义 severity/status | 工具怎么用。随浅/深色主题变。 |
 
 品牌墨色 navy `#0A2540` **只属于识别层**。应用内部的 accent 分两档:
 
@@ -50,6 +50,7 @@ Bloomberg 的霓虹。
 Yuqi 提供(2026-06-16)。刻意做成**图形**标识——不是字标。
 
 ### 为什么是图形,而不是字母「D」
+
 产品内部高度**文字密集**——表单、日期、清单、表格。品牌刻意走反方向:用一个简洁的几何图形,
 而不是「D」字标。两层意图:
 
@@ -57,6 +58,7 @@ Yuqi 提供(2026-06-16)。刻意做成**图形**标识——不是字标。
 - **中和严肃感**——截止日、合规本就偏正式、偏紧张;一个简洁、友好的形状,让品牌更轻、更好接近。
 
 ### 形 → 意
+
 - **四条横杠** = 一摞待办的截止项 / 申报,事务所手里一行行的 obligation。
 - **错开的那一条** = 一个**新插进来的 item**(刚进队列、还没对齐)。也正因为它是新的、还没归位,
   它就是**该你先看的那一个**——「新插入」是因,「待关注」是果,同一拍讲了两遍。
@@ -68,14 +70,17 @@ Yuqi 提供(2026-06-16)。刻意做成**图形**标识——不是字标。
 - **HQ** 留在字标里,作为低调的 sans 小标签——它是指挥中心,不进 mark。
 
 ### 状态 — v1
+
 当前是**第一版**,刻意克制,先作为占位 / 地基落地。方向已立——图形优先、非字母、stack + 插入——
 但视觉强度仍偏弱;比重、错位幅度、是否引入动效或强调色,留给下一版打磨。
 
 ### 字标(wordmark)
+
 `DueDate` 用品牌衬线(`--font-serif`;Apple 上是 New York,Windows 上是 Georgia)+ `HQ` 作为
-缩小、降饱和的大写 sans 小标签 + 分隔线 + *for CPA firms* 标语。衬线 = 信任;sans 小标签 = 这是软件。
+缩小、降饱和的大写 sans 小标签 + 分隔线 + _for CPA firms_ 标语。衬线 = 信任;sans 小标签 = 这是软件。
 
 ### 文件
+
 - `docs/brand/duedatehq-mark.svg` — mark,app-icon 形态(64×64)
 - `docs/brand/duedatehq-lockup.svg` — 完整横向锁定
 - `docs/brand/duedatehq-favicon.svg` — favicon,16–32px 优化
@@ -83,10 +88,12 @@ Yuqi 提供(2026-06-16)。刻意做成**图形**标识——不是字标。
   `features/auth/auth-chrome.tsx` 里的 `AuthBrandAnchor`
 
 ### 留白与最小尺寸
+
 - **留白** = 四周各留「一条横杠的高度」,锁定区外不放别的东西。
 - **最小尺寸**:mark 16px(favicon 下限);完整锁定 120px 宽。低于锁定下限时,只用 mark。
 
 ### Do / Don't
+
 - ✅ mark 自带 navy 方块,可放在任意表面上。
 - ✅ 保持提供的横杠比例 + 错开的第三条;等比缩放。
 - ❌ 不要把 mark 改成产品 accent 色,也不要随主题翻转(只用 navy + ivory)。
@@ -98,6 +105,7 @@ Yuqi 提供(2026-06-16)。刻意做成**图形**标识——不是字标。
 ## 2 · 颜色
 
 ### 为什么是这些颜色
+
 - **navy `#0A2540` 作识别色** — 信任、精确、稳重,贴 CPA / 合规受众;比纯黑更有人味,
   比亮蓝更不像通用 SaaS。它是固定的「我们是谁」。
 - **ivory `#F3EEE6`,而非纯白** — navy 上反白的 mark 用暖 ivory 而非冷白。它在 logo 之外**唯一的
@@ -117,25 +125,28 @@ Yuqi 提供(2026-06-16)。刻意做成**图形**标识——不是字标。
   分开,才不会让品牌 navy 渗进产品当 accent。
 
 ### 2.1 品牌识别(不随主题变)— `--color-brand-*`
-| Token | Hex | 用途 |
-|---|---|---|
-| `brand-ink` | `#0A2540` | logo 方块、字标、`<meta theme-color>` |
-| `brand-ink-deep` | `#071A2E` | 按下态 / 高对比 app icon |
-| `brand-ivory` | `#F3EEE6` | navy 上反白的 mark;auth/splash 的奶白底(浅色) |
-| `brand-gold` | `#B99B62` | 传承的次级强调色,极少用 |
+
+| Token            | Hex       | 用途                                          |
+| ---------------- | --------- | --------------------------------------------- |
+| `brand-ink`      | `#0A2540` | logo 方块、字标、`<meta theme-color>`         |
+| `brand-ink-deep` | `#071A2E` | 按下态 / 高对比 app icon                      |
+| `brand-ivory`    | `#F3EEE6` | navy 上反白的 mark;auth/splash 的奶白底(浅色) |
+| `brand-gold`     | `#B99B62` | 传承的次级强调色,极少用                       |
 
 ### 2.2 产品 UI — 文本与 accent(语义,浅色)
-| 角色 | Token → 值 |
-|---|---|
-| 主文本 | `text-primary` → gray-900 `#101828` |
-| 次文本 | `text-secondary` → gray-700 `#354052` |
-| 三级文本 | `text-tertiary` → gray-500 `#676F83` |
-| 弱化文本 | `text-muted` → gray-400 `#98A2B2` |
-| **Accent / 主 CTA** | `util-colors-primary-600` `#2E368C`(暖 navy-indigo;hover 700 `#222A6C`,solid 500 `#4350A3`) |
-| Accent 浅底 | `state-accent-hover` `#EEF0FB`(50) · `-hover-alt` `#DADEF6`(100) |
-| **Highlight** | `--color-brand-highlight` `#14C5F6`(填充 · 圆点 · `New` 徽章) · `-ink` `#066C98`(文字/链接) · `-soft` `#E3F6FD`(柔色底)— 新/未读标记,**刻意稀缺(是标记,不是平起平坐的一档)** |
+
+| 角色                | Token → 值                                                                                                                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 主文本              | `text-primary` → gray-900 `#101828`                                                                                                                                          |
+| 次文本              | `text-secondary` → gray-700 `#354052`                                                                                                                                        |
+| 三级文本            | `text-tertiary` → gray-500 `#676F83`                                                                                                                                         |
+| 弱化文本            | `text-muted` → gray-400 `#98A2B2`                                                                                                                                            |
+| **Accent / 主 CTA** | `util-colors-primary-600` `#2E368C`(暖 navy-indigo;hover 700 `#222A6C`,solid 500 `#4350A3`)                                                                                  |
+| Accent 浅底         | `state-accent-hover` `#EEF0FB`(50) · `-hover-alt` `#DADEF6`(100)                                                                                                             |
+| **Highlight**       | `--color-brand-highlight` `#14C5F6`(填充 · 圆点 · `New` 徽章) · `-ink` `#066C98`(文字/链接) · `-soft` `#E3F6FD`(柔色底)— 新/未读标记,**刻意稀缺(是标记,不是平起平坐的一档)** |
 
 **Highlight 对比度铁律**(`#14C5F6` 偏亮,亮度 ≈ 0.47):
+
 - **青底上的字 → navy `#0A2540`**(~7.6 : 1,过 AAA,且是品牌色)。**绝不用白字**(~2 : 1,挂)。
 - **青色当白底上的字/链接 → `highlight-ink` `#066C98`**(`#14C5F6` 本身太浅,当不了文字)。
 - **柔青底 → `highlight-soft`** 配正常深色文字。
@@ -144,24 +155,27 @@ Yuqi 提供(2026-06-16)。刻意做成**图形**标识——不是字标。
 例:`New` 徽章 = `bg-brand-highlight` + `text-brand-ink`(青底 navy 字)。
 
 ### 2.3 中性梯 — `--color-util-colors-gray-*`
+
 `25 #FCFCFD · 50 #F9FAFB · 100 #F2F4F7 · 200 #E9EBF0 · 300 #D0D5DC · 400 #98A2B2 ·
 500 #676F83 · 600 #495464 · 700 #354052 · 800 #18222F · 900 #101828`
 
 ### 2.4 语义 — 颜色只承载含义
+
 **「颜色只为风险服务。」** gray 是默认的安全态——基线永远不用绿色。
 
-| Severity | 色 | | Status | 色 |
-|---|---|---|---|---|
-| critical | red-600 `#D92D20` | | done | green-600 `#079455` |
-| high | orange-600 `#E04F16` | | draft | gray-500 `#676F83` |
-| medium | coral/warning-600 `#C83D2F` | | waiting | blue-light-600 `#0086C9` |
-| neutral | gray-600 `#495464` | | review | primary-600 `#2E368C` |
+| Severity | 色                          |     | Status  | 色                       |
+| -------- | --------------------------- | --- | ------- | ------------------------ |
+| critical | red-600 `#D92D20`           |     | done    | green-600 `#079455`      |
+| high     | orange-600 `#E04F16`        |     | draft   | gray-500 `#676F83`       |
+| medium   | coral/warning-600 `#C83D2F` |     | waiting | blue-light-600 `#0086C9` |
+| neutral  | gray-600 `#495464`          |     | review  | primary-600 `#2E368C`    |
 
 每种都带 `-tint`(50)和 `-border`(200/300)做柔色填充。完整色板
 (red/green/yellow/orange/coral/blue/blue-light/indigo/violet/teal/pink/rose)在 50–700 区间齐备,
 供图表和来源徽章使用。
 
 ### 2.5 表面
+
 白色工作面(`background-default` `#FFFFFF`)**对** 暖灰外壳(`bg-canvas` /
 `background-canvas-warm` `#F6F5F3`,侧栏卡 `#F6F8FA`)。内容用**白底上的发丝描边**区隔,而不是灰色填充。
 分隔线:`subtle` 4% · `regular` 8% · `deep` 14%(黑色透明度)。
@@ -174,6 +188,7 @@ Yuqi 提供(2026-06-16)。刻意做成**图形**标识——不是字标。
 用于每一个需要对齐的数字 · `--font-serif`(New York / Georgia)**只用于 logo 字标**——绝不用于正文或 UI。
 
 ### 3.1 字阶(真实 token 值,px)
+
 `micro 9 · 2xs 10 · badge/chip 11 · xs 12 · sm·description 13 · base·md 14 ·
 lg 16 · xl 18 · surface-title 22 · stat-value 24 · 2xl 28 · section-title 32 ·
 display-large 36 · display-hero 54 · hero 56`
@@ -182,6 +197,7 @@ display-large 36 · display-hero 54 · hero 56`
 ~1.33–1.39 行高。
 
 ### 3.2 字重原则(只用 400 / 500 / 600)
+
 - **400** 默认正文。**500** 关键数据 / 行名 / chip。**600** 页面 + 区块标题、表头列标签、行锚点。
 - **紧迫感 = 尺寸,不是字重,更不要「红 + 粗」一起上。** 一个红色 16px/500 的信号胜过加粗。
   重复出现的锚点降到 500。
@@ -189,6 +205,7 @@ display-large 36 · display-hero 54 · hero 56`
   同尺寸只改字重,读起来是平的。
 
 ### 3.3 数字与 eyebrow
+
 - **数字铁律:** 所有需要纵向对齐的数字(金额、天数、日期、EIN、ID)用 `--font-mono` + `tabular-nums`。
 - **Eyebrow:** 大写短语用 `tracking-eyebrow` 0.08em(10–12px 用 `-tight` 0.06em)。
   标题收紧用 `tracking-title` -0.01em,display 用 `-0.02em`。
@@ -198,21 +215,24 @@ display-large 36 · display-hero 54 · hero 56`
 ## 4 · 间距、圆角、层级
 
 ### 4.1 间距 — 4px 基数
+
 `space-1 4 · 2 8 · 3 12 · 4 16 · 5 24 · 6 32 · 8 48 · 12 80`。布局里优先 `gap-2 / 3 / 4 / 6`。
 
 ### 4.2 圆角(在 Tailwind 默认梯之上的使用约定)
+
 `4` 紧凑 chip/内联 · `8` 按钮 · 输入 · 卡片 · banner · 下拉 · `12` 弹窗 · 抽屉 · 命令面板 ·
 `999` 胶囊 · 头像 · 状态点 · `0` 内部分区分隔。绝不自由取值(没有 6/10/14);绝不用 `rounded-3xl`;
 绝不在单边强调描边上用单边圆角。
 
 ### 4.3 层级 — 「先用 1px 线,再谈阴影」
+
 卡片默认**无外阴影**——靠描边 + 背景对比把它托起。
 
-| 层 | 描边 | 阴影 |
-|---|---|---|
-| 画布 / 面板 / 卡片 | 发丝线(4–8%) | 无 |
-| 抽屉 / 浮层 / tooltip | `divider-deep` | `shadow-subtle` |
-| 弹窗 / 命令面板 | `divider-deep` | `shadow-overlay` |
+| 层                    | 描边           | 阴影             |
+| --------------------- | -------------- | ---------------- |
+| 画布 / 面板 / 卡片    | 发丝线(4–8%)   | 无               |
+| 抽屉 / 浮层 / tooltip | `divider-deep` | `shadow-subtle`  |
+| 弹窗 / 命令面板       | `divider-deep` | `shadow-overlay` |
 
 微阴影(blur ≤ 4)只用在小的可点击元素上。产品里绝不 blur ≥ 24。
 
@@ -257,11 +277,13 @@ display-large 36 · display-hero 54 · hero 56`
   LocaleSwitcher。
 
 ### 按钮强调梯
+
 `primary`(实色填充)→ `accent`(浅 accent 底 + accent 描边)→ `secondary`(白 + 发丝线)→
 `tertiary`(gray-100 + 发丝线)→ `ghost`(仅 hover)→ `link`;外加 `destructive-*` 对应档。
 一屏只有一个 primary。
 
 ### Badge / status 梯
+
 色调(success / warning / info / destructive / secondary / outline)是不可商量的语义;
 形态(实色 chip / 描边 chip / 图标点)由类别决定。**实色 chip 绝不加点**(点只给 outline 用)。
 

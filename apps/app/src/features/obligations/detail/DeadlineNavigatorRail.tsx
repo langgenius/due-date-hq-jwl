@@ -342,7 +342,6 @@ export function DeadlineNavigatorRail({
         </DropdownMenu>
       </ListRailSection>
 
-
       {/* ListBody */}
       <ListRailBody>
         {sortedRows.length === 0 ? (

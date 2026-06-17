@@ -7,9 +7,10 @@ Follow-up batch closing several tracked design-doc items. All typecheck-clean
 = 538 pass / 2 skipped.
 
 ## Fixes
+
 - **auth-chrome `exactOptionalPropertyTypes`** — the long-standing type error
   (passing `className={markClassName}` where `markClassName` is `string |
-  undefined` to BrandMark's `className?: string`) fixed with a conditional spread
+undefined` to BrandMark's `className?: string`) fixed with a conditional spread
   `{...(markClassName ? { className: markClassName } : {})}`. **Type errors now 0
   total.** ( /login keeps its bespoke split layout + footer but already reuses the
   shared `AuthBrandAnchor`, so no chrome duplication to dedupe.)
@@ -25,8 +26,10 @@ Follow-up batch closing several tracked design-doc items. All typecheck-clean
   event-type category, "filed or e-filed", not the deadlines noun.)
 
 ## FieldLabel — canonical two-register home (section-header-style §B)
+
 `FieldLabel` (`primitives/field-label`) now carries both Register-B tiers via a
 `variant` prop:
+
 - `field` (default, B2, 12px medium tracking-wide) — **byte-identical** to the
   prior recipe, so its 14 consumers are unchanged.
 - `group` (B1, 11px semibold tracking-eyebrow-tight) — new group/column-band tier.
@@ -46,6 +49,7 @@ migration is a per-site review + one color decision + cross-session coordination
 — tracked, not raced.
 
 ## Verified-resolved (stale-doc items, no code needed)
+
 - **Obligation-drawer header de-stuffing (P0, 2026-05-21)** — already done by the
   NrQaI + banding redesigns: Path-to-Filing chevron → Workflow card in the Status
   tab; 7-chip soup → client chip + jurisdiction seal; status pill → colored

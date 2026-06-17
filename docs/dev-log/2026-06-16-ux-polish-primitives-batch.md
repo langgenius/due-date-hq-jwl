@@ -25,7 +25,7 @@ policy. All typecheck-clean; `vp test run` = 538 pass / 2 skipped.
   (`compact`), and the `/deadlines` 320px primary search stay always-open.
 - **`DueCountdownText`** (extracted from `due-date-label.tsx`). Tone-agnostic
   compact relative-date wording — `5d late` / `in 5d` / `today` / `filed 5d
-  late·early`. See lateness unification below.
+late·early`. See lateness unification below.
 - **`Dialog protectInput` prop** (`packages/ui/.../dialog.tsx`). See close policy.
 - **`Segmented` `dimmed` option flag** — fades an inactive option to 60% (empty
   buckets) so `/today`'s Priorities selector adopts the primitive without losing
@@ -44,8 +44,8 @@ policy. All typecheck-clean; `vp test run` = 538 pass / 2 skipped.
   purpose:** recency ("N days ago"), date-diffs ("N days sooner/later"), prose
   sentences, and "Effective in N days" (rule lifecycle, not lateness).
 - **Filing-plan reflow** — dropped `min-w`/`overflow-x` in `ClientWorkPlanPanel`
-  + `DeadlineRow`; columns shrink/truncate like the other tables (0 h-scroll at
-  1040px).
+  - `DeadlineRow`; columns shrink/truncate like the other tables (0 h-scroll at
+    1040px).
 - **`/today` Priorities selector → `Segmented`** (+ the `dimmed` flag).
 - **Scope-selector convergence — NOT done (obsolete).** The `/deadlines` status
   scope is no longer underline tabs; it was already reworked (2026-06-16) to a
@@ -88,6 +88,7 @@ dialogs still close on overlay click and `protectInput` ones don't.
 - `actions-list.test.tsx` — "Payment 10 days late" → "Payment 10d late".
 
 ## Follow-ups
+
 Message extraction + zh-CN parity for the new/changed strings (compact lateness,
 removed rail note); the deferred dead-code excisions (AlertsListPage `historyMode`,
 the obligations.tsx duplicate detail-drawer block); split `ClientFactsWorkspace.tsx`.

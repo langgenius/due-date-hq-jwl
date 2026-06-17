@@ -139,7 +139,11 @@ export function actionPillFromAlert(
     return { id: 'needs-review', bg: 'var(--state-base-hover)', text: 'var(--text-secondary)' }
   }
   if (alert.status === 'matched' || alert.status === 'partially_applied') {
-    return { id: 'needs-action', bg: 'var(--state-destructive-hover)', text: 'var(--text-destructive)' }
+    return {
+      id: 'needs-action',
+      bg: 'var(--state-destructive-hover)',
+      text: 'var(--text-destructive)',
+    }
   }
   return null
 }

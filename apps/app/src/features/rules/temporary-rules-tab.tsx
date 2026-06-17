@@ -79,8 +79,8 @@ export function TemporaryRulesTab() {
             // owner/partner/manager. Helper-driven plural noun keeps the
             // gate label honest as roles change.
             <Trans>
-              Temporary rules appear here after {requiredRolesLabel('pulse.apply')} apply an alert to
-              matched deadlines.
+              Temporary rules appear here after {requiredRolesLabel('pulse.apply')} apply an alert
+              to matched deadlines.
             </Trans>
           }
         />

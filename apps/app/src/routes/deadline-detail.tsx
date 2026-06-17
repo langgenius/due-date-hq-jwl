@@ -175,7 +175,12 @@ export function DeadlineDetailRoute() {
               </Trans>
             }
             cta={
-              <Button variant="outline" size="sm" nativeButton={false} render={<Link to="/deadlines" />}>
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                render={<Link to="/deadlines" />}
+              >
                 <Trans>Back to deadlines</Trans>
               </Button>
             }

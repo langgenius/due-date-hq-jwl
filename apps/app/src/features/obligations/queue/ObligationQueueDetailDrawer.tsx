@@ -1922,9 +1922,9 @@ export function ObligationQueueDetailDrawer({
                       <Trans>Past deadline</Trans>
                       <span aria-hidden>·</span>
                       <DueCountdownText
-                        days={-Math.abs(
-                          daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()),
-                        )}
+                        days={
+                          -Math.abs(daysBetween(row.currentDueDate.slice(0, 10), todayIsoDate()))
+                        }
                       />
                     </span>
                   }

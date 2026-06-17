@@ -9,6 +9,7 @@ Only 3 tests exercised the prop. Removed the whole dead path (behavior-preservin
 the always-taken `!historyMode` branches are kept).
 
 ## Removed
+
 - The `historyMode` prop + its JSDoc; `historyMode = false` destructure.
 - The history query path (`useAlertsHistoryQueryOptions` / `listHistory`); the
   page now always uses `useAlertsListQueryOptions`.
@@ -27,6 +28,7 @@ the always-taken `!historyMode` branches are kept).
 interspersed, so the gross dead-code removed is larger).
 
 ## Tests
+
 - Removed the 3 `historyMode` tests (they exercised the dead twin). Kept their
   active-path counterparts (e.g. "hides Status on the active surface", "uses the
   active query").

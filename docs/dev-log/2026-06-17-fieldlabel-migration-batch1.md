@@ -11,6 +11,7 @@ medium). Per Yuqi's basis: **normalize size/weight/tracking to the register,
 preserve each label's existing color**.
 
 ## Batch 1 — 16 clean labels across 4 files
+
 - `clients/ClientCompliancePosturePanel.tsx` (2) — field labels (`dt`, `span`).
 - `rules/rule-detail-drawer.tsx` (6) — group labels; the reusable `<p>` label →
   `as="div"` (a label isn't a paragraph), one `text-text-muted` color preserved.
@@ -26,8 +27,10 @@ normalized. Typecheck 0; lint clean (the one `no-underscore-dangle` warning in
 rule-detail-drawer is pre-existing, confirmed on HEAD).
 
 ## What this batch deliberately did NOT touch (needs a design call or is churned)
+
 The grep surfaces ~169 `uppercase`+tracking sites; a large share are **not** clean
 field-label targets:
+
 - **Badges / pills** (`<Badge>`, `rounded-*`, `tracking-wider` chips) — a different
   primitive; left as-is.
 - **`<TableHead>` cells** — already the table column-label primitive; converting is

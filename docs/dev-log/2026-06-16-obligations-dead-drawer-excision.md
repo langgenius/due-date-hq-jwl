@@ -16,8 +16,9 @@ queue renders (31 rows, no error). The live detail drawer (dedicated file) is
 untouched.
 
 ## Why the drawer's helper duplicates aren't all gone yet
+
 The removed drawer rooted ~25 helper functions (the request/rejection/materials
-dialogs, the Readiness* evidence components, PrimaryDeadlineStrip / DeadlineTile /
+dialogs, the Readiness\* evidence components, PrimaryDeadlineStrip / DeadlineTile /
 FlatDateList / StatutoryDatesPanel, PathToFilingSummary, AuthorityResponsePanel,
 and a duplicate ActiveStageDetailCard + the reviewPipelineCurrent /
 materialsChecklistReference / timeline helpers). Every one of these is a
