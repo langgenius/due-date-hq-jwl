@@ -101,12 +101,15 @@ function RootLayoutShell({
   // Analytics identity sync. Idempotent — re-runs only when the user, firm, or
   // a tracked firm attribute changes (e.g. open_obligation_count as data loads),
   // keeping the Amplitude `firm` group fresh. No-op without an analytics key.
+  // Identity uses the account's OWN identifiers in plaintext (no hashing): the
+  // signed-in user's email as the Amplitude user_id, and the practice name as
+  // the `firm` group key. Client data is still PII-guarded out of every payload.
   const isOwner = firm.ownerUserId === user.id
   useEffect(() => {
     setSuperProperties({ locale: i18n.locale })
-    identifyUser(user.id, { role: firm.role, is_owner: isOwner })
+    identifyUser(user.email || user.id, { role: firm.role, is_owner: isOwner })
     if (firm.id !== 'pending') {
-      setFirmGroup(firm.id, {
+      setFirmGroup(firm.name, {
         plan: firm.plan,
         seat_limit: firm.seatLimit,
         timezone: firm.timezone,
@@ -116,9 +119,11 @@ function RootLayoutShell({
       })
     }
   }, [
+    user.email,
     user.id,
     isOwner,
     firm.id,
+    firm.name,
     firm.role,
     firm.plan,
     firm.seatLimit,
