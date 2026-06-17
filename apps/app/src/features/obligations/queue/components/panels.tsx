@@ -31,6 +31,7 @@ import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProv
 import { StageActions, type StageTask } from '@/features/obligations/StageActions'
 import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import { DueCountdownText } from '@/components/primitives/due-date-label'
+import { FieldLabel } from '@/components/primitives/field-label'
 import {
   type ObligationStatus,
   ObligationStatusReadBadge,
@@ -323,9 +324,9 @@ function DeadlineDateCard({
       // stays a text-colour cue on the icon + date.
       className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle px-3 py-2.5"
     >
-      <span className="text-caption-xs font-semibold uppercase tracking-[0.4px] text-text-tertiary">
+      <FieldLabel as="span" variant="group">
         {label}
-      </span>
+      </FieldLabel>
       <span
         // 2026-06-10 (Yuqi page-polish #1 "bigger text"): the date value
         // is the primary datum in each key-date card, so it steps up to
@@ -668,15 +669,13 @@ export function DeadlineTile({
   const valueClass = valueTone === 'tertiary' ? 'text-text-tertiary' : 'text-text-primary'
   return (
     <div className={cn('flex flex-col gap-1 py-2.5', surfaceClass)}>
-      <span
-        className={cn(
-          'text-xs leading-tight font-semibold uppercase tracking-wide',
-          labelToneClass,
-          primary && 'tracking-eyebrow-tight',
-        )}
+      <FieldLabel
+        as="span"
+        variant="field"
+        className={cn('leading-tight', labelToneClass, primary && 'tracking-eyebrow-tight')}
       >
         {label}
-      </span>
+      </FieldLabel>
       <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
         <span className={cn('tabular-nums leading-tight', valueClass, 'text-sm font-semibold')}>
           {date ? formatDate(date) : '—'}
@@ -1078,9 +1077,13 @@ export function PathToFilingSummary({
                     overdue statement; a third echo under the stepper was
                     noise. */}
                 {isExpected ? (
-                  <span className="text-center text-micro font-medium uppercase tracking-wide leading-tight text-text-muted">
+                  <FieldLabel
+                    as="span"
+                    variant="group"
+                    className="text-center leading-tight text-text-muted"
+                  >
                     <Trans>Expected</Trans>
-                  </span>
+                  </FieldLabel>
                 ) : null}
                 {/* Sub-status annotation — only on the ACTIVE stage,
                       only when there's something meaningful to add
@@ -1170,25 +1173,25 @@ export function AuthorityResponsePanel({
           <dl className="grid gap-2 text-sm md:grid-cols-3">
             {rejection.authority ? (
               <div className="grid gap-0.5">
-                <dt className="text-caption-xs font-medium uppercase tracking-wide text-text-tertiary">
+                <FieldLabel as="dt" variant="group">
                   <Trans>Authority</Trans>
-                </dt>
+                </FieldLabel>
                 <dd className="text-text-primary">{rejection.authority}</dd>
               </div>
             ) : null}
             {rejection.reference ? (
               <div className="grid gap-0.5">
-                <dt className="text-caption-xs font-medium uppercase tracking-wide text-text-tertiary">
+                <FieldLabel as="dt" variant="group">
                   <Trans>Reference</Trans>
-                </dt>
+                </FieldLabel>
                 <dd className="text-text-primary">{rejection.reference}</dd>
               </div>
             ) : null}
             {rejection.reason ? (
               <div className="grid gap-0.5 md:col-span-3">
-                <dt className="text-caption-xs font-medium uppercase tracking-wide text-text-tertiary">
+                <FieldLabel as="dt" variant="group">
                   <Trans>Reason</Trans>
-                </dt>
+                </FieldLabel>
                 <dd className="text-text-primary">{rejection.reason}</dd>
               </div>
             ) : null}
@@ -2208,9 +2211,9 @@ export function ActiveStageDetailCard({
               // sentence — the bare "Resumed from blocked…" line gave no cue
               // about WHAT the box was, only the date.
               <div className="flex flex-col gap-0.5 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2 leading-snug">
-                <p className="text-caption-xs font-semibold uppercase tracking-eyebrow text-text-tertiary">
+                <FieldLabel as="div" variant="group">
                   <Trans>Auto-unblocked</Trans>
-                </p>
+                </FieldLabel>
                 <p className="text-xs text-text-secondary">
                   <Trans>
                     This return moved itself out of Blocked on{' '}
@@ -2322,9 +2325,9 @@ export function ActiveStageDetailCard({
         // (additive over the counts above); the single action stays the
         // "Check materials" link — separate visualization from action.
         <div className="flex flex-col gap-1.5 border-t border-divider-subtle pt-3">
-          <p className="text-caption-xs font-semibold uppercase tracking-eyebrow text-text-tertiary">
+          <FieldLabel as="div" variant="group">
             <Trans>Blocking</Trans>
-          </p>
+          </FieldLabel>
           {/* Items left-align flush under the eyebrow: a fixed-width dot
               gutter (gap-2) + a single text tier (text-sm) so every label
               starts on the same x and the rows share one spacing rhythm. */}
@@ -2369,9 +2372,9 @@ export function ActiveStageDetailCard({
           the stage h3 but legibly above the eyebrow. */}
       {showEfilePipeline || showPaymentPipeline ? (
         <div className="flex flex-col gap-2">
-          <p className="text-caption font-medium uppercase tracking-wider text-text-tertiary">
+          <FieldLabel as="div" variant="group">
             <Trans>Steps</Trans>
-          </p>
+          </FieldLabel>
           <ul className="flex flex-col gap-1.5">
             {(showEfilePipeline ? EFILE_PIPELINE_KEYS : PAYMENT_PIPELINE_KEYS).map((key) => {
               // The 4 casts in this block (key + row state, repeated for
@@ -2467,9 +2470,9 @@ export function ActiveStageDetailCard({
            far along. Keep actions on the current step, while the
            steps themselves stay as status markers. */
         <div className="flex flex-col gap-2">
-          <p className="text-caption font-medium uppercase tracking-wider text-text-tertiary">
+          <FieldLabel as="div" variant="group">
             <Trans>Steps</Trans>
-          </p>
+          </FieldLabel>
           <ul className="flex flex-col gap-1.5">
             {REVIEW_PIPELINE_KEYS.map((key) => {
               const state = pipelineStateOf(key, reviewCurrent, REVIEW_PIPELINE_KEYS)
@@ -2512,9 +2515,9 @@ export function ActiveStageDetailCard({
                     >
                       {label}
                       {showNotesOpen ? (
-                        <span className="ml-1.5 text-caption-xs font-medium uppercase tracking-wide text-text-warning">
+                        <FieldLabel as="span" variant="group" className="ml-1.5 text-text-warning">
                           · <Trans>Notes open</Trans>
-                        </span>
+                        </FieldLabel>
                       ) : null}
                     </span>
                   </div>
@@ -2544,9 +2547,9 @@ export function ActiveStageDetailCard({
           see HOW the row landed here without leaving the panel. */}
       {stageEvents.length > 0 ? (
         <div className="flex flex-col gap-2 border-t border-divider-subtle pt-3">
-          <p className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <FieldLabel as="div" variant="group">
             <Trans>Done this stage</Trans>
-          </p>
+          </FieldLabel>
           <ul className="flex flex-col gap-1.5">
             {stageEvents.map((event) => (
               <li key={event.id} className="flex items-start gap-2 text-xs">
@@ -2577,9 +2580,9 @@ export function ActiveStageDetailCard({
           about what's happening now. */}
       {pastEntries.length > 0 ? (
         <div className="flex flex-col gap-2 border-t border-divider-subtle pt-3">
-          <p className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <FieldLabel as="div" variant="group">
             <Trans>Previous stages</Trans> · {pastEntries.length}
-          </p>
+          </FieldLabel>
           <ul className="flex flex-col gap-0.5">
             {pastEntries.map((entry, index) => {
               const entryKey = `${entry.stageKey}:${entry.entryAt}:${entry.exitAt}:${index}`

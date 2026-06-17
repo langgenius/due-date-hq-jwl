@@ -12,6 +12,8 @@ import {
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
 
+import { FieldLabel } from '@/components/primitives/field-label'
+
 interface OnboardingSkipModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -116,7 +118,11 @@ function CompareCard({
 }) {
   return (
     <div className="flex flex-col gap-2.5 rounded-lg border border-divider-regular p-3.5">
-      <span className="inline-flex items-center gap-1.5 text-caption font-semibold tracking-eyebrow text-text-muted uppercase">
+      <FieldLabel
+        as="span"
+        variant="group"
+        className="inline-flex items-center gap-1.5 text-text-muted"
+      >
         {/* Both eyebrows carry a same-size icon square so the two cards read
             as balanced (2026-06-12 critique: the iconless neutral card looked
             broken next to the green success one). Tone still differentiates:
@@ -131,7 +137,7 @@ function CompareCard({
           </span>
         )}
         {eyebrow}
-      </span>
+      </FieldLabel>
       <ul className="flex flex-col gap-1.5">
         {rows.map((row) => (
           <li

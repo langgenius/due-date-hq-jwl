@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 
+import { FieldLabel } from '@/components/primitives/field-label'
+
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -93,9 +95,9 @@ export function StatBand({
                 sentence-case label tried 2026-06-12. All summary surfaces
                 (clients ×2, sources, library overview + jurisdiction detail,
                 alert history, audit) pick this up together — one design. */}
-            <span className="truncate text-caption-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
+            <FieldLabel as="span" variant="group" className="truncate">
               {stat.label}
-            </span>
+            </FieldLabel>
             <span
               className={cn(
                 'text-stat-value font-semibold tracking-tight tabular-nums',

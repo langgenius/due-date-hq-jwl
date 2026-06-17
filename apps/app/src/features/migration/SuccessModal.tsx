@@ -19,6 +19,8 @@ import {
 } from '@duedatehq/ui/components/ui/dialog'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { FieldLabel } from '@/components/primitives/field-label'
+
 export interface SuccessModalData {
   batchId: string
   clientCount: number
@@ -191,9 +193,9 @@ export function SuccessModal({
 
           {/* What to do next */}
           <div className="flex flex-col gap-2 px-6 py-4">
-            <span className="text-caption-xs font-semibold tracking-eyebrow text-text-muted uppercase">
+            <FieldLabel as="span" variant="group" className="text-text-muted">
               <Trans>What to do next</Trans>
-            </span>
+            </FieldLabel>
             <NextStep
               tone="warning"
               icon={<TriangleAlertIcon className="size-3.5" aria-hidden />}

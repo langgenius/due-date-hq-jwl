@@ -59,6 +59,7 @@ import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { getJurisdictionName, JurisdictionLabel } from '@/components/primitives/state-badge'
+import { FieldLabel } from '@/components/primitives/field-label'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { Kbd } from '@/components/patterns/kbd'
@@ -2250,17 +2251,17 @@ export function AlertDetailDrawer({
                     // above; the gap-px wash keeps the two cells distinct.
                     <div className="grid grid-cols-2 gap-px overflow-hidden border-t border-divider-subtle bg-divider-subtle pt-px">
                       <div className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
-                        <span className="text-caption-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
+                        <FieldLabel as="span" variant="group">
                           <Trans>Captured</Trans>
-                        </span>
+                        </FieldLabel>
                         <span className="font-mono text-sm font-semibold text-text-primary tabular-nums">
                           {formatDatePretty(detail.alert.publishedAt, { alwaysShowYear: true })}
                         </span>
                       </div>
                       <div className="flex flex-col gap-0.5 bg-background-default px-5 py-2.5">
-                        <span className="text-caption-xs font-medium tracking-eyebrow-tight text-text-tertiary uppercase">
+                        <FieldLabel as="span" variant="group">
                           <Trans>Parse confidence</Trans>
-                        </span>
+                        </FieldLabel>
                         <span className="text-sm font-semibold text-text-primary tabular-nums">
                           {t`${confPct}% ${confTierLabel}`}
                         </span>
@@ -2922,9 +2923,9 @@ function AlertApplyVerificationDialog({
           <Card size="sm" tone="muted" radius="md">
             <CardContent className="grid gap-3">
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+                <FieldLabel as="span" variant="field">
                   <Trans>Deadline shift</Trans>
-                </span>
+                </FieldLabel>
                 <div className="flex flex-wrap items-baseline gap-3">
                   <span className="font-mono text-base tabular-nums text-text-tertiary line-through decoration-text-tertiary/40">
                     {originalDate}
@@ -2937,9 +2938,9 @@ function AlertApplyVerificationDialog({
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+                  <FieldLabel as="span" variant="field">
                     <Trans>Authority</Trans>
-                  </span>
+                  </FieldLabel>
                   <Button
                     nativeButton={false}
                     variant="link"
@@ -2958,9 +2959,9 @@ function AlertApplyVerificationDialog({
                   </Button>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+                  <FieldLabel as="span" variant="field">
                     <Trans>Issued</Trans>
-                  </span>
+                  </FieldLabel>
                   <span className="font-mono text-sm tabular-nums text-text-primary">{issued}</span>
                 </div>
               </div>
@@ -2973,9 +2974,9 @@ function AlertApplyVerificationDialog({
               line-clamp so the dialog stays scannable even when the
               source notice is verbose. */}
           <section className="grid gap-1.5">
-            <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+            <FieldLabel as="span" variant="field">
               <Trans>Source excerpt</Trans>
-            </span>
+            </FieldLabel>
             <blockquote className="line-clamp-6 break-words rounded-lg border border-divider-subtle bg-background-soft px-3 py-2 text-sm italic leading-relaxed text-text-secondary">
               “{detail.sourceExcerpt}”
             </blockquote>

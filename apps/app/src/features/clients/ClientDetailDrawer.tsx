@@ -20,6 +20,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import type { ObligationInstancePublic } from '@duedatehq/contracts'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
@@ -268,9 +269,9 @@ function NextDueLine({
   const isLate = days < 0
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
-      <span className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-muted">
+      <FieldLabel as="span" variant="group" className="text-text-muted">
         <Trans>Next due</Trans>
-      </span>
+      </FieldLabel>
       <span className="flex flex-wrap items-baseline gap-x-2 text-sm">
         {/* TaxCodeLabel renders the friendly form name (e.g. "Form
             1040" instead of the raw `federal_1040` code) and attaches

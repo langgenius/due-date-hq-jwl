@@ -6,6 +6,7 @@ import { useLingui } from '@lingui/react/macro'
 import type { ClientPublic, ObligationInstancePublic } from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { FieldLabel } from '@/components/primitives/field-label'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { formatDatePretty } from '@/lib/utils'
 
@@ -180,9 +181,9 @@ export function ClientSummaryStrip({
       {cells.map((cell, i) => {
         const body = (
           <>
-            <span className="whitespace-nowrap text-caption-xs font-semibold tracking-eyebrow uppercase text-text-tertiary">
+            <FieldLabel as="span" variant="group" className="whitespace-nowrap">
               {cell.label}
-            </span>
+            </FieldLabel>
             <span className="flex min-h-[28px] items-center">{cell.value}</span>
           </>
         )

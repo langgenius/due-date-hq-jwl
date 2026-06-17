@@ -1082,12 +1082,9 @@ function PreviewField({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor={htmlFor}
-        className="text-caption font-medium uppercase tracking-eyebrow text-text-muted"
-      >
+      <FieldLabel as="label" htmlFor={htmlFor} variant="group" className="text-text-muted">
         {label}
-      </label>
+      </FieldLabel>
       {children}
     </div>
   )

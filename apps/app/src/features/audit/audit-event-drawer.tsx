@@ -199,10 +199,10 @@ function AiTraceSection({
 
   return (
     <section className="grid gap-3">
-      <h3 className="flex items-center gap-2 text-xs font-medium tracking-wider text-text-tertiary uppercase">
+      <FieldLabel as="div" variant="field" className="flex items-center gap-2">
         <Astroid className="size-3" aria-hidden />
         <Trans>AI trace</Trans>
-      </h3>
+      </FieldLabel>
       {hasAny && metadata ? (
         <dl className="grid gap-4 rounded-lg border border-divider-subtle p-4">
           {metadata.model ? <AuditEventField label={t`Model`} value={metadata.model} /> : null}
@@ -255,9 +255,9 @@ function AiTraceSection({
 function AuditChangeDetails({ changeView }: { changeView: AuditChangeView }) {
   return (
     <section className="grid gap-3">
-      <h3 className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
+      <FieldLabel as="div" variant="field">
         <Trans>What changed</Trans>
-      </h3>
+      </FieldLabel>
       {changeView.changes.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-divider-subtle">
           <FieldLabel

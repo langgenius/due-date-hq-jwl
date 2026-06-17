@@ -48,6 +48,7 @@ import {
 } from './helpers'
 import type { AuthorityRejectionDraft, DeadlineInputRequestDraft } from './types'
 import { DueCountdownText } from '@/components/primitives/due-date-label'
+import { FieldLabel } from '@/components/primitives/field-label'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { JurisdictionLabel } from '@/components/primitives/state-badge'
 import { DetailStatusBanner } from '@/components/patterns/detail-status-banner'
@@ -2887,9 +2888,9 @@ export function ObligationQueueDetailDrawer({
                               </p>
                               {extensionNeedsManualDeadline ? (
                                 <label className="flex flex-col gap-1">
-                                  <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                  <FieldLabel as="span" variant="group">
                                     <Trans>Extended filing deadline</Trans>
-                                  </span>
+                                  </FieldLabel>
                                   <IsoDatePicker
                                     value={extensionDraft.extendedFilingDate}
                                     invalid={extensionManualDeadlineInvalid}
@@ -2906,9 +2907,9 @@ export function ObligationQueueDetailDrawer({
                               ) : null}
                               <div className="grid gap-3 sm:grid-cols-2">
                                 <label className="flex flex-col gap-1">
-                                  <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                  <FieldLabel as="span" variant="group">
                                     <Trans>Internal target date</Trans>
-                                  </span>
+                                  </FieldLabel>
                                   <IsoDatePicker
                                     value={extensionDraft.internalTargetDate}
                                     invalid={internalTargetDateInvalid}
@@ -2924,9 +2925,9 @@ export function ObligationQueueDetailDrawer({
                                   />
                                 </label>
                                 <label className="flex flex-col gap-1">
-                                  <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                  <FieldLabel as="span" variant="group">
                                     <Trans>Source or confirmation</Trans>
-                                  </span>
+                                  </FieldLabel>
                                   <Input
                                     aria-label={t`Extension source`}
                                     placeholder={t`Reference (optional)`}
@@ -2941,9 +2942,9 @@ export function ObligationQueueDetailDrawer({
                                 </label>
                               </div>
                               <label className="flex flex-col gap-1">
-                                <span className="text-caption-xs tracking-eyebrow-tight text-text-tertiary uppercase">
+                                <FieldLabel as="span" variant="group">
                                   <Trans>Decision memo</Trans>
-                                </span>
+                                </FieldLabel>
                                 <Textarea
                                   aria-label={t`Decision memo`}
                                   aria-required="true"
@@ -3551,13 +3552,17 @@ export function ObligationQueueDetailDrawer({
                                 gap-1.5` per #9. */}
                                     <section className="flex flex-col gap-2.5">
                                       <header className="flex items-center gap-2 border-b border-divider-regular pb-1.5">
-                                        <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-secondary">
+                                        <FieldLabel
+                                          as="div"
+                                          variant="group"
+                                          className="text-text-secondary"
+                                        >
                                           {isTerminalRow ? (
                                             <Trans>Not in audit trail</Trans>
                                           ) : (
                                             <Trans>Outstanding</Trans>
                                           )}
-                                        </h4>
+                                        </FieldLabel>
                                         <span
                                           aria-label={t`${outstandingItems.length} items`}
                                           className="rounded-full bg-background-section px-1.5 text-caption-xs font-medium tabular-nums text-text-tertiary"
@@ -3578,13 +3583,17 @@ export function ObligationQueueDetailDrawer({
                                     {receivedItems.length > 0 ? (
                                       <section className="flex flex-col gap-2.5">
                                         <header className="flex items-center gap-2 border-b border-divider-regular pb-1.5">
-                                          <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-secondary">
+                                          <FieldLabel
+                                            as="div"
+                                            variant="group"
+                                            className="text-text-secondary"
+                                          >
                                             {isTerminalRow ? (
                                               <Trans>Archived</Trans>
                                             ) : (
                                               <Trans>Received</Trans>
                                             )}
-                                          </h4>
+                                          </FieldLabel>
                                           <span
                                             aria-label={t`${receivedItems.length} items`}
                                             className="rounded-full bg-background-section px-1.5 text-caption-xs font-medium tabular-nums text-text-tertiary"
@@ -3605,9 +3614,13 @@ export function ObligationQueueDetailDrawer({
                                     {!isTerminalRow ? (
                                       <section className="flex flex-col gap-2.5">
                                         <header className="flex items-center gap-2 border-b border-divider-regular pb-1.5">
-                                          <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-secondary">
+                                          <FieldLabel
+                                            as="div"
+                                            variant="group"
+                                            className="text-text-secondary"
+                                          >
                                             <Trans>Waived</Trans>
-                                          </h4>
+                                          </FieldLabel>
                                           <span
                                             aria-label={t`${waivedItems.length} items`}
                                             className="rounded-full bg-background-section px-1.5 text-caption-xs font-medium tabular-nums text-text-tertiary"
@@ -4120,9 +4133,9 @@ export function ObligationQueueDetailDrawer({
                                   key={cell.label}
                                   className="flex flex-col gap-0.5 border-b border-divider-subtle py-2.5 sm:px-4 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:pl-0 sm:[&:nth-child(even)]:pr-0"
                                 >
-                                  <dt className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                                  <FieldLabel as="dt" variant="group">
                                     {cell.label}
-                                  </dt>
+                                  </FieldLabel>
                                   <dd
                                     className={cn(
                                       'text-sm tabular-nums',
@@ -4135,9 +4148,9 @@ export function ObligationQueueDetailDrawer({
                               ))}
                             </dl>
                             <div className="flex flex-col gap-0.5 border-b border-divider-subtle py-2.5">
-                              <dt className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                              <FieldLabel as="dt" variant="group">
                                 <Trans>Rule notes</Trans>
-                              </dt>
+                              </FieldLabel>
                               <dd className="text-caption text-text-secondary">
                                 {extensionPolicy?.notes ?? t`No matched rule`}
                               </dd>
@@ -4165,9 +4178,9 @@ export function ObligationQueueDetailDrawer({
                         </header>
                         {extensionNeedsManualDeadline ? (
                           <label className="flex flex-col gap-1">
-                            <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                            <FieldLabel as="span" variant="group">
                               <Trans>Extended filing deadline</Trans>
-                            </span>
+                            </FieldLabel>
                             <IsoDatePicker
                               value={extensionDraft.extendedFilingDate}
                               invalid={extensionManualDeadlineInvalid}
@@ -4181,9 +4194,9 @@ export function ObligationQueueDetailDrawer({
                         ) : null}
                         <div className="grid gap-3 sm:grid-cols-2">
                           <label className="flex flex-col gap-1">
-                            <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                            <FieldLabel as="span" variant="group">
                               <Trans>Internal target date</Trans>
-                            </span>
+                            </FieldLabel>
                             <IsoDatePicker
                               value={extensionDraft.internalTargetDate}
                               invalid={internalTargetDateInvalid}
@@ -4196,9 +4209,9 @@ export function ObligationQueueDetailDrawer({
                             />
                           </label>
                           <label className="flex flex-col gap-1">
-                            <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                            <FieldLabel as="span" variant="group">
                               <Trans>Source or confirmation</Trans>
-                            </span>
+                            </FieldLabel>
                             <Input
                               aria-label={t`Extension source`}
                               placeholder={t`Reference (optional)`}
@@ -4213,9 +4226,9 @@ export function ObligationQueueDetailDrawer({
                           </label>
                         </div>
                         <label className="flex flex-col gap-1">
-                          <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                          <FieldLabel as="span" variant="group">
                             <Trans>Decision memo</Trans>
-                          </span>
+                          </FieldLabel>
                           <Textarea
                             aria-label={t`Decision memo`}
                             aria-required="true"
@@ -4310,12 +4323,14 @@ export function ObligationQueueDetailDrawer({
                               t`Filed by`,
                               t`Result`,
                             ].map((heading) => (
-                              <span
+                              <FieldLabel
                                 key={heading}
-                                className="font-mono text-caption-xs font-semibold uppercase tracking-wider text-text-tertiary"
+                                as="span"
+                                variant="group"
+                                className="font-mono"
                               >
                                 {heading}
-                              </span>
+                              </FieldLabel>
                             ))}
                           </div>
                           {[
@@ -4739,9 +4754,9 @@ export function ObligationQueueDetailDrawer({
             needing a full divider. */}
           {row ? (
             <div className="mt-4 flex flex-col gap-2">
-              <p className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+              <FieldLabel as="div" variant="group">
                 <Trans>Reference dates</Trans>
-              </p>
+              </FieldLabel>
               <StatutoryDatesPanel row={row} />
             </div>
           ) : null}

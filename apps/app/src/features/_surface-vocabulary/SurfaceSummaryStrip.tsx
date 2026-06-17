@@ -5,6 +5,8 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { FieldLabel } from '@/components/primitives/field-label'
+
 /**
  * Canonical one-line stats strip used at the top of table-bearing
  * routes (Obligations queue, Rule library, Clients list).
@@ -59,9 +61,9 @@ export function SurfaceSummaryStrip({
 }: SurfaceSummaryStripProps) {
   return (
     <div className="flex h-10 items-center gap-3 rounded-lg border border-divider-regular bg-background-default px-4">
-      <span className="w-[88px] shrink-0 text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+      <FieldLabel as="span" variant="field" className="w-[88px] shrink-0">
         {label}
-      </span>
+      </FieldLabel>
       <div
         className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1"
         aria-busy={loading || undefined}

@@ -3,6 +3,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 
 import type { AuditEventPublic, ObligationQueueRow } from '@duedatehq/contracts'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { daysBetween, formatDatePretty } from '@/lib/utils'
 
 /**
@@ -69,9 +70,9 @@ export function CompletedKeyDates({
     // grouping on their own. The consumer call site wraps this in
     // `<div className="mt-3">`, so no margin is needed here.
     <div>
-      <p className="mb-1.5 text-caption-xs font-medium uppercase tracking-eyebrow text-text-secondary">
+      <FieldLabel as="div" variant="group" className="mb-1.5 text-text-secondary">
         <Trans>Key dates</Trans>
-      </p>
+      </FieldLabel>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
         {rows.map((r) => (
           <Fragment key={r.label}>

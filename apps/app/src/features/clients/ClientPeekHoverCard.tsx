@@ -14,6 +14,7 @@ import {
 } from '@duedatehq/ui/components/ui/preview-card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { DueCountdownText } from '@/components/primitives/due-date-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
@@ -246,9 +247,9 @@ function PeekNextDue({
   const isLate = days < 0
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-divider-subtle bg-background-subtle px-3 py-2">
-      <span className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-muted">
+      <FieldLabel as="span" variant="group" className="text-text-muted">
         <Trans>Next due</Trans>
-      </span>
+      </FieldLabel>
       <span className="flex flex-wrap items-baseline gap-x-2 text-xs">
         <span className="min-w-0 truncate font-medium text-text-primary">
           <TaxCodeLabel code={nextDue.taxType} />

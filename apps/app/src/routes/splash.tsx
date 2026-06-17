@@ -7,6 +7,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import { FieldLabel } from '@/components/primitives/field-label'
 import { orpc } from '@/lib/rpc'
 import { formatRelativeTime } from '@/lib/utils'
 import { AuthBrandAnchor } from '@/features/auth/auth-chrome'
@@ -133,7 +134,7 @@ export function SplashRoute() {
           >
             <div className="flex items-center gap-2">
               <span aria-hidden className="block size-1.5 rounded-full bg-state-success-solid" />
-              <span className="text-[11px] font-semibold tracking-eyebrow text-text-muted uppercase">
+              <FieldLabel as="span" variant="group" className="text-text-muted">
                 {data?.sinceLastVisit ? (
                   <Trans>
                     While you were away · since {formatRelativeTime(data.sinceLastVisit)}
@@ -141,7 +142,7 @@ export function SplashRoute() {
                 ) : (
                   <Trans>While you were away</Trans>
                 )}
-              </span>
+              </FieldLabel>
             </div>
             {recapQuery.isLoading ? (
               <div className="flex flex-col gap-2.5">
