@@ -2183,6 +2183,10 @@ msgstr "AI 置信度"
 msgid "AI couldn't reach the full model — showing a fallback list. Review each item against the deadline before relying on it."
 msgstr "AI 无法访问完整模型——正在显示回退列表。在依赖此列表前请对照截止日期逐项核查。"
 
+#: src/routes/rules.library.tsx
+msgid "AI draft ready"
+msgstr "AI 草稿已就绪"
+
 #: src/features/alerts/components/PulseAIBoundaryChip.tsx
 msgid "AI extracted this from the source. A reviewer must confirm before applying — DueDateHQ never marks an alert verified automatically."
 msgstr "这是 AI 从来源中提取的内容。审核人必须先确认才能应用——DueDateHQ 绝不会自动将提醒标记为已核验。"
@@ -12759,6 +12763,10 @@ msgstr "查看覆盖、来源和待审核规则。"
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Review impact…"
 msgstr "查看影响…"
+
+#: src/routes/rules.library.tsx
+msgid "Review individually"
+msgstr "逐条审核"
 
 #: src/routes/rules.library.tsx
 msgid "Review note"

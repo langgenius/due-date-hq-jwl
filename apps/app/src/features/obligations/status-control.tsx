@@ -408,7 +408,7 @@ function ObligationStatusReadBadge({
   useEffect(() => {
     if (prevStatus.current === status) return
     prevStatus.current = status
-    controls.start({
+    void controls.start({
       scale: [1, 1.12, 1],
       transition: { duration: 0.5, ease: EASE_APPLE, times: [0, 0.35, 1] },
     })

@@ -2172,6 +2172,10 @@ msgstr "AI confidence"
 msgid "AI couldn't reach the full model — showing a fallback list. Review each item against the deadline before relying on it."
 msgstr "AI couldn't reach the full model — showing a fallback list. Review each item against the deadline before relying on it."
 
+#: src/routes/rules.library.tsx
+msgid "AI draft ready"
+msgstr "AI draft ready"
+
 #: src/features/alerts/components/PulseAIBoundaryChip.tsx
 msgid "AI extracted this from the source. A reviewer must confirm before applying — DueDateHQ never marks an alert verified automatically."
 msgstr "AI extracted this from the source. A reviewer must confirm before applying — DueDateHQ never marks an alert verified automatically."
@@ -12701,6 +12705,10 @@ msgstr "Review coverage, sources, and pending rules."
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Review impact…"
 msgstr "Review impact…"
+
+#: src/routes/rules.library.tsx
+msgid "Review individually"
+msgstr "Review individually"
 
 #: src/routes/rules.library.tsx
 msgid "Review note"

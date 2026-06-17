@@ -1,7 +1,8 @@
 # CI, E2E, and Lingui stabilization
 
 **Date:** 2026-06-17
-**Surface:** `packages/ingest/src/ingest.test.ts`, CI verification, Playwright E2E
+**Surface:** `packages/ingest/src/ingest.test.ts`, CI verification, Playwright E2E,
+Lingui catalogs, `apps/app/src/features/obligations/status-control.tsx`
 
 The current green-up pass found Lingui already healthy: strict app catalog
 compilation completed without missing translations. The local CI failure was in
@@ -14,6 +15,14 @@ The fix keeps the default timeout everywhere else and gives only PDF text
 extraction cases a `15_000ms` budget. Those tests exercise PDF.js worker setup
 and text extraction paths, so they are the right place to absorb cold-start
 variance without weakening the rest of the suite.
+
+After that commit was pushed, GitHub Actions still exposed two hard failures:
+the `Lingui Catalog Drift` workflow extracted two untranslated Rule Library
+bulk-review labels (`AI draft ready`, `Review individually`), and the `CI`
+workflow failed on `typescript(no-floating-promises)` for the read-only
+obligation status badge animation. The follow-up keeps the new catalog entries,
+adds the missing `zh-CN` translations, and marks the motion animation promise as
+an intentional fire-and-forget call with `void`.
 
 ## Verification
 
