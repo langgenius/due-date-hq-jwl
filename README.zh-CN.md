@@ -59,7 +59,7 @@ DueDateHQ 是部署在 Cloudflare 上的 TypeScript pnpm monorepo。
 - **Cloudflare 平台**：Workers Assets、KV、R2、Vectorize、Queues、Cron Triggers、Workflows、
   Rate Limiting 和 Wrangler。
 - **AI 与集成**：Vercel AI SDK Core 通过 Cloudflare AI Gateway 调用模型，并在内部做 guard、trace、
-  budget；Resend、Stripe、Sentry、PostHog 等能力取决于部署侧是否已配置对应服务。
+  budget；Resend、Stripe、Sentry、Amplitude 等能力取决于部署侧是否已配置对应服务。
 - **质量门禁**：Vite+ (`vp`) 统一 workspace 任务，Vitest、Cloudflare Workers test pool、
   Playwright、Lingui strict compilation、Drizzle Kit 和依赖方向检查。
 

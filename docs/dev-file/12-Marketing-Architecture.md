@@ -179,8 +179,8 @@ Marketing 只埋公开站事件，不读取 app session。
 当前 plans 实配：Solo / Pro / Team 均为 `checkout`，Enterprise 为 `contact`
 （mailto）；暂无套餐使用 `app`，但 `hrefKind: 'app'` 分支仍在组件中保留。
 
-事件命名不进 Lingui catalog。分析 SDK 未接入（posthog-js 依赖已于 2026-06-10 连同
-Sentry 一起移除），data attribute 仅作为事件契约保留，待选型后接线。
+事件命名不进 Lingui catalog。marketing 站点分析 SDK 尚未接线（app 端已接入
+Amplitude），data attribute 仅作为事件契约保留，待接线。
 
 > **跨子域身份缝合**：`due.langgenius.app` 与 `app.due.langgenius.app` 是不同 origin，任何分析工具默认都会生成两个独立访客 id，导致 `marketing.*_cta.clicked → app 注册` 漏斗断裂。未来接入分析 SDK 时必须做一件事：marketing 侧在 CTA `href` 传访客 id，app 侧首屏 identify 合并身份。在真正接入前，本节只承诺事件契约不承诺漏斗闭环。
 

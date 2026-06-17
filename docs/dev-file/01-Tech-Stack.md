@@ -48,7 +48,7 @@
 | **Embedding**           | AI SDK embedding provider + Cloudflare Vectorize                                        | 模型由 `packages/ai` 路由确认；结果写入 Vectorize                                                                                                                                                      |
 | **AI tracing**          | AI SDK usage/telemetry + Cloudflare AI Gateway Dashboard + internal `ai_output` trace   | 不再引入第三方 tracing SDK；prompt 版本 / token / latency / guard result 写入内部 trace payload                                                                                                        |
 | **邮件**                | Resend（出站，React Email 模板）+ postal-mime（入站解析）                               | fetch API；Worker 可跑；Phase 0 的用户通知完全走 email + in-app toast（不做 Web Push）。入站：Pulse email_subscription 源（GovDelivery）经 Email Routing 进 Worker `email()` handler，postal-mime 解析 |
-| **监控**                | Workers Logs（Logpush）                                                                 | 错误 + 日志；Sentry/PostHog 已于 2026-06-10 移除（依赖与 env 均已删）                                                                                                                                  |
+| **监控**                | Workers Logs（Logpush）                                                                 | 错误 + 日志；Sentry 已于 2026-06-10 移除（依赖与 env 均已删）；产品分析改用 Amplitude（前端 SPA，见 §07）                                                                                              |
 | **测试**                | Vitest + `@cloudflare/vitest-pool-workers` + Playwright + msw                           | 单测跑在 Workers runtime；E2E 跨浏览器                                                                                                                                                                 |
 | **菜单栏壳（Phase 2）** | Tauri 2 + Rust                                                                          | 跨平台；~1 MB 体积                                                                                                                                                                                     |
 
@@ -478,7 +478,6 @@ E2E_SEED_TOKEN=
 
 # ───────── Observability ─────────
 SENTRY_DSN=
-POSTHOG_KEY=
 
 # ───────── Cloudflare CLI auth（仅 CI / 本地 deploy 用；放 root `.env`，不进 .dev.vars）─────────
 CLOUDFLARE_ACCOUNT_ID=

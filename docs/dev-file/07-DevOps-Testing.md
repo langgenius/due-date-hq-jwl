@@ -167,13 +167,13 @@ Marketing 失败时回滚 static Worker 版本；不得影响 `app.due.langgeniu
 
 ### 4.1 三件套
 
-| 维度     | 工具                                             | 接入点                                                                                           |
-| -------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| 错误     | **Workers Logs**（结构化 console.log）           | 全入口；Sentry 已于 2026-06-10 移除（依赖与 env 已删）                                           |
-| 日志     | **Workers Logs + Logpush**                       | 结构化 JSON `console.log({ level, msg, firmId, ... })`；Logpush 到 R2 保留 90 天                 |
-| Trace    | **AI SDK telemetry + internal AI trace payload** | `packages/ai` 统一生成 usage / latency / guard metadata，写内部日志并可接 OpenTelemetry exporter |
-| 指标     | **Cloudflare Analytics Engine**                  | 关键业务事件（dashboard_view / pulse_apply / migration_import / rpc_latency）                    |
-| 产品分析 | 未接入（posthog-js 已于 2026-06-10 移除）        | 事件契约见 12 §2.5；选型待定                                                                     |
+| 维度     | 工具                                                                  | 接入点                                                                                                                                             |
+| -------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 错误     | **Workers Logs**（结构化 console.log）                                | 全入口；Sentry 已于 2026-06-10 移除（依赖与 env 已删）                                                                                             |
+| 日志     | **Workers Logs + Logpush**                                            | 结构化 JSON `console.log({ level, msg, firmId, ... })`；Logpush 到 R2 保留 90 天                                                                   |
+| Trace    | **AI SDK telemetry + internal AI trace payload**                      | `packages/ai` 统一生成 usage / latency / guard metadata，写内部日志并可接 OpenTelemetry exporter                                                   |
+| 指标     | **Cloudflare Analytics Engine**                                       | 关键业务事件（dashboard_view / pulse_apply / migration_import / rpc_latency）                                                                      |
+| 产品分析 | **Amplitude**（前端 `@amplitude/analytics-browser`，gated lazy-load） | `VITE_AMPLITUDE_API_KEY` 开关，未设则全静默；事件 taxonomy 见 `apps/app/src/lib/analytics/events.ts`；firm 作为 B2B group type；事件契约见 12 §2.5 |
 
 ### 4.2 关键 SLO / 告警
 
@@ -366,7 +366,7 @@ E2E 默认在 CI 对每个 push / PR 全量跑本地 Worker；打 staging 用 `E
 
 ## 7. Feature Flags
 
-- 环境变量（Worker）+ 代码常量；前端 flag 方案未定（PostHog 已于 2026-06-10 移除）
+- 环境变量（Worker）+ 代码常量；前端 flag 方案未定
 - 约定：`ff_<phase>_<name>`，如 `ff_p1_ask_duedatehq`
 - Kill switch：Worker 内用 `env.FF_AI_ENABLED === 'true'` 一键关闭 AI 调用（模型成本失控时）
 - 移除时机：flag 开启 4 周稳定后移除代码

@@ -77,7 +77,7 @@ DueDateHQ is a TypeScript pnpm monorepo deployed on Cloudflare.
 - **Cloudflare platform**: Workers Assets, KV, R2, Vectorize, Queues, Cron
   Triggers, Workflows, Rate Limiting, and Wrangler.
 - **AI and integrations**: Vercel AI SDK Core through Cloudflare AI Gateway,
-  internal guards/traces/budgets, Resend, Stripe, Sentry, and PostHog where the
+  internal guards/traces/budgets, Resend, Stripe, Sentry, and Amplitude where the
   deployment has those services configured.
 - **Quality**: Vite+ (`vp`) for workspace tasks, Vitest, Cloudflare Workers test
   pool, Playwright, Lingui strict compilation, Drizzle Kit, and dependency

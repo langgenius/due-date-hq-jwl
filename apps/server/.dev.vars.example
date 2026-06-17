@@ -158,4 +158,3 @@ E2E_SEED_TOKEN=
 # [Optional] Observability
 # ═════════════════════════════════════════════════════════════════════════════
 SENTRY_DSN=
-POSTHOG_KEY=
