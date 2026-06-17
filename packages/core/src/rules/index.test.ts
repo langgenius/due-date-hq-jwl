@@ -838,7 +838,7 @@ describe('@duedatehq/core/rules', () => {
       url: 'https://www2.laworks.net/FAQs/FAQ_UI_EmployerTaxes.asp',
     })
     expect(findRuleById('la.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
-      'Quarter end date of 03/31/__ Due date 04/30/__',
+      'Form LWC ES-4',
     )
 
     expect(sourcesById.get('nc.pass_through_entity_return')).toMatchObject({
@@ -890,7 +890,7 @@ describe('@duedatehq/core/rules', () => {
     expect(businessRule?.sourceIds).toEqual(['al.due_dates'])
     expect(franchiseRule?.sourceIds).toEqual(['al.due_dates'])
     expect(franchiseRule?.evidence[0]?.sourceExcerpt).toContain('Business Privilege Tax')
-    expect(franchiseRule?.evidence[0]?.sourceExcerpt).toContain('S-Corporation Due no later')
+    expect(franchiseRule?.evidence[0]?.sourceExcerpt).toContain('Form PPT')
     expect(franchiseRule?.evidence[0]?.sourceExcerpt).not.toMatch(
       /official source registered|templates require practice owner or manager acceptance/i,
     )
@@ -941,7 +941,7 @@ describe('@duedatehq/core/rules', () => {
       ['ar.business_estimated_tax.candidate.2026', 'ar.corporation_income_tax', 'over $1,000'],
       ['ar.pass_through_entity_return.candidate.2026', 'ar.pass_through_entity_tax', 'PET'],
       ['ar.franchise_or_entity_tax.candidate.2026', 'ar.franchise_tax', 'May 1'],
-      ['ar.sales_use_tax.candidate.2026', 'ar.sales_use_tax', '2026 Sales and Use Tax'],
+      ['ar.sales_use_tax.candidate.2026', 'ar.sales_use_tax', 'twentieth (20th) day'],
       ['ar.withholding.candidate.2026', 'ar.withholding_tax', 'AR3MAR'],
       ['ar.ui_wage_report.candidate.2026', 'ar.ui_wage_report', 'quarterly report'],
     ] as const
@@ -1053,7 +1053,7 @@ describe('@duedatehq/core/rules', () => {
     ])
     expect(
       findRuleById('me.individual_estimated_tax.candidate.2026')?.evidence[0]?.sourceExcerpt,
-    ).toContain('1040ES-ME')
+    ).toContain('four equal installments')
     expect(findRuleById('me.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
       'ME UC-1',
     )
@@ -1154,10 +1154,10 @@ describe('@duedatehq/core/rules', () => {
       findRuleById('la.pass_through_entity_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
     ).toContain('May 15th of the following year')
     expect(findRuleById('la.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
-      'monthly sales and use tax returns',
+      '20th day of the month following',
     )
     expect(findRuleById('la.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
-      'L-1 Return',
+      'Form L-1',
     )
   })
 
@@ -1184,7 +1184,7 @@ describe('@duedatehq/core/rules', () => {
       findRuleById('md.pass_through_entity_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
     ).toContain('15th day of the 4th month')
     expect(findRuleById('md.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
-      '1st Quarter due April 20',
+      'sales and use tax return is due on the 20th day',
     )
     expect(findRuleById('md.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
       'quarterly income tax withholding returns',
@@ -1416,10 +1416,10 @@ describe('@duedatehq/core/rules', () => {
       'ut.sales_withholding_due_dates',
     ])
     expect(findRuleById('ut.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
-      'Sales and Use (STC)',
+      'last day of the month after the filing period',
     )
     expect(findRuleById('ut.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
-      'Employer Withholding (WTH)',
+      'TC-941E',
     )
   })
 
@@ -1481,7 +1481,7 @@ describe('@duedatehq/core/rules', () => {
       findRuleById('mi.pass_through_entity_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
     ).toContain('March 31')
     expect(findRuleById('mi.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
-      'April 20',
+      'due on the 20th of the month following',
     )
     expect(findRuleById('mi.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
       'February 28',
