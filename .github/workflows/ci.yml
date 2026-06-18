@@ -24,6 +24,11 @@ jobs:
       # build job: Vite inlines VITE_* at build time into apps/app/dist, which
       # is uploaded as the staging-build artifact. Unset → analytics no-ops.
       VITE_AMPLITUDE_API_KEY: ${{ secrets.VITE_AMPLITUDE_API_KEY }}
+      # Marketing (Astro) build-time vars — inlined into apps/marketing/dist.
+      # Same Amplitude project as the app (shared funnel) + Cloudflare Web
+      # Analytics beacon token. Unset → marketing analytics/beacon no-op.
+      PUBLIC_AMPLITUDE_API_KEY: ${{ secrets.PUBLIC_AMPLITUDE_API_KEY }}
+      PUBLIC_CF_BEACON_TOKEN: ${{ secrets.PUBLIC_CF_BEACON_TOKEN }}
     steps:
       - uses: actions/checkout@v6
 

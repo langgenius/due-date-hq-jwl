@@ -70,6 +70,11 @@ export function initAnalytics(): void {
       amplitude = mod
       mod.init(apiKey, {
         serverZone: 'US',
+        // Store the device_id cookie on the registrable top-level domain
+        // (.duedatehq.com) so the marketing site (duedatehq.com) and this app
+        // (app.duedatehq.com) share one device_id — the landing → signup →
+        // activation funnel stitches across the subdomain hop automatically.
+        identityStorage: 'cookie',
         // Capture sessions + page views + marketing attribution for the
         // funnel, but NOT element/form interactions — those can hoover up
         // values typed into inputs, which on this product would be PII.

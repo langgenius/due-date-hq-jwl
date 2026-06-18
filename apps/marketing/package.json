@@ -13,6 +13,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
+    "@amplitude/analytics-browser": "catalog:",
     "@astrojs/sitemap": "catalog:",
     "@duedatehq/i18n": "workspace:*",
     "@duedatehq/ui": "workspace:*",

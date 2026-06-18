@@ -38,6 +38,10 @@ const localeFreePath =
   pathname === '/zh-CN' ? '/' : pathname.startsWith('/zh-CN/') ? pathname.slice('/zh-CN'.length) : pathname
 const enHref = getMarketingUrl(localeFreePath)
 const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${localeFreePath}`)
+
+// Cloudflare Web Analytics beacon (cookieless, privacy-first RUM). Token set in
+// the build env; unset → not rendered. See apps/marketing/.env.example.
+const cfBeaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN
 ---
 
 <!doctype html>
@@ -80,8 +84,25 @@ const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${loca
     {structuredData && <StructuredData data={structuredData} />}
 
     <script is:inline set:html={THEME_INIT_SCRIPT}></script>
+
+    {
+      cfBeaconToken && (
+        <script
+          is:inline
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
+        />
+      )
+    }
   </head>
   <body class="min-h-screen bg-bg-canvas text-text-primary antialiased">
     <slot />
+
+    <script>
+      import { initMarketingAnalytics } from '../lib/analytics'
+
+      initMarketingAnalytics()
+    </script>
   </body>
 </html>

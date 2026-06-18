@@ -409,6 +409,9 @@ importers:
 
   apps/marketing:
     dependencies:
+      '@amplitude/analytics-browser':
+        specifier: 'catalog:'
+        version: 2.44.1
       '@astrojs/sitemap':
         specifier: 'catalog:'
         version: 3.7.2
