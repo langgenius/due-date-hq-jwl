@@ -122,10 +122,10 @@ The map is consumed by:
 3. **`ObligationQueueScopeTab`** — the deadline filter tabs at
    the top of `/deadlines`. The 6 v2 scope tabs each lead with
    the same icon used on the row pill for that status.
-4. **Any new surface** that renders a status: pull
-   `STATUS_ICON[status]` + `STATUS_ICON_COLOR[status]` from
-   `@/features/obligations/status-control`. Do not invent a
-   new mark.
+4. **Any new surface** that renders a status: render
+   `<StatusMark status={status} className={STATUS_ICON_COLOR[status]} />`
+   from `@/features/obligations/status-control` (use `STATUS_ICON_COLOR_ON_PILL`
+   when it sits on a tinted chip). Do not invent a new mark.
 
 ## When NOT to use
 
