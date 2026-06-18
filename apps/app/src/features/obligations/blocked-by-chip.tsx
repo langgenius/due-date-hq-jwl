@@ -52,7 +52,7 @@ function BlockedByChip({
         }}
         title={title}
         aria-label={title}
-        className="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle text-text-tertiary hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle text-text-tertiary hover:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <LinkIcon className="size-3" aria-hidden />
       </button>

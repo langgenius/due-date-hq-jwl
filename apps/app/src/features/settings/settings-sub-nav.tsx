@@ -169,7 +169,7 @@ export function SettingsSubNav({ className }: { className?: string }) {
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               isActive
                 ? 'bg-state-accent-hover text-text-accent'
-                : 'text-text-secondary hover:bg-background-default-hover hover:text-text-primary',
+                : 'text-text-secondary hover:bg-state-base-hover hover:text-text-primary',
             )
           }
         >

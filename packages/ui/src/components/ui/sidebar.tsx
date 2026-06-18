@@ -1030,7 +1030,7 @@ export function SidebarTrigger({
       onClick: handleClick,
       className: cn(
         'inline-flex size-7 cursor-pointer touch-manipulation items-center justify-center rounded-lg border border-divider-regular bg-background-default text-text-secondary outline-none transition-colors',
-        'hover:bg-background-default-hover hover:text-text-primary',
+        'hover:bg-state-base-hover hover:text-text-primary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'md:hidden',
         className,
@@ -1088,7 +1088,7 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
         // focus on the link). Keyboard `focus-visible` on the handle
         // itself still reveals it so a focused control is never hidden.
         'absolute top-1/2 z-40 hidden size-6 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-background-default text-text-tertiary opacity-0 outline-none transition-[left,opacity,background-color,color] duration-[360ms] ease-apple motion-reduce:transition-none',
-        'hover:bg-background-default-hover hover:text-text-secondary',
+        'hover:bg-state-base-hover hover:text-text-secondary',
         'focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'group-hover/sidebar:opacity-100',
         'md:inline-flex',

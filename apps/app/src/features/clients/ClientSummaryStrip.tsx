@@ -204,7 +204,7 @@ export function ClientSummaryStrip({
               aria-label={cell.ariaLabel}
               className={cn(
                 cellClass,
-                '-my-2 cursor-pointer rounded-lg py-2 text-left transition-colors hover:bg-background-default-hover',
+                '-my-2 cursor-pointer rounded-lg py-2 text-left transition-colors hover:bg-state-base-hover',
                 'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
               )}
             >

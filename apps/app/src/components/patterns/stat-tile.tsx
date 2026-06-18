@@ -111,7 +111,7 @@ export function StatTile({
   // dead-quiet — no hover transition so the user doesn't expect it
   // to do anything.
   const interactiveClass = cn(
-    'group transition-colors hover:border-divider-regular hover:bg-background-default-hover',
+    'group transition-colors hover:border-divider-regular hover:bg-state-base-hover',
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt',
   )
 

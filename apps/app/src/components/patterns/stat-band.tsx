@@ -128,7 +128,7 @@ export function StatBand({
         // as tappable; the read-only column stays dead-quiet.
         const interactiveClass = cn(
           columnClass,
-          'cursor-pointer rounded-lg py-1 -my-1 text-left transition-colors hover:bg-background-default-hover',
+          'cursor-pointer rounded-lg py-1 -my-1 text-left transition-colors hover:bg-state-base-hover',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt',
         )
 

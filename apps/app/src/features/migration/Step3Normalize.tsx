@@ -484,7 +484,7 @@ function MatrixDefaultsCard({
         }}
         aria-expanded={expanded}
         aria-controls={bodyId}
-        className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-left outline-none transition-colors hover:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <div className="flex flex-col gap-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">

@@ -93,7 +93,7 @@ export function ExportAxisOption({
       disabled={disabled}
       className={cn(
         'flex min-h-12 w-full cursor-pointer items-start gap-2 rounded-lg border border-divider-regular bg-background-default px-3 py-2 text-left outline-none transition-colors',
-        'hover:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
+        'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
         selected && 'border-divider-deep bg-state-base-active',
         disabled && 'cursor-not-allowed opacity-50',
       )}
