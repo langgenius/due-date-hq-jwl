@@ -19,7 +19,7 @@ const en: LandingCopy = {
       { label: 'Resources', href: '/rules' },
       { label: 'Trust', href: '/security' },
     ],
-    statusPill: 'Live in CA · NY · TX · FL · WA',
+    statusPill: 'Monitoring 50 states + DC',
     cta: 'Open the workbench',
   },
   hero: {
@@ -498,10 +498,10 @@ const en: LandingCopy = {
         body: 'Every AI sentence and every rule citation carries source_url + source_excerpt + verified_at, or is suppressed.',
       },
       {
-        label: 'OFFICIAL SOURCES',
-        value: '48',
-        unit: '+',
-        body: 'IRS, FTB, DTF · 50-state filing authorities, organized into one rule library.',
+        label: 'JURISDICTIONS',
+        value: '50',
+        unit: '+ DC',
+        body: 'Federal, all 50 states, and DC — official tax authorities (IRS, FTB, state DORs) organized into one source-backed rule library.',
       },
       {
         label: 'ALERT SLA',
@@ -1450,7 +1450,7 @@ const en: LandingCopy = {
       enLong: 'English',
       zhLong: '简体中文',
     },
-    status: 'all systems operational',
+    status: 'Service status',
   },
 }
 

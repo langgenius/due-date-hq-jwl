@@ -9,6 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "test": "vp test",
     "deploy": "wrangler deploy"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "@astrojs/check": "catalog:",
     "@duedatehq/typescript-config": "workspace:*",
     "typescript": "catalog:",
+    "vitest": "catalog:",
     "wrangler": "catalog:"
   },
   "//": "Astro static marketing site (due.langgenius.app). Shares @duedatehq/ui design tokens and @duedatehq/i18n locale contract; deployed separately as Cloudflare Workers + Static Assets."

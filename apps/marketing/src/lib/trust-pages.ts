@@ -288,7 +288,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       hero: {
         eyebrow: 'STATUS',
-        title: 'Current public status: all systems operational.',
+        title: 'Service status and incidents.',
         description:
           'DueDateHQ currently separates the public marketing site from the authenticated app. Public discovery pages and app operations are monitored as distinct surfaces.',
         note: 'For incident-specific updates, contact support. This page is the current public status summary.',

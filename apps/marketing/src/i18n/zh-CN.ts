@@ -9,7 +9,7 @@ const zhCN: LandingCopy = {
   },
   nav: {
     brand: 'DueDateHQ',
-    audience: 'For US CPA practices',
+    audience: '面向美国 CPA 事务所',
     links: [
       { label: '产品', href: '/zh-CN#hero' },
       { label: '工作流', href: '/zh-CN#workflow' },
@@ -19,7 +19,7 @@ const zhCN: LandingCopy = {
       { label: '资源', href: '/zh-CN/rules' },
       { label: '信任', href: '/zh-CN/security' },
     ],
-    statusPill: '已上线 CA · NY · TX · FL · WA',
+    statusPill: '监控覆盖 50 州 + DC',
     cta: '打开工作台',
   },
   hero: {
@@ -482,10 +482,10 @@ const zhCN: LandingCopy = {
         body: '每一句 AI 文案、每一条规则引用都附 source_url + source_excerpt + verified_at，否则不予渲染。',
       },
       {
-        label: '官方来源',
-        value: '48',
-        unit: '+',
-        body: 'IRS、FTB、DTF · 50 个州的申报机构，全部映射到一套规则模式。',
+        label: '覆盖辖区',
+        value: '50',
+        unit: '+ DC',
+        body: '联邦、全部 50 个州和 DC 的官方税务机构（IRS、FTB、各州 DOR）汇集到一套带来源的规则库。',
       },
       {
         label: '提醒 SLA',
@@ -1364,7 +1364,7 @@ const zhCN: LandingCopy = {
   footer: {
     brand: 'DueDateHQ',
     tagline: '面向美国 CPA 团队的玻璃盒截止日智能。',
-    audience: 'For US CPA practices · 可审计 · 50 州 + DC',
+    audience: '面向美国 CPA 事务所 · 可审计 · 50 州 + DC',
     columns: [
       {
         title: 'PRODUCT',
@@ -1417,7 +1417,7 @@ const zhCN: LandingCopy = {
       enLong: 'English',
       zhLong: '简体中文',
     },
-    status: 'all systems operational',
+    status: '服务状态',
   },
 }
 

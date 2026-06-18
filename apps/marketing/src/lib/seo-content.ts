@@ -39,6 +39,20 @@ interface RuleReferenceSpec {
   clientContextZh: string
 }
 
+// Coverage tiers per docs/dev-file/11-Pulse-Ingest-Source-Catalog.md §3:
+//   `deep`      = explicit multi-agency live adapters (CA/NY/TX/FL/WA/MA).
+//   `monitored` = official temporary/news source watch (all other states + DC).
+// CA/NY/TX/FL/WA are authored directly in i18n stateCoverage copy; MA is the
+// only deep state surfaced via stateSpecs below. The card badge is DERIVED from
+// this set — never hard-code 'Live'/'已上线' on a monitored state.
+export const DEEP_COVERAGE_STATE_ABBRS = new Set(['CA', 'NY', 'TX', 'FL', 'WA', 'MA'])
+
+function stateStatusLabel(spec: StateSpec, locale: Locale): string {
+  const deep = DEEP_COVERAGE_STATE_ABBRS.has(spec.abbreviation)
+  if (locale === 'zh-CN') return deep ? '已上线' : '监控中'
+  return deep ? 'Live' : 'Monitored'
+}
+
 const stateSpecs: StateSpec[] = [
   {
     slug: 'illinois',
@@ -445,7 +459,7 @@ function stateSummary(spec: StateSpec, locale: Locale): StateCard {
       slug: spec.slug,
       name: spec.name,
       abbreviation: spec.abbreviation,
-      status: 'Live',
+      status: stateStatusLabel(spec, locale),
       body: `${spec.agency} 的公开${spec.sourceSurfaceZh}可进入来源复核，用于${spec.taxFocusZh}的截止日运营判断。`,
       href: `/zh-CN/states/${spec.slug}`,
     }
@@ -455,7 +469,7 @@ function stateSummary(spec: StateSpec, locale: Locale): StateCard {
     slug: spec.slug,
     name: spec.name,
     abbreviation: spec.abbreviation,
-    status: 'Live',
+    status: stateStatusLabel(spec, locale),
     body: `${spec.agency} ${spec.sourceSurface} can enter source review for ${spec.taxFocus} in deadline operations.`,
     href: `/states/${spec.slug}`,
   }
@@ -696,7 +710,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         ogImage: '/og/home.en.png',
       },
       hero: {
-        eyebrow: '指南',
+        eyebrow: 'GUIDE',
         title: 'How should a CPA firm move deadline work out of Excel?',
         description:
           'Spreadsheet migration should not just copy dates. The useful migration creates client context, filing profiles, obligation records, readiness state, source evidence, and ownership that can drive weekly deadline operations.',
