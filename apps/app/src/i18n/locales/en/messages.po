@@ -7035,9 +7035,17 @@ msgstr "Filings"
 msgid "Filter"
 msgstr "Filter"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Filter alerts"
+msgstr "Filter alerts"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter by name or EIN"
 msgstr "Filter by name or EIN"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Filter by person, item, action, or reason"
+msgstr "Filter by person, item, action, or reason"
 
 #: src/routes/rules.library.tsx
 msgid "Filter by scope"
@@ -7057,6 +7065,10 @@ msgstr "Filter by status"
 #: src/features/notifications/notifications-page.tsx
 msgid "Filter by type"
 msgstr "Filter by type"
+
+#: src/routes/obligations.tsx
+msgid "Filter client, form, or assignee"
+msgstr "Filter client, form, or assignee"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter clients"
@@ -13426,7 +13438,6 @@ msgstr "Scope changed"
 msgid "Search {jurisdictionLabel} rules"
 msgstr "Search {jurisdictionLabel} rules"
 
-#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/AlertListRail.tsx
 msgid "Search alerts"
 msgstr "Search alerts"
@@ -13446,14 +13457,6 @@ msgstr "Search audit events"
 #: src/features/audit/audit-log-page.tsx
 msgid "Search by actor, entity, action, or reason — or narrow by time range, action category, actor, or entity type."
 msgstr "Search by actor, entity, action, or reason — or narrow by time range, action category, actor, or entity type."
-
-#: src/features/audit/audit-log-page.tsx
-msgid "Search by person, item, action, or reason"
-msgstr "Search by person, item, action, or reason"
-
-#: src/routes/obligations.tsx
-msgid "Search client, form, or assignee"
-msgstr "Search client, form, or assignee"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 msgid "Search clients"

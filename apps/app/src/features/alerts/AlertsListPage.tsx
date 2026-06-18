@@ -886,8 +886,8 @@ export function AlertsListPage({ embedded = false }: AlertsListPageProps) {
                 <CollapsibleSearch
                   value={searchQuery}
                   onChange={setSearchQuery}
-                  placeholder={t`Search alerts`}
-                  ariaLabel={t`Search alerts`}
+                  placeholder={t`Filter alerts`}
+                  ariaLabel={t`Filter alerts`}
                   size="icon"
                   expandedWidthClassName="w-[200px] shrink-0 sm:w-[220px]"
                 />

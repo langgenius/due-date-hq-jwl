@@ -837,7 +837,7 @@ export function AuditLogPage() {
               setPageIndex(0)
               void setQuery({ q: next.length > 0 ? next : null, event: null })
             }}
-            placeholder={t`Search by person, item, action, or reason`}
+            placeholder={t`Filter by person, item, action, or reason`}
             ariaLabel={t`Search audit events`}
             hotkey="/"
             hotkeyMeta={{

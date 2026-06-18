@@ -7059,10 +7059,18 @@ msgstr "申报"
 msgid "Filter"
 msgstr "筛选"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Filter alerts"
+msgstr "筛选提醒"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #, fuzzy
 msgid "Filter by name or EIN"
 msgstr "按名称或 EIN 搜索"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Filter by person, item, action, or reason"
+msgstr "按人员、对象、操作或原因筛选"
 
 #: src/routes/rules.library.tsx
 msgid "Filter by scope"
@@ -7082,6 +7090,10 @@ msgstr "按状态筛选"
 #: src/features/notifications/notifications-page.tsx
 msgid "Filter by type"
 msgstr "按类型筛选"
+
+#: src/routes/obligations.tsx
+msgid "Filter client, form, or assignee"
+msgstr "筛选客户、表单或负责人"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter clients"
@@ -13486,7 +13498,6 @@ msgstr "范围已变更"
 msgid "Search {jurisdictionLabel} rules"
 msgstr "搜索 {jurisdictionLabel} 规则"
 
-#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/AlertListRail.tsx
 msgid "Search alerts"
 msgstr "搜索提醒"
@@ -13506,14 +13517,6 @@ msgstr "搜索审计事件"
 #: src/features/audit/audit-log-page.tsx
 msgid "Search by actor, entity, action, or reason — or narrow by time range, action category, actor, or entity type."
 msgstr "按操作者、实体、操作或原因搜索——或按时间范围、操作类别、操作者或实体类型缩小范围。"
-
-#: src/features/audit/audit-log-page.tsx
-msgid "Search by person, item, action, or reason"
-msgstr "按人员、对象、操作或原因搜索"
-
-#: src/routes/obligations.tsx
-msgid "Search client, form, or assignee"
-msgstr "搜索客户、表单或负责人"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 msgid "Search clients"
