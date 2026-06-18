@@ -843,7 +843,7 @@ function RolloverHelpPopover({ label, description }: { label: string; descriptio
       <PopoverTrigger
         openOnHover
         delay={150}
-        closeDelay={80}
+        closeDelay={200}
         render={
           <Button
             type="button"
@@ -1013,7 +1013,7 @@ function TaxYearCalendarSelect({
           >
             <span className="flex min-w-0 items-center gap-1.5">
               <CalendarDaysIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-              <span className="truncate font-mono tabular-nums">{value}</span>
+              <span className="truncate tabular-nums">{value}</span>
             </span>
             <ChevronDownIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
           </button>

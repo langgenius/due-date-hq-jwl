@@ -292,7 +292,7 @@ export function DeadlineNavigatorRail({
           variant="compact"
           value={search}
           onChange={setSearch}
-          placeholder={t`Search deadlines`}
+          placeholder={t`Filter deadlines`}
           className="min-w-0 flex-1"
         />
         {/* Optional status filter. Trigger surfaces the active status label so

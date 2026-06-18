@@ -140,7 +140,7 @@ export function StateRuleActivationSelector({
       </div>
 
       <div className="rounded-lg border border-divider-regular bg-background-default p-3">
-        <TooltipProvider delay={100}>
+        <TooltipProvider delay={400}>
           <div className="grid grid-cols-11 grid-rows-9 justify-center gap-1">
             {STATE_TILES.map(({ code, row, column }) => {
               if (!RULE_GENERATION_STATE_SET.has(code)) return null

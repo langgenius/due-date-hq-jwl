@@ -458,7 +458,7 @@ export function RuleDetailCompact({
           <FactRow label={t`Form`}>{rule.formName}</FactRow>
           <FactRow label={t`Event`}>{formatEnumLabel(rule.eventType)}</FactRow>
           <FactRow label={t`Tax year`}>
-            <span className="font-mono tabular-nums">
+            <span className="tabular-nums">
               {rule.taxYear}–{rule.applicableYear}
             </span>
           </FactRow>
@@ -563,7 +563,7 @@ export function RuleDetailCompact({
     <DisclosureCard
       flat={splitRail}
       title={<Trans>Activity</Trans>}
-      meta={<span className="font-mono tabular-nums">v{rule.version}</span>}
+      meta={<span className="tabular-nums">v{rule.version}</span>}
       moreLabel={<Trans>Show all events</Trans>}
       summary={
         <p className="text-sm text-text-secondary">
@@ -2341,7 +2341,7 @@ function EvidenceSection({
     <DetailSectionCard
       variant="flat"
       title={<Trans>Evidence</Trans>}
-      headerRight={<span className="font-mono tabular-nums">{rule.evidence.length}</span>}
+      headerRight={<span className="tabular-nums">{rule.evidence.length}</span>}
     >
       <div className="flex flex-col gap-2">
         {rule.evidence.map((evidence) => (

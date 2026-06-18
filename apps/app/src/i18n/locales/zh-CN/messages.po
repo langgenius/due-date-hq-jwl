@@ -7078,7 +7078,12 @@ msgstr "申报"
 msgid "Filter"
 msgstr "筛选"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Filter {jurisdictionLabel} rules"
+msgstr "筛选{jurisdictionLabel}规则"
+
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/alerts/components/AlertListRail.tsx
 msgid "Filter alerts"
 msgstr "筛选提醒"
 
@@ -7118,6 +7123,11 @@ msgstr "筛选客户、表单或负责人"
 msgid "Filter clients"
 msgstr "筛选客户"
 
+#: src/features/obligations/components/ObligationListRail.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Filter deadlines"
+msgstr "筛选截止事项"
+
 #: src/routes/obligations.tsx
 msgid "Filter dimensions"
 msgstr "筛选维度"
@@ -7127,6 +7137,7 @@ msgid "Filter handled alerts"
 msgstr "筛选已处理提醒"
 
 #: src/features/rules/sources-tab.tsx
+#: src/features/rules/states-rail.tsx
 msgid "Filter jurisdictions"
 msgstr "筛选辖区"
 
@@ -13526,14 +13537,6 @@ msgstr "范围"
 msgid "Scope changed"
 msgstr "范围已变更"
 
-#: src/features/rules/jurisdiction-rule-table.tsx
-msgid "Search {jurisdictionLabel} rules"
-msgstr "搜索 {jurisdictionLabel} 规则"
-
-#: src/features/alerts/components/AlertListRail.tsx
-msgid "Search alerts"
-msgstr "搜索提醒"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Search assignees"
 msgstr "搜索负责人"
@@ -13576,11 +13579,6 @@ msgstr "搜索县…"
 msgid "Search deadline categories…"
 msgstr "搜索截止日类别…"
 
-#: src/features/obligations/components/ObligationListRail.tsx
-#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
-msgid "Search deadlines"
-msgstr "搜索截止日期"
-
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Search forms and vouchers…"
 msgstr "搜索表单和凭单…"
@@ -13588,14 +13586,6 @@ msgstr "搜索表单和凭单…"
 #: src/routes/obligations.tsx
 msgid "Search forms…"
 msgstr "搜索表单…"
-
-#: src/features/alerts/AlertHistoryView.tsx
-msgid "Search handled alerts"
-msgstr "搜索已处理提醒"
-
-#: src/features/rules/states-rail.tsx
-msgid "Search jurisdictions"
-msgstr "搜索辖区"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Search states"

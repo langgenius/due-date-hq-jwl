@@ -310,7 +310,7 @@ export const StateBadge = React.forwardRef<HTMLSpanElement, StateBadgeProps>(
     // mounts/loads the enlarged image once opened.
     return (
       <PreviewCard>
-        <PreviewCardTrigger render={badge} delay={150} closeDelay={150} />
+        <PreviewCardTrigger render={badge} delay={150} closeDelay={200} />
         <PreviewCardContent side="top" sideOffset={8} className="w-auto items-center gap-2 p-3">
           <span className="flex size-40 items-center justify-center overflow-hidden rounded-lg bg-white p-1.5 ring-1 ring-black/5">
             <img

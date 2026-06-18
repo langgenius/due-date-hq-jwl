@@ -85,7 +85,7 @@ export function FloatingActionBar({
         // `More` overflow dropdown (see /deadlines) — wrapping to two lines
         // reads as "the bar is broken" rather than "the bar has many
         // actions."
-        'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-nowrap items-center gap-2 rounded-xl px-4 py-2.5 shadow-overlay',
+        'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-nowrap items-center gap-2 rounded-xl px-4 py-2.5 shadow-overlay animate-in fade-in slide-in-from-bottom-2 duration-200 ease-apple motion-reduce:animate-none',
         tone === 'elevated'
           ? [
               // Dark inverted surface — matches the `bg-text-primary +

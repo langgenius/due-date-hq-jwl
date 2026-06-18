@@ -228,7 +228,7 @@ export function DailyBriefCard({
       // docs/Design/brief-banner-language.md.
       // The unfold: expanding from the tab plays the house animate-in recipe
       // (fade + 4px slide from the tab's position) — the paper opens.
-      className="group relative flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9 animate-in fade-in slide-in-from-top-1 duration-200 motion-reduce:animate-none"
+      className="group relative flex flex-col gap-1.5 rounded-xl bg-state-accent-hover px-5 py-4 pr-9 animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
     >
       {/* Collapse — ghost ✕ top-right folds the band back into the tab (it
           never deletes; the tab keeps the brief one click away). */}

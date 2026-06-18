@@ -7054,7 +7054,12 @@ msgstr "Filings"
 msgid "Filter"
 msgstr "Filter"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Filter {jurisdictionLabel} rules"
+msgstr "Filter {jurisdictionLabel} rules"
+
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/alerts/components/AlertListRail.tsx
 msgid "Filter alerts"
 msgstr "Filter alerts"
 
@@ -7093,6 +7098,11 @@ msgstr "Filter client, form, or assignee"
 msgid "Filter clients"
 msgstr "Filter clients"
 
+#: src/features/obligations/components/ObligationListRail.tsx
+#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
+msgid "Filter deadlines"
+msgstr "Filter deadlines"
+
 #: src/routes/obligations.tsx
 msgid "Filter dimensions"
 msgstr "Filter dimensions"
@@ -7102,6 +7112,7 @@ msgid "Filter handled alerts"
 msgstr "Filter handled alerts"
 
 #: src/features/rules/sources-tab.tsx
+#: src/features/rules/states-rail.tsx
 msgid "Filter jurisdictions"
 msgstr "Filter jurisdictions"
 
@@ -13466,14 +13477,6 @@ msgstr "Scope"
 msgid "Scope changed"
 msgstr "Scope changed"
 
-#: src/features/rules/jurisdiction-rule-table.tsx
-msgid "Search {jurisdictionLabel} rules"
-msgstr "Search {jurisdictionLabel} rules"
-
-#: src/features/alerts/components/AlertListRail.tsx
-msgid "Search alerts"
-msgstr "Search alerts"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Search assignees"
 msgstr "Search assignees"
@@ -13516,11 +13519,6 @@ msgstr "Search counties…"
 msgid "Search deadline categories…"
 msgstr "Search deadline categories…"
 
-#: src/features/obligations/components/ObligationListRail.tsx
-#: src/features/obligations/detail/DeadlineNavigatorRail.tsx
-msgid "Search deadlines"
-msgstr "Search deadlines"
-
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Search forms and vouchers…"
 msgstr "Search forms and vouchers…"
@@ -13528,14 +13526,6 @@ msgstr "Search forms and vouchers…"
 #: src/routes/obligations.tsx
 msgid "Search forms…"
 msgstr "Search forms…"
-
-#: src/features/alerts/AlertHistoryView.tsx
-msgid "Search handled alerts"
-msgstr "Search handled alerts"
-
-#: src/features/rules/states-rail.tsx
-msgid "Search jurisdictions"
-msgstr "Search jurisdictions"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Search states"

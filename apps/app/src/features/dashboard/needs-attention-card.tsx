@@ -194,10 +194,10 @@ function NeedsAttentionCard({
         // Hover carried by the bg step alone — no lift, no floating shadow
         // (Yuqi hated the floating-shadow interaction; restrained-shadows
         // rule). Micro-interactions (Yuqi feedback #3): a 1-frame press
-        // scale acknowledges the click — same recipe as the bucket chips —
+        // scale acknowledges the click
         // and the open-affordance arrow below fades in on hover. Motion on
         // glyphs and scale, never shadows.
-        'transition-[background-color,transform] hover:bg-background-subtle active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100',
+        'transition-[background-color,transform] hover:bg-background-subtle active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}

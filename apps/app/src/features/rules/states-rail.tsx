@@ -150,8 +150,8 @@ export function JurisdictionRail({
           variant="compact"
           value={search}
           onChange={onSearchChange}
-          placeholder={t`Search jurisdictions`}
-          ariaLabel={t`Search jurisdictions`}
+          placeholder={t`Filter jurisdictions`}
+          ariaLabel={t`Filter jurisdictions`}
           className="w-full"
         />
       </ListRailSection>

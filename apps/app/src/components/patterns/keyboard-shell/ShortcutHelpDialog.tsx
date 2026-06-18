@@ -173,10 +173,10 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
               </DialogDescription>
             </DialogHeader>
             <div className="flex shrink-0 flex-wrap gap-2">
-              <Badge variant="secondary" className="font-mono tabular-nums">
+              <Badge variant="secondary" className="tabular-nums">
                 <Trans>{availableCount} available</Trans>
               </Badge>
-              <Badge variant="outline" className="font-mono tabular-nums">
+              <Badge variant="outline" className="tabular-nums">
                 <Trans>{reservedCount} reserved</Trans>
               </Badge>
             </div>

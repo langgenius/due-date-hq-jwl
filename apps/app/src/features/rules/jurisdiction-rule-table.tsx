@@ -248,8 +248,8 @@ export function JurisdictionFilterBar({
       <CollapsibleSearch
         value={search}
         onChange={onSearchChange}
-        placeholder={t`Search ${jurisdictionLabel} rules`}
-        ariaLabel={t`Search ${jurisdictionLabel} rules`}
+        placeholder={t`Filter ${jurisdictionLabel} rules`}
+        ariaLabel={t`Filter ${jurisdictionLabel} rules`}
         size="icon"
         expandedWidthClassName="w-[200px] shrink-0 sm:w-[220px]"
       />

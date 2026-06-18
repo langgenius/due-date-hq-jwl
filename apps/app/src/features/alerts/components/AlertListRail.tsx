@@ -169,7 +169,7 @@ export function AlertListRail({
           variant="compact"
           value={search}
           onChange={setSearch}
-          placeholder={t`Search alerts`}
+          placeholder={t`Filter alerts`}
           className="w-full"
         />
       </ListRailSection>

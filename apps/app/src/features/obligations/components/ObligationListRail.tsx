@@ -87,7 +87,7 @@ export function ObligationListRail({
           variant="compact"
           value={search}
           onChange={setSearch}
-          placeholder={t`Search deadlines`}
+          placeholder={t`Filter deadlines`}
           className="w-full"
         />
       </ListRailSection>

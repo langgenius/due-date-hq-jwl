@@ -283,7 +283,7 @@ export function DashboardRoute() {
           <span className="inline-flex items-baseline gap-2">
             <Trans>Today</Trans>
             {dashboardQuery.isLoading ? (
-              <span className="text-2xl font-normal text-text-muted italic">
+              <span className="text-2xl font-normal text-text-muted">
                 <Trans>Loading…</Trans>
               </span>
             ) : data?.asOfDate ? (

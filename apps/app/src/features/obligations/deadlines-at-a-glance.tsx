@@ -111,7 +111,7 @@ export function DeadlinesAtAGlance({
     <div
       ref={rootRef}
       className={cn(
-        'grid transition-[grid-template-rows,opacity,margin] duration-300 ease-apple',
+        'grid transition-[grid-template-rows,opacity,margin] duration-300 ease-apple motion-reduce:transition-none',
         collapsed
           ? 'pointer-events-none -mt-8 grid-rows-[0fr] opacity-0'
           : 'grid-rows-[1fr] opacity-100',

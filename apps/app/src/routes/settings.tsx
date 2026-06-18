@@ -106,7 +106,7 @@ function SettingsRow({
       to={href}
       className={cn(
         'group/row flex items-start gap-3 border-b border-divider-subtle px-4 py-3 transition-colors last:border-b-0',
-        'hover:bg-state-base-hover focus-visible:bg-background-default-hover',
+        'hover:bg-state-base-hover focus-visible:bg-state-base-hover',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
     >

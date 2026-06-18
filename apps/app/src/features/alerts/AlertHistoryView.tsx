@@ -253,7 +253,7 @@ export function AlertHistoryView() {
           <SearchInput
             value={search}
             onChange={setSearch}
-            placeholder={t`Search handled alerts`}
+            placeholder={t`Filter handled alerts`}
             className="min-w-0 flex-1 sm:max-w-[240px]"
           />
         </div>

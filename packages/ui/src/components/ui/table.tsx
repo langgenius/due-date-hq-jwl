@@ -120,6 +120,7 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
 function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
   return (
     <th
+      scope={props.scope ?? 'col'}
       data-slot="table-head"
       // Canonical column-label style via the semantic text token
       // (--text-column-label: 12/16/600/+0.5px, tokens/primitives.css).

@@ -217,7 +217,7 @@ export function ConceptHelp({
       <PopoverTrigger
         openOnHover
         delay={150}
-        closeDelay={80}
+        closeDelay={200}
         render={
           <button
             type="button"
